@@ -1,24 +1,64 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
+import { PetHubColors } from '@/constants/theme';
+import { I18nProvider } from '@/features/i18n/i18n-context';
+import { ProfileProvider, useProfile } from '@/features/profile/profile-context';
+import { TrainingDataProvider } from '@/features/training/training-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: '(onboarding)',
 };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <I18nProvider>
+      <ProfileProvider>
+        <TrainingDataProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <RootNavigator />
+            <StatusBar style="dark" />
+          </ThemeProvider>
+        </TrainingDataProvider>
+      </ProfileProvider>
+    </I18nProvider>
   );
 }
+
+function RootNavigator() {
+  const { isHydrated, profile } = useProfile();
+
+  if (!isHydrated) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator color={PetHubColors.secondary} />
+      </View>
+    );
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!!profile}>
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={!profile}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingScreen: {
+    alignItems: 'center',
+    backgroundColor: PetHubColors.neutral,
+    flex: 1,
+    justifyContent: 'center',
+  },
+});
