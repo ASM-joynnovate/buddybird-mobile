@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# 앵Talk트레이너 Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo Router 기반의 PetHub 앵무새 음성 학습 코치 앱입니다. Phase 1은 최초 실행 온보딩, 단일 반려조 프로필 저장, 프로필 기반 홈 진입까지 구현합니다.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 실행
 
 ```bash
-npm run reset-project
+npm install
+npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+플랫폼별 실행:
 
-## Learn more
+```bash
+npm run ios
+npm run android
+npm run web
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## 검증
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run lint
+npm run typecheck
+```
 
-## Join the community
+## Phase 1 범위
 
-Join our community of developers creating universal apps.
+- 프로필이 없으면 온보딩을 건너뛸 수 없습니다.
+- 온보딩은 welcome, profile, goals 3단계입니다.
+- 이름, 종, 나이, 선택 사진, 학습 목표를 로컬에 단일 프로필로 저장합니다.
+- 저장된 프로필이 있으면 다음 실행부터 홈으로 바로 진입합니다.
+- 홈과 프로필 탭은 Phase 1-safe placeholder만 표시합니다.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 아직 구현하지 않는 범위
+
+- 오디오 녹음, 피치 변환, 미리듣기
+- 세션 설정과 Active Session
+- 학습 결과, 누적 단어 기록, 학습 성공 판정
+- 다중 프로필 추가와 삭제
+- analytics, i18n, 백엔드 동기화
+
+## 수동 확인 체크리스트
+
+1. 브라우저 또는 앱 저장소를 비운 뒤 실행합니다.
+2. 첫 화면에서 온보딩 welcome이 보이는지 확인합니다.
+3. 빈 이름 또는 빈 종으로 다음 단계 이동이 막히는지 확인합니다.
+4. 기본 종과 직접입력 종 모두 저장되는지 확인합니다.
+5. 목표를 하나 이상 선택하고 저장하면 홈으로 이동하는지 확인합니다.
+6. 새로고침 후 온보딩을 건너뛰고 홈이 보이는지 확인합니다.
+7. 프로필 탭에 단일 프로필 MVP 안내가 보이는지 확인합니다.
