@@ -1,98 +1,209 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Link, router } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
+import { PetScreen } from '@/components/layout/pet-screen';
+import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
+import { Card } from '@/components/ui/card';
+import { PillButton } from '@/components/ui/pill-button';
+import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { getPresetWordTemplates, getSessionTemplates } from '@/features/i18n/training-templates';
+import { useProfile } from '@/features/profile/profile-context';
+import { useTrainingData } from '@/features/training/training-context';
+import { selectTotalTrainingSeconds } from '@/features/training/training-model';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { locale, t } = useI18n();
+  const { profile } = useProfile();
+  const { store } = useTrainingData();
+  const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
+  const presetWords = getPresetWordTemplates(locale);
+  const sessionTemplates = getSessionTemplates(locale);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  if (!profile) {
+    return null;
+  }
+
+  return (
+    <PetScreen contentStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.kicker}>{t('home.kicker')}</Text>
+        <Text style={styles.greeting}>{t('home.greeting', { name: profile.name })}</Text>
+        <Text style={styles.body}>{t('home.body')}</Text>
+      </View>
+
+      <ParrotProfileCard profile={profile} />
+
+      <Card raised style={styles.sessionCard}>
+        <View style={styles.sessionHeader}>
+          <Text style={styles.cardTitle}>{t('home.sessionTitle')}</Text>
+          <Text style={styles.soonPill}>{t('home.phasePill')}</Text>
+        </View>
+        <WaveformPlaceholder />
+        <Text style={styles.bodySmall}>{t('home.sessionBody')}</Text>
+        <PillButton full label={t('home.startSessionCta')} onPress={() => router.push('/session-setup')} variant="teal" />
+      </Card>
+
+      <View style={styles.summaryGrid}>
+        <Card style={styles.summaryCard}>
+          <Text style={styles.summaryValue}>{formatTrainingSeconds(totalTrainingSeconds, t)}</Text>
+          <Text style={styles.summaryLabel}>{t('home.totalTrainingTime')}</Text>
+        </Card>
+        <Card style={styles.summaryCard}>
+          <Text style={styles.summaryValue}>{t('home.goalCount', { count: profile.trainingGoalIds.length })}</Text>
+          <Text style={styles.summaryLabel}>{t('home.trainingGoals')}</Text>
+        </Card>
+      </View>
+
+      <Card style={styles.templateCard}>
+        <Text style={styles.noticeTitle}>{t('home.presetPreviewTitle')}</Text>
+        <View style={styles.templateList}>
+          {presetWords.slice(0, 3).map((word) => (
+            <View key={word.id} style={styles.templateRow}>
+              <Text style={styles.templateLabel}>{word.label}</Text>
+              <Text style={styles.templateDescription}>{word.description}</Text>
+            </View>
+          ))}
+        </View>
+      </Card>
+
+      <Card style={styles.templateCard}>
+        <Text style={styles.noticeTitle}>{t('home.sessionTemplateTitle')}</Text>
+        <View style={styles.templateList}>
+          {sessionTemplates.slice(0, 2).map((session) => (
+            <View key={session.id} style={styles.templateRow}>
+              <Text style={styles.templateLabel}>{session.label}</Text>
+              <Text style={styles.templateDescription}>{session.description}</Text>
+            </View>
+          ))}
+        </View>
+      </Card>
+
+      <Card style={styles.noticeCard}>
+        <Text style={styles.noticeTitle}>{t('home.singleProfileTitle')}</Text>
+        <Text style={styles.bodySmall}>{t('home.singleProfileBody')}</Text>
+        <Link href="./profile" style={styles.profileLink}>
+          {t('home.profileLink')}
+        </Link>
+      </Card>
+    </PetScreen>
   );
 }
 
+function formatTrainingSeconds(totalSeconds: number, t: ReturnType<typeof useI18n>['t']): string {
+  if (totalSeconds < 3600) {
+    return t('common.duration.minutes', { minutes: Math.floor(totalSeconds / 60) });
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (minutes === 0) {
+    return t('common.duration.hours', { hours });
+  }
+
+  return t('common.duration.hoursMinutes', { hours, minutes });
+}
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  content: {
+    gap: Spacing.sectionY,
+  },
+  header: {
+    gap: Spacing.sectionHeadGap,
+  },
+  kicker: {
+    color: PetHubColors.secondaryDeep,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 4,
+  },
+  greeting: {
+    ...Typography.homeGreeting,
+    color: PetHubColors.primary,
+  },
+  body: {
+    ...Typography.body,
+    color: 'rgba(31,58,61,0.68)',
+  },
+  bodySmall: {
+    ...Typography.bodySmall,
+    color: 'rgba(31,58,61,0.64)',
+  },
+  sessionCard: {
+    gap: Spacing.cardPaddingSm,
+  },
+  sessionHeader: {
     alignItems: 'center',
-    gap: 8,
+    flexDirection: 'row',
+    gap: Spacing.cardPaddingSm,
+    justifyContent: 'space-between',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  cardTitle: {
+    ...Typography.cardTitle,
+    color: PetHubColors.primary,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  soonPill: {
+    backgroundColor: PetHubColors.feather,
+    borderRadius: Radii.full,
+    color: PetHubColors.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    gap: Spacing.sectionHeadGap,
+  },
+  summaryCard: {
+    flex: 1,
+    gap: 4,
+  },
+  summaryValue: {
+    ...Typography.cardTitle,
+    color: PetHubColors.primary,
+  },
+  summaryLabel: {
+    ...Typography.caption,
+    color: 'rgba(31,58,61,0.62)',
+  },
+  noticeCard: {
+    backgroundColor: PetHubColors.surfaceWarm,
+    gap: Spacing.tabPaddingY,
+  },
+  templateCard: {
+    gap: Spacing.tabPaddingY,
+  },
+  templateList: {
+    gap: Spacing.tabPaddingY,
+  },
+  templateRow: {
+    backgroundColor: PetHubColors.feather,
+    borderRadius: Radii.field,
+    gap: 2,
+    paddingHorizontal: Spacing.cardPaddingSm,
+    paddingVertical: 10,
+  },
+  templateLabel: {
+    ...Typography.bodySmall,
+    color: PetHubColors.primary,
+    fontWeight: '700',
+  },
+  templateDescription: {
+    ...Typography.caption,
+    color: 'rgba(31,58,61,0.62)',
+  },
+  noticeTitle: {
+    ...Typography.body,
+    color: PetHubColors.primary,
+    fontWeight: '700',
+  },
+  profileLink: {
+    color: PetHubColors.secondaryDeep,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
