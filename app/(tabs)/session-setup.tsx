@@ -1,236 +1,687 @@
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Slider from '@react-native-community/slider';
+import { useEffect, useMemo, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Circle, Svg } from 'react-native-svg';
 
-import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { Card } from '@/components/ui/card';
-import { Chip } from '@/components/ui/chip';
-import { FormField } from '@/components/ui/form-field';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { WaveformBars } from '@/components/ui/waveform-bars';
+import { PetHubColors, Spacing, Typography } from '@/constants/theme';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
-import { useAudioPreview } from '@/features/audio/use-audio-preview';
-import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { getPresetWordTemplates, getSessionTemplates, type PresetWordTemplate, type SessionTemplate } from '@/features/i18n/training-templates';
 import { useTrainingData } from '@/features/training/training-context';
-import { createAudioRecording, createTrainingWord } from '@/features/training/training-model';
-import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
+import { createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
+import type { AudioPitchTransform, TrainingSessionSettings } from '@/features/training/training-types';
 
-type SetupSource = TrainingAudioSourceType;
+type SessionStatus = 'idle' | 'running' | 'paused';
+
+const STEP_SESSION_MINS = 5;
+const STEP_LEARN_SECS = 10;
+const STEP_REST_SECS = 5;
+
+const PRESET_WORDS = [
+  { key: 'hello', word: '안녕',    cat: '인사' },
+  { key: 'apple', word: '사과',    cat: '음식' },
+  { key: 'water', word: '물',      cat: '음식' },
+  { key: 'bye',   word: '잘 다녀와', cat: '인사' },
+] as const;
+
+type PresetWord = (typeof PRESET_WORDS)[number];
 
 export default function SessionSetupScreen() {
   const { locale, t } = useI18n();
-  const { errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertRecording, upsertWord } = useTrainingData();
-  const presetWords = useMemo(() => getPresetWordTemplates(locale), [locale]);
-  const sessionTemplates = useMemo(() => getSessionTemplates(locale), [locale]);
-  const [source, setSource] = useState<SetupSource>('preset');
-  const [selectedPresetId, setSelectedPresetId] = useState(presetWords[0]?.id ?? '');
-  const [selectedSessionId, setSelectedSessionId] = useState(sessionTemplates[0]?.id ?? '');
+  const { store, errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertWord } = useTrainingData();
+
+  // setup state
+  const [selectedPresetKey, setSelectedPresetKey] = useState<string>('hello');
+  const [sessionMins, setSessionMins] = useState(20);
+  const [learnSecs, setLearnSecs] = useState(60);
+  const [restSecs, setRestSecs] = useState(30);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-  const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
-  const selectedPreset = presetWords.find((preset) => preset.id === selectedPresetId) ?? presetWords[0];
-  const selectedSession = sessionTemplates.find((session) => session.id === selectedSessionId) ?? sessionTemplates[0];
-  const recording = useAudioRecording({
-    permissionDeniedMessage: t('recording.permissionDenied'),
-    saveFailedMessage: t('recording.saveFailed'),
-    startFailedMessage: t('recording.startFailed'),
-  });
-  const previewUri = source === 'recording' ? recording.recordingFile?.uri : null;
-  const preview = useAudioPreview(previewUri);
-  const canContinue = isHydrated && (source === 'preset' ? Boolean(selectedPreset) : Boolean(recording.recordingFile));
+  // running session state
+  const [status, setStatus] = useState<SessionStatus>('idle');
+  const [phase, setPhase] = useState<'learning' | 'rest'>('learning');
+  const [cycle, setCycle] = useState(1);
+  const [phaseElapsed, setPhaseElapsed] = useState(0);
 
-  async function saveSessionSetup(): Promise<void> {
+  const secsPerCycle = learnSecs + restSecs;
+  const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
+  const selectedPreset = PRESET_WORDS.find((p) => p.key === selectedPresetKey) ?? PRESET_WORDS[0];
+  const currentWord = selectedPreset.word;
+  const isLearning = phase === 'learning';
+  const phaseDuration = isLearning ? learnSecs : restSecs;
+  const phaseRemaining = Math.max(0, phaseDuration - phaseElapsed);
+  const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
+  const circum = 2 * Math.PI * 96;
+
+  const wordSummaries = useMemo(
+    () => (store ? selectTrainingWordSummaries(store) : []),
+    [store]
+  );
+  function getPresetSessions(presetKey: string): number {
+    return wordSummaries
+      .filter((s) => s.word.presetKey === presetKey)
+      .reduce((sum, s) => sum + s.progress.sessionCount, 0);
+  }
+
+  const canContinue = isHydrated;
+
+  // 1-second tick
+  useEffect(() => {
+    if (status !== 'running') return;
+    const iv = setInterval(() => {
+      setPhaseElapsed((prev) => {
+        const next = prev + 1;
+        if (next < phaseDuration) return next;
+        if (phase === 'learning') {
+          setPhase('rest');
+          return 0;
+        }
+        if (cycle >= totalCycles) {
+          setStatus('idle');
+          setCycle(1);
+          setPhase('learning');
+          return 0;
+        }
+        setCycle((c) => c + 1);
+        setPhase('learning');
+        return 0;
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [status, phase, cycle, totalCycles, phaseDuration]);
+
+  async function saveSessionSetup(): Promise<boolean> {
     if (!isHydrated) {
       setSaveErrorMessage(t('sessionSetup.storeLoading'));
-      return;
+      return false;
     }
-
-    if (!selectedSession) {
-      setSaveErrorMessage(t('sessionSetup.selectTemplateError'));
-      return;
-    }
-
     if (!canContinue) {
       setSaveErrorMessage(t('sessionSetup.selectAudioError'));
-      return;
+      return false;
     }
-
     try {
       const nowIso = new Date().toISOString();
       const pitchTransform = createMvpPitchTransform(nowIso) as AudioPitchTransform;
-      const recordingEntity =
-        source === 'recording' && recording.recordingFile
-          ? createAudioRecording(
-              {
-                originalUri: recording.recordingFile.uri,
-                pitchTransform,
-              },
-              nowIso
-            )
-          : null;
       const word = createTrainingWord(
         {
-          audioUri: recordingEntity?.originalUri ?? `preset://${selectedPreset.id}`,
+          audioUri: `preset://${selectedPreset.word}`,
           locale,
-          label: selectedPreset.phrase,
-          presetKey: source === 'preset' ? selectedPreset.id : undefined,
-          recordingId: recordingEntity?.id,
-          sourceType: source,
+          label: selectedPreset.word,
+          presetKey: selectedPreset.key,
+          sourceType: 'preset',
           pitchTransform,
         },
         nowIso
       );
       const settings: TrainingSessionSettings = {
-        learningDurationSeconds: selectedSession.learningDurationSeconds,
-        restDurationSeconds: selectedSession.restDurationSeconds,
-        sourceType: source,
-        totalDurationSeconds: selectedSession.totalDurationSeconds,
+        learningDurationSeconds: learnSecs,
+        restDurationSeconds: restSecs,
+        sourceType: 'preset',
+        totalDurationSeconds: sessionMins * 60,
         wordId: word.id,
       };
-
-      if (recordingEntity) {
-        await upsertRecording(recordingEntity);
-      }
-
       await upsertWord(word);
       await saveLastSessionSettings(settings);
       setSaveErrorMessage(null);
-      setSavedMessage(t('sessionSetup.savedMessage'));
-      router.replace('/');
+      return true;
     } catch {
-      setSavedMessage(null);
       setSaveErrorMessage(t('sessionSetup.saveError'));
+      return false;
     }
   }
 
+  async function handleStartSession() {
+    const ok = await saveSessionSetup();
+    if (!ok) return;
+    setCycle(1);
+    setPhase('learning');
+    setPhaseElapsed(0);
+    setStatus('running');
+  }
+
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+  const insets = useSafeAreaInsets();
+
   return (
-    <PetScreen contentStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>{t('sessionSetup.kicker')}</Text>
-        <Text style={styles.title}>{t('sessionSetup.title')}</Text>
-        <Text style={styles.body}>{t('sessionSetup.body')}</Text>
-      </View>
-
-      <FormField label={t('sessionSetup.sourceLabel')}>
-        <View style={styles.chips}>
-          <Chip active={source === 'preset'} label={t('sessionSetup.presetSource')} onPress={() => setSource('preset')} tone="teal" />
-          <Chip active={source === 'recording'} label={t('sessionSetup.recordingSource')} onPress={() => setSource('recording')} tone="coral" />
-        </View>
-      </FormField>
-
-      {source === 'preset' ? (
-        <PresetSourceCard presets={presetWords} selectedPresetId={selectedPresetId} onSelectPreset={setSelectedPresetId} />
-      ) : (
-        <Card style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t('sessionSetup.recordingLabel')}</Text>
-          <Text style={styles.bodySmall}>{t('sessionSetup.recordingBody')}</Text>
-          <WaveformPlaceholder
-            helperText={recording.recordingFile?.fileName ?? recording.errorMessage ?? t('sessionSetup.recordingBody')}
-            state={recording.isRecording ? 'recording' : recording.recordingFile ? 'recorded' : 'idle'}
-            statusLabel={recording.isRecording ? t('sessionSetup.recordingStatus') : recording.recordingFile ? t('sessionSetup.recordedStatus') : t('sessionSetup.recordingLabel')}
+    <>
+      {/* ── Running view (modal overlay) ─────────────────────────── */}
+      <Modal visible={status !== 'idle'} animationType="fade" statusBarTranslucent>
+        <View style={[runStyles.container, { paddingTop: insets.top }]}>
+          {/* radial gradient overlay */}
+          <View
+            style={[
+              runStyles.gradientOverlay,
+              { backgroundColor: isLearning ? 'rgba(42,157,143,0.22)' : 'rgba(244,162,97,0.18)' },
+            ]}
           />
-          {recording.errorMessage ? <Text style={styles.error}>{recording.errorMessage}</Text> : null}
-          <View style={styles.actions}>
-            {recording.isRecording ? (
-              <PillButton full label={t('sessionSetup.stopRecording')} onPress={recording.stopRecording} variant="primary" />
-            ) : (
-              <PillButton full label={recording.recordingFile ? t('sessionSetup.rerecord') : t('sessionSetup.startRecording')} onPress={recording.requestAndStartRecording} variant="primary" />
-            )}
+
+          {/* header */}
+          <View style={runStyles.header}>
+            <Text style={runStyles.headerMono}>
+              {sessionMins}분 세션 · {cycle} / {totalCycles} 사이클
+            </Text>
+            <Pressable style={runStyles.stopBtn} onPress={() => setStatus('idle')}>
+              <Text style={runStyles.stopBtnText}>중단</Text>
+            </Pressable>
           </View>
-        </Card>
-      )}
 
-      <Card style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>{t('sessionSetup.confirmAudioTitle')}</Text>
-        <WaveformPlaceholder
-          helperText={source === 'preset' ? t('sessionSetup.presetPreviewDisabledBody') : t('sessionSetup.pitchAppliedBody')}
-          state={source === 'preset' ? 'preview-disabled' : recording.recordingFile ? 'pitch-applied' : 'idle'}
-          statusLabel={source === 'preset' ? t('sessionSetup.presetPreviewDisabledTitle') : recording.recordingFile ? t('sessionSetup.pitchAppliedStatus') : t('sessionSetup.confirmAudioTitle')}
-        />
-        <View style={styles.pitchBox}>
-          <Text style={styles.pitchTitle}>{t('pitch.profileName')}</Text>
-          <Text style={styles.bodySmall}>{t('pitch.profileDescription')}</Text>
+          {/* phase badge */}
+          <View style={runStyles.badgeRow}>
+            <View
+              style={[
+                runStyles.badge,
+                {
+                  backgroundColor: isLearning ? 'rgba(42,157,143,0.20)' : 'rgba(244,162,97,0.20)',
+                  borderColor: isLearning ? 'rgba(42,157,143,0.45)' : 'rgba(244,162,97,0.45)',
+                },
+              ]}
+            >
+              <View
+                style={[
+                  runStyles.badgeDot,
+                  { backgroundColor: isLearning ? '#7DD3C0' : '#F4A261' },
+                ]}
+              />
+              <Text style={[runStyles.badgeText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+                {isLearning ? '학습 중' : '휴식 중'}
+              </Text>
+            </View>
+          </View>
+
+          {/* circular progress */}
+          <View style={runStyles.progressWrapper}>
+            <Svg width={240} height={240}>
+              <Circle cx={120} cy={120} r={96} stroke="rgba(255,255,255,0.07)" strokeWidth={5} fill="none" />
+              <Circle
+                cx={120}
+                cy={120}
+                r={96}
+                stroke={isLearning ? '#7DD3C0' : '#F4A261'}
+                strokeWidth={5}
+                fill="none"
+                strokeDasharray={`${phaseProgress * circum} ${circum}`}
+                strokeLinecap="round"
+                transform={`rotate(-90 120 120)`}
+              />
+            </Svg>
+            <View style={runStyles.progressCenter}>
+              <Text style={runStyles.wordText}>{currentWord}</Text>
+              <Text style={[runStyles.timerText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+                {fmt(phaseRemaining)}
+              </Text>
+            </View>
+          </View>
+
+          {/* waveform + auto-sound badge */}
+          <View style={runStyles.waveSection}>
+            <View
+              style={[
+                runStyles.autoBadge,
+                {
+                  backgroundColor: isLearning ? 'rgba(42,157,143,0.15)' : 'rgba(255,255,255,0.05)',
+                  borderColor: isLearning ? 'rgba(42,157,143,0.35)' : 'rgba(255,255,255,0.1)',
+                },
+              ]}
+            >
+              <Text style={[runStyles.autoBadgeText, { color: isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.4)' }]}>
+                {isLearning ? '소리 자동 재생 중' : '휴식 중 · 다음 학습 준비'}
+              </Text>
+            </View>
+            <WaveformBars color={isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
+          </View>
+
+          {/* controls */}
+          <View style={[runStyles.controls, { paddingBottom: insets.bottom + 16 }]}>
+            <Pressable
+              style={runStyles.playPauseBtn}
+              onPress={() => setStatus(status === 'running' ? 'paused' : 'running')}
+            >
+              <IconSymbol
+                name={status === 'running' ? 'pause.fill' : 'play.fill'}
+                style={runStyles.playPauseIcon} color={'rgba(174, 190, 192, 0.8)'} size={20}           
+              />
+            </Pressable>
+            <View style={runStyles.cycleDots}>
+              {Array.from({ length: Math.min(totalCycles, 24) }, (_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    runStyles.dot,
+                    {
+                      backgroundColor:
+                        i < cycle - 1
+                          ? '#7DD3C0'
+                          : i === cycle - 1
+                          ? isLearning
+                            ? '#7DD3C0'
+                            : '#F4A261'
+                          : 'rgba(255,255,255,0.15)',
+                    },
+                  ]}
+                />
+              ))}
+              {totalCycles > 24 && (
+                <Text style={runStyles.dotOverflow}>+{totalCycles - 24}</Text>
+              )}
+            </View>
+          </View>
         </View>
-        <PillButton
-          disabled={!preview.canPreview}
-          full
-          label={preview.canPreview ? t('sessionSetup.previewCta') : t('sessionSetup.previewDisabledCta')}
-          onPress={preview.playPreview}
-          variant="ghost"
-        />
-        {preview.previewState === 'error' ? <Text style={styles.error}>{t('audioErrors.previewFailed')}</Text> : null}
-      </Card>
+      </Modal>
 
-      <FormField label={t('sessionSetup.sessionTemplateLabel')}>
-        <View style={styles.templateList}>
-          {sessionTemplates.map((session) => (
-            <TemplateOption key={session.id} active={selectedSessionId === session.id} session={session} onSelect={() => setSelectedSessionId(session.id)} />
+      {/* ── Setup view ───────────────────────────────────────────── */}
+      <PetScreen contentStyle={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.kicker}>{t('sessionSetup.kicker')}</Text>
+          <Text style={styles.title}>{t('sessionSetup.title')}</Text>
+          <Text style={styles.body}>{t('sessionSetup.body')}</Text>
+        </View>
+
+        {/* Cycle math summary */}
+        <CycleSummary
+          sessionMins={sessionMins}
+          learnSecs={learnSecs}
+          restSecs={restSecs}
+          totalCycles={totalCycles}
+        />
+
+        {/* Sliders */}
+        <Card style={styles.sliderCard}>
+          <SliderField
+            label="총 세션 시간"
+            value={`${sessionMins}분`}
+            min={5}
+            max={60}
+            step={STEP_SESSION_MINS}
+            current={sessionMins}
+            color={PetHubColors.primary}
+            onChange={(v) => setSessionMins(Math.round(v / STEP_SESSION_MINS) * STEP_SESSION_MINS)}
+          />
+          <SliderField
+            label="학습 시간"
+            value={`${learnSecs}초`}
+            min={20}
+            max={120}
+            step={STEP_LEARN_SECS}
+            current={learnSecs}
+            color={PetHubColors.secondary}
+            onChange={(v) => setLearnSecs(Math.round(v / STEP_LEARN_SECS) * STEP_LEARN_SECS)}
+          />
+          <SliderField
+            label="휴식 시간"
+            value={`${restSecs}초`}
+            min={10}
+            max={60}
+            step={STEP_REST_SECS}
+            current={restSecs}
+            color={PetHubColors.accentCoral}
+            onChange={(v) => setRestSecs(Math.round(v / STEP_REST_SECS) * STEP_REST_SECS)}
+          />
+          <Text style={styles.cycleMono}>
+            1사이클 = {learnSecs}초 학습 + {restSecs}초 휴식 ({learnSecs + restSecs}초)
+          </Text>
+        </Card>
+
+        {/* Word selection */}
+        <View style={styles.wordSection}>
+          <View style={styles.wordSectionHead}>
+            <Text style={styles.wordSectionKicker}>학습할 단어</Text>
+          </View>
+          {PRESET_WORDS.map((w) => (
+            <PresetWordCard
+              key={w.key}
+              word={w}
+              active={selectedPresetKey === w.key}
+              onSelect={() => setSelectedPresetKey(w.key)}
+              sessionCount={getPresetSessions(w.key)}
+            />
           ))}
         </View>
-      </FormField>
 
-      {!isHydrated ? <Text style={styles.bodySmall}>{t('sessionSetup.storeLoading')}</Text> : null}
-      {trainingErrorMessage ? <Text style={styles.error}>{trainingErrorMessage}</Text> : null}
-      {saveErrorMessage ? <Text style={styles.error}>{saveErrorMessage}</Text> : null}
-      {savedMessage ? <Text style={styles.success}>{savedMessage}</Text> : null}
-      <PillButton disabled={!canContinue} full label={t('sessionSetup.saveCta')} onPress={saveSessionSetup} size="lg" variant="teal" />
-    </PetScreen>
+        {!isHydrated ? <Text style={styles.bodySmall}>{t('sessionSetup.storeLoading')}</Text> : null}
+        {trainingErrorMessage ? <Text style={styles.error}>{trainingErrorMessage}</Text> : null}
+        {saveErrorMessage ? <Text style={styles.error}>{saveErrorMessage}</Text> : null}
+
+        <PillButton
+          disabled={!canContinue}
+          full
+          label={`세션 시작 · "${selectedPreset.word}" · ${totalCycles}사이클`}
+          onPress={handleStartSession}
+          size="lg"
+          variant="teal"
+        />
+      </PetScreen>
+    </>
   );
 }
 
-interface PresetSourceCardProps {
-  presets: PresetWordTemplate[];
-  selectedPresetId: string;
-  onSelectPreset: (presetId: string) => void;
-}
+// ── Word select card ──────────────────────────────────────────────────────────
 
-function PresetSourceCard({ presets, selectedPresetId, onSelectPreset }: PresetSourceCardProps) {
-  const { t } = useI18n();
-
+function PresetWordCard({ word, active, onSelect, sessionCount }: {
+  word: PresetWord; active: boolean; onSelect: () => void; sessionCount: number;
+}) {
+  const timeLabel = `${sessionCount} 세션`;
   return (
-    <Card style={styles.sectionCard}>
-      <Text style={styles.sectionTitle}>{t('sessionSetup.presetLabel')}</Text>
-      <View style={styles.chips}>
-        {presets.map((preset) => (
-          <Chip key={preset.id} active={selectedPresetId === preset.id} label={preset.label} onPress={() => onSelectPreset(preset.id)} tone="sun" />
-        ))}
+    <TouchableOpacity activeOpacity={0.8} onPress={onSelect} style={[presetStyles.card, active && presetStyles.cardActive]}>
+      <View style={presetStyles.row}>
+        <View style={presetStyles.textBlock}>
+          <Text style={[presetStyles.phrase, active && presetStyles.phraseActive]}>{word.word}</Text>
+          <Text style={[presetStyles.cat, active && presetStyles.catActive]}>{word.cat}</Text>
+        </View>
+        <Text style={[presetStyles.time, active && presetStyles.timeActive]}>{timeLabel}</Text>
+        <View style={[presetStyles.radio, active && presetStyles.radioActive]}>
+          {active && <View style={presetStyles.radioDot} />}
+        </View>
       </View>
-      {presets.map((preset) =>
-        selectedPresetId === preset.id ? (
-          <View key={preset.id} style={styles.selectedPresetBox}>
-            <Text style={styles.selectedPresetText}>{preset.phrase}</Text>
-            <Text style={styles.bodySmall}>{preset.description}</Text>
-          </View>
-        ) : null
-      )}
-    </Card>
+    </TouchableOpacity>
   );
 }
 
-interface TemplateOptionProps {
-  active: boolean;
-  session: SessionTemplate;
-  onSelect: () => void;
-}
+const presetStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(31,58,61,0.08)',
+    borderRadius: 16,
+    borderWidth: 0.5,
+    padding: 14,
+  },
+  cardActive: {
+    backgroundColor: PetHubColors.primary,
+    borderWidth: 0,
+  },
+  row: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  textBlock: {
+    alignItems: 'baseline',
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  phrase: {
+    color: PetHubColors.primary,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  phraseActive: { color: '#FAF6F0' },
+  cat: {
+    color: 'rgba(31,58,61,0.55)',
+    fontSize: 11,
+  },
+  catActive: { color: 'rgba(250,246,240,0.55)' },
+  time: {
+    color: 'rgba(31,58,61,0.45)',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  timeActive: { color: 'rgba(250,246,240,0.55)' },
+  radio: {
+    alignItems: 'center',
+    borderColor: 'rgba(31,58,61,0.2)',
+    borderRadius: 999,
+    borderWidth: 1.5,
+    height: 22,
+    justifyContent: 'center',
+    width: 22,
+  },
+  radioActive: {
+    backgroundColor: PetHubColors.secondary,
+    borderWidth: 0,
+  },
+  radioDot: {
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    height: 8,
+    width: 8,
+  },
+});
 
-function TemplateOption({ active, session, onSelect }: TemplateOptionProps) {
+// ── Cycle summary banner ──────────────────────────────────────────────────────
+
+function CycleSummary({ sessionMins, learnSecs, restSecs, totalCycles }: { sessionMins: number; learnSecs: number; restSecs: number; totalCycles: number }) {
   return (
-    <Card style={[styles.templateOption, active ? styles.activeTemplate : undefined]}>
-      <View style={styles.templateHeader}>
-        <Text style={styles.templateTitle}>{session.label}</Text>
-        <Chip active={active} label={formatMinutes(session.totalDurationSeconds)} onPress={onSelect} tone="teal" />
+    <View style={summaryStyles.row}>
+      <View style={[summaryStyles.cell, summaryStyles.cellDark]}>
+        <Text style={[summaryStyles.value, summaryStyles.valueDark]}>{sessionMins}분</Text>
+        <Text style={[summaryStyles.label, summaryStyles.labelDark]}>총 세션 시간</Text>
       </View>
-      <Text style={styles.bodySmall}>{session.description}</Text>
-    </Card>
+      <View style={[summaryStyles.cell, summaryStyles.cellTeal]}>
+        <Text style={[summaryStyles.value, summaryStyles.valueTeal]}>{learnSecs}초</Text>
+        <Text style={[summaryStyles.label, summaryStyles.labelTeal]}>학습</Text>
+      </View>
+      <View style={[summaryStyles.cell, summaryStyles.cellCoral]}>
+        <Text style={[summaryStyles.value, summaryStyles.valueCoral]}>{restSecs}초</Text>
+        <Text style={[summaryStyles.label, summaryStyles.labelCoral]}>휴식</Text>
+      </View>
+      <View style={[summaryStyles.cell, summaryStyles.cellCream]}>
+        <Text style={[summaryStyles.value, summaryStyles.valueCream]}>{totalCycles}</Text>
+        <Text style={[summaryStyles.label, summaryStyles.labelCream]}>사이클</Text>
+      </View>
+    </View>
   );
 }
 
-function formatMinutes(totalSeconds: number): string {
-  return `${Math.round(totalSeconds / 60)}m`;
+const summaryStyles = StyleSheet.create({
+  row: {
+    borderColor: 'rgba(31,58,61,0.08)',
+    borderRadius: 20,
+    borderWidth: 0.5,
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  cell: {
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 14,
+  },
+  cellDark: { backgroundColor: PetHubColors.primary },
+  cellTeal: { backgroundColor: PetHubColors.secondary },
+  cellCoral: { backgroundColor: PetHubColors.accentCoral },
+  cellCream: { backgroundColor: '#FAF6F0' },
+  value: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
+  valueDark: { color: '#FAF6F0' },
+  valueTeal: { color: '#FAF6F0' },
+  valueCoral: { color: '#FAF6F0' },
+  valueCream: { color: PetHubColors.primary },
+  label: { fontSize: 9, fontWeight: '500', letterSpacing: 0.5, marginTop: 2, opacity: 0.65 },
+  labelDark: { color: '#FAF6F0' },
+  labelTeal: { color: '#FAF6F0' },
+  labelCoral: { color: '#FAF6F0' },
+  labelCream: { color: PetHubColors.primary },
+});
+
+// ── Slider field ──────────────────────────────────────────────────────────────
+
+function SliderField({ label, value, min, max, step, current, color, onChange }: {
+  label: string; value: string; min: number; max: number; step: number; current: number; color: string; onChange: (v: number) => void;
+}) {
+  return (
+    <View style={sliderStyles.field}>
+      <View style={sliderStyles.row}>
+        <Text style={sliderStyles.label}>{label}</Text>
+        <Text style={[sliderStyles.value, { color }]}>{value}</Text>
+      </View>
+      <Slider
+        style={sliderStyles.slider}
+        minimumValue={min}
+        maximumValue={max}
+        value={current}
+        step={step}
+        minimumTrackTintColor={color}
+        maximumTrackTintColor="rgba(31,58,61,0.12)"
+        thumbTintColor={color}
+        onValueChange={onChange}
+      />
+    </View>
+  );
 }
+
+const sliderStyles = StyleSheet.create({
+  field: { gap: 2 },
+  row: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  label: { color: 'rgba(31,58,61,0.7)', fontSize: 13, fontWeight: '500' },
+  value: { fontSize: 13, fontWeight: '700' },
+  slider: { height: 36, width: '100%' },
+});
+
+// ── Running view styles ───────────────────────────────────────────────────────
+
+const runStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#0F1A1B',
+    flex: 1,
+  },
+  gradientOverlay: {
+    borderRadius: 999,
+    height: 300,
+    left: '50%',
+    marginLeft: -150,
+    marginTop: -60,
+    position: 'absolute',
+    top: 0,
+    width: 300,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+  },
+  headerMono: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.8,
+  },
+  stopBtn: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  stopBtnText: {
+    color: '#FAF6F0',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  badgeRow: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  badge: {
+    alignItems: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+  },
+  badgeDot: {
+    borderRadius: 999,
+    height: 6,
+    width: 6,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+  },
+  progressWrapper: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  progressCenter: {
+    alignItems: 'center',
+    bottom: 0,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  wordText: {
+    color: '#FAF6F0',
+    fontSize: 60,
+    fontWeight: '700',
+    letterSpacing: -2,
+    textAlign: 'center',
+  },
+  timerText: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginTop: 10,
+  },
+  waveSection: {
+    gap: 10,
+    paddingBottom: 14,
+    paddingHorizontal: 22,
+  },
+  autoBadge: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderRadius: 999,
+    borderWidth: 0.5,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  autoBadgeText: {
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.4,
+  },
+  controls: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    paddingTop: 10,
+  },
+  playPauseBtn: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 999,
+    height: 60,
+    justifyContent: 'center',
+    width: 60,
+  },
+  playPauseIcon: {
+    color: '#FAF6F0',
+    fontSize: 20,
+  },
+  cycleDots: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+    justifyContent: 'center',
+    maxWidth: 180,
+  },
+  dot: {
+    borderRadius: 999,
+    height: 9,
+    width: 9,
+  },
+  dotOverflow: {
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 9,
+  },
+});
+
+// ── Main screen styles ────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   content: {
@@ -257,73 +708,38 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: 'rgba(31,58,61,0.64)',
   },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.chipGap,
-  },
-  sectionCard: {
-    gap: Spacing.cardPaddingSm,
-  },
-  sectionTitle: {
-    ...Typography.body,
-    color: PetHubColors.primary,
-    fontWeight: '700',
-  },
-  selectedPresetBox: {
-    backgroundColor: PetHubColors.feather,
-    borderRadius: Radii.sectionCard,
-    gap: Spacing.micro,
-    padding: Spacing.cardPaddingSm,
-  },
-  selectedPresetText: {
-    ...Typography.cardTitle,
-    color: PetHubColors.primary,
-  },
-  pitchBox: {
-    backgroundColor: PetHubColors.secondaryTint,
-    borderRadius: Radii.field,
-    gap: Spacing.micro,
-    padding: Spacing.cardPaddingSm,
-  },
-  pitchTitle: {
-    ...Typography.bodySmall,
-    color: PetHubColors.primary,
-    fontWeight: '700',
-  },
-  actions: {
-    flexDirection: 'row',
+  sliderCard: {
     gap: Spacing.sectionHeadGap,
   },
-  templateList: {
-    gap: Spacing.tabPaddingY,
+  cycleMono: {
+    color: 'rgba(31,58,61,0.45)',
+    fontSize: 10,
+    letterSpacing: 0.3,
+    textAlign: 'center',
   },
-  templateOption: {
-    gap: Spacing.tabPaddingY,
+  wordSection: {
+    gap: 8,
   },
-  activeTemplate: {
-    borderColor: PetHubColors.secondary,
-    borderWidth: 2,
-  },
-  templateHeader: {
-    alignItems: 'center',
+  wordSectionHead: {
+    alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: Spacing.sectionHeadGap,
     justifyContent: 'space-between',
+    marginBottom: 2,
   },
-  templateTitle: {
-    ...Typography.bodySmall,
+  wordSectionKicker: {
+    color: 'rgba(31,58,61,0.55)',
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.6,
+  },
+  wordSectionTitle: {
+    ...Typography.body,
     color: PetHubColors.primary,
     fontWeight: '700',
   },
   error: {
     ...Typography.bodySmall,
     color: PetHubColors.accentCoral,
-    fontWeight: '700',
-  },
-  success: {
-    ...Typography.bodySmall,
-    color: PetHubColors.secondaryDeep,
     fontWeight: '700',
   },
 });
