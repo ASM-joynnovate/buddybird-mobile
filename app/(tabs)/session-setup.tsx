@@ -4,17 +4,20 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Svg } from 'react-native-svg';
 
+import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { Card } from '@/components/ui/card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
-import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioRecording } from '@/features/audio/use-audio-recording';
+import type { AudioSourceChoice } from '@/features/audio/audio-types';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useTrainingData } from '@/features/training/training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
-import type { AudioPitchTransform, TrainingSessionSettings } from '@/features/training/training-types';
+import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
 
 type SessionStatus = 'idle' | 'running' | 'paused';
 
@@ -36,11 +39,28 @@ export default function SessionSetupScreen() {
   const { store, errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertWord } = useTrainingData();
 
   // setup state
+  const [audioSource, setAudioSource] = useState<AudioSourceChoice>('preset');
   const [selectedPresetKey, setSelectedPresetKey] = useState<string>('hello');
   const [sessionMins, setSessionMins] = useState(20);
   const [learnSecs, setLearnSecs] = useState(60);
   const [restSecs, setRestSecs] = useState(30);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+
+  const {
+    errorMessage: recordingErrorMessage,
+    lifecycle: recordingLifecycle,
+    metering,
+    recordingFile,
+    requestAndStartRecording,
+    resetRecording,
+    stopRecording,
+  } = useAudioRecording({
+    permissionDeniedMessage: t('recording.permissionDenied'),
+    saveFailedMessage: t('recording.saveFailed'),
+    startFailedMessage: t('recording.startFailed'),
+    tooShortMessage: t('recording.tooShort'),
+    minDurationMs: 10_000,
+  });
 
   // running session state
   const [status, setStatus] = useState<SessionStatus>('idle');
@@ -68,7 +88,10 @@ export default function SessionSetupScreen() {
       .reduce((sum, s) => sum + s.progress.sessionCount, 0);
   }
 
-  const canContinue = isHydrated;
+  const canContinue =
+    isHydrated &&
+    (audioSource === 'preset' ||
+     (audioSource === 'recording' && recordingLifecycle === 'recorded' && recordingFile !== null));
 
   // 1-second tick
   useEffect(() => {
@@ -107,21 +130,32 @@ export default function SessionSetupScreen() {
     try {
       const nowIso = new Date().toISOString();
       const pitchTransform = createMvpPitchTransform(nowIso) as AudioPitchTransform;
+
+      let audioUri: string;
+      let label: string;
+      let presetKey: string | undefined;
+      let sourceType: TrainingAudioSourceType;
+
+      if (audioSource === 'preset') {
+        audioUri = `preset://${selectedPreset.word}`;
+        label = selectedPreset.word;
+        presetKey = selectedPreset.key;
+        sourceType = 'preset';
+      } else {
+        audioUri = recordingFile!.uri;
+        label = recordingFile!.fileName;
+        presetKey = undefined;
+        sourceType = 'recording';
+      }
+
       const word = createTrainingWord(
-        {
-          audioUri: `preset://${selectedPreset.word}`,
-          locale,
-          label: selectedPreset.word,
-          presetKey: selectedPreset.key,
-          sourceType: 'preset',
-          pitchTransform,
-        },
+        { audioUri, locale, label, presetKey, sourceType, pitchTransform },
         nowIso
       );
       const settings: TrainingSessionSettings = {
         learningDurationSeconds: learnSecs,
         restDurationSeconds: restSecs,
-        sourceType: 'preset',
+        sourceType,
         totalDurationSeconds: sessionMins * 60,
         wordId: word.id,
       };
@@ -284,6 +318,29 @@ export default function SessionSetupScreen() {
           <Text style={styles.body}>{t('sessionSetup.body')}</Text>
         </View>
 
+        {/* Audio source toggle */}
+        <View style={styles.sourceToggleRow}>
+          <Text style={styles.wordSectionKicker}>{t('sessionSetup.sourceLabel')}</Text>
+          <View style={styles.segmented}>
+            <Pressable
+              style={[styles.segmentBtn, audioSource === 'preset' && styles.segmentBtnActive]}
+              onPress={() => { setAudioSource('preset'); resetRecording(); }}
+            >
+              <Text style={[styles.segmentLabel, audioSource === 'preset' && styles.segmentLabelActive]}>
+                {t('sessionSetup.presetSource')}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.segmentBtn, audioSource === 'recording' && styles.segmentBtnActive]}
+              onPress={() => setAudioSource('recording')}
+            >
+              <Text style={[styles.segmentLabel, audioSource === 'recording' && styles.segmentLabelActive]}>
+                {t('sessionSetup.recordingSource')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
         {/* Cycle math summary */}
         <CycleSummary
           sessionMins={sessionMins}
@@ -329,21 +386,71 @@ export default function SessionSetupScreen() {
           </Text>
         </Card>
 
-        {/* Word selection */}
-        <View style={styles.wordSection}>
-          <View style={styles.wordSectionHead}>
-            <Text style={styles.wordSectionKicker}>학습할 단어</Text>
+        {/* Word / Recording selection */}
+        {audioSource === 'preset' && (
+          <View style={styles.wordSection}>
+            <View style={styles.wordSectionHead}>
+              <Text style={styles.wordSectionKicker}>학습할 단어</Text>
+            </View>
+            {PRESET_WORDS.map((w) => (
+              <PresetWordCard
+                key={w.key}
+                word={w}
+                active={selectedPresetKey === w.key}
+                onSelect={() => setSelectedPresetKey(w.key)}
+                sessionCount={getPresetSessions(w.key)}
+              />
+            ))}
           </View>
-          {PRESET_WORDS.map((w) => (
-            <PresetWordCard
-              key={w.key}
-              word={w}
-              active={selectedPresetKey === w.key}
-              onSelect={() => setSelectedPresetKey(w.key)}
-              sessionCount={getPresetSessions(w.key)}
+        )}
+
+        {audioSource === 'recording' && (
+          <Card style={styles.sliderCard}>
+            <Text style={styles.wordSectionKicker}>{t('sessionSetup.recordingLabel')}</Text>
+            <Text style={styles.bodySmall}>{t('sessionSetup.recordingBody')}</Text>
+            <WaveformPlaceholder
+              metering={metering}
+              state={
+                recordingLifecycle === 'recording' ? 'recording'
+                : recordingLifecycle === 'recorded' ? 'recorded'
+                : 'idle'
+              }
+              statusLabel={
+                recordingLifecycle === 'recording' ? t('sessionSetup.recordingStatus')
+                : recordingLifecycle === 'recorded' ? t('sessionSetup.recordedStatus')
+                : undefined
+              }
             />
-          ))}
-        </View>
+            <View style={styles.recorderBtns}>
+              {(recordingLifecycle === 'idle' || recordingLifecycle === 'error' || recordingLifecycle === 'requesting-permission') && (
+                <PillButton
+                  disabled={recordingLifecycle === 'requesting-permission'}
+                  full
+                  label={t('sessionSetup.startRecording')}
+                  onPress={requestAndStartRecording}
+                  variant="teal"
+                />
+              )}
+              {recordingLifecycle === 'recording' && (
+                <PillButton
+                  full
+                  label={t('sessionSetup.stopRecording')}
+                  onPress={stopRecording}
+                  variant="primary"
+                />
+              )}
+              {recordingLifecycle === 'recorded' && (
+                <PillButton
+                  full
+                  label={t('sessionSetup.rerecord')}
+                  onPress={resetRecording}
+                  variant="ghost"
+                />
+              )}
+            </View>
+            {recordingErrorMessage ? <Text style={styles.error}>{recordingErrorMessage}</Text> : null}
+          </Card>
+        )}
 
         {!isHydrated ? <Text style={styles.bodySmall}>{t('sessionSetup.storeLoading')}</Text> : null}
         {trainingErrorMessage ? <Text style={styles.error}>{trainingErrorMessage}</Text> : null}
@@ -352,7 +459,11 @@ export default function SessionSetupScreen() {
         <PillButton
           disabled={!canContinue}
           full
-          label={`세션 시작 · "${selectedPreset.word}" · ${totalCycles}사이클`}
+          label={
+            audioSource === 'preset'
+              ? `세션 시작 · "${selectedPreset.word}" · ${totalCycles}사이클`
+              : `세션 시작 · 녹음 파일 · ${totalCycles}사이클`
+          }
           onPress={handleStartSession}
           size="lg"
           variant="teal"
@@ -716,6 +827,36 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 0.3,
     textAlign: 'center',
+  },
+  sourceToggleRow: {
+    gap: Spacing.micro,
+  },
+  segmented: {
+    backgroundColor: 'rgba(31,58,61,0.06)',
+    borderRadius: Radii.full,
+    flexDirection: 'row',
+    padding: 3,
+  },
+  segmentBtn: {
+    alignItems: 'center',
+    borderRadius: Radii.full,
+    flex: 1,
+    paddingVertical: 7,
+  },
+  segmentBtnActive: {
+    backgroundColor: PetHubColors.secondary,
+  },
+  segmentLabel: {
+    color: 'rgba(31,58,61,0.6)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  segmentLabelActive: {
+    color: '#FAF6F0',
+  },
+  recorderBtns: {
+    flexDirection: 'row',
+    gap: 8,
   },
   wordSection: {
     gap: 8,

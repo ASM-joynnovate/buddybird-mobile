@@ -141,6 +141,7 @@ interface AppCopy {
     permissionDenied: string;
     startFailed: string;
     saveFailed: string;
+    tooShort: string;
   };
   pitch: {
     profileName: string;
@@ -299,6 +300,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
       startFailed: '녹음을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
       saveFailed: '녹음 파일을 저장하지 못했어요. 다시 녹음해 주세요.',
+      tooShort: '녹음이 너무 짧아요. 10초 이상 녹음해 주세요.',
     },
     pitch: {
       profileName: '앵무새 고주파 MVP',
@@ -477,6 +479,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',
       startFailed: 'Could not start recording. Please try again soon.',
       saveFailed: 'Could not save the recording. Please record again.',
+      tooShort: 'Recording is too short. Please record for at least 10 seconds.',
     },
     pitch: {
       profileName: 'Parrot high-tone MVP',
