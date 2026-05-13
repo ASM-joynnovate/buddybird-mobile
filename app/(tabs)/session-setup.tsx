@@ -7,6 +7,7 @@ import { Circle, Svg } from 'react-native-svg';
 import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { Card } from '@/components/ui/card';
+import { FreqBandViz } from '@/components/ui/freq-band-viz';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
@@ -34,6 +35,14 @@ const PRESET_WORDS = [
 
 type PresetWord = (typeof PRESET_WORDS)[number];
 
+const PERSONAS = [
+  { id: 'child',  label: '아이 톤',    range: '2.5–3.5 kHz' },
+  { id: 'female', label: '여성 톤',    range: '1.5–2.5 kHz' },
+  { id: 'bird',   label: '새 모방 톤', range: '3.5–4.0 kHz' },
+] as const;
+
+type PersonaId = (typeof PERSONAS)[number]['id'];
+
 export default function SessionSetupScreen() {
   const { locale, t } = useI18n();
   const { store, errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertWord } = useTrainingData();
@@ -45,6 +54,8 @@ export default function SessionSetupScreen() {
   const [learnSecs, setLearnSecs] = useState(60);
   const [restSecs, setRestSecs] = useState(30);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [target, setTarget] = useState(2.8);
+  const [persona, setPersona] = useState<PersonaId>('child');
 
   const {
     errorMessage: recordingErrorMessage,
@@ -449,6 +460,37 @@ export default function SessionSetupScreen() {
               )}
             </View>
             {recordingErrorMessage ? <Text style={styles.error}>{recordingErrorMessage}</Text> : null}
+          </Card>
+        )}
+
+        {audioSource === 'recording' && (
+          <Card style={styles.freqCard}>
+            <Text style={styles.wordSectionKicker}>고주파 톤 매핑 · 목표 주파수</Text>
+            <FreqBandViz low={1} high={target} color={PetHubColors.secondary} label={`${target.toFixed(1)} kHz`} />
+            <Slider
+              style={styles.freqSlider}
+              minimumValue={1.5}
+              maximumValue={4.0}
+              step={0.1}
+              value={target}
+              minimumTrackTintColor={PetHubColors.secondary}
+              maximumTrackTintColor="rgba(31,58,61,0.12)"
+              thumbTintColor={PetHubColors.secondary}
+              onValueChange={(v) => setTarget(Math.round(v * 10) / 10)}
+            />
+            <View style={styles.personaRow}>
+              {PERSONAS.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  activeOpacity={0.75}
+                  style={[styles.personaBtn, persona === p.id && styles.personaBtnActive]}
+                  onPress={() => setPersona(p.id)}
+                >
+                  <Text style={[styles.personaLabel, persona === p.id && styles.personaLabelActive]}>{p.label}</Text>
+                  <Text style={styles.personaRange}>{p.range}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </Card>
         )}
 
@@ -882,5 +924,46 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: PetHubColors.accentCoral,
     fontWeight: '700',
+  },
+  freqCard: {
+    gap: 14,
+  },
+  freqSlider: {
+    height: 36,
+    width: '100%',
+  },
+  personaRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  personaBtn: {
+    backgroundColor: '#fff',
+    borderColor: 'rgba(31,58,61,0.12)',
+    borderRadius: Radii.field,
+    borderWidth: 0.5,
+    flex: 1,
+    gap: 2,
+    minWidth: 90,
+    padding: 10,
+  },
+  personaBtnActive: {
+    backgroundColor: 'rgba(42,157,143,0.08)',
+    borderColor: PetHubColors.secondary,
+    borderWidth: 1.5,
+  },
+  personaLabel: {
+    color: PetHubColors.primary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  personaLabelActive: {
+    color: PetHubColors.secondary,
+  },
+  personaRange: {
+    color: 'rgba(31,58,61,0.55)',
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+    marginTop: 2,
   },
 });
