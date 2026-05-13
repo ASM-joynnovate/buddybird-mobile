@@ -32,9 +32,11 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
   const animatedHeights = useRef<Animated.Value[]>(
     SEED_HEIGHTS.map((s) => new Animated.Value(s * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT))
   ).current;
+  const prevEffectiveRef = useRef(0);
 
   useEffect(() => {
     if (!isRecording || metering == null) {
+      prevEffectiveRef.current = 0;
       const anims = animatedHeights.map((av, i) =>
         Animated.timing(av, {
           toValue: SEED_HEIGHTS[i] * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
@@ -46,10 +48,27 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       return;
     }
 
+    // 0.25 미만은 배경 잡음으로 간주, 그 이상 구간을 0-1로 재정규화
+    const NOISE_FLOOR = 0.25;
+    const effective = metering < NOISE_FLOOR ? 0 : (metering - NOISE_FLOOR) / (1 - NOISE_FLOOR);
+    const prev = prevEffectiveRef.current;
+    prevEffectiveRef.current = effective;
+
+    if (effective === 0) {
+      if (prev === 0) return; // 이미 무음 — 애니메이션 불필요
+      // 유음 → 무음 전환: 막대를 최소 높이로 한 번만 내림
+      Animated.parallel(
+        animatedHeights.map((av) =>
+          Animated.timing(av, { toValue: BAR_MIN_HEIGHT, duration: 150, useNativeDriver: false })
+        )
+      ).start();
+      return;
+    }
+
     const anims = animatedHeights.map((av, i) => {
       const centreWeight = 1 - Math.abs(i - BAR_COUNT / 2) / (BAR_COUNT / 2);
-      const jitter = (Math.random() - 0.5) * 0.35;
-      const targetNorm = Math.max(0.08, Math.min(1, metering * centreWeight + jitter));
+      const jitter = (Math.random() - 0.5) * 0.35 * effective;
+      const targetNorm = Math.max(0, Math.min(1, effective * centreWeight + jitter));
       return Animated.timing(av, {
         toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
         duration: 80,

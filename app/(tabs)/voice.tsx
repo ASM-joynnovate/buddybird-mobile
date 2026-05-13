@@ -4,11 +4,13 @@ import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Path, Rect, Svg } from 'react-native-svg';
 
+import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { Card } from '@/components/ui/card';
 import { FreqBandViz } from '@/components/ui/freq-band-viz';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioRecording } from '@/features/audio/use-audio-recording';
 
 const PERSONAS = [
   { id: 'child', label: '아이 톤', range: '2.5–3.5 kHz' },
@@ -20,17 +22,18 @@ type PersonaId = (typeof PERSONAS)[number]['id'];
 
 export default function VoiceScreen() {
   const insets = useSafeAreaInsets();
-  const [recording, setRecording] = useState(false);
-  const [hasClip, setHasClip] = useState(false);
+  const { isRecording, lifecycle, metering, errorMessage, requestAndStartRecording, stopRecording } = useAudioRecording({
+    permissionDeniedMessage: '마이크 권한이 필요합니다',
+    saveFailedMessage: '녹음 저장에 실패했습니다',
+    startFailedMessage: '녹음 시작에 실패했습니다',
+    tooShortMessage: '녹음이 너무 짧습니다',
+    minDurationMs: 1_000,
+  });
   const [target, setTarget] = useState(2.8);
   const [persona, setPersona] = useState<PersonaId>('child');
 
-  const currentPersona = PERSONAS.find((p) => p.id === persona)!;
-
-  function toggleRecording() {
-    if (!recording) setHasClip(true);
-    setRecording((r) => !r);
-  }
+  const hasClip = lifecycle === 'recorded';
+  const currentPersona = PERSONAS.find((p) => p.id === persona)!
 
   return (
     <ScrollView
@@ -53,13 +56,16 @@ export default function VoiceScreen() {
         <View style={styles.recorderInner}>
           <Text style={styles.recorderMono}>WORD · 녹음할 단어</Text>
           <Text style={styles.recorderWord}>{'"사과"'}</Text>
-          <WaveformBars color={recording ? '#E76F51' : '#7DD3C0'} height={52} barCount={44} />
+          <WaveformPlaceholder
+            state={isRecording ? 'recording' : lifecycle === 'recorded' ? 'recorded' : 'idle'}
+            metering={metering}
+          />
           <View style={styles.micRow}>
             <Pressable
-              style={[styles.micBtn, recording && styles.micBtnRecording]}
-              onPress={toggleRecording}
+              style={[styles.micBtn, isRecording && styles.micBtnRecording]}
+              onPress={() => isRecording ? stopRecording() : requestAndStartRecording()}
             >
-              {recording ? (
+              {isRecording ? (
                 <View style={styles.stopRect} />
               ) : (
                 <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#1F3A3D" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -70,7 +76,7 @@ export default function VoiceScreen() {
             </Pressable>
           </View>
           <Text style={styles.recorderStatus}>
-            {recording ? '녹음 중 · 0:02' : '버튼을 눌러 녹음을 시작하세요'}
+            {isRecording ? '녹음 중...' : lifecycle === 'error' ? errorMessage : lifecycle === 'recorded' ? '녹음 완료' : '버튼을 눌러 녹음을 시작하세요'}
           </Text>
         </View>
       </View>
