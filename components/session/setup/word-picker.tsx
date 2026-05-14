@@ -9,6 +9,8 @@ export interface WordPickerItem {
   label: string;
   tag: string;
   presetKey?: string;
+  sourceType: 'preset' | 'recording';
+  sourceLabel: string;
 }
 
 interface WordPickerProps {
@@ -46,6 +48,8 @@ export function WordPicker({
           key={item.id}
           label={item.label}
           tag={item.tag}
+          sourceType={item.sourceType}
+          sourceLabel={item.sourceLabel}
           sessionCountLabel={getSessionCountLabel(item)}
           active={selectedId === item.id}
           onSelect={() => onSelect(item.id)}

@@ -38,6 +38,8 @@ export default function SessionSetupScreen() {
     label: e.label,
     tag: e.tag,
     presetKey: e.presetKey,
+    sourceType: e.sourceType,
+    sourceLabel: t(e.sourceType === 'preset' ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording'),
   }));
 
   const selectedEntry = entries.find((e) => e.id === selectedEntryId);
