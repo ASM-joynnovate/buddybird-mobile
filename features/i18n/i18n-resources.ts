@@ -172,6 +172,8 @@ interface AppCopy {
     emptyHint: string;
     editAction: string;
     deleteAction: string;
+    sourcePreset: string;
+    sourceRecording: string;
   };
   sessionSetupExtra: {
     emptyLibrary: string;
@@ -357,6 +359,8 @@ export const translations: Record<AppLocale, AppCopy> = {
       emptyHint: '위의 + 버튼으로 단어를 추가해 보세요.',
       editAction: '편집',
       deleteAction: '삭제',
+      sourcePreset: '기본',
+      sourceRecording: '녹음',
     },
     sessionSetupExtra: {
       emptyLibrary: '등록된 단어가 없습니다. 단어 탭에서 추가하세요.',
@@ -562,6 +566,8 @@ export const translations: Record<AppLocale, AppCopy> = {
       emptyHint: 'Tap the + button above to add a word.',
       editAction: 'Edit',
       deleteAction: 'Delete',
+      sourcePreset: 'Built-in',
+      sourceRecording: 'Recorded',
     },
     sessionSetupExtra: {
       emptyLibrary: 'No words in library. Add one from the Words tab.',

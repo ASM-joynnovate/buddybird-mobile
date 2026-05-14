@@ -86,6 +86,11 @@ export default function WordsScreen() {
                 <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
                   <Text style={[styles.catPillText, { color: col }]}>{e.tag}</Text>
                 </View>
+                <View style={[styles.sourcePill, e.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
+                  <Text style={[styles.sourcePillText, e.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
+                    {e.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
+                  </Text>
+                </View>
               </View>
               <TouchableOpacity
                 style={styles.editBtn}
@@ -237,6 +242,27 @@ const styles = StyleSheet.create({
   catPillText: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  sourcePill: {
+    borderRadius: Radii.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  sourcePillPreset: {
+    backgroundColor: 'rgba(31,58,61,0.06)',
+  },
+  sourcePillRecording: {
+    backgroundColor: 'rgba(42,157,143,0.12)',
+  },
+  sourcePillText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  sourcePillTextPreset: {
+    color: 'rgba(31,58,61,0.45)',
+  },
+  sourcePillTextRecording: {
+    color: PetHubColors.secondary,
   },
   editBtn: {
     alignItems: 'center',

@@ -117,7 +117,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
   }
 
   function handleDelete() {
-    if (!entry) return;
+    if (!entry || entry.sourceType === 'preset') return;
     Alert.alert(t('wordEdit.confirmDelete'), entry.label, [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -147,9 +147,11 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('wordEdit.title')}</Text>
           <View style={styles.headerActions}>
-            <Pressable style={styles.deleteBtn} onPress={handleDelete}>
-              <Text style={styles.deleteBtnText}>{t('wordEdit.delete')}</Text>
-            </Pressable>
+            {entry?.sourceType !== 'preset' && (
+              <Pressable style={styles.deleteBtn} onPress={handleDelete}>
+                <Text style={styles.deleteBtnText}>{t('wordEdit.delete')}</Text>
+              </Pressable>
+            )}
             <Pressable style={styles.closeBtn} onPress={handleClose}>
               <Text style={styles.closeBtnText}>{t('wordCreate.cancel')}</Text>
             </Pressable>
