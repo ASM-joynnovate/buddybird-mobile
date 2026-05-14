@@ -37,13 +37,13 @@ function WordCard({ entry, onEdit, t }: WordCardProps) {
       <View style={styles.wordInfo}>
         <Text style={styles.wordText}>{entry.label}</Text>
         <View style={styles.tagsRow}>
-          <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-            <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
-          </View>
           <View style={[styles.sourcePill, entry.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
             <Text style={[styles.sourcePillText, entry.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
               {entry.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
             </Text>
+          </View>
+          <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
+            <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
           </View>
         </View>
       </View>
