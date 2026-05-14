@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,18 +8,13 @@ import { SessionHeader } from '@/components/session/running/session-header';
 import { SessionPhaseBadge } from '@/components/session/running/session-phase-badge';
 import { SessionProgressRing } from '@/components/session/running/session-progress-ring';
 import { SessionWaveSection } from '@/components/session/running/session-wave-section';
+import { PetHubColors } from '@/constants/theme';
 import { useActiveSession } from '@/features/training/hooks/use-active-session';
 import { useTrainingData } from '@/features/training/training-context';
 
 export default function SessionActiveScreen() {
   const insets = useSafeAreaInsets();
   const { pendingSession, clearPendingSession } = useTrainingData();
-
-  useEffect(() => {
-    if (!pendingSession) {
-      router.replace('/session-setup');
-    }
-  }, [pendingSession]);
 
   if (!pendingSession) return null;
 
@@ -54,14 +48,14 @@ function SessionActiveInner({
 
   function handleStop(): void {
     session.stop();
-    clearPendingSession();
     router.back();
+    setTimeout(() => clearPendingSession(), 0);
   }
 
   function handleDismiss(): void {
     session.dismissCompletion();
-    clearPendingSession();
     router.back();
+    setTimeout(() => clearPendingSession(), 0);
   }
 
   const fmt = (s: number) =>
@@ -113,7 +107,7 @@ function SessionActiveInner({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0F1A1B',
+    backgroundColor: PetHubColors.darkBg,
     flex: 1,
   },
   gradientOverlay: {
