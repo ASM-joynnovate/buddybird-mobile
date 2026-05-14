@@ -9,7 +9,8 @@ import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
-import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
+import { computePlaybackRate, createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import type { PersonaId } from '@/features/training/session-config';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
@@ -38,6 +39,11 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     startFailedMessage: t('recording.startFailed'),
     maxDurationMs: 60_000,
   });
+
+  const { previewState, playPreview } = useAudioPreview(
+    recording.recordingFile?.uri,
+    computePlaybackRate(target),
+  );
 
   const canSave =
     recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0;
@@ -99,10 +105,14 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             startLabel={t('sessionSetup.startRecording')}
             stopLabel={t('sessionSetup.stopRecording')}
             rerecordLabel={t('sessionSetup.rerecord')}
+            previewLabel={t('sessionSetup.previewCta')}
+            previewPlayingLabel='재생 중…'
+            previewState={previewState}
             errorMessage={recording.errorMessage}
             onStart={recording.requestAndStartRecording}
             onStop={recording.stopRecording}
             onReset={recording.resetRecording}
+            onPreview={playPreview}
           />
 
           <WordLabelField
