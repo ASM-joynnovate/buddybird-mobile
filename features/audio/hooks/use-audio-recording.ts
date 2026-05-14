@@ -1,8 +1,8 @@
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { persistRecordingFile } from './audio-file-storage';
-import type { RecordingLifecycle, StableRecordingFile } from './audio-types';
+import { persistRecordingFile } from '../audio-file-storage';
+import type { RecordingLifecycle, StableRecordingFile } from '../audio-types';
 
 const DB_FLOOR = -60;
 const DB_CEIL = -10;
