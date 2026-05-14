@@ -1,28 +1,28 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AddWordForm } from '@/components/words/forms/add-word-form';
+import { WordCreateModal } from '@/components/words/word-create-modal';
+import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordListItem } from '@/components/words/word-list-item';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
-import { CATS, INITIAL_WORDS } from '@/features/training/session-words-mock';
-
-const ADD_CATS = ['인사', '음식', '이름', '기타'] as const;
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { CATS, type WordCategory } from '@/features/training/session-words-mock';
+import { useWordLibrary } from '@/features/word-library/word-library-context';
+import type { WordEntry } from '@/features/word-library/word-library-types';
 
 export default function WordsScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState<(typeof CATS)[number]>('전체');
-  const [words, setWords] = useState(INITIAL_WORDS);
-  const [showAdd, setShowAdd] = useState(false);
+  const { entries } = useWordLibrary();
 
-  const visible = filter === '전체' ? words : words.filter((w) => w.cat === filter);
+  const [filter, setFilter] = useState<WordCategory>('전체');
+  const [showCreate, setShowCreate] = useState(false);
+  const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
-  function handleAdd(word: string, cat: string): void {
-    setWords((ws) => [...ws, { id: Date.now(), word, cat }]);
-    setShowAdd(false);
-  }
+  const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -31,7 +31,7 @@ export default function WordsScreen() {
           <Text style={styles.kicker}>WORDS</Text>
           <Text style={styles.title}>단어 관리</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => setShowAdd(true)}>
+        <Pressable style={styles.addBtn} onPress={() => setShowCreate(true)}>
           <Text style={styles.addBtnIcon}>+</Text>
         </Pressable>
       </View>
@@ -42,22 +42,57 @@ export default function WordsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
-        {showAdd && (
-          <AddWordForm cats={ADD_CATS} onCancel={() => setShowAdd(false)} onAdd={handleAdd} />
-        )}
-
-        {visible.map((w) => (
-          <WordListItem key={w.id} word={w.word} cat={w.cat} onPlay={() => router.push('/session-setup')} />
+        {visible.map((e) => (
+          <WordRow key={e.id} entry={e} onEdit={() => setEditEntry(e)} />
         ))}
 
         {visible.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🦜</Text>
-            <Text style={styles.emptyText}>단어가 없어요. 위의 + 버튼으로 추가해 보세요!</Text>
+            <Text style={styles.emptyText}>{t('wordLibrary.empty')}</Text>
+            <Text style={styles.emptyHint}>{t('wordLibrary.emptyHint')}</Text>
           </View>
         )}
       </ScrollView>
+
+      <WordCreateModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={() => setShowCreate(false)}
+      />
+
+      <WordEditModal
+        visible={editEntry !== null}
+        entry={editEntry}
+        onClose={() => setEditEntry(null)}
+        onSaved={() => setEditEntry(null)}
+        onDeleted={() => setEditEntry(null)}
+      />
     </View>
+  );
+}
+
+interface WordRowProps {
+  entry: WordEntry;
+  onEdit: () => void;
+}
+
+function WordRow({ entry, onEdit }: WordRowProps) {
+  const { t } = useI18n();
+  const { canPreview, playPreview } = useAudioPreview(entry.transformedAudioUri ?? entry.audioUri);
+  const isPreset = entry.sourceType === 'preset';
+  const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
+
+  return (
+    <WordListItem
+      label={entry.label}
+      tag={entry.tag}
+      sourceLabel={sourceLabel}
+      isPreset={isPreset}
+      canPreview={canPreview}
+      onEdit={onEdit}
+      onPlay={() => { void playPreview(); }}
+    />
   );
 }
 
@@ -115,6 +150,13 @@ const styles = StyleSheet.create({
   emptyText: {
     color: 'rgba(31,58,61,0.4)',
     fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  emptyHint: {
+    color: 'rgba(31,58,61,0.35)',
+    fontSize: 13,
+    marginTop: 4,
     textAlign: 'center',
   },
 });

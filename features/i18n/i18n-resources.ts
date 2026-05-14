@@ -150,6 +150,34 @@ interface AppCopy {
   audioErrors: {
     previewFailed: string;
   };
+  wordCreate: {
+    title: string;
+    step1Recording: string;
+    step2Label: string;
+    step3Tag: string;
+    step4Tone: string;
+    save: string;
+    cancel: string;
+    labelPlaceholder: string;
+    toneTitle: string;
+    frequencyLabel: string;
+  };
+  wordEdit: {
+    title: string;
+    delete: string;
+    confirmDelete: string;
+  };
+  wordLibrary: {
+    empty: string;
+    emptyHint: string;
+    editAction: string;
+    deleteAction: string;
+    sourcePreset: string;
+    sourceRecording: string;
+  };
+  sessionSetupExtra: {
+    emptyLibrary: string;
+  };
   profile: {
     kicker: string;
     title: string;
@@ -308,6 +336,34 @@ export const translations: Record<AppLocale, AppCopy> = {
     },
     audioErrors: {
       previewFailed: '미리듣기를 재생하지 못했어요. 다시 시도해 주세요.',
+    },
+    wordCreate: {
+      title: '음성 녹음으로 단어 추가',
+      step1Recording: '녹음',
+      step2Label: '단어 이름',
+      step3Tag: '태그 선택',
+      step4Tone: '톤 설정',
+      save: '저장',
+      cancel: '취소',
+      labelPlaceholder: '예: 사랑해',
+      toneTitle: '고주파 톤 매핑 · 목표 주파수',
+      frequencyLabel: '목표 주파수',
+    },
+    wordEdit: {
+      title: '단어 편집',
+      delete: '삭제',
+      confirmDelete: '이 단어를 삭제할까요?',
+    },
+    wordLibrary: {
+      empty: '등록된 단어가 없어요.',
+      emptyHint: '위의 + 버튼으로 단어를 추가해 보세요.',
+      editAction: '편집',
+      deleteAction: '삭제',
+      sourcePreset: '기본',
+      sourceRecording: '녹음',
+    },
+    sessionSetupExtra: {
+      emptyLibrary: '등록된 단어가 없습니다. 단어 탭에서 추가하세요.',
     },
     profile: {
       kicker: 'PROFILE',
@@ -487,6 +543,34 @@ export const translations: Record<AppLocale, AppCopy> = {
     },
     audioErrors: {
       previewFailed: 'Could not play the preview. Please try again.',
+    },
+    wordCreate: {
+      title: 'Add word by voice recording',
+      step1Recording: 'Record',
+      step2Label: 'Word name',
+      step3Tag: 'Choose tag',
+      step4Tone: 'Tone settings',
+      save: 'Save',
+      cancel: 'Cancel',
+      labelPlaceholder: 'e.g. I love you',
+      toneTitle: 'High-tone mapping · target frequency',
+      frequencyLabel: 'Target frequency',
+    },
+    wordEdit: {
+      title: 'Edit word',
+      delete: 'Delete',
+      confirmDelete: 'Delete this word?',
+    },
+    wordLibrary: {
+      empty: 'No words yet.',
+      emptyHint: 'Tap the + button above to add a word.',
+      editAction: 'Edit',
+      deleteAction: 'Delete',
+      sourcePreset: 'Built-in',
+      sourceRecording: 'Recorded',
+    },
+    sessionSetupExtra: {
+      emptyLibrary: 'No words in library. Add one from the Words tab.',
     },
     profile: {
       kicker: 'PROFILE',

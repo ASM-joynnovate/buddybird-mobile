@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-const TICKS = [0, 2, 4, 6, 8]; // 1 ~ 5 범위로 수정해야합니다.
+const TICKS = [1, 2, 3, 4, 5];
 
 interface FreqBandVizProps {
   low: number;

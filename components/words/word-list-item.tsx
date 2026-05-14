@@ -4,25 +4,52 @@ import { PetHubColors, Radii } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 
 interface WordListItemProps {
-  word: string;
-  cat: string;
+  label: string;
+  tag: string;
+  sourceLabel: string;
+  isPreset: boolean;
+  canPreview: boolean;
+  onEdit: () => void;
   onPlay: () => void;
 }
 
-export function WordListItem({ word, cat, onPlay }: WordListItemProps) {
-  const col = catColors[cat] ?? PetHubColors.secondary;
+export function WordListItem({
+  label,
+  tag,
+  sourceLabel,
+  isPreset,
+  canPreview,
+  onEdit,
+  onPlay,
+}: WordListItemProps) {
+  const col = catColors[tag] ?? PetHubColors.secondary;
   return (
     <View style={styles.card}>
       <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
-        <Text style={[styles.badgeText, { color: col }]}>{word[0]}</Text>
+        <Text style={[styles.badgeText, { color: col }]}>{label[0]}</Text>
       </View>
       <View style={styles.info}>
-        <Text style={styles.word}>{word}</Text>
-        <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-          <Text style={[styles.catPillText, { color: col }]}>{cat}</Text>
+        <Text style={styles.word}>{label}</Text>
+        <View style={styles.tagsRow}>
+          <View style={[styles.sourcePill, isPreset ? styles.sourcePillPreset : styles.sourcePillRecording]}>
+            <Text style={[styles.sourcePillText, isPreset ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
+              {sourceLabel}
+            </Text>
+          </View>
+          <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
+            <Text style={[styles.catPillText, { color: col }]}>{tag}</Text>
+          </View>
         </View>
       </View>
-      <TouchableOpacity style={styles.playBtn} activeOpacity={0.7} onPress={onPlay}>
+      <TouchableOpacity style={styles.editBtn} activeOpacity={0.7} onPress={onEdit}>
+        <Text style={styles.editBtnIcon}>✎</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
+        activeOpacity={0.7}
+        disabled={!canPreview}
+        onPress={onPlay}
+      >
         <Text style={styles.playBtnIcon}>▶</Text>
       </TouchableOpacity>
     </View>
@@ -53,10 +80,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   info: {
-    alignItems: 'baseline',
+    alignItems: 'flex-start',
     flex: 1,
+    flexDirection: 'column',
+    gap: 6,
+  },
+  tagsRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   word: {
     color: PetHubColors.primary,
@@ -71,6 +104,40 @@ const styles = StyleSheet.create({
   catPillText: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  sourcePill: {
+    borderRadius: Radii.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  sourcePillPreset: {
+    backgroundColor: 'rgba(31,58,61,0.06)',
+  },
+  sourcePillRecording: {
+    backgroundColor: 'rgba(42,157,143,0.12)',
+  },
+  sourcePillText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  sourcePillTextPreset: {
+    color: 'rgba(31,58,61,0.45)',
+  },
+  sourcePillTextRecording: {
+    color: PetHubColors.secondary,
+  },
+  editBtn: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(31,58,61,0.06)',
+    borderRadius: Radii.full,
+    flexShrink: 0,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  editBtnIcon: {
+    color: PetHubColors.primary,
+    fontSize: 14,
   },
   playBtn: {
     alignItems: 'center',
