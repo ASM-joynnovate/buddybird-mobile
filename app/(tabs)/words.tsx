@@ -1,11 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/ui/card';
-import { PillButton } from '@/components/ui/pill-button';
+import { WordCreateModal } from '@/components/word-create-modal';
+import { WordEditModal } from '@/components/word-edit-modal';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { useWordLibrary } from '@/features/word-library/word-library-context';
+import type { WordEntry, WordTag } from '@/features/word-library/word-library-types';
 
 const catColors: Record<string, string> = {
   인사: '#2A9D8F',
@@ -14,50 +17,33 @@ const catColors: Record<string, string> = {
   기타: '#7C9885',
 };
 
-const INITIAL_WORDS = [
-  { id: 1, word: '안녕', cat: '인사' },
-  { id: 2, word: '사과', cat: '음식' },
-  { id: 3, word: '망고야', cat: '이름' },
-  { id: 4, word: '잘 자', cat: '인사' },
-  { id: 5, word: '엄마', cat: '이름' },
-  { id: 6, word: '물', cat: '음식' },
-  { id: 7, word: '빠빠이', cat: '인사' },
-  { id: 8, word: '아빠', cat: '이름' },
-];
-
 const CATS = ['전체', '인사', '음식', '이름', '기타'] as const;
 
 export default function WordsScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const { entries } = useWordLibrary();
+
   const [filter, setFilter] = useState<string>('전체');
-  const [words, setWords] = useState(INITIAL_WORDS);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newWord, setNewWord] = useState('');
-  const [newCat, setNewCat] = useState('인사');
+  const [showCreate, setShowCreate] = useState(false);
+  const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
-  const visible = filter === '전체' ? words : words.filter((w) => w.cat === filter);
-
-  const addWord = () => {
-    if (!newWord.trim()) return;
-    setWords((ws) => [...ws, { id: Date.now(), word: newWord.trim(), cat: newCat }]);
-    setNewWord('');
-    setShowAdd(false);
-  };
+  const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === (filter as WordTag));
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      {/* header */}
+      {/* 헤더 */}
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.kicker}>WORDS</Text>
           <Text style={styles.title}>단어 관리</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => setShowAdd(true)}>
+        <Pressable style={styles.addBtn} onPress={() => setShowCreate(true)}>
           <Text style={styles.addBtnIcon}>+</Text>
         </Pressable>
       </View>
 
-      {/* category filter */}
+      {/* 카테고리 필터 */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -88,60 +74,30 @@ export default function WordsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
-        {/* add word form */}
-        {showAdd && (
-          <Card style={styles.addCard}>
-            <Text style={styles.addCardTitle}>새 단어 추가</Text>
-            <TextInput
-              style={styles.input}
-              value={newWord}
-              onChangeText={setNewWord}
-              placeholder="단어 입력 (예: 사랑해)"
-              placeholderTextColor="rgba(31,58,61,0.35)"
-              returnKeyType="done"
-              onSubmitEditing={addWord}
-            />
-            <View style={styles.catChips}>
-              {(['인사', '음식', '이름', '기타'] as const).map((c) => (
-                <Pressable
-                  key={c}
-                  style={[
-                    styles.filterChip,
-                    newCat === c
-                      ? { backgroundColor: `${catColors[c]}18`, borderColor: catColors[c] }
-                      : styles.filterChipInactive,
-                  ]}
-                  onPress={() => setNewCat(c)}
-                >
-                  <Text style={[styles.filterChipText, newCat === c && { color: catColors[c] }]}>{c}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <View style={styles.addActions}>
-              <PillButton full label="취소" variant="ghost" onPress={() => { setShowAdd(false); setNewWord(''); }} />
-              <PillButton full label="추가" variant="teal" onPress={addWord} />
-            </View>
-          </Card>
-        )}
-
-        {/* word list */}
-        {visible.map((w) => {
-          const col = catColors[w.cat] ?? PetHubColors.secondary;
+        {visible.map((e) => {
+          const col = catColors[e.tag] ?? PetHubColors.secondary;
           return (
-            <View key={w.id} style={styles.wordCard}>
+            <View key={e.id} style={styles.wordCard}>
               <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
-                <Text style={[styles.badgeText, { color: col }]}>{w.word[0]}</Text>
+                <Text style={[styles.badgeText, { color: col }]}>{e.label[0]}</Text>
               </View>
               <View style={styles.wordInfo}>
-                <Text style={styles.wordText}>{w.word}</Text>
+                <Text style={styles.wordText}>{e.label}</Text>
                 <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-                  <Text style={[styles.catPillText, { color: col }]}>{w.cat}</Text>
+                  <Text style={[styles.catPillText, { color: col }]}>{e.tag}</Text>
                 </View>
               </View>
               <TouchableOpacity
+                style={styles.editBtn}
+                activeOpacity={0.7}
+                onPress={() => setEditEntry(e)}
+              >
+                <Text style={styles.editBtnIcon}>✎</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.playBtn}
                 activeOpacity={0.7}
-                onPress={() => router.push('/session-setup')}
+                onPress={() => router.push(`/session-setup?wordId=${e.id}`)}
               >
                 <Text style={styles.playBtnIcon}>▶</Text>
               </TouchableOpacity>
@@ -152,10 +108,25 @@ export default function WordsScreen() {
         {visible.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🦜</Text>
-            <Text style={styles.emptyText}>단어가 없어요. 위의 + 버튼으로 추가해 보세요!</Text>
+            <Text style={styles.emptyText}>{t('wordLibrary.empty')}</Text>
+            <Text style={styles.emptyHint}>{t('wordLibrary.emptyHint')}</Text>
           </View>
         )}
       </ScrollView>
+
+      <WordCreateModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={() => setShowCreate(false)}
+      />
+
+      <WordEditModal
+        visible={editEntry !== null}
+        entry={editEntry}
+        onClose={() => setEditEntry(null)}
+        onSaved={() => setEditEntry(null)}
+        onDeleted={() => setEditEntry(null)}
+      />
     </View>
   );
 }
@@ -225,33 +196,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenX,
     paddingTop: 14,
   },
-  addCard: {
-    gap: 12,
-  },
-  addCardTitle: {
-    ...Typography.bodySmall,
-    color: PetHubColors.primary,
-    fontWeight: '600',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderColor: 'rgba(31,58,61,0.12)',
-    borderRadius: Radii.field,
-    borderWidth: 0.5,
-    color: PetHubColors.primary,
-    fontSize: 15,
-    height: 48,
-    paddingHorizontal: Spacing.fieldPaddingX,
-  },
-  catChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  addActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   wordCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
@@ -294,6 +238,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
+  editBtn: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(31,58,61,0.06)',
+    borderRadius: Radii.full,
+    flexShrink: 0,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  editBtnIcon: {
+    color: PetHubColors.primary,
+    fontSize: 14,
+  },
   playBtn: {
     alignItems: 'center',
     backgroundColor: 'rgba(31,58,61,0.06)',
@@ -319,6 +276,13 @@ const styles = StyleSheet.create({
   emptyText: {
     color: 'rgba(31,58,61,0.4)',
     fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  emptyHint: {
+    color: 'rgba(31,58,61,0.35)',
+    fontSize: 13,
+    marginTop: 4,
     textAlign: 'center',
   },
 });
