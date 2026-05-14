@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Circle, Svg } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -24,6 +24,11 @@ export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabe
       animatedOffset.value = withTiming(CIRCUM * (1 - phaseProgress), { duration: 950 });
     }
   }, [phaseProgress, animatedOffset]);
+  useEffect(() => {
+    return () => {
+      cancelAnimation(animatedOffset);
+    };
+  }, [animatedOffset]);
   const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: animatedOffset.value }));
 
   return (

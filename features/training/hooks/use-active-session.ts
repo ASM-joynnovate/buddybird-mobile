@@ -101,6 +101,16 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [phase, status, audioUri, sessionPlayer]);
 
   useEffect(() => {
+    return () => {
+      try {
+        sessionPlayer.pause();
+      } catch {
+        /* noop: expo-audio may already be torn down */
+      }
+    };
+  }, [sessionPlayer]);
+
+  useEffect(() => {
     if (status !== 'completed') return;
     const meta = sessionMetaRef.current;
     if (!meta) return;
