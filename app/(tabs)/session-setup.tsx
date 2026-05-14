@@ -69,8 +69,7 @@ export default function SessionSetupScreen() {
     permissionDeniedMessage: t('recording.permissionDenied'),
     saveFailedMessage: t('recording.saveFailed'),
     startFailedMessage: t('recording.startFailed'),
-    tooShortMessage: t('recording.tooShort'),
-    minDurationMs: 10_000,
+    maxDurationMs: 60_000,
   });
 
   // running session state
