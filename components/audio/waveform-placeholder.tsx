@@ -1,9 +1,19 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 
-const barHeights = [18, 32, 24, 48, 30, 56, 22, 38, 28, 50, 20, 44, 34, 26, 52, 24];
+const BAR_COUNT = 30;
+const WAVEFORM_HEIGHT = 78;
+const BAR_MIN_HEIGHT = 4;
+const BAR_MAX_HEIGHT = WAVEFORM_HEIGHT * 0.85;
+
+const SEED_HEIGHTS = [
+  0.23, 0.41, 0.31, 0.62, 0.38, 0.72, 0.28, 0.49, 0.36, 0.64,
+  0.26, 0.57, 0.44, 0.33, 0.67, 0.31, 0.52, 0.46, 0.23, 0.54,
+  0.36, 0.69, 0.28, 0.59, 0.41, 0.26, 0.64, 0.38, 0.57, 0.31,
+];
 
 type WaveformState = 'idle' | 'recording' | 'recorded' | 'pitch-applied' | 'preview-disabled';
 
@@ -11,26 +21,57 @@ interface WaveformPlaceholderProps {
   state?: WaveformState;
   statusLabel?: string;
   helperText?: string;
+  metering?: number | null;
 }
 
-export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText }: WaveformPlaceholderProps) {
+export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, metering }: WaveformPlaceholderProps) {
   const { t } = useI18n();
   const isMuted = state === 'preview-disabled';
   const isRecording = state === 'recording';
 
+  const animatedHeights = useRef<Animated.Value[]>(
+    SEED_HEIGHTS.map((s) => new Animated.Value(s * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT))
+  ).current;
+
+  useEffect(() => {
+    if (!isRecording || metering == null) {
+      const anims = animatedHeights.map((av, i) =>
+        Animated.timing(av, {
+          toValue: SEED_HEIGHTS[i] * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
+          duration: 200,
+          useNativeDriver: false,
+        })
+      );
+      Animated.parallel(anims).start();
+      return;
+    }
+
+    const anims = animatedHeights.map((av, i) => {
+      const centreWeight = 1 - Math.abs(i - BAR_COUNT / 2) / (BAR_COUNT / 2);
+      const jitter = (Math.random() - 0.5) * 0.35;
+      const targetNorm = Math.max(0.08, Math.min(1, metering * centreWeight + jitter));
+      return Animated.timing(av, {
+        toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
+        duration: 80,
+        useNativeDriver: false,
+      });
+    });
+    Animated.parallel(anims).start();
+  }, [metering, isRecording, animatedHeights]);
+
   return (
     <View style={[styles.container, isMuted ? styles.mutedContainer : undefined]}>
       <View accessibilityLabel={t('audio.waveformPreviewLabel')} style={styles.waveform}>
-        {barHeights.map((height, index) => (
-          <View
-            key={`${height}-${index}`}
+        {animatedHeights.map((animValue, index) => (
+          <Animated.View
+            key={index}
             style={[
               styles.bar,
               isRecording ? styles.recordingBar : undefined,
               isMuted ? styles.mutedBar : undefined,
               {
-                height: isRecording && index % 3 === 0 ? height + 8 : height,
-                opacity: index > 4 && index < 11 ? 1 : 0.42,
+                height: animValue,
+                opacity: index > 4 && index < BAR_COUNT - 4 ? 1 : 0.42,
               },
             ]}
           />
@@ -61,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.waveformGap,
-    height: 78,
+    height: WAVEFORM_HEIGHT,
     justifyContent: 'center',
   },
   bar: {

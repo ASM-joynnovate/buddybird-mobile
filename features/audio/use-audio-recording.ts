@@ -1,12 +1,16 @@
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { persistRecordingFile } from './audio-file-storage';
 import type { RecordingLifecycle, StableRecordingFile } from './audio-types';
 
+const DB_FLOOR = -60;
+const DB_CEIL = -10;
+
 interface UseAudioRecordingResult {
   errorMessage: string | null;
   lifecycle: RecordingLifecycle;
+  metering: number | null;
   recordingFile: StableRecordingFile | null;
   isRecording: boolean;
   requestAndStartRecording: () => Promise<void>;
@@ -18,11 +22,16 @@ interface UseAudioRecordingOptions {
   permissionDeniedMessage: string;
   saveFailedMessage: string;
   startFailedMessage: string;
+  tooShortMessage: string;
+  minDurationMs?: number;
 }
 
 export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRecordingResult {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const recorderState = useAudioRecorderState(audioRecorder);
+  const recorderState = useAudioRecorderState(audioRecorder, 100);
+  const recorderStateRef = useRef(recorderState);
+  recorderStateRef.current = recorderState;
+
   const [lifecycle, setLifecycle] = useState<RecordingLifecycle>('idle');
   const [recordingFile, setRecordingFile] = useState<StableRecordingFile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,7 +50,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       }
 
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await audioRecorder.prepareToRecordAsync();
+      await audioRecorder.prepareToRecordAsync({ isMeteringEnabled: true });
       audioRecorder.record();
       setRecordingFile(null);
       setLifecycle('recording');
@@ -53,6 +62,16 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   const stopRecording = useCallback(async (): Promise<StableRecordingFile | null> => {
     try {
+      const durationMs = recorderStateRef.current.durationMillis;
+      const minMs = options.minDurationMs ?? 10_000;
+
+      if (durationMs < minMs) {
+        await audioRecorder.stop();
+        setLifecycle('error');
+        setErrorMessage(options.tooShortMessage);
+        return null;
+      }
+
       await audioRecorder.stop();
 
       if (!audioRecorder.uri) {
@@ -71,18 +90,27 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setErrorMessage(options.saveFailedMessage);
       return null;
     }
-  }, [audioRecorder, options.saveFailedMessage]);
+  }, [audioRecorder, options.minDurationMs, options.saveFailedMessage, options.tooShortMessage]);
 
   const resetRecording = useCallback((): void => {
+    if (recorderStateRef.current.isRecording) {
+      audioRecorder.stop().catch(() => {});
+    }
     setLifecycle('idle');
     setRecordingFile(null);
     setErrorMessage(null);
-  }, []);
+  }, [audioRecorder]);
+
+  const metering: number | null =
+    recorderState.isRecording && recorderState.metering !== undefined
+      ? Math.max(0, Math.min(1, (recorderState.metering - DB_FLOOR) / (DB_CEIL - DB_FLOOR)))
+      : null;
 
   return {
     errorMessage,
     isRecording: recorderState.isRecording,
     lifecycle,
+    metering,
     recordingFile,
     requestAndStartRecording,
     resetRecording,
