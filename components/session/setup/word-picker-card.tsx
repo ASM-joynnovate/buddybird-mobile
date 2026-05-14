@@ -1,25 +1,24 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { PetHubColors } from '@/constants/theme';
-import type { WordEntry } from '@/features/word-library/word-library-types';
 
-interface PresetWordCardProps {
-  entry: WordEntry;
+interface WordPickerCardProps {
+  label: string;
+  tag: string;
+  sessionCountLabel: string;
   active: boolean;
   onSelect: () => void;
-  sessionCount: number;
 }
 
-export function PresetWordCard({ entry, active, onSelect, sessionCount }: PresetWordCardProps) {
-  const timeLabel = `${sessionCount} 세션`;
+export function WordPickerCard({ label, tag, sessionCountLabel, active, onSelect }: WordPickerCardProps) {
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onSelect} style={[styles.card, active && styles.cardActive]}>
       <View style={styles.row}>
         <View style={styles.textBlock}>
-          <Text style={[styles.phrase, active && styles.phraseActive]}>{entry.label}</Text>
-          <Text style={[styles.cat, active && styles.catActive]}>{entry.tag}</Text>
+          <Text style={[styles.phrase, active && styles.phraseActive]}>{label}</Text>
+          <Text style={[styles.cat, active && styles.catActive]}>{tag}</Text>
         </View>
-        <Text style={[styles.time, active && styles.timeActive]}>{timeLabel}</Text>
+        <Text style={[styles.time, active && styles.timeActive]}>{sessionCountLabel}</Text>
         <View style={[styles.radio, active && styles.radioActive]}>
           {active && <View style={styles.radioDot} />}
         </View>
