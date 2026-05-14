@@ -2,7 +2,10 @@ import Slider from '@react-native-community/slider';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Circle, Svg } from 'react-native-svg';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -103,6 +106,16 @@ export default function SessionSetupScreen() {
   const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
   const circum = 2 * Math.PI * 96;
 
+  const animatedOffset = useSharedValue(circum);
+  useEffect(() => {
+    if (phaseProgress === 0) {
+      animatedOffset.value = circum;
+    } else {
+      animatedOffset.value = withTiming(circum * (1 - phaseProgress), { duration: 950 });
+    }
+  }, [phaseProgress, circum, animatedOffset]);
+  const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: animatedOffset.value }));
+
   const wordSummaries = useMemo(
     () => (store ? selectTrainingWordSummaries(store) : []),
     [store]
@@ -118,30 +131,37 @@ export default function SessionSetupScreen() {
     (audioSource === 'preset' ||
      (audioSource === 'recording' && recordingLifecycle === 'recorded' && recordingFile !== null));
 
-  // 1-second tick
+  // 1-second tick: phaseDuration에서 멈추고 전환은 별도 effect에 위임
   useEffect(() => {
     if (status !== 'running') return;
     const iv = setInterval(() => {
-      setPhaseElapsed((prev) => {
-        const next = prev + 1;
-        if (next < phaseDuration) return next;
-        if (phase === 'learning') {
-          setPhase('rest');
-          return 0;
-        }
-        if (cycle >= totalCycles) {
-          setStatus('completed');
-          setCycle(1);
-          setPhase('learning');
-          return 0;
-        }
-        setCycle((c) => c + 1);
-        setPhase('learning');
-        return 0;
-      });
+      setPhaseElapsed((prev) => (prev >= phaseDuration ? prev : Math.min(prev + 1, phaseDuration)));
     }, 1000);
     return () => clearInterval(iv);
-  }, [status, phase, cycle, totalCycles, phaseDuration]);
+  }, [status, phaseDuration]);
+
+  // 페이즈 전환: 애니메이션 완료(950ms) 후 실제 전환
+  useEffect(() => {
+    if (status !== 'running' || phaseElapsed < phaseDuration) return;
+    const timer = setTimeout(() => {
+      if (phase === 'learning') {
+        setPhase('rest');
+        setPhaseElapsed(0);
+        return;
+      }
+      if (cycle >= totalCycles) {
+        setStatus('completed');
+        setCycle(1);
+        setPhase('learning');
+        setPhaseElapsed(0);
+        return;
+      }
+      setCycle((c) => c + 1);
+      setPhase('learning');
+      setPhaseElapsed(0);
+    }, 980);
+    return () => clearTimeout(timer);
+  }, [phaseElapsed, phaseDuration, status, phase, cycle, totalCycles]);
 
   // 오디오: 학습 페이즈에서 재생, 나머지에서 정지
   useEffect(() => {
@@ -263,7 +283,7 @@ export default function SessionSetupScreen() {
             <View style={runStyles.completedContainer}>
               <Text style={runStyles.completedTitle}>세션 완료!</Text>
               <Text style={runStyles.completedWord}>{currentWord}</Text>
-              <Text style={runStyles.completedStat}>{totalCycles}사이클 완료</Text>
+              <Text style={runStyles.completedStat}>모든 사이클 완료</Text>
               <Text style={runStyles.completedStat}>총 학습 시간 {fmt(totalCycles * learnSecs)}</Text>
               <Pressable
                 style={runStyles.completedBtn}
@@ -322,16 +342,17 @@ export default function SessionSetupScreen() {
           <View style={runStyles.progressWrapper}>
             <Svg width={240} height={240}>
               <Circle cx={120} cy={120} r={96} stroke="rgba(255,255,255,0.07)" strokeWidth={5} fill="none" />
-              <Circle
+              <AnimatedCircle
                 cx={120}
                 cy={120}
                 r={96}
                 stroke={isLearning ? '#5EEAD4' : '#FDBA74'}
                 strokeWidth={5}
                 fill="none"
-                strokeDasharray={`${phaseProgress * circum} ${circum}`}
+                strokeDasharray={circum}
                 strokeLinecap="round"
-                transform={`rotate(-90 120 120)`}
+                transform="rotate(-90 120 120)"
+                animatedProps={animatedProps}
               />
             </Svg>
             <View style={runStyles.progressCenter}>
