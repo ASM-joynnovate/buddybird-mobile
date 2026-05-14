@@ -46,6 +46,10 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!profile}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="session-active"
+          options={{ headerShown: false, statusBarTranslucent: true, presentation: 'fullScreenModal' }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!profile}>
         <Stack.Screen name="(onboarding)" />
