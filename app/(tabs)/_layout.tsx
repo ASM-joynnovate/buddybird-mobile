@@ -11,7 +11,6 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />
       <Tabs.Screen name="session-setup" />
       <Tabs.Screen name="words" />
-      <Tabs.Screen name="voice" />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile') }} />
     </Tabs>
   );
