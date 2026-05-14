@@ -8,6 +8,7 @@ import { PetHubColors } from '@/constants/theme';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider, useProfile } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
+import { WordLibraryProvider } from '@/features/word-library/word-library-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
@@ -21,10 +22,12 @@ export default function RootLayout() {
     <I18nProvider>
       <ProfileProvider>
         <TrainingDataProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <RootNavigator />
-            <StatusBar style="dark" />
-          </ThemeProvider>
+          <WordLibraryProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <RootNavigator />
+              <StatusBar style="dark" />
+            </ThemeProvider>
+          </WordLibraryProvider>
         </TrainingDataProvider>
       </ProfileProvider>
     </I18nProvider>
