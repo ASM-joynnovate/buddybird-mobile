@@ -1,5 +1,5 @@
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { persistRecordingFile } from './audio-file-storage';
 import type { RecordingLifecycle, StableRecordingFile } from './audio-types';
@@ -22,8 +22,8 @@ interface UseAudioRecordingOptions {
   permissionDeniedMessage: string;
   saveFailedMessage: string;
   startFailedMessage: string;
-  tooShortMessage: string;
-  minDurationMs?: number;
+  tooShortMessage?: string;
+  maxDurationMs?: number;
 }
 
 export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRecordingResult {
@@ -62,16 +62,6 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   const stopRecording = useCallback(async (): Promise<StableRecordingFile | null> => {
     try {
-      const durationMs = recorderStateRef.current.durationMillis;
-      const minMs = options.minDurationMs ?? 10_000;
-
-      if (durationMs < minMs) {
-        await audioRecorder.stop();
-        setLifecycle('error');
-        setErrorMessage(options.tooShortMessage);
-        return null;
-      }
-
       await audioRecorder.stop();
 
       if (!audioRecorder.uri) {
@@ -90,7 +80,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setErrorMessage(options.saveFailedMessage);
       return null;
     }
-  }, [audioRecorder, options.minDurationMs, options.saveFailedMessage, options.tooShortMessage]);
+  }, [audioRecorder, options.saveFailedMessage]);
 
   const resetRecording = useCallback((): void => {
     if (recorderStateRef.current.isRecording) {
@@ -100,6 +90,12 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
     setRecordingFile(null);
     setErrorMessage(null);
   }, [audioRecorder]);
+
+  useEffect(() => {
+    if (!options.maxDurationMs || lifecycle !== 'recording') return;
+    const id = setTimeout(() => { stopRecording(); }, options.maxDurationMs);
+    return () => clearTimeout(id);
+  }, [lifecycle, options.maxDurationMs, stopRecording]);
 
   const metering: number | null =
     recorderState.isRecording && recorderState.metering !== undefined
