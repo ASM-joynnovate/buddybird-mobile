@@ -10,8 +10,8 @@ import { RecordingFormCard } from '@/components/words/forms/recording-form-card'
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
-import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
+import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { computePlaybackRate, createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import type { PersonaId } from '@/features/training/session-config';

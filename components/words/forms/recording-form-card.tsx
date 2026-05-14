@@ -18,8 +18,8 @@ interface RecordingFormCardProps {
   startLabel: string;
   stopLabel: string;
   rerecordLabel: string;
-  previewLabel: string;
-  previewPlayingLabel: string;
+  previewLabel?: string;
+  previewPlayingLabel?: string;
   previewState?: AudioPreviewState;
   errorMessage: string | null;
   onStart: () => void;
@@ -85,7 +85,7 @@ export function RecordingFormCard({
         <PillButton
           disabled={previewState === 'playing'}
           full
-          label={previewState === 'playing' ? previewPlayingLabel : previewLabel}
+          label={previewState === 'playing' ? (previewPlayingLabel ?? '') : (previewLabel ?? '')}
           onPress={onPreview}
           variant="teal"
         />
