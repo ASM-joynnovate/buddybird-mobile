@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WordCreateModal } from '@/components/word-create-modal';
 import { WordEditModal } from '@/components/word-edit-modal';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioPreview } from '@/features/audio/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry, WordTag } from '@/features/word-library/word-library-types';
@@ -18,6 +18,51 @@ const catColors: Record<string, string> = {
 };
 
 const CATS = ['전체', '인사', '음식', '이름', '기타'] as const;
+
+interface WordCardProps {
+  entry: WordEntry;
+  onEdit: () => void;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+function WordCard({ entry, onEdit, t }: WordCardProps) {
+  const col = catColors[entry.tag] ?? PetHubColors.secondary;
+  const { canPreview, playPreview } = useAudioPreview(entry.transformedAudioUri ?? entry.audioUri);
+
+  return (
+    <View style={styles.wordCard}>
+      <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
+        <Text style={[styles.badgeText, { color: col }]}>{entry.label[0]}</Text>
+      </View>
+      <View style={styles.wordInfo}>
+        <Text style={styles.wordText}>{entry.label}</Text>
+        <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
+          <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
+        </View>
+        <View style={[styles.sourcePill, entry.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
+          <Text style={[styles.sourcePillText, entry.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
+            {entry.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
+          </Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.editBtn}
+        activeOpacity={0.7}
+        onPress={onEdit}
+      >
+        <Text style={styles.editBtnIcon}>✎</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
+        activeOpacity={0.7}
+        disabled={!canPreview}
+        onPress={() => { void playPreview(); }}
+      >
+        <Text style={styles.playBtnIcon}>▶</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function WordsScreen() {
   const { t } = useI18n();
@@ -74,41 +119,14 @@ export default function WordsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
-        {visible.map((e) => {
-          const col = catColors[e.tag] ?? PetHubColors.secondary;
-          return (
-            <View key={e.id} style={styles.wordCard}>
-              <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
-                <Text style={[styles.badgeText, { color: col }]}>{e.label[0]}</Text>
-              </View>
-              <View style={styles.wordInfo}>
-                <Text style={styles.wordText}>{e.label}</Text>
-                <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-                  <Text style={[styles.catPillText, { color: col }]}>{e.tag}</Text>
-                </View>
-                <View style={[styles.sourcePill, e.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
-                  <Text style={[styles.sourcePillText, e.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
-                    {e.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={styles.editBtn}
-                activeOpacity={0.7}
-                onPress={() => setEditEntry(e)}
-              >
-                <Text style={styles.editBtnIcon}>✎</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.playBtn}
-                activeOpacity={0.7}
-                onPress={() => router.push(`/session-setup?wordId=${e.id}`)}
-              >
-                <Text style={styles.playBtnIcon}>▶</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        })}
+        {visible.map((e) => (
+          <WordCard
+            key={e.id}
+            entry={e}
+            onEdit={() => setEditEntry(e)}
+            t={t}
+          />
+        ))}
 
         {visible.length === 0 && (
           <View style={styles.empty}>
