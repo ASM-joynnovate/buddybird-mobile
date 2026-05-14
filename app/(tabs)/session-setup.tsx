@@ -17,7 +17,7 @@ import { WaveformBars } from '@/components/ui/waveform-bars';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import type { AudioSourceChoice } from '@/features/audio/audio-types';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
-import { useAudioRecording } from '@/features/audio/use-audio-recording';
+import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useTrainingData } from '@/features/training/training-context';
 import { createTrainingSession, createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
