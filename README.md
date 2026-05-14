@@ -5,23 +5,23 @@ Expo Router 기반의 PetHub 앵무새 음성 학습 코치 앱입니다. Phase 
 ## 실행
 
 ```bash
-npm install
-npm run start
+yarn
+yarn start
 ```
 
 플랫폼별 실행:
 
 ```bash
-npm run ios
-npm run android
-npm run web
+yarn ios
+yarn android
+yarn web
 ```
 
 ## 검증
 
 ```bash
-npm run lint
-npm run typecheck
+yarn lint
+yarn typecheck
 ```
 
 ## Phase 1 범위

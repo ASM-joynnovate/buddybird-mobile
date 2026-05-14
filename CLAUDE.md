@@ -15,13 +15,13 @@ PetHub Mobile ("앵Talk트레이너") is an Expo Router-based React Native app f
 ## Commands
 
 ```bash
-npm run start          # Start Expo dev server (opens in Expo Go)
-npm run ios            # iOS simulator
-npm run android        # Android emulator
-npm run web            # Web browser
+yarn start             # Start Expo dev server (opens in Expo Go)
+yarn ios               # iOS simulator
+yarn android           # Android emulator
+yarn web               # Web browser
 
-npm run lint           # ESLint via expo lint
-npm run typecheck      # tsc --noEmit (no Jest; no test runner configured)
+yarn lint              # ESLint via expo lint
+yarn typecheck         # tsc --noEmit (no Jest; no test runner configured)
 ```
 
 There is no test suite. Verification is done manually per the checklist in README.md.
