@@ -6,7 +6,7 @@ import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { SectionKicker } from '@/components/ui/section-kicker';
 import { Spacing, Typography } from '@/constants/theme';
-import type { RecordingLifecycle } from '@/features/audio/audio-types';
+import type { AudioPreviewState, RecordingLifecycle } from '@/features/audio/audio-types';
 
 interface RecordingFormCardProps {
   label: string;
@@ -18,10 +18,14 @@ interface RecordingFormCardProps {
   startLabel: string;
   stopLabel: string;
   rerecordLabel: string;
+  previewLabel: string;
+  previewPlayingLabel: string;
+  previewState?: AudioPreviewState;
   errorMessage: string | null;
   onStart: () => void;
   onStop: () => void;
   onReset: () => void;
+  onPreview?: () => void;
 }
 
 export function RecordingFormCard({
@@ -34,10 +38,14 @@ export function RecordingFormCard({
   startLabel,
   stopLabel,
   rerecordLabel,
+  previewLabel,
+  previewPlayingLabel,
+  previewState,
   errorMessage,
   onStart,
   onStop,
   onReset,
+  onPreview,
 }: RecordingFormCardProps) {
   return (
     <Card style={styles.card}>
@@ -73,6 +81,15 @@ export function RecordingFormCard({
           <PillButton full label={rerecordLabel} onPress={onReset} variant="ghost" />
         )}
       </View>
+      {lifecycle === 'recorded' && onPreview && (
+        <PillButton
+          disabled={previewState === 'playing'}
+          full
+          label={previewState === 'playing' ? previewPlayingLabel : previewLabel}
+          onPress={onPreview}
+          variant="teal"
+        />
+      )}
       <InlineError message={errorMessage} />
     </Card>
   );
