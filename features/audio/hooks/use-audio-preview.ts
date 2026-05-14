@@ -1,4 +1,4 @@
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useAudioPlayer } from 'expo-audio';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AudioPreviewState } from '../audio-types';
@@ -14,21 +14,22 @@ export function useAudioPreview(
   playbackRate: number,
 ): UseAudioPreviewResult {
   const player = useAudioPlayer(audioUri ?? undefined);
-  const status = useAudioPlayerStatus(player);
   const [previewState, setPreviewState] = useState<AudioPreviewState>(
     audioUri ? 'ready' : 'disabled',
   );
   const canPreview = Boolean(audioUri);
 
   useEffect(() => {
+    if (!audioUri) player.pause();
     setPreviewState(audioUri ? 'ready' : 'disabled');
-  }, [audioUri]);
+  }, [audioUri, player]);
 
   useEffect(() => {
-    if (status.didJustFinish && previewState === 'playing') {
-      setPreviewState('ready');
-    }
-  }, [status.didJustFinish, previewState]);
+    const sub = player.addListener('playbackStatusUpdate', (s) => {
+      if (s.didJustFinish) setPreviewState('ready');
+    });
+    return () => sub.remove();
+  }, [player]);
 
   const playPreview = useCallback(async (): Promise<void> => {
     if (!audioUri) {
