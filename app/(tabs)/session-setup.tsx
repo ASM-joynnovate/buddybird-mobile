@@ -1,5 +1,5 @@
 import Slider from '@react-native-community/slider';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Svg } from 'react-native-svg';
@@ -12,15 +12,16 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioPlayer } from 'expo-audio';
 import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import type { AudioSourceChoice } from '@/features/audio/audio-types';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useTrainingData } from '@/features/training/training-context';
-import { createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
-import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
+import { createTrainingSession, createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
+import type { AudioPitchTransform, CreateTrainingSessionInput, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
 
-type SessionStatus = 'idle' | 'running' | 'paused';
+type SessionStatus = 'idle' | 'running' | 'paused' | 'completed';
 
 const STEP_SESSION_MINS = 5;
 const STEP_LEARN_SECS = 10;
@@ -45,7 +46,7 @@ type PersonaId = (typeof PERSONAS)[number]['id'];
 
 export default function SessionSetupScreen() {
   const { locale, t } = useI18n();
-  const { store, errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertWord } = useTrainingData();
+  const { store, errorMessage: trainingErrorMessage, isHydrated, saveCompletedSession, saveLastSessionSettings, upsertWord } = useTrainingData();
 
   // setup state
   const [audioSource, setAudioSource] = useState<AudioSourceChoice>('preset');
@@ -77,6 +78,20 @@ export default function SessionSetupScreen() {
   const [phase, setPhase] = useState<'learning' | 'rest'>('learning');
   const [cycle, setCycle] = useState(1);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
+
+  type SessionMeta = {
+    wordId: string;
+    startedAt: string;
+    sourceType: TrainingAudioSourceType;
+    totalDurationSeconds: number;
+    learningDurationSeconds: number;
+    restDurationSeconds: number;
+  };
+  const sessionMetaRef = useRef<SessionMeta | null>(null);
+
+  // preset:// URI는 가짜이므로 recording 소스만 재생
+  const sessionAudioUri = audioSource === 'recording' ? (recordingFile?.uri ?? undefined) : undefined;
+  const sessionPlayer = useAudioPlayer(sessionAudioUri);
 
   const secsPerCycle = learnSecs + restSecs;
   const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
@@ -115,7 +130,7 @@ export default function SessionSetupScreen() {
           return 0;
         }
         if (cycle >= totalCycles) {
-          setStatus('idle');
+          setStatus('completed');
           setCycle(1);
           setPhase('learning');
           return 0;
@@ -128,14 +143,50 @@ export default function SessionSetupScreen() {
     return () => clearInterval(iv);
   }, [status, phase, cycle, totalCycles, phaseDuration]);
 
-  async function saveSessionSetup(): Promise<boolean> {
+  // 오디오: 학습 페이즈에서 재생, 나머지에서 정지
+  useEffect(() => {
+    if (!sessionAudioUri) return;
+    if (status === 'running' && phase === 'learning') {
+      sessionPlayer.loop = true;
+      sessionPlayer.seekTo(0);
+      sessionPlayer.play();
+    } else {
+      sessionPlayer.pause();
+    }
+  }, [phase, status, sessionAudioUri, sessionPlayer]);
+
+  // 완료 시 세션을 store에 저장
+  useEffect(() => {
+    if (status !== 'completed') return;
+    const meta = sessionMetaRef.current;
+    if (!meta) return;
+    const endedAt = new Date().toISOString();
+    const session = createTrainingSession(
+      {
+        wordId: meta.wordId,
+        sourceType: meta.sourceType,
+        totalDurationSeconds: meta.totalDurationSeconds,
+        learningDurationSeconds: meta.learningDurationSeconds,
+        restDurationSeconds: meta.restDurationSeconds,
+        completedCycles: totalCycles,
+        totalLearningSeconds: totalCycles * meta.learningDurationSeconds,
+        startedAt: meta.startedAt,
+        endedAt,
+      } satisfies CreateTrainingSessionInput,
+      endedAt
+    );
+    saveCompletedSession(session);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]); // totalCycles/saveCompletedSession은 세션 중 불변
+
+  async function saveSessionSetup(): Promise<{ wordId: string; settings: TrainingSessionSettings } | null> {
     if (!isHydrated) {
       setSaveErrorMessage(t('sessionSetup.storeLoading'));
-      return false;
+      return null;
     }
     if (!canContinue) {
       setSaveErrorMessage(t('sessionSetup.selectAudioError'));
-      return false;
+      return null;
     }
     try {
       const nowIso = new Date().toISOString();
@@ -172,16 +223,24 @@ export default function SessionSetupScreen() {
       await upsertWord(word);
       await saveLastSessionSettings(settings);
       setSaveErrorMessage(null);
-      return true;
+      return { wordId: word.id, settings };
     } catch {
       setSaveErrorMessage(t('sessionSetup.saveError'));
-      return false;
+      return null;
     }
   }
 
   async function handleStartSession() {
-    const ok = await saveSessionSetup();
-    if (!ok) return;
+    const result = await saveSessionSetup();
+    if (!result) return;
+    sessionMetaRef.current = {
+      wordId: result.wordId,
+      startedAt: new Date().toISOString(),
+      sourceType: result.settings.sourceType,
+      totalDurationSeconds: result.settings.totalDurationSeconds,
+      learningDurationSeconds: result.settings.learningDurationSeconds,
+      restDurationSeconds: result.settings.restDurationSeconds,
+    };
     setCycle(1);
     setPhase('learning');
     setPhaseElapsed(0);
@@ -198,6 +257,26 @@ export default function SessionSetupScreen() {
       {/* ── Running view (modal overlay) ─────────────────────────── */}
       <Modal visible={status !== 'idle'} animationType="fade" statusBarTranslucent>
         <View style={[runStyles.container, { paddingTop: insets.top }]}>
+
+          {/* ── Completion screen ── */}
+          {status === 'completed' && (
+            <View style={runStyles.completedContainer}>
+              <Text style={runStyles.completedTitle}>세션 완료!</Text>
+              <Text style={runStyles.completedWord}>{currentWord}</Text>
+              <Text style={runStyles.completedStat}>{totalCycles}사이클 완료</Text>
+              <Text style={runStyles.completedStat}>총 학습 시간 {fmt(totalCycles * learnSecs)}</Text>
+              <Pressable
+                style={runStyles.completedBtn}
+                onPress={() => { sessionMetaRef.current = null; setStatus('idle'); }}
+              >
+                <Text style={runStyles.completedBtnText}>확인</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {/* ── Running session UI ── */}
+          {status !== 'completed' && <>
+
           {/* radial gradient overlay */}
           <View
             style={[
@@ -316,6 +395,7 @@ export default function SessionSetupScreen() {
               )}
             </View>
           </View>
+          </>}
         </View>
       </Modal>
 
@@ -830,6 +910,44 @@ const runStyles = StyleSheet.create({
   dotOverflow: {
     color: 'rgba(255,255,255,0.45)',
     fontSize: 9,
+  },
+  completedContainer: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  completedTitle: {
+    color: '#7DD3C0',
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  completedWord: {
+    color: '#FAF6F0',
+    fontSize: 60,
+    fontWeight: '700',
+    letterSpacing: -2,
+  },
+  completedStat: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  completedBtn: {
+    backgroundColor: 'rgba(125,211,192,0.20)',
+    borderColor: 'rgba(125,211,192,0.45)',
+    borderRadius: 999,
+    borderWidth: 1,
+    marginTop: 24,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+  },
+  completedBtnText: {
+    color: '#7DD3C0',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 
