@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { WordCreateModal } from '@/components/word-create-modal';
-import { WordEditModal } from '@/components/word-edit-modal';
+import { WordCreateModal } from '@/components/words/word-create-modal';
+import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordListItem } from '@/components/words/word-list-item';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
@@ -42,7 +43,7 @@ export default function WordsScreen() {
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
-          <WordListItem key={e.id} entry={e} onEdit={() => setEditEntry(e)} />
+          <WordRow key={e.id} entry={e} onEdit={() => setEditEntry(e)} />
         ))}
 
         {visible.length === 0 && (
@@ -68,6 +69,30 @@ export default function WordsScreen() {
         onDeleted={() => setEditEntry(null)}
       />
     </View>
+  );
+}
+
+interface WordRowProps {
+  entry: WordEntry;
+  onEdit: () => void;
+}
+
+function WordRow({ entry, onEdit }: WordRowProps) {
+  const { t } = useI18n();
+  const { canPreview, playPreview } = useAudioPreview(entry.transformedAudioUri ?? entry.audioUri);
+  const isPreset = entry.sourceType === 'preset';
+  const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
+
+  return (
+    <WordListItem
+      label={entry.label}
+      tag={entry.tag}
+      sourceLabel={sourceLabel}
+      isPreset={isPreset}
+      canPreview={canPreview}
+      onEdit={onEdit}
+      onPlay={() => { void playPreview(); }}
+    />
   );
 }
 

@@ -7,14 +7,14 @@ import { SectionKicker } from '@/components/ui/section-kicker';
 import { PetHubColors, Radii } from '@/constants/theme';
 import { PERSONAS, type PersonaId } from '@/features/training/session-config';
 
-interface FrequencyTuningCardProps {
+interface FrequencyTuningFormCardProps {
   target: number;
   persona: PersonaId;
   onChangeTarget: (v: number) => void;
   onChangePersona: (id: PersonaId) => void;
 }
 
-export function FrequencyTuningCard({ target, persona, onChangeTarget, onChangePersona }: FrequencyTuningCardProps) {
+export function FrequencyTuningFormCard({ target, persona, onChangeTarget, onChangePersona }: FrequencyTuningFormCardProps) {
   return (
     <Card style={styles.card}>
       <SectionKicker>고주파 톤 매핑 · 목표 주파수</SectionKicker>

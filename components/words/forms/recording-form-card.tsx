@@ -8,7 +8,7 @@ import { SectionKicker } from '@/components/ui/section-kicker';
 import { Spacing, Typography } from '@/constants/theme';
 import type { RecordingLifecycle } from '@/features/audio/audio-types';
 
-interface RecordingCardProps {
+interface RecordingFormCardProps {
   label: string;
   body: string;
   metering: number | null;
@@ -24,7 +24,7 @@ interface RecordingCardProps {
   onReset: () => void;
 }
 
-export function RecordingCard({
+export function RecordingFormCard({
   label,
   body,
   metering,
@@ -38,7 +38,7 @@ export function RecordingCard({
   onStart,
   onStop,
   onReset,
-}: RecordingCardProps) {
+}: RecordingFormCardProps) {
   return (
     <Card style={styles.card}>
       <SectionKicker>{label}</SectionKicker>

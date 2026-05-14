@@ -1,37 +1,43 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { PetHubColors, Radii } from '@/constants/theme';
-import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
-import { useI18n } from '@/features/i18n/i18n-context';
 import { catColors } from '@/features/training/session-words-mock';
-import type { WordEntry } from '@/features/word-library/word-library-types';
 
 interface WordListItemProps {
-  entry: WordEntry;
+  label: string;
+  tag: string;
+  sourceLabel: string;
+  isPreset: boolean;
+  canPreview: boolean;
   onEdit: () => void;
+  onPlay: () => void;
 }
 
-export function WordListItem({ entry, onEdit }: WordListItemProps) {
-  const { t } = useI18n();
-  const col = catColors[entry.tag] ?? PetHubColors.secondary;
-  const { canPreview, playPreview } = useAudioPreview(entry.transformedAudioUri ?? entry.audioUri);
-  const isPreset = entry.sourceType === 'preset';
-
+export function WordListItem({
+  label,
+  tag,
+  sourceLabel,
+  isPreset,
+  canPreview,
+  onEdit,
+  onPlay,
+}: WordListItemProps) {
+  const col = catColors[tag] ?? PetHubColors.secondary;
   return (
     <View style={styles.card}>
       <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
-        <Text style={[styles.badgeText, { color: col }]}>{entry.label[0]}</Text>
+        <Text style={[styles.badgeText, { color: col }]}>{label[0]}</Text>
       </View>
       <View style={styles.info}>
-        <Text style={styles.word}>{entry.label}</Text>
+        <Text style={styles.word}>{label}</Text>
         <View style={styles.tagsRow}>
           <View style={[styles.sourcePill, isPreset ? styles.sourcePillPreset : styles.sourcePillRecording]}>
             <Text style={[styles.sourcePillText, isPreset ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
-              {isPreset ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
+              {sourceLabel}
             </Text>
           </View>
           <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-            <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
+            <Text style={[styles.catPillText, { color: col }]}>{tag}</Text>
           </View>
         </View>
       </View>
@@ -42,7 +48,7 @@ export function WordListItem({ entry, onEdit }: WordListItemProps) {
         style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
         activeOpacity={0.7}
         disabled={!canPreview}
-        onPress={() => { void playPreview(); }}
+        onPress={onPlay}
       >
         <Text style={styles.playBtnIcon}>▶</Text>
       </TouchableOpacity>

@@ -1,6 +1,7 @@
 import type { PitchTransformMetadata } from '@/features/audio/audio-types';
 
 export type WordTag = '인사' | '음식' | '이름' | '기타';
+export const WORD_TAGS: readonly WordTag[] = ['인사', '음식', '이름', '기타'];
 export type WordPersonaId = 'child' | 'female' | 'bird';
 
 export interface WordEntry {
