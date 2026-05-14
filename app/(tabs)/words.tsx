@@ -36,13 +36,15 @@ function WordCard({ entry, onEdit, t }: WordCardProps) {
       </View>
       <View style={styles.wordInfo}>
         <Text style={styles.wordText}>{entry.label}</Text>
-        <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-          <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
-        </View>
-        <View style={[styles.sourcePill, entry.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
-          <Text style={[styles.sourcePillText, entry.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
-            {entry.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
-          </Text>
+        <View style={styles.tagsRow}>
+          <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
+            <Text style={[styles.catPillText, { color: col }]}>{entry.tag}</Text>
+          </View>
+          <View style={[styles.sourcePill, entry.sourceType === 'preset' ? styles.sourcePillPreset : styles.sourcePillRecording]}>
+            <Text style={[styles.sourcePillText, entry.sourceType === 'preset' ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
+              {entry.sourceType === 'preset' ? t('wordLibrary.sourcePreset') : t('wordLibrary.sourceRecording')}
+            </Text>
+          </View>
         </View>
       </View>
       <TouchableOpacity
@@ -242,10 +244,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   wordInfo: {
-    alignItems: 'baseline',
+    alignItems: 'flex-start',
     flex: 1,
+    flexDirection: 'column',
+    gap: 6,
+  },
+  tagsRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   wordText: {
     color: PetHubColors.primary,
