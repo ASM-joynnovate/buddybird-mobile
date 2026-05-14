@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
-import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
+import { ScreenHeader } from '@/components/layout/screen-header';
 import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
-import { Chip } from '@/components/ui/chip';
-import { FormField } from '@/components/ui/form-field';
+import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
+import { ProfileLanguagePicker } from '@/components/profile/profile-language-picker';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { type AppLocale } from '@/features/i18n/i18n-resources';
 import { useProfile } from '@/features/profile/profile-context';
+import { toDraft } from '@/features/profile/profile-display';
 import { getSpeciesOptions } from '@/features/profile/profile-options';
-import type { ParrotProfile, ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
+import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function ProfileScreen() {
@@ -30,8 +31,6 @@ export default function ProfileScreen() {
       setForm(toDraft(profile));
     }
   }, [isEditing, profile]);
-
-  const isCustomSpecies = form?.species === 'custom';
 
   if (!profile || !form) {
     return null;
@@ -94,57 +93,25 @@ export default function ProfileScreen() {
 
   return (
     <PetScreen contentStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>{t('profile.kicker')}</Text>
-        <Text style={styles.title}>{t('profile.title')}</Text>
-        <Text style={styles.body}>{t('profile.body')}</Text>
-      </View>
+      <ScreenHeader kicker={t('profile.kicker')} title={t('profile.title')} body={t('profile.body')} />
 
       <ParrotProfileCard compact profile={profile} />
 
       {isEditing ? (
-        <View style={styles.form}>
-          <ProfileAvatarPicker photoUri={form.photoUri} onPhotoSelected={(photoUri) => patchForm({ photoUri })} />
-          <FormField error={errors.name} label={t('profile.nameLabel')}>
-            <TextInput
-              onChangeText={(name) => patchForm({ name })}
-              placeholder={t('profile.namePlaceholder')}
-              placeholderTextColor="rgba(31,58,61,0.36)"
-              style={styles.input}
-              value={form.name}
-            />
-          </FormField>
-          <FormField error={errors.species} label={t('profile.speciesLabel')}>
-            <View style={styles.chips}>
-              {speciesOptions.map((option) => (
-                <Chip key={option.id} active={form.species === option.id} label={option.label} onPress={() => patchForm({ customSpecies: '', species: option.id })} />
-              ))}
-              <Chip active={isCustomSpecies} label={t('common.directInput')} onPress={() => patchForm({ species: 'custom' })} tone="sun" />
-            </View>
-            {isCustomSpecies || !form.species ? (
-              <TextInput
-                onChangeText={(customSpecies) => patchForm({ customSpecies })}
-                placeholder={t('profile.speciesPlaceholder')}
-                placeholderTextColor="rgba(31,58,61,0.36)"
-                style={styles.input}
-                value={form.customSpecies}
-              />
-            ) : null}
-          </FormField>
-          {saveErrorMessage ? <Text style={styles.error}>{saveErrorMessage}</Text> : null}
-          <View style={styles.actions}>
-            <PillButton
-              label={t('common.cancel')}
-              onPress={() => {
-                setErrors({});
-                setSaveErrorMessage(null);
-                setIsEditing(false);
-              }}
-              variant="ghost"
-            />
-            <PillButton label={t('common.save')} onPress={saveEdit} variant="primary" />
-          </View>
-        </View>
+        <ProfileEditForm
+          form={form}
+          errors={errors}
+          saveErrorMessage={saveErrorMessage}
+          speciesOptions={speciesOptions}
+          t={t}
+          onPatch={patchForm}
+          onCancel={() => {
+            setErrors({});
+            setSaveErrorMessage(null);
+            setIsEditing(false);
+          }}
+          onSave={saveEdit}
+        />
       ) : (
         <PillButton
           full
@@ -158,22 +125,15 @@ export default function ProfileScreen() {
         />
       )}
 
-      <View style={styles.futureBox}>
-        <Text style={styles.futureTitle}>{t('profile.languageTitle')}</Text>
-        <Text style={styles.bodySmall}>{t('profile.languageBody')}</Text>
-        <View style={styles.chips}>
-          {supportedLocales.map((supportedLocale) => (
-            <Chip
-              key={supportedLocale}
-              active={locale === supportedLocale}
-              label={t(`common.languageNames.${supportedLocale}`)}
-              onPress={() => changeLocale(supportedLocale)}
-              tone="sun"
-            />
-          ))}
-        </View>
-        {languageErrorMessage ? <Text style={styles.error}>{languageErrorMessage}</Text> : null}
-      </View>
+      <ProfileLanguagePicker
+        locale={locale}
+        supportedLocales={supportedLocales}
+        errorMessage={languageErrorMessage}
+        title={t('profile.languageTitle')}
+        body={t('profile.languageBody')}
+        getLanguageLabel={(loc) => t(`common.languageNames.${loc}`)}
+        onChange={changeLocale}
+      />
 
       <View style={styles.futureBox}>
         <Text style={styles.futureTitle}>{t('profile.futureTitle')}</Text>
@@ -183,68 +143,13 @@ export default function ProfileScreen() {
   );
 }
 
-function toDraft(profile: ParrotProfile): ProfileDraft {
-  return {
-    ageMonths: profile.ageMonths,
-    name: profile.name,
-    photoUri: profile.photoUri,
-    customSpecies: profile.customSpecies,
-    species: profile.species,
-    trainingGoalIds: [...profile.trainingGoalIds],
-  };
-}
-
 const styles = StyleSheet.create({
   content: {
     gap: Spacing.sectionY,
   },
-  header: {
-    gap: Spacing.sectionHeadGap,
-  },
-  kicker: {
-    color: PetHubColors.secondaryDeep,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 4,
-  },
-  title: {
-    ...Typography.screenTitle,
-    color: PetHubColors.primary,
-  },
-  body: {
-    ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
-  },
   bodySmall: {
     ...Typography.bodySmall,
     color: 'rgba(31,58,61,0.64)',
-  },
-  form: {
-    gap: Spacing.sectionY,
-  },
-  input: {
-    backgroundColor: PetHubColors.surface,
-    borderColor: 'rgba(31,58,61,0.12)',
-    borderRadius: Radii.field,
-    borderWidth: 1,
-    color: PetHubColors.primary,
-    fontSize: 15,
-    minHeight: 48,
-    paddingHorizontal: Spacing.fieldPaddingX,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.chipGap,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.sectionHeadGap,
-  },
-  error: {
-    ...Typography.bodySmall,
-    color: PetHubColors.accentCoral,
-    fontWeight: '700',
   },
   futureBox: {
     backgroundColor: PetHubColors.feather,

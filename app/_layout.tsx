@@ -49,6 +49,16 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!profile}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="session-active"
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 220,
+            contentStyle: { backgroundColor: PetHubColors.darkBg },
+            navigationBarColor: PetHubColors.darkBg,
+          }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!profile}>
         <Stack.Screen name="(onboarding)" />

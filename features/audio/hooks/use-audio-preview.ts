@@ -1,7 +1,7 @@
 import { useAudioPlayer } from 'expo-audio';
 import { useCallback, useMemo, useState } from 'react';
 
-import type { AudioPreviewState } from './audio-types';
+import type { AudioPreviewState } from '../audio-types';
 
 interface UseAudioPreviewResult {
   canPreview: boolean;

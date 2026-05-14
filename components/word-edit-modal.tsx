@@ -9,7 +9,7 @@ import { FreqBandViz } from '@/components/ui/freq-band-viz';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
-import { useAudioRecording } from '@/features/audio/use-audio-recording';
+import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry, WordPersonaId, WordTag } from '@/features/word-library/word-library-types';

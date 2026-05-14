@@ -10,6 +10,13 @@ import {
 import { loadTrainingStore, saveTrainingStore } from './training-storage';
 import type { AudioRecording, TrainingSession, TrainingSessionSettings, TrainingStore, TrainingWord } from './training-types';
 
+export interface PendingSession {
+  wordId: string;
+  settings: TrainingSessionSettings;
+  audioUri?: string;
+  word: string;
+}
+
 interface TrainingDataContextValue {
   store: TrainingStore | null;
   isHydrated: boolean;
@@ -20,6 +27,9 @@ interface TrainingDataContextValue {
   saveCompletedSession: (session: TrainingSession) => Promise<void>;
   saveLastSessionSettings: (settings: TrainingSessionSettings) => Promise<void>;
   markWordSuccess: (wordId: string) => Promise<void>;
+  pendingSession: PendingSession | null;
+  setPendingSession: (next: PendingSession) => void;
+  clearPendingSession: () => void;
 }
 
 const TrainingDataContext = createContext<TrainingDataContextValue | null>(null);
@@ -28,8 +38,17 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<TrainingStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingSession, setPendingSessionState] = useState<PendingSession | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
   const writeQueueRef = useRef(Promise.resolve());
+
+  const setPendingSession = useCallback((next: PendingSession): void => {
+    setPendingSessionState(next);
+  }, []);
+
+  const clearPendingSession = useCallback((): void => {
+    setPendingSessionState(null);
+  }, []);
 
   const setTrainingStoreState = useCallback((nextStore: TrainingStore | null): void => {
     const clonedStore = nextStore ? cloneTrainingStore(nextStore) : null;
@@ -149,14 +168,20 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
       saveCompletedSession,
       saveLastSessionSettings,
       markWordSuccess,
+      pendingSession,
+      setPendingSession,
+      clearPendingSession,
     }),
     [
+      clearPendingSession,
       errorMessage,
       isHydrated,
       markWordSuccess,
+      pendingSession,
       saveCompletedSession,
       saveLastSessionSettings,
       saveStore,
+      setPendingSession,
       store,
       upsertRecording,
       upsertWord,
