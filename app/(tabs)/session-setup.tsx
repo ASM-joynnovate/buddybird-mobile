@@ -12,14 +12,14 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
-import { useAudioPlayer } from 'expo-audio';
-import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import type { AudioSourceChoice } from '@/features/audio/audio-types';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
+import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useTrainingData } from '@/features/training/training-context';
 import { createTrainingSession, createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
 import type { AudioPitchTransform, CreateTrainingSessionInput, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
+import { useAudioPlayer } from 'expo-audio';
 
 type SessionStatus = 'idle' | 'running' | 'paused' | 'completed';
 
@@ -281,7 +281,7 @@ export default function SessionSetupScreen() {
           <View
             style={[
               runStyles.gradientOverlay,
-              { backgroundColor: isLearning ? 'rgba(42,157,143,0.22)' : 'rgba(244,162,97,0.18)' },
+              { backgroundColor: isLearning ? 'rgba(94,234,212,0.22)' : 'rgba(253,186,116,0.18)' },
             ]}
           />
 
@@ -301,18 +301,18 @@ export default function SessionSetupScreen() {
               style={[
                 runStyles.badge,
                 {
-                  backgroundColor: isLearning ? 'rgba(42,157,143,0.20)' : 'rgba(244,162,97,0.20)',
-                  borderColor: isLearning ? 'rgba(42,157,143,0.45)' : 'rgba(244,162,97,0.45)',
+                  backgroundColor: isLearning ? 'rgba(94,234,212,0.20)' : 'rgba(253,186,116,0.20)',
+                  borderColor: isLearning ? 'rgba(94,234,212,0.45)' : 'rgba(253,186,116,0.45)',
                 },
               ]}
             >
               <View
                 style={[
                   runStyles.badgeDot,
-                  { backgroundColor: isLearning ? '#7DD3C0' : '#F4A261' },
+                  { backgroundColor: isLearning ? '#5EEAD4' : '#FDBA74' },
                 ]}
               />
-              <Text style={[runStyles.badgeText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+              <Text style={[runStyles.badgeText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {isLearning ? '학습 중' : '휴식 중'}
               </Text>
             </View>
@@ -326,7 +326,7 @@ export default function SessionSetupScreen() {
                 cx={120}
                 cy={120}
                 r={96}
-                stroke={isLearning ? '#7DD3C0' : '#F4A261'}
+                stroke={isLearning ? '#5EEAD4' : '#FDBA74'}
                 strokeWidth={5}
                 fill="none"
                 strokeDasharray={`${phaseProgress * circum} ${circum}`}
@@ -336,7 +336,7 @@ export default function SessionSetupScreen() {
             </Svg>
             <View style={runStyles.progressCenter}>
               <Text style={runStyles.wordText}>{currentWord}</Text>
-              <Text style={[runStyles.timerText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+              <Text style={[runStyles.timerText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {fmt(phaseRemaining)}
               </Text>
             </View>
@@ -348,16 +348,16 @@ export default function SessionSetupScreen() {
               style={[
                 runStyles.autoBadge,
                 {
-                  backgroundColor: isLearning ? 'rgba(42,157,143,0.15)' : 'rgba(255,255,255,0.05)',
-                  borderColor: isLearning ? 'rgba(42,157,143,0.35)' : 'rgba(255,255,255,0.1)',
+                  backgroundColor: isLearning ? 'rgba(94,234,212,0.15)' : 'rgba(255,255,255,0.05)',
+                  borderColor: isLearning ? 'rgba(94,234,212,0.35)' : 'rgba(255,255,255,0.1)',
                 },
               ]}
             >
-              <Text style={[runStyles.autoBadgeText, { color: isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.4)' }]}>
+              <Text style={[runStyles.autoBadgeText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {isLearning ? '소리 자동 재생 중' : '휴식 중 · 다음 학습 준비'}
               </Text>
             </View>
-            <WaveformBars color={isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
+            <WaveformBars color={isLearning ? '#5EEAD4' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
           </View>
 
           {/* controls */}
@@ -380,11 +380,11 @@ export default function SessionSetupScreen() {
                     {
                       backgroundColor:
                         i < cycle - 1
-                          ? '#7DD3C0'
+                          ? '#A78BFA'
                           : i === cycle - 1
                           ? isLearning
-                            ? '#7DD3C0'
-                            : '#F4A261'
+                            ? '#5EEAD4'
+                            : '#FDBA74'
                           : 'rgba(255,255,255,0.15)',
                     },
                   ]}
@@ -919,7 +919,7 @@ const runStyles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   completedTitle: {
-    color: '#7DD3C0',
+    color: '#A78BFA',
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.5,
@@ -936,8 +936,8 @@ const runStyles = StyleSheet.create({
     fontWeight: '500',
   },
   completedBtn: {
-    backgroundColor: 'rgba(125,211,192,0.20)',
-    borderColor: 'rgba(125,211,192,0.45)',
+    backgroundColor: 'rgba(167,139,250,0.20)',
+    borderColor: 'rgba(167,139,250,0.45)',
     borderRadius: 999,
     borderWidth: 1,
     marginTop: 24,
@@ -945,7 +945,7 @@ const runStyles = StyleSheet.create({
     paddingVertical: 14,
   },
   completedBtnText: {
-    color: '#7DD3C0',
+    color: '#A78BFA',
     fontSize: 16,
     fontWeight: '700',
   },
