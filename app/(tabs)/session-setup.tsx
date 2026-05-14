@@ -1,8 +1,11 @@
 import Slider from '@react-native-community/slider';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Circle, Svg } from 'react-native-svg';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 import { WaveformPlaceholder } from '@/components/audio/waveform-placeholder';
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -12,15 +15,16 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
-import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import type { AudioSourceChoice } from '@/features/audio/audio-types';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
+import { useAudioRecording } from '@/features/audio/use-audio-recording';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useTrainingData } from '@/features/training/training-context';
-import { createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
-import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
+import { createTrainingSession, createTrainingWord, selectTrainingWordSummaries } from '@/features/training/training-model';
+import type { AudioPitchTransform, CreateTrainingSessionInput, TrainingAudioSourceType, TrainingSessionSettings } from '@/features/training/training-types';
+import { useAudioPlayer } from 'expo-audio';
 
-type SessionStatus = 'idle' | 'running' | 'paused';
+type SessionStatus = 'idle' | 'running' | 'paused' | 'completed';
 
 const STEP_SESSION_MINS = 5;
 const STEP_LEARN_SECS = 10;
@@ -45,7 +49,7 @@ type PersonaId = (typeof PERSONAS)[number]['id'];
 
 export default function SessionSetupScreen() {
   const { locale, t } = useI18n();
-  const { store, errorMessage: trainingErrorMessage, isHydrated, saveLastSessionSettings, upsertWord } = useTrainingData();
+  const { store, errorMessage: trainingErrorMessage, isHydrated, saveCompletedSession, saveLastSessionSettings, upsertWord } = useTrainingData();
 
   // setup state
   const [audioSource, setAudioSource] = useState<AudioSourceChoice>('preset');
@@ -78,6 +82,20 @@ export default function SessionSetupScreen() {
   const [cycle, setCycle] = useState(1);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
 
+  type SessionMeta = {
+    wordId: string;
+    startedAt: string;
+    sourceType: TrainingAudioSourceType;
+    totalDurationSeconds: number;
+    learningDurationSeconds: number;
+    restDurationSeconds: number;
+  };
+  const sessionMetaRef = useRef<SessionMeta | null>(null);
+
+  // preset:// URI는 가짜이므로 recording 소스만 재생
+  const sessionAudioUri = audioSource === 'recording' ? (recordingFile?.uri ?? undefined) : undefined;
+  const sessionPlayer = useAudioPlayer(sessionAudioUri);
+
   const secsPerCycle = learnSecs + restSecs;
   const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
   const selectedPreset = PRESET_WORDS.find((p) => p.key === selectedPresetKey) ?? PRESET_WORDS[0];
@@ -87,6 +105,16 @@ export default function SessionSetupScreen() {
   const phaseRemaining = Math.max(0, phaseDuration - phaseElapsed);
   const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
   const circum = 2 * Math.PI * 96;
+
+  const animatedOffset = useSharedValue(circum);
+  useEffect(() => {
+    if (phaseProgress === 0) {
+      animatedOffset.value = circum;
+    } else {
+      animatedOffset.value = withTiming(circum * (1 - phaseProgress), { duration: 950 });
+    }
+  }, [phaseProgress, circum, animatedOffset]);
+  const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: animatedOffset.value }));
 
   const wordSummaries = useMemo(
     () => (store ? selectTrainingWordSummaries(store) : []),
@@ -103,39 +131,82 @@ export default function SessionSetupScreen() {
     (audioSource === 'preset' ||
      (audioSource === 'recording' && recordingLifecycle === 'recorded' && recordingFile !== null));
 
-  // 1-second tick
+  // 1-second tick: phaseDuration에서 멈추고 전환은 별도 effect에 위임
   useEffect(() => {
     if (status !== 'running') return;
     const iv = setInterval(() => {
-      setPhaseElapsed((prev) => {
-        const next = prev + 1;
-        if (next < phaseDuration) return next;
-        if (phase === 'learning') {
-          setPhase('rest');
-          return 0;
-        }
-        if (cycle >= totalCycles) {
-          setStatus('idle');
-          setCycle(1);
-          setPhase('learning');
-          return 0;
-        }
-        setCycle((c) => c + 1);
-        setPhase('learning');
-        return 0;
-      });
+      setPhaseElapsed((prev) => (prev >= phaseDuration ? prev : Math.min(prev + 1, phaseDuration)));
     }, 1000);
     return () => clearInterval(iv);
-  }, [status, phase, cycle, totalCycles, phaseDuration]);
+  }, [status, phaseDuration]);
 
-  async function saveSessionSetup(): Promise<boolean> {
+  // 페이즈 전환: 애니메이션 완료(950ms) 후 실제 전환
+  useEffect(() => {
+    if (status !== 'running' || phaseElapsed < phaseDuration) return;
+    const timer = setTimeout(() => {
+      if (phase === 'learning') {
+        setPhase('rest');
+        setPhaseElapsed(0);
+        return;
+      }
+      if (cycle >= totalCycles) {
+        setStatus('completed');
+        setCycle(1);
+        setPhase('learning');
+        setPhaseElapsed(0);
+        return;
+      }
+      setCycle((c) => c + 1);
+      setPhase('learning');
+      setPhaseElapsed(0);
+    }, 980);
+    return () => clearTimeout(timer);
+  }, [phaseElapsed, phaseDuration, status, phase, cycle, totalCycles]);
+
+  // 오디오: 학습 페이즈에서 재생, 나머지에서 정지
+  useEffect(() => {
+    if (!sessionAudioUri) return;
+    if (status === 'running' && phase === 'learning') {
+      sessionPlayer.loop = true;
+      sessionPlayer.seekTo(0);
+      sessionPlayer.play();
+    } else {
+      sessionPlayer.pause();
+    }
+  }, [phase, status, sessionAudioUri, sessionPlayer]);
+
+  // 완료 시 세션을 store에 저장
+  useEffect(() => {
+    if (status !== 'completed') return;
+    const meta = sessionMetaRef.current;
+    if (!meta) return;
+    const endedAt = new Date().toISOString();
+    const session = createTrainingSession(
+      {
+        wordId: meta.wordId,
+        sourceType: meta.sourceType,
+        totalDurationSeconds: meta.totalDurationSeconds,
+        learningDurationSeconds: meta.learningDurationSeconds,
+        restDurationSeconds: meta.restDurationSeconds,
+        completedCycles: totalCycles,
+        totalLearningSeconds: totalCycles * meta.learningDurationSeconds,
+        startedAt: meta.startedAt,
+        endedAt,
+      } satisfies CreateTrainingSessionInput,
+      endedAt
+    );
+    saveCompletedSession(session);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]); // totalCycles/saveCompletedSession은 세션 중 불변
+
+  async function saveSessionSetup(): Promise<{ wordId: string; settings: TrainingSessionSettings } | null> {
     if (!isHydrated) {
       setSaveErrorMessage(t('sessionSetup.storeLoading'));
-      return false;
+      return null;
     }
     if (!canContinue) {
       setSaveErrorMessage(t('sessionSetup.selectAudioError'));
-      return false;
+      return null;
     }
     try {
       const nowIso = new Date().toISOString();
@@ -172,16 +243,24 @@ export default function SessionSetupScreen() {
       await upsertWord(word);
       await saveLastSessionSettings(settings);
       setSaveErrorMessage(null);
-      return true;
+      return { wordId: word.id, settings };
     } catch {
       setSaveErrorMessage(t('sessionSetup.saveError'));
-      return false;
+      return null;
     }
   }
 
   async function handleStartSession() {
-    const ok = await saveSessionSetup();
-    if (!ok) return;
+    const result = await saveSessionSetup();
+    if (!result) return;
+    sessionMetaRef.current = {
+      wordId: result.wordId,
+      startedAt: new Date().toISOString(),
+      sourceType: result.settings.sourceType,
+      totalDurationSeconds: result.settings.totalDurationSeconds,
+      learningDurationSeconds: result.settings.learningDurationSeconds,
+      restDurationSeconds: result.settings.restDurationSeconds,
+    };
     setCycle(1);
     setPhase('learning');
     setPhaseElapsed(0);
@@ -198,11 +277,31 @@ export default function SessionSetupScreen() {
       {/* ── Running view (modal overlay) ─────────────────────────── */}
       <Modal visible={status !== 'idle'} animationType="fade" statusBarTranslucent>
         <View style={[runStyles.container, { paddingTop: insets.top }]}>
+
+          {/* ── Completion screen ── */}
+          {status === 'completed' && (
+            <View style={runStyles.completedContainer}>
+              <Text style={runStyles.completedTitle}>세션 완료!</Text>
+              <Text style={runStyles.completedWord}>{currentWord}</Text>
+              <Text style={runStyles.completedStat}>모든 사이클 완료</Text>
+              <Text style={runStyles.completedStat}>총 학습 시간 {fmt(totalCycles * learnSecs)}</Text>
+              <Pressable
+                style={runStyles.completedBtn}
+                onPress={() => { sessionMetaRef.current = null; setStatus('idle'); }}
+              >
+                <Text style={runStyles.completedBtnText}>확인</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {/* ── Running session UI ── */}
+          {status !== 'completed' && <>
+
           {/* radial gradient overlay */}
           <View
             style={[
               runStyles.gradientOverlay,
-              { backgroundColor: isLearning ? 'rgba(42,157,143,0.22)' : 'rgba(244,162,97,0.18)' },
+              { backgroundColor: isLearning ? 'rgba(94,234,212,0.22)' : 'rgba(253,186,116,0.18)' },
             ]}
           />
 
@@ -222,18 +321,18 @@ export default function SessionSetupScreen() {
               style={[
                 runStyles.badge,
                 {
-                  backgroundColor: isLearning ? 'rgba(42,157,143,0.20)' : 'rgba(244,162,97,0.20)',
-                  borderColor: isLearning ? 'rgba(42,157,143,0.45)' : 'rgba(244,162,97,0.45)',
+                  backgroundColor: isLearning ? 'rgba(94,234,212,0.20)' : 'rgba(253,186,116,0.20)',
+                  borderColor: isLearning ? 'rgba(94,234,212,0.45)' : 'rgba(253,186,116,0.45)',
                 },
               ]}
             >
               <View
                 style={[
                   runStyles.badgeDot,
-                  { backgroundColor: isLearning ? '#7DD3C0' : '#F4A261' },
+                  { backgroundColor: isLearning ? '#5EEAD4' : '#FDBA74' },
                 ]}
               />
-              <Text style={[runStyles.badgeText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+              <Text style={[runStyles.badgeText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {isLearning ? '학습 중' : '휴식 중'}
               </Text>
             </View>
@@ -243,21 +342,22 @@ export default function SessionSetupScreen() {
           <View style={runStyles.progressWrapper}>
             <Svg width={240} height={240}>
               <Circle cx={120} cy={120} r={96} stroke="rgba(255,255,255,0.07)" strokeWidth={5} fill="none" />
-              <Circle
+              <AnimatedCircle
                 cx={120}
                 cy={120}
                 r={96}
-                stroke={isLearning ? '#7DD3C0' : '#F4A261'}
+                stroke={isLearning ? '#5EEAD4' : '#FDBA74'}
                 strokeWidth={5}
                 fill="none"
-                strokeDasharray={`${phaseProgress * circum} ${circum}`}
+                strokeDasharray={circum}
                 strokeLinecap="round"
-                transform={`rotate(-90 120 120)`}
+                transform="rotate(-90 120 120)"
+                animatedProps={animatedProps}
               />
             </Svg>
             <View style={runStyles.progressCenter}>
               <Text style={runStyles.wordText}>{currentWord}</Text>
-              <Text style={[runStyles.timerText, { color: isLearning ? '#7DD3C0' : '#F4A261' }]}>
+              <Text style={[runStyles.timerText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {fmt(phaseRemaining)}
               </Text>
             </View>
@@ -269,16 +369,16 @@ export default function SessionSetupScreen() {
               style={[
                 runStyles.autoBadge,
                 {
-                  backgroundColor: isLearning ? 'rgba(42,157,143,0.15)' : 'rgba(255,255,255,0.05)',
-                  borderColor: isLearning ? 'rgba(42,157,143,0.35)' : 'rgba(255,255,255,0.1)',
+                  backgroundColor: isLearning ? 'rgba(94,234,212,0.15)' : 'rgba(255,255,255,0.05)',
+                  borderColor: isLearning ? 'rgba(94,234,212,0.35)' : 'rgba(255,255,255,0.1)',
                 },
               ]}
             >
-              <Text style={[runStyles.autoBadgeText, { color: isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.4)' }]}>
+              <Text style={[runStyles.autoBadgeText, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
                 {isLearning ? '소리 자동 재생 중' : '휴식 중 · 다음 학습 준비'}
               </Text>
             </View>
-            <WaveformBars color={isLearning ? '#7DD3C0' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
+            <WaveformBars color={isLearning ? '#5EEAD4' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
           </View>
 
           {/* controls */}
@@ -301,11 +401,11 @@ export default function SessionSetupScreen() {
                     {
                       backgroundColor:
                         i < cycle - 1
-                          ? '#7DD3C0'
+                          ? '#A78BFA'
                           : i === cycle - 1
                           ? isLearning
-                            ? '#7DD3C0'
-                            : '#F4A261'
+                            ? '#5EEAD4'
+                            : '#FDBA74'
                           : 'rgba(255,255,255,0.15)',
                     },
                   ]}
@@ -316,6 +416,7 @@ export default function SessionSetupScreen() {
               )}
             </View>
           </View>
+          </>}
         </View>
       </Modal>
 
@@ -830,6 +931,44 @@ const runStyles = StyleSheet.create({
   dotOverflow: {
     color: 'rgba(255,255,255,0.45)',
     fontSize: 9,
+  },
+  completedContainer: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  completedTitle: {
+    color: '#A78BFA',
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  completedWord: {
+    color: '#FAF6F0',
+    fontSize: 60,
+    fontWeight: '700',
+    letterSpacing: -2,
+  },
+  completedStat: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  completedBtn: {
+    backgroundColor: 'rgba(167,139,250,0.20)',
+    borderColor: 'rgba(167,139,250,0.45)',
+    borderRadius: 999,
+    borderWidth: 1,
+    marginTop: 24,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+  },
+  completedBtnText: {
+    color: '#A78BFA',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 
