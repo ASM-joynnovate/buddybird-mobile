@@ -1,11 +1,13 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { TrainingGoalCard } from '@/components/profile/training-goal-card';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
 import { useProfile } from '@/features/profile/profile-context';
@@ -15,6 +17,10 @@ import { createProfileFromDraft, validateProfileDraft } from '@/features/profile
 
 export default function OnboardingGoalsScreen() {
   const { locale, t } = useI18n();
+  const { track, recordError } = useAnalytics();
+  const enteredAtRef = useRef(Date.now());
+  const onboardingStartedAtRef = useRef(Date.now());
+  useScreenTracking('onboarding_goals');
   const trainingGoals = useMemo(() => getTrainingGoals(locale), [locale]);
   const { draft, setDraft } = useOnboardingDraft();
   const { saveProfile } = useProfile();
@@ -67,7 +73,30 @@ export default function OnboardingGoalsScreen() {
     try {
       await saveProfile(profile);
       setDraft({ trainingGoalIds: selectedGoalIds });
-    } catch {
+
+      const goalsStepDuration = Date.now() - enteredAtRef.current;
+      const totalDuration = Date.now() - onboardingStartedAtRef.current;
+
+      track({
+        name: 'onboarding_step_completed',
+        params: { step: 'goals', duration_ms: goalsStepDuration },
+      });
+      track({
+        name: 'profile_created',
+        params: {
+          parrot_name: profile.name,
+          parrot_species: profile.species,
+          parrot_age_months: profile.ageMonths,
+          goals_count: profile.trainingGoalIds.length,
+        },
+      });
+      track({
+        name: 'onboarding_completed',
+        params: { total_duration_ms: totalDuration },
+      });
+    } catch (error: unknown) {
+      const wrapped = error instanceof Error ? error : new Error('Profile save failed');
+      await recordError(wrapped, { screen_name: 'onboarding_goals' });
       setErrorMessage(t('onboarding.goals.saveError'));
     } finally {
       setIsSaving(false);

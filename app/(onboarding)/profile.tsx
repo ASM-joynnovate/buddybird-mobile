@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -8,34 +8,44 @@ import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
-import { getSpeciesOptions } from '@/features/profile/profile-options';
-import type { ProfileDraft, ProfileValidationErrors, SpeciesId } from '@/features/profile/profile-types';
+import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
+import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { formatAgeMonths, validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function OnboardingProfileScreen() {
   const { locale, t } = useI18n();
-  const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
+  const { track } = useAnalytics();
   const { draft, setDraft } = useOnboardingDraft();
+
+  useScreenTracking('onboarding_profile');
+
+  const enteredAtRef = useRef(Date.now());
+
+  const initialSpecies = draft.species ?? '';
+  const initialCustomMode = initialSpecies !== '' && !isPresetSpeciesId(initialSpecies);
+
   const [name, setName] = useState(draft.name ?? '');
-  const [species, setSpecies] = useState<SpeciesId | 'custom' | ''>(draft.species ?? '');
-  const [customSpecies, setCustomSpecies] = useState(draft.customSpecies ?? '');
-  const [customMode, setCustomMode] = useState(draft.species === 'custom');
+  const [species, setSpecies] = useState(initialSpecies);
+  const [customMode, setCustomMode] = useState(initialCustomMode);
   const [ageMonths, setAgeMonths] = useState(draft.ageMonths ?? 12);
   const [photoUri, setPhotoUri] = useState(draft.photoUri);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
 
+  const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
+
   const profileDraft = useMemo<ProfileDraft>(
     () => ({
       ageMonths,
-      customSpecies,
       name,
       photoUri,
-      species: customMode ? 'custom' : species,
+      species,
       trainingGoalIds: draft.trainingGoalIds ?? ['greet'],
     }),
-    [ageMonths, customMode, customSpecies, draft.trainingGoalIds, name, photoUri, species]
+    [ageMonths, draft.trainingGoalIds, name, photoUri, species]
   );
 
   function submitProfileStep(): void {
@@ -47,13 +57,16 @@ export default function OnboardingProfileScreen() {
     }
 
     setDraft(profileDraft);
+    track({
+      name: 'onboarding_step_completed',
+      params: { step: 'profile', duration_ms: Date.now() - enteredAtRef.current },
+    });
     router.push('./goals');
   }
 
-  function selectSpecies(nextSpecies: SpeciesId): void {
+  function selectSpecies(nextSpecies: string): void {
     setSpecies(nextSpecies);
     setCustomMode(false);
-    setCustomSpecies('');
     setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
   }
 
@@ -92,7 +105,7 @@ export default function OnboardingProfileScreen() {
               label={t('common.customInput')}
               onPress={() => {
                 setCustomMode(true);
-                setSpecies('custom');
+                setSpecies('');
               }}
               tone="sun"
             />
@@ -101,13 +114,13 @@ export default function OnboardingProfileScreen() {
             <TextInput
               autoCapitalize="none"
               onChangeText={(value) => {
-                setCustomSpecies(value);
+                setSpecies(value);
                 setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
               }}
               placeholder={t('onboarding.profile.speciesPlaceholder')}
               placeholderTextColor="rgba(31,58,61,0.36)"
               style={styles.input}
-              value={customSpecies}
+              value={species}
             />
           ) : null}
         </FormField>

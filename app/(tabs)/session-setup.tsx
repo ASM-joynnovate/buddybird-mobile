@@ -10,13 +10,29 @@ import { WordPicker, type WordPickerItem } from '@/components/session/setup/word
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { Spacing } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
+import { useProfile } from '@/features/profile/profile-context';
 import { useSessionSetup } from '@/features/training/hooks/use-session-setup';
 import { useTrainingData } from '@/features/training/training-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 
+function createSessionId(): string {
+  return `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function diffDays(fromIso: string, toMs: number): number {
+  const from = new Date(fromIso).getTime();
+  const diffMs = Math.max(0, toMs - from);
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
 export default function SessionSetupScreen() {
   const { t } = useI18n();
+  const { track } = useAnalytics();
+  const { profile } = useProfile();
+  useScreenTracking('session_setup');
   const { setPendingSession } = useTrainingData();
   const { entries, isHydrated: isLibraryHydrated } = useWordLibrary();
   const setup = useSessionSetup();
@@ -54,12 +70,30 @@ export default function SessionSetupScreen() {
       sourceType: selectedEntry.sourceType,
     });
     if (!result) return;
+
+    const sessionId = createSessionId();
+
     setPendingSession({
+      sessionId,
       wordId: result.wordId,
       settings: result.settings,
       audioUri: result.audioUri,
       word: result.word,
     });
+
+    track({
+      name: 'training_session_started',
+      params: {
+        session_id: sessionId,
+        word_count: 1,
+        target_word_ids: [result.wordId],
+        target_word_names: [result.word],
+        profile_age_days: profile ? diffDays(profile.createdAt, Date.now()) : 0,
+        parrot_species: profile?.species ?? '',
+        parrot_name: profile?.name ?? '',
+      },
+    });
+
     router.push('/session-active');
   }
 
