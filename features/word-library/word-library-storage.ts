@@ -13,7 +13,8 @@ export async function loadWordLibraryStore(): Promise<WordLibraryStore> {
 
   try {
     return JSON.parse(raw) as WordLibraryStore;
-  } catch {
+  } catch (error: unknown) {
+    console.warn('[word-library] failed to parse stored library, falling back to empty:', error);
     return { version: 1, entriesById: {}, updatedAt: new Date().toISOString() };
   }
 }

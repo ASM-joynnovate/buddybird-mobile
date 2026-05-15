@@ -57,7 +57,8 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
         } else {
           setLibraryState(loaded);
         }
-      } catch {
+      } catch (error: unknown) {
+        console.warn('[word-library] hydrate failed, falling back to empty store:', error);
         if (isMounted) {
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
@@ -75,7 +76,10 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
   const enqueueWrite = useCallback((operation: () => Promise<void>): Promise<void> => {
     const nextWrite = writeQueueRef.current.then(operation, operation);
-    writeQueueRef.current = nextWrite.catch(() => undefined);
+    // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
+    writeQueueRef.current = nextWrite.catch((error: unknown) => {
+      console.warn('[word-library] write queue operation failed:', error);
+    });
     return nextWrite;
   }, []);
 
