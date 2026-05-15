@@ -1,6 +1,8 @@
 import { useAudioPlayer } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
+import { configurePlaybackAudioMode } from '@/features/audio/audio-mode';
+
 import type { SessionMeta, SessionStatus } from '../session-config';
 import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
@@ -91,13 +93,23 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   useEffect(() => {
     if (!audioUri) return;
+    let isCancelled = false;
     if (status === 'running' && phase === 'learning') {
       sessionPlayer.loop = true;
-      sessionPlayer.seekTo(0);
-      sessionPlayer.play();
+      configurePlaybackAudioMode()
+        .then(() => sessionPlayer.seekTo(0))
+        .then(() => {
+          if (!isCancelled) sessionPlayer.play();
+        })
+        .catch(() => {
+          if (!isCancelled) sessionPlayer.play();
+        });
     } else {
       sessionPlayer.pause();
     }
+    return () => {
+      isCancelled = true;
+    };
   }, [phase, status, audioUri, sessionPlayer]);
 
   useEffect(() => {
