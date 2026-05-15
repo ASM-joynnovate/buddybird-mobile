@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -21,9 +21,7 @@ export default function OnboardingProfileScreen() {
   const { track } = useAnalytics();
   const { draft, setDraft } = useOnboardingDraft();
 
-  useScreenTracking('onboarding_profile');
-
-  const enteredAtRef = useRef(Date.now());
+  const { elapsedMs } = useScreenTracking('onboarding_profile');
 
   const initialSpecies = draft.species ?? '';
   const initialCustomMode = initialSpecies !== '' && !isPresetSpeciesId(initialSpecies);
@@ -59,7 +57,7 @@ export default function OnboardingProfileScreen() {
     setDraft(profileDraft);
     track({
       name: 'onboarding_step_completed',
-      params: { step: 'profile', duration_ms: Date.now() - enteredAtRef.current },
+      params: { step: 'profile', duration_ms: elapsedMs() },
     });
     router.push('./goals');
   }

@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -12,14 +11,12 @@ import { useI18n } from '@/features/i18n/i18n-context';
 export default function OnboardingWelcomeScreen() {
   const { t } = useI18n();
   const { track } = useAnalytics();
-  const enteredAtRef = useRef(Date.now());
-
-  useScreenTracking('onboarding_welcome');
+  const { elapsedMs } = useScreenTracking('onboarding_welcome');
 
   function proceed(): void {
     track({
       name: 'onboarding_step_completed',
-      params: { step: 'welcome', duration_ms: Date.now() - enteredAtRef.current },
+      params: { step: 'welcome', duration_ms: elapsedMs() },
     });
     router.push('./profile');
   }

@@ -18,9 +18,8 @@ import { createProfileFromDraft, validateProfileDraft } from '@/features/profile
 export default function OnboardingGoalsScreen() {
   const { locale, t } = useI18n();
   const { track, recordError } = useAnalytics();
-  const enteredAtRef = useRef(Date.now());
   const onboardingStartedAtRef = useRef(Date.now());
-  useScreenTracking('onboarding_goals');
+  const { elapsedMs } = useScreenTracking('onboarding_goals');
   const trainingGoals = useMemo(() => getTrainingGoals(locale), [locale]);
   const { draft, setDraft } = useOnboardingDraft();
   const { saveProfile } = useProfile();
@@ -74,7 +73,7 @@ export default function OnboardingGoalsScreen() {
       await saveProfile(profile);
       setDraft({ trainingGoalIds: selectedGoalIds });
 
-      const goalsStepDuration = Date.now() - enteredAtRef.current;
+      const goalsStepDuration = elapsedMs();
       const totalDuration = Date.now() - onboardingStartedAtRef.current;
 
       track({
