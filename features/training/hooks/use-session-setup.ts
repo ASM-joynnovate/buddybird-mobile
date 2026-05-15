@@ -102,7 +102,8 @@ export function useSessionSetup(): UseSessionSetupResult {
         audioUri: selection.sourceType === 'recording' ? selection.audioUri : undefined,
         word: selection.label,
       };
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[training] saveSessionSetup failed:', error);
       setSaveErrorMessage(t('sessionSetup.saveError'));
       return null;
     }

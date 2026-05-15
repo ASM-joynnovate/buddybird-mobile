@@ -15,7 +15,8 @@ export async function loadTrainingStore(): Promise<TrainingStore> {
 
   try {
     return parseStoredTrainingStore(JSON.parse(rawStore));
-  } catch {
+  } catch (error: unknown) {
+    console.warn('[training] failed to parse stored training data:', error);
     throw new TrainingStorageError('저장된 학습 데이터를 읽을 수 없습니다.');
   }
 }

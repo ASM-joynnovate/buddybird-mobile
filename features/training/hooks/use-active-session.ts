@@ -101,7 +101,8 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         .then(() => {
           if (!isCancelled) sessionPlayer.play();
         })
-        .catch(() => {
+        .catch((error: unknown) => {
+          console.warn('[training] session player setup failed (playing without seek):', error);
           if (!isCancelled) sessionPlayer.play();
         });
     } else {
@@ -116,8 +117,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     return () => {
       try {
         sessionPlayer.pause();
-      } catch {
-        /* noop: expo-audio may already be torn down */
+      } catch (error: unknown) {
+        // expo-audio player가 이미 teardown 상태일 수 있음. cleanup 단계라 복구 불필요.
+        console.warn('[training] sessionPlayer.pause on cleanup failed:', error);
       }
     };
   }, [sessionPlayer]);
