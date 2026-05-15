@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   default: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontWeight: '500',
     letterSpacing: 0.6,
   },

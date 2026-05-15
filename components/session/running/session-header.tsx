@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { PetHubColors } from '@/constants/theme';
+
 interface SessionHeaderProps {
   sessionMins: number;
   cycle: number;
@@ -29,7 +31,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   mono: {
-    color: 'rgba(255,255,255,0.55)',
+    color: PetHubColors.kickerMutedOnDark,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.8,

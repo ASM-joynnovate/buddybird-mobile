@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   range: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.3,

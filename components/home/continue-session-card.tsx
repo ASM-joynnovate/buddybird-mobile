@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   kicker: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,
@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   moreChipText: {
-    color: 'rgba(255,255,255,0.55)',
+    color: PetHubColors.kickerMutedOnDark,
     fontSize: 13,
   },
   sessionMeta: {
-    color: 'rgba(255,255,255,0.55)',
+    color: PetHubColors.kickerMutedOnDark,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.4,

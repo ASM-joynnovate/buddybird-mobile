@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   sourcePillTextPreset: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
   },
   sourcePillTextRecording: {
     color: PetHubColors.tertiaryDeep,
