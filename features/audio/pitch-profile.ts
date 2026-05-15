@@ -15,11 +15,3 @@ export function createMvpPitchTransform(appliedAt: string): PitchTransformMetada
     appliedAt,
   };
 }
-
-const MVP_BASE_RATE = MVP_PITCH_PROFILE.playbackRate;
-const MVP_BASE_FREQ_KHZ = 2.8;
-
-export function computePlaybackRate(targetKhz: number): number {
-  const rate = MVP_BASE_RATE * (targetKhz / MVP_BASE_FREQ_KHZ);
-  return Math.min(2.0, Math.max(0.1, rate));
-}
