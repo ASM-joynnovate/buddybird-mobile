@@ -12,6 +12,7 @@ import {
 
 import { diffDaysIso } from '@/features/shared/date-utils';
 
+import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import { installGlobalErrorReporting } from './error-reporting';
@@ -71,11 +72,6 @@ function buildProviders(): AnalyticsProviderAdapter[] {
   }
 
   return providers;
-}
-
-function reportProviderFailure(providerName: string, operation: string, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-  console.warn(`[analytics] ${providerName} ${operation} failed: ${message}`);
 }
 
 export function AnalyticsProvider({ children }: PropsWithChildren) {
