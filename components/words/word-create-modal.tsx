@@ -114,6 +114,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             errorMessage={recording.errorMessage}
             isRerecording={isRerecording}
             isPlaying={preview.previewState === 'playing'}
+            playElapsedSeconds={preview.elapsedSeconds}
             onPlay={preview.playPreview}
             onStopPlay={preview.stopPreview}
             onStart={recording.requestAndStartRecording}
