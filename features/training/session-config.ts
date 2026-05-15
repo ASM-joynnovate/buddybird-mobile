@@ -13,14 +13,6 @@ export const PRESET_WORDS = [
 
 export type PresetWord = (typeof PRESET_WORDS)[number];
 
-export const PERSONAS = [
-  { id: 'child',  label: '아이 톤',    range: '2.5–3.5 kHz' },
-  { id: 'female', label: '여성 톤',    range: '1.5–2.5 kHz' },
-  { id: 'bird',   label: '새 모방 톤', range: '3.5–4.0 kHz' },
-] as const;
-
-export type PersonaId = (typeof PERSONAS)[number]['id'];
-
 export type SessionStatus = 'idle' | 'running' | 'paused' | 'completed';
 
 export interface SessionMeta {

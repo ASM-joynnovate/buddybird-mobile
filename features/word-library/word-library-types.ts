@@ -2,8 +2,6 @@ import type { PitchTransformMetadata } from '@/features/audio/audio-types';
 
 export type WordTag = '인사' | '음식' | '이름' | '기타';
 export const WORD_TAGS: readonly WordTag[] = ['인사', '음식', '이름', '기타'];
-export type WordPersonaId = 'child' | 'female' | 'bird';
-
 export interface WordEntry {
   id: string;
   label: string;
@@ -13,8 +11,6 @@ export interface WordEntry {
   audioUri: string;
   transformedAudioUri?: string;
   pitchTransform?: PitchTransformMetadata;
-  targetFrequencyKHz?: number;
-  personaId?: WordPersonaId;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,8 +23,6 @@ export interface CreateWordEntryInput {
   audioUri: string;
   transformedAudioUri?: string;
   pitchTransform?: PitchTransformMetadata;
-  targetFrequencyKHz?: number;
-  personaId?: WordPersonaId;
 }
 
 export interface WordLibraryStore {

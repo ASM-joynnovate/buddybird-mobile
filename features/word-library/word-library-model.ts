@@ -10,8 +10,6 @@ export function createWordEntry(input: CreateWordEntryInput, nowIso: string): Wo
     audioUri: input.audioUri,
     transformedAudioUri: input.transformedAudioUri,
     pitchTransform: input.pitchTransform,
-    targetFrequencyKHz: input.targetFrequencyKHz,
-    personaId: input.personaId,
     createdAt: nowIso,
     updatedAt: nowIso,
   };
