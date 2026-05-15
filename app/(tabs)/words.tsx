@@ -8,7 +8,6 @@ import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordListItem } from '@/components/words/word-list-item';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
-import { computePlaybackRate } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
@@ -82,7 +81,7 @@ function WordRow({ entry, onEdit }: WordRowProps) {
   const { t } = useI18n();
   const { canPreview, playPreview } = useAudioPreview(
     entry.transformedAudioUri ?? entry.audioUri,
-    computePlaybackRate(entry.targetFrequencyKHz ?? 2.8),
+    entry.pitchTransform?.playbackRate ?? 1.0,
   );
   const isPreset = entry.sourceType === 'preset';
   const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');

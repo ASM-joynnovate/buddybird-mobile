@@ -1,45 +1,35 @@
-import Slider from '@react-native-community/slider';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
-import { FreqBandViz } from '@/components/ui/freq-band-viz';
 import { SectionKicker } from '@/components/ui/section-kicker';
 import { PetHubColors, Radii } from '@/constants/theme';
-import { PERSONAS, type PersonaId } from '@/features/training/session-config';
+
+export type PitchToneChoice = 'original' | 'parrot';
 
 interface FrequencyTuningFormCardProps {
-  target: number;
-  persona: PersonaId;
-  onChangeTarget: (v: number) => void;
-  onChangePersona: (id: PersonaId) => void;
+  choice: PitchToneChoice;
+  onChangeChoice: (c: PitchToneChoice) => void;
 }
 
-export function FrequencyTuningFormCard({ target, persona, onChangeTarget, onChangePersona }: FrequencyTuningFormCardProps) {
+const OPTIONS: { id: PitchToneChoice; label: string; sub: string }[] = [
+  { id: 'original', label: '원본 녹음 톤 유지', sub: '원본 그대로' },
+  { id: 'parrot', label: '앵무새 톤으로 변환', sub: '발음하기 쉬운 음역대로 변환' },
+];
+
+export function FrequencyTuningFormCard({ choice, onChangeChoice }: FrequencyTuningFormCardProps) {
   return (
     <Card style={styles.card}>
-      <SectionKicker>고주파 톤 매핑 · 목표 주파수</SectionKicker>
-      <FreqBandViz low={1} high={target} color={PetHubColors.secondary} label={`${target.toFixed(1)} kHz`} />
-      <Slider
-        style={styles.slider}
-        minimumValue={1.5}
-        maximumValue={4.0}
-        step={0.1}
-        value={target}
-        minimumTrackTintColor={PetHubColors.secondary}
-        maximumTrackTintColor="rgba(31,58,61,0.12)"
-        thumbTintColor={PetHubColors.secondary}
-        onValueChange={(v) => onChangeTarget(Math.round(v * 10) / 10)}
-      />
+      <SectionKicker>단어 음성 톤 설정</SectionKicker>
       <View style={styles.row}>
-        {PERSONAS.map((p) => (
+        {OPTIONS.map((opt) => (
           <TouchableOpacity
-            key={p.id}
+            key={opt.id}
             activeOpacity={0.75}
-            style={[styles.btn, persona === p.id && styles.btnActive]}
-            onPress={() => onChangePersona(p.id)}
+            style={[styles.btn, choice === opt.id && styles.btnActive]}
+            onPress={() => onChangeChoice(opt.id)}
           >
-            <Text style={[styles.label, persona === p.id && styles.labelActive]}>{p.label}</Text>
-            <Text style={styles.range}>{p.range}</Text>
+            <Text style={[styles.label, choice === opt.id && styles.labelActive]}>{opt.label}</Text>
+            <Text style={styles.range}>{opt.sub}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -50,10 +40,6 @@ export function FrequencyTuningFormCard({ target, persona, onChangeTarget, onCha
 const styles = StyleSheet.create({
   card: {
     gap: 14,
-  },
-  slider: {
-    height: 36,
-    width: '100%',
   },
   row: {
     flexDirection: 'row',

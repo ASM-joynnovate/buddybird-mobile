@@ -3,7 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PillButton } from '@/components/ui/pill-button';
-import { FrequencyTuningFormCard } from '@/components/words/forms/frequency-tuning-form-card';
+import { FrequencyTuningFormCard, type PitchToneChoice } from '@/components/words/forms/frequency-tuning-form-card';
 import { RecordingFormCard } from '@/components/words/forms/recording-form-card';
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
@@ -12,7 +12,6 @@ import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { PersonaId } from '@/features/training/session-config';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import { WORD_TAGS, type WordTag } from '@/features/word-library/word-library-types';
 
@@ -29,8 +28,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
 
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('인사');
-  const [target, setTarget] = useState(2.8);
-  const [persona, setPersona] = useState<PersonaId>('child');
+  const [toneChoice, setToneChoice] = useState<PitchToneChoice>('parrot');
   const [isSaving, setIsSaving] = useState(false);
   const [isRerecording, setIsRerecording] = useState(false);
 
@@ -56,8 +54,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     recording.resetRecording();
     setLabel('');
     setTag('인사');
-    setTarget(2.8);
-    setPersona('child');
+    setToneChoice('parrot');
     onClose();
   }
 
@@ -72,15 +69,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     setIsSaving(true);
     try {
       const nowIso = new Date().toISOString();
-      const pitchTransform = createMvpPitchTransform(nowIso);
+      const pitchTransform = toneChoice === 'parrot' ? createMvpPitchTransform(nowIso) : undefined;
       await createEntry({
         label: label.trim(),
         tag,
         sourceType: 'recording',
         audioUri: recording.recordingFile.uri,
         pitchTransform,
-        targetFrequencyKHz: target,
-        personaId: persona,
       });
       handleClose();
       onCreated();
@@ -140,10 +135,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
           />
 
           <FrequencyTuningFormCard
-            target={target}
-            persona={persona}
-            onChangeTarget={setTarget}
-            onChangePersona={setPersona}
+            choice={toneChoice}
+            onChangeChoice={setToneChoice}
           />
 
           <PillButton
