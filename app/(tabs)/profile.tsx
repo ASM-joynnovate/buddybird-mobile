@@ -8,7 +8,7 @@ import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
 import { ProfileLanguagePicker } from '@/components/profile/profile-language-picker';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
-import { useAnalytics } from '@/features/analytics/analytics-context';
+import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { type AppLocale } from '@/features/i18n/i18n-resources';
 import { useProfile } from '@/features/profile/profile-context';
@@ -19,7 +19,6 @@ import { validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function ProfileScreen() {
   const { locale, setLocale, supportedLocales, t } = useI18n();
-  const { recordError } = useAnalytics();
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
   const { profile, updateProfile } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
@@ -80,10 +79,7 @@ export default function ProfileScreen() {
       setSaveErrorMessage(null);
       setIsEditing(false);
     } catch (error: unknown) {
-      console.warn('[profile] saveEdit failed:', error);
-      await recordError(error instanceof Error ? error : new Error('Profile save failed'), {
-        screen_name: 'profile',
-      });
+      reportError(error, { scope: 'profile.saveEdit', screen_name: 'profile' });
       setSaveErrorMessage(t('profile.saveError'));
     }
   }
@@ -93,10 +89,7 @@ export default function ProfileScreen() {
       await setLocale(nextLocale);
       setLanguageErrorMessage(null);
     } catch (error: unknown) {
-      console.warn('[profile] changeLocale failed:', error);
-      await recordError(error instanceof Error ? error : new Error('Locale change failed'), {
-        screen_name: 'profile',
-      });
+      reportError(error, { scope: 'profile.changeLocale', screen_name: 'profile' });
       setLanguageErrorMessage(t('profile.languageSaveError'));
     }
   }

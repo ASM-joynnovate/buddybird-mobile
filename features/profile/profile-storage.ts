@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import type { ParrotProfile, TrainingGoalId } from './profile-types';
 
 export const PROFILE_STORAGE_KEY = '@pethub/parrot-profile';
@@ -21,7 +23,7 @@ export async function loadStoredProfile(): Promise<ParrotProfile | null> {
   try {
     return parseStoredProfile(JSON.parse(rawProfile));
   } catch (error: unknown) {
-    console.warn('[profile] failed to parse stored profile:', error);
+    reportError(error, { scope: 'profile.loadStored' });
     throw new ProfileStorageError('저장된 프로필을 읽을 수 없습니다.');
   }
 }
