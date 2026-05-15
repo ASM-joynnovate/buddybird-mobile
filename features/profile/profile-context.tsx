@@ -1,7 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
+import { useAnalytics } from '@/features/analytics/analytics-context';
+
 import type { ParrotProfile } from './profile-types';
 import { loadStoredProfile, saveStoredProfile } from './profile-storage';
+
+function diffDays(fromIso: string, toMs: number): number {
+  const from = new Date(fromIso).getTime();
+  const diffMs = Math.max(0, toMs - from);
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
 
 interface ProfileContextValue {
   profile: ParrotProfile | null;
@@ -14,9 +22,40 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: PropsWithChildren) {
+  const { isReady: analyticsReady, installationId, setUserId, setUserProperty } = useAnalytics();
+
   const [profile, setProfile] = useState<ParrotProfile | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!analyticsReady) return;
+
+    async function syncIdentity(): Promise<void> {
+      if (profile) {
+        await setUserId(profile.id);
+        await Promise.all([
+          setUserProperty('parrot_name', profile.name),
+          setUserProperty('parrot_species', profile.species),
+          setUserProperty('parrot_age_months', profile.ageMonths),
+          setUserProperty('goals_count', profile.trainingGoalIds.length),
+          setUserProperty('profile_age_days', diffDays(profile.createdAt, Date.now())),
+        ]);
+        return;
+      }
+
+      await setUserId(installationId);
+      await Promise.all([
+        setUserProperty('parrot_name', null),
+        setUserProperty('parrot_species', null),
+        setUserProperty('parrot_age_months', null),
+        setUserProperty('goals_count', null),
+        setUserProperty('profile_age_days', null),
+      ]);
+    }
+
+    void syncIdentity();
+  }, [analyticsReady, installationId, profile, setUserId, setUserProperty]);
 
   useEffect(() => {
     let isMounted = true;

@@ -11,6 +11,7 @@ import { loadTrainingStore, saveTrainingStore } from './training-storage';
 import type { AudioRecording, TrainingSession, TrainingSessionSettings, TrainingStore, TrainingWord } from './training-types';
 
 export interface PendingSession {
+  sessionId: string;
   wordId: string;
   settings: TrainingSessionSettings;
   audioUri?: string;
