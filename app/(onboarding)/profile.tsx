@@ -87,7 +87,7 @@ export default function OnboardingProfileScreen() {
               setErrors((currentErrors) => ({ ...currentErrors, name: undefined }));
             }}
             placeholder={t('onboarding.profile.namePlaceholder')}
-            placeholderTextColor="rgba(31,58,61,0.36)"
+            placeholderTextColor={PetHubColors.placeholderMuted}
             style={styles.input}
             value={name}
           />
@@ -116,7 +116,7 @@ export default function OnboardingProfileScreen() {
                 setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
               }}
               placeholder={t('onboarding.profile.speciesPlaceholder')}
-              placeholderTextColor="rgba(31,58,61,0.36)"
+              placeholderTextColor={PetHubColors.placeholderMuted}
               style={styles.input}
               value={species}
             />
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
+    color: PetHubColors.bodyMuted,
   },
   form: {
     gap: Spacing.sectionY,

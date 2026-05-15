@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   kicker: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
+    color: PetHubColors.bodyMuted,
     maxWidth: 310,
     textAlign: 'center',
   },

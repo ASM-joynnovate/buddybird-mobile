@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
+    color: PetHubColors.bodyMuted,
   },
   goalList: {
     gap: Spacing.sectionHeadGap,
