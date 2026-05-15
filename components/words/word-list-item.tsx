@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PetHubColors, Radii } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 
@@ -9,6 +10,7 @@ interface WordListItemProps {
   sourceLabel: string;
   isPreset: boolean;
   canPreview: boolean;
+  isPlaying: boolean;
   onEdit: () => void;
   onPlay: () => void;
 }
@@ -19,6 +21,7 @@ export function WordListItem({
   sourceLabel,
   isPreset,
   canPreview,
+  isPlaying,
   onEdit,
   onPlay,
 }: WordListItemProps) {
@@ -42,7 +45,7 @@ export function WordListItem({
         </View>
       </View>
       <TouchableOpacity style={styles.editBtn} activeOpacity={0.7} onPress={onEdit}>
-        <Text style={styles.editBtnIcon}>✎</Text>
+        <IconSymbol name={'pencil'} style={styles.editBtnIcon} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
@@ -50,7 +53,7 @@ export function WordListItem({
         disabled={!canPreview}
         onPress={onPlay}
       >
-        <Text style={styles.playBtnIcon}>▶</Text>
+        <IconSymbol name={isPlaying ? 'stop.fill' : 'play.fill'} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -151,10 +154,5 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: 'center',
     width: 38,
-  },
-  playBtnIcon: {
-    color: PetHubColors.primary,
-    fontSize: 12,
-    marginLeft: 2,
   },
 });

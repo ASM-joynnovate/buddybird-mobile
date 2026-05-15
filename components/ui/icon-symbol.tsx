@@ -23,8 +23,10 @@ const MAPPING = {
   'book.fill': 'book',
   'mic': 'mic',
   'bell.fill': 'notifications',
+  'pencil': 'edit',
   'play.fill': 'play-arrow',
   'pause.fill': 'pause',
+  'stop.fill': 'stop',
 } as IconMapping;
 
 /**
