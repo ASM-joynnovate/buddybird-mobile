@@ -5,6 +5,8 @@ import { useI18n } from '@/features/i18n/i18n-context';
 
 import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
+import { SESSION_PRESETS } from '../session-config';
+import type { SessionPresetKey } from '../session-config';
 import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '../training-types';
 
 export interface SessionSelection {
@@ -22,6 +24,8 @@ export interface SaveSessionSetupResult {
 }
 
 export interface UseSessionSetupResult {
+  presetKey: SessionPresetKey;
+  setPresetKey: (key: SessionPresetKey) => void;
   sessionMins: number;
   setSessionMins: (n: number) => void;
   learnSecs: number;
@@ -46,10 +50,25 @@ export function useSessionSetup(): UseSessionSetupResult {
     upsertWord,
   } = useTrainingData();
 
-  const [sessionMins, setSessionMins] = useState(20);
-  const [learnSecs, setLearnSecs] = useState(60);
-  const [restSecs, setRestSecs] = useState(30);
+  const [presetKey, setPresetKeyState] = useState<SessionPresetKey>('short');
+  const [sessionMins, setSessionMins] = useState(180);
+  const [learnSecs, setLearnSecs] = useState(600);
+  const [restSecs, setRestSecs] = useState(300);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+
+  function setPresetKey(key: SessionPresetKey) {
+    setPresetKeyState(key);
+    if (key === 'custom') {
+      setSessionMins(20);
+      setLearnSecs(60);
+      setRestSecs(30);
+    } else {
+      const preset = SESSION_PRESETS.find((p) => p.key === key)!;
+      setLearnSecs(preset.learnSecs);
+      setRestSecs(preset.restSecs);
+      setSessionMins((preset.learnSecs + preset.restSecs) / 60 * preset.cycles);
+    }
+  }
 
   const secsPerCycle = learnSecs + restSecs;
   const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
@@ -109,6 +128,8 @@ export function useSessionSetup(): UseSessionSetupResult {
   }
 
   return {
+    presetKey,
+    setPresetKey,
     sessionMins,
     setSessionMins,
     learnSecs,

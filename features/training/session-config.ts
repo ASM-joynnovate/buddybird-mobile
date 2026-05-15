@@ -4,6 +4,14 @@ export const STEP_SESSION_MINS = 5;
 export const STEP_LEARN_SECS = 10;
 export const STEP_REST_SECS = 5;
 
+export const SESSION_PRESETS = [
+  { key: 'short',  label: '짧게 1시간 학습', learnSecs: 600, restSecs: 300, cycles: 12 },
+  { key: 'medium', label: '중간 3시간 학습', learnSecs: 600, restSecs: 300, cycles: 36 },
+  { key: 'long',   label: '크게 5시간 학습', learnSecs: 600, restSecs: 300, cycles: 60 },
+] as const;
+
+export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';
+
 export const PRESET_WORDS = [
   { key: 'hello', word: '안녕',    cat: '인사' },
   { key: 'apple', word: '사과',    cat: '음식' },
