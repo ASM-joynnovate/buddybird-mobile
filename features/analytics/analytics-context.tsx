@@ -14,6 +14,7 @@ import { diffDaysIso } from '@/features/shared/date-utils';
 
 import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
+import { registerErrorReporter } from './error-reporter';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import { installGlobalErrorReporting } from './error-reporting';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
@@ -91,6 +92,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let isMounted = true;
     let uninstallErrorReporting: (() => void) | null = null;
+    const unregisterReporter = registerErrorReporter(clientRef.current);
 
     async function bootstrap(): Promise<void> {
       const client = clientRef.current;
@@ -119,6 +121,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     return () => {
       isMounted = false;
       uninstallErrorReporting?.();
+      unregisterReporter();
     };
   }, []);
 
