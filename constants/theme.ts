@@ -20,6 +20,9 @@ export const PetHubColors = {
   leafDeep: '#4F8A7C',
   darkBg: '#0F1A1B',
   sessionMint: '#7DD3C0',
+  kickerMuted: 'rgba(31,58,61,0.55)',
+  bodyMuted: 'rgba(31,58,61,0.68)',
+  placeholderMuted: 'rgba(31,58,61,0.36)',
 };
 
 export const Colors = {
