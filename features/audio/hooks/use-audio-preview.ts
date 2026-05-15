@@ -7,6 +7,7 @@ interface UseAudioPreviewResult {
   canPreview: boolean;
   previewState: AudioPreviewState;
   playPreview: () => Promise<void>;
+  stopPreview: () => void;
 }
 
 export function useAudioPreview(
@@ -31,6 +32,12 @@ export function useAudioPreview(
     return () => sub.remove();
   }, [player]);
 
+  const stopPreview = useCallback((): void => {
+    player.pause();
+    player.seekTo(0).catch(() => {});
+    setPreviewState('ready');
+  }, [player]);
+
   const playPreview = useCallback(async (): Promise<void> => {
     if (!audioUri) {
       setPreviewState('disabled');
@@ -51,8 +58,9 @@ export function useAudioPreview(
     () => ({
       canPreview,
       playPreview,
+      stopPreview,
       previewState: canPreview ? previewState : 'disabled',
     }),
-    [canPreview, playPreview, previewState],
+    [canPreview, playPreview, stopPreview, previewState],
   );
 }

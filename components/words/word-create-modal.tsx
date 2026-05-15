@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,6 +8,7 @@ import { RecordingFormCard } from '@/components/words/forms/recording-form-card'
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -31,6 +32,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   const [target, setTarget] = useState(2.8);
   const [persona, setPersona] = useState<PersonaId>('child');
   const [isSaving, setIsSaving] = useState(false);
+  const [isRerecording, setIsRerecording] = useState(false);
 
   const recording = useAudioRecording({
     permissionDeniedMessage: t('recording.permissionDenied'),
@@ -38,6 +40,14 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     startFailedMessage: t('recording.startFailed'),
     maxDurationMs: 60_000,
   });
+
+  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1);
+
+  useEffect(() => {
+    if (recording.lifecycle !== 'idle' && recording.lifecycle !== 'requesting-permission') {
+      setIsRerecording(false);
+    }
+  }, [recording.lifecycle]);
 
   const canSave =
     recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0;
@@ -49,6 +59,12 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     setTarget(2.8);
     setPersona('child');
     onClose();
+  }
+
+  async function handleRerecord() {
+    setIsRerecording(true);
+    recording.resetRecording();
+    await recording.requestAndStartRecording();
   }
 
   async function handleSave() {
@@ -100,9 +116,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             stopLabel={t('sessionSetup.stopRecording')}
             rerecordLabel={t('sessionSetup.rerecord')}
             errorMessage={recording.errorMessage}
+            isRerecording={isRerecording}
+            isPlaying={preview.previewState === 'playing'}
+            onPlay={preview.playPreview}
+            onStopPlay={preview.stopPreview}
             onStart={recording.requestAndStartRecording}
             onStop={recording.stopRecording}
-            onReset={recording.resetRecording}
+            onReset={handleRerecord}
           />
 
           <WordLabelField

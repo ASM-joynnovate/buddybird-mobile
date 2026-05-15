@@ -18,10 +18,16 @@ interface RecordingFormCardProps {
   startLabel: string;
   stopLabel: string;
   rerecordLabel: string;
+  playLabel?: string;
+  stopPlayLabel?: string;
+  isPlaying?: boolean;
+  isRerecording?: boolean;
   errorMessage: string | null;
   onStart: () => void;
   onStop: () => void;
   onReset: () => void;
+  onPlay?: () => void;
+  onStopPlay?: () => void;
 }
 
 export function RecordingFormCard({
@@ -34,10 +40,16 @@ export function RecordingFormCard({
   startLabel,
   stopLabel,
   rerecordLabel,
+  playLabel = '녹음 재생',
+  stopPlayLabel = '중단',
+  isPlaying = false,
+  isRerecording = false,
   errorMessage,
   onStart,
   onStop,
   onReset,
+  onPlay,
+  onStopPlay,
 }: RecordingFormCardProps) {
   return (
     <Card style={styles.card}>
@@ -46,18 +58,19 @@ export function RecordingFormCard({
       <WaveformPlaceholder
         metering={metering}
         state={
-          lifecycle === 'recording' ? 'recording'
+          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) ? 'recording'
+          : lifecycle === 'recorded' && isPlaying ? 'playing'
           : lifecycle === 'recorded' ? 'recorded'
           : 'idle'
         }
         statusLabel={
-          lifecycle === 'recording' ? recordingStatusLabel
+          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) ? recordingStatusLabel
           : lifecycle === 'recorded' ? recordedStatusLabel
           : undefined
         }
       />
       <View style={styles.btns}>
-        {(lifecycle === 'idle' || lifecycle === 'error' || lifecycle === 'requesting-permission') && (
+        {((lifecycle === 'idle' && !isRerecording) || lifecycle === 'error' || (lifecycle === 'requesting-permission' && !isRerecording)) && (
           <PillButton
             disabled={lifecycle === 'requesting-permission'}
             full
@@ -66,11 +79,18 @@ export function RecordingFormCard({
             variant="teal"
           />
         )}
-        {lifecycle === 'recording' && (
-          <PillButton full label={stopLabel} onPress={onStop} variant="primary" />
+        {(lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) && (
+          <PillButton disabled={lifecycle !== 'recording'} full label={stopLabel} onPress={onStop} variant="primary" />
         )}
         {lifecycle === 'recorded' && (
-          <PillButton full label={rerecordLabel} onPress={onReset} variant="ghost" />
+          <>
+            {isPlaying ? (
+              <PillButton label={stopPlayLabel} onPress={onStopPlay} style={styles.flex1} variant="primary" />
+            ) : (
+              <PillButton label={playLabel} onPress={onPlay} style={styles.flex1} variant="teal" />
+            )}
+            <PillButton label={rerecordLabel} onPress={onReset} style={styles.flex1} variant="ghost" />
+          </>
         )}
       </View>
       <InlineError message={errorMessage} />
@@ -89,5 +109,8 @@ const styles = StyleSheet.create({
   btns: {
     flexDirection: 'row',
     gap: 8,
+  },
+  flex1: {
+    flex: 1,
   },
 });
