@@ -59,9 +59,9 @@ export function useSessionSetup(): UseSessionSetupResult {
   function setPresetKey(key: SessionPresetKey) {
     setPresetKeyState(key);
     if (key === 'custom') {
-      setSessionMins(20);
-      setLearnSecs(60);
-      setRestSecs(60);
+      setSessionMins(75);
+      setLearnSecs(600);
+      setRestSecs(300);
     } else {
       const preset = SESSION_PRESETS.find((p) => p.key === key)!;
       setLearnSecs(preset.learnSecs);
