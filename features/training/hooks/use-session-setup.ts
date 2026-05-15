@@ -61,7 +61,7 @@ export function useSessionSetup(): UseSessionSetupResult {
     if (key === 'custom') {
       setSessionMins(20);
       setLearnSecs(60);
-      setRestSecs(30);
+      setRestSecs(60);
     } else {
       const preset = SESSION_PRESETS.find((p) => p.key === key)!;
       setLearnSecs(preset.learnSecs);

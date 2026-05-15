@@ -2,12 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { PetHubColors, Radii, Spacing } from '@/constants/theme';
-import {
-  SESSION_PRESETS,
-  STEP_LEARN_SECS,
-  STEP_REST_SECS,
-  STEP_SESSION_MINS,
-} from '@/features/training/session-config';
+import { SESSION_PRESETS, STEP_SESSION_MINS } from '@/features/training/session-config';
 import type { SessionPresetKey } from '@/features/training/session-config';
 
 import { SliderField } from './slider-field';
@@ -82,26 +77,26 @@ export function SessionPresetCard({
           />
           <SliderField
             label="학습 시간"
-            value={`${learnSecs}초`}
-            min={20}
-            max={120}
-            step={STEP_LEARN_SECS}
-            current={learnSecs}
+            value={`${learnSecs / 60}분`}
+            min={1}
+            max={30}
+            step={1}
+            current={learnSecs / 60}
             color={PetHubColors.secondary}
-            onChange={(v) => onChangeLearnSecs(Math.round(v / STEP_LEARN_SECS) * STEP_LEARN_SECS)}
+            onChange={(v) => onChangeLearnSecs(Math.round(v) * 60)}
           />
           <SliderField
             label="휴식 시간"
-            value={`${restSecs}초`}
-            min={10}
-            max={60}
-            step={STEP_REST_SECS}
-            current={restSecs}
+            value={`${restSecs / 60}분`}
+            min={1}
+            max={15}
+            step={1}
+            current={restSecs / 60}
             color={PetHubColors.accentCoral}
-            onChange={(v) => onChangeRestSecs(Math.round(v / STEP_REST_SECS) * STEP_REST_SECS)}
+            onChange={(v) => onChangeRestSecs(Math.round(v) * 60)}
           />
           <Text style={styles.cycleMono}>
-            1사이클 = {learnSecs}초 학습 + {restSecs}초 휴식 ({learnSecs + restSecs}초)
+            1사이클 = {learnSecs / 60}분 학습 + {restSecs / 60}분 휴식 ({(learnSecs + restSecs) / 60}분)
           </Text>
         </View>
       )}
