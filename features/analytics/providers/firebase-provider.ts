@@ -2,7 +2,6 @@ import { getApp } from '@react-native-firebase/app';
 import {
   getAnalytics,
   logEvent,
-  logScreenView,
   setAnalyticsCollectionEnabled,
   setUserId as setAnalyticsUserId,
   setUserProperty,
@@ -48,7 +47,7 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
   }
 
   async setScreen(name: string, screenClass?: string): Promise<void> {
-    await logScreenView(this.analytics, {
+    await logEvent(this.analytics, 'screen_view', {
       screen_name: name,
       screen_class: screenClass ?? name,
     });
