@@ -79,7 +79,10 @@ interface WordRowProps {
 
 function WordRow({ entry, onEdit }: WordRowProps) {
   const { t } = useI18n();
-  const { canPreview, playPreview } = useAudioPreview(entry.transformedAudioUri ?? entry.audioUri);
+  const { canPreview, playPreview } = useAudioPreview(
+    entry.transformedAudioUri ?? entry.audioUri,
+    entry.pitchTransform?.playbackRate ?? 1.0,
+  );
   const isPreset = entry.sourceType === 'preset';
   const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
 

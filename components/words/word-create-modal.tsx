@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PillButton } from '@/components/ui/pill-button';
-import { FrequencyTuningFormCard } from '@/components/words/forms/frequency-tuning-form-card';
+import { FrequencyTuningFormCard, type PitchToneChoice } from '@/components/words/forms/frequency-tuning-form-card';
 import { RecordingFormCard } from '@/components/words/forms/recording-form-card';
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { PersonaId } from '@/features/training/session-config';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import { WORD_TAGS, type WordTag } from '@/features/word-library/word-library-types';
 
@@ -28,9 +28,9 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
 
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('인사');
-  const [target, setTarget] = useState(2.8);
-  const [persona, setPersona] = useState<PersonaId>('child');
+  const [toneChoice, setToneChoice] = useState<PitchToneChoice | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRerecording, setIsRerecording] = useState(false);
 
   const recording = useAudioRecording({
     permissionDeniedMessage: t('recording.permissionDenied'),
@@ -39,16 +39,29 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     maxDurationMs: 60_000,
   });
 
+  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1);
+
+  useEffect(() => {
+    if (recording.lifecycle !== 'idle' && recording.lifecycle !== 'requesting-permission') {
+      setIsRerecording(false);
+    }
+  }, [recording.lifecycle]);
+
   const canSave =
-    recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0;
+    recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0 && toneChoice !== null;
 
   function handleClose() {
     recording.resetRecording();
     setLabel('');
     setTag('인사');
-    setTarget(2.8);
-    setPersona('child');
+    setToneChoice(null);
     onClose();
+  }
+
+  async function handleRerecord() {
+    setIsRerecording(true);
+    recording.resetRecording();
+    await recording.requestAndStartRecording();
   }
 
   async function handleSave() {
@@ -56,15 +69,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     setIsSaving(true);
     try {
       const nowIso = new Date().toISOString();
-      const pitchTransform = createMvpPitchTransform(nowIso);
+      const pitchTransform = toneChoice === 'parrot' ? createMvpPitchTransform(nowIso) : undefined;
       await createEntry({
         label: label.trim(),
         tag,
         sourceType: 'recording',
         audioUri: recording.recordingFile.uri,
         pitchTransform,
-        targetFrequencyKHz: target,
-        personaId: persona,
       });
       handleClose();
       onCreated();
@@ -100,9 +111,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             stopLabel={t('sessionSetup.stopRecording')}
             rerecordLabel={t('sessionSetup.rerecord')}
             errorMessage={recording.errorMessage}
+            isRerecording={isRerecording}
+            isPlaying={preview.previewState === 'playing'}
+            onPlay={preview.playPreview}
+            onStopPlay={preview.stopPreview}
             onStart={recording.requestAndStartRecording}
             onStop={recording.stopRecording}
-            onReset={recording.resetRecording}
+            onReset={handleRerecord}
           />
 
           <WordLabelField
@@ -120,10 +135,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
           />
 
           <FrequencyTuningFormCard
-            target={target}
-            persona={persona}
-            onChangeTarget={setTarget}
-            onChangePersona={setPersona}
+            choice={toneChoice}
+            onChangeChoice={setToneChoice}
           />
 
           <PillButton

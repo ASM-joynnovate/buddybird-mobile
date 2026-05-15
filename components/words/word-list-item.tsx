@@ -111,20 +111,24 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   sourcePillPreset: {
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: 'transparent',
+    borderColor: 'rgba(31,58,61,0.20)',
+    borderWidth: 1,
   },
   sourcePillRecording: {
-    backgroundColor: 'rgba(42,157,143,0.12)',
+    backgroundColor: 'transparent',
+    borderColor: PetHubColors.feather,
+    borderWidth: 1,
   },
   sourcePillText: {
     fontSize: 11,
     fontWeight: '500',
   },
   sourcePillTextPreset: {
-    color: 'rgba(31,58,61,0.45)',
+    color: 'rgba(31,58,61,0.55)',
   },
   sourcePillTextRecording: {
-    color: PetHubColors.secondary,
+    color: PetHubColors.tertiaryDeep,
   },
   editBtn: {
     alignItems: 'center',

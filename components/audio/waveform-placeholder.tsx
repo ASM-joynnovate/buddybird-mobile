@@ -15,7 +15,7 @@ const SEED_HEIGHTS = [
   0.36, 0.69, 0.28, 0.59, 0.41, 0.26, 0.64, 0.38, 0.57, 0.31,
 ];
 
-type WaveformState = 'idle' | 'recording' | 'recorded' | 'pitch-applied' | 'preview-disabled';
+type WaveformState = 'idle' | 'recording' | 'recorded' | 'pitch-applied' | 'preview-disabled' | 'playing';
 
 interface WaveformPlaceholderProps {
   state?: WaveformState;
@@ -28,6 +28,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
   const { t } = useI18n();
   const isMuted = state === 'preview-disabled';
   const isRecording = state === 'recording';
+  const isPlaying = state === 'playing';
 
   const animatedHeights = useRef<Animated.Value[]>(
     SEED_HEIGHTS.map((s) => new Animated.Value(s * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT))
@@ -35,6 +36,27 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
   const prevEffectiveRef = useRef(0);
 
   useEffect(() => {
+    if (isPlaying) {
+      let active = true;
+      function animatePlayback() {
+        if (!active) return;
+        const anims = animatedHeights.map((av, i) => {
+          const centreWeight = 1 - Math.abs(i - BAR_COUNT / 2) / (BAR_COUNT / 2);
+          const targetNorm = Math.max(0.08, centreWeight * 0.55 + (Math.random() - 0.5) * 0.3);
+          return Animated.timing(av, {
+            toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
+            duration: 180,
+            useNativeDriver: false,
+          });
+        });
+        Animated.parallel(anims).start(({ finished }) => {
+          if (finished && active) animatePlayback();
+        });
+      }
+      animatePlayback();
+      return () => { active = false; };
+    }
+
     if (!isRecording || metering == null) {
       prevEffectiveRef.current = 0;
       const anims = animatedHeights.map((av, i) =>
@@ -76,7 +98,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       });
     });
     Animated.parallel(anims).start();
-  }, [metering, isRecording, animatedHeights]);
+  }, [metering, isRecording, isPlaying, animatedHeights]);
 
   return (
     <View style={[styles.container, isMuted ? styles.mutedContainer : undefined]}>

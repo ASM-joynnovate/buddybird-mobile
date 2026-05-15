@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/card';
 import { PillButton } from '@/components/ui/pill-button';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { FrequencyTuningFormCard } from '@/components/words/forms/frequency-tuning-form-card';
+import { FrequencyTuningFormCard, type PitchToneChoice } from '@/components/words/forms/frequency-tuning-form-card';
 import { RecordingFormCard } from '@/components/words/forms/recording-form-card';
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
@@ -13,7 +13,6 @@ import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { PersonaId } from '@/features/training/session-config';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import { WORD_TAGS, type WordEntry, type WordTag } from '@/features/word-library/word-library-types';
 
@@ -32,8 +31,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
 
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('인사');
-  const [target, setTarget] = useState(2.8);
-  const [persona, setPersona] = useState<PersonaId>('child');
+  const [toneChoice, setToneChoice] = useState<PitchToneChoice>('parrot');
   const [isRerecording, setIsRerecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -41,8 +39,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     if (entry) {
       setLabel(entry.label);
       setTag(entry.tag);
-      setTarget(entry.targetFrequencyKHz ?? 2.8);
-      setPersona(entry.personaId ?? 'child');
+      setToneChoice(entry.pitchTransform ? 'parrot' : 'original');
       setIsRerecording(false);
     }
   }, [entry]);
@@ -69,13 +66,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     setIsSaving(true);
     try {
       const nowIso = new Date().toISOString();
-      let audioUri = entry.audioUri;
-      let pitchTransform = entry.pitchTransform;
-
-      if (isRerecording && recording.recordingFile) {
-        audioUri = recording.recordingFile.uri;
-        pitchTransform = createMvpPitchTransform(nowIso);
-      }
+      const pitchTransform = toneChoice === 'parrot' ? createMvpPitchTransform(nowIso) : undefined;
+      const audioUri = isRerecording && recording.recordingFile ? recording.recordingFile.uri : entry.audioUri;
 
       await updateEntry({
         ...entry,
@@ -83,8 +75,6 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
         tag,
         audioUri,
         pitchTransform,
-        targetFrequencyKHz: target,
-        personaId: persona,
         updatedAt: nowIso,
       });
       handleClose();
@@ -182,10 +172,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
           />
 
           <FrequencyTuningFormCard
-            target={target}
-            persona={persona}
-            onChangeTarget={setTarget}
-            onChangePersona={setPersona}
+            choice={toneChoice}
+            onChangeChoice={setToneChoice}
           />
 
           <PillButton
