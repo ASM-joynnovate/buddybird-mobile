@@ -109,6 +109,7 @@ export function useAudioPreview(
       playTokenRef.current = playToken;
 
       await configurePlaybackAudioMode();
+      if (playTokenRef.current !== playToken) return;
       player.pause();
       if (loadedUriRef.current !== audioUri) {
         player.replace({ uri: audioUri });
