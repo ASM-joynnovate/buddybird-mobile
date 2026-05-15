@@ -15,13 +15,10 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useProfile } from '@/features/profile/profile-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
+import { createSessionId } from '@/features/shared/ids';
 import { useSessionSetup } from '@/features/training/hooks/use-session-setup';
 import { useTrainingData } from '@/features/training/training-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
-
-function createSessionId(): string {
-  return `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-}
 
 export default function SessionSetupScreen() {
   const { t } = useI18n();
