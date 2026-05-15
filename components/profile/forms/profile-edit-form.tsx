@@ -50,7 +50,7 @@ export function ProfileEditForm({
         <TextInput
           onChangeText={(name) => onPatch({ name })}
           placeholder={t('profile.namePlaceholder')}
-          placeholderTextColor="rgba(31,58,61,0.36)"
+          placeholderTextColor={PetHubColors.placeholderMuted}
           style={styles.input}
           value={form.name}
         />
@@ -76,7 +76,7 @@ export function ProfileEditForm({
           <TextInput
             onChangeText={(species) => onPatch({ species })}
             placeholder={t('profile.speciesPlaceholder')}
-            placeholderTextColor="rgba(31,58,61,0.36)"
+            placeholderTextColor={PetHubColors.placeholderMuted}
             style={styles.input}
             value={form.species}
           />

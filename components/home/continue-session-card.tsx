@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     backgroundColor: PetHubColors.primary,
     borderRadius: Radii.card,
     overflow: 'hidden',
-    shadowColor: 'rgba(31,58,61,1)',
+    shadowColor: PetHubColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 24,

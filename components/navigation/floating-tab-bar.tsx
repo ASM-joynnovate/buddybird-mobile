@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 6,
     paddingVertical: 8,
-    shadowColor: 'rgba(31,58,61,1)',
+    shadowColor: PetHubColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.10,
     shadowRadius: 24,
