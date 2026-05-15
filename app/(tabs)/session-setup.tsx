@@ -11,7 +11,7 @@ import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { Spacing } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useProfile } from '@/features/profile/profile-context';
 import { diffDaysIso } from '@/features/shared/date-utils';

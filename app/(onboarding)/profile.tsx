@@ -9,7 +9,7 @@ import { FormField } from '@/components/ui/form-field';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
 import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';

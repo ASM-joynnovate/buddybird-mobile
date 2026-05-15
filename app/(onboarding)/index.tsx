@@ -6,7 +6,7 @@ import { PetScreen } from '@/components/layout/pet-screen';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 export default function OnboardingWelcomeScreen() {

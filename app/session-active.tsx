@@ -11,7 +11,7 @@ import { SessionProgressRing } from '@/components/session/running/session-progre
 import { SessionWaveSection } from '@/components/session/running/session-wave-section';
 import { PetHubColors } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useActiveSession } from '@/features/training/hooks/use-active-session';
 import { useTrainingData } from '@/features/training/training-context';
 

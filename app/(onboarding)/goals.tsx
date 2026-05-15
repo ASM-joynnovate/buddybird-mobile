@@ -7,7 +7,7 @@ import { TrainingGoalCard } from '@/components/profile/training-goal-card';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
 import { useProfile } from '@/features/profile/profile-context';
