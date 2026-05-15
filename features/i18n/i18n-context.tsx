@@ -2,6 +2,8 @@ import { getLocales } from 'expo-localization';
 import { I18n } from 'i18n-js';
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import { loadStoredLocale, saveStoredLocale } from './i18n-storage';
 import { DEFAULT_LOCALE, normalizeLocale, type AppLocale, SUPPORTED_LOCALES, translations } from './i18n-resources';
 
@@ -33,7 +35,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
         }
       })
       .catch((error: unknown) => {
-        console.warn('[i18n] failed to load stored locale, falling back to device:', error);
+        reportError(error, { scope: 'i18n.loadStoredLocale' });
         if (isMounted) {
           setLocaleState(deviceLocale);
         }
