@@ -79,7 +79,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       });
       handleClose();
       onCreated();
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[words] create entry failed:', error);
       Alert.alert('저장 실패', '단어를 저장하지 못했어요. 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);

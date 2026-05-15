@@ -79,7 +79,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       });
       handleClose();
       onSaved();
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[words] update entry failed:', error);
       Alert.alert('저장 실패', '단어를 저장하지 못했어요. 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);
@@ -98,7 +99,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
             await deleteEntry(entry.id);
             handleClose();
             onDeleted();
-          } catch {
+          } catch (error: unknown) {
+            console.warn('[words] delete entry failed:', error);
             Alert.alert('삭제 실패', '단어를 삭제하지 못했어요. 다시 시도해 주세요.');
           }
         },
