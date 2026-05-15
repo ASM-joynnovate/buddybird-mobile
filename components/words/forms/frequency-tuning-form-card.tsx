@@ -7,7 +7,7 @@ import { PetHubColors, Radii } from '@/constants/theme';
 export type PitchToneChoice = 'original' | 'parrot';
 
 interface FrequencyTuningFormCardProps {
-  choice: PitchToneChoice;
+  choice: PitchToneChoice | null;
   onChangeChoice: (c: PitchToneChoice) => void;
 }
 

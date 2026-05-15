@@ -28,7 +28,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
 
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('인사');
-  const [toneChoice, setToneChoice] = useState<PitchToneChoice>('parrot');
+  const [toneChoice, setToneChoice] = useState<PitchToneChoice | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRerecording, setIsRerecording] = useState(false);
 
@@ -48,13 +48,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   }, [recording.lifecycle]);
 
   const canSave =
-    recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0;
+    recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0 && toneChoice !== null;
 
   function handleClose() {
     recording.resetRecording();
     setLabel('');
     setTag('인사');
-    setToneChoice('parrot');
+    setToneChoice(null);
     onClose();
   }
 
