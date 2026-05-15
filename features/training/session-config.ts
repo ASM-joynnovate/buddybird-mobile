@@ -1,8 +1,5 @@
 import type { TrainingAudioSourceType } from './training-types';
 
-export const STEP_SESSION_MINS = 5;
-export const STEP_LEARN_SECS = 10;
-export const STEP_REST_SECS = 5;
 
 export const SESSION_PRESETS = [
   { key: 'long',   label: '30분 학습',  learnSecs: 600, restSecs: 300, cycles: 2  },  
