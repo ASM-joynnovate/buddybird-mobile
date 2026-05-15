@@ -87,9 +87,3 @@ export async function removeWordMetrics(wordId: string): Promise<WordLifetimeMet
   return previous;
 }
 
-export function daysSinceIso(iso: string): number {
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diffMs = Math.max(0, now - then);
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-}

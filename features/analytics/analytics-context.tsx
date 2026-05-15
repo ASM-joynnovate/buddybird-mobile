@@ -10,6 +10,8 @@ import {
   type PropsWithChildren,
 } from 'react';
 
+import { diffDaysIso } from '@/features/shared/date-utils';
+
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import { installGlobalErrorReporting } from './error-reporting';
@@ -21,7 +23,6 @@ import { NoopProvider } from './providers/noop-provider';
 import type { AnalyticsProviderAdapter } from './providers/types';
 import {
   applySessionDeltas,
-  daysSinceIso,
   type WordLifetimeMetrics,
   type WordSessionDelta,
 } from './word-metrics-storage';
@@ -161,7 +162,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
             lifetime_practice_count: metric.lifetime_practice_count,
             lifetime_practice_duration_ms: metric.lifetime_practice_duration_ms,
             lifetime_recording_count: metric.lifetime_recording_count,
-            last_practiced_at_days_ago: daysSinceIso(metric.last_practiced_at_iso),
+            last_practiced_at_days_ago: diffDaysIso(metric.last_practiced_at_iso),
           },
         });
       }

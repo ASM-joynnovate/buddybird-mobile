@@ -1,15 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { diffDaysIso } from '@/features/shared/date-utils';
 
 import type { ParrotProfile } from './profile-types';
 import { loadStoredProfile, saveStoredProfile } from './profile-storage';
-
-function diffDays(fromIso: string, toMs: number): number {
-  const from = new Date(fromIso).getTime();
-  const diffMs = Math.max(0, toMs - from);
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-}
 
 interface ProfileContextValue {
   profile: ParrotProfile | null;
@@ -39,7 +34,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
           setUserProperty('parrot_species', profile.species),
           setUserProperty('parrot_age_months', profile.ageMonths),
           setUserProperty('goals_count', profile.trainingGoalIds.length),
-          setUserProperty('profile_age_days', diffDays(profile.createdAt, Date.now())),
+          setUserProperty('profile_age_days', diffDaysIso(profile.createdAt)),
         ]);
         return;
       }
