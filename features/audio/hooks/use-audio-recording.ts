@@ -1,6 +1,8 @@
 import { AudioModule, RecordingPresets, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
 import type { RecordingLifecycle, StableRecordingFile } from '../audio-types';
@@ -62,7 +64,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setRecordingFile(null);
       setLifecycle('recording');
     } catch (error: unknown) {
-      console.warn('[audio] requestAndStartRecording failed:', error);
+      reportError(error, { scope: 'audio.requestAndStartRecording' });
       setLifecycle('error');
       setErrorMessage(options.startFailedMessage);
     }
@@ -85,7 +87,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setErrorMessage(null);
       return stableFile;
     } catch (error: unknown) {
-      console.warn('[audio] stopRecording failed:', error);
+      reportError(error, { scope: 'audio.stopRecording' });
       setLifecycle('error');
       setErrorMessage(options.saveFailedMessage);
       return null;
@@ -95,11 +97,11 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
   const resetRecording = useCallback((): void => {
     if (recorderStateRef.current.isRecording) {
       audioRecorder.stop().catch((error: unknown) => {
-        console.warn('[audio] reset stop failed:', error);
+        reportError(error, { scope: 'audio.resetRecording.stop' });
       });
     }
     configurePlaybackAudioMode().catch((error: unknown) => {
-      console.warn('[audio] reset playback mode failed:', error);
+      reportError(error, { scope: 'audio.resetRecording.playbackMode' });
     });
     setLifecycle('idle');
     setRecordingFile(null);

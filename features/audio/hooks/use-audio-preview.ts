@@ -1,6 +1,8 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import { configurePlaybackAudioMode } from '../audio-mode';
 import type { AudioPreviewState } from '../audio-types';
 
@@ -37,7 +39,7 @@ export function useAudioPreview(
     player.pause();
     player.loop = false;
     player.seekTo(0).catch((error: unknown) => {
-      console.warn('[audio] seekTo(0) failed:', error);
+      reportError(error, { scope: 'audio.seekTo' });
     });
     loadedUriRef.current = null;
 
@@ -85,7 +87,7 @@ export function useAudioPreview(
       if (previewState === 'playing') {
         player.pause();
         player.seekTo(0).catch((error: unknown) => {
-      console.warn('[audio] seekTo(0) failed:', error);
+      reportError(error, { scope: 'audio.seekTo' });
     });
         setElapsedSeconds(0);
         setPreviewState('ready');
@@ -99,7 +101,7 @@ export function useAudioPreview(
     playTokenRef.current += 1;
     player.pause();
     player.seekTo(0).catch((error: unknown) => {
-      console.warn('[audio] seekTo(0) failed:', error);
+      reportError(error, { scope: 'audio.seekTo' });
     });
     setElapsedSeconds(0);
     setPreviewState(audioUri ? 'ready' : 'disabled');
@@ -135,14 +137,14 @@ export function useAudioPreview(
         if (!currentStatus.playing && !currentStatus.isBuffering && !currentStatus.didJustFinish) {
           player.pause();
           player.seekTo(0).catch((error: unknown) => {
-      console.warn('[audio] seekTo(0) failed:', error);
+      reportError(error, { scope: 'audio.seekTo' });
     });
           setElapsedSeconds(0);
           setPreviewState('error');
         }
       }, PLAY_START_TIMEOUT_MS);
     } catch (error: unknown) {
-      console.warn('[audio] playPreview failed:', error);
+      reportError(error, { scope: 'audio.playPreview' });
       setPreviewState('error');
     }
   }, [audioUri, player, playbackRate]);
