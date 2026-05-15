@@ -2,7 +2,6 @@ import type { PitchTransformMetadata } from './audio-types';
 
 export const MVP_PITCH_PROFILE = {
   id: 'parrot-mvp-high',
-  labelKey: 'pitch.profileName',
   playbackRate: 1.32,
   preservesPitch: false,
 } as const;

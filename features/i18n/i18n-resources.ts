@@ -143,10 +143,6 @@ interface AppCopy {
     saveFailed: string;
     tooShort: string;
   };
-  pitch: {
-    profileName: string;
-    profileDescription: string;
-  };
   audioErrors: {
     previewFailed: string;
   };
@@ -155,12 +151,9 @@ interface AppCopy {
     step1Recording: string;
     step2Label: string;
     step3Tag: string;
-    step4Tone: string;
     save: string;
     cancel: string;
     labelPlaceholder: string;
-    toneTitle: string;
-    frequencyLabel: string;
   };
   wordEdit: {
     title: string;
@@ -330,10 +323,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saveFailed: '녹음 파일을 저장하지 못했어요. 다시 녹음해 주세요.',
       tooShort: '녹음이 너무 짧아요. 10초 이상 녹음해 주세요.',
     },
-    pitch: {
-      profileName: '앵무새 고주파 MVP',
-      profileDescription: '1.32x 재생 속도 기반의 높은 톤 메타데이터',
-    },
     audioErrors: {
       previewFailed: '미리듣기를 재생하지 못했어요. 다시 시도해 주세요.',
     },
@@ -342,12 +331,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       step1Recording: '녹음',
       step2Label: '단어 이름',
       step3Tag: '태그 선택',
-      step4Tone: '톤 설정',
       save: '저장',
       cancel: '취소',
       labelPlaceholder: '예: 사랑해',
-      toneTitle: '고주파 톤 매핑 · 목표 주파수',
-      frequencyLabel: '목표 주파수',
     },
     wordEdit: {
       title: '단어 편집',
@@ -537,10 +523,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saveFailed: 'Could not save the recording. Please record again.',
       tooShort: 'Recording is too short. Please record for at least 10 seconds.',
     },
-    pitch: {
-      profileName: 'Parrot high-tone MVP',
-      profileDescription: 'High-tone metadata based on 1.32x playback rate',
-    },
     audioErrors: {
       previewFailed: 'Could not play the preview. Please try again.',
     },
@@ -549,12 +531,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       step1Recording: 'Record',
       step2Label: 'Word name',
       step3Tag: 'Choose tag',
-      step4Tone: 'Tone settings',
       save: 'Save',
       cancel: 'Cancel',
       labelPlaceholder: 'e.g. I love you',
-      toneTitle: 'High-tone mapping · target frequency',
-      frequencyLabel: 'Target frequency',
     },
     wordEdit: {
       title: 'Edit word',
