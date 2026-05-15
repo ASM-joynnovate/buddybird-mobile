@@ -44,7 +44,12 @@ export function WordListItem({
           </View>
         </View>
       </View>
-      <TouchableOpacity style={styles.editBtn} activeOpacity={0.7} onPress={onEdit}>
+      <TouchableOpacity
+        style={[styles.editBtn, isPreset && { opacity: 0.3 }]}
+        activeOpacity={0.7}
+        disabled={isPreset}
+        onPress={onEdit}
+      >
         <IconSymbol name={'pencil'} style={styles.editBtnIcon} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
       <TouchableOpacity

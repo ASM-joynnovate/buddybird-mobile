@@ -79,7 +79,7 @@ interface WordRowProps {
 
 function WordRow({ entry, onEdit }: WordRowProps) {
   const { t } = useI18n();
-  const { canPreview, playPreview } = useAudioPreview(
+  const { canPreview, previewState, playPreview } = useAudioPreview(
     entry.transformedAudioUri ?? entry.audioUri,
     entry.pitchTransform?.playbackRate ?? 1.0,
   );
@@ -93,6 +93,7 @@ function WordRow({ entry, onEdit }: WordRowProps) {
       sourceLabel={sourceLabel}
       isPreset={isPreset}
       canPreview={canPreview}
+      isPlaying={previewState === 'playing'}
       onEdit={onEdit}
       onPlay={() => { void playPreview(); }}
     />
