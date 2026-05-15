@@ -32,7 +32,8 @@ export function I18nProvider({ children }: I18nProviderProps) {
           setLocaleState(storedLocale);
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.warn('[i18n] failed to load stored locale, falling back to device:', error);
         if (isMounted) {
           setLocaleState(deviceLocale);
         }
