@@ -1,11 +1,16 @@
-import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
+import { AudioModule, RecordingPresets, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
 import type { RecordingLifecycle, StableRecordingFile } from '../audio-types';
 
 const DB_FLOOR = -60;
 const DB_CEIL = -10;
+const RECORDING_OPTIONS = {
+  ...RecordingPresets.HIGH_QUALITY,
+  isMeteringEnabled: true,
+};
 
 interface UseAudioRecordingResult {
   errorMessage: string | null;
@@ -28,7 +33,7 @@ interface UseAudioRecordingOptions {
 }
 
 export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRecordingResult {
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const audioRecorder = useAudioRecorder(RECORDING_OPTIONS);
   const recorderState = useAudioRecorderState(audioRecorder, 100);
   const recorderStateRef = useRef(recorderState);
   recorderStateRef.current = recorderState;
@@ -51,8 +56,8 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
         return;
       }
 
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await audioRecorder.prepareToRecordAsync({ isMeteringEnabled: true });
+      await configureRecordingAudioMode();
+      await audioRecorder.prepareToRecordAsync();
       audioRecorder.record();
       setRecordingFile(null);
       setLifecycle('recording');
@@ -73,6 +78,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       }
 
       const stableFile = await persistRecordingFile(audioRecorder.uri, new Date().toISOString());
+      await configurePlaybackAudioMode();
       setRecordingFile(stableFile);
       setLifecycle('recorded');
       setErrorMessage(null);
@@ -88,6 +94,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
     if (recorderStateRef.current.isRecording) {
       audioRecorder.stop().catch(() => {});
     }
+    configurePlaybackAudioMode().catch(() => {});
     setLifecycle('idle');
     setRecordingFile(null);
     setErrorMessage(null);

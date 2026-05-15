@@ -39,7 +39,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     maxDurationMs: 60_000,
   });
 
-  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1);
+  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1, recording.elapsedSeconds);
 
   useEffect(() => {
     if (recording.lifecycle !== 'idle' && recording.lifecycle !== 'requesting-permission') {
