@@ -13,6 +13,7 @@ interface RecordingFormCardProps {
   body: string;
   metering: number | null;
   lifecycle: RecordingLifecycle;
+  elapsedSeconds?: number;
   recordingStatusLabel: string;
   recordedStatusLabel: string;
   startLabel: string;
@@ -35,6 +36,7 @@ export function RecordingFormCard({
   body,
   metering,
   lifecycle,
+  elapsedSeconds,
   recordingStatusLabel,
   recordedStatusLabel,
   startLabel,
@@ -64,7 +66,8 @@ export function RecordingFormCard({
           : 'idle'
         }
         statusLabel={
-          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) ? recordingStatusLabel
+          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission')))
+            ? `${recordingStatusLabel}${elapsedSeconds != null ? ` · ${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}` : ''}`
           : lifecycle === 'recorded' ? recordedStatusLabel
           : undefined
         }
