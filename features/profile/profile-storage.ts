@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { ParrotProfile, SpeciesId, TrainingGoalId } from './profile-types';
+import type { ParrotProfile, TrainingGoalId } from './profile-types';
 
 export const PROFILE_STORAGE_KEY = '@pethub/parrot-profile';
 
@@ -30,22 +30,36 @@ function parseStoredProfile(value: unknown): ParrotProfile {
     throw new ProfileStorageError('저장된 프로필 형식이 올바르지 않습니다.');
   }
 
-  const normalizedSpecies = normalizeStoredSpecies(value.species, value.customSpecies);
-
   return {
-    ...value,
-    customSpecies: normalizedSpecies.customSpecies,
-    species: normalizedSpecies.species,
+    id: value.id,
+    name: value.name,
+    species: normalizeStoredSpecies(value.species, value.customSpecies),
+    ageMonths: value.ageMonths,
+    photoUri: value.photoUri,
     trainingGoalIds: [...value.trainingGoalIds],
+    createdAt: value.createdAt,
+    updatedAt: value.updatedAt,
   };
 }
 
-function isStoredProfile(value: unknown): value is ParrotProfile {
+interface StoredProfileShape {
+  id: string;
+  name: string;
+  species: string;
+  customSpecies?: string;
+  ageMonths: number;
+  photoUri?: string;
+  trainingGoalIds: TrainingGoalId[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+function isStoredProfile(value: unknown): value is StoredProfileShape {
   if (!value || typeof value !== 'object') {
     return false;
   }
 
-  const profile = value as Partial<ParrotProfile>;
+  const profile = value as Partial<StoredProfileShape>;
 
   return (
     typeof profile.id === 'string' &&
@@ -56,44 +70,21 @@ function isStoredProfile(value: unknown): value is ParrotProfile {
     profile.trainingGoalIds.every(isTrainingGoalId) &&
     typeof profile.createdAt === 'string' &&
     typeof profile.updatedAt === 'string' &&
-    (profile.photoUri === undefined || typeof profile.photoUri === 'string')
+    (profile.photoUri === undefined || typeof profile.photoUri === 'string') &&
+    (profile.customSpecies === undefined || typeof profile.customSpecies === 'string')
   );
 }
 
-function normalizeStoredSpecies(
-  species: string,
-  customSpecies: string | undefined
-): Pick<ParrotProfile, 'customSpecies' | 'species'> {
-  if (isSpeciesId(species) || species === 'custom') {
-    return { customSpecies, species };
+function normalizeStoredSpecies(species: string, customSpecies: string | undefined): string {
+  if (species === 'custom') {
+    return customSpecies?.trim() || species;
   }
-
-  const migratedSpecies = legacySpeciesLabelToId[species];
-  return migratedSpecies ? { customSpecies: undefined, species: migratedSpecies } : { customSpecies: species, species: 'custom' };
-}
-
-function isSpeciesId(value: string): value is SpeciesId {
-  return value === 'african-grey' || value === 'cockatoo' || value === 'budgie' || value === 'parakeet' || value === 'lovebird' || value === 'conure';
+  return species;
 }
 
 function isTrainingGoalId(value: unknown): value is TrainingGoalId {
   return value === 'greet' || value === 'fruit' || value === 'name' || value === 'leave' || value === 'song';
 }
-
-const legacySpeciesLabelToId: Record<string, SpeciesId> = {
-  'African Grey': 'african-grey',
-  Budgie: 'budgie',
-  Cockatoo: 'cockatoo',
-  Conure: 'conure',
-  Lovebird: 'lovebird',
-  Parakeet: 'parakeet',
-  사랑앵무: 'budgie',
-  잉꼬: 'parakeet',
-  코뉴어: 'conure',
-  코카투: 'cockatoo',
-  모란앵무: 'lovebird',
-  회색앵무: 'african-grey',
-};
 
 export async function saveStoredProfile(profile: ParrotProfile): Promise<void> {
   await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));

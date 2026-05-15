@@ -2,13 +2,11 @@ import type MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { ComponentProps } from 'react';
 
 export type TrainingGoalId = 'greet' | 'fruit' | 'name' | 'leave' | 'song';
-export type SpeciesId = 'african-grey' | 'cockatoo' | 'budgie' | 'parakeet' | 'lovebird' | 'conure';
 
 export interface ParrotProfile {
   id: string;
   name: string;
-  species: SpeciesId | 'custom';
-  customSpecies?: string;
+  species: string;
   ageMonths: number;
   photoUri?: string;
   trainingGoalIds: TrainingGoalId[];
@@ -18,8 +16,7 @@ export interface ParrotProfile {
 
 export interface ProfileDraft {
   name: string;
-  species: SpeciesId | 'custom' | '';
-  customSpecies?: string;
+  species: string;
   ageMonths: number;
   photoUri?: string;
   trainingGoalIds: TrainingGoalId[];

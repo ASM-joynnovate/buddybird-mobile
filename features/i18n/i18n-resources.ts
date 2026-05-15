@@ -1,4 +1,4 @@
-import type { SpeciesId, TrainingGoalId } from '@/features/profile/profile-types';
+import type { TrainingGoalId } from '@/features/profile/profile-types';
 
 export const SUPPORTED_LOCALES = ['ko', 'en'] as const;
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
@@ -198,7 +198,7 @@ interface AppCopy {
     cardGoalCount: string;
   };
   profileOptions: {
-    speciesOptions: Record<SpeciesId, string>;
+    speciesOptions: Record<string, string>;
     trainingGoals: Record<TrainingGoalId, TrainingGoalCopy>;
   };
   trainingTemplates: {

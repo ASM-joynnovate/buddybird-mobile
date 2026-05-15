@@ -13,7 +13,7 @@ export function validateProfileDraft(draft: ProfileDraft, t: Translate): Profile
     errors.name = t('validation.nameRequired');
   }
 
-  if (!draft.species || (draft.species === 'custom' && !draft.customSpecies?.trim())) {
+  if (!draft.species.trim()) {
     errors.species = t('validation.speciesRequired');
   }
 
@@ -47,15 +47,16 @@ export function formatAgeMonths(ageMonths: number, t: Translate): string {
 }
 
 export function createProfileFromDraft(draft: ProfileDraft, nowIso: string): ParrotProfile {
-  if (!draft.species) {
+  const species = draft.species.trim();
+
+  if (!species) {
     throw new Error('Profile species is required');
   }
 
   return {
     id: `parrot-${nowIso}`,
     name: draft.name.trim(),
-    species: draft.species === 'custom' ? 'custom' : draft.species,
-    customSpecies: draft.species === 'custom' ? draft.customSpecies?.trim() : undefined,
+    species,
     ageMonths: draft.ageMonths,
     photoUri: draft.photoUri,
     trainingGoalIds: [...draft.trainingGoalIds],

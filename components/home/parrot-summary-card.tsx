@@ -9,7 +9,7 @@ interface ParrotSummaryCardProps {
 }
 
 export function ParrotSummaryCard({ profile }: ParrotSummaryCardProps) {
-  const species = speciesLabel(profile.species, profile.customSpecies);
+  const species = speciesLabel(profile.species);
   const age = formatAge(profile.ageMonths);
 
   return (

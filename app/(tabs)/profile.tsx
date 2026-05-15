@@ -46,8 +46,7 @@ export default function ProfileScreen() {
       ...currentErrors,
       ageMonths: nextForm.ageMonths === undefined ? currentErrors.ageMonths : undefined,
       name: nextForm.name === undefined ? currentErrors.name : undefined,
-      species:
-        nextForm.species === undefined && nextForm.customSpecies === undefined ? currentErrors.species : undefined,
+      species: nextForm.species === undefined ? currentErrors.species : undefined,
       trainingGoalIds:
         nextForm.trainingGoalIds === undefined ? currentErrors.trainingGoalIds : undefined,
     }));
@@ -61,7 +60,9 @@ export default function ProfileScreen() {
       return;
     }
 
-    if (!currentForm.species) {
+    const speciesTrimmed = currentForm.species.trim();
+
+    if (!speciesTrimmed) {
       setErrors({ species: t('validation.speciesRequired') });
       return;
     }
@@ -70,8 +71,7 @@ export default function ProfileScreen() {
       await updateProfile({
         ...currentProfile,
         ...currentForm,
-        customSpecies: currentForm.species === 'custom' ? currentForm.customSpecies?.trim() : undefined,
-        species: currentForm.species,
+        species: speciesTrimmed,
         trainingGoalIds: [...currentForm.trainingGoalIds],
       });
       setErrors({});

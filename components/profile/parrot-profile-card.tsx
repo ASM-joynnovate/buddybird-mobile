@@ -15,7 +15,7 @@ interface ParrotProfileCardProps {
 
 export function ParrotProfileCard({ profile, compact = false }: ParrotProfileCardProps) {
   const { locale, t } = useI18n();
-  const speciesLabel = getSpeciesLabel(locale, profile.species, profile.customSpecies);
+  const speciesLabel = getSpeciesLabel(locale, profile.species);
 
   return (
     <Card raised style={styles.card}>
