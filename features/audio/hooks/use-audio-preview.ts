@@ -36,7 +36,9 @@ export function useAudioPreview(
     playTokenRef.current += 1;
     player.pause();
     player.loop = false;
-    player.seekTo(0).catch(() => {});
+    player.seekTo(0).catch((error: unknown) => {
+      console.warn('[audio] seekTo(0) failed:', error);
+    });
     loadedUriRef.current = null;
 
     if (audioUri) {
@@ -82,7 +84,9 @@ export function useAudioPreview(
     const id = setTimeout(() => {
       if (previewState === 'playing') {
         player.pause();
-        player.seekTo(0).catch(() => {});
+        player.seekTo(0).catch((error: unknown) => {
+      console.warn('[audio] seekTo(0) failed:', error);
+    });
         setElapsedSeconds(0);
         setPreviewState('ready');
       }
@@ -94,7 +98,9 @@ export function useAudioPreview(
   const stopPreview = useCallback((): void => {
     playTokenRef.current += 1;
     player.pause();
-    player.seekTo(0).catch(() => {});
+    player.seekTo(0).catch((error: unknown) => {
+      console.warn('[audio] seekTo(0) failed:', error);
+    });
     setElapsedSeconds(0);
     setPreviewState(audioUri ? 'ready' : 'disabled');
   }, [audioUri, player]);
@@ -128,12 +134,15 @@ export function useAudioPreview(
         const currentStatus = player.currentStatus;
         if (!currentStatus.playing && !currentStatus.isBuffering && !currentStatus.didJustFinish) {
           player.pause();
-          player.seekTo(0).catch(() => {});
+          player.seekTo(0).catch((error: unknown) => {
+      console.warn('[audio] seekTo(0) failed:', error);
+    });
           setElapsedSeconds(0);
           setPreviewState('error');
         }
       }, PLAY_START_TIMEOUT_MS);
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[audio] playPreview failed:', error);
       setPreviewState('error');
     }
   }, [audioUri, player, playbackRate]);

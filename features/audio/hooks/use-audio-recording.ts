@@ -61,7 +61,8 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       audioRecorder.record();
       setRecordingFile(null);
       setLifecycle('recording');
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[audio] requestAndStartRecording failed:', error);
       setLifecycle('error');
       setErrorMessage(options.startFailedMessage);
     }
@@ -83,7 +84,8 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setLifecycle('recorded');
       setErrorMessage(null);
       return stableFile;
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[audio] stopRecording failed:', error);
       setLifecycle('error');
       setErrorMessage(options.saveFailedMessage);
       return null;
@@ -92,9 +94,13 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   const resetRecording = useCallback((): void => {
     if (recorderStateRef.current.isRecording) {
-      audioRecorder.stop().catch(() => {});
+      audioRecorder.stop().catch((error: unknown) => {
+        console.warn('[audio] reset stop failed:', error);
+      });
     }
-    configurePlaybackAudioMode().catch(() => {});
+    configurePlaybackAudioMode().catch((error: unknown) => {
+      console.warn('[audio] reset playback mode failed:', error);
+    });
     setLifecycle('idle');
     setRecordingFile(null);
     setErrorMessage(null);
