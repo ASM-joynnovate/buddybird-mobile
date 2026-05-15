@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 
@@ -103,7 +104,7 @@ export function useSessionSetup(): UseSessionSetupResult {
         word: selection.label,
       };
     } catch (error: unknown) {
-      console.warn('[training] saveSessionSetup failed:', error);
+      reportError(error, { scope: 'training.saveSessionSetup' });
       setSaveErrorMessage(t('sessionSetup.saveError'));
       return null;
     }

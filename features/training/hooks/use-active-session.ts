@@ -1,6 +1,7 @@
 import { useAudioPlayer } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
 import { configurePlaybackAudioMode } from '@/features/audio/audio-mode';
 
 import type { SessionMeta, SessionStatus } from '../session-config';
@@ -102,7 +103,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           if (!isCancelled) sessionPlayer.play();
         })
         .catch((error: unknown) => {
-          console.warn('[training] session player setup failed (playing without seek):', error);
+          reportError(error, { scope: 'training.sessionPlayerSetup' });
           if (!isCancelled) sessionPlayer.play();
         });
     } else {
@@ -119,7 +120,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         sessionPlayer.pause();
       } catch (error: unknown) {
         // expo-audio player가 이미 teardown 상태일 수 있음. cleanup 단계라 복구 불필요.
-        console.warn('[training] sessionPlayer.pause on cleanup failed:', error);
+        reportError(error, { scope: 'training.sessionPlayer.cleanup' });
       }
     };
   }, [sessionPlayer]);

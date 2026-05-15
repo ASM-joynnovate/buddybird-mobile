@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import {
   completeTrainingSession,
   markTrainingWordSuccess,
@@ -92,7 +94,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     const nextWrite = writeQueueRef.current.then(operation, operation);
     // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
     writeQueueRef.current = nextWrite.catch((error: unknown) => {
-      console.warn('[training] write queue operation failed:', error);
+      reportError(error, { scope: 'training.writeQueue' });
     });
 
     return nextWrite;
