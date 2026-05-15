@@ -51,7 +51,7 @@ export function useSessionSetup(): UseSessionSetupResult {
   } = useTrainingData();
 
   const [presetKey, setPresetKeyState] = useState<SessionPresetKey>('short');
-  const [sessionMins, setSessionMins] = useState(180);
+  const [sessionMins, setSessionMins] = useState(60);
   const [learnSecs, setLearnSecs] = useState(600);
   const [restSecs, setRestSecs] = useState(300);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);

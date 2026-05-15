@@ -5,9 +5,9 @@ export const STEP_LEARN_SECS = 10;
 export const STEP_REST_SECS = 5;
 
 export const SESSION_PRESETS = [
-  { key: 'short',  label: '짧게 1시간 학습', learnSecs: 600, restSecs: 300, cycles: 12 },
-  { key: 'medium', label: '중간 3시간 학습', learnSecs: 600, restSecs: 300, cycles: 36 },
-  { key: 'long',   label: '크게 5시간 학습', learnSecs: 600, restSecs: 300, cycles: 60 },
+  { key: 'short',  label: '짧게 1시간 학습', learnSecs: 600, restSecs: 300, cycles: 4  },
+  { key: 'medium', label: '중간 3시간 학습', learnSecs: 600, restSecs: 300, cycles: 12 },
+  { key: 'long',   label: '크게 5시간 학습', learnSecs: 600, restSecs: 300, cycles: 20 },
 ] as const;
 
 export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';

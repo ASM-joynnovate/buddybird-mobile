@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
 import { CycleSummary } from '@/components/session/setup/cycle-summary';
-import { SessionDurationCard } from '@/components/session/setup/session-duration-card';
+import { SessionPresetCard } from '@/components/session/setup/session-preset-card';
 import { WordPicker, type WordPickerItem } from '@/components/session/setup/word-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
@@ -82,7 +82,9 @@ export default function SessionSetupScreen() {
         totalCycles={setup.totalCycles}
       />
 
-      <SessionDurationCard
+      <SessionPresetCard
+        presetKey={setup.presetKey}
+        onSelectPreset={setup.setPresetKey}
         sessionMins={setup.sessionMins}
         learnSecs={setup.learnSecs}
         restSecs={setup.restSecs}
