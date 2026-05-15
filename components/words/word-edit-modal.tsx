@@ -139,6 +139,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
                 body={t('sessionSetup.recordingBody')}
                 metering={recording.metering}
                 lifecycle={recording.lifecycle}
+                elapsedSeconds={recording.elapsedSeconds}
                 recordingStatusLabel={t('sessionSetup.recordingStatus')}
                 recordedStatusLabel={t('sessionSetup.recordedStatus')}
                 startLabel={t('sessionSetup.startRecording')}
