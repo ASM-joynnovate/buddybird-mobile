@@ -105,6 +105,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             body={t('sessionSetup.recordingBody')}
             metering={recording.metering}
             lifecycle={recording.lifecycle}
+            elapsedSeconds={recording.elapsedSeconds}
             recordingStatusLabel={t('sessionSetup.recordingStatus')}
             recordedStatusLabel={t('sessionSetup.recordedStatus')}
             startLabel={t('sessionSetup.startRecording')}
@@ -113,6 +114,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             errorMessage={recording.errorMessage}
             isRerecording={isRerecording}
             isPlaying={preview.previewState === 'playing'}
+            playElapsedSeconds={preview.elapsedSeconds}
             onPlay={preview.playPreview}
             onStopPlay={preview.stopPreview}
             onStart={recording.requestAndStartRecording}

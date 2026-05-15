@@ -9,6 +9,7 @@ const DB_CEIL = -10;
 
 interface UseAudioRecordingResult {
   errorMessage: string | null;
+  elapsedSeconds: number;
   lifecycle: RecordingLifecycle;
   metering: number | null;
   recordingFile: StableRecordingFile | null;
@@ -35,6 +36,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
   const [lifecycle, setLifecycle] = useState<RecordingLifecycle>('idle');
   const [recordingFile, setRecordingFile] = useState<StableRecordingFile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const requestAndStartRecording = useCallback(async (): Promise<void> => {
     try {
@@ -92,6 +94,13 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
   }, [audioRecorder]);
 
   useEffect(() => {
+    if (lifecycle !== 'recording') return;
+    setElapsedSeconds(0);
+    const id = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [lifecycle]);
+
+  useEffect(() => {
     if (!options.maxDurationMs || lifecycle !== 'recording') return;
     const id = setTimeout(() => { stopRecording(); }, options.maxDurationMs);
     return () => clearTimeout(id);
@@ -104,6 +113,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   return {
     errorMessage,
+    elapsedSeconds,
     isRecording: recorderState.isRecording,
     lifecycle,
     metering,

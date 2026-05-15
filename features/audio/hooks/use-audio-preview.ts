@@ -5,6 +5,7 @@ import type { AudioPreviewState } from '../audio-types';
 
 interface UseAudioPreviewResult {
   canPreview: boolean;
+  elapsedSeconds: number;
   previewState: AudioPreviewState;
   playPreview: () => Promise<void>;
   stopPreview: () => void;
@@ -18,6 +19,7 @@ export function useAudioPreview(
   const [previewState, setPreviewState] = useState<AudioPreviewState>(
     audioUri ? 'ready' : 'disabled',
   );
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const canPreview = Boolean(audioUri);
 
   useEffect(() => {
@@ -31,6 +33,13 @@ export function useAudioPreview(
     });
     return () => sub.remove();
   }, [player]);
+
+  useEffect(() => {
+    if (previewState !== 'playing') return;
+    setElapsedSeconds(0);
+    const id = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [previewState]);
 
   const stopPreview = useCallback((): void => {
     player.pause();
@@ -57,10 +66,11 @@ export function useAudioPreview(
   return useMemo(
     () => ({
       canPreview,
+      elapsedSeconds,
       playPreview,
       stopPreview,
       previewState: canPreview ? previewState : 'disabled',
     }),
-    [canPreview, playPreview, stopPreview, previewState],
+    [canPreview, elapsedSeconds, playPreview, stopPreview, previewState],
   );
 }
