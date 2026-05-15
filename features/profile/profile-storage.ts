@@ -20,7 +20,8 @@ export async function loadStoredProfile(): Promise<ParrotProfile | null> {
 
   try {
     return parseStoredProfile(JSON.parse(rawProfile));
-  } catch {
+  } catch (error: unknown) {
+    console.warn('[profile] failed to parse stored profile:', error);
     throw new ProfileStorageError('저장된 프로필을 읽을 수 없습니다.');
   }
 }

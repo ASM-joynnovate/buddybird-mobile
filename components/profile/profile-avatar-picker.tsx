@@ -27,7 +27,8 @@ export function ProfileAvatarPicker({ photoUri, onPhotoSelected }: ProfileAvatar
         onPhotoSelected(result.assets[0].uri);
         setErrorMessage(null);
       }
-    } catch {
+    } catch (error: unknown) {
+      console.warn('[profile] avatar pick failed:', error);
       setErrorMessage(t('profile.avatarError'));
     }
   }
