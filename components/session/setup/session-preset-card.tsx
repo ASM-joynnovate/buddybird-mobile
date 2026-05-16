@@ -1,5 +1,13 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { PetHubColors, Radii, Spacing } from '@/constants/theme';
@@ -9,9 +17,48 @@ import { SESSION_PRESETS } from '@/features/training/session-config';
 import { SliderField } from './slider-field';
 
 const HOUR_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const MINUTE_OPTIONS = [15, 30, 45, 60];
+const MINUTE_OPTIONS = [0, 15, 30, 45];
+const ITEM_H = 44;
 
-type FocusedField = 'hour' | 'minute' | null;
+function WheelPicker({
+  options,
+  selected,
+  onChange,
+}: {
+  options: number[];
+  selected: number;
+  onChange: (v: number) => void;
+}) {
+  const ref = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const idx = options.indexOf(selected);
+    if (idx >= 0) ref.current?.scrollTo({ y: idx * ITEM_H, animated: false });
+  }, []);
+
+  function onMomentumEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+    onChange(options[Math.max(0, Math.min(idx, options.length - 1))]);
+  }
+
+  return (
+    <ScrollView
+      ref={ref}
+      style={styles.wheel}
+      contentContainerStyle={styles.wheelContent}
+      snapToInterval={ITEM_H}
+      decelerationRate="fast"
+      showsVerticalScrollIndicator={false}
+      onMomentumScrollEnd={onMomentumEnd}
+    >
+      {options.map((opt) => (
+        <View key={opt} style={styles.wheelItemWrapper}>
+          <Text style={styles.wheelItem}>{opt}</Text>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
 
 interface SessionPresetCardProps {
   presetKey: SessionPresetKey;
@@ -34,28 +81,8 @@ export function SessionPresetCard({
   onChangeLearnSecs,
   onChangeRestSecs,
 }: SessionPresetCardProps) {
-  const [focusedField, setFocusedField] = useState<FocusedField>(null);
-
   const selectedHours = Math.floor(sessionMins / 60);
   const selectedMins = sessionMins % 60;
-
-  function handleHourTap() {
-    setFocusedField((prev) => (prev === 'hour' ? null : 'hour'));
-  }
-
-  function handleMinuteTap() {
-    setFocusedField((prev) => (prev === 'minute' ? null : 'minute'));
-  }
-
-  function handleSelectHour(h: number) {
-    onChangeSessionMins(h * 60 + selectedMins);
-    setFocusedField(null);
-  }
-
-  function handleSelectMinute(m: number) {
-    onChangeSessionMins(selectedHours * 60 + m);
-    setFocusedField(null);
-  }
 
   return (
     <Card style={styles.card}>
@@ -95,66 +122,20 @@ export function SessionPresetCard({
       {presetKey === 'custom' && (
         <View style={styles.sliders}>
           <View style={styles.durationPicker}>
-            <View style={styles.durationDisplay}>
-              <TouchableOpacity
-                style={[styles.fieldBadge, focusedField === 'hour' && styles.fieldBadgeFocused]}
-                onPress={handleHourTap}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.fieldValue, focusedField === 'hour' && styles.fieldValueFocused]}>
-                  {selectedHours}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.fieldUnit}>시간</Text>
-              <TouchableOpacity
-                style={[styles.fieldBadge, focusedField === 'minute' && styles.fieldBadgeFocused]}
-                onPress={handleMinuteTap}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.fieldValue, focusedField === 'minute' && styles.fieldValueFocused]}>
-                  {selectedMins}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.fieldUnit}>분</Text>
+            <View style={styles.durationPickerRow}>
+              <WheelPicker
+                options={HOUR_OPTIONS}
+                selected={selectedHours}
+                onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
+              />
+              <Text style={styles.pickerUnit}>시간</Text>
+              <WheelPicker
+                options={MINUTE_OPTIONS}
+                selected={selectedMins}
+                onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
+              />
+              <Text style={styles.pickerUnit}>분</Text>
             </View>
-
-            {focusedField === 'hour' && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipRow}
-              >
-                {HOUR_OPTIONS.map((h) => (
-                  <TouchableOpacity
-                    key={h}
-                    style={[styles.chip, selectedHours === h && styles.chipSelected]}
-                    onPress={() => handleSelectHour(h)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.chipText, selectedHours === h && styles.chipTextSelected]}>
-                      {h}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-
-            {focusedField === 'minute' && (
-              <View style={styles.chipRow}>
-                {MINUTE_OPTIONS.map((m) => (
-                  <TouchableOpacity
-                    key={m}
-                    style={[styles.chip, selectedMins === m && styles.chipSelected]}
-                    onPress={() => handleSelectMinute(m)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.chipText, selectedMins === m && styles.chipTextSelected]}>
-                      {m}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
           </View>
 
           <SliderField
@@ -231,67 +212,36 @@ const styles = StyleSheet.create({
   durationPicker: {
     backgroundColor: 'rgba(31,58,61,0.04)',
     borderRadius: Radii.field,
-    gap: Spacing.sectionHeadGap,
     padding: 12,
   },
-  durationDisplay: {
+  durationPickerRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 8,
   },
-  fieldBadge: {
-    backgroundColor: PetHubColors.surface,
-    borderColor: 'rgba(31,58,61,0.15)',
-    borderRadius: Radii.field,
-    borderWidth: 1.5,
-    minWidth: 48,
+  wheel: {
+    height: ITEM_H * 3,
+    width: 64,
+  },
+  wheelContent: {
+    paddingVertical: ITEM_H,
+  },
+  wheelItemWrapper: {
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    height: ITEM_H,
+    justifyContent: 'center',
   },
-  fieldBadgeFocused: {
-    backgroundColor: PetHubColors.primary,
-    borderColor: PetHubColors.primary,
-  },
-  fieldValue: {
+  wheelItem: {
     color: PetHubColors.primary,
     fontSize: 22,
     fontWeight: '700',
-    letterSpacing: -0.5,
   },
-  fieldValueFocused: {
-    color: '#FAF6F0',
-  },
-  fieldUnit: {
-    color: 'rgba(31,58,61,0.6)',
-    fontSize: 16,
-    fontWeight: '500',
-    marginRight: 4,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  chip: {
-    borderColor: 'rgba(31,58,61,0.12)',
-    borderRadius: Radii.full,
-    borderWidth: 1.5,
-    minWidth: 44,
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  chipSelected: {
-    backgroundColor: PetHubColors.primary,
-    borderColor: PetHubColors.primary,
-  },
-  chipText: {
+  pickerUnit: {
     color: PetHubColors.primary,
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '600',
-  },
-  chipTextSelected: {
-    color: '#FAF6F0',
+    letterSpacing: -0.3,
   },
   cycleMono: {
     color: 'rgba(31,58,61,0.45)',
