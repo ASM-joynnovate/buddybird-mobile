@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -43,7 +43,7 @@ function WheelPicker({
       ref.current?.scrollTo({ y: idx * ITEM_H, animated: true });
       setCenteredIdx(idx);
     }
-  }, [selected]);
+  }, [selected, options]);
 
   function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
@@ -110,6 +110,11 @@ export function SessionPresetCard({
   const selectedHours = Math.floor(sessionMins / 60);
   const selectedMins = sessionMins % 60;
 
+  const minuteOptions = useMemo(
+    () => (selectedHours === 0 ? MINUTE_OPTIONS.slice(1) : MINUTE_OPTIONS),
+    [selectedHours]
+  );
+
   return (
     <Card style={styles.card}>
       <View style={styles.grid}>
@@ -156,7 +161,7 @@ export function SessionPresetCard({
               />
               <Text style={styles.pickerUnit}>시간</Text>
               <WheelPicker
-                options={MINUTE_OPTIONS}
+                options={minuteOptions}
                 selected={selectedMins}
                 onChange={(m) => onChangeSessionMins(Math.max(1, selectedHours * 60 + m))}
               />
@@ -272,6 +277,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     letterSpacing: -0.3,
+    width: 44,
   },
   cycleMono: {
     color: 'rgba(31,58,61,0.45)',
