@@ -50,7 +50,7 @@ export function WordListItem({
         disabled={isPreset}
         onPress={onEdit}
       >
-        <IconSymbol name={'pencil'} style={styles.editBtnIcon} size={16} color={PetHubColors.primary} />
+        <IconSymbol name={'pencil'} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
@@ -67,8 +67,8 @@ export function WordListItem({
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surface,
+    borderColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.sectionCard,
     borderWidth: 0.5,
     flexDirection: 'row',
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   sourcePillPreset: {
     backgroundColor: 'transparent',
-    borderColor: 'rgba(31,58,61,0.20)',
+    borderColor: PetHubColors.borderMuted,
     borderWidth: 1,
   },
   sourcePillRecording: {
@@ -140,20 +140,16 @@ const styles = StyleSheet.create({
   },
   editBtn: {
     alignItems: 'center',
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.full,
     flexShrink: 0,
     height: 38,
     justifyContent: 'center',
     width: 38,
   },
-  editBtnIcon: {
-    color: PetHubColors.primary,
-    fontSize: 14,
-  },
   playBtn: {
     alignItems: 'center',
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.full,
     flexShrink: 0,
     height: 38,

@@ -7,6 +7,7 @@ import { HomeGreeting } from '@/components/home/home-greeting';
 import { HomeStatsGrid } from '@/components/home/home-stats-grid';
 import { ParrotSummaryCard } from '@/components/home/parrot-summary-card';
 import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { formatMinutes } from '@/features/profile/profile-display';
 import { useProfile } from '@/features/profile/profile-context';
 import { useTrainingData } from '@/features/training/training-context';
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const { profile } = useProfile();
   const { store } = useTrainingData();
   const insets = useSafeAreaInsets();
+  useScreenTracking('home');
   const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
 
   if (!profile) return null;

@@ -39,7 +39,7 @@ export function useAudioPreview(
     player.pause();
     player.loop = false;
     player.seekTo(0).catch((error: unknown) => {
-      reportError(error, { scope: 'audio.seekTo' });
+      console.warn('[audio] seekTo failed (continuing):', error);
     });
     loadedUriRef.current = null;
 
@@ -87,8 +87,8 @@ export function useAudioPreview(
       if (previewState === 'playing') {
         player.pause();
         player.seekTo(0).catch((error: unknown) => {
-      reportError(error, { scope: 'audio.seekTo' });
-    });
+          console.warn('[audio] seekTo failed (continuing):', error);
+        });
         setElapsedSeconds(0);
         setPreviewState('ready');
       }
@@ -101,7 +101,7 @@ export function useAudioPreview(
     playTokenRef.current += 1;
     player.pause();
     player.seekTo(0).catch((error: unknown) => {
-      reportError(error, { scope: 'audio.seekTo' });
+      console.warn('[audio] seekTo failed (continuing):', error);
     });
     setElapsedSeconds(0);
     setPreviewState(audioUri ? 'ready' : 'disabled');
@@ -138,8 +138,8 @@ export function useAudioPreview(
         if (!currentStatus.playing && !currentStatus.isBuffering && !currentStatus.didJustFinish) {
           player.pause();
           player.seekTo(0).catch((error: unknown) => {
-      reportError(error, { scope: 'audio.seekTo' });
-    });
+            console.warn('[audio] seekTo failed (continuing):', error);
+          });
           setElapsedSeconds(0);
           setPreviewState('error');
         }

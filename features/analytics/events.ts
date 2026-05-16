@@ -133,6 +133,19 @@ export type AnalyticsEvent =
     }
   | { name: 'word_library_opened'; params: { total_words_count: number } }
   | {
+      name: 'word_library_filter_changed';
+      params: { from: string; to: string; visible_words_count: number };
+    }
+  | {
+      name: 'word_library_preview_played';
+      params: {
+        word_id: string;
+        word_name: string;
+        source_type: 'preset' | 'recording';
+        action: 'play' | 'stop';
+      };
+    }
+  | {
       name: 'word_added';
       params: {
         word_id: string;

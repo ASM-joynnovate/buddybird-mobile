@@ -24,6 +24,8 @@ export const PetHubColors = {
   kickerMutedOnDark: 'rgba(255,255,255,0.55)',
   bodyMuted: 'rgba(31,58,61,0.68)',
   placeholderMuted: 'rgba(31,58,61,0.36)',
+  surfaceMuted: 'rgba(31,58,61,0.06)',
+  borderMuted: 'rgba(31,58,61,0.20)',
 };
 
 export const Colors = {

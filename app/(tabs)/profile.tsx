@@ -9,6 +9,7 @@ import { ProfileLanguagePicker } from '@/components/profile/profile-language-pic
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { type AppLocale } from '@/features/i18n/i18n-resources';
 import { useProfile } from '@/features/profile/profile-context';
@@ -21,6 +22,7 @@ export default function ProfileScreen() {
   const { locale, setLocale, supportedLocales, t } = useI18n();
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
   const { profile, updateProfile } = useProfile();
+  useScreenTracking('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
