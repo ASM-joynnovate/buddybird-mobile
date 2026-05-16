@@ -10,7 +10,43 @@ PetHub Mobile ("앵Talk트레이너") is an Expo Router-based React Native app f
 ## Reference
 
 `docs/PRD.md`: 전체 요구사항 및 기술 스펙
-`docs/ARCHITECTURE.md`: 네비게이션 구조, 피처 모듈, 컴포넌트, 디자인 시스템
+`docs/ARCHITECTURE.md`: 네비게이션 구조, 피처 모듈, 컴포넌트, 디자인 시스템, 네이티브 설정
+
+## Project Rules — 코딩 전에 읽기
+
+| 문서 | 내용 |
+|---|---|
+| `docs/CONVENTIONS.md` | 파일·폴더 레이아웃, 스타일 토큰, 에러 처리, 커밋 컨벤션 |
+| `docs/SHARED-MODULES.md` | 재사용 가능한 utility/hook/token 레지스트리 — 새 utility 작성 전 grep 의무 |
+| `docs/WORKFLOW.md` | 코딩 전·중·후 체크리스트 + 검증 grep 게이트 |
+| `docs/POLICY-HISTORY.md` | 정책 도입 이력 (출처 plan/commit + 영향 범위) |
+| `docs/analytics.md` §정책 | 이벤트 grammar, ATT, PII, 에러 보고, Firebase modular API |
+| `docs/ARCHITECTURE.md` §네이티브 설정 | Firebase RNFirebase v24 핀, Podfile plugin, gitignore |
+
+## 정책 변경 시 (자동화)
+
+새 정책이 합의·변경되면 `.claude/skills/pethub-policy-update` skill이 자동 수행:
+
+- 발화 트리거: "정책 변경", "이제부터", "의무화", "from now on", "deprecated" 등
+- 명시 호출: `/pethub-policy-update <한 줄 정책 설명>`
+
+skill이 (1) 해당 카테고리 docs 갱신, (2) `docs/POLICY-HISTORY.md`에 행 추가, (3) `CLAUDE.md` 포인터 점검, (4) 검증 grep 실행을 자동으로 처리합니다.
+
+위치: `pethub-mobile/.claude/skills/pethub-policy-update/`
+
+## Hard Rules (절대 위반 금지)
+
+- 신규 utility / 색 / 이벤트는 `docs/SHARED-MODULES.md` · `constants/theme.ts` · `features/analytics/events.ts`를 **먼저 검색**한 뒤에만 추가
+- 신규 analytics 이벤트는 `features/analytics/events.ts`의 `AnalyticsEvent` union에 **먼저** 등록
+- 스크린은 composition-only, 일반 ≤200줄 / `app/session-active.tsx` ≤100 / `app/(tabs)/session-setup.tsx` ≤80
+- features는 JSX 금지 (Provider만 예외)
+- Empty catch (`try {} catch {}`) 금지 — `reportError(err, { scope })` (fatal) 또는 `console.warn('[scope]', err)` (non-fatal)
+- Firebase는 modular API v24만 사용 — namespaced `analytics().…` / `crashlytics().…` 금지
+- 인라인 `rgba()` 금지 — 신규 muted 토큰은 `constants/theme.ts`에 먼저 추가
+- Conventional commits 소문자 + scope, `yarn lint && yarn typecheck` 그린 후에만 커밋
+- `--no-verify` 금지, try/catch로 lint 우회 금지, attribution 라인 금지
+- 보호자 PII (이름·이메일·전화·정확한 위치) 수집 금지
+- Firebase config 파일 (`GoogleService-Info.plist`, `google-services.json`) commit 금지
 
 ## Commands
 

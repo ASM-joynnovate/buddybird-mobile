@@ -68,6 +68,53 @@ await flushSessionWordMetrics([
 ]);
 ```
 
+## 정책 (Policies)
+
+다음은 본 프로젝트의 analytics·crash·privacy 정책 단정문입니다. 위반 시 PR이 거부됩니다.
+
+### 이벤트 grammar
+- 이름은 `snake_case`, `<domain>_<action>` 패턴, **≤40 chars**
+- 신규 이벤트는 `features/analytics/events.ts`의 `AnalyticsEvent` discriminated union에 **먼저 등록**한 뒤에만 `track()`에 전달 가능
+- 직렬화는 `toFirebaseParams()`를 거치며, 이름 길이 안전망은 `clampEventName()`
+
+### 스크린 트래킹 의무
+- 매 스크린 컴포넌트 함수 상단에 `useScreenTracking('<screen_name>')` **한 번** 호출
+- 인라인 `Date.now()` ref로 경과 시간 재구현 금지 — 훅이 반환하는 `elapsedMs()` 사용
+
+### Firebase API
+- **modular API v24만 사용** (`getAnalytics(app)`, `logEvent(analytics, …)`)
+- namespaced `analytics().logEvent()` / `crashlytics().recordError()` **금지**
+- 검증: `rg "analytics\(\)\.|crashlytics\(\)\." features/ app/` 0건
+
+### 에러 보고 계약
+- Fatal → `reportError(err, { scope: 'feature.method', screen_name?: '...' })`
+- Non-fatal → `console.warn('[scope]', err)`
+- Empty catch (`try {} catch {}`) **절대 금지**
+- silent fallback 금지 — 사용자 영향이 있으면 surface
+- AnalyticsClient는 `registerErrorReporter()`로 module-level reporter에 등록되어 cross-domain crash 보고 단일 진입점이 됨
+
+### ATT (App Tracking Transparency)
+- iOS에서 `expo-tracking-transparency` 동의를 받지 못하면 모든 provider 비활성
+- 결정은 `AnalyticsProvider` bootstrap 단계에서 단 한 번
+- 거부 시 `track()` 호출은 no-op (에러 throw 금지)
+
+### Fanout isolation
+- 각 provider 호출은 `Promise.all` + provider별 try/catch로 격리
+- 한 provider 실패가 다른 provider를 막지 않음
+- 실패는 `reportProviderFailure(name, op, err)`로 일관 로깅
+
+### PII 정책
+- **보호자(사용자) PII는 절대 수집 금지**: 이름, 이메일, 전화, 정확한 위치
+- 펫 데이터는 허용: 이름, 종(species), 나이, 학습어 — 단 `docs/privacy-policy.md`와 동기화
+
+### Clarity masking
+- `maskingMode: 'Balanced'`
+- 사용자 입력 필드는 mask
+
+### Identity lifecycle
+- `setUserId(profileId | null)` — profile 생성/삭제 시점에 호출
+- 프로필이 없으면 `null` 전달
+
 ## 3. 통합 위치 (현재 완료된 부분)
 
 | 위치 | 이벤트 |
