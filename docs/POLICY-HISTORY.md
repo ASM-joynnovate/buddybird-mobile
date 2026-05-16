@@ -25,6 +25,7 @@
 | 2026-05-15 | plan `bright-kindling-breeze.md` | post-merge 컨벤션 정리: dark-surface kicker 토큰 (`kickerMutedOnDark`) 의무화, 검증 grep 체크리스트 명문화 | `constants/theme.ts`, 검증 grep |
 | 2026-05-16 | commit `2ee3a25` | analytics 누락 이벤트 채우기 + dev merge 이후 코드 정합성 정렬, screen tracking 빠진 스크린 보강 | `app/`, `features/analytics/` |
 | 2026-05-16 | 본 정책 문서화 작업 (plan `lucky-wiggling-candle.md`) | `docs/CONVENTIONS.md` / `docs/SHARED-MODULES.md` / `docs/WORKFLOW.md` / `docs/POLICY-HISTORY.md` 신설, `CLAUDE.md`에 Project Rules + Hard Rules + 정책 변경 자동화 안내 추가, `.claude/skills/pethub-policy-update` 추가 | `CLAUDE.md`, `docs/`, `.claude/skills/` |
+| 2026-05-16 | conversation `/pethub-policy-update` 호출 (base `cd54b26`) | 작업 시작 전 현재 브랜치의 upstream 대비 최신 여부를 반드시 확인하고, 뒤처져 있으면 사용자에게 명시적으로 알리도록 의무화 | `docs/WORKFLOW.md`, `CLAUDE.md` |
 
 ## 2. 정책 카테고리별 요약
 

@@ -4,6 +4,7 @@
 
 ## 1. 코딩 전 (Pre-coding)
 
+- [ ] 현재 브랜치가 원격(upstream/origin) 대비 최신 상태인지 확인 (`git fetch` 후 `git status` / `git rev-list --left-right --count @{u}...HEAD`). 뒤처져 있으면 코드 변경을 시작하기 전에 사용자에게 명시적으로 알리고 pull/rebase 여부를 확인 받는다.
 - [ ] `docs/SHARED-MODULES.md` 검색 — 동일·유사 utility/hook이 이미 있는지
 - [ ] `constants/theme.ts` 검색 — 사용하려는 색·spacing·radii가 토큰으로 존재하는지
 - [ ] `rg "<function-name>"` 으로 기존 구현 확인
