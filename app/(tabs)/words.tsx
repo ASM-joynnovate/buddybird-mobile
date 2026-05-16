@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,6 +22,12 @@ export default function WordsScreen() {
   const [showCreate, setShowCreate] = useState(false);
   const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
+  const stopCurrentPlayerRef = useRef<(() => void) | null>(null);
+  const handleBecameActive = useCallback((stopFn: () => void) => {
+    stopCurrentPlayerRef.current?.();
+    stopCurrentPlayerRef.current = stopFn;
+  }, []);
+
   const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
 
   return (
@@ -43,7 +49,7 @@ export default function WordsScreen() {
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
-          <WordRow key={e.id} entry={e} onEdit={() => setEditEntry(e)} />
+          <WordRow key={e.id} entry={e} onEdit={() => setEditEntry(e)} onBecameActive={handleBecameActive} />
         ))}
 
         {visible.length === 0 && (
@@ -75,16 +81,27 @@ export default function WordsScreen() {
 interface WordRowProps {
   entry: WordEntry;
   onEdit: () => void;
+  onBecameActive: (stopFn: () => void) => void;
 }
 
-function WordRow({ entry, onEdit }: WordRowProps) {
+function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const { t } = useI18n();
-  const { canPreview, playPreview } = useAudioPreview(
-    entry.transformedAudioUri ?? entry.audioUri,
+  const rawAudioUri = entry.transformedAudioUri ?? entry.audioUri;
+  const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
+    rawAudioUri.startsWith('preset://') ? null : rawAudioUri,
     entry.pitchTransform?.playbackRate ?? 1.0,
   );
   const isPreset = entry.sourceType === 'preset';
   const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
+
+  function handlePlay() {
+    if (previewState === 'playing') {
+      stopPreview();
+    } else {
+      onBecameActive(stopPreview);
+      void playPreview();
+    }
+  }
 
   return (
     <WordListItem
@@ -93,8 +110,9 @@ function WordRow({ entry, onEdit }: WordRowProps) {
       sourceLabel={sourceLabel}
       isPreset={isPreset}
       canPreview={canPreview}
+      isPlaying={previewState === 'playing'}
       onEdit={onEdit}
-      onPlay={() => { void playPreview(); }}
+      onPlay={handlePlay}
     />
   );
 }
