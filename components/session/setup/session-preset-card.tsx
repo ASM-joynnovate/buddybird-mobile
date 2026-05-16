@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -16,8 +16,8 @@ import { SESSION_PRESETS } from '@/features/training/session-config';
 
 import { SliderField } from './slider-field';
 
-const HOUR_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const MINUTE_OPTIONS = [0, 15, 30, 45];
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
 const ITEM_H = 44;
 
 function WheelPicker({
@@ -30,15 +30,36 @@ function WheelPicker({
   onChange: (v: number) => void;
 }) {
   const ref = useRef<ScrollView>(null);
+  const scrollingRef = useRef(false);
+  const [centeredIdx, setCenteredIdx] = useState(() => {
+    const idx = options.indexOf(selected);
+    return idx >= 0 ? idx : 0;
+  });
 
   useEffect(() => {
+    if (scrollingRef.current) return;
     const idx = options.indexOf(selected);
-    if (idx >= 0) ref.current?.scrollTo({ y: idx * ITEM_H, animated: false });
-  }, []);
+    if (idx >= 0) {
+      ref.current?.scrollTo({ y: idx * ITEM_H, animated: true });
+      setCenteredIdx(idx);
+    }
+  }, [selected]);
+
+  function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+    setCenteredIdx(Math.max(0, Math.min(idx, options.length - 1)));
+  }
+
+  function onScrollBeginDrag() {
+    scrollingRef.current = true;
+  }
 
   function onMomentumEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    scrollingRef.current = false;
     const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-    onChange(options[Math.max(0, Math.min(idx, options.length - 1))]);
+    const clamped = Math.max(0, Math.min(idx, options.length - 1));
+    setCenteredIdx(clamped);
+    onChange(options[clamped]);
   }
 
   return (
@@ -49,11 +70,16 @@ function WheelPicker({
       snapToInterval={ITEM_H}
       decelerationRate="fast"
       showsVerticalScrollIndicator={false}
+      scrollEventThrottle={50}
+      onScrollBeginDrag={onScrollBeginDrag}
+      onScroll={onScroll}
       onMomentumScrollEnd={onMomentumEnd}
     >
-      {options.map((opt) => (
+      {options.map((opt, i) => (
         <View key={opt} style={styles.wheelItemWrapper}>
-          <Text style={styles.wheelItem}>{opt}</Text>
+          <Text style={[styles.wheelItem, i !== centeredIdx && styles.wheelItemFaded]}>
+            {opt}
+          </Text>
         </View>
       ))}
     </ScrollView>
@@ -126,13 +152,13 @@ export function SessionPresetCard({
               <WheelPicker
                 options={HOUR_OPTIONS}
                 selected={selectedHours}
-                onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
+                onChange={(h) => onChangeSessionMins(Math.max(1, h * 60 + selectedMins))}
               />
               <Text style={styles.pickerUnit}>시간</Text>
               <WheelPicker
                 options={MINUTE_OPTIONS}
                 selected={selectedMins}
-                onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
+                onChange={(m) => onChangeSessionMins(Math.max(1, selectedHours * 60 + m))}
               />
               <Text style={styles.pickerUnit}>분</Text>
             </View>
@@ -236,6 +262,10 @@ const styles = StyleSheet.create({
     color: PetHubColors.primary,
     fontSize: 22,
     fontWeight: '700',
+  },
+  wheelItemFaded: {
+    color: 'rgba(31,58,61,0.2)',
+    fontWeight: '400',
   },
   pickerUnit: {
     color: PetHubColors.primary,
