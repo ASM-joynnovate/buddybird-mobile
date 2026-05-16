@@ -1,14 +1,22 @@
 import type { AppLocale } from '@/features/i18n/i18n-resources';
 import { translations } from '@/features/i18n/i18n-resources';
 
-import type { MaterialIconName, SpeciesId, TrainingGoal, TrainingGoalId } from './profile-types';
+import type { MaterialIconName, TrainingGoal, TrainingGoalId } from './profile-types';
 
 export interface SpeciesOption {
-  id: SpeciesId;
+  id: string;
   label: string;
 }
 
-const SPECIES_IDS: SpeciesId[] = ['african-grey', 'cockatoo', 'budgie', 'parakeet', 'lovebird', 'conure'];
+export const PRESET_SPECIES_IDS: readonly string[] = [
+  'african-grey',
+  'cockatoo',
+  'budgie',
+  'parakeet',
+  'lovebird',
+  'conure',
+];
+
 const TRAINING_GOAL_IDS: TrainingGoalId[] = ['greet', 'fruit', 'name', 'leave', 'song'];
 
 const TRAINING_GOAL_ICONS: Record<TrainingGoalId, MaterialIconName> = {
@@ -21,13 +29,19 @@ const TRAINING_GOAL_ICONS: Record<TrainingGoalId, MaterialIconName> = {
 
 export const DEFAULT_GOAL_IDS = ['greet', 'fruit'] as const;
 
-export function getSpeciesOptions(locale: AppLocale): SpeciesOption[] {
-  const speciesCopy = translations[locale].profileOptions.speciesOptions;
-  return SPECIES_IDS.map((id) => ({ id, label: speciesCopy[id] }));
+export function isPresetSpeciesId(value: string): boolean {
+  return PRESET_SPECIES_IDS.includes(value);
 }
 
-export function getSpeciesLabel(locale: AppLocale, species: SpeciesId | 'custom', customSpecies?: string): string {
-  return species === 'custom' ? customSpecies?.trim() ?? '' : translations[locale].profileOptions.speciesOptions[species];
+export function getSpeciesOptions(locale: AppLocale): SpeciesOption[] {
+  const speciesCopy = translations[locale].profileOptions.speciesOptions;
+  return PRESET_SPECIES_IDS.map((id) => ({ id, label: speciesCopy[id] ?? id }));
+}
+
+export function getSpeciesLabel(locale: AppLocale, species: string): string {
+  const trimmed = species.trim();
+  if (!trimmed) return '';
+  return translations[locale].profileOptions.speciesOptions[trimmed] ?? trimmed;
 }
 
 export function getTrainingGoals(locale: AppLocale): TrainingGoal[] {

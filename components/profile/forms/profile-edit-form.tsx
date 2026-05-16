@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
@@ -6,7 +7,7 @@ import { FormField } from '@/components/ui/form-field';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing } from '@/constants/theme';
-import type { SpeciesOption } from '@/features/profile/profile-options';
+import { isPresetSpeciesId, type SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 
 interface ProfileEditFormProps {
@@ -30,7 +31,17 @@ export function ProfileEditForm({
   onCancel,
   onSave,
 }: ProfileEditFormProps) {
-  const isCustomSpecies = form.species === 'custom';
+  const [isCustomMode, setIsCustomMode] = useState(form.species !== '' && !isPresetSpeciesId(form.species));
+
+  function selectPreset(speciesId: string): void {
+    setIsCustomMode(false);
+    onPatch({ species: speciesId });
+  }
+
+  function enterCustomMode(): void {
+    setIsCustomMode(true);
+    onPatch({ species: '' });
+  }
 
   return (
     <View style={styles.form}>
@@ -39,7 +50,7 @@ export function ProfileEditForm({
         <TextInput
           onChangeText={(name) => onPatch({ name })}
           placeholder={t('profile.namePlaceholder')}
-          placeholderTextColor="rgba(31,58,61,0.36)"
+          placeholderTextColor={PetHubColors.placeholderMuted}
           style={styles.input}
           value={form.name}
         />
@@ -49,25 +60,25 @@ export function ProfileEditForm({
           {speciesOptions.map((option) => (
             <Chip
               key={option.id}
-              active={form.species === option.id}
+              active={!isCustomMode && form.species === option.id}
               label={option.label}
-              onPress={() => onPatch({ customSpecies: '', species: option.id })}
+              onPress={() => selectPreset(option.id)}
             />
           ))}
           <Chip
-            active={isCustomSpecies}
+            active={isCustomMode}
             label={t('common.directInput')}
-            onPress={() => onPatch({ species: 'custom' })}
+            onPress={enterCustomMode}
             tone="sun"
           />
         </View>
-        {isCustomSpecies || !form.species ? (
+        {isCustomMode ? (
           <TextInput
-            onChangeText={(customSpecies) => onPatch({ customSpecies })}
+            onChangeText={(species) => onPatch({ species })}
             placeholder={t('profile.speciesPlaceholder')}
-            placeholderTextColor="rgba(31,58,61,0.36)"
+            placeholderTextColor={PetHubColors.placeholderMuted}
             style={styles.input}
-            value={form.customSpecies}
+            value={form.species}
           />
         ) : null}
       </FormField>

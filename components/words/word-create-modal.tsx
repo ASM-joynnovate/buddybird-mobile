@@ -8,6 +8,7 @@ import { RecordingFormCard } from '@/components/words/forms/recording-form-card'
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { reportError } from '@/features/analytics/error-reporter';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
@@ -79,7 +80,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       });
       handleClose();
       onCreated();
-    } catch {
+    } catch (error: unknown) {
+      reportError(error, { scope: 'words.createEntry' });
       Alert.alert('저장 실패', '단어를 저장하지 못했어요. 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);

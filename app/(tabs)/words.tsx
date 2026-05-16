@@ -7,6 +7,8 @@ import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordListItem } from '@/components/words/word-list-item';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
@@ -15,8 +17,10 @@ import type { WordEntry } from '@/features/word-library/word-library-types';
 
 export default function WordsScreen() {
   const { t } = useI18n();
+  const { track } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { entries } = useWordLibrary();
+  useScreenTracking('words');
 
   const [filter, setFilter] = useState<WordCategory>('전체');
   const [showCreate, setShowCreate] = useState(false);
@@ -30,6 +34,20 @@ export default function WordsScreen() {
 
   const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
 
+  const handleFilterChange = useCallback(
+    (next: WordCategory) => {
+      if (next === filter) return;
+      const nextVisibleCount =
+        next === '전체' ? entries.length : entries.filter((e) => e.tag === next).length;
+      track({
+        name: 'word_library_filter_changed',
+        params: { from: filter, to: next, visible_words_count: nextVisibleCount },
+      });
+      setFilter(next);
+    },
+    [entries, filter, track],
+  );
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
@@ -42,7 +60,7 @@ export default function WordsScreen() {
         </Pressable>
       </View>
 
-      <WordFilterBar cats={CATS} active={filter} onChange={setFilter} />
+      <WordFilterBar cats={CATS} active={filter} onChange={handleFilterChange} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -86,6 +104,7 @@ interface WordRowProps {
 
 function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const { t } = useI18n();
+  const { track } = useAnalytics();
   const rawAudioUri = entry.transformedAudioUri ?? entry.audioUri;
   const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
     rawAudioUri.startsWith('preset://') ? null : rawAudioUri,
@@ -95,7 +114,17 @@ function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
 
   function handlePlay() {
-    if (previewState === 'playing') {
+    const isPlaying = previewState === 'playing';
+    track({
+      name: 'word_library_preview_played',
+      params: {
+        word_id: entry.id,
+        word_name: entry.label,
+        source_type: isPreset ? 'preset' : 'recording',
+        action: isPlaying ? 'stop' : 'play',
+      },
+    });
+    if (isPlaying) {
       stopPreview();
     } else {
       onBecameActive(stopPreview);
@@ -131,7 +160,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   kicker: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,

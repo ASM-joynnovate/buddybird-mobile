@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import {
   completeTrainingSession,
   markTrainingWordSuccess,
@@ -11,6 +13,7 @@ import { loadTrainingStore, saveTrainingStore } from './training-storage';
 import type { AudioRecording, TrainingSession, TrainingSessionSettings, TrainingStore, TrainingWord } from './training-types';
 
 export interface PendingSession {
+  sessionId: string;
   wordId: string;
   settings: TrainingSessionSettings;
   audioUri?: string;
@@ -89,7 +92,10 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
 
   const enqueueWrite = useCallback((operation: () => Promise<void>): Promise<void> => {
     const nextWrite = writeQueueRef.current.then(operation, operation);
-    writeQueueRef.current = nextWrite.catch(() => undefined);
+    // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
+    writeQueueRef.current = nextWrite.catch((error: unknown) => {
+      reportError(error, { scope: 'training.writeQueue' });
+    });
 
     return nextWrite;
   }, [setTrainingStoreState]);

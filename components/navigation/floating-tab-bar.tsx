@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PetHubColors } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
 
 const TABS = [
   { name: 'index', label: '홈', icon: 'house.fill' as const },
@@ -12,7 +13,18 @@ const TABS = [
 ] as const;
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+  const { track } = useAnalytics();
   const activeRouteName = state.routes[state.index]?.name;
+
+  function handleTabPress(targetName: string) {
+    if (activeRouteName && targetName !== activeRouteName) {
+      track({
+        name: 'tab_switched',
+        params: { from: activeRouteName, to: targetName },
+      });
+    }
+    navigation.navigate(targetName);
+  }
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
@@ -24,7 +36,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             <Pressable
               key={tab.name}
               style={styles.tabItem}
-              onPress={() => navigation.navigate(tab.name)}
+              onPress={() => handleTabPress(tab.name)}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
             >
@@ -65,7 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 6,
     paddingVertical: 8,
-    shadowColor: 'rgba(31,58,61,1)',
+    shadowColor: PetHubColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.10,
     shadowRadius: 24,

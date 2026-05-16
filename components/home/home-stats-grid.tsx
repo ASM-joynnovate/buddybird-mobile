@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     borderRadius: Radii.full,
     paddingHorizontal: 14,
     paddingVertical: 7,
-    shadowColor: 'rgba(31,58,61,1)',
+    shadowColor: PetHubColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 20,

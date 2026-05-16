@@ -4,10 +4,22 @@ import { StyleSheet, Text, View } from 'react-native';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 export default function OnboardingWelcomeScreen() {
   const { t } = useI18n();
+  const { track } = useAnalytics();
+  const { elapsedMs } = useScreenTracking('onboarding_welcome');
+
+  function proceed(): void {
+    track({
+      name: 'onboarding_step_completed',
+      params: { step: 'welcome', duration_ms: elapsedMs() },
+    });
+    router.push('./profile');
+  }
 
   return (
     <PetScreen contentStyle={styles.content}>
@@ -21,7 +33,7 @@ export default function OnboardingWelcomeScreen() {
           <Text style={styles.body}>{t('onboarding.welcome.body')}</Text>
         </View>
       </View>
-      <PillButton full label={t('onboarding.welcome.cta')} onPress={() => router.push('./profile')} size="lg" />
+      <PillButton full label={t('onboarding.welcome.cta')} onPress={proceed} size="lg" />
     </PetScreen>
   );
 }
@@ -72,7 +84,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
+    color: PetHubColors.bodyMuted,
     maxWidth: 310,
     textAlign: 'center',
   },
