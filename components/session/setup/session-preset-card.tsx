@@ -16,6 +16,12 @@ import { SESSION_PRESETS } from '@/features/training/session-config';
 
 import { SliderField } from './slider-field';
 
+function fmtMins(mins: number): string {
+  if (mins < 60) return `${mins}분`;
+  const h = mins / 60;
+  return Number.isInteger(h) ? `${h}시간` : `${Math.floor(h)}시간 ${mins % 60}분`;
+}
+
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
 const ITEM_H = 44;
@@ -120,6 +126,7 @@ export function SessionPresetCard({
       <View style={styles.grid}>
         {SESSION_PRESETS.map((preset) => {
           const selected = presetKey === preset.key;
+          const totalMins = (preset.learnSecs + preset.restSecs) * preset.cycles / 60;
           return (
             <TouchableOpacity
               key={preset.key}
@@ -127,11 +134,16 @@ export function SessionPresetCard({
               onPress={() => onSelectPreset(preset.key)}
               activeOpacity={0.75}
             >
-              <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                {preset.label}
-              </Text>
-              <Text style={[styles.optionDesc, selected && styles.optionDescSelected]}>
-                {`(${preset.learnSecs / 60}분+${preset.restSecs / 60}분) × ${preset.cycles}회`}
+              <View style={styles.optionRow}>
+                <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+                  {preset.shortLabel}
+                </Text>
+                <Text style={[styles.optionTime, selected && styles.optionTimeSelected]}>
+                  {fmtMins(totalMins)}
+                </Text>
+              </View>
+              <Text style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
+                {preset.description}
               </Text>
             </TouchableOpacity>
           );
@@ -141,11 +153,13 @@ export function SessionPresetCard({
           onPress={() => onSelectPreset('custom')}
           activeOpacity={0.75}
         >
-          <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
-            직접 설정
-          </Text>
-          <Text style={[styles.optionDesc, presetKey === 'custom' && styles.optionDescSelected]}>
-            직접 입력
+          <View style={styles.optionRow}>
+            <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
+              직접 설정
+            </Text>
+          </View>
+          <Text style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
+            원하는 시간을 직접 설정해요.
           </Text>
         </TouchableOpacity>
       </View>
@@ -203,38 +217,51 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionHeadGap,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     gap: 8,
   },
   option: {
     borderColor: 'rgba(31,58,61,0.12)',
     borderRadius: Radii.field,
     borderWidth: 1.5,
-    gap: 3,
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    width: '48%',
+    width: '100%',
   },
   optionSelected: {
     backgroundColor: PetHubColors.primary,
     borderColor: PetHubColors.primary,
   },
+  optionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   optionLabel: {
     color: PetHubColors.primary,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
   optionLabelSelected: {
     color: '#FAF6F0',
   },
-  optionDesc: {
-    color: 'rgba(31,58,61,0.5)',
-    fontSize: 11,
-    fontWeight: '500',
+  optionTime: {
+    color: 'rgba(31,58,61,0.55)',
+    fontSize: 13,
+    fontWeight: '600',
   },
-  optionDescSelected: {
+  optionTimeSelected: {
+    color: 'rgba(250,246,240,0.75)',
+  },
+  optionDescription: {
+    color: 'rgba(31,58,61,0.5)',
+    fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 17,
+  },
+  optionDescriptionSelected: {
     color: 'rgba(250,246,240,0.65)',
   },
   sliders: {

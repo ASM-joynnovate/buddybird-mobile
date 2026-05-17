@@ -2,9 +2,21 @@ import type { TrainingAudioSourceType } from './training-types';
 
 
 export const SESSION_PRESETS = [
-  { key: 'long',   label: '30분 학습',  learnSecs: 600, restSecs: 300, cycles: 2  },  
-  { key: 'short',  label: '1시간 학습', learnSecs: 600, restSecs: 300, cycles: 4  },
-  { key: 'medium', label: '3시간 학습', learnSecs: 600, restSecs: 300, cycles: 12 },
+  {
+    key: 'long', shortLabel: '짧게',
+    description: '\'10분 학습 + 5분 휴식\'이 2번 반복됩니다.',
+    learnSecs: 600, restSecs: 300, cycles: 2,
+  },
+  {
+    key: 'short', shortLabel: '중간',
+    description: '\'10분 학습 + 5분 휴식\'이 4번 반복됩니다.',
+    learnSecs: 600, restSecs: 300, cycles: 4,
+  },
+  {
+    key: 'medium', shortLabel: '길게',
+    description: '\'10분 학습 + 5분 휴식\'이 12번 반복됩니다.',
+    learnSecs: 600, restSecs: 300, cycles: 12,
+  },
 ] as const;
 
 export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';
