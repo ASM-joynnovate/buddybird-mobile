@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 
 type ChipTone = 'teal' | 'sun' | 'coral';
 
@@ -12,9 +12,9 @@ interface ChipProps {
 }
 
 const activeBackgroundByTone: Record<ChipTone, string> = {
-  teal: PetHubColors.secondary,
-  sun: PetHubColors.tertiary,
-  coral: PetHubColors.accentCoral,
+  teal: BuddyBirdColors.secondary,
+  sun: BuddyBirdColors.tertiary,
+  coral: BuddyBirdColors.accentCoral,
 };
 
 export function Chip({ label, active = false, tone = 'teal', onPress }: ChipProps) {
@@ -55,9 +55,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.13,
   },
   activeLabel: {
-    color: PetHubColors.surface,
+    color: BuddyBirdColors.surface,
   },
   inactiveLabel: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
 });

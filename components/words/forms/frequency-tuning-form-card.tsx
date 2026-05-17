@@ -2,7 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { PetHubColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 
 export type PitchToneChoice = 'original' | 'parrot';
 
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   btnActive: {
     backgroundColor: 'rgba(42,157,143,0.08)',
-    borderColor: PetHubColors.secondary,
+    borderColor: BuddyBirdColors.secondary,
     borderWidth: 1.5,
   },
   btnDisabled: {
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.08)',
   },
   label: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 13,
     fontWeight: '600',
   },
   labelActive: {
-    color: PetHubColors.secondary,
+    color: BuddyBirdColors.secondary,
   },
   labelDisabled: {
     color: 'rgba(31,58,61,0.3)',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   range: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.3,

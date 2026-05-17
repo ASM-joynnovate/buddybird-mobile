@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 
 type PillButtonVariant = 'primary' | 'teal' | 'sun' | 'ghost';
 type PillButtonSize = 'md' | 'lg';
@@ -66,13 +66,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   primary: {
-    backgroundColor: PetHubColors.primary,
+    backgroundColor: BuddyBirdColors.primary,
   },
   teal: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
   },
   sun: {
-    backgroundColor: PetHubColors.tertiary,
+    backgroundColor: BuddyBirdColors.tertiary,
   },
   ghost: {
     backgroundColor: 'rgba(31,58,61,0.06)',
@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
     ...Typography.button,
   },
   lightLabel: {
-    color: PetHubColors.neutral,
+    color: BuddyBirdColors.neutral,
   },
   darkLabel: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { PetHubColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 
 import { RadioMark } from './radio-mark';
 
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   cardActive: {
-    backgroundColor: PetHubColors.primary,
+    backgroundColor: BuddyBirdColors.primary,
     borderWidth: 0,
   },
   row: {

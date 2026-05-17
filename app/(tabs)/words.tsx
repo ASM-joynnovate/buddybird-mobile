@@ -6,7 +6,7 @@ import { WordCreateModal } from '@/components/words/word-create-modal';
 import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordListItem } from '@/components/words/word-list-item';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
@@ -148,7 +148,7 @@ function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
   },
   headerRow: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   kicker: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,
@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   addBtn: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.primary,
+    backgroundColor: BuddyBirdColors.primary,
     borderRadius: Radii.full,
     height: 44,
     justifyContent: 'center',

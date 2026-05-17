@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 
 interface SessionHeaderProps {
   sessionMins: number;
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   mono: {
-    color: PetHubColors.kickerMutedOnDark,
+    color: BuddyBirdColors.kickerMutedOnDark,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.8,

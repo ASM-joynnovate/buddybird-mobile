@@ -1,7 +1,7 @@
 ---
 version: alpha
-name: PetHub Mobile
-description: Warm tropical mobile design system for an AI parrot speech-training coach, extracted from pethub-handoff.zip.
+name: 버디버드 Mobile
+description: Warm tropical mobile design system for an AI parrot speech-training coach, extracted from buddybird-handoff.zip.
 colors:
   primary: "#1F3A3D"
   primary-soft: "#2D4A4D"
@@ -264,11 +264,11 @@ components:
     padding: 14px
 ---
 
-# PetHub Mobile Design
+# 버디버드 Mobile Design
 
 ## Overview
 
-PetHub Mobile의 시각 정체성은 warm tropical coaching이다. 디자인은 보호자가 앵무새에게 말을 가르치는 반복 노동을 덜어주는 AI 코치처럼 보여야 하며, 차갑고 기술적인 분석 도구보다 따뜻한 반려동물 루틴 앱에 가까워야 한다.
+버디버드 Mobile의 시각 정체성은 warm tropical coaching이다. 디자인은 보호자가 앵무새에게 말을 가르치는 반복 노동을 덜어주는 AI 코치처럼 보여야 하며, 차갑고 기술적인 분석 도구보다 따뜻한 반려동물 루틴 앱에 가까워야 한다.
 
 추출된 prototype은 iPhone 402×874 프레임 안에서 온보딩, 앵무새 프로필, 홈 대시보드, 사운드 라이브러리, 학습 세션, 내 목소리, 스케줄을 연결한다. 모든 화면은 크림 배경, 열대색 포인트, 둥근 카드, waveform, frequency band를 반복해 “앵무새 음성 학습” 제품임을 즉시 전달한다.
 
@@ -280,7 +280,7 @@ PetHub Mobile의 시각 정체성은 warm tropical coaching이다. 디자인은 
 
 - **primary (`#1F3A3D`)**: 깊은 청록 잉크다. 기본 텍스트, primary 버튼, 선택된 스케줄 날짜, 활성 앵무새 pill에 적용한다. 이유는 흑색보다 부드럽지만 충분히 선명해서 warm cream 배경에서 안정적인 대비를 만들기 때문이다.
 - **primary-soft (`#2D4A4D`)**: prototype의 `ink-soft` 값이다. 보조 진한 텍스트나 primary보다 덜 강한 정보에 사용한다. 정확한 적용 컴포넌트는 prototype에서 제한적으로만 드러나므로 넓은 사용처는 TBD다.
-- **secondary (`#2A9D8F`)**: PetHub의 학습/AI 활성 색이다. 활성 탭, teal 버튼, frequency band, 진행 표시, 학습 상태에 적용한다. 이유는 앵무새 훈련의 “집중·반응·AI 조정”을 대표하는 색으로 반복되기 때문이다.
+- **secondary (`#2A9D8F`)**: BuddyBird의 학습/AI 활성 색이다. 활성 탭, teal 버튼, frequency band, 진행 표시, 학습 상태에 적용한다. 이유는 앵무새 훈련의 “집중·반응·AI 조정”을 대표하는 색으로 반복되기 때문이다.
 - **secondary-deep (`#1F7A6E`)**: teal gradient의 깊은 끝값이다. 강조 텍스트와 hero card gradient 끝에 적용한다. `1–4 kHz 고주파` 같은 핵심 문구에 사용된 값이다.
 - **secondary-tint (`#DCEFEB`)**: teal 정보의 밝은 배경이다. 진행 바 배경, 연결 상태 badge, 정보성 icon tile에 적용한다.
 - **tertiary (`#F4A261`)**: sun accent다. 식사/시간/따뜻한 강조, badge, CTA 보조색, frequency 컨트롤에 적용한다. 이유는 학습 루틴의 시간성과 돌봄의 따뜻함을 나타내기 때문이다.

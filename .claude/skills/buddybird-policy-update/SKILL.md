@@ -1,12 +1,12 @@
 ---
-name: pethub-policy-update
-description: pethub-mobile 프로젝트의 정책이 결정/변경되었을 때 docs/POLICY-HISTORY.md를 갱신하고 관련 docs (CONVENTIONS / SHARED-MODULES / WORKFLOW / analytics / ARCHITECTURE) 또는 신규 docs 파일을 생성·수정. 사용자가 "정책 변경", "이제부터", "의무화", "from now on", "deprecated" 등 정책 변경 의도를 표현하거나 `/pethub-policy-update` 명시 호출 시 트리거.
+name: buddybird-policy-update
+description: buddybird-mobile 프로젝트의 정책이 결정/변경되었을 때 docs/POLICY-HISTORY.md를 갱신하고 관련 docs (CONVENTIONS / SHARED-MODULES / WORKFLOW / analytics / ARCHITECTURE) 또는 신규 docs 파일을 생성·수정. 사용자가 "정책 변경", "이제부터", "의무화", "from now on", "deprecated" 등 정책 변경 의도를 표현하거나 `/buddybird-policy-update` 명시 호출 시 트리거.
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
-# pethub-policy-update
+# buddybird-policy-update
 
-`pethub-mobile`의 정책을 코드와 docs 양쪽에서 일관되게 유지하는 자동화 skill입니다. 정책 변경이 감지되면 (1) 해당 카테고리의 docs를 업데이트하고, (2) `docs/POLICY-HISTORY.md`에 행을 추가하고, (3) CLAUDE.md 포인터를 점검하고, (4) 검증 grep을 실행합니다.
+`buddybird-mobile`의 정책을 코드와 docs 양쪽에서 일관되게 유지하는 자동화 skill입니다. 정책 변경이 감지되면 (1) 해당 카테고리의 docs를 업데이트하고, (2) `docs/POLICY-HISTORY.md`에 행을 추가하고, (3) CLAUDE.md 포인터를 점검하고, (4) 검증 grep을 실행합니다.
 
 ## 트리거
 
@@ -23,7 +23,7 @@ allowed-tools: Read, Edit, Write, Bash, Grep, Glob
 ### 명시 호출
 
 ```
-/pethub-policy-update <한 줄 정책 설명>
+/buddybird-policy-update <한 줄 정책 설명>
 ```
 
 ## 동작 7단계
@@ -121,7 +121,7 @@ rg "<export>" features/shared/ features/<domain>/
 
 ## 위치
 
-본 skill은 `pethub-mobile/.claude/skills/pethub-policy-update/`에 위치합니다 (프로젝트 로컬). 레포를 clone한 모든 협업자가 동일한 skill로 정책을 갱신합니다.
+본 skill은 `buddybird-mobile/.claude/skills/buddybird-policy-update/`에 위치합니다 (프로젝트 로컬). 레포를 clone한 모든 협업자가 동일한 skill로 정책을 갱신합니다.
 
 ## 템플릿
 

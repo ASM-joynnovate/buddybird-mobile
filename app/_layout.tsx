@@ -5,8 +5,9 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 import { AnalyticsProvider, useAnalytics } from '@/features/analytics/analytics-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider, useProfile } from '@/features/profile/profile-context';
@@ -23,21 +24,23 @@ export default function RootLayout() {
 
   return (
       <GestureHandlerRootView style={styles.root}>
-        <AnalyticsProvider>
-          <I18nProvider>
-            <ProfileProvider>
-              <TrainingDataProvider>
-                <WordLibraryProvider>
-                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                    <AppOpenTracker />
-                    <RootNavigator />
-                    <StatusBar style="dark" />
-                  </ThemeProvider>
-                </WordLibraryProvider>
-              </TrainingDataProvider>
-            </ProfileProvider>
-          </I18nProvider>
-        </AnalyticsProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <AnalyticsProvider>
+            <I18nProvider>
+              <ProfileProvider>
+                <TrainingDataProvider>
+                  <WordLibraryProvider>
+                    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                      <AppOpenTracker />
+                      <RootNavigator />
+                      <StatusBar style="dark" />
+                    </ThemeProvider>
+                  </WordLibraryProvider>
+                </TrainingDataProvider>
+              </ProfileProvider>
+            </I18nProvider>
+          </AnalyticsProvider>
+        </SafeAreaProvider>
       </GestureHandlerRootView>
   );
 }
@@ -84,7 +87,7 @@ function RootNavigator() {
   if (!isHydrated) {
     return (
         <View style={styles.loadingScreen}>
-          <ActivityIndicator color={PetHubColors.secondary} />
+          <ActivityIndicator color={BuddyBirdColors.secondary} />
         </View>
     );
   }
@@ -99,8 +102,8 @@ function RootNavigator() {
                 headerShown: false,
                 animation: 'fade',
                 animationDuration: 220,
-                contentStyle: { backgroundColor: PetHubColors.darkBg },
-                navigationBarColor: PetHubColors.darkBg,
+                contentStyle: { backgroundColor: BuddyBirdColors.darkBg },
+                navigationBarColor: BuddyBirdColors.darkBg,
               }}
           />
         </Stack.Protected>
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
   },
   loadingScreen: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
     justifyContent: 'center',
   },

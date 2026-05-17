@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { SelectableRowCard } from '@/components/ui/selectable-row-card';
 import { WheelPicker } from '@/components/ui/wheel-picker';
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 import { formatDurationMins } from '@/features/shared/duration-format';
 import type { SessionPresetKey } from '@/features/training/session-config';
 import { SESSION_PRESETS } from '@/features/training/session-config';
@@ -104,7 +104,7 @@ export function SessionPresetCard({
             max={60}
             step={1}
             current={learnSecs / 60}
-            color={PetHubColors.secondary}
+            color={BuddyBirdColors.secondary}
             onChange={(v) => onChangeLearnSecs(Math.round(v) * 60)}
           />
           <SliderField
@@ -114,7 +114,7 @@ export function SessionPresetCard({
             max={60}
             step={1}
             current={restSecs / 60}
-            color={PetHubColors.accentCoral}
+            color={BuddyBirdColors.accentCoral}
             onChange={(v) => onChangeRestSecs(Math.round(v) * 60)}
           />
           <Text style={styles.cycleMono}>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   optionLabel: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pickerUnit: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 20,
     fontWeight: '600',
     letterSpacing: -0.3,

@@ -1,6 +1,7 @@
-import { SafeAreaView, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PetHubColors, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Spacing } from '@/constants/theme';
 
 interface PetScreenProps {
   children: React.ReactNode;
@@ -9,26 +10,35 @@ interface PetScreenProps {
 }
 
 export function PetScreen({ children, scroll = true, contentStyle }: PetScreenProps) {
+  const insets = useSafeAreaInsets();
+
   if (!scroll) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.content, contentStyle]}>{children}</View>
-      </SafeAreaView>
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+        <View style={[styles.content, { paddingBottom: insets.bottom }, contentStyle]}>{children}</View>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, contentStyle]} showsVerticalScrollIndicator={false}>
+    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Spacing.screenBottomTabs + insets.bottom },
+          contentStyle,
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {children}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
   },
   content: {
@@ -37,7 +47,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: Spacing.screenBottomTabs,
     paddingHorizontal: Spacing.screenXLg,
     paddingTop: Spacing.sectionY,
   },

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WaveformBars } from '@/components/ui/waveform-bars';
-import { PetHubColors, Radii, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
 
 interface ContinueSessionCardProps {
   words: string[];
@@ -49,21 +49,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   kicker: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,
   },
   title: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 22,
   },
   card: {
-    backgroundColor: PetHubColors.primary,
+    backgroundColor: BuddyBirdColors.primary,
     borderRadius: Radii.card,
     overflow: 'hidden',
-    shadowColor: PetHubColors.primary,
+    shadowColor: BuddyBirdColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 24,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   wordChipText: {
-    color: PetHubColors.neutral,
+    color: BuddyBirdColors.neutral,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -96,18 +96,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   moreChipText: {
-    color: PetHubColors.kickerMutedOnDark,
+    color: BuddyBirdColors.kickerMutedOnDark,
     fontSize: 13,
   },
   sessionMeta: {
-    color: PetHubColors.kickerMutedOnDark,
+    color: BuddyBirdColors.kickerMutedOnDark,
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.4,
   },
   btn: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
     height: 52,
     justifyContent: 'center',
   },

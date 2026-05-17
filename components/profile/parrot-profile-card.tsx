@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { getSpeciesLabel } from '@/features/profile/profile-options';
 import type { ParrotProfile } from '@/features/profile/profile-types';
@@ -41,7 +41,7 @@ export function ParrotProfileCard({ profile, compact = false }: ParrotProfileCar
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
     borderWidth: 0,
   },
   row: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.feather,
+    backgroundColor: BuddyBirdColors.feather,
     borderRadius: Radii.full,
     height: 64,
     justifyContent: 'center',
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   name: {
     ...Typography.cardTitle,
-    color: PetHubColors.surface,
+    color: BuddyBirdColors.surface,
   },
   meta: {
     ...Typography.bodySmall,

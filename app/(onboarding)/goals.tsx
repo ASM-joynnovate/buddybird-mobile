@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { TrainingGoalCard } from '@/components/profile/training-goal-card';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -143,25 +143,25 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionHeadGap,
   },
   kicker: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 4,
   },
   title: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   body: {
     ...Typography.body,
-    color: PetHubColors.bodyMuted,
+    color: BuddyBirdColors.bodyMuted,
   },
   goalList: {
     gap: Spacing.sectionHeadGap,
   },
   error: {
     ...Typography.bodySmall,
-    color: PetHubColors.accentCoral,
+    color: BuddyBirdColors.accentCoral,
     fontWeight: '700',
   },
 });

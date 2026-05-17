@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-export const PetHubColors = {
+export const BuddyBirdColors = {
   primary: '#1F3A3D',
   primarySoft: '#2D4A4D',
   secondary: '#2A9D8F',
@@ -30,20 +30,20 @@ export const PetHubColors = {
 
 export const Colors = {
   light: {
-    text: PetHubColors.primary,
-    background: PetHubColors.neutral,
-    tint: PetHubColors.secondary,
-    icon: PetHubColors.primarySoft,
+    text: BuddyBirdColors.primary,
+    background: BuddyBirdColors.neutral,
+    tint: BuddyBirdColors.secondary,
+    icon: BuddyBirdColors.primarySoft,
     tabIconDefault: 'rgba(31,58,61,0.48)',
-    tabIconSelected: PetHubColors.secondary,
+    tabIconSelected: BuddyBirdColors.secondary,
   },
   dark: {
-    text: PetHubColors.neutral,
-    background: PetHubColors.darkBg,
-    tint: PetHubColors.sessionMint,
-    icon: PetHubColors.secondaryTint,
+    text: BuddyBirdColors.neutral,
+    background: BuddyBirdColors.darkBg,
+    tint: BuddyBirdColors.sessionMint,
+    icon: BuddyBirdColors.secondaryTint,
     tabIconDefault: 'rgba(250,246,240,0.54)',
-    tabIconSelected: PetHubColors.sessionMint,
+    tabIconSelected: BuddyBirdColors.sessionMint,
   },
 };
 

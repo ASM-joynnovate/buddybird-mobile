@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 
 import { StatCard } from './stat-card';
 
@@ -15,13 +15,13 @@ export function HomeStatsGrid({ todayStatValue, todayStatUnit, weekStatValue, we
   return (
     <>
       <View style={styles.grid}>
-        <StatCard value={todayStatValue} unit={todayStatUnit} label="오늘 학습 시간" tone={PetHubColors.tertiaryDeep} />
-        <StatCard value={weekStatValue} unit={weekStatUnit} label="이번 주 학습 시간" tone={PetHubColors.secondaryDeep} />
+        <StatCard value={todayStatValue} unit={todayStatUnit} label="오늘 학습 시간" tone={BuddyBirdColors.tertiaryDeep} />
+        <StatCard value={weekStatValue} unit={weekStatUnit} label="이번 주 학습 시간" tone={BuddyBirdColors.secondaryDeep} />
       </View>
       <View style={styles.lockedWrapper}>
         <View style={[styles.grid, styles.lockedStats]}>
-          <StatCard value="123" unit="회" label="망고의 반응" tone={PetHubColors.secondaryDeep} />
-          <StatCard value="92" unit="%" label="단어 따라하기 정확도" tone={PetHubColors.tertiaryDeep} />
+          <StatCard value="123" unit="회" label="망고의 반응" tone={BuddyBirdColors.secondaryDeep} />
+          <StatCard value="92" unit="%" label="단어 따라하기 정확도" tone={BuddyBirdColors.tertiaryDeep} />
         </View>
         <View style={styles.lockedOverlay}>
           <View style={styles.lockedBadge}>
@@ -50,17 +50,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lockedBadge: {
-    backgroundColor: PetHubColors.primary,
+    backgroundColor: BuddyBirdColors.primary,
     borderRadius: Radii.full,
     paddingHorizontal: 14,
     paddingVertical: 7,
-    shadowColor: PetHubColors.primary,
+    shadowColor: BuddyBirdColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 20,
   },
   lockedBadgeText: {
-    color: PetHubColors.neutral,
+    color: BuddyBirdColors.neutral,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: -0.1,

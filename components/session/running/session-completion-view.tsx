@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 
 interface SessionCompletionViewProps {
   word: string;
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   stat: {
-    color: PetHubColors.kickerMutedOnDark,
+    color: BuddyBirdColors.kickerMutedOnDark,
     fontSize: 14,
     fontWeight: '500',
   },

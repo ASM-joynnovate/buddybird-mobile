@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { PetHubColors, Radii, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
 import { getDateKicker } from '@/features/profile/profile-display';
 
 interface HomeGreetingProps {
@@ -34,14 +34,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   kicker: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,
   },
   greeting: {
     ...Typography.homeGreeting,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   bellBtn: {
     alignItems: 'center',

@@ -29,7 +29,7 @@ Domain logic lives here — no JSX. Each subdirectory follows the same pattern: 
 
 ## Design system (`constants/theme.ts`)
 
-Single source of truth for `PetHubColors`, `Colors` (light/dark), `Fonts`, `Spacing`, `Radii`, and `Typography`. Always import from here rather than hardcoding values.
+Single source of truth for `BuddyBirdColors`, `Colors` (light/dark), `Fonts`, `Spacing`, `Radii`, and `Typography`. Always import from here rather than hardcoding values.
 
 ## Path alias
 
@@ -41,7 +41,7 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 
 ## 네이티브 설정
 
-PetHub Mobile은 native modules (`@react-native-firebase/*`, `@microsoft/react-native-clarity`, `expo-tracking-transparency`)에 의존하므로 **Expo Go에서 실행할 수 없습니다**. 다음 설정을 엄수합니다.
+버디버드 Mobile은 native modules (`@react-native-firebase/*`, `@microsoft/react-native-clarity`, `expo-tracking-transparency`)에 의존하므로 **Expo Go에서 실행할 수 없습니다**. 다음 설정을 엄수합니다.
 
 ### Firebase RNFirebase v24
 

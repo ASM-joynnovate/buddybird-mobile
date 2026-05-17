@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 
 const ITEM_H = 44;
 
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   wheelItem: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 22,
     fontWeight: '700',
   },

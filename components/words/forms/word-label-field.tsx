@@ -2,7 +2,7 @@ import { StyleSheet, TextInput } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 
 interface WordLabelFieldProps {
   sectionKicker: string;
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.12)',
     borderRadius: Radii.field,
     borderWidth: 0.5,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 15,
     height: 48,
     paddingHorizontal: Spacing.fieldPaddingX,

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, type StyleProp, type TextStyle } from 'react-native';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 
 export type SectionKickerTone = 'default' | 'strong';
 
@@ -19,12 +19,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   default: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontWeight: '500',
     letterSpacing: 0.6,
   },
   strong: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
     fontWeight: '700',
     letterSpacing: 4,
   },

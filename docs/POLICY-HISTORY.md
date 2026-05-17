@@ -1,6 +1,6 @@
 # Policy History
 
-이 문서는 `pethub-mobile`에 도입·확정된 정책의 시간순 이력입니다. 각 행은 그 정책이 처음 코드/문서로 들어온 시점을 기록합니다. 정책이 신규 도입·변경되면 `.claude/skills/pethub-policy-update`가 본 문서 맨 아래에 행을 추가합니다.
+이 문서는 `buddybird-mobile`에 도입·확정된 정책의 시간순 이력입니다. 각 행은 그 정책이 처음 코드/문서로 들어온 시점을 기록합니다. 정책이 신규 도입·변경되면 `.claude/skills/buddybird-policy-update`가 본 문서 맨 아래에 행을 추가합니다.
 
 ## 1. 정책 도입 이력 (시간순)
 
@@ -16,7 +16,7 @@
 | 2026-05-15 | plan `feat-move-audio-record-session-refactor-humming-rivest.md` · commits `0a6b904`, `07e9d37`, `bfa3f8b` | 오디오 녹음·재생을 `features/audio/hooks/`로 통합, `elapsedSeconds`를 두 훅 모두에서 반환 의무화 | `features/audio/hooks/use-audio-recording.ts`, `use-audio-preview.ts` |
 | 2026-05-15 | plan `zazzy-booping-sprout.md` · 5-track 병렬 리팩터 | (1) silent catch 제거 (2) 인라인 rgba → 토큰 (3) 공용 utils 추출 (`shared/ids`, `shared/date-utils`) (4) screen tracking hooks 폴더 이동 (5) provider failure 리포터 추출 | 다수 모듈, `constants/theme.ts`, `features/shared/`, `features/analytics/` |
 | 2026-05-15 | commit `b1894f9` 이하 audio·training·word-library·words·i18n·profile refactor 시리즈 | empty catch 절대 금지 — non-fatal은 `console.warn('[scope]', err)`, fatal은 `reportError(err, { scope })` | `features/audio/`, `features/training/`, `features/word-library/`, `features/i18n/`, `features/profile/`, `components/words/` |
-| 2026-05-15 | commits `9d39dae`, `4e2dff4`, `efe95e6`, `bef8ab3`, `ea78155` | 모든 인라인 `rgba()` 금지 → `PetHubColors`의 `kickerMuted` / `kickerMutedOnDark` / `bodyMuted` / `placeholderMuted` 토큰 사용, dark-surface는 `*OnDark` 변형 추가 | `constants/theme.ts`, `components/`, `app/` |
+| 2026-05-15 | commits `9d39dae`, `4e2dff4`, `efe95e6`, `bef8ab3`, `ea78155` | 모든 인라인 `rgba()` 금지 → `BuddyBirdColors`의 `kickerMuted` / `kickerMutedOnDark` / `bodyMuted` / `placeholderMuted` 토큰 사용, dark-surface는 `*OnDark` 변형 추가 | `constants/theme.ts`, `components/`, `app/` |
 | 2026-05-15 | commits `8cc1875`, `d6dec81` | 공용 utility는 `features/shared/`에 단일 source of truth: `createSessionId`, `diffDaysIso` | `features/shared/ids.ts`, `features/shared/date-utils.ts` |
 | 2026-05-15 | commits `21db373`, `5567795` | `useScreenTracking`은 `features/analytics/hooks/`에 두고, 반환값으로 `elapsedMs()` 제공 — 인라인 `Date.now()` ref 금지 | `features/analytics/hooks/use-screen-tracking.ts` |
 | 2026-05-15 | commit `4c86152` | `Species` 모델 plain string 단순화 — `SpeciesId` enum / `customSpecies` 필드 제거, `isPresetSpeciesId`로 preset 판별 | `features/profile/` |
@@ -24,8 +24,8 @@
 | 2026-05-15 | commits `025627a`, `8c53cb7` | `google-services.json`, `GoogleService-Info.plist`, `/android/`, `/ios/`, `.firebaserc`, `.firebase/` 모두 gitignore — Firebase config는 절대 commit 금지 | `.gitignore` |
 | 2026-05-15 | plan `bright-kindling-breeze.md` | post-merge 컨벤션 정리: dark-surface kicker 토큰 (`kickerMutedOnDark`) 의무화, 검증 grep 체크리스트 명문화 | `constants/theme.ts`, 검증 grep |
 | 2026-05-16 | commit `2ee3a25` | analytics 누락 이벤트 채우기 + dev merge 이후 코드 정합성 정렬, screen tracking 빠진 스크린 보강 | `app/`, `features/analytics/` |
-| 2026-05-16 | 본 정책 문서화 작업 (plan `lucky-wiggling-candle.md`) | `docs/CONVENTIONS.md` / `docs/SHARED-MODULES.md` / `docs/WORKFLOW.md` / `docs/POLICY-HISTORY.md` 신설, `CLAUDE.md`에 Project Rules + Hard Rules + 정책 변경 자동화 안내 추가, `.claude/skills/pethub-policy-update` 추가 | `CLAUDE.md`, `docs/`, `.claude/skills/` |
-| 2026-05-16 | conversation `/pethub-policy-update` 호출 (base `cd54b26`) | 작업 시작 전 현재 브랜치의 upstream 대비 최신 여부를 반드시 확인하고, 뒤처져 있으면 사용자에게 명시적으로 알리도록 의무화 | `docs/WORKFLOW.md`, `CLAUDE.md` |
+| 2026-05-16 | 본 정책 문서화 작업 (plan `lucky-wiggling-candle.md`) | `docs/CONVENTIONS.md` / `docs/SHARED-MODULES.md` / `docs/WORKFLOW.md` / `docs/POLICY-HISTORY.md` 신설, `CLAUDE.md`에 Project Rules + Hard Rules + 정책 변경 자동화 안내 추가, `.claude/skills/buddybird-policy-update` 추가 | `CLAUDE.md`, `docs/`, `.claude/skills/` |
+| 2026-05-16 | conversation `/buddybird-policy-update` 호출 (base `cd54b26`) | 작업 시작 전 현재 브랜치의 upstream 대비 최신 여부를 반드시 확인하고, 뒤처져 있으면 사용자에게 명시적으로 알리도록 의무화 | `docs/WORKFLOW.md`, `CLAUDE.md` |
 | 2026-05-17 | plan `~/.claude/plans/hidden-scribbling-sunbeam.md` | session-preset-card 인라인 `WheelPicker`를 `components/ui/wheel-picker.tsx`로, 한국어 시간 포맷터(`fmtMins`/`formatDuration`)를 `features/shared/duration-format.ts`(`formatDurationMins`/`formatDurationSecs`)로 분리. `WheelPicker`는 추출 시점에 단일 caller로, §1-5(2회 이상 중복 시 추출) 예외 — 사유: UI primitive 재사용 잠재력 | `components/ui/wheel-picker.tsx`, `features/shared/duration-format.ts`, `components/session/setup/session-preset-card.tsx`, `components/session/setup/cycle-summary.tsx`, `docs/SHARED-MODULES.md` |
 | 2026-05-17 | plan `~/.claude/plans/atomic-plotting-sedgewick.md` | 오디오 URI 영구화 정책 도입: AsyncStorage에는 `recording://<fileName>` / `preset://<label>` 만 저장 (절대 `file://` URI 금지). storage 계층에서 `normalizeAudioUriForStorage` / `hydrateAudioUriFromStorage` 의무 적용, 재생 직전 `recordingFileExists`로 stale/missing 가드. 사유: iOS 컨테이너 UUID는 빌드/재설치 시 변경되어 절대 URI는 stale (Apple TN2406, expo#32788). 기존 v1 데이터(절대 URI)는 load 시 그대로 pass-through 후 다음 save에서 자동 정규화 | `features/audio/audio-file-storage.ts`, `features/word-library/word-library-storage.ts`, `features/training/training-storage.ts`, `features/audio/hooks/use-audio-preview.ts`, `features/training/hooks/use-active-session.ts`, `docs/CONVENTIONS.md` §6, `docs/SHARED-MODULES.md` §6.1 |
 
@@ -78,5 +78,5 @@
 ## 3. 갱신 규칙
 
 - 본 문서는 정책이 신규 도입·변경되면 반드시 갱신
-- 갱신은 `.claude/skills/pethub-policy-update`가 자동 수행 (수동 호출 또는 발화 트리거)
+- 갱신은 `.claude/skills/buddybird-policy-update`가 자동 수행 (수동 호출 또는 발화 트리거)
 - 기존 행은 수정·삭제하지 않음. 정책이 폐기되면 새 행에 "deprecated: …"로 추가
