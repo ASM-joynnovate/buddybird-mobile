@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { PetHubColors } from '@/constants/theme';
@@ -21,21 +22,23 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <AnalyticsProvider>
-      <I18nProvider>
-        <ProfileProvider>
-          <TrainingDataProvider>
-            <WordLibraryProvider>
-              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <AppOpenTracker />
-                <RootNavigator />
-                <StatusBar style="dark" />
-              </ThemeProvider>
-            </WordLibraryProvider>
-          </TrainingDataProvider>
-        </ProfileProvider>
-      </I18nProvider>
-    </AnalyticsProvider>
+      <GestureHandlerRootView style={styles.root}>
+        <AnalyticsProvider>
+          <I18nProvider>
+            <ProfileProvider>
+              <TrainingDataProvider>
+                <WordLibraryProvider>
+                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <AppOpenTracker />
+                    <RootNavigator />
+                    <StatusBar style="dark" />
+                  </ThemeProvider>
+                </WordLibraryProvider>
+              </TrainingDataProvider>
+            </ProfileProvider>
+          </I18nProvider>
+        </AnalyticsProvider>
+      </GestureHandlerRootView>
   );
 }
 
@@ -80,35 +83,38 @@ function RootNavigator() {
 
   if (!isHydrated) {
     return (
-      <View style={styles.loadingScreen}>
-        <ActivityIndicator color={PetHubColors.secondary} />
-      </View>
+        <View style={styles.loadingScreen}>
+          <ActivityIndicator color={PetHubColors.secondary} />
+        </View>
     );
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!!profile}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="session-active"
-          options={{
-            headerShown: false,
-            animation: 'fade',
-            animationDuration: 220,
-            contentStyle: { backgroundColor: PetHubColors.darkBg },
-            navigationBarColor: PetHubColors.darkBg,
-          }}
-        />
-      </Stack.Protected>
-      <Stack.Protected guard={!profile}>
-        <Stack.Screen name="(onboarding)" />
-      </Stack.Protected>
-    </Stack>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={!!profile}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+              name="session-active"
+              options={{
+                headerShown: false,
+                animation: 'fade',
+                animationDuration: 220,
+                contentStyle: { backgroundColor: PetHubColors.darkBg },
+                navigationBarColor: PetHubColors.darkBg,
+              }}
+          />
+        </Stack.Protected>
+        <Stack.Protected guard={!profile}>
+          <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
+      </Stack>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingScreen: {
     alignItems: 'center',
     backgroundColor: PetHubColors.neutral,
