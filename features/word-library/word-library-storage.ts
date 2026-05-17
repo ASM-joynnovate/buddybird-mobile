@@ -5,7 +5,7 @@ import { hydrateAudioUriFromStorage, normalizeAudioUriForStorage } from '@/featu
 
 import type { WordEntry, WordLibraryStore } from './word-library-types';
 
-export const WORD_LIBRARY_STORAGE_KEY = '@pethub/wordLibrary';
+export const WORD_LIBRARY_STORAGE_KEY = '@buddybird/wordLibrary';
 
 export async function loadWordLibraryStore(): Promise<WordLibraryStore> {
   const raw = await AsyncStorage.getItem(WORD_LIBRARY_STORAGE_KEY);

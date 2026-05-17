@@ -9,7 +9,7 @@ import { SessionHeader } from '@/components/session/running/session-header';
 import { SessionPhaseBadge } from '@/components/session/running/session-phase-badge';
 import { SessionProgressRing } from '@/components/session/running/session-progress-ring';
 import { SessionWaveSection } from '@/components/session/running/session-wave-section';
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useActiveSession } from '@/features/training/hooks/use-active-session';
@@ -181,7 +181,7 @@ function SessionActiveInner({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: PetHubColors.darkBg,
+    backgroundColor: BuddyBirdColors.darkBg,
     flex: 1,
   },
   gradientOverlay: {

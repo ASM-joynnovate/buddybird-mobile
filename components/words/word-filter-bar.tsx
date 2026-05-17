@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 
 interface WordFilterBarProps<T extends string> {
@@ -31,7 +31,7 @@ interface FilterChipProps {
 }
 
 export function FilterChip({ cat, active, onPress }: FilterChipProps) {
-  const color = catColors[cat] ?? PetHubColors.secondary;
+  const color = catColors[cat] ?? BuddyBirdColors.secondary;
   return (
     <Pressable
       style={[
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.15)',
   },
   chipText: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 13,
     fontWeight: '500',
   },

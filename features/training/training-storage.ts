@@ -7,7 +7,7 @@ import { createEmptyTrainingStore } from './training-model';
 import type { AudioRecording, TrainingStore, TrainingWord } from './training-types';
 import { parseStoredTrainingStore, TrainingStorageError } from './training-validation';
 
-export const TRAINING_STORAGE_KEY = '@pethub/training-store';
+export const TRAINING_STORAGE_KEY = '@buddybird/training-store';
 
 export async function loadTrainingStore(): Promise<TrainingStore> {
   const rawStore = await AsyncStorage.getItem(TRAINING_STORAGE_KEY);

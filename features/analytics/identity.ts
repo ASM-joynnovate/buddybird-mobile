@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const INSTALLATION_ID_KEY = '@pethub/analytics-installation-id';
+export const INSTALLATION_ID_KEY = '@buddybird/analytics-installation-id';
 
 export class IdentityStorageError extends Error {
   constructor(message: string) {

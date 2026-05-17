@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Radii, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.feather,
+    backgroundColor: BuddyBirdColors.feather,
     flex: 1,
     justifyContent: 'center',
   },
@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     ...Typography.caption,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
   error: {
     ...Typography.caption,
-    color: PetHubColors.accentCoral,
+    color: BuddyBirdColors.accentCoral,
     textAlign: 'center',
   },
 });

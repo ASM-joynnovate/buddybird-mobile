@@ -4,7 +4,7 @@ import { reportError } from '@/features/analytics/error-reporter';
 
 import type { ParrotProfile, TrainingGoalId } from './profile-types';
 
-export const PROFILE_STORAGE_KEY = '@pethub/parrot-profile';
+export const PROFILE_STORAGE_KEY = '@buddybird/parrot-profile';
 
 export class ProfileStorageError extends Error {
   constructor(message: string) {

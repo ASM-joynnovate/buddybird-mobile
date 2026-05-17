@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 
 interface RadioMarkProps {
   active: boolean;
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     width: 22,
   },
   radioActive: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
     borderWidth: 0,
   },
   radioDot: {

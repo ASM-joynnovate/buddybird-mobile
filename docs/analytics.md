@@ -1,19 +1,19 @@
 # Analytics 개발자 가이드
 
-본 가이드는 PetHub Mobile에 도입된 Firebase Analytics + Crashlytics + Microsoft Clarity 통합 사용법을 설명합니다. 계획서: `~/.claude/plans/ancient-jingling-sunset.md`
+본 가이드는 버디버드 Mobile에 도입된 Firebase Analytics + Crashlytics + Microsoft Clarity 통합 사용법을 설명합니다. 계획서: `~/.claude/plans/ancient-jingling-sunset.md`
 
 ## 1. 사전 준비 (사용자 작업)
 
 1. Firebase 콘솔에서 프로젝트 생성 후 iOS/Android 앱 등록
-   - iOS bundle ID / Android package: `com.joynnovate.pethub`
-   - `GoogleService-Info.plist` 다운로드 → `pethub-mobile/GoogleService-Info.plist`
-   - `google-services.json` 다운로드 → `pethub-mobile/google-services.json`
+   - iOS bundle ID / Android package: `com.joynnovate.buddybird`
+   - `GoogleService-Info.plist` 다운로드 → `buddybird-mobile/GoogleService-Info.plist`
+   - `google-services.json` 다운로드 → `buddybird-mobile/google-services.json`
 2. Microsoft Clarity 콘솔에서 모바일 프로젝트 생성 → Project ID 발급
    - `app.json`의 `expo.extra.clarityProjectId`에 값 입력
    - 또는 `.env`에 `EXPO_PUBLIC_CLARITY_PROJECT_ID` 설정
 3. 패키지 설치
    ```bash
-   cd pethub-mobile
+   cd buddybird-mobile
    yarn install
    ```
 4. Native 모듈을 위한 prebuild + dev build
@@ -144,9 +144,9 @@ await flushSessionWordMetrics([
 ### Firebase DebugView
 ```bash
 # iOS
-xcrun simctl shell booted defaults write com.joynnovate.pethub /google/firebase/debug_mode -bool true
+xcrun simctl shell booted defaults write com.joynnovate.buddybird /google/firebase/debug_mode -bool true
 # Android
-adb shell setprop debug.firebase.analytics.app com.joynnovate.pethub
+adb shell setprop debug.firebase.analytics.app com.joynnovate.buddybird
 ```
 Firebase Console > Analytics > DebugView에서 실시간 이벤트 확인.
 

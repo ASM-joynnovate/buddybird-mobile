@@ -1,6 +1,6 @@
 import { SafeAreaView, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { PetHubColors, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Spacing } from '@/constants/theme';
 
 interface PetScreenProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export function PetScreen({ children, scroll = true, contentStyle }: PetScreenPr
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
   },
   content: {

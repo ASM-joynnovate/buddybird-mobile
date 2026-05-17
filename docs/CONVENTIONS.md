@@ -1,6 +1,6 @@
 # Conventions
 
-`pethub-mobile`의 파일·폴더·스타일·에러 처리·커밋 컨벤션. 모두 단정문(rule)이며, 위반 시 PR/커밋이 거부됩니다.
+`buddybird-mobile`의 파일·폴더·스타일·에러 처리·커밋 컨벤션. 모두 단정문(rule)이며, 위반 시 PR/커밋이 거부됩니다.
 
 ## 1. 파일·폴더 레이아웃
 
@@ -75,12 +75,12 @@
 <View style={{ color: 'rgba(31,58,61,0.55)', padding: 12 }} />
 
 // 올바른 예
-<View style={{ color: PetHubColors.kickerMuted, padding: Spacing.md }} />
+<View style={{ color: BuddyBirdColors.kickerMuted, padding: Spacing.md }} />
 ```
 
 ### 2.2 인라인 `rgba()` 절대 금지
 
-- 신규 muted 색이 필요하면 `constants/theme.ts`의 `PetHubColors`에 토큰 먼저 추가
+- 신규 muted 색이 필요하면 `constants/theme.ts`의 `BuddyBirdColors`에 토큰 먼저 추가
 - 검증: `rg "rgba\(" components/ features/ app/` 0건 유지
 
 ### 2.3 dark-surface 대응

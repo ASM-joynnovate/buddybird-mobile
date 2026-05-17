@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "PetHub",
-    "slug": "pethub",
+    "name": "버디버드",
+    "slug": "buddybird",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "pethub",
+    "scheme": "buddybird",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.joynnovate.pethub",
+      "bundleIdentifier": "com.joynnovate.buddybird",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "더 나은 학습 경험을 위해 익명화된 사용 통계를 수집합니다. 개인을 식별하지 않으며, 언제든지 거부할 수 있습니다."
       }
     },
     "android": {
-      "package": "com.joynnovate.pethub",
+      "package": "com.joynnovate.buddybird",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FAF6F0",
@@ -49,7 +49,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "앵Talk트레이너가 반려조 학습용 목소리를 녹음할 수 있도록 마이크 접근을 허용해 주세요."
+          "microphonePermission": "버디버드가 반려조 학습용 목소리를 녹음할 수 있도록 마이크 접근을 허용해 주세요."
         }
       ],
       "@react-native-firebase/app",

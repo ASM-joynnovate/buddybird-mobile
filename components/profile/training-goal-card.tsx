@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import type { TrainingGoal } from '@/features/profile/profile-types';
 
@@ -21,7 +21,7 @@ export function TrainingGoalCard({ goal, selected, onPress }: TrainingGoalCardPr
       onPress={onPress}
       style={({ pressed }) => [styles.card, selected ? styles.selected : undefined, pressed ? styles.pressed : undefined]}>
       <View style={[styles.iconTile, selected ? styles.selectedIconTile : undefined]}>
-        <MaterialIcons color={selected ? PetHubColors.surface : PetHubColors.secondary} name={goal.icon} size={22} />
+        <MaterialIcons color={selected ? BuddyBirdColors.surface : BuddyBirdColors.secondary} name={goal.icon} size={22} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.label}>{goal.label}</Text>
@@ -35,7 +35,7 @@ export function TrainingGoalCard({ goal, selected, onPress }: TrainingGoalCardPr
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.surface,
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: 'rgba(31,58,61,0.08)',
     borderRadius: Radii.sectionCard,
     borderWidth: 1,
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
     padding: Spacing.cardPaddingSm,
   },
   selected: {
-    backgroundColor: PetHubColors.secondaryTint,
-    borderColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondaryTint,
+    borderColor: BuddyBirdColors.secondary,
   },
   pressed: {
     transform: [{ scale: 0.99 }],
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   selectedIconTile: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
   },
   copy: {
     flex: 1,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.body,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
   sample: {
@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   checkSelected: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
   },
 });

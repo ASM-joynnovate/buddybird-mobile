@@ -7,7 +7,7 @@ import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
 import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
 import { ProfileLanguagePicker } from '@/components/profile/profile-language-picker';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -157,14 +157,14 @@ const styles = StyleSheet.create({
     color: 'rgba(31,58,61,0.64)',
   },
   futureBox: {
-    backgroundColor: PetHubColors.feather,
+    backgroundColor: BuddyBirdColors.feather,
     borderRadius: Radii.sectionCard,
     gap: Spacing.micro,
     padding: Spacing.cardPaddingSm,
   },
   futureTitle: {
     ...Typography.body,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
 });

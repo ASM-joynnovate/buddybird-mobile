@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 
 interface ScreenHeaderProps {
   kicker: string;
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   body: {
     ...Typography.body,

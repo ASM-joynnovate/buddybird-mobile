@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 import { formatDurationSecs } from '@/features/shared/duration-format';
 
 interface CycleSummaryProps {
@@ -46,18 +46,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
   },
-  cellDark: { backgroundColor: PetHubColors.primary },
-  cellTeal: { backgroundColor: PetHubColors.secondary },
-  cellCoral: { backgroundColor: PetHubColors.accentCoral },
+  cellDark: { backgroundColor: BuddyBirdColors.primary },
+  cellTeal: { backgroundColor: BuddyBirdColors.secondary },
+  cellCoral: { backgroundColor: BuddyBirdColors.accentCoral },
   cellCream: { backgroundColor: '#FAF6F0' },
   value: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
   valueDark: { color: '#FAF6F0' },
   valueTeal: { color: '#FAF6F0' },
   valueCoral: { color: '#FAF6F0' },
-  valueCream: { color: PetHubColors.primary },
+  valueCream: { color: BuddyBirdColors.primary },
   label: { fontSize: 9, fontWeight: '500', letterSpacing: 0.5, marginTop: 2, opacity: 0.65 },
   labelDark: { color: '#FAF6F0' },
   labelTeal: { color: '#FAF6F0' },
   labelCoral: { color: '#FAF6F0' },
-  labelCream: { color: PetHubColors.primary },
+  labelCream: { color: BuddyBirdColors.primary },
 });

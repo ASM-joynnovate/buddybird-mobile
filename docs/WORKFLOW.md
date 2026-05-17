@@ -1,6 +1,6 @@
 # Workflow
 
-`pethub-mobile`에서 코드 변경을 시작하기 전·중·후에 거쳐야 하는 체크리스트입니다.
+`buddybird-mobile`에서 코드 변경을 시작하기 전·중·후에 거쳐야 하는 체크리스트입니다.
 
 ## 1. 코딩 전 (Pre-coding)
 
@@ -43,7 +43,7 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 ### 3.3 신규 추가물 등록 확인
 
 - 신규 shared utility → `docs/SHARED-MODULES.md`에 행 추가됨
-- 신규 정책 (의무화·금지·기본값 변경 등) → `/pethub-policy-update` 호출 또는 발화 트리거로 `docs/POLICY-HISTORY.md` 갱신됨
+- 신규 정책 (의무화·금지·기본값 변경 등) → `/buddybird-policy-update` 호출 또는 발화 트리거로 `docs/POLICY-HISTORY.md` 갱신됨
 - 신규 docs 카테고리 → `CLAUDE.md` Project Rules 포인터에 추가됨
 
 ### 3.4 수동 user flow

@@ -1,6 +1,6 @@
-# 앵Talk트레이너 Mobile
+# 버디버드 Mobile
 
-Expo Router 기반의 PetHub 앵무새 음성 학습 코치 앱입니다. Phase 1은 최초 실행 온보딩, 단일 반려조 프로필 저장, 프로필 기반 홈 진입까지 구현합니다.
+Expo Router 기반의 BuddyBird 앵무새 음성 학습 코치 앱입니다. Phase 1은 최초 실행 온보딩, 단일 반려조 프로필 저장, 프로필 기반 홈 진입까지 구현합니다.
 
 ## 실행
 

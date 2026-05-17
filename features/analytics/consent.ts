@@ -6,7 +6,7 @@ import {
   type PermissionStatus,
 } from 'expo-tracking-transparency';
 
-export const CONSENT_STORAGE_KEY = '@pethub/analytics-consent';
+export const CONSENT_STORAGE_KEY = '@buddybird/analytics-consent';
 
 export type ConsentState = 'unknown' | 'granted' | 'denied' | 'not_applicable';
 

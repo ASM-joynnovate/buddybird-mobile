@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { InlineError } from '@/components/ui/inline-error';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import type { AppLocale } from '@/features/i18n/i18n-resources';
 
 interface ProfileLanguagePickerProps {
@@ -46,14 +46,14 @@ export function ProfileLanguagePicker({
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: PetHubColors.feather,
+    backgroundColor: BuddyBirdColors.feather,
     borderRadius: Radii.sectionCard,
     gap: Spacing.micro,
     padding: Spacing.cardPaddingSm,
   },
   title: {
     ...Typography.body,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
   bodySmall: {

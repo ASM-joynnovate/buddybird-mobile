@@ -7,7 +7,7 @@ import { FrequencyTuningFormCard, type PitchToneChoice } from '@/components/word
 import { RecordingFormCard } from '@/components/words/forms/recording-form-card';
 import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
@@ -159,7 +159,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
   },
   header: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 20,
   },
   closeBtn: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   closeBtnText: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 13,
     fontWeight: '600',
   },

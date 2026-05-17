@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
   },
   parrotCircle: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.feather,
-    borderColor: PetHubColors.featherDeep,
+    backgroundColor: BuddyBirdColors.feather,
+    borderColor: BuddyBirdColors.featherDeep,
     borderRadius: Radii.full,
     borderWidth: 1,
     height: 164,
     justifyContent: 'center',
-    shadowColor: PetHubColors.tertiary,
+    shadowColor: BuddyBirdColors.tertiary,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.18,
     shadowRadius: 30,
@@ -72,19 +72,19 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionHeadGap,
   },
   kicker: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 4,
   },
   title: {
     ...Typography.onboardingTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     textAlign: 'center',
   },
   body: {
     ...Typography.body,
-    color: PetHubColors.bodyMuted,
+    color: BuddyBirdColors.bodyMuted,
     maxWidth: 310,
     textAlign: 'center',
   },

@@ -2,7 +2,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { PetHubColors } from '@/constants/theme';
+import { BuddyBirdColors } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 
 const TABS = [
@@ -44,7 +44,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
                 <IconSymbol
                   name={tab.icon}
                   size={18}
-                  color={active ? PetHubColors.secondary : 'rgba(31,58,61,0.5)'}
+                  color={active ? BuddyBirdColors.secondary : 'rgba(31,58,61,0.5)'}
                 />
               </View>
               <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 6,
     paddingVertical: 8,
-    shadowColor: PetHubColors.primary,
+    shadowColor: BuddyBirdColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.10,
     shadowRadius: 24,
@@ -106,6 +106,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   labelActive: {
-    color: PetHubColors.secondary,
+    color: BuddyBirdColors.secondary,
   },
 });

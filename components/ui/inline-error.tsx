@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
 
-import { PetHubColors, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Typography } from '@/constants/theme';
 
 interface InlineErrorProps {
   message?: string | null;
@@ -14,7 +14,7 @@ export function InlineError({ message }: InlineErrorProps) {
 const styles = StyleSheet.create({
   error: {
     ...Typography.bodySmall,
-    color: PetHubColors.accentCoral,
+    color: BuddyBirdColors.accentCoral,
     fontWeight: '700',
   },
 });

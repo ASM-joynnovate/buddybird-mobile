@@ -6,7 +6,7 @@ import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 import { isPresetSpeciesId, type SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 
@@ -50,7 +50,7 @@ export function ProfileEditForm({
         <TextInput
           onChangeText={(name) => onPatch({ name })}
           placeholder={t('profile.namePlaceholder')}
-          placeholderTextColor={PetHubColors.placeholderMuted}
+          placeholderTextColor={BuddyBirdColors.placeholderMuted}
           style={styles.input}
           value={form.name}
         />
@@ -76,7 +76,7 @@ export function ProfileEditForm({
           <TextInput
             onChangeText={(species) => onPatch({ species })}
             placeholder={t('profile.speciesPlaceholder')}
-            placeholderTextColor={PetHubColors.placeholderMuted}
+            placeholderTextColor={BuddyBirdColors.placeholderMuted}
             style={styles.input}
             value={form.species}
           />
@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionY,
   },
   input: {
-    backgroundColor: PetHubColors.surface,
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: 'rgba(31,58,61,0.12)',
     borderRadius: Radii.field,
     borderWidth: 1,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 15,
     minHeight: 48,
     paddingHorizontal: Spacing.fieldPaddingX,

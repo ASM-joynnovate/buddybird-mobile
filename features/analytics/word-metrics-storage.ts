@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const WORD_METRICS_STORAGE_KEY = '@pethub/analytics-word-metrics';
+export const WORD_METRICS_STORAGE_KEY = '@buddybird/analytics-word-metrics';
 
 export interface WordLifetimeMetrics {
   word_id: string;

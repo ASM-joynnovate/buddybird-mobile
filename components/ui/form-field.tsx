@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 
 interface FormFieldProps {
   label: string;
@@ -24,11 +24,11 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.bodySmall,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
   error: {
     ...Typography.caption,
-    color: PetHubColors.accentCoral,
+    color: BuddyBirdColors.accentCoral,
   },
 });

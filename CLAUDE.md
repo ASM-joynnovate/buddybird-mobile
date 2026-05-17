@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PetHub Mobile ("앵Talk트레이너") is an Expo Router-based React Native app for coaching parrots to learn speech. The app is Korean-primary. Phase 1 covers onboarding only; audio recording, pitch transform, active training sessions, and multi-profile support are not yet implemented.
+버디버드 Mobile ("버디버드") is an Expo Router-based React Native app for coaching parrots to learn speech. The app is Korean-primary. Phase 1 covers onboarding only; audio recording, pitch transform, active training sessions, and multi-profile support are not yet implemented.
 
 
 ## Reference
@@ -25,14 +25,14 @@ PetHub Mobile ("앵Talk트레이너") is an Expo Router-based React Native app f
 
 ## 정책 변경 시 (자동화)
 
-새 정책이 합의·변경되면 `.claude/skills/pethub-policy-update` skill이 자동 수행:
+새 정책이 합의·변경되면 `.claude/skills/buddybird-policy-update` skill이 자동 수행:
 
 - 발화 트리거: "정책 변경", "이제부터", "의무화", "from now on", "deprecated" 등
-- 명시 호출: `/pethub-policy-update <한 줄 정책 설명>`
+- 명시 호출: `/buddybird-policy-update <한 줄 정책 설명>`
 
 skill이 (1) 해당 카테고리 docs 갱신, (2) `docs/POLICY-HISTORY.md`에 행 추가, (3) `CLAUDE.md` 포인터 점검, (4) 검증 grep 실행을 자동으로 처리합니다.
 
-위치: `pethub-mobile/.claude/skills/pethub-policy-update/`
+위치: `buddybird-mobile/.claude/skills/buddybird-policy-update/`
 
 ## Hard Rules (절대 위반 금지)
 

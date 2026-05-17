@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 const BAR_COUNT = 30;
@@ -147,12 +147,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bar: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
     borderRadius: 2,
     width: 5,
   },
   recordingBar: {
-    backgroundColor: PetHubColors.accentCoral,
+    backgroundColor: BuddyBirdColors.accentCoral,
   },
   mutedBar: {
     backgroundColor: 'rgba(31,58,61,0.28)',
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     ...Typography.bodySmall,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontWeight: '700',
   },
   helperText: {

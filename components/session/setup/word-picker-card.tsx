@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { SelectableRowCard } from '@/components/ui/selectable-row-card';
-import { PetHubColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 
 interface WordPickerCardProps {
@@ -24,7 +24,7 @@ export function WordPickerCard({
   onSelect,
 }: WordPickerCardProps) {
   const isPreset = sourceType === 'preset';
-  const col = catColors[tag] ?? PetHubColors.secondary;
+  const col = catColors[tag] ?? BuddyBirdColors.secondary;
 
   return (
     <SelectableRowCard active={active} onPress={onSelect}>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   phrase: {
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     color: 'rgba(31,58,61,0.45)',
   },
   sourcePillTextRecording: {
-    color: PetHubColors.secondary,
+    color: BuddyBirdColors.secondary,
   },
   catPill: {
     borderRadius: Radii.full,

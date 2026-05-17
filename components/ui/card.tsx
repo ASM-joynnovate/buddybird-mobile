@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export function Card({ children, raised = false, style }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: PetHubColors.surface,
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: 'rgba(31,58,61,0.06)',
     borderRadius: Radii.card,
     borderWidth: 1,
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   },
   raised: {
     elevation: 3,
-    shadowColor: PetHubColors.primary,
+    shadowColor: BuddyBirdColors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 18,

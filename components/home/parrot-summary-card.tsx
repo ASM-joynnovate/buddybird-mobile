@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PetHubColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 import { formatAge, speciesLabel } from '@/features/profile/profile-display';
 import type { ParrotProfile } from '@/features/profile/profile-types';
 
@@ -29,7 +29,7 @@ export function ParrotSummaryCard({ profile }: ParrotSummaryCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: PetHubColors.secondary,
+    backgroundColor: BuddyBirdColors.secondary,
     borderRadius: Radii.heroCard,
     overflow: 'hidden',
     padding: 18,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   avatarCircle: {
     alignItems: 'center',
-    backgroundColor: PetHubColors.feather,
+    backgroundColor: BuddyBirdColors.feather,
     borderColor: 'rgba(255,255,255,0.4)',
     borderRadius: Radii.full,
     borderWidth: 3,

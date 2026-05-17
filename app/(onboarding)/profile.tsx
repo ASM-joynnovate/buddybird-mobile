@@ -7,7 +7,7 @@ import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker'
 import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { PillButton } from '@/components/ui/pill-button';
-import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -87,7 +87,7 @@ export default function OnboardingProfileScreen() {
               setErrors((currentErrors) => ({ ...currentErrors, name: undefined }));
             }}
             placeholder={t('onboarding.profile.namePlaceholder')}
-            placeholderTextColor={PetHubColors.placeholderMuted}
+            placeholderTextColor={BuddyBirdColors.placeholderMuted}
             style={styles.input}
             value={name}
           />
@@ -116,7 +116,7 @@ export default function OnboardingProfileScreen() {
                 setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
               }}
               placeholder={t('onboarding.profile.speciesPlaceholder')}
-              placeholderTextColor={PetHubColors.placeholderMuted}
+              placeholderTextColor={BuddyBirdColors.placeholderMuted}
               style={styles.input}
               value={species}
             />
@@ -158,28 +158,28 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionHeadGap,
   },
   kicker: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 4,
   },
   title: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   body: {
     ...Typography.body,
-    color: PetHubColors.bodyMuted,
+    color: BuddyBirdColors.bodyMuted,
   },
   form: {
     gap: Spacing.sectionY,
   },
   input: {
-    backgroundColor: PetHubColors.surface,
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: 'rgba(31,58,61,0.12)',
     borderRadius: Radii.field,
     borderWidth: 1,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 15,
     minHeight: 48,
     paddingHorizontal: Spacing.fieldPaddingX,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     gap: Spacing.chipGap,
   },
   agePanel: {
-    backgroundColor: PetHubColors.surface,
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: 'rgba(31,58,61,0.08)',
     borderRadius: Radii.sectionCard,
     borderWidth: 1,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   ageLabel: {
     ...Typography.cardTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
   },
   ageButtons: {
     flexDirection: 'row',

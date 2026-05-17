@@ -6,7 +6,7 @@ import { ContinueSessionCard } from '@/components/home/continue-session-card';
 import { HomeGreeting } from '@/components/home/home-greeting';
 import { HomeStatsGrid } from '@/components/home/home-stats-grid';
 import { ParrotSummaryCard } from '@/components/home/parrot-summary-card';
-import { PetHubColors, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { formatMinutes } from '@/features/profile/profile-display';
 import { useProfile } from '@/features/profile/profile-context';
@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   scroll: {
-    backgroundColor: PetHubColors.neutral,
+    backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
   },
   content: {
@@ -78,18 +78,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionKicker: {
-    color: PetHubColors.kickerMuted,
+    color: BuddyBirdColors.kickerMuted,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.6,
   },
   sectionTitle: {
     ...Typography.screenTitle,
-    color: PetHubColors.primary,
+    color: BuddyBirdColors.primary,
     fontSize: 22,
   },
   sectionAction: {
-    color: PetHubColors.secondaryDeep,
+    color: BuddyBirdColors.secondaryDeep,
     fontSize: 13,
     fontWeight: '700',
   },
