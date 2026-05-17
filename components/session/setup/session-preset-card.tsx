@@ -1,96 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SelectableRowCard } from '@/components/ui/selectable-row-card';
+import { WheelPicker } from '@/components/ui/wheel-picker';
 import { PetHubColors, Radii, Spacing } from '@/constants/theme';
+import { formatDurationMins } from '@/features/shared/duration-format';
 import type { SessionPresetKey } from '@/features/training/session-config';
 import { SESSION_PRESETS } from '@/features/training/session-config';
 
 import { SliderField } from './slider-field';
 
-function fmtMins(mins: number): string {
-  if (mins < 60) return `${mins}분`;
-  const h = mins / 60;
-  return Number.isInteger(h) ? `${h}시간` : `${Math.floor(h)}시간 ${mins % 60}분`;
-}
-
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
-const ITEM_H = 44;
-
-function WheelPicker({
-  options,
-  selected,
-  onChange,
-}: {
-  options: number[];
-  selected: number;
-  onChange: (v: number) => void;
-}) {
-  const ref = useRef<ScrollView>(null);
-  const scrollingRef = useRef(false);
-  const [centeredIdx, setCenteredIdx] = useState(() => {
-    const idx = options.indexOf(selected);
-    return idx >= 0 ? idx : 0;
-  });
-
-  useEffect(() => {
-    if (scrollingRef.current) return;
-    const idx = options.indexOf(selected);
-    if (idx >= 0) {
-      ref.current?.scrollTo({ y: idx * ITEM_H, animated: true });
-      setCenteredIdx(idx);
-    }
-  }, [selected, options]);
-
-  function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-    setCenteredIdx(Math.max(0, Math.min(idx, options.length - 1)));
-  }
-
-  function onScrollBeginDrag() {
-    scrollingRef.current = true;
-  }
-
-  function onMomentumEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    scrollingRef.current = false;
-    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-    const clamped = Math.max(0, Math.min(idx, options.length - 1));
-    setCenteredIdx(clamped);
-    onChange(options[clamped]);
-  }
-
-  return (
-    <ScrollView
-      ref={ref}
-      style={styles.wheel}
-      contentContainerStyle={styles.wheelContent}
-      snapToInterval={ITEM_H}
-      decelerationRate="fast"
-      showsVerticalScrollIndicator={false}
-      scrollEventThrottle={50}
-      onScrollBeginDrag={onScrollBeginDrag}
-      onScroll={onScroll}
-      onMomentumScrollEnd={onMomentumEnd}
-    >
-      {options.map((opt, i) => (
-        <View key={opt} style={styles.wheelItemWrapper}>
-          <Text style={[styles.wheelItem, i !== centeredIdx && styles.wheelItemFaded]}>
-            {opt}
-          </Text>
-        </View>
-      ))}
-    </ScrollView>
-  );
-}
 
 interface SessionPresetCardProps {
   presetKey: SessionPresetKey;
@@ -142,7 +64,7 @@ export function SessionPresetCard({
                 </Text>
               </View>
               <Text style={[styles.optionTime, selected && styles.optionTimeSelected]}>
-                {fmtMins(totalMins)}
+                {formatDurationMins(totalMins)}
               </Text>
             </SelectableRowCard>
           );
@@ -183,7 +105,7 @@ export function SessionPresetCard({
 
           <SliderField
             label="학습 시간"
-            value={`${learnSecs / 60}분`}
+            value={formatDurationMins(learnSecs / 60)}
             min={1}
             max={60}
             step={1}
@@ -193,7 +115,7 @@ export function SessionPresetCard({
           />
           <SliderField
             label="휴식 시간"
-            value={`${restSecs / 60}분`}
+            value={formatDurationMins(restSecs / 60)}
             min={1}
             max={60}
             step={1}
@@ -261,27 +183,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-  },
-  wheel: {
-    height: ITEM_H * 3,
-    width: 64,
-  },
-  wheelContent: {
-    paddingVertical: ITEM_H,
-  },
-  wheelItemWrapper: {
-    alignItems: 'center',
-    height: ITEM_H,
-    justifyContent: 'center',
-  },
-  wheelItem: {
-    color: PetHubColors.primary,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  wheelItemFaded: {
-    color: 'rgba(31,58,61,0.2)',
-    fontWeight: '400',
   },
   pickerUnit: {
     color: PetHubColors.primary,

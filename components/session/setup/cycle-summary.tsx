@@ -1,16 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PetHubColors } from '@/constants/theme';
+import { formatDurationSecs } from '@/features/shared/duration-format';
 
 interface CycleSummaryProps {
   sessionMins: number;
   learnSecs: number;
   restSecs: number;
   totalCycles: number;
-}
-
-function formatDuration(secs: number): string {
-  return secs >= 60 ? `${Math.round(secs / 60)}분` : `${secs}초`;
 }
 
 export function CycleSummary({ sessionMins, learnSecs, restSecs, totalCycles }: CycleSummaryProps) {
@@ -21,11 +18,11 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs, totalCycles }: 
         <Text style={[styles.label, styles.labelDark]}>총 세션 시간</Text>
       </View>
       <View style={[styles.cell, styles.cellTeal]}>
-        <Text style={[styles.value, styles.valueTeal]}>{formatDuration(learnSecs)}</Text>
+        <Text style={[styles.value, styles.valueTeal]}>{formatDurationSecs(learnSecs)}</Text>
         <Text style={[styles.label, styles.labelTeal]}>학습</Text>
       </View>
       <View style={[styles.cell, styles.cellCoral]}>
-        <Text style={[styles.value, styles.valueCoral]}>{formatDuration(restSecs)}</Text>
+        <Text style={[styles.value, styles.valueCoral]}>{formatDurationSecs(restSecs)}</Text>
         <Text style={[styles.label, styles.labelCoral]}>휴식</Text>
       </View>
       <View style={[styles.cell, styles.cellCream]}>
