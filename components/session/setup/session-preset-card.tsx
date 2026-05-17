@@ -134,17 +134,19 @@ export function SessionPresetCard({
               onPress={() => onSelectPreset(preset.key)}
               activeOpacity={0.75}
             >
-              <View style={styles.optionRow}>
-                <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                  {preset.shortLabel}
-                </Text>
+              <View style={styles.optionInner}>
+                <View style={styles.optionLeft}>
+                  <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+                    {preset.shortLabel}
+                  </Text>
+                  <Text style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
+                    {preset.description}
+                  </Text>
+                </View>
                 <Text style={[styles.optionTime, selected && styles.optionTimeSelected]}>
                   {fmtMins(totalMins)}
                 </Text>
               </View>
-              <Text style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
-                {preset.description}
-              </Text>
             </TouchableOpacity>
           );
         })}
@@ -153,14 +155,16 @@ export function SessionPresetCard({
           onPress={() => onSelectPreset('custom')}
           activeOpacity={0.75}
         >
-          <View style={styles.optionRow}>
-            <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
-              직접 설정
-            </Text>
+          <View style={styles.optionInner}>
+            <View style={styles.optionLeft}>
+              <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
+                직접 설정
+              </Text>
+              <Text style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
+                원하는 시간을 직접 설정
+              </Text>
+            </View>
           </View>
-          <Text style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
-            원하는 시간을 직접 설정해요.
-          </Text>
         </TouchableOpacity>
       </View>
 
@@ -224,7 +228,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.12)',
     borderRadius: Radii.field,
     borderWidth: 1.5,
-    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     width: '100%',
@@ -233,10 +236,14 @@ const styles = StyleSheet.create({
     backgroundColor: PetHubColors.primary,
     borderColor: PetHubColors.primary,
   },
-  optionRow: {
+  optionInner: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
+  },
+  optionLeft: {
+    flex: 1,
+    gap: 4,
   },
   optionLabel: {
     color: PetHubColors.primary,
@@ -249,8 +256,8 @@ const styles = StyleSheet.create({
   },
   optionTime: {
     color: 'rgba(31,58,61,0.55)',
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   optionTimeSelected: {
     color: 'rgba(250,246,240,0.75)',
