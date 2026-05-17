@@ -30,7 +30,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 14, paddingBottom: Spacing.screenBottomTabs }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 14, paddingBottom: Spacing.screenBottomTabs + insets.bottom }]}
       showsVerticalScrollIndicator={false}
     >
       <HomeGreeting profileName={profile.name} />

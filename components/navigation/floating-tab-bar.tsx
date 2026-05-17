@@ -1,5 +1,6 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors } from '@/constants/theme';
@@ -14,6 +15,7 @@ const TABS = [
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const { track } = useAnalytics();
+  const insets = useSafeAreaInsets();
   const activeRouteName = state.routes[state.index]?.name;
 
   function handleTabPress(targetName: string) {
@@ -27,7 +29,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <View style={styles.wrapper} pointerEvents="box-none">
+    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom + 8, 30) }]} pointerEvents="box-none">
       <View style={styles.pill}>
         {TABS.map((tab) => {
           const active = activeRouteName === tab.name;
@@ -60,7 +62,6 @@ const styles = StyleSheet.create({
   wrapper: {
     bottom: 0,
     left: 0,
-    paddingBottom: 30,
     paddingHorizontal: 12,
     paddingTop: 8,
     position: 'absolute',
