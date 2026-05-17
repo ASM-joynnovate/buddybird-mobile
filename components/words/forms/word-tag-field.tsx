@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { Radii, Spacing } from '@/constants/theme';
+import { PetHubColors, Radii, Spacing } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 import type { WordTag } from '@/features/word-library/word-library-types';
 
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.15)',
   },
   chipText: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 13,
     fontWeight: '500',
   },

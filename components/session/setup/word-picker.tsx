@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { SectionKicker } from '@/components/ui/section-kicker';
+import { PetHubColors } from '@/constants/theme';
 
 import { WordPickerCard } from './word-picker-card';
 
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   emptyText: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 13,
     textAlign: 'center',
   },

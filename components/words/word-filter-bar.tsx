@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(31,58,61,0.15)',
   },
   chipText: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
     fontSize: 13,
     fontWeight: '500',
   },

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PetHubColors, Radii, Typography } from '@/constants/theme';
+import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 interface ProfileAvatarPickerProps {
@@ -27,7 +28,8 @@ export function ProfileAvatarPicker({ photoUri, onPhotoSelected }: ProfileAvatar
         onPhotoSelected(result.assets[0].uri);
         setErrorMessage(null);
       }
-    } catch {
+    } catch (error: unknown) {
+      reportError(error, { scope: 'profile.avatarPick' });
       setErrorMessage(t('profile.avatarError'));
     }
   }

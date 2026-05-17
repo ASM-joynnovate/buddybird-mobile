@@ -1,10 +1,12 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { ActivityIndicator, AppState, type AppStateStatus, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { PetHubColors } from '@/constants/theme';
+import { AnalyticsProvider, useAnalytics } from '@/features/analytics/analytics-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider, useProfile } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
@@ -19,19 +21,58 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <I18nProvider>
-      <ProfileProvider>
-        <TrainingDataProvider>
-          <WordLibraryProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <RootNavigator />
-              <StatusBar style="dark" />
-            </ThemeProvider>
-          </WordLibraryProvider>
-        </TrainingDataProvider>
-      </ProfileProvider>
-    </I18nProvider>
+    <AnalyticsProvider>
+      <I18nProvider>
+        <ProfileProvider>
+          <TrainingDataProvider>
+            <WordLibraryProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <AppOpenTracker />
+                <RootNavigator />
+                <StatusBar style="dark" />
+              </ThemeProvider>
+            </WordLibraryProvider>
+          </TrainingDataProvider>
+        </ProfileProvider>
+      </I18nProvider>
+    </AnalyticsProvider>
   );
+}
+
+function AppOpenTracker() {
+  const { isReady, track } = useAnalytics();
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const foregroundedAtRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    track({ name: 'app_open', params: { cold_start: true } });
+    foregroundedAtRef.current = Date.now();
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const prevState = appStateRef.current;
+      appStateRef.current = nextState;
+
+      if (prevState.match(/inactive|background/) && nextState === 'active') {
+        foregroundedAtRef.current = Date.now();
+        track({ name: 'app_foreground', params: {} });
+        return;
+      }
+
+      if (prevState === 'active' && nextState.match(/inactive|background/)) {
+        const sessionDurationMs = Date.now() - foregroundedAtRef.current;
+        track({
+          name: 'app_background',
+          params: { session_duration_ms: sessionDurationMs },
+        });
+      }
+    });
+
+    return () => subscription.remove();
+  }, [isReady, track]);
+
+  return null;
 }
 
 function RootNavigator() {

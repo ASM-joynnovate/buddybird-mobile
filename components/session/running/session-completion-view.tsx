@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { PetHubColors } from '@/constants/theme';
+
 interface SessionCompletionViewProps {
   word: string;
   totalLearningSecondsLabel: string;
@@ -41,7 +43,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   stat: {
-    color: 'rgba(255,255,255,0.55)',
+    color: PetHubColors.kickerMutedOnDark,
     fontSize: 14,
     fontWeight: '500',
   },

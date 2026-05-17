@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PetHubColors, Radii } from '@/constants/theme';
 import { catColors } from '@/features/training/session-words-mock';
 
@@ -9,6 +10,7 @@ interface WordListItemProps {
   sourceLabel: string;
   isPreset: boolean;
   canPreview: boolean;
+  isPlaying: boolean;
   onEdit: () => void;
   onPlay: () => void;
 }
@@ -19,6 +21,7 @@ export function WordListItem({
   sourceLabel,
   isPreset,
   canPreview,
+  isPlaying,
   onEdit,
   onPlay,
 }: WordListItemProps) {
@@ -41,8 +44,13 @@ export function WordListItem({
           </View>
         </View>
       </View>
-      <TouchableOpacity style={styles.editBtn} activeOpacity={0.7} onPress={onEdit}>
-        <Text style={styles.editBtnIcon}>✎</Text>
+      <TouchableOpacity
+        style={[styles.editBtn, isPreset && { opacity: 0.3 }]}
+        activeOpacity={0.7}
+        disabled={isPreset}
+        onPress={onEdit}
+      >
+        <IconSymbol name={'pencil'} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
@@ -50,7 +58,7 @@ export function WordListItem({
         disabled={!canPreview}
         onPress={onPlay}
       >
-        <Text style={styles.playBtnIcon}>▶</Text>
+        <IconSymbol name={isPlaying ? 'stop.fill' : 'play.fill'} size={16} color={PetHubColors.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -59,8 +67,8 @@ export function WordListItem({
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surface,
+    borderColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.sectionCard,
     borderWidth: 0.5,
     flexDirection: 'row',
@@ -112,7 +120,7 @@ const styles = StyleSheet.create({
   },
   sourcePillPreset: {
     backgroundColor: 'transparent',
-    borderColor: 'rgba(31,58,61,0.20)',
+    borderColor: PetHubColors.borderMuted,
     borderWidth: 1,
   },
   sourcePillRecording: {
@@ -125,36 +133,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   sourcePillTextPreset: {
-    color: 'rgba(31,58,61,0.55)',
+    color: PetHubColors.kickerMuted,
   },
   sourcePillTextRecording: {
     color: PetHubColors.tertiaryDeep,
   },
   editBtn: {
     alignItems: 'center',
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.full,
     flexShrink: 0,
     height: 38,
     justifyContent: 'center',
     width: 38,
-  },
-  editBtnIcon: {
-    color: PetHubColors.primary,
-    fontSize: 14,
   },
   playBtn: {
     alignItems: 'center',
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: PetHubColors.surfaceMuted,
     borderRadius: Radii.full,
     flexShrink: 0,
     height: 38,
     justifyContent: 'center',
     width: 38,
-  },
-  playBtnIcon: {
-    color: PetHubColors.primary,
-    fontSize: 12,
-    marginLeft: 2,
   },
 });

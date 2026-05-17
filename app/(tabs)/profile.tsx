@@ -8,6 +8,8 @@ import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
 import { ProfileLanguagePicker } from '@/components/profile/profile-language-picker';
 import { PillButton } from '@/components/ui/pill-button';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { reportError } from '@/features/analytics/error-reporter';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { type AppLocale } from '@/features/i18n/i18n-resources';
 import { useProfile } from '@/features/profile/profile-context';
@@ -20,6 +22,7 @@ export default function ProfileScreen() {
   const { locale, setLocale, supportedLocales, t } = useI18n();
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
   const { profile, updateProfile } = useProfile();
+  useScreenTracking('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
@@ -46,8 +49,7 @@ export default function ProfileScreen() {
       ...currentErrors,
       ageMonths: nextForm.ageMonths === undefined ? currentErrors.ageMonths : undefined,
       name: nextForm.name === undefined ? currentErrors.name : undefined,
-      species:
-        nextForm.species === undefined && nextForm.customSpecies === undefined ? currentErrors.species : undefined,
+      species: nextForm.species === undefined ? currentErrors.species : undefined,
       trainingGoalIds:
         nextForm.trainingGoalIds === undefined ? currentErrors.trainingGoalIds : undefined,
     }));
@@ -61,7 +63,9 @@ export default function ProfileScreen() {
       return;
     }
 
-    if (!currentForm.species) {
+    const speciesTrimmed = currentForm.species.trim();
+
+    if (!speciesTrimmed) {
       setErrors({ species: t('validation.speciesRequired') });
       return;
     }
@@ -70,14 +74,14 @@ export default function ProfileScreen() {
       await updateProfile({
         ...currentProfile,
         ...currentForm,
-        customSpecies: currentForm.species === 'custom' ? currentForm.customSpecies?.trim() : undefined,
-        species: currentForm.species,
+        species: speciesTrimmed,
         trainingGoalIds: [...currentForm.trainingGoalIds],
       });
       setErrors({});
       setSaveErrorMessage(null);
       setIsEditing(false);
-    } catch {
+    } catch (error: unknown) {
+      reportError(error, { scope: 'profile.saveEdit', screen_name: 'profile' });
       setSaveErrorMessage(t('profile.saveError'));
     }
   }
@@ -86,7 +90,8 @@ export default function ProfileScreen() {
     try {
       await setLocale(nextLocale);
       setLanguageErrorMessage(null);
-    } catch {
+    } catch (error: unknown) {
+      reportError(error, { scope: 'profile.changeLocale', screen_name: 'profile' });
       setLanguageErrorMessage(t('profile.languageSaveError'));
     }
   }

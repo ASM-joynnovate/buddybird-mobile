@@ -9,6 +9,8 @@ import {
   type PropsWithChildren,
 } from 'react';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
 import type { CreateWordEntryInput, WordEntry, WordLibraryStore } from './word-library-types';
@@ -57,7 +59,8 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
         } else {
           setLibraryState(loaded);
         }
-      } catch {
+      } catch (error: unknown) {
+        reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
@@ -75,7 +78,10 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
   const enqueueWrite = useCallback((operation: () => Promise<void>): Promise<void> => {
     const nextWrite = writeQueueRef.current.then(operation, operation);
-    writeQueueRef.current = nextWrite.catch(() => undefined);
+    // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
+    writeQueueRef.current = nextWrite.catch((error: unknown) => {
+      reportError(error, { scope: 'word-library.writeQueue' });
+    });
     return nextWrite;
   }, []);
 

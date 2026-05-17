@@ -1,5 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { diffDaysIso } from '@/features/shared/date-utils';
+
 import type { ParrotProfile } from './profile-types';
 import { loadStoredProfile, saveStoredProfile } from './profile-storage';
 
@@ -14,9 +17,40 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: PropsWithChildren) {
+  const { isReady: analyticsReady, installationId, setUserId, setUserProperty } = useAnalytics();
+
   const [profile, setProfile] = useState<ParrotProfile | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!analyticsReady) return;
+
+    async function syncIdentity(): Promise<void> {
+      if (profile) {
+        await setUserId(profile.id);
+        await Promise.all([
+          setUserProperty('parrot_name', profile.name),
+          setUserProperty('parrot_species', profile.species),
+          setUserProperty('parrot_age_months', profile.ageMonths),
+          setUserProperty('goals_count', profile.trainingGoalIds.length),
+          setUserProperty('profile_age_days', diffDaysIso(profile.createdAt)),
+        ]);
+        return;
+      }
+
+      await setUserId(installationId);
+      await Promise.all([
+        setUserProperty('parrot_name', null),
+        setUserProperty('parrot_species', null),
+        setUserProperty('parrot_age_months', null),
+        setUserProperty('goals_count', null),
+        setUserProperty('profile_age_days', null),
+      ]);
+    }
+
+    void syncIdentity();
+  }, [analyticsReady, installationId, profile, setUserId, setUserProperty]);
 
   useEffect(() => {
     let isMounted = true;

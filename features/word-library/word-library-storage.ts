@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { reportError } from '@/features/analytics/error-reporter';
+
 import type { WordLibraryStore } from './word-library-types';
 
 export const WORD_LIBRARY_STORAGE_KEY = '@pethub/wordLibrary';
@@ -13,7 +15,8 @@ export async function loadWordLibraryStore(): Promise<WordLibraryStore> {
 
   try {
     return JSON.parse(raw) as WordLibraryStore;
-  } catch {
+  } catch (error: unknown) {
+    reportError(error, { scope: 'word-library.loadStore' });
     return { version: 1, entriesById: {}, updatedAt: new Date().toISOString() };
   }
 }

@@ -9,9 +9,10 @@ export const SPECIES_KO: Record<string, string> = {
   conure: '코뉴어',
 };
 
-export function speciesLabel(species: string, custom?: string): string {
-  if (species === 'custom') return custom ?? '기타';
-  return SPECIES_KO[species] ?? species;
+export function speciesLabel(species: string): string {
+  const trimmed = species.trim();
+  if (!trimmed) return '';
+  return SPECIES_KO[trimmed] ?? trimmed;
 }
 
 export function formatAge(months: number): string {
@@ -46,7 +47,6 @@ export function toDraft(profile: ParrotProfile): ProfileDraft {
     ageMonths: profile.ageMonths,
     name: profile.name,
     photoUri: profile.photoUri,
-    customSpecies: profile.customSpecies,
     species: profile.species,
     trainingGoalIds: [...profile.trainingGoalIds],
   };
