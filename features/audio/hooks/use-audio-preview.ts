@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
+import { recordingFileExists } from '../audio-file-storage';
 import { configurePlaybackAudioMode } from '../audio-mode';
 import type { AudioPreviewState } from '../audio-types';
 
@@ -28,11 +29,12 @@ export function useAudioPreview(
   const playerStatus = useAudioPlayerStatus(player);
   const playTokenRef = useRef(0);
   const loadedUriRef = useRef<string | null>(null);
+  const [fileExists, setFileExists] = useState<boolean>(() => (audioUri ? recordingFileExists(audioUri) : false));
   const [previewState, setPreviewState] = useState<AudioPreviewState>(
-    audioUri ? 'ready' : 'disabled',
+    audioUri && fileExists ? 'ready' : 'disabled',
   );
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const canPreview = Boolean(audioUri);
+  const canPreview = Boolean(audioUri) && fileExists;
 
   useEffect(() => {
     playTokenRef.current += 1;
@@ -43,13 +45,17 @@ export function useAudioPreview(
     });
     loadedUriRef.current = null;
 
-    if (audioUri) {
+    // 시뮬레이터 재빌드/클린 reinstall 후 stale URI 또는 사라진 파일 가드.
+    const exists = audioUri ? recordingFileExists(audioUri) : false;
+    setFileExists(exists);
+
+    if (audioUri && exists) {
       player.replace({ uri: audioUri });
       loadedUriRef.current = audioUri;
     }
 
     setElapsedSeconds(0);
-    setPreviewState(audioUri ? 'ready' : 'disabled');
+    setPreviewState(audioUri && exists ? 'ready' : 'disabled');
   }, [audioUri, player]);
 
   useEffect(() => {
@@ -104,11 +110,11 @@ export function useAudioPreview(
       console.warn('[audio] seekTo failed (continuing):', error);
     });
     setElapsedSeconds(0);
-    setPreviewState(audioUri ? 'ready' : 'disabled');
-  }, [audioUri, player]);
+    setPreviewState(audioUri && fileExists ? 'ready' : 'disabled');
+  }, [audioUri, fileExists, player]);
 
   const playPreview = useCallback(async (): Promise<void> => {
-    if (!audioUri) {
+    if (!audioUri || !fileExists) {
       setPreviewState('disabled');
       return;
     }
@@ -148,7 +154,7 @@ export function useAudioPreview(
       reportError(error, { scope: 'audio.playPreview' });
       setPreviewState('error');
     }
-  }, [audioUri, player, playbackRate]);
+  }, [audioUri, fileExists, player, playbackRate]);
 
   return useMemo(
     () => ({
