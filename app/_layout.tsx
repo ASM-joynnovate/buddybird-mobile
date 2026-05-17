@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { BuddyBirdColors } from '@/constants/theme';
 import { AnalyticsProvider, useAnalytics } from '@/features/analytics/analytics-context';
@@ -23,21 +24,23 @@ export default function RootLayout() {
 
   return (
       <GestureHandlerRootView style={styles.root}>
-        <AnalyticsProvider>
-          <I18nProvider>
-            <ProfileProvider>
-              <TrainingDataProvider>
-                <WordLibraryProvider>
-                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                    <AppOpenTracker />
-                    <RootNavigator />
-                    <StatusBar style="dark" />
-                  </ThemeProvider>
-                </WordLibraryProvider>
-              </TrainingDataProvider>
-            </ProfileProvider>
-          </I18nProvider>
-        </AnalyticsProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <AnalyticsProvider>
+            <I18nProvider>
+              <ProfileProvider>
+                <TrainingDataProvider>
+                  <WordLibraryProvider>
+                    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                      <AppOpenTracker />
+                      <RootNavigator />
+                      <StatusBar style="dark" />
+                    </ThemeProvider>
+                  </WordLibraryProvider>
+                </TrainingDataProvider>
+              </ProfileProvider>
+            </I18nProvider>
+          </AnalyticsProvider>
+        </SafeAreaProvider>
       </GestureHandlerRootView>
   );
 }
