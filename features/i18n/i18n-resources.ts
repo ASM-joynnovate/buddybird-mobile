@@ -136,6 +136,7 @@ interface AppCopy {
     selectAudioError: string;
     selectTemplateError: string;
     storeLoading: string;
+    zeroDurationError: string;
   };
   recording: {
     permissionDenied: string;
@@ -316,6 +317,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       selectAudioError: '저장할 오디오를 먼저 선택해 주세요.',
       selectTemplateError: '세션 템플릿을 선택해 주세요.',
       storeLoading: '학습 데이터를 준비하고 있어요. 잠시만 기다려 주세요.',
+      zeroDurationError: '세션 시간을 1분 이상으로 설정해 주세요.',
     },
     recording: {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
@@ -516,6 +518,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       selectAudioError: 'Choose audio before saving.',
       selectTemplateError: 'Choose a session template.',
       storeLoading: 'Preparing training data. Please wait a moment.',
+      zeroDurationError: 'Set the session duration to at least 1 minute.',
     },
     recording: {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',

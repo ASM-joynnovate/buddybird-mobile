@@ -1,8 +1,25 @@
 import type { TrainingAudioSourceType } from './training-types';
 
-export const STEP_SESSION_MINS = 5;
-export const STEP_LEARN_SECS = 10;
-export const STEP_REST_SECS = 5;
+
+export const SESSION_PRESETS = [
+  {
+    key: 'long', shortLabel: '짧게',
+    description: '샤워하거나 잠시 자리를 비울 때',
+    learnSecs: 600, restSecs: 300, cycles: 2,
+  },
+  {
+    key: 'short', shortLabel: '중간',
+    description: '짧은 외출로 자리를 비울 때',
+    learnSecs: 600, restSecs: 300, cycles: 4,
+  },
+  {
+    key: 'medium', shortLabel: '길게',
+    description: '여행 등으로 인해 길게 자리를 비울 때',
+    learnSecs: 600, restSecs: 300, cycles: 12,
+  },
+] as const;
+
+export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';
 
 export const PRESET_WORDS = [
   { key: 'hello', word: '안녕',    cat: '인사' },

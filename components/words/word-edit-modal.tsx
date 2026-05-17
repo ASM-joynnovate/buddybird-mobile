@@ -11,6 +11,7 @@ import { WordLabelField } from '@/components/words/forms/word-label-field';
 import { WordTagField } from '@/components/words/forms/word-tag-field';
 import { PetHubColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
+import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -51,6 +52,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     startFailedMessage: t('recording.startFailed'),
     maxDurationMs: 60_000,
   });
+
+  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1, recording.elapsedSeconds);
 
   const canSave =
     label.trim().length > 0 &&
@@ -149,6 +152,10 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
                 stopLabel={t('sessionSetup.stopRecording')}
                 rerecordLabel={t('sessionSetup.rerecord')}
                 errorMessage={recording.errorMessage}
+                isPlaying={preview.previewState === 'playing'}
+                playElapsedSeconds={preview.elapsedSeconds}
+                onPlay={preview.playPreview}
+                onStopPlay={preview.stopPreview}
                 onStart={recording.requestAndStartRecording}
                 onStop={recording.stopRecording}
                 onReset={recording.resetRecording}

@@ -2,6 +2,7 @@ import { useAudioPlayer } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { configurePlaybackAudioMode } from '@/features/audio/audio-mode';
 
 import type { SessionMeta, SessionStatus } from '../session-config';
@@ -94,6 +95,13 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   useEffect(() => {
     if (!audioUri) return;
+    // 시뮬레이터 클린 reinstall 등으로 파일이 사라진 경우 무음 진행. 크래시 방지.
+    if (!recordingFileExists(audioUri)) {
+      reportError(new Error('녹음 파일을 찾을 수 없어 세션 오디오를 재생하지 않습니다.'), {
+        scope: 'training.sessionPlayer.missingFile',
+      });
+      return;
+    }
     let isCancelled = false;
     if (status === 'running' && phase === 'learning') {
       sessionPlayer.loop = true;
