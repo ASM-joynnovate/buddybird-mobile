@@ -5,11 +5,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
 import { Card } from '@/components/ui/card';
+import { SelectableRowCard } from '@/components/ui/selectable-row-card';
 import { PetHubColors, Radii, Spacing } from '@/constants/theme';
 import type { SessionPresetKey } from '@/features/training/session-config';
 import { SESSION_PRESETS } from '@/features/training/session-config';
@@ -128,44 +128,38 @@ export function SessionPresetCard({
           const selected = presetKey === preset.key;
           const totalMins = (preset.learnSecs + preset.restSecs) * preset.cycles / 60;
           return (
-            <TouchableOpacity
+            <SelectableRowCard
               key={preset.key}
-              style={[styles.option, selected && styles.optionSelected]}
+              active={selected}
               onPress={() => onSelectPreset(preset.key)}
-              activeOpacity={0.75}
             >
-              <View style={styles.optionInner}>
-                <View style={styles.optionLeft}>
-                  <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                    {preset.shortLabel}
-                  </Text>
-                  <Text style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
-                    {preset.description}
-                  </Text>
-                </View>
-                <Text style={[styles.optionTime, selected && styles.optionTimeSelected]}>
-                  {fmtMins(totalMins)}
+              <View style={styles.optionLeft}>
+                <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+                  {preset.shortLabel}
+                </Text>
+                <Text style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
+                  {preset.description}
                 </Text>
               </View>
-            </TouchableOpacity>
+              <Text style={[styles.optionTime, selected && styles.optionTimeSelected]}>
+                {fmtMins(totalMins)}
+              </Text>
+            </SelectableRowCard>
           );
         })}
-        <TouchableOpacity
-          style={[styles.option, presetKey === 'custom' && styles.optionSelected]}
+        <SelectableRowCard
+          active={presetKey === 'custom'}
           onPress={() => onSelectPreset('custom')}
-          activeOpacity={0.75}
         >
-          <View style={styles.optionInner}>
-            <View style={styles.optionLeft}>
-              <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
-                직접 설정
-              </Text>
-              <Text style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
-                원하는 시간을 직접 설정
-              </Text>
-            </View>
+          <View style={styles.optionLeft}>
+            <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
+              직접 설정
+            </Text>
+            <Text style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
+              원하는 시간을 직접 설정
+            </Text>
           </View>
-        </TouchableOpacity>
+        </SelectableRowCard>
       </View>
 
       {presetKey === 'custom' && (
@@ -223,23 +217,6 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'column',
     gap: 8,
-  },
-  option: {
-    borderColor: 'rgba(31,58,61,0.12)',
-    borderRadius: Radii.field,
-    borderWidth: 1.5,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    width: '100%',
-  },
-  optionSelected: {
-    backgroundColor: PetHubColors.primary,
-    borderColor: PetHubColors.primary,
-  },
-  optionInner: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
   },
   optionLeft: {
     flex: 1,
