@@ -1,3 +1,4 @@
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +33,27 @@ export default function WordsScreen() {
     stopCurrentPlayerRef.current = stopFn;
   }, []);
 
+  const handleEdit = useCallback((entry: WordEntry) => {
+    stopCurrentPlayerRef.current?.();
+    stopCurrentPlayerRef.current = null;
+    setEditEntry(entry);
+  }, []);
+
+  const handleCreate = useCallback(() => {
+    stopCurrentPlayerRef.current?.();
+    stopCurrentPlayerRef.current = null;
+    setShowCreate(true);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        stopCurrentPlayerRef.current?.();
+        stopCurrentPlayerRef.current = null;
+      };
+    }, []),
+  );
+
   const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
 
   const handleFilterChange = useCallback(
@@ -55,7 +77,7 @@ export default function WordsScreen() {
           <Text style={styles.kicker}>WORDS</Text>
           <Text style={styles.title}>단어 관리</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => setShowCreate(true)}>
+        <Pressable style={styles.addBtn} onPress={handleCreate}>
           <Text style={styles.addBtnIcon}>+</Text>
         </Pressable>
       </View>
@@ -67,7 +89,7 @@ export default function WordsScreen() {
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
-          <WordRow key={e.id} entry={e} onEdit={() => setEditEntry(e)} onBecameActive={handleBecameActive} />
+          <WordRow key={e.id} entry={e} onEdit={() => handleEdit(e)} onBecameActive={handleBecameActive} />
         ))}
 
         {visible.length === 0 && (
