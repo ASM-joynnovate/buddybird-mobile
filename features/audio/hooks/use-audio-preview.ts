@@ -29,6 +29,7 @@ export function useAudioPreview(
   const playerStatus = useAudioPlayerStatus(player);
   const playTokenRef = useRef(0);
   const loadedUriRef = useRef<string | null>(null);
+  const isDestroyedRef = useRef(false);
   const [fileExists, setFileExists] = useState<boolean>(() => (audioUri ? recordingFileExists(audioUri) : false));
   const [previewState, setPreviewState] = useState<AudioPreviewState>(
     audioUri && fileExists ? 'ready' : 'disabled',
@@ -81,6 +82,12 @@ export function useAudioPreview(
   }, [previewState]);
 
   useEffect(() => {
+    return () => {
+      isDestroyedRef.current = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (previewState !== 'playing') return;
 
     const durationSeconds = getPositiveDuration(playerStatus.duration)
@@ -104,6 +111,7 @@ export function useAudioPreview(
   }, [expectedDurationSeconds, player, playerStatus.currentTime, playerStatus.duration, previewState]);
 
   const stopPreview = useCallback((): void => {
+    if (isDestroyedRef.current) return;
     playTokenRef.current += 1;
     player.pause();
     player.seekTo(0).catch((error: unknown) => {
