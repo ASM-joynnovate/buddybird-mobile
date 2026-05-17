@@ -51,7 +51,8 @@ export default function SessionSetupScreen() {
   }));
 
   const selectedEntry = entries.find((e) => e.id === selectedEntryId);
-  const canContinue = setup.isHydrated && isLibraryHydrated && selectedEntry !== undefined;
+  const canContinue =
+    setup.isHydrated && isLibraryHydrated && selectedEntry !== undefined && setup.isDurationValid;
 
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;
@@ -132,6 +133,7 @@ export default function SessionSetupScreen() {
 
       <InlineError message={setup.trainingErrorMessage} />
       <InlineError message={setup.saveErrorMessage} />
+      <InlineError message={setup.durationValidationError} />
 
       <PillButton
         disabled={!canContinue}

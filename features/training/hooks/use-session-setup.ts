@@ -37,6 +37,8 @@ export interface UseSessionSetupResult {
   isHydrated: boolean;
   trainingErrorMessage: string | null;
   saveErrorMessage: string | null;
+  durationValidationError: string | null;
+  isDurationValid: boolean;
   getSessionCountForPreset: (presetKey: string | undefined) => number;
   saveSessionSetup: (selection: SessionSelection) => Promise<SaveSessionSetupResult | null>;
 }
@@ -73,6 +75,8 @@ export function useSessionSetup(): UseSessionSetupResult {
 
   const secsPerCycle = learnSecs + restSecs;
   const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
+  const isDurationValid = sessionMins > 0;
+  const durationValidationError = isDurationValid ? null : t('sessionSetup.zeroDurationError');
 
   const wordSummaries = useMemo(
     () => (store ? selectTrainingWordSummaries(store) : []),
@@ -89,6 +93,10 @@ export function useSessionSetup(): UseSessionSetupResult {
   async function saveSessionSetup(selection: SessionSelection): Promise<SaveSessionSetupResult | null> {
     if (!isHydrated) {
       setSaveErrorMessage(t('sessionSetup.storeLoading'));
+      return null;
+    }
+    if (!isDurationValid) {
+      setSaveErrorMessage(t('sessionSetup.zeroDurationError'));
       return null;
     }
     try {
@@ -142,6 +150,8 @@ export function useSessionSetup(): UseSessionSetupResult {
     isHydrated,
     trainingErrorMessage,
     saveErrorMessage,
+    durationValidationError,
+    isDurationValid,
     getSessionCountForPreset,
     saveSessionSetup,
   };

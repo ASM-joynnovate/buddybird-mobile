@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { PetHubColors } from '@/constants/theme';
 
@@ -21,6 +21,7 @@ interface WheelPickerProps {
 export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
   const ref = useRef<ScrollView>(null);
   const scrollingRef = useRef(false);
+  const programmaticRef = useRef(false);
   const [centeredIdx, setCenteredIdx] = useState(() => {
     const idx = options.indexOf(selected);
     return idx >= 0 ? idx : 0;
@@ -30,6 +31,9 @@ export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
     if (scrollingRef.current) return;
     const idx = options.indexOf(selected);
     if (idx >= 0) {
+      // programmaticRef: 이 scrollTo가 종료될 때 Android에서 발화되는
+      // onMomentumScrollEnd가 onChange를 다시 호출해 값을 변동시키지 않도록 가드.
+      programmaticRef.current = true;
       ref.current?.scrollTo({ y: idx * ITEM_H, animated: true });
       setCenteredIdx(idx);
     }
@@ -42,10 +46,15 @@ export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
 
   function onScrollBeginDrag() {
     scrollingRef.current = true;
+    programmaticRef.current = false;
   }
 
   function onMomentumEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
     scrollingRef.current = false;
+    if (programmaticRef.current) {
+      programmaticRef.current = false;
+      return;
+    }
     const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
     const clamped = Math.max(0, Math.min(idx, options.length - 1));
     setCenteredIdx(clamped);
@@ -61,6 +70,7 @@ export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
       decelerationRate="fast"
       showsVerticalScrollIndicator={false}
       scrollEventThrottle={50}
+      nestedScrollEnabled
       onScrollBeginDrag={onScrollBeginDrag}
       onScroll={onScroll}
       onMomentumScrollEnd={onMomentumEnd}

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
@@ -37,11 +36,6 @@ export function SessionPresetCard({
 }: SessionPresetCardProps) {
   const selectedHours = Math.floor(sessionMins / 60);
   const selectedMins = sessionMins % 60;
-
-  const minuteOptions = useMemo(
-    () => (selectedHours === 0 ? MINUTE_OPTIONS.slice(1) : MINUTE_OPTIONS),
-    [selectedHours]
-  );
 
   return (
     <Card style={styles.card}>
@@ -91,13 +85,13 @@ export function SessionPresetCard({
               <WheelPicker
                 options={HOUR_OPTIONS}
                 selected={selectedHours}
-                onChange={(h) => onChangeSessionMins(Math.max(1, h * 60 + selectedMins))}
+                onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
               />
               <Text style={styles.pickerUnit}>시간</Text>
               <WheelPicker
-                options={minuteOptions}
+                options={MINUTE_OPTIONS}
                 selected={selectedMins}
-                onChange={(m) => onChangeSessionMins(Math.max(1, selectedHours * 60 + m))}
+                onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
               />
               <Text style={styles.pickerUnit}>분</Text>
             </View>
