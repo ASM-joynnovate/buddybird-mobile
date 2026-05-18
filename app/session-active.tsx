@@ -164,7 +164,7 @@ function SessionActiveInner({
             word={session.currentWord}
             timerLabel={fmt(session.phaseRemaining)}
           />
-          <SessionWaveSection isLearning={session.isLearning} />
+          <SessionWaveSection isLearning={session.isLearning} isActive={session.status === 'running'} />
           <SessionControls
             isRunning={session.status === 'running'}
             isLearning={session.isLearning}
