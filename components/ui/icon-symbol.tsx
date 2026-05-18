@@ -17,7 +17,7 @@ const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'person.circle': 'account-circle',
-  'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.left.slash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'sparkles': 'auto-awesome',
   'book.fill': 'book',
@@ -27,7 +27,9 @@ const MAPPING = {
   'play.fill': 'play-arrow',
   'pause.fill': 'pause',
   'stop.fill': 'stop',
-} as IconMapping;
+  'arrow.right': 'arrow-forward',
+  'chevron.compact.right': 'arrow-forward-ios',
+} as const satisfies Partial<IconMapping>;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
