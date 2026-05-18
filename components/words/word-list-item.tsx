@@ -28,9 +28,6 @@ export function WordListItem({
   const col = catColors[tag] ?? BuddyBirdColors.secondary;
   return (
     <View style={styles.card}>
-      <View style={[styles.badge, { backgroundColor: `${col}18` }]}>
-        <Text style={[styles.badgeText, { color: col }]}>{label[0]}</Text>
-      </View>
       <View style={styles.info}>
         <Text style={styles.word}>{label}</Text>
         <View style={styles.tagsRow}>
@@ -74,18 +71,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 14,
     padding: 14,
-  },
-  badge: {
-    alignItems: 'center',
-    borderRadius: Radii.iconSquare,
-    flexShrink: 0,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  badgeText: {
-    fontSize: 22,
-    fontWeight: '700',
   },
   info: {
     alignItems: 'flex-start',
