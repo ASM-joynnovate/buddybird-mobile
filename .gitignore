@@ -720,3 +720,6 @@ expo-env.d.ts
 
 # Firebase service configs (do not commit)
 /GoogleService-Info.plist
+
+# Claude local setting
+.claude/settings.local.json
