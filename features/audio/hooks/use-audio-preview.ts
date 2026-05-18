@@ -148,6 +148,7 @@ export function useAudioPreview(
 
       setTimeout(() => {
         if (playTokenRef.current !== playToken) return;
+        if (isDestroyedRef.current) return;
         const currentStatus = player.currentStatus;
         if (!currentStatus.playing && !currentStatus.isBuffering && !currentStatus.didJustFinish) {
           player.pause();
