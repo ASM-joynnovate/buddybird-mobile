@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -13,15 +12,18 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
 import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
+import { useProfile } from '@/features/profile/profile-context';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
-import { formatAgeMonths, validateProfileDraft } from '@/features/profile/profile-validation';
+import { createProfileFromDraft, formatAgeMonths, validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function OnboardingProfileScreen() {
   const { locale, t } = useI18n();
-  const { track } = useAnalytics();
+  const { track, recordError } = useAnalytics();
   const { draft, setDraft } = useOnboardingDraft();
+  const { saveProfile } = useProfile();
 
   const { elapsedMs } = useScreenTracking('onboarding_profile');
+  const onboardingStartedAtRef = useRef(Date.now());
 
   const initialSpecies = draft.species ?? '';
   const initialCustomMode = initialSpecies !== '' && !isPresetSpeciesId(initialSpecies);
@@ -32,6 +34,8 @@ export default function OnboardingProfileScreen() {
   const [ageMonths, setAgeMonths] = useState(draft.ageMonths ?? 12);
   const [photoUri, setPhotoUri] = useState(draft.photoUri);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
 
@@ -41,12 +45,11 @@ export default function OnboardingProfileScreen() {
       name,
       photoUri,
       species,
-      trainingGoalIds: draft.trainingGoalIds ?? ['greet'],
     }),
-    [ageMonths, draft.trainingGoalIds, name, photoUri, species]
+    [ageMonths, name, photoUri, species]
   );
 
-  function submitProfileStep(): void {
+  async function submitProfileStep(): Promise<void> {
     const validation = validateProfileDraft(profileDraft, t);
 
     if (!validation.isValid) {
@@ -59,7 +62,30 @@ export default function OnboardingProfileScreen() {
       name: 'onboarding_step_completed',
       params: { step: 'profile', duration_ms: elapsedMs() },
     });
-    router.push('./goals');
+
+    setIsSaving(true);
+    try {
+      const nowIso = new Date().toISOString();
+      const profile = createProfileFromDraft(profileDraft, nowIso);
+      await saveProfile(profile);
+      track({
+        name: 'profile_created',
+        params: {
+          parrot_name: profile.name,
+          parrot_species: profile.species,
+          parrot_age_months: profile.ageMonths,
+        },
+      });
+      track({
+        name: 'onboarding_completed',
+        params: { total_duration_ms: Date.now() - onboardingStartedAtRef.current },
+      });
+    } catch (error: unknown) {
+      recordError(error instanceof Error ? error : new Error(String(error)), { screen_name: 'onboarding_profile' });
+      setSaveError(t('profile.saveError'));
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function selectSpecies(nextSpecies: string): void {
@@ -144,7 +170,15 @@ export default function OnboardingProfileScreen() {
         </FormField>
       </View>
 
-      <PillButton full label={t('common.next')} onPress={submitProfileStep} size="lg" />
+      {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
+
+      <PillButton
+        disabled={isSaving}
+        full
+        label={isSaving ? t('common.saving') : t('common.next')}
+        onPress={submitProfileStep}
+        size="lg"
+      />
     </PetScreen>
   );
 }
@@ -204,5 +238,9 @@ const styles = StyleSheet.create({
   ageButtons: {
     flexDirection: 'row',
     gap: Spacing.chipGap,
+  },
+  saveError: {
+    ...Typography.bodySmall,
+    color: BuddyBirdColors.accentCoral,
   },
 });

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
-import type { ParrotProfile, TrainingGoalId } from './profile-types';
+import type { ParrotProfile } from './profile-types';
 
 export const PROFILE_STORAGE_KEY = '@buddybird/parrot-profile';
 
@@ -39,7 +39,6 @@ function parseStoredProfile(value: unknown): ParrotProfile {
     species: normalizeStoredSpecies(value.species, value.customSpecies),
     ageMonths: value.ageMonths,
     photoUri: value.photoUri,
-    trainingGoalIds: [...value.trainingGoalIds],
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
   };
@@ -52,7 +51,6 @@ interface StoredProfileShape {
   customSpecies?: string;
   ageMonths: number;
   photoUri?: string;
-  trainingGoalIds: TrainingGoalId[];
   createdAt: string;
   updatedAt: string;
 }
@@ -69,8 +67,6 @@ function isStoredProfile(value: unknown): value is StoredProfileShape {
     typeof profile.name === 'string' &&
     typeof profile.species === 'string' &&
     typeof profile.ageMonths === 'number' &&
-    Array.isArray(profile.trainingGoalIds) &&
-    profile.trainingGoalIds.every(isTrainingGoalId) &&
     typeof profile.createdAt === 'string' &&
     typeof profile.updatedAt === 'string' &&
     (profile.photoUri === undefined || typeof profile.photoUri === 'string') &&
@@ -83,10 +79,6 @@ function normalizeStoredSpecies(species: string, customSpecies: string | undefin
     return customSpecies?.trim() || species;
   }
   return species;
-}
-
-function isTrainingGoalId(value: unknown): value is TrainingGoalId {
-  return value === 'greet' || value === 'fruit' || value === 'name' || value === 'leave' || value === 'song';
 }
 
 export async function saveStoredProfile(profile: ParrotProfile): Promise<void> {

@@ -21,10 +21,6 @@ export function validateProfileDraft(draft: ProfileDraft, t: Translate): Profile
     errors.ageMonths = t('validation.ageInvalid');
   }
 
-  if (draft.trainingGoalIds.length === 0) {
-    errors.trainingGoalIds = t('validation.goalRequired');
-  }
-
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
@@ -59,7 +55,6 @@ export function createProfileFromDraft(draft: ProfileDraft, nowIso: string): Par
     species,
     ageMonths: draft.ageMonths,
     photoUri: draft.photoUri,
-    trainingGoalIds: [...draft.trainingGoalIds],
     createdAt: nowIso,
     updatedAt: nowIso,
   };

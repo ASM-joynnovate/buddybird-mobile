@@ -48,6 +48,5 @@ export function toDraft(profile: ParrotProfile): ProfileDraft {
     name: profile.name,
     photoUri: profile.photoUri,
     species: profile.species,
-    trainingGoalIds: [...profile.trainingGoalIds],
   };
 }

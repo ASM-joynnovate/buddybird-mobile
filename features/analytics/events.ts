@@ -1,8 +1,6 @@
-import type { TrainingGoalId } from '@/features/profile/profile-types';
-
 import type { AnalyticsParams } from './providers/types';
 
-export type OnboardingStep = 'welcome' | 'profile' | 'goals';
+export type OnboardingStep = 'welcome' | 'profile';
 export type RecordingMethod = 'voice' | 'upload';
 export type RegistrationMethod = 'text' | 'voice_recording';
 export type WordSelectSource = 'list' | 'recommendation' | 'search';
@@ -28,7 +26,6 @@ export type AnalyticsEvent =
         parrot_name: string;
         parrot_species: ParrotSpeciesValue;
         parrot_age_months: number;
-        goals_count: number;
       };
     }
   | {
@@ -196,13 +193,10 @@ export type UserPropertyKey =
   | 'parrot_name'
   | 'parrot_species'
   | 'parrot_age_months'
-  | 'goals_count'
   | 'total_words_registered'
   | 'total_training_sessions'
   | 'total_recording_duration_sec'
   | 'locale';
-
-export type ParrotTrainingGoalId = TrainingGoalId;
 
 const FIREBASE_EVENT_NAME_MAX = 40;
 const FIREBASE_PARAM_NAME_MAX = 40;

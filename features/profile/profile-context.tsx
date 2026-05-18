@@ -33,7 +33,6 @@ export function ProfileProvider({ children }: PropsWithChildren) {
           setUserProperty('parrot_name', profile.name),
           setUserProperty('parrot_species', profile.species),
           setUserProperty('parrot_age_months', profile.ageMonths),
-          setUserProperty('goals_count', profile.trainingGoalIds.length),
           setUserProperty('profile_age_days', diffDaysIso(profile.createdAt)),
         ]);
         return;
@@ -44,7 +43,6 @@ export function ProfileProvider({ children }: PropsWithChildren) {
         setUserProperty('parrot_name', null),
         setUserProperty('parrot_species', null),
         setUserProperty('parrot_age_months', null),
-        setUserProperty('goals_count', null),
         setUserProperty('profile_age_days', null),
       ]);
     }
@@ -84,7 +82,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
 
   const saveProfile = useCallback(async (nextProfile: ParrotProfile): Promise<void> => {
     await saveStoredProfile(nextProfile);
-    setProfile({ ...nextProfile, trainingGoalIds: [...nextProfile.trainingGoalIds] });
+    setProfile({ ...nextProfile });
     setErrorMessage(null);
   }, []);
 
@@ -93,7 +91,6 @@ export function ProfileProvider({ children }: PropsWithChildren) {
       await saveProfile({
         ...nextProfile,
         updatedAt: new Date().toISOString(),
-        trainingGoalIds: [...nextProfile.trainingGoalIds],
       });
     },
     [saveProfile]
