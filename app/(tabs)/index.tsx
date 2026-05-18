@@ -8,19 +8,21 @@ import { HomeStatsGrid } from '@/components/home/home-stats-grid';
 import { ParrotSummaryCard } from '@/components/home/parrot-summary-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
+import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useProfile } from '@/features/profile/profile-context';
 import { formatMinutes } from '@/features/profile/profile-display';
+import { diffDaysIso } from '@/features/shared/date-utils';
+import { createSessionId } from '@/features/shared/ids';
 import { useTrainingData } from '@/features/training/training-context';
 import { selectTotalTrainingSeconds } from '@/features/training/training-model';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 
-const LAST_SESSION = { words: ['사과', '안녕', '망고야'], cycles: 20, mins: 30 };
-
 export default function HomeScreen() {
   const { profile } = useProfile();
-  const { store } = useTrainingData();
+  const { store, setPendingSession } = useTrainingData();
   const { entries } = useWordLibrary();
+  const { track } = useAnalytics();
   const insets = useSafeAreaInsets();
   useScreenTracking('home');
   const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
@@ -28,6 +30,41 @@ export default function HomeScreen() {
   if (!profile) return null;
 
   const stat = formatMinutes(totalTrainingSeconds);
+
+  const lastSettings = store?.lastSessionSettings ?? null;
+  const lastWordEntry = lastSettings ? (store?.wordsById[lastSettings.wordId] ?? null) : null;
+  const lastCycles = lastSettings
+    ? Math.max(1, Math.floor(lastSettings.totalDurationSeconds / (lastSettings.learningDurationSeconds + lastSettings.restDurationSeconds)))
+    : undefined;
+  const lastMins = lastSettings ? Math.round(lastSettings.totalDurationSeconds / 60) : undefined;
+
+  function handleContinue(): void {
+    if (!lastSettings || !lastWordEntry) {
+      router.push('/session-setup');
+      return;
+    }
+    const sessionId = createSessionId();
+    setPendingSession({
+      sessionId,
+      wordId: lastSettings.wordId,
+      settings: lastSettings,
+      audioUri: lastWordEntry.sourceType === 'recording' ? lastWordEntry.audioUri : undefined,
+      word: lastWordEntry.label,
+    });
+    track({
+      name: 'training_session_started',
+      params: {
+        session_id: sessionId,
+        word_count: 1,
+        target_word_ids: [lastSettings.wordId],
+        target_word_names: [lastWordEntry.label],
+        profile_age_days: profile ? diffDaysIso(profile.createdAt) : 0,
+        parrot_species: profile?.species ?? '',
+        parrot_name: profile?.name ?? '',
+      },
+    });
+    router.push('/session-active');
+  }
 
   return (
     <ScrollView
@@ -38,11 +75,12 @@ export default function HomeScreen() {
       <HomeGreeting profileName={profile.name} />
       <ParrotSummaryCard profile={profile} />
       <ContinueSessionCard
-        words={LAST_SESSION.words}
-        totalWordsCount={entries.length}
-        cycles={LAST_SESSION.cycles}
-        mins={LAST_SESSION.mins}
-        onContinue={() => router.push('/session-setup')}
+        lastWord={lastWordEntry?.label}
+        cycles={lastCycles}
+        mins={lastMins}
+        learnMins={lastSettings ? Math.round(lastSettings.learningDurationSeconds / 60) : undefined}
+        restMins={lastSettings ? Math.round(lastSettings.restDurationSeconds / 60) : undefined}
+        onContinue={handleContinue}
       />
 
       <View style={styles.wordsSectionRow}>
