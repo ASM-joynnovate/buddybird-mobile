@@ -7,18 +7,23 @@ interface SessionCycleDotsProps {
 }
 
 export function SessionCycleDots({ cycle, totalCycles, isLearning }: SessionCycleDotsProps) {
+  const page = Math.floor((cycle - 1) / 24);
+  const localCycle = (cycle - 1) % 24 + 1;
+  const pageDotsCount = Math.min(24, totalCycles - page * 24);
+  const overflowCount = totalCycles - (page + 1) * 24;
+
   return (
     <View style={styles.dots}>
-      {Array.from({ length: Math.min(totalCycles, 24) }, (_, i) => (
+      {Array.from({ length: pageDotsCount }, (_, i) => (
         <View
           key={i}
           style={[
             styles.dot,
             {
               backgroundColor:
-                i < cycle - 1
+                i < localCycle - 1
                   ? '#A78BFA'
-                  : i === cycle - 1
+                  : i === localCycle - 1
                   ? isLearning
                     ? '#5EEAD4'
                     : '#FDBA74'
@@ -27,8 +32,8 @@ export function SessionCycleDots({ cycle, totalCycles, isLearning }: SessionCycl
           ]}
         />
       ))}
-      {totalCycles > 24 && (
-        <Text style={styles.overflow}>+{totalCycles - 24}</Text>
+      {overflowCount > 0 && (
+        <Text style={styles.overflow}>+{overflowCount}</Text>
       )}
     </View>
   );
