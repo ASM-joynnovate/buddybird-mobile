@@ -10,6 +10,7 @@ export interface WordPickerItem {
   label: string;
   tag: string;
   presetKey?: string;
+  audioUri: string;
   sourceType: 'preset' | 'recording';
   sourceLabel: string;
 }

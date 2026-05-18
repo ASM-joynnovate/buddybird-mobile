@@ -6,19 +6,21 @@ import { ContinueSessionCard } from '@/components/home/continue-session-card';
 import { HomeGreeting } from '@/components/home/home-greeting';
 import { HomeStatsGrid } from '@/components/home/home-stats-grid';
 import { ParrotSummaryCard } from '@/components/home/parrot-summary-card';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
-import { formatMinutes } from '@/features/profile/profile-display';
 import { useProfile } from '@/features/profile/profile-context';
+import { formatMinutes } from '@/features/profile/profile-display';
 import { useTrainingData } from '@/features/training/training-context';
 import { selectTotalTrainingSeconds } from '@/features/training/training-model';
+import { useWordLibrary } from '@/features/word-library/word-library-context';
 
 const LAST_SESSION = { words: ['사과', '안녕', '망고야'], cycles: 20, mins: 30 };
-const WORDS_COUNT = 8;
 
 export default function HomeScreen() {
   const { profile } = useProfile();
   const { store } = useTrainingData();
+  const { entries } = useWordLibrary();
   const insets = useSafeAreaInsets();
   useScreenTracking('home');
   const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
@@ -37,7 +39,7 @@ export default function HomeScreen() {
       <ParrotSummaryCard profile={profile} />
       <ContinueSessionCard
         words={LAST_SESSION.words}
-        totalWordsCount={WORDS_COUNT}
+        totalWordsCount={entries.length}
         cycles={LAST_SESSION.cycles}
         mins={LAST_SESSION.mins}
         onContinue={() => router.push('/session-setup')}
@@ -46,10 +48,11 @@ export default function HomeScreen() {
       <View style={styles.wordsSectionRow}>
         <View>
           <Text style={styles.sectionKicker}>현재 학습 중</Text>
-          <Text style={styles.sectionTitle}>단어 {WORDS_COUNT}개</Text>
+          <Text style={styles.sectionTitle}>단어 {entries.length}개</Text>
         </View>
-        <Pressable onPress={() => router.push('/words')}>
-          <Text style={styles.sectionAction}>관리</Text>
+        <Pressable onPress={() => router.push('/words')} style={styles.sectionActionRow}>
+          <Text style={styles.sectionAction}>단어 관리</Text>
+          <IconSymbol name="chevron.compact.right" size={14} color={BuddyBirdColors.secondaryDeep} />
         </Pressable>
       </View>
 
@@ -87,6 +90,11 @@ const styles = StyleSheet.create({
     ...Typography.screenTitle,
     color: BuddyBirdColors.primary,
     fontSize: 22,
+  },
+  sectionActionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
   },
   sectionAction: {
     color: BuddyBirdColors.secondaryDeep,

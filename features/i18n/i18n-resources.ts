@@ -1,12 +1,5 @@
-import type { TrainingGoalId } from '@/features/profile/profile-types';
-
 export const SUPPORTED_LOCALES = ['ko', 'en'] as const;
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
-
-interface TrainingGoalCopy {
-  label: string;
-  sample: string;
-}
 
 interface PresetWordTemplateCopy {
   id: string;
@@ -55,7 +48,6 @@ interface AppCopy {
     nameRequired: string;
     speciesRequired: string;
     ageInvalid: string;
-    goalRequired: string;
   };
   onboarding: {
     welcome: {
@@ -76,14 +68,6 @@ interface AppCopy {
       minusMonth: string;
       plusMonth: string;
     };
-    goals: {
-      kicker: string;
-      title: string;
-      body: string;
-      fallbackError: string;
-      saveError: string;
-      cta: string;
-    };
   };
   home: {
     kicker: string;
@@ -95,8 +79,6 @@ interface AppCopy {
     disabledCta: string;
     startSessionCta: string;
     totalTrainingTime: string;
-    trainingGoals: string;
-    goalCount: string;
     singleProfileTitle: string;
     singleProfileBody: string;
     profileLink: string;
@@ -189,11 +171,9 @@ interface AppCopy {
     languageSaveError: string;
     avatarSelect: string;
     avatarError: string;
-    cardGoalCount: string;
   };
   profileOptions: {
     speciesOptions: Record<string, string>;
-    trainingGoals: Record<TrainingGoalId, TrainingGoalCopy>;
   };
   trainingTemplates: {
     presetWords: PresetWordTemplateCopy[];
@@ -236,7 +216,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       nameRequired: '반려조 이름을 입력해 주세요.',
       speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
       ageInvalid: '나이는 1개월부터 10년까지 선택할 수 있어요.',
-      goalRequired: '학습 목표를 하나 이상 선택해 주세요.',
     },
     onboarding: {
       welcome: {
@@ -257,14 +236,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         minusMonth: '- 1개월',
         plusMonth: '+ 1개월',
       },
-      goals: {
-        kicker: 'STEP 03',
-        title: '처음 들려줄 말을\n골라주세요',
-        body: '선택한 목표는 홈에서 바로 이어갈 수 있도록 연결돼요.',
-        fallbackError: '프로필 정보를 다시 확인해 주세요.',
-        saveError: '프로필 저장에 실패했어요. 잠시 후 다시 시도해 주세요.',
-        cta: '시작하기 (%{count})',
-      },
     },
     home: {
       kicker: 'TODAY',
@@ -276,8 +247,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       disabledCta: '세션 설정 준비 중',
       startSessionCta: '세션 설정하기',
       totalTrainingTime: '누적 학습 시간',
-      trainingGoals: '학습 목표',
-      goalCount: '%{count}개',
       singleProfileTitle: 'MVP 단일 프로필',
       singleProfileBody: '현재는 한 마리 프로필만 지원해요. 추가 등록과 삭제는 추후 제공 예정입니다.',
       profileLink: '프로필 확인하기',
@@ -370,7 +339,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       languageSaveError: '언어 설정을 저장하지 못했어요. 다시 시도해 주세요.',
       avatarSelect: '사진 선택',
       avatarError: '사진을 불러오지 못했어요. 사진 없이 계속할 수 있어요.',
-      cardGoalCount: '학습 목표 %{count}개가 연결되어 있어요.',
     },
     profileOptions: {
       speciesOptions: {
@@ -380,13 +348,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         conure: '코뉴어',
         lovebird: '모란앵무',
         parakeet: '잉꼬',
-      },
-      trainingGoals: {
-        greet: { label: '인사말', sample: '안녕, 잘 자, 사랑해' },
-        fruit: { label: '과일·음식', sample: '사과, 바나나, 물' },
-        name: { label: '이름 부르기', sample: '망고야, 엄마, 아빠' },
-        leave: { label: '외출 인사', sample: '잘 다녀와, 빠빠이' },
-        song: { label: '짧은 노래', sample: '도레미, 휘파람' },
       },
     },
     trainingTemplates: {
@@ -434,10 +395,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       profile: 'Profile',
     },
     validation: {
-      nameRequired: 'Enter your bird’s name.',
-      speciesRequired: 'Choose or enter your bird’s species.',
-      ageInvalid: 'Age can be set from 1 month to 10 years.',
-      goalRequired: 'Choose at least one training goal.',
+      nameRequired: "Enter your bird’s name.",
+      speciesRequired: "Enter your bird’s species.",
+      ageInvalid: "Age can be set from 1 month to 10 years.",
     },
     onboarding: {
       welcome: {
@@ -458,14 +418,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         minusMonth: '- 1 mo',
         plusMonth: '+ 1 mo',
       },
-      goals: {
-        kicker: 'STEP 03',
-        title: 'Choose the first\nwords to play',
-        body: 'Selected goals stay connected so you can continue from home.',
-        fallbackError: 'Please check the profile details again.',
-        saveError: 'Could not save the profile. Please try again soon.',
-        cta: 'Start (%{count})',
-      },
     },
     home: {
       kicker: 'TODAY',
@@ -477,8 +429,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       disabledCta: 'Session setup coming soon',
       startSessionCta: 'Set up session',
       totalTrainingTime: 'Total training time',
-      trainingGoals: 'Training goals',
-      goalCount: '%{count}',
       singleProfileTitle: 'Single MVP profile',
       singleProfileBody: 'Only one bird profile is supported for now. Adding and deleting profiles will come later.',
       profileLink: 'View profile',
@@ -571,7 +521,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       languageSaveError: 'Could not save the language setting. Please try again.',
       avatarSelect: 'Choose photo',
       avatarError: 'Could not load the photo. You can continue without one.',
-      cardGoalCount: '%{count} training goals are connected.',
     },
     profileOptions: {
       speciesOptions: {
@@ -581,13 +530,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         conure: 'Conure',
         lovebird: 'Lovebird',
         parakeet: 'Parakeet',
-      },
-      trainingGoals: {
-        greet: { label: 'Greetings', sample: 'Hello, good night, love you' },
-        fruit: { label: 'Food words', sample: 'Apple, banana, water' },
-        name: { label: 'Name calling', sample: 'Mango, mom, dad' },
-        leave: { label: 'Leaving cues', sample: 'See you, bye-bye' },
-        song: { label: 'Short songs', sample: 'Do re mi, whistle' },
       },
     },
     trainingTemplates: {

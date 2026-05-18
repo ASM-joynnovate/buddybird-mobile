@@ -32,7 +32,6 @@ export function ParrotProfileCard({ profile, compact = false }: ParrotProfileCar
           <Text style={styles.meta}>
             {speciesLabel} · {formatAgeMonths(profile.ageMonths, t)}
           </Text>
-          <Text style={styles.caption}>{t('profile.cardGoalCount', { count: profile.trainingGoalIds.length })}</Text>
         </View>
       </View>
     </Card>
@@ -80,9 +79,5 @@ const styles = StyleSheet.create({
   meta: {
     ...Typography.bodySmall,
     color: 'rgba(255,255,255,0.88)',
-  },
-  caption: {
-    ...Typography.caption,
-    color: 'rgba(255,255,255,0.72)',
   },
 });

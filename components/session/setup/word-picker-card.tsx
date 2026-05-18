@@ -89,20 +89,24 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   sourcePillPreset: {
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: 'transparent',
+    borderColor: BuddyBirdColors.borderMuted,
+    borderWidth: 1,
   },
   sourcePillRecording: {
-    backgroundColor: 'rgba(42,157,143,0.12)',
+    backgroundColor: 'transparent',
+    borderColor: BuddyBirdColors.feather,
+    borderWidth: 1,
   },
   sourcePillText: {
     fontSize: 11,
     fontWeight: '500',
   },
   sourcePillTextPreset: {
-    color: 'rgba(31,58,61,0.45)',
+    color: BuddyBirdColors.kickerMuted,
   },
   sourcePillTextRecording: {
-    color: BuddyBirdColors.secondary,
+    color: BuddyBirdColors.tertiaryDeep,
   },
   catPill: {
     borderRadius: Radii.full,

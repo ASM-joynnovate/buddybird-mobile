@@ -46,6 +46,7 @@ export default function SessionSetupScreen() {
     label: e.label,
     tag: e.tag,
     presetKey: e.presetKey,
+    audioUri: e.audioUri,
     sourceType: e.sourceType,
     sourceLabel: t(e.sourceType === 'preset' ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording'),
   }));
@@ -125,7 +126,7 @@ export default function SessionSetupScreen() {
         selectedId={selectedEntryId}
         onSelect={setSelectedEntryId}
         getSessionCountLabel={(item) =>
-          `${setup.getSessionCountForPreset(item.presetKey)} 세션`
+          `${setup.getSessionCountForPreset(item.presetKey, item.audioUri)} 세션`
         }
         sectionTitle="학습할 단어"
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}

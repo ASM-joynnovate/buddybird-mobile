@@ -4,9 +4,10 @@ import { WaveformBars } from '@/components/ui/waveform-bars';
 
 interface SessionWaveSectionProps {
   isLearning: boolean;
+  isActive: boolean;
 }
 
-export function SessionWaveSection({ isLearning }: SessionWaveSectionProps) {
+export function SessionWaveSection({ isLearning, isActive }: SessionWaveSectionProps) {
   return (
     <View style={styles.section}>
       <View
@@ -22,7 +23,7 @@ export function SessionWaveSection({ isLearning }: SessionWaveSectionProps) {
           {isLearning ? '소리 자동 재생 중' : '휴식 중 · 다음 학습 준비'}
         </Text>
       </View>
-      <WaveformBars color={isLearning ? '#5EEAD4' : 'rgba(255,255,255,0.2)'} height={40} barCount={44} />
+      <WaveformBars color={isLearning ? '#5EEAD4' : 'rgba(255,255,255,0.2)'} height={60} barCount={44} animated={isLearning && isActive} frozen={isLearning && !isActive} flatLine={!isLearning} />
     </View>
   );
 }

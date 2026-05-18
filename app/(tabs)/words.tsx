@@ -85,8 +85,9 @@ export default function WordsScreen() {
       <WordFilterBar cats={CATS} active={filter} onChange={handleFilterChange} />
 
       <ScrollView
+        style={styles.list}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
           <WordRow key={e.id} entry={e} onEdit={() => handleEdit(e)} onBecameActive={handleBecameActive} />
@@ -207,6 +208,9 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   list: {
+    flex: 1,
+  },
+  listContent: {
     gap: 8,
     paddingHorizontal: Spacing.screenX,
     paddingTop: 14,

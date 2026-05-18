@@ -39,7 +39,7 @@ export interface UseSessionSetupResult {
   saveErrorMessage: string | null;
   durationValidationError: string | null;
   isDurationValid: boolean;
-  getSessionCountForPreset: (presetKey: string | undefined) => number;
+  getSessionCountForPreset: (presetKey: string | undefined, audioUri?: string) => number;
   saveSessionSetup: (selection: SessionSelection) => Promise<SaveSessionSetupResult | null>;
 }
 
@@ -83,11 +83,18 @@ export function useSessionSetup(): UseSessionSetupResult {
     [store]
   );
 
-  function getSessionCountForPreset(presetKey: string | undefined): number {
-    if (!presetKey) return 0;
-    return wordSummaries
-      .filter((s) => s.word.presetKey === presetKey)
-      .reduce((sum, s) => sum + s.progress.sessionCount, 0);
+  function getSessionCountForPreset(presetKey: string | undefined, audioUri?: string): number {
+    if (presetKey) {
+      return wordSummaries
+        .filter((s) => s.word.presetKey === presetKey)
+        .reduce((sum, s) => sum + s.progress.sessionCount, 0);
+    }
+    if (audioUri) {
+      return wordSummaries
+        .filter((s) => s.word.audioUri === audioUri)
+        .reduce((sum, s) => sum + s.progress.sessionCount, 0);
+    }
+    return 0;
   }
 
   async function saveSessionSetup(selection: SessionSelection): Promise<SaveSessionSetupResult | null> {

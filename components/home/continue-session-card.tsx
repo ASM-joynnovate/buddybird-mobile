@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
+import { IconSymbol } from '../ui/icon-symbol';
 
 interface ContinueSessionCardProps {
   words: string[];
@@ -36,7 +37,8 @@ export function ContinueSessionCard({ words, totalWordsCount, cycles, mins, onCo
           </Text>
         </View>
         <Pressable style={styles.btn} onPress={onContinue}>
-          <Text style={styles.btnText}>▶ 이어서 학습하기</Text>
+          <IconSymbol name="play.fill" size={16} color="#fff" />
+          <Text style={styles.btnText}>이어서 학습하기</Text>
         </Pressable>
       </View>
     </View>
@@ -108,6 +110,8 @@ const styles = StyleSheet.create({
   btn: {
     alignItems: 'center',
     backgroundColor: BuddyBirdColors.secondary,
+    flexDirection: 'row',
+    gap: 6,
     height: 52,
     justifyContent: 'center',
   },

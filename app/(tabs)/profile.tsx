@@ -50,8 +50,6 @@ export default function ProfileScreen() {
       ageMonths: nextForm.ageMonths === undefined ? currentErrors.ageMonths : undefined,
       name: nextForm.name === undefined ? currentErrors.name : undefined,
       species: nextForm.species === undefined ? currentErrors.species : undefined,
-      trainingGoalIds:
-        nextForm.trainingGoalIds === undefined ? currentErrors.trainingGoalIds : undefined,
     }));
   }
 
@@ -75,7 +73,6 @@ export default function ProfileScreen() {
         ...currentProfile,
         ...currentForm,
         species: speciesTrimmed,
-        trainingGoalIds: [...currentForm.trainingGoalIds],
       });
       setErrors({});
       setSaveErrorMessage(null);
