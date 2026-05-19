@@ -112,11 +112,13 @@ const styles = StyleSheet.create({
   listScroll: {
     backgroundColor: 'rgba(31,58,61,0.04)',
     borderRadius: Radii.field,
-    height: CARD_H * 3.5 + CARD_GAP * 2.5 + 16,
-    padding: 8,
+    height: CARD_H * 3.5 + CARD_GAP * 2.5,
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   listContent: {
     gap: CARD_GAP,
+    paddingBottom: 10,
   },
   empty: {
     alignItems: 'center',
