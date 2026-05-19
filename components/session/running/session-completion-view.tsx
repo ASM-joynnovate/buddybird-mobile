@@ -11,7 +11,7 @@ interface SessionCompletionViewProps {
 export function SessionCompletionView({ word, totalLearningSecondsLabel, onDismiss }: SessionCompletionViewProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>세션 완료!</Text>
+      <Text style={styles.title}>학습 완료!</Text>
       <Text style={styles.word}>{word}</Text>
       <Text style={styles.stat}>모든 사이클 완료</Text>
       <Text style={styles.stat}>총 학습 시간 {totalLearningSecondsLabel}</Text>

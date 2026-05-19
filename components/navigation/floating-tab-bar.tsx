@@ -8,7 +8,7 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 
 const TABS = [
   { name: 'index', label: '홈', icon: 'house.fill' as const },
-  { name: 'session-setup', label: '세션', icon: 'sparkles' as const },
+  { name: 'session-setup', label: '학습', icon: 'sparkles' as const },
   { name: 'words', label: '단어', icon: 'book.fill' as const },
   { name: 'profile', label: '프로필', icon: 'person.circle' as const },
 ] as const;

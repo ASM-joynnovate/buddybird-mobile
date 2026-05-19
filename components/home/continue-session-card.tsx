@@ -19,8 +19,7 @@ export function ContinueSessionCard({ lastWord, cycles, mins, learnMins, restMin
   return (
     <View>
       <View style={styles.headRow}>
-        {hasHistory && <Text style={styles.kicker}>마지막 세션</Text>}
-        <Text style={styles.title}>{hasHistory ? '이어서 학습하기' : '세션에서 설정하기'}</Text>
+        <Text style={styles.title}>{hasHistory ? '학습' : '학습'}</Text>
       </View>
       <View style={styles.card}>
         {hasHistory && (
@@ -38,7 +37,7 @@ export function ContinueSessionCard({ lastWord, cycles, mins, learnMins, restMin
         )}
         <Pressable style={styles.btn} onPress={onContinue}>
           <IconSymbol name="play.fill" size={16} color="#fff" />
-          <Text style={styles.btnText}>{hasHistory ? '이어서 학습하기' : '세션에서 설정하기'}</Text>
+          <Text style={styles.btnText}>{hasHistory ? '학습 시작' : '학습 설정'}</Text>
         </Pressable>
       </View>
     </View>
