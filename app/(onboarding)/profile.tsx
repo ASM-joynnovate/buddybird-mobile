@@ -6,6 +6,7 @@ import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker'
 import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { PillButton } from '@/components/ui/pill-button';
+import { WheelPicker } from '@/components/ui/wheel-picker';
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
@@ -14,7 +15,11 @@ import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context'
 import { useProfile } from '@/features/profile/profile-context';
 import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
-import { createProfileFromDraft, formatAgeMonths, validateProfileDraft } from '@/features/profile/profile-validation';
+import { createProfileFromDraft, validateProfileDraft } from '@/features/profile/profile-validation';
+
+const YEAR_OPTIONS = Array.from({ length: 101 }, (_, i) => i);
+const ALL_MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i);
+const NONZERO_MONTH_OPTIONS = Array.from({ length: 11 }, (_, i) => i + 1);
 
 export default function OnboardingProfileScreen() {
   const { locale, t } = useI18n();
@@ -31,7 +36,9 @@ export default function OnboardingProfileScreen() {
   const [name, setName] = useState(draft.name ?? '');
   const [species, setSpecies] = useState(initialSpecies);
   const [customMode, setCustomMode] = useState(initialCustomMode);
-  const [ageMonths, setAgeMonths] = useState(draft.ageMonths ?? 12);
+  const initialTotal = draft.ageMonths ?? 12;
+  const [ageYears, setAgeYears] = useState(Math.floor(initialTotal / 12));
+  const [localMonths, setLocalMonths] = useState(initialTotal % 12);
   const [photoUri, setPhotoUri] = useState(draft.photoUri);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -39,14 +46,23 @@ export default function OnboardingProfileScreen() {
 
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
 
+  const monthOptions =
+    ageYears === 0 ? NONZERO_MONTH_OPTIONS : ageYears === 100 ? [0] : ALL_MONTH_OPTIONS;
+
+  function handleYearsChange(years: number) {
+    setAgeYears(years);
+    if (years === 0 && localMonths === 0) setLocalMonths(1);
+    if (years === 100) setLocalMonths(0);
+  }
+
   const profileDraft = useMemo<ProfileDraft>(
     () => ({
-      ageMonths,
+      ageMonths: ageYears * 12 + localMonths,
       name,
       photoUri,
       species,
     }),
-    [ageMonths, name, photoUri, species]
+    [ageYears, localMonths, name, photoUri, species]
   );
 
   async function submitProfileStep(): Promise<void> {
@@ -150,20 +166,11 @@ export default function OnboardingProfileScreen() {
 
         <FormField error={errors.ageMonths} label={t('onboarding.profile.ageLabel')}>
           <View style={styles.agePanel}>
-            <Text style={styles.ageLabel}>{formatAgeMonths(ageMonths, t)}</Text>
-            <View style={styles.ageButtons}>
-              <PillButton
-                disabled={ageMonths <= 1}
-                label={t('onboarding.profile.minusMonth')}
-                onPress={() => setAgeMonths((currentAge) => Math.max(1, currentAge - 1))}
-                variant="ghost"
-              />
-              <PillButton
-                disabled={ageMonths >= 120}
-                label={t('onboarding.profile.plusMonth')}
-                onPress={() => setAgeMonths((currentAge) => Math.min(120, currentAge + 1))}
-                variant="ghost"
-              />
+            <View style={styles.agePickers}>
+              <WheelPicker options={YEAR_OPTIONS} selected={ageYears} onChange={handleYearsChange} />
+              <Text style={styles.ageUnit}>년</Text>
+              <WheelPicker options={monthOptions} selected={localMonths} onChange={setLocalMonths} />
+              <Text style={styles.ageUnit}>개월</Text>
             </View>
           </View>
         </FormField>
@@ -230,13 +237,16 @@ const styles = StyleSheet.create({
     gap: Spacing.cardPaddingSm,
     padding: Spacing.cardPaddingSm,
   },
-  ageLabel: {
-    ...Typography.cardTitle,
-    color: BuddyBirdColors.primary,
-  },
-  ageButtons: {
+  agePickers: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: Spacing.chipGap,
+    justifyContent: 'center',
+  },
+  ageUnit: {
+    color: BuddyBirdColors.primary,
+    fontSize: 22,
+    fontWeight: '700',
+    marginHorizontal: 4,
   },
   saveError: {
     ...Typography.bodySmall,
