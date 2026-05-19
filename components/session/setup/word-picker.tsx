@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FilterChip } from '@/components/words/word-filter-bar';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { BuddyBirdColors } from '@/constants/theme';
+import { BuddyBirdColors, Radii } from '@/constants/theme';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 
 import { WordPickerCard } from './word-picker-card';
@@ -67,7 +67,6 @@ export function WordPicker({
       <ScrollView
         style={styles.listScroll}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
         nestedScrollEnabled
       >
         {filteredItems.length === 0 ? (
@@ -106,7 +105,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   listScroll: {
-    maxHeight: CARD_H * 3.5 + CARD_GAP * 2.5,
+    backgroundColor: 'rgba(31,58,61,0.04)',
+    borderRadius: Radii.field,
+    height: CARD_H * 3.5 + CARD_GAP * 2.5 + 16,
+    padding: 8,
   },
   listContent: {
     gap: CARD_GAP,
