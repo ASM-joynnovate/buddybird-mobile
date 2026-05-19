@@ -32,6 +32,7 @@
 | 2026-05-19 | conversation `/buddybird-policy-update` 호출 | 환경 운영을 dev/prod 2-tier 로 단순화 — `development` 환경이 일반적인 staging 역할 (internal QA·기능 검수·릴리스 후보 검증) 까지 함께 맡는다. `preview` profile 은 'prod 식별자·Firebase 사용 + dev-client 없음' 같은 특수 검증이 필요한 경우에만 남겨두며 평시 internal 검증에는 사용하지 않는다. 코드/식별자/eas.json 변경 없음 — 문서 위치 재정의만 | `docs/BUILD-AND-RELEASE.md` §1, §8.3 |
 | 2026-05-19 | conversation `/buddybird-policy-update` 호출 (직전 행 정정) | `preview` profile 을 EAS 표준 패턴에 맞춰 **내부 직원 internal alpha/beta testing 빌드** 로 재정의 — `eas.json` 의 `preview.env.APP_VARIANT` 를 `production` → `development` 변경, `developmentClient: false`·`distribution: internal` 유지, dev Firebase·dev Bundle ID(`.dev`)·dev keystore 사용. 직원이 internal 배포 링크로 설치해 일반 사용자처럼 동작 확인. 직전 행의 'preview = prod sanity check 용 특수 케이스' 정의는 본 행으로 대체. prod 환경 standalone 검증이 필요해지면 별도 profile (`production-internal` 등) 추가 검토 | `eas.json`, `docs/BUILD-AND-RELEASE.md` §1, §2, §5.1, §8.3, §11.4, §12 |
 | 2026-05-19 | plan `~/.claude/plans/yarn-eas-build-local-preview-android-cryptic-glade.md` | `.easignore` 도입 — `.gitignore` 의 `/config/` 제외를 EAS tarball 한정으로 무력화하여 `config/{dev,prod}/firebase/` 만 포함시킨다. `**/*.jks`, `**/credentials.json`, `/config/{env}/android/` 는 명시적으로 재제외하여 keystore/credentials.json 이 tarball 에 새지 않도록 함. 원인: `yarn eas:build:local:{dev,preview,prod}:{ios,android}` 가 PREBUILD 단계에서 `app.config.ts` 의 fallback 경로 `./config/{env}/firebase/google-services.json` 를 열려다 ENOENT 로 실패. Cloud 빌드는 EAS env file-secret(`GOOGLE_SERVICES_JSON`/`GOOGLE_SERVICES_INFO_PLIST`) 가 우선되어 영향 없음. Firebase config commit 금지 정책은 그대로 유지 (`.gitignore` 변경 없음) | `.easignore` (신규), `docs/BUILD-AND-RELEASE.md` §4, §7.2, §10, §12 |
+| 2026-05-19 | plan `~/.claude/plans/yarn-eas-build-local-preview-android-quiet-sky.md` | `plugins/withGradleJvmArgs.js` 도입 — Expo prebuild 가 생성하는 `android/gradle.properties` 의 `org.gradle.jvmargs` 를 `withGradleProperties` mod 로 `-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8` 로 upsert. 원인: 기본값 `-Xmx2048m -XX:MaxMetaspaceSize=512m` 가 RN 0.81 + Reanimated 4.1 + Worklets + New Architecture + 4 ABI CMake 동시 configure 워크로드를 못 견디고 `:react-native-reanimated:configureCMakeRelWithDebInfo[armeabi-v7a]` 에서 Java heap space OOM 으로 실패. `android/` 는 prebuild 가 매번 재생성하므로 직접 편집 금지 — Android Gradle JVM 메모리 영속화는 항상 config plugin 으로 관리한다 | `plugins/withGradleJvmArgs.js` (신규), `app.config.ts`, `docs/BUILD-AND-RELEASE.md`, `docs/ARCHITECTURE.md` |
 
 ## 2. 정책 카테고리별 요약
 
@@ -69,6 +70,7 @@
 ### 2.5 네이티브 설정
 - `@react-native-firebase/* ^24.0.0` 핀 (modular API 전제)
 - `plugins/withFirebaseStaticPodfile.js` + `app.config.ts` plugin 등록 의무
+- `plugins/withGradleJvmArgs.js` 로 Android Gradle JVM heap/metaspace 영속 주입 — `android/gradle.properties` 직접 편집 금지 (prebuild 가 덮어씀)
 - `firebase.json`: crashlytics 디버그 off, analytics auto-collection on
 - Expo Go 사용 불가 → dynamic config + prebuild 기반
 - 환경별 빌드(dev/prod), EAS Secret, 출시 절차는 `docs/BUILD-AND-RELEASE.md` 가 SSoT

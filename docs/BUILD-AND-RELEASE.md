@@ -261,6 +261,14 @@ Cloud 빌드에서도 `.easignore` 가 firebase config 를 tarball 에 포함시
 
 신규 개발자의 로컬에 firebase config 가 누락된 상태에서 `yarn eas:build:local:*` 를 실행하면 §6.4 와 동일한 `googleServicesFile not found` 또는 PREBUILD `ENOENT` 에러로 실패한다. §6.2 의 4단계로 `config/{env}/firebase/` 에 먼저 배치한다.
 
+#### Android Gradle JVM 메모리 (heap / metaspace)
+
+Local Android 빌드는 `android/gradle.properties` 의 `org.gradle.jvmargs` 를 `plugins/withGradleJvmArgs.js` (config plugin) 가 prebuild 단계에서 **항상** `-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8` 로 덮어쓴다. `app.config.ts` 의 `plugins` 배열에 등록되어 있으며, Cloud 빌드에도 동일하게 적용된다.
+
+- **직접 편집 금지**: `android/` 는 prebuild 가 매번 재생성하므로 `android/gradle.properties` 직접 수정은 무의미하다. 메모리 값을 바꾸려면 `plugins/withGradleJvmArgs.js` 의 `JVMARGS_VALUE` 상수를 수정한다.
+- **OOM 증상**: `Execution failed for task ':react-native-reanimated:configureCMakeRelWithDebInfo[*]'. > Java heap space` 가 발생하면 빌드 머신 RAM 부족이거나 다른 프로세스가 점유 중. 머신 메모리가 8GB 이하라면 `JVMARGS_VALUE` 의 `-Xmx` 를 `4096m` 까지 낮추고 다른 무거운 앱을 종료한다.
+- **근거**: 기본값 `-Xmx2048m -XX:MaxMetaspaceSize=512m` 은 RN 0.81 + Reanimated 4.1 + Worklets + New Architecture + 4 ABI (arm64-v8a / armeabi-v7a / x86 / x86_64) CMake 동시 configure 워크로드를 감당하지 못한다.
+
 ## 8. App Store / Google Play 제출
 
 ### 8.1 사전 체크리스트

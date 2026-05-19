@@ -154,6 +154,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             },
         ],
         './plugins/withFirebaseStaticPodfile',
+        './plugins/withGradleJvmArgs',
     ],
 
     extra: {

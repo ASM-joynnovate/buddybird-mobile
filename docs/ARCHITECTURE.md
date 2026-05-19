@@ -52,10 +52,12 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 ### Plugin
 
 - `plugins/withFirebaseStaticPodfile.js`: iOS Podfile에 `use_frameworks! :linkage => :static`를 강제 (RNFirebase의 static linking 요구)
+- `plugins/withGradleJvmArgs.js`: Android `gradle.properties` 의 `org.gradle.jvmargs` 를 `-Xmx6144m -XX:MaxMetaspaceSize=1024m …` 로 upsert (CMake + Kotlin + Worklets 병렬 빌드 OOM 방지). 상세는 `docs/BUILD-AND-RELEASE.md` §7.2.
 - `app.config.ts`의 `plugins`에 다음 등록 필수:
   - `@react-native-firebase/app`
   - `@react-native-firebase/crashlytics`
   - `./plugins/withFirebaseStaticPodfile`
+  - `./plugins/withGradleJvmArgs`
   - `expo-tracking-transparency` (ATT)
 
 ### 프로젝트 루트 `firebase.json`
