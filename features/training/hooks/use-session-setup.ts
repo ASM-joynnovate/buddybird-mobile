@@ -51,10 +51,15 @@ export function useSessionSetup(): UseSessionSetupResult {
     upsertWord,
   } = useTrainingData();
 
-  const [presetKey, setPresetKeyState] = useState<SessionPresetKey>('short');
-  const [sessionMins, setSessionMinsState] = useState(60);
-  const [learnSecs, setLearnSecs] = useState(600);
-  const [restSecs, setRestSecs] = useState(300);
+  const DEFAULT_PRESET_KEY: SessionPresetKey = 'medium';
+  const _defaultPreset = SESSION_PRESETS.find((p) => p.key === DEFAULT_PRESET_KEY)!;
+
+  const [presetKey, setPresetKeyState] = useState<SessionPresetKey>(DEFAULT_PRESET_KEY);
+  const [sessionMins, setSessionMinsState] = useState(
+    (_defaultPreset.learnSecs + _defaultPreset.restSecs) / 60 * _defaultPreset.cycles
+  );
+  const [learnSecs, setLearnSecs] = useState<number>(_defaultPreset.learnSecs);
+  const [restSecs, setRestSecs] = useState<number>(_defaultPreset.restSecs);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   function setPresetKey(key: SessionPresetKey) {
