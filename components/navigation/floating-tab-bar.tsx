@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     height: 26,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 36,
   },
   iconPillActive: {
