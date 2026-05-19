@@ -92,8 +92,8 @@ export default function SessionSetupScreen() {
   }
 
   const startLabel = selectedEntry
-    ? `세션 시작 · "${selectedEntry.label}" · ${setup.totalCycles}사이클`
-    : '세션 시작';
+    ? `학습 시작 · "${selectedEntry.label}" · ${setup.totalCycles}사이클`
+    : '학습 시작';
 
   return (
     <PetScreen contentStyle={styles.content}>
@@ -125,9 +125,9 @@ export default function SessionSetupScreen() {
         items={pickerItems}
         selectedId={selectedEntryId}
         onSelect={setSelectedEntryId}
-        getSessionCountLabel={(item) =>
-          `${setup.getSessionCountForPreset(item.presetKey, item.audioUri)} 세션`
-        }
+        // getSessionCountLabel={(item) =>
+        //   `${setup.getSessionCountForPreset(item.presetKey, item.audioUri)} 회`
+        // }
         sectionTitle="학습할 단어"
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}
       />
