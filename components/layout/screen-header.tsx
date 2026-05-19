@@ -4,7 +4,7 @@ import { SectionKicker } from '@/components/ui/section-kicker';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 
 interface ScreenHeaderProps {
-  kicker: string;
+  kicker?: string;
   title: string;
   body?: string;
 }
@@ -12,7 +12,7 @@ interface ScreenHeaderProps {
 export function ScreenHeader({ kicker, title, body }: ScreenHeaderProps) {
   return (
     <View style={styles.header}>
-      <SectionKicker tone="strong">{kicker}</SectionKicker>
+      {kicker ? <SectionKicker tone="strong">{kicker}</SectionKicker> : null}
       <Text style={styles.title}>{title}</Text>
       {body ? <Text style={styles.body}>{body}</Text> : null}
     </View>

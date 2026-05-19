@@ -98,9 +98,7 @@ export default function SessionSetupScreen() {
   return (
     <PetScreen contentStyle={styles.content}>
       <ScreenHeader
-        kicker={t('sessionSetup.kicker')}
         title={t('sessionSetup.title')}
-        body={t('sessionSetup.body')}
       />
 
       <CycleSummary

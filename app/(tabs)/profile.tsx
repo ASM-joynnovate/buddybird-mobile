@@ -82,9 +82,9 @@ export default function ProfileScreen() {
 
   return (
     <PetScreen contentStyle={styles.content}>
-      <ScreenHeader kicker={t('profile.kicker')} title={t('profile.title')} />
+      <ScreenHeader title={t('profile.title')} />
 
-      <ParrotProfileCard compact profile={profile} />
+      <ParrotProfileCard profile={profile} />
 
       {isEditing ? (
         <ProfileEditForm
