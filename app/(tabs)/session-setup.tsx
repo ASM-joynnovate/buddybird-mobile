@@ -112,11 +112,7 @@ export default function SessionSetupScreen() {
         presetKey={setup.presetKey}
         onSelectPreset={setup.setPresetKey}
         sessionMins={setup.sessionMins}
-        learnSecs={setup.learnSecs}
-        restSecs={setup.restSecs}
         onChangeSessionMins={setup.setSessionMins}
-        onChangeLearnSecs={setup.setLearnSecs}
-        onChangeRestSecs={setup.setRestSecs}
       />
 
       <WordPicker

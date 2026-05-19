@@ -40,3 +40,11 @@ export interface SessionMeta {
   learningDurationSeconds: number;
   restDurationSeconds: number;
 }
+
+export function calcLearnRestFromTotal(totalSecs: number): { learnSecs: number; restSecs: number } {
+  const n = Math.max(1, Math.round(totalSecs / 900));
+  const secsPerCycle = totalSecs / n;
+  const learnSecs = Math.max(60, Math.round((secsPerCycle * 2) / 3 / 60) * 60);
+  const restSecs = Math.max(60, Math.round(secsPerCycle / 3 / 60) * 60);
+  return { learnSecs, restSecs };
+}
