@@ -105,7 +105,6 @@ export default function SessionSetupScreen() {
         sessionMins={setup.sessionMins}
         learnSecs={setup.learnSecs}
         restSecs={setup.restSecs}
-        totalCycles={setup.totalCycles}
       />
 
       <SessionPresetCard

@@ -1,20 +1,19 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BuddyBirdColors } from '@/constants/theme';
-import { formatDurationSecs } from '@/features/shared/duration-format';
+import { formatDurationSecs, formatDurationMins } from '@/features/shared/duration-format';
 
 interface CycleSummaryProps {
   sessionMins: number;
   learnSecs: number;
   restSecs: number;
-  totalCycles: number;
 }
 
-export function CycleSummary({ sessionMins, learnSecs, restSecs, totalCycles }: CycleSummaryProps) {
+export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryProps) {
   return (
     <View style={styles.row}>
-      <View style={[styles.cell, styles.cellDark]}>
-        <Text style={[styles.value, styles.valueDark]}>{sessionMins}분</Text>
+      <View style={[styles.cell, styles.cellDark, styles.cellWide]}>
+        <Text style={[styles.value, styles.valueDark]}>{formatDurationMins(sessionMins)}</Text>
         <Text style={[styles.label, styles.labelDark]}>총 세션 시간</Text>
       </View>
       <View style={[styles.cell, styles.cellTeal]}>
@@ -24,10 +23,6 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs, totalCycles }: 
       <View style={[styles.cell, styles.cellCoral]}>
         <Text style={[styles.value, styles.valueCoral]}>{formatDurationSecs(restSecs)}</Text>
         <Text style={[styles.label, styles.labelCoral]}>휴식</Text>
-      </View>
-      <View style={[styles.cell, styles.cellCream]}>
-        <Text style={[styles.value, styles.valueCream]}>{totalCycles}</Text>
-        <Text style={[styles.label, styles.labelCream]}>사이클</Text>
       </View>
     </View>
   );
@@ -47,17 +42,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   cellDark: { backgroundColor: BuddyBirdColors.primary },
+  cellWide: { flex: 2 },
   cellTeal: { backgroundColor: BuddyBirdColors.secondary },
   cellCoral: { backgroundColor: BuddyBirdColors.accentCoral },
-  cellCream: { backgroundColor: '#FAF6F0' },
   value: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
   valueDark: { color: '#FAF6F0' },
   valueTeal: { color: '#FAF6F0' },
   valueCoral: { color: '#FAF6F0' },
-  valueCream: { color: BuddyBirdColors.primary },
   label: { fontSize: 9, fontWeight: '500', letterSpacing: 0.5, marginTop: 2, opacity: 0.65 },
   labelDark: { color: '#FAF6F0' },
   labelTeal: { color: '#FAF6F0' },
   labelCoral: { color: '#FAF6F0' },
-  labelCream: { color: BuddyBirdColors.primary },
 });
