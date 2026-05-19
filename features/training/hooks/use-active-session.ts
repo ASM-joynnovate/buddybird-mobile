@@ -65,7 +65,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     }
   }
 
-  const sessionPlayer = useAudioPlayer(audioUri);
+  const sessionPlayer = useAudioPlayer(audioUri, { updateInterval: 100 });
   const sessionPlayerStatus = useAudioPlayerStatus(sessionPlayer);
 
   const isLearning = phase === 'learning';
@@ -141,6 +141,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     const rawDuration = sessionPlayerStatus.duration;
     const gapMs = typeof rawDuration === 'number' && rawDuration > 0 ? rawDuration * 1000 : 0;
 
+    clearSilenceTimer();
     silenceTimerRef.current = setTimeout(() => {
       silenceTimerRef.current = null;
       sessionPlayer
