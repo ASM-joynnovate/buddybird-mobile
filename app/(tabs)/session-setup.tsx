@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
@@ -9,8 +9,7 @@ import { SessionPresetCard } from '@/components/session/setup/session-preset-car
 import { WordPicker, type WordPickerItem } from '@/components/session/setup/word-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
-import { SectionKicker } from '@/components/ui/section-kicker';
-import { Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Spacing } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -114,7 +113,7 @@ export default function SessionSetupScreen() {
       />
 
       <View style={styles.timeSection}>
-        <SectionKicker>학습 시간 설정</SectionKicker>
+        <Text style={styles.sectionTitle}>학습 시간 설정</Text>
         <CycleSummary
           sessionMins={setup.sessionMins}
           learnSecs={setup.learnSecs}
@@ -150,5 +149,11 @@ const styles = StyleSheet.create({
   },
   timeSection: {
     gap: 8,
+  },
+  sectionTitle: {
+    color: BuddyBirdColors.primary,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });

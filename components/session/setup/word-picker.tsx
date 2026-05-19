@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FilterChip } from '@/components/words/word-filter-bar';
-import { SectionKicker } from '@/components/ui/section-kicker';
 import { BuddyBirdColors, Radii } from '@/constants/theme';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 
@@ -53,7 +52,7 @@ export function WordPicker({
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        <SectionKicker>{sectionTitle}</SectionKicker>
+        <Text style={styles.sectionTitle}>{sectionTitle}</Text>
       </View>
       <ScrollView
         horizontal
@@ -99,6 +98,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 2,
+  },
+  sectionTitle: {
+    color: BuddyBirdColors.primary,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   filterRow: {
     gap: 6,
