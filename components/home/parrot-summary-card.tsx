@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BuddyBirdColors, Radii } from '@/constants/theme';
@@ -16,7 +17,11 @@ export function ParrotSummaryCard({ profile }: ParrotSummaryCardProps) {
     <View style={styles.card}>
       <View style={styles.row}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarEmoji}>{profile.photoUri ? '' : '🦜'}</Text>
+          {profile.photoUri ? (
+            <Image source={{ uri: profile.photoUri }} style={styles.photo} contentFit="cover" />
+          ) : (
+            <Text style={styles.avatarEmoji}>🦜</Text>
+          )}
         </View>
         <View style={styles.info}>
           <Text style={styles.name}>{profile.name}</Text>
@@ -46,12 +51,15 @@ const styles = StyleSheet.create({
   avatarCircle: {
     alignItems: 'center',
     backgroundColor: BuddyBirdColors.feather,
-    borderColor: 'rgba(255,255,255,0.4)',
     borderRadius: Radii.full,
-    borderWidth: 3,
     height: 64,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 64,
+  },
+  photo: {
+    height: '100%',
+    width: '100%',
   },
   avatarEmoji: {
     fontSize: 30,

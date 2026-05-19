@@ -10,17 +10,16 @@ import { formatAgeMonths } from '@/features/profile/profile-validation';
 
 interface ParrotProfileCardProps {
   profile: ParrotProfile;
-  compact?: boolean;
 }
 
-export function ParrotProfileCard({ profile, compact = false }: ParrotProfileCardProps) {
+export function ParrotProfileCard({ profile }: ParrotProfileCardProps) {
   const { locale, t } = useI18n();
   const speciesLabel = getSpeciesLabel(locale, profile.species);
 
   return (
     <Card raised style={styles.card}>
       <View style={styles.row}>
-        <View style={[styles.avatar, compact ? styles.compactAvatar : undefined]}>
+        <View style={styles.avatar}>
           {profile.photoUri ? (
             <Image source={{ uri: profile.photoUri }} style={styles.photo} contentFit="cover" />
           ) : (
@@ -57,10 +56,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: 64,
   },
-  compactAvatar: {
-    height: 54,
-    width: 54,
-  },
   photo: {
     height: '100%',
     width: '100%',
@@ -79,5 +74,6 @@ const styles = StyleSheet.create({
   meta: {
     ...Typography.bodySmall,
     color: 'rgba(255,255,255,0.88)',
+    fontSize: 12,
   },
 });
