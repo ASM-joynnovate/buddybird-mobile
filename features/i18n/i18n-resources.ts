@@ -47,7 +47,6 @@ interface AppCopy {
   validation: {
     nameRequired: string;
     speciesRequired: string;
-    ageInvalid: string;
   };
   onboarding: {
     profile: {
@@ -208,7 +207,6 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: '반려조 이름을 입력해 주세요.',
       speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
-      ageInvalid: '나이는 1개월부터 10년까지 선택할 수 있어요.',
     },
     onboarding: {
       profile: {
@@ -383,7 +381,6 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: "Enter your bird’s name.",
       speciesRequired: "Enter your bird’s species.",
-      ageInvalid: "Age can be set from 1 month to 10 years.",
     },
     onboarding: {
       profile: {
