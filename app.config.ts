@@ -1,0 +1,173 @@
+// app.config.ts
+import type { ConfigContext, ExpoConfig } from 'expo/config';
+
+declare const require: (moduleName: string) => { version?: string };
+
+const APP_NAME = '버디버드';
+
+const TRACKING_PERMISSION_MESSAGE =
+    '더 나은 학습 경험을 위해 익명화된 사용 통계를 수집합니다. 개인을 식별하지 않으며, 언제든지 거부할 수 있습니다.';
+
+const MICROPHONE_PERMISSION_MESSAGE =
+    '버디버드가 반려조 학습용 목소리를 녹음할 수 있도록 마이크 접근을 허용해 주세요.';
+
+type AppVariant = 'development' | 'production';
+
+const resolveAppVariant = (): AppVariant =>
+    process.env.APP_VARIANT === 'production' ? 'production' : 'development';
+
+const APP_VARIANT = resolveAppVariant();
+const IS_DEV = APP_VARIANT === 'development';
+
+const BUNDLE_ID_BASE = 'com.joynnovate.buddybird';
+const BUNDLE_ID = IS_DEV ? `${BUNDLE_ID_BASE}.dev` : BUNDLE_ID_BASE;
+const SCHEME = IS_DEV ? 'buddybird-dev' : 'buddybird';
+const DISPLAY_NAME = IS_DEV ? `${APP_NAME} (DEV)` : APP_NAME;
+
+const IOS_GOOGLE_SERVICES_FILE =
+    process.env.GOOGLE_SERVICES_INFO_PLIST ??
+    (IS_DEV
+        ? './config/dev/firebase/GoogleService-Info.plist'
+        : './config/prod/firebase/GoogleService-Info.plist');
+
+const ANDROID_GOOGLE_SERVICES_FILE =
+    process.env.GOOGLE_SERVICES_JSON ??
+    (IS_DEV
+        ? './config/dev/firebase/google-services.json'
+        : './config/prod/firebase/google-services.json');
+
+const getExpoMajorVersion = (): number | null => {
+    try {
+        const { version } = require('expo/package.json');
+        const majorVersion = Number(version?.split('.')[0]);
+
+        return Number.isFinite(majorVersion) ? majorVersion : null;
+    } catch {
+        return null;
+    }
+};
+
+const expoMajorVersion = getExpoMajorVersion();
+
+/**
+ * Expo SDK 55부터는 newArchEnabled와 android.edgeToEdgeEnabled가 app config에서 제거되었습니다.
+ * SDK 54 이하에서는 기존 app.json 동작을 보존하기 위해 유지합니다.
+ */
+const shouldKeepSdk54CompatConfig =
+    expoMajorVersion !== null && expoMajorVersion < 55;
+
+export default ({ config }: ConfigContext): ExpoConfig => ({
+    ...config,
+
+    ...(shouldKeepSdk54CompatConfig
+        ? {
+            newArchEnabled: true,
+        }
+        : {}),
+
+    name: DISPLAY_NAME,
+    slug: 'buddybird',
+    version: '1.0.0',
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: SCHEME,
+    userInterfaceStyle: 'automatic',
+
+    ios: {
+        supportsTablet: true,
+        bundleIdentifier: BUNDLE_ID,
+        googleServicesFile: IOS_GOOGLE_SERVICES_FILE,
+        infoPlist: {
+            NSUserTrackingUsageDescription: TRACKING_PERMISSION_MESSAGE,
+        },
+    },
+
+    android: {
+        package: BUNDLE_ID,
+        googleServicesFile: ANDROID_GOOGLE_SERVICES_FILE,
+        adaptiveIcon: {
+            backgroundColor: '#AFF729',
+            foregroundImage: './assets/images/android-icon-foreground.png',
+            backgroundImage: './assets/images/android-icon-background.png',
+            monochromeImage: './assets/images/android-icon-monochrome.png',
+        },
+
+        ...(shouldKeepSdk54CompatConfig
+            ? {
+                edgeToEdgeEnabled: true,
+            }
+            : {}),
+
+        predictiveBackGestureEnabled: false,
+        permissions: [
+            'android.permission.RECORD_AUDIO',
+            'android.permission.MODIFY_AUDIO_SETTINGS',
+            'com.google.android.gms.permission.AD_ID',
+        ],
+    },
+
+    web: {
+        output: 'static',
+        favicon: './assets/images/favicon.png',
+    },
+
+    plugins: [
+        'expo-router',
+        [
+            'expo-splash-screen',
+            {
+                image: './assets/images/splash-icon.png',
+                imageWidth: 320,
+                resizeMode: 'contain',
+                backgroundColor: '#AFF729',
+                dark: {
+                    backgroundColor: '#AFF729',
+                },
+            },
+        ],
+        [
+            'expo-audio',
+            {
+                microphonePermission: MICROPHONE_PERMISSION_MESSAGE,
+            },
+        ],
+        '@react-native-firebase/app',
+        '@react-native-firebase/crashlytics',
+        [
+            'expo-tracking-transparency',
+            {
+                userTrackingPermission: TRACKING_PERMISSION_MESSAGE,
+            },
+        ],
+        [
+            'expo-build-properties',
+            {
+                ios: {
+                    useFrameworks: 'static',
+                    forceStaticLinking: [
+                        'RNFBApp',
+                        'RNFBAnalytics',
+                        'RNFBCrashlytics',
+                    ],
+                },
+            },
+        ],
+        './plugins/withFirebaseStaticPodfile',
+    ],
+
+    extra: {
+        appVariant: APP_VARIANT,
+        clarityProjectId: 'wre3hgbj48',
+        router: {},
+        eas: {
+            projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e',
+        },
+    },
+
+    experiments: {
+        typedRoutes: true,
+        reactCompiler: true,
+    },
+
+    owner: 'joynnovate0410',
+});

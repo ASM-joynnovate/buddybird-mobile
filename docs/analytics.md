@@ -4,24 +4,15 @@
 
 ## 1. 사전 준비 (사용자 작업)
 
-1. Firebase 콘솔에서 프로젝트 생성 후 iOS/Android 앱 등록
-   - iOS bundle ID / Android package: `com.joynnovate.buddybird`
-   - `GoogleService-Info.plist` 다운로드 → `buddybird-mobile/GoogleService-Info.plist`
-   - `google-services.json` 다운로드 → `buddybird-mobile/google-services.json`
-2. Microsoft Clarity 콘솔에서 모바일 프로젝트 생성 → Project ID 발급
-   - `app.json`의 `expo.extra.clarityProjectId`에 값 입력
-   - 또는 `.env`에 `EXPO_PUBLIC_CLARITY_PROJECT_ID` 설정
-3. 패키지 설치
-   ```bash
-   cd buddybird-mobile
-   yarn install
-   ```
-4. Native 모듈을 위한 prebuild + dev build
-   ```bash
-   npx expo prebuild --clean
-   eas build --profile development --platform ios     # 또는 android
-   ```
-   > **주의**: `@react-native-firebase/*`와 `@microsoft/react-native-clarity`는 native module이라 Expo Go에서 실행되지 않습니다. EAS Development Build 필수.
+Firebase 프로젝트 등록·config 파일 배치·prebuild·EAS Development Build 등 **빌드/배포 전반의 절차는 [`docs/BUILD-AND-RELEASE.md`](./BUILD-AND-RELEASE.md) 가 SSoT** 입니다. 본 가이드는 analytics 코드 사용법에만 집중합니다.
+
+Microsoft Clarity 사용을 위한 추가 작업:
+
+- Clarity 콘솔에서 모바일 프로젝트 생성 → Project ID 발급
+- `app.config.ts`의 `extra.clarityProjectId` 에 값 입력
+- 또는 `.env.local` 에 `EXPO_PUBLIC_CLARITY_PROJECT_ID` 설정
+
+> **주의**: `@react-native-firebase/*` 와 `@microsoft/react-native-clarity` 는 native module 이라 Expo Go 에서 실행되지 않습니다. dynamic config + prebuild + EAS Development Build 가 필수이며, 절차는 BUILD-AND-RELEASE.md 참조.
 
 ## 2. 코드에서 사용하기
 

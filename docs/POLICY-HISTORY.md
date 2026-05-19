@@ -28,6 +28,7 @@
 | 2026-05-16 | conversation `/buddybird-policy-update` 호출 (base `cd54b26`) | 작업 시작 전 현재 브랜치의 upstream 대비 최신 여부를 반드시 확인하고, 뒤처져 있으면 사용자에게 명시적으로 알리도록 의무화 | `docs/WORKFLOW.md`, `CLAUDE.md` |
 | 2026-05-17 | plan `~/.claude/plans/hidden-scribbling-sunbeam.md` | session-preset-card 인라인 `WheelPicker`를 `components/ui/wheel-picker.tsx`로, 한국어 시간 포맷터(`fmtMins`/`formatDuration`)를 `features/shared/duration-format.ts`(`formatDurationMins`/`formatDurationSecs`)로 분리. `WheelPicker`는 추출 시점에 단일 caller로, §1-5(2회 이상 중복 시 추출) 예외 — 사유: UI primitive 재사용 잠재력 | `components/ui/wheel-picker.tsx`, `features/shared/duration-format.ts`, `components/session/setup/session-preset-card.tsx`, `components/session/setup/cycle-summary.tsx`, `docs/SHARED-MODULES.md` |
 | 2026-05-17 | plan `~/.claude/plans/atomic-plotting-sedgewick.md` | 오디오 URI 영구화 정책 도입: AsyncStorage에는 `recording://<fileName>` / `preset://<label>` 만 저장 (절대 `file://` URI 금지). storage 계층에서 `normalizeAudioUriForStorage` / `hydrateAudioUriFromStorage` 의무 적용, 재생 직전 `recordingFileExists`로 stale/missing 가드. 사유: iOS 컨테이너 UUID는 빌드/재설치 시 변경되어 절대 URI는 stale (Apple TN2406, expo#32788). 기존 v1 데이터(절대 URI)는 load 시 그대로 pass-through 후 다음 save에서 자동 정규화 | `features/audio/audio-file-storage.ts`, `features/word-library/word-library-storage.ts`, `features/training/training-storage.ts`, `features/audio/hooks/use-audio-preview.ts`, `features/training/hooks/use-active-session.ts`, `docs/CONVENTIONS.md` §6, `docs/SHARED-MODULES.md` §6.1 |
+| 2026-05-19 | plan `~/.claude/plans/react-native-eas-sharded-lobster.md` | 환경별 EAS 빌드 분리 (dev/prod) 정책 도입: `app.config.ts` 가 `APP_VARIANT` 로 `name`/`bundleIdentifier`/`package`/`scheme`/`googleServicesFile`/`extra.appVariant` 분기, dev/prod 별도 Firebase 프로젝트 (`buddybird-dev` vs `buddybird-9b84d`) + Bundle ID suffix (`.dev`), 환경별 비밀 설정은 `config/{env}/{service}/` 트리, EAS Cloud 의 file env vars 로 Firebase config 자동 주입. 빌드/배포 절차의 SSoT 로 `docs/BUILD-AND-RELEASE.md` 신설 — `ARCHITECTURE.md`/`README.md`/`CLAUDE.md` 는 포인터만 유지하며 빌드 명령어 직접 기재 금지 | `app.config.ts`, `eas.json`, `package.json`, `.gitignore`, `docs/BUILD-AND-RELEASE.md` (신규), `docs/ARCHITECTURE.md`, `CLAUDE.md` |
 
 ## 2. 정책 카테고리별 요약
 
@@ -64,9 +65,10 @@
 
 ### 2.5 네이티브 설정
 - `@react-native-firebase/* ^24.0.0` 핀 (modular API 전제)
-- `plugins/withFirebaseStaticPodfile.js` + `app.json` plugin 등록 의무
+- `plugins/withFirebaseStaticPodfile.js` + `app.config.ts` plugin 등록 의무
 - `firebase.json`: crashlytics 디버그 off, analytics auto-collection on
-- Expo Go 사용 불가 → `eas build --profile development` 사용
+- Expo Go 사용 불가 → dynamic config + prebuild 기반
+- 환경별 빌드(dev/prod), EAS Secret, 출시 절차는 `docs/BUILD-AND-RELEASE.md` 가 SSoT
 
 ### 2.6 커밋 디시플린
 - Conventional commits 소문자: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`, `ci`

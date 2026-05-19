@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `docs/POLICY-HISTORY.md` | 정책 도입 이력 (출처 plan/commit + 영향 범위) |
 | `docs/analytics.md` §정책 | 이벤트 grammar, ATT, PII, 에러 보고, Firebase modular API |
 | `docs/ARCHITECTURE.md` §네이티브 설정 | Firebase RNFirebase v24 핀, Podfile plugin, gitignore |
+| `docs/BUILD-AND-RELEASE.md` | 환경별 빌드(dev/prod)·EAS Secret·Firebase config 배치 규칙·출시 절차 (배포 SSoT) |
 
 ## 정책 변경 시 (자동화)
 

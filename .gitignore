@@ -350,7 +350,7 @@ render.experimental.xml
 *.keystore
 
 # Google Services (e.g. APIs or Firebase)
-google-services.json
+config/prod/firebase/google-services.json
 
 # Android Profiling
 *.hprof
@@ -580,7 +580,7 @@ render.experimental.xml
 *.keystore
 
 # Google Services (e.g. APIs or Firebase)
-google-services.json
+config/prod/firebase/google-services.json
 
 # Android Profiling
 *.hprof
@@ -719,7 +719,11 @@ expo-env.d.ts
 /ios/
 
 # Firebase service configs (do not commit)
-/GoogleService-Info.plist
+/config/prod/firebase/GoogleService-Info.plist
+
+# Per-environment config (Firebase, future per-service keys)
+# Tree: config/{env}/{service}/...
+/config/
 
 # Claude local setting
 .claude/settings.local.json
