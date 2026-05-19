@@ -41,7 +41,7 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 
 ## 네이티브 설정
 
-버디버드 Mobile은 native modules (`@react-native-firebase/*`, `@microsoft/react-native-clarity`, `expo-tracking-transparency`)에 의존하므로 **Expo Go에서 실행할 수 없습니다**. 다음 설정을 엄수합니다.
+버디버드 Mobile은 native modules (`@react-native-firebase/*`, `@microsoft/react-native-clarity`, `expo-tracking-transparency`)에 의존하므로 **Expo Go에서 실행할 수 없습니다**. Dynamic config(`app.config.ts`)와 prebuild 기반으로 동작합니다.
 
 ### Firebase RNFirebase v24
 
@@ -49,13 +49,15 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 - **modular API만 사용** (`getAnalytics(app)`, `logEvent(analytics, …)` 형태). namespaced `analytics().logEvent()` / `crashlytics().…` 금지
 - 화면 추적은 `logEvent(analytics, 'screen_view', …)` — 사라진 `logScreenView` 금지
 
-### Plugin & app.json
+### Plugin
 
 - `plugins/withFirebaseStaticPodfile.js`: iOS Podfile에 `use_frameworks! :linkage => :static`를 강제 (RNFirebase의 static linking 요구)
-- `app.json`의 `expo.plugins`에 다음 등록 필수:
+- `plugins/withGradleJvmArgs.js`: Android `gradle.properties` 의 `org.gradle.jvmargs` 를 `-Xmx6144m -XX:MaxMetaspaceSize=1024m …` 로 upsert (CMake + Kotlin + Worklets 병렬 빌드 OOM 방지). 상세는 `docs/BUILD-AND-RELEASE.md` §7.2.
+- `app.config.ts`의 `plugins`에 다음 등록 필수:
   - `@react-native-firebase/app`
   - `@react-native-firebase/crashlytics`
   - `./plugins/withFirebaseStaticPodfile`
+  - `./plugins/withGradleJvmArgs`
   - `expo-tracking-transparency` (ATT)
 
 ### 프로젝트 루트 `firebase.json`
@@ -71,24 +73,29 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 }
 ```
 
-### `.gitignore` (커밋 금지)
+### 환경 분리 (dev / prod)
+
+dev 와 prod 는 **별도 Firebase 프로젝트** 와 별도 Bundle ID 로 분리됩니다. 한눈 매핑:
+
+| 키 | development | production |
+|---|---|---|
+| App display name | `버디버드 (DEV)` | `버디버드` |
+| iOS Bundle ID / Android package | `com.joynnovate.buddybird.dev` | `com.joynnovate.buddybird` |
+| URL scheme | `buddybird-dev` | `buddybird` |
+| Firebase project | `buddybird-dev` | `buddybird-9b84d` |
+
+**자세한 절차 · 명령어 · 온보딩 · 트러블슈팅 · Hard Rules 는 [`docs/BUILD-AND-RELEASE.md`](./BUILD-AND-RELEASE.md) 참조**. ARCHITECTURE.md 는 구조와 원칙만 기술하며, 빌드/배포 명령은 본 문서에 두지 않습니다.
+
+### config / `.gitignore` (커밋 금지)
 
 ```
-google-services.json
+/config/                    # 환경별 비밀 설정 (Firebase 등)
 GoogleService-Info.plist
+google-services.json
 /android/
 /ios/
 .firebaserc
 .firebase/
 ```
 
-Firebase 콘솔에서 다운받은 config 파일은 **절대 commit하지 않습니다**. `npx expo prebuild --clean` 결과물(`/android/`, `/ios/`)도 마찬가지.
-
-### 개발 빌드
-
-```bash
-npx expo prebuild --clean
-eas build --profile development --platform ios     # 또는 android
-```
-
-Expo Go는 사용 불가. 항상 EAS development build 또는 prebuild + local build를 사용합니다.
+Firebase 콘솔에서 다운받은 config 파일은 **절대 commit하지 않습니다**. 환경별 배치 규칙은 BUILD-AND-RELEASE.md §4 참조.

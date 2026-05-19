@@ -17,12 +17,26 @@ yarn android
 yarn web
 ```
 
+환경별(dev/prod) 빌드 핵심 명령:
+
+```bash
+yarn start:dev          / yarn start:prod          # Metro (APP_VARIANT 분기)
+yarn ios:dev            / yarn android:dev         # 로컬 dev 빌드 + 실행
+yarn eas:build:dev:all  / yarn eas:build:prod:all  # EAS Cloud 빌드 (iOS+Android)
+```
+
+> EAS Secret 등록, 로컬 Firebase config 배치, Keystore·credentials.json 운영, App Store/Play Store 출시 등 전체 절차는 [`docs/BUILD-AND-RELEASE.md`](docs/BUILD-AND-RELEASE.md) 가 단일 출처입니다.
+
 ## 검증
 
 ```bash
 yarn lint
 yarn typecheck
 ```
+
+## 환경별 빌드 · 배포
+
+환경 분리(dev/prod) 구성, Firebase config 배치, EAS Cloud 빌드, App Store/Play Store 출시 절차는 [`docs/BUILD-AND-RELEASE.md`](docs/BUILD-AND-RELEASE.md) 를 참조하세요. 빌드/배포 명령은 본 README 가 아닌 그쪽에서 단일하게 관리됩니다.
 
 ## Phase 1 범위
 
