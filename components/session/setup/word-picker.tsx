@@ -63,15 +63,17 @@ export function WordPicker({
           <FilterChip key={c} cat={c} active={activeCategory === c} onPress={() => setActiveCategory(c)} />
         ))}
       </ScrollView>
-      <ScrollView
-        style={styles.listScroll}
-        contentContainerStyle={styles.listContent}
-        nestedScrollEnabled
-      >
-        {filteredItems.length === 0 ? (
+      {filteredItems.length === 0 ? (
+        <View style={[styles.listScroll, styles.listEmpty]}>
           <Text style={styles.emptyText}>해당 카테고리에 단어가 없습니다</Text>
-        ) : (
-          filteredItems.map((item) => (
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.listScroll}
+          contentContainerStyle={styles.listContent}
+          nestedScrollEnabled
+        >
+          {filteredItems.map((item) => (
             <WordPickerCard
               key={item.id}
               label={item.label}
@@ -82,9 +84,9 @@ export function WordPicker({
               active={selectedId === item.id}
               onSelect={() => onSelect(item.id)}
             />
-          ))
-        )}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -119,6 +121,10 @@ const styles = StyleSheet.create({
   listContent: {
     gap: CARD_GAP,
     paddingBottom: 10,
+  },
+  listEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   empty: {
     alignItems: 'center',
