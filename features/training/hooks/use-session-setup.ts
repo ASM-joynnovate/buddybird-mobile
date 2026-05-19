@@ -6,7 +6,7 @@ import { useI18n } from '@/features/i18n/i18n-context';
 
 import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
-import { SESSION_PRESETS } from '../session-config';
+import { SESSION_PRESETS, calcLearnRestFromTotal } from '../session-config';
 import type { SessionPresetKey } from '../session-config';
 import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '../training-types';
 
@@ -30,9 +30,7 @@ export interface UseSessionSetupResult {
   sessionMins: number;
   setSessionMins: (n: number) => void;
   learnSecs: number;
-  setLearnSecs: (n: number) => void;
   restSecs: number;
-  setRestSecs: (n: number) => void;
   totalCycles: number;
   isHydrated: boolean;
   trainingErrorMessage: string | null;
@@ -54,7 +52,7 @@ export function useSessionSetup(): UseSessionSetupResult {
   } = useTrainingData();
 
   const [presetKey, setPresetKeyState] = useState<SessionPresetKey>('short');
-  const [sessionMins, setSessionMins] = useState(60);
+  const [sessionMins, setSessionMinsState] = useState(60);
   const [learnSecs, setLearnSecs] = useState(600);
   const [restSecs, setRestSecs] = useState(300);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
@@ -62,14 +60,25 @@ export function useSessionSetup(): UseSessionSetupResult {
   function setPresetKey(key: SessionPresetKey) {
     setPresetKeyState(key);
     if (key === 'custom') {
-      setSessionMins(75);
-      setLearnSecs(600);
-      setRestSecs(300);
+      const defaultMins = 75;
+      setSessionMinsState(defaultMins);
+      const { learnSecs: ls, restSecs: rs } = calcLearnRestFromTotal(defaultMins * 60);
+      setLearnSecs(ls);
+      setRestSecs(rs);
     } else {
       const preset = SESSION_PRESETS.find((p) => p.key === key)!;
       setLearnSecs(preset.learnSecs);
       setRestSecs(preset.restSecs);
-      setSessionMins((preset.learnSecs + preset.restSecs) / 60 * preset.cycles);
+      setSessionMinsState((preset.learnSecs + preset.restSecs) / 60 * preset.cycles);
+    }
+  }
+
+  function setSessionMins(mins: number) {
+    setSessionMinsState(mins);
+    if (presetKey === 'custom') {
+      const { learnSecs: ls, restSecs: rs } = calcLearnRestFromTotal(mins * 60);
+      setLearnSecs(ls);
+      setRestSecs(rs);
     }
   }
 
@@ -150,9 +159,7 @@ export function useSessionSetup(): UseSessionSetupResult {
     sessionMins,
     setSessionMins,
     learnSecs,
-    setLearnSecs,
     restSecs,
-    setRestSecs,
     totalCycles,
     isHydrated,
     trainingErrorMessage,

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
@@ -9,7 +9,7 @@ import { SessionPresetCard } from '@/components/session/setup/session-preset-car
 import { WordPicker, type WordPickerItem } from '@/components/session/setup/word-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
-import { Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Spacing } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -101,24 +101,6 @@ export default function SessionSetupScreen() {
         title={t('sessionSetup.title')}
       />
 
-      <CycleSummary
-        sessionMins={setup.sessionMins}
-        learnSecs={setup.learnSecs}
-        restSecs={setup.restSecs}
-        totalCycles={setup.totalCycles}
-      />
-
-      <SessionPresetCard
-        presetKey={setup.presetKey}
-        onSelectPreset={setup.setPresetKey}
-        sessionMins={setup.sessionMins}
-        learnSecs={setup.learnSecs}
-        restSecs={setup.restSecs}
-        onChangeSessionMins={setup.setSessionMins}
-        onChangeLearnSecs={setup.setLearnSecs}
-        onChangeRestSecs={setup.setRestSecs}
-      />
-
       <WordPicker
         items={pickerItems}
         selectedId={selectedEntryId}
@@ -129,6 +111,21 @@ export default function SessionSetupScreen() {
         sectionTitle="학습할 단어"
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}
       />
+
+      <View style={styles.timeSection}>
+        <Text style={styles.sectionTitle}>학습 시간 설정</Text>
+        <CycleSummary
+          sessionMins={setup.sessionMins}
+          learnSecs={setup.learnSecs}
+          restSecs={setup.restSecs}
+        />
+        <SessionPresetCard
+          presetKey={setup.presetKey}
+          onSelectPreset={setup.setPresetKey}
+          sessionMins={setup.sessionMins}
+          onChangeSessionMins={setup.setSessionMins}
+        />
+      </View>
 
       <InlineError message={setup.trainingErrorMessage} />
       <InlineError message={setup.saveErrorMessage} />
@@ -149,5 +146,14 @@ export default function SessionSetupScreen() {
 const styles = StyleSheet.create({
   content: {
     gap: Spacing.sectionY,
+  },
+  timeSection: {
+    gap: 8,
+  },
+  sectionTitle: {
+    color: BuddyBirdColors.primary,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });
