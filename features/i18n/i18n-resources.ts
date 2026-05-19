@@ -227,7 +227,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       profile: {
         kicker: 'STEP 02',
         title: '반려조 프로필을\n알려주세요',
-        body: 'MVP에서는 한 마리만 등록해 홈과 학습 기록을 연결해요.',
+        body: '',
         nameLabel: '이름',
         namePlaceholder: '예: 망고',
         speciesLabel: '종',
@@ -325,7 +325,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     profile: {
       kicker: 'PROFILE',
       title: '반려조 프로필',
-      body: 'MVP에서는 한 마리 프로필만 조회하고 수정할 수 있어요.',
+      body: '',
       editCta: '프로필 수정',
       nameLabel: '이름',
       namePlaceholder: '이름',

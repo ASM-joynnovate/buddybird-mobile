@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -11,8 +11,8 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
-import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
 import { useProfile } from '@/features/profile/profile-context';
+import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { createProfileFromDraft, formatAgeMonths, validateProfileDraft } from '@/features/profile/profile-validation';
 
@@ -99,7 +99,6 @@ export default function OnboardingProfileScreen() {
       <View style={styles.header}>
         <Text style={styles.kicker}>{t('onboarding.profile.kicker')}</Text>
         <Text style={styles.title}>{t('onboarding.profile.title')}</Text>
-        <Text style={styles.body}>{t('onboarding.profile.body')}</Text>
       </View>
 
       <ProfileAvatarPicker photoUri={photoUri} onPhotoSelected={setPhotoUri} />
