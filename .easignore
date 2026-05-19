@@ -1,0 +1,93 @@
+# .easignore — EAS tarball 한정 ignore.
+#
+# EAS 는 이 파일이 존재하면 .gitignore 를 무시하고 .easignore 만 사용한다.
+# 본 파일의 목적: .gitignore 의 /config/ 제외를 EAS tarball 한정으로 무력화하여
+# Firebase config 만 빌드 머신에 전달한다 (EAS Local build 의 PREBUILD ENOENT 해결).
+# keystore / credentials.json 은 EAS Cloud credentials 와 별개로 tarball 에 포함되지
+# 않도록 명시적으로 재제외한다 (EAS 가 remote keystore 를 사용 — 빌드 로그의
+# "Using remote Android credentials (Expo server)" 참고).
+#
+# Cloud 빌드는 EAS env (GOOGLE_SERVICES_JSON / GOOGLE_SERVICES_INFO_PLIST) 가
+# app.config.ts 의 `??` fallback 보다 우선되므로 tarball 내 firebase config 가 함께
+# 있어도 무해하다.
+#
+# 정책 근거: docs/BUILD-AND-RELEASE.md §4, §7.2, §12; docs/POLICY-HISTORY.md (2026-05-19)
+
+# ---------- 의존성 / 빌드 산출물 ----------
+node_modules/
+build/
+**/build/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradle/
+.expo/
+__generated__
+*.tsbuildinfo
+
+# Expo prebuild 산출물 — EAS PREBUILD 가 새로 생성
+/android/
+/ios/
+
+# ---------- 환경변수 / 로컬 비밀 ----------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ---------- 로그 / 캐시 ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.stylelintcache
+coverage
+*.lcov
+.nyc_output
+
+# ---------- 패키지 매니저 캐시 ----------
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.npm
+
+# ---------- IDE / OS ----------
+.idea/
+.vscode/
+.history/
+.DS_Store
+._*
+Thumbs.db
+*.swp
+
+# ---------- 키스토어 / 인증 정보 (EAS 가 remote credentials 사용) ----------
+**/credentials.json
+**/*.jks
+**/*.keystore
+**/*.p8
+**/*.p12
+**/*.mobileprovision
+
+# ---------- Claude 로컬 설정 ----------
+.claude/settings.local.json
+
+# ---------- per-environment config ----------
+# .gitignore 는 /config/ 전체를 제외하지만, EAS local build 의 PREBUILD 가
+# config/{env}/firebase/google-services.json 을 직접 읽으므로 firebase 만 포함시킨다.
+/config/
+
+# Firebase config 만 tarball 에 포함 (re-include)
+!/config/
+!/config/dev/
+!/config/dev/firebase/
+!/config/dev/firebase/**
+!/config/prod/
+!/config/prod/firebase/
+!/config/prod/firebase/**
+
+# config/{env}/android/ 는 keystore + credentials.json 보관소 — 절대 tarball 에 포함 금지
+/config/dev/android/
+/config/prod/android/
