@@ -70,24 +70,21 @@ export function SessionPresetCard({
       </View>
 
       {presetKey === 'custom' && (
-        <View style={styles.sliders}>
-          <View style={styles.durationPicker}>
-            <View style={styles.durationPickerRow}>
-              <WheelPicker
-                options={HOUR_OPTIONS}
-                selected={selectedHours}
-                onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
-              />
-              <Text style={styles.pickerUnit}>시간</Text>
-              <WheelPicker
-                options={MINUTE_OPTIONS}
-                selected={selectedMins}
-                onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
-              />
-              <Text style={styles.pickerUnit}>분</Text>
-            </View>
+        <View style={styles.durationPicker}>
+          <View style={styles.durationPickerRow}>
+            <WheelPicker
+              options={HOUR_OPTIONS}
+              selected={selectedHours}
+              onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
+            />
+            <Text style={styles.pickerUnit}>시간</Text>
+            <WheelPicker
+              options={MINUTE_OPTIONS}
+              selected={selectedMins}
+              onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
+            />
+            <Text style={styles.pickerUnit}>분</Text>
           </View>
-
         </View>
       )}
     </Card>
@@ -131,9 +128,6 @@ const styles = StyleSheet.create({
   },
   optionDescriptionSelected: {
     color: 'rgba(250,246,240,0.65)',
-  },
-  sliders: {
-    gap: Spacing.sectionHeadGap,
   },
   durationPicker: {
     backgroundColor: 'rgba(31,58,61,0.04)',
