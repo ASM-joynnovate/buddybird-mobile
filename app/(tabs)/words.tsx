@@ -74,7 +74,6 @@ export default function WordsScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.kicker}>WORDS</Text>
           <Text style={styles.title}>단어 관리</Text>
         </View>
         <Pressable style={styles.addBtn} onPress={handleCreate}>

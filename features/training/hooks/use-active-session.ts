@@ -97,7 +97,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     if (!audioUri) return;
     // 시뮬레이터 클린 reinstall 등으로 파일이 사라진 경우 무음 진행. 크래시 방지.
     if (!recordingFileExists(audioUri)) {
-      reportError(new Error('녹음 파일을 찾을 수 없어 세션 오디오를 재생하지 않습니다.'), {
+      reportError(new Error('녹음 파일을 찾을 수 없어 학습 오디오를 재생하지 않습니다.'), {
         scope: 'training.sessionPlayer.missingFile',
       });
       return;

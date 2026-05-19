@@ -2,7 +2,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
-import { getDateKicker } from '@/features/profile/profile-display';
 
 interface HomeGreetingProps {
   profileName: string;
@@ -12,7 +11,6 @@ export function HomeGreeting({ profileName }: HomeGreetingProps) {
   return (
     <View style={styles.row}>
       <View style={styles.text}>
-        <Text style={styles.kicker}>{getDateKicker()}</Text>
         <Text style={styles.greeting}>안녕하세요,{'\n'}{profileName}와 함께</Text>
       </View>
       <View style={styles.bellBtn}>

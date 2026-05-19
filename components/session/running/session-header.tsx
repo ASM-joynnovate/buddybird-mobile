@@ -13,7 +13,7 @@ export function SessionHeader({ sessionMins, cycle, totalCycles, onStop }: Sessi
   return (
     <View style={styles.header}>
       <Text style={styles.mono}>
-        {sessionMins}분 세션 · {cycle} / {totalCycles} 사이클
+        {sessionMins}분 학습 · {cycle} / {totalCycles} 사이클
       </Text>
       <Pressable style={styles.stopBtn} onPress={onStop}>
         <Text style={styles.stopBtnText}>중단</Text>

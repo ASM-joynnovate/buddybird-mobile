@@ -5,40 +5,39 @@ import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
 import { IconSymbol } from '../ui/icon-symbol';
 
 interface ContinueSessionCardProps {
-  words: string[];
-  totalWordsCount: number;
-  cycles: number;
-  mins: number;
+  lastWord?: string;
+  cycles?: number;
+  mins?: number;
+  learnMins?: number;
+  restMins?: number;
   onContinue: () => void;
 }
 
-export function ContinueSessionCard({ words, totalWordsCount, cycles, mins, onContinue }: ContinueSessionCardProps) {
+export function ContinueSessionCard({ lastWord, cycles, mins, learnMins, restMins, onContinue }: ContinueSessionCardProps) {
+  const hasHistory = lastWord !== undefined;
+
   return (
     <View>
       <View style={styles.headRow}>
-        <Text style={styles.kicker}>마지막 세션</Text>
-        <Text style={styles.title}>이어서 학습하기</Text>
+        <Text style={styles.title}>{hasHistory ? '학습' : '학습'}</Text>
       </View>
       <View style={styles.card}>
-        <View style={styles.inner}>
-          <View style={styles.chipRow}>
-            {words.map((w) => (
-              <View key={w} style={styles.wordChip}>
-                <Text style={styles.wordChipText}>{w}</Text>
+        {hasHistory && (
+          <View style={styles.inner}>
+            <View style={styles.chipRow}>
+              <View style={styles.wordChip}>
+                <Text style={styles.wordChipText}>{lastWord}</Text>
               </View>
-            ))}
-            <View style={styles.moreChip}>
-              <Text style={styles.moreChipText}>{totalWordsCount - words.length}개 더</Text>
             </View>
+            <WaveformBars color="#7DD3C0" height={36} barCount={44} />
+            <Text style={styles.sessionMeta}>
+              {cycles}사이클 · 총 {mins}분 · {learnMins}분 학습 · {restMins}분 휴식
+            </Text>
           </View>
-          <WaveformBars color="#7DD3C0" height={36} barCount={44} />
-          <Text style={styles.sessionMeta}>
-            {cycles} 사이클 · {mins}분 · 60초 학습 + 30초 휴식
-          </Text>
-        </View>
+        )}
         <Pressable style={styles.btn} onPress={onContinue}>
           <IconSymbol name="play.fill" size={16} color="#fff" />
-          <Text style={styles.btnText}>이어서 학습하기</Text>
+          <Text style={styles.btnText}>{hasHistory ? '학습 시작' : '학습 설정'}</Text>
         </Pressable>
       </View>
     </View>

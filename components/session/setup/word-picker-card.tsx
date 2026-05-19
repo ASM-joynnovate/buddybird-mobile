@@ -9,7 +9,7 @@ interface WordPickerCardProps {
   tag: string;
   sourceType: 'preset' | 'recording';
   sourceLabel: string;
-  sessionCountLabel: string;
+  //sessionCountLabel: string;
   active: boolean;
   onSelect: () => void;
 }
@@ -19,7 +19,7 @@ export function WordPickerCard({
   tag,
   sourceType,
   sourceLabel,
-  sessionCountLabel,
+  //sessionCountLabel,
   active,
   onSelect,
 }: WordPickerCardProps) {
@@ -59,7 +59,7 @@ export function WordPickerCard({
           </View>
         </View>
       </View>
-      <Text style={[styles.time, active && styles.timeActive]}>{sessionCountLabel}</Text>
+      {/* <Text style={[styles.time, active && styles.timeActive]}>{sessionCountLabel}</Text> */}
     </SelectableRowCard>
   );
 }

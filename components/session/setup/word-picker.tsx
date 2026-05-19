@@ -10,7 +10,6 @@ export interface WordPickerItem {
   label: string;
   tag: string;
   presetKey?: string;
-  audioUri: string;
   sourceType: 'preset' | 'recording';
   sourceLabel: string;
 }
@@ -19,7 +18,7 @@ interface WordPickerProps {
   items: WordPickerItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  getSessionCountLabel: (item: WordPickerItem) => string;
+  //getSessionCountLabel: (item: WordPickerItem) => string;
   sectionTitle: string;
   emptyLabel: string;
 }
@@ -28,7 +27,7 @@ export function WordPicker({
   items,
   selectedId,
   onSelect,
-  getSessionCountLabel,
+  //getSessionCountLabel,
   sectionTitle,
   emptyLabel,
 }: WordPickerProps) {
@@ -52,7 +51,7 @@ export function WordPicker({
           tag={item.tag}
           sourceType={item.sourceType}
           sourceLabel={item.sourceLabel}
-          sessionCountLabel={getSessionCountLabel(item)}
+          //sessionCountLabel={getSessionCountLabel(item)}
           active={selectedId === item.id}
           onSelect={() => onSelect(item.id)}
         />

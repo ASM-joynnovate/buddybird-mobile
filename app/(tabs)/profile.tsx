@@ -3,15 +3,13 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
-import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
 import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
-import { ProfileLanguagePicker } from '@/components/profile/profile-language-picker';
+import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
 import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { type AppLocale } from '@/features/i18n/i18n-resources';
 import { useProfile } from '@/features/profile/profile-context';
 import { toDraft } from '@/features/profile/profile-display';
 import { getSpeciesOptions } from '@/features/profile/profile-options';
@@ -19,14 +17,13 @@ import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/p
 import { validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function ProfileScreen() {
-  const { locale, setLocale, supportedLocales, t } = useI18n();
+  const { locale, t } = useI18n();
   const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
   const { profile, updateProfile } = useProfile();
   useScreenTracking('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-  const [languageErrorMessage, setLanguageErrorMessage] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileDraft | null>(profile ? toDraft(profile) : null);
 
   useEffect(() => {
@@ -83,21 +80,11 @@ export default function ProfileScreen() {
     }
   }
 
-  async function changeLocale(nextLocale: AppLocale): Promise<void> {
-    try {
-      await setLocale(nextLocale);
-      setLanguageErrorMessage(null);
-    } catch (error: unknown) {
-      reportError(error, { scope: 'profile.changeLocale', screen_name: 'profile' });
-      setLanguageErrorMessage(t('profile.languageSaveError'));
-    }
-  }
-
   return (
     <PetScreen contentStyle={styles.content}>
-      <ScreenHeader kicker={t('profile.kicker')} title={t('profile.title')} body={t('profile.body')} />
+      <ScreenHeader title={t('profile.title')} />
 
-      <ParrotProfileCard compact profile={profile} />
+      <ParrotProfileCard profile={profile} />
 
       {isEditing ? (
         <ProfileEditForm
@@ -126,16 +113,6 @@ export default function ProfileScreen() {
           variant="primary"
         />
       )}
-
-      <ProfileLanguagePicker
-        locale={locale}
-        supportedLocales={supportedLocales}
-        errorMessage={languageErrorMessage}
-        title={t('profile.languageTitle')}
-        body={t('profile.languageBody')}
-        getLanguageLabel={(loc) => t(`common.languageNames.${loc}`)}
-        onChange={changeLocale}
-      />
 
       <View style={styles.futureBox}>
         <Text style={styles.futureTitle}>{t('profile.futureTitle')}</Text>

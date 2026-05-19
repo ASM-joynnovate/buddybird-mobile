@@ -2,7 +2,7 @@ import type { I18n } from 'i18n-js';
 
 import type { ParrotProfile, ProfileDraft, ProfileValidationErrors, ProfileValidationResult } from './profile-types';
 
-const MAX_AGE_MONTHS = 120;
+const MAX_AGE_MONTHS = 1200;
 
 type Translate = I18n['t'];
 
@@ -15,10 +15,6 @@ export function validateProfileDraft(draft: ProfileDraft, t: Translate): Profile
 
   if (!draft.species.trim()) {
     errors.species = t('validation.speciesRequired');
-  }
-
-  if (!Number.isInteger(draft.ageMonths) || draft.ageMonths < 1 || draft.ageMonths > MAX_AGE_MONTHS) {
-    errors.ageMonths = t('validation.ageInvalid');
   }
 
   return {

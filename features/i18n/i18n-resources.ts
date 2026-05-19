@@ -47,17 +47,9 @@ interface AppCopy {
   validation: {
     nameRequired: string;
     speciesRequired: string;
-    ageInvalid: string;
   };
   onboarding: {
-    welcome: {
-      kicker: string;
-      title: string;
-      body: string;
-      cta: string;
-    };
     profile: {
-      kicker: string;
       title: string;
       body: string;
       nameLabel: string;
@@ -215,19 +207,11 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: '반려조 이름을 입력해 주세요.',
       speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
-      ageInvalid: '나이는 1개월부터 10년까지 선택할 수 있어요.',
     },
     onboarding: {
-      welcome: {
-        kicker: 'STEP 01',
-        title: '앵무새와\n더 깊이 대화하세요',
-        body: 'AI가 당신의 목소리를 앵무새가 가장 잘 듣는 1–4 kHz 고주파로 변환해 들려줘요.',
-        cta: '시작하기',
-      },
       profile: {
-        kicker: 'STEP 02',
         title: '반려조 프로필을\n알려주세요',
-        body: 'MVP에서는 한 마리만 등록해 홈과 학습 기록을 연결해요.',
+        body: '',
         nameLabel: '이름',
         namePlaceholder: '예: 망고',
         speciesLabel: '종',
@@ -241,17 +225,17 @@ export const translations: Record<AppLocale, AppCopy> = {
       kicker: 'TODAY',
       greeting: '안녕하세요,\n%{name}와 함께',
       body: '오늘도 짧고 반복적인 소리 루틴으로 반려조의 귀를 깨워볼까요?',
-      sessionTitle: '새 세션 시작',
-      phasePill: '세션 설정',
+      sessionTitle: '새 학습 시작',
+      phasePill: '학습 설정',
       sessionBody: '기본 단어를 고르거나 직접 녹음해 오늘 들려줄 학습 오디오를 정해요.',
-      disabledCta: '세션 설정 준비 중',
-      startSessionCta: '세션 설정하기',
+      disabledCta: '학습 설정 준비 중',
+      startSessionCta: '학습 설정하기',
       totalTrainingTime: '누적 학습 시간',
       singleProfileTitle: 'MVP 단일 프로필',
       singleProfileBody: '현재는 한 마리 프로필만 지원해요. 추가 등록과 삭제는 추후 제공 예정입니다.',
       profileLink: '프로필 확인하기',
       presetPreviewTitle: '기본 단어',
-      sessionTemplateTitle: '추천 세션',
+      sessionTemplateTitle: '추천 학습',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz 음성 파형 미리보기',
@@ -271,10 +255,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       rerecord: '다시 녹음',
       continueCta: '오디오 확인하기',
       confirmAudioTitle: '오디오 확인',
-      sessionTemplateLabel: '세션 템플릿',
-      saveCta: '세션 설정 저장',
-      saveError: '세션 설정을 저장하지 못했어요. 다시 시도해 주세요.',
-      savedMessage: '세션 설정을 저장했어요. 홈에서 바로 이어갈 수 있어요.',
+      sessionTemplateLabel: '학습 템플릿',
+      saveCta: '학습 설정 저장',
+      saveError: '학습 설정을 저장하지 못했어요. 다시 시도해 주세요.',
+      savedMessage: '학습 설정을 저장했어요. 홈에서 바로 이어갈 수 있어요.',
       presetPreviewDisabledTitle: '기본 단어 미리듣기 준비 중',
       presetPreviewDisabledBody: '아직 포함된 음원이 없어 가짜 재생 없이 단어와 피치 설정만 저장해요.',
       recordedStatus: '녹음 파일 저장 완료',
@@ -284,9 +268,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       previewCta: '미리듣기',
       previewDisabledCta: '미리듣기 준비 중',
       selectAudioError: '저장할 오디오를 먼저 선택해 주세요.',
-      selectTemplateError: '세션 템플릿을 선택해 주세요.',
+      selectTemplateError: '학습 템플릿을 선택해 주세요.',
       storeLoading: '학습 데이터를 준비하고 있어요. 잠시만 기다려 주세요.',
-      zeroDurationError: '세션 시간을 1분 이상으로 설정해 주세요.',
+      zeroDurationError: '학습 시간을 1분 이상으로 설정해 주세요.',
     },
     recording: {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
@@ -325,7 +309,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     profile: {
       kicker: 'PROFILE',
       title: '반려조 프로필',
-      body: 'MVP에서는 한 마리 프로필만 조회하고 수정할 수 있어요.',
+      body: '',
       editCta: '프로필 수정',
       nameLabel: '이름',
       namePlaceholder: '이름',
@@ -397,17 +381,9 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: "Enter your bird’s name.",
       speciesRequired: "Enter your bird’s species.",
-      ageInvalid: "Age can be set from 1 month to 10 years.",
     },
     onboarding: {
-      welcome: {
-        kicker: 'STEP 01',
-        title: 'Talk more deeply\nwith your parrot',
-        body: 'AI turns your voice into a clear 1–4 kHz high tone that parrots can notice more easily.',
-        cta: 'Get started',
-      },
       profile: {
-        kicker: 'STEP 02',
         title: 'Tell us about\nyour bird',
         body: 'For the MVP, one profile connects the home screen with training history.',
         nameLabel: 'Name',
