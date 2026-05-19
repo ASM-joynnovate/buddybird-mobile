@@ -50,14 +50,7 @@ interface AppCopy {
     ageInvalid: string;
   };
   onboarding: {
-    welcome: {
-      kicker: string;
-      title: string;
-      body: string;
-      cta: string;
-    };
     profile: {
-      kicker: string;
       title: string;
       body: string;
       nameLabel: string;
@@ -218,14 +211,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       ageInvalid: '나이는 1개월부터 10년까지 선택할 수 있어요.',
     },
     onboarding: {
-      welcome: {
-        kicker: 'STEP 01',
-        title: '앵무새와\n더 깊이 대화하세요',
-        body: 'AI가 당신의 목소리를 앵무새가 가장 잘 듣는 1–4 kHz 고주파로 변환해 들려줘요.',
-        cta: '시작하기',
-      },
       profile: {
-        kicker: 'STEP 02',
         title: '반려조 프로필을\n알려주세요',
         body: '',
         nameLabel: '이름',
@@ -400,14 +386,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       ageInvalid: "Age can be set from 1 month to 10 years.",
     },
     onboarding: {
-      welcome: {
-        kicker: 'STEP 01',
-        title: 'Talk more deeply\nwith your parrot',
-        body: 'AI turns your voice into a clear 1–4 kHz high tone that parrots can notice more easily.',
-        cta: 'Get started',
-      },
       profile: {
-        kicker: 'STEP 02',
         title: 'Tell us about\nyour bird',
         body: 'For the MVP, one profile connects the home screen with training history.',
         nameLabel: 'Name',
