@@ -148,7 +148,7 @@ function SessionActiveInner({
           <View
             style={[
               styles.gradientOverlay,
-              { backgroundColor: session.isLearning ? 'rgba(94,234,212,0.22)' : 'rgba(253,186,116,0.18)' },
+              { backgroundColor: session.isLearning ? BuddyBirdColors.gradientLearning : BuddyBirdColors.gradientRest },
             ]}
           />
           <SessionHeader
