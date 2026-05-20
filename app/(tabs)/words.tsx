@@ -14,6 +14,7 @@ import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
+import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
 export default function WordsScreen() {
@@ -128,8 +129,11 @@ function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const { t } = useI18n();
   const { track } = useAnalytics();
   const rawAudioUri = entry.transformedAudioUri ?? entry.audioUri;
+  const audioSource = rawAudioUri.startsWith('preset://')
+    ? resolvePresetAudioModule(entry.presetKey)
+    : rawAudioUri;
   const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
-    rawAudioUri.startsWith('preset://') ? null : rawAudioUri,
+    audioSource,
     entry.pitchTransform?.playbackRate ?? 1.0,
   );
   const isPreset = entry.sourceType === 'preset';

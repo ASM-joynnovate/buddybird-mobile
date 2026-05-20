@@ -20,22 +20,27 @@ const PLAY_START_TIMEOUT_MS = 1_500;
 const COMPLETION_GRACE_MS = 750;
 const MAX_PREVIEW_SECONDS = 60;
 
+// audioSource: string URI, number(require() 모듈), 또는 null/undefined(재생 불가)
 export function useAudioPreview(
-  audioUri: string | null | undefined,
+  audioSource: string | number | null | undefined,
   playbackRate: number,
   expectedDurationSeconds?: number,
 ): UseAudioPreviewResult {
+  const isModule = typeof audioSource === 'number';
   const player = useAudioPlayer(null, { updateInterval: PLAYER_UPDATE_INTERVAL_MS });
   const playerStatus = useAudioPlayerStatus(player);
   const playTokenRef = useRef(0);
-  const loadedUriRef = useRef<string | null>(null);
+  const loadedSourceRef = useRef<string | number | null>(null);
   const isDestroyedRef = useRef(false);
-  const [fileExists, setFileExists] = useState<boolean>(() => (audioUri ? recordingFileExists(audioUri) : false));
+  // 번들 모듈은 항상 접근 가능하므로 fileExists 검사를 건너뛴다.
+  const [fileExists, setFileExists] = useState<boolean>(() =>
+    isModule ? true : (audioSource ? recordingFileExists(audioSource) : false),
+  );
   const [previewState, setPreviewState] = useState<AudioPreviewState>(
-    audioUri && fileExists ? 'ready' : 'disabled',
+    (isModule || (audioSource && fileExists)) ? 'ready' : 'disabled',
   );
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const canPreview = Boolean(audioUri) && fileExists;
+  const canPreview = isModule || (Boolean(audioSource) && fileExists);
 
   useEffect(() => {
     playTokenRef.current += 1;
@@ -44,20 +49,28 @@ export function useAudioPreview(
     player.seekTo(0).catch((error: unknown) => {
       console.warn('[audio] seekTo failed (continuing):', error);
     });
-    loadedUriRef.current = null;
+    loadedSourceRef.current = null;
 
-    // 시뮬레이터 재빌드/클린 reinstall 후 stale URI 또는 사라진 파일 가드.
-    const exists = audioUri ? recordingFileExists(audioUri) : false;
+    if (isModule) {
+      player.replace(audioSource as number);
+      loadedSourceRef.current = audioSource;
+      setFileExists(true);
+      setElapsedSeconds(0);
+      setPreviewState('ready');
+      return;
+    }
+
+    const exists = audioSource ? recordingFileExists(audioSource) : false;
     setFileExists(exists);
 
-    if (audioUri && exists) {
-      player.replace({ uri: audioUri });
-      loadedUriRef.current = audioUri;
+    if (audioSource && exists) {
+      player.replace({ uri: audioSource });
+      loadedSourceRef.current = audioSource;
     }
 
     setElapsedSeconds(0);
-    setPreviewState(audioUri && exists ? 'ready' : 'disabled');
-  }, [audioUri, player]);
+    setPreviewState(audioSource && exists ? 'ready' : 'disabled');
+  }, [audioSource, isModule, player]);
 
   useEffect(() => {
     if (previewState !== 'playing') return;
@@ -118,11 +131,11 @@ export function useAudioPreview(
       console.warn('[audio] seekTo failed (continuing):', error);
     });
     setElapsedSeconds(0);
-    setPreviewState(audioUri && fileExists ? 'ready' : 'disabled');
-  }, [audioUri, fileExists, player]);
+    setPreviewState(isModule || (audioSource && fileExists) ? 'ready' : 'disabled');
+  }, [audioSource, fileExists, isModule, player]);
 
   const playPreview = useCallback(async (): Promise<void> => {
-    if (!audioUri || !fileExists) {
+    if (!isModule && (!audioSource || !fileExists)) {
       setPreviewState('disabled');
       return;
     }
@@ -133,9 +146,13 @@ export function useAudioPreview(
       await configurePlaybackAudioMode();
       if (playTokenRef.current !== playToken) return;
       player.pause();
-      if (loadedUriRef.current !== audioUri) {
-        player.replace({ uri: audioUri });
-        loadedUriRef.current = audioUri;
+      if (loadedSourceRef.current !== audioSource) {
+        if (isModule) {
+          player.replace(audioSource as number);
+        } else {
+          player.replace({ uri: audioSource as string });
+        }
+        loadedSourceRef.current = audioSource;
       }
       player.loop = false;
       player.volume = 1;
@@ -163,7 +180,7 @@ export function useAudioPreview(
       reportError(error, { scope: 'audio.playPreview' });
       setPreviewState('error');
     }
-  }, [audioUri, fileExists, player, playbackRate]);
+  }, [audioSource, fileExists, isModule, player, playbackRate]);
 
   return useMemo(
     () => ({

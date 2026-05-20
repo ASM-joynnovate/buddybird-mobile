@@ -4,6 +4,8 @@ import { reportError } from '@/features/analytics/error-reporter';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 
+import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
+
 import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
 import { SESSION_PRESETS, calcLearnRestFromTotal } from '../session-config';
@@ -21,7 +23,7 @@ export interface SessionSelection {
 export interface SaveSessionSetupResult {
   wordId: string;
   settings: TrainingSessionSettings;
-  audioUri?: string;
+  audioUri?: string | number;
   word: string;
 }
 
@@ -140,7 +142,10 @@ export function useSessionSetup(): UseSessionSetupResult {
       return {
         wordId: word.id,
         settings,
-        audioUri: selection.sourceType === 'recording' ? selection.audioUri : undefined,
+        audioUri:
+          selection.sourceType === 'recording'
+            ? selection.audioUri
+            : resolvePresetAudioModule(selection.presetKey) ?? undefined,
         word: selection.label,
       };
     } catch (error: unknown) {
