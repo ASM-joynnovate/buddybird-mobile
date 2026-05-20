@@ -172,7 +172,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         sessionPlayer.pause();
       } catch (error: unknown) {
         // expo-audio player가 이미 teardown 상태일 수 있음. cleanup 단계라 복구 불필요.
-        reportError(error, { scope: 'training.sessionPlayer.cleanup' });
+        console.warn('[training.sessionPlayer.cleanup]', error);
       }
     };
   }, [sessionPlayer]);
