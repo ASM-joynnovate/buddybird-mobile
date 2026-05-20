@@ -1,4 +1,4 @@
-import { useAudioPlayer } from 'expo-audio';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
@@ -54,9 +54,20 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     totalDurationSeconds: settings.totalDurationSeconds,
     learningDurationSeconds: learnSecs,
     restDurationSeconds: restSecs,
+    libraryEntryId: settings.libraryEntryId,
   });
 
-  const sessionPlayer = useAudioPlayer(audioUri);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clearSilenceTimer(): void {
+    if (silenceTimerRef.current !== null) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+  }
+
+  const sessionPlayer = useAudioPlayer(audioUri, { updateInterval: 100 });
+  const sessionPlayerStatus = useAudioPlayerStatus(sessionPlayer);
 
   const isLearning = phase === 'learning';
   const phaseDuration = isLearning ? learnSecs : restSecs;
@@ -104,7 +115,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     }
     let isCancelled = false;
     if (status === 'running' && phase === 'learning') {
-      sessionPlayer.loop = true;
+      sessionPlayer.loop = false;
       configurePlaybackAudioMode()
         .then(() => sessionPlayer.seekTo(0))
         .then(() => {
@@ -115,15 +126,43 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           if (!isCancelled) sessionPlayer.play();
         });
     } else {
+      clearSilenceTimer();
       sessionPlayer.pause();
     }
     return () => {
       isCancelled = true;
+      clearSilenceTimer();
     };
   }, [phase, status, audioUri, sessionPlayer]);
 
   useEffect(() => {
+    if (status !== 'running' || phase !== 'learning') return;
+    if (!sessionPlayerStatus.didJustFinish) return;
+
+    const rawDuration = sessionPlayerStatus.duration;
+    const gapMs = typeof rawDuration === 'number' && rawDuration > 0 ? rawDuration * 1000 : 0;
+
+    clearSilenceTimer();
+    silenceTimerRef.current = setTimeout(() => {
+      silenceTimerRef.current = null;
+      sessionPlayer
+        .seekTo(0)
+        .then(() => {
+          sessionPlayer.play();
+        })
+        .catch((error: unknown) => {
+          reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
+          sessionPlayer.play();
+        });
+    }, gapMs);
+    // cleanup 없음 — 의도적. didJustFinish는 한 사이클만 true이므로 cleanup이 타이머를 취소하지 않아야 함.
+    // 타이머는 play/pause effect cleanup과 언마운트 effect에서 정리된다.
+    // eslint-disable-next-line consistent-return
+  }, [sessionPlayerStatus.didJustFinish, sessionPlayerStatus.duration, status, phase, sessionPlayer]);
+
+  useEffect(() => {
     return () => {
+      clearSilenceTimer();
       try {
         sessionPlayer.pause();
       } catch (error: unknown) {
@@ -149,6 +188,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         totalLearningSeconds: totalCycles * meta.learningDurationSeconds,
         startedAt: meta.startedAt,
         endedAt,
+        libraryEntryId: meta.libraryEntryId,
       } satisfies CreateTrainingSessionInput,
       endedAt
     );

@@ -15,6 +15,7 @@ export interface SessionSelection {
   label: string;
   presetKey?: string;
   sourceType: TrainingAudioSourceType;
+  libraryEntryId: string;
 }
 
 export interface SaveSessionSetupResult {
@@ -37,7 +38,7 @@ export interface UseSessionSetupResult {
   saveErrorMessage: string | null;
   durationValidationError: string | null;
   isDurationValid: boolean;
-  getSessionCountForPreset: (presetKey: string | undefined, audioUri?: string) => number;
+  getSessionCountForLibraryEntry: (libraryEntryId: string) => number;
   saveSessionSetup: (selection: SessionSelection) => Promise<SaveSessionSetupResult | null>;
 }
 
@@ -92,18 +93,12 @@ export function useSessionSetup(): UseSessionSetupResult {
     [store]
   );
 
-  function getSessionCountForPreset(presetKey: string | undefined, audioUri?: string): number {
-    if (presetKey) {
-      return wordSummaries
-        .filter((s) => s.word.presetKey === presetKey)
-        .reduce((sum, s) => sum + s.progress.sessionCount, 0);
-    }
-    if (audioUri) {
-      return wordSummaries
-        .filter((s) => s.word.audioUri === audioUri)
-        .reduce((sum, s) => sum + s.progress.sessionCount, 0);
-    }
-    return 0;
+  function getSessionCountForLibraryEntry(libraryEntryId: string): number {
+    // WordLibrary entry id로 그룹핑. 재녹음·라벨 수정과 무관하게 동일 entry의 모든 세션을 합산한다.
+    // legacy TrainingWord snapshot은 libraryEntryId가 없어 0으로 잡혀 stale audioUri 그룹핑 문제를 회피.
+    return wordSummaries
+      .filter((s) => s.word.libraryEntryId === libraryEntryId)
+      .reduce((sum, s) => sum + s.progress.sessionCount, 0);
   }
 
   async function saveSessionSetup(selection: SessionSelection): Promise<SaveSessionSetupResult | null> {
@@ -127,6 +122,7 @@ export function useSessionSetup(): UseSessionSetupResult {
           presetKey: selection.presetKey,
           sourceType: selection.sourceType,
           pitchTransform,
+          libraryEntryId: selection.libraryEntryId,
         },
         nowIso
       );
@@ -136,6 +132,7 @@ export function useSessionSetup(): UseSessionSetupResult {
         sourceType: selection.sourceType,
         totalDurationSeconds: sessionMins * 60,
         wordId: word.id,
+        libraryEntryId: selection.libraryEntryId,
       };
       await upsertWord(word);
       await saveLastSessionSettings(settings);
@@ -166,7 +163,7 @@ export function useSessionSetup(): UseSessionSetupResult {
     saveErrorMessage,
     durationValidationError,
     isDurationValid,
-    getSessionCountForPreset,
+    getSessionCountForLibraryEntry,
     saveSessionSetup,
   };
 }
