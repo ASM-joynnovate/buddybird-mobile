@@ -9,7 +9,7 @@ import { SessionPresetCard } from '@/components/session/setup/session-preset-car
 import { WordPicker, type WordPickerItem } from '@/components/session/setup/word-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
-import { BuddyBirdColors, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -149,9 +149,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
+    ...Typography.sectionTitle,
     color: BuddyBirdColors.primary,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
   },
 });

@@ -149,4 +149,9 @@ export const Typography = {
     fontWeight: '600' as const,
     letterSpacing: -0.15,
   },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700' as const,
+    letterSpacing: -0.3,
+  },
 };
