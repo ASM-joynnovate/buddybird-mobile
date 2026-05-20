@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FilterChip } from '@/components/words/word-filter-bar';
-import { BuddyBirdColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 
 import { WordPickerCard } from './word-picker-card';
@@ -102,10 +102,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   sectionTitle: {
+    ...Typography.sectionTitle,
     color: BuddyBirdColors.primary,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
   },
   filterRow: {
     gap: 6,

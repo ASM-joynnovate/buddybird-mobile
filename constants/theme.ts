@@ -26,6 +26,10 @@ export const BuddyBirdColors = {
   placeholderMuted: 'rgba(31,58,61,0.36)',
   surfaceMuted: 'rgba(31,58,61,0.06)',
   borderMuted: 'rgba(31,58,61,0.20)',
+  gradientLearning: 'rgba(94,234,212,0.22)',
+  gradientRest: 'rgba(253,186,116,0.18)',
+  tabIconMuted: 'rgba(31,58,61,0.48)',
+  tabIconMutedOnDark: 'rgba(250,246,240,0.54)',
 };
 
 export const Colors = {
@@ -34,7 +38,7 @@ export const Colors = {
     background: BuddyBirdColors.neutral,
     tint: BuddyBirdColors.secondary,
     icon: BuddyBirdColors.primarySoft,
-    tabIconDefault: 'rgba(31,58,61,0.48)',
+    tabIconDefault: BuddyBirdColors.tabIconMuted,
     tabIconSelected: BuddyBirdColors.secondary,
   },
   dark: {
@@ -42,7 +46,7 @@ export const Colors = {
     background: BuddyBirdColors.darkBg,
     tint: BuddyBirdColors.sessionMint,
     icon: BuddyBirdColors.secondaryTint,
-    tabIconDefault: 'rgba(250,246,240,0.54)',
+    tabIconDefault: BuddyBirdColors.tabIconMutedOnDark,
     tabIconSelected: BuddyBirdColors.sessionMint,
   },
 };
@@ -144,5 +148,10 @@ export const Typography = {
     fontSize: 15,
     fontWeight: '600' as const,
     letterSpacing: -0.15,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700' as const,
+    letterSpacing: -0.3,
   },
 };

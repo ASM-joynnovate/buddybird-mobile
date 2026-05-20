@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { InlineError } from '@/components/ui/inline-error';
 import { WordCreateModal } from '@/components/words/word-create-modal';
 import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
@@ -20,7 +21,7 @@ export default function WordsScreen() {
   const { t } = useI18n();
   const { track } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { entries } = useWordLibrary();
+  const { entries, errorMessage } = useWordLibrary();
   useScreenTracking('words');
 
   const [filter, setFilter] = useState<WordCategory>('전체');
@@ -81,6 +82,9 @@ export default function WordsScreen() {
         </Pressable>
       </View>
 
+      <View style={styles.errorWrapper}>
+        <InlineError message={errorMessage} />
+      </View>
       <WordFilterBar cats={CATS} active={filter} onChange={handleFilterChange} />
 
       <ScrollView
@@ -180,6 +184,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenX,
     paddingTop: 14,
     paddingBottom: 4,
+  },
+  errorWrapper: {
+    paddingHorizontal: Spacing.screenX,
   },
   kicker: {
     color: BuddyBirdColors.kickerMuted,
