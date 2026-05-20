@@ -193,8 +193,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       endedAt
     );
     saveCompletedSession(session);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, totalCycles, saveCompletedSession]);
 
   function togglePause(): void {
     setStatus((prev) => (prev === 'running' ? 'paused' : 'running'));
