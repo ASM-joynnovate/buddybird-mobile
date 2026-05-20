@@ -38,9 +38,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
-  const sessionMins = Math.round(settings.totalDurationSeconds / 60);
   const secsPerCycle = learnSecs + restSecs;
   const totalCycles = Math.max(1, Math.floor(settings.totalDurationSeconds / secsPerCycle));
+  const sessionMins = Math.round((totalCycles * secsPerCycle) / 60);
 
   const [status, setStatus] = useState<SessionStatus>('running');
   const [phase, setPhase] = useState<'learning' | 'rest'>('learning');

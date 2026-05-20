@@ -10,6 +10,8 @@ interface CycleSummaryProps {
 }
 
 export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryProps) {
+  const overConstrained = learnSecs + restSecs > sessionMins * 60;
+
   return (
     <View style={styles.row}>
       <View style={[styles.cell, styles.cellDark, styles.cellWide]}>
@@ -17,11 +19,11 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryP
         <Text style={[styles.label, styles.labelDark]}>총 세션 시간</Text>
       </View>
       <View style={[styles.cell, styles.cellTeal]}>
-        <Text style={[styles.value, styles.valueTeal]}>{formatDurationSecs(learnSecs)}</Text>
+        <Text style={[styles.value, styles.valueTeal]}>{formatDurationSecs(learnSecs, overConstrained)}</Text>
         <Text style={[styles.label, styles.labelTeal]}>학습</Text>
       </View>
       <View style={[styles.cell, styles.cellCoral]}>
-        <Text style={[styles.value, styles.valueCoral]}>{formatDurationSecs(restSecs)}</Text>
+        <Text style={[styles.value, styles.valueCoral]}>{formatDurationSecs(restSecs, overConstrained)}</Text>
         <Text style={[styles.label, styles.labelCoral]}>휴식</Text>
       </View>
     </View>
