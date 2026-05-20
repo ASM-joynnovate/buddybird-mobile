@@ -13,7 +13,7 @@ import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../tra
 interface UseActiveSessionInput {
   wordId: string;
   settings: TrainingSessionSettings;
-  audioUri?: string;
+  audioUri?: string | number;
   word: string;
 }
 
@@ -106,8 +106,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   useEffect(() => {
     if (!audioUri) return;
+    // 번들 모듈 번호는 항상 접근 가능하므로 파일 존재 검사를 건너뛴다.
     // 시뮬레이터 클린 reinstall 등으로 파일이 사라진 경우 무음 진행. 크래시 방지.
-    if (!recordingFileExists(audioUri)) {
+    if (typeof audioUri === 'string' && !recordingFileExists(audioUri)) {
       reportError(new Error('녹음 파일을 찾을 수 없어 학습 오디오를 재생하지 않습니다.'), {
         scope: 'training.sessionPlayer.missingFile',
       });
@@ -142,22 +143,26 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     const rawDuration = sessionPlayerStatus.duration;
     const gapMs = typeof rawDuration === 'number' && rawDuration > 0 ? rawDuration * 1000 : 0;
 
+    let isCancelled = false;
     clearSilenceTimer();
     silenceTimerRef.current = setTimeout(() => {
       silenceTimerRef.current = null;
+      if (isCancelled) return;
       sessionPlayer
         .seekTo(0)
         .then(() => {
-          sessionPlayer.play();
+          if (!isCancelled) sessionPlayer.play();
         })
         .catch((error: unknown) => {
           reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
-          sessionPlayer.play();
+          if (!isCancelled) sessionPlayer.play();
         });
     }, gapMs);
-    // cleanup 없음 — 의도적. didJustFinish는 한 사이클만 true이므로 cleanup이 타이머를 취소하지 않아야 함.
-    // 타이머는 play/pause effect cleanup과 언마운트 effect에서 정리된다.
-    // eslint-disable-next-line consistent-return
+    // 타이머는 취소하지 않음 — didJustFinish는 한 사이클만 true이므로 타이머는 fire되어야 함.
+    // isCancelled로 언마운트 후 해제된 네이티브 플레이어 호출만 방지.
+    return () => {
+      isCancelled = true;
+    };
   }, [sessionPlayerStatus.didJustFinish, sessionPlayerStatus.duration, status, phase, sessionPlayer]);
 
   useEffect(() => {

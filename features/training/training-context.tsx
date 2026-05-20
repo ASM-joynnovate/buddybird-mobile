@@ -16,7 +16,7 @@ export interface PendingSession {
   sessionId: string;
   wordId: string;
   settings: TrainingSessionSettings;
-  audioUri?: string;
+  audioUri?: string | number;
   word: string;
 }
 
