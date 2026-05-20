@@ -18,6 +18,7 @@ import type { CreateWordEntryInput, WordEntry, WordLibraryStore } from './word-l
 interface WordLibraryContextValue {
   entries: WordEntry[];
   isHydrated: boolean;
+  errorMessage: string | null;
   createEntry: (input: CreateWordEntryInput) => Promise<WordEntry>;
   updateEntry: (entry: WordEntry) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
@@ -28,6 +29,7 @@ const WordLibraryContext = createContext<WordLibraryContextValue | null>(null);
 export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<WordLibraryStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef(Promise.resolve());
 
@@ -62,6 +64,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       } catch (error: unknown) {
         reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
+          setErrorMessage('단어 목록을 불러오지 못했어요.');
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
       } finally {
@@ -128,8 +131,8 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo(
-    () => ({ entries, isHydrated, createEntry, updateEntry, deleteEntry }),
-    [entries, isHydrated, createEntry, updateEntry, deleteEntry]
+    () => ({ entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry }),
+    [entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry]
   );
 
   return <WordLibraryContext.Provider value={value}>{children}</WordLibraryContext.Provider>;
