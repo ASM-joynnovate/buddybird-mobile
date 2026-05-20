@@ -32,7 +32,12 @@ export default function HomeScreen() {
   const stat = formatMinutes(totalTrainingSeconds);
 
   const lastSettings = store?.lastSessionSettings ?? null;
-  const lastWordEntry = lastSettings ? (store?.wordsById[lastSettings.wordId] ?? null) : null;
+  // WordLibrary가 SSoT. lastSettings.libraryEntryId로 직조회해 재녹음/라벨 수정이 즉시 반영되게 한다.
+  // libraryEntryId 누락(legacy) 또는 entry 삭제 시 null → handleContinue가 /session-setup으로 fallback.
+  const lastWordEntry =
+    lastSettings && lastSettings.libraryEntryId
+      ? (entries.find((entry) => entry.id === lastSettings.libraryEntryId) ?? null)
+      : null;
   const lastCycles = lastSettings
     ? Math.max(1, Math.floor(lastSettings.totalDurationSeconds / (lastSettings.learningDurationSeconds + lastSettings.restDurationSeconds)))
     : undefined;

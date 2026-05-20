@@ -54,6 +54,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     totalDurationSeconds: settings.totalDurationSeconds,
     learningDurationSeconds: learnSecs,
     restDurationSeconds: restSecs,
+    libraryEntryId: settings.libraryEntryId,
   });
 
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -187,6 +188,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         totalLearningSeconds: totalCycles * meta.learningDurationSeconds,
         startedAt: meta.startedAt,
         endedAt,
+        libraryEntryId: meta.libraryEntryId,
       } satisfies CreateTrainingSessionInput,
       endedAt
     );

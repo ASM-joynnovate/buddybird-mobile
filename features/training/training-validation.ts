@@ -72,7 +72,8 @@ function isTrainingWord(value: unknown): value is TrainingWord {
     (word.presetKey === undefined || typeof word.presetKey === 'string') &&
     (word.transformedAudioUri === undefined || typeof word.transformedAudioUri === 'string') &&
     (word.recordingId === undefined || typeof word.recordingId === 'string') &&
-    (word.pitchTransform === undefined || isAudioPitchTransform(word.pitchTransform))
+    (word.pitchTransform === undefined || isAudioPitchTransform(word.pitchTransform)) &&
+    (word.libraryEntryId === undefined || typeof word.libraryEntryId === 'string')
   );
 }
 
@@ -122,7 +123,8 @@ function isTrainingSession(value: unknown): value is TrainingSession {
     isNonNegativeInteger(session.completedCycles) &&
     isNonNegativeFiniteNumber(session.totalLearningSeconds) &&
     typeof session.startedAt === 'string' &&
-    (session.endedAt === undefined || typeof session.endedAt === 'string')
+    (session.endedAt === undefined || typeof session.endedAt === 'string') &&
+    (session.libraryEntryId === undefined || typeof session.libraryEntryId === 'string')
   );
 }
 
@@ -138,7 +140,8 @@ function isTrainingSessionSettings(value: unknown): value is TrainingSessionSett
     isTrainingAudioSourceType(settings.sourceType) &&
     isPositiveFiniteNumber(settings.totalDurationSeconds) &&
     isPositiveFiniteNumber(settings.learningDurationSeconds) &&
-    isNonNegativeFiniteNumber(settings.restDurationSeconds)
+    isNonNegativeFiniteNumber(settings.restDurationSeconds) &&
+    (settings.libraryEntryId === undefined || typeof settings.libraryEntryId === 'string')
   );
 }
 

@@ -39,6 +39,7 @@ export interface SessionMeta {
   totalDurationSeconds: number;
   learningDurationSeconds: number;
   restDurationSeconds: number;
+  libraryEntryId?: string;
 }
 
 export function calcLearnRestFromTotal(totalSecs: number): { learnSecs: number; restSecs: number } {

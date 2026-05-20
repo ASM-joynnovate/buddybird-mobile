@@ -62,6 +62,7 @@ export default function SessionSetupScreen() {
       label: selectedEntry.label,
       presetKey: selectedEntry.presetKey,
       sourceType: selectedEntry.sourceType,
+      libraryEntryId: selectedEntry.id,
     });
     if (!result) return;
 
@@ -106,7 +107,7 @@ export default function SessionSetupScreen() {
         selectedId={selectedEntryId}
         onSelect={setSelectedEntryId}
         // getSessionCountLabel={(item) =>
-        //   `${setup.getSessionCountForPreset(item.presetKey, item.audioUri)} 회`
+        //   `${setup.getSessionCountForLibraryEntry(item.id)} 회`
         // }
         sectionTitle="학습할 단어"
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}

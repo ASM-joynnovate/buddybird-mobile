@@ -45,6 +45,7 @@ export function createTrainingWord(input: CreateTrainingWordInput, nowIso: strin
     transformedAudioUri: input.transformedAudioUri,
     recordingId: input.recordingId,
     pitchTransform: input.pitchTransform,
+    libraryEntryId: input.libraryEntryId,
     createdAt: nowIso,
     updatedAt: nowIso,
   };
@@ -62,6 +63,7 @@ export function createTrainingSession(input: CreateTrainingSessionInput, nowIso:
     totalLearningSeconds: input.totalLearningSeconds,
     startedAt: input.startedAt ?? nowIso,
     endedAt: input.endedAt,
+    libraryEntryId: input.libraryEntryId,
   };
 }
 
@@ -98,6 +100,7 @@ export function saveLastSessionSettings(store: TrainingStore, settings: Training
       totalDurationSeconds: settings.totalDurationSeconds,
       learningDurationSeconds: settings.learningDurationSeconds,
       restDurationSeconds: settings.restDurationSeconds,
+      libraryEntryId: settings.libraryEntryId,
     },
     updatedAt: nowIso,
   };
@@ -131,6 +134,7 @@ export function completeTrainingSession(store: TrainingStore, session: TrainingS
       totalDurationSeconds: session.totalDurationSeconds,
       learningDurationSeconds: session.learningDurationSeconds,
       restDurationSeconds: session.restDurationSeconds,
+      libraryEntryId: session.libraryEntryId,
     },
     updatedAt: nowIso,
   };

@@ -29,6 +29,9 @@ export interface TrainingWord {
   transformedAudioUri?: string;
   recordingId?: string;
   pitchTransform?: AudioPitchTransform;
+  // 이 TrainingWord 스냅샷이 유래된 WordLibrary entry id. 재녹음·라벨 수정은 WordLibrary만 갱신되므로,
+  // 재생/표시 경로는 이 id로 WordLibrary를 직조회해야 stale을 피한다.
+  libraryEntryId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +42,7 @@ export interface TrainingSessionSettings {
   totalDurationSeconds: number;
   learningDurationSeconds: number;
   restDurationSeconds: number;
+  libraryEntryId?: string;
 }
 
 export interface TrainingSession {
@@ -52,6 +56,7 @@ export interface TrainingSession {
   totalLearningSeconds: number;
   startedAt: string;
   endedAt?: string;
+  libraryEntryId?: string;
 }
 
 export interface TrainingWordProgress {
@@ -88,6 +93,7 @@ export interface CreateTrainingWordInput {
   transformedAudioUri?: string;
   recordingId?: string;
   pitchTransform?: AudioPitchTransform;
+  libraryEntryId?: string;
 }
 
 export interface CreateTrainingSessionInput extends TrainingSessionSettings {
