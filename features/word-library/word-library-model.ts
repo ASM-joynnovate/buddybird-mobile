@@ -38,8 +38,8 @@ export function deleteWordEntry(store: WordLibraryStore, id: string, nowIso: str
 const SEED_PRESETS: Array<{ key: string; label: string; tag: WordTag }> = [
   { key: 'hello', label: '안녕', tag: '인사' },
   { key: 'apple', label: '사과', tag: '음식' },
-  { key: 'water', label: '물', tag: '음식' },
-  { key: 'bye', label: '잘 다녀와', tag: '인사' },
+  { key: 'saranghae', label: '사랑해', tag: '인사' },
+  { key: 'bye', label: '다녀와', tag: '인사' },
 ];
 
 export function createPresetSeedEntries(nowIso: string): WordEntry[] {
