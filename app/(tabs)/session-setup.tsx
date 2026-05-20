@@ -106,9 +106,6 @@ export default function SessionSetupScreen() {
         items={pickerItems}
         selectedId={selectedEntryId}
         onSelect={setSelectedEntryId}
-        // getSessionCountLabel={(item) =>
-        //   `${setup.getSessionCountForLibraryEntry(item.id)} 회`
-        // }
         sectionTitle="학습할 단어"
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}
       />
