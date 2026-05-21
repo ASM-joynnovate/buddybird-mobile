@@ -438,24 +438,45 @@ config/{env}/android/
 
 **Hard Rule**: `package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드는 직접 편집 금지 — release-please 가 PR 로 관리한다. `app.config.ts` 는 `import pkg from './package.json'` 으로 단일 source 를 참조한다.
 
+**staging 빌드의 version 동기화 정책 — 단일 semver + buildNumber 분리 패턴**
+
+본 프로젝트는 모바일 앱 스토어 출시의 업계 표준 패턴을 따른다 ([Bluesky social-app](https://github.com/bluesky-social/social-app/blob/main/package.json), [Mattermost mobile](https://developers.mattermost.com/internal/mobile-build-process/bump-version-number/), Discord 등): **`version` 문자열은 staging/production 양쪽이 공유**, **`versionCode`/`buildNumber` 만 환경별로 +1 자동 증가**.
+
+- staging 빌드의 `package.json.version` 은 main 의 release-please 갱신을 자동으로 받지 않는다. cascade 흐름 (dev → staging → main) 상 release-please commit (`chore(main): release X.Y.Z`) 이 main 에만 들어가기 때문.
+- 결과: staging 빌드의 사용자 노출 version 이 production 보다 한 사이클 뒤처질 수 있다 (예: production = 0.1.5, staging = 0.1.0). **이는 정상 동작이며 비효율 아님.**
+- 사내 internal tester 는 **`versionCode`/`buildNumber` + release notes** 로 빌드 식별 — version 문자열의 stale 은 이 모델에서 정상.
+- prerelease suffix (`-rc.1`, `-staging.7`) 채택 안 함 — iOS `CFBundleShortVersionString` X.Y.Z 강제 + 사용자 노출 표기 혼란 + 모바일 스토어 출시 OSS 앱 실제 사례 0건.
+- **back-merge (main → staging) 의무 X (일반 release)**. 단 §12.6 핫픽스는 staging 우회 흐름이라 별도 back-merge 의무 적용.
+
+근거: [semver.org §9-11](https://semver.org/), [Expo app-versions docs](https://docs.expo.dev/build-reference/app-versions/), [Expo EAS deployment patterns](https://docs.expo.dev/eas-update/deployment-patterns/).
+
 ### 12.3 EAS Secret 표 (account scope)
 
 | Secret 이름 | 타입 | 용도 |
 |---|---|---|
-| `GOOGLE_PLAY_SERVICE_ACCOUNT` | file | Android submit (Play Console) |
-| `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config |
-| `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config |
+| `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config — EAS Build 시 자동 주입 |
+| `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config — EAS Build 시 자동 주입 |
 | `ASC_API_KEY_P8` *(Phase 6)* | file | iOS submit (TestFlight/App Store) |
 | `ASC_API_KEY_ID` *(Phase 6)* | string | iOS submit |
 | `ASC_API_KEY_ISSUER_ID` *(Phase 6)* | string | iOS submit |
 
 현재 상태 조회: `eas secret:list --scope account`.
 
+> ⚠️ **EAS Secret 의 한계**: file 타입 secret 은 EAS Cloud builder 환경에서만 자동 주입됩니다. GitHub Actions runner 에서 직접 실행되는 `eas submit` CLI 는 EAS Secret 에 접근할 수 없으므로 (§12.4 의 `PLAY_SERVICE_ACCOUNT_BASE64` GitHub Secret 패턴 참고), submit 자동화용 자격증명은 GitHub Secret 으로 별도 관리합니다.
+
 ### 12.4 GitHub Secret 표 (repo scope)
 
-| Secret 이름 | 용도 |
-|---|---|
-| `EXPO_TOKEN` | EAS CLI 인증 (robot user 토큰) |
+| Secret 이름 | 인코딩 | 용도 |
+|---|---|---|
+| `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
+| `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit 용 service account JSON. `.github/workflows/eas-staging.yml` 의 "Write Play service account" step 이 decode 후 `/tmp/play-service-account.json` 으로 작성하면 `eas.json` 의 `submit.staging.android.serviceAccountKeyPath` 가 이 path 를 참조 |
+
+등록 명령 (1회성, 자격증명 회전 시에도 동일):
+```bash
+base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BASE64 --repo <owner>/<repo>
+```
+
+근거: [Expo fyi — creating-google-service-account](https://github.com/expo/fyi/blob/main/creating-google-service-account.md), [expo/eas-cli#2910](https://github.com/expo/eas-cli/issues/2910). EAS Submit 의 `serviceAccountKeyPath` 는 환경변수 interpolation 미지원이므로 CI 워크플로우에서 절대 path 에 파일을 작성하는 방식이 표준.
 
 ### 12.5 출시 절차
 
@@ -478,7 +499,7 @@ config/{env}/android/
 2. `fix(...)` 또는 `fix!:` (BREAKING) commit
 3. `hotfix/* → main` PR (CODEOWNER review 필수)
 4. release-please 가 patch bump → tag → 자동 production 빌드 → 수동 promote
-5. **hotfix 머지 후 `main → staging` back-merge 의무** (staging 이 main 보다 뒤처지면 다음 staging 빌드가 회귀)
+5. **hotfix 머지 후 `main → staging` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
 
 ### 12.7 롤백 절차
 
@@ -496,15 +517,38 @@ config/{env}/android/
 | Play service account | Google IAM 에서 키 회전 → 동일하게 `eas secret:create --force ...` 로 덮어쓰기 |
 | `EXPO_TOKEN` | robot user 재발급 → GitHub repo secret 갱신 |
 
-### 12.9 브랜치 보호 정책
+### 12.9 브랜치 보호 정책 (GitHub Rulesets)
 
-| Branch | PR 필수 | CI 필수 | CODEOWNER review | Linear history | Force push | Admin bypass |
-|---|---|---|---|---|---|---|
-| `dev` | 권장 | ✅ | ❌ | ❌ | ❌ | 허용 |
-| `staging` | ✅ | ✅ | ❌ | ✅ | ❌ | 차단 (`enforce_admins: true`) |
-| `main` | ✅ | ✅ | ✅ | ✅ | ❌ | hotfix 한정 허용 |
+GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로 구현. repository visibility 가 `public` 이거나 Pro/Team/Enterprise plan 이어야 사용 가능 — 본 repo 는 public.
 
-현재 적용 상태 조회: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
+3인 팀 운영 기준 정책 (PR 작성자 포함 최소 2명 합의):
+
+| Branch | Ruleset 이름 | PR 강제 | `required_approving_review_count` | `require_code_owner_review` | `dismiss_stale_reviews_on_push` | Linear history | verify CI 통과 | bypass |
+|---|---|---|---|---|---|---|---|---|
+| `dev` | `dev-branch-protection` | ❌ | — | — | — | ❌ | ❌ (자동 트리거만, 통과 강제 X) | 없음 |
+| `staging` | `staging-branch-protection` | ✅ | 1 (= author 포함 2명) | ❌ | ❌ | ✅ | ✅ | 없음 |
+| `main` | `main-branch-protection` | ✅ | 1 (= author 포함 2명) | ❌ | ✅ (새 commit push 시 기존 approve 무효화) | ✅ | ✅ (+ `required_review_thread_resolution`) | 없음 |
+
+모든 브랜치 공통: `deletion` 차단, `non_fast_forward` 차단 (force push 차단).
+
+**`required_approving_review_count: 1` 동작** — GitHub 는 PR author 의 self-approve 를 카운트하지 않습니다. 따라서 `1` 설정은 **author + 다른 1명의 reviewer = 총 2명 합의** 를 의미합니다.
+
+**`require_code_owner_review: false`** — CODEOWNERS 매칭 파일이 변경된 PR 이라도 일반 review 1명이면 통과. CODEOWNERS 파일은 유지하되 GitHub 의 auto-assign reviewer 용도로만 사용 (PR 만들 때 자동으로 reviewer 제안).
+
+`required_linear_history: true` 의 결과: PR 머지는 **squash** 또는 **rebase** 만 가능 (일반 merge commit 차단).
+
+현재 적용 상태 조회:
+```bash
+gh api repos/<owner>/<repo>/rulesets --jq '.[] | {id, name, enforcement}'
+gh api repos/<owner>/<repo>/rulesets/<id> --jq '{name, ref_includes: .conditions.ref_name.include, rules}'
+```
+
+핫픽스 시 임시 우회 (bypass_actors 가 비어있으므로 ruleset enforcement 토글로 처리):
+```bash
+gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=evaluate
+# ... hotfix 푸시/머지 ...
+gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=active
+```
 
 ### 12.10 트러블슈팅 (CI/CD 한정)
 
