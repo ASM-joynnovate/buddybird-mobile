@@ -1,6 +1,12 @@
+.github/                          @PRESSO
 .github/workflows/*               @PRESSO
+.github/CODEOWNERS                @PRESSO
+.github/PULL_REQUEST_TEMPLATE.md  @PRESSO
+.github/dependabot.yml            @PRESSO
+.github/labeler.yml               @PRESSO
 eas.json                          @PRESSO
 release-please-config.json        @PRESSO
 .release-please-manifest.json     @PRESSO
 app.config.ts                     @PRESSO
 docs/BUILD-AND-RELEASE.md         @PRESSO
+docs/POLICY-HISTORY.md            @PRESSO
