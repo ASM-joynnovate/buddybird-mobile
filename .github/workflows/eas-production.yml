@@ -2,11 +2,22 @@ name: EAS Build (production)
 on:
   push:
     tags: ['v*.*.*']
+
 concurrency:
   group: eas-production
   cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  verify:
+    name: Verify (lint + typecheck)
+    uses: ./.github/workflows/_verify.yml
+
+  build-production:
+    name: Build (Production)
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,8 +34,6 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: yarn
       - run: yarn install --immutable
-      - run: yarn lint
-      - run: yarn typecheck
       - name: EAS Build (production, Android)
         run: eas build --profile production --platform android --non-interactive --wait --message "${GITHUB_REF_NAME}"
       # submit 없음 — 운영 출시는 수동 게이트

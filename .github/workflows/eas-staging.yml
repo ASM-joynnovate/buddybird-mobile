@@ -2,11 +2,22 @@ name: EAS Build & Submit (staging)
 on:
   push:
     branches: [staging]
+
 concurrency:
   group: eas-staging
   cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  build_and_submit:
+  verify:
+    name: Verify (lint + typecheck)
+    uses: ./.github/workflows/_verify.yml
+
+  build-and-submit:
+    name: Build and Submit (Staging)
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,8 +34,6 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: yarn
       - run: yarn install --immutable
-      - run: yarn lint
-      - run: yarn typecheck
       - name: EAS Build (staging, Android)
         run: eas build --profile staging --platform android --non-interactive --wait
       - name: Write Play service account
