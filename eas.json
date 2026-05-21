@@ -19,6 +19,14 @@
         "APP_VARIANT": "development"
       }
     },
+    "staging": {
+      "distribution": "store",
+      "channel": "staging",
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "development"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "channel": "production",
@@ -28,6 +36,20 @@
     }
   },
   "submit": {
-    "production": {}
+    "staging": {
+      "android": {
+        "serviceAccountKeyPath": "$GOOGLE_PLAY_SERVICE_ACCOUNT",
+        "track": "internal",
+        "releaseStatus": "completed",
+        "changesNotSentForReview": false
+      }
+    },
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "$GOOGLE_PLAY_SERVICE_ACCOUNT",
+        "track": "production",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

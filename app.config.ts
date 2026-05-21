@@ -1,6 +1,8 @@
 // app.config.ts
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
+import pkg from './package.json';
+
 declare const require: (moduleName: string) => { version?: string };
 
 const APP_NAME = '버디버드';
@@ -67,7 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
     name: DISPLAY_NAME,
     slug: 'buddybird',
-    version: '0.1.0',
+    version: pkg.version,
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: SCHEME,
