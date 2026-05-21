@@ -496,15 +496,28 @@ config/{env}/android/
 | Play service account | Google IAM 에서 키 회전 → 동일하게 `eas secret:create --force ...` 로 덮어쓰기 |
 | `EXPO_TOKEN` | robot user 재발급 → GitHub repo secret 갱신 |
 
-### 12.9 브랜치 보호 정책
+### 12.9 브랜치 보호 정책 (GitHub Rulesets)
 
-| Branch | PR 필수 | CI 필수 | CODEOWNER review | Linear history | Force push | Admin bypass |
-|---|---|---|---|---|---|---|
-| `dev` | 권장 | ✅ | ❌ | ❌ | ❌ | 허용 |
-| `staging` | ✅ | ✅ | ❌ | ✅ | ❌ | 차단 (`enforce_admins: true`) |
-| `main` | ✅ | ✅ | ✅ | ✅ | ❌ | hotfix 한정 허용 |
+GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로 구현. repository visibility 가 `public` 이거나 Pro/Team/Enterprise plan 이어야 사용 가능 — 본 repo 는 public.
 
-현재 적용 상태 조회: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
+| Branch | Ruleset 이름 | 룰 | bypass actors |
+|---|---|---|---|
+| `dev` | `dev-branch-protection` | deletion 차단, non_fast_forward 차단, required_status_checks (verify) | 없음 |
+| `staging` | `staging-branch-protection` | 위 + required_linear_history + pull_request (review 0, 1인 운영) | 없음 |
+| `main` | `main-branch-protection` | 위 + pull_request (review 0 + CODEOWNER review + dismiss_stale_reviews_on_push + required_review_thread_resolution) | 없음 (hotfix 시 ruleset enforcement 를 임시 `evaluate` 로 변경 후 다시 `active`) |
+
+현재 적용 상태 조회:
+```bash
+gh api repos/<owner>/<repo>/rulesets --jq '.[] | {id, name, enforcement}'
+gh api repos/<owner>/<repo>/rulesets/<id> --jq '{name, ref_includes: .conditions.ref_name.include, rules: [.rules[].type]}'
+```
+
+핫픽스 시 임시 우회:
+```bash
+gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=evaluate
+# ... hotfix 푸시 ...
+gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=active
+```
 
 ### 12.10 트러블슈팅 (CI/CD 한정)
 
