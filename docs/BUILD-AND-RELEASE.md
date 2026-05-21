@@ -34,7 +34,7 @@
 | `Constants.expoConfig.extra.appVariant` | `development` | `production` |
 | EAS build profile (`eas.json`) | `development` (dev-client) / `preview` (ad-hoc) / `staging` (store, CI) | `production` |
 | EAS channel | `development` / `preview` / `staging` | `production` |
-| EAS environment (env store) | `development` / `preview` / `staging` (모두 dev Firebase config 참조) | `production` |
+| EAS environment (env store) | `development` / `preview` (staging profile 도 `environment: "preview"` 명시로 preview env 공유 — 별도 staging env 미존재) | `production` |
 | distribution | `internal` (dev/preview) / `store` (staging) | `store` |
 | CI 트리거 | 없음 (수동) | staging 브랜치 push (staging profile) / `v*.*.*` tag (production profile) |
 
