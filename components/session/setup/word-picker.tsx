@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: CARD_GAP,
-    paddingBottom: 10,
+    paddingBottom: 24,
   },
   listEmpty: {
     alignItems: 'center',
