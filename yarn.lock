@@ -3412,6 +3412,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-navigation/bottom-tabs@npm:^7.16.1":
+  version: 7.16.1
+  resolution: "@react-navigation/bottom-tabs@npm:7.16.1"
+  dependencies:
+    "@react-navigation/elements": "npm:^2.9.18"
+    color: "npm:^4.2.3"
+    sf-symbols-typescript: "npm:^2.1.0"
+  peerDependencies:
+    "@react-navigation/native": ^7.2.4
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+    react-native-screens: ">= 4.0.0"
+  checksum: 10c0/6ede811a8afde91ee42f5878ddf3aa1244601a8c0ed23f9e53471dd7b929dfb6ad59feced6425f4bfa6f2ff61fda95784cbf4578759c93197556c9a5837f30bd
+  languageName: node
+  linkType: hard
+
 "@react-navigation/bottom-tabs@npm:^7.4.0":
   version: 7.16.0
   resolution: "@react-navigation/bottom-tabs@npm:7.16.0"
@@ -3447,7 +3464,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/elements@npm:^2.6.3, @react-navigation/elements@npm:^2.9.17":
+"@react-navigation/elements@npm:^2.9.17":
   version: 2.9.17
   resolution: "@react-navigation/elements@npm:2.9.17"
   dependencies:
@@ -3464,6 +3481,26 @@ __metadata:
     "@react-native-masked-view/masked-view":
       optional: true
   checksum: 10c0/66283822ab909ec934de805655f70320cf949543795926ad6740e486238fe561c7261396a66e8d14d179a88edf5442f226a6a69827f7052b2783d49624ade63c
+  languageName: node
+  linkType: hard
+
+"@react-navigation/elements@npm:^2.9.18":
+  version: 2.9.18
+  resolution: "@react-navigation/elements@npm:2.9.18"
+  dependencies:
+    color: "npm:^4.2.3"
+    use-latest-callback: "npm:^0.2.4"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    "@react-native-masked-view/masked-view": ">= 0.2.0"
+    "@react-navigation/native": ^7.2.4
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+  peerDependenciesMeta:
+    "@react-native-masked-view/masked-view":
+      optional: true
+  checksum: 10c0/e075b5b5d9ea04d008048c8f64684b5bb217b1d4eafa59ea1c8e5394cef7455f3d07fead3c428f33c275fd2deb0d42215eddb238413ba4dfbcbb294b42950ccb
   languageName: node
   linkType: hard
 
@@ -4788,8 +4825,8 @@ __metadata:
     "@react-native-firebase/analytics": "npm:^24.0.0"
     "@react-native-firebase/app": "npm:^24.0.0"
     "@react-native-firebase/crashlytics": "npm:^24.0.0"
-    "@react-navigation/bottom-tabs": "npm:^7.4.0"
-    "@react-navigation/elements": "npm:^2.6.3"
+    "@react-navigation/bottom-tabs": "npm:^7.16.1"
+    "@react-navigation/elements": "npm:^2.9.18"
     "@react-navigation/native": "npm:^7.1.8"
     "@types/react": "npm:~19.1.0"
     eslint: "npm:^9.25.0"
