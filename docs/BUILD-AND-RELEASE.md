@@ -438,6 +438,18 @@ config/{env}/android/
 
 **Hard Rule**: `package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드는 직접 편집 금지 — release-please 가 PR 로 관리한다. `app.config.ts` 는 `import pkg from './package.json'` 으로 단일 source 를 참조한다.
 
+**staging 빌드의 version 동기화 정책 — 단일 semver + buildNumber 분리 패턴**
+
+본 프로젝트는 모바일 앱 스토어 출시의 업계 표준 패턴을 따른다 ([Bluesky social-app](https://github.com/bluesky-social/social-app/blob/main/package.json), [Mattermost mobile](https://developers.mattermost.com/internal/mobile-build-process/bump-version-number/), Discord 등): **`version` 문자열은 staging/production 양쪽이 공유**, **`versionCode`/`buildNumber` 만 환경별로 +1 자동 증가**.
+
+- staging 빌드의 `package.json.version` 은 main 의 release-please 갱신을 자동으로 받지 않는다. cascade 흐름 (dev → staging → main) 상 release-please commit (`chore(main): release X.Y.Z`) 이 main 에만 들어가기 때문.
+- 결과: staging 빌드의 사용자 노출 version 이 production 보다 한 사이클 뒤처질 수 있다 (예: production = 0.1.5, staging = 0.1.0). **이는 정상 동작이며 비효율 아님.**
+- 사내 internal tester 는 **`versionCode`/`buildNumber` + release notes** 로 빌드 식별 — version 문자열의 stale 은 이 모델에서 정상.
+- prerelease suffix (`-rc.1`, `-staging.7`) 채택 안 함 — iOS `CFBundleShortVersionString` X.Y.Z 강제 + 사용자 노출 표기 혼란 + 모바일 스토어 출시 OSS 앱 실제 사례 0건.
+- **back-merge (main → staging) 의무 X (일반 release)**. 단 §12.6 핫픽스는 staging 우회 흐름이라 별도 back-merge 의무 적용.
+
+근거: [semver.org §9-11](https://semver.org/), [Expo app-versions docs](https://docs.expo.dev/build-reference/app-versions/), [Expo EAS deployment patterns](https://docs.expo.dev/eas-update/deployment-patterns/).
+
 ### 12.3 EAS Secret 표 (account scope)
 
 | Secret 이름 | 타입 | 용도 |
@@ -487,7 +499,7 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 2. `fix(...)` 또는 `fix!:` (BREAKING) commit
 3. `hotfix/* → main` PR (CODEOWNER review 필수)
 4. release-please 가 patch bump → tag → 자동 production 빌드 → 수동 promote
-5. **hotfix 머지 후 `main → staging` back-merge 의무** (staging 이 main 보다 뒤처지면 다음 staging 빌드가 회귀)
+5. **hotfix 머지 후 `main → staging` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
 
 ### 12.7 롤백 절차
 
