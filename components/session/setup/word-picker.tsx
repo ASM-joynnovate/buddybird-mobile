@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FilterChip } from '@/components/words/word-filter-bar';
 import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
@@ -118,7 +118,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: CARD_GAP,
-    paddingBottom: 10,
+    // Android의 ScrollView는 contentContainerStyle paddingBottom이 iOS보다 작게 인식되어
+    // 마지막 카드가 컨테이너 바닥에 붙어 보이는 시각 버그가 있다. 안드로이드에서만 보강한다.
+    paddingBottom: Platform.OS === 'android' ? 24 : 10,
   },
   listEmpty: {
     alignItems: 'center',

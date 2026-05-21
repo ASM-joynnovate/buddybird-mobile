@@ -17,6 +17,7 @@ import { createSessionId } from '@/features/shared/ids';
 import { useTrainingData } from '@/features/training/training-context';
 import { selectTotalTrainingSeconds } from '@/features/training/training-model';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
+import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 
 export default function HomeScreen() {
   const { profile } = useProfile();
@@ -53,7 +54,10 @@ export default function HomeScreen() {
       sessionId,
       wordId: lastSettings.wordId,
       settings: lastSettings,
-      audioUri: lastWordEntry.sourceType === 'recording' ? lastWordEntry.audioUri : undefined,
+      audioUri:
+        lastWordEntry.sourceType === 'recording'
+          ? lastWordEntry.audioUri
+          : (resolvePresetAudioModule(lastWordEntry.presetKey) ?? undefined),
       word: lastWordEntry.label,
     });
     track({
