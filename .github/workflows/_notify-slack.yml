@@ -43,7 +43,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send to Slack
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@v3
         continue-on-error: true
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
