@@ -1,0 +1,30 @@
+name: EAS Build (production)
+on:
+  push:
+    tags: ['v*.*.*']
+concurrency:
+  group: eas-production
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+      - run: corepack enable
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: yarn
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn typecheck
+      - name: EAS Build (production, Android)
+        run: eas build --profile production --platform android --non-interactive --wait --message "${GITHUB_REF_NAME}"
+      # submit 없음 — 운영 출시는 수동 게이트

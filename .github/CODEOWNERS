@@ -1,0 +1,6 @@
+.github/workflows/*               @PRESSO
+eas.json                          @PRESSO
+release-please-config.json        @PRESSO
+.release-please-manifest.json     @PRESSO
+app.config.ts                     @PRESSO
+docs/BUILD-AND-RELEASE.md         @PRESSO

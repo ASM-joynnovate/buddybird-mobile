@@ -8,20 +8,22 @@
 
 | 환경 | 목적 | 사용 시점 |
 |---|---|---|
-| `development` | 로컬 개발·디버깅 + **internal QA/staging 검증** | 매일의 개발, 시뮬레이터 실행, EAS development client 빌드, 출시 전 내부 검수 |
-| `production` | 운영·심사·스토어 제출 | App Store/Play Store 제출 (internal QA는 `development` 가 흡수) |
+| `development` | 로컬 개발·디버깅 + 빠른 ad-hoc QA | 매일의 개발, 시뮬레이터 실행, EAS development client 빌드, ad-hoc 직원 QA (preview profile) |
+| `staging` (CI) | **개발계 CI 배포** — staging 브랜치 push 시 자동 빌드 + Play internal track 자동 제출 | merge 즉시 사내 internal track 으로 출시되는 store-build (dev Firebase·dev 식별자) |
+| `production` | 운영·심사·스토어 제출 | App Store/Play Store 제출. main release tag 자동 빌드 + 수동 promote |
 
 - dev 와 prod 는 **Bundle ID / Android package / Firebase project / scheme / display name 까지 완전 분리**된다.
 - 동일 시뮬레이터·실기기에 dev 와 prod 빌드가 **동시 설치** 가능하다.
-- **`development` 환경이 일반적인 staging 역할까지 함께 맡는다** — 별도 staging 환경은 두지 않는다. dev Firebase·dev Bundle ID 로 internal QA·기능 검수·릴리스 후보 검증을 모두 수행한다.
-- EAS profile 3종은 EAS 표준 패턴을 따른다:
+- **staging 은 dev Firebase 를 공유** 한다 (`.dev` Bundle ID, `buddybird-dev` 프로젝트). 별개 Firebase 프로젝트로 격리하지 않는 것은 본 프로젝트 운영비/규모 trade-off 의 결과 — preview / staging 모두 같은 dev 환경 대상이며 distribution 방식(ad-hoc vs store)만 다르다.
+- EAS profile 4종:
   - `development` — 매일의 개발용. `developmentClient: true`, Metro 연결로 hot reload·dev menu 사용. 개발자 본인이 받는 빌드.
-  - `preview` — **내부 직원 alpha/beta testing 빌드.** `developmentClient: false`, `distribution: internal`, dev 식별자·dev Firebase 사용. 직원이 EAS 내부 배포 링크로 설치해 일반 사용자처럼 동작 확인. **`development` 환경을 대상으로 한 standalone 빌드**라는 점이 핵심.
-  - `production` — App Store/Play Store 제출용. prod 식별자·prod Firebase.
+  - `preview` — **ad-hoc QA** 빌드. `developmentClient: false`, `distribution: internal` (EAS Install Link 로 디바이스에 직접 설치). dev 식별자·dev Firebase. CI 무관 — 직원이 수동으로 `yarn eas:build:preview:all`.
+  - `staging` — **개발계 CI 배포** 용. `distribution: store`, dev 식별자·dev Firebase. staging 브랜치 push 트리거로 자동 빌드되어 Play internal track 에 자동 제출. preview 와 분리된 독립 profile (extends 사용 X — distribution 충돌 방지).
+  - `production` — App Store/Play Store 제출용. prod 식별자·prod Firebase. main release tag 트리거.
 
 ## 2. 식별자 매핑 표
 
-| 키 | development | production |
+| 키 | development / staging (dev 환경) | production |
 |---|---|---|
 | App display name | `버디버드 (DEV)` | `버디버드` |
 | iOS Bundle ID | `com.joynnovate.buddybird.dev` | `com.joynnovate.buddybird` |
@@ -30,9 +32,11 @@
 | Firebase project | `buddybird-dev` | `buddybird-9b84d` |
 | `process.env.APP_VARIANT` | `development` | `production` |
 | `Constants.expoConfig.extra.appVariant` | `development` | `production` |
-| EAS build profile (`eas.json`) | `development` (개발자용 dev-client), `preview` (직원 internal testing) | `production` |
-| EAS channel | `development` / `preview` (둘 다 dev 환경) | `production` |
-| EAS environment (env store) | `development` / `preview` (둘 다 dev Firebase config 참조) | `production` |
+| EAS build profile (`eas.json`) | `development` (dev-client) / `preview` (ad-hoc) / `staging` (store, CI) | `production` |
+| EAS channel | `development` / `preview` / `staging` | `production` |
+| EAS environment (env store) | `development` / `preview` / `staging` (모두 dev Firebase config 참조) | `production` |
+| distribution | `internal` (dev/preview) / `store` (staging) | `store` |
+| CI 트리거 | 없음 (수동) | staging 브랜치 push (staging profile) / `v*.*.*` tag (production profile) |
 
 ## 3. Firebase 프로젝트 구성
 
@@ -392,14 +396,137 @@ config/{env}/android/
 - **prod keystore** — `config/prod/android/` 의 사본 외에 1Password / GCS+versioning / S3+KMS 등 안전한 외부 저장소에도 반드시 백업. Play Store App Signing 이 켜져 있어도 upload key 분실은 운영 부담이므로 백업 권장.
 - `credentials.json` 의 password 도 동일하게 백업 대상 (keystore 만 있고 password 가 사라지면 사용 불가).
 
-## 12. Hard Rules
+## 12. CI/CD 자동화 파이프라인
+
+### 12.1 브랜치 ↔ 워크플로우 트리거 매핑
+
+| 트리거 | 워크플로우 | 동작 |
+|---|---|---|
+| PR open/sync (모든 브랜치) | `.github/workflows/ci.yml` | lint + typecheck (Hard Rule 강제) |
+| push `dev` / `staging` / `main` | `ci.yml` | lint + typecheck |
+| push `staging` | `.github/workflows/eas-staging.yml` | EAS build (staging profile, Android) → submit (Play internal track) |
+| push `main` | `.github/workflows/release-please.yml` | release PR 자동 생성/갱신 (semver bump + CHANGELOG) |
+| tag `v*.*.*` (release PR merge 시 자동 생성) | `.github/workflows/eas-production.yml` | EAS build (production profile, Android). submit 없음 — 수동 promote |
+
+> ⚠️ **1단계 (현재): Android only.** iOS 워크플로우는 Apple Developer Program 가입 후 활성화한다 (자세한 절차는 git history 의 plan `expo-eas-staging-steady-trinket` Phase 6 참고). 가입 시점에 워크플로우의 `--platform android` 를 `--platform all` 로 전환하고, EAS remote 의 iOS `buildNumber` 카운터를 `eas build:version:set --platform ios --profile {staging|production}` 으로 초기화한다 (`autoIncrement: true` 는 이미 iOS+Android 둘 다 증가시키므로 schema 변경 불필요).
+
+### 12.2 시멘틱 버전 정책 (release-please 자동 bump)
+
+`version` (사용자 노출 X.Y.Z) 와 `buildNumber`/`versionCode` (개발자용) 는 분리 관리:
+
+| 필드 | 누가 결정 | 어떻게 |
+|---|---|---|
+| `version` (X.Y.Z) | **개발자가 commit message type 으로 의도 표현** → release-please 가 자동 계산 | conventional commits 누적분 분석 |
+| `ios.buildNumber` / `android.versionCode` | EAS 자동 | `appVersionSource: remote` + `autoIncrement` — 매 빌드 시 +1 |
+
+**Conventional Commit → semver bump 표**
+
+| Commit 패턴 | bump | 예 |
+|---|---|---|
+| `fix(scope): ...` | **patch** | `fix(session): resolve preset audio` → 0.1.0 → 0.1.1 |
+| `feat(scope): ...` | **minor** | `feat(profile): add parrot profiles` → 0.1.0 → 0.2.0 |
+| `feat(scope)!: ...` 또는 commit footer `BREAKING CHANGE: ...` | **major** | pre-1.0 에서는 `bump-minor-pre-major: true` 로 인해 minor 만 증가. 1.0.0 진입은 수동 `Release-As` 만 |
+| `chore:`, `docs:`, `style:`, `refactor:`, `test:`, `build:`, `ci:`, `perf:` | bump 없음 | CHANGELOG 에만 기록 가능 |
+
+**pre-1.0 규칙** — `release-please-config.json` 의 `bump-minor-pre-major: true`:
+- breaking change 도 1.0.0 으로 올라가지 않고 minor 만 증가
+- 1.0.0 진입은 의도적으로만:
+  ```bash
+  git commit --allow-empty -m "chore: release 1.0.0" -m "Release-As: 1.0.0"
+  git push origin main
+  ```
+
+**Hard Rule**: `package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드는 직접 편집 금지 — release-please 가 PR 로 관리한다. `app.config.ts` 는 `import pkg from './package.json'` 으로 단일 source 를 참조한다.
+
+### 12.3 EAS Secret 표 (account scope)
+
+| Secret 이름 | 타입 | 용도 |
+|---|---|---|
+| `GOOGLE_PLAY_SERVICE_ACCOUNT` | file | Android submit (Play Console) |
+| `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config |
+| `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config |
+| `ASC_API_KEY_P8` *(Phase 6)* | file | iOS submit (TestFlight/App Store) |
+| `ASC_API_KEY_ID` *(Phase 6)* | string | iOS submit |
+| `ASC_API_KEY_ISSUER_ID` *(Phase 6)* | string | iOS submit |
+
+현재 상태 조회: `eas secret:list --scope account`.
+
+### 12.4 GitHub Secret 표 (repo scope)
+
+| Secret 이름 | 용도 |
+|---|---|
+| `EXPO_TOKEN` | EAS CLI 인증 (robot user 토큰) |
+
+### 12.5 출시 절차
+
+**개발계 (staging) — 자동 끝까지**
+1. `feature/* → dev` PR merge (CI: lint + typecheck)
+2. `dev → staging` PR merge → push 즉시 `eas-staging.yml` 자동 트리거
+3. EAS build (staging profile, Android) → 자동 Play internal track 제출
+4. 5~20분 후 Play Console internal track 에서 사내 사용자가 설치/검증
+
+**운영계 (production) — 빌드 자동, 출시 수동 게이트**
+1. `staging → main` PR merge → `release-please.yml` 이 release PR 자동 생성
+2. release PR 머지 → tag `vX.Y.Z` 자동 생성 → `eas-production.yml` 자동 트리거
+3. EAS build (production profile, Android) — submit 없음
+4. **사람이 Play Console 에서 production track promote** (의도적 수동 게이트)
+
+### 12.6 핫픽스 절차
+
+운영 긴급 패치는 staging 우회:
+1. `hotfix/*` 브랜치를 main 에서 분기
+2. `fix(...)` 또는 `fix!:` (BREAKING) commit
+3. `hotfix/* → main` PR (CODEOWNER review 필수)
+4. release-please 가 patch bump → tag → 자동 production 빌드 → 수동 promote
+5. **hotfix 머지 후 `main → staging` back-merge 의무** (staging 이 main 보다 뒤처지면 다음 staging 빌드가 회귀)
+
+### 12.7 롤백 절차
+
+| 환경 | 절차 |
+|---|---|
+| 운영 (Play Production) | Play Console 에서 이전 release 롤백 (EAS Build 와 무관, Play 콘솔 작업) |
+| 개발 (staging) | `git revert` 후 staging push → 다음 빌드가 internal track 덮어씀 |
+| 빌드 자체 | EAS Build 는 immutable — 새 빌드로 대체만 가능 |
+
+### 12.8 자격증명 로테이션 (6~12 개월 주기)
+
+| 자격증명 | 절차 |
+|---|---|
+| `ASC_API_KEY_P8` (Phase 6 이후) | 신규 키 발급 → `eas secret:create --force --scope account --name ASC_API_KEY_P8 --type file --value <path>` |
+| Play service account | Google IAM 에서 키 회전 → 동일하게 `eas secret:create --force ...` 로 덮어쓰기 |
+| `EXPO_TOKEN` | robot user 재발급 → GitHub repo secret 갱신 |
+
+### 12.9 브랜치 보호 정책
+
+| Branch | PR 필수 | CI 필수 | CODEOWNER review | Linear history | Force push | Admin bypass |
+|---|---|---|---|---|---|---|
+| `dev` | 권장 | ✅ | ❌ | ❌ | ❌ | 허용 |
+| `staging` | ✅ | ✅ | ❌ | ✅ | ❌ | 차단 (`enforce_admins: true`) |
+| `main` | ✅ | ✅ | ✅ | ✅ | ❌ | hotfix 한정 허용 |
+
+현재 적용 상태 조회: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
+
+### 12.10 트러블슈팅 (CI/CD 한정)
+
+| 증상 | 원인 | 해결 |
+|---|---|---|
+| `eas submit` 실패 (`BUILD_NOT_FOUND`) | `--latest` 와 빌드 완료 사이 race | 워크플로우가 이미 `eas build ... --wait` 후 submit 하므로 정상 발생 안 함. 발생 시 재실행 |
+| buildNumber 충돌 (`The bundle version must be higher than ...`) | EAS remote 카운터가 스토어와 어긋남 | `eas build:version:set --platform android --profile <profile>` 로 카운터 정정 |
+| release-please PR 안 만들어짐 | main 에 conventional commit 이 없거나 모두 `chore:` 만 누적 | `feat:` 또는 `fix:` commit 1개 필요 |
+| Firebase config 미반영 | EAS Secret 갱신 후 기존 빌드는 자동 재반영 안 됨 | 다음 빌드에서 반영. 즉시 필요하면 재빌드 |
+
+## 13. Hard Rules
 
 본 환경 분리 정책에서 절대 위반 금지:
 
 - **`APP_VARIANT` 미설정 시 `development` 로 fallback**. prod 빌드는 반드시 `APP_VARIANT=production` 또는 `eas.json` 의 production profile 을 통해 실행.
 - **prod 의 Bundle ID/package 는 변경 금지** (`com.joynnovate.buddybird`). 변경 시 기존 사용자 업그레이드 경로 단절.
-- **dev/preview profile 로 store 제출 금지**. `eas.json` 의 `submit.production` 만 정의되어 있으며, CI 도 동일 제약 유지.
+- **dev/preview profile 로 store 제출 금지**. `eas.json` 의 `submit.staging` 은 Play internal track 한정, `submit.production` 은 manual gate (`releaseStatus: draft`). CI 도 동일 제약 유지.
 - **`config/`, `GoogleService-Info.plist`, `google-services.json` commit 금지** (`.gitignore` 가 강제). 단, `.easignore` 가 EAS tarball 한정으로 `config/{env}/firebase/` 만 unignore 한다 — §4, §7.2 참고.
 - **Android keystore (`*.jks`) 와 `credentials.json` 은 `config/{env}/android/` 외부에 두지 않는다**. 다른 경로에 복사·이동 금지, commit 절대 금지, **EAS tarball 포함 금지** (`.easignore` 가 `**/*.jks`, `**/credentials.json`, `/config/{env}/android/` 를 명시적으로 재제외). preview 빌드는 `config/dev/android/` 의 dev keystore 를 그대로 참조한다 (별도 복사본 생성 금지).
 - **Firebase 환경 분리 유지** — dev 빌드는 `buddybird-dev` 프로젝트만, prod 빌드는 `buddybird-9b84d` 프로젝트만 사용. 한 환경의 config 를 다른 환경에 임시로 끼워 넣지 말 것.
 - **`docs/ARCHITECTURE.md`, `README.md`, `CLAUDE.md` 에 빌드/배포 명령을 직접 기재하지 않는다** — 모든 절차는 본 문서로 단일화. `rg -l "eas (env|build|submit)" docs/ README.md` 결과가 본 파일 1건만 매치되어야 한다.
+- **`package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드 직접 편집 금지** — release-please 가 PR 로 관리. `app.config.ts` 는 `pkg.version` 으로 단일 source 참조.
+- **`staging` / `main` 브랜치 직접 push 금지** — PR-only 보호 브랜치. 우회는 §12.6 핫픽스 절차로만.
+- **`ios.buildNumber` / `android.versionCode` 를 `app.config.ts` 에 명시 금지** — EAS remote autoIncrement 가 관리 (`eas.json` `appVersionSource: remote` + profile `autoIncrement`).
+- **Conventional commit type 정책 준수** — 출시될 변경에는 `feat:` (minor) / `fix:` (patch) / `feat!:` 또는 footer `BREAKING CHANGE:` (major) 의 정확한 type 필수. 잘못된 type → 잘못된 semver bump → 운영 출시 사고.

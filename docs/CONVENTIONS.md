@@ -125,6 +125,19 @@
 - `refactor(audio): replace silent catch swallows with explicit warn logging`
 - `chore(deps): add firebase, clarity, expo-tracking-transparency packages`
 
+### 4.1.1 commit type → semver bump (release-please 자동 분석)
+
+`main` 에 머지되는 commit 의 type 이 다음 출시의 `version` (X.Y.Z) bump 를 결정합니다. 의도를 정확히 표현하세요:
+
+| Commit 패턴 | bump | 예 |
+|---|---|---|
+| `fix(scope): ...` | **patch** | 0.1.0 → 0.1.1 |
+| `feat(scope): ...` | **minor** | 0.1.0 → 0.2.0 |
+| `feat(scope)!: ...` 또는 footer `BREAKING CHANGE: ...` | **major** (pre-1.0 에서는 minor 로 처리) | 0.1.0 → 0.2.0 (pre-1.0) |
+| `chore:` / `docs:` / `style:` / `refactor:` / `test:` / `build:` / `ci:` / `perf:` | 없음 | CHANGELOG 에만 기록 가능 |
+
+상세 정책 및 1.0.0 진입 수동 절차는 `docs/BUILD-AND-RELEASE.md` §12.2.
+
 ### 4.2 책임 단위 분리
 
 한 커밋 = 한 책임. deps / config / feature / wiring을 다른 커밋으로 분리:
