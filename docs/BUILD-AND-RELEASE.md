@@ -535,15 +535,54 @@ GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로
 
 모든 브랜치 공통: `deletion` 차단, `non_fast_forward` 차단 (force push 차단).
 
-**필수 status check 이름** (Ruleset 의 `required_status_checks.required_status_checks_configuration.required_status_checks` 에 등록할 컨텍스트 이름):
+**필수 status check 이름** (Ruleset 의 `required_status_checks.required_status_checks_configuration.required_status_checks` 에 등록할 컨텍스트 이름 — **실측치, 단순 추정 금지**):
 
 | Branch | Required status checks |
 |---|---|
 | `dev` | (없음 — 자동 트리거만, 통과 강제 X) |
-| `staging` | `Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze` |
-| `main` | `Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze` |
+| `staging` | `Verify (lint + typecheck) / Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze (javascript-typescript)` |
+| `main` | `Verify (lint + typecheck) / Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze (javascript-typescript)` |
 
-> 워크플로우 job 이름 변경 시 (예: `build_and_submit` → `build-and-submit`) 기존 ruleset 의 status check 이름도 동기화해야 한다. 미동기화 시 GitHub 가 "Expected — Waiting for status to be reported" 로 PR 머지를 영구 차단한다. 변경 직후 즉시 `gh api -X PUT .../rulesets/<id>` 로 갱신 필수.
+**Check 이름 작명 규칙** — 워크플로우 yaml 에서 추정하지 말고 한 번 실행 후 `gh api .../commits/<branch>/check-runs --jq '.check_runs[].name'` 로 실측:
+
+| 패턴 | 예시 | 이유 |
+|---|---|---|
+| Reusable workflow 호출 | `Verify (lint + typecheck) / Verify (lint + typecheck)` | `<calling-job.name> / <reusable-job.name>` — 호출 측 job 의 `name` 과 reusable 내부 job 의 `name` 이 슬래시로 연결됨 |
+| Matrix strategy | `CodeQL Analyze (javascript-typescript)` | job `name` 뒤에 matrix 값이 괄호로 자동 첨부 |
+| 단순 job | `PR Title (Semantic)`, `Auto Label` | job 의 `name` 그대로 |
+
+> 워크플로우 job 이름 변경 시 (예: `build_and_submit` → `build-and-submit`) 기존 ruleset 의 status check 이름도 동기화해야 한다. 미동기화 시 GitHub 가 "Expected — Waiting for status to be reported" 로 PR 머지를 영구 차단한다. 변경 직후 즉시 아래 절차로 갱신 필수.
+
+**Ruleset required status checks 안전 갱신 절차** (다른 rule 보존):
+
+```bash
+OWNER_REPO=ASM-joynnovate/buddybird-mobile
+RULESET_ID=<staging or main ruleset id from `gh api repos/$OWNER_REPO/rulesets`>
+
+# 1) 백업
+gh api repos/$OWNER_REPO/rulesets/$RULESET_ID > /tmp/ruleset.json
+
+# 2) required_status_checks rule 만 새 context 로 교체 (다른 rule 은 그대로 통과)
+jq '{
+  name, target, enforcement, bypass_actors, conditions,
+  rules: (.rules | map(
+    if .type == "required_status_checks"
+    then .parameters.required_status_checks = [
+      {"context": "Verify (lint + typecheck) / Verify (lint + typecheck)"},
+      {"context": "PR Title (Semantic)"},
+      {"context": "Auto Label"},
+      {"context": "CodeQL Analyze (javascript-typescript)"}
+    ]
+    else . end
+  ))
+}' /tmp/ruleset.json > /tmp/ruleset.patched.json
+
+# 3) PUT — 검토 후 적용
+gh api -X PUT repos/$OWNER_REPO/rulesets/$RULESET_ID --input /tmp/ruleset.patched.json \
+  --jq '{name, rules: (.rules | map(.type))}'  # 5개 rule 모두 보존되는지 확인
+```
+
+> ⚠️ `PUT /rulesets/{id}` 는 **전체 교체**다. `rules` 필드를 누락하거나 부분만 보내면 `deletion`/`non_fast_forward`/`required_linear_history`/`pull_request` 같은 다른 rule 이 모두 사라진다. 반드시 GET 으로 백업 → jq 로 해당 rule 만 패치 → PUT 의 순서를 지킨다.
 
 **`required_approving_review_count: 1` 동작** — GitHub 는 PR author 의 self-approve 를 카운트하지 않습니다. 따라서 `1` 설정은 **author + 다른 1명의 reviewer = 총 2명 합의** 를 의미합니다.
 
