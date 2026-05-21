@@ -442,20 +442,29 @@ config/{env}/android/
 
 | Secret 이름 | 타입 | 용도 |
 |---|---|---|
-| `GOOGLE_PLAY_SERVICE_ACCOUNT` | file | Android submit (Play Console) |
-| `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config |
-| `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config |
+| `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config — EAS Build 시 자동 주입 |
+| `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config — EAS Build 시 자동 주입 |
 | `ASC_API_KEY_P8` *(Phase 6)* | file | iOS submit (TestFlight/App Store) |
 | `ASC_API_KEY_ID` *(Phase 6)* | string | iOS submit |
 | `ASC_API_KEY_ISSUER_ID` *(Phase 6)* | string | iOS submit |
 
 현재 상태 조회: `eas secret:list --scope account`.
 
+> ⚠️ **EAS Secret 의 한계**: file 타입 secret 은 EAS Cloud builder 환경에서만 자동 주입됩니다. GitHub Actions runner 에서 직접 실행되는 `eas submit` CLI 는 EAS Secret 에 접근할 수 없으므로 (§12.4 의 `PLAY_SERVICE_ACCOUNT_BASE64` GitHub Secret 패턴 참고), submit 자동화용 자격증명은 GitHub Secret 으로 별도 관리합니다.
+
 ### 12.4 GitHub Secret 표 (repo scope)
 
-| Secret 이름 | 용도 |
-|---|---|
-| `EXPO_TOKEN` | EAS CLI 인증 (robot user 토큰) |
+| Secret 이름 | 인코딩 | 용도 |
+|---|---|---|
+| `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
+| `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit 용 service account JSON. `.github/workflows/eas-staging.yml` 의 "Write Play service account" step 이 decode 후 `/tmp/play-service-account.json` 으로 작성하면 `eas.json` 의 `submit.staging.android.serviceAccountKeyPath` 가 이 path 를 참조 |
+
+등록 명령 (1회성, 자격증명 회전 시에도 동일):
+```bash
+base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BASE64 --repo <owner>/<repo>
+```
+
+근거: [Expo fyi — creating-google-service-account](https://github.com/expo/fyi/blob/main/creating-google-service-account.md), [expo/eas-cli#2910](https://github.com/expo/eas-cli/issues/2910). EAS Submit 의 `serviceAccountKeyPath` 는 환경변수 interpolation 미지원이므로 CI 워크플로우에서 절대 path 에 파일을 작성하는 방식이 표준.
 
 ### 12.5 출시 절차
 

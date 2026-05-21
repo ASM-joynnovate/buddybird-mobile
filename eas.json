@@ -39,7 +39,7 @@
   "submit": {
     "staging": {
       "android": {
-        "serviceAccountKeyPath": "$GOOGLE_PLAY_SERVICE_ACCOUNT",
+        "serviceAccountKeyPath": "/tmp/play-service-account.json",
         "track": "internal",
         "releaseStatus": "completed",
         "changesNotSentForReview": false
@@ -47,7 +47,7 @@
     },
     "production": {
       "android": {
-        "serviceAccountKeyPath": "$GOOGLE_PLAY_SERVICE_ACCOUNT",
+        "serviceAccountKeyPath": "/tmp/play-service-account.json",
         "track": "production",
         "releaseStatus": "draft"
       }
