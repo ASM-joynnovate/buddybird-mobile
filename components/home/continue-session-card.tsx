@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
+import { formatDurationMins } from '@/features/shared/duration-format';
 import { IconSymbol } from '../ui/icon-symbol';
 
 interface ContinueSessionCardProps {
@@ -31,7 +32,7 @@ export function ContinueSessionCard({ lastWord, cycles, mins, learnMins, restMin
             </View>
             <WaveformBars color="#7DD3C0" height={36} barCount={44} />
             <Text style={styles.sessionMeta}>
-              {cycles}사이클 · 총 {mins}분 · {learnMins}분 학습 · {restMins}분 휴식
+              {cycles}사이클 · 총 {formatDurationMins(mins ?? 0)} · {formatDurationMins(learnMins ?? 0)} 학습 · {formatDurationMins(restMins ?? 0)} 휴식
             </Text>
           </View>
         )}

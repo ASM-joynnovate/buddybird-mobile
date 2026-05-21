@@ -43,9 +43,18 @@ export interface SessionMeta {
 }
 
 export function calcLearnRestFromTotal(totalSecs: number): { learnSecs: number; restSecs: number } {
+  if (totalSecs <= 0) return { learnSecs: 0, restSecs: 0 };
   const n = Math.max(1, Math.round(totalSecs / 900));
   const secsPerCycle = Math.round(totalSecs / n);
-  const learnSecs = Math.max(60, Math.round((secsPerCycle * 2) / 3 / 60) * 60);
-  const restSecs = Math.max(60, secsPerCycle - learnSecs);
+  const rawLearn = Math.max(60, Math.round((secsPerCycle * 2) / 3 / 60) * 60);
+  const rawRest = Math.max(60, secsPerCycle - rawLearn);
+
+  if (rawLearn + rawRest <= secsPerCycle) {
+    return { learnSecs: rawLearn, restSecs: rawRest };
+  }
+
+  // 최솟값 강제로 secsPerCycle 초과 시 → 2:1 비율로 축소 (분 반올림 없음)
+  const learnSecs = Math.max(1, Math.round(secsPerCycle * 2 / 3));
+  const restSecs = secsPerCycle - learnSecs;
   return { learnSecs, restSecs };
 }

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BuddyBirdColors } from '@/constants/theme';
+import { formatDurationMins } from '@/features/shared/duration-format';
 
 interface SessionHeaderProps {
   sessionMins: number;
@@ -13,7 +14,7 @@ export function SessionHeader({ sessionMins, cycle, totalCycles, onStop }: Sessi
   return (
     <View style={styles.header}>
       <Text style={styles.mono}>
-        {sessionMins}분 학습 · {cycle} / {totalCycles} 사이클
+        {formatDurationMins(sessionMins)} 학습 · {cycle} / {totalCycles} 사이클
       </Text>
       <Pressable style={styles.stopBtn} onPress={onStop}>
         <Text style={styles.stopBtnText}>중단</Text>
