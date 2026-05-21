@@ -402,11 +402,14 @@ config/{env}/android/
 
 | 트리거 | 워크플로우 | 동작 |
 |---|---|---|
-| PR open/sync (모든 브랜치) | `.github/workflows/ci.yml` | lint + typecheck (Hard Rule 강제) |
-| push `dev` / `staging` / `main` | `ci.yml` | lint + typecheck |
-| push `staging` | `.github/workflows/eas-staging.yml` | EAS build (staging profile, Android) → submit (Play internal track) |
+| PR open/sync (모든 브랜치) | `.github/workflows/ci.yml` | reusable `_verify.yml` 호출 (lint + typecheck) |
+| PR open/edit/sync | `.github/workflows/pr-checks.yml` | PR title commitlint + auto labeler |
+| PR (→ dev) · push `dev` / `main` · weekly Mon 04:00 UTC | `.github/workflows/codeql.yml` | CodeQL JS/TS 보안 스캔 |
+| push `dev` / `staging` / `main` | `ci.yml` | reusable `_verify.yml` 호출 |
+| push `staging` | `.github/workflows/eas-staging.yml` | verify → Slack 시작 알림 → EAS build (staging) → submit (Play internal) → Slack 결과 알림 |
 | push `main` | `.github/workflows/release-please.yml` | release PR 자동 생성/갱신 (semver bump + CHANGELOG) |
-| tag `v*.*.*` (release PR merge 시 자동 생성) | `.github/workflows/eas-production.yml` | EAS build (production profile, Android). submit 없음 — 수동 promote |
+| tag `v*.*.*` (release PR merge 시 자동 생성) | `.github/workflows/eas-production.yml` | verify → Slack 시작 → EAS build (production) → Slack 결과. submit 없음 — 수동 promote |
+| weekly Sun 03:00 KST | `.github/workflows/cleanup-artifacts.yml` | 14일 초과 artifact 자동 삭제 |
 
 > ⚠️ **1단계 (현재): Android only.** iOS 워크플로우는 Apple Developer Program 가입 후 활성화한다 (자세한 절차는 git history 의 plan `expo-eas-staging-steady-trinket` Phase 6 참고). 가입 시점에 워크플로우의 `--platform android` 를 `--platform all` 로 전환하고, EAS remote 의 iOS `buildNumber` 카운터를 `eas build:version:set --platform ios --profile {staging|production}` 으로 초기화한다 (`autoIncrement: true` 는 이미 iOS+Android 둘 다 증가시키므로 schema 변경 불필요).
 
@@ -470,6 +473,7 @@ config/{env}/android/
 |---|---|---|
 | `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
 | `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit 용 service account JSON. `.github/workflows/eas-staging.yml` 의 "Write Play service account" step 이 decode 후 `/tmp/play-service-account.json` 으로 작성하면 `eas.json` 의 `submit.staging.android.serviceAccountKeyPath` 가 이 path 를 참조 |
+| `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL (단일 채널에 묶임). `_notify-slack.yml` reusable workflow 가 staging/production 빌드 시작·결과 알림 전송용으로 사용. 미설정 시 알림 step 은 `continue-on-error` 로 fail 처리되지만 빌드는 정상 진행 |
 
 등록 명령 (1회성, 자격증명 회전 시에도 동일):
 ```bash
@@ -531,6 +535,16 @@ GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로
 
 모든 브랜치 공통: `deletion` 차단, `non_fast_forward` 차단 (force push 차단).
 
+**필수 status check 이름** (Ruleset 의 `required_status_checks.required_status_checks_configuration.required_status_checks` 에 등록할 컨텍스트 이름):
+
+| Branch | Required status checks |
+|---|---|
+| `dev` | (없음 — 자동 트리거만, 통과 강제 X) |
+| `staging` | `Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze` |
+| `main` | `Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze` |
+
+> 워크플로우 job 이름 변경 시 (예: `build_and_submit` → `build-and-submit`) 기존 ruleset 의 status check 이름도 동기화해야 한다. 미동기화 시 GitHub 가 "Expected — Waiting for status to be reported" 로 PR 머지를 영구 차단한다. 변경 직후 즉시 `gh api -X PUT .../rulesets/<id>` 로 갱신 필수.
+
 **`required_approving_review_count: 1` 동작** — GitHub 는 PR author 의 self-approve 를 카운트하지 않습니다. 따라서 `1` 설정은 **author + 다른 1명의 reviewer = 총 2명 합의** 를 의미합니다.
 
 **`require_code_owner_review: false`** — CODEOWNERS 매칭 파일이 변경된 PR 이라도 일반 review 1명이면 통과. CODEOWNERS 파일은 유지하되 GitHub 의 auto-assign reviewer 용도로만 사용 (PR 만들 때 자동으로 reviewer 제안).
@@ -550,7 +564,20 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=e
 gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=active
 ```
 
-### 12.10 트러블슈팅 (CI/CD 한정)
+### 12.10 CI 워크플로우 구조 (reusable workflows)
+
+검증/알림 같은 공통 step 은 `workflow_call` 전용 reusable workflow 로 추출되어 있다. 각 검증/알림 step 변경 시 **한 곳만 수정**하면 호출하는 모든 워크플로우에 반영된다.
+
+| Reusable | 역할 | 호출처 |
+|---|---|---|
+| `.github/workflows/_verify.yml` | install + `yarn lint` + `yarn typecheck` | `ci.yml` · `eas-staging.yml` · `eas-production.yml` |
+| `.github/workflows/_notify-slack.yml` | Slack Incoming Webhook 전송 (started/success/failure/cancelled) | `eas-staging.yml` · `eas-production.yml` |
+
+**원칙**: 신규 검증 step 추가 (예: 신규 lint 도구) 는 `_verify.yml` 에만 추가한다. 개별 워크플로우에 inline 으로 검증 step 추가 금지 — 동기화 누락 위험.
+
+`_notify-slack.yml` 의 send step 은 `continue-on-error: true` — `SLACK_WEBHOOK_URL` 미등록·webhook 만료로 알림이 실패해도 호출 측 빌드는 fail 처리되지 않는다.
+
+### 12.11 트러블슈팅 (CI/CD 한정)
 
 | 증상 | 원인 | 해결 |
 |---|---|---|
