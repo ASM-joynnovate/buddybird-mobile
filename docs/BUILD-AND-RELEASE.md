@@ -500,22 +500,32 @@ config/{env}/android/
 
 GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로 구현. repository visibility 가 `public` 이거나 Pro/Team/Enterprise plan 이어야 사용 가능 — 본 repo 는 public.
 
-| Branch | Ruleset 이름 | 룰 | bypass actors |
-|---|---|---|---|
-| `dev` | `dev-branch-protection` | deletion 차단, non_fast_forward 차단 (약한 보호 — CI 통과 강제 X, dev 는 통합 브랜치라 자명한 변경의 빠른 회전 우선) | 없음 |
-| `staging` | `staging-branch-protection` | 위 + required_linear_history + pull_request (review 0, 1인 운영) | 없음 |
-| `main` | `main-branch-protection` | 위 + pull_request (review 0 + CODEOWNER review + dismiss_stale_reviews_on_push + required_review_thread_resolution) | 없음 (hotfix 시 ruleset enforcement 를 임시 `evaluate` 로 변경 후 다시 `active`) |
+3인 팀 운영 기준 정책 (PR 작성자 포함 최소 2명 합의):
+
+| Branch | Ruleset 이름 | PR 강제 | `required_approving_review_count` | `require_code_owner_review` | `dismiss_stale_reviews_on_push` | Linear history | verify CI 통과 | bypass |
+|---|---|---|---|---|---|---|---|---|
+| `dev` | `dev-branch-protection` | ❌ | — | — | — | ❌ | ❌ (자동 트리거만, 통과 강제 X) | 없음 |
+| `staging` | `staging-branch-protection` | ✅ | 1 (= author 포함 2명) | ❌ | ❌ | ✅ | ✅ | 없음 |
+| `main` | `main-branch-protection` | ✅ | 1 (= author 포함 2명) | ❌ | ✅ (새 commit push 시 기존 approve 무효화) | ✅ | ✅ (+ `required_review_thread_resolution`) | 없음 |
+
+모든 브랜치 공통: `deletion` 차단, `non_fast_forward` 차단 (force push 차단).
+
+**`required_approving_review_count: 1` 동작** — GitHub 는 PR author 의 self-approve 를 카운트하지 않습니다. 따라서 `1` 설정은 **author + 다른 1명의 reviewer = 총 2명 합의** 를 의미합니다.
+
+**`require_code_owner_review: false`** — CODEOWNERS 매칭 파일이 변경된 PR 이라도 일반 review 1명이면 통과. CODEOWNERS 파일은 유지하되 GitHub 의 auto-assign reviewer 용도로만 사용 (PR 만들 때 자동으로 reviewer 제안).
+
+`required_linear_history: true` 의 결과: PR 머지는 **squash** 또는 **rebase** 만 가능 (일반 merge commit 차단).
 
 현재 적용 상태 조회:
 ```bash
 gh api repos/<owner>/<repo>/rulesets --jq '.[] | {id, name, enforcement}'
-gh api repos/<owner>/<repo>/rulesets/<id> --jq '{name, ref_includes: .conditions.ref_name.include, rules: [.rules[].type]}'
+gh api repos/<owner>/<repo>/rulesets/<id> --jq '{name, ref_includes: .conditions.ref_name.include, rules}'
 ```
 
-핫픽스 시 임시 우회:
+핫픽스 시 임시 우회 (bypass_actors 가 비어있으므로 ruleset enforcement 토글로 처리):
 ```bash
 gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=evaluate
-# ... hotfix 푸시 ...
+# ... hotfix 푸시/머지 ...
 gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=active
 ```
 
