@@ -502,7 +502,7 @@ GitHub Rulesets API (2023+ 신규 방식, legacy `branch protection` 후속) 로
 
 | Branch | Ruleset 이름 | 룰 | bypass actors |
 |---|---|---|---|
-| `dev` | `dev-branch-protection` | deletion 차단, non_fast_forward 차단, required_status_checks (verify) | 없음 |
+| `dev` | `dev-branch-protection` | deletion 차단, non_fast_forward 차단 (약한 보호 — CI 통과 강제 X, dev 는 통합 브랜치라 자명한 변경의 빠른 회전 우선) | 없음 |
 | `staging` | `staging-branch-protection` | 위 + required_linear_history + pull_request (review 0, 1인 운영) | 없음 |
 | `main` | `main-branch-protection` | 위 + pull_request (review 0 + CODEOWNER review + dismiss_stale_reviews_on_push + required_review_thread_resolution) | 없음 (hotfix 시 ruleset enforcement 를 임시 `evaluate` 로 변경 후 다시 `active`) |
 
