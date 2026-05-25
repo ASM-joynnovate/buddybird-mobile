@@ -1,8 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
-import { ActivityIndicator, AppState, type AppStateStatus, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  type AppStateStatus,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
@@ -10,6 +17,8 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import { BuddyBirdColors } from '@/constants/theme';
 import { AnalyticsProvider, useAnalytics } from '@/features/analytics/analytics-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
+import { getFcmHeadlessLaunchStatus } from '@/features/notifications/fcm-client';
+import { useFcmRegistration } from '@/features/notifications/hooks/use-fcm-registration';
 import { ProfileProvider, useProfile } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
 import { WordLibraryProvider } from '@/features/word-library/word-library-context';
@@ -23,6 +32,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
+    <FcmHeadlessGuard>
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <AnalyticsProvider>
@@ -32,6 +42,7 @@ export default function RootLayout() {
                   <WordLibraryProvider>
                     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                       <AppOpenTracker />
+                      <FcmRegistrationBootstrap />
                       <RootNavigator />
                       <StatusBar style="dark" />
                     </ThemeProvider>
@@ -42,7 +53,48 @@ export default function RootLayout() {
           </AnalyticsProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
+    </FcmHeadlessGuard>
   );
+}
+
+function FcmHeadlessGuard({ children }: { children: ReactNode }) {
+  const [isHeadless, setIsHeadless] = useState<boolean | null>(
+    Platform.OS === 'ios' ? null : false
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    async function checkHeadlessLaunch(): Promise<void> {
+      try {
+        const nextIsHeadless = await getFcmHeadlessLaunchStatus();
+        if (isMounted) {
+          setIsHeadless(nextIsHeadless);
+        }
+      } catch (error: unknown) {
+        console.warn('[notifications.headlessCheck]', error);
+        if (isMounted) {
+          setIsHeadless(false);
+        }
+      }
+    }
+
+    void checkHeadlessLaunch();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isHeadless !== false) {
+    return null;
+  }
+
+  return children;
 }
 
 function AppOpenTracker() {
@@ -77,6 +129,14 @@ function AppOpenTracker() {
 
     return () => subscription.remove();
   }, [isReady, track]);
+
+  return null;
+}
+
+function FcmRegistrationBootstrap() {
+  const { profile } = useProfile();
+
+  useFcmRegistration({ enabled: !!profile });
 
   return null;
 }

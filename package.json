@@ -1,6 +1,6 @@
 {
   "name": "buddybird-mobile",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "0.1.0",
   "scripts": {
     "start": "expo start",
@@ -46,6 +46,7 @@
     "@react-native-firebase/analytics": "^24.0.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/crashlytics": "^24.0.0",
+    "@react-native-firebase/messaging": "^24.0.0",
     "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/elements": "^2.9.18",
     "@react-navigation/native": "^7.1.8",

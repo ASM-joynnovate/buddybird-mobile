@@ -60,6 +60,16 @@ dev 와 prod 는 **별도 Firebase 프로젝트**이며 Analytics·Crashlytics·
 7. `app.config.ts` 의 `resolveAppVariant` / `BUNDLE_ID` / `IOS_GOOGLE_SERVICES_FILE` / `ANDROID_GOOGLE_SERVICES_FILE` 분기에 staging 케이스 추가
 8. `eas.json` 에 staging build profile 추가
 
+### 3.3 Firebase Cloud Messaging
+
+Cloud Messaging은 dev/prod Firebase 프로젝트 양쪽에서 각각 설정한다.
+
+- Android: 각 Firebase Android app 의 `google-services.json` 이 FCM sender/project 정보를 포함한다. 앱은 Android 13+ `POST_NOTIFICATIONS` 런타임 권한을 요청한다.
+- iOS: Firebase Console > Project settings > Cloud Messaging 에 APNs Authentication Key를 dev/prod 프로젝트 각각 업로드한다. `app.config.ts` 는 `aps-environment`, `UIBackgroundModes: ['remote-notification']`, `GoogleService-Info.plist` 를 prebuild 결과에 반영한다. JS root는 `getIsHeadless` guard를 먼저 실행해 background data-only launch에서 provider/effect side effect를 차단한다.
+- Client: `features/notifications/` 가 FCM token을 AsyncStorage에만 저장한다. 현재 phase에는 backend token upload/API가 없다.
+- Payload: foreground/background/opened message receipt는 `messageId`, `from`, `sentTime`, 수신 시각만 저장한다. notification body/data payload를 로컬 영속화하지 않는다.
+- iOS background data-only payload: server payload는 `contentAvailable: true`, APNs `apns-push-type: background`, `apns-priority: 5`, `apns-topic`을 포함해야 한다. foreground local notification 표시, topic subscription, XMPP `sendMessage`는 현재 앱 범위 밖이다.
+
 ## 4. config 디렉토리 규칙
 
 환경별 비밀 설정은 **`{repo_root}/config/{environment}/{service}/...`** 트리에 배치한다. 본 디렉토리는 `.gitignore` 된다.
@@ -482,6 +492,8 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 
 근거: [Expo fyi — creating-google-service-account](https://github.com/expo/fyi/blob/main/creating-google-service-account.md), [expo/eas-cli#2910](https://github.com/expo/eas-cli/issues/2910). EAS Submit 의 `serviceAccountKeyPath` 는 환경변수 interpolation 미지원이므로 CI 워크플로우에서 절대 path 에 파일을 작성하는 방식이 표준.
 
+> ⚠️ **선행 조건 — service account 호스트 GCP 프로젝트의 Android Publisher API enable 필수**: fastlane supply 가 `androidpublisher.googleapis.com` 을 호출하며 Google API enablement 는 **service account 가 속한 host GCP 프로젝트** 기준으로 검사된다 (Play Console 의 IAM grant 와 별개). service account 발급/회전 시 해당 프로젝트 (현재 `buddybird-ops`, service account `eas-submit-bot@buddybird-ops.iam.gserviceaccount.com`) 에서 **Google Play Android Developer API** 를 enable 해야 한다. 경로: GCP Console → 해당 프로젝트 선택 → APIs & Services → Library → "Google Play Android Developer API" → **Enable** (전파 1~5분). 누락 시 submit 이 `PERMISSION_DENIED: ... API has not been used in project <number>` 로 6회 재시도 후 실패. 트러블슈팅은 §12.11 참고.
+
 ### 12.5 출시 절차
 
 **개발계 (staging) — 자동 끝까지**
@@ -621,6 +633,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | 증상 | 원인 | 해결 |
 |---|---|---|
 | `eas submit` 실패 (`BUILD_NOT_FOUND`) | `--latest` 와 빌드 완료 사이 race | 워크플로우가 이미 `eas build ... --wait` 후 submit 하므로 정상 발생 안 함. 발생 시 재실행 |
+| `eas submit` Android 실패 (`PERMISSION_DENIED: Google Play Android Developer API has not been used in project <number>`) | service account 호스트 GCP 프로젝트에 Android Publisher API 미활성화 (§12.4 선행 조건 누락) | GCP Console 의 해당 프로젝트 (현재 `buddybird-ops`) 에서 `androidpublisher.googleapis.com` enable. 전파 1~5분 후 워크플로우 "Re-run failed jobs" |
 | buildNumber 충돌 (`The bundle version must be higher than ...`) | EAS remote 카운터가 스토어와 어긋남 | `eas build:version:set --platform android --profile <profile>` 로 카운터 정정 |
 | release-please PR 안 만들어짐 | main 에 conventional commit 이 없거나 모두 `chore:` 만 누적 | `feat:` 또는 `fix:` commit 1개 필요 |
 | Firebase config 미반영 | EAS Secret 갱신 후 기존 빌드는 자동 재반영 안 됨 | 다음 빌드에서 반영. 즉시 필요하면 재빌드 |
@@ -635,6 +648,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 - **`config/`, `GoogleService-Info.plist`, `google-services.json` commit 금지** (`.gitignore` 가 강제). 단, `.easignore` 가 EAS tarball 한정으로 `config/{env}/firebase/` 만 unignore 한다 — §4, §7.2 참고.
 - **Android keystore (`*.jks`) 와 `credentials.json` 은 `config/{env}/android/` 외부에 두지 않는다**. 다른 경로에 복사·이동 금지, commit 절대 금지, **EAS tarball 포함 금지** (`.easignore` 가 `**/*.jks`, `**/credentials.json`, `/config/{env}/android/` 를 명시적으로 재제외). preview 빌드는 `config/dev/android/` 의 dev keystore 를 그대로 참조한다 (별도 복사본 생성 금지).
 - **Firebase 환경 분리 유지** — dev 빌드는 `buddybird-dev` 프로젝트만, prod 빌드는 `buddybird-9b84d` 프로젝트만 사용. 한 환경의 config 를 다른 환경에 임시로 끼워 넣지 말 것.
+- **FCM payload에 보호자 PII 금지** — 이름·이메일·전화·정확한 위치를 notification title/body/data 에 포함하지 않는다. client는 receipt metadata만 저장하고 payload 본문/data는 영속화하지 않는다.
 - **`docs/ARCHITECTURE.md`, `README.md`, `CLAUDE.md` 에 빌드/배포 명령을 직접 기재하지 않는다** — 모든 절차는 본 문서로 단일화. `rg -l "eas (env|build|submit)" docs/ README.md` 결과가 본 파일 1건만 매치되어야 한다.
 - **`package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드 직접 편집 금지** — release-please 가 PR 로 관리. `app.config.ts` 는 `pkg.version` 으로 단일 source 참조.
 - **`staging` / `main` 브랜치 직접 push 금지** — PR-only 보호 브랜치. 우회는 §12.6 핫픽스 절차로만.
