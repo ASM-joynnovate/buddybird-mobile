@@ -10,7 +10,7 @@
 - [ ] `rg "<function-name>"` 으로 기존 구현 확인
 - [ ] 신규 analytics 이벤트는 `features/analytics/events.ts`의 `AnalyticsEvent` discriminated union에 **먼저** 등록 후 사용
 - [ ] 신규 색·muted 토큰은 `constants/theme.ts`에 **먼저** 추가 후 사용 (인라인 rgba 금지)
-- [ ] 신규 utility는 `features/shared/` 또는 `features/<domain>/`에 작성 + `docs/SHARED-MODULES.md`에 등록 예정
+- [ ] 신규 utility는 `features/shared/` 또는 `features/<domain>/`에 작성, 신규 도메인 hook은 `features/<domain>/hooks/`에 작성 + `docs/SHARED-MODULES.md`에 등록 예정
 
 ## 2. 코딩 중 (In-coding)
 
@@ -42,7 +42,7 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 
 ### 3.3 신규 추가물 등록 확인
 
-- 신규 shared utility → `docs/SHARED-MODULES.md`에 행 추가됨
+- 신규 shared utility / 도메인 hook → `docs/SHARED-MODULES.md`에 행 추가됨
 - 신규 정책 (의무화·금지·기본값 변경 등) → `/buddybird-policy-update` 호출 또는 발화 트리거로 `docs/POLICY-HISTORY.md` 갱신됨
 - 신규 docs 카테고리 → `CLAUDE.md` Project Rules 포인터에 추가됨
 

@@ -19,8 +19,8 @@
 
 ### 1.2 `hooks/` 서브폴더 사용 기준
 
-- 도메인 hook이 **2개 이상**일 때 `features/<domain>/hooks/use-<topic>.ts`로 분리
-- 1개뿐이면 `features/<domain>/use-<topic>.ts`에 평면 배치
+- 도메인 hook은 개수와 무관하게 `features/<domain>/hooks/use-<topic>.ts`에 둠
+- `features/<domain>/use-<topic>.ts` 평면 배치는 금지. 기존 평면 hook 발견 시 수정 범위에 포함될 때 `hooks/`로 이동
 
 ### 1.3 `components/` 분류
 
