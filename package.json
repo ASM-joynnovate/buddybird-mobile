@@ -1,6 +1,6 @@
 {
   "name": "buddybird-mobile",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "0.1.0",
   "scripts": {
     "start": "expo start",
@@ -46,8 +46,9 @@
     "@react-native-firebase/analytics": "^24.0.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/crashlytics": "^24.0.0",
-    "@react-navigation/bottom-tabs": "^7.4.0",
-    "@react-navigation/elements": "^2.6.3",
+    "@react-native-firebase/messaging": "^24.0.0",
+    "@react-navigation/bottom-tabs": "^7.16.1",
+    "@react-navigation/elements": "^2.9.18",
     "@react-navigation/native": "^7.1.8",
     "expo": "~54.0.33",
     "expo-application": "~7.0.0",
@@ -75,11 +76,11 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-gesture-handler": "~2.28.0",
+    "react-native-gesture-handler": "~2.31.2",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
-    "react-native-svg": "15.12.1",
+    "react-native-svg": "15.15.5",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1"
   },

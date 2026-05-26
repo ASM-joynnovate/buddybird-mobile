@@ -79,8 +79,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         supportsTablet: true,
         bundleIdentifier: BUNDLE_ID,
         googleServicesFile: IOS_GOOGLE_SERVICES_FILE,
+        entitlements: {
+            'aps-environment': IS_DEV ? 'development' : 'production',
+        },
         infoPlist: {
             NSUserTrackingUsageDescription: TRACKING_PERMISSION_MESSAGE,
+            UIBackgroundModes: ['remote-notification'],
         },
     },
 
@@ -104,6 +108,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         permissions: [
             'android.permission.RECORD_AUDIO',
             'android.permission.MODIFY_AUDIO_SETTINGS',
+            'android.permission.POST_NOTIFICATIONS',
             'com.google.android.gms.permission.AD_ID',
         ],
     },
@@ -136,6 +141,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ],
         '@react-native-firebase/app',
         '@react-native-firebase/crashlytics',
+        '@react-native-firebase/messaging',
         [
             'expo-tracking-transparency',
             {
@@ -151,6 +157,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                         'RNFBApp',
                         'RNFBAnalytics',
                         'RNFBCrashlytics',
+                        'RNFBMessaging',
                     ],
                 },
             },

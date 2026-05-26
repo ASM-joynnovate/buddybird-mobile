@@ -2,16 +2,36 @@ name: EAS Build & Submit (staging)
 on:
   push:
     branches: [staging]
+
 concurrency:
   group: eas-staging
   cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  build_and_submit:
+  verify:
+    name: Verify (lint + typecheck)
+    uses: ./.github/workflows/_verify.yml
+
+  notify-start:
+    name: Notify Slack (Start)
+    needs: verify
+    uses: ./.github/workflows/_notify-slack.yml
+    with:
+      status: started
+      env: staging
+    secrets: inherit
+
+  build-and-submit:
+    name: Build and Submit (Staging)
+    needs: [verify, notify-start]
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -23,8 +43,6 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: yarn
       - run: yarn install --immutable
-      - run: yarn lint
-      - run: yarn typecheck
       - name: EAS Build (staging, Android)
         run: eas build --profile staging --platform android --non-interactive --wait
       - name: Write Play service account
@@ -33,3 +51,13 @@ jobs:
         run: echo "$SA_B64" | base64 --decode > /tmp/play-service-account.json
       - name: EAS Submit (Play internal track)
         run: eas submit --profile staging --platform android --non-interactive --latest
+
+  notify-result:
+    name: Notify Slack (Result)
+    needs: build-and-submit
+    if: ${{ always() && needs.build-and-submit.result != 'skipped' }}
+    uses: ./.github/workflows/_notify-slack.yml
+    with:
+      status: ${{ needs.build-and-submit.result }}
+      env: staging
+    secrets: inherit

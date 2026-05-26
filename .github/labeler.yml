@@ -1,0 +1,38 @@
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '**/*.md'
+          - 'CLAUDE.md'
+
+"area: native":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'ios/**'
+          - 'android/**'
+          - 'app.config.ts'
+          - 'app.json'
+
+"area: features":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'features/**'
+          - 'app/**'
+
+"area: design-system":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'constants/**'
+          - 'components/**'
+
+"area: release":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'release-please-config.json'
+          - '.release-please-manifest.json'
+          - 'eas.json'

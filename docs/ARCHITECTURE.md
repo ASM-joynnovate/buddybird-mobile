@@ -45,9 +45,10 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 
 ### Firebase RNFirebase v24
 
-- `@react-native-firebase/app`, `@react-native-firebase/analytics`, `@react-native-firebase/crashlytics` 모두 `^24.0.0` 고정
+- `@react-native-firebase/app`, `@react-native-firebase/analytics`, `@react-native-firebase/crashlytics`, `@react-native-firebase/messaging` 모두 `^24.0.0` 고정
 - **modular API만 사용** (`getAnalytics(app)`, `logEvent(analytics, …)` 형태). namespaced `analytics().logEvent()` / `crashlytics().…` 금지
 - 화면 추적은 `logEvent(analytics, 'screen_view', …)` — 사라진 `logScreenView` 금지
+- Cloud Messaging은 `features/notifications/`에서 권한 요청, FCM token 로컬 저장, foreground/background/opened message receipt 저장을 담당합니다. 현재 backend token 업로드는 범위 밖입니다.
 
 ### Plugin
 
@@ -56,6 +57,7 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 - `app.config.ts`의 `plugins`에 다음 등록 필수:
   - `@react-native-firebase/app`
   - `@react-native-firebase/crashlytics`
+  - `@react-native-firebase/messaging`
   - `./plugins/withFirebaseStaticPodfile`
   - `./plugins/withGradleJvmArgs`
   - `expo-tracking-transparency` (ATT)
