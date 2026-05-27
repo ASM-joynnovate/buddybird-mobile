@@ -23,14 +23,16 @@ const withFirebaseStaticPodfile = (config) => {
         'Podfile',
       );
 
-      if (!fs.existsSync(podfilePath)) {
+      let original;
+      try {
+        original = fs.readFileSync(podfilePath, 'utf8');
+      } catch {
         throw new Error(
           `[withFirebaseStaticPodfile] Podfile not found at ${podfilePath}. ` +
             'Run `npx expo prebuild` first or verify the iOS project was generated.',
         );
       }
 
-      const original = fs.readFileSync(podfilePath, 'utf8');
       const { contents, changed } = patchPodfileContents(original);
 
       if (changed) {
