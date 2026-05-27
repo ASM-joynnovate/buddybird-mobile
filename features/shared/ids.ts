@@ -1,3 +1,6 @@
+import { getRandomBytes } from 'expo-crypto';
+
 export function createSessionId(): string {
-  return `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  const randomHex = Array.from(getRandomBytes(5), (b) => b.toString(16).padStart(2, '0')).join('');
+  return `sess_${Date.now().toString(36)}_${randomHex}`;
 }

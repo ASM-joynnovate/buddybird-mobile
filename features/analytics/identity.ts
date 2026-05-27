@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getRandomBytes } from 'expo-crypto';
 
 export const INSTALLATION_ID_KEY = '@buddybird/analytics-installation-id';
 
@@ -30,11 +31,7 @@ function isUuidLike(value: string): boolean {
 }
 
 function generateUuid(): string {
-  const bytes = new Uint8Array(16);
-
-  for (let i = 0; i < bytes.length; i += 1) {
-    bytes[i] = Math.floor(Math.random() * 256);
-  }
+  const bytes = getRandomBytes(16);
 
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
