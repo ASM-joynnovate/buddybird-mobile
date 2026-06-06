@@ -182,6 +182,9 @@ wc -l app/\(tabs\)/session-setup.tsx  # ≤80
 # 오디오 URI 영구화: 모든 *-storage.ts가 normalize/hydrate를 거치는지 (§6)
 rg -l "AsyncStorage\.(setItem|getItem)" features/*/word-library*storage*.ts features/*/training*storage*.ts features/word-library/*-storage.ts features/training/*-storage.ts 2>/dev/null \
   | xargs -I {} sh -c 'rg -q "normalizeAudioUriForStorage|hydrateAudioUriFromStorage" "{}" || echo "MISSING normalize/hydrate: {}"'
+
+# expo 네이티브 의존성 SDK 정합성 (§7) — CI `_verify.yml`에서도 강제
+npx expo install --check
 ```
 
 ## 6. 데이터 영구화 (Storage)
@@ -199,3 +202,15 @@ iOS는 앱 컨테이너 UUID를 빌드·재설치·OS 업데이트 시점에 변
 - 신규 storage 모듈 추가 시 §5 검증 grep에 의해 normalize/hydrate 누락이 자동 검출됨.
 
 신규 영구화 대상이 늘어나면 동일 패턴을 적용하고 본 §과 [SHARED-MODULES §6.1](./SHARED-MODULES.md#61-오디오-파일-저장-utility--featuresaudioaudio-file-storagets)을 함께 갱신하세요.
+
+## 7. 의존성 관리
+
+### 7.1 expo 네이티브 의존성은 `npx expo install`로만 추가·업그레이드
+
+expo가 버전을 관리하는 패키지(`expo-*`, 그리고 `react-native-gesture-handler`·`react-native-svg` 등 SDK `bundledNativeModules.json`에 포함된 react-native-* 네이티브 모듈)는 네이티브 코드가 `expo-modules-core`의 특정 버전을 가정하고 컴파일됩니다. `yarn add`로 최신 버전을 직접 설치하면 peerDependency(`expo: "*"`)가 경고 없이 통과하지만, 런타임에 `NoClassDefFoundError` 등으로 **앱이 기동 즉시 크래시**할 수 있습니다 (실사례: `expo-crypto@56` × SDK 54 → `NoClassDefFoundError: expo.modules.kotlin.types.AnyTypeCache`, 2026-06 staging 전면 크래시).
+
+규칙 (단정문):
+
+- expo 관련 패키지 추가·업그레이드는 반드시 `npx expo install <pkg>` 사용 — `yarn add <expo-pkg>` 직접 사용 금지.
+- 의존성 변경 후 `npx expo install --check`가 0건이어야 커밋 가능 — CI `_verify.yml`이 모든 PR에서 동일 검사로 차단.
+- SDK 기대치보다 최신 버전이 필요한 예외는 PR 본문에 사유 명시 + 에뮬레이터 기동 검증 결과 첨부 후에만 허용.
