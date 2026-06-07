@@ -417,47 +417,46 @@ config/{env}/android/
 | PR (→ dev) · push `dev` / `main` · weekly Mon 04:00 UTC | `.github/workflows/codeql.yml` | CodeQL JS/TS 보안 스캔 |
 | push `dev` / `staging` / `main` | `ci.yml` | reusable `_verify.yml` 호출 |
 | push `staging` | `.github/workflows/eas-staging.yml` | verify → Slack 시작 알림 → EAS build (staging) → submit (Play internal) → Slack 결과 알림 |
-| push `main` | `.github/workflows/release-please.yml` | release PR 자동 생성/갱신 (semver bump + CHANGELOG) |
-| tag `v*.*.*` (release PR merge 시 자동 생성) | `.github/workflows/eas-production.yml` | verify → Slack 시작 → EAS build (production) → Slack 결과. submit 없음 — 수동 promote |
+| push `main` | `.github/workflows/eas-production.yml` | 버전 게이트 (이미 태그된 버전이면 skip) → verify → Slack 시작 → EAS build (production) → 성공 시 tag `vX.Y.Z` + GitHub Release 자동 생성 → Slack 결과. submit 없음 — 수동 promote |
 | weekly Sun 03:00 KST | `.github/workflows/cleanup-artifacts.yml` | 14일 초과 artifact 자동 삭제 |
 
 > ⚠️ **1단계 (현재): Android only.** iOS 워크플로우는 Apple Developer Program 가입 후 활성화한다 (자세한 절차는 git history 의 plan `expo-eas-staging-steady-trinket` Phase 6 참고). 가입 시점에 워크플로우의 `--platform android` 를 `--platform all` 로 전환하고, EAS remote 의 iOS `buildNumber` 카운터를 `eas build:version:set --platform ios --profile {staging|production}` 으로 초기화한다 (`autoIncrement: true` 는 이미 iOS+Android 둘 다 증가시키므로 schema 변경 불필요).
 
-### 12.2 시멘틱 버전 정책 (release-please 자동 bump)
+### 12.2 시멘틱 버전 정책 (수동 bump + 버전 게이트)
 
 `version` (사용자 노출 X.Y.Z) 와 `buildNumber`/`versionCode` (개발자용) 는 분리 관리:
 
 | 필드 | 누가 결정 | 어떻게 |
 |---|---|---|
-| `version` (X.Y.Z) | **개발자가 commit message type 으로 의도 표현** → release-please 가 자동 계산 | conventional commits 누적분 분석 |
+| `version` (X.Y.Z) | **개발자가 릴리즈 전 명시적으로 bump** | `yarn release:bump <patch\|minor\|major>` 커밋을 promote cascade 에 포함 |
 | `ios.buildNumber` / `android.versionCode` | EAS 자동 | `appVersionSource: remote` + `autoIncrement` — 매 빌드 시 +1 |
 
-**Conventional Commit → semver bump 표**
+> **이력**: conventional-commit 기반 자동 semver 도구 (release-please) 는 2026-06-07 에 제거했다. (1) `target-branch` 미지정 시 release PR 이 default 브랜치(dev) 로 생성되는 오작동, (2) squash-merge 환경에서 squash 본문의 `* feat:` 불릿을 파싱하지 않아 promote PR 마다 `BEGIN_COMMIT_OVERRIDE` 블록 수동 작성에 의존, (3) 릴리즈당 main 머지 2회 필요. star 수 상위 RN 오픈소스 앱 (Bluesky·Expensify·Mattermost·RocketChat) 조사 결과 conventional-commit 자동 semver 도구 채택 0곳 — 수동 bump + 명시적 트리거가 실무 표준이라 이에 정렬했다 (`docs/POLICY-HISTORY.md` 2026-06-07 행 참고).
 
-| Commit 패턴 | bump | 예 |
+**bump 수준 결정 가이드** — commit type 은 더 이상 자동 분석되지 않지만, 누적 변경의 성격으로 사람이 판단한다:
+
+| 누적 변경 | bump | 예 |
 |---|---|---|
-| `fix(scope): ...` | **patch** | `fix(session): resolve preset audio` → 0.1.0 → 0.1.1 |
-| `feat(scope): ...` | **minor** | `feat(profile): add parrot profiles` → 0.1.0 → 0.2.0 |
-| `feat(scope)!: ...` 또는 commit footer `BREAKING CHANGE: ...` | **major** | pre-1.0 에서는 `bump-minor-pre-major: true` 로 인해 minor 만 증가. 1.0.0 진입은 수동 `Release-As` 만 |
-| `chore:`, `docs:`, `style:`, `refactor:`, `test:`, `build:`, `ci:`, `perf:` | bump 없음 | CHANGELOG 에만 기록 가능 |
+| 버그 수정만 | **patch** | 0.2.0 → 0.2.1 |
+| 신규 기능 포함 | **minor** | 0.2.0 → 0.3.0 |
+| breaking change 포함 | **major** (pre-1.0 동안은 minor 로 처리) | — |
 
-**pre-1.0 규칙** — `release-please-config.json` 의 `bump-minor-pre-major: true`:
-- breaking change 도 1.0.0 으로 올라가지 않고 minor 만 증가
-- 1.0.0 진입은 의도적으로만:
-  ```bash
-  git commit --allow-empty -m "chore: release 1.0.0" -m "Release-As: 1.0.0"
-  git push origin main
-  ```
+**pre-1.0 규칙**: breaking change 도 1.0.0 으로 올리지 않고 minor 만 증가. 1.0.0 진입은 `yarn release:bump 1.0.0` 으로 의도적으로만.
 
-**Hard Rule**: `package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드는 직접 편집 금지 — release-please 가 PR 로 관리한다. `app.config.ts` 는 `import pkg from './package.json'` 으로 단일 source 를 참조한다.
+**버전 게이트** — `eas-production.yml` 의 `release-gate` job 이 main push 마다 `package.json.version` 과 기존 태그를 비교한다:
+- 태그 미존재 (= 새 버전) → verify → 운영 빌드 진행 → 성공 시 tag `vX.Y.Z` + GitHub Release (`--generate-notes`, 머지된 PR 제목 기반 자동 release notes) 생성
+- 태그 존재 (= bump 누락 또는 동일 버전 재push) → 빌드 skip (워크플로우 warning + step summary 에 표기). 의도한 릴리즈라면 bump 후 다시 promote (§12.11)
+
+CHANGELOG.md 파일은 두지 않는다 — 릴리즈 노트는 GitHub Releases 가 단일 소스다.
+
+**Hard Rule**: `package.json` / `app.config.ts` 의 `version` 필드는 손으로 직접 편집하지 않는다 — `yarn release:bump` (= `npm version --no-git-tag-version` wrapper) 로만 변경한다. `app.config.ts` 는 `import pkg from './package.json'` 으로 단일 source 를 참조한다.
 
 **staging 빌드의 version 동기화 정책 — 단일 semver + buildNumber 분리 패턴**
 
 본 프로젝트는 모바일 앱 스토어 출시의 업계 표준 패턴을 따른다 ([Bluesky social-app](https://github.com/bluesky-social/social-app/blob/main/package.json), [Mattermost mobile](https://developers.mattermost.com/internal/mobile-build-process/bump-version-number/), Discord 등): **`version` 문자열은 staging/production 양쪽이 공유**, **`versionCode`/`buildNumber` 만 환경별로 +1 자동 증가**.
 
-- staging 빌드의 `package.json.version` 은 main 의 release-please 갱신을 자동으로 받지 않는다. cascade 흐름 (dev → staging → main) 상 release-please commit (`chore(main): release X.Y.Z`) 이 main 에만 들어가기 때문.
-- 결과: staging 빌드의 사용자 노출 version 이 production 보다 한 사이클 뒤처질 수 있다 (예: production = 0.1.5, staging = 0.1.0). **이는 정상 동작이며 비효율 아님.**
-- 사내 internal tester 는 **`versionCode`/`buildNumber` + release notes** 로 빌드 식별 — version 문자열의 stale 은 이 모델에서 정상.
+- 릴리즈 bump 커밋이 dev 에서 promote cascade (dev → staging → main) 를 그대로 타므로, **staging 과 production 은 항상 같은 `version` 문자열을 공유**한다 (release-please 시절 "staging 한 사이클 지연" 은 해소).
+- 사내 internal tester 는 **`versionCode`/`buildNumber` + release notes** 로 빌드 식별.
 - prerelease suffix (`-rc.1`, `-staging.7`) 채택 안 함 — iOS `CFBundleShortVersionString` X.Y.Z 강제 + 사용자 노출 표기 혼란 + 모바일 스토어 출시 OSS 앱 실제 사례 0건.
 - **back-merge (main → staging) 의무 X (일반 release)**. 단 §12.6 핫픽스는 staging 우회 흐름이라 별도 back-merge 의무 적용.
 
@@ -503,18 +502,19 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 4. 5~20분 후 Play Console internal track 에서 사내 사용자가 설치/검증
 
 **운영계 (production) — 빌드 자동, 출시 수동 게이트**
-1. `staging → main` PR merge → `release-please.yml` 이 release PR 자동 생성
-2. release PR 머지 → tag `vX.Y.Z` 자동 생성 → `eas-production.yml` 자동 트리거
-3. EAS build (production profile, Android) — submit 없음
-4. **사람이 Play Console 에서 production track promote** (의도적 수동 게이트)
+1. 릴리즈 결정 시 dev 에서 `yarn release:bump <patch|minor|major>` 커밋 (별도 PR 또는 promote 직전 PR 에 포함)
+2. `dev → staging` PR merge → internal track 검증 (이 시점부터 staging 도 새 version 문자열)
+3. `staging → main` PR merge → `eas-production.yml` 버전 게이트 통과 → EAS build (production profile, Android) — submit 없음
+4. 빌드 성공 시 tag `vX.Y.Z` + GitHub Release (`--generate-notes`) 자동 생성
+5. **사람이 Play Console 에서 production track promote** (의도적 수동 게이트)
 
 ### 12.6 핫픽스 절차
 
 운영 긴급 패치는 staging 우회:
 1. `hotfix/*` 브랜치를 main 에서 분기
-2. `fix(...)` 또는 `fix!:` (BREAKING) commit
+2. `fix(...)` 또는 `fix!:` (BREAKING) commit + **`yarn release:bump patch` 커밋 포함 (버전 게이트 통과에 필수)**
 3. `hotfix/* → main` PR (CODEOWNER review 필수)
-4. release-please 가 patch bump → tag → 자동 production 빌드 → 수동 promote
+4. merge 시 버전 게이트 통과 → 자동 production 빌드 → tag + GitHub Release 자동 생성 → 수동 promote
 5. **hotfix 머지 후 `main → staging` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
 
 ### 12.7 롤백 절차
@@ -635,7 +635,8 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | `eas submit` 실패 (`BUILD_NOT_FOUND`) | `--latest` 와 빌드 완료 사이 race | 워크플로우가 이미 `eas build ... --wait` 후 submit 하므로 정상 발생 안 함. 발생 시 재실행 |
 | `eas submit` Android 실패 (`PERMISSION_DENIED: Google Play Android Developer API has not been used in project <number>`) | service account 호스트 GCP 프로젝트에 Android Publisher API 미활성화 (§12.4 선행 조건 누락) | GCP Console 의 해당 프로젝트 (현재 `buddybird-ops`) 에서 `androidpublisher.googleapis.com` enable. 전파 1~5분 후 워크플로우 "Re-run failed jobs" |
 | buildNumber 충돌 (`The bundle version must be higher than ...`) | EAS remote 카운터가 스토어와 어긋남 | `eas build:version:set --platform android --profile <profile>` 로 카운터 정정 |
-| release-please PR 안 만들어짐 | main 에 conventional commit 이 없거나 모두 `chore:` 만 누적 | `feat:` 또는 `fix:` commit 1개 필요 |
+| main push 에 운영 빌드가 skip 됨 (`release-gate`: already released) | `package.json` version bump 누락 — 이미 태그된 버전 그대로 promote | dev 에서 `yarn release:bump` 커밋 → 다시 promote. 게이트 skip 은 의도된 동작 (§12.2) |
+| promote PR 에 pull_request 체크 (PR Title/Auto Label/CI) 가 아예 안 생김 | PR 이 CONFLICTING — squash promote 가 staging 에 dev 에 없는 커밋을 만들어 히스토리가 분기하고, 이후 양쪽이 같은 파일을 수정하면 충돌. GitHub 은 충돌 PR 의 테스트 머지 커밋을 못 만들어 pull_request 워크플로우를 실행하지 않음 | `staging → dev` sync 머지 PR 로 해소 (충돌은 dev 쪽 채택 — promote 직후라면 staging 신규 내용 0). 전례: PR #61, #67 |
 | Firebase config 미반영 | EAS Secret 갱신 후 기존 빌드는 자동 재반영 안 됨 | 다음 빌드에서 반영. 즉시 필요하면 재빌드 |
 
 ## 13. Hard Rules
@@ -650,7 +651,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 - **Firebase 환경 분리 유지** — dev 빌드는 `buddybird-dev` 프로젝트만, prod 빌드는 `buddybird-9b84d` 프로젝트만 사용. 한 환경의 config 를 다른 환경에 임시로 끼워 넣지 말 것.
 - **FCM payload에 보호자 PII 금지** — 이름·이메일·전화·정확한 위치를 notification title/body/data 에 포함하지 않는다. client는 receipt metadata만 저장하고 payload 본문/data는 영속화하지 않는다.
 - **`docs/ARCHITECTURE.md`, `README.md`, `CLAUDE.md` 에 빌드/배포 명령을 직접 기재하지 않는다** — 모든 절차는 본 문서로 단일화. `rg -l "eas (env|build|submit)" docs/ README.md` 결과가 본 파일 1건만 매치되어야 한다.
-- **`package.json` / `.release-please-manifest.json` / `app.config.ts` 의 `version` 필드 직접 편집 금지** — release-please 가 PR 로 관리. `app.config.ts` 는 `pkg.version` 으로 단일 source 참조.
+- **`package.json` / `app.config.ts` 의 `version` 필드 손편집 금지** — `yarn release:bump` 로만 변경 (릴리즈 promote 시, §12.2). `app.config.ts` 는 `pkg.version` 으로 단일 source 참조.
 - **`staging` / `main` 브랜치 직접 push 금지** — PR-only 보호 브랜치. 우회는 §12.6 핫픽스 절차로만.
 - **`ios.buildNumber` / `android.versionCode` 를 `app.config.ts` 에 명시 금지** — EAS remote autoIncrement 가 관리 (`eas.json` `appVersionSource: remote` + profile `autoIncrement`).
-- **Conventional commit type 정책 준수** — 출시될 변경에는 `feat:` (minor) / `fix:` (patch) / `feat!:` 또는 footer `BREAKING CHANGE:` (major) 의 정확한 type 필수. 잘못된 type → 잘못된 semver bump → 운영 출시 사고.
+- **Conventional commit type 정책 준수** — 정확한 type 필수. type 은 더 이상 semver 를 자동 결정하지 않지만 (§12.2 수동 bump), PR title gate (`PR Title (Semantic)`) 와 히스토리 가독성·bump 수준 판단의 근거가 된다.

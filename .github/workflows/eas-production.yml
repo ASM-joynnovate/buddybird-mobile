@@ -1,7 +1,8 @@
 name: EAS Build (production)
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: eas-production
@@ -11,22 +12,48 @@ permissions:
   contents: read
 
 jobs:
+  release-gate:
+    name: Release Gate (version vs tags)
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    outputs:
+      should_release: ${{ steps.gate.outputs.should_release }}
+      tag: ${{ steps.gate.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compare package.json version against existing tags
+        id: gate
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::${TAG} 는 이미 릴리즈된 버전 — 빌드 skip. 새 릴리즈는 yarn release:bump 후 다시 promote (docs/BUILD-AND-RELEASE.md §12.2)"
+            echo "⏭️ \`${TAG}\` already released — build skipped (version bump 누락이면 §12.11 참고)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "🚀 Releasing \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   verify:
     name: Verify (lint + typecheck)
+    needs: release-gate
+    if: ${{ needs.release-gate.outputs.should_release == 'true' }}
     uses: ./.github/workflows/_verify.yml
 
   notify-start:
     name: Notify Slack (Start)
-    needs: verify
+    needs: [release-gate, verify]
     uses: ./.github/workflows/_notify-slack.yml
     with:
       status: started
       env: production
+      message: ${{ needs.release-gate.outputs.tag }}
     secrets: inherit
 
   build-production:
     name: Build (Production)
-    needs: [verify, notify-start]
+    needs: [release-gate, verify, notify-start]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,16 +71,34 @@ jobs:
           packager: yarn
       - run: yarn install --immutable
       - name: EAS Build (production, Android)
-        run: eas build --profile production --platform android --non-interactive --wait --message "${GITHUB_REF_NAME}"
+        run: eas build --profile production --platform android --non-interactive --wait --message "${{ needs.release-gate.outputs.tag }}"
       # submit 없음 — 운영 출시는 수동 게이트
+
+  tag-release:
+    name: Tag + GitHub Release
+    needs: [release-gate, build-production]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create tag and GitHub Release (auto-generated notes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-gate.outputs.tag }}
+        run: |
+          gh release create "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${GITHUB_SHA}" \
+            --title "${TAG}" \
+            --generate-notes
 
   notify-result:
     name: Notify Slack (Result)
-    needs: build-production
-    if: ${{ always() && needs.build-production.result != 'skipped' }}
+    needs: [release-gate, build-production, tag-release]
+    if: ${{ always() && needs.release-gate.outputs.should_release == 'true' }}
     uses: ./.github/workflows/_notify-slack.yml
     with:
-      status: ${{ needs.build-production.result }}
+      status: ${{ (contains(needs.*.result, 'failure') && 'failure') || (contains(needs.*.result, 'cancelled') && 'cancelled') || 'success' }}
       env: production
-      message: ${{ github.ref_name }}
+      message: ${{ needs.release-gate.outputs.tag }}
     secrets: inherit
