@@ -1,0 +1,59 @@
+name: EAS Build (production)
+on:
+  push:
+    tags: ['v*.*.*']
+
+concurrency:
+  group: eas-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify (lint + typecheck)
+    uses: ./.github/workflows/_verify.yml
+
+  notify-start:
+    name: Notify Slack (Start)
+    needs: verify
+    uses: ./.github/workflows/_notify-slack.yml
+    with:
+      status: started
+      env: production
+    secrets: inherit
+
+  build-production:
+    name: Build (Production)
+    needs: [verify, notify-start]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+      - run: corepack enable
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: yarn
+      - run: yarn install --immutable
+      - name: EAS Build (production, Android)
+        run: eas build --profile production --platform android --non-interactive --wait --message "${GITHUB_REF_NAME}"
+      # submit 없음 — 운영 출시는 수동 게이트
+
+  notify-result:
+    name: Notify Slack (Result)
+    needs: build-production
+    if: ${{ always() && needs.build-production.result != 'skipped' }}
+    uses: ./.github/workflows/_notify-slack.yml
+    with:
+      status: ${{ needs.build-production.result }}
+      env: production
+      message: ${{ github.ref_name }}
+    secrets: inherit

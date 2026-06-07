@@ -1,0 +1,79 @@
+name: Slack Notify (reusable)
+on:
+  workflow_call:
+    inputs:
+      status:
+        required: true
+        type: string
+        description: "started | success | failure | cancelled"
+      env:
+        required: true
+        type: string
+        description: "staging | production"
+      message:
+        required: false
+        type: string
+        default: ""
+        description: "Extra context (e.g. version)"
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Slack Notify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve emoji and label
+        id: meta
+        run: |
+          case "${{ inputs.status }}" in
+            started)   emoji=":rocket:"; label="Started" ;;
+            success)   emoji=":white_check_mark:"; label="Success" ;;
+            failure)   emoji=":x:"; label="Failure" ;;
+            cancelled) emoji=":warning:"; label="Cancelled" ;;
+            *)         emoji=":grey_question:"; label="${{ inputs.status }}" ;;
+          esac
+          {
+            echo "emoji=${emoji}"
+            echo "label=${label}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send to Slack
+        uses: slackapi/slack-github-action@v3
+        continue-on-error: true
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ steps.meta.outputs.emoji }} [${{ inputs.env }}] Build ${{ steps.meta.outputs.label }} — ${{ github.repository }}@${{ github.ref_name }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ steps.meta.outputs.emoji }} ${{ inputs.env }} · Build ${{ steps.meta.outputs.label }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": "*Repo*\n${{ github.repository }}" },
+                    { "type": "mrkdwn", "text": "*Ref*\n`${{ github.ref_name }}`" },
+                    { "type": "mrkdwn", "text": "*Commit*\n`${{ github.sha }}`" },
+                    { "type": "mrkdwn", "text": "*Actor*\n${{ github.actor }}" }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ inputs.message != '' && format('*Note*\n{0}\n\n', inputs.message) || '' }}<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                  }
+                }
+              ]
+            }

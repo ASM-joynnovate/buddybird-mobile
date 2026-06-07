@@ -1,0 +1,124 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { WaveformBars } from '@/components/ui/waveform-bars';
+import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
+import { formatDurationMins } from '@/features/shared/duration-format';
+import { IconSymbol } from '../ui/icon-symbol';
+
+interface ContinueSessionCardProps {
+  lastWord?: string;
+  cycles?: number;
+  mins?: number;
+  learnMins?: number;
+  restMins?: number;
+  onContinue: () => void;
+}
+
+export function ContinueSessionCard({ lastWord, cycles, mins, learnMins, restMins, onContinue }: ContinueSessionCardProps) {
+  const hasHistory = lastWord !== undefined;
+
+  return (
+    <View>
+      <View style={styles.headRow}>
+        <Text style={styles.title}>{hasHistory ? '학습' : '학습'}</Text>
+      </View>
+      <View style={styles.card}>
+        {hasHistory && (
+          <View style={styles.inner}>
+            <View style={styles.chipRow}>
+              <View style={styles.wordChip}>
+                <Text style={styles.wordChipText}>{lastWord}</Text>
+              </View>
+            </View>
+            <WaveformBars color="#7DD3C0" height={36} barCount={44} />
+            <Text style={styles.sessionMeta}>
+              {cycles}사이클 · 총 {formatDurationMins(mins ?? 0)} · {formatDurationMins(learnMins ?? 0)} 학습 · {formatDurationMins(restMins ?? 0)} 휴식
+            </Text>
+          </View>
+        )}
+        <Pressable style={styles.btn} onPress={onContinue}>
+          <IconSymbol name="play.fill" size={16} color="#fff" />
+          <Text style={styles.btnText}>{hasHistory ? '학습 시작' : '학습 설정'}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  headRow: {
+    gap: 4,
+    marginBottom: 10,
+  },
+  kicker: {
+    color: BuddyBirdColors.kickerMuted,
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.6,
+  },
+  title: {
+    ...Typography.screenTitle,
+    color: BuddyBirdColors.primary,
+    fontSize: 22,
+  },
+  card: {
+    backgroundColor: BuddyBirdColors.primary,
+    borderRadius: Radii.card,
+    overflow: 'hidden',
+    shadowColor: BuddyBirdColors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+  },
+  inner: {
+    gap: 12,
+    padding: 18,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  wordChip: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: Radii.full,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  wordChipText: {
+    color: BuddyBirdColors.neutral,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  moreChip: {
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: Radii.full,
+    borderWidth: 0.5,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  moreChipText: {
+    color: BuddyBirdColors.kickerMutedOnDark,
+    fontSize: 13,
+  },
+  sessionMeta: {
+    color: BuddyBirdColors.kickerMutedOnDark,
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.4,
+  },
+  btn: {
+    alignItems: 'center',
+    backgroundColor: BuddyBirdColors.secondary,
+    flexDirection: 'row',
+    gap: 6,
+    height: 52,
+    justifyContent: 'center',
+  },
+  btnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+});
