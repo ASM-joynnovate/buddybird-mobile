@@ -35,6 +35,7 @@
     "eas:build:local:prod:ios": "eas build --profile production --platform ios --local",
     "eas:build:local:prod:android": "eas build --profile production --platform android --local",
     "web": "expo start --web",
+    "release:bump": "npm version --no-git-tag-version",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit"
   },
