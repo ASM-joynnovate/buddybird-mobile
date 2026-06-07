@@ -431,7 +431,7 @@ config/{env}/android/
 | `version` (X.Y.Z) | **개발자가 릴리즈 전 명시적으로 bump** | `yarn release:bump <patch\|minor\|major>` 커밋을 promote cascade 에 포함 |
 | `ios.buildNumber` / `android.versionCode` | EAS 자동 | `appVersionSource: remote` + `autoIncrement` — 매 빌드 시 +1 |
 
-> **이력**: conventional-commit 기반 자동 semver 도구 (release-please) 는 2026-06-07 에 제거했다. (1) `target-branch` 미지정 시 release PR 이 default 브랜치(dev) 로 생성되는 오작동, (2) squash-merge 환경에서 squash 본문의 `* feat:` 불릿을 파싱하지 않아 promote PR 마다 `BEGIN_COMMIT_OVERRIDE` 블록 수동 작성에 의존, (3) 릴리즈당 main 머지 2회 필요. 고스타 RN 오픈소스 앱 (Bluesky·Expensify·Mattermost·RocketChat) 조사 결과 conventional-commit 자동 semver 도구 채택 0곳 — 수동 bump + 명시적 트리거가 실무 표준이라 이에 정렬했다 (`docs/POLICY-HISTORY.md` 2026-06-07 행 참고).
+> **이력**: conventional-commit 기반 자동 semver 도구 (release-please) 는 2026-06-07 에 제거했다. (1) `target-branch` 미지정 시 release PR 이 default 브랜치(dev) 로 생성되는 오작동, (2) squash-merge 환경에서 squash 본문의 `* feat:` 불릿을 파싱하지 않아 promote PR 마다 `BEGIN_COMMIT_OVERRIDE` 블록 수동 작성에 의존, (3) 릴리즈당 main 머지 2회 필요. star 수 상위 RN 오픈소스 앱 (Bluesky·Expensify·Mattermost·RocketChat) 조사 결과 conventional-commit 자동 semver 도구 채택 0곳 — 수동 bump + 명시적 트리거가 실무 표준이라 이에 정렬했다 (`docs/POLICY-HISTORY.md` 2026-06-07 행 참고).
 
 **bump 수준 결정 가이드** — commit type 은 더 이상 자동 분석되지 않지만, 누적 변경의 성격으로 사람이 판단한다:
 
