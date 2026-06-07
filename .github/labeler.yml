@@ -33,6 +33,4 @@
 "area: release":
   - changed-files:
       - any-glob-to-any-file:
-          - 'release-please-config.json'
-          - '.release-please-manifest.json'
           - 'eas.json'
