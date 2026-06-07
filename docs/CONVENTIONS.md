@@ -125,18 +125,13 @@
 - `refactor(audio): replace silent catch swallows with explicit warn logging`
 - `chore(deps): add firebase, clarity, expo-tracking-transparency packages`
 
-### 4.1.1 commit type → semver bump (release-please 자동 분석)
+### 4.1.1 commit type 과 semver
 
-`main` 에 머지되는 commit 의 type 이 다음 출시의 `version` (X.Y.Z) bump 를 결정합니다. 의도를 정확히 표현하세요:
+commit type 은 더 이상 자동 semver bump 를 결정하지 않습니다 (release-please 제거, 2026-06-07 — `docs/POLICY-HISTORY.md` 참고). `version` bump 는 릴리즈 promote 전 `yarn release:bump <patch|minor|major>` 로 명시적으로 수행합니다.
 
-| Commit 패턴 | bump | 예 |
-|---|---|---|
-| `fix(scope): ...` | **patch** | 0.1.0 → 0.1.1 |
-| `feat(scope): ...` | **minor** | 0.1.0 → 0.2.0 |
-| `feat(scope)!: ...` 또는 footer `BREAKING CHANGE: ...` | **major** (pre-1.0 에서는 minor 로 처리) | 0.1.0 → 0.2.0 (pre-1.0) |
-| `chore:` / `docs:` / `style:` / `refactor:` / `test:` / `build:` / `ci:` / `perf:` | 없음 | CHANGELOG 에만 기록 가능 |
+type 은 여전히 정확하게 작성하세요 — PR title gate (`PR Title (Semantic)`) 차단 기준이며, 릴리즈 시 bump 수준 (fix 만 → patch, feat 포함 → minor) 을 판단하는 근거입니다.
 
-상세 정책 및 1.0.0 진입 수동 절차는 `docs/BUILD-AND-RELEASE.md` §12.2.
+상세 정책은 `docs/BUILD-AND-RELEASE.md` §12.2.
 
 ### 4.2 책임 단위 분리
 
