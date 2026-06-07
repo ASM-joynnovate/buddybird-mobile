@@ -636,6 +636,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | `eas submit` Android 실패 (`PERMISSION_DENIED: Google Play Android Developer API has not been used in project <number>`) | service account 호스트 GCP 프로젝트에 Android Publisher API 미활성화 (§12.4 선행 조건 누락) | GCP Console 의 해당 프로젝트 (현재 `buddybird-ops`) 에서 `androidpublisher.googleapis.com` enable. 전파 1~5분 후 워크플로우 "Re-run failed jobs" |
 | buildNumber 충돌 (`The bundle version must be higher than ...`) | EAS remote 카운터가 스토어와 어긋남 | `eas build:version:set --platform android --profile <profile>` 로 카운터 정정 |
 | main push 에 운영 빌드가 skip 됨 (`release-gate`: already released) | `package.json` version bump 누락 — 이미 태그된 버전 그대로 promote | dev 에서 `yarn release:bump` 커밋 → 다시 promote. 게이트 skip 은 의도된 동작 (§12.2) |
+| promote PR 에 pull_request 체크 (PR Title/Auto Label/CI) 가 아예 안 생김 | PR 이 CONFLICTING — squash promote 가 staging 에 dev 에 없는 커밋을 만들어 히스토리가 분기하고, 이후 양쪽이 같은 파일을 수정하면 충돌. GitHub 은 충돌 PR 의 테스트 머지 커밋을 못 만들어 pull_request 워크플로우를 실행하지 않음 | `staging → dev` sync 머지 PR 로 해소 (충돌은 dev 쪽 채택 — promote 직후라면 staging 신규 내용 0). 전례: PR #61, #67 |
 | Firebase config 미반영 | EAS Secret 갱신 후 기존 빌드는 자동 재반영 안 됨 | 다음 빌드에서 반영. 즉시 필요하면 재빌드 |
 
 ## 13. Hard Rules
