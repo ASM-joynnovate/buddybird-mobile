@@ -1,10 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import {
-  getTrackingPermissionsAsync,
-  requestTrackingPermissionsAsync,
-  type PermissionStatus,
-} from 'expo-tracking-transparency';
 
 export const CONSENT_STORAGE_KEY = '@buddybird/analytics-consent';
 
@@ -38,6 +33,9 @@ export async function ensureTrackingConsent(): Promise<ConsentState> {
     return state;
   }
 
+  const { getTrackingPermissionsAsync, requestTrackingPermissionsAsync } = await import(
+    'expo-tracking-transparency'
+  );
   const current = await getTrackingPermissionsAsync();
   const resolvedCurrent = mapStatus(current.status);
 
@@ -56,7 +54,7 @@ export function consentAllowsCollection(state: ConsentState): boolean {
   return state === 'granted' || state === 'not_applicable';
 }
 
-function mapStatus(status: PermissionStatus): ConsentState {
+function mapStatus(status: string): ConsentState {
   if (status === 'granted') {
     return 'granted';
   }

@@ -9,7 +9,10 @@ export interface ScreenTracking {
 
 export function useScreenTracking(screenName: string, screenClass?: string): ScreenTracking {
   const { setScreen } = useAnalytics();
-  const enteredAtRef = useRef(Date.now());
+  const enteredAtRef = useRef<number>(null!);
+  if (enteredAtRef.current === null) {
+    enteredAtRef.current = Date.now();
+  }
 
   useFocusEffect(
     useCallback(() => {

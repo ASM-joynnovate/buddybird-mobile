@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { createContext, use, useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
@@ -111,7 +111,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
 }
 
 export function useProfile(): ProfileContextValue {
-  const context = useContext(ProfileContext);
+  const context = use(ProfileContext);
 
   if (!context) {
     throw new Error('useProfile must be used inside ProfileProvider');
