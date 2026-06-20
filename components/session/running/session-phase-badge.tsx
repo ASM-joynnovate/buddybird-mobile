@@ -1,30 +1,24 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { BuddyBirdColors, Radii, Spacing, Typography, withAlpha } from '@/constants/theme';
+
 interface SessionPhaseBadgeProps {
   isLearning: boolean;
+  cycle: number;
+  totalCycles: number;
 }
 
-export function SessionPhaseBadge({ isLearning }: SessionPhaseBadgeProps) {
+export function SessionPhaseBadge({ isLearning, cycle, totalCycles }: SessionPhaseBadgeProps) {
+  const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
+
   return (
     <View style={styles.row}>
-      <View
-        style={[
-          styles.badge,
-          {
-            backgroundColor: isLearning ? 'rgba(94,234,212,0.20)' : 'rgba(253,186,116,0.20)',
-            borderColor: isLearning ? 'rgba(94,234,212,0.45)' : 'rgba(253,186,116,0.45)',
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.dot,
-            { backgroundColor: isLearning ? '#5EEAD4' : '#FDBA74' },
-          ]}
-        />
-        <Text style={[styles.text, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
-          {isLearning ? '학습 중' : '휴식 중'}
-        </Text>
+      <View style={[styles.phaseBadge, { backgroundColor: withAlpha(accent, 0.12) }]}>
+        <View style={[styles.dot, { backgroundColor: accent }]} />
+        <Text style={styles.phaseText}>{isLearning ? '학습' : '휴식'}</Text>
+      </View>
+      <View style={styles.cycleBadge}>
+        <Text style={styles.cycleText}>사이클 {cycle}/{totalCycles}</Text>
       </View>
     </View>
   );
@@ -33,25 +27,41 @@ export function SessionPhaseBadge({ isLearning }: SessionPhaseBadgeProps) {
 const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    justifyContent: 'center',
     marginTop: 16,
   },
-  badge: {
+  phaseBadge: {
     alignItems: 'center',
-    borderRadius: 999,
-    borderWidth: 1,
+    borderRadius: Radii.full,
     flexDirection: 'row',
-    gap: 6,
+    gap: Spacing.xs,
     paddingHorizontal: 16,
     paddingVertical: 7,
   },
   dot: {
-    borderRadius: 999,
-    height: 6,
-    width: 6,
+    borderRadius: Radii.full,
+    height: 8,
+    width: 8,
   },
-  text: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.8,
+  phaseText: {
+    ...Typography.label,
+    color: BuddyBirdColors.ink,
+    textTransform: 'uppercase',
+  },
+  cycleBadge: {
+    backgroundColor: BuddyBirdColors.surface1,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.full,
+    borderWidth: 2,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  cycleText: {
+    color: BuddyBirdColors.inkMuted,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
 });

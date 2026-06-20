@@ -1,64 +1,172 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BuddyBirdColors } from '@/constants/theme';
+import { BuddyBird } from '@/components/mascot/buddy-bird';
+import { Card } from '@/components/ui/card';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
+import { PillButton } from '@/components/ui/pill-button';
+import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { formatDurationMins } from '@/features/shared/duration-format';
+
+import { SessionConfetti } from './session-confetti';
 
 interface SessionCompletionViewProps {
+  petName: string;
   word: string;
-  totalLearningSecondsLabel: string;
+  totalLearningSeconds: number;
+  xp: number;
+  streakDays: number;
   onDismiss: () => void;
 }
 
-export function SessionCompletionView({ word, totalLearningSecondsLabel, onDismiss }: SessionCompletionViewProps) {
+export function SessionCompletionView({ petName, word, totalLearningSeconds, xp, streakDays, onDismiss }: SessionCompletionViewProps) {
+  const insets = useSafeAreaInsets();
+  const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)));
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>학습 완료!</Text>
-      <Text style={styles.word}>{word}</Text>
-      <Text style={styles.stat}>모든 사이클 완료</Text>
-      <Text style={styles.stat}>총 학습 시간 {totalLearningSecondsLabel}</Text>
-      <Pressable style={styles.btn} onPress={onDismiss}>
-        <Text style={styles.btnText}>확인</Text>
-      </Pressable>
+      <SessionConfetti />
+      <View style={styles.celebration}>
+        <BuddyBird size={140} color={BuddyBirdColors.onDark} animation="bounce" />
+        <Text style={styles.title}>학습 완료! 🎉</Text>
+        <Text style={styles.subtitle}>
+          {withSubjectParticle(petName)} &quot;{word}&quot;를 {totalLearningMinutesLabel} 동안 들었어요
+        </Text>
+      </View>
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
+        <View style={styles.rewardRow}>
+          <RewardCard
+            borderColor={BuddyBirdColors.accentYellow}
+            icon="bolt.fill"
+            iconColor={BuddyBirdColors.accentYellow}
+            label="획득 XP"
+            labelColor={BuddyBirdColors.accentYellowShadow}
+            value={`${xp}`}
+          />
+          <RewardCard
+            borderColor={BuddyBirdColors.streak}
+            icon="flame.fill"
+            iconColor={BuddyBirdColors.streak}
+            label="연속"
+            labelColor={BuddyBirdColors.primaryShadow}
+            value={`${streakDays}`}
+          />
+        </View>
+        <PillButton full label="계속" onPress={onDismiss} size="lg" />
+      </View>
     </View>
   );
 }
 
+function RewardCard({
+  borderColor,
+  icon,
+  iconColor,
+  label,
+  labelColor,
+  value,
+}: {
+  borderColor: string;
+  icon: IconSymbolName;
+  iconColor: string;
+  label: string;
+  labelColor: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.rewardCardShell}>
+      <Card accentColor={borderColor} style={styles.rewardCard}>
+        <Text style={[styles.rewardLabel, { color: labelColor }]}>{label}</Text>
+        <View style={styles.rewardValueRow}>
+          <IconSymbol name={icon} color={iconColor} size={22} />
+          <Text style={styles.rewardValue}>{value}</Text>
+        </View>
+      </Card>
+    </View>
+  );
+}
+
+function withSubjectParticle(name: string): string {
+  const lastCharCode = name.charCodeAt(name.length - 1);
+  const hasFinalConsonant = lastCharCode >= 0xac00 && lastCharCode <= 0xd7a3 && (lastCharCode - 0xac00) % 28 !== 0;
+
+  return `${name}${hasFinalConsonant ? '이' : '가'}`;
+}
+
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: BuddyBirdColors.primary,
+    flex: 1,
+    position: 'relative',
+  },
+  celebration: {
     alignItems: 'center',
     flex: 1,
-    gap: 16,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: Spacing.screenX,
+    zIndex: 2,
   },
   title: {
-    color: '#A78BFA',
-    fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
-  word: {
-    color: '#FAF6F0',
-    fontSize: 60,
-    fontWeight: '700',
-    letterSpacing: -2,
-  },
-  stat: {
-    color: BuddyBirdColors.kickerMutedOnDark,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  btn: {
-    backgroundColor: 'rgba(167,139,250,0.20)',
-    borderColor: 'rgba(167,139,250,0.45)',
-    borderRadius: 999,
-    borderWidth: 1,
+    color: BuddyBirdColors.onDark,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 40,
     marginTop: 24,
-    paddingHorizontal: 40,
-    paddingVertical: 14,
+    textAlign: 'center',
   },
-  btnText: {
-    color: '#A78BFA',
+  subtitle: {
+    color: BuddyBirdColors.onPrimary,
+    fontFamily: Fonts.bodyExtraBold,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
+    lineHeight: 23,
+    letterSpacing: 0,
+    marginTop: 6,
+    opacity: 0.92,
+    textAlign: 'center',
+  },
+  sheet: {
+    backgroundColor: BuddyBirdColors.surface,
+    borderTopLeftRadius: Radii.celebration,
+    borderTopRightRadius: Radii.celebration,
+    paddingHorizontal: Spacing.screenX,
+    paddingTop: 22,
+    zIndex: 2,
+  },
+  rewardRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: 18,
+  },
+  rewardCardShell: {
+    flex: 1,
+  },
+  rewardCard: {
+    alignItems: 'center',
+    minHeight: 102,
+    padding: 14,
+  },
+  rewardLabel: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.48,
+    textTransform: 'uppercase',
+  },
+  rewardValueRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.xxs,
+    justifyContent: 'center',
+    marginTop: Spacing.xxs,
+  },
+  rewardValue: {
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: 0,
   },
 });
