@@ -1,132 +1,114 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { SelectableRowCard } from '@/components/ui/selectable-row-card';
-import { BuddyBirdColors, Radii } from '@/constants/theme';
-import { catColors } from '@/features/training/session-words-mock';
+import { Pressable3D } from '@/components/ui/ledge-surface';
+import { StrokeIcon } from '@/components/ui/stroke-icon';
+import {
+  BuddyBirdColors,
+  Fonts,
+  Radii,
+  Spacing,
+  categoryColor,
+  categoryTint,
+  withAlpha,
+  withAlphaOverCanvas,
+  type BuddyBirdCategory,
+} from '@/constants/theme';
 
 interface WordPickerCardProps {
+  id: string;
   label: string;
   tag: string;
-  sourceType: 'preset' | 'recording';
-  sourceLabel: string;
-  //sessionCountLabel: string;
   active: boolean;
-  onSelect: () => void;
+  onSelect: (id: string) => void;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function WordPickerCard({
-  label,
-  tag,
-  sourceType,
-  sourceLabel,
-  //sessionCountLabel,
-  active,
-  onSelect,
-}: WordPickerCardProps) {
-  const isPreset = sourceType === 'preset';
-  const col = catColors[tag] ?? BuddyBirdColors.secondary;
+export function WordPickerCard({ id, label, tag, active, onSelect, style }: WordPickerCardProps) {
+  const color = categoryColor[tag as BuddyBirdCategory] ?? BuddyBirdColors.primary;
+  const tint = categoryTint[tag as BuddyBirdCategory] ?? withAlphaOverCanvas(color, 0.08);
+  const initial = label.trim().charAt(0) || '?';
+  const handlePress = useCallback(() => onSelect(id), [id, onSelect]);
 
   return (
-    <SelectableRowCard active={active} onPress={onSelect}>
-      <View style={styles.textBlock}>
-        <Text style={[styles.phrase, active && styles.phraseActive]}>{label}</Text>
-        <View style={styles.tagsRow}>
-          <View
-            style={[
-              styles.sourcePill,
-              active
-                ? styles.pillActive
-                : isPreset
-                  ? styles.sourcePillPreset
-                  : styles.sourcePillRecording,
-            ]}
-          >
-            <Text
-              style={[
-                styles.sourcePillText,
-                active
-                  ? styles.pillTextActive
-                  : isPreset
-                    ? styles.sourcePillTextPreset
-                    : styles.sourcePillTextRecording,
-              ]}
-            >
-              {sourceLabel}
-            </Text>
-          </View>
-          <View style={[styles.catPill, active ? styles.pillActive : { backgroundColor: `${col}18` }]}>
-            <Text style={[styles.catPillText, active ? styles.pillTextActive : { color: col }]}>{tag}</Text>
-          </View>
-        </View>
+    <Pressable3D
+      accessibilityLabel={`${label} 선택`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      baseStyle={[styles.base, active ? { backgroundColor: color } : styles.baseDefault]}
+      depth="card"
+      faceStyle={[
+        styles.tile,
+        active
+          ? { backgroundColor: tint, borderColor: color }
+          : undefined,
+      ]}
+      onPress={handlePress}
+      style={style}>
+      <View style={[styles.iconBox, { backgroundColor: active ? color : withAlpha(color, 0.12) }]}>
+        <Text style={[styles.iconText, active ? styles.iconTextActive : styles.iconTextInactive]}>{initial}</Text>
       </View>
-      {/* <Text style={[styles.time, active && styles.timeActive]}>{sessionCountLabel}</Text> */}
-    </SelectableRowCard>
+      <Text numberOfLines={1} style={styles.label}>{label}</Text>
+      {active ? (
+        <View style={[styles.badge, { backgroundColor: color }]}>
+          <StrokeIcon color={BuddyBirdColors.onPrimary} name="check" size={10} strokeWidth={3.4} />
+        </View>
+      ) : null}
+    </Pressable3D>
   );
 }
 
 const styles = StyleSheet.create({
-  textBlock: {
-    alignItems: 'flex-start',
-    flex: 1,
-    flexDirection: 'column',
-    gap: 6,
+  base: {
+    borderRadius: Radii.md,
   },
-  tagsRow: {
+  baseDefault: {
+    backgroundColor: BuddyBirdColors.borderMuted,
+  },
+  tile: {
     alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  phrase: {
-    color: BuddyBirdColors.primary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  phraseActive: { color: '#FAF6F0' },
-  sourcePill: {
-    borderRadius: Radii.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  sourcePillPreset: {
-    backgroundColor: 'transparent',
+    backgroundColor: BuddyBirdColors.surface,
     borderColor: BuddyBirdColors.borderMuted,
-    borderWidth: 1,
+    borderRadius: Radii.md,
+    borderWidth: 2,
+    gap: Spacing.chipGap,
+    paddingHorizontal: 6,
+    paddingVertical: 12,
   },
-  sourcePillRecording: {
-    backgroundColor: 'transparent',
-    borderColor: BuddyBirdColors.feather,
-    borderWidth: 1,
+  iconBox: {
+    alignItems: 'center',
+    borderRadius: Radii.iconSquare,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
   },
-  sourcePillText: {
-    fontSize: 11,
-    fontWeight: '500',
+  iconText: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 16,
+    fontWeight: '900',
   },
-  sourcePillTextPreset: {
-    color: BuddyBirdColors.kickerMuted,
+  iconTextActive: {
+    color: BuddyBirdColors.onPrimary,
   },
-  sourcePillTextRecording: {
-    color: BuddyBirdColors.tertiaryDeep,
+  iconTextInactive: {
+    color: BuddyBirdColors.ink,
   },
-  catPill: {
+  label: {
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 12.5,
+    fontWeight: '900',
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+  badge: {
+    alignItems: 'center',
     borderRadius: Radii.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    height: 16,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    width: 16,
   },
-  catPillText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  pillActive: {
-    backgroundColor: 'rgba(250,246,240,0.18)',
-  },
-  pillTextActive: {
-    color: 'rgba(250,246,240,0.85)',
-  },
-  time: {
-    color: 'rgba(31,58,61,0.45)',
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  timeActive: { color: 'rgba(250,246,240,0.55)' },
 });

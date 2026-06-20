@@ -68,7 +68,7 @@ export function useSessionSetup(): UseSessionSetupResult {
   function setPresetKey(key: SessionPresetKey) {
     setPresetKeyState(key);
     if (key === 'custom') {
-      const defaultMins = 75;
+      const defaultMins = 25;
       setSessionMinsState(defaultMins);
       const { learnSecs: ls, restSecs: rs } = calcLearnRestFromTotal(defaultMins * 60);
       setLearnSecs(ls);

@@ -1,14 +1,10 @@
-import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { FilterChip } from '@/components/words/word-filter-bar';
-import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
-import { CATS, type WordCategory } from '@/features/training/session-words-mock';
+import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 
 import { WordPickerCard } from './word-picker-card';
 
-const CARD_H = 72;
-const CARD_GAP = 8;
+const ROW_GAP = 8;
 
 export interface WordPickerItem {
   id: string;
@@ -23,7 +19,6 @@ interface WordPickerProps {
   items: WordPickerItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  //getSessionCountLabel: (item: WordPickerItem) => string;
   sectionTitle: string;
   emptyLabel: string;
 }
@@ -32,12 +27,9 @@ export function WordPicker({
   items,
   selectedId,
   onSelect,
-  //getSessionCountLabel,
   sectionTitle,
   emptyLabel,
 }: WordPickerProps) {
-  const [activeCategory, setActiveCategory] = useState<WordCategory>('전체');
-
   if (items.length === 0) {
     return (
       <View style={styles.empty}>
@@ -46,54 +38,31 @@ export function WordPicker({
     );
   }
 
-  const filteredItems =
-    activeCategory === '전체' ? items : items.filter((i) => i.tag === activeCategory);
-
   return (
     <View style={styles.section}>
       <View style={styles.head}>
         <Text style={styles.sectionTitle}>{sectionTitle}</Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {CATS.map((c) => (
-          <FilterChip key={c} cat={c} active={activeCategory === c} onPress={() => setActiveCategory(c)} />
-        ))}
-      </ScrollView>
-      {filteredItems.length === 0 ? (
-        <View style={[styles.listScroll, styles.listEmpty]}>
-          <Text style={styles.emptyText}>해당 카테고리에 단어가 없습니다</Text>
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.listScroll}
-          contentContainerStyle={styles.listContent}
-          nestedScrollEnabled
-        >
-          {filteredItems.map((item) => (
+      <View style={styles.grid}>
+        {items.map((item) => (
+          <View key={item.id} style={styles.tileCell}>
             <WordPickerCard
-              key={item.id}
-              label={item.label}
-              tag={item.tag}
-              sourceType={item.sourceType}
-              sourceLabel={item.sourceLabel}
-              //sessionCountLabel={getSessionCountLabel(item)}
               active={selectedId === item.id}
-              onSelect={() => onSelect(item.id)}
+              id={item.id}
+              label={item.label}
+              onSelect={onSelect}
+              tag={item.tag}
             />
-          ))}
-        </ScrollView>
-      )}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    gap: 8,
+    gap: Spacing.sectionHeadGap,
   },
   head: {
     alignItems: 'flex-end',
@@ -103,39 +72,33 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.sectionTitle,
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
   },
-  filterRow: {
-    gap: 6,
-    paddingVertical: 4,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    rowGap: ROW_GAP,
   },
-  listScroll: {
-    backgroundColor: 'rgba(31,58,61,0.04)',
-    borderRadius: Radii.field,
-    height: CARD_H * 3.5 + CARD_GAP * 2.5,
-    paddingHorizontal: 10,
-    paddingTop: 10,
-  },
-  listContent: {
-    gap: CARD_GAP,
-    // Android의 ScrollView는 contentContainerStyle paddingBottom이 iOS보다 작게 인식되어
-    // 마지막 카드가 컨테이너 바닥에 붙어 보이는 시각 버그가 있다. 안드로이드에서만 보강한다.
-    paddingBottom: Platform.OS === 'android' ? 24 : 10,
-  },
-  listEmpty: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  tileCell: {
+    maxWidth: '33.333333%',
+    paddingHorizontal: 4,
+    width: '33.333333%',
   },
   empty: {
     alignItems: 'center',
-    backgroundColor: 'rgba(31,58,61,0.04)',
-    borderRadius: 16,
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderWidth: 2,
+    borderRadius: Radii.card,
     paddingHorizontal: 16,
     paddingVertical: 20,
   },
   emptyText: {
-    color: BuddyBirdColors.kickerMuted,
+    color: BuddyBirdColors.bodyMuted,
+    fontFamily: Fonts.bodyBold,
     fontSize: 13,
+    fontWeight: '700',
     textAlign: 'center',
   },
 });
