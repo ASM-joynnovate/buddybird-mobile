@@ -28,8 +28,14 @@ export interface PersistKeyedStoreConfig<T> {
   readonly scope: string;
   /** JSON.parse 결과(unknown)를 검증·hydration 하여 T 로 변환 */
   readonly parse: (raw: unknown) => T;
-  /** 미저장·손상·검증 실패 시 반환할 기본값 */
+  /** 미저장(키 없음) 시 반환할 기본값. 미지정 시 손상 경로도 이 값으로 복구 */
   readonly fallback: () => T;
+  /**
+   * 손상·검증 실패(JSON.parse·parse throw) 시의 복구 훅. 미지정 시 `fallback()` 으로 복구.
+   * seam 이 이미 `reportError(scope)` 를 호출한 뒤 실행되므로, 손상을 표면화하려면
+   * 여기서 throw 하면 된다(추가 reportError 없이 단일 보고 + throw). 반환 시 그 값으로 복구.
+   */
+  readonly recover?: (error: unknown) => T;
   /** write 직전 정규화. 미지정 시 값을 그대로 직렬화 */
   readonly serialize?: (value: T) => unknown;
   /** 선언 시 seam이 오디오 URI normalize(save)/hydrate(load)를 자동 소유 */
@@ -42,7 +48,7 @@ export interface KeyedStore<T> {
 }
 
 export function persistKeyedStore<T>(config: PersistKeyedStoreConfig<T>): KeyedStore<T> {
-  const { key, scope, parse, fallback, serialize, audioUriCollections } = config;
+  const { key, scope, parse, fallback, recover, serialize, audioUriCollections } = config;
 
   return {
     async load(): Promise<T> {
@@ -57,7 +63,7 @@ export function persistKeyedStore<T>(config: PersistKeyedStoreConfig<T>): KeyedS
         return applyAudioCollections(parse(parsed), audioUriCollections, hydrateAudioUriFields);
       } catch (error: unknown) {
         reportError(error, { scope });
-        return fallback();
+        return recover ? recover(error) : fallback();
       }
     },
 
