@@ -13,7 +13,10 @@ interface SessionAnalyticsParams {
 
 export function useSessionAnalytics({ pendingSession, session, clearPendingSession }: SessionAnalyticsParams) {
   const { track, flushSessionWordMetrics } = useAnalytics();
-  const startedAtRef = useRef(Date.now());
+  const startedAtRef = useRef<number>(null!);
+  if (startedAtRef.current === null) {
+    startedAtRef.current = Date.now();
+  }
   const progressPercent =
     session.totalCycles > 0 ? Math.round((session.cycle / session.totalCycles) * 100) : 0;
 

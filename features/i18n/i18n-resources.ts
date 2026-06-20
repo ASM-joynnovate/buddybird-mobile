@@ -49,8 +49,16 @@ interface AppCopy {
     speciesRequired: string;
   };
   onboarding: {
+    welcome: {
+      bubble: string;
+      title: string;
+      bodyBefore: string;
+      bodyEmphasis: string;
+      bodyAfter: string;
+    };
     profile: {
       title: string;
+      intro: string;
       body: string;
       nameLabel: string;
       namePlaceholder: string;
@@ -123,9 +131,19 @@ interface AppCopy {
   };
   wordCreate: {
     title: string;
-    step1Recording: string;
-    step2Label: string;
-    step3Tag: string;
+    body: string;
+    kicker: string;
+    wordLabel: string;
+    categoryLabel: string;
+    recorderKicker: string;
+    emptyWord: string;
+    readyStatus: string;
+    recordingStatus: string;
+    recordedStatus: string;
+    permissionStatus: string;
+    playbackTitle: string;
+    playbackSource: string;
+    addToTraining: string;
     save: string;
     cancel: string;
     labelPlaceholder: string;
@@ -209,14 +227,22 @@ export const translations: Record<AppLocale, AppCopy> = {
       speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
     },
     onboarding: {
+      welcome: {
+        bubble: '안녕하세요! 저는 버디예요.\n함께 앵무새에게 말을 가르쳐 봐요!',
+        title: '앵무새와 더 깊이 대화하기',
+        bodyBefore: '반려인의 목소리를 녹음해서\n앵무새에게 ',
+        bodyEmphasis: '매일 반복해',
+        bodyAfter: ' 들려주세요.',
+      },
       profile: {
         title: '반려조 프로필을\n알려주세요',
+        intro: '새 친구를 소개해 주세요!',
         body: '',
         nameLabel: '이름',
         namePlaceholder: '예: 망고',
         speciesLabel: '종',
         speciesPlaceholder: '종을 입력해 주세요',
-        ageLabel: '나이',
+        ageLabel: '나이 · %{years}년 %{months}개월',
         minusMonth: '- 1개월',
         plusMonth: '+ 1개월',
       },
@@ -242,8 +268,8 @@ export const translations: Record<AppLocale, AppCopy> = {
     },
     sessionSetup: {
       kicker: 'SESSION SETUP',
-      title: '오늘 들려줄 소리를\n먼저 정해요',
-      body: '짧은 단어를 고르거나 직접 녹음한 뒤, 앵무새가 알아차리기 쉬운 높은 톤 메타데이터를 적용해요.',
+      title: '학습',
+      body: '자리를 비우는 시간 동안 단어를 반복해서 들려줘요.',
       sourceLabel: '오디오 소스',
       presetSource: '기본 단어',
       recordingSource: '직접 녹음',
@@ -282,26 +308,36 @@ export const translations: Record<AppLocale, AppCopy> = {
       previewFailed: '미리듣기를 재생하지 못했어요. 다시 시도해 주세요.',
     },
     wordCreate: {
-      title: '음성 녹음으로 단어 추가',
-      step1Recording: '녹음',
-      step2Label: '단어 이름',
-      step3Tag: '태그 선택',
+      title: '단어 녹음',
+      body: '가르칠 단어를 녹음하면 학습에 사용할 수 있어요.',
+      kicker: '단어 추가',
+      wordLabel: '단어',
+      categoryLabel: '카테고리',
+      recorderKicker: '녹음할 단어',
+      emptyWord: '새 단어',
+      readyStatus: '버튼을 눌러 녹음을 시작하세요',
+      recordingStatus: '녹음 중 · %{time} · 탭하면 중지',
+      recordedStatus: '녹음 완료! 다시 누르면 재녹음',
+      permissionStatus: '마이크 권한을 확인하고 있어요',
+      playbackTitle: '녹음 듣기',
+      playbackSource: '원본',
+      addToTraining: '학습에 추가',
       save: '저장',
       cancel: '취소',
-      labelPlaceholder: '예: 사랑해',
+      labelPlaceholder: '예: 사과',
     },
     wordEdit: {
-      title: '단어 편집',
+      title: '단어 수정',
       delete: '삭제',
       confirmDelete: '이 단어를 삭제할까요?',
     },
     wordLibrary: {
-      empty: '등록된 단어가 없어요.',
-      emptyHint: '위의 + 버튼으로 단어를 추가해 보세요.',
+      empty: '단어가 없어요.',
+      emptyHint: '+ 버튼으로 녹음해 추가해 보세요!',
       editAction: '편집',
       deleteAction: '삭제',
-      sourcePreset: '기본',
-      sourceRecording: '녹음',
+      sourcePreset: '프리셋',
+      sourceRecording: '내 녹음',
     },
     sessionSetupExtra: {
       emptyLibrary: '등록된 단어가 없습니다. 단어 탭에서 추가하세요.',
@@ -310,7 +346,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       kicker: 'PROFILE',
       title: '반려조 프로필',
       body: '',
-      editCta: '프로필 수정',
+      editCta: '프로필 편집',
       nameLabel: '이름',
       namePlaceholder: '이름',
       speciesLabel: '종',
@@ -383,14 +419,22 @@ export const translations: Record<AppLocale, AppCopy> = {
       speciesRequired: "Enter your bird’s species.",
     },
     onboarding: {
+      welcome: {
+        bubble: "Hi! I'm Buddy.\nLet's teach your bird words together!",
+        title: 'Talk deeper with your bird',
+        bodyBefore: 'Record your own voice\nand play it back ',
+        bodyEmphasis: 'every day',
+        bodyAfter: ' for your bird.',
+      },
       profile: {
         title: 'Tell us about\nyour bird',
+        intro: 'Introduce your new friend!',
         body: 'For the MVP, one profile connects the home screen with training history.',
         nameLabel: 'Name',
         namePlaceholder: 'e.g. Mango',
         speciesLabel: 'Species',
         speciesPlaceholder: 'Enter species',
-        ageLabel: 'Age',
+        ageLabel: 'Age · %{years} yr %{months} mo',
         minusMonth: '- 1 mo',
         plusMonth: '+ 1 mo',
       },
@@ -416,8 +460,8 @@ export const translations: Record<AppLocale, AppCopy> = {
     },
     sessionSetup: {
       kicker: 'SESSION SETUP',
-      title: 'Choose the sound\nfor today',
-      body: 'Pick a short word or record your own voice, then save high-tone metadata that is easier for parrots to notice.',
+      title: 'Training',
+      body: 'Repeat words while you are away.',
       sourceLabel: 'Audio source',
       presetSource: 'Preset word',
       recordingSource: 'Record voice',
@@ -456,10 +500,20 @@ export const translations: Record<AppLocale, AppCopy> = {
       previewFailed: 'Could not play the preview. Please try again.',
     },
     wordCreate: {
-      title: 'Add word by voice recording',
-      step1Recording: 'Record',
-      step2Label: 'Word name',
-      step3Tag: 'Choose tag',
+      title: 'Record word',
+      body: 'Record a word and use it in training.',
+      kicker: 'Add word',
+      wordLabel: 'Word',
+      categoryLabel: 'Category',
+      recorderKicker: 'Word to record',
+      emptyWord: 'New word',
+      readyStatus: 'Tap the button to start recording',
+      recordingStatus: 'Recording · %{time} · Tap to stop',
+      recordedStatus: 'Recording complete. Tap again to rerecord',
+      permissionStatus: 'Checking microphone permission',
+      playbackTitle: 'Listen to recording',
+      playbackSource: 'Original',
+      addToTraining: 'Add to training',
       save: 'Save',
       cancel: 'Cancel',
       labelPlaceholder: 'e.g. I love you',
@@ -471,11 +525,11 @@ export const translations: Record<AppLocale, AppCopy> = {
     },
     wordLibrary: {
       empty: 'No words yet.',
-      emptyHint: 'Tap the + button above to add a word.',
+      emptyHint: 'Tap + to record and add a word!',
       editAction: 'Edit',
       deleteAction: 'Delete',
-      sourcePreset: 'Built-in',
-      sourceRecording: 'Recorded',
+      sourcePreset: 'Preset',
+      sourceRecording: 'My recording',
     },
     sessionSetupExtra: {
       emptyLibrary: 'No words in library. Add one from the Words tab.',

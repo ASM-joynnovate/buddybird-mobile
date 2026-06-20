@@ -24,6 +24,8 @@ export interface UseActiveSessionResult {
   totalCycles: number;
   phaseRemaining: number;
   phaseProgress: number;
+  progress: number;
+  audioOn: boolean;
   isLearning: boolean;
   currentWord: string;
   togglePause: () => void;
@@ -73,6 +75,12 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const phaseDuration = isLearning ? learnSecs : restSecs;
   const phaseRemaining = Math.max(0, phaseDuration - phaseElapsed);
   const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
+  const totalSessionSeconds = Math.max(1, totalCycles * secsPerCycle);
+  const completedCycleSeconds = (cycle - 1) * secsPerCycle;
+  const currentPhaseOffsetSeconds = isLearning ? 0 : learnSecs;
+  const overallElapsedSeconds = completedCycleSeconds + currentPhaseOffsetSeconds + phaseElapsed;
+  const progress = Math.min(1, overallElapsedSeconds / totalSessionSeconds);
+  const audioOn = status === 'running' && isLearning && sessionPlayerStatus.playing;
 
   useEffect(() => {
     if (status !== 'running') return;
@@ -221,6 +229,8 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     totalCycles,
     phaseRemaining,
     phaseProgress,
+    progress,
+    audioOn,
     isLearning,
     currentWord: word,
     togglePause,
