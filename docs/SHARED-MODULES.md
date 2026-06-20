@@ -17,6 +17,12 @@
 | `createSessionId` | `@/features/shared/ids` | `(): string` | 세션 ID 생성. 형식: `sess_<base36 ts>_<base36 rand>` |
 | `diffDaysIso` | `@/features/shared/date-utils` | `(fromIso: string, toMs?: number) => number` | ISO 날짜 문자열로부터 경과 일수 (floor) |
 
+### 2.1 영속 — `features/shared/`
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `persistKeyedStore` | `@/features/shared/persist-keyed-store` | `<T>({ key, scope, parse, fallback, serialize? }) => { load(): Promise<T>; save(value: T): Promise<void> }` | AsyncStorage 단일 키 read/write seam. `getItem → JSON.parse → parse` 와 에러 처리(reportError + fallback)를 일원화. 도메인 storage 모듈은 `parse`(검증·hydration)·`fallback`·필요 시 `serialize`(정규화)만 주입 |
+
 ## 3. Analytics — `features/analytics/`
 
 | Export | 경로 | 시그니처 | 용도 |

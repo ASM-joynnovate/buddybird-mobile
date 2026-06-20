@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
 export const WORD_METRICS_STORAGE_KEY = '@buddybird/analytics-word-metrics';
 
@@ -20,24 +20,27 @@ export interface WordSessionDelta {
 
 type WordMetricsMap = Record<string, WordLifetimeMetrics>;
 
+function parseWordMetricsMap(raw: unknown): WordMetricsMap {
+  if (!raw || typeof raw !== 'object') {
+    return {};
+  }
+
+  return raw as WordMetricsMap;
+}
+
+const metricsStore = persistKeyedStore<WordMetricsMap>({
+  key: WORD_METRICS_STORAGE_KEY,
+  scope: 'analytics.wordMetrics.load',
+  parse: parseWordMetricsMap,
+  fallback: () => ({}),
+});
+
 async function readMap(): Promise<WordMetricsMap> {
-  const raw = await AsyncStorage.getItem(WORD_METRICS_STORAGE_KEY);
-
-  if (!raw) {
-    return {};
-  }
-
-  const parsed: unknown = JSON.parse(raw);
-
-  if (!parsed || typeof parsed !== 'object') {
-    return {};
-  }
-
-  return parsed as WordMetricsMap;
+  return metricsStore.load();
 }
 
 async function writeMap(map: WordMetricsMap): Promise<void> {
-  await AsyncStorage.setItem(WORD_METRICS_STORAGE_KEY, JSON.stringify(map));
+  await metricsStore.save(map);
 }
 
 export async function getWordMetrics(wordId: string): Promise<WordLifetimeMetrics | null> {
