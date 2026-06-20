@@ -1,5 +1,12 @@
+import {
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+  Nunito_900Black,
+} from '@expo-google-fonts/nunito';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -28,8 +35,39 @@ export const unstable_settings = {
   anchor: '(onboarding)',
 };
 
+void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
+  console.warn('[splash.preventAutoHide]', error);
+});
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts({
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
+    Nunito_900Black,
+    'Pretendard-Regular': require('../assets/fonts/Pretendard-Regular.otf'),
+    'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.otf'),
+    'Pretendard-ExtraBold': require('../assets/fonts/Pretendard-ExtraBold.otf'),
+    'Pretendard-Black': require('../assets/fonts/Pretendard-Black.otf'),
+  });
+
+  useEffect(() => {
+    if (!fontsLoaded && !fontError) {
+      return;
+    }
+
+    if (fontError) {
+      console.warn('[fonts.load]', fontError);
+    }
+
+    void SplashScreen.hideAsync().catch((error: unknown) => {
+      console.warn('[splash.hide]', error);
+    });
+  }, [fontError, fontsLoaded]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <FcmHeadlessGuard>
@@ -100,7 +138,7 @@ function FcmHeadlessGuard({ children }: { children: ReactNode }) {
 function AppOpenTracker() {
   const { isReady, track } = useAnalytics();
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
-  const foregroundedAtRef = useRef<number>(Date.now());
+  const foregroundedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isReady) return;
@@ -162,8 +200,17 @@ function RootNavigator() {
                 headerShown: false,
                 animation: 'fade',
                 animationDuration: 220,
-                contentStyle: { backgroundColor: BuddyBirdColors.darkBg },
-                navigationBarColor: BuddyBirdColors.darkBg,
+                contentStyle: styles.sessionScreen,
+                navigationBarColor: BuddyBirdColors.neutral,
+              }}
+          />
+          <Stack.Screen
+              name="profile-edit"
+              options={{
+                headerShown: false,
+                animation: 'slide_from_right',
+                contentStyle: styles.sessionScreen,
+                navigationBarColor: BuddyBirdColors.neutral,
               }}
           />
         </Stack.Protected>
@@ -183,5 +230,8 @@ const styles = StyleSheet.create({
     backgroundColor: BuddyBirdColors.neutral,
     flex: 1,
     justifyContent: 'center',
+  },
+  sessionScreen: {
+    backgroundColor: BuddyBirdColors.neutral,
   },
 });

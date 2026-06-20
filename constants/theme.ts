@@ -1,84 +1,203 @@
-import { Platform } from 'react-native';
-
 export const BuddyBirdColors = {
-  primary: '#1F3A3D',
-  primarySoft: '#2D4A4D',
-  secondary: '#2A9D8F',
-  secondaryDeep: '#1F7A6E',
-  secondaryTint: '#DCEFEB',
-  tertiary: '#F4A261',
-  tertiaryDeep: '#C97D3F',
-  accentCoral: '#E76F51',
-  accentCoralDeep: '#C25540',
-  neutral: '#FAF6F0',
-  neutralDeep: '#F1E9DD',
+  primary: '#FF9600',
+  primaryDeep: '#FF9600',
+  primaryHover: '#E88900',
+  primaryShadow: '#E07F00',
+  primaryPressed: '#E07F00',
+  primarySoft: '#FFE8CC',
+  onPrimary: '#FFFFFF',
+  secondary: '#1CB0F6',
+  secondaryDeep: '#1CB0F6',
+  secondaryShadow: '#1899D6',
+  secondaryPressed: '#1899D6',
+  secondaryTint: '#DDF4FF',
+  onSecondary: '#FFFFFF',
+  tertiary: '#FF9600',
+  tertiaryDeep: '#FF9600',
+  tertiaryPressed: '#E07F00',
+  accentYellow: '#FFC800',
+  accentYellowShadow: '#E6A800',
+  onYellow: '#3C2A00',
+  streak: '#FF9600',
+  reward: '#FFC800',
+  accentRed: '#FF4B4B',
+  accentRedShadow: '#E04343',
+  accentCoral: '#FF4B4B',
+  accentCoralDeep: '#FF4B4B',
+  accentCoralPressed: '#E04343',
+  accentPurple: '#CE82FF',
+  accentPurpleShadow: '#A85FD6',
+  accentPurpleDeep: '#CE82FF',
+  accentPurplePressed: '#A85FD6',
+  ink: '#3C3C3C',
+  inkSoft: '#555555',
+  inkMuted: '#777777',
+  onDark: '#FFFFFF',
+  onDarkMuted: '#FFF4E0',
+  onDarkSubtle: '#FFD9A8',
+  onColorMuted: '#FFFFFFD9',
+  onColorStrong: '#FFFFFFEB',
+  ledgeOnColorSoft: '#0000001F',
+  neutral: '#FFFFFF',
+  neutralDeep: '#F7F7F7',
+  canvas: '#FFFFFF',
+  surface1: '#F7F7F7',
+  surface2: '#EBEBEB',
   surface: '#FFFFFF',
-  surfaceWarm: '#FBF6EE',
-  feather: '#FCEFD8',
-  featherDeep: '#F5DEB6',
-  leaf: '#6FAA9C',
-  leafDeep: '#4F8A7C',
-  darkBg: '#0F1A1B',
-  sessionMint: '#7DD3C0',
-  kickerMuted: 'rgba(31,58,61,0.55)',
-  kickerMutedOnDark: 'rgba(255,255,255,0.55)',
-  bodyMuted: 'rgba(31,58,61,0.68)',
-  placeholderMuted: 'rgba(31,58,61,0.36)',
-  surfaceMuted: 'rgba(31,58,61,0.06)',
-  borderMuted: 'rgba(31,58,61,0.20)',
-  gradientLearning: 'rgba(94,234,212,0.22)',
-  gradientRest: 'rgba(253,186,116,0.18)',
-  tabIconMuted: 'rgba(31,58,61,0.48)',
-  tabIconMutedOnDark: 'rgba(250,246,240,0.54)',
+  surfaceDark: '#3C3C3C',
+  surfaceDarkRaised: '#555555',
+  surfaceDarkMuted: '#777777',
+  surfaceBlueDark: '#1CB0F6',
+  surfaceAmberDark: '#FF9600',
+  surfacePurpleDark: '#CE82FF',
+  surfaceWarm: '#F7F7F7',
+  surfaceRaised: '#FFFFFF',
+  surfaceMuted: '#F7F7F7',
+  border: '#E5E5E5',
+  borderDark: '#D4D4D4',
+  borderMuted: '#E5E5E5',
+  borderStrong: '#D4D4D4',
+  feather: '#FFF4B8',
+  featherDeep: '#FFC800',
+  leaf: '#FF9600',
+  leafDeep: '#E07F00',
+  darkBg: '#FFFFFF',
+  sessionMint: '#FF9600',
+  kickerMuted: '#777777',
+  kickerMutedOnDark: '#F7F7F7',
+  bodyMuted: '#555555',
+  placeholderMuted: '#9B9B9B',
+  disabledBg: '#EBEBEB',
+  disabledFg: '#AFAFAF',
+  disabledText: '#AFAFAF',
+  stage: '#DDF4FF',
+  scrim: '#00000066',
+  shineWhite: '#FFFFFF66',
+  innerShadowSoft: '#00000014',
+  greenTint: '#FFE8CC',
+  blueTint: '#DDF4FF',
+  yellowTint: '#FFF4B8',
+  orangeTint: '#FFE8CC',
+  redTint: '#FFE1E1',
+  purpleTint: '#F2E1FF',
+  gradientLearning: '#FFE8CC',
+  gradientRest: '#DDF4FF',
+  tabIconMuted: '#777777',
+  tabIconMutedOnDark: '#777777',
 };
+
+export type BuddyBirdCategory = '인사' | '음식' | '이름' | '기타';
+
+export const categoryColor: Record<BuddyBirdCategory, string> = {
+  인사: BuddyBirdColors.primary,
+  음식: BuddyBirdColors.secondary,
+  이름: BuddyBirdColors.accentPurple,
+  기타: BuddyBirdColors.streak,
+};
+
+export const categoryShadow: Record<BuddyBirdCategory, string> = {
+  인사: BuddyBirdColors.primaryShadow,
+  음식: BuddyBirdColors.secondaryShadow,
+  이름: BuddyBirdColors.accentPurpleShadow,
+  기타: BuddyBirdColors.primaryShadow,
+};
+
+export const categoryTint: Record<BuddyBirdCategory, string> = {
+  인사: withAlphaOverCanvas(categoryColor['인사'], 0.08),
+  음식: withAlphaOverCanvas(categoryColor['음식'], 0.08),
+  이름: withAlphaOverCanvas(categoryColor['이름'], 0.08),
+  기타: withAlphaOverCanvas(categoryColor['기타'], 0.08),
+};
+
+export const categoryTintStrong: Record<BuddyBirdCategory, string> = {
+  인사: withAlphaOverCanvas(categoryColor['인사'], 0.12),
+  음식: withAlphaOverCanvas(categoryColor['음식'], 0.12),
+  이름: withAlphaOverCanvas(categoryColor['이름'], 0.12),
+  기타: withAlphaOverCanvas(categoryColor['기타'], 0.12),
+};
+
+export function withAlpha(hexToken: string, ratio: number): string {
+  const hex = hexToken.replace('#', '');
+  const alpha = Math.round(Math.max(0, Math.min(1, ratio)) * 255)
+    .toString(16)
+    .padStart(2, '0')
+    .toUpperCase();
+
+  return `#${hex}${alpha}`;
+}
+
+export function withAlphaOverCanvas(hexToken: string, ratio: number): string {
+  const alpha = Math.max(0, Math.min(1, ratio));
+  const foreground = hexToRgb(hexToken);
+  const canvas = hexToRgb(BuddyBirdColors.canvas);
+
+  return rgbToHex({
+    r: Math.round(foreground.r * alpha + canvas.r * (1 - alpha)),
+    g: Math.round(foreground.g * alpha + canvas.g * (1 - alpha)),
+    b: Math.round(foreground.b * alpha + canvas.b * (1 - alpha)),
+  });
+}
+
+function hexToRgb(hexToken: string): { r: number; g: number; b: number } {
+  const hex = hexToken.replace('#', '').slice(0, 6);
+
+  return {
+    r: Number.parseInt(hex.slice(0, 2), 16),
+    g: Number.parseInt(hex.slice(2, 4), 16),
+    b: Number.parseInt(hex.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
+  return `#${toHexPair(r)}${toHexPair(g)}${toHexPair(b)}`;
+}
+
+function toHexPair(value: number): string {
+  return value.toString(16).padStart(2, '0').toUpperCase();
+}
 
 export const Colors = {
   light: {
-    text: BuddyBirdColors.primary,
+    text: BuddyBirdColors.ink,
     background: BuddyBirdColors.neutral,
-    tint: BuddyBirdColors.secondary,
-    icon: BuddyBirdColors.primarySoft,
+    tint: BuddyBirdColors.primary,
+    icon: BuddyBirdColors.ink,
     tabIconDefault: BuddyBirdColors.tabIconMuted,
-    tabIconSelected: BuddyBirdColors.secondary,
+    tabIconSelected: BuddyBirdColors.primary,
   },
   dark: {
-    text: BuddyBirdColors.neutral,
-    background: BuddyBirdColors.darkBg,
-    tint: BuddyBirdColors.sessionMint,
-    icon: BuddyBirdColors.secondaryTint,
+    text: BuddyBirdColors.ink,
+    background: BuddyBirdColors.neutral,
+    tint: BuddyBirdColors.primary,
+    icon: BuddyBirdColors.ink,
     tabIconDefault: BuddyBirdColors.tabIconMutedOnDark,
-    tabIconSelected: BuddyBirdColors.sessionMint,
+    tabIconSelected: BuddyBirdColors.primary,
   },
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    sans: 'system-ui',
-    serif: 'ui-serif',
-    rounded: 'ui-rounded',
-    mono: 'ui-monospace',
-    display: 'ui-serif',
-    body: 'system-ui',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-    display: 'serif',
-    body: 'normal',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-    display: "Georgia, 'Gowun Batang', 'Times New Roman', serif",
-    body: "Pretendard, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  },
-});
+export const Fonts = {
+  sans: 'Pretendard-Regular',
+  serif: 'Pretendard-Regular',
+  rounded: 'Nunito_800ExtraBold',
+  mono: 'monospace',
+  display: 'Nunito_900Black',
+  displayBold: 'Nunito_700Bold',
+  displayExtraBold: 'Nunito_800ExtraBold',
+  body: 'Pretendard-Regular',
+  bodyBold: 'Pretendard-Bold',
+  bodyExtraBold: 'Pretendard-ExtraBold',
+  bodyBlack: 'Pretendard-Black',
+} as const;
 
 export const Spacing = {
+  xxs: 4,
+  xs: 6,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 28,
   waveformGap: 3,
   micro: 4,
   chipGap: 6,
@@ -97,61 +216,137 @@ export const Spacing = {
 };
 
 export const Radii = {
-  frequencyBar: 11,
+  frequencyBar: 8,
+  sm: 10,
   iconSquare: 12,
   field: 14,
-  listItem: 16,
+  md: 14,
+  lg: 16,
+  listItem: 12,
   sectionCard: 18,
-  card: 22,
-  heroCard: 24,
-  bottomTab: 28,
+  card: 18,
+  heroCard: 20,
+  xl: 22,
+  sheet: 24,
+  celebration: 28,
+  frame: 48,
+  bottomTab: 20,
   avatarLg: 60,
   full: 999,
+  pill: 9999,
+};
+
+export const Layout = {
+  contentMaxWidth: 480,
 };
 
 export const Typography = {
-  onboardingTitle: {
-    fontSize: 34,
-    lineHeight: 40,
-    fontWeight: '700' as const,
-    letterSpacing: -0.5,
-  },
-  screenTitle: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '700' as const,
-    letterSpacing: -0.3,
-  },
-  homeGreeting: {
+  title: {
+    fontFamily: Fonts.bodyBlack,
     fontSize: 26,
     lineHeight: 32,
-    fontWeight: '700' as const,
-    letterSpacing: -0.3,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
+  },
+  section: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
+  },
+  value: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
+  },
+  label: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '800' as const,
+    letterSpacing: 0.48,
+  },
+  onboardingTitle: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '800' as const,
+    letterSpacing: 0,
+  },
+  screenTitle: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 26,
+    lineHeight: 32,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
+  },
+  homeGreeting: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 26,
+    lineHeight: 32,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
   },
   cardTitle: {
+    fontFamily: Fonts.bodyBlack,
     fontSize: 22,
-    fontWeight: '700' as const,
+    fontWeight: '900' as const,
   },
   body: {
+    fontFamily: Fonts.bodyBold,
     fontSize: 15,
     lineHeight: 23,
+    fontWeight: '700' as const,
   },
   bodySmall: {
+    fontFamily: Fonts.bodyBold,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '700' as const,
   },
   caption: {
+    fontFamily: Fonts.bodyBold,
     fontSize: 12,
     lineHeight: 17,
+    fontWeight: '700' as const,
   },
   button: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    letterSpacing: -0.15,
+    fontFamily: Fonts.displayExtraBold,
+    fontSize: 16,
+    fontWeight: '800' as const,
+    letterSpacing: 0.32,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700' as const,
-    letterSpacing: -0.3,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 18,
+    fontWeight: '900' as const,
+    letterSpacing: 0,
   },
+};
+
+export const Depth = {
+  buttonSm: 4,
+  buttonMd: 6,
+  buttonLg: 7,
+  buttonPressed: 1,
+  card: 2,
+  cardSelected: 3,
+  tabActive: 3,
+  buttonSmOffset: 4,
+  buttonMdOffset: 6,
+  buttonLgOffset: 7,
+  buttonPressedOffset: 1,
+  cardOffset: 2,
+  selectedCardOffset: 3,
+  elevatedOffset: 8,
+};
+
+export const Motion = {
+  pressMs: 60,
+  fastMs: 80,
+  baseMs: 200,
+  progressMs: 500,
 };
