@@ -23,9 +23,10 @@ const styles = StyleSheet.create({
     gap: Spacing.tabPaddingY,
   },
   label: {
-    ...Typography.bodySmall,
-    color: BuddyBirdColors.primary,
-    fontWeight: '700',
+    ...Typography.label,
+    color: BuddyBirdColors.inkMuted,
+    fontSize: 12.5,
+    textTransform: 'uppercase',
   },
   error: {
     ...Typography.caption,

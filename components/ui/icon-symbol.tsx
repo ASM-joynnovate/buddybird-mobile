@@ -6,7 +6,7 @@ import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+export type IconSymbolName = keyof typeof MAPPING;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -17,18 +17,33 @@ const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'person.circle': 'account-circle',
+  'person.fill': 'person',
   'chevron.left.slash.chevron.right': 'code',
+  'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
+  'chevron.down': 'keyboard-arrow-down',
+  'dumbbell': 'fitness-center',
   'sparkles': 'auto-awesome',
+  'plus': 'add',
   'book.fill': 'book',
   'mic': 'mic',
   'bell.fill': 'notifications',
   'pencil': 'edit',
+  'camera.fill': 'photo-camera',
   'play.fill': 'play-arrow',
   'pause.fill': 'pause',
   'stop.fill': 'stop',
+  'xmark': 'close',
   'arrow.right': 'arrow-forward',
   'chevron.compact.right': 'arrow-forward-ios',
+  'flame.fill': 'local-fire-department',
+  'clock.fill': 'schedule',
+  'lock.fill': 'lock',
+  'crown.fill': 'emoji-events',
+  'bolt.fill': 'bolt',
+  'checkmark': 'check',
+  'checkmark.circle.fill': 'check-circle',
+  'speaker.wave.2.fill': 'volume-up',
 } as const satisfies Partial<IconMapping>;
 
 /**

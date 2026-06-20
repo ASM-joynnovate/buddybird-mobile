@@ -1,7 +1,15 @@
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BuddyBirdColors, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Layout, Spacing } from '@/constants/theme';
 
 interface PetScreenProps {
   children: React.ReactNode;
@@ -11,11 +19,14 @@ interface PetScreenProps {
 
 export function PetScreen({ children, scroll = true, contentStyle }: PetScreenProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
+  const widthCapStyle = viewportWidth > Layout.contentMaxWidth ? styles.contentWidthCap : undefined;
 
   if (!scroll) {
     return (
       <View style={[styles.safeArea, { paddingTop: insets.top }]}>
-        <View style={[styles.content, { paddingBottom: insets.bottom }, contentStyle]}>{children}</View>
+        <View style={[styles.content, widthCapStyle, { paddingBottom: insets.bottom }, contentStyle]}>{children}</View>
       </View>
     );
   }
@@ -25,6 +36,7 @@ export function PetScreen({ children, scroll = true, contentStyle }: PetScreenPr
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
+          widthCapStyle,
           { paddingBottom: Spacing.screenBottomTabs + insets.bottom },
           contentStyle,
         ]}
@@ -49,5 +61,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: Spacing.screenXLg,
     paddingTop: Spacing.sectionY,
+  },
+  contentWidthCap: {
+    alignSelf: 'center',
+    maxWidth: Layout.contentMaxWidth,
+    width: '100%',
   },
 });
