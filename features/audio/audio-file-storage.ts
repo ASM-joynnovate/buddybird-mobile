@@ -42,6 +42,49 @@ export function hydrateAudioUriFromStorage(uri: string | undefined): string | un
   return uri;
 }
 
+// entry 한 건에서 "선언된 오디오 URI 필드"에만 변환을 적용한다.
+// 문자열·undefined 외 값은 건드리지 않고, 변경이 없으면 원본 참조를 그대로 반환한다.
+// 필수 필드(값이 항상 존재)와 옵셔널 필드(undefined 가능) 모두 `transform(uri) ?? uri`
+// 동일 idiom으로 처리된다 — normalize/hydrate는 비대상 URI를 그대로 통과시키므로 안전.
+type AudioUriFieldTransform = (uri: string | undefined) => string | undefined;
+
+function transformAudioUriFields<T extends Record<string, unknown>>(
+  entry: T,
+  fields: readonly string[],
+  transform: AudioUriFieldTransform,
+): T {
+  let next: Record<string, unknown> | undefined;
+
+  for (const field of fields) {
+    const current = entry[field];
+    if (current !== undefined && typeof current !== 'string') continue;
+
+    const transformed = transform(current) ?? current;
+    if (transformed === current) continue;
+
+    next = next ?? { ...entry };
+    next[field] = transformed;
+  }
+
+  return (next as T) ?? entry;
+}
+
+// save 직전: 선언된 필드들을 `recording://<name>` 형태로 정규화.
+export function normalizeAudioUriFields<T extends Record<string, unknown>>(
+  entry: T,
+  fields: readonly string[],
+): T {
+  return transformAudioUriFields(entry, fields, normalizeAudioUriForStorage);
+}
+
+// load 직후: 선언된 필드들을 현재 documents 경로 기준 절대 URI로 복원.
+export function hydrateAudioUriFields<T extends Record<string, unknown>>(
+  entry: T,
+  fields: readonly string[],
+): T {
+  return transformAudioUriFields(entry, fields, hydrateAudioUriFromStorage);
+}
+
 export function resolveRecordingUri(fileName: string): string {
   return new File(getRecordingsDirectory(), fileName).uri;
 }
