@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import type { RecordingLifecycle } from '@/features/audio/audio-types';
 
 interface RecordingFormCardProps {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   bodySmall: {
     ...Typography.bodySmall,
-    color: 'rgba(31,58,61,0.64)',
+    color: BuddyBirdColors.onDarkMuted,
   },
   btns: {
     flexDirection: 'row',

@@ -1,9 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
+import { Chip, type ChipTone } from '@/components/ui/chip';
 import { SectionKicker } from '@/components/ui/section-kicker';
-import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
-import { catColors } from '@/features/training/session-words-mock';
+import { Spacing } from '@/constants/theme';
 import type { WordTag } from '@/features/word-library/word-library-types';
 
 interface WordTagFieldProps {
@@ -20,18 +20,14 @@ export function WordTagField({ sectionKicker, tags, selected, onSelect }: WordTa
       <View style={styles.row}>
         {tags.map((tag) => {
           const active = selected === tag;
-          const color = catColors[tag] ?? '#7C9885';
           return (
-            <Pressable
+            <Chip
+              active={active}
               key={tag}
-              style={[
-                styles.chip,
-                active ? { backgroundColor: `${color}18`, borderColor: color } : styles.chipInactive,
-              ]}
+              label={tag}
               onPress={() => onSelect(tag)}
-            >
-              <Text style={[styles.chipText, active && { color }]}>{tag}</Text>
-            </Pressable>
+              tone={toneByTag[tag] ?? 'purple'}
+            />
           );
         })}
       </View>
@@ -48,18 +44,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
-  chip: {
-    borderRadius: Radii.full,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  chipInactive: {
-    borderColor: 'rgba(31,58,61,0.15)',
-  },
-  chipText: {
-    color: BuddyBirdColors.kickerMuted,
-    fontSize: 13,
-    fontWeight: '500',
-  },
 });
+
+const toneByTag: Record<string, ChipTone> = {
+  인사: 'primary',
+  음식: 'blue',
+  이름: 'purple',
+  기타: 'primary',
+};

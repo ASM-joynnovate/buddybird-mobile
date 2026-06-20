@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState, type PropsWithChildren } from 'react';
+import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/ui/card';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { Chip, type ChipTone } from '@/components/ui/chip';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
-import { SectionKicker } from '@/components/ui/section-kicker';
-import { FrequencyTuningFormCard, type PitchToneChoice } from '@/components/words/forms/frequency-tuning-form-card';
 import { RecordingFormCard } from '@/components/words/forms/recording-form-card';
-import { WordLabelField } from '@/components/words/forms/word-label-field';
-import { WordTagField } from '@/components/words/forms/word-tag-field';
-import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { RecordedPlaybackRow } from '@/components/words/recorder/recorded-playback-row';
+import { formatRecordingTime } from '@/components/words/recorder/recording-time';
+import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
@@ -26,6 +26,8 @@ interface WordEditModalProps {
   onDeleted: () => void;
 }
 
+const isIPad = Platform.OS === 'ios' && Platform.isPad;
+
 export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: WordEditModalProps) {
   const { t } = useI18n();
   const { updateEntry, deleteEntry } = useWordLibrary();
@@ -33,18 +35,12 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
 
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('인사');
-  const [toneChoice, setToneChoice] = useState<PitchToneChoice>('parrot');
   const [isRerecording, setIsRerecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (entry) {
-      setLabel(entry.label);
-      setTag(entry.tag);
-      setToneChoice(entry.pitchTransform ? 'parrot' : 'original');
-      setIsRerecording(false);
-    }
-  }, [entry]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // 'auto' detent는 footer 높이를 시트 높이에 포함하지 않아, footer가 콘텐츠를 덮는다.
+  // footer 높이를 측정해 body 하단에 동일한 공간을 예약함으로써 겹침을 방지한다.
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const recording = useAudioRecording({
     permissionDeniedMessage: t('recording.permissionDenied'),
@@ -52,17 +48,39 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     startFailedMessage: t('recording.startFailed'),
     maxDurationMs: 60_000,
   });
-
   const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1, recording.elapsedSeconds);
+  const entryPreview = useAudioPreview(
+    entry?.sourceType === 'recording' ? entry.audioUri : null,
+    1,
+  );
+
+  useEffect(() => {
+    if (!entry) return;
+    setLabel(entry.label);
+    setTag(entry.tag);
+    setIsRerecording(false);
+    setConfirmDelete(false);
+  }, [entry]);
 
   const canSave =
     label.trim().length > 0 &&
     (!isRerecording || (recording.lifecycle === 'recorded' && recording.recordingFile !== null));
 
   function handleClose() {
+    preview.stopPreview();
+    entryPreview.stopPreview();
     recording.resetRecording();
     setIsRerecording(false);
+    setConfirmDelete(false);
     onClose();
+  }
+
+  function handleToggleEntryPreview() {
+    if (entryPreview.previewState === 'playing') {
+      entryPreview.stopPreview();
+      return;
+    }
+    void entryPreview.playPreview();
   }
 
   async function handleSave() {
@@ -70,14 +88,18 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     setIsSaving(true);
     try {
       const nowIso = new Date().toISOString();
-      const pitchTransform = toneChoice === 'parrot' ? createMvpPitchTransform(nowIso) : undefined;
-      const audioUri = isRerecording && recording.recordingFile ? recording.recordingFile.uri : entry.audioUri;
+      const didRerecord = isRerecording && recording.recordingFile !== null;
+      const pitchTransform =
+        didRerecord && entry.sourceType === 'recording' && !entry.pitchTransform
+          ? createMvpPitchTransform(nowIso)
+          : entry.pitchTransform;
 
       await updateEntry({
         ...entry,
         label: label.trim(),
         tag,
-        audioUri,
+        audioUri: didRerecord && recording.recordingFile ? recording.recordingFile.uri : entry.audioUri,
+        transformedAudioUri: didRerecord ? undefined : entry.transformedAudioUri,
         pitchTransform,
         updatedAt: nowIso,
       });
@@ -91,166 +113,260 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     }
   }
 
-  function handleDelete() {
-    if (!entry || entry.sourceType === 'preset') return;
-    Alert.alert(t('wordEdit.confirmDelete'), entry.label, [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('wordEdit.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteEntry(entry.id);
-            handleClose();
-            onDeleted();
-          } catch (error: unknown) {
-            reportError(error, { scope: 'words.deleteEntry' });
-            Alert.alert('삭제 실패', '단어를 삭제하지 못했어요. 다시 시도해 주세요.');
-          }
-        },
-      },
-    ]);
+  async function handleConfirmDelete() {
+    if (!entry) return;
+    setIsSaving(true);
+    try {
+      await deleteEntry(entry.id);
+      handleClose();
+      onDeleted();
+    } catch (error: unknown) {
+      reportError(error, { scope: 'words.deleteEntry' });
+      Alert.alert('삭제 실패', '단어를 삭제하지 못했어요. 다시 시도해 주세요.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleStartRerecord() {
+    entryPreview.stopPreview();
     recording.resetRecording();
+    setConfirmDelete(false);
     setIsRerecording(true);
   }
 
-  return (
-    <Modal visible={visible} animationType="fade" statusBarTranslucent>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('wordEdit.title')}</Text>
-          <View style={styles.headerActions}>
-            {entry?.sourceType !== 'preset' && (
-              <Pressable style={styles.deleteBtn} onPress={handleDelete}>
-                <Text style={styles.deleteBtnText}>{t('wordEdit.delete')}</Text>
-              </Pressable>
-            )}
-            <Pressable style={styles.closeBtn} onPress={handleClose}>
-              <Text style={styles.closeBtnText}>{t('wordCreate.cancel')}</Text>
-            </Pressable>
+  // 액션 버튼은 footer로 전달 → 시트 하단 베젤에 고정(배경은 베젤까지, 버튼은 홈 인디케이터 위).
+  const footer = (
+    <View
+      onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+      style={[styles.footerBar, { paddingBottom: isIPad ? 0 : insets.bottom }]}>
+      {confirmDelete ? (
+        <View style={styles.deleteConfirm}>
+          <Text style={styles.deleteConfirmText}>&quot;{entry?.label}&quot; 단어를 삭제할까요?</Text>
+          <View style={styles.actions}>
+            <PillButton
+              disabled={isSaving}
+              label={t('common.cancel')}
+              onPress={() => setConfirmDelete(false)}
+              style={styles.flexAction}
+              variant="ghost"
+            />
+            <PillButton
+              disabled={isSaving}
+              label={t('wordEdit.delete')}
+              onPress={handleConfirmDelete}
+              style={styles.flexAction}
+              variant="red"
+            />
           </View>
         </View>
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
-        >
-          {entry?.sourceType === 'recording' && (
-            isRerecording ? (
-              <RecordingFormCard
-                label={t('wordCreate.step1Recording')}
-                body={t('sessionSetup.recordingBody')}
-                metering={recording.metering}
-                lifecycle={recording.lifecycle}
-                elapsedSeconds={recording.elapsedSeconds}
-                recordingStatusLabel={t('sessionSetup.recordingStatus')}
-                recordedStatusLabel={t('sessionSetup.recordedStatus')}
-                startLabel={t('sessionSetup.startRecording')}
-                stopLabel={t('sessionSetup.stopRecording')}
-                rerecordLabel={t('sessionSetup.rerecord')}
-                errorMessage={recording.errorMessage}
-                isPlaying={preview.previewState === 'playing'}
-                playElapsedSeconds={preview.elapsedSeconds}
-                onPlay={preview.playPreview}
-                onStopPlay={preview.stopPreview}
-                onStart={recording.requestAndStartRecording}
-                onStop={recording.stopRecording}
-                onReset={recording.resetRecording}
-              />
-            ) : (
-              <Card style={styles.rerecordTrigger}>
-                <SectionKicker>{t('wordCreate.step1Recording')}</SectionKicker>
-                <PillButton full label={t('sessionSetup.rerecord')} onPress={handleStartRerecord} variant="ghost" />
-              </Card>
-            )
-          )}
-
-          <WordLabelField
-            sectionKicker={t('wordCreate.step2Label')}
-            label={label}
-            placeholder={t('wordCreate.labelPlaceholder')}
-            onChange={setLabel}
+      ) : (
+        <View style={styles.actions}>
+          <PillButton
+            disabled={isSaving}
+            icon="xmark"
+            label={t('wordEdit.delete')}
+            onPress={() => setConfirmDelete(true)}
+            style={styles.deleteAction}
+            variant="white"
           />
-
-          <WordTagField
-            sectionKicker={t('wordCreate.step3Tag')}
-            tags={WORD_TAGS}
-            selected={tag}
-            onSelect={setTag}
-          />
-
-          <FrequencyTuningFormCard
-            choice={toneChoice}
-            onChangeChoice={setToneChoice}
-          />
-
           <PillButton
             disabled={!canSave || isSaving}
-            full
+            icon="checkmark"
             label={isSaving ? t('common.saving') : t('common.save')}
             onPress={handleSave}
-            size="lg"
-            variant="teal"
+            style={styles.flexAction}
+            variant="primary"
           />
-        </ScrollView>
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <BottomSheet footer={footer} onClose={handleClose} visible={visible}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('wordEdit.title')}</Text>
+        <Pressable accessibilityLabel="닫기" accessibilityRole="button" onPress={handleClose} style={styles.closeBtn}>
+          <IconSymbol name="xmark" size={24} color={BuddyBirdColors.inkMuted} />
+        </Pressable>
       </View>
-    </Modal>
+
+      <View style={[styles.body, { paddingBottom: footerHeight }]}>
+        <SheetField label={t('wordCreate.wordLabel')}>
+          <TextInput
+            onChangeText={setLabel}
+            placeholder={t('wordCreate.labelPlaceholder')}
+            placeholderTextColor={BuddyBirdColors.placeholderMuted}
+            returnKeyType="done"
+            style={styles.input}
+            value={label}
+          />
+        </SheetField>
+
+        <SheetField label={t('wordCreate.categoryLabel')}>
+          <View style={styles.tagRow}>
+            {WORD_TAGS.map((wordTag) => (
+              <Chip
+                active={tag === wordTag}
+                key={wordTag}
+                label={wordTag}
+                onPress={() => setTag(wordTag)}
+                tone={toneByTag[wordTag] ?? 'primary'}
+              />
+            ))}
+          </View>
+        </SheetField>
+
+        {entry?.sourceType === 'recording' && (
+          isRerecording ? (
+            <RecordingFormCard
+              body={t('sessionSetup.recordingBody')}
+              elapsedSeconds={recording.elapsedSeconds}
+              errorMessage={recording.errorMessage}
+              isPlaying={preview.previewState === 'playing'}
+              label={t('wordCreate.recorderKicker')}
+              lifecycle={recording.lifecycle}
+              metering={recording.metering}
+              onPlay={preview.playPreview}
+              onReset={recording.resetRecording}
+              onStart={recording.requestAndStartRecording}
+              onStop={recording.stopRecording}
+              onStopPlay={preview.stopPreview}
+              playElapsedSeconds={preview.elapsedSeconds}
+              recordedStatusLabel={t('sessionSetup.recordedStatus')}
+              recordingStatusLabel={t('sessionSetup.recordingStatus')}
+              rerecordLabel={t('sessionSetup.rerecord')}
+              startLabel={t('sessionSetup.startRecording')}
+              stopLabel={t('sessionSetup.stopRecording')}
+            />
+          ) : (
+            <SheetField label={t('wordCreate.recorderKicker')}>
+              <View style={styles.recordedGroup}>
+                <RecordedPlaybackRow
+                  tag={tag}
+                  title={label}
+                  sourceLabel={t('wordLibrary.sourceRecording')}
+                  isPlaying={entryPreview.previewState === 'playing'}
+                  elapsedSecondsLabel={
+                    entryPreview.previewState === 'playing'
+                      ? formatRecordingTime(entryPreview.elapsedSeconds)
+                      : null
+                  }
+                  onToggle={handleToggleEntryPreview}
+                />
+                <PillButton
+                  full
+                  icon="mic"
+                  label={t('sessionSetup.rerecord')}
+                  onPress={handleStartRerecord}
+                  variant="ghost"
+                />
+              </View>
+            </SheetField>
+          )
+        )}
+
+      </View>
+    </BottomSheet>
+  );
+}
+
+function SheetField({ label, children }: PropsWithChildren<{ label: string }>) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      {children}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: BuddyBirdColors.neutral,
-    flex: 1,
-  },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.screenX,
+    marginBottom: 16,
+    paddingHorizontal: 22,
+    paddingTop: 20,
+  },
+  body: {
+    gap: 16,
+    paddingBottom: 0,
+    paddingHorizontal: 22,
+  },
+  footerBar: {
+    backgroundColor: BuddyBirdColors.surface,
+    paddingHorizontal: 22,
     paddingTop: 16,
-    paddingBottom: 8,
   },
   headerTitle: {
-    ...Typography.screenTitle,
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
     fontSize: 20,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  deleteBtn: {
-    backgroundColor: 'rgba(231,111,81,0.10)',
-    borderRadius: Radii.full,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-  },
-  deleteBtnText: {
-    color: BuddyBirdColors.accentCoral,
-    fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '900',
   },
   closeBtn: {
-    backgroundColor: 'rgba(31,58,61,0.08)',
-    borderRadius: Radii.full,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
+    alignItems: 'center',
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
   },
-  closeBtnText: {
-    color: BuddyBirdColors.primary,
-    fontSize: 13,
-    fontWeight: '600',
+  field: {
+    gap: 8,
   },
-  content: {
-    gap: Spacing.sectionY,
-    paddingHorizontal: Spacing.screenX,
-    paddingTop: 12,
+  fieldLabel: {
+    ...Typography.label,
+    color: BuddyBirdColors.inkMuted,
   },
-  rerecordTrigger: {
-    gap: Spacing.sectionHeadGap,
+  input: {
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.field,
+    borderWidth: 2,
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 16,
+    fontWeight: '700',
+    minHeight: 50,
+    paddingHorizontal: Spacing.fieldPaddingX,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  recordedGroup: {
+    gap: 8,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingTop: 6,
+  },
+  deleteAction: {
+    flexBasis: 104,
+    flexGrow: 0,
+  },
+  flexAction: {
+    flex: 1,
+  },
+  deleteConfirm: {
+    gap: 10,
+    paddingTop: 6,
+  },
+  deleteConfirmText: {
+    color: BuddyBirdColors.accentCoral,
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 13.5,
+    fontWeight: '800',
+    textAlign: 'center',
   },
 });
+
+const toneByTag: Record<string, ChipTone> = {
+  인사: 'primary',
+  음식: 'blue',
+  이름: 'purple',
+  기타: 'primary',
+};

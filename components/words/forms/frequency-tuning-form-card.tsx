@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SectionKicker } from '@/components/ui/section-kicker';
@@ -16,14 +16,16 @@ export function FrequencyTuningFormCard({ choice, onChangeChoice }: FrequencyTun
     <Card style={styles.card}>
       <SectionKicker>단어 음성 톤 설정</SectionKicker>
       <View style={styles.row}>
-        <TouchableOpacity
-          activeOpacity={0.75}
+        <Pressable
+          accessibilityLabel="원본 녹음 톤 유지"
+          accessibilityRole="button"
+          accessibilityState={{ selected: choice === 'original' }}
           style={[styles.btn, choice === 'original' && styles.btnActive]}
           onPress={() => onChangeChoice('original')}
         >
           <Text style={[styles.label, choice === 'original' && styles.labelActive]}>원본 녹음 톤 유지</Text>
           <Text style={styles.range}>원본 그대로</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={[styles.btn, styles.btnDisabled]}>
           <View style={styles.comingSoonRow}>
@@ -48,42 +50,42 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   btn: {
-    backgroundColor: '#fff',
-    borderColor: 'rgba(31,58,61,0.12)',
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
     borderRadius: Radii.field,
-    borderWidth: 0.5,
+    borderWidth: 2,
     flex: 1,
     gap: 2,
     minWidth: 90,
     padding: 10,
   },
   btnActive: {
-    backgroundColor: 'rgba(42,157,143,0.08)',
-    borderColor: BuddyBirdColors.secondary,
+    backgroundColor: BuddyBirdColors.primarySoft,
+    borderColor: BuddyBirdColors.primaryShadow,
     borderWidth: 1.5,
   },
   btnDisabled: {
-    backgroundColor: 'rgba(31,58,61,0.03)',
-    borderColor: 'rgba(31,58,61,0.08)',
+    backgroundColor: BuddyBirdColors.disabledBg,
+    borderColor: BuddyBirdColors.borderStrong,
   },
   label: {
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   labelActive: {
-    color: BuddyBirdColors.secondary,
+    color: BuddyBirdColors.ink,
   },
   labelDisabled: {
-    color: 'rgba(31,58,61,0.3)',
+    color: BuddyBirdColors.disabledText,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   range: {
-    color: BuddyBirdColors.kickerMuted,
+    color: BuddyBirdColors.inkMuted,
     fontSize: 10,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+    fontWeight: '700',
+    letterSpacing: 0,
     marginTop: 2,
   },
   comingSoonRow: {
@@ -93,15 +95,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   badge: {
-    backgroundColor: 'rgba(31,58,61,0.07)',
+    backgroundColor: BuddyBirdColors.surfaceAmberDark,
+    borderColor: BuddyBirdColors.tertiaryPressed,
     borderRadius: Radii.full,
+    borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   badgeText: {
-    color: 'rgba(31,58,61,0.4)',
+    color: BuddyBirdColors.onDark,
     fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
 });

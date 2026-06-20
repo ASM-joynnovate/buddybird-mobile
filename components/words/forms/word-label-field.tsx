@@ -20,7 +20,7 @@ export function WordLabelField({ sectionKicker, label, placeholder, onChange }: 
         value={label}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor="rgba(31,58,61,0.35)"
+        placeholderTextColor={BuddyBirdColors.placeholderMuted}
         returnKeyType="done"
       />
     </Card>
@@ -32,12 +32,13 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionHeadGap,
   },
   input: {
-    backgroundColor: '#fff',
-    borderColor: 'rgba(31,58,61,0.12)',
+    backgroundColor: BuddyBirdColors.neutralDeep,
+    borderColor: BuddyBirdColors.borderMuted,
     borderRadius: Radii.field,
-    borderWidth: 0.5,
-    color: BuddyBirdColors.primary,
+    borderWidth: 2,
+    color: BuddyBirdColors.ink,
     fontSize: 15,
+    fontWeight: '700',
     height: 48,
     paddingHorizontal: Spacing.fieldPaddingX,
   },
