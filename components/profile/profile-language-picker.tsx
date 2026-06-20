@@ -46,19 +46,20 @@ export function ProfileLanguagePicker({
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: BuddyBirdColors.feather,
+    backgroundColor: BuddyBirdColors.yellowTint,
+    borderColor: BuddyBirdColors.accentYellow,
     borderRadius: Radii.sectionCard,
+    borderWidth: 2,
     gap: Spacing.micro,
     padding: Spacing.cardPaddingSm,
   },
   title: {
     ...Typography.body,
-    color: BuddyBirdColors.primary,
-    fontWeight: '700',
+    color: BuddyBirdColors.ink,
   },
   bodySmall: {
     ...Typography.bodySmall,
-    color: 'rgba(31,58,61,0.64)',
+    color: BuddyBirdColors.inkSoft,
   },
   chips: {
     flexDirection: 'row',
