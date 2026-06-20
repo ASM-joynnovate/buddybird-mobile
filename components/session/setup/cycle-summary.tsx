@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { formatDurationMins } from '@/features/shared/duration-format';
+import { deriveSessionCycles } from '@/features/training/session-cycle-model';
 
 interface CycleSummaryProps {
   sessionMins: number;
@@ -11,8 +12,7 @@ interface CycleSummaryProps {
 }
 
 export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryProps) {
-  const secsPerCycle = learnSecs + restSecs;
-  const cycles = secsPerCycle > 0 ? Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle)) : 1;
+  const { totalCycles: cycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs });
   const learnMins = Math.round((cycles * learnSecs) / 60);
   const restMins = Math.round((cycles * restSecs) / 60);
 

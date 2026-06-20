@@ -8,6 +8,7 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useProfile } from '@/features/profile/profile-context';
 import { useActiveSession } from '@/features/training/hooks/use-active-session';
 import { useSessionAnalytics } from '@/features/training/hooks/use-session-analytics';
+import { sessionLearningSeconds } from '@/features/training/session-cycle-model';
 import { useTrainingData } from '@/features/training/training-context';
 import { calculateSessionXp, selectTrainingRewardSummary } from '@/features/training/training-model';
 
@@ -56,7 +57,7 @@ function SessionActiveInner({
   const { handleStop, handleDismiss } = useSessionAnalytics({ pendingSession, session, clearPendingSession });
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-  const totalLearningSeconds = session.totalCycles * session.learnSecs;
+  const totalLearningSeconds = sessionLearningSeconds(session.totalCycles, session.learnSecs);
 
   return (
     <View style={styles.container}>

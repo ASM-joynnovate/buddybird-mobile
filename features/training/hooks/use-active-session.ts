@@ -6,6 +6,7 @@ import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { configurePlaybackAudioMode } from '@/features/audio/audio-mode';
 
 import type { SessionMeta, SessionStatus } from '../session-config';
+import { deriveSessionCycles } from '../session-cycle-model';
 import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
@@ -40,9 +41,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
-  const secsPerCycle = learnSecs + restSecs;
-  const totalCycles = Math.max(1, Math.floor(settings.totalDurationSeconds / secsPerCycle));
-  const sessionMins = Math.round((totalCycles * secsPerCycle) / 60);
+  const { secsPerCycle, totalCycles, sessionMins, totalSessionSeconds, totalLearningSeconds } = deriveSessionCycles({
+    totalSeconds: settings.totalDurationSeconds,
+    learnSecs,
+    restSecs,
+  });
 
   const [status, setStatus] = useState<SessionStatus>('running');
   const [phase, setPhase] = useState<'learning' | 'rest'>('learning');
@@ -75,7 +78,6 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const phaseDuration = isLearning ? learnSecs : restSecs;
   const phaseRemaining = Math.max(0, phaseDuration - phaseElapsed);
   const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
-  const totalSessionSeconds = Math.max(1, totalCycles * secsPerCycle);
   const completedCycleSeconds = (cycle - 1) * secsPerCycle;
   const currentPhaseOffsetSeconds = isLearning ? 0 : learnSecs;
   const overallElapsedSeconds = completedCycleSeconds + currentPhaseOffsetSeconds + phaseElapsed;
@@ -198,7 +200,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         learningDurationSeconds: meta.learningDurationSeconds,
         restDurationSeconds: meta.restDurationSeconds,
         completedCycles: totalCycles,
-        totalLearningSeconds: totalCycles * meta.learningDurationSeconds,
+        totalLearningSeconds,
         startedAt: meta.startedAt,
         endedAt,
         libraryEntryId: meta.libraryEntryId,
@@ -206,7 +208,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       endedAt
     );
     saveCompletedSession(session);
-  }, [status, totalCycles, saveCompletedSession]);
+  }, [status, totalCycles, totalLearningSeconds, saveCompletedSession]);
 
   function togglePause(): void {
     setStatus((prev) => (prev === 'running' ? 'paused' : 'running'));

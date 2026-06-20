@@ -6,6 +6,7 @@ import { useI18n } from '@/features/i18n/i18n-context';
 
 import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 
+import { deriveSessionCycles } from '../session-cycle-model';
 import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
 import { SESSION_PRESETS, calcLearnRestFromTotal } from '../session-config';
@@ -90,8 +91,7 @@ export function useSessionSetup(): UseSessionSetupResult {
     }
   }
 
-  const secsPerCycle = learnSecs + restSecs;
-  const totalCycles = Math.max(1, Math.floor((sessionMins * 60) / secsPerCycle));
+  const { totalCycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs });
   const isDurationValid = sessionMins > 0;
   const durationValidationError = isDurationValid ? null : t('sessionSetup.zeroDurationError');
 
