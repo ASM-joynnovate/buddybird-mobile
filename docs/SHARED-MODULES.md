@@ -28,7 +28,8 @@
 
 | Export | 경로 | 시그니처 | 용도 |
 |---|---|---|---|
-| `useAnalytics` | `@/features/analytics/analytics-context` | `() => { track, setScreen, flushSessionWordMetrics }` | 이벤트 발송·스크린 설정·단어 메트릭 flush 진입점 |
+| `useAnalytics` | `@/features/analytics/analytics-context` | `() => { track, setScreen, flushSessionWordMetrics }` | 이벤트 발송·스크린 설정·단어 메트릭 flush 진입점. AnalyticsProvider 바깥이면 throw |
+| `useOptionalAnalytics` | `@/features/analytics/analytics-context` | `() => AnalyticsContextValue \| null` | AnalyticsProvider 바깥에서도 throw 없이 구독(없으면 null). provider 마운트 순서에 하드 결합되면 안 되는 소비처가 effect 게이팅으로 사용 |
 | `AnalyticsProvider` | `@/features/analytics/analytics-context` | React Provider | root layout에서 한 번만 마운트 |
 | `useScreenTracking` | `@/features/analytics/hooks/use-screen-tracking` | `(screenName: string, screenClass?: string) => { elapsedMs: () => number }` | 스크린 진입 자동 추적 + 체류 시간 측정 |
 | `reportError` | `@/features/analytics/error-reporter` | `(error: unknown, context?: ErrorContext) => void` | fatal 에러 보고 (Crashlytics fanout). `context.scope` 필수 — 미지정 키는 컴파일 에러 |

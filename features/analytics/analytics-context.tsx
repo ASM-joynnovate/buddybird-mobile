@@ -29,7 +29,7 @@ import {
   type WordSessionDelta,
 } from './word-metrics-storage';
 
-interface AnalyticsContextValue {
+export interface AnalyticsContextValue {
   isReady: boolean;
   consent: ConsentState;
   installationId: string | null;
@@ -221,8 +221,17 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
   return <AnalyticsContext.Provider value={value}>{children}</AnalyticsContext.Provider>;
 }
 
+/**
+ * AnalyticsProvider 바깥에서도 throw 없이 구독한다(없으면 null). provider 마운트
+ * 순서에 하드 결합되면 안 되는 소비처(예: `ProfileProvider`)가 effect 게이팅으로
+ * analytics 준비를 기다릴 수 있게 한다.
+ */
+export function useOptionalAnalytics(): AnalyticsContextValue | null {
+  return use(AnalyticsContext);
+}
+
 export function useAnalytics(): AnalyticsContextValue {
-  const context = use(AnalyticsContext);
+  const context = useOptionalAnalytics();
 
   if (!context) {
     throw new Error('useAnalytics must be used inside AnalyticsProvider');

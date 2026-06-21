@@ -16,9 +16,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
  * 앱 전역 provider 스택의 단일 소유처. 이 중첩 순서는 런타임에만 강제되는
  * 암묵적 인터페이스이므로 한 곳에 모아 둔다.
  *
- * 순서 의존(보존 필수): `ProfileProvider`가 `useAnalytics()`를 읽으므로
- * `AnalyticsProvider`가 반드시 위(바깥)에 있어야 한다. 이 숨은 의존 자체의
- * 제거(analytics seam 역전)는 본 슬라이스 범위 밖이며, 여기서는 순서만 보존한다.
+ * 순서 의존(권장): `ProfileProvider`는 `AnalyticsProvider`가 위(바깥)에 있을 때
+ * 부팅 시 identity를 동기화한다. 이 의존은 더 이상 하드 크래시가 아니라 optional
+ * 구독 + effect 게이팅으로 완화돼 있어, 순서가 어긋나면 동기화를 건너뛰고 dev에서
+ * 경고만 낸다(`ProfileProvider` 참고). 정상 동작을 위해 이 순서를 유지한다.
  *
  * `FcmHeadlessGuard`는 provider가 아닌 가드지만 트리 최외곽이므로 "순서를 한 곳에"
  * 원칙을 지키기 위해 함께 감싼다.
