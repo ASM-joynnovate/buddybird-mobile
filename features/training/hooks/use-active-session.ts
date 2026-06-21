@@ -1,5 +1,5 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
@@ -7,6 +7,12 @@ import { configurePlaybackAudioMode } from '@/features/audio/audio-mode';
 
 import type { SessionMeta, SessionStatus } from '../session-config';
 import { deriveSessionCycles } from '../session-cycle-model';
+import {
+  createInitialSessionState,
+  PHASE_ADVANCE_DELAY_MS,
+  sessionReducer,
+  TICK_INTERVAL_MS,
+} from '../session-reducer';
 import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
@@ -47,10 +53,8 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     restSecs,
   });
 
-  const [status, setStatus] = useState<SessionStatus>('running');
-  const [phase, setPhase] = useState<'learning' | 'rest'>('learning');
-  const [cycle, setCycle] = useState(1);
-  const [phaseElapsed, setPhaseElapsed] = useState(0);
+  const [state, dispatch] = useReducer(sessionReducer, { learnSecs, restSecs, totalCycles }, createInitialSessionState);
+  const { status, phase, cycle, phaseElapsed } = state;
 
   const sessionMetaRef = useRef<SessionMeta | null>({
     wordId,
@@ -86,33 +90,15 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   useEffect(() => {
     if (status !== 'running') return;
-    const iv = setInterval(() => {
-      setPhaseElapsed((prev) => (prev >= phaseDuration ? prev : Math.min(prev + 1, phaseDuration)));
-    }, 1000);
+    const iv = setInterval(() => dispatch({ type: 'tick' }), TICK_INTERVAL_MS);
     return () => clearInterval(iv);
-  }, [status, phaseDuration]);
+  }, [status]);
 
   useEffect(() => {
     if (status !== 'running' || phaseElapsed < phaseDuration) return;
-    const timer = setTimeout(() => {
-      if (phase === 'learning') {
-        setPhase('rest');
-        setPhaseElapsed(0);
-        return;
-      }
-      if (cycle >= totalCycles) {
-        setStatus('completed');
-        setCycle(1);
-        setPhase('learning');
-        setPhaseElapsed(0);
-        return;
-      }
-      setCycle((c) => c + 1);
-      setPhase('learning');
-      setPhaseElapsed(0);
-    }, 980);
+    const timer = setTimeout(() => dispatch({ type: 'advancePhase' }), PHASE_ADVANCE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [phaseElapsed, phaseDuration, status, phase, cycle, totalCycles]);
+  }, [phaseElapsed, phaseDuration, status]);
 
   useEffect(() => {
     if (!audioUri) return;
@@ -211,17 +197,17 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [status, totalCycles, totalLearningSeconds, saveCompletedSession]);
 
   function togglePause(): void {
-    setStatus((prev) => (prev === 'running' ? 'paused' : 'running'));
+    dispatch({ type: 'togglePause' });
   }
 
   function stop(): void {
     sessionMetaRef.current = null;
-    setStatus('idle');
+    dispatch({ type: 'reset' });
   }
 
   function dismissCompletion(): void {
     sessionMetaRef.current = null;
-    setStatus('idle');
+    dispatch({ type: 'reset' });
   }
 
   return {
