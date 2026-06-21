@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { reportError } from '@/features/analytics/error-reporter';
+import { reportError, type ErrorScope } from '@/features/analytics/error-reporter';
 import { hydrateAudioUriFields, normalizeAudioUriFields } from '@/features/audio/audio-file-storage';
 
 /**
@@ -24,8 +24,8 @@ export interface AudioUriCollection {
 export interface PersistKeyedStoreConfig<T> {
   /** AsyncStorage 키 (예: `@buddybird/...`) */
   readonly key: string;
-  /** 로드 실패 시 reportError 에 붙는 scope */
-  readonly scope: string;
+  /** 로드 실패 시 reportError 에 붙는 scope (도메인 prefix 강제) */
+  readonly scope: ErrorScope;
   /** JSON.parse 결과(unknown)를 검증·hydration 하여 T 로 변환 */
   readonly parse: (raw: unknown) => T;
   /** 미저장(키 없음) 시 반환할 기본값. 미지정 시 손상 경로도 이 값으로 복구 */

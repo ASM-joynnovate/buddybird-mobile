@@ -1,11 +1,33 @@
 import type { AnalyticsClient } from './client';
 
 /**
+ * 에러 scope 도메인. 새 도메인을 추가할 때만 이 union을 수정한다 —
+ * `<domain>.<method>` 의 method 부분은 자유롭게 둬, scope 하나 추가할 때마다
+ * 타입을 고쳐야 하는 마찰을 피한다.
+ */
+export type ErrorDomain =
+  | 'analytics'
+  | 'audio'
+  | 'global'
+  | 'i18n'
+  | 'notifications'
+  | 'profile'
+  | 'training'
+  | 'word-library'
+  | 'words';
+
+/**
+ * `<domain>` 또는 `<domain>.<method>` 형태로 도메인 prefix만 강제하는 가벼운 제약.
+ * 자유 string 이 아니라 알려진 도메인으로 시작해야 해, 오타·임의 scope 가 컴파일 에러가 된다.
+ */
+export type ErrorScope = ErrorDomain | `${ErrorDomain}.${string}`;
+
+/**
  * 에러 보고 컨텍스트. 알려진 키만 허용해 키 오타가 컴파일 에러가 되도록 한다.
  * 값은 전부 string — provider 경계(`recordError: Record<string, string>`)로 흐를 수 있게 유지.
  */
 export interface ErrorContext {
-  scope: string;
+  scope: ErrorScope;
   screen_name?: string;
   is_fatal?: string;
 }
@@ -54,6 +76,9 @@ export function reportError(error: unknown, context?: ErrorContext): void {
 
 // --- 전역 uncaught 핸들러 설치 ---
 
+/** 전역 uncaught 핸들러가 보고하는 고정 scope. 하드코딩 대신 명명 상수로 둔다. */
+const GLOBAL_UNCAUGHT_SCOPE: ErrorScope = 'global.uncaught';
+
 type GlobalErrorHandler = (error: Error, isFatal: boolean) => void;
 
 interface ErrorUtilsLike {
@@ -76,7 +101,7 @@ export function installGlobalErrorReporting(options: InstallErrorReportingOption
   const handler: GlobalErrorHandler = (error, isFatal) => {
     const screen = getCurrentScreen?.() ?? null;
     const context: ErrorContext = {
-      scope: 'global.uncaught',
+      scope: GLOBAL_UNCAUGHT_SCOPE,
       is_fatal: String(isFatal),
       ...(screen ? { screen_name: screen } : {}),
     };

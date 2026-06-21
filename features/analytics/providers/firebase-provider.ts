@@ -20,6 +20,7 @@ import type { AnalyticsParams, AnalyticsProviderAdapter } from './types';
 
 export class FirebaseProvider implements AnalyticsProviderAdapter {
   readonly name = 'firebase';
+  readonly supportsErrorReporting = true;
 
   private readonly analytics = getAnalytics(getApp());
   private readonly crashlytics = getCrashlytics();
