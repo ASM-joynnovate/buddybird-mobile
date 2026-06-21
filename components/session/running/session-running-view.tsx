@@ -37,7 +37,7 @@ export function SessionRunningView({ session, onStop, insetsTop, insetsBottom, f
         isLearning={session.isLearning}
         onStop={onStop}
       />
-      <SessionPhaseBadge isLearning={session.isLearning} cycle={session.cycle} totalCycles={session.totalCycles} />
+      <SessionPhaseBadge cycle={session.cycle} totalCycles={session.totalCycles} />
       <SessionProgressRing
         isLearning={session.isLearning}
         phaseProgress={session.phaseProgress}
