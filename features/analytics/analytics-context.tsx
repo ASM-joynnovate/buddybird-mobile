@@ -15,9 +15,8 @@ import { diffDaysIso } from '@/features/shared/date-utils';
 
 import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
-import { registerErrorReporter } from './error-reporter';
+import { installGlobalErrorReporting, registerErrorReporter } from './error-reporter';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
-import { installGlobalErrorReporting } from './error-reporting';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
 import { getOrCreateInstallationId } from './identity';
 import { ClarityProvider } from './providers/clarity-provider';

@@ -31,8 +31,10 @@
 | `useAnalytics` | `@/features/analytics/analytics-context` | `() => { track, setScreen, flushSessionWordMetrics }` | 이벤트 발송·스크린 설정·단어 메트릭 flush 진입점 |
 | `AnalyticsProvider` | `@/features/analytics/analytics-context` | React Provider | root layout에서 한 번만 마운트 |
 | `useScreenTracking` | `@/features/analytics/hooks/use-screen-tracking` | `(screenName: string, screenClass?: string) => { elapsedMs: () => number }` | 스크린 진입 자동 추적 + 체류 시간 측정 |
-| `reportError` | `@/features/analytics/error-reporter` | `(error: unknown, context?: { scope: string; screen_name?: string; ... }) => void` | fatal 에러 보고 (Crashlytics fanout) |
+| `reportError` | `@/features/analytics/error-reporter` | `(error: unknown, context?: ErrorContext) => void` | fatal 에러 보고 (Crashlytics fanout). `context.scope` 필수 — 미지정 키는 컴파일 에러 |
 | `registerErrorReporter` | `@/features/analytics/error-reporter` | `(client: AnalyticsClient) => () => void` | AnalyticsProvider가 reporter를 등록할 때 사용 |
+| `installGlobalErrorReporting` | `@/features/analytics/error-reporter` | `({ client, getCurrentScreen? }: InstallErrorReportingOptions) => () => void` | 전역 uncaught 핸들러 + Hermes rejection 추적 설치 (AnalyticsProvider 전용) |
+| `ErrorContext` (type) | `@/features/analytics/error-reporter` | `{ scope: string; screen_name?: string; is_fatal?: string }` | `reportError` 컨텍스트 — 알려진 키만 허용 |
 | `reportProviderFailure` | `@/features/analytics/analytics-utils` | `(provider: string, op: string, error: unknown) => void` | provider별 fanout 실패 격리 로깅 |
 | `clampEventName` | `@/features/analytics/events` | `(name: string) => string` | 이벤트 이름을 40자 이하로 절단 (Firebase 제약) |
 | `toFirebaseParams` | `@/features/analytics/events` | `(params: AnalyticsParams) => Record<string, string \| number \| boolean>` | Firebase params 직렬화 |
