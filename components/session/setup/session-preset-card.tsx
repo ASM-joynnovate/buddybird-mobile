@@ -8,7 +8,7 @@ import { formatDurationMins } from '@/features/shared/duration-format';
 import type { SessionPresetKey } from '@/features/training/session-config';
 import { SESSION_PRESETS } from '@/features/training/session-config';
 
-const HOUR_OPTIONS = Array.from({ length: 6 }, (_, i) => i);
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
 
 interface SessionPresetCardProps {
@@ -176,13 +176,14 @@ const styles = StyleSheet.create({
   durationPickerRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexWrap: 'nowrap',
+    gap: 12,
     justifyContent: 'center',
   },
   pickerGroup: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexShrink: 1,
     gap: 6,
   },
   pickerUnit: {
