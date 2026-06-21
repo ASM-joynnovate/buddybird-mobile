@@ -11,8 +11,7 @@ import { WordCreateFields } from '@/components/words/word-create-fields';
 import { WordCreateHeader } from '@/components/words/word-create-header';
 import { BuddyBirdColors, Spacing } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
-import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
-import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
+import { useRecordingSession } from '@/features/audio/hooks/use-recording-session';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordTag } from '@/features/word-library/word-library-types';
@@ -32,62 +31,63 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   const [tag, setTag] = useState<WordTag>('인사');
   const [isSaving, setIsSaving] = useState(false);
 
-  const recording = useAudioRecording({
-    permissionDeniedMessage: t('recording.permissionDenied'),
-    saveFailedMessage: t('recording.saveFailed'),
-    startFailedMessage: t('recording.startFailed'),
+  const session = useRecordingSession({
+    messages: {
+      permissionDenied: t('recording.permissionDenied'),
+      saveFailed: t('recording.saveFailed'),
+      startFailed: t('recording.startFailed'),
+    },
+    statusLabels: {
+      ready: t('wordCreate.readyStatus'),
+      requestingPermission: t('wordCreate.permissionStatus'),
+      recording: (seconds) => t('wordCreate.recordingStatus', { time: formatRecordingTime(seconds) }),
+      recorded: () => t('wordCreate.recordedStatus'),
+    },
     maxDurationMs: 60_000,
   });
-
-  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1, recording.elapsedSeconds);
+  const { playback } = session;
 
   useEffect(() => {
-    if (!visible && preview.previewState === 'playing') {
-      preview.stopPreview();
+    if (!visible && playback.isPlaying) {
+      playback.stop();
     }
-  }, [preview, visible]);
+  }, [playback, visible]);
 
-  const canSave = recording.lifecycle === 'recorded' && recording.recordingFile !== null && label.trim().length > 0;
-  const recorderStatusLabel = getRecorderStatusLabel({
-    elapsedSeconds: recording.elapsedSeconds,
-    lifecycle: recording.lifecycle,
-    t,
-  });
+  const canSave = session.ui.canPlayback && label.trim().length > 0;
+  const recorderStatusLabel = session.ui.statusLabel ?? '';
 
   function handleClose() {
-    preview.stopPreview();
-    recording.resetRecording();
+    session.actions.reset();
     setLabel('');
     setTag('인사');
     onClose();
   }
 
   async function handleToggleRecording() {
-    if (recording.lifecycle === 'recording') {
-      await recording.stopRecording();
+    if (session.state === 'recording') {
+      await session.actions.stop();
       return;
     }
-    preview.stopPreview();
-    await recording.requestAndStartRecording();
+    await session.actions.start();
   }
 
   function handleTogglePreview() {
-    if (preview.previewState === 'playing') {
-      preview.stopPreview();
+    if (playback.isPlaying) {
+      playback.stop();
       return;
     }
-    preview.playPreview();
+    void playback.play();
   }
 
   async function handleSave() {
-    if (!canSave || !recording.recordingFile) return;
+    if (!canSave || !session.file) return;
     setIsSaving(true);
     try {
       await createEntry({
         label: label.trim(),
         tag,
         sourceType: 'recording',
-        audioUri: recording.recordingFile.uri,
+        audioUri: session.file.uri,
         pitchTransform: undefined,
       });
       handleClose();
@@ -129,21 +129,21 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
             <RecorderColorCard
               emptyLabel={t('wordCreate.emptyWord')}
               kicker={t('wordCreate.recorderKicker')}
-              lifecycle={recording.lifecycle}
+              lifecycle={session.state}
               onToggle={handleToggleRecording}
               statusLabel={recorderStatusLabel}
               tag={tag}
               wordLabel={label}
             />
-            <InlineError message={recording.errorMessage} />
+            <InlineError message={session.errorMessage} />
           </View>
 
-          {recording.lifecycle === 'recorded' && !recording.isRecording ? (
+          {session.state === 'recorded' && !session.ui.isRecording ? (
             <RecordedPlaybackRow
               elapsedSecondsLabel={
-                preview.previewState === 'playing' ? formatRecordingTime(preview.elapsedSeconds) : null
+                playback.isPlaying ? formatRecordingTime(playback.elapsedSeconds) : null
               }
-              isPlaying={preview.previewState === 'playing'}
+              isPlaying={playback.isPlaying}
               onToggle={handleTogglePreview}
               sourceLabel={t('wordCreate.playbackSource')}
               tag={tag}
@@ -162,23 +162,6 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       </View>
     </Modal>
   );
-}
-
-function getRecorderStatusLabel({
-  elapsedSeconds,
-  lifecycle,
-  t,
-}: {
-  elapsedSeconds: number;
-  lifecycle: ReturnType<typeof useAudioRecording>['lifecycle'];
-  t: ReturnType<typeof useI18n>['t'];
-}): string {
-  if (lifecycle === 'recording') {
-    return t('wordCreate.recordingStatus', { time: formatRecordingTime(elapsedSeconds) });
-  }
-  if (lifecycle === 'recorded') return t('wordCreate.recordedStatus');
-  if (lifecycle === 'requesting-permission') return t('wordCreate.permissionStatus');
-  return t('wordCreate.readyStatus');
 }
 
 const styles = StyleSheet.create({

@@ -11,8 +11,7 @@ import { RecordedPlaybackRow } from '@/components/words/recorder/recorded-playba
 import { formatRecordingTime } from '@/components/words/recorder/recording-time';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
-import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
-import { useAudioRecording } from '@/features/audio/hooks/use-audio-recording';
+import { useRecordingSession } from '@/features/audio/hooks/use-recording-session';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
@@ -42,17 +41,23 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
   // footer 높이를 측정해 body 하단에 동일한 공간을 예약함으로써 겹침을 방지한다.
   const [footerHeight, setFooterHeight] = useState(0);
 
-  const recording = useAudioRecording({
-    permissionDeniedMessage: t('recording.permissionDenied'),
-    saveFailedMessage: t('recording.saveFailed'),
-    startFailedMessage: t('recording.startFailed'),
+  const session = useRecordingSession({
+    messages: {
+      permissionDenied: t('recording.permissionDenied'),
+      saveFailed: t('recording.saveFailed'),
+      startFailed: t('recording.startFailed'),
+    },
+    statusLabels: {
+      recording: (seconds) => `${t('sessionSetup.recordingStatus')} · ${formatStatusTime(seconds)}`,
+      recorded: (seconds, isPlaying) =>
+        `${t('sessionSetup.recordedStatus')}${isPlaying ? ` · ${formatStatusTime(seconds)}` : ''}`,
+    },
     maxDurationMs: 60_000,
+    // 기존 entry 재생은 원본 녹음(audioUri)을 그대로 재생한다(동작 보존).
+    // 신규 녹음은 절대 URI 이고 preset 이 아니므로 source-resolver 해석이 불필요하다.
+    existingSource: entry?.sourceType === 'recording' ? entry.audioUri : null,
   });
-  const preview = useAudioPreview(recording.recordingFile?.uri ?? null, 1, recording.elapsedSeconds);
-  const entryPreview = useAudioPreview(
-    entry?.sourceType === 'recording' ? entry.audioUri : null,
-    1,
-  );
+  const { playback, entryPlayback } = session;
 
   useEffect(() => {
     if (!entry) return;
@@ -62,25 +67,21 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     setConfirmDelete(false);
   }, [entry]);
 
-  const canSave =
-    label.trim().length > 0 &&
-    (!isRerecording || (recording.lifecycle === 'recorded' && recording.recordingFile !== null));
+  const canSave = label.trim().length > 0 && (!isRerecording || session.ui.canPlayback);
 
   function handleClose() {
-    preview.stopPreview();
-    entryPreview.stopPreview();
-    recording.resetRecording();
+    session.actions.reset();
     setIsRerecording(false);
     setConfirmDelete(false);
     onClose();
   }
 
   function handleToggleEntryPreview() {
-    if (entryPreview.previewState === 'playing') {
-      entryPreview.stopPreview();
+    if (entryPlayback.isPlaying) {
+      entryPlayback.stop();
       return;
     }
-    void entryPreview.playPreview();
+    void entryPlayback.play();
   }
 
   async function handleSave() {
@@ -88,7 +89,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     setIsSaving(true);
     try {
       const nowIso = new Date().toISOString();
-      const didRerecord = isRerecording && recording.recordingFile !== null;
+      const didRerecord = isRerecording && session.file !== null;
       const pitchTransform =
         didRerecord && entry.sourceType === 'recording' && !entry.pitchTransform
           ? createMvpPitchTransform(nowIso)
@@ -98,7 +99,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
         ...entry,
         label: label.trim(),
         tag,
-        audioUri: didRerecord && recording.recordingFile ? recording.recordingFile.uri : entry.audioUri,
+        audioUri: didRerecord && session.file ? session.file.uri : entry.audioUri,
         transformedAudioUri: didRerecord ? undefined : entry.transformedAudioUri,
         pitchTransform,
         updatedAt: nowIso,
@@ -129,8 +130,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
   }
 
   function handleStartRerecord() {
-    entryPreview.stopPreview();
-    recording.resetRecording();
+    session.actions.reset();
     setConfirmDelete(false);
     setIsRerecording(true);
   }
@@ -222,22 +222,19 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
           isRerecording ? (
             <RecordingFormCard
               body={t('sessionSetup.recordingBody')}
-              elapsedSeconds={recording.elapsedSeconds}
-              errorMessage={recording.errorMessage}
-              isPlaying={preview.previewState === 'playing'}
+              errorMessage={session.errorMessage}
+              isPlaying={playback.isPlaying}
               label={t('wordCreate.recorderKicker')}
-              lifecycle={recording.lifecycle}
-              metering={recording.metering}
-              onPlay={preview.playPreview}
-              onReset={recording.resetRecording}
-              onStart={recording.requestAndStartRecording}
-              onStop={recording.stopRecording}
-              onStopPlay={preview.stopPreview}
-              playElapsedSeconds={preview.elapsedSeconds}
-              recordedStatusLabel={t('sessionSetup.recordedStatus')}
-              recordingStatusLabel={t('sessionSetup.recordingStatus')}
+              lifecycle={session.state}
+              metering={session.metering}
+              onPlay={playback.play}
+              onReset={session.actions.reset}
+              onStart={session.actions.start}
+              onStop={session.actions.stop}
+              onStopPlay={playback.stop}
               rerecordLabel={t('sessionSetup.rerecord')}
               startLabel={t('sessionSetup.startRecording')}
+              statusLabel={session.ui.statusLabel}
               stopLabel={t('sessionSetup.stopRecording')}
             />
           ) : (
@@ -247,11 +244,9 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
                   tag={tag}
                   title={label}
                   sourceLabel={t('wordLibrary.sourceRecording')}
-                  isPlaying={entryPreview.previewState === 'playing'}
+                  isPlaying={entryPlayback.isPlaying}
                   elapsedSecondsLabel={
-                    entryPreview.previewState === 'playing'
-                      ? formatRecordingTime(entryPreview.elapsedSeconds)
-                      : null
+                    entryPlayback.isPlaying ? formatRecordingTime(entryPlayback.elapsedSeconds) : null
                   }
                   onToggle={handleToggleEntryPreview}
                 />
@@ -270,6 +265,11 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       </View>
     </BottomSheet>
   );
+}
+
+// 녹음/재생 상태 라벨에 붙는 MM:SS 포맷(분 2자리 패딩) — 기존 RecordingFormCard 내부 포맷을 보존한다.
+function formatStatusTime(seconds: number): string {
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
 function SheetField({ label, children }: PropsWithChildren<{ label: string }>) {

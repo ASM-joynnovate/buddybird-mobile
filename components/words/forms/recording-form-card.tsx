@@ -13,17 +13,13 @@ interface RecordingFormCardProps {
   body: string;
   metering: number | null;
   lifecycle: RecordingLifecycle;
-  elapsedSeconds?: number;
-  playElapsedSeconds?: number;
-  recordingStatusLabel: string;
-  recordedStatusLabel: string;
+  statusLabel?: string;
   startLabel: string;
   stopLabel: string;
   rerecordLabel: string;
   playLabel?: string;
   stopPlayLabel?: string;
   isPlaying?: boolean;
-  isRerecording?: boolean;
   errorMessage: string | null;
   onStart: () => void;
   onStop: () => void;
@@ -37,17 +33,13 @@ export function RecordingFormCard({
   body,
   metering,
   lifecycle,
-  elapsedSeconds,
-  playElapsedSeconds,
-  recordingStatusLabel,
-  recordedStatusLabel,
+  statusLabel,
   startLabel,
   stopLabel,
   rerecordLabel,
   playLabel = '녹음 재생',
   stopPlayLabel = '중단',
   isPlaying = false,
-  isRerecording = false,
   errorMessage,
   onStart,
   onStop,
@@ -62,21 +54,15 @@ export function RecordingFormCard({
       <WaveformPlaceholder
         metering={metering}
         state={
-          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) ? 'recording'
+          lifecycle === 'recording' ? 'recording'
           : lifecycle === 'recorded' && isPlaying ? 'playing'
           : lifecycle === 'recorded' ? 'recorded'
           : 'idle'
         }
-        statusLabel={
-          (lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission')))
-            ? `${recordingStatusLabel}${elapsedSeconds != null ? ` · ${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}` : ''}`
-          : lifecycle === 'recorded'
-            ? `${recordedStatusLabel}${isPlaying && playElapsedSeconds != null ? ` · ${String(Math.floor(playElapsedSeconds / 60)).padStart(2, '0')}:${String(playElapsedSeconds % 60).padStart(2, '0')}` : ''}`
-          : undefined
-        }
+        statusLabel={statusLabel}
       />
       <View style={styles.btns}>
-        {((lifecycle === 'idle' && !isRerecording) || lifecycle === 'error' || (lifecycle === 'requesting-permission' && !isRerecording)) && (
+        {(lifecycle === 'idle' || lifecycle === 'error' || lifecycle === 'requesting-permission') && (
           <PillButton
             disabled={lifecycle === 'requesting-permission'}
             full
@@ -85,7 +71,7 @@ export function RecordingFormCard({
             variant="teal"
           />
         )}
-        {(lifecycle === 'recording' || (isRerecording && (lifecycle === 'idle' || lifecycle === 'requesting-permission'))) && (
+        {lifecycle === 'recording' && (
           <PillButton disabled={lifecycle !== 'recording'} full label={stopLabel} onPress={onStop} variant="primary" />
         )}
         {lifecycle === 'recorded' && (
