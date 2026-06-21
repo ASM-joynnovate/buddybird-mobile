@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import type { RemoteMessage } from '@react-native-firebase/messaging';
+
+import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
 import type { FcmMessageReceipt, FcmMessageReceiptSource, FcmRegistration } from './fcm-types';
 
@@ -9,24 +9,29 @@ export const FCM_MESSAGE_RECEIPTS_STORAGE_KEY = '@buddybird/fcm-message-receipts
 
 const MAX_STORED_RECEIPTS = 20;
 
+// 키 2개이므로 키마다 seam 인스턴스를 둔다. 손상/검증 실패는 표면화하지 않고
+// 조용히 null/[] 로 복구한다(recover 미지정 → fallback). 손상 보고는 seam 의
+// reportError 로 일관화된다.
+const registrationStore = persistKeyedStore<FcmRegistration | null>({
+  key: FCM_REGISTRATION_STORAGE_KEY,
+  scope: 'notifications.loadRegistration',
+  parse: (raw) => (isFcmRegistration(raw) ? raw : null),
+  fallback: () => null,
+});
+
+const messageReceiptsStore = persistKeyedStore<readonly FcmMessageReceipt[]>({
+  key: FCM_MESSAGE_RECEIPTS_STORAGE_KEY,
+  scope: 'notifications.loadReceipts',
+  parse: (raw) => (Array.isArray(raw) ? raw.filter(isFcmMessageReceipt) : []),
+  fallback: () => [],
+});
+
 export async function saveFcmRegistration(registration: FcmRegistration): Promise<void> {
-  await AsyncStorage.setItem(FCM_REGISTRATION_STORAGE_KEY, JSON.stringify(registration));
+  await registrationStore.save(registration);
 }
 
 export async function loadFcmRegistration(): Promise<FcmRegistration | null> {
-  const rawRegistration = await AsyncStorage.getItem(FCM_REGISTRATION_STORAGE_KEY);
-
-  if (!rawRegistration) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(rawRegistration);
-    return isFcmRegistration(parsed) ? parsed : null;
-  } catch (error: unknown) {
-    console.warn('[notifications.loadRegistration]', error);
-    return null;
-  }
+  return registrationStore.load();
 }
 
 export async function recordFcmMessageReceipt(
@@ -43,23 +48,11 @@ export async function recordFcmMessageReceipt(
 
   const receipts = await loadFcmMessageReceipts();
   const updated = [receipt, ...receipts].slice(0, MAX_STORED_RECEIPTS);
-  await AsyncStorage.setItem(FCM_MESSAGE_RECEIPTS_STORAGE_KEY, JSON.stringify(updated));
+  await messageReceiptsStore.save(updated);
 }
 
 export async function loadFcmMessageReceipts(): Promise<readonly FcmMessageReceipt[]> {
-  const rawReceipts = await AsyncStorage.getItem(FCM_MESSAGE_RECEIPTS_STORAGE_KEY);
-
-  if (!rawReceipts) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(rawReceipts);
-    return Array.isArray(parsed) ? parsed.filter(isFcmMessageReceipt) : [];
-  } catch (error: unknown) {
-    console.warn('[notifications.loadReceipts]', error);
-    return [];
-  }
+  return messageReceiptsStore.load();
 }
 
 function isFcmRegistration(value: unknown): value is FcmRegistration {
