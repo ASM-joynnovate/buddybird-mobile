@@ -8,9 +8,10 @@ export const TRAINING_STORAGE_KEY = '@buddybird/training-store';
 
 // 오디오 URI normalize(save)/hydrate(load)는 seam이 소유한다 — 컬렉션·필드만 선언.
 // TrainingWord(audioUri/transformedAudioUri)와 AudioRecording(originalUri/transformedUri) 두 컬렉션.
+// 중첩 `pitchTransform.transformedUri`(둘 다 보유) 도 함께 커버해 stale 절대 URI 를 방지.
 const AUDIO_URI_COLLECTIONS = [
-  { collection: 'wordsById', fields: ['audioUri', 'transformedAudioUri'] },
-  { collection: 'recordingsById', fields: ['originalUri', 'transformedUri'] },
+  { collection: 'wordsById', fields: ['audioUri', 'transformedAudioUri', 'pitchTransform.transformedUri'] },
+  { collection: 'recordingsById', fields: ['originalUri', 'transformedUri', 'pitchTransform.transformedUri'] },
 ] as const;
 
 const trainingStore = persistKeyedStore<TrainingStore>({

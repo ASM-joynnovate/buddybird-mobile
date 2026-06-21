@@ -5,7 +5,8 @@ import type { WordLibraryStore } from './word-library-types';
 export const WORD_LIBRARY_STORAGE_KEY = '@buddybird/wordLibrary';
 
 // 오디오 URI normalize(save)/hydrate(load)는 seam이 소유한다 — 컬렉션·필드만 선언.
-const AUDIO_URI_FIELDS = ['audioUri', 'transformedAudioUri'] as const;
+// 중첩 `pitchTransform.transformedUri` 도 함께 정규화/hydration 하여 재빌드 후 stale 절대 URI 를 방지.
+const AUDIO_URI_FIELDS = ['audioUri', 'transformedAudioUri', 'pitchTransform.transformedUri'] as const;
 
 function createEmptyStore(): WordLibraryStore {
   return { version: 1, entriesById: {}, updatedAt: new Date().toISOString() };

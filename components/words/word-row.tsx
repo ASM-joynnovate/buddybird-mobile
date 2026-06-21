@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 
 import { WordListItem } from '@/components/words/word-list-item';
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { resolveAudioSource } from '@/features/audio/audio-source-resolver';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
 interface WordRowProps {
@@ -16,10 +16,7 @@ interface WordRowProps {
 export function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const { t } = useI18n();
   const { track } = useAnalytics();
-  const rawAudioUri = entry.transformedAudioUri ?? entry.audioUri;
-  const audioSource = rawAudioUri.startsWith('preset://')
-    ? resolvePresetAudioModule(entry.presetKey)
-    : rawAudioUri;
+  const { source: audioSource } = resolveAudioSource(entry);
   const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
     audioSource,
     entry.pitchTransform?.playbackRate ?? 1.0,

@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { resolveAudioSource } from '@/features/audio/audio-source-resolver';
 import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
-
-import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 
 import { deriveSessionCycles } from '../session-cycle-model';
 import { useTrainingData } from '../training-context';
@@ -148,9 +147,8 @@ export function useSessionSetup(): UseSessionSetupResult {
         wordId: word.id,
         settings,
         audioUri:
-          selection.sourceType === 'recording'
-            ? selection.audioUri
-            : resolvePresetAudioModule(selection.presetKey) ?? undefined,
+          resolveAudioSource({ audioUri: selection.audioUri, presetKey: selection.presetKey }).source ??
+          undefined,
         word: selection.label,
       };
     } catch (error: unknown) {
