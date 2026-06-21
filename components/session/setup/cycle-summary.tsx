@@ -19,7 +19,7 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryP
   return (
     <LedgeView baseStyle={styles.base} depth="card" faceStyle={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.headerLabel}>총 학습 시간 · {cycles}회 반복</Text>
+        <Text style={styles.headerLabel}>총 학습 시간</Text>
         <Text style={styles.headerValue}>{formatDurationMins(sessionMins)}</Text>
       </View>
       <View style={styles.detailRow}>

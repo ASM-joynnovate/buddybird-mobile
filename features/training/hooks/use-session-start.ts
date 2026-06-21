@@ -19,7 +19,7 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
   const { track } = useAnalytics();
   const { profile } = useProfile();
 
-  const startLabel = selectedEntry ? `학습 시작 · ${formatDurationMins(setup.sessionMins)}` : '학습 시작';
+  const startLabel = '학습 시작';
 
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;
