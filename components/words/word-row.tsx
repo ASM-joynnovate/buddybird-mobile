@@ -4,6 +4,7 @@ import { WordListItem } from '@/components/words/word-list-item';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { resolveAudioSource } from '@/features/audio/audio-source-resolver';
 import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
+import { resolvePitchPlaybackRate } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
@@ -19,7 +20,7 @@ export function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
   const { source: audioSource } = resolveAudioSource(entry);
   const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
     audioSource,
-    entry.pitchTransform?.playbackRate ?? 1.0,
+    resolvePitchPlaybackRate(entry.pitchProfileId),
   );
   const isPreset = entry.sourceType === 'preset';
   const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');

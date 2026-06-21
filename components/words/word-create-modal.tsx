@@ -88,7 +88,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
         tag,
         sourceType: 'recording',
         audioUri: session.file.uri,
-        pitchTransform: undefined,
+        pitchProfileId: undefined,
       });
       handleClose();
       onCreated();

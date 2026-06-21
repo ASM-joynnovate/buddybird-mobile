@@ -12,7 +12,7 @@ import { formatRecordingTime } from '@/components/words/recorder/recording-time'
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useRecordingSession } from '@/features/audio/hooks/use-recording-session';
-import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
+import { MVP_PITCH_PROFILE } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import { WORD_TAGS, type WordEntry, type WordTag } from '@/features/word-library/word-library-types';
@@ -90,10 +90,10 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     try {
       const nowIso = new Date().toISOString();
       const didRerecord = isRerecording && session.file !== null;
-      const pitchTransform =
-        didRerecord && entry.sourceType === 'recording' && !entry.pitchTransform
-          ? createMvpPitchTransform(nowIso)
-          : entry.pitchTransform;
+      const pitchProfileId =
+        didRerecord && entry.sourceType === 'recording' && !entry.pitchProfileId
+          ? MVP_PITCH_PROFILE.id
+          : entry.pitchProfileId;
 
       await updateEntry({
         ...entry,
@@ -101,7 +101,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
         tag,
         audioUri: didRerecord && session.file ? session.file.uri : entry.audioUri,
         transformedAudioUri: didRerecord ? undefined : entry.transformedAudioUri,
-        pitchTransform,
+        pitchProfileId,
         updatedAt: nowIso,
       });
       handleClose();
