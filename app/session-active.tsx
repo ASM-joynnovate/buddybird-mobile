@@ -10,13 +10,14 @@ import { useActiveSession } from '@/features/training/hooks/use-active-session';
 import { useSessionAnalytics } from '@/features/training/hooks/use-session-analytics';
 import { sessionLearningSeconds } from '@/features/training/session-cycle-model';
 import { useTrainingData } from '@/features/training/training-context';
-import { calculateSessionXp, selectTrainingRewardSummary } from '@/features/training/training-model';
+import { selectTotalTrainingSeconds, selectTrainingRewardSummary } from '@/features/training/training-model';
 
 export default function SessionActiveScreen() {
   const insets = useSafeAreaInsets();
   const { pendingSession, clearPendingSession, store } = useTrainingData();
   const { profile } = useProfile();
   const rewardSummary = store ? selectTrainingRewardSummary(store) : null;
+  const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
 
   if (!pendingSession || !profile) return null;
 
@@ -25,6 +26,7 @@ export default function SessionActiveScreen() {
       pendingSession={pendingSession}
       petName={profile.name}
       streakDays={rewardSummary?.currentStreakDays ?? 0}
+      totalTrainingSeconds={totalTrainingSeconds}
       clearPendingSession={clearPendingSession}
       insetsTop={insets.top}
       insetsBottom={insets.bottom}
@@ -36,6 +38,7 @@ function SessionActiveInner({
   pendingSession,
   petName,
   streakDays,
+  totalTrainingSeconds,
   clearPendingSession,
   insetsTop,
   insetsBottom,
@@ -43,6 +46,7 @@ function SessionActiveInner({
   pendingSession: NonNullable<ReturnType<typeof useTrainingData>['pendingSession']>;
   petName: string;
   streakDays: number;
+  totalTrainingSeconds: number;
   clearPendingSession: () => void;
   insetsTop: number;
   insetsBottom: number;
@@ -66,7 +70,7 @@ function SessionActiveInner({
           petName={petName}
           word={session.currentWord}
           totalLearningSeconds={totalLearningSeconds}
-          xp={calculateSessionXp(totalLearningSeconds)}
+          totalTrainingSeconds={totalTrainingSeconds}
           streakDays={streakDays}
           onDismiss={handleDismiss}
         />

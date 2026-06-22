@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
-import { formatDurationMins } from '@/features/shared/duration-format';
+import { formatDurationCompact, formatDurationMins } from '@/features/shared/duration-format';
 
 import { SessionConfetti } from './session-confetti';
 
@@ -14,12 +14,12 @@ interface SessionCompletionViewProps {
   petName: string;
   word: string;
   totalLearningSeconds: number;
-  xp: number;
+  totalTrainingSeconds: number;
   streakDays: number;
   onDismiss: () => void;
 }
 
-export function SessionCompletionView({ petName, word, totalLearningSeconds, xp, streakDays, onDismiss }: SessionCompletionViewProps) {
+export function SessionCompletionView({ petName, word, totalLearningSeconds, totalTrainingSeconds, streakDays, onDismiss }: SessionCompletionViewProps) {
   const insets = useSafeAreaInsets();
   const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)));
 
@@ -36,20 +36,20 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, xp,
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.rewardRow}>
           <RewardCard
-            borderColor={BuddyBirdColors.accentYellow}
-            icon="bolt.fill"
-            iconColor={BuddyBirdColors.accentYellow}
-            label="획득 XP"
-            labelColor={BuddyBirdColors.accentYellowShadow}
-            value={`${xp}`}
-          />
-          <RewardCard
             borderColor={BuddyBirdColors.streak}
             icon="flame.fill"
             iconColor={BuddyBirdColors.streak}
             label="연속"
             labelColor={BuddyBirdColors.primaryShadow}
             value={`${streakDays}`}
+          />
+          <RewardCard
+            borderColor={BuddyBirdColors.accentYellow}
+            icon="clock.fill"
+            iconColor={BuddyBirdColors.accentYellow}
+            label="총 학습 시간"
+            labelColor={BuddyBirdColors.accentYellowShadow}
+            value={formatDurationCompact(totalTrainingSeconds)}
           />
         </View>
         <PillButton full label="계속" onPress={onDismiss} size="lg" />
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
   },
   rewardCard: {
     alignItems: 'center',
+    justifyContent: 'center',
     minHeight: 102,
     padding: 14,
   },
