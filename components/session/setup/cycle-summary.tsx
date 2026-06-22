@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
-import { formatDurationMins } from '@/features/shared/duration-format';
+import { formatDurationMins, formatDurationSecs } from '@/features/shared/duration-format';
 import { deriveSessionCycles } from '@/features/training/session-cycle-model';
 
 interface CycleSummaryProps {
@@ -13,8 +13,8 @@ interface CycleSummaryProps {
 
 export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryProps) {
   const { totalCycles: cycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs });
-  const learnMins = Math.round((cycles * learnSecs) / 60);
-  const restMins = Math.round((cycles * restSecs) / 60);
+  const totalLearnSecs = cycles * learnSecs;
+  const totalRestSecs = cycles * restSecs;
 
   return (
     <LedgeView baseStyle={styles.base} depth="card" faceStyle={styles.card}>
@@ -28,14 +28,14 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryP
             <View style={[styles.dot, styles.dotLearn]} />
             <Text style={styles.label}>학습</Text>
           </View>
-          <Text style={[styles.value, styles.valueLearn]}>{formatDurationMins(learnMins)}</Text>
+          <Text style={[styles.value, styles.valueLearn]}>{formatDurationSecs(totalLearnSecs)}</Text>
         </View>
         <View style={styles.cell}>
           <View style={styles.metricLabelRow}>
             <View style={[styles.dot, styles.dotRest]} />
             <Text style={styles.label}>휴식</Text>
           </View>
-          <Text style={[styles.value, styles.valueRest]}>{formatDurationMins(restMins)}</Text>
+          <Text style={[styles.value, styles.valueRest]}>{formatDurationSecs(totalRestSecs)}</Text>
         </View>
       </View>
     </LedgeView>

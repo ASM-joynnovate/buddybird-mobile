@@ -1,8 +1,14 @@
-/** 초 단위 → "X분" (정확한 경우) / "약 X분" (초 나머지 있거나 forceApprox인 경우) / "X초". */
-export function formatDurationSecs(secs: number, forceApprox = false): string {
+/**
+ * 초 단위 → 한국어 표기 (반올림으로 잔여 초를 버리지 않음).
+ * - 60초 미만: `"X초"`
+ * - 정확히 분으로 떨어짐: `formatDurationMins` 위임 (`"X분"` / `"X시간"` / `"X시간 Y분"`)
+ * - 분 미만 잔여가 있음: `"<분 표기> Y초"` (예: `"1분 30초"`)
+ */
+export function formatDurationSecs(secs: number): string {
   if (secs < 60) return `${secs}초`;
-  const mins = Math.round(secs / 60);
-  return (!forceApprox && secs % 60 === 0) ? `${mins}분` : `약 ${mins}분`;
+  const remSec = secs % 60;
+  if (remSec === 0) return formatDurationMins(secs / 60);
+  return `${formatDurationMins(Math.floor(secs / 60))} ${remSec}초`;
 }
 
 /** 분 단위 → "X분" (<60) / "X시간" (정수) / "X시간 Y분". */
