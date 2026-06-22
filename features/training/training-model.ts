@@ -1,6 +1,5 @@
 import type {
   AudioRecording,
-  CreateAudioRecordingInput,
   CreateTrainingSessionInput,
   CreateTrainingWordInput,
   TrainingSession,
@@ -18,18 +17,6 @@ export function createEmptyTrainingStore(nowIso: string): TrainingStore {
     recordingsById: {},
     sessionsById: {},
     wordProgressByWordId: {},
-    updatedAt: nowIso,
-  };
-}
-
-export function createAudioRecording(input: CreateAudioRecordingInput, nowIso: string): AudioRecording {
-  return {
-    id: createEntityId('recording', nowIso),
-    originalUri: input.originalUri,
-    transformedUri: input.transformedUri,
-    durationSeconds: input.durationSeconds,
-    pitchTransform: input.pitchTransform,
-    createdAt: nowIso,
     updatedAt: nowIso,
   };
 }
@@ -162,40 +149,13 @@ export function markTrainingWordSuccess(store: TrainingStore, wordId: string, no
   };
 }
 
-export function selectWordProgress(store: TrainingStore, wordId: string): TrainingWordProgress | null {
-  const progress = store.wordProgressByWordId[wordId];
-
-  if (!progress) {
-    return null;
-  }
-
-  return { ...progress };
-}
-
 export function selectTotalTrainingSeconds(store: TrainingStore): number {
   return Object.values(store.wordProgressByWordId).reduce((totalSeconds, progress) => totalSeconds + progress.totalTrainingSeconds, 0);
 }
 
-export const DAILY_GOAL_SECONDS = 10 * 60;
-export const XP_PER_LEARNING_MINUTE = 10;
-export const SESSION_COMPLETION_XP = 5;
-
 export interface TrainingRewardSummary {
   todayLearningSeconds: number;
-  dailyGoalSeconds: number;
-  dailyGoalProgress: number;
   currentStreakDays: number;
-  totalXp: number;
-  todayXp: number;
-  completedSessionCount: number;
-}
-
-export function calculateSessionXp(totalLearningSeconds: number): number {
-  if (totalLearningSeconds <= 0) {
-    return 0;
-  }
-
-  return Math.floor(totalLearningSeconds / 60) * XP_PER_LEARNING_MINUTE + SESSION_COMPLETION_XP;
 }
 
 export function selectTrainingRewardSummary(store: TrainingStore, now: Date = new Date()): TrainingRewardSummary {
@@ -203,31 +163,21 @@ export function selectTrainingRewardSummary(store: TrainingStore, now: Date = ne
   const todayKey = toLocalDateKey(now);
   const sessionDateKeys = new Set<string>();
   let todayLearningSeconds = 0;
-  let totalXp = 0;
-  let todayXp = 0;
 
   for (const session of sessions) {
     const sessionDate = new Date(session.endedAt ?? session.startedAt);
     const sessionDateKey = toLocalDateKey(sessionDate);
-    const sessionXp = calculateSessionXp(session.totalLearningSeconds);
 
     sessionDateKeys.add(sessionDateKey);
-    totalXp += sessionXp;
 
     if (sessionDateKey === todayKey) {
       todayLearningSeconds += session.totalLearningSeconds;
-      todayXp += sessionXp;
     }
   }
 
   return {
     todayLearningSeconds,
-    dailyGoalSeconds: DAILY_GOAL_SECONDS,
-    dailyGoalProgress: Math.min(1, todayLearningSeconds / DAILY_GOAL_SECONDS),
     currentStreakDays: countCurrentStreakDays(sessionDateKeys, now),
-    totalXp,
-    todayXp,
-    completedSessionCount: sessions.length,
   };
 }
 
