@@ -12,16 +12,6 @@ export class ConsentError extends Error {
   }
 }
 
-export async function loadStoredConsent(): Promise<ConsentState> {
-  const raw = await AsyncStorage.getItem(CONSENT_STORAGE_KEY);
-
-  if (raw === 'granted' || raw === 'denied' || raw === 'not_applicable' || raw === 'unknown') {
-    return raw;
-  }
-
-  return 'unknown';
-}
-
 export async function persistConsent(state: ConsentState): Promise<void> {
   await AsyncStorage.setItem(CONSENT_STORAGE_KEY, state);
 }

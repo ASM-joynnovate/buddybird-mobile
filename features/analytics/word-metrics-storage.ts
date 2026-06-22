@@ -98,11 +98,6 @@ async function writeMap(map: WordMetricsMap): Promise<void> {
   await metricsStore.save(map);
 }
 
-export async function getWordMetrics(wordId: string): Promise<WordLifetimeMetrics | null> {
-  const map = await readMap();
-  return map[wordId] ?? null;
-}
-
 export async function applySessionDeltas(deltas: readonly WordSessionDelta[]): Promise<readonly WordLifetimeMetrics[]> {
   if (deltas.length === 0) {
     return [];
@@ -131,17 +126,5 @@ export async function applySessionDeltas(deltas: readonly WordSessionDelta[]): P
 
   await writeMap(map);
   return updated;
-}
-
-export async function removeWordMetrics(wordId: string): Promise<WordLifetimeMetrics | null> {
-  const map = await readMap();
-  const previous = map[wordId] ?? null;
-
-  if (previous) {
-    delete map[wordId];
-    await writeMap(map);
-  }
-
-  return previous;
 }
 

@@ -30,10 +30,6 @@ export async function saveFcmRegistration(registration: FcmRegistration): Promis
   await registrationStore.save(registration);
 }
 
-export async function loadFcmRegistration(): Promise<FcmRegistration | null> {
-  return registrationStore.load();
-}
-
 export async function recordFcmMessageReceipt(
   message: RemoteMessage,
   source: FcmMessageReceiptSource
