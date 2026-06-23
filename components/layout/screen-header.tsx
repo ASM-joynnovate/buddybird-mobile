@@ -21,14 +21,16 @@ export function ScreenHeader({ kicker, title, body }: ScreenHeaderProps) {
 
 const styles = StyleSheet.create({
   header: {
-    gap: Spacing.sectionHeadGap,
+    gap: Spacing.xxs,
   },
   title: {
     ...Typography.screenTitle,
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
   },
   body: {
-    ...Typography.body,
-    color: 'rgba(31,58,61,0.68)',
+    ...Typography.bodySmall,
+    color: BuddyBirdColors.inkMuted,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
 });

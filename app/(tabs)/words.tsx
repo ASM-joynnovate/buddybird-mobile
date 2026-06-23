@@ -1,21 +1,21 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { InlineError } from '@/components/ui/inline-error';
+import { Pressable3D } from '@/components/ui/ledge-surface';
 import { WordCreateModal } from '@/components/words/word-create-modal';
 import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
-import { WordListItem } from '@/components/words/word-list-item';
+import { WordRow } from '@/components/words/word-row';
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
-import { useAudioPreview } from '@/features/audio/hooks/use-audio-preview';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/training/session-words-mock';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
-import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
 export default function WordsScreen() {
@@ -78,9 +78,15 @@ export default function WordsScreen() {
         <View>
           <Text style={styles.title}>단어 관리</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={handleCreate}>
-          <Text style={styles.addBtnIcon}>+</Text>
-        </Pressable>
+        <Pressable3D
+          accessibilityLabel="단어 추가"
+          accessibilityRole="button"
+          baseStyle={styles.addBtnBase}
+          depth="selectedCard"
+          faceStyle={styles.addBtn}
+          onPress={handleCreate}>
+          <IconSymbol name="plus" size={24} color={BuddyBirdColors.onDark} />
+        </Pressable3D>
       </View>
 
       <View style={styles.errorWrapper}>
@@ -94,7 +100,7 @@ export default function WordsScreen() {
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
-          <WordRow key={e.id} entry={e} onEdit={() => handleEdit(e)} onBecameActive={handleBecameActive} />
+          <WordRow key={e.id} entry={e} onEdit={handleEdit} onBecameActive={handleBecameActive} />
         ))}
 
         {visible.length === 0 && (
@@ -123,59 +129,6 @@ export default function WordsScreen() {
   );
 }
 
-interface WordRowProps {
-  entry: WordEntry;
-  onEdit: () => void;
-  onBecameActive: (stopFn: () => void) => void;
-}
-
-function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
-  const { t } = useI18n();
-  const { track } = useAnalytics();
-  const rawAudioUri = entry.transformedAudioUri ?? entry.audioUri;
-  const audioSource = rawAudioUri.startsWith('preset://')
-    ? resolvePresetAudioModule(entry.presetKey)
-    : rawAudioUri;
-  const { canPreview, previewState, playPreview, stopPreview } = useAudioPreview(
-    audioSource,
-    entry.pitchTransform?.playbackRate ?? 1.0,
-  );
-  const isPreset = entry.sourceType === 'preset';
-  const sourceLabel = t(isPreset ? 'wordLibrary.sourcePreset' : 'wordLibrary.sourceRecording');
-
-  function handlePlay() {
-    const isPlaying = previewState === 'playing';
-    track({
-      name: 'word_library_preview_played',
-      params: {
-        word_id: entry.id,
-        word_name: entry.label,
-        source_type: isPreset ? 'preset' : 'recording',
-        action: isPlaying ? 'stop' : 'play',
-      },
-    });
-    if (isPlaying) {
-      stopPreview();
-    } else {
-      onBecameActive(stopPreview);
-      void playPreview();
-    }
-  }
-
-  return (
-    <WordListItem
-      label={entry.label}
-      tag={entry.tag}
-      sourceLabel={sourceLabel}
-      isPreset={isPreset}
-      canPreview={canPreview}
-      isPlaying={previewState === 'playing'}
-      onEdit={onEdit}
-      onPlay={handlePlay}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     backgroundColor: BuddyBirdColors.neutral,
@@ -186,36 +139,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screenX,
-    paddingTop: 14,
-    paddingBottom: 4,
+    paddingTop: 12,
   },
   errorWrapper: {
     paddingHorizontal: Spacing.screenX,
   },
-  kicker: {
-    color: BuddyBirdColors.kickerMuted,
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 0.6,
-    marginBottom: 4,
-  },
   title: {
     ...Typography.screenTitle,
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
+  },
+  addBtnBase: {
+    backgroundColor: BuddyBirdColors.primaryShadow,
+    borderRadius: Radii.md,
   },
   addBtn: {
     alignItems: 'center',
     backgroundColor: BuddyBirdColors.primary,
-    borderRadius: Radii.full,
-    height: 44,
+    borderRadius: Radii.md,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
-  },
-  addBtnIcon: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '400',
-    lineHeight: 26,
+    width: 46,
   },
   list: {
     flex: 1,
@@ -223,24 +166,29 @@ const styles = StyleSheet.create({
   listContent: {
     gap: 8,
     paddingHorizontal: Spacing.screenX,
-    paddingTop: 14,
+    paddingTop: 8,
   },
   empty: {
     alignItems: 'center',
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.sectionCard,
+    borderWidth: 2,
     paddingVertical: 40,
+    paddingHorizontal: 20,
   },
   emptyEmoji: {
     fontSize: 36,
     marginBottom: 8,
   },
   emptyText: {
-    color: 'rgba(31,58,61,0.4)',
+    color: BuddyBirdColors.ink,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '800',
     textAlign: 'center',
   },
   emptyHint: {
-    color: 'rgba(31,58,61,0.35)',
+    color: BuddyBirdColors.inkMuted,
     fontSize: 13,
     marginTop: 4,
     textAlign: 'center',

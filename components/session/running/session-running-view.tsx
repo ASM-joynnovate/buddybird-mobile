@@ -12,57 +12,57 @@ import { SessionWaveSection } from './session-wave-section';
 interface SessionRunningViewProps {
   session: Pick<
     UseActiveSessionResult,
-    'isLearning' | 'sessionMins' | 'cycle' | 'totalCycles' | 'phaseProgress' | 'currentWord' | 'phaseRemaining' | 'status' | 'togglePause'
+    | 'isLearning'
+    | 'cycle'
+    | 'totalCycles'
+    | 'phaseProgress'
+    | 'currentWord'
+    | 'phaseRemaining'
+    | 'status'
+    | 'togglePause'
+    | 'progress'
+    | 'audioOn'
   >;
   onStop: () => void;
+  insetsTop: number;
   insetsBottom: number;
   fmt: (s: number) => string;
 }
 
-export function SessionRunningView({ session, onStop, insetsBottom, fmt }: SessionRunningViewProps) {
+export function SessionRunningView({ session, onStop, insetsTop, insetsBottom, fmt }: SessionRunningViewProps) {
   return (
-    <>
-      <View
-        style={[
-          styles.gradientOverlay,
-          { backgroundColor: session.isLearning ? BuddyBirdColors.gradientLearning : BuddyBirdColors.gradientRest },
-        ]}
-      />
+    <View style={[styles.content, { paddingTop: insetsTop }]}>
       <SessionHeader
-        sessionMins={session.sessionMins}
-        cycle={session.cycle}
-        totalCycles={session.totalCycles}
+        progress={session.progress}
+        isLearning={session.isLearning}
         onStop={onStop}
       />
-      <SessionPhaseBadge isLearning={session.isLearning} />
+      <SessionPhaseBadge cycle={session.cycle} totalCycles={session.totalCycles} />
       <SessionProgressRing
         isLearning={session.isLearning}
         phaseProgress={session.phaseProgress}
         word={session.currentWord}
         timerLabel={fmt(session.phaseRemaining)}
       />
-      <SessionWaveSection isLearning={session.isLearning} isActive={session.status === 'running'} />
+      <SessionWaveSection
+        isLearning={session.isLearning}
+        isActive={session.status === 'running'}
+        audioOn={session.audioOn}
+        word={session.currentWord}
+      />
       <SessionControls
         isRunning={session.status === 'running'}
         isLearning={session.isLearning}
-        cycle={session.cycle}
-        totalCycles={session.totalCycles}
-        paddingBottom={insetsBottom + 16}
+        paddingBottom={insetsBottom + 44}
         onToggle={session.togglePause}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  gradientOverlay: {
-    borderRadius: 999,
-    height: 300,
-    left: '50%',
-    marginLeft: -150,
-    marginTop: -60,
-    position: 'absolute',
-    top: 0,
-    width: 300,
+  content: {
+    backgroundColor: BuddyBirdColors.neutral,
+    flex: 1,
   },
 });

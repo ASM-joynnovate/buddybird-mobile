@@ -1,53 +1,33 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
-
-import { SessionCycleDots } from './session-cycle-dots';
+import { PillButton } from '@/components/ui/pill-button';
+import { Spacing } from '@/constants/theme';
 
 interface SessionControlsProps {
   isRunning: boolean;
   isLearning: boolean;
-  cycle: number;
-  totalCycles: number;
   paddingBottom: number;
   onToggle: () => void;
 }
 
-export function SessionControls({ isRunning, isLearning, cycle, totalCycles, paddingBottom, onToggle }: SessionControlsProps) {
+export function SessionControls({ isRunning, isLearning, paddingBottom, onToggle }: SessionControlsProps) {
   return (
     <View style={[styles.controls, { paddingBottom }]}>
-      <Pressable style={styles.playPauseBtn} onPress={onToggle}>
-        <IconSymbol
-          name={isRunning ? 'pause.fill' : 'play.fill'}
-          style={styles.playPauseIcon}
-          color={'rgba(174, 190, 192, 0.8)'}
-          size={20}
-        />
-      </Pressable>
-      <SessionCycleDots cycle={cycle} totalCycles={totalCycles} isLearning={isLearning} />
+      <PillButton
+        full
+        icon={isRunning ? 'pause.fill' : 'play.fill'}
+        label={isRunning ? '일시정지' : '계속하기'}
+        onPress={onToggle}
+        size="lg"
+        variant={isLearning ? 'primary' : 'blue'}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   controls: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 24,
-    justifyContent: 'center',
-    paddingHorizontal: 22,
+    paddingHorizontal: Spacing.screenX,
     paddingTop: 10,
-  },
-  playPauseBtn: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 999,
-    height: 60,
-    justifyContent: 'center',
-    width: 60,
-  },
-  playPauseIcon: {
-    color: '#FAF6F0',
-    fontSize: 20,
   },
 });

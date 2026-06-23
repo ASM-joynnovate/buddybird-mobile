@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { cycleProgressPercent } from '@/features/training/session-cycle-model';
 import type { PendingSession } from '@/features/training/training-context';
 import type { UseActiveSessionResult } from '@/features/training/hooks/use-active-session';
 
@@ -13,9 +14,11 @@ interface SessionAnalyticsParams {
 
 export function useSessionAnalytics({ pendingSession, session, clearPendingSession }: SessionAnalyticsParams) {
   const { track, flushSessionWordMetrics } = useAnalytics();
-  const startedAtRef = useRef(Date.now());
-  const progressPercent =
-    session.totalCycles > 0 ? Math.round((session.cycle / session.totalCycles) * 100) : 0;
+  const startedAtRef = useRef<number>(null!);
+  if (startedAtRef.current === null) {
+    startedAtRef.current = Date.now();
+  }
+  const progressPercent = cycleProgressPercent(session.cycle, session.totalCycles);
 
   function buildWordDelta(durationMs: number) {
     return {

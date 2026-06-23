@@ -3,15 +3,19 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BuddyBirdColors } from '@/constants/theme';
+import { LedgeView } from '@/components/ui/ledge-surface';
+import { BuddyBirdColors, Depth, Fonts, Radii, Spacing } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 
 const TABS = [
-  { name: 'index', label: '홈', icon: 'house.fill' as const },
-  { name: 'session-setup', label: '학습', icon: 'sparkles' as const },
-  { name: 'words', label: '단어', icon: 'book.fill' as const },
-  { name: 'profile', label: '프로필', icon: 'person.circle' as const },
+  { name: 'index', activeNames: ['index'], label: '학습', icon: 'dumbbell' as const },
+  { name: 'words', activeNames: ['words'], label: '단어', icon: 'book.fill' as const },
+  { name: 'profile', activeNames: ['profile'], label: '프로필', icon: 'person.fill' as const },
 ] as const;
+
+function isActiveTab(tab: (typeof TABS)[number], routeName?: string) {
+  return routeName ? (tab.activeNames as readonly string[]).includes(routeName) : false;
+}
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const { track } = useAnalytics();
@@ -29,85 +33,96 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom + 8, 30) }]} pointerEvents="box-none">
-      <View style={styles.pill}>
-        {TABS.map((tab) => {
-          const active = activeRouteName === tab.name;
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, Spacing.xxl + Spacing.xs) }]}>
+      {TABS.map((tab) => {
+        const active = isActiveTab(tab, activeRouteName);
+        const content = (
+          <>
+            <IconSymbol
+              name={tab.icon}
+              size={Spacing.xxl}
+              color={active ? BuddyBirdColors.onPrimary : BuddyBirdColors.tabIconMuted}
+            />
+            <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
+          </>
+        );
 
-          return (
-            <Pressable
-              key={tab.name}
-              style={styles.tabItem}
-              onPress={() => handleTabPress(tab.name)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-            >
-              <View style={[styles.iconPill, active && styles.iconPillActive]}>
-                <IconSymbol
-                  name={tab.icon}
-                  size={18}
-                  color={active ? BuddyBirdColors.secondary : 'rgba(31,58,61,0.5)'}
-                />
-              </View>
-              <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        return (
+          <Pressable
+            key={tab.name}
+            style={styles.tabPressable}
+            onPress={() => handleTabPress(tab.name)}
+            accessibilityLabel={tab.label}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+          >
+            {active ? (
+              <LedgeView depth="selectedCard" baseStyle={styles.activeBase} faceStyle={styles.activeFace}>
+                {content}
+              </LedgeView>
+            ) : (
+              <View style={styles.inactiveFace}>{content}</View>
+            )}
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  bar: {
+    alignItems: 'flex-end',
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.border,
+    borderTopWidth: 2,
     bottom: 0,
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    justifyContent: 'space-around',
     left: 0,
-    paddingHorizontal: 12,
-    paddingTop: 8,
+    paddingHorizontal: Spacing.sm,
+    paddingTop: Spacing.md,
     position: 'absolute',
     right: 0,
+    zIndex: 30,
   },
-  pill: {
+  tabPressable: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderColor: 'rgba(31,58,61,0.08)',
-    borderRadius: 28,
-    borderWidth: 0.5,
-    elevation: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    shadowColor: BuddyBirdColors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 24,
+    justifyContent: 'flex-end',
   },
-  tabItem: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 3,
-    paddingHorizontal: 4,
-    paddingVertical: 6,
+  activeBase: {
+    backgroundColor: BuddyBirdColors.primaryShadow,
+    borderRadius: Radii.lg,
   },
-  iconPill: {
+  activeFace: {
     alignItems: 'center',
-    borderRadius: 13,
-    height: 26,
+    backgroundColor: BuddyBirdColors.primary,
+    borderRadius: Radii.lg,
+    flexDirection: 'column',
+    gap: Spacing.xxs,
     justifyContent: 'center',
-    overflow: 'hidden',
-    width: 36,
+    paddingHorizontal: Spacing.buttonPaddingMd,
+    paddingVertical: Spacing.sm,
   },
-  iconPillActive: {
-    backgroundColor: 'rgba(42,157,143,0.14)',
+  inactiveFace: {
+    alignItems: 'center',
+    borderRadius: Radii.lg,
+    flexDirection: 'column',
+    gap: Spacing.xxs,
+    justifyContent: 'center',
+    marginBottom: Depth.selectedCardOffset,
+    paddingHorizontal: Spacing.buttonPaddingMd,
+    paddingVertical: Spacing.sm,
   },
   label: {
-    color: 'rgba(31,58,61,0.5)',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: -0.2,
+    color: BuddyBirdColors.tabIconMuted,
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
   labelActive: {
-    color: BuddyBirdColors.secondary,
+    color: BuddyBirdColors.onPrimary,
   },
 });

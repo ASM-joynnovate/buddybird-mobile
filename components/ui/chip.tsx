@@ -1,8 +1,10 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 
-type ChipTone = 'teal' | 'sun' | 'coral';
+import { Pressable3D } from './ledge-surface';
+
+export type ChipTone = 'primary' | 'blue' | 'teal' | 'yellow' | 'sun' | 'red' | 'coral' | 'purple';
 
 interface ChipProps {
   label: string;
@@ -11,53 +13,121 @@ interface ChipProps {
   onPress?: () => void;
 }
 
-const activeBackgroundByTone: Record<ChipTone, string> = {
-  teal: BuddyBirdColors.secondary,
-  sun: BuddyBirdColors.tertiary,
-  coral: BuddyBirdColors.accentCoral,
-};
-
-export function Chip({ label, active = false, tone = 'teal', onPress }: ChipProps) {
-  const activeBackgroundColor = activeBackgroundByTone[tone];
-
+export function Chip({ label, active = false, tone = 'primary', onPress }: ChipProps) {
   return (
-    <Pressable
+    <Pressable3D
+      accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chip,
-        active ? { backgroundColor: activeBackgroundColor } : styles.inactive,
-        pressed ? styles.pressed : undefined,
-      ]}>
-      <Text style={[styles.label, active ? styles.activeLabel : styles.inactiveLabel]}>{label}</Text>
-    </Pressable>
+      baseStyle={[styles.base, active ? baseStylesByTone[tone] : styles.baseInactive]}
+      depth="chip"
+      faceStyle={[styles.chip, active ? faceStylesByTone[tone] : styles.inactive]}
+      hitSlop={6}
+      onPress={onPress}>
+      <Text style={[styles.label, active ? labelStylesByTone[tone] : styles.inactiveLabel]}>{label}</Text>
+    </Pressable3D>
   );
 }
 
 const styles = StyleSheet.create({
+  base: {
+    borderRadius: Radii.full,
+  },
   chip: {
     alignItems: 'center',
     borderRadius: Radii.full,
+    borderWidth: 2,
     minHeight: 32,
     justifyContent: 'center',
     paddingHorizontal: Spacing.cardPaddingSm,
   },
   inactive: {
-    backgroundColor: 'rgba(31,58,61,0.06)',
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
   },
-  pressed: {
-    transform: [{ scale: 0.97 }],
+  baseInactive: {
+    backgroundColor: BuddyBirdColors.borderMuted,
+  },
+  activePrimary: {
+    backgroundColor: BuddyBirdColors.primary,
+    borderColor: BuddyBirdColors.primaryShadow,
+  },
+  activeBlue: {
+    backgroundColor: BuddyBirdColors.secondary,
+    borderColor: BuddyBirdColors.secondaryPressed,
+  },
+  activeYellow: {
+    backgroundColor: BuddyBirdColors.accentYellow,
+    borderColor: BuddyBirdColors.accentYellowShadow,
+  },
+  activeRed: {
+    backgroundColor: BuddyBirdColors.accentCoral,
+    borderColor: BuddyBirdColors.accentCoralPressed,
+  },
+  activePurple: {
+    backgroundColor: BuddyBirdColors.accentPurple,
+    borderColor: BuddyBirdColors.accentPurplePressed,
+  },
+  basePrimary: {
+    backgroundColor: BuddyBirdColors.primaryShadow,
+  },
+  baseBlue: {
+    backgroundColor: BuddyBirdColors.secondaryPressed,
+  },
+  baseYellow: {
+    backgroundColor: BuddyBirdColors.accentYellowShadow,
+  },
+  baseRed: {
+    backgroundColor: BuddyBirdColors.accentCoralPressed,
+  },
+  basePurple: {
+    backgroundColor: BuddyBirdColors.accentPurplePressed,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: -0.13,
+    fontSize: 13.5,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
-  activeLabel: {
-    color: BuddyBirdColors.surface,
+  activeLightLabel: {
+    color: BuddyBirdColors.onPrimary,
+  },
+  activeDarkLabel: {
+    color: BuddyBirdColors.ink,
   },
   inactiveLabel: {
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.inkMuted,
   },
 });
+
+const faceStylesByTone: Record<ChipTone, StyleProp<ViewStyle>> = {
+  primary: styles.activePrimary,
+  blue: styles.activeBlue,
+  teal: styles.activeBlue,
+  yellow: styles.activeYellow,
+  sun: styles.activeYellow,
+  red: styles.activeRed,
+  coral: styles.activeRed,
+  purple: styles.activePurple,
+};
+
+const baseStylesByTone: Record<ChipTone, StyleProp<ViewStyle>> = {
+  primary: styles.basePrimary,
+  blue: styles.baseBlue,
+  teal: styles.baseBlue,
+  yellow: styles.baseYellow,
+  sun: styles.baseYellow,
+  red: styles.baseRed,
+  coral: styles.baseRed,
+  purple: styles.basePurple,
+};
+
+const labelStylesByTone: Record<ChipTone, StyleProp<TextStyle>> = {
+  primary: styles.activeLightLabel,
+  blue: styles.activeLightLabel,
+  teal: styles.activeLightLabel,
+  yellow: styles.activeDarkLabel,
+  sun: styles.activeDarkLabel,
+  red: styles.activeLightLabel,
+  coral: styles.activeLightLabel,
+  purple: styles.activeLightLabel,
+};

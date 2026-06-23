@@ -1,0 +1,73 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BuddyBirdColors, Fonts, Spacing, Typography } from '@/constants/theme';
+
+interface WordCreateHeaderProps {
+  kicker: string;
+  title: string;
+  body: string;
+  onBack: () => void;
+}
+
+export function WordCreateHeader({ kicker, title, body, onBack }: WordCreateHeaderProps) {
+  return (
+    <>
+      <View style={styles.header}>
+        <Pressable
+          accessibilityLabel="뒤로 가기"
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={onBack}
+          style={styles.backButton}>
+          <IconSymbol color={BuddyBirdColors.inkMuted} name="chevron.left" size={26} />
+        </Pressable>
+        <Text style={styles.headerKicker}>{kicker}</Text>
+      </View>
+      <View style={styles.titleBlock}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>{body}</Text>
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 8,
+  },
+  backButton: {
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  headerKicker: {
+    color: BuddyBirdColors.inkMuted,
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.48,
+    textTransform: 'uppercase',
+  },
+  titleBlock: {
+    gap: 4,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: 8,
+  },
+  title: {
+    ...Typography.screenTitle,
+    color: BuddyBirdColors.ink,
+  },
+  subtitle: {
+    color: BuddyBirdColors.inkMuted,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13.5,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+});

@@ -1,151 +1,79 @@
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { ContinueSessionCard } from '@/components/home/continue-session-card';
-import { HomeGreeting } from '@/components/home/home-greeting';
-import { HomeStatsGrid } from '@/components/home/home-stats-grid';
-import { ParrotSummaryCard } from '@/components/home/parrot-summary-card';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { PetScreen } from '@/components/layout/pet-screen';
+import { ScreenHeader } from '@/components/layout/screen-header';
+import { CycleSummary } from '@/components/session/setup/cycle-summary';
+import { SessionPresetCard } from '@/components/session/setup/session-preset-card';
+import { WordPicker } from '@/components/session/setup/word-picker';
+import { InlineError } from '@/components/ui/inline-error';
+import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
-import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
-import { useProfile } from '@/features/profile/profile-context';
-import { formatMinutes } from '@/features/profile/profile-display';
-import { diffDaysIso } from '@/features/shared/date-utils';
-import { createSessionId } from '@/features/shared/ids';
-import { useTrainingData } from '@/features/training/training-context';
-import { selectTotalTrainingSeconds } from '@/features/training/training-model';
-import { useWordLibrary } from '@/features/word-library/word-library-context';
-import { resolvePresetAudioModule } from '@/features/word-library/word-library-preset-audio';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { useSessionSetup } from '@/features/training/hooks/use-learning-setup';
+import { useSessionStart } from '@/features/training/hooks/use-session-start';
+import { useWordSelection } from '@/features/training/hooks/use-word-selection';
 
-export default function HomeScreen() {
-  const { profile } = useProfile();
-  const { store, setPendingSession } = useTrainingData();
-  const { entries } = useWordLibrary();
-  const { track } = useAnalytics();
-  const insets = useSafeAreaInsets();
-  useScreenTracking('home');
-  const totalTrainingSeconds = store ? selectTotalTrainingSeconds(store) : 0;
+export default function SessionSetupScreen() {
+  const { t } = useI18n();
+  useScreenTracking('session_setup');
+  const setup = useSessionSetup();
+  const { selectedEntryId, setSelectedEntryId, selectedEntry, pickerItems, isLibraryHydrated } = useWordSelection();
+  const { handleStart, startLabel } = useSessionStart({ selectedEntry, setup });
 
-  if (!profile) return null;
-
-  const stat = formatMinutes(totalTrainingSeconds);
-
-  const lastSettings = store?.lastSessionSettings ?? null;
-  // WordLibrary가 SSoT. lastSettings.libraryEntryId로 직조회해 재녹음/라벨 수정이 즉시 반영되게 한다.
-  // libraryEntryId 누락(legacy) 또는 entry 삭제 시 null → handleContinue가 /session-setup으로 fallback.
-  const lastWordEntry =
-    lastSettings && lastSettings.libraryEntryId
-      ? (entries.find((entry) => entry.id === lastSettings.libraryEntryId) ?? null)
-      : null;
-  const lastCycles = lastSettings
-    ? Math.max(1, Math.floor(lastSettings.totalDurationSeconds / (lastSettings.learningDurationSeconds + lastSettings.restDurationSeconds)))
-    : undefined;
-  const lastMins = lastSettings ? Math.round(lastSettings.totalDurationSeconds / 60) : undefined;
-
-  function handleContinue(): void {
-    if (!lastSettings || !lastWordEntry) {
-      router.push('/session-setup');
-      return;
-    }
-    const sessionId = createSessionId();
-    setPendingSession({
-      sessionId,
-      wordId: lastSettings.wordId,
-      settings: lastSettings,
-      audioUri:
-        lastWordEntry.sourceType === 'recording'
-          ? lastWordEntry.audioUri
-          : (resolvePresetAudioModule(lastWordEntry.presetKey) ?? undefined),
-      word: lastWordEntry.label,
-    });
-    track({
-      name: 'training_session_started',
-      params: {
-        session_id: sessionId,
-        word_count: 1,
-        target_word_ids: [lastSettings.wordId],
-        target_word_names: [lastWordEntry.label],
-        profile_age_days: profile ? diffDaysIso(profile.createdAt) : 0,
-        parrot_species: profile?.species ?? '',
-        parrot_name: profile?.name ?? '',
-      },
-    });
-    router.push('/session-active');
-  }
+  const canContinue = setup.isHydrated && isLibraryHydrated && selectedEntry !== undefined && setup.isDurationValid;
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 14, paddingBottom: Spacing.screenBottomTabs + insets.bottom }]}
-      showsVerticalScrollIndicator={false}
-    >
-      <HomeGreeting profileName={profile.name} />
-      <ParrotSummaryCard profile={profile} />
-      <ContinueSessionCard
-        lastWord={lastWordEntry?.label}
-        cycles={lastCycles}
-        mins={lastMins}
-        learnMins={lastSettings ? Math.round(lastSettings.learningDurationSeconds / 60) : undefined}
-        restMins={lastSettings ? Math.round(lastSettings.restDurationSeconds / 60) : undefined}
-        onContinue={handleContinue}
+    <PetScreen contentStyle={styles.content}>
+      <ScreenHeader title={t('sessionSetup.title')} body={t('sessionSetup.body')} />
+
+      <WordPicker
+        items={pickerItems}
+        selectedId={selectedEntryId}
+        onSelect={setSelectedEntryId}
+        sectionTitle="단어"
+        emptyLabel={t('sessionSetupExtra.emptyLibrary')}
       />
 
-      <View style={styles.wordsSectionRow}>
-        <View>
-          <Text style={styles.sectionKicker}>현재 학습 중</Text>
-          <Text style={styles.sectionTitle}>단어 {entries.length}개</Text>
-        </View>
-        <Pressable onPress={() => router.push('/words')} style={styles.sectionActionRow}>
-          <Text style={styles.sectionAction}>단어 관리</Text>
-          <IconSymbol name="chevron.compact.right" size={14} color={BuddyBirdColors.secondaryDeep} />
-        </Pressable>
+      <View style={styles.timeSection}>
+        <Text style={styles.sectionTitle}>학습 시간</Text>
+        <SessionPresetCard
+          presetKey={setup.presetKey}
+          onSelectPreset={setup.setPresetKey}
+          sessionMins={setup.sessionMins}
+          onChangeSessionMins={setup.setSessionMins}
+        />
+        <CycleSummary sessionMins={setup.sessionMins} learnSecs={setup.learnSecs} restSecs={setup.restSecs} />
       </View>
 
-      <HomeStatsGrid
-        todayStatValue={stat.value}
-        todayStatUnit={stat.unit}
-        weekStatValue={stat.value}
-        weekStatUnit={stat.unit}
+      <InlineError message={setup.trainingErrorMessage} />
+      <InlineError message={setup.saveErrorMessage} />
+      <InlineError message={setup.durationValidationError} />
+
+      <PillButton
+        disabled={!canContinue}
+        full
+        icon="play.fill"
+        label={startLabel}
+        onPress={handleStart}
+        size="lg"
+        variant="primary"
+        accessibilityLabel={canContinue ? startLabel : '학습할 단어와 시간을 설정하면 시작할 수 있습니다'}
       />
-    </ScrollView>
+    </PetScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    backgroundColor: BuddyBirdColors.neutral,
-    flex: 1,
-  },
   content: {
     gap: Spacing.sectionY,
-    paddingHorizontal: Spacing.screenX,
+    paddingHorizontal: Spacing.xl,
   },
-  wordsSectionRow: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  sectionKicker: {
-    color: BuddyBirdColors.kickerMuted,
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 0.6,
+  timeSection: {
+    gap: Spacing.sm,
   },
   sectionTitle: {
-    ...Typography.screenTitle,
-    color: BuddyBirdColors.primary,
-    fontSize: 22,
-  },
-  sectionActionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  sectionAction: {
-    color: BuddyBirdColors.secondaryDeep,
-    fontSize: 13,
-    fontWeight: '700',
+    ...Typography.sectionTitle,
+    color: BuddyBirdColors.ink,
   },
 });

@@ -3,16 +3,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BuddyBirdColors, Radii, Typography } from '@/constants/theme';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
+import { BuddyBirdColors, Depth, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 interface ProfileAvatarPickerProps {
+  actionIcon?: IconSymbolName;
   photoUri?: string;
   onPhotoSelected: (photoUri: string) => void;
 }
 
-export function ProfileAvatarPicker({ photoUri, onPhotoSelected }: ProfileAvatarPickerProps) {
+export function ProfileAvatarPicker({
+  actionIcon = 'pencil',
+  photoUri,
+  onPhotoSelected,
+}: ProfileAvatarPickerProps) {
   const { t } = useI18n();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -36,15 +42,24 @@ export function ProfileAvatarPicker({ photoUri, onPhotoSelected }: ProfileAvatar
 
   return (
     <View style={styles.wrap}>
-      <Pressable accessibilityRole="button" onPress={pickImage} style={styles.avatarButton}>
-        {photoUri ? (
-          <Image source={{ uri: photoUri }} style={styles.photo} contentFit="cover" />
-        ) : (
-          <View style={styles.placeholder}>
-            <Text style={styles.emoji}>🦜</Text>
-            <Text style={styles.placeholderText}>{t('profile.avatarSelect')}</Text>
-          </View>
-        )}
+      <Pressable
+        accessibilityLabel="프로필 사진 선택"
+        accessibilityRole="button"
+        onPress={pickImage}
+        style={styles.avatarButton}>
+        <View style={styles.avatarClip}>
+          {photoUri ? (
+            <Image source={{ uri: photoUri }} style={styles.photo} contentFit="cover" />
+          ) : (
+            <View style={styles.placeholder}>
+              <Text style={styles.emoji}>🦜</Text>
+            </View>
+          )}
+        </View>
+        <View pointerEvents="none" style={styles.editFabBase} />
+        <View pointerEvents="none" style={styles.editFab}>
+          <IconSymbol color={BuddyBirdColors.onPrimary} name={actionIcon} size={20} />
+        </View>
       </Pressable>
       {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
     </View>
@@ -54,14 +69,21 @@ export function ProfileAvatarPicker({ photoUri, onPhotoSelected }: ProfileAvatar
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   avatarButton: {
     alignSelf: 'center',
-    borderRadius: Radii.avatarLg,
-    height: 120,
+    height: 110,
+    position: 'relative',
+    width: 110,
+  },
+  avatarClip: {
+    borderColor: BuddyBirdColors.border,
+    borderRadius: 55,
+    borderWidth: 3,
+    height: 110,
     overflow: 'hidden',
-    width: 120,
+    width: 110,
   },
   photo: {
     height: '100%',
@@ -69,17 +91,34 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     alignItems: 'center',
-    backgroundColor: BuddyBirdColors.feather,
+    backgroundColor: BuddyBirdColors.surface1,
     flex: 1,
     justifyContent: 'center',
   },
   emoji: {
-    fontSize: 42,
+    fontSize: 52,
   },
-  placeholderText: {
-    ...Typography.caption,
-    color: BuddyBirdColors.primary,
-    fontWeight: '700',
+  editFab: {
+    alignItems: 'center',
+    backgroundColor: BuddyBirdColors.primary,
+    borderColor: BuddyBirdColors.surface,
+    borderRadius: 19,
+    borderWidth: 3,
+    bottom: -2,
+    height: 38,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: -2,
+    width: 38,
+  },
+  editFabBase: {
+    backgroundColor: BuddyBirdColors.primaryShadow,
+    borderRadius: 19,
+    bottom: -2 - Depth.cardSelected,
+    height: 38,
+    position: 'absolute',
+    right: -2,
+    width: 38,
   },
   error: {
     ...Typography.caption,

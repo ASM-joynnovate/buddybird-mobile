@@ -1,0 +1,136 @@
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { BuddyBird } from '@/components/mascot/buddy-bird';
+import { OnboardingProgressHeader } from '@/components/onboarding/onboarding-progress-header';
+import { OnboardingProfileForm } from '@/components/onboarding/onboarding-profile-form';
+import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
+import { PillButton } from '@/components/ui/pill-button';
+import { SpeechBubble } from '@/components/ui/speech-bubble';
+import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
+import type { SpeciesOption } from '@/features/profile/profile-options';
+import type { ProfileValidationErrors } from '@/features/profile/profile-types';
+
+interface OnboardingProfileViewProps {
+  ageLabel: string;
+  ageMonths: number;
+  ctaLabel: string;
+  customMode: boolean;
+  customInputLabel: string;
+  errors: ProfileValidationErrors;
+  intro: string;
+  isSaving: boolean;
+  name: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  onAgeMonthsChange: (months: number) => void;
+  onBack: () => void;
+  onCustomMode: () => void;
+  onNameChange: (name: string) => void;
+  onPhotoSelected: (photoUri: string) => void;
+  onSpeciesChange: (species: string) => void;
+  onSubmit: () => void;
+  photoUri?: string;
+  saveError: string | null;
+  species: string;
+  speciesLabel: string;
+  speciesOptions: SpeciesOption[];
+  speciesPlaceholder: string;
+}
+
+export function OnboardingProfileView({
+  ageLabel,
+  ageMonths,
+  ctaLabel,
+  customMode,
+  customInputLabel,
+  errors,
+  intro,
+  isSaving,
+  name,
+  nameLabel,
+  namePlaceholder,
+  onAgeMonthsChange,
+  onBack,
+  onCustomMode,
+  onNameChange,
+  onPhotoSelected,
+  onSpeciesChange,
+  onSubmit,
+  photoUri,
+  saveError,
+  species,
+  speciesLabel,
+  speciesOptions,
+  speciesPlaceholder,
+}: OnboardingProfileViewProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.safeArea, { paddingTop: insets.top + 56 }]}>
+      <OnboardingProgressHeader onBack={onBack} step={2} total={2} />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <BuddyBird size={64} />
+          <SpeechBubble style={styles.introBubble}>{intro}</SpeechBubble>
+        </View>
+        <ProfileAvatarPicker actionIcon="plus" photoUri={photoUri} onPhotoSelected={onPhotoSelected} />
+        <OnboardingProfileForm
+          ageLabel={ageLabel}
+          ageMonths={ageMonths}
+          customMode={customMode}
+          customInputLabel={customInputLabel}
+          errors={errors}
+          name={name}
+          nameLabel={nameLabel}
+          namePlaceholder={namePlaceholder}
+          onAgeMonthsChange={onAgeMonthsChange}
+          onCustomMode={onCustomMode}
+          onNameChange={onNameChange}
+          onSpeciesChange={onSpeciesChange}
+          species={species}
+          speciesLabel={speciesLabel}
+          speciesOptions={speciesOptions}
+          speciesPlaceholder={speciesPlaceholder}
+        />
+        {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
+      </ScrollView>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 34 }]}>
+        <PillButton disabled={isSaving} full label={ctaLabel} onPress={onSubmit} size="lg" />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: BuddyBirdColors.canvas,
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    gap: Spacing.xl,
+    paddingBottom: Spacing.xxl,
+    paddingHorizontal: Spacing.screenX,
+    paddingTop: Spacing.cardPaddingSm,
+  },
+  intro: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  introBubble: {
+    flex: 1,
+    marginBottom: Spacing.xxs,
+  },
+  saveError: {
+    ...Typography.bodySmall,
+    color: BuddyBirdColors.accentCoral,
+  },
+  footer: {
+    borderColor: BuddyBirdColors.border,
+    borderTopWidth: 2,
+    paddingHorizontal: Spacing.screenX,
+    paddingTop: Spacing.cardPaddingSm,
+  },
+});

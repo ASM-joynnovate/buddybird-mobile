@@ -19,13 +19,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   default: {
-    color: BuddyBirdColors.kickerMuted,
-    fontWeight: '500',
-    letterSpacing: 0.6,
+    color: BuddyBirdColors.inkMuted,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
   strong: {
     color: BuddyBirdColors.secondaryDeep,
-    fontWeight: '700',
-    letterSpacing: 4,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
 });

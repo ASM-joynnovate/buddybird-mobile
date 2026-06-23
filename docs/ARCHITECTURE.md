@@ -29,7 +29,9 @@ Domain logic lives here — no JSX. Each subdirectory follows the same pattern: 
 
 ## Design system (`constants/theme.ts`)
 
-Single source of truth for `BuddyBirdColors`, `Colors` (light/dark), `Fonts`, `Spacing`, `Radii`, and `Typography`. Always import from here rather than hardcoding values.
+Single source of truth for `BuddyBirdColors`, `Colors` (light/dark), `Fonts`, `Spacing`, `Radii`, `Typography`, `Depth`, and `Motion`. Always import from here rather than hardcoding values.
+
+The current visual direction follows `DESIGN.md`: bright white canvas, BuddyBird-owned Duolingo-inspired green/blue/yellow reward colors, bold rounded typography, dark high-contrast learning/word cards, physical pressed buttons, and reduced-motion-aware feedback.
 
 ## Path alias
 
