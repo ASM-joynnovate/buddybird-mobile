@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useProfile } from '@/features/profile/profile-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
-import { formatDurationMins } from '@/features/shared/duration-format';
 import { createSessionId } from '@/features/shared/ids';
 import type { UseSessionSetupResult } from '@/features/training/hooks/use-learning-setup';
 import { useTrainingData } from '@/features/training/training-context';
