@@ -1,46 +1,67 @@
-import { StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { BuddyBirdColors, Radii } from '@/constants/theme';
+import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
 
+import { Pressable3D } from './ledge-surface';
 import { RadioMark } from './radio-mark';
 
 interface SelectableRowCardProps {
   active: boolean;
   onPress: () => void;
   children: React.ReactNode;
+  radioPosition?: 'left' | 'right';
   style?: StyleProp<ViewStyle>;
 }
 
-export function SelectableRowCard({ active, onPress, children, style }: SelectableRowCardProps) {
+export function SelectableRowCard({
+  active,
+  onPress,
+  children,
+  radioPosition = 'right',
+  style,
+}: SelectableRowCardProps) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
-      style={[styles.card, active && styles.cardActive, style]}
-    >
+    <Pressable3D
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      baseStyle={[styles.base, active ? styles.baseActive : styles.baseDefault]}
+      depth="selectedCard"
+      faceStyle={[styles.card, active && styles.cardActive, style]}
+      onPress={onPress}>
       <View style={styles.row}>
+        {radioPosition === 'left' ? <RadioMark active={active} /> : null}
         {children}
-        <RadioMark active={active} />
+        {radioPosition === 'right' ? <RadioMark active={active} /> : null}
       </View>
-    </TouchableOpacity>
+    </Pressable3D>
   );
 }
 
 const styles = StyleSheet.create({
+  base: {
+    borderRadius: Radii.lg,
+  },
+  baseDefault: {
+    backgroundColor: BuddyBirdColors.borderMuted,
+  },
+  baseActive: {
+    backgroundColor: BuddyBirdColors.primary,
+  },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(31,58,61,0.08)',
-    borderRadius: Radii.listItem,
-    borderWidth: 0.5,
-    padding: 12,
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.lg,
+    borderWidth: 2,
+    minHeight: 72,
+    padding: Spacing.cardPaddingSm,
   },
   cardActive: {
-    backgroundColor: BuddyBirdColors.primary,
-    borderWidth: 0,
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.primary,
   },
   row: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing.sectionHeadGap,
   },
 });

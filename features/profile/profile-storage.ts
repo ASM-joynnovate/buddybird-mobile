@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { reportError } from '@/features/analytics/error-reporter';
+import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
 import type { ParrotProfile } from './profile-types';
 
@@ -13,19 +11,22 @@ export class ProfileStorageError extends Error {
   }
 }
 
-export async function loadStoredProfile(): Promise<ParrotProfile | null> {
-  const rawProfile = await AsyncStorage.getItem(PROFILE_STORAGE_KEY);
-
-  if (!rawProfile) {
-    return null;
-  }
-
-  try {
-    return parseStoredProfile(JSON.parse(rawProfile));
-  } catch (error: unknown) {
-    reportError(error, { scope: 'profile.loadStored' });
+const profileStore = persistKeyedStore<ParrotProfile | null>({
+  key: PROFILE_STORAGE_KEY,
+  scope: 'profile.loadStored',
+  parse: parseStoredProfile,
+  // 미저장(키 없음) 시에만 null 을 반환한다.
+  fallback: () => null,
+  // 손상/검증 실패는 fallback 하지 않고 표면화한다.
+  // seam 이 이미 reportError(scope) 를 호출했으므로 여기서는 일반 메시지로 throw 만 한다.
+  // parse 가 던지는 구체 메시지·JSON.parse SyntaxError 모두 이 일반 메시지로 치환된다.
+  recover: () => {
     throw new ProfileStorageError('저장된 프로필을 읽을 수 없습니다.');
-  }
+  },
+});
+
+export async function loadStoredProfile(): Promise<ParrotProfile | null> {
+  return profileStore.load();
 }
 
 function parseStoredProfile(value: unknown): ParrotProfile {
@@ -82,5 +83,5 @@ function normalizeStoredSpecies(species: string, customSpecies: string | undefin
 }
 
 export async function saveStoredProfile(profile: ParrotProfile): Promise<void> {
-  await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  await profileStore.save(profile);
 }

@@ -1,22 +1,22 @@
 import Constants from 'expo-constants';
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
+import { Platform } from 'react-native';
 
 import { diffDaysIso } from '@/features/shared/date-utils';
 
 import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
-import { registerErrorReporter } from './error-reporter';
+import { installGlobalErrorReporting, registerErrorReporter } from './error-reporter';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
-import { installGlobalErrorReporting } from './error-reporting';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
 import { getOrCreateInstallationId } from './identity';
 import { ClarityProvider } from './providers/clarity-provider';
@@ -29,7 +29,7 @@ import {
   type WordSessionDelta,
 } from './word-metrics-storage';
 
-interface AnalyticsContextValue {
+export interface AnalyticsContextValue {
   isReady: boolean;
   consent: ConsentState;
   installationId: string | null;
@@ -61,6 +61,11 @@ function resolveClarityProjectId(): string | null {
 function buildProviders(): AnalyticsProviderAdapter[] {
   const providers: AnalyticsProviderAdapter[] = [];
 
+  if (Platform.OS === 'web') {
+    providers.push(new NoopProvider());
+    return providers;
+  }
+
   providers.push(new FirebaseProvider());
 
   const clarityProjectId = resolveClarityProjectId();
@@ -76,12 +81,14 @@ function buildProviders(): AnalyticsProviderAdapter[] {
 }
 
 export function AnalyticsProvider({ children }: PropsWithChildren) {
-  const clientRef = useRef<AnalyticsClient>(
-    createFanoutAnalyticsClient({
+  // 무거운 fanout 클라이언트(프로바이더 인스턴스 생성 포함)는 첫 렌더에서 한 번만 만든다.
+  const clientRef = useRef<AnalyticsClient>(null!);
+  if (clientRef.current === null) {
+    clientRef.current = createFanoutAnalyticsClient({
       providers: buildProviders(),
       onProviderFailure: reportProviderFailure,
-    })
-  );
+    });
+  }
 
   const currentScreenRef = useRef<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -96,13 +103,19 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
 
     async function bootstrap(): Promise<void> {
       const client = clientRef.current;
+      // init()이 먼저 끝나야 setEnabled/setUserId를 호출할 수 있다.
       await client.init();
 
-      const resolvedConsent = await ensureTrackingConsent();
-      await client.setEnabled(consentAllowsCollection(resolvedConsent));
-
-      const id = await getOrCreateInstallationId();
-      await client.setUserId(id);
+      // 동의 조회와 설치 ID 발급은 서로 독립적이라 동시에 실행한다.
+      const [resolvedConsent, id] = await Promise.all([
+        ensureTrackingConsent(),
+        getOrCreateInstallationId(),
+      ]);
+      // setEnabled/setUserId도 서로 독립적(둘 다 init 이후에만 가능)이라 함께 실행한다.
+      await Promise.all([
+        client.setEnabled(consentAllowsCollection(resolvedConsent)),
+        client.setUserId(id),
+      ]);
 
       uninstallErrorReporting = installGlobalErrorReporting({
         client,
@@ -208,8 +221,17 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
   return <AnalyticsContext.Provider value={value}>{children}</AnalyticsContext.Provider>;
 }
 
+/**
+ * AnalyticsProvider 바깥에서도 throw 없이 구독한다(없으면 null). provider 마운트
+ * 순서에 하드 결합되면 안 되는 소비처(예: `ProfileProvider`)가 effect 게이팅으로
+ * analytics 준비를 기다릴 수 있게 한다.
+ */
+export function useOptionalAnalytics(): AnalyticsContextValue | null {
+  return use(AnalyticsContext);
+}
+
 export function useAnalytics(): AnalyticsContextValue {
-  const context = useContext(AnalyticsContext);
+  const context = useOptionalAnalytics();
 
   if (!context) {
     throw new Error('useAnalytics must be used inside AnalyticsProvider');

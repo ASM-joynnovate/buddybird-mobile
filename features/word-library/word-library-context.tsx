@@ -1,7 +1,7 @@
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -31,7 +31,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const storeRef = useRef<WordLibraryStore | null>(null);
-  const writeQueueRef = useRef(Promise.resolve());
+  const writeQueueRef = useRef<Promise<void> | null>(null);
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -80,7 +80,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   }, [setLibraryState]);
 
   const enqueueWrite = useCallback((operation: () => Promise<void>): Promise<void> => {
-    const nextWrite = writeQueueRef.current.then(operation, operation);
+    const nextWrite = (writeQueueRef.current ?? Promise.resolve()).then(operation, operation);
     // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
     writeQueueRef.current = nextWrite.catch((error: unknown) => {
       reportError(error, { scope: 'word-library.writeQueue' });
@@ -143,7 +143,7 @@ function cloneRecord<T>(record: Record<string, T>): Record<string, T> {
 }
 
 export function useWordLibrary(): WordLibraryContextValue {
-  const ctx = useContext(WordLibraryContext);
+  const ctx = use(WordLibraryContext);
   if (!ctx) throw new Error('useWordLibrary must be used inside WordLibraryProvider');
   return ctx;
 }

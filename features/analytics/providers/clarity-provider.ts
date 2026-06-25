@@ -11,6 +11,8 @@ export interface ClarityProviderConfig {
 
 export class ClarityProvider implements AnalyticsProviderAdapter {
   readonly name = 'clarity';
+  // Clarity는 자체 에러 캡처 미지원 — recordError는 의도된 no-op(아래)이며 Crashlytics에 위임한다.
+  readonly supportsErrorReporting = false;
   private readonly config: ClarityProviderConfig;
   private initialized = false;
   private enabled = true;

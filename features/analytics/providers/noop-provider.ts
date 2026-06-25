@@ -2,6 +2,7 @@ import type { AnalyticsParams, AnalyticsProviderAdapter } from './types';
 
 export class NoopProvider implements AnalyticsProviderAdapter {
   readonly name = 'noop';
+  readonly supportsErrorReporting = false;
 
   async init(): Promise<void> {}
   async setUserId(_id: string | null): Promise<void> {}

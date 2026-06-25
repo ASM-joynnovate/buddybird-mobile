@@ -515,7 +515,7 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 2. `fix(...)` 또는 `fix!:` (BREAKING) commit + **`yarn release:bump patch` 커밋 포함 (버전 게이트 통과에 필수)**
 3. `hotfix/* → main` PR (CODEOWNER review 필수)
 4. merge 시 버전 게이트 통과 → 자동 production 빌드 → tag + GitHub Release 자동 생성 → 수동 promote
-5. **hotfix 머지 후 `main → staging` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
+5. **hotfix 머지 후 `main → staging → dev` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. **`dev` 까지 전파하지 않으면 hotfix 의 `release:bump patch` 커밋이 dev 에 없어 다음 릴리스의 `package.json` version 충돌이 재발하므로 `staging` 에서 멈추지 말고 `dev` 까지 back-merge 한다.** (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
 
 ### 12.7 롤백 절차
 

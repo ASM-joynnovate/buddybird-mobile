@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type PropsWithChildren } from 'react';
+import { createContext, use, useCallback, useMemo, useState, type PropsWithChildren } from 'react';
 
 import type { ProfileDraft } from './profile-types';
 
@@ -31,7 +31,7 @@ export function OnboardingDraftProvider({ children }: PropsWithChildren) {
 }
 
 export function useOnboardingDraft(): OnboardingDraftContextValue {
-  const context = useContext(OnboardingDraftContext);
+  const context = use(OnboardingDraftContext);
 
   if (!context) {
     throw new Error('useOnboardingDraft must be used inside OnboardingDraftProvider');

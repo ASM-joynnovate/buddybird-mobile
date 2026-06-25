@@ -1,5 +1,3 @@
-import type { PitchTransformMetadata } from '@/features/audio/audio-types';
-
 export type WordTag = '인사' | '음식' | '이름' | '기타';
 export const WORD_TAGS: readonly WordTag[] = ['인사', '음식', '이름', '기타'];
 export interface WordEntry {
@@ -10,7 +8,9 @@ export interface WordEntry {
   presetKey?: string;
   audioUri: string;
   transformedAudioUri?: string;
-  pitchTransform?: PitchTransformMetadata;
+  // 오디오 도메인 pitch 프로필에 대한 불투명 참조. 실제 pitch 파라미터(배속 등) 해석은
+  // 오디오 도메인(`features/audio/pitch-profile`)이 소유한다.
+  pitchProfileId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,7 +22,7 @@ export interface CreateWordEntryInput {
   presetKey?: string;
   audioUri: string;
   transformedAudioUri?: string;
-  pitchTransform?: PitchTransformMetadata;
+  pitchProfileId?: string;
 }
 
 export interface WordLibraryStore {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { ensureFcmRegistration, subscribeToFcmMessages } from '../fcm-client';
 import type { FcmRegistration } from '../fcm-types';
@@ -11,6 +12,11 @@ export function useFcmRegistration({ enabled }: UseFcmRegistrationOptions): FcmR
   const [registration, setRegistration] = useState<FcmRegistration | null>(null);
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      setRegistration(null);
+      return undefined;
+    }
+
     if (!enabled) {
       setRegistration(null);
       return undefined;

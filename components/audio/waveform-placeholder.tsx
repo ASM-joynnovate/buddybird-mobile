@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 const BAR_COUNT = 30;
 const WAVEFORM_HEIGHT = 78;
@@ -29,14 +30,18 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
   const isMuted = state === 'preview-disabled';
   const isRecording = state === 'recording';
   const isPlaying = state === 'playing';
+  const reducedMotion = useReducedMotion();
 
-  const animatedHeights = useRef<Animated.Value[]>(
-    SEED_HEIGHTS.map((s) => new Animated.Value(s * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT))
-  ).current;
+  // Animated.Value 배열은 렌더마다 새로 만들지 않고 첫 렌더에서 한 번만 초기화한다.
+  const animatedHeightsRef = useRef<Animated.Value[]>(null!);
+  if (animatedHeightsRef.current === null) {
+    animatedHeightsRef.current = SEED_HEIGHTS.map((s) => new Animated.Value(s * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT));
+  }
+  const animatedHeights = animatedHeightsRef.current;
   const prevEffectiveRef = useRef(0);
 
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !reducedMotion) {
       let active = true;
       function animatePlayback() {
         if (!active) return;
@@ -45,7 +50,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
           const targetNorm = Math.max(0.08, centreWeight * 0.55 + (Math.random() - 0.5) * 0.3);
           return Animated.timing(av, {
             toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
-            duration: 180,
+            duration: 200,
             useNativeDriver: false,
           });
         });
@@ -62,7 +67,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       const anims = animatedHeights.map((av, i) =>
         Animated.timing(av, {
           toValue: SEED_HEIGHTS[i] * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
-          duration: 200,
+          duration: reducedMotion ? 0 : 200,
           useNativeDriver: false,
         })
       );
@@ -81,7 +86,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       // 유음 → 무음 전환: 막대를 최소 높이로 한 번만 내림
       Animated.parallel(
         animatedHeights.map((av) =>
-          Animated.timing(av, { toValue: BAR_MIN_HEIGHT, duration: 150, useNativeDriver: false })
+          Animated.timing(av, { toValue: BAR_MIN_HEIGHT, duration: reducedMotion ? 0 : 150, useNativeDriver: false })
         )
       ).start();
       return;
@@ -93,12 +98,12 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       const targetNorm = Math.max(0, Math.min(1, effective * centreWeight + jitter));
       return Animated.timing(av, {
         toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
-        duration: 80,
+        duration: reducedMotion ? 0 : 80,
         useNativeDriver: false,
       });
     });
     Animated.parallel(anims).start();
-  }, [metering, isRecording, isPlaying, animatedHeights]);
+  }, [metering, isRecording, isPlaying, animatedHeights, reducedMotion]);
 
   return (
     <View style={[styles.container, isMuted ? styles.mutedContainer : undefined]}>
@@ -130,14 +135,14 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(31,58,61,0.05)',
+    backgroundColor: BuddyBirdColors.surfaceDarkRaised,
     borderRadius: Radii.sectionCard,
     gap: Spacing.tabPaddingY,
     paddingHorizontal: Spacing.cardPaddingSm,
     paddingVertical: Spacing.tabPaddingY,
   },
   mutedContainer: {
-    backgroundColor: 'rgba(31,58,61,0.035)',
+    backgroundColor: BuddyBirdColors.surfaceDark,
   },
   waveform: {
     alignItems: 'center',
@@ -155,21 +160,20 @@ const styles = StyleSheet.create({
     backgroundColor: BuddyBirdColors.accentCoral,
   },
   mutedBar: {
-    backgroundColor: 'rgba(31,58,61,0.28)',
+    backgroundColor: BuddyBirdColors.borderStrong,
   },
   copyBlock: {
     gap: Spacing.micro,
   },
   statusLabel: {
     ...Typography.bodySmall,
-    color: BuddyBirdColors.primary,
-    fontWeight: '700',
+    color: BuddyBirdColors.onDark,
   },
   helperText: {
     ...Typography.caption,
-    color: 'rgba(31,58,61,0.62)',
+    color: BuddyBirdColors.onDarkMuted,
   },
   mutedText: {
-    color: 'rgba(31,58,61,0.56)',
+    color: BuddyBirdColors.onDarkMuted,
   },
 });

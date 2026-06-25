@@ -6,6 +6,10 @@ import pkg from './package.json';
 declare const require: (moduleName: string) => { version?: string };
 
 const APP_NAME = '버디버드';
+// 브랜드/아이콘 배경 (어댑티브 아이콘). 스플래시 배경과 색이 다르므로 분리.
+const BRAND_BACKGROUND_COLOR = '#E0010E';
+// 스플래시 전용 배경 — in-app 스플래시(splashRed)와 일치시켜 네이티브→in-app 핸드오프를 끊김 없이.
+const SPLASH_BACKGROUND_COLOR = '#DB030F';
 
 const TRACKING_PERMISSION_MESSAGE =
     '더 나은 학습 경험을 위해 익명화된 사용 통계를 수집합니다. 개인을 식별하지 않으며, 언제든지 거부할 수 있습니다.';
@@ -92,10 +96,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         package: BUNDLE_ID,
         googleServicesFile: ANDROID_GOOGLE_SERVICES_FILE,
         adaptiveIcon: {
-            backgroundColor: '#AFF729',
-            foregroundImage: './assets/images/android-icon-foreground.png',
-            backgroundImage: './assets/images/android-icon-background.png',
-            monochromeImage: './assets/images/android-icon-monochrome.png',
+            backgroundColor: BRAND_BACKGROUND_COLOR,
+            foregroundImage: './assets/images/android-icon-foreground.png'
         },
 
         ...(shouldKeepSdk54CompatConfig
@@ -115,21 +117,36 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
     web: {
         output: 'static',
-        favicon: './assets/images/favicon.png',
+        favicon: './assets/images/favicon.ico',
     },
 
     plugins: [
         'expo-router',
         'expo-asset',
         [
+            'expo-font',
+            {
+                fonts: [
+                    './node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf',
+                    './node_modules/@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf',
+                    './node_modules/@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf',
+                    './node_modules/@expo-google-fonts/nunito/900Black/Nunito_900Black.ttf',
+                    './assets/fonts/Pretendard-Regular.otf',
+                    './assets/fonts/Pretendard-Bold.otf',
+                    './assets/fonts/Pretendard-ExtraBold.otf',
+                    './assets/fonts/Pretendard-Black.otf',
+                ],
+            },
+        ],
+        [
             'expo-splash-screen',
             {
-                image: './assets/images/splash-icon.png',
-                imageWidth: 320,
+                image: './assets/images/splash-wordmark.png',
+                imageWidth: 288,
                 resizeMode: 'contain',
-                backgroundColor: '#AFF729',
+                backgroundColor: SPLASH_BACKGROUND_COLOR,
                 dark: {
-                    backgroundColor: '#AFF729',
+                    backgroundColor: SPLASH_BACKGROUND_COLOR,
                 },
             },
         ],

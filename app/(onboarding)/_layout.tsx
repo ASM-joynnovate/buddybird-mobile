@@ -15,7 +15,10 @@ export default function OnboardingLayout() {
 
   return (
     <OnboardingDraftProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="profile" />
+      </Stack>
     </OnboardingDraftProvider>
   );
 }
