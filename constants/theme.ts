@@ -84,6 +84,10 @@ export const BuddyBirdColors = {
   gradientRest: '#DDF4FF',
   tabIconMuted: '#777777',
   tabIconMutedOnDark: '#777777',
+  splashRed: '#DB030F',
+  splashYellow: '#F6AF02',
+  splashCream: '#F7F2EA',
+  splashInk: '#2B2B29',
 };
 
 export type BuddyBirdCategory = '인사' | '음식' | '이름' | '기타';
@@ -187,6 +191,7 @@ export const Fonts = {
   bodyBold: 'Pretendard-Bold',
   bodyExtraBold: 'Pretendard-ExtraBold',
   bodyBlack: 'Pretendard-Black',
+  splashWordmark: 'Fredoka_600SemiBold',
 } as const;
 
 export const Spacing = {
