@@ -43,6 +43,14 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: yarn
       - run: yarn install --immutable
+      - name: Write Firebase config for local config introspect (dev)
+        env:
+          PLIST_B64: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+          JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+        run: |
+          mkdir -p config/dev/firebase
+          echo "$PLIST_B64" | base64 --decode > config/dev/firebase/GoogleService-Info.plist
+          echo "$JSON_B64" | base64 --decode > config/dev/firebase/google-services.json
       - name: EAS Build (staging, all)
         run: eas build --profile staging --platform all --non-interactive --wait
       - name: Write Play service account
