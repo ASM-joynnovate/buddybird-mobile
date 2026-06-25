@@ -1,0 +1,2 @@
+# 누적 문서: 양쪽 추가 줄을 모두 보존해 머지 충돌 방지
+docs/POLICY-HISTORY.md merge=union
