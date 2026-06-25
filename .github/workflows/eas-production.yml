@@ -70,9 +70,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: yarn
       - run: yarn install --immutable
-      - name: EAS Build (production, Android)
-        run: eas build --profile production --platform android --non-interactive --wait --message "${{ needs.release-gate.outputs.tag }}"
-      # submit 없음 — 운영 출시는 수동 게이트
+      - name: EAS Build (production, Android + iOS)
+        run: eas build --profile production --platform all --non-interactive --wait --message "${{ needs.release-gate.outputs.tag }}"
+      # submit 없음 — 운영 출시는 수동 게이트 (Android: Play promote / iOS: 로컬 eas submit + App Store 심사)
 
   tag-release:
     name: Tag + GitHub Release
