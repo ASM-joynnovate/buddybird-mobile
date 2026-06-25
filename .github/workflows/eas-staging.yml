@@ -51,6 +51,14 @@ jobs:
         run: echo "$SA_B64" | base64 --decode > /tmp/play-service-account.json
       - name: EAS Submit (Play internal track)
         run: eas submit --profile staging --platform android --non-interactive --latest
+      - name: EAS Build (staging, iOS)
+        run: eas build --profile staging --platform ios --non-interactive --wait
+      - name: Write ASC API key
+        env:
+          ASC_KEY_B64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+        run: echo "$ASC_KEY_B64" | base64 --decode > /tmp/asc-api-key.p8
+      - name: EAS Submit (TestFlight internal)
+        run: eas submit --profile staging --platform ios --non-interactive --latest
 
   notify-result:
     name: Notify Slack (Result)
