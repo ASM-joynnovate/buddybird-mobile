@@ -80,9 +80,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     userInterfaceStyle: 'automatic',
 
     ios: {
-        supportsTablet: true,
+        supportsTablet: false,
         bundleIdentifier: BUNDLE_ID,
         googleServicesFile: IOS_GOOGLE_SERVICES_FILE,
+        // HTTPS/TLS·OS 표준 암호화만 사용 (Firebase 포함) — 수출규정 면제.
+        // App Store 빌드가 Missing Compliance 대신 Ready to Submit 으로 들어오게 한다.
+        config: {
+            usesNonExemptEncryption: false,
+        },
         entitlements: {
             'aps-environment': IS_DEV ? 'development' : 'production',
         },
