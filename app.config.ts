@@ -80,7 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     userInterfaceStyle: 'automatic',
 
     ios: {
-        supportsTablet: false,
+        supportsTablet: true,
         bundleIdentifier: BUNDLE_ID,
         googleServicesFile: IOS_GOOGLE_SERVICES_FILE,
         // HTTPS/TLS·OS 표준 암호화만 사용 (Firebase 포함) — 수출규정 면제.
