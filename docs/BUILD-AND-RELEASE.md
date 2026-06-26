@@ -771,20 +771,24 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 마지막 reconcile 이후로는 back-merge가 영구히 없다.
 GitHub 측 작업(브랜치 삭제·ruleset·default branch)은 외부 상태 변경이므로 관리자가 직접 실행한다.
 
+ruleset의 `deletion` 차단이 켜져 있으므로, 브랜치보다 ruleset을 먼저 삭제해야 한다.
+default branch는 삭제할 수 없으므로 dev/staging 삭제 전에 main으로 전환해야 한다.
+
 ```bash
 # 1. CI/CD 리팩토링 변경셋을 dev에 머지 (PR)
 # 2. dev → main 마지막 reconcile (PR, 생애 마지막 promote)
 
-# 3. default branch를 main으로 전환
+# 3. default branch를 main으로 전환 (default branch는 삭제 불가하므로 선행 필수)
 gh repo edit <owner>/<repo> --default-branch main
 
-# 4. 장수 환경 브랜치 삭제
-git push origin --delete dev staging
-
-# 5. 폐지된 ruleset 삭제 (id는 `gh api repos/<owner>/<repo>/rulesets`로 확인)
+# 4. 폐지될 ruleset 먼저 삭제 (id는 `gh api repos/<owner>/<repo>/rulesets`로 확인)
+#    deletion 차단 규칙을 풀어야 다음 단계의 브랜치 삭제가 통과한다
 gh api -X DELETE repos/<owner>/<repo>/rulesets/<dev-ruleset-id>
 gh api -X DELETE repos/<owner>/<repo>/rulesets/<staging-ruleset-id>
 #    main-branch-protection ruleset은 유지 (§12.10, required checks 동일)
+
+# 5. 장수 환경 브랜치 삭제
+git push origin --delete dev staging
 ```
 
 이후 모든 작업은 `feat/* → main` PR이며, 운영 출시는 `git tag v*`다.
