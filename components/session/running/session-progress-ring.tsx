@@ -3,10 +3,17 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { cancelAnimation, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Circle, Svg } from 'react-native-svg';
 
+import { BuddyBird } from '@/components/mascot/buddy-bird';
+import { BuddyBirdColors, Fonts, Motion } from '@/constants/theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const RADIUS = 96;
+const RADIUS = 117;
 const CIRCUM = 2 * Math.PI * RADIUS;
+const RING_SIZE = 252;
+const RING_CENTER = RING_SIZE / 2;
+const RING_STROKE = 18;
 
 interface SessionProgressRingProps {
   isLearning: boolean;
@@ -16,41 +23,60 @@ interface SessionProgressRingProps {
 }
 
 export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabel }: SessionProgressRingProps) {
+  const reducedMotion = useReducedMotion();
   const animatedOffset = useSharedValue(CIRCUM);
+  const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
+
   useEffect(() => {
     if (phaseProgress === 0) {
-      animatedOffset.value = CIRCUM;
+      animatedOffset.set(CIRCUM);
     } else {
-      animatedOffset.value = withTiming(CIRCUM * (1 - phaseProgress), { duration: 950 });
+      animatedOffset.set(
+        withTiming(CIRCUM * (1 - phaseProgress), { duration: reducedMotion ? 0 : Motion.progressMs })
+      );
     }
-  }, [phaseProgress, animatedOffset]);
+  }, [phaseProgress, animatedOffset, reducedMotion]);
   useEffect(() => {
     return () => {
       cancelAnimation(animatedOffset);
     };
   }, [animatedOffset]);
-  const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: animatedOffset.value }));
+  const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: animatedOffset.get() }));
 
   return (
     <View style={styles.wrapper}>
-      <Svg width={240} height={240}>
-        <Circle cx={120} cy={120} r={RADIUS} stroke="rgba(255,255,255,0.07)" strokeWidth={5} fill="none" />
-        <AnimatedCircle
-          cx={120}
-          cy={120}
+      <Svg width={RING_SIZE} height={RING_SIZE}>
+        <Circle
+          cx={RING_CENTER}
+          cy={RING_CENTER}
           r={RADIUS}
-          stroke={isLearning ? '#5EEAD4' : '#FDBA74'}
-          strokeWidth={5}
+          stroke={BuddyBirdColors.surface2}
+          strokeWidth={RING_STROKE}
+          fill="none"
+        />
+        <AnimatedCircle
+          cx={RING_CENTER}
+          cy={RING_CENTER}
+          r={RADIUS}
+          stroke={accent}
+          strokeWidth={RING_STROKE}
           fill="none"
           strokeDasharray={CIRCUM}
           strokeLinecap="round"
-          transform="rotate(-90 120 120)"
+          transform={`rotate(-90 ${RING_CENTER} ${RING_CENTER})`}
           animatedProps={animatedProps}
         />
       </Svg>
       <View style={styles.center}>
-        <Text style={styles.word}>{word}</Text>
-        <Text style={[styles.timer, { color: isLearning ? '#5EEAD4' : '#FDBA74' }]}>
+        <BuddyBird size={60} color={accent} animation="bounce" />
+        <Text
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
+          style={isLearning ? styles.word : styles.restTitle}>
+          {isLearning ? word : '잠시 쉬어요'}
+        </Text>
+        <Text style={styles.timer}>
           {timerLabel}
         </Text>
       </View>
@@ -67,6 +93,7 @@ const styles = StyleSheet.create({
   center: {
     alignItems: 'center',
     bottom: 0,
+    gap: 8,
     justifyContent: 'center',
     left: 0,
     position: 'absolute',
@@ -74,16 +101,28 @@ const styles = StyleSheet.create({
     top: 0,
   },
   word: {
-    color: '#FAF6F0',
-    fontSize: 60,
-    fontWeight: '700',
-    letterSpacing: -2,
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 30,
+    fontWeight: '900',
+    letterSpacing: 0,
     textAlign: 'center',
+    width: 170,
+  },
+  restTitle: {
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textAlign: 'center',
+    width: 170,
   },
   timer: {
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginTop: 10,
+    color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 0,
   },
 });

@@ -22,10 +22,6 @@ export async function getOrCreateInstallationId(): Promise<string> {
   return fresh;
 }
 
-export async function clearInstallationId(): Promise<void> {
-  await AsyncStorage.removeItem(INSTALLATION_ID_KEY);
-}
-
 function isUuidLike(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }

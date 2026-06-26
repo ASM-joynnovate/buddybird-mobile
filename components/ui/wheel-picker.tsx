@@ -8,17 +8,18 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import { BuddyBirdColors } from '@/constants/theme';
+import { BuddyBirdColors, withAlpha } from '@/constants/theme';
 
-const ITEM_H = 44;
+const ITEM_H = 40;
 
 interface WheelPickerProps {
+  accessibilityLabel: string;
   options: number[];
   selected: number;
   onChange: (value: number) => void;
 }
 
-export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
+export function WheelPicker({ accessibilityLabel, options, selected, onChange }: WheelPickerProps) {
   const ref = useRef<ScrollView>(null);
   const scrollingRef = useRef(false);
   const programmaticRef = useRef(false);
@@ -63,6 +64,10 @@ export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
 
   return (
     <ScrollView
+      accessible
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="adjustable"
+      accessibilityValue={{ now: selected, text: String(selected) }}
       ref={ref}
       style={styles.wheel}
       contentContainerStyle={styles.wheelContent}
@@ -88,11 +93,11 @@ export function WheelPicker({ options, selected, onChange }: WheelPickerProps) {
 
 const styles = StyleSheet.create({
   wheel: {
-    height: ITEM_H * 3,
+    height: ITEM_H * 5,
     width: 64,
   },
   wheelContent: {
-    paddingVertical: ITEM_H,
+    paddingVertical: ITEM_H * 2,
   },
   wheelItemWrapper: {
     alignItems: 'center',
@@ -100,12 +105,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   wheelItem: {
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   wheelItemFaded: {
-    color: 'rgba(31,58,61,0.2)',
-    fontWeight: '400',
+    color: withAlpha(BuddyBirdColors.ink, 0.35),
+    fontWeight: '700',
+    fontSize: 18,
   },
 });

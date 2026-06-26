@@ -1,6 +1,6 @@
 import { getLocales } from 'expo-localization';
 import { I18n } from 'i18n-js';
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, type ReactNode, use, useEffect, useMemo, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
@@ -74,7 +74,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
 }
 
 export function useI18n(): I18nContextValue {
-  const contextValue = useContext(I18nContext);
+  const contextValue = use(I18nContext);
 
   if (!contextValue) {
     throw new Error('useI18n must be used within I18nProvider');

@@ -1,12 +1,20 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BuddyBirdColors, Radii } from '@/constants/theme';
-import { catColors } from '@/features/training/session-words-mock';
+import { LedgeView, Pressable3D } from '@/components/ui/ledge-surface';
+import {
+  BuddyBirdColors,
+  Fonts,
+  Radii,
+  categoryColor,
+  categoryTintStrong,
+  type BuddyBirdCategory,
+} from '@/constants/theme';
+import type { WordTag } from '@/features/word-library/word-library-types';
 
 interface WordListItemProps {
   label: string;
-  tag: string;
+  tag: WordTag;
   sourceLabel: string;
   isPreset: boolean;
   canPreview: boolean;
@@ -25,120 +33,152 @@ export function WordListItem({
   onEdit,
   onPlay,
 }: WordListItemProps) {
-  const col = catColors[tag] ?? BuddyBirdColors.secondary;
+  const color = categoryColor[tag as BuddyBirdCategory] ?? BuddyBirdColors.primary;
+  const tint = categoryTintStrong[tag as BuddyBirdCategory] ?? BuddyBirdColors.orangeTint;
+  const sourceIcon = isPreset ? 'speaker.wave.2.fill' : 'mic';
+
   return (
-    <View style={styles.card}>
+    <LedgeView baseStyle={styles.cardBase} depth="card" faceStyle={styles.card}>
+      <View style={[styles.avatar, { backgroundColor: tint }]}>
+        <Text style={[styles.avatarText, { color }]}>{label.charAt(0)}</Text>
+      </View>
       <View style={styles.info}>
-        <Text style={styles.word}>{label}</Text>
-        <View style={styles.tagsRow}>
-          <View style={[styles.sourcePill, isPreset ? styles.sourcePillPreset : styles.sourcePillRecording]}>
-            <Text style={[styles.sourcePillText, isPreset ? styles.sourcePillTextPreset : styles.sourcePillTextRecording]}>
-              {sourceLabel}
-            </Text>
-          </View>
-          <View style={[styles.catPill, { backgroundColor: `${col}18` }]}>
-            <Text style={[styles.catPillText, { color: col }]}>{tag}</Text>
+        <View style={styles.titleRow}>
+          <Text numberOfLines={1} style={styles.word}>{label}</Text>
+          <View style={[styles.catPill, { backgroundColor: tint }]}>
+            <Text style={[styles.catPillText, { color }]}>{tag}</Text>
           </View>
         </View>
+        <View style={styles.sourceRow}>
+          <IconSymbol name={sourceIcon} size={13} color={BuddyBirdColors.inkMuted} />
+          <Text style={styles.sourceText}>{sourceLabel}</Text>
+        </View>
       </View>
-      <TouchableOpacity
-        style={[styles.editBtn, isPreset && { opacity: 0.3 }]}
-        activeOpacity={0.7}
-        disabled={isPreset}
+      <Pressable
+        accessibilityLabel={`${label} 수정`}
+        accessibilityRole="button"
+        hitSlop={8}
         onPress={onEdit}
-      >
-        <IconSymbol name={'pencil'} size={16} color={BuddyBirdColors.primary} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.playBtn, !canPreview && { opacity: 0.4 }]}
-        activeOpacity={0.7}
+        style={styles.editBtn}>
+        <IconSymbol name="pencil" size={17} color={BuddyBirdColors.inkMuted} />
+      </Pressable>
+      <Pressable3D
+        accessibilityLabel={`${label} 미리듣기`}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !canPreview }}
+        baseStyle={styles.playBtnBase}
         disabled={!canPreview}
-        onPress={onPlay}
-      >
-        <IconSymbol name={isPlaying ? 'stop.fill' : 'play.fill'} size={16} color={BuddyBirdColors.primary} />
-      </TouchableOpacity>
-    </View>
+        depth="chip"
+        faceStyle={[styles.playBtn, !canPreview && styles.disabledPreviewBtn]}
+        hitSlop={8}
+        onPress={onPlay}>
+        <IconSymbol name={isPlaying ? 'stop.fill' : 'play.fill'} size={16} color={BuddyBirdColors.onDark} />
+      </Pressable3D>
+    </LedgeView>
   );
 }
 
 const styles = StyleSheet.create({
+  cardBase: {
+    backgroundColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.lg,
+  },
   card: {
     alignItems: 'center',
     backgroundColor: BuddyBirdColors.surface,
-    borderColor: BuddyBirdColors.surfaceMuted,
-    borderRadius: Radii.sectionCard,
-    borderWidth: 0.5,
+    borderColor: BuddyBirdColors.borderMuted,
+    borderRadius: Radii.lg,
+    borderWidth: 2,
     flexDirection: 'row',
     gap: 14,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  avatar: {
+    alignItems: 'center',
+    borderRadius: 13,
+    flexShrink: 0,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  avatarText: {
+    fontFamily: Fonts.bodyBlack,
+    fontSize: 22,
+    fontWeight: '900',
   },
   info: {
     alignItems: 'flex-start',
     flex: 1,
     flexDirection: 'column',
-    gap: 6,
+    gap: 3,
+    minWidth: 0,
   },
-  tagsRow: {
+  titleRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
+    maxWidth: '100%',
   },
   word: {
-    color: BuddyBirdColors.primary,
+    color: BuddyBirdColors.ink,
+    flexShrink: 1,
+    fontFamily: Fonts.bodyBlack,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   catPill: {
     borderRadius: Radii.full,
+    flexShrink: 0,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   catPillText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 10,
+    fontWeight: '800',
   },
-  sourcePill: {
-    borderRadius: Radii.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  sourceRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
   },
-  sourcePillPreset: {
-    backgroundColor: 'transparent',
-    borderColor: BuddyBirdColors.borderMuted,
-    borderWidth: 1,
-  },
-  sourcePillRecording: {
-    backgroundColor: 'transparent',
-    borderColor: BuddyBirdColors.feather,
-    borderWidth: 1,
-  },
-  sourcePillText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  sourcePillTextPreset: {
-    color: BuddyBirdColors.kickerMuted,
-  },
-  sourcePillTextRecording: {
-    color: BuddyBirdColors.tertiaryDeep,
+  sourceText: {
+    color: BuddyBirdColors.inkMuted,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   editBtn: {
     alignItems: 'center',
-    backgroundColor: BuddyBirdColors.surfaceMuted,
+    backgroundColor: BuddyBirdColors.surface,
+    borderColor: BuddyBirdColors.borderMuted,
     borderRadius: Radii.full,
+    borderWidth: 2,
     flexShrink: 0,
-    height: 38,
+    height: 40,
     justifyContent: 'center',
-    width: 38,
+    width: 40,
   },
   playBtn: {
     alignItems: 'center',
-    backgroundColor: BuddyBirdColors.surfaceMuted,
+    backgroundColor: BuddyBirdColors.primary,
+    borderColor: BuddyBirdColors.primaryShadow,
     borderRadius: Radii.full,
+    borderWidth: 1.5,
     flexShrink: 0,
-    height: 38,
+    height: 40,
     justifyContent: 'center',
-    width: 38,
+    width: 40,
+  },
+  playBtnBase: {
+    backgroundColor: BuddyBirdColors.primaryShadow,
+    borderRadius: Radii.full,
+  },
+  disabledBtn: {
+    opacity: 0.3,
+  },
+  disabledPreviewBtn: {
+    opacity: 0.4,
   },
 });

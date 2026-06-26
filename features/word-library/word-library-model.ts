@@ -9,7 +9,7 @@ export function createWordEntry(input: CreateWordEntryInput, nowIso: string): Wo
     presetKey: input.presetKey,
     audioUri: input.audioUri,
     transformedAudioUri: input.transformedAudioUri,
-    pitchTransform: input.pitchTransform,
+    pitchProfileId: input.pitchProfileId,
     createdAt: nowIso,
     updatedAt: nowIso,
   };

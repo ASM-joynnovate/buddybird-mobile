@@ -174,10 +174,6 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 wc -l app/session-active.tsx          # ≤100
 wc -l app/\(tabs\)/session-setup.tsx  # ≤80
 
-# 오디오 URI 영구화: 모든 *-storage.ts가 normalize/hydrate를 거치는지 (§6)
-rg -l "AsyncStorage\.(setItem|getItem)" features/*/word-library*storage*.ts features/*/training*storage*.ts features/word-library/*-storage.ts features/training/*-storage.ts 2>/dev/null \
-  | xargs -I {} sh -c 'rg -q "normalizeAudioUriForStorage|hydrateAudioUriFromStorage" "{}" || echo "MISSING normalize/hydrate: {}"'
-
 # expo 네이티브 의존성 SDK 정합성 (§7) — CI `_verify.yml`에서도 강제
 npx expo install --check
 ```
@@ -191,10 +187,10 @@ iOS는 앱 컨테이너 UUID를 빌드·재설치·OS 업데이트 시점에 변
 규칙 (단정문):
 
 - AsyncStorage에 저장되는 `WordEntry.audioUri` / `WordEntry.transformedAudioUri` / `TrainingWord.audioUri` / `TrainingWord.transformedAudioUri` / `AudioRecording.originalUri` / `AudioRecording.transformedUri` 등 **모든 오디오 URI 필드**는 `recording://<fileName>` 또는 `preset://<label>` 형식만 영구화 — 절대 `file://` URI 저장 금지.
-- 변환은 storage 계층에서만: `features/audio/audio-file-storage.ts`의 `normalizeAudioUriForStorage` (write 직전) / `hydrateAudioUriFromStorage` (read 직후) 를 반드시 거침. UI/도메인 코드는 in-memory 절대 URI를 그대로 사용.
+- 변환은 영속 seam(`features/shared/persist-keyed-store.ts`의 `persistKeyedStore`)이 소유한다. storage 모듈은 `audioUriCollections`로 변환 대상 컬렉션·필드만 선언하고, `normalizeAudioUriForStorage` / `hydrateAudioUriFromStorage`를 직접 호출하지 않는다. seam이 write 직전 정규화 / read 직후 복원을 자동 수행한다. UI/도메인 코드는 in-memory 절대 URI를 그대로 사용.
 - 재생/세션 직전 `recordingFileExists(uri)`로 stale·missing 가드 — 깨진 entry는 재생 비활성화 또는 무음 진행, 크래시 금지.
 - preset URI(`preset://<label>`)는 변환·검사 대상에서 제외 (pass-through).
-- 신규 storage 모듈 추가 시 §5 검증 grep에 의해 normalize/hydrate 누락이 자동 검출됨.
+- 신규 storage 모듈은 seam의 `audioUriCollections` 선언만으로 변환 invariant가 인터페이스 차원에서 강제됨 — 별도 검증 grep 불필요.
 
 신규 영구화 대상이 늘어나면 동일 패턴을 적용하고 본 §과 [SHARED-MODULES §6.1](./SHARED-MODULES.md#61-오디오-파일-저장-utility--featuresaudioaudio-file-storagets)을 함께 갱신하세요.
 

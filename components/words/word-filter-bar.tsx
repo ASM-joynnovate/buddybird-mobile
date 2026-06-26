@@ -1,7 +1,7 @@
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
-import { catColors } from '@/features/training/session-words-mock';
+import { Chip, type ChipTone } from '@/components/ui/chip';
+import { Spacing } from '@/constants/theme';
 
 interface WordFilterBarProps<T extends string> {
   cats: readonly T[];
@@ -15,8 +15,7 @@ export function WordFilterBar<T extends string>({ cats, active, onChange }: Word
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
-      style={styles.scroll}
-    >
+      style={styles.scroll}>
       {cats.map((c) => (
         <FilterChip key={c} cat={c} active={active === c} onPress={() => onChange(c)} />
       ))}
@@ -31,18 +30,7 @@ interface FilterChipProps {
 }
 
 export function FilterChip({ cat, active, onPress }: FilterChipProps) {
-  const color = catColors[cat] ?? BuddyBirdColors.secondary;
-  return (
-    <Pressable
-      style={[
-        styles.chip,
-        active ? { backgroundColor: `${color}18`, borderColor: color } : styles.chipInactive,
-      ]}
-      onPress={onPress}
-    >
-      <Text style={[styles.chipText, active && { color }]}>{cat}</Text>
-    </Pressable>
-  );
+  return <Chip active={active} label={cat} onPress={onPress} tone={toneByCategory[cat] ?? 'primary'} />;
 }
 
 const styles = StyleSheet.create({
@@ -51,22 +39,17 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   row: {
-    gap: 6,
+    gap: 8,
     paddingHorizontal: Spacing.screenX,
-    paddingVertical: 4,
-  },
-  chip: {
-    borderRadius: Radii.full,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  chipInactive: {
-    borderColor: 'rgba(31,58,61,0.15)',
-  },
-  chipText: {
-    color: BuddyBirdColors.kickerMuted,
-    fontSize: 13,
-    fontWeight: '500',
+    paddingTop: 2,
+    paddingBottom: 10,
   },
 });
+
+const toneByCategory: Record<string, ChipTone> = {
+  전체: 'primary',
+  인사: 'primary',
+  음식: 'blue',
+  이름: 'purple',
+  기타: 'primary',
+};

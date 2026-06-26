@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
@@ -43,7 +43,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingSession, setPendingSessionState] = useState<PendingSession | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
-  const writeQueueRef = useRef(Promise.resolve());
+  const writeQueueRef = useRef<Promise<void> | null>(null);
 
   const setPendingSession = useCallback((next: PendingSession): void => {
     setPendingSessionState(next);
@@ -91,7 +91,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
   }, []);
 
   const enqueueWrite = useCallback((operation: () => Promise<void>): Promise<void> => {
-    const nextWrite = writeQueueRef.current.then(operation, operation);
+    const nextWrite = (writeQueueRef.current ?? Promise.resolve()).then(operation, operation);
     // queue를 깨지 않기 위해 reject를 swallow한다. 호출자에게는 nextWrite로 reject가 전파됨.
     writeQueueRef.current = nextWrite.catch((error: unknown) => {
       reportError(error, { scope: 'training.writeQueue' });
@@ -213,7 +213,7 @@ function cloneRecord<T>(record: Record<string, T>): Record<string, T> {
 }
 
 export function useTrainingData(): TrainingDataContextValue {
-  const context = useContext(TrainingDataContext);
+  const context = use(TrainingDataContext);
 
   if (!context) {
     throw new Error('useTrainingData must be used inside TrainingDataProvider');

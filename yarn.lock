@@ -1249,6 +1249,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo-google-fonts/fredoka@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@expo-google-fonts/fredoka@npm:0.4.1"
+  checksum: 10c0/e4fe8c8de6b2972d22fe2b076cfbb6ed57b545f6e0352faee81c402ba0c6e84f9a53e82601fbac89a7caaa058971de16363e71ad276947a3eb814400d175a134
+  languageName: node
+  linkType: hard
+
+"@expo-google-fonts/nunito@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@expo-google-fonts/nunito@npm:0.4.2"
+  checksum: 10c0/b22712e9892d47561b0d96bfb625fea24eeda3f34531bee88e781827892740e063dcde1ddf4615b097ba0b436e765f5101fbc4788430574369b6e5f4c8860eb3
+  languageName: node
+  linkType: hard
+
 "@expo/apple-utils@npm:2.1.19":
   version: 2.1.19
   resolution: "@expo/apple-utils@npm:2.1.19"
@@ -2965,6 +2979,32 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
   checksum: 10c0/4b30ec8cd56c5fd9a661f088230af01e0c1a3888d11ffb6b47639700f71225be21d1f7e168048d6d4f9449207b978a235c07c8f15c07705685d16dc06280e9d9
+  languageName: node
+  linkType: hard
+
+"@lodev09/react-native-true-sheet@npm:^3.11.0":
+  version: 3.11.0
+  resolution: "@lodev09/react-native-true-sheet@npm:3.11.0"
+  peerDependencies:
+    "@radix-ui/react-dialog": ">=1"
+    "@radix-ui/react-presence": ">=1"
+    "@react-navigation/core": ">=7"
+    react: "*"
+    react-native: "*"
+    react-native-reanimated: ">=4"
+    react-native-worklets: "*"
+  peerDependenciesMeta:
+    "@radix-ui/react-dialog":
+      optional: true
+    "@radix-ui/react-presence":
+      optional: true
+    "@react-navigation/core":
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 10c0/3d7106465b294efdcf5504b021b6c28dc6c6f04d9ce7b7dab25d4ec31cffc6286ea2f33e4e217edfac452de26977f6673df50670351b3edc6a946eab3da12f29
   languageName: node
   linkType: hard
 
@@ -5712,7 +5752,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "buddybird-mobile@workspace:."
   dependencies:
+    "@expo-google-fonts/fredoka": "npm:^0.4.1"
+    "@expo-google-fonts/nunito": "npm:^0.4.2"
     "@expo/vector-icons": "npm:^15.0.3"
+    "@lodev09/react-native-true-sheet": "npm:^3.11.0"
     "@microsoft/react-native-clarity": "npm:^4.6.2"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/cli": "npm:20.1.3"

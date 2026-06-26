@@ -36,6 +36,7 @@
 | EAS channel | `development` / `preview` / `staging` | `production` |
 | EAS environment (env store) | `development` / `preview` (staging profile 도 `environment: "preview"` 명시로 preview env 공유 — 별도 staging env 미존재) | `production` |
 | distribution | `internal` (dev/preview) / `store` (staging) | `store` |
+| App Store Connect `ascAppId` | `6784253530` (`.dev` 레코드 — TestFlight Internal) | `6783652711` (운영 레코드 — App Store) |
 | CI 트리거 | 없음 (수동) | staging 브랜치 push (staging profile) / `v*.*.*` tag (production profile) |
 
 ## 3. Firebase 프로젝트 구성
@@ -293,6 +294,8 @@ Local Android 빌드는 `android/gradle.properties` 의 `org.gradle.jvmargs` 를
 - [ ] 빌드 profile 이 `production` 이며 `APP_VARIANT=production` 임을 EAS 로그로 확인
 - [ ] 버전 충돌 없음 — `eas.json` 의 `production.autoIncrement: true` 가 빌드 번호를 올린다
 - [ ] dev 빌드가 실수로 prod 채널에 올라가지 않도록 명령어 재확인
+- [ ] (iOS) `app.config.ts` 의 `ios.config.usesNonExemptEncryption: false` 유지 — TestFlight/App Store 빌드가 Missing Compliance 없이 Ready to Submit 으로 진입 (HTTPS/Firebase = 면제 암호화)
+- [ ] (iOS) `supportsTablet: false` — iPhone 전용. 제출 시 iPhone 6.9" 스크린샷만 필요 (iPad 13" 불요)
 
 ### 8.2 빌드 + 제출
 
@@ -416,11 +419,14 @@ config/{env}/android/
 | PR open/edit/sync | `.github/workflows/pr-checks.yml` | PR title commitlint + auto labeler |
 | PR (→ dev) · push `dev` / `main` · weekly Mon 04:00 UTC | `.github/workflows/codeql.yml` | CodeQL JS/TS 보안 스캔 |
 | push `dev` / `staging` / `main` | `ci.yml` | reusable `_verify.yml` 호출 |
-| push `staging` | `.github/workflows/eas-staging.yml` | verify → Slack 시작 알림 → EAS build (staging) → submit (Play internal) → Slack 결과 알림 |
-| push `main` | `.github/workflows/eas-production.yml` | 버전 게이트 (이미 태그된 버전이면 skip) → verify → Slack 시작 → EAS build (production) → 성공 시 tag `vX.Y.Z` + GitHub Release 자동 생성 → Slack 결과. submit 없음 — 수동 promote |
+| push `staging` | `.github/workflows/eas-staging.yml` | verify → Slack 시작 알림 → EAS build (staging, Android+iOS) → submit (Android Play internal + iOS TestFlight Internal) → Slack 결과 알림 |
+| push `main` | `.github/workflows/eas-production.yml` | 버전 게이트 (이미 태그된 버전이면 skip) → verify → Slack 시작 → EAS build (production, Android+iOS) → 성공 시 tag `vX.Y.Z` + GitHub Release 자동 생성 → Slack 결과. submit 없음 — 수동 promote |
 | weekly Sun 03:00 KST | `.github/workflows/cleanup-artifacts.yml` | 14일 초과 artifact 자동 삭제 |
 
-> ⚠️ **1단계 (현재): Android only.** iOS 워크플로우는 Apple Developer Program 가입 후 활성화한다 (자세한 절차는 git history 의 plan `expo-eas-staging-steady-trinket` Phase 6 참고). 가입 시점에 워크플로우의 `--platform android` 를 `--platform all` 로 전환하고, EAS remote 의 iOS `buildNumber` 카운터를 `eas build:version:set --platform ios --profile {staging|production}` 으로 초기화한다 (`autoIncrement: true` 는 이미 iOS+Android 둘 다 증가시키므로 schema 변경 불필요).
+> ✅ **iOS 출시 경로 활성화 (2026-06-25, Apple Developer Program 가입 완료).**
+> - **staging (개발계)**: `eas-staging.yml` 이 Android(Play internal)에 더해 iOS 도 자동 빌드 → **TestFlight Internal** 자동 제출한다. `.dev` Bundle ID 용 별도 App Store Connect 앱 레코드(`ascAppId` 6784253530)와 Internal 테스터 그룹을 사용하며, 내부 테스터 전용이라 Beta App Review 가 없어 push 후 수 분 내 배포된다. ASC API Key(.p8)는 GitHub Secret `ASC_API_KEY_P8_BASE64` 로 주입(§12.4).
+> - **production (운영계)**: `eas-production.yml` 이 main push 시 **Android + iOS 둘 다 자동 빌드**(`--platform all`)한다. **submit 은 없음** — 운영 출시는 수동 게이트다. Android 는 Play Console 에서 production track promote, iOS 는 빌드 산출물을 로컬에서 `eas submit --profile production --platform ios --latest` 로 App Store Connect 제출 후 메타데이터·심사. 서명·ASC 자격증명은 EAS-managed (prod 빌드 시점에 생성, CI 가 재사용).
+> - **buildNumber**: `autoIncrement: true` 가 iOS+Android 카운터를 둘 다 +1 하므로 schema 변경 불필요. iOS 카운터는 첫 prod iOS 빌드 시점부터 remote 에서 관리된다.
 
 ### 12.2 시멘틱 버전 정책 (수동 bump + 버전 게이트)
 
@@ -468,9 +474,7 @@ CHANGELOG.md 파일은 두지 않는다 — 릴리즈 노트는 GitHub Releases 
 |---|---|---|
 | `GOOGLE_SERVICES_INFO_PLIST_DEV` / `_PROD` | file | (기존) Firebase iOS config — EAS Build 시 자동 주입 |
 | `GOOGLE_SERVICES_JSON_DEV` / `_PROD` | file | (기존) Firebase Android config — EAS Build 시 자동 주입 |
-| `ASC_API_KEY_P8` *(Phase 6)* | file | iOS submit (TestFlight/App Store) |
-| `ASC_API_KEY_ID` *(Phase 6)* | string | iOS submit |
-| `ASC_API_KEY_ISSUER_ID` *(Phase 6)* | string | iOS submit |
+| ~~`ASC_API_KEY_P8` / `_ID` / `_ISSUER_ID`~~ | — | **iOS submit 자격증명은 EAS Secret 미사용** — staging CI 는 GitHub Secret `ASC_API_KEY_P8_BASE64` + `eas.json` 평문(`ascApiKeyId`/`ascApiKeyIssuerId`/`ascAppId`)으로, prod 로컬 submit 은 EAS-managed credentials 로 처리 (§12.4) |
 
 현재 상태 조회: `eas secret:list --scope account`.
 
@@ -482,6 +486,7 @@ CHANGELOG.md 파일은 두지 않는다 — 릴리즈 노트는 GitHub Releases 
 |---|---|---|
 | `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
 | `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit 용 service account JSON. `.github/workflows/eas-staging.yml` 의 "Write Play service account" step 이 decode 후 `/tmp/play-service-account.json` 으로 작성하면 `eas.json` 의 `submit.staging.android.serviceAccountKeyPath` 가 이 path 를 참조 |
+| `ASC_API_KEY_P8_BASE64` | base64 | iOS TestFlight submit 용 App Store Connect API Key (.p8). `eas-staging.yml` 의 "Write ASC API key" step 이 decode 후 `/tmp/asc-api-key.p8` 으로 작성하면 `eas.json` 의 `submit.staging.ios.ascApiKeyPath` 가 이 path 를 참조. 등록: `base64 -i AuthKey_XXXX.p8 \| gh secret set ASC_API_KEY_P8_BASE64 --repo <owner>/<repo>` |
 | `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL (단일 채널에 묶임). `_notify-slack.yml` reusable workflow 가 staging/production 빌드 시작·결과 알림 전송용으로 사용. 미설정 시 알림 step 은 `continue-on-error` 로 fail 처리되지만 빌드는 정상 진행 |
 
 등록 명령 (1회성, 자격증명 회전 시에도 동일):
@@ -498,15 +503,16 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 **개발계 (staging) — 자동 끝까지**
 1. `feature/* → dev` PR merge (CI: lint + typecheck)
 2. `dev → staging` PR merge → push 즉시 `eas-staging.yml` 자동 트리거
-3. EAS build (staging profile, Android) → 자동 Play internal track 제출
-4. 5~20분 후 Play Console internal track 에서 사내 사용자가 설치/검증
+3. EAS build (staging profile, Android+iOS) → Android 는 Play internal track, iOS 는 TestFlight Internal 자동 제출 (내부 테스터 전용 = Beta App Review 없음)
+4. 5~20분 후 Play Console internal track / TestFlight 에서 사내 사용자가 설치/검증
 
 **운영계 (production) — 빌드 자동, 출시 수동 게이트**
 1. 릴리즈 결정 시 dev 에서 `yarn release:bump <patch|minor|major>` 커밋 (별도 PR 또는 promote 직전 PR 에 포함)
 2. `dev → staging` PR merge → internal track 검증 (이 시점부터 staging 도 새 version 문자열)
-3. `staging → main` PR merge → `eas-production.yml` 버전 게이트 통과 → EAS build (production profile, Android) — submit 없음
+3. `staging → main` PR merge → `eas-production.yml` 버전 게이트 통과 → EAS build (production profile, Android+iOS) — submit 없음
 4. 빌드 성공 시 tag `vX.Y.Z` + GitHub Release (`--generate-notes`) 자동 생성
 5. **사람이 Play Console 에서 production track promote** (의도적 수동 게이트)
+6. **iOS 운영 출시 (수동, CI 자동화 안 됨)**: 로컬에서 `eas build --profile production --platform ios` → `eas submit --profile production --platform ios --latest` → App Store Connect 에서 메타데이터·스크린샷(iPhone 6.9")·App Privacy 설문 입력 → Submit for Review. 서명·ASC 자격증명은 EAS-managed
 
 ### 12.6 핫픽스 절차
 
@@ -515,7 +521,7 @@ base64 -i <path-to-service-account.json> | gh secret set PLAY_SERVICE_ACCOUNT_BA
 2. `fix(...)` 또는 `fix!:` (BREAKING) commit + **`yarn release:bump patch` 커밋 포함 (버전 게이트 통과에 필수)**
 3. `hotfix/* → main` PR (CODEOWNER review 필수)
 4. merge 시 버전 게이트 통과 → 자동 production 빌드 → tag + GitHub Release 자동 생성 → 수동 promote
-5. **hotfix 머지 후 `main → staging` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
+5. **hotfix 머지 후 `main → staging → dev` back-merge 의무 (핫픽스 한정)** — staging 우회 흐름이라 staging 이 main 의 hotfix commit 을 안 가짐. back-merge 없으면 다음 staging 빌드가 hotfix 회귀를 일으킴. **`dev` 까지 전파하지 않으면 hotfix 의 `release:bump patch` 커밋이 dev 에 없어 다음 릴리스의 `package.json` version 충돌이 재발하므로 `staging` 에서 멈추지 말고 `dev` 까지 back-merge 한다.** (일반 release 의 main → staging back-merge 는 의무 아님 — §12.2 staging version 동기화 정책)
 
 ### 12.7 롤백 절차
 

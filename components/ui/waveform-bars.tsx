@@ -1,7 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-const BAR_HEIGHTS = [18, 32, 24, 48, 30, 56, 22, 38, 28, 50, 20, 44, 34, 26, 52, 24, 40, 36, 18, 42, 28, 54, 22, 46, 32, 20, 50, 30, 44, 24];
+import { BuddyBirdColors, Motion, Spacing } from '@/constants/theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+
+const BAR_HEIGHTS = [
+  18, 32, 24, 48, 30, 56, 22, 38, 28, 50, 20, 44, 34, 26, 52, 24,
+  40, 36, 18, 42, 28, 54, 22, 46, 32, 20, 50, 30, 44, 24, 34, 52,
+  26, 46, 22, 58, 30, 48, 18, 42, 28, 54, 24, 38, 32, 50, 20, 44,
+];
 
 interface WaveformBarsProps {
   color?: string;
@@ -10,18 +17,31 @@ interface WaveformBarsProps {
   animated?: boolean;
   frozen?: boolean;
   flatLine?: boolean;
+  fill?: boolean;
 }
 
-export function WaveformBars({ color = '#2A9D8F', height = 60, barCount = 28, animated = false, frozen = false, flatLine = false }: WaveformBarsProps) {
+export function WaveformBars({
+  color = BuddyBirdColors.secondary,
+  height = 60,
+  barCount = 28,
+  animated = false,
+  frozen = false,
+  flatLine = false,
+  fill = false,
+}: WaveformBarsProps) {
+  const reducedMotion = useReducedMotion();
   const bars = BAR_HEIGHTS.slice(0, barCount);
   const maxH = Math.max(...bars);
 
-  const animValues = useRef<Animated.Value[]>(
-    bars.map((h) => new Animated.Value((h / maxH) * height * 0.9 + height * 0.1))
-  ).current;
+  // Animated.Value 배열은 렌더마다 새로 만들지 않고 첫 렌더에서 한 번만 초기화한다.
+  const animValuesRef = useRef<Animated.Value[]>(null!);
+  if (animValuesRef.current === null) {
+    animValuesRef.current = bars.map((h) => new Animated.Value((h / maxH) * height * 0.9 + height * 0.1));
+  }
+  const animValues = animValuesRef.current;
 
   useEffect(() => {
-    if (animated) {
+    if (animated && !reducedMotion) {
       let active = true;
       function animateLoop() {
         if (!active) return;
@@ -30,7 +50,7 @@ export function WaveformBars({ color = '#2A9D8F', height = 60, barCount = 28, an
           const targetNorm = Math.max(0.08, centreWeight * 0.55 + (Math.random() - 0.5) * 0.3);
           return Animated.timing(av, {
             toValue: targetNorm * height * 0.9 + height * 0.1,
-            duration: 180,
+            duration: Motion.baseMs,
             useNativeDriver: false,
           });
         });
@@ -47,7 +67,7 @@ export function WaveformBars({ color = '#2A9D8F', height = 60, barCount = 28, an
     if (flatLine) {
       Animated.parallel(
         animValues.map((av) =>
-          Animated.timing(av, { toValue: 10, duration: 200, useNativeDriver: false })
+          Animated.timing(av, { toValue: 10, duration: reducedMotion ? 0 : Motion.baseMs, useNativeDriver: false })
         )
       ).start();
       return;
@@ -57,24 +77,25 @@ export function WaveformBars({ color = '#2A9D8F', height = 60, barCount = 28, an
       bars.map((h, i) =>
         Animated.timing(animValues[i], {
           toValue: (h / maxH) * height * 0.9 + height * 0.1,
-          duration: 200,
+          duration: reducedMotion ? 0 : Motion.baseMs,
           useNativeDriver: false,
         })
       )
     ).start();
-  }, [animated, frozen, flatLine, height]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [animated, frozen, flatLine, height, reducedMotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <View style={[styles.container, { height }]}>
+    <View style={[styles.container, fill ? styles.containerFill : undefined, { height }]}>
       {animValues.map((animValue, i) => (
         <Animated.View
           key={i}
           style={[
             styles.bar,
+            fill ? styles.fillBar : styles.fixedBar,
             {
               height: animValue,
               backgroundColor: color,
-              opacity: 1
+              opacity: 1,
             },
           ]}
         />
@@ -87,11 +108,20 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 3,
+    gap: Spacing.waveformGap,
     justifyContent: 'center',
   },
   bar: {
     borderRadius: 2,
+  },
+  fixedBar: {
     width: 4,
+  },
+  fillBar: {
+    flex: 1,
+    minWidth: 1,
+  },
+  containerFill: {
+    width: '100%',
   },
 });
