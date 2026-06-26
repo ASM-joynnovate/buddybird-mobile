@@ -1,7 +1,9 @@
 name: EAS Build & Submit (staging)
 on:
-  push:
-    branches: [staging]
+  workflow_dispatch:
+  # 매 main 머지마다 자동 빌드하려면 주석 해제 (native 빌드 소음·EAS 분 증가)
+  # push:
+  #   branches: [main]
 
 concurrency:
   group: eas-staging

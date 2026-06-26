@@ -131,7 +131,7 @@ commit type 은 더 이상 자동 semver bump 를 결정하지 않습니다 (rel
 
 type 은 여전히 정확하게 작성하세요 — PR title gate (`PR Title (Semantic)`) 차단 기준이며, 릴리즈 시 bump 수준 (fix 만 → patch, feat 포함 → minor) 을 판단하는 근거입니다.
 
-상세 정책은 `docs/BUILD-AND-RELEASE.md` §12.2.
+상세 정책은 `docs/BUILD-AND-RELEASE.md` §12.3.
 
 ### 4.2 책임 단위 분리
 
