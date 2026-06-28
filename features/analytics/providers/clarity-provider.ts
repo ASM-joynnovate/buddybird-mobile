@@ -30,6 +30,13 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
       logLevel: this.config.logLevel ?? Clarity.LogLevel.None,
     });
 
+    // initialize는 즉시 캡처를 시작하므로 ATT 동의 전까지 일시정지한다.
+    // 동의 후 setEnabled(true) → resume()으로 재개(resume은 pause된 경우에만 동작).
+    this.enabled = false;
+    void Clarity.pause().catch((err: unknown) => {
+      console.warn('[analytics.clarity.init]', err);
+    });
+
     this.initialized = true;
   }
 

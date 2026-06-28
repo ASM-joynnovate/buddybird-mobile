@@ -12,7 +12,7 @@ const BRAND_BACKGROUND_COLOR = '#E0010E';
 const SPLASH_BACKGROUND_COLOR = '#DB030F';
 
 const TRACKING_PERMISSION_MESSAGE =
-    '더 나은 학습 경험을 위해 익명화된 사용 통계를 수집합니다. 개인을 식별하지 않으며, 언제든지 거부할 수 있습니다.';
+    '더 나은 학습 경험과 앱 개선을 위해 화면 사용 기록과 익명 사용 통계를 수집합니다. 개인을 식별하는 정보는 수집하지 않으며, 언제든지 거부할 수 있습니다.';
 
 const MICROPHONE_PERMISSION_MESSAGE =
     '버디버드가 반려조 학습용 목소리를 녹음할 수 있도록 마이크 접근을 허용해 주세요.';

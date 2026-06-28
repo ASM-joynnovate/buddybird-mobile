@@ -26,7 +26,8 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
   private readonly crashlytics = getCrashlytics();
 
   async init(): Promise<void> {
-    await setAnalyticsCollectionEnabled(this.analytics, true);
+    // Analytics는 ATT 동의 전까지 켜지 않는다(동의 후 setEnabled가 단일 진입점).
+    // Crashlytics는 추적이 아닌 안정성 진단이라 전 사용자 대상 항상 활성화한다.
     await setCrashlyticsCollectionEnabled(this.crashlytics, true);
   }
 
@@ -55,8 +56,8 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
   }
 
   async setEnabled(enabled: boolean): Promise<void> {
+    // ATT 동의는 Analytics만 게이트한다. Crashlytics는 거부 시에도 유지(추적 아님).
     await setAnalyticsCollectionEnabled(this.analytics, enabled);
-    await setCrashlyticsCollectionEnabled(this.crashlytics, enabled);
   }
 
   async recordError(error: Error, context?: Record<string, string>): Promise<void> {

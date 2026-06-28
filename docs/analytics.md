@@ -85,9 +85,10 @@ await flushSessionWordMetrics([
 - AnalyticsClient는 `registerErrorReporter()`로 module-level reporter에 등록되어 cross-domain crash 보고 단일 진입점이 됨
 
 ### ATT (App Tracking Transparency)
-- iOS에서 `expo-tracking-transparency` 동의를 받지 못하면 모든 provider 비활성
-- 결정은 `AnalyticsProvider` bootstrap 단계에서 단 한 번
-- 거부 시 `track()` 호출은 no-op (에러 throw 금지)
+- iOS ATT 요청은 앱이 `active` 상태가 된 뒤 호출 (`consent.ts` `waitForActiveState`) — 아니면 cold launch 중 다이얼로그가 silent 억제됨 (Apple Guideline 2.1)
+- **동의 결정 전에는 Analytics·Clarity가 어떤 데이터도 수집하지 않음**: `firebase.json` `analytics_auto_collection_enabled: false`, `FirebaseProvider.init`은 analytics를 켜지 않음, `ClarityProvider.init`은 `initialize` 직후 `pause`
+- 결정은 `AnalyticsProvider` bootstrap 단계에서 단 한 번 → `setEnabled(consentAllowsCollection)`이 Analytics·Clarity 활성/비활성 단일 게이트
+- 거부 시 Analytics·Clarity 비활성, `track()` 호출은 no-op (에러 throw 금지). **Crashlytics는 추적이 아니라 거부 시에도 유지**
 
 ### Fanout isolation
 - 각 provider 호출은 `Promise.all` + provider별 try/catch로 격리
@@ -154,5 +155,5 @@ throw new Error('test crash');
 
 - 사용자(보호자) PII는 절대 수집하지 않음 (이름/이메일/전화)
 - 펫 메타데이터(이름/종/나이/단어)는 수집함 — `docs/privacy-policy.md` 참고
-- iOS ATT 거부 시 모든 provider가 disabled로 전환됨 (`AnalyticsProvider` bootstrap 로직)
+- iOS ATT 동의 결정 전에는 Analytics·Clarity 비수집, 거부 시 둘 다 disabled (`AnalyticsProvider` bootstrap 로직). Crashlytics는 추적이 아니라 유지
 - 운영 정책 변경 시 `docs/privacy-policy.md`와 본 가이드를 함께 갱신
