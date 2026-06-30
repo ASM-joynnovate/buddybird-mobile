@@ -13,6 +13,7 @@ import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
 
 import { useSessionAudioPlayer } from './use-session-audio-player';
+import { useSessionKeepAwake } from './use-session-keep-awake';
 
 interface UseActiveSessionInput {
   wordId: string;
@@ -73,6 +74,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const progress = Math.min(1, overallElapsedSeconds / totalSessionSeconds);
 
   const { audioOn } = useSessionAudioPlayer({ audioUri, phase, status });
+
+  // 학습 진행 중에는 화면 자동 꺼짐을 막아 부재중에도 학습이 끊기지 않게 한다.
+  useSessionKeepAwake(status === 'running');
 
   useEffect(() => {
     if (status !== 'running') return;
