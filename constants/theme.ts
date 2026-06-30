@@ -87,7 +87,11 @@ export const BuddyBirdColors = {
   splashRed: '#DB030F',
   splashYellow: '#F6AF02',
   splashCream: '#F7F2EA',
-  splashInk: '#2B2B29',
+  splashEyeWhite: '#FFFFFF',
+  splashPupil: '#252525',
+  splashFaceMask: '#141414',
+  splashBeak: '#2D2D2D',
+  splashTongue: '#F33837',
 };
 
 export type BuddyBirdCategory = '인사' | '음식' | '이름' | '기타';
