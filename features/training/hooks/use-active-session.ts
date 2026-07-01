@@ -12,6 +12,7 @@ import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
 
+import { useFollowAlongCapture } from './use-follow-along-capture';
 import { useSessionAudioPlayer } from './use-session-audio-player';
 import { useSessionKeepAwake } from './use-session-keep-awake';
 
@@ -41,7 +42,7 @@ export interface UseActiveSessionResult {
 }
 
 export function useActiveSession({ wordId, settings, audioUri, word }: UseActiveSessionInput): UseActiveSessionResult {
-  const { saveCompletedSession } = useTrainingData();
+  const { saveCompletedSession, pendingSession } = useTrainingData();
 
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
@@ -73,7 +74,15 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const overallElapsedSeconds = completedCycleSeconds + currentPhaseOffsetSeconds + phaseElapsed;
   const progress = Math.min(1, overallElapsedSeconds / totalSessionSeconds);
 
-  const { audioOn } = useSessionAudioPlayer({ audioUri, phase, status });
+  const { audioOn, inFollowGap } = useSessionAudioPlayer({ audioUri, phase, status });
+
+  // 따라하기 무음 갭 동안에만 VAD 녹음 + 로컬 캡처(발화 감지 시). UI 노출 없음.
+  useFollowAlongCapture({
+    enabled: inFollowGap,
+    sessionId: pendingSession?.sessionId ?? '',
+    wordId,
+    cycle,
+  });
 
   // 학습 진행 중에는 화면 자동 꺼짐을 막아 부재중에도 학습이 끊기지 않게 한다.
   useSessionKeepAwake(status === 'running');
