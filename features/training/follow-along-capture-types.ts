@@ -16,6 +16,8 @@ export interface FollowAlongCapture {
   uri: string;
   fileName: string;
   segments: CaptureSegment[];
+  // 오디오 파일 크기(bytes) — 로컬 보관 상한 계산에 사용.
+  sizeBytes: number;
   uploaded: boolean;
 }
 

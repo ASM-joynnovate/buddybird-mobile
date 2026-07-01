@@ -1,9 +1,13 @@
 import { reportError } from '@/features/analytics/error-reporter';
+import { deleteRecordingFile, getRecordingFileSize } from '@/features/audio/audio-file-storage';
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
 import type { CaptureSegment, FollowAlongCapture, FollowAlongCaptureStore } from './follow-along-capture-types';
 
 export const FOLLOW_ALONG_CAPTURE_KEY = '@buddybird/follow-along-captures';
+
+// 한 기기에 쌓이는 캡처 오디오 총량 상한. 초과 시 오래된 것부터 파일과 기록을 지운다.
+const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
 
 // 오디오 URI normalize(save)/hydrate(load)는 seam이 소유한다 — 컬렉션·필드만 선언.
 // iOS 컨테이너 UUID 변동으로 절대 URI 가 stale 되는 것을 방지한다.
@@ -37,6 +41,7 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
     uri: v.uri,
     fileName: v.fileName,
     segments: parseSegments(v.segments),
+    sizeBytes: typeof v.sizeBytes === 'number' ? v.sizeBytes : 0,
     uploaded: v.uploaded === true,
   };
 }
@@ -71,16 +76,33 @@ function enqueueWrite(op: () => Promise<void>): Promise<void> {
   return run;
 }
 
-export function appendFollowAlongCapture(capture: FollowAlongCapture): Promise<void> {
+export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<void> {
   return enqueueWrite(async () => {
     try {
       const store = await captureStore.load();
-      store.capturesById[capture.id] = capture;
+      store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
+      evictOldestOverCap(store);
       await captureStore.save(store);
     } catch (error: unknown) {
       reportError(error, { scope: 'training.followAlongCaptures.append' });
     }
   });
+}
+
+// 총량이 상한을 넘으면 capturedAt 오래된 순서로 파일과 기록을 지워 상한 이하로 맞춘다.
+// 업로드 여부와 무관하게 오래된 것부터 지운다.
+function evictOldestOverCap(store: FollowAlongCaptureStore): void {
+  const captures = Object.values(store.capturesById);
+  let total = captures.reduce((sum, capture) => sum + capture.sizeBytes, 0);
+  if (total <= MAX_TOTAL_BYTES) return;
+
+  const oldestFirst = [...captures].sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
+  for (const capture of oldestFirst) {
+    if (total <= MAX_TOTAL_BYTES) break;
+    deleteRecordingFile(capture.uri);
+    delete store.capturesById[capture.id];
+    total -= capture.sizeBytes;
+  }
 }
 
 export function markCaptureUploaded(id: string): Promise<void> {
