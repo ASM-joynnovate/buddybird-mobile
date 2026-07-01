@@ -1,5 +1,5 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
@@ -15,6 +15,8 @@ interface UseSessionAudioPlayerInput {
 
 export interface UseSessionAudioPlayerResult {
   audioOn: boolean;
+  // 재생 종료 후 다음 재생까지의 무음 갭(따라하기 구간) 동안 true. 이 구간에서만 VAD 녹음.
+  inFollowGap: boolean;
 }
 
 // 세션 phase/status 에 반응하는 오디오 재생 lifecycle 을 단독 소유한다.
@@ -37,6 +39,8 @@ export function useSessionAudioPlayer({
 
   const sessionPlayer = useAudioPlayer(audioUri, { updateInterval: 100 });
   const sessionPlayerStatus = useAudioPlayerStatus(sessionPlayer);
+
+  const [inFollowGap, setInFollowGap] = useState(false);
 
   const audioOn = status === 'running' && phase === 'learning' && sessionPlayerStatus.playing;
 
@@ -81,11 +85,15 @@ export function useSessionAudioPlayer({
 
     let isCancelled = false;
     clearSilenceTimer();
+    // 재생이 방금 끝났고 다음 재생까지의 무음 갭(따라하기 구간)에 진입 → VAD 녹음 창을 연다.
+    setInFollowGap(true);
     silenceTimerRef.current = setTimeout(() => {
       silenceTimerRef.current = null;
       if (isCancelled) return;
-      sessionPlayer
-        .seekTo(0)
+      // 갭 종료 → VAD 창을 닫고, 갭 동안 recording 모드로 바뀌었을 수 있으니 playback 모드를 재확정한다.
+      setInFollowGap(false);
+      configurePlaybackAudioMode()
+        .then(() => sessionPlayer.seekTo(0))
         .then(() => {
           if (!isCancelled) sessionPlayer.play();
         })
@@ -101,6 +109,13 @@ export function useSessionAudioPlayer({
     };
   }, [sessionPlayerStatus.didJustFinish, sessionPlayerStatus.duration, status, phase, sessionPlayer]);
 
+  // running+learning 을 벗어나면(일시정지·정지·rest 전환 등) 갭 신호를 즉시 내린다.
+  // 갭 타이머는 위 재생 effect / phase-status effect / 언마운트가 정리하지만, inFollowGap 은
+  // 여기서 한곳에 모아 내려 VAD 녹음이 갭 밖으로 새는 것을 막는다(stuck-true 방지).
+  useEffect(() => {
+    if (!(status === 'running' && phase === 'learning')) setInFollowGap(false);
+  }, [status, phase]);
+
   useEffect(() => {
     return () => {
       clearSilenceTimer();
@@ -113,5 +128,5 @@ export function useSessionAudioPlayer({
     };
   }, [sessionPlayer]);
 
-  return { audioOn };
+  return { audioOn, inFollowGap };
 }

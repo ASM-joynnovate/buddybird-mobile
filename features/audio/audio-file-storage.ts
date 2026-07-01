@@ -123,6 +123,31 @@ export function recordingFileExists(uri: string | null | undefined): boolean {
   }
 }
 
+// 녹음 파일 크기(bytes). 파일이 없거나 오류면 0.
+export function getRecordingFileSize(uri: string | null | undefined): number {
+  if (!uri) return 0;
+  const absoluteUri = uri.startsWith(STORED_URI_PREFIX) ? hydrateAudioUriFromStorage(uri) : uri;
+  if (!absoluteUri || !absoluteUri.startsWith('file://')) return 0;
+  try {
+    return new File(absoluteUri).size ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+// 녹음 파일 삭제(idempotent). 없거나 실패해도 비치명 — 다음 정리 때 재시도된다.
+export function deleteRecordingFile(uri: string | null | undefined): void {
+  if (!uri) return;
+  const absoluteUri = uri.startsWith(STORED_URI_PREFIX) ? hydrateAudioUriFromStorage(uri) : uri;
+  if (!absoluteUri || !absoluteUri.startsWith('file://')) return;
+  try {
+    const file = new File(absoluteUri);
+    if (file.exists) file.delete();
+  } catch (error: unknown) {
+    console.warn('[audio.deleteRecordingFile]', error);
+  }
+}
+
 function extractRecordingFileName(uri: string): string | null {
   if (!uri.startsWith('file://')) return null;
   const recordingsSegment = `/${RECORDINGS_DIR_NAME}/`;
