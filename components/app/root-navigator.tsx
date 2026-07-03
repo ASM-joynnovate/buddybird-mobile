@@ -38,6 +38,15 @@ export function RootNavigator() {
                 navigationBarColor: BuddyBirdColors.neutral,
               }}
           />
+          <Stack.Screen
+              name="session-captures"
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+                contentStyle: styles.sessionScreen,
+                navigationBarColor: BuddyBirdColors.neutral,
+              }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={!profile}>
           <Stack.Screen name="(onboarding)" />
