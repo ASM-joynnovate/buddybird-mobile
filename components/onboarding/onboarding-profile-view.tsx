@@ -1,7 +1,7 @@
+import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BuddyBird } from '@/components/mascot/buddy-bird';
 import { OnboardingProgressHeader } from '@/components/onboarding/onboarding-progress-header';
 import { OnboardingProfileForm } from '@/components/onboarding/onboarding-profile-form';
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
@@ -71,8 +71,13 @@ export function OnboardingProfileView({
       <OnboardingProgressHeader onBack={onBack} step={2} total={2} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <BuddyBird size={64} />
-          <SpeechBubble style={styles.introBubble}>{intro}</SpeechBubble>
+          <Image
+            accessibilityLabel="버디 마스코트"
+            contentFit="cover"
+            source={require('@/assets/images/icon.png')}
+            style={styles.introIcon}
+          />
+          <SpeechBubble pointer="side-left" style={styles.introBubble}>{intro}</SpeechBubble>
         </View>
         <ProfileAvatarPicker actionIcon="plus" photoUri={photoUri} onPhotoSelected={onPhotoSelected} />
         <OnboardingProfileForm
@@ -122,6 +127,11 @@ const styles = StyleSheet.create({
   introBubble: {
     flex: 1,
     marginBottom: Spacing.xxs,
+  },
+  introIcon: {
+    borderRadius: 32,
+    height: 64,
+    width: 64,
   },
   saveError: {
     ...Typography.bodySmall,
