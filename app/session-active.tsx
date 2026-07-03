@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -52,6 +53,7 @@ function SessionActiveInner({
   insetsBottom: number;
 }) {
   useScreenTracking('session_active');
+  const router = useRouter();
   const session = useActiveSession({
     wordId: pendingSession.wordId,
     settings: pendingSession.settings,
@@ -73,6 +75,7 @@ function SessionActiveInner({
           totalTrainingSeconds={totalTrainingSeconds}
           streakDays={streakDays}
           onDismiss={handleDismiss}
+          onDebugAccess={() => router.push({ pathname: '/session-captures', params: { sessionId: pendingSession.sessionId, word: session.currentWord } })}
         />
       ) : (
         <SessionRunningView

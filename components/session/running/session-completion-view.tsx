@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BuddyBird } from '@/components/mascot/buddy-bird';
@@ -17,17 +18,40 @@ interface SessionCompletionViewProps {
   totalTrainingSeconds: number;
   streakDays: number;
   onDismiss: () => void;
+  // 숨은 개발자 진입: 마스코트를 5회 연타(3초 내)하면 호출. 미지정 시 마스코트는 그냥 장식.
+  onDebugAccess?: () => void;
 }
 
-export function SessionCompletionView({ petName, word, totalLearningSeconds, totalTrainingSeconds, streakDays, onDismiss }: SessionCompletionViewProps) {
+const DEBUG_TAP_COUNT = 5;
+const DEBUG_TAP_WINDOW_MS = 3000;
+
+export function SessionCompletionView({ petName, word, totalLearningSeconds, totalTrainingSeconds, streakDays, onDismiss, onDebugAccess }: SessionCompletionViewProps) {
   const insets = useSafeAreaInsets();
   const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)));
+  const tapStateRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
+
+  const handleSecretTap = (): void => {
+    if (!onDebugAccess) return;
+    const state = tapStateRef.current;
+    if (state.timer) clearTimeout(state.timer);
+    state.count += 1;
+    if (state.count >= DEBUG_TAP_COUNT) {
+      state.count = 0;
+      onDebugAccess();
+      return;
+    }
+    state.timer = setTimeout(() => {
+      state.count = 0;
+    }, DEBUG_TAP_WINDOW_MS);
+  };
 
   return (
     <View style={styles.container}>
       <SessionConfetti />
       <View style={styles.celebration}>
-        <BuddyBird size={140} color={BuddyBirdColors.onDark} animation="bounce" />
+        <Pressable accessibilityRole="none" onPress={handleSecretTap}>
+          <BuddyBird size={140} color={BuddyBirdColors.onDark} animation="bounce" />
+        </Pressable>
         <Text style={styles.title}>학습 완료! 🎉</Text>
         <Text style={styles.subtitle}>
           {withSubjectParticle(petName)} &quot;{word}&quot;를 {totalLearningMinutesLabel} 동안 들었어요
