@@ -34,7 +34,7 @@ export function BuddyBird({ size = 120, animation = 'none' }: BuddyBirdProps) {
     }
 
     const lift = animation === 'bounce' ? -size * 0.08 : -size * 0.05;
-    const duration = animation === 'bounce' ? Motion.progressMs : Motion.progressMs * 2;
+    const duration = animation === 'bounce' ? Motion.progressMs * 1.6 : Motion.progressMs * 2;
 
     translateY.set(
       withRepeat(
