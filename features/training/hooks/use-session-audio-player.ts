@@ -1,5 +1,5 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
@@ -17,6 +17,9 @@ export interface UseSessionAudioPlayerResult {
   audioOn: boolean;
   // 재생 종료 후 다음 재생까지의 무음 갭(따라하기 구간) 동안 true. 이 구간에서만 VAD 녹음.
   inFollowGap: boolean;
+  // 갭 VAD 녹음이 정지되고 재생 모드가 복원된 뒤 호출되어 다음 재생을 시작한다.
+  // (VAD 훅의 onGapClosed 로 연결 — 모드 복원과 재생 재개의 순서를 보장한다.)
+  replayAfterGap: () => void;
 }
 
 // 세션 phase/status 에 반응하는 오디오 재생 lifecycle 을 단독 소유한다.
@@ -43,6 +46,21 @@ export function useSessionAudioPlayer({
   const [inFollowGap, setInFollowGap] = useState(false);
 
   const audioOn = status === 'running' && phase === 'learning' && sessionPlayerStatus.playing;
+
+  // 갭 VAD 녹음이 멈추고 재생 모드가 복원된 뒤(VAD 훅) 호출되어 다음 재생을 시작한다.
+  // 여기서 오디오 모드를 만지지 않는다 — 복원은 이미 끝났고, 여기서 또 만지면 경쟁이 재발한다.
+  // running+learning 이탈(일시정지·정지·rest) 시엔 재생하지 않는다.
+  const replayAfterGap = useCallback((): void => {
+    if (status !== 'running' || phase !== 'learning') return;
+    if (typeof audioUri === 'string' && !recordingFileExists(audioUri)) return;
+    sessionPlayer
+      .seekTo(0)
+      .then(() => sessionPlayer.play())
+      .catch((error: unknown) => {
+        reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
+        sessionPlayer.play();
+      });
+  }, [status, phase, audioUri, sessionPlayer]);
 
   useEffect(() => {
     if (!audioUri) return;
@@ -90,17 +108,9 @@ export function useSessionAudioPlayer({
     silenceTimerRef.current = setTimeout(() => {
       silenceTimerRef.current = null;
       if (isCancelled) return;
-      // 갭 종료 → VAD 창을 닫고, 갭 동안 recording 모드로 바뀌었을 수 있으니 playback 모드를 재확정한다.
+      // 갭 종료 → VAD 창만 닫는다. 재생 모드 복원 + 재생 재개는 VAD 녹음이 실제로 멈춘 뒤
+      // onGapClosed(→ replayAfterGap)에서 순서대로 처리한다(레코더 teardown 과의 경쟁 제거).
       setInFollowGap(false);
-      configurePlaybackAudioMode()
-        .then(() => sessionPlayer.seekTo(0))
-        .then(() => {
-          if (!isCancelled) sessionPlayer.play();
-        })
-        .catch((error: unknown) => {
-          reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
-          if (!isCancelled) sessionPlayer.play();
-        });
     }, gapMs);
     // 타이머는 취소하지 않음 — didJustFinish는 한 사이클만 true이므로 타이머는 fire되어야 함.
     // isCancelled로 언마운트 후 해제된 네이티브 플레이어 호출만 방지.
@@ -128,5 +138,5 @@ export function useSessionAudioPlayer({
     };
   }, [sessionPlayer]);
 
-  return { audioOn, inFollowGap };
+  return { audioOn, inFollowGap, replayAfterGap };
 }

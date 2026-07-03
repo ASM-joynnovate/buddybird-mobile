@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
-import { configureRecordingAudioMode } from '../audio-mode';
+import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
 import type { StableRecordingFile } from '../audio-types';
 import { segmentMetering } from '../vad-segmentation';
@@ -31,6 +31,9 @@ interface UseFollowAlongVadInput {
   enabled: boolean;
   // 발화가 감지된 갭의 녹음 파일이 저장되면 호출. segments 는 VAD로 분리한 발화 구간.
   onSaved?: (file: StableRecordingFile, segments: DetectedSegment[]) => void;
+  // 갭 녹음을 멈추고 재생 모드를 복원한 직후 호출 — 학습 루프가 이 신호로 재생을 재개한다.
+  // 녹음 정지 → 재생 모드 복원 → 재생 재개 순서를 보장해 레코더 teardown 과의 경쟁을 없앤다.
+  onGapClosed?: () => void;
   // 값이 바뀌면 누적 감지 카운트를 초기화한다(회차 시작 시 reset 용도).
   resetKey?: number;
 }
@@ -41,7 +44,7 @@ interface UseFollowAlongVadResult {
   permissionDenied: boolean;
 }
 
-export function useFollowAlongVad({ enabled, onSaved, resetKey }: UseFollowAlongVadInput): UseFollowAlongVadResult {
+export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: UseFollowAlongVadInput): UseFollowAlongVadResult {
   const recorder = useAudioRecorder(RECORDING_OPTIONS);
   const recorderState = useAudioRecorderState(recorder, 100);
 
@@ -60,6 +63,9 @@ export function useFollowAlongVad({ enabled, onSaved, resetKey }: UseFollowAlong
 
   const onSavedRef = useRef(onSaved);
   onSavedRef.current = onSaved;
+
+  const onGapClosedRef = useRef(onGapClosed);
+  onGapClosedRef.current = onGapClosed;
 
   // 회차 시작 등 resetKey 변경 시 누적 감지 카운트 초기화.
   useEffect(() => {
@@ -119,15 +125,28 @@ export function useFollowAlongVad({ enabled, onSaved, resetKey }: UseFollowAlong
       (async () => {
         try {
           await recorder.stop();
-          const uri = recorder.uri;
-          if (shouldSave && uri) {
-            const file = await persistRecordingFile(uri, new Date().toISOString());
-            const segments = segmentMetering(samples).map(({ startMs, endMs }) => ({ startMs, endMs }));
-            onSavedRef.current?.(file, segments);
-          }
         } catch (error: unknown) {
           // 갭 종료/언마운트 시점 — playback 모드 전환과 겹쳐 나는 경고는 비치명적.
           reportError(error, { scope: 'audio.followAlongVad.stop' });
+        }
+        const uri = recorder.uri;
+        // record 모드로 바꾼 주체가 되돌린다: 정지 직후 playback 모드를 복원하고, 그 다음
+        // 학습 루프에 갭 종료를 알려 재생을 재개시킨다. stop 실패와 무관하게 반드시 실행해
+        // 루프가 멈추지 않게 한다(복원 → 재개 순서 보장으로 무음 버그 방지).
+        try {
+          await configurePlaybackAudioMode();
+        } catch (error: unknown) {
+          reportError(error, { scope: 'audio.followAlongVad.restorePlayback' });
+        }
+        onGapClosedRef.current?.();
+        if (shouldSave && uri) {
+          try {
+            const file = await persistRecordingFile(uri, new Date().toISOString());
+            const segments = segmentMetering(samples).map(({ startMs, endMs }) => ({ startMs, endMs }));
+            onSavedRef.current?.(file, segments);
+          } catch (error: unknown) {
+            reportError(error, { scope: 'audio.followAlongVad.persist' });
+          }
         }
       })();
     };

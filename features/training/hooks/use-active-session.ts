@@ -74,14 +74,16 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const overallElapsedSeconds = completedCycleSeconds + currentPhaseOffsetSeconds + phaseElapsed;
   const progress = Math.min(1, overallElapsedSeconds / totalSessionSeconds);
 
-  const { audioOn, inFollowGap } = useSessionAudioPlayer({ audioUri, phase, status });
+  const { audioOn, inFollowGap, replayAfterGap } = useSessionAudioPlayer({ audioUri, phase, status });
 
   // 따라하기 무음 갭 동안에만 VAD 녹음 + 로컬 캡처(발화 감지 시). UI 노출 없음.
+  // onGapClosed: VAD 정지 + 재생 모드 복원 뒤 다음 재생을 재개(무음 버그 방지 순서 보장).
   useFollowAlongCapture({
     enabled: inFollowGap,
     sessionId: pendingSession?.sessionId ?? '',
     wordId,
     cycle,
+    onGapClosed: replayAfterGap,
   });
 
   // 학습 진행 중에는 화면 자동 꺼짐을 막아 부재중에도 학습이 끊기지 않게 한다.
