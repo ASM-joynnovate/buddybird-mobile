@@ -123,13 +123,16 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
       detectedInWindowRef.current = false;
 
       (async () => {
+        // uri 읽기도 try 안에 있어야 한다: 언마운트 시 useAudioRecorder 가 네이티브 객체를
+        // 먼저 release 하면 sync getter(recorder.uri)가 NativeSharedObjectNotFound 로 던진다.
+        let uri: string | null = null;
         try {
           await recorder.stop();
+          uri = recorder.uri;
         } catch (error: unknown) {
           // 갭 종료/언마운트 시점 — playback 모드 전환과 겹쳐 나는 경고는 비치명적.
           reportError(error, { scope: 'audio.followAlongVad.stop' });
         }
-        const uri = recorder.uri;
         // record 모드로 바꾼 주체가 되돌린다: 정지 직후 playback 모드를 복원하고, 그 다음
         // 학습 루프에 갭 종료를 알려 재생을 재개시킨다. stop 실패와 무관하게 반드시 실행해
         // 루프가 멈추지 않게 한다(복원 → 재개 순서 보장으로 무음 버그 방지).

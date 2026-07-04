@@ -68,7 +68,7 @@ export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabe
         />
       </Svg>
       <View style={styles.center}>
-        <BuddyBird size={60} color={accent} animation="bounce" />
+        <BuddyBird size={90} animation="bounce" />
         <Text
           adjustsFontSizeToFit
           minimumFontScale={0.7}

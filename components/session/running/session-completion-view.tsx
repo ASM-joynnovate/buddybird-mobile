@@ -50,7 +50,7 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, tot
       <SessionConfetti />
       <View style={styles.celebration}>
         <Pressable accessibilityRole="none" onPress={handleSecretTap}>
-          <BuddyBird size={140} color={BuddyBirdColors.onDark} animation="bounce" />
+          <BuddyBird size={140} animation="bounce" />
         </Pressable>
         <Text style={styles.title}>학습 완료! 🎉</Text>
         <Text style={styles.subtitle}>

@@ -4,7 +4,8 @@ import { BuddyBirdColors, Depth, Radii, Spacing } from '@/constants/theme';
 
 interface SpeechBubbleProps {
   children: React.ReactNode;
-  pointer?: 'left' | 'right';
+  // left/right: 아래변 꼬리 위치. side-left: 왼쪽 변에서 화자(왼쪽 아이콘)를 향하는 꼬리.
+  pointer?: 'left' | 'right' | 'side-left';
   style?: StyleProp<ViewStyle>;
 }
 
@@ -15,7 +16,12 @@ export function SpeechBubble({ children, pointer = 'left', style }: SpeechBubble
         <Text style={styles.text}>{children}</Text>
         <View
           pointerEvents="none"
-          style={[styles.pointer, pointer === 'right' ? styles.pointerRight : styles.pointerLeft]}
+          style={[
+            styles.pointer,
+            pointer === 'side-left'
+              ? styles.pointerSideLeft
+              : [styles.pointerBottom, pointer === 'right' ? styles.pointerRight : styles.pointerLeft],
+          ]}
         />
       </View>
     </View>
@@ -46,20 +52,30 @@ const styles = StyleSheet.create({
   },
   pointer: {
     backgroundColor: BuddyBirdColors.canvas,
+    height: 16,
+    position: 'absolute',
+    transform: [{ rotate: '45deg' }],
+    width: 16,
+  },
+  pointerBottom: {
     borderBottomColor: BuddyBirdColors.border,
     borderBottomWidth: 2,
     borderRightColor: BuddyBirdColors.border,
     borderRightWidth: 2,
     bottom: -10,
-    height: 16,
-    position: 'absolute',
-    transform: [{ rotate: '45deg' }],
-    width: 16,
   },
   pointerLeft: {
     left: Spacing.xxl,
   },
   pointerRight: {
     right: Spacing.xxl,
+  },
+  pointerSideLeft: {
+    borderBottomColor: BuddyBirdColors.border,
+    borderBottomWidth: 2,
+    borderLeftColor: BuddyBirdColors.border,
+    borderLeftWidth: 2,
+    bottom: 18,
+    left: -10,
   },
 });
