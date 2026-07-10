@@ -1,6 +1,6 @@
 import { reportError } from '@/features/analytics/error-reporter';
 
-import type { CaptureSegment, FollowAlongCapture } from './follow-along-capture-types';
+import type { CapturePhase, CaptureSegment, FollowAlongCapture } from './follow-along-capture-types';
 import { loadFollowAlongCaptures, markCaptureUploaded } from './follow-along-capture-storage';
 
 // 백엔드로 보낼 캡처 페이로드. 파일(fileUri)은 hydrate 된 절대 경로.
@@ -9,6 +9,7 @@ export interface FollowAlongUploadPayload {
   sessionId: string;
   wordId: string;
   cycle: number;
+  phase: CapturePhase;
   capturedAt: string;
   fileUri: string;
   fileName: string;
@@ -46,6 +47,7 @@ function toPayload(capture: FollowAlongCapture): FollowAlongUploadPayload {
     sessionId: capture.sessionId,
     wordId: capture.wordId,
     cycle: capture.cycle,
+    phase: capture.phase,
     capturedAt: capture.capturedAt,
     fileUri: capture.uri, // load 시 seam 이 절대 경로로 hydrate 함
     fileName: capture.fileName,
