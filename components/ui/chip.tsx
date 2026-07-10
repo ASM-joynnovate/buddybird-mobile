@@ -1,6 +1,7 @@
-import { StyleSheet, Text, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
-import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 
 import { Pressable3D } from './ledge-surface';
 
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: BuddyBirdColors.accentPurplePressed,
   },
   label: {
+    fontFamily: Fonts.bodyExtraBold,
     fontSize: 13.5,
     fontWeight: '800',
     letterSpacing: 0,

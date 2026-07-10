@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LedgeView, Pressable3D } from '@/components/ui/ledge-surface';

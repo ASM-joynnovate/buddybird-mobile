@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -10,7 +11,7 @@ import { WordCreateModal } from '@/components/words/word-create-modal';
 import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordRow } from '@/components/words/word-row';
-import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
@@ -183,6 +184,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyExtraBold,
     fontSize: 14,
     fontWeight: '800',
     textAlign: 'center',

@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii } from '@/constants/theme';

@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import { BuddyBirdColors, withAlpha } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, withAlpha } from '@/constants/theme';
 
 const ITEM_H = 40;
 
@@ -106,11 +101,13 @@ const styles = StyleSheet.create({
   },
   wheelItem: {
     color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
     fontSize: 22,
     fontWeight: '900',
   },
   wheelItemFaded: {
     color: withAlpha(BuddyBirdColors.ink, 0.35),
+    fontFamily: Fonts.bodyBold,
     fontWeight: '700',
     fontSize: 18,
   },

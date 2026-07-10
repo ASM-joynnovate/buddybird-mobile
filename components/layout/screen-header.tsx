@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { SectionKicker } from '@/components/ui/section-kicker';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
