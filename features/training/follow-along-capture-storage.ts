@@ -37,6 +37,8 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
     sessionId: typeof v.sessionId === 'string' ? v.sessionId : '',
     wordId: typeof v.wordId === 'string' ? v.wordId : '',
     cycle: typeof v.cycle === 'number' ? v.cycle : 0,
+    // phase 도입 이전 기록은 전부 따라하기 갭 캡처였다 → learning 으로 읽는다.
+    phase: v.phase === 'rest' ? 'rest' : 'learning',
     capturedAt: typeof v.capturedAt === 'string' ? v.capturedAt : '',
     uri: v.uri,
     fileName: v.fileName,
