@@ -41,7 +41,7 @@ export function sessionLearningSeconds(totalCycles: number, learnSecs: number): 
   return totalCycles * learnSecs;
 }
 
-/** 중단해도 연속 학습일·총 학습 시간에 반영되는 최소 세션 경과 초(3분). 판정은 세션 경과(일시정지 제외, 휴식 포함) 기준. */
+/** 중단해도 연속 학습일·총 학습 시간에 반영되는 최소 세션 경과 초(5분). 판정은 세션 경과(일시정지 제외, 휴식 포함) 기준. */
 export const STREAK_QUALIFYING_SECONDS = 300;
 
 /**

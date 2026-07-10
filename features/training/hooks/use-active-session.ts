@@ -129,7 +129,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }
 
   function stop(): void {
-    // 3분(세션 경과, 일시정지 제외) 이상 진행한 중단은 완주하지 않아도 학습 기록으로 남긴다.
+    // 5분(세션 경과, 일시정지 제외) 이상 진행한 중단은 완주하지 않아도 학습 기록으로 남긴다.
     // → 연속 학습일 +1(오늘 totalLearningSeconds>0), 총 학습 시간에 실제 학습분 적립, 세션 수 1회.
     const meta = sessionMetaRef.current;
     if (meta && overallElapsedSeconds >= STREAK_QUALIFYING_SECONDS) {
