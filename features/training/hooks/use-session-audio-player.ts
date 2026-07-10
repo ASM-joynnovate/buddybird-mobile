@@ -32,6 +32,7 @@ export function useSessionAudioPlayer({
   status,
 }: UseSessionAudioPlayerInput): UseSessionAudioPlayerResult {
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isUnmountedRef = useRef(false);
 
   function clearSilenceTimer(): void {
     if (silenceTimerRef.current !== null) {
@@ -51,14 +52,23 @@ export function useSessionAudioPlayer({
   // 여기서 오디오 모드를 만지지 않는다 — 복원은 이미 끝났고, 여기서 또 만지면 경쟁이 재발한다.
   // running+learning 이탈(일시정지·정지·rest) 시엔 재생하지 않는다.
   const replayAfterGap = useCallback((): void => {
+    if (isUnmountedRef.current) return;
     if (status !== 'running' || phase !== 'learning') return;
     if (typeof audioUri === 'string' && !recordingFileExists(audioUri)) return;
     sessionPlayer
       .seekTo(0)
-      .then(() => sessionPlayer.play())
+      .catch((error: unknown) => {
+        // seek 실패해도 재생은 시도한다(기존 동작 유지).
+        reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
+      })
+      // play()의 promise를 체인에 되돌려 rejection이 아래 catch로 흐르게 한다.
+      // 반환하지 않으면 언마운트 직후 released 플레이어의 rejection이 미처리로 앱을 죽인다.
+      .then(() => {
+        if (isUnmountedRef.current) return;
+        return sessionPlayer.play();
+      })
       .catch((error: unknown) => {
         reportError(error, { scope: 'training.sessionPlayer.gapReplay' });
-        sessionPlayer.play();
       });
   }, [status, phase, audioUri, sessionPlayer]);
 
@@ -77,12 +87,18 @@ export function useSessionAudioPlayer({
       sessionPlayer.loop = false;
       configurePlaybackAudioMode()
         .then(() => sessionPlayer.seekTo(0))
+        .catch((error: unknown) => {
+          // 모드 설정·seek 이 실패해도 재생은 시도한다(기존 동작 유지).
+          reportError(error, { scope: 'training.sessionPlayerSetup' });
+        })
+        // play()의 promise를 체인에 되돌려 rejection이 아래 catch로 흐르게 한다.
+        // 반환하지 않으면 released 플레이어의 rejection이 미처리로 앱을 죽인다.
         .then(() => {
-          if (!isCancelled) sessionPlayer.play();
+          if (isCancelled || isUnmountedRef.current) return;
+          return sessionPlayer.play();
         })
         .catch((error: unknown) => {
           reportError(error, { scope: 'training.sessionPlayerSetup' });
-          if (!isCancelled) sessionPlayer.play();
         });
     } else {
       clearSilenceTimer();
@@ -125,6 +141,14 @@ export function useSessionAudioPlayer({
   useEffect(() => {
     if (!(status === 'running' && phase === 'learning')) setInFollowGap(false);
   }, [status, phase]);
+
+  // 언마운트 전용 플래그. sessionPlayer 를 deps 에 넣으면 useAudioPlayer 가 source 변경 시
+  // 플레이어를 교체할 때도 cleanup 이 돌아 플래그가 영구히 latch 되므로 deps 는 비워 둔다.
+  useEffect(() => {
+    return () => {
+      isUnmountedRef.current = true;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {

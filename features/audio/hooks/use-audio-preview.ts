@@ -144,7 +144,7 @@ export function useAudioPreview(
       playTokenRef.current = playToken;
 
       await configurePlaybackAudioMode();
-      if (playTokenRef.current !== playToken) return;
+      if (playTokenRef.current !== playToken || isDestroyedRef.current) return;
       player.pause();
       if (loadedSourceRef.current !== audioSource) {
         if (isModule) {
@@ -159,6 +159,7 @@ export function useAudioPreview(
       player.shouldCorrectPitch = false;
       player.setPlaybackRate(playbackRate);
       await player.seekTo(0);
+      if (playTokenRef.current !== playToken || isDestroyedRef.current) return;
       player.play();
       setElapsedSeconds(0);
       setPreviewState('playing');
