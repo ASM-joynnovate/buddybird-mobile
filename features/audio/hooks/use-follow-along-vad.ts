@@ -1,23 +1,14 @@
-import { AudioModule, RecordingPresets, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
+import { AudioModule, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 
 import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
-import type { StableRecordingFile } from '../audio-types';
+import type { DetectedSegment, StableRecordingFile } from '../audio-types';
+import { VAD_RECORDING_OPTIONS } from '../vad-config';
 import { createVadState, normalizeMetering, stepVad, type VadState } from '../vad-detector';
 import { segmentMetering } from '../vad-segmentation';
-
-export interface DetectedSegment {
-  startMs: number;
-  endMs: number;
-}
-
-const RECORDING_OPTIONS = {
-  ...RecordingPresets.HIGH_QUALITY,
-  isMeteringEnabled: true,
-};
 
 interface UseFollowAlongVadInput {
   // 따라하기 무음 갭 동안에만 true. true 동안 녹음 + metering VAD 가동.
@@ -38,7 +29,7 @@ interface UseFollowAlongVadResult {
 }
 
 export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: UseFollowAlongVadInput): UseFollowAlongVadResult {
-  const recorder = useAudioRecorder(RECORDING_OPTIONS);
+  const recorder = useAudioRecorder(VAD_RECORDING_OPTIONS);
   const recorderState = useAudioRecorderState(recorder, 100);
 
   const [voiceActive, setVoiceActive] = useState(false);
