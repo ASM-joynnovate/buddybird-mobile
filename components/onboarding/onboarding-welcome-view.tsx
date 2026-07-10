@@ -4,7 +4,7 @@ import { PetScreen } from '@/components/layout/pet-screen';
 import { BuddyBird } from '@/components/mascot/buddy-bird';
 import { PillButton } from '@/components/ui/pill-button';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
-import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, Spacing, Typography } from '@/constants/theme';
 
 const CTA_MAX_WIDTH = 354;
 
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
   },
   bodyEmphasis: {
     color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBlack,
     fontWeight: '900',
   },
   bottomSpacer: {

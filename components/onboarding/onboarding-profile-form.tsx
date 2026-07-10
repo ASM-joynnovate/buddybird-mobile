@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
-import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 import type { SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: Radii.field,
     borderWidth: 2,
     color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     minHeight: 50,

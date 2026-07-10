@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 
 interface SessionPhaseBadgeProps {
   cycle: number;
@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
   },
   cycleText: {
     color: BuddyBirdColors.inkMuted,
+    fontFamily: Fonts.bodyExtraBold,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0,

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, type StyleProp, type TextStyle } from 'react-native';
 
-import { BuddyBirdColors } from '@/constants/theme';
+import { BuddyBirdColors, Fonts } from '@/constants/theme';
 
 export type SectionKickerTone = 'default' | 'strong';
 
@@ -20,12 +20,13 @@ const styles = StyleSheet.create({
   },
   default: {
     color: BuddyBirdColors.inkMuted,
+    fontFamily: Fonts.bodyExtraBold,
     fontWeight: '800',
     letterSpacing: 0,
   },
   strong: {
     color: BuddyBirdColors.secondaryDeep,
-    fontWeight: '800',
+    fontFamily: Fonts.bodyExtraBold,
     letterSpacing: 0,
   },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { BuddyBirdColors, Depth, Radii, Spacing } from '@/constants/theme';
+import { BuddyBirdColors, Depth, Fonts, Radii, Spacing } from '@/constants/theme';
 
 interface SpeechBubbleProps {
   children: React.ReactNode;
@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: BuddyBirdColors.ink,
+    fontFamily: Fonts.bodyExtraBold,
     fontSize: 16,
     fontWeight: '800',
     lineHeight: 22,
