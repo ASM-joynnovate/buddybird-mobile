@@ -33,8 +33,8 @@ export function OnboardingWelcomeView({
   return (
     <PetScreen scroll={false} contentStyle={styles.screen}>
       <View style={styles.hero}>
+        <SpeechBubble pointer="bottom-center" style={styles.bubble}>{bubble}</SpeechBubble>
         <BuddyBird animation="float" size={150} />
-        <SpeechBubble style={styles.bubble}>{bubble}</SpeechBubble>
       </View>
 
       <View style={styles.copy}>
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xxxl,
   },
   bubble: {
-    marginTop: Spacing.xxxl,
+    marginBottom: Spacing.xxxl,
     maxWidth: 300,
     width: '100%',
   },
