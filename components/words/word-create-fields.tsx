@@ -1,4 +1,5 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { TextInput } from '@/components/ui/app-text';
 
 import { Chip, type ChipTone } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';

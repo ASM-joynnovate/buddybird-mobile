@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { BuddyBirdColors, Fonts, withAlpha } from '@/constants/theme';

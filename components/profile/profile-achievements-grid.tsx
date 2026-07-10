@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { LedgeView } from '@/components/ui/ledge-surface';

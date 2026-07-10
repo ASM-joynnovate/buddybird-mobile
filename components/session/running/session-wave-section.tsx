@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { WaveformBars } from '@/components/ui/waveform-bars';

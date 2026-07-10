@@ -1,7 +1,8 @@
 import Slider from '@react-native-community/slider';
 import type { I18n } from 'i18n-js';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/components/ui/app-text';
 
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
 import { Chip } from '@/components/ui/chip';

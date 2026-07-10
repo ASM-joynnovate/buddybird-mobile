@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { Pressable3D } from '@/components/ui/ledge-surface';
 import { StrokeIcon } from '@/components/ui/stroke-icon';

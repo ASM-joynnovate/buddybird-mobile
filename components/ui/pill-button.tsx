@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 

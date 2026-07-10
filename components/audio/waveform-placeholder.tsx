@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';

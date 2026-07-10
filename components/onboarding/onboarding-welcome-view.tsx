@@ -1,4 +1,5 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Text } from '@/components/ui/app-text';
 
 import { PetScreen } from '@/components/layout/pet-screen';
 import { BuddyBird } from '@/components/mascot/buddy-bird';
