@@ -6,6 +6,7 @@ import { reportError } from '@/features/analytics/error-reporter';
 import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
 import type { StableRecordingFile } from '../audio-types';
+import { createVadState, normalizeMetering, stepVad, type VadState } from '../vad-detector';
 import { segmentMetering } from '../vad-segmentation';
 
 export interface DetectedSegment {
@@ -13,18 +14,10 @@ export interface DetectedSegment {
   endMs: number;
 }
 
-// metering(dB)을 0..1로 정규화하는 범위 — 참조 use-audio-recording 과 동일 기준.
-const DB_FLOOR = -60;
-const DB_CEIL = -10;
 const RECORDING_OPTIONS = {
   ...RecordingPresets.HIGH_QUALITY,
   isMeteringEnabled: true,
 };
-
-// 경량 VAD 튜닝값 (100ms 폴링 기준). 실기기에서 마이크 게인에 맞춰 조정.
-const VAD_THRESHOLD = 0.35; // 정규화 진폭 임계값
-const SUSTAIN_SAMPLES = 3; // 연속 초과 샘플 수 → 발화 onset (≈300ms)
-const RELEASE_SAMPLES = 5; // 연속 미만 샘플 수 → 발화 종료 (≈500ms)
 
 interface UseFollowAlongVadInput {
   // 따라하기 무음 갭 동안에만 true. true 동안 녹음 + metering VAD 가동.
@@ -52,9 +45,7 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
   const [detectionCount, setDetectionCount] = useState(0);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
-  const aboveRunRef = useRef(0);
-  const belowRunRef = useRef(0);
-  const isVoiceRef = useRef(false);
+  const vadStateRef = useRef<VadState>(createVadState());
   // 이번 갭 윈도우에서 발화가 한 번이라도 감지됐는지 — 저장 여부 판단용.
   const detectedInWindowRef = useRef(false);
   // 이번 갭 녹음의 정규화 metering 타임라인(100ms 간격) — 저장 시 발화 구간 분할에 사용.
@@ -71,9 +62,7 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
   useEffect(() => {
     setDetectionCount(0);
     setVoiceActive(false);
-    aboveRunRef.current = 0;
-    belowRunRef.current = 0;
-    isVoiceRef.current = false;
+    vadStateRef.current = createVadState();
   }, [resetKey]);
 
   // 녹음 시작/정지: enabled 동안만 파일 녹음(+ metering). 종료 시 발화가 있었으면 파일 저장.
@@ -82,9 +71,7 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
     if (!enabled) return;
     let isCancelled = false;
 
-    aboveRunRef.current = 0;
-    belowRunRef.current = 0;
-    isVoiceRef.current = false;
+    vadStateRef.current = createVadState();
     detectedInWindowRef.current = false;
     meteringSamplesRef.current = [];
     latestMeteringRef.current = 0;
@@ -117,9 +104,7 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
       setVoiceActive(false);
       const shouldSave = detectedInWindowRef.current;
       const samples = meteringSamplesRef.current;
-      aboveRunRef.current = 0;
-      belowRunRef.current = 0;
-      isVoiceRef.current = false;
+      vadStateRef.current = createVadState();
       detectedInWindowRef.current = false;
 
       (async () => {
@@ -158,24 +143,15 @@ export function useFollowAlongVad({ enabled, onSaved, onGapClosed, resetKey }: U
   // metering 폴링 → 임계값 sustain/release 로 발화 onset 카운트.
   useEffect(() => {
     if (!enabled || !recorderState.isRecording || recorderState.metering === undefined) return;
-    const normalized = Math.max(0, Math.min(1, (recorderState.metering - DB_FLOOR) / (DB_CEIL - DB_FLOOR)));
+    const normalized = normalizeMetering(recorderState.metering);
     latestMeteringRef.current = normalized;
 
-    if (normalized >= VAD_THRESHOLD) {
-      aboveRunRef.current += 1;
-      belowRunRef.current = 0;
-    } else {
-      belowRunRef.current += 1;
-      aboveRunRef.current = 0;
-    }
-
-    if (!isVoiceRef.current && aboveRunRef.current >= SUSTAIN_SAMPLES) {
-      isVoiceRef.current = true;
+    const transition = stepVad(vadStateRef.current, normalized);
+    if (transition === 'onset') {
       detectedInWindowRef.current = true;
       setVoiceActive(true);
       setDetectionCount((count) => count + 1);
-    } else if (isVoiceRef.current && belowRunRef.current >= RELEASE_SAMPLES) {
-      isVoiceRef.current = false;
+    } else if (transition === 'release') {
       setVoiceActive(false);
     }
   }, [enabled, recorderState.isRecording, recorderState.metering]);
