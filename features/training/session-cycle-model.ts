@@ -41,6 +41,20 @@ export function sessionLearningSeconds(totalCycles: number, learnSecs: number): 
   return totalCycles * learnSecs;
 }
 
+/** 중단해도 연속 학습일·총 학습 시간에 반영되는 최소 세션 경과 초(3분). 판정은 세션 경과(일시정지 제외, 휴식 포함) 기준. */
+export const STREAK_QUALIFYING_SECONDS = 300;
+
+/**
+ * 중단 시점까지 실제 진행한 학습 phase 초. 완료된 cycle들의 학습분에,
+ * 현재 cycle이 학습 중이면 그 경과분을 더한다(휴식·일시정지 제외).
+ * 총 학습 시간에 적립되는 값 = 완료 세션의 `sessionLearningSeconds`를 부분값으로 환산한 것.
+ */
+export function elapsedLearningSeconds(cycle: number, phase: 'learning' | 'rest', phaseElapsed: number, learnSecs: number): number {
+  const completedLearning = Math.max(0, cycle - 1) * learnSecs;
+  const currentLearning = phase === 'learning' ? Math.min(phaseElapsed, learnSecs) : learnSecs;
+  return completedLearning + currentLearning;
+}
+
 export function cycleProgressPercent(cycle: number, totalCycles: number): number {
   return totalCycles > 0 ? Math.round((cycle / totalCycles) * 100) : 0;
 }
