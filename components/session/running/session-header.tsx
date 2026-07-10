@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Pressable3D } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 
@@ -20,16 +19,13 @@ export function SessionHeader({ progress, isLearning, onStop }: SessionHeaderPro
       </View>
       <Pressable3D
         accessibilityRole="button"
-        accessibilityLabel="세션 중단"
+        accessibilityLabel="세션 종료"
         baseStyle={styles.stopBase}
         depth="card"
         faceStyle={styles.stopFace}
         hitSlop={4}
         onPress={onStop}>
-        <View style={styles.stopContent}>
-          <IconSymbol name="xmark" color={BuddyBirdColors.accentCoral} size={16} />
-          <Text style={styles.stopBtnText}>중단</Text>
-        </View>
+        <Text style={styles.stopBtnText}>종료</Text>
       </Pressable3D>
     </View>
   );
@@ -60,15 +56,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.cardPaddingSm,
   },
-  stopContent: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.xs,
-  },
   stopBtnText: {
     color: BuddyBirdColors.ink,
     fontFamily: Fonts.bodyExtraBold,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0,
   },
