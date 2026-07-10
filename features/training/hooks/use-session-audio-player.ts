@@ -87,12 +87,18 @@ export function useSessionAudioPlayer({
       sessionPlayer.loop = false;
       configurePlaybackAudioMode()
         .then(() => sessionPlayer.seekTo(0))
+        .catch((error: unknown) => {
+          // 모드 설정·seek 이 실패해도 재생은 시도한다(기존 동작 유지).
+          reportError(error, { scope: 'training.sessionPlayerSetup' });
+        })
+        // play()의 promise를 체인에 되돌려 rejection이 아래 catch로 흐르게 한다.
+        // 반환하지 않으면 released 플레이어의 rejection이 미처리로 앱을 죽인다.
         .then(() => {
-          if (!isCancelled) sessionPlayer.play();
+          if (isCancelled || isUnmountedRef.current) return;
+          return sessionPlayer.play();
         })
         .catch((error: unknown) => {
           reportError(error, { scope: 'training.sessionPlayerSetup' });
-          if (!isCancelled) sessionPlayer.play();
         });
     } else {
       clearSilenceTimer();
