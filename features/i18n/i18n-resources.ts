@@ -390,10 +390,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       ],
     },
     appUpdate: {
-      title: '앱 업데이트',
+      title: '업데이트 알림',
       versionPrefix: 'v',
       updateButton: '업데이트',
-      cancelButton: '취소',
+      cancelButton: '닫기',
     },
   },
   en: {
@@ -588,10 +588,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       ],
     },
     appUpdate: {
-      title: 'App update',
+      title: 'Update available',
       versionPrefix: 'v',
       updateButton: 'Update',
-      cancelButton: 'Cancel',
+      cancelButton: 'Close',
     },
   },
 };
