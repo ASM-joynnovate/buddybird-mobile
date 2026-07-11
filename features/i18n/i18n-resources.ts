@@ -189,6 +189,12 @@ interface AppCopy {
     presetWords: PresetWordTemplateCopy[];
     sessions: SessionTemplateCopy[];
   };
+  appUpdate: {
+    title: string;
+    versionPrefix: string;
+    updateButton: string;
+    cancelButton: string;
+  };
 }
 
 export const translations: Record<AppLocale, AppCopy> = {
@@ -383,6 +389,12 @@ export const translations: Record<AppLocale, AppCopy> = {
         { id: 'deep', label: '집중 루틴 3시간', description: '앱을 켜둔 상태에서 긴 반복 루틴을 실험해요.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
       ],
     },
+    appUpdate: {
+      title: '앱 업데이트',
+      versionPrefix: 'v',
+      updateButton: '업데이트',
+      cancelButton: '취소',
+    },
   },
   en: {
     common: {
@@ -574,6 +586,12 @@ export const translations: Record<AppLocale, AppCopy> = {
         { id: 'routine', label: '1 hr routine', description: 'The default session repeats 15 minutes of learning and 5 minutes of rest.', totalDurationSeconds: 3600, learningDurationSeconds: 900, restDurationSeconds: 300 },
         { id: 'deep', label: '3 hr focus', description: 'Try a longer foreground routine while the app stays open.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
       ],
+    },
+    appUpdate: {
+      title: 'App update',
+      versionPrefix: 'v',
+      updateButton: 'Update',
+      cancelButton: 'Cancel',
     },
   },
 };

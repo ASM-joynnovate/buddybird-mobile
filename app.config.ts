@@ -180,6 +180,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                         'RNFBAnalytics',
                         'RNFBCrashlytics',
                         'RNFBMessaging',
+                        'RNFBRemoteConfig',
                     ],
                 },
             },
@@ -191,6 +192,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     extra: {
         appVariant: APP_VARIANT,
         clarityProjectId: 'wre3hgbj48',
+        // 업데이트 프롬프트의 iOS '업데이트' 버튼이 여는 App Store ID(숫자).
+        // App Store Connect 등록 후 채운다. 비어 있으면 iOS 딥링크를 건너뛴다.
+        // Android 는 런타임 applicationId 로 market:// 링크를 구성하므로 별도 값이 불필요하다.
+        iosAppStoreId: '',
         router: {},
         eas: {
             projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e',

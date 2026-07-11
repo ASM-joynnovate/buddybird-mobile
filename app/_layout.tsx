@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 import { AppOpenTracker } from '@/components/app/app-open-tracker';
 import { AppProviders } from '@/components/app/app-providers';
 import { AppSplashGate } from '@/components/app/app-splash-gate';
+import { AppUpdateGate } from '@/components/app/app-update-gate';
 import { FcmRegistrationBootstrap } from '@/components/app/fcm-registration-bootstrap';
 import { MicPermissionBootstrap } from '@/components/app/mic-permission-bootstrap';
 import { RootNavigator } from '@/components/app/root-navigator';
@@ -25,6 +26,7 @@ export default function RootLayout() {
       <AppOpenTracker />
       <FcmRegistrationBootstrap />
       <MicPermissionBootstrap />
+      <AppUpdateGate />
       <RootNavigator />
       <AppSplashGate />
       <StatusBar style="dark" />
