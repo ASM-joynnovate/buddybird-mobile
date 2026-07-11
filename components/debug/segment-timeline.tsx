@@ -7,7 +7,9 @@ import type { CapturePlaybackController } from '@/features/audio/hooks/use-captu
 import type { CaptureSegment } from '@/features/training/follow-along-capture-types';
 
 // 세그먼트 탭 재생 시 앞뒤로 붙이는 문맥 여유. VAD 경계가 발화를 잘랐는지 귀로 판단하기 위함.
-const SEGMENT_PADDING_MS = 200;
+// 앞은 실시간 VAD 의 onset 지연(SUSTAIN 3샘플 ≈300ms)만큼 더 붙여 발화 어택이 잘려 들리지 않게 한다.
+const SEGMENT_LEAD_MS = 300;
+const SEGMENT_TAIL_MS = 200;
 
 interface SegmentTimelineProps {
   captureId: string;
@@ -54,8 +56,8 @@ export function SegmentTimeline({ captureId, uri, segments, playback }: SegmentT
                   return;
                 }
                 void playback.play(key, uri, {
-                  startMs: segment.startMs - SEGMENT_PADDING_MS,
-                  endMs: segment.endMs + SEGMENT_PADDING_MS,
+                  startMs: segment.startMs - SEGMENT_LEAD_MS,
+                  endMs: segment.endMs + SEGMENT_TAIL_MS,
                 });
               }}
               style={[styles.chip, isActive ? styles.chipActive : undefined]}>

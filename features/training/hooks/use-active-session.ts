@@ -13,6 +13,7 @@ import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
 
 import { useFollowAlongCapture } from './use-follow-along-capture';
+import { useRestPhraseCapture } from './use-rest-phrase-capture';
 import { useSessionAudioPlayer } from './use-session-audio-player';
 import { useSessionKeepAwake } from './use-session-keep-awake';
 
@@ -84,6 +85,15 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     wordId,
     cycle,
     onGapClosed: replayAfterGap,
+  });
+
+  // 휴식 구간에도 VAD 녹음 + 로컬 캡처. 갭과 달리 재생이 없으므로 재개 신호가 필요 없고,
+  // 발화 1건마다 파일을 확정해 저장한다.
+  useRestPhraseCapture({
+    enabled: status === 'running' && phase === 'rest',
+    sessionId: pendingSession?.sessionId ?? '',
+    wordId,
+    cycle,
   });
 
   // 학습 진행 중에는 화면 자동 꺼짐을 막아 부재중에도 학습이 끊기지 않게 한다.

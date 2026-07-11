@@ -26,6 +26,9 @@ export function CaptureRow({ capture, playback }: CaptureRowProps) {
         <View style={styles.cycleBadge}>
           <Text style={styles.cycleBadgeText}>{capture.cycle}회차</Text>
         </View>
+        <View style={styles.phaseBadge}>
+          <Text style={styles.phaseBadgeText}>{capture.phase === 'rest' ? '휴식' : '학습'}</Text>
+        </View>
         <Text style={styles.meta}>{formatClock(capture.capturedAt)}</Text>
         <Text style={styles.meta}>·</Text>
         <Text style={styles.meta}>{formatBytes(capture.sizeBytes)}</Text>
@@ -104,6 +107,17 @@ const styles = StyleSheet.create({
   },
   cycleBadgeText: {
     color: BuddyBirdColors.primaryShadow,
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 12,
+  },
+  phaseBadge: {
+    backgroundColor: BuddyBirdColors.blueTint,
+    borderRadius: Radii.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+  },
+  phaseBadgeText: {
+    color: BuddyBirdColors.secondary,
     fontFamily: Fonts.bodyExtraBold,
     fontSize: 12,
   },

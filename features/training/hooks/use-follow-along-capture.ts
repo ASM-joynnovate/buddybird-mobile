@@ -27,6 +27,7 @@ export function useFollowAlongCapture({ enabled, sessionId, wordId, cycle, onGap
         sessionId,
         wordId,
         cycle,
+        phase: 'learning',
         capturedAt: new Date().toISOString(),
         uri: file.uri,
         fileName: file.fileName,
