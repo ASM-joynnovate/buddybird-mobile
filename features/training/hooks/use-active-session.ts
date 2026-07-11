@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react';
 
 import type { SessionMeta, SessionStatus } from '../session-config';
-import { deriveSessionCycles } from '../session-cycle-model';
+import { deriveSessionCycles, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from '../session-cycle-model';
 import {
   createInitialSessionState,
   PHASE_ADVANCE_DELAY_MS,
@@ -139,6 +139,28 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }
 
   function stop(): void {
+    // 5분(세션 경과, 일시정지 제외) 이상 진행한 중단은 완주하지 않아도 학습 기록으로 남긴다.
+    // → 연속 학습일 +1(오늘 totalLearningSeconds>0), 총 학습 시간에 실제 학습분 적립, 세션 수 1회.
+    const meta = sessionMetaRef.current;
+    if (meta && overallElapsedSeconds >= STREAK_QUALIFYING_SECONDS) {
+      const endedAt = new Date().toISOString();
+      const session = createTrainingSession(
+        {
+          wordId: meta.wordId,
+          sourceType: meta.sourceType,
+          totalDurationSeconds: meta.totalDurationSeconds,
+          learningDurationSeconds: meta.learningDurationSeconds,
+          restDurationSeconds: meta.restDurationSeconds,
+          completedCycles: Math.max(0, cycle - 1),
+          totalLearningSeconds: elapsedLearningSeconds(cycle, phase, phaseElapsed, learnSecs),
+          startedAt: meta.startedAt,
+          endedAt,
+          libraryEntryId: meta.libraryEntryId,
+        } satisfies CreateTrainingSessionInput,
+        endedAt
+      );
+      saveCompletedSession(session);
+    }
     sessionMetaRef.current = null;
     dispatch({ type: 'reset' });
   }
