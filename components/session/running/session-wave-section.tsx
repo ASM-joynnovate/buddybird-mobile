@@ -19,23 +19,27 @@ export function SessionWaveSection({ isLearning, isActive, audioOn, word }: Sess
     return (
       <View style={styles.section}>
         <Text style={styles.restText}>
-          들은 단어를 기억할 수 있게{'\n'}잠깐 소리를 멈춰요.
+          잠시 쉬는 동안에도{'\n'}새로 말한 소리는 기록해요.
         </Text>
       </View>
     );
   }
 
+  const badgeStyle = audioOn ? { backgroundColor: withAlpha(accent, 0.12) } : styles.badgeWaiting;
+  const icon = audioOn ? 'speaker.wave.2.fill' : isActive ? 'mic' : 'pause.fill';
+  const label = audioOn ? `"${word}" 재생 중` : isActive ? '따라 말해 주세요' : '일시정지 중';
+
   return (
     <View style={styles.section}>
       <WaveformBars color={accent} height={44} barCount={38} animated={audioOn && isActive} frozen={!audioOn} />
-      <View style={[styles.badge, audioOn ? { backgroundColor: withAlpha(accent, 0.12) } : styles.badgeWaiting]}>
+      <View style={[styles.badge, badgeStyle]}>
         <IconSymbol
-          name={audioOn ? 'speaker.wave.2.fill' : 'pause.fill'}
+          name={icon}
           color={audioOn ? accent : BuddyBirdColors.inkMuted}
           size={15}
         />
         <Text style={[styles.text, audioOn ? styles.textActive : styles.textWaiting]}>
-          {audioOn ? `"${word}" 재생 중` : '다음 반복 대기'}
+          {label}
         </Text>
       </View>
     </View>

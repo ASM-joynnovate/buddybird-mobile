@@ -332,6 +332,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     let generation = playbackGeneration
     targetPlaying = true
     capturePipeline?.flush()
+    onStateChanged?(snapshotDictionary())
     playerNode.scheduleFile(audioFile, at: nil, completionCallbackType: .dataPlayedBack) { [weak self] _ in
       guard let self else { return }
       let durationSeconds = Double(audioFile.length) / audioFile.processingFormat.sampleRate
@@ -339,6 +340,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         guard self.playbackGeneration == generation else { return }
         self.targetPlaying = false
         self.captureAllowedAfterMs = self.monotonicMilliseconds() + (self.configuration?.vad.echoTailGuardMs ?? 0)
+        self.onStateChanged?(self.snapshotDictionary())
       }
       self.queue.asyncAfter(deadline: .now() + durationSeconds) {
         guard self.playbackGeneration == generation,
@@ -379,8 +381,10 @@ final class SessionAudioEngineCoordinator: NSObject {
       lastPhase = position.phase
       playerNode?.stop()
       playbackGeneration += 1
+      targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
       try? persist(reason: nil)
+      onStateChanged?(snapshotDictionary())
     }
 
     let progressSecond = elapsed / 1000
@@ -430,6 +434,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       "cycle": position.cycle,
       "phase": position.phase,
       "phaseElapsedMs": position.phaseElapsedMs,
+      "isTargetPlaying": targetPlaying,
       "savedAt": isoNow()
     ]
   }
@@ -471,6 +476,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         "cycle": record.cycle,
         "phase": record.phase,
         "phaseElapsedMs": record.phaseElapsedMs,
+        "isTargetPlaying": false,
         "savedAt": record.savedAt
       ],
       "recovery": record.configuration.recovery.dictionary,

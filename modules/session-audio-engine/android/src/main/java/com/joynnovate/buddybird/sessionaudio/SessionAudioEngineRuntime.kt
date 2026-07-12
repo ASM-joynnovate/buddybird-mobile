@@ -443,6 +443,7 @@ object SessionAudioEngineRuntime {
     playbackGeneration += 1
     targetPlaying = true
     capturePipeline?.flush()
+    onStateChanged?.invoke(snapshot())
     handler.post {
       player.seekTo(0)
       player.play()
@@ -454,6 +455,7 @@ object SessionAudioEngineRuntime {
       if (!targetPlaying || state != "running") return
       targetPlaying = false
       captureAllowedAfterMs = SystemClock.elapsedRealtime() + (configuration?.vad?.echoTailGuardMs ?: 0)
+      onStateChanged?.invoke(snapshot())
       playbackGeneration
     }
     scheduler.schedule({
@@ -544,6 +546,7 @@ object SessionAudioEngineRuntime {
       "cycle" to position.first,
       "phase" to position.second,
       "phaseElapsedMs" to position.third,
+      "isTargetPlaying" to targetPlaying,
       "savedAt" to Instant.now().toString(),
     )
   }

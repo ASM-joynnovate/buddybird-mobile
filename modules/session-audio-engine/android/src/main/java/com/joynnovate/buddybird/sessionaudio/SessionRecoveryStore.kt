@@ -46,6 +46,7 @@ class SessionRecoveryStore(context: Context) {
         "cycle" to snapshotJson.getInt("cycle"),
         "phase" to snapshotJson.getString("phase"),
         "phaseElapsedMs" to snapshotJson.getLong("phaseElapsedMs"),
+        "isTargetPlaying" to false,
         "savedAt" to snapshotJson.getString("savedAt"),
       ),
       "recovery" to mapOf(

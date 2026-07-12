@@ -175,6 +175,7 @@ export interface SessionEngineSnapshot {
   cycle: number;
   phase: 'learning' | 'rest';
   phaseElapsedMs: number;
+  isTargetPlaying: boolean;
   savedAt: string;
 }
 

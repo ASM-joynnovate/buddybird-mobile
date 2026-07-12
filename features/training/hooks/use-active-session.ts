@@ -269,7 +269,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     phaseRemaining: Math.max(0, Math.ceil(phaseDuration - phaseElapsed)),
     phaseProgress: Math.min(1, phaseElapsed / Math.max(1, phaseDuration)),
     progress: Math.min(1, elapsedSeconds / totalSessionSeconds),
-    audioOn: snapshot.state === 'running' && snapshot.phase === 'learning',
+    audioOn: snapshot.state === 'running' && snapshot.isTargetPlaying,
     isLearning: snapshot.phase === 'learning',
     currentWord: word,
     togglePause,
@@ -289,6 +289,7 @@ function initialSnapshot(sessionId: string): SessionEngineSnapshot {
     cycle: 1,
     phase: 'learning',
     phaseElapsedMs: 0,
+    isTargetPlaying: false,
     savedAt: new Date().toISOString(),
   };
 }
