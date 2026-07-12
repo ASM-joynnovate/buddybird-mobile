@@ -6,6 +6,7 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
 import { AnalyticsProvider } from '@/features/analytics/analytics-context';
+import { FeedbackProvider } from '@/features/feedback/feedback-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
@@ -37,7 +38,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 <TrainingDataProvider>
                   <WordLibraryProvider>
                     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                      {children}
+                      <FeedbackProvider>{children}</FeedbackProvider>
                     </ThemeProvider>
                   </WordLibraryProvider>
                 </TrainingDataProvider>

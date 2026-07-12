@@ -8,6 +8,7 @@ import type { AnalyticsClient } from './client';
 export type ErrorDomain =
   | 'analytics'
   | 'audio'
+  | 'feedback'
   | 'global'
   | 'i18n'
   | 'notifications'

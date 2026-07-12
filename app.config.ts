@@ -162,6 +162,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             },
         ],
         '@react-native-firebase/app',
+        '@react-native-firebase/auth',
         '@react-native-firebase/crashlytics',
         '@react-native-firebase/messaging',
         [
@@ -178,7 +179,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                     forceStaticLinking: [
                         'RNFBApp',
                         'RNFBAnalytics',
+                        'RNFBAuth',
                         'RNFBCrashlytics',
+                        'RNFBFirestore',
                         'RNFBMessaging',
                     ],
                 },

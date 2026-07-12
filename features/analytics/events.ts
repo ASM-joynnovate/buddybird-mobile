@@ -184,6 +184,12 @@ export type AnalyticsEvent =
     }
   | { name: 'tab_switched'; params: { from: string; to: string } }
   | { name: 'language_changed'; params: { from: string; to: string } }
+  | { name: 'feedback_prompt_shown'; params: { threshold: number } }
+  | { name: 'feedback_prompt_dismissed'; params: { threshold: number } }
+  | {
+      name: 'feedback_submitted';
+      params: { source: 'prompt' | 'profile'; message_length: number };
+    }
   | { name: 'app_error'; params: { error_code: string; screen_name: string | null } };
 
 export type AnalyticsEventName = AnalyticsEvent['name'];
