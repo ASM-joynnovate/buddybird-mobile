@@ -27,7 +27,7 @@ export function SessionWaveSection({ isLearning, isActive, audioOn, word }: Sess
 
   const badgeStyle = audioOn ? { backgroundColor: withAlpha(accent, 0.12) } : styles.badgeWaiting;
   const icon = audioOn ? 'speaker.wave.2.fill' : isActive ? 'mic' : 'pause.fill';
-  const label = audioOn ? `"${word}" 재생 중` : isActive ? '따라 말해 주세요' : '일시정지 중';
+  const label = audioOn ? `"${word}" 재생 중` : isActive ? '다음 반복 대기' : '일시정지 중';
 
   return (
     <View style={styles.section}>
