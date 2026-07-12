@@ -131,6 +131,20 @@ export type AnalyticsEvent =
         last_word_name: string | null;
       };
     }
+  | {
+      name: 'training_session_backgrounded';
+      params: {
+        session_id: string;
+        phase: 'learning' | 'rest';
+        elapsed_seconds: number;
+      };
+    }
+  | {
+      name: 'training_session_recovered';
+      params: {
+        credited_learning_seconds: number;
+      };
+    }
   | { name: 'word_library_opened'; params: { total_words_count: number } }
   | {
       name: 'word_library_filter_changed';

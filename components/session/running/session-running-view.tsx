@@ -51,7 +51,7 @@ export function SessionRunningView({ session, onStop, insetsTop, insetsBottom, f
         word={session.currentWord}
       />
       <SessionControls
-        isRunning={session.status === 'running'}
+        status={session.status}
         isLearning={session.isLearning}
         paddingBottom={insetsBottom + 44}
         onToggle={session.togglePause}

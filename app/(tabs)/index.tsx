@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
-
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
+import { SessionRecoveryBanner } from '@/components/session/session-recovery-banner';
 import { CycleSummary } from '@/components/session/setup/cycle-summary';
 import { SessionPresetCard } from '@/components/session/setup/session-preset-card';
 import { WordPicker } from '@/components/session/setup/word-picker';
@@ -27,7 +27,7 @@ export default function SessionSetupScreen() {
   return (
     <PetScreen contentStyle={styles.content}>
       <ScreenHeader title={t('sessionSetup.title')} body={t('sessionSetup.body')} />
-
+      <SessionRecoveryBanner />
       <WordPicker
         items={pickerItems}
         selectedId={selectedEntryId}

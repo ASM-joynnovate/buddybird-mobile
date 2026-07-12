@@ -80,14 +80,10 @@ function enqueueWrite(op: () => Promise<void>): Promise<void> {
 
 export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<void> {
   return enqueueWrite(async () => {
-    try {
-      const store = await captureStore.load();
-      store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
-      evictOldestOverCap(store);
-      await captureStore.save(store);
-    } catch (error: unknown) {
-      reportError(error, { scope: 'training.followAlongCaptures.append' });
-    }
+    const store = await captureStore.load();
+    store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
+    evictOldestOverCap(store);
+    await captureStore.save(store);
   });
 }
 

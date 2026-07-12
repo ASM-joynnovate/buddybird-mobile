@@ -52,6 +52,15 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 - 화면 추적은 `logEvent(analytics, 'screen_view', …)` — 사라진 `logScreenView` 금지
 - Cloud Messaging은 `features/notifications/`에서 권한 요청, FCM token 로컬 저장, foreground/background/opened message receipt 저장을 담당합니다. 현재 backend token 업로드는 범위 밖입니다.
 
+### 백그라운드 학습 오디오
+
+- `modules/session-audio-engine/` 로컬 Expo 모듈이 세션 단조 시간, 구간 전환, 목표 음원 재생, 연속 마이크 입력, VAD/WAV 저장, 미처리 캡처 목록과 비정상 종료 복구 기록을 소유합니다.
+- JS는 `SessionAudioEngine` API로 명령과 이벤트만 교환하며, 백그라운드 진행에 React lifecycle이나 JS timer를 사용하지 않습니다.
+- iOS는 `UIBackgroundModes: ['audio']`와 `AVAudioSession.playAndRecord`를 사용합니다.
+- Android는 `AudioForegroundService`를 `microphone|mediaPlayback` type으로 실행합니다. `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` 권한을 `app.config.ts`에서 유지합니다.
+- Android service는 `START_NOT_STICKY`이며 알림의 종료 action이 JS 실행 여부와 관계없이 복구 기록을 확정하고 오디오 자원을 해제합니다.
+- 상세 상태·파일·복구 계약과 실제 기기 검증 항목은 `docs/BACKGROUND-AUDIO-DESIGN.md`가 단일 출처입니다.
+
 ### Plugin
 
 - `plugins/withFirebaseStaticPodfile.js`: iOS Podfile에 `use_frameworks! :linkage => :static`를 강제 (RNFirebase의 static linking 요구)

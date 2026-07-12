@@ -1,20 +1,28 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
-import type { SessionMeta, SessionStatus } from '../session-config';
-import { deriveSessionCycles, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from '../session-cycle-model';
+import { useAnalytics } from '@/features/analytics/analytics-context';
+import { reportError } from '@/features/analytics/error-reporter';
 import {
-  createInitialSessionState,
-  PHASE_ADVANCE_DELAY_MS,
-  sessionReducer,
-  TICK_INTERVAL_MS,
-} from '../session-reducer';
+  sessionAudioEngine,
+  type CapturedSegment,
+  type SessionEngineSnapshot,
+  type SessionRecoveryRecord,
+} from '@/modules/session-audio-engine';
+
+import { storeNativeCapturedSegments } from '../native-session-capture-storage';
+import type { SessionStatus } from '../session-config';
+import {
+  completedCyclesAtPosition,
+  deriveSessionCycles,
+  elapsedLearningSeconds,
+  STREAK_QUALIFYING_SECONDS,
+} from '../session-cycle-model';
+import { prepareSessionAudioUri, prepareSessionCaptureDirectoryUri } from '../session-audio-assets';
+import { MAX_PENDING_CAPTURE_BYTES, SESSION_VAD_CONFIG } from '../session-audio-engine-config';
 import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
-
-import { useFollowAlongCapture } from './use-follow-along-capture';
-import { useRestPhraseCapture } from './use-rest-phrase-capture';
-import { useSessionAudioPlayer } from './use-session-audio-player';
 import { useSessionKeepAwake } from './use-session-keep-awake';
 
 interface UseActiveSessionInput {
@@ -40,151 +48,247 @@ export interface UseActiveSessionResult {
   dismissCompletion: () => void;
   learnSecs: number;
   sessionMins: number;
+  totalLearningSeconds: number;
 }
 
 export function useActiveSession({ wordId, settings, audioUri, word }: UseActiveSessionInput): UseActiveSessionResult {
   const { saveCompletedSession, pendingSession } = useTrainingData();
-
+  const { track } = useAnalytics();
+  const sessionId = pendingSession?.sessionId ?? '';
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
-  const { secsPerCycle, totalCycles, sessionMins, totalSessionSeconds, totalLearningSeconds } = deriveSessionCycles({
+  const { totalCycles, sessionMins, totalSessionSeconds } = deriveSessionCycles({
     totalSeconds: settings.totalDurationSeconds,
     learnSecs,
     restSecs,
   });
+  const [snapshot, setSnapshot] = useState<SessionEngineSnapshot>(() => initialSnapshot(sessionId));
+  const snapshotRef = useRef(snapshot);
+  snapshotRef.current = snapshot;
+  const completionHandledRef = useRef(false);
+  const finalizePromiseRef = useRef<Promise<void> | null>(null);
 
-  const [state, dispatch] = useReducer(sessionReducer, { learnSecs, restSecs, totalCycles }, createInitialSessionState);
-  const { status, phase, cycle, phaseElapsed } = state;
+  const acceptSnapshot = useCallback((next: SessionEngineSnapshot): void => {
+    if (next.sessionId === sessionId) setSnapshot(next);
+  }, [sessionId]);
 
-  const sessionMetaRef = useRef<SessionMeta | null>({
-    wordId,
-    startedAt: new Date().toISOString(),
-    sourceType: settings.sourceType,
-    totalDurationSeconds: settings.totalDurationSeconds,
-    learningDurationSeconds: learnSecs,
-    restDurationSeconds: restSecs,
-    libraryEntryId: settings.libraryEntryId,
-  });
+  const storeSegment = useCallback(async (segment: CapturedSegment): Promise<void> => {
+    if (segment.sessionId !== sessionId) return;
+    try {
+      await storeNativeCapturedSegments([segment], wordId);
+    } catch (error: unknown) {
+      reportError(error, { scope: 'training.sessionAudio.storeSegment' });
+    }
+  }, [sessionId, wordId]);
 
-  const isLearning = phase === 'learning';
-  const phaseDuration = isLearning ? learnSecs : restSecs;
-  const phaseRemaining = Math.max(0, phaseDuration - phaseElapsed);
-  const phaseProgress = Math.min(1, phaseElapsed / Math.max(1, phaseDuration));
-  const completedCycleSeconds = (cycle - 1) * secsPerCycle;
-  const currentPhaseOffsetSeconds = isLearning ? 0 : learnSecs;
-  const overallElapsedSeconds = completedCycleSeconds + currentPhaseOffsetSeconds + phaseElapsed;
-  const progress = Math.min(1, overallElapsedSeconds / totalSessionSeconds);
-
-  const { audioOn, inFollowGap, replayAfterGap } = useSessionAudioPlayer({ audioUri, phase, status });
-
-  // 따라하기 무음 갭 동안에만 VAD 녹음 + 로컬 캡처(발화 감지 시). UI 노출 없음.
-  // onGapClosed: VAD 정지 + 재생 모드 복원 뒤 다음 재생을 재개(무음 버그 방지 순서 보장).
-  useFollowAlongCapture({
-    enabled: inFollowGap,
-    sessionId: pendingSession?.sessionId ?? '',
-    wordId,
-    cycle,
-    onGapClosed: replayAfterGap,
-  });
-
-  // 휴식 구간에도 VAD 녹음 + 로컬 캡처. 갭과 달리 재생이 없으므로 재개 신호가 필요 없고,
-  // 발화 1건마다 파일을 확정해 저장한다.
-  useRestPhraseCapture({
-    enabled: status === 'running' && phase === 'rest',
-    sessionId: pendingSession?.sessionId ?? '',
-    wordId,
-    cycle,
-  });
-
-  // 학습 진행 중에는 화면 자동 꺼짐을 막아 부재중에도 학습이 끊기지 않게 한다.
-  useSessionKeepAwake(status === 'running');
+  const syncUnstoredSegments = useCallback(async (): Promise<void> => {
+    try {
+      const segments = await sessionAudioEngine.getUnstoredSegments();
+      await storeNativeCapturedSegments(segments.filter((segment) => segment.sessionId === sessionId), wordId);
+    } catch (error: unknown) {
+      reportError(error, { scope: 'training.sessionAudio.syncSegments' });
+    }
+  }, [sessionId, wordId]);
 
   useEffect(() => {
-    if (status !== 'running') return;
-    const iv = setInterval(() => dispatch({ type: 'tick' }), TICK_INTERVAL_MS);
-    return () => clearInterval(iv);
-  }, [status]);
+    let cancelled = false;
+    const unsubscribers = [
+      sessionAudioEngine.onStateChanged(acceptSnapshot),
+      sessionAudioEngine.onProgress(acceptSnapshot),
+      sessionAudioEngine.onSegmentCaptured((segment) => { void storeSegment(segment); }),
+      sessionAudioEngine.onFailure((failure) => {
+        reportError(new Error(`${failure.code}: ${failure.message}`), { scope: 'training.sessionAudio.native' });
+      }),
+    ];
+
+    async function startNativeSession(): Promise<void> {
+      try {
+        const existing = await sessionAudioEngine.getSnapshot();
+        if (existing?.sessionId === sessionId) {
+          if (!cancelled) acceptSnapshot(existing);
+          await syncUnstoredSegments();
+          return;
+        }
+        if (!sessionId || audioUri === undefined) throw new Error('세션 음원 또는 세션 ID가 없습니다.');
+        const targetAudioUri = await prepareSessionAudioUri(audioUri);
+        const next = await sessionAudioEngine.start({
+          sessionId,
+          targetAudioUri,
+          captureDirectoryUri: prepareSessionCaptureDirectoryUri(),
+          totalDurationMs: settings.totalDurationSeconds * 1000,
+          learningDurationMs: learnSecs * 1000,
+          restDurationMs: restSecs * 1000,
+          maxPendingCaptureBytes: MAX_PENDING_CAPTURE_BYTES,
+          vad: SESSION_VAD_CONFIG,
+          recovery: {
+            wordId,
+            word,
+            sourceType: settings.sourceType,
+            libraryEntryId: settings.libraryEntryId,
+            startedAt: new Date().toISOString(),
+          },
+        });
+        if (!cancelled) acceptSnapshot(next);
+        await syncUnstoredSegments();
+      } catch (error: unknown) {
+        reportError(error, { scope: 'training.sessionAudio.start', screen_name: 'session_active' });
+        if (!cancelled) setSnapshot((current) => ({ ...current, state: 'failed', savedAt: new Date().toISOString() }));
+      }
+    }
+
+    void startNativeSession();
+    return () => {
+      cancelled = true;
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [
+    acceptSnapshot,
+    audioUri,
+    learnSecs,
+    restSecs,
+    sessionId,
+    settings.libraryEntryId,
+    settings.sourceType,
+    settings.totalDurationSeconds,
+    storeSegment,
+    syncUnstoredSegments,
+    word,
+    wordId,
+  ]);
 
   useEffect(() => {
-    if (status !== 'running' || phaseElapsed < phaseDuration) return;
-    const timer = setTimeout(() => dispatch({ type: 'advancePhase' }), PHASE_ADVANCE_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [phaseElapsed, phaseDuration, status]);
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void sessionAudioEngine.getSnapshot().then((next) => {
+          if (next) acceptSnapshot(next);
+        }).catch((error: unknown) => reportError(error, { scope: 'training.sessionAudio.getSnapshot' }));
+        void syncUnstoredSegments();
+        return;
+      }
+      const currentSnapshot = snapshotRef.current;
+      if (nextState !== 'background' || currentSnapshot.state !== 'running' || !sessionId) return;
+      track({
+        name: 'training_session_backgrounded',
+        params: {
+          session_id: sessionId,
+          phase: currentSnapshot.phase,
+          elapsed_seconds: Math.floor(currentSnapshot.elapsedRunningMs / 1000),
+        },
+      });
+    });
+    return () => subscription.remove();
+  }, [acceptSnapshot, sessionId, syncUnstoredSegments, track]);
 
-  useEffect(() => {
-    if (status !== 'completed') return;
-    const meta = sessionMetaRef.current;
-    if (!meta) return;
+  const persistRecovery = useCallback(async (record: SessionRecoveryRecord): Promise<void> => {
+    const elapsedSeconds = Math.floor(record.snapshot.elapsedRunningMs / 1000);
+    const shouldPersist = record.reason === 'duration-reached' || elapsedSeconds >= STREAK_QUALIFYING_SECONDS;
+    if (!shouldPersist) {
+      await sessionAudioEngine.clearPendingRecovery(record.snapshot.sessionId);
+      return;
+    }
+
     const endedAt = new Date().toISOString();
-    const session = createTrainingSession(
-      {
-        wordId: meta.wordId,
-        sourceType: meta.sourceType,
-        totalDurationSeconds: meta.totalDurationSeconds,
-        learningDurationSeconds: meta.learningDurationSeconds,
-        restDurationSeconds: meta.restDurationSeconds,
-        completedCycles: totalCycles,
-        totalLearningSeconds,
-        startedAt: meta.startedAt,
-        endedAt,
-        libraryEntryId: meta.libraryEntryId,
-      } satisfies CreateTrainingSessionInput,
-      endedAt
+    const phaseElapsedSeconds = Math.floor(record.snapshot.phaseElapsedMs / 1000);
+    const totalLearningSeconds = elapsedLearningSeconds(
+      record.snapshot.cycle,
+      record.snapshot.phase,
+      phaseElapsedSeconds,
+      record.learningDurationMs / 1000,
     );
-    saveCompletedSession(session);
-  }, [status, totalCycles, totalLearningSeconds, saveCompletedSession]);
+    const session = {
+      ...createTrainingSession(
+      {
+        wordId: record.recovery.wordId,
+        sourceType: record.recovery.sourceType,
+        totalDurationSeconds: record.totalDurationMs / 1000,
+        learningDurationSeconds: record.learningDurationMs / 1000,
+        restDurationSeconds: record.restDurationMs / 1000,
+        completedCycles: completedCyclesAtPosition(
+          record.snapshot.cycle,
+          record.snapshot.phase,
+          phaseElapsedSeconds,
+          record.restDurationMs / 1000,
+        ),
+        totalLearningSeconds,
+        startedAt: record.recovery.startedAt,
+        endedAt,
+        libraryEntryId: record.recovery.libraryEntryId,
+      } satisfies CreateTrainingSessionInput,
+      endedAt,
+      ),
+      id: record.snapshot.sessionId,
+    };
+    await saveCompletedSession(session);
+    await sessionAudioEngine.clearPendingRecovery(record.snapshot.sessionId);
+  }, [saveCompletedSession]);
+
+  const finalizeSession = useCallback((): Promise<void> => {
+    if (finalizePromiseRef.current) return finalizePromiseRef.current;
+    const operation = sessionAudioEngine.stop()
+      .then(persistRecovery)
+      .catch((error: unknown) => {
+        reportError(error, { scope: 'training.sessionAudio.stop', screen_name: 'session_active' });
+      });
+    finalizePromiseRef.current = operation;
+    return operation;
+  }, [persistRecovery]);
+
+  useEffect(() => {
+    if (snapshot.state !== 'completed' || completionHandledRef.current) return;
+    completionHandledRef.current = true;
+    void finalizeSession();
+  }, [finalizeSession, snapshot.state]);
+
+  useSessionKeepAwake(snapshot.state === 'running');
 
   function togglePause(): void {
-    dispatch({ type: 'togglePause' });
+    const command = snapshot.state === 'running' ? sessionAudioEngine.pause() : sessionAudioEngine.resume();
+    void command.then(acceptSnapshot).catch((error: unknown) => {
+      reportError(error, { scope: 'training.sessionAudio.togglePause', screen_name: 'session_active' });
+    });
   }
 
   function stop(): void {
-    // 5분(세션 경과, 일시정지 제외) 이상 진행한 중단은 완주하지 않아도 학습 기록으로 남긴다.
-    // → 연속 학습일 +1(오늘 totalLearningSeconds>0), 총 학습 시간에 실제 학습분 적립, 세션 수 1회.
-    const meta = sessionMetaRef.current;
-    if (meta && overallElapsedSeconds >= STREAK_QUALIFYING_SECONDS) {
-      const endedAt = new Date().toISOString();
-      const session = createTrainingSession(
-        {
-          wordId: meta.wordId,
-          sourceType: meta.sourceType,
-          totalDurationSeconds: meta.totalDurationSeconds,
-          learningDurationSeconds: meta.learningDurationSeconds,
-          restDurationSeconds: meta.restDurationSeconds,
-          completedCycles: Math.max(0, cycle - 1),
-          totalLearningSeconds: elapsedLearningSeconds(cycle, phase, phaseElapsed, learnSecs),
-          startedAt: meta.startedAt,
-          endedAt,
-          libraryEntryId: meta.libraryEntryId,
-        } satisfies CreateTrainingSessionInput,
-        endedAt
-      );
-      saveCompletedSession(session);
-    }
-    sessionMetaRef.current = null;
-    dispatch({ type: 'reset' });
+    void finalizeSession();
   }
 
   function dismissCompletion(): void {
-    sessionMetaRef.current = null;
-    dispatch({ type: 'reset' });
+    setSnapshot((current) => ({ ...current, state: 'idle' }));
   }
 
+  const phaseElapsed = snapshot.phaseElapsedMs / 1000;
+  const phaseDuration = snapshot.phase === 'learning' ? learnSecs : restSecs;
+  const elapsedSeconds = snapshot.elapsedRunningMs / 1000;
+  const creditedLearningSeconds = elapsedLearningSeconds(snapshot.cycle, snapshot.phase, phaseElapsed, learnSecs);
+
   return {
-    status,
-    phase,
-    cycle,
+    status: snapshot.state,
+    phase: snapshot.phase,
+    cycle: Math.min(snapshot.cycle, totalCycles),
     totalCycles,
-    phaseRemaining,
-    phaseProgress,
-    progress,
-    audioOn,
-    isLearning,
+    phaseRemaining: Math.max(0, Math.ceil(phaseDuration - phaseElapsed)),
+    phaseProgress: Math.min(1, phaseElapsed / Math.max(1, phaseDuration)),
+    progress: Math.min(1, elapsedSeconds / totalSessionSeconds),
+    audioOn: snapshot.state === 'running' && snapshot.phase === 'learning',
+    isLearning: snapshot.phase === 'learning',
     currentWord: word,
     togglePause,
     stop,
     dismissCompletion,
     learnSecs,
     sessionMins,
+    totalLearningSeconds: creditedLearningSeconds,
+  };
+}
+
+function initialSnapshot(sessionId: string): SessionEngineSnapshot {
+  return {
+    sessionId,
+    state: 'starting',
+    elapsedRunningMs: 0,
+    cycle: 1,
+    phase: 'learning',
+    phaseElapsedMs: 0,
+    savedAt: new Date().toISOString(),
   };
 }
