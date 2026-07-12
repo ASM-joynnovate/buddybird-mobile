@@ -1,7 +1,7 @@
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 /**
  * 플랫폼별 스토어 페이지를 연다. Android 는 런타임 applicationId 로 `market://` 링크를
@@ -20,6 +20,11 @@ export async function openStorePage(): Promise<void> {
     await Linking.openURL(canOpenNative ? target.nativeUrl : target.webUrl);
   } catch (error: unknown) {
     console.warn('[app-update.openStorePage]', error);
+  }
+
+  // dev 시뮬레이터 실행 시 업데이트 버튼 CTA 동작 테스트용
+  if (__DEV__) {
+    Alert.alert('Update CTA (dev)', `native: ${target.nativeUrl}\nweb: ${target.webUrl}`);
   }
 }
 
