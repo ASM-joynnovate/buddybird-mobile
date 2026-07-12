@@ -38,7 +38,9 @@ export async function fetchRemoteVersionInfo(): Promise<RemoteVersionInfo | null
     const remoteConfig = getRemoteConfig(getApp());
 
     await setConfigSettings(remoteConfig, {
-      minimumFetchIntervalMillis: APP_UPDATE_MIN_FETCH_INTERVAL_MS,
+      // 개발 빌드에선 캐시를 끄고 매번 새로 받아 버전 변경/팝업을 즉시 확인한다.
+      // prod 는 throttling 방지를 위해 6h 를 유지한다.
+      minimumFetchIntervalMillis: __DEV__ ? 0 : APP_UPDATE_MIN_FETCH_INTERVAL_MS,
     });
     await setDefaults(remoteConfig, CONFIG_DEFAULTS);
     await fetchAndActivate(remoteConfig);
