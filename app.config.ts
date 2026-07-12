@@ -29,6 +29,8 @@ const BUNDLE_ID_BASE = 'com.joynnovate.buddybird';
 const BUNDLE_ID = IS_DEV ? `${BUNDLE_ID_BASE}.dev` : BUNDLE_ID_BASE;
 const SCHEME = IS_DEV ? 'buddybird-dev' : 'buddybird';
 const DISPLAY_NAME = IS_DEV ? `${APP_NAME} (DEV)` : APP_NAME;
+// 업데이트 프롬프트의 iOS '업데이트' 버튼이 여는 App Store ID(숫자). 개발계/운영계가 별도 앱이라 분기한다.
+const IOS_APP_STORE_ID = IS_DEV ? '6784253530' : '6783652711';
 
 const IOS_GOOGLE_SERVICES_FILE =
     process.env.GOOGLE_SERVICES_INFO_PLIST ??
@@ -180,6 +182,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                         'RNFBAnalytics',
                         'RNFBCrashlytics',
                         'RNFBMessaging',
+                        'RNFBRemoteConfig',
                     ],
                 },
             },
@@ -191,6 +194,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     extra: {
         appVariant: APP_VARIANT,
         clarityProjectId: 'wre3hgbj48',
+        // iOS '업데이트' 버튼이 여는 App Store ID. Android 는 런타임 applicationId 로
+        // market:// 링크를 구성하므로 별도 값이 불필요하다.
+        iosAppStoreId: IOS_APP_STORE_ID,
         router: {},
         eas: {
             projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e',
