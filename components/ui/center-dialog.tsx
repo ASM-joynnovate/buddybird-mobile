@@ -1,4 +1,4 @@
-import { Children, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/app-text';
@@ -68,17 +68,12 @@ function CenterDialogContent({
   );
 }
 
-/** 버튼을 가로로 균등 배치한다. 각 자식이 같은 폭을 갖고, 하나면 전체 폭. */
+/**
+ * 푸터 버튼 영역. 가로 한 줄 배치만 담당하고, 각 버튼의 너비는 호출부가 정한다.
+ * 균등 배치는 각 자식을 flex:1 로 감싸고, 비대칭·정렬은 호출부에서 조합한다.
+ */
 function CenterDialogFooter({ children }: { children: ReactNode }) {
-  return (
-    <View style={styles.footer}>
-      {Children.toArray(children).map((child, index) => (
-        <View key={index} style={styles.footerItem}>
-          {child}
-        </View>
-      ))}
-    </View>
-  );
+  return <View style={styles.footer}>{children}</View>;
 }
 
 export const CenterDialog = Object.assign(CenterDialogRoot, {
@@ -120,8 +115,5 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     gap: Spacing.md,
-  },
-  footerItem: {
-    flex: 1,
   },
 });
