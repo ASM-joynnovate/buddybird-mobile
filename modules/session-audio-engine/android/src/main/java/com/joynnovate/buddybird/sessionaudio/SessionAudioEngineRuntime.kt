@@ -9,11 +9,18 @@ import android.media.AudioFormat
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.AudioRecord
-import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
+import androidx.media3.common.AudioAttributes as Media3AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import expo.modules.kotlin.exception.CodedException
 import java.io.File
 import java.time.Instant
@@ -45,7 +52,9 @@ object SessionAudioEngineRuntime {
   private var serviceReadyLatch: CountDownLatch? = null
   private var serviceStartError: Throwable? = null
   private var audioRecord: AudioRecord? = null
-  private var mediaPlayer: MediaPlayer? = null
+  private var mediaPlayer: ExoPlayer? = null
+  private var playbackThread: HandlerThread? = null
+  private var playbackHandler: Handler? = null
   private var audioManager: AudioManager? = null
   private var audioFocusRequest: AudioFocusRequest? = null
   private val audioFocusListener = AudioManager.OnAudioFocusChangeListener(::handleAudioFocusChange)
@@ -222,6 +231,7 @@ object SessionAudioEngineRuntime {
     if (directory.scheme != "file" || !File(requireNotNull(directory.path)).let { it.isDirectory || it.mkdirs() }) {
       throw CodedException("The capture directory is unavailable.")
     }
+    requireNotNull(captureStore).reconcile(config.captureDirectoryUri)
     if (ContextCompat.checkSelfPermission(requireNotNull(context), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
       throw CodedException("Microphone permission is required.")
     }
@@ -243,23 +253,49 @@ object SessionAudioEngineRuntime {
       recorder.release()
       throw CodedException("The microphone audio source is unavailable.")
     }
-    val player = MediaPlayer().apply {
-      setAudioAttributes(
-        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(),
-      )
-      setDataSource(appContext, Uri.parse(config.targetAudioUri))
-      setOnErrorListener { _, what, extra ->
-        scheduler.execute {
-          synchronized(this@SessionAudioEngineRuntime) {
-            failSession("audio-engine-failed", CodedException("MediaPlayer failed: what=$what extra=$extra"))
+    audioRecord = recorder
+    val thread = HandlerThread("SessionAudioPlayback").apply { start() }
+    val handler = Handler(thread.looper)
+    val playerReady = CountDownLatch(1)
+    var playerFailure: Throwable? = null
+    handler.post {
+      val player = ExoPlayer.Builder(appContext)
+        .setLooper(thread.looper)
+        .setAudioAttributes(
+          Media3AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+            .build(),
+          false,
+        )
+        .build()
+      player.addListener(object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+          if (playbackState == Player.STATE_READY) playerReady.countDown()
+          if (playbackState == Player.STATE_ENDED) handlePlaybackCompleted(player.duration.coerceAtLeast(0))
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+          playerFailure = error
+          playerReady.countDown()
+          scheduler.execute {
+            synchronized(this@SessionAudioEngineRuntime) {
+              failSession("audio-engine-failed", error)
+            }
           }
         }
-        true
-      }
-      prepare()
+      })
+      player.setMediaItem(MediaItem.fromUri(config.targetAudioUri))
+      player.prepare()
+      mediaPlayer = player
     }
-    audioRecord = recorder
-    mediaPlayer = player
+    if (!playerReady.await(4, TimeUnit.SECONDS) || playerFailure != null) {
+      handler.post { mediaPlayer?.release() }
+      thread.quitSafely()
+      throw CodedException("The target audio file could not be prepared.", playerFailure)
+    }
+    playbackThread = thread
+    playbackHandler = handler
     if (capturePipeline == null) {
       capturePipeline = VoiceCapturePipeline(config, requireNotNull(captureStore)).apply {
         onCaptured = { onSegmentCaptured?.invoke(it.toMap()) }
@@ -281,11 +317,12 @@ object SessionAudioEngineRuntime {
         if (count > 0) {
           val copied = buffer.copyOf(count)
           captureExecutor.execute {
-            synchronized(this@SessionAudioEngineRuntime) {
+            val capture = synchronized(this@SessionAudioEngineRuntime) {
               val position = phasePosition()
               val allowed = state == "running" && !targetPlaying && SystemClock.elapsedRealtime() >= captureAllowedAfterMs
-              capturePipeline?.process(copied, copied.size, allowed, position.second, position.first)
+              CaptureWork(capturePipeline, allowed, position.second, position.first)
             }
+            capture.pipeline?.process(copied, copied.size, capture.allowed, capture.phase, capture.cycle)
           }
         } else if (count < 0 && recording.compareAndSet(true, false)) {
           captureExecutor.execute {
@@ -302,9 +339,15 @@ object SessionAudioEngineRuntime {
     capturePipeline?.flush()
     playbackGeneration += 1
     targetPlaying = false
-    mediaPlayer?.runCatching { stop() }
-    mediaPlayer?.release()
+    val player = mediaPlayer
+    playbackHandler?.post {
+      player?.stop()
+      player?.release()
+    }
     mediaPlayer = null
+    playbackThread?.quitSafely()
+    playbackThread = null
+    playbackHandler = null
     recording.set(false)
     audioRecord?.runCatching { stop() }
     recordingThread?.join(500)
@@ -395,27 +438,30 @@ object SessionAudioEngineRuntime {
 
   private fun scheduleTargetPlaybackIfNeeded() {
     val player = mediaPlayer ?: return
+    val handler = playbackHandler ?: return
     if (state != "running" || phasePosition().second != "learning") return
-    val generation = ++playbackGeneration
+    playbackGeneration += 1
     targetPlaying = true
     capturePipeline?.flush()
-    player.seekTo(0)
-    player.setOnCompletionListener {
-      val followGapMs = player.duration.toLong()
-      synchronized(this) {
-        if (generation == playbackGeneration) {
-          targetPlaying = false
-          captureAllowedAfterMs = SystemClock.elapsedRealtime() + (configuration?.vad?.echoTailGuardMs ?: 0)
-        }
-      }
-      scheduler.schedule({
-        synchronized(this) {
-          if (generation != playbackGeneration || state != "running" || phasePosition().second != "learning") return@synchronized
-          scheduleTargetPlaybackIfNeeded()
-        }
-      }, followGapMs, TimeUnit.MILLISECONDS)
+    handler.post {
+      player.seekTo(0)
+      player.play()
     }
-    player.start()
+  }
+
+  private fun handlePlaybackCompleted(followGapMs: Long) {
+    val generation = synchronized(this) {
+      if (!targetPlaying || state != "running") return
+      targetPlaying = false
+      captureAllowedAfterMs = SystemClock.elapsedRealtime() + (configuration?.vad?.echoTailGuardMs ?: 0)
+      playbackGeneration
+    }
+    scheduler.schedule({
+      synchronized(this) {
+        if (generation != playbackGeneration || state != "running" || phasePosition().second != "learning") return@synchronized
+        scheduleTargetPlaybackIfNeeded()
+      }
+    }, followGapMs, TimeUnit.MILLISECONDS)
   }
 
   private fun startTimer() {
@@ -441,7 +487,8 @@ object SessionAudioEngineRuntime {
     if (phase != lastPhase) {
       capturePipeline?.flush()
       lastPhase = phase
-      mediaPlayer?.pause()
+      val player = mediaPlayer
+      playbackHandler?.post { player?.pause() }
       playbackGeneration += 1
       targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
@@ -519,4 +566,11 @@ object SessionAudioEngineRuntime {
       "reason" to reason,
     )
   }
+
+  private data class CaptureWork(
+    val pipeline: VoiceCapturePipeline?,
+    val allowed: Boolean,
+    val phase: String,
+    val cycle: Int,
+  )
 }

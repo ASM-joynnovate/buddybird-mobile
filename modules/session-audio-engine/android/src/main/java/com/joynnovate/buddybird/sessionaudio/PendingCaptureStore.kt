@@ -17,6 +17,16 @@ class PendingCaptureStore(context: Context) {
   private val segments = load().toMutableList()
 
   @Synchronized
+  fun reconcile(captureDirectoryUri: String) {
+    val captureDirectory = File(requireNotNull(Uri.parse(captureDirectoryUri).path)).apply { mkdirs() }
+    val registeredTemporaryFiles = segments.mapTo(mutableSetOf()) { ".${it.fileName}.tmp" }
+    captureDirectory.listFiles()
+      ?.filter { it.isFile && it.name.startsWith(".") && it.name.endsWith(".wav.tmp") }
+      ?.filterNot { it.name in registeredTemporaryFiles }
+      ?.forEach(File::delete)
+  }
+
+  @Synchronized
   fun store(
     samples: ShortArray,
     configuration: NativeSessionConfiguration,

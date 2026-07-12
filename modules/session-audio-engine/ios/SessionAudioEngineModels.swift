@@ -114,6 +114,7 @@ enum SessionAudioEngineError: LocalizedError {
   case invalidInput(String)
   case sessionAlreadyRunning
   case noSession
+  case permissionDenied
   case audioSourceUnavailable
   case storageUnavailable
   case audioEngineFailed(String)
@@ -123,6 +124,7 @@ enum SessionAudioEngineError: LocalizedError {
     case .invalidInput(let message): return message
     case .sessionAlreadyRunning: return "A different training session is already running."
     case .noSession: return "There is no active training session."
+    case .permissionDenied: return "Microphone permission is required."
     case .audioSourceUnavailable: return "The target audio file is unavailable."
     case .storageUnavailable: return "The capture directory is unavailable."
     case .audioEngineFailed(let message): return message

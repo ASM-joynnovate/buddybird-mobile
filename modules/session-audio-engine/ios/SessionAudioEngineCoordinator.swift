@@ -63,19 +63,26 @@ final class SessionAudioEngineCoordinator: NSObject {
         throw SessionAudioEngineError.invalidInput("Session durations and sessionId are required.")
       }
 
-      state = "starting"
       let nextConfiguration = NativeSessionConfiguration(input)
       try validateFiles(nextConfiguration)
       configuration = nextConfiguration
+      state = "starting"
       elapsedBeforeRunMs = 0
       runningSinceMs = nil
       lastStopRecord = nil
-      try activateAudio()
-      runningSinceMs = monotonicMilliseconds()
-      state = "running"
-      startTimer()
-      scheduleTargetPlaybackIfNeeded()
-      try persist(reason: nil)
+      do {
+        try activateAudio()
+        runningSinceMs = monotonicMilliseconds()
+        state = "running"
+        startTimer()
+        scheduleTargetPlaybackIfNeeded()
+        try persist(reason: nil)
+      } catch {
+        state = "failed"
+        stopAudio()
+        try? persist(reason: "failure")
+        throw error
+      }
       let snapshot = snapshotDictionary()
       onStateChanged?(snapshot)
       return snapshot
@@ -101,12 +108,19 @@ final class SessionAudioEngineCoordinator: NSObject {
       guard configuration != nil else { throw SessionAudioEngineError.noSession }
       guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
       state = "starting"
-      try activateAudio()
-      runningSinceMs = monotonicMilliseconds()
-      state = "running"
-      startTimer()
-      scheduleTargetPlaybackIfNeeded()
-      try persist(reason: nil)
+      do {
+        try activateAudio()
+        runningSinceMs = monotonicMilliseconds()
+        state = "running"
+        startTimer()
+        scheduleTargetPlaybackIfNeeded()
+        try persist(reason: nil)
+      } catch {
+        state = "failed"
+        stopAudio()
+        try? persist(reason: "failure")
+        throw error
+      }
       let snapshot = snapshotDictionary()
       onStateChanged?(snapshot)
       return snapshot
@@ -233,8 +247,12 @@ final class SessionAudioEngineCoordinator: NSObject {
     }
     do {
       try FileManager.default.createDirectory(at: captureURL, withIntermediateDirectories: true)
+      try captureStore.reconcile(captureDirectoryURL: captureURL)
     } catch {
       throw SessionAudioEngineError.storageUnavailable
+    }
+    guard AVAudioSession.sharedInstance().recordPermission == .granted else {
+      throw SessionAudioEngineError.permissionDenied
     }
   }
 

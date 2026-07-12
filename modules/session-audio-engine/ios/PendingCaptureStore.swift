@@ -84,6 +84,21 @@ final class PendingCaptureStore {
     return segment
   }
 
+  func reconcile(captureDirectoryURL: URL) throws {
+    try fileManager.createDirectory(at: captureDirectoryURL, withIntermediateDirectories: true)
+    let registeredTemporaryNames = Set(segments.map { ".\($0.fileName).tmp" })
+    let files = try fileManager.contentsOfDirectory(
+      at: captureDirectoryURL,
+      includingPropertiesForKeys: [.isRegularFileKey],
+      options: []
+    )
+    for file in files where file.lastPathComponent.hasPrefix(".") && file.lastPathComponent.hasSuffix(".wav.tmp") {
+      if !registeredTemporaryNames.contains(file.lastPathComponent) {
+        try fileManager.removeItem(at: file)
+      }
+    }
+  }
+
   func all() -> [NativeCapturedSegment] {
     segments.filter { fileManager.fileExists(atPath: URL(string: $0.uri)?.path ?? "") }
   }

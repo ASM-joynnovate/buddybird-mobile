@@ -20,6 +20,7 @@ class VoiceCapturePipeline(
   private var phase = "learning"
   private var cycle = 1
 
+  @Synchronized
   fun process(samples: ShortArray, count: Int, captureAllowed: Boolean, phase: String, cycle: Int) {
     if (!captureAllowed) {
       flush()
@@ -37,6 +38,7 @@ class VoiceCapturePipeline(
     }
   }
 
+  @Synchronized
   fun flush() {
     if (voiceActive) finalizeSegment(belowMs)
     resetDetection()
