@@ -26,6 +26,16 @@
 | `persistKeyedStore` | `@/features/shared/persist-keyed-store` | `<T>({ key, scope, parse, fallback, recover?, serialize?, audioUriCollections? }) => { load(): Promise<T>; save(value: T): Promise<void> }` | AsyncStorage 단일 키 read/write seam. `getItem → JSON.parse → parse` 와 에러 처리(reportError + fallback)를 일원화. 도메인 storage 모듈은 `parse`(검증·hydration)·`fallback`·필요 시 `serialize`(정규화)만 주입. `fallback`은 미저장(키 없음) 기본값이며, `recover?`(손상·검증 실패 시 seam의 reportError 직후 호출) 미지정 시 손상 경로도 `fallback()`으로 복구 — `recover`에서 throw 하면 손상을 표면화(추가 reportError 없이 단일 보고 + throw, training-storage·profile-storage가 사용). 소비자: training-storage, word-library-storage, word-metrics-storage, profile-storage, fcm-storage(registration·receipts 키마다 인스턴스). `audioUriCollections`(컬렉션·필드 선언) 지정 시 오디오 URI normalize(save)/hydrate(load)를 seam이 자동 소유 |
 | `AudioUriCollection` (type) | `@/features/shared/persist-keyed-store` | `{ collection: string; fields: readonly string[] }` | `persistKeyedStore`에 넘기는 오디오 URI 컬렉션 선언. `collection`은 `Record<string, entry>` 형태 필드명, `fields`는 각 entry의 오디오 URI 필드명 목록 |
 
+### 2.2 Auth — `features/auth/`
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `ensureAnonymousUser` | `@/features/auth/auth-identity` | `(): Promise<void>` | 현재 사용자가 없을 때만 Firebase 익명 로그인. module-level single-flight로 동시 호출의 중복 uid 발급 방지 |
+| `subscribeToUid` | `@/features/auth/auth-identity` | `(callback: (uid: string \| null) => void) => () => void` | Firebase Auth 상태를 uid로 좁혀 구독 |
+| `getCurrentUid` | `@/features/auth/auth-identity` | `(): string \| null` | 네이티브 Auth 저장소에서 현재 복원된 uid를 동기 조회 |
+| `AuthProvider` | `@/features/auth/auth-context` | React Provider | eager 익명 로그인, uid 단일 소유, 첫 실행 오프라인 뒤 foreground 재시도 |
+| `useAuth` / `useOptionalAuth` | `@/features/auth/auth-context` | `() => AuthContextValue` / `() => AuthContextValue \| null` | uid 소비 및 provider 순서에 안전한 optional 구독 |
+
 ## 3. Analytics — `features/analytics/`
 
 | Export | 경로 | 시그니처 | 용도 |

@@ -87,13 +87,24 @@ dev와 prod는 별도 Firebase 프로젝트이며, Analytics·Crashlytics·Fires
 1. Firebase Console에서 새 프로젝트를 생성한다. (예: `buddybird-staging`)
 2. 해당 프로젝트에 iOS app(`com.joynnovate.buddybird.staging`)과 Android app(`com.joynnovate.buddybird.staging`)을 등록한다.
 3. Analytics와 Crashlytics가 켜져 있는지 확인한다.
-4. `GoogleService-Info.plist`(iOS)와 `google-services.json`(Android)을 다운로드한다.
-5. `config/staging/firebase/` 디렉토리에 배치한다. (§4 규칙)
-6. EAS env에 file 변수를 등록한다. (§5)
-7. `app.config.ts`의 `resolveAppVariant` / `BUNDLE_ID` / `IOS_GOOGLE_SERVICES_FILE` / `ANDROID_GOOGLE_SERVICES_FILE` 분기에 staging 케이스를 추가한다.
-8. `eas.json`에 staging build profile을 추가한다.
+4. Authentication의 Anonymous provider를 활성화하고 익명 계정 자동 정리를 비활성화한다. (§3.3)
+5. `GoogleService-Info.plist`(iOS)와 `google-services.json`(Android)을 다운로드한다.
+6. `config/staging/firebase/` 디렉토리에 배치한다. (§4 규칙)
+7. EAS env에 file 변수를 등록한다. (§5)
+8. `app.config.ts`의 `resolveAppVariant` / `BUNDLE_ID` / `IOS_GOOGLE_SERVICES_FILE` / `ANDROID_GOOGLE_SERVICES_FILE` 분기에 staging 케이스를 추가한다.
+9. `eas.json`에 staging build profile을 추가한다.
 
-### 3.3 Firebase Cloud Messaging
+### 3.3 Firebase Anonymous Authentication
+
+Firebase 익명 Auth는 dev/prod 프로젝트 양쪽에서 각각 설정한다.
+
+1. Firebase Console에서 `buddybird-dev`와 `buddybird-9b84d` 프로젝트를 차례로 연다.
+2. Authentication → Sign-in method → Anonymous를 활성화한다.
+3. Authentication with Identity Platform을 사용하는 경우 익명 계정 30일 자동 정리를 비활성화한다. Auth uid가 사용자 식별자의 정본이므로 자동 삭제하면 안 된다.
+
+새 환경을 추가할 때도 같은 설정을 적용한다. 배포 전 fresh install에서 uid가 생성되고, 앱 재실행 후 동일 uid가 복원되며, 첫 실행이 offline이어도 앱이 부팅되는지 확인한다.
+
+### 3.4 Firebase Cloud Messaging
 
 Cloud Messaging은 dev/prod Firebase 프로젝트 양쪽에서 각각 설정한다.
 

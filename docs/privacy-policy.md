@@ -1,6 +1,6 @@
 # 개인정보처리방침 (버디버드)
 
-**최종 갱신일**: 2026-05-15
+**최종 갱신일**: 2026-07-13
 
 ## 1. 수집하는 정보
 
@@ -10,7 +10,7 @@
 
 | 항목 | 수집 도구 | 목적 |
 |---|---|---|
-| 익명 설치 ID(UUID) | Firebase Analytics, Microsoft Clarity | 동일 기기 식별 (개인 식별 아님) |
+| Firebase 익명 Auth uid | Firebase Authentication, Firebase Analytics, Firebase Crashlytics, Microsoft Clarity | 앱 사용자를 pseudonymous하게 식별하고 향후 사용자별 데이터 접근을 보호 (실명 등 직접 식별 정보 아님) |
 | 앱 사용 이벤트 (화면 이동, 학습 세션, 단어 녹음 등) | Firebase Analytics | 기능 사용 패턴 분석 |
 | 세션 리플레이 (탭/스와이프 동선) | Microsoft Clarity | 사용성 개선 |
 | 크래시 로그 (스택 트레이스) | Firebase Crashlytics | 오류 진단 및 수정 |
@@ -40,12 +40,13 @@ iOS 14.5 이상에서는 첫 실행 시 광고 식별자(IDFA) 수집 동의를 
 ## 3. 데이터 보관 및 제3자 제공
 
 - Firebase Analytics / Crashlytics: Google LLC가 미국 서버에 보관
+- Firebase Authentication: 앱 실행 시 익명 계정과 uid를 생성하며 Google LLC가 보관
 - Microsoft Clarity: Microsoft Corporation이 미국 서버에 보관
 - 위 분석 서비스 외 제3자에게 정보를 판매하거나 제공하지 않습니다.
 
 ## 4. 사용자 권리
 
-- 앱 삭제 시 모든 익명 식별자가 함께 제거됩니다.
+- 앱 삭제·재설치 또는 기기 변경 시 기존 익명 계정의 복구를 보장하지 않으며 새 uid가 생성될 수 있습니다.
 - iOS는 설정 → 개인정보 보호 및 보안 → 추적에서 동의를 변경할 수 있습니다.
 
 ## 5. 문의

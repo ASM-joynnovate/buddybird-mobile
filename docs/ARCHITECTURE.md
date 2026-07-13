@@ -2,7 +2,7 @@
 
 ## Navigation (Expo Router file-based)
 
-`app/_layout.tsx` is the root. It wraps everything in `I18nProvider → ProfileProvider → TrainingDataProvider → ThemeProvider`. The `RootNavigator` inside uses `Stack.Protected` to gate routes:
+`app/_layout.tsx` is the root. `components/app/app-providers.tsx` owns the global provider order: `SafeAreaProvider → AuthProvider → AnalyticsProvider → I18nProvider → ProfileProvider → TrainingDataProvider → WordLibraryProvider → ThemeProvider`. `AnalyticsProvider` optionally subscribes to `AuthProvider`, and `ProfileProvider` optionally subscribes to `AnalyticsProvider`; keep this order so uid and user properties synchronize without a hard provider-order crash. The `RootNavigator` inside uses `Stack.Protected` to gate routes:
 
 - `guard={!!profile}` → `(tabs)` (home, profile tab, session-setup)
 - `guard={!profile}` → `(onboarding)` (welcome → profile → goals, 3 steps)
@@ -15,6 +15,8 @@ Domain logic lives here — no JSX. Each subdirectory follows the same pattern: 
 
 | Module | Responsibility |
 |--------|---------------|
+| `auth/` | Firebase anonymous Auth uid ownership, eager sign-in, foreground retry, auth state subscription |
+| `analytics/` | Firebase Analytics·Crashlytics·Microsoft Clarity fanout and Auth uid synchronization |
 | `profile/` | `ParrotProfile` CRUD, onboarding draft accumulation, species/goal options |
 | `training/` | `TrainingWord`, `TrainingSession`, `AudioRecording` models and AsyncStorage |
 | `audio/` | `useAudioRecording`, `useAudioPreview` hooks, pitch-transform config, file storage |
@@ -39,7 +41,11 @@ The current visual direction follows `DESIGN.md`: bright white canvas, BuddyBird
 
 ## Local persistence
 
-All data is stored locally via `@react-native-async-storage/async-storage`. There is no backend or cloud sync in scope.
+학습·프로필 데이터는 `@react-native-async-storage/async-storage`에 저장한다. Firebase Auth 세션은 네이티브 저장소에 위임하며, 사용자별 cloud sync는 아직 범위 밖이다.
+
+Firebase 익명 Auth uid가 iOS·Android 사용자 식별자의 정본이다. 첫 실행이 오프라인이면 uid 없이 부팅하고 foreground 복귀 시 다시 로그인을 시도한다. 재설치·기기 변경 간 복구는 보장하지 않으며, 장기 보존이 필요해지면 `linkWithCredential` 계정 연동을 도입한다. web은 개발 편의용으로만 유지하며 Auth와 analytics를 보장하지 않는다.
+
+운영 전 Firebase Console에서 익명 계정 30일 자동 정리가 꺼져 있는지 확인한다.
 
 ## 네이티브 설정
 
@@ -47,7 +53,7 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 
 ### Firebase RNFirebase v24
 
-- `@react-native-firebase/app`, `@react-native-firebase/analytics`, `@react-native-firebase/crashlytics`, `@react-native-firebase/messaging` 모두 `^24.0.0` 고정
+- `@react-native-firebase/app`, `@react-native-firebase/analytics`, `@react-native-firebase/crashlytics`, `@react-native-firebase/messaging`는 `^24.0.0`, `@react-native-firebase/auth`와 `@react-native-firebase/remote-config`는 `24.0.0` 고정
 - **modular API만 사용** (`getAnalytics(app)`, `logEvent(analytics, …)` 형태). namespaced `analytics().logEvent()` / `crashlytics().…` 금지
 - 화면 추적은 `logEvent(analytics, 'screen_view', …)` — 사라진 `logScreenView` 금지
 - Cloud Messaging은 `features/notifications/`에서 권한 요청, FCM token 로컬 저장, foreground/background/opened message receipt 저장을 담당합니다. 현재 backend token 업로드는 범위 밖입니다.
