@@ -122,21 +122,27 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const dismissPrompt = useCallback(() => {
-    track({ name: 'feedback_prompt_dismissed', params: { threshold: currentThreshold(stateRef.current) } });
+  const consumePrompt = useCallback(() => {
+    if (!promptVisibleRef.current) return;
+
     persist(advanceAfterResponse(stateRef.current));
     setPromptVisible(false);
-  }, [persist, setPromptVisible, track]);
+  }, [persist, setPromptVisible]);
+
+  const dismissPrompt = useCallback(() => {
+    track({ name: 'feedback_prompt_dismissed', params: { threshold: currentThreshold(stateRef.current) } });
+    consumePrompt();
+  }, [consumePrompt, track]);
 
   const openForm = useCallback(
     (source: FeedbackSource) => {
       setSubmitStatus('idle');
       setFormSource(source);
       if (source === 'prompt') {
-        setPromptVisible(false);
+        consumePrompt();
       }
     },
-    [setFormSource, setPromptVisible]
+    [consumePrompt, setFormSource]
   );
 
   const closeForm = useCallback(() => {
@@ -160,17 +166,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           locale,
         });
         track({ name: 'feedback_submitted', params: { source, message_length: trimmed.length } });
-        // 팝업 경로 제출 성공 시에만 스케줄러를 전진시킨다(프로필 상시 진입점은 불변).
-        if (source === 'prompt') {
-          persist(advanceAfterResponse(stateRef.current));
-        }
         setSubmitStatus('success');
       } catch (error: unknown) {
         reportError(error, { scope: 'feedback.submit' });
         setSubmitStatus('error');
       }
     },
-    [locale, persist, track]
+    [locale, track]
   );
 
   const value = useMemo<FeedbackContextValue>(

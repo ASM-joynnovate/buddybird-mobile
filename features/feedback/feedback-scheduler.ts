@@ -32,7 +32,7 @@ export function shouldPrompt(state: PromptSchedulerState): boolean {
 }
 
 /**
- * 팝업에 반응(닫기 또는 제출 성공)한 뒤의 상태 전이: 카운트를 0으로 리셋하고 다음 임계값으로
+ * 팝업에 반응(닫기 또는 피드백 폼 진입)한 뒤의 상태 전이: 카운트를 0으로 리셋하고 다음 임계값으로
  * 전진한다. 마지막 인덱스에서는 더 나아가지 않고 고정된다.
  */
 export function advanceAfterResponse(state: PromptSchedulerState): PromptSchedulerState {
