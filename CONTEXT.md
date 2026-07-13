@@ -5,8 +5,9 @@
 
 ## 피드백 (Feedback)
 
-- **Feedback (피드백)**: 사용자가 자유서술로 남기는 제품 의견. 익명이며 보호자 PII 미포함이
-  원칙이다. Firestore `feedback` 컬렉션에 create-only로 저장된다. → [ADR-0001](docs/adr/0001-feedback-store-firestore.md)
+- **Feedback (피드백)**: 사용자가 자유서술로 남기는 제품 의견. 보호자 개인정보를 별도 입력
+  항목으로 요구하지 않고 입력하지 말라는 안내를 제공한다. 의견은 공용 Firebase 익명 Auth uid와
+  연결해 Firestore `feedback` 컬렉션에 create-only로 저장한다. → [ADR-0001](docs/adr/0001-feedback-store-firestore.md)
 - **Feedback Prompt (피드백 팝업)**: 앱이 가끔 띄우는, 의견을 부탁하는 가운데 팝업.
   **스토어 평점 요청이 아니다.** 만족한 사용자만 평점 페이지로 보내는 방식은 애플·구글이
   금지하는데, 이 팝업은 스토어로 보내지 않고 의견만 받으므로 문제되지 않는다. → [ADR-0001](docs/adr/0001-feedback-store-firestore.md)

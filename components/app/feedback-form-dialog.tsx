@@ -8,7 +8,7 @@ import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import type { FeedbackSubmitStatus } from '@/features/feedback/feedback-context';
 import { useI18n } from '@/features/i18n/i18n-context';
 
-// Security Rules 는 2000자 미만을 요구한다. 여유를 두고 입력 자체를 1000자로 제한한다.
+// UI 입력을 1000자로 제한하고, Security Rules에서도 같은 상한을 검증한다.
 const MAX_MESSAGE_LENGTH = 1000;
 
 interface FeedbackFormDialogProps {

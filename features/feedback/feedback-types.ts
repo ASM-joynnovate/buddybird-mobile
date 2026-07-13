@@ -19,8 +19,9 @@ export interface PromptSchedulerState {
 }
 
 /**
- * Firestore `feedback` 컬렉션에 기록하는 문서 페이로드. `createdAt` 은 서버가
- * `serverTimestamp()` 로 채우므로 여기 포함하지 않는다. 보호자 PII 는 담지 않는다.
+ * Firestore `feedback` 컬렉션에 기록하는 문서 페이로드. `userId`와 `createdAt`은 제출 계층이
+ * Firebase Auth·`serverTimestamp()`로 채우므로 여기 포함하지 않는다. UI는 자유서술란에 보호자
+ * 개인정보를 입력하지 말라고 안내한다.
  */
 export interface FeedbackSubmission {
   readonly message: string;
