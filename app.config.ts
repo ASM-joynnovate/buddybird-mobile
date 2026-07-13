@@ -180,6 +180,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                     forceStaticLinking: [
                         'RNFBApp',
                         'RNFBAnalytics',
+                        'RNFBAuth',
                         'RNFBCrashlytics',
                         'RNFBMessaging',
                         'RNFBRemoteConfig',
