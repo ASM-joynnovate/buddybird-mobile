@@ -61,6 +61,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const pendingActiveDayKeyRef = useRef<string | null>(null);
   const promptVisibleRef = useRef(false);
   const formSourceRef = useRef<FeedbackSource | null>(null);
+  const submitInFlightRef = useRef<Promise<void> | null>(null);
 
   const [promptVisible, setPromptVisibleState] = useState(false);
   const [formSource, setFormSourceState] = useState<FeedbackSource | null>(null);
@@ -163,26 +164,37 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   }, [setFormSource]);
 
   const submit = useCallback(
-    async (message: string) => {
+    (message: string): Promise<void> => {
+      if (submitInFlightRef.current) {
+        return submitInFlightRef.current;
+      }
+
       const trimmed = message.trim();
-      if (trimmed.length === 0) return;
+      if (trimmed.length === 0) return Promise.resolve();
 
       const source = formSourceRef.current ?? 'profile';
       setSubmitStatus('submitting');
 
-      try {
-        await submitFeedback({
-          message: trimmed,
-          appVersion: Application.nativeApplicationVersion ?? 'unknown',
-          platform: Platform.OS,
-          locale,
+      const request = submitFeedback({
+        message: trimmed,
+        appVersion: Application.nativeApplicationVersion ?? 'unknown',
+        platform: Platform.OS,
+        locale,
+      })
+        .then(() => {
+          track({ name: 'feedback_submitted', params: { source, message_length: trimmed.length } });
+          setSubmitStatus('success');
+        })
+        .catch((error: unknown) => {
+          reportError(error, { scope: 'feedback.submit' });
+          setSubmitStatus('error');
         });
-        track({ name: 'feedback_submitted', params: { source, message_length: trimmed.length } });
-        setSubmitStatus('success');
-      } catch (error: unknown) {
-        reportError(error, { scope: 'feedback.submit' });
-        setSubmitStatus('error');
-      }
+
+      const inFlight = request.finally(() => {
+        submitInFlightRef.current = null;
+      });
+      submitInFlightRef.current = inFlight;
+      return inFlight;
     },
     [locale, track]
   );
