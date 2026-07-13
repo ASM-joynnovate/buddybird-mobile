@@ -97,7 +97,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     }
   }, [persist, setPromptVisible, track]);
 
-  // 스케줄러 상태 hydrate(1회) → 완료 즉시 cold start 접속일 평가.
+  // 스케줄러 상태를 1회 로드(hydrate)한다. cold start 의 접속일 반영과 팝업 판정은
+  // 스플래시가 사라져 홈이 보이는 순간 `AppSplashGate` 가 evaluateActiveDay 로 트리거한다
+  // (부팅 중 스플래시 뒤에서 팝업이 미리 떠 있다가 드러나던 문제 방지).
   // 로드가 실패해도(AsyncStorage I/O 등) 초기 상태로 기능은 계속 동작하도록 degrade 하고,
   // hydratedRef 는 반드시 세워 evaluateActiveDay 가 영구히 no-op 이 되지 않게 한다.
   useEffect(() => {
@@ -114,12 +116,11 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         if (!isMounted) return;
         hydratedRef.current = true;
-        evaluateActiveDay();
       });
     return () => {
       isMounted = false;
     };
-  }, [evaluateActiveDay]);
+  }, []);
 
   const dismissPrompt = useCallback(() => {
     track({ name: 'feedback_prompt_dismissed', params: { threshold: currentThreshold(stateRef.current) } });
