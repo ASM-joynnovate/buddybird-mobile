@@ -205,6 +205,12 @@ interface AppCopy {
     thanksClose: string;
     profileCta: string;
   };
+  appUpdate: {
+    title: string;
+    versionPrefix: string;
+    updateButton: string;
+    cancelButton: string;
+  };
 }
 
 export const translations: Record<AppLocale, AppCopy> = {
@@ -415,6 +421,12 @@ export const translations: Record<AppLocale, AppCopy> = {
       thanksClose: '확인',
       profileCta: '피드백 보내기',
     },
+    appUpdate: {
+      title: '업데이트 알림',
+      versionPrefix: 'v',
+      updateButton: '업데이트',
+      cancelButton: '닫기',
+    },
   },
   en: {
     common: {
@@ -622,6 +634,12 @@ export const translations: Record<AppLocale, AppCopy> = {
       thanksMessage: 'Your feedback came through. We will use it to make BuddyBird better.',
       thanksClose: 'Done',
       profileCta: 'Send feedback',
+    },
+    appUpdate: {
+      title: 'Update available',
+      versionPrefix: 'v',
+      updateButton: 'Update',
+      cancelButton: 'Close',
     },
   },
 };

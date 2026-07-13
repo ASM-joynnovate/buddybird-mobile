@@ -10,6 +10,9 @@ export type AnalyticsEvent =
   | { name: 'app_open'; params: { cold_start: boolean } }
   | { name: 'app_foreground'; params: Record<string, never> }
   | { name: 'app_background'; params: { session_duration_ms: number } }
+  | { name: 'update_prompt_shown'; params: { latest_version: string; is_forced: boolean } }
+  | { name: 'update_prompt_accepted'; params: { latest_version: string; is_forced: boolean } }
+  | { name: 'update_prompt_dismissed'; params: { latest_version: string } }
   | { name: 'onboarding_started'; params: Record<string, never> }
   | {
       name: 'onboarding_step_completed';

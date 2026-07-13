@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 import { AppOpenTracker } from '@/components/app/app-open-tracker';
 import { AppProviders } from '@/components/app/app-providers';
 import { AppSplashGate } from '@/components/app/app-splash-gate';
+import { AppUpdateGate } from '@/components/app/app-update-gate';
 import { FcmRegistrationBootstrap } from '@/components/app/fcm-registration-bootstrap';
 import { FeedbackFormGate } from '@/components/app/feedback-form-gate';
 import { FeedbackPromptTracker } from '@/components/app/feedback-prompt-tracker';
@@ -28,6 +29,7 @@ export default function RootLayout() {
       <FcmRegistrationBootstrap />
       <MicPermissionBootstrap />
       <FeedbackPromptTracker />
+      <AppUpdateGate />
       <RootNavigator />
       <FeedbackFormGate />
       <AppSplashGate />
