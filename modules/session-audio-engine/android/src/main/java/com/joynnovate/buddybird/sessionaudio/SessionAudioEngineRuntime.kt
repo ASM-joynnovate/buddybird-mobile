@@ -243,7 +243,7 @@ object SessionAudioEngineRuntime {
     if (requestFocus) requestAudioFocus(appContext)
     val minimumBuffer = AudioRecord.getMinBufferSize(16_000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
     val recorder = AudioRecord(
-      MediaRecorder.AudioSource.VOICE_RECOGNITION,
+      MediaRecorder.AudioSource.MIC,
       16_000,
       AudioFormat.CHANNEL_IN_MONO,
       AudioFormat.ENCODING_PCM_16BIT,
@@ -309,8 +309,12 @@ object SessionAudioEngineRuntime {
       }
     }
     recorder.startRecording()
+    if (recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+      throw CodedException("The microphone did not enter the recording state.")
+    }
     recording.set(true)
     recordingThread = Thread({
+      android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO)
       val buffer = ShortArray(1_600)
       while (recording.get()) {
         val count = recorder.read(buffer, 0, buffer.size, AudioRecord.READ_BLOCKING)

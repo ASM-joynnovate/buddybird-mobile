@@ -92,6 +92,7 @@ class VoiceCapturePipeline(
     speechStartMs = 0
     segmentSamples.clear()
     ringBuffer.clear()
+    pendingSamples.clear()
   }
 
   private fun normalizedLevel(samples: ShortArray): Double {

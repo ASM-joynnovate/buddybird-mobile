@@ -392,6 +392,9 @@ React context가 없어도 서비스가 실행 중이면 세션을 이어 간다
 | 서비스 재시작 | `START_NOT_STICKY` |
 | 알림 | 앱 열기 action과 세션 종료 action 제공 |
 
+마이크 입력은 기존 Expo 녹음 경로와 같은 `MediaRecorder.AudioSource.MIC`을 사용한다.
+고정 RMS 임계값을 쓰는 동안에는 AGC가 빠지는 `VOICE_RECOGNITION` source를 사용하지 않는다.
+
 목표 음원은 `USAGE_MEDIA`와 `CONTENT_TYPE_SPEECH` 속성으로 재생한다.
 세션을 시작할 때 audio focus를 요청하고 세션을 끝낼 때 반납한다.
 일시적인 audio focus 상실에는 재생과 녹음을 멈추고 service는 유지한다.
