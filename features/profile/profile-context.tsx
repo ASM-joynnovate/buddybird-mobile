@@ -18,12 +18,10 @@ const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: PropsWithChildren) {
   // analytics seam은 optional로 구독한다. AnalyticsProvider가 바깥에 있으면(정상 순서)
-  // 아래 effect가 준비 시점에 identity를 동기화하고, 없으면 동기화를 건너뛴다 —
+  // 아래 effect가 준비 시점에 user property를 동기화하고, 없으면 동기화를 건너뛴다 —
   // 마운트 순서에 대한 하드 크래시 결합 대신 effect 게이팅으로 완화한다.
   const analytics = useOptionalAnalytics();
   const analyticsReady = analytics?.isReady ?? false;
-  const installationId = analytics?.installationId ?? null;
-  const setUserId = analytics?.setUserId ?? null;
   const setUserProperty = analytics?.setUserProperty ?? null;
 
   const [profile, setProfile] = useState<ParrotProfile | null>(null);
@@ -36,21 +34,19 @@ export function ProfileProvider({ children }: PropsWithChildren) {
     // 순서 계약 위반(AnalyticsProvider가 바깥에 없음)을 조용히 묻지 않고 dev에서 표면화한다.
     if (hasAnalytics || !__DEV__) return;
     console.warn(
-      '[profile] AnalyticsProvider가 ProfileProvider 바깥에 없어 identity 동기화를 건너뜁니다 — AppProviders의 provider 순서를 확인하세요.'
+      '[profile] AnalyticsProvider가 ProfileProvider 바깥에 없어 user property 동기화를 건너뜁니다 — AppProviders의 provider 순서를 확인하세요.'
     );
   }, [hasAnalytics]);
 
   useEffect(() => {
-    if (!analyticsReady || !setUserId || !setUserProperty) return;
+    if (!analyticsReady || !setUserProperty) return;
 
     // null 가드 후 non-null로 좁혀진 참조를 로컬에 고정한다 — 중첩 async 클로저에서는
     // TS가 외부 const의 narrowing을 유지하지 않기 때문이다.
-    const syncUserId = setUserId;
     const syncUserProperty = setUserProperty;
 
-    async function syncIdentity(): Promise<void> {
+    async function syncUserProperties(): Promise<void> {
       if (profile) {
-        await syncUserId(profile.id);
         await Promise.all([
           syncUserProperty('parrot_name', profile.name),
           syncUserProperty('parrot_species', profile.species),
@@ -60,7 +56,6 @@ export function ProfileProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      await syncUserId(installationId);
       await Promise.all([
         syncUserProperty('parrot_name', null),
         syncUserProperty('parrot_species', null),
@@ -69,8 +64,8 @@ export function ProfileProvider({ children }: PropsWithChildren) {
       ]);
     }
 
-    void syncIdentity();
-  }, [analyticsReady, installationId, profile, setUserId, setUserProperty]);
+    void syncUserProperties();
+  }, [analyticsReady, profile, setUserProperty]);
 
   useEffect(() => {
     let isMounted = true;
