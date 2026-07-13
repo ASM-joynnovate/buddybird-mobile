@@ -65,12 +65,14 @@ All data is stored locally via `@react-native-async-storage/async-storage`. Ther
 
 - `plugins/withFirebaseStaticPodfile.js`: iOS Podfile에 `use_frameworks! :linkage => :static`를 강제 (RNFirebase의 static linking 요구)
 - `plugins/withGradleJvmArgs.js`: Android `gradle.properties` 의 `org.gradle.jvmargs` 를 `-Xmx6144m -XX:MaxMetaspaceSize=1024m …` 로 upsert (CMake + Kotlin + Worklets 병렬 빌드 OOM 방지). 상세는 `docs/BUILD-AND-RELEASE.md` §7.2.
+- `plugins/withReactActivityInitGuards.js`: Expo dev launcher가 앱 로딩을 지연하는 동안 nullable인 React delegate에 `onUserLeaveHint`·key callback이 전달되어 발생하는 Android 시작 크래시를 방지합니다.
 - `app.config.ts`의 `plugins`에 다음 등록 필수:
   - `@react-native-firebase/app`
   - `@react-native-firebase/crashlytics`
   - `@react-native-firebase/messaging`
   - `./plugins/withFirebaseStaticPodfile`
   - `./plugins/withGradleJvmArgs`
+  - `./plugins/withReactActivityInitGuards`
   - `expo-tracking-transparency` (ATT)
 
 ### 프로젝트 루트 `firebase.json`

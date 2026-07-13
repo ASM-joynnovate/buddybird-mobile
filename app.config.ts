@@ -194,6 +194,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ],
         './plugins/withFirebaseStaticPodfile',
         './plugins/withGradleJvmArgs',
+        './plugins/withReactActivityInitGuards',
     ],
 
     extra: {
