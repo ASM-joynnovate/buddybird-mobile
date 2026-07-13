@@ -58,6 +58,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   // 스케줄러 상태·노출 여부는 렌더 밖 로직에서도 읽어야 해 ref 로 미러링한다(콜백 안정성 유지).
   const stateRef = useRef<PromptSchedulerState>(createInitialSchedulerState());
   const hydratedRef = useRef(false);
+  const pendingActiveDayKeyRef = useRef<string | null>(null);
   const promptVisibleRef = useRef(false);
   const formSourceRef = useRef<FeedbackSource | null>(null);
 
@@ -83,9 +84,17 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const evaluateActiveDay = useCallback(() => {
-    if (!hydratedRef.current) return;
+    const requestedDayKey = toLocalDateKey(new Date());
 
-    const next = registerActiveDay(stateRef.current, toLocalDateKey(new Date()));
+    if (!hydratedRef.current) {
+      pendingActiveDayKeyRef.current ??= requestedDayKey;
+      return;
+    }
+
+    const activeDayKey = pendingActiveDayKeyRef.current ?? requestedDayKey;
+    pendingActiveDayKeyRef.current = null;
+
+    const next = registerActiveDay(stateRef.current, activeDayKey);
     if (next !== stateRef.current) {
       persist(next);
     }
@@ -116,11 +125,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         if (!isMounted) return;
         hydratedRef.current = true;
+        if (pendingActiveDayKeyRef.current !== null) {
+          evaluateActiveDay();
+        }
       });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [evaluateActiveDay]);
 
   const consumePrompt = useCallback(() => {
     if (!promptVisibleRef.current) return;
