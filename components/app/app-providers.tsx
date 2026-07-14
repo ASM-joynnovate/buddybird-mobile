@@ -6,6 +6,7 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
 import { AnalyticsProvider } from '@/features/analytics/analytics-context';
+import { AuthProvider } from '@/features/auth/auth-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
@@ -16,10 +17,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
  * 앱 전역 provider 스택의 단일 소유처. 이 중첩 순서는 런타임에만 강제되는
  * 암묵적 인터페이스이므로 한 곳에 모아 둔다.
  *
- * 순서 의존(권장): `ProfileProvider`는 `AnalyticsProvider`가 위(바깥)에 있을 때
- * 부팅 시 identity를 동기화한다. 이 의존은 더 이상 하드 크래시가 아니라 optional
- * 구독 + effect 게이팅으로 완화돼 있어, 순서가 어긋나면 동기화를 건너뛰고 dev에서
- * 경고만 낸다(`ProfileProvider` 참고). 정상 동작을 위해 이 순서를 유지한다.
+ * 순서 의존(권장): `AnalyticsProvider`는 `AuthProvider`의 uid를 구독하고,
+ * `ProfileProvider`는 `AnalyticsProvider`에 user property를 동기화한다. 두 의존 모두
+ * optional 구독 + effect 게이팅으로 완화돼 있어 순서가 어긋나면 동기화를 건너뛰고
+ * dev에서 경고만 낸다. 정상 동작을 위해 이 순서를 유지한다.
  *
  * `FcmHeadlessGuard`는 provider가 아닌 가드지만 트리 최외곽이므로 "순서를 한 곳에"
  * 원칙을 지키기 위해 함께 감싼다.
@@ -31,19 +32,21 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <FcmHeadlessGuard>
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-          <AnalyticsProvider>
-            <I18nProvider>
-              <ProfileProvider>
-                <TrainingDataProvider>
-                  <WordLibraryProvider>
-                    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                      {children}
-                    </ThemeProvider>
-                  </WordLibraryProvider>
-                </TrainingDataProvider>
-              </ProfileProvider>
-            </I18nProvider>
-          </AnalyticsProvider>
+          <AuthProvider>
+            <AnalyticsProvider>
+              <I18nProvider>
+                <ProfileProvider>
+                  <TrainingDataProvider>
+                    <WordLibraryProvider>
+                      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                        {children}
+                      </ThemeProvider>
+                    </WordLibraryProvider>
+                  </TrainingDataProvider>
+                </ProfileProvider>
+              </I18nProvider>
+            </AnalyticsProvider>
+          </AuthProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </FcmHeadlessGuard>

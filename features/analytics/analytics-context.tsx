@@ -11,6 +11,8 @@ import {
 } from 'react';
 import { Platform } from 'react-native';
 
+import { getCurrentUid } from '@/features/auth/auth-identity';
+import { useOptionalAuth } from '@/features/auth/auth-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
 
 import { reportProviderFailure } from './analytics-utils';
@@ -18,7 +20,6 @@ import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
 import { installGlobalErrorReporting, registerErrorReporter } from './error-reporter';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
-import { getOrCreateInstallationId } from './identity';
 import { ClarityProvider } from './providers/clarity-provider';
 import { FirebaseProvider } from './providers/firebase-provider';
 import { NoopProvider } from './providers/noop-provider';
@@ -32,9 +33,7 @@ import {
 export interface AnalyticsContextValue {
   isReady: boolean;
   consent: ConsentState;
-  installationId: string | null;
   track: <E extends AnalyticsEvent>(event: E) => void;
-  setUserId: (id: string | null) => Promise<void>;
   setUserProperty: (key: UserPropertyKey, value: string | number | null) => Promise<void>;
   setScreen: (name: string, screenClass?: string) => void;
   flushSessionWordMetrics: (deltas: readonly WordSessionDelta[]) => Promise<readonly WordLifetimeMetrics[]>;
@@ -81,6 +80,11 @@ function buildProviders(): AnalyticsProviderAdapter[] {
 }
 
 export function AnalyticsProvider({ children }: PropsWithChildren) {
+  const auth = useOptionalAuth();
+  const uid = auth?.uid ?? null;
+  const authIsInitializing = auth?.isInitializing ?? false;
+  const hasAuth = auth !== null;
+
   // 무거운 fanout 클라이언트(프로바이더 인스턴스 생성 포함)는 첫 렌더에서 한 번만 만든다.
   const clientRef = useRef<AnalyticsClient>(null!);
   if (clientRef.current === null) {
@@ -93,8 +97,14 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
   const currentScreenRef = useRef<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [consent, setConsent] = useState<ConsentState>('unknown');
-  const [installationId, setInstallationId] = useState<string | null>(null);
   const [currentScreen, setCurrentScreen] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (hasAuth || !__DEV__) return;
+    console.warn(
+      '[analytics] AuthProvider가 AnalyticsProvider 바깥에 없어 user id 동기화를 건너뜁니다 — AppProviders의 provider 순서를 확인하세요.'
+    );
+  }, [hasAuth]);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,15 +116,14 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       // init()이 먼저 끝나야 setEnabled/setUserId를 호출할 수 있다.
       await client.init();
 
-      // 동의 조회와 설치 ID 발급은 서로 독립적이라 동시에 실행한다.
-      const [resolvedConsent, id] = await Promise.all([
-        ensureTrackingConsent(),
-        getOrCreateInstallationId(),
-      ]);
-      // setEnabled/setUserId도 서로 독립적(둘 다 init 이후에만 가능)이라 함께 실행한다.
+      const resolvedConsent = await ensureTrackingConsent();
+      const restoredUid = Platform.OS === 'web' ? null : getCurrentUid();
+
+      // 이미 복원된 uid는 첫 app_open보다 먼저 적용한다. uid가 아직 없으면 기다리지 않고
+      // 익명 수집을 시작하고, 이후 auth 구독 effect가 확보 시점에 적용한다.
       await Promise.all([
         client.setEnabled(consentAllowsCollection(resolvedConsent)),
-        client.setUserId(id),
+        client.setUserId(restoredUid),
       ]);
 
       uninstallErrorReporting = installGlobalErrorReporting({
@@ -124,7 +133,6 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
 
       if (isMounted) {
         setConsent(resolvedConsent);
-        setInstallationId(id);
         setIsReady(true);
       }
     }
@@ -138,12 +146,14 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isReady || authIsInitializing) return;
+
+    void clientRef.current.setUserId(uid);
+  }, [authIsInitializing, isReady, uid]);
+
   const track = useCallback(<E extends AnalyticsEvent>(event: E): void => {
     void clientRef.current.logEvent(event);
-  }, []);
-
-  const setUserId = useCallback(async (id: string | null): Promise<void> => {
-    await clientRef.current.setUserId(id);
   }, []);
 
   const setUserProperty = useCallback(
@@ -195,10 +205,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     () => ({
       isReady,
       consent,
-      installationId,
       currentScreen,
       track,
-      setUserId,
       setUserProperty,
       setScreen,
       flushSessionWordMetrics,
@@ -207,10 +215,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     [
       isReady,
       consent,
-      installationId,
       currentScreen,
       track,
-      setUserId,
       setUserProperty,
       setScreen,
       flushSessionWordMetrics,

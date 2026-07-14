@@ -103,8 +103,12 @@ await flushSessionWordMetrics([
 - 사용자 입력 필드는 mask
 
 ### Identity lifecycle
-- `setUserId(profileId | null)` — profile 생성/삭제 시점에 호출
-- 프로필이 없으면 `null` 전달
+- iOS·Android의 정본 user id는 Firebase 익명 Auth uid이며, Firebase Analytics·Crashlytics·Microsoft Clarity에 동일하게 전달
+- 앱 최초 실행 시 익명 로그인을 시도하고, 오프라인이라 uid를 얻지 못하면 user id 없이 수집을 시작
+- 복원된 uid가 있으면 첫 `app_open` 전에 적용하고, 실행 중 uid를 확보하면 이후 이벤트부터 적용
+- uid가 소실되면 Firebase Analytics·Crashlytics에는 `null`을 전달해 이전 식별자를 제거. Clarity SDK는 런타임 clear를 지원하지 않아 이전 식별자가 남을 수 있음
+- profile은 user property만 설정하며 user id를 변경하지 않음
+- web은 개발 편의용이며 Firebase Auth와 analytics 동작을 보장하지 않음
 
 ## 3. 통합 위치 (현재 완료된 부분)
 
@@ -115,7 +119,9 @@ await flushSessionWordMetrics([
 | `app/(onboarding)/index.tsx` | `onboarding_step_completed{welcome}` |
 | `app/(onboarding)/profile.tsx` | `onboarding_step_completed{profile}` |
 | `app/(onboarding)/goals.tsx` | `onboarding_step_completed{goals}` + `profile_created` + `onboarding_completed` |
-| `features/profile/profile-context.tsx` | `setUserId`, user properties 자동 동기화 |
+| `features/auth/auth-context.tsx` | eager 익명 로그인, uid 소유, foreground 재시도 |
+| `features/analytics/analytics-context.tsx` | Auth uid를 analytics user id로 자동 동기화 |
+| `features/profile/profile-context.tsx` | 펫 user properties 자동 동기화 |
 | `app/(tabs)/session-setup.tsx` | `training_session_started` |
 | `app/session-active.tsx` | `training_session_completed` / `training_session_abandoned` + `flushSessionWordMetrics` |
 
@@ -155,4 +161,5 @@ throw new Error('test crash');
 - 사용자(보호자) PII는 절대 수집하지 않음 (이름/이메일/전화)
 - 펫 메타데이터(이름/종/나이/단어)는 수집함 — `docs/privacy-policy.md` 참고
 - iOS ATT 거부 시 모든 provider가 disabled로 전환됨 (`AnalyticsProvider` bootstrap 로직)
+- 앱 실행 시 Firebase 익명 계정과 pseudonymous uid를 생성하며, 지원 플랫폼은 iOS·Android로 한정
 - 운영 정책 변경 시 `docs/privacy-policy.md`와 본 가이드를 함께 갱신
