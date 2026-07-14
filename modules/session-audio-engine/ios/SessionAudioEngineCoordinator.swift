@@ -151,21 +151,25 @@ final class SessionAudioEngineCoordinator: NSObject {
     queue.sync { configuration == nil ? nil : snapshotDictionary() }
   }
 
+  // 두 스토어는 내부 동기화가 없다. 캡처 파이프라인(coordinator 큐)과 Expo AsyncFunction
+  // 스레드가 동시에 접근하면 배열 경합으로 크래시하므로 이 경계에서 큐로 직렬화한다.
   func pendingRecovery() -> [String: Any]? {
-    guard let record = recoveryStore.load() else { return nil }
-    return recoveryDictionary(record: record)
+    queue.sync {
+      guard let record = recoveryStore.load() else { return nil }
+      return recoveryDictionary(record: record)
+    }
   }
 
   func clearPendingRecovery(sessionId: String) throws {
-    try recoveryStore.clear(sessionId: sessionId)
+    try queue.sync { try recoveryStore.clear(sessionId: sessionId) }
   }
 
   func unstoredSegments() -> [[String: Any]] {
-    captureStore.all().map(\.dictionary)
+    queue.sync { captureStore.all().map(\.dictionary) }
   }
 
   func markSegmentsStored(ids: [String]) throws {
-    try captureStore.markStored(ids: Set(ids))
+    try queue.sync { try captureStore.markStored(ids: Set(ids)) }
   }
 
   func destroy() {

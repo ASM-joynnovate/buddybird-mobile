@@ -444,6 +444,8 @@ interruption이 끝나면 `shouldResume`, 마이크 권한, 현재 오디오 경
 오디오 경로의 sample rate나 channel count가 바뀌면 input tap과 converter를 다시 만든다.
 route change 통지는 장치 연결/해제(`newDeviceAvailable`/`oldDeviceUnavailable`) reason만 처리한다.
 category 변경 등 세션 자신이 유발하는 통지에 반응하면 엔진 재구성이 반복되므로 무시한다.
+capture manifest와 복구 기록 접근은 coordinator 직렬 큐로 직렬화한다.
+캡처 파이프라인과 JS 호출이 서로 다른 스레드에서 같은 저장소에 닿기 때문이다.
 media services reset이 발생하면 `AVAudioSession`과 `AVAudioEngine`을 처음부터 다시 구성한다.
 
 speaker로 목표 음원을 재생하면서 microphone을 열면 재생음이 마이크에 들어간다.
