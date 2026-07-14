@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
 
+import { FeedbackPromptHost } from '@/components/app/feedback-prompt-host';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
 import { CycleSummary } from '@/components/session/setup/cycle-summary';
@@ -61,6 +62,8 @@ export default function SessionSetupScreen() {
         variant="primary"
         accessibilityLabel={canContinue ? startLabel : '학습할 단어와 시간을 설정하면 시작할 수 있습니다'}
       />
+
+      <FeedbackPromptHost />
     </PetScreen>
   );
 }

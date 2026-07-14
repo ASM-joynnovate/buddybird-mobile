@@ -182,6 +182,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                         'RNFBAnalytics',
                         'RNFBAuth',
                         'RNFBCrashlytics',
+                        'RNFBFirestore',
                         'RNFBMessaging',
                         'RNFBRemoteConfig',
                     ],

@@ -7,6 +7,8 @@ import { AppProviders } from '@/components/app/app-providers';
 import { AppSplashGate } from '@/components/app/app-splash-gate';
 import { AppUpdateGate } from '@/components/app/app-update-gate';
 import { FcmRegistrationBootstrap } from '@/components/app/fcm-registration-bootstrap';
+import { FeedbackFormGate } from '@/components/app/feedback-form-gate';
+import { FeedbackPromptTracker } from '@/components/app/feedback-prompt-tracker';
 import { MicPermissionBootstrap } from '@/components/app/mic-permission-bootstrap';
 import { RootNavigator } from '@/components/app/root-navigator';
 
@@ -26,8 +28,10 @@ export default function RootLayout() {
       <AppOpenTracker />
       <FcmRegistrationBootstrap />
       <MicPermissionBootstrap />
+      <FeedbackPromptTracker />
       <AppUpdateGate />
       <RootNavigator />
+      <FeedbackFormGate />
       <AppSplashGate />
       <StatusBar style="dark" />
     </AppProviders>
