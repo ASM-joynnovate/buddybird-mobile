@@ -198,6 +198,13 @@ final class SessionAudioEngineCoordinator: NSObject {
   }
 
   @objc private func handleRouteChange(_ notification: Notification) {
+    // 장치 연결/해제 reason만 처리한다. activateAudio/stopAudio가 스스로 유발하는
+    // categoryChange·override 통지에 반응하면 엔진 재구성이 재구성을 낳아 재생·캡처가 끊긴다.
+    guard let rawReason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+          let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason),
+          reason == .oldDeviceUnavailable || reason == .newDeviceAvailable else {
+      return
+    }
     queue.async {
       guard self.state == "running" else { return }
       self.foldElapsed()
