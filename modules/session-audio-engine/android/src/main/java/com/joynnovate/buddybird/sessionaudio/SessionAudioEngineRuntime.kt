@@ -147,6 +147,17 @@ object SessionAudioEngineRuntime {
     }
   }
 
+  // startForeground 자체가 실패하면 onServiceStarted가 호출되지 않아 latch가 영원히 안 풀린다.
+  // 서비스가 stopSelf하기 전에 state를 "failed"로 만들어 onServiceDestroyed의 failSession
+  // 중복 발동도 함께 차단한다. 오디오 자원은 아직 활성화 전이므로 해제할 것이 없다.
+  @Synchronized
+  fun onServiceStartFailed(error: Throwable) {
+    serviceStartError = error
+    state = "failed"
+    runCatching { persist("failure") }
+    serviceReadyLatch?.countDown()
+  }
+
   @Synchronized
   fun pause(): Map<String, Any?> {
     checkSession()

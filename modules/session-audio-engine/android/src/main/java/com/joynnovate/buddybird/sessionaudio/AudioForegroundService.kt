@@ -30,7 +30,17 @@ class AudioForegroundService : Service() {
     } else {
       0
     }
-    ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundTypes)
+    try {
+      ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundTypes)
+    } catch (error: Exception) {
+      // Android 14+는 mic 타입 FGS의 while-in-use 조건을 startForeground 시점에 검사해
+      // SecurityException을 던진다 (시작 직후 백그라운드 전환 레이스). uncaught면 앱 전체
+      // 크래시이므로 세션 실패로 강등한다. stopSelf 없이 5초가 지나면
+      // ForegroundServiceDidNotStartInTimeException으로 역시 크래시라 즉시 중지한다.
+      SessionAudioEngineRuntime.onServiceStartFailed(error)
+      stopSelf()
+      return START_NOT_STICKY
+    }
     SessionAudioEngineRuntime.onServiceStarted()
     return START_NOT_STICKY
   }
