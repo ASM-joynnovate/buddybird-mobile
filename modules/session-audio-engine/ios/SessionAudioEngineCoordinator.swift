@@ -78,9 +78,12 @@ final class SessionAudioEngineCoordinator: NSObject {
         scheduleTargetPlaybackIfNeeded()
         try persist(reason: nil)
       } catch {
-        state = "failed"
+        // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면
+        // 이후 모든 start()가 sessionAlreadyRunning으로 거부돼 엔진이 고착된다.
         stopAudio()
         try? persist(reason: "failure")
+        configuration = nil
+        state = "idle"
         throw error
       }
       let snapshot = snapshotDictionary()

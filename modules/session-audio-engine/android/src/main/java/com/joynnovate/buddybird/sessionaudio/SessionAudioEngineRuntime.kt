@@ -112,7 +112,16 @@ object SessionAudioEngineRuntime {
       context?.let { it.stopService(Intent(it, AudioForegroundService::class.java)) }
       throw CodedException("The audio foreground service did not start in time.")
     }
-    serviceStartError?.let { throw CodedException("Could not start the audio foreground service.", it) }
+    serviceStartError?.let {
+      // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면 이후 모든
+      // start()가 "already running"으로 거부돼 엔진이 고착된다. onServiceStarted는 resume과
+      // 공용이므로 start 경로인 여기에서만 해제한다.
+      synchronized(this) {
+        configuration = null
+        state = "idle"
+      }
+      throw CodedException("Could not start the audio foreground service.", it)
+    }
     return snapshot()
   }
 
