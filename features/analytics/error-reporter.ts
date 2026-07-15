@@ -10,6 +10,7 @@ export type ErrorDomain =
   | 'app-update'
   | 'auth'
   | 'audio'
+  | 'feedback'
   | 'global'
   | 'i18n'
   | 'notifications'

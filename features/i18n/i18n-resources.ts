@@ -189,6 +189,22 @@ interface AppCopy {
     presetWords: PresetWordTemplateCopy[];
     sessions: SessionTemplateCopy[];
   };
+  feedback: {
+    promptTitle: string;
+    promptMessage: string;
+    promptWrite: string;
+    promptDismiss: string;
+    formTitle: string;
+    formPlaceholder: string;
+    formPrivacyNotice: string;
+    formSubmit: string;
+    formRetry: string;
+    formError: string;
+    thanksTitle: string;
+    thanksMessage: string;
+    thanksClose: string;
+    profileCta: string;
+  };
   appUpdate: {
     title: string;
     versionPrefix: string;
@@ -389,6 +405,22 @@ export const translations: Record<AppLocale, AppCopy> = {
         { id: 'deep', label: '집중 루틴 3시간', description: '앱을 켜둔 상태에서 긴 반복 루틴을 실험해요.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
       ],
     },
+    feedback: {
+      promptTitle: '의견을 들려주세요',
+      promptMessage: '버디버드를 쓰면서 느낀 점이나 바라는 점을 자유롭게 남겨 주세요. 큰 힘이 됩니다!',
+      promptWrite: '피드백 남기기',
+      promptDismiss: '닫기',
+      formTitle: '피드백 보내기',
+      formPlaceholder: '개선하면 좋을 점, 불편한 점, 바라는 기능을 자유롭게 적어 주세요.',
+      formPrivacyNotice: '⚠ 이름·연락처 등 개인정보는 입력하지 마세요.',
+      formSubmit: '보내기',
+      formRetry: '다시 보내기',
+      formError: '보내지 못했어요. 잠시 후 다시 시도해 주세요.',
+      thanksTitle: '감사합니다!',
+      thanksMessage: '소중한 의견이 잘 전달됐어요. 더 나은 버디버드를 만드는 데 반영할게요.',
+      thanksClose: '확인',
+      profileCta: '피드백 보내기',
+    },
     appUpdate: {
       title: '업데이트 알림',
       versionPrefix: 'v',
@@ -586,6 +618,22 @@ export const translations: Record<AppLocale, AppCopy> = {
         { id: 'routine', label: '1 hr routine', description: 'The default session repeats 15 minutes of learning and 5 minutes of rest.', totalDurationSeconds: 3600, learningDurationSeconds: 900, restDurationSeconds: 300 },
         { id: 'deep', label: '3 hr focus', description: 'Try a longer foreground routine while the app stays open.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
       ],
+    },
+    feedback: {
+      promptTitle: 'Tell us what you think',
+      promptMessage: 'Share anything you love or wish were different about BuddyBird. It really helps!',
+      promptWrite: 'Give feedback',
+      promptDismiss: 'Close',
+      formTitle: 'Send feedback',
+      formPlaceholder: 'Tell us what to improve, what feels off, or a feature you wish existed.',
+      formPrivacyNotice: '⚠ Please do not include personal info like your name or contact details.',
+      formSubmit: 'Send',
+      formRetry: 'Try again',
+      formError: 'Could not send. Please try again in a moment.',
+      thanksTitle: 'Thank you!',
+      thanksMessage: 'Your feedback came through. We will use it to make BuddyBird better.',
+      thanksClose: 'Done',
+      profileCta: 'Send feedback',
     },
     appUpdate: {
       title: 'Update available',

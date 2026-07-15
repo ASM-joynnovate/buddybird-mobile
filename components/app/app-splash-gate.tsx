@@ -1,5 +1,5 @@
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { SplashArtwork } from '@/components/app/splash-artwork';
 import { BuddyBirdColors, Motion } from '@/constants/theme';
+import { useFeedback } from '@/features/feedback/feedback-context';
 import { useProfile } from '@/features/profile/profile-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
@@ -20,10 +21,12 @@ import { useReducedMotion } from '@/hooks/use-reduced-motion';
  */
 export function AppSplashGate() {
   const { isHydrated } = useProfile();
+  const { evaluateActiveDay } = useFeedback();
   const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
   const [firstBlinkDone, setFirstBlinkDone] = useState(false);
   const opacity = useSharedValue(1);
+  const evaluatedRef = useRef(false);
 
   const handleFirstBlink = useCallback(() => setFirstBlinkDone(true), []);
 
@@ -53,6 +56,15 @@ export function AppSplashGate() {
       })
     );
   }, [isHydrated, firstBlinkDone, opacity, reducedMotion]);
+
+  // 스플래시 오버레이가 사라져 홈 화면이 처음 보이는 순간(visible→false) 딱 한 번,
+  // cold start 접속일을 반영하고 피드백 팝업 조건을 확인한다. reduced-motion 즉시 해제와
+  // 페이드아웃 완료 두 경로 모두 visible 전환으로 수렴하므로 한 effect 로 충분하다.
+  useEffect(() => {
+    if (visible || evaluatedRef.current) return;
+    evaluatedRef.current = true;
+    evaluateActiveDay();
+  }, [visible, evaluateActiveDay]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 

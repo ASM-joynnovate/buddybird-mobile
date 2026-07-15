@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/app-text';
 import { BuddyBirdColors, Layout, Radii, Spacing, Typography } from '@/constants/theme';
@@ -11,6 +11,11 @@ interface CenterDialogProps {
   visible: boolean;
   /** false면 Android 뒤로가기(onRequestClose)로 닫히지 않는다(강제 흐름). 기본 true. */
   dismissable?: boolean;
+  /**
+   * true면 카드를 `KeyboardAvoidingView`로 감싸 키보드가 카드를 가리지 않게 밀어 올린다.
+   * `TextInput`을 담는 다이얼로그(예: 피드백 폼)만 켠다. 기본 false — 기존 소비처 동작 불변.
+   */
+  avoidKeyboard?: boolean;
   onRequestClose?: () => void;
   children: ReactNode;
 }
@@ -19,7 +24,15 @@ interface CenterDialogProps {
  * 화면 가운데 카드형 다이얼로그의 공용 shell. Modal · 스크림 오버레이 · 카드 프레임 ·
  * dismiss 제어만 담당하고, 내용은 `CenterDialog.Header/Content/Footer` 로 조립한다.
  */
-function CenterDialogRoot({ visible, dismissable = true, onRequestClose, children }: CenterDialogProps) {
+function CenterDialogRoot({
+  visible,
+  dismissable = true,
+  avoidKeyboard = false,
+  onRequestClose,
+  children,
+}: CenterDialogProps) {
+  const card = <View style={styles.card}>{children}</View>;
+
   return (
     <Modal
       visible={visible}
@@ -29,7 +42,16 @@ function CenterDialogRoot({ visible, dismissable = true, onRequestClose, childre
       onRequestClose={dismissable ? onRequestClose : () => {}}
     >
       <View style={styles.overlay}>
-        <View style={styles.card}>{children}</View>
+        {avoidKeyboard ? (
+          <KeyboardAvoidingView
+            style={styles.keyboardAvoider}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            {card}
+          </KeyboardAvoidingView>
+        ) : (
+          card
+        )}
       </View>
     </Modal>
   );
@@ -89,6 +111,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: BuddyBirdColors.scrim,
     paddingHorizontal: Spacing.xl,
+  },
+  keyboardAvoider: {
+    width: '100%',
+    alignItems: 'center',
   },
   card: {
     width: '100%',
