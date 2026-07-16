@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
-import { useI18n } from '@/features/i18n/i18n-context';
+import { deviceLocale, useI18n } from '@/features/i18n/i18n-context';
 
 import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
@@ -33,11 +33,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [loadFailed, setLoadFailed] = useState(false);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
-  const { t, locale } = useI18n();
-  // 시딩은 최초 hydrate 시점의 로케일 기준 1회 — 이후 인앱 언어 전환에 재시드하지 않는다.
-  // hydrate effect가 locale 변경에 재실행되지 않도록 ref로 고정.
-  const localeRef = useRef(locale);
-  localeRef.current = locale;
+  const { t } = useI18n();
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -54,11 +50,10 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
         if (!isMounted) return;
 
+        // 프리셋 시드는 휴대폰 설정 언어(deviceLocale)만 따른다 — 인앱 언어 전환과 무관.
         const nowIso = new Date().toISOString();
         const seeds =
-          Object.keys(loaded.entriesById).length === 0
-            ? createPresetSeedEntries(nowIso, localeRef.current)
-            : [];
+          Object.keys(loaded.entriesById).length === 0 ? createPresetSeedEntries(nowIso, deviceLocale) : [];
         if (seeds.length > 0) {
           const seeded: WordLibraryStore = {
             ...loaded,
