@@ -15,6 +15,8 @@ export const PRESET_SPECIES_IDS: readonly string[] = [
   'conure',
 ];
 
+export const CUSTOM_SPECIES_MAX_LENGTH = 50;
+
 export function isPresetSpeciesId(value: string): boolean {
   return PRESET_SPECIES_IDS.includes(value);
 }
