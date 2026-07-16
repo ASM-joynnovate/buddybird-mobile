@@ -237,7 +237,6 @@ interface AppCopy {
     futureTitle: string;
     futureBody: string;
     languageTitle: string;
-    languageBody: string;
     languageSaveError: string;
     avatarSelect: string;
     avatarError: string;
@@ -523,7 +522,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       futureTitle: '추후 제공 예정',
       futureBody: '프로필 추가 등록, 삭제, 여러 반려조 전환은 현재 범위에 포함되지 않아요.',
       languageTitle: '앱 언어',
-      languageBody: '핵심 화면과 기본 템플릿을 선택한 언어로 표시해요.',
       languageSaveError: '언어 설정을 저장하지 못했어요. 다시 시도해 주세요.',
       avatarSelect: '프로필 사진 선택',
       avatarError: '사진을 불러오지 못했어요. 사진 없이 계속할 수 있어요.',
@@ -814,7 +812,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       futureTitle: 'Coming later',
       futureBody: 'Adding profiles, deleting profiles, and switching between multiple birds are outside the current scope.',
       languageTitle: 'App language',
-      languageBody: 'Core screens and starter templates will use the selected language.',
       languageSaveError: 'Could not save the language setting. Please try again.',
       avatarSelect: 'Select profile photo',
       avatarError: 'Could not load the photo. You can continue without one.',

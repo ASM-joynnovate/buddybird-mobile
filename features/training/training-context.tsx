@@ -54,15 +54,12 @@ const TrainingDataContext = createContext<TrainingDataContextValue | null>(null)
 export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<TrainingStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [pendingSession, setPendingSessionState] = useState<PendingSession | null>(null);
   const [interruptedSession, setInterruptedSession] = useState<InterruptedSessionInfo | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
   const { t } = useI18n();
-  // hydrate effect가 t 변경에 재실행되지 않도록 ref로 고정 (로케일은 실행 중 바뀌지 않음)
-  const tRef = useRef(t);
-  tRef.current = t;
 
   const setPendingSession = useCallback((next: PendingSession): void => {
     setPendingSessionState(next);
@@ -95,13 +92,14 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
           setTrainingStoreState(recoveredStore);
           setInterruptedSession(interrupted);
           if (pending) setPendingSessionState(pending);
-          setErrorMessage(null);
+          setLoadFailed(false);
         }
       } catch (error: unknown) {
         if (isMounted) {
           setTrainingStoreState(null);
           // 원인별 상세는 seam이 이미 reportError로 남겼다 — 사용자에게는 일반 메시지만 노출.
-          setErrorMessage(tRef.current('home.trainingLoadError'));
+          // 메시지는 렌더 시점에 t()로 해석해 인앱 언어 전환에도 즉시 따라간다.
+          setLoadFailed(true);
         }
       } finally {
         if (isMounted) {
@@ -132,7 +130,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
       enqueueWrite(async () => {
         await saveTrainingStore(nextStore);
         setTrainingStoreState(nextStore);
-        setErrorMessage(null);
+        setLoadFailed(false);
       }),
     [enqueueWrite, setTrainingStoreState]
   );
@@ -150,7 +148,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
         const nextStore = update(currentStore, nowIso);
         await saveTrainingStore(nextStore);
         setTrainingStoreState(nextStore);
-        setErrorMessage(null);
+        setLoadFailed(false);
       }),
     [enqueueWrite, setTrainingStoreState]
   );
@@ -194,7 +192,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     () => ({
       store,
       isHydrated,
-      errorMessage,
+      errorMessage: loadFailed ? t('home.trainingLoadError') : null,
       saveStore,
       upsertWord,
       upsertRecording,
@@ -210,7 +208,8 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     [
       clearPendingSession,
       dismissInterruptedSession,
-      errorMessage,
+      loadFailed,
+      t,
       interruptedSession,
       isHydrated,
       markWordSuccess,

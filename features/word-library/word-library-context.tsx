@@ -30,14 +30,12 @@ const WordLibraryContext = createContext<WordLibraryContextValue | null>(null);
 export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<WordLibraryStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
   const { t, locale } = useI18n();
-  // hydrate effect가 t/locale 변경에 재실행되지 않도록 ref로 고정
-  // (인앱 언어 전환이 없어 로케일은 실행 중 고정)
-  const tRef = useRef(t);
-  tRef.current = t;
+  // 시딩은 최초 hydrate 시점의 로케일 기준 1회 — 이후 인앱 언어 전환에 재시드하지 않는다.
+  // hydrate effect가 locale 변경에 재실행되지 않도록 ref로 고정.
   const localeRef = useRef(locale);
   localeRef.current = locale;
 
@@ -76,7 +74,8 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       } catch (error: unknown) {
         reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
-          setErrorMessage(tRef.current('wordLibrary.loadError'));
+          // 메시지는 렌더 시점에 t()로 해석해 인앱 언어 전환에도 즉시 따라간다.
+          setLoadFailed(true);
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
       } finally {
@@ -143,8 +142,15 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo(
-    () => ({ entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry }),
-    [entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry]
+    () => ({
+      entries,
+      isHydrated,
+      errorMessage: loadFailed ? t('wordLibrary.loadError') : null,
+      createEntry,
+      updateEntry,
+      deleteEntry,
+    }),
+    [entries, isHydrated, loadFailed, t, createEntry, updateEntry, deleteEntry]
   );
 
   return <WordLibraryContext.Provider value={value}>{children}</WordLibraryContext.Provider>;

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ProfileAchievementsGrid } from '@/components/profile/profile-achievements-grid';
 import { ParrotProfileCard } from '@/components/profile/parrot-profile-card';
+import { ProfileLanguageToggle } from '@/components/profile/profile-language-toggle';
 import { ProfileStatsRow } from '@/components/profile/profile-stats-row';
 import { PillButton } from '@/components/ui/pill-button';
 import { Spacing } from '@/constants/theme';
@@ -59,6 +60,7 @@ export default function ProfileScreen() {
           totalLearningLabel={totalLearningLabel}
           totalLearningSeconds={totalTrainingSeconds}
         />
+        <ProfileLanguageToggle />
         <PillButton
           full
           icon="person.fill"
