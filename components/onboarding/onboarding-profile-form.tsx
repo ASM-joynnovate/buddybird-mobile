@@ -5,7 +5,7 @@ import { TextInput } from '@/components/ui/app-text';
 import { Chip } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
-import type { SpeciesOption } from '@/features/profile/profile-options';
+import { CUSTOM_SPECIES_MAX_LENGTH, type SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
 interface OnboardingProfileFormProps {
@@ -19,6 +19,7 @@ interface OnboardingProfileFormProps {
   namePlaceholder: string;
   onAgeMonthsChange: (months: number) => void;
   onCustomMode: () => void;
+  onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;
   onSpeciesChange: (species: string) => void;
   species: string;
@@ -38,6 +39,7 @@ export function OnboardingProfileForm({
   namePlaceholder,
   onAgeMonthsChange,
   onCustomMode,
+  onCustomSpeciesChange,
   onNameChange,
   onSpeciesChange,
   species,
@@ -73,7 +75,8 @@ export function OnboardingProfileForm({
         {customMode ? (
           <TextInput
             autoCapitalize="none"
-            onChangeText={onSpeciesChange}
+            maxLength={CUSTOM_SPECIES_MAX_LENGTH}
+            onChangeText={onCustomSpeciesChange}
             placeholder={speciesPlaceholder}
             placeholderTextColor={BuddyBirdColors.placeholderMuted}
             style={[styles.input, styles.customSpeciesInput]}

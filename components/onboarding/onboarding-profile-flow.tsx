@@ -53,6 +53,11 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
     setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
   }
 
+  function changeCustomSpecies(nextSpecies: string): void {
+    setSpecies(nextSpecies);
+    setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
+  }
+
   function enableCustomMode(): void {
     setCustomMode(true);
     setSpecies('');
@@ -115,6 +120,7 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
       onAgeMonthsChange={setAgeMonths}
       onBack={onBack}
       onCustomMode={enableCustomMode}
+      onCustomSpeciesChange={changeCustomSpecies}
       onNameChange={handleNameChange}
       onPhotoSelected={setPhotoUri}
       onSpeciesChange={selectSpecies}

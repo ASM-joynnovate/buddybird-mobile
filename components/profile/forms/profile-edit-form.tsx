@@ -11,7 +11,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
-import { isPresetSpeciesId, type SpeciesOption } from '@/features/profile/profile-options';
+import { CUSTOM_SPECIES_MAX_LENGTH, isPresetSpeciesId, type SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { formatAgeMonths } from '@/features/profile/profile-validation';
 
@@ -93,6 +93,7 @@ export function ProfileEditForm({
           {isCustomMode ? (
             <TextInput
               autoCapitalize="none"
+              maxLength={CUSTOM_SPECIES_MAX_LENGTH}
               onChangeText={(species) => onPatch({ species })}
               placeholder={t('profile.speciesPlaceholder')}
               placeholderTextColor={BuddyBirdColors.placeholderMuted}
