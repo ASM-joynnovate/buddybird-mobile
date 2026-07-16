@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
@@ -32,6 +33,10 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
+  const { t } = useI18n();
+  // hydrate effect가 t 변경에 재실행되지 않도록 ref로 고정 (로케일은 실행 중 바뀌지 않음)
+  const tRef = useRef(t);
+  tRef.current = t;
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -64,7 +69,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       } catch (error: unknown) {
         reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
-          setErrorMessage('단어 목록을 불러오지 못했어요.');
+          setErrorMessage(tRef.current('wordLibrary.loadError'));
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
       } finally {

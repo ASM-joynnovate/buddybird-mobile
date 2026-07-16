@@ -86,6 +86,7 @@ interface AppCopy {
     profileLink: string;
     presetPreviewTitle: string;
     sessionTemplateTitle: string;
+    trainingLoadError: string;
   };
   audio: {
     waveformPreviewLabel: string;
@@ -222,6 +223,7 @@ interface AppCopy {
     addWordA11y: string;
     editA11y: string;
     previewA11y: string;
+    loadError: string;
     filterAll: string;
     tagLabels: {
       greeting: string;
@@ -355,6 +357,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       profileLink: '프로필 확인하기',
       presetPreviewTitle: '기본 단어',
       sessionTemplateTitle: '추천 학습',
+      trainingLoadError: '학습 데이터를 불러오지 못했습니다.',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz 음성 파형 미리보기',
@@ -491,6 +494,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       addWordA11y: '단어 추가',
       editA11y: '%{label} 수정',
       previewA11y: '%{label} 미리듣기',
+      loadError: '단어 목록을 불러오지 못했어요.',
       filterAll: '전체',
       tagLabels: {
         greeting: '인사',
@@ -638,6 +642,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       profileLink: 'View profile',
       presetPreviewTitle: 'Preset words',
       sessionTemplateTitle: 'Session templates',
+      trainingLoadError: 'Could not load training data.',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz voice waveform preview',
@@ -774,6 +779,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       addWordA11y: 'Add word',
       editA11y: 'Edit %{label}',
       previewA11y: 'Preview %{label}',
+      loadError: 'Could not load your words.',
       filterAll: 'All',
       tagLabels: {
         greeting: 'Greeting',

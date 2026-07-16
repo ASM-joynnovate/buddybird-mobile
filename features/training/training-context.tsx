@@ -1,6 +1,7 @@
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
 import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
@@ -58,6 +59,10 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [interruptedSession, setInterruptedSession] = useState<InterruptedSessionInfo | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
+  const { t } = useI18n();
+  // hydrate effect가 t 변경에 재실행되지 않도록 ref로 고정 (로케일은 실행 중 바뀌지 않음)
+  const tRef = useRef(t);
+  tRef.current = t;
 
   const setPendingSession = useCallback((next: PendingSession): void => {
     setPendingSessionState(next);
@@ -95,7 +100,8 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
       } catch (error: unknown) {
         if (isMounted) {
           setTrainingStoreState(null);
-          setErrorMessage(error instanceof Error ? error.message : '학습 데이터를 불러오지 못했습니다.');
+          // 원인별 상세는 seam이 이미 reportError로 남겼다 — 사용자에게는 일반 메시지만 노출.
+          setErrorMessage(tRef.current('home.trainingLoadError'));
         }
       } finally {
         if (isMounted) {
