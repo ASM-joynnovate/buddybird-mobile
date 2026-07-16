@@ -1,22 +1,6 @@
 export const SUPPORTED_LOCALES = ['ko', 'en'] as const;
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
 
-interface PresetWordTemplateCopy {
-  id: string;
-  label: string;
-  phrase: string;
-  description: string;
-}
-
-interface SessionTemplateCopy {
-  id: string;
-  label: string;
-  description: string;
-  totalDurationSeconds: number;
-  learningDurationSeconds: number;
-  restDurationSeconds: number;
-}
-
 interface AppCopy {
   common: {
     add: string;
@@ -274,10 +258,6 @@ interface AppCopy {
   };
   profileOptions: {
     speciesOptions: Record<string, string>;
-  };
-  trainingTemplates: {
-    presetWords: PresetWordTemplateCopy[];
-    sessions: SessionTemplateCopy[];
   };
   feedback: {
     promptTitle: string;
@@ -572,19 +552,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         parakeet: '잉꼬',
       },
     },
-    trainingTemplates: {
-      presetWords: [
-        { id: 'hello', label: '안녕', phrase: '안녕', description: '가장 먼저 반복하기 좋은 짧은 인사말' },
-        { id: 'apple', label: '사과', phrase: '사과', description: '간식 맥락과 연결하기 쉬운 단어' },
-        { id: 'water', label: '물', phrase: '물', description: '일상 돌봄 루틴에 붙일 수 있는 단어' },
-        { id: 'bye', label: '잘 다녀와', phrase: '잘 다녀와', description: '외출 전후 반복하기 좋은 문장' },
-      ],
-      sessions: [
-        { id: 'starter', label: '첫 적응 20분', description: '짧은 학습과 충분한 휴식으로 반응을 살펴봐요.', totalDurationSeconds: 1200, learningDurationSeconds: 240, restDurationSeconds: 120 },
-        { id: 'routine', label: '기본 루틴 1시간', description: '15분 학습과 5분 휴식을 반복하는 기본 세션이에요.', totalDurationSeconds: 3600, learningDurationSeconds: 900, restDurationSeconds: 300 },
-        { id: 'deep', label: '집중 루틴 3시간', description: '앱을 켜둔 상태에서 긴 반복 루틴을 실험해요.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
-      ],
-    },
     feedback: {
       promptTitle: '의견을 들려주세요',
       promptMessage: '버디버드를 쓰면서 느낀 점이나 바라는 점을 자유롭게 남겨 주세요. 큰 힘이 됩니다!',
@@ -876,19 +843,6 @@ export const translations: Record<AppLocale, AppCopy> = {
         parakeet: 'Parakeet',
       },
     },
-    trainingTemplates: {
-      presetWords: [
-        { id: 'hello', label: 'Hello', phrase: 'Hello', description: 'A short greeting that works well as a first repetition.' },
-        { id: 'apple', label: 'Apple', phrase: 'Apple', description: 'Easy to connect with treat time.' },
-        { id: 'water', label: 'Water', phrase: 'Water', description: 'A practical word for daily care routines.' },
-        { id: 'bye', label: 'See you', phrase: 'See you', description: 'Good for repeating before and after leaving home.' },
-      ],
-      sessions: [
-        { id: 'starter', label: '20 min starter', description: 'Short learning blocks with enough rest to observe reactions.', totalDurationSeconds: 1200, learningDurationSeconds: 240, restDurationSeconds: 120 },
-        { id: 'routine', label: '1 hr routine', description: 'The default session repeats 15 minutes of learning and 5 minutes of rest.', totalDurationSeconds: 3600, learningDurationSeconds: 900, restDurationSeconds: 300 },
-        { id: 'deep', label: '3 hr focus', description: 'Try a longer foreground routine while the app stays open.', totalDurationSeconds: 10800, learningDurationSeconds: 900, restDurationSeconds: 300 },
-      ],
-    },
     feedback: {
       promptTitle: 'Tell us what you think',
       promptMessage: 'Share anything you love or wish were different about BuddyBird. It really helps!',
@@ -914,7 +868,8 @@ export const translations: Record<AppLocale, AppCopy> = {
   },
 };
 
-export const DEFAULT_LOCALE: AppLocale = 'ko';
+// 미지원 언어 기기의 fallback — UI·프리셋 단어가 함께 이 로케일을 따른다 (ko 기기는 여전히 ko).
+export const DEFAULT_LOCALE: AppLocale = 'en';
 
 export function isSupportedLocale(locale: string): locale is AppLocale {
   return SUPPORTED_LOCALES.includes(locale as AppLocale);

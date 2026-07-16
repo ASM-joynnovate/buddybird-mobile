@@ -1,6 +1,6 @@
 # 프리셋 단어 콘텐츠 로컬라이즈 여부 결정
 
-Status: needs-triage
+Status: ready-for-human
 
 ## 배경
 
@@ -21,3 +21,18 @@ BB-155(하드코딩 한국어 i18n 이관)에서 보류·분리된 항목. `feat
 ## 관련
 
 - BB-155, `docs/I18N-COMPLETION.md` §3.6
+
+## Comments
+
+**2026-07-16 — 결정·구현 완료 (feat/bb-155-i18n-migration):**
+
+1. **로컬라이즈 확정** — 비-ko 로케일은 영어 프리셋 4개(Hello/Hi/I love you/Kiss, 키 `en-*` 접두) 시드. ko는 기존 4개 유지. `SEED_PRESETS_BY_LOCALE` + `createPresetSeedEntries(nowIso, locale)`.
+2. **미지원 언어 fallback을 ko→en 전환** (`DEFAULT_LOCALE = 'en'`) — UI·프리셋 항상 일치. `docs/POLICY-HISTORY.md` 2026-07-16 행 참고.
+3. **죽은 `trainingTemplates` 카피 삭제** — SEED_PRESETS 분기가 SSoT로 확정되어 승격 대신 제거.
+4. 오디오: `assets/audio/ko-kr/` 이동 완료, `assets/audio/en-us/` 4개 파일(default_Hello/Hi/Kiss/I-love-you.m4a)은 추가 대기 — 파일 도착 후 커밋 예정.
+
+잔여 확인(사람): en 오디오 파일 추가 + 시뮬레이터 검증(신규 설치 en/ko, 업그레이드, 재생).
+
+**2026-07-16 — 계획 변경 (같은 날 정정):**
+
+en 프리셋 음원을 출시 전에 확보하지 않기로 하여 **en 로케일은 프리셋을 시드하지 않는 것으로 변경** (`SEED_PRESETS_BY_LOCALE.en = []`). en 오디오 파일 4개·`assets/audio/en-us/` 불필요. 빈 목록은 empty state 카피가 안내. 향후 영어 음원이 확보되면 `en-*` 접두 키 규칙으로 이 이슈를 재개. `docs/POLICY-HISTORY.md` 2026-07-16 정정 행 참고.

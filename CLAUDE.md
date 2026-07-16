@@ -21,6 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `docs/WORKFLOW.md` | 코딩 전·중·후 체크리스트 + 검증 grep 게이트 |
 | `docs/POLICY-HISTORY.md` | 정책 도입 이력 (출처 plan/commit + 영향 범위) |
 | `docs/analytics.md` §정책 | 이벤트 grammar, ATT, PII, 에러 보고, Firebase modular API |
+| `docs/I18N.md` | 로케일 결정(기기 언어, 미지원 언어는 en fallback)·번역 리소스 규칙·프리셋 단어/오디오 로케일 분기 |
 | `docs/ARCHITECTURE.md` §네이티브 설정 | Firebase RNFirebase v24 핀, Podfile plugin, gitignore |
 | `docs/BUILD-AND-RELEASE.md` | 환경별 빌드(dev/staging/prod)·EAS Secret·Firebase config·CI/CD 파이프라인(staging→자동 internal 배포, main→자동 빌드+수동 promote)·semver/buildNumber 정책 (배포 SSoT) |
 

@@ -33,10 +33,13 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
-  const { t } = useI18n();
-  // hydrate effect가 t 변경에 재실행되지 않도록 ref로 고정 (로케일은 실행 중 바뀌지 않음)
+  const { t, locale } = useI18n();
+  // hydrate effect가 t/locale 변경에 재실행되지 않도록 ref로 고정
+  // (인앱 언어 전환이 없어 로케일은 실행 중 고정)
   const tRef = useRef(t);
   tRef.current = t;
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -53,9 +56,12 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
         if (!isMounted) return;
 
-        if (Object.keys(loaded.entriesById).length === 0) {
-          const nowIso = new Date().toISOString();
-          const seeds = createPresetSeedEntries(nowIso);
+        const nowIso = new Date().toISOString();
+        const seeds =
+          Object.keys(loaded.entriesById).length === 0
+            ? createPresetSeedEntries(nowIso, localeRef.current)
+            : [];
+        if (seeds.length > 0) {
           const seeded: WordLibraryStore = {
             ...loaded,
             entriesById: Object.fromEntries(seeds.map((s) => [s.id, s])),
@@ -64,6 +70,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
           await saveWordLibraryStore(seeded);
           setLibraryState(seeded);
         } else {
+          // 시드할 프리셋이 없는 로케일(en)은 빈 store 를 저장하지 않는다 — 매 실행 재저장 방지.
           setLibraryState(loaded);
         }
       } catch (error: unknown) {

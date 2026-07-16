@@ -1,6 +1,6 @@
 # 하드코딩 한국어 문자열 i18n 이관 [BB-155]
 
-앱의 언어 결정 방식은 현행 유지한다 — 기기 언어를 따라가고(`expo-localization` → `normalizeLocale`), 기본값은 `ko`, 인앱 언어 선택 UI는 만들지 않는다.
+앱의 언어 결정 방식은 기기 언어를 따라가고(`expo-localization` → `normalizeLocale`), 인앱 언어 선택 UI는 만들지 않는다. 미지원 언어 기기의 기본값은 `ko`였으나 **2026-07-16 `en`으로 전환** — 로케일·프리셋 정책의 현행 SSoT는 `docs/I18N.md`.
 (참고: `i18n-context`에 `setLocale`/`loadStoredLocale` 영속 오버라이드 스캐폴딩이 존재하나 writer가 없어 inert — 현재 동작은 기기 언어 따라가기와 동일하다. `profile.language*` 카피·`supportedLocales`도 정의만 있고 미소비.)
 이 작업의 범위는 i18n을 거치지 않고 한국어를 하드코딩한 화면·모듈을 `features/i18n` 리소스로 이관해, 영어 기기 사용자에게 한국어가 섞여 보이는 문제를 해소하는 것이다.
 
