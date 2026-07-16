@@ -9,13 +9,14 @@ import { useSessionCaptures } from '@/features/training/hooks/use-session-captur
 export default function SessionCapturesScreen() {
   const router = useRouter();
   const { sessionId, word } = useLocalSearchParams<{ sessionId: string; word?: string }>();
-  const captures = useSessionCaptures(sessionId ?? '');
+  const { captures, totalBytes } = useSessionCaptures(sessionId ?? '');
   const playback = useCapturePlayback();
 
   return (
     <SessionCapturesView
       word={word ?? ''}
       captures={captures}
+      totalBytes={totalBytes}
       playback={playback}
       onClose={() => router.back()}
     />

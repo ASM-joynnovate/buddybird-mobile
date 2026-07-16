@@ -7,7 +7,7 @@ import type { CaptureSegment, FollowAlongCapture, FollowAlongCaptureStore } from
 export const FOLLOW_ALONG_CAPTURE_KEY = '@buddybird/follow-along-captures';
 
 // 한 기기에 쌓이는 캡처 오디오 총량 상한. 초과 시 오래된 것부터 파일과 기록을 지운다.
-const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
+export const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
 
 // 오디오 URI normalize(save)/hydrate(load)는 seam이 소유한다 — 컬렉션·필드만 선언.
 // iOS 컨테이너 UUID 변동으로 절대 URI 가 stale 되는 것을 방지한다.

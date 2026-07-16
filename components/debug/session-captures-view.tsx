@@ -5,22 +5,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 import type { CapturePlaybackController } from '@/features/audio/hooks/use-capture-playback';
+import { MAX_TOTAL_BYTES } from '@/features/training/follow-along-capture-storage';
 import type { FollowAlongCapture } from '@/features/training/follow-along-capture-types';
 
 import { CaptureRow } from './capture-row';
 
-const MAX_TOTAL_MB = 500;
+const MAX_TOTAL_MB = MAX_TOTAL_BYTES / (1024 * 1024);
 
 interface SessionCapturesViewProps {
   word: string;
   captures: FollowAlongCapture[] | null;
+  // 기기 전체(모든 세션) 캡처 합산 용량 — 500MB 상한은 전역 기준이다.
+  totalBytes: number;
   playback: CapturePlaybackController;
   onClose: () => void;
 }
 
-export function SessionCapturesView({ word, captures, playback, onClose }: SessionCapturesViewProps) {
+export function SessionCapturesView({ word, captures, totalBytes, playback, onClose }: SessionCapturesViewProps) {
   const insets = useSafeAreaInsets();
-  const totalBytes = (captures ?? []).reduce((sum, capture) => sum + capture.sizeBytes, 0);
+  const sessionBytes = (captures ?? []).reduce((sum, capture) => sum + capture.sizeBytes, 0);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -28,7 +31,7 @@ export function SessionCapturesView({ word, captures, playback, onClose }: Sessi
         <View style={styles.headerText}>
           <Text style={styles.title}>VAD 녹음 디버그</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
-            &quot;{word}&quot; · {captures ? `${captures.length}개` : '로딩 중'} · {formatMb(totalBytes)} / {MAX_TOTAL_MB}MB
+            &quot;{word}&quot; · {captures ? `${captures.length}개` : '로딩 중'} · 세션 {formatMb(sessionBytes)}MB · 전체 {formatMb(totalBytes)} / {MAX_TOTAL_MB}MB
           </Text>
         </View>
         <Pressable accessibilityLabel="닫기" accessibilityRole="button" hitSlop={12} onPress={onClose} style={styles.closeButton}>
