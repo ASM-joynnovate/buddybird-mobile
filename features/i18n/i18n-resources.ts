@@ -136,8 +136,8 @@ interface AppCopy {
     customPresetLabel: string;
     customPresetDescription: string;
     totalDurationLabel: string;
-    hourPickerLabel: string;
-    minutePickerLabel: string;
+    hourPickerA11y: string;
+    minutePickerA11y: string;
     hourUnit: string;
     minuteUnit: string;
     learnLabel: string;
@@ -216,7 +216,6 @@ interface AppCopy {
     confirmDelete: string;
     deleteErrorTitle: string;
     deleteErrorBody: string;
-    closeA11y: string;
   };
   wordLibrary: {
     empty: string;
@@ -380,10 +379,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       profileLink: '프로필 확인하기',
       presetPreviewTitle: '기본 단어',
       sessionTemplateTitle: '추천 학습',
-      trainingLoadError: '학습 데이터를 불러오지 못했습니다.',
+      trainingLoadError: '학습 데이터를 불러오지 못했어요.',
       wordsSectionTitle: '단어',
       durationSectionTitle: '학습 시간',
-      startDisabledA11y: '학습할 단어와 시간을 설정하면 시작할 수 있습니다',
+      startDisabledA11y: '학습할 단어와 시간을 설정하면 시작할 수 있어요',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz 음성 파형 미리보기',
@@ -427,8 +426,8 @@ export const translations: Record<AppLocale, AppCopy> = {
       customPresetLabel: '직접 설정',
       customPresetDescription: '원하는 시간을 직접 정해요',
       totalDurationLabel: '총 학습 시간',
-      hourPickerLabel: '시간 선택',
-      minutePickerLabel: '분 선택',
+      hourPickerA11y: '시간 선택',
+      minutePickerA11y: '분 선택',
       hourUnit: '시간',
       minuteUnit: '분',
       learnLabel: '학습',
@@ -507,7 +506,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       confirmDelete: '"%{label}" 단어를 삭제할까요?',
       deleteErrorTitle: '삭제 실패',
       deleteErrorBody: '단어를 삭제하지 못했어요. 다시 시도해 주세요.',
-      closeA11y: '닫기',
     },
     wordLibrary: {
       empty: '단어가 없어요.',
@@ -732,8 +730,8 @@ export const translations: Record<AppLocale, AppCopy> = {
       customPresetLabel: 'Custom',
       customPresetDescription: 'Set your own duration',
       totalDurationLabel: 'Total session time',
-      hourPickerLabel: 'Select hours',
-      minutePickerLabel: 'Select minutes',
+      hourPickerA11y: 'Select hours',
+      minutePickerA11y: 'Select minutes',
       hourUnit: 'hr',
       minuteUnit: 'min',
       learnLabel: 'Learning',
@@ -812,7 +810,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       confirmDelete: 'Delete "%{label}"?',
       deleteErrorTitle: 'Delete failed',
       deleteErrorBody: 'Could not delete the word. Please try again.',
-      closeA11y: 'Close',
     },
     wordLibrary: {
       empty: 'No words yet.',
@@ -855,18 +852,18 @@ export const translations: Record<AppLocale, AppCopy> = {
       avatarSelect: 'Select profile photo',
       avatarError: 'Could not load the photo. You can continue without one.',
       editTitle: 'Edit profile',
-      editSubtitle: "Update your bird's details.",
+      editSubtitle: 'Update your bird’s details.',
       editBackA11y: 'Back to profile',
       ageLabel: 'Age · %{age}',
       achievementsTitle: 'Achievements',
       streakAchievementLabel: '%{days}-day streak',
       streakAchievementSub: 'Flame keeper',
-      todayAchievementSub: "Today's learning",
+      todayAchievementSub: 'Today’s learning',
       totalAchievementSub: 'Total learning time',
       masterAchievementLabel: 'Master',
       masterAchievementSub: 'Locked',
       statStreakLabel: 'Streak days',
-      statTodayLabel: "Today's time",
+      statTodayLabel: 'Today’s time',
       statTotalLabel: 'Total time',
     },
     profileOptions: {

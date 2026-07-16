@@ -188,7 +188,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     <BottomSheet footer={footer} onClose={handleClose} visible={visible}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('wordEdit.title')}</Text>
-        <Pressable accessibilityLabel={t('wordEdit.closeA11y')} accessibilityRole="button" onPress={handleClose} style={styles.closeBtn}>
+        <Pressable accessibilityLabel={t('common.closeA11y')} accessibilityRole="button" onPress={handleClose} style={styles.closeBtn}>
           <IconSymbol name="xmark" size={24} color={BuddyBirdColors.inkMuted} />
         </Pressable>
       </View>

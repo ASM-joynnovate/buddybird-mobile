@@ -84,7 +84,7 @@ export function SessionPresetCard({
             <View style={styles.durationPickerRow}>
               <View style={styles.pickerGroup}>
                 <WheelPicker
-                  accessibilityLabel={t('sessionSetup.hourPickerLabel')}
+                  accessibilityLabel={t('sessionSetup.hourPickerA11y')}
                   options={HOUR_OPTIONS}
                   selected={selectedHours}
                   onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
@@ -93,7 +93,7 @@ export function SessionPresetCard({
               </View>
               <View style={styles.pickerGroup}>
                 <WheelPicker
-                  accessibilityLabel={t('sessionSetup.minutePickerLabel')}
+                  accessibilityLabel={t('sessionSetup.minutePickerA11y')}
                   options={MINUTE_OPTIONS}
                   selected={selectedMins}
                   onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
