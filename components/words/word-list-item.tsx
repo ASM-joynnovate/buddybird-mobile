@@ -11,6 +11,7 @@ import {
   categoryTintStrong,
   type BuddyBirdCategory,
 } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import type { WordTag } from '@/features/word-library/word-library-types';
 
 interface WordListItemProps {
@@ -34,6 +35,7 @@ export function WordListItem({
   onEdit,
   onPlay,
 }: WordListItemProps) {
+  const { t } = useI18n();
   const color = categoryColor[tag as BuddyBirdCategory] ?? BuddyBirdColors.primary;
   const tint = categoryTintStrong[tag as BuddyBirdCategory] ?? BuddyBirdColors.orangeTint;
   const sourceIcon = isPreset ? 'speaker.wave.2.fill' : 'mic';
@@ -47,7 +49,7 @@ export function WordListItem({
         <View style={styles.titleRow}>
           <Text numberOfLines={1} style={styles.word}>{label}</Text>
           <View style={[styles.catPill, { backgroundColor: tint }]}>
-            <Text style={[styles.catPillText, { color }]}>{tag}</Text>
+            <Text style={[styles.catPillText, { color }]}>{t(`wordLibrary.tagLabels.${tag}`)}</Text>
           </View>
         </View>
         <View style={styles.sourceRow}>

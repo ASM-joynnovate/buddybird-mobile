@@ -26,7 +26,7 @@ export default function WordsScreen() {
   const { entries, errorMessage } = useWordLibrary();
   useScreenTracking('words');
 
-  const [filter, setFilter] = useState<WordCategory>('전체');
+  const [filter, setFilter] = useState<WordCategory>('all');
   const [showCreate, setShowCreate] = useState(false);
   const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
@@ -57,13 +57,13 @@ export default function WordsScreen() {
     }, []),
   );
 
-  const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
+  const visible = filter === 'all' ? entries : entries.filter((e) => e.tag === filter);
 
   const handleFilterChange = useCallback(
     (next: WordCategory) => {
       if (next === filter) return;
       const nextVisibleCount =
-        next === '전체' ? entries.length : entries.filter((e) => e.tag === next).length;
+        next === 'all' ? entries.length : entries.filter((e) => e.tag === next).length;
       track({
         name: 'word_library_filter_changed',
         params: { from: filter, to: next, visible_words_count: nextVisibleCount },

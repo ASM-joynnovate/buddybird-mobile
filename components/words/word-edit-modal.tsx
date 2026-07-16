@@ -34,7 +34,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
   const insets = useSafeAreaInsets();
 
   const [label, setLabel] = useState('');
-  const [tag, setTag] = useState<WordTag>('인사');
+  const [tag, setTag] = useState<WordTag>('greeting');
   const [isRerecording, setIsRerecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -211,7 +211,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
               <Chip
                 active={tag === wordTag}
                 key={wordTag}
-                label={wordTag}
+                label={t(`wordLibrary.tagLabels.${wordTag}`)}
                 onPress={() => setTag(wordTag)}
                 tone={toneByTag[wordTag] ?? 'primary'}
               />
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
 });
 
 const toneByTag: Record<string, ChipTone> = {
-  인사: 'primary',
-  음식: 'blue',
-  이름: 'purple',
-  기타: 'primary',
+  greeting: 'primary',
+  food: 'blue',
+  name: 'purple',
+  etc: 'primary',
 };

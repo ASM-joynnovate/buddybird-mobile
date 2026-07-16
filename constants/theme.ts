@@ -94,34 +94,34 @@ export const BuddyBirdColors = {
   splashTongue: '#F33837',
 };
 
-export type BuddyBirdCategory = '인사' | '음식' | '이름' | '기타';
+export type BuddyBirdCategory = 'greeting' | 'food' | 'name' | 'etc';
 
 export const categoryColor: Record<BuddyBirdCategory, string> = {
-  인사: BuddyBirdColors.primary,
-  음식: BuddyBirdColors.secondary,
-  이름: BuddyBirdColors.accentPurple,
-  기타: BuddyBirdColors.streak,
+  greeting: BuddyBirdColors.primary,
+  food: BuddyBirdColors.secondary,
+  name: BuddyBirdColors.accentPurple,
+  etc: BuddyBirdColors.streak,
 };
 
 export const categoryShadow: Record<BuddyBirdCategory, string> = {
-  인사: BuddyBirdColors.primaryShadow,
-  음식: BuddyBirdColors.secondaryShadow,
-  이름: BuddyBirdColors.accentPurpleShadow,
-  기타: BuddyBirdColors.primaryShadow,
+  greeting: BuddyBirdColors.primaryShadow,
+  food: BuddyBirdColors.secondaryShadow,
+  name: BuddyBirdColors.accentPurpleShadow,
+  etc: BuddyBirdColors.primaryShadow,
 };
 
 export const categoryTint: Record<BuddyBirdCategory, string> = {
-  인사: withAlphaOverCanvas(categoryColor['인사'], 0.08),
-  음식: withAlphaOverCanvas(categoryColor['음식'], 0.08),
-  이름: withAlphaOverCanvas(categoryColor['이름'], 0.08),
-  기타: withAlphaOverCanvas(categoryColor['기타'], 0.08),
+  greeting: withAlphaOverCanvas(categoryColor.greeting, 0.08),
+  food: withAlphaOverCanvas(categoryColor.food, 0.08),
+  name: withAlphaOverCanvas(categoryColor.name, 0.08),
+  etc: withAlphaOverCanvas(categoryColor.etc, 0.08),
 };
 
 export const categoryTintStrong: Record<BuddyBirdCategory, string> = {
-  인사: withAlphaOverCanvas(categoryColor['인사'], 0.12),
-  음식: withAlphaOverCanvas(categoryColor['음식'], 0.12),
-  이름: withAlphaOverCanvas(categoryColor['이름'], 0.12),
-  기타: withAlphaOverCanvas(categoryColor['기타'], 0.12),
+  greeting: withAlphaOverCanvas(categoryColor.greeting, 0.12),
+  food: withAlphaOverCanvas(categoryColor.food, 0.12),
+  name: withAlphaOverCanvas(categoryColor.name, 0.12),
+  etc: withAlphaOverCanvas(categoryColor.etc, 0.12),
 };
 
 export function withAlpha(hexToken: string, ratio: number): string {

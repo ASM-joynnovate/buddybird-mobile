@@ -2,14 +2,16 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { Chip, type ChipTone } from '@/components/ui/chip';
 import { Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
+import type { WordCategory } from '@/features/training/session-words-mock';
 
-interface WordFilterBarProps<T extends string> {
-  cats: readonly T[];
-  active: T;
-  onChange: (next: T) => void;
+interface WordFilterBarProps {
+  cats: readonly WordCategory[];
+  active: WordCategory;
+  onChange: (next: WordCategory) => void;
 }
 
-export function WordFilterBar<T extends string>({ cats, active, onChange }: WordFilterBarProps<T>) {
+export function WordFilterBar({ cats, active, onChange }: WordFilterBarProps) {
   return (
     <ScrollView
       horizontal
@@ -24,13 +26,15 @@ export function WordFilterBar<T extends string>({ cats, active, onChange }: Word
 }
 
 interface FilterChipProps {
-  cat: string;
+  cat: WordCategory;
   active: boolean;
   onPress: () => void;
 }
 
 export function FilterChip({ cat, active, onPress }: FilterChipProps) {
-  return <Chip active={active} label={cat} onPress={onPress} tone={toneByCategory[cat] ?? 'primary'} />;
+  const { t } = useI18n();
+  const label = cat === 'all' ? t('wordLibrary.filterAll') : t(`wordLibrary.tagLabels.${cat}`);
+  return <Chip active={active} label={label} onPress={onPress} tone={toneByCategory[cat] ?? 'primary'} />;
 }
 
 const styles = StyleSheet.create({
@@ -47,9 +51,9 @@ const styles = StyleSheet.create({
 });
 
 const toneByCategory: Record<string, ChipTone> = {
-  전체: 'primary',
-  인사: 'primary',
-  음식: 'blue',
-  이름: 'purple',
-  기타: 'primary',
+  all: 'primary',
+  greeting: 'primary',
+  food: 'blue',
+  name: 'purple',
+  etc: 'primary',
 };

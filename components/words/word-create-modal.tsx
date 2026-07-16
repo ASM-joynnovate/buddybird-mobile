@@ -28,7 +28,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   const insets = useSafeAreaInsets();
 
   const [label, setLabel] = useState('');
-  const [tag, setTag] = useState<WordTag>('인사');
+  const [tag, setTag] = useState<WordTag>('greeting');
   const [isSaving, setIsSaving] = useState(false);
 
   const session = useRecordingSession({
@@ -59,7 +59,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   function handleClose() {
     session.actions.reset();
     setLabel('');
-    setTag('인사');
+    setTag('greeting');
     onClose();
   }
 

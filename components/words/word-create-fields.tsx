@@ -4,6 +4,7 @@ import { TextInput } from '@/components/ui/app-text';
 import { Chip, type ChipTone } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { WORD_TAGS, type WordTag } from '@/features/word-library/word-library-types';
 
 interface WordCreateFieldsProps {
@@ -25,6 +26,7 @@ export function WordCreateFields({
   onChangeLabel,
   onChangeTag,
 }: WordCreateFieldsProps) {
+  const { t } = useI18n();
   return (
     <View style={styles.block}>
       <FormField label={wordLabel}>
@@ -45,7 +47,7 @@ export function WordCreateFields({
             <Chip
               active={tag === wordTag}
               key={wordTag}
-              label={wordTag}
+              label={t(`wordLibrary.tagLabels.${wordTag}`)}
               onPress={() => onChangeTag(wordTag)}
               tone={toneByTag[wordTag]}
             />
@@ -57,10 +59,10 @@ export function WordCreateFields({
 }
 
 const toneByTag: Record<WordTag, ChipTone> = {
-  인사: 'primary',
-  음식: 'blue',
-  이름: 'purple',
-  기타: 'primary',
+  greeting: 'primary',
+  food: 'blue',
+  name: 'purple',
+  etc: 'primary',
 };
 
 const styles = StyleSheet.create({

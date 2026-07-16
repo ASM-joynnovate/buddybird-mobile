@@ -35,11 +35,12 @@ export function deleteWordEntry(store: WordLibraryStore, id: string, nowIso: str
   };
 }
 
+// label 은 앵무새가 학습할 콘텐츠 데이터 — UI 카피가 아니므로 i18n 대상이 아니다 (BB-155 §3.6).
 const SEED_PRESETS: Array<{ key: string; label: string; tag: WordTag }> = [
-  { key: 'hello', label: '안녕', tag: '인사' },
-  { key: 'apple', label: '사과', tag: '음식' },
-  { key: 'saranghae', label: '사랑해', tag: '인사' },
-  { key: 'bye', label: '다녀와', tag: '인사' },
+  { key: 'hello', label: '안녕', tag: 'greeting' },
+  { key: 'apple', label: '사과', tag: 'food' },
+  { key: 'saranghae', label: '사랑해', tag: 'greeting' },
+  { key: 'bye', label: '다녀와', tag: 'greeting' },
 ];
 
 export function createPresetSeedEntries(nowIso: string): WordEntry[] {

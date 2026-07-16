@@ -160,6 +160,13 @@ interface AppCopy {
     deleteAction: string;
     sourcePreset: string;
     sourceRecording: string;
+    filterAll: string;
+    tagLabels: {
+      greeting: string;
+      food: string;
+      name: string;
+      etc: string;
+    };
   };
   sessionSetupExtra: {
     emptyLibrary: string;
@@ -360,6 +367,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       deleteAction: '삭제',
       sourcePreset: '프리셋',
       sourceRecording: '내 녹음',
+      filterAll: '전체',
+      tagLabels: {
+        greeting: '인사',
+        food: '음식',
+        name: '이름',
+        etc: '기타',
+      },
     },
     sessionSetupExtra: {
       emptyLibrary: '등록된 단어가 없습니다. 단어 탭에서 추가하세요.',
@@ -574,6 +588,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       deleteAction: 'Delete',
       sourcePreset: 'Preset',
       sourceRecording: 'My recording',
+      filterAll: 'All',
+      tagLabels: {
+        greeting: 'Greeting',
+        food: 'Food',
+        name: 'Name',
+        etc: 'Other',
+      },
     },
     sessionSetupExtra: {
       emptyLibrary: 'No words in library. Add one from the Words tab.',
