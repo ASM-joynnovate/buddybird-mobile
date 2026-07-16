@@ -168,7 +168,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
             icon="xmark"
             label={t('wordEdit.delete')}
             onPress={() => setConfirmDelete(true)}
-            style={styles.deleteAction}
+            style={styles.flexAction}
             variant="white"
           />
           <PillButton
@@ -344,10 +344,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingTop: 6,
-  },
-  deleteAction: {
-    flexBasis: 104,
-    flexGrow: 0,
   },
   flexAction: {
     flex: 1,
