@@ -34,6 +34,7 @@ interface AppCopy {
       yearsMonths: string;
     };
     duration: {
+      seconds: string;
       minutes: string;
       hours: string;
       hoursMinutes: string;
@@ -238,6 +239,7 @@ export const translations: Record<AppLocale, AppCopy> = {
         yearsMonths: '%{years}년 %{months}개월',
       },
       duration: {
+        seconds: '%{seconds}초',
         minutes: '%{minutes}분',
         hours: '%{hours}시간',
         hoursMinutes: '%{hours}시간 %{minutes}분',
@@ -459,6 +461,7 @@ export const translations: Record<AppLocale, AppCopy> = {
         yearsMonths: '%{years} yr %{months} mo',
       },
       duration: {
+        seconds: '%{seconds} sec',
         minutes: '%{minutes} min',
         hours: '%{hours} hr',
         hoursMinutes: '%{hours} hr %{minutes} min',

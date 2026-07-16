@@ -12,7 +12,7 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useFeedback } from '@/features/feedback/feedback-context';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useProfile } from '@/features/profile/profile-context';
-import { formatDurationMins, formatDurationSecs } from '@/features/shared/duration-format';
+import { formatDurationCompact, formatDurationSecs } from '@/features/shared/duration-format';
 import { useTrainingData } from '@/features/training/training-context';
 import { selectTotalTrainingSeconds, selectTrainingRewardSummary } from '@/features/training/training-model';
 
@@ -34,9 +34,9 @@ export default function ProfileScreen() {
   }
 
   const streakDays = rewardSummary?.currentStreakDays ?? 0;
-  const todayLearningLabel = formatLearningTime(rewardSummary?.todayLearningSeconds ?? 0);
-  const totalLearningLabel = formatLearningTime(totalTrainingSeconds);
-  const totalLearningStatLabel = formatCompactLearningTime(totalTrainingSeconds);
+  const todayLearningLabel = formatDurationSecs(rewardSummary?.todayLearningSeconds ?? 0, t);
+  const totalLearningLabel = formatDurationSecs(totalTrainingSeconds, t);
+  const totalLearningStatLabel = formatDurationCompact(totalTrainingSeconds, t);
 
   return (
     <View style={styles.root}>
@@ -82,17 +82,6 @@ export default function ProfileScreen() {
       </View>
     </View>
   );
-}
-
-function formatLearningTime(seconds: number): string {
-  return formatDurationSecs(seconds);
-}
-
-function formatCompactLearningTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간`;
-  if (minutes < 1) return formatDurationSecs(seconds);
-  return formatDurationMins(minutes);
 }
 
 const styles = StyleSheet.create({

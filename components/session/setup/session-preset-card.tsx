@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { SelectableRowCard } from '@/components/ui/selectable-row-card';
 import { WheelPicker } from '@/components/ui/wheel-picker';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography, withAlpha } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { formatDurationMins } from '@/features/shared/duration-format';
 import type { SessionPresetKey } from '@/features/training/session-config';
 import { SESSION_PRESETS } from '@/features/training/session-config';
@@ -25,6 +26,7 @@ export function SessionPresetCard({
   sessionMins,
   onChangeSessionMins,
 }: SessionPresetCardProps) {
+  const { t } = useI18n();
   const selectedHours = Math.floor(sessionMins / 60);
   const selectedMins = sessionMins % 60;
 
@@ -46,7 +48,7 @@ export function SessionPresetCard({
                     {preset.shortLabel}
                   </Text>
                   <Text style={styles.optionTime}>
-                    {formatDurationMins(totalMins)}
+                    {formatDurationMins(totalMins, t)}
                   </Text>
                 </View>
                 <Text numberOfLines={1} style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
@@ -65,7 +67,7 @@ export function SessionPresetCard({
               <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
                 직접 설정
               </Text>
-              <Text style={styles.optionTime}>{formatDurationMins(sessionMins)}</Text>
+              <Text style={styles.optionTime}>{formatDurationMins(sessionMins, t)}</Text>
             </View>
             <Text numberOfLines={1} style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
               원하는 시간을 직접 정해요

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { formatDurationCompact, formatDurationMins } from '@/features/shared/duration-format';
 
 import { SessionConfetti } from './session-confetti';
@@ -28,7 +29,8 @@ const DEBUG_TAP_WINDOW_MS = 3000;
 
 export function SessionCompletionView({ petName, word, totalLearningSeconds, totalTrainingSeconds, streakDays, onDismiss, onDebugAccess }: SessionCompletionViewProps) {
   const insets = useSafeAreaInsets();
-  const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)));
+  const { t } = useI18n();
+  const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)), t);
   const tapStateRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
 
   const handleSecretTap = (): void => {
@@ -74,7 +76,7 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, tot
             iconColor={BuddyBirdColors.accentYellow}
             label="총 학습 시간"
             labelColor={BuddyBirdColors.accentYellowShadow}
-            value={formatDurationCompact(totalTrainingSeconds)}
+            value={formatDurationCompact(totalTrainingSeconds, t)}
           />
         </View>
         <PillButton full label="계속" onPress={onDismiss} size="lg" />
