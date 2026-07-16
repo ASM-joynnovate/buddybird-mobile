@@ -33,6 +33,8 @@ function parseWordLibraryStore(raw: unknown): WordLibraryStore {
   }
   const store = raw as WordLibraryStore;
   for (const entry of Object.values(store.entriesById)) {
+    // 손상된 엔트리 때문에 parse 전체가 throw 되면 fallback(빈 store)으로 유실된다 — 건너뛰고 나머지를 살린다.
+    if (!entry || typeof entry !== 'object') continue;
     const migrated = LEGACY_TAG_MAP[entry.tag as string];
     if (migrated) entry.tag = migrated;
   }
