@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { PillButton } from '@/components/ui/pill-button';
 import { Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import type { SessionStatus } from '@/features/training/session-config';
 
 interface SessionControlsProps {
@@ -12,9 +13,17 @@ interface SessionControlsProps {
 }
 
 export function SessionControls({ status, isLearning, paddingBottom, onToggle }: SessionControlsProps) {
+  const { t } = useI18n();
   const isRunning = status === 'running';
   const canToggle = isRunning || status === 'paused' || status === 'interrupted';
-  const label = status === 'starting' ? '준비 중' : status === 'failed' ? '시작 실패' : isRunning ? '일시정지' : '계속하기';
+  const label =
+    status === 'starting'
+      ? t('sessionActive.preparing')
+      : status === 'failed'
+        ? t('sessionActive.startFailed')
+        : isRunning
+          ? t('sessionActive.pause')
+          : t('sessionActive.resume');
 
   return (
     <View style={[styles.controls, { paddingBottom }]}>

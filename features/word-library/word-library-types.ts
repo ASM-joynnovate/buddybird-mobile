@@ -1,5 +1,6 @@
-export type WordTag = '인사' | '음식' | '이름' | '기타';
-export const WORD_TAGS: readonly WordTag[] = ['인사', '음식', '이름', '기타'];
+// 데이터 키 — 표시 라벨은 i18n(`wordLibrary.tagLabels.*`)으로 해석한다.
+export type WordTag = 'greeting' | 'food' | 'name' | 'etc';
+export const WORD_TAGS: readonly WordTag[] = ['greeting', 'food', 'name', 'etc'];
 export interface WordEntry {
   id: string;
   label: string;

@@ -7,11 +7,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Depth, Fonts, Radii, Spacing } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 const TABS = [
-  { name: 'index', activeNames: ['index'], label: '학습', icon: 'dumbbell' as const },
-  { name: 'words', activeNames: ['words'], label: '단어', icon: 'book.fill' as const },
-  { name: 'profile', activeNames: ['profile'], label: '프로필', icon: 'person.fill' as const },
+  { name: 'index', activeNames: ['index'], labelKey: 'tabs.home', icon: 'dumbbell' as const },
+  { name: 'words', activeNames: ['words'], labelKey: 'tabs.words', icon: 'book.fill' as const },
+  { name: 'profile', activeNames: ['profile'], labelKey: 'tabs.profile', icon: 'person.fill' as const },
 ] as const;
 
 function isActiveTab(tab: (typeof TABS)[number], routeName?: string) {
@@ -19,6 +20,7 @@ function isActiveTab(tab: (typeof TABS)[number], routeName?: string) {
 }
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+  const { t } = useI18n();
   const { track } = useAnalytics();
   const insets = useSafeAreaInsets();
   const activeRouteName = state.routes[state.index]?.name;
@@ -37,6 +39,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, Spacing.xxl + Spacing.xs) }]}>
       {TABS.map((tab) => {
         const active = isActiveTab(tab, activeRouteName);
+        const label = t(tab.labelKey);
         const content = (
           <>
             <IconSymbol
@@ -44,7 +47,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               size={Spacing.xxl}
               color={active ? BuddyBirdColors.onPrimary : BuddyBirdColors.tabIconMuted}
             />
-            <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
+            <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
           </>
         );
 
@@ -53,7 +56,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             key={tab.name}
             style={styles.tabPressable}
             onPress={() => handleTabPress(tab.name)}
-            accessibilityLabel={tab.label}
+            accessibilityLabel={label}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
           >

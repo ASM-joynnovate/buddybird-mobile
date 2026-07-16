@@ -2,22 +2,11 @@ import type { TrainingAudioSourceType } from './training-types';
 import type { SessionEngineState } from '@/modules/session-audio-engine';
 
 
+// 카피(라벨·설명)는 UI 가 `sessionSetup.presets.<key>.*` 리소스로 해석한다.
 export const SESSION_PRESETS = [
-  {
-    key: 'short', shortLabel: '짧게',
-    description: '샤워하거나 잠시 자리를 비울 때',
-    learnSecs: 600, restSecs: 300, cycles: 2,
-  },
-  {
-    key: 'medium', shortLabel: '중간',
-    description: '짧은 외출로 자리를 비울 때',
-    learnSecs: 600, restSecs: 300, cycles: 4,
-  },
-  {
-    key: 'long', shortLabel: '길게',
-    description: '여행 등으로 인해 길게 자리를 비울 때',
-    learnSecs: 600, restSecs: 300, cycles: 12,
-  },
+  { key: 'short', learnSecs: 600, restSecs: 300, cycles: 2 },
+  { key: 'medium', learnSecs: 600, restSecs: 300, cycles: 4 },
+  { key: 'long', learnSecs: 600, restSecs: 300, cycles: 12 },
 ] as const;
 
 export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';

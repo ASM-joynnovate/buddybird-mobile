@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="session_audio_channel_name">Training session</string>
+  <string name="session_audio_channel_description">BuddyBird voice training in progress</string>
+  <string name="session_audio_notification_title">BuddyBird is training</string>
+  <string name="session_audio_notification_text">Playing target words and recording your bird’s speech.</string>
+  <string name="session_audio_stop_action">End training</string>
+</resources>

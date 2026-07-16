@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { PillButton } from '@/components/ui/pill-button';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { formatDurationCompact, formatDurationMins } from '@/features/shared/duration-format';
 
 import { SessionConfetti } from './session-confetti';
@@ -28,7 +29,10 @@ const DEBUG_TAP_WINDOW_MS = 3000;
 
 export function SessionCompletionView({ petName, word, totalLearningSeconds, totalTrainingSeconds, streakDays, onDismiss, onDebugAccess }: SessionCompletionViewProps) {
   const insets = useSafeAreaInsets();
-  const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)));
+  const { t, locale } = useI18n();
+  const totalLearningMinutesLabel = formatDurationMins(Math.max(1, Math.round(totalLearningSeconds / 60)), t);
+  // 이/가 조사는 한국어 전용 — 다른 로케일은 이름을 그대로 쓴다.
+  const petNameSubject = locale === 'ko' ? withSubjectParticle(petName) : petName;
   const tapStateRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
 
   const handleSecretTap = (): void => {
@@ -53,9 +57,9 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, tot
         <Pressable accessibilityRole="none" onPress={handleSecretTap}>
           <BuddyBird size={140} animation="bounce" />
         </Pressable>
-        <Text style={styles.title}>학습 완료! 🎉</Text>
+        <Text style={styles.title}>{t('sessionComplete.title')}</Text>
         <Text style={styles.subtitle}>
-          {withSubjectParticle(petName)} &quot;{word}&quot;를 {totalLearningMinutesLabel} 동안 들었어요
+          {t('sessionComplete.subtitle', { petName: petNameSubject, word, duration: totalLearningMinutesLabel })}
         </Text>
       </View>
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
@@ -64,7 +68,7 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, tot
             borderColor={BuddyBirdColors.streak}
             icon="flame.fill"
             iconColor={BuddyBirdColors.streak}
-            label="연속"
+            label={t('sessionComplete.streakLabel')}
             labelColor={BuddyBirdColors.primaryShadow}
             value={`${streakDays}`}
           />
@@ -72,12 +76,12 @@ export function SessionCompletionView({ petName, word, totalLearningSeconds, tot
             borderColor={BuddyBirdColors.accentYellow}
             icon="clock.fill"
             iconColor={BuddyBirdColors.accentYellow}
-            label="총 학습 시간"
+            label={t('sessionComplete.totalTimeLabel')}
             labelColor={BuddyBirdColors.accentYellowShadow}
-            value={formatDurationCompact(totalTrainingSeconds)}
+            value={formatDurationCompact(totalTrainingSeconds, t)}
           />
         </View>
-        <PillButton full label="계속" onPress={onDismiss} size="lg" />
+        <PillButton full label={t('sessionComplete.continueCta')} onPress={onDismiss} size="lg" />
       </View>
     </View>
   );

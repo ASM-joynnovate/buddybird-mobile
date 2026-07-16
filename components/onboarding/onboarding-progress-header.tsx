@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View, type DimensionValue } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface OnboardingProgressHeaderProps {
   step: number;
@@ -10,12 +11,13 @@ interface OnboardingProgressHeaderProps {
 }
 
 export function OnboardingProgressHeader({ step, total, onBack }: OnboardingProgressHeaderProps) {
+  const { t } = useI18n();
   const progress = `${Math.max(0, Math.min(1, step / total)) * 100}%` as DimensionValue;
 
   return (
     <View style={styles.wrap}>
       <Pressable
-        accessibilityLabel="닫기"
+        accessibilityLabel={t('common.closeA11y')}
         accessibilityRole="button"
         hitSlop={12}
         onPress={onBack}

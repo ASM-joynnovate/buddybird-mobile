@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/app-text';
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Typography } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 type AchievementTone = 'streak' | 'primary' | 'secondary' | 'purple';
 
@@ -31,13 +32,14 @@ export function ProfileAchievementsGrid({
   totalLearningLabel,
   totalLearningSeconds,
 }: ProfileAchievementsGridProps) {
+  const { t } = useI18n();
   const items: AchievementItem[] = [
     {
       done: streakDays > 0,
       icon: 'flame.fill',
       id: 'streak',
-      label: `${streakDays}일 연속`,
-      sub: '불꽃 지킴이',
+      label: t('profile.streakAchievementLabel', { days: streakDays }),
+      sub: t('profile.streakAchievementSub'),
       tone: 'streak',
     },
     {
@@ -45,7 +47,7 @@ export function ProfileAchievementsGrid({
       icon: 'clock.fill',
       id: 'today',
       label: todayLearningLabel,
-      sub: '오늘의 학습',
+      sub: t('profile.todayAchievementSub'),
       tone: 'primary',
     },
     {
@@ -53,22 +55,22 @@ export function ProfileAchievementsGrid({
       icon: 'clock.fill',
       id: 'total',
       label: totalLearningLabel,
-      sub: '누적 학습시간',
+      sub: t('profile.totalAchievementSub'),
       tone: 'secondary',
     },
     {
       done: false,
       icon: 'crown.fill',
       id: 'master',
-      label: '마스터',
-      sub: '잠금 해제 전',
+      label: t('profile.masterAchievementLabel'),
+      sub: t('profile.masterAchievementSub'),
       tone: 'purple',
     },
   ];
 
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>업적</Text>
+      <Text style={styles.title}>{t('profile.achievementsTitle')}</Text>
       <View style={styles.grid}>
         {items.map((item) => (
           <AchievementTile key={item.id} item={item} />

@@ -3,6 +3,7 @@ import { Text } from '@/components/ui/app-text';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Fonts, Spacing, Typography } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface WordCreateHeaderProps {
   kicker: string;
@@ -12,11 +13,12 @@ interface WordCreateHeaderProps {
 }
 
 export function WordCreateHeader({ kicker, title, body, onBack }: WordCreateHeaderProps) {
+  const { t } = useI18n();
   return (
     <>
       <View style={styles.header}>
         <Pressable
-          accessibilityLabel="뒤로 가기"
+          accessibilityLabel={t('wordCreate.backA11y')}
           accessibilityRole="button"
           hitSlop={8}
           onPress={onBack}

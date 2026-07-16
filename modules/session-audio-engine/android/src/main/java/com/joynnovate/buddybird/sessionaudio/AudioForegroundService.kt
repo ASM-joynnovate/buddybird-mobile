@@ -56,19 +56,19 @@ class AudioForegroundService : Service() {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
     val manager = getSystemService(NotificationManager::class.java)
     manager.createNotificationChannel(
-      NotificationChannel(CHANNEL_ID, "학습 세션", NotificationManager.IMPORTANCE_LOW).apply {
-        description = "진행 중인 버디버드 음성 학습"
+      NotificationChannel(CHANNEL_ID, getString(R.string.session_audio_channel_name), NotificationManager.IMPORTANCE_LOW).apply {
+        description = getString(R.string.session_audio_channel_description)
       },
     )
   }
 
   private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
     .setSmallIcon(android.R.drawable.ic_media_play)
-    .setContentTitle("버디버드 학습 중")
-    .setContentText("목표 단어 재생과 발화 녹음을 진행하고 있어요.")
+    .setContentTitle(getString(R.string.session_audio_notification_title))
+    .setContentText(getString(R.string.session_audio_notification_text))
     .setOngoing(true)
     .setContentIntent(openAppIntent())
-    .addAction(0, "학습 종료", stopIntent())
+    .addAction(0, getString(R.string.session_audio_stop_action), stopIntent())
     .build()
 
   private fun openAppIntent(): PendingIntent? {

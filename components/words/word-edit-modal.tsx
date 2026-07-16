@@ -34,7 +34,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
   const insets = useSafeAreaInsets();
 
   const [label, setLabel] = useState('');
-  const [tag, setTag] = useState<WordTag>('인사');
+  const [tag, setTag] = useState<WordTag>('greeting');
   const [isRerecording, setIsRerecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -109,7 +109,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       onSaved();
     } catch (error: unknown) {
       reportError(error, { scope: 'words.updateEntry' });
-      Alert.alert('저장 실패', '단어를 저장하지 못했어요. 다시 시도해 주세요.');
+      Alert.alert(t('wordCreate.saveErrorTitle'), t('wordCreate.saveErrorBody'));
     } finally {
       setIsSaving(false);
     }
@@ -124,7 +124,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       onDeleted();
     } catch (error: unknown) {
       reportError(error, { scope: 'words.deleteEntry' });
-      Alert.alert('삭제 실패', '단어를 삭제하지 못했어요. 다시 시도해 주세요.');
+      Alert.alert(t('wordEdit.deleteErrorTitle'), t('wordEdit.deleteErrorBody'));
     } finally {
       setIsSaving(false);
     }
@@ -143,7 +143,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       style={[styles.footerBar, { paddingBottom: isIPad ? 0 : insets.bottom }]}>
       {confirmDelete ? (
         <View style={styles.deleteConfirm}>
-          <Text style={styles.deleteConfirmText}>&quot;{entry?.label}&quot; 단어를 삭제할까요?</Text>
+          <Text style={styles.deleteConfirmText}>{t('wordEdit.confirmDelete', { label: entry?.label ?? '' })}</Text>
           <View style={styles.actions}>
             <PillButton
               disabled={isSaving}
@@ -168,7 +168,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
             icon="xmark"
             label={t('wordEdit.delete')}
             onPress={() => setConfirmDelete(true)}
-            style={styles.deleteAction}
+            style={styles.flexAction}
             variant="white"
           />
           <PillButton
@@ -188,7 +188,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     <BottomSheet footer={footer} onClose={handleClose} visible={visible}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('wordEdit.title')}</Text>
-        <Pressable accessibilityLabel="닫기" accessibilityRole="button" onPress={handleClose} style={styles.closeBtn}>
+        <Pressable accessibilityLabel={t('common.closeA11y')} accessibilityRole="button" onPress={handleClose} style={styles.closeBtn}>
           <IconSymbol name="xmark" size={24} color={BuddyBirdColors.inkMuted} />
         </Pressable>
       </View>
@@ -211,7 +211,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
               <Chip
                 active={tag === wordTag}
                 key={wordTag}
-                label={wordTag}
+                label={t(`wordLibrary.tagLabels.${wordTag}`)}
                 onPress={() => setTag(wordTag)}
                 tone={toneByTag[wordTag] ?? 'primary'}
               />
@@ -345,10 +345,6 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingTop: 6,
   },
-  deleteAction: {
-    flexBasis: 104,
-    flexGrow: 0,
-  },
   flexAction: {
     flex: 1,
   },
@@ -366,8 +362,8 @@ const styles = StyleSheet.create({
 });
 
 const toneByTag: Record<string, ChipTone> = {
-  인사: 'primary',
-  음식: 'blue',
-  이름: 'purple',
-  기타: 'primary',
+  greeting: 'primary',
+  food: 'blue',
+  name: 'purple',
+  etc: 'primary',
 };

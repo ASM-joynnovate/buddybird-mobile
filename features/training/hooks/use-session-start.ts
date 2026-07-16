@@ -3,6 +3,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { useProfile } from '@/features/profile/profile-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
 import { createSessionId } from '@/features/shared/ids';
@@ -16,11 +17,12 @@ interface SessionStartParams {
 }
 
 export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
+  const { t } = useI18n();
   const { setPendingSession } = useTrainingData();
   const { track } = useAnalytics();
   const { profile } = useProfile();
 
-  const startLabel = '학습 시작';
+  const startLabel = t('home.startTrainingCta');
 
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;

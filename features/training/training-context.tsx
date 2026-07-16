@@ -1,6 +1,7 @@
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
 import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
@@ -53,11 +54,12 @@ const TrainingDataContext = createContext<TrainingDataContextValue | null>(null)
 export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<TrainingStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [pendingSession, setPendingSessionState] = useState<PendingSession | null>(null);
   const [interruptedSession, setInterruptedSession] = useState<InterruptedSessionInfo | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
+  const { t } = useI18n();
 
   const setPendingSession = useCallback((next: PendingSession): void => {
     setPendingSessionState(next);
@@ -90,12 +92,14 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
           setTrainingStoreState(recoveredStore);
           setInterruptedSession(interrupted);
           if (pending) setPendingSessionState(pending);
-          setErrorMessage(null);
+          setLoadFailed(false);
         }
       } catch (error: unknown) {
         if (isMounted) {
           setTrainingStoreState(null);
-          setErrorMessage(error instanceof Error ? error.message : '학습 데이터를 불러오지 못했습니다.');
+          // 원인별 상세는 seam이 이미 reportError로 남겼다 — 사용자에게는 일반 메시지만 노출.
+          // 메시지는 렌더 시점에 t()로 해석해 인앱 언어 전환에도 즉시 따라간다.
+          setLoadFailed(true);
         }
       } finally {
         if (isMounted) {
@@ -126,7 +130,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
       enqueueWrite(async () => {
         await saveTrainingStore(nextStore);
         setTrainingStoreState(nextStore);
-        setErrorMessage(null);
+        setLoadFailed(false);
       }),
     [enqueueWrite, setTrainingStoreState]
   );
@@ -144,7 +148,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
         const nextStore = update(currentStore, nowIso);
         await saveTrainingStore(nextStore);
         setTrainingStoreState(nextStore);
-        setErrorMessage(null);
+        setLoadFailed(false);
       }),
     [enqueueWrite, setTrainingStoreState]
   );
@@ -188,7 +192,7 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     () => ({
       store,
       isHydrated,
-      errorMessage,
+      errorMessage: loadFailed ? t('home.trainingLoadError') : null,
       saveStore,
       upsertWord,
       upsertRecording,
@@ -204,7 +208,8 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     [
       clearPendingSession,
       dismissInterruptedSession,
-      errorMessage,
+      loadFailed,
+      t,
       interruptedSession,
       isHydrated,
       markWordSuccess,

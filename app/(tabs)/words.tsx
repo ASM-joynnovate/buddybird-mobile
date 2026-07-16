@@ -15,7 +15,7 @@ import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { CATS, type WordCategory } from '@/features/training/session-words-mock';
+import { CATS, type WordCategory } from '@/features/word-library/word-categories';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
@@ -26,7 +26,7 @@ export default function WordsScreen() {
   const { entries, errorMessage } = useWordLibrary();
   useScreenTracking('words');
 
-  const [filter, setFilter] = useState<WordCategory>('전체');
+  const [filter, setFilter] = useState<WordCategory>('all');
   const [showCreate, setShowCreate] = useState(false);
   const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
@@ -57,13 +57,13 @@ export default function WordsScreen() {
     }, []),
   );
 
-  const visible = filter === '전체' ? entries : entries.filter((e) => e.tag === filter);
+  const visible = filter === 'all' ? entries : entries.filter((e) => e.tag === filter);
 
   const handleFilterChange = useCallback(
     (next: WordCategory) => {
       if (next === filter) return;
       const nextVisibleCount =
-        next === '전체' ? entries.length : entries.filter((e) => e.tag === next).length;
+        next === 'all' ? entries.length : entries.filter((e) => e.tag === next).length;
       track({
         name: 'word_library_filter_changed',
         params: { from: filter, to: next, visible_words_count: nextVisibleCount },
@@ -77,10 +77,10 @@ export default function WordsScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>단어 관리</Text>
+          <Text style={styles.title}>{t('wordLibrary.screenTitle')}</Text>
         </View>
         <Pressable3D
-          accessibilityLabel="단어 추가"
+          accessibilityLabel={t('wordLibrary.addWordA11y')}
           accessibilityRole="button"
           baseStyle={styles.addBtnBase}
           depth="selectedCard"

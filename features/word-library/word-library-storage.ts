@@ -1,6 +1,6 @@
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
-import type { WordLibraryStore } from './word-library-types';
+import type { WordLibraryStore, WordTag } from './word-library-types';
 
 export const WORD_LIBRARY_STORAGE_KEY = '@buddybird/wordLibrary';
 
@@ -13,6 +13,14 @@ function createEmptyStore(): WordLibraryStore {
   return { version: 1, entriesById: {}, updatedAt: new Date().toISOString() };
 }
 
+// ≤0.7.x 는 tag 에 한국어 값을 저장했다 (BB-155 에서 영문 키로 전환) — hydrate 시 1회 이관.
+const LEGACY_TAG_MAP: Record<string, WordTag> = {
+  인사: 'greeting',
+  음식: 'food',
+  이름: 'name',
+  기타: 'etc',
+};
+
 // 비어 있지 않은 손상 데이터는 fallback(빈 store)으로 떨어뜨린다.
 // entriesById가 객체가 아니면 hydration이 불가능하므로 손상으로 간주.
 function parseWordLibraryStore(raw: unknown): WordLibraryStore {
@@ -23,7 +31,14 @@ function parseWordLibraryStore(raw: unknown): WordLibraryStore {
   if (!entriesById || typeof entriesById !== 'object') {
     throw new Error('손상된 단어 라이브러리 데이터입니다.');
   }
-  return raw as WordLibraryStore;
+  const store = raw as WordLibraryStore;
+  for (const entry of Object.values(store.entriesById)) {
+    // 손상된 엔트리 때문에 parse 전체가 throw 되면 fallback(빈 store)으로 유실된다 — 건너뛰고 나머지를 살린다.
+    if (!entry || typeof entry !== 'object') continue;
+    const migrated = LEGACY_TAG_MAP[entry.tag as string];
+    if (migrated) entry.tag = migrated;
+  }
+  return store;
 }
 
 const wordLibraryStore = persistKeyedStore<WordLibraryStore>({

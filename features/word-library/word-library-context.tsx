@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
@@ -29,9 +30,10 @@ const WordLibraryContext = createContext<WordLibraryContextValue | null>(null);
 export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [store, setStore] = useState<WordLibraryStore | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
+  const { t } = useI18n();
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -64,7 +66,8 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       } catch (error: unknown) {
         reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
-          setErrorMessage('단어 목록을 불러오지 못했어요.');
+          // 메시지는 렌더 시점에 t()로 해석해 인앱 언어 전환에도 즉시 따라간다.
+          setLoadFailed(true);
           setLibraryState({ version: 1, entriesById: {}, updatedAt: new Date().toISOString() });
         }
       } finally {
@@ -131,8 +134,15 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo(
-    () => ({ entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry }),
-    [entries, isHydrated, errorMessage, createEntry, updateEntry, deleteEntry]
+    () => ({
+      entries,
+      isHydrated,
+      errorMessage: loadFailed ? t('wordLibrary.loadError') : null,
+      createEntry,
+      updateEntry,
+      deleteEntry,
+    }),
+    [entries, isHydrated, loadFailed, t, createEntry, updateEntry, deleteEntry]
   );
 
   return <WordLibraryContext.Provider value={value}>{children}</WordLibraryContext.Provider>;

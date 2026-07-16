@@ -33,12 +33,12 @@ export default function SessionSetupScreen() {
         items={pickerItems}
         selectedId={selectedEntryId}
         onSelect={setSelectedEntryId}
-        sectionTitle="단어"
+        sectionTitle={t('home.wordsSectionTitle')}
         emptyLabel={t('sessionSetupExtra.emptyLibrary')}
       />
 
       <View style={styles.timeSection}>
-        <Text style={styles.sectionTitle}>학습 시간</Text>
+        <Text style={styles.sectionTitle}>{t('home.durationSectionTitle')}</Text>
         <SessionPresetCard
           presetKey={setup.presetKey}
           onSelectPreset={setup.setPresetKey}
@@ -60,7 +60,7 @@ export default function SessionSetupScreen() {
         onPress={handleStart}
         size="lg"
         variant="primary"
-        accessibilityLabel={canContinue ? startLabel : '학습할 단어와 시간을 설정하면 시작할 수 있습니다'}
+        accessibilityLabel={canContinue ? startLabel : t('home.startDisabledA11y')}
       />
 
       <FeedbackPromptHost />

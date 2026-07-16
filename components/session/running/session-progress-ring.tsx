@@ -6,6 +6,7 @@ import { Circle, Svg } from 'react-native-svg';
 
 import { BuddyBird } from '@/components/mascot/buddy-bird';
 import { BuddyBirdColors, Fonts, Motion } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -24,6 +25,7 @@ interface SessionProgressRingProps {
 }
 
 export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabel }: SessionProgressRingProps) {
+  const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const animatedOffset = useSharedValue(CIRCUM);
   const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
@@ -75,7 +77,7 @@ export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabe
           minimumFontScale={0.7}
           numberOfLines={1}
           style={isLearning ? styles.word : styles.restTitle}>
-          {isLearning ? word : '잠시 쉬어요'}
+          {isLearning ? word : t('sessionActive.restingTitle')}
         </Text>
         <Text style={styles.timer}>
           {timerLabel}

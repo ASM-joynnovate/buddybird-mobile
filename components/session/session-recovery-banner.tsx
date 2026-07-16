@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { formatDurationMins } from '@/features/shared/duration-format';
 import { useTrainingData } from '@/features/training/training-context';
 
 // 앱 실행당 한 번만 복구 이벤트를 계측한다. 컴포넌트 ref가 아니라 모듈 스코프라
@@ -14,6 +16,7 @@ let recoveryReported = false;
 // 이전 실행에서 중단된 세션이 부분 적립됐을 때 홈에서 알리는 배너.
 // 적립·스냅샷 정리는 TrainingDataProvider hydrate가 이미 끝냈고, 여기서는 알림만 한다.
 export function SessionRecoveryBanner() {
+  const { t } = useI18n();
   const { interruptedSession, dismissInterruptedSession } = useTrainingData();
   const { track } = useAnalytics();
   const router = useRouter();
@@ -44,21 +47,28 @@ export function SessionRecoveryBanner() {
   return (
     <View style={styles.banner} accessibilityRole="alert">
       <View style={styles.textColumn}>
-        <Text style={styles.title}>{isActive ? '학습이 계속 진행 중이에요' : '이전 학습이 중단됐어요'}</Text>
+        <Text style={styles.title}>
+          {isActive ? t('sessionRecovery.activeTitle') : t('sessionRecovery.interruptedTitle')}
+        </Text>
         <Text style={styles.body}>
           {isActive
-            ? `‘${interruptedSession.word}’ 학습 화면으로 돌아갈 수 있어요.`
-            : `‘${interruptedSession.word}’ 학습 ${creditedMinutes}분이 기록에 저장됐어요.`}
+            ? t('sessionRecovery.activeBody', { word: interruptedSession.word })
+            : t('sessionRecovery.interruptedBody', {
+                word: interruptedSession.word,
+                duration: formatDurationMins(creditedMinutes, t),
+              })}
         </Text>
       </View>
       <Pressable
         onPress={handleAction}
         style={styles.dismissButton}
         accessibilityRole="button"
-        accessibilityLabel={isActive ? '진행 중인 학습으로 돌아가기' : '중단 안내 닫기'}
+        accessibilityLabel={isActive ? t('sessionRecovery.activeActionA11y') : t('sessionRecovery.interruptedActionA11y')}
         hitSlop={8}
       >
-        <Text style={styles.dismissLabel}>{isActive ? '돌아가기' : '닫기'}</Text>
+        <Text style={styles.dismissLabel}>
+          {isActive ? t('sessionRecovery.activeAction') : t('sessionRecovery.interruptedAction')}
+        </Text>
       </Pressable>
     </View>
   );
