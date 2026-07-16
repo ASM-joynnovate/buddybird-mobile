@@ -42,7 +42,7 @@
 |---|---|
 | `features/word-library/word-library-types.ts:1-2` | `WordTag = '인사' \| '음식' \| '이름' \| '기타'` + `WORD_TAGS` 배열 |
 | `constants/theme.ts:97-124` | `BuddyBirdCategory`가 같은 한국어 리터럴로 **4개** Record 키 정의 — `categoryColor`/`categoryShadow`/`categoryTint`/`categoryTintStrong` (내부 자기참조 lookup 포함) |
-| `features/training/session-words-mock.ts:1` | `CATS = ['전체', '인사', …]` — `'전체'` 값·라벨 겸용의 실제 출처. `app/(tabs)/words.tsx:29,60,66`이 상태·비교에 사용 |
+| `features/training/session-words-mock.ts:1` | `CATS = ['전체', '인사', …]` — `'전체'` 값·라벨 겸용의 실제 출처. `app/(tabs)/words.tsx:29,60,66`이 상태·비교에 사용 (이관 시 `features/word-library/word-categories.ts`로 이동·리네임) |
 | `components/words/word-filter-bar.tsx:49-55` | 제네릭 컴포넌트(값을 그대로 라벨로 렌더) + 한국어 키 색 맵 `toneByCategory` |
 | `features/word-library/word-library-model.ts:39-42` | 프리셋 단어의 `tag`에 한국어 값 저장 |
 | `components/words/word-create-fields.tsx:44,59-64` | `WORD_TAGS`를 Chip 라벨로 직접 렌더 + 한국어 키 `toneByTag` |

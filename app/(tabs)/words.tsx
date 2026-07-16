@@ -15,7 +15,7 @@ import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { CATS, type WordCategory } from '@/features/training/session-words-mock';
+import { CATS, type WordCategory } from '@/features/word-library/word-categories';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 

@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { Chip, type ChipTone } from '@/components/ui/chip';
 import { Spacing } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { WordCategory } from '@/features/training/session-words-mock';
+import type { WordCategory } from '@/features/word-library/word-categories';
 
 interface WordFilterBarProps {
   cats: readonly WordCategory[];
