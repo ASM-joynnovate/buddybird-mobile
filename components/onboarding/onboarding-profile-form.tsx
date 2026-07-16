@@ -19,6 +19,7 @@ interface OnboardingProfileFormProps {
   namePlaceholder: string;
   onAgeMonthsChange: (months: number) => void;
   onCustomMode: () => void;
+  onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;
   onSpeciesChange: (species: string) => void;
   species: string;
@@ -38,6 +39,7 @@ export function OnboardingProfileForm({
   namePlaceholder,
   onAgeMonthsChange,
   onCustomMode,
+  onCustomSpeciesChange,
   onNameChange,
   onSpeciesChange,
   species,
@@ -73,7 +75,7 @@ export function OnboardingProfileForm({
         {customMode ? (
           <TextInput
             autoCapitalize="none"
-            onChangeText={onSpeciesChange}
+            onChangeText={onCustomSpeciesChange}
             placeholder={speciesPlaceholder}
             placeholderTextColor={BuddyBirdColors.placeholderMuted}
             style={[styles.input, styles.customSpeciesInput]}

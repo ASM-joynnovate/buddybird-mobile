@@ -27,6 +27,7 @@ interface OnboardingProfileViewProps {
   onAgeMonthsChange: (months: number) => void;
   onBack: () => void;
   onCustomMode: () => void;
+  onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;
   onPhotoSelected: (photoUri: string) => void;
   onSpeciesChange: (species: string) => void;
@@ -54,6 +55,7 @@ export function OnboardingProfileView({
   onAgeMonthsChange,
   onBack,
   onCustomMode,
+  onCustomSpeciesChange,
   onNameChange,
   onPhotoSelected,
   onSpeciesChange,
@@ -92,6 +94,7 @@ export function OnboardingProfileView({
           namePlaceholder={namePlaceholder}
           onAgeMonthsChange={onAgeMonthsChange}
           onCustomMode={onCustomMode}
+          onCustomSpeciesChange={onCustomSpeciesChange}
           onNameChange={onNameChange}
           onSpeciesChange={onSpeciesChange}
           species={species}
