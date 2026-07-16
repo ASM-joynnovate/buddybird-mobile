@@ -7,10 +7,7 @@ import { reportError } from '@/features/analytics/error-reporter';
 import { loadStoredLocale, saveStoredLocale } from './i18n-storage';
 import { DEFAULT_LOCALE, normalizeLocale, type AppLocale, SUPPORTED_LOCALES, translations } from './i18n-resources';
 
-// 휴대폰 설정 언어 (인앱 선택과 무관) — 로케일 콘텐츠(프리셋 시드 등)는 이 값을 따른다.
-export const deviceLocale: AppLocale = normalizeLocale(
-  getLocales()[0]?.languageTag ?? getLocales()[0]?.languageCode
-);
+const deviceLocale = normalizeLocale(getLocales()[0]?.languageTag ?? getLocales()[0]?.languageCode);
 
 interface I18nContextValue {
   locale: AppLocale;

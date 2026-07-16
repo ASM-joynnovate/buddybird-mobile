@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
-import { deviceLocale, useI18n } from '@/features/i18n/i18n-context';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
@@ -50,11 +50,9 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
         if (!isMounted) return;
 
-        // 프리셋 시드는 휴대폰 설정 언어(deviceLocale)만 따른다 — 인앱 언어 전환과 무관.
-        const nowIso = new Date().toISOString();
-        const seeds =
-          Object.keys(loaded.entriesById).length === 0 ? createPresetSeedEntries(nowIso, deviceLocale) : [];
-        if (seeds.length > 0) {
+        if (Object.keys(loaded.entriesById).length === 0) {
+          const nowIso = new Date().toISOString();
+          const seeds = createPresetSeedEntries(nowIso);
           const seeded: WordLibraryStore = {
             ...loaded,
             entriesById: Object.fromEntries(seeds.map((s) => [s.id, s])),
@@ -63,7 +61,6 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
           await saveWordLibraryStore(seeded);
           setLibraryState(seeded);
         } else {
-          // 시드할 프리셋이 없는 로케일(en)은 빈 store 를 저장하지 않는다 — 매 실행 재저장 방지.
           setLibraryState(loaded);
         }
       } catch (error: unknown) {
