@@ -44,7 +44,7 @@ export function ProfileAvatarPicker({
   return (
     <View style={styles.wrap}>
       <Pressable
-        accessibilityLabel="프로필 사진 선택"
+        accessibilityLabel={t('profile.avatarSelect')}
         accessibilityRole="button"
         onPress={pickImage}
         style={styles.avatarButton}>

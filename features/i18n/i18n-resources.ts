@@ -39,10 +39,13 @@ interface AppCopy {
       hours: string;
       hoursMinutes: string;
     };
+    closeA11y: string;
+    mascotA11y: string;
     languageNames: Record<AppLocale, string>;
   };
   tabs: {
     home: string;
+    words: string;
     profile: string;
   };
   validation: {
@@ -87,6 +90,9 @@ interface AppCopy {
     presetPreviewTitle: string;
     sessionTemplateTitle: string;
     trainingLoadError: string;
+    wordsSectionTitle: string;
+    durationSectionTitle: string;
+    startDisabledA11y: string;
   };
   audio: {
     waveformPreviewLabel: string;
@@ -252,6 +258,20 @@ interface AppCopy {
     languageSaveError: string;
     avatarSelect: string;
     avatarError: string;
+    editTitle: string;
+    editSubtitle: string;
+    editBackA11y: string;
+    ageLabel: string;
+    achievementsTitle: string;
+    streakAchievementLabel: string;
+    streakAchievementSub: string;
+    todayAchievementSub: string;
+    totalAchievementSub: string;
+    masterAchievementLabel: string;
+    masterAchievementSub: string;
+    statStreakLabel: string;
+    statTodayLabel: string;
+    statTotalLabel: string;
   };
   profileOptions: {
     speciesOptions: Record<string, string>;
@@ -307,13 +327,16 @@ export const translations: Record<AppLocale, AppCopy> = {
         hours: '%{hours}시간',
         hoursMinutes: '%{hours}시간 %{minutes}분',
       },
+      closeA11y: '닫기',
+      mascotA11y: '버디 마스코트',
       languageNames: {
         ko: '한국어',
         en: 'English',
       },
     },
     tabs: {
-      home: '홈',
+      home: '학습',
+      words: '단어',
       profile: '프로필',
     },
     validation: {
@@ -358,6 +381,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       presetPreviewTitle: '기본 단어',
       sessionTemplateTitle: '추천 학습',
       trainingLoadError: '학습 데이터를 불러오지 못했습니다.',
+      wordsSectionTitle: '단어',
+      durationSectionTitle: '학습 시간',
+      startDisabledA11y: '학습할 단어와 시간을 설정하면 시작할 수 있습니다',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz 음성 파형 미리보기',
@@ -521,8 +547,22 @@ export const translations: Record<AppLocale, AppCopy> = {
       languageTitle: '앱 언어',
       languageBody: '핵심 화면과 기본 템플릿을 선택한 언어로 표시해요.',
       languageSaveError: '언어 설정을 저장하지 못했어요. 다시 시도해 주세요.',
-      avatarSelect: '사진 선택',
+      avatarSelect: '프로필 사진 선택',
       avatarError: '사진을 불러오지 못했어요. 사진 없이 계속할 수 있어요.',
+      editTitle: '프로필 편집',
+      editSubtitle: '우리 아이의 정보를 수정해요.',
+      editBackA11y: '프로필 화면으로 돌아가기',
+      ageLabel: '나이 · %{age}',
+      achievementsTitle: '업적',
+      streakAchievementLabel: '%{days}일 연속',
+      streakAchievementSub: '불꽃 지킴이',
+      todayAchievementSub: '오늘의 학습',
+      totalAchievementSub: '누적 학습시간',
+      masterAchievementLabel: '마스터',
+      masterAchievementSub: '잠금 해제 전',
+      statStreakLabel: '연속일',
+      statTodayLabel: '오늘 학습시간',
+      statTotalLabel: '총 학습시간',
     },
     profileOptions: {
       speciesOptions: {
@@ -592,13 +632,16 @@ export const translations: Record<AppLocale, AppCopy> = {
         hours: '%{hours} hr',
         hoursMinutes: '%{hours} hr %{minutes} min',
       },
+      closeA11y: 'Close',
+      mascotA11y: 'Buddy mascot',
       languageNames: {
         ko: '한국어',
         en: 'English',
       },
     },
     tabs: {
-      home: 'Home',
+      home: 'Learn',
+      words: 'Words',
       profile: 'Profile',
     },
     validation: {
@@ -643,6 +686,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       presetPreviewTitle: 'Preset words',
       sessionTemplateTitle: 'Session templates',
       trainingLoadError: 'Could not load training data.',
+      wordsSectionTitle: 'Words',
+      durationSectionTitle: 'Session time',
+      startDisabledA11y: 'Choose a word and duration to start',
     },
     audio: {
       waveformPreviewLabel: '1–4 kHz voice waveform preview',
@@ -806,8 +852,22 @@ export const translations: Record<AppLocale, AppCopy> = {
       languageTitle: 'App language',
       languageBody: 'Core screens and starter templates will use the selected language.',
       languageSaveError: 'Could not save the language setting. Please try again.',
-      avatarSelect: 'Choose photo',
+      avatarSelect: 'Select profile photo',
       avatarError: 'Could not load the photo. You can continue without one.',
+      editTitle: 'Edit profile',
+      editSubtitle: "Update your bird's details.",
+      editBackA11y: 'Back to profile',
+      ageLabel: 'Age · %{age}',
+      achievementsTitle: 'Achievements',
+      streakAchievementLabel: '%{days}-day streak',
+      streakAchievementSub: 'Flame keeper',
+      todayAchievementSub: "Today's learning",
+      totalAchievementSub: 'Total learning time',
+      masterAchievementLabel: 'Master',
+      masterAchievementSub: 'Locked',
+      statStreakLabel: 'Streak days',
+      statTodayLabel: "Today's time",
+      statTotalLabel: 'Total time',
     },
     profileOptions: {
       speciesOptions: {

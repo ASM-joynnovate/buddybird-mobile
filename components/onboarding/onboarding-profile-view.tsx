@@ -9,6 +9,7 @@ import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker'
 import { PillButton } from '@/components/ui/pill-button';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import type { SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
@@ -67,6 +68,7 @@ export function OnboardingProfileView({
   speciesOptions,
   speciesPlaceholder,
 }: OnboardingProfileViewProps) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
@@ -75,7 +77,7 @@ export function OnboardingProfileView({
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
           <Image
-            accessibilityLabel="버디 마스코트"
+            accessibilityLabel={t('common.mascotA11y')}
             contentFit="cover"
             source={require('@/assets/images/icon.png')}
             style={styles.introIcon}

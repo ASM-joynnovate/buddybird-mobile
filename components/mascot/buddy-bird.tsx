@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Motion } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 type BuddyBirdAnimation = 'float' | 'bounce' | 'none';
@@ -20,6 +21,7 @@ interface BuddyBirdProps {
 }
 
 export function BuddyBird({ size = 120, animation = 'none' }: BuddyBirdProps) {
+  const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const translateY = useSharedValue(0);
   const rotate = useSharedValue(0);
@@ -64,7 +66,7 @@ export function BuddyBird({ size = 120, animation = 'none' }: BuddyBirdProps) {
   return (
     <Animated.View
       accessibilityRole="image"
-      accessibilityLabel="버디 마스코트"
+      accessibilityLabel={t('common.mascotA11y')}
       style={[{ height: size, width: size }, animatedStyle]}>
       <Image
         source={require('@/assets/images/buddy-bird.png')}

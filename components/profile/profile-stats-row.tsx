@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/app-text';
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 type ProfileStatTone = 'streak' | 'primary' | 'secondary';
 
@@ -26,10 +27,11 @@ export function ProfileStatsRow({
   todayLearningLabel,
   totalLearningLabel,
 }: ProfileStatsRowProps) {
+  const { t } = useI18n();
   const items: ProfileStatItem[] = [
-    { icon: 'flame.fill', id: 'streak', label: '연속일', tone: 'streak', value: `${streakDays}` },
-    { icon: 'clock.fill', id: 'today', label: '오늘 학습시간', tone: 'primary', value: todayLearningLabel },
-    { icon: 'clock.fill', id: 'total', label: '총 학습시간', tone: 'secondary', value: totalLearningLabel },
+    { icon: 'flame.fill', id: 'streak', label: t('profile.statStreakLabel'), tone: 'streak', value: `${streakDays}` },
+    { icon: 'clock.fill', id: 'today', label: t('profile.statTodayLabel'), tone: 'primary', value: todayLearningLabel },
+    { icon: 'clock.fill', id: 'total', label: t('profile.statTotalLabel'), tone: 'secondary', value: totalLearningLabel },
   ];
 
   return (

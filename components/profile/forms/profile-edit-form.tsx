@@ -51,15 +51,15 @@ export function ProfileEditForm({
   return (
     <View style={styles.root}>
       <View style={styles.backHeader}>
-        <Pressable accessibilityLabel="프로필 화면으로 돌아가기" accessibilityRole="button" onPress={onCancel} style={styles.backButton}>
+        <Pressable accessibilityLabel={t('profile.editBackA11y')} accessibilityRole="button" onPress={onCancel} style={styles.backButton}>
           <IconSymbol color={BuddyBirdColors.inkMuted} name="chevron.left" size={26} />
         </Pressable>
-        <Text style={styles.kicker}>프로필 편집</Text>
+        <Text style={styles.kicker}>{t('profile.editTitle')}</Text>
       </View>
 
       <View style={styles.titleBlock}>
-        <Text style={styles.title}>프로필 편집</Text>
-        <Text style={styles.subtitle}>우리 아이의 정보를 수정해요.</Text>
+        <Text style={styles.title}>{t('profile.editTitle')}</Text>
+        <Text style={styles.subtitle}>{t('profile.editSubtitle')}</Text>
       </View>
 
       <View style={styles.form}>
@@ -102,7 +102,7 @@ export function ProfileEditForm({
             />
           ) : null}
         </FormField>
-        <FormField error={errors.ageMonths} label={`나이 · ${formatAgeMonths(form.ageMonths, t)}`}>
+        <FormField error={errors.ageMonths} label={t('profile.ageLabel', { age: formatAgeMonths(form.ageMonths, t) })}>
           <Slider
             maximumTrackTintColor={BuddyBirdColors.border}
             maximumValue={1200}
