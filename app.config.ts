@@ -95,7 +95,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         infoPlist: {
             NSUserTrackingUsageDescription: TRACKING_PERMISSION_MESSAGE,
-            UIBackgroundModes: ['remote-notification'],
+            // 'audio': iOS에서 화면을 끄고 자리를 비운 동안에도 목표 단어 재생이 이어지게 하는 백그라운드 오디오 모드.
+            // 이 모드가 있어야 백그라운드 재생이 유지된다. 변경 후 prebuild + 재빌드해야 바이너리에 반영된다.
+            UIBackgroundModes: ['remote-notification', 'audio'],
         },
     },
 
@@ -118,6 +120,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             'android.permission.RECORD_AUDIO',
             'android.permission.MODIFY_AUDIO_SETTINGS',
             'android.permission.POST_NOTIFICATIONS',
+            'android.permission.FOREGROUND_SERVICE',
+            'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+            'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
             'com.google.android.gms.permission.AD_ID',
         ],
     },
@@ -191,6 +196,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ],
         './plugins/withFirebaseStaticPodfile',
         './plugins/withGradleJvmArgs',
+        './plugins/withReactActivityInitGuards',
     ],
 
     extra: {

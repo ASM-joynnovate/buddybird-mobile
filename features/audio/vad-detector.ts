@@ -1,5 +1,5 @@
 // 실시간 metering VAD 의 순수 판정부. 100ms 폴링 1샘플씩 상태를 전진시킨다.
-// 사후 파일 분할(vad-segmentation.ts)과 달리 스트리밍 중 onset/release 만 판정한다.
+// 네이티브 SessionAudioEngine에도 같은 초기 임계값을 전달한다.
 // AEC 미사용 — 재생과 녹음이 겹치는 구간에서는 쓰지 않는다.
 
 // metering(dB)을 0..1로 정규화하는 범위 — use-audio-recording 과 동일 기준.

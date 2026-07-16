@@ -97,6 +97,7 @@ export function saveLastSessionSettings(store: TrainingStore, settings: Training
 
 export function completeTrainingSession(store: TrainingStore, session: TrainingSession, nowIso: string): TrainingStore {
   assertTrainingWordExists(store, session.wordId);
+  if (store.sessionsById[session.id]) return store;
 
   const currentProgress = store.wordProgressByWordId[session.wordId];
   const nextProgress: TrainingWordProgress = {

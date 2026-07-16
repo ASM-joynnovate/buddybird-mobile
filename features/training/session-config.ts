@@ -1,4 +1,5 @@
 import type { TrainingAudioSourceType } from './training-types';
+import type { SessionEngineState } from '@/modules/session-audio-engine';
 
 
 export const SESSION_PRESETS = [
@@ -21,7 +22,7 @@ export const SESSION_PRESETS = [
 
 export type SessionPresetKey = 'short' | 'medium' | 'long' | 'custom';
 
-export type SessionStatus = 'idle' | 'running' | 'paused' | 'completed';
+export type SessionStatus = SessionEngineState;
 
 export interface SessionMeta {
   wordId: string;

@@ -25,14 +25,17 @@ export interface SessionCyclePlan {
 
 export function deriveSessionCycles({ totalSeconds, learnSecs, restSecs }: SessionCycleInput): SessionCyclePlan {
   const secsPerCycle = learnSecs + restSecs;
-  const totalCycles = secsPerCycle > 0 ? Math.max(1, Math.floor(totalSeconds / secsPerCycle)) : 1;
+  const safeTotalSeconds = Math.max(1, totalSeconds);
+  const totalCycles = secsPerCycle > 0 ? Math.max(1, Math.ceil(safeTotalSeconds / secsPerCycle)) : 1;
+  const completeCycles = secsPerCycle > 0 ? Math.floor(safeTotalSeconds / secsPerCycle) : 0;
+  const partialCycleSeconds = secsPerCycle > 0 ? safeTotalSeconds % secsPerCycle : 0;
 
   return {
     secsPerCycle,
     totalCycles,
-    totalSessionSeconds: Math.max(1, totalCycles * secsPerCycle),
-    totalLearningSeconds: sessionLearningSeconds(totalCycles, learnSecs),
-    sessionMins: Math.round((totalCycles * secsPerCycle) / 60),
+    totalSessionSeconds: safeTotalSeconds,
+    totalLearningSeconds: completeCycles * learnSecs + Math.min(partialCycleSeconds, learnSecs),
+    sessionMins: Math.round(safeTotalSeconds / 60),
   };
 }
 
@@ -53,6 +56,16 @@ export function elapsedLearningSeconds(cycle: number, phase: 'learning' | 'rest'
   const completedLearning = Math.max(0, cycle - 1) * learnSecs;
   const currentLearning = phase === 'learning' ? Math.min(phaseElapsed, learnSecs) : learnSecs;
   return completedLearning + currentLearning;
+}
+
+export function completedCyclesAtPosition(
+  cycle: number,
+  phase: 'learning' | 'rest',
+  phaseElapsed: number,
+  restSecs: number,
+): number {
+  const completedBeforeCurrent = Math.max(0, cycle - 1);
+  return phase === 'rest' && phaseElapsed >= restSecs ? completedBeforeCurrent + 1 : completedBeforeCurrent;
 }
 
 export function cycleProgressPercent(cycle: number, totalCycles: number): number {

@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { reportError } from '@/features/analytics/error-reporter';
 import { useProfile } from '@/features/profile/profile-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
 import { createSessionId } from '@/features/shared/ids';
@@ -22,6 +24,7 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
 
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;
+    await requestSessionNotificationPermission();
     const result = await setup.saveSessionSetup({
       audioUri: selectedEntry.audioUri,
       label: selectedEntry.label,
@@ -55,4 +58,14 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
   }
 
   return { handleStart, startLabel };
+}
+
+async function requestSessionNotificationPermission(): Promise<void> {
+  if (Platform.OS !== 'android' || Platform.Version < 33) return;
+  try {
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+  } catch (error: unknown) {
+    // 알림 권한 거부·요청 실패는 foreground service 시작을 막지 않는다. Task Manager에는 계속 표시된다.
+    reportError(error, { scope: 'training.sessionNotificationPermission' });
+  }
 }
