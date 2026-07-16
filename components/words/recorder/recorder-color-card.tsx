@@ -13,6 +13,7 @@ import {
   categoryShadow,
 } from '@/constants/theme';
 import type { RecordingLifecycle } from '@/features/audio/audio-types';
+import { useI18n } from '@/features/i18n/i18n-context';
 import type { WordTag } from '@/features/word-library/word-library-types';
 
 interface RecorderColorCardProps {
@@ -34,6 +35,7 @@ export function RecorderColorCard({
   lifecycle,
   onToggle,
 }: RecorderColorCardProps) {
+  const { t } = useI18n();
   const color = categoryColor[tag];
   const shadowColor = categoryShadow[tag];
   const isRecording = lifecycle === 'recording';
@@ -53,7 +55,7 @@ export function RecorderColorCard({
         <WaveformBars animated={isRecording} barCount={48} color={BuddyBirdColors.onDark} fill height={48} />
       </View>
       <Pressable3D
-        accessibilityLabel={isRecording ? '음성 녹음 중지' : '음성 녹음'}
+        accessibilityLabel={isRecording ? t('recording.stopA11y') : t('recording.startA11y')}
         accessibilityRole="button"
         accessibilityState={{ busy: isBusy }}
         baseStyle={[

@@ -58,7 +58,7 @@ export function WordListItem({
         </View>
       </View>
       <Pressable
-        accessibilityLabel={`${label} 수정`}
+        accessibilityLabel={t('wordLibrary.editA11y', { label })}
         accessibilityRole="button"
         hitSlop={8}
         onPress={onEdit}
@@ -66,7 +66,7 @@ export function WordListItem({
         <IconSymbol name="pencil" size={17} color={BuddyBirdColors.inkMuted} />
       </Pressable>
       <Pressable3D
-        accessibilityLabel={`${label} 미리듣기`}
+        accessibilityLabel={t('wordLibrary.previewA11y', { label })}
         accessibilityRole="button"
         accessibilityState={{ disabled: !canPreview }}
         baseStyle={styles.playBtnBase}

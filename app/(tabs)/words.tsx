@@ -77,10 +77,10 @@ export default function WordsScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>단어 관리</Text>
+          <Text style={styles.title}>{t('wordLibrary.screenTitle')}</Text>
         </View>
         <Pressable3D
-          accessibilityLabel="단어 추가"
+          accessibilityLabel={t('wordLibrary.addWordA11y')}
           accessibilityRole="button"
           baseStyle={styles.addBtnBase}
           depth="selectedCard"

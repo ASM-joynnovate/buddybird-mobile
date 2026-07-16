@@ -173,6 +173,10 @@ interface AppCopy {
     startFailed: string;
     saveFailed: string;
     tooShort: string;
+    playLabel: string;
+    stopPlayLabel: string;
+    startA11y: string;
+    stopA11y: string;
   };
   audioErrors: {
     previewFailed: string;
@@ -195,11 +199,17 @@ interface AppCopy {
     save: string;
     cancel: string;
     labelPlaceholder: string;
+    backA11y: string;
+    saveErrorTitle: string;
+    saveErrorBody: string;
   };
   wordEdit: {
     title: string;
     delete: string;
     confirmDelete: string;
+    deleteErrorTitle: string;
+    deleteErrorBody: string;
+    closeA11y: string;
   };
   wordLibrary: {
     empty: string;
@@ -208,6 +218,10 @@ interface AppCopy {
     deleteAction: string;
     sourcePreset: string;
     sourceRecording: string;
+    screenTitle: string;
+    addWordA11y: string;
+    editA11y: string;
+    previewA11y: string;
     filterAll: string;
     tagLabels: {
       greeting: string;
@@ -428,6 +442,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: '녹음을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
       saveFailed: '녹음 파일을 저장하지 못했어요. 다시 녹음해 주세요.',
       tooShort: '녹음이 너무 짧아요. 10초 이상 녹음해 주세요.',
+      playLabel: '녹음 재생',
+      stopPlayLabel: '중단',
+      startA11y: '음성 녹음',
+      stopA11y: '음성 녹음 중지',
     },
     audioErrors: {
       previewFailed: '미리듣기를 재생하지 못했어요. 다시 시도해 주세요.',
@@ -450,11 +468,17 @@ export const translations: Record<AppLocale, AppCopy> = {
       save: '저장',
       cancel: '취소',
       labelPlaceholder: '예: 사과',
+      backA11y: '뒤로 가기',
+      saveErrorTitle: '저장 실패',
+      saveErrorBody: '단어를 저장하지 못했어요. 다시 시도해 주세요.',
     },
     wordEdit: {
       title: '단어 수정',
       delete: '삭제',
-      confirmDelete: '이 단어를 삭제할까요?',
+      confirmDelete: '"%{label}" 단어를 삭제할까요?',
+      deleteErrorTitle: '삭제 실패',
+      deleteErrorBody: '단어를 삭제하지 못했어요. 다시 시도해 주세요.',
+      closeA11y: '닫기',
     },
     wordLibrary: {
       empty: '단어가 없어요.',
@@ -463,6 +487,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       deleteAction: '삭제',
       sourcePreset: '프리셋',
       sourceRecording: '내 녹음',
+      screenTitle: '단어 관리',
+      addWordA11y: '단어 추가',
+      editA11y: '%{label} 수정',
+      previewA11y: '%{label} 미리듣기',
       filterAll: '전체',
       tagLabels: {
         greeting: '인사',
@@ -697,6 +725,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: 'Could not start recording. Please try again soon.',
       saveFailed: 'Could not save the recording. Please record again.',
       tooShort: 'Recording is too short. Please record for at least 10 seconds.',
+      playLabel: 'Play recording',
+      stopPlayLabel: 'Stop',
+      startA11y: 'Record audio',
+      stopA11y: 'Stop recording',
     },
     audioErrors: {
       previewFailed: 'Could not play the preview. Please try again.',
@@ -719,11 +751,17 @@ export const translations: Record<AppLocale, AppCopy> = {
       save: 'Save',
       cancel: 'Cancel',
       labelPlaceholder: 'e.g. I love you',
+      backA11y: 'Go back',
+      saveErrorTitle: 'Save failed',
+      saveErrorBody: 'Could not save the word. Please try again.',
     },
     wordEdit: {
       title: 'Edit word',
       delete: 'Delete',
-      confirmDelete: 'Delete this word?',
+      confirmDelete: 'Delete "%{label}"?',
+      deleteErrorTitle: 'Delete failed',
+      deleteErrorBody: 'Could not delete the word. Please try again.',
+      closeA11y: 'Close',
     },
     wordLibrary: {
       empty: 'No words yet.',
@@ -732,6 +770,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       deleteAction: 'Delete',
       sourcePreset: 'Preset',
       sourceRecording: 'My recording',
+      screenTitle: 'Word library',
+      addWordA11y: 'Add word',
+      editA11y: 'Edit %{label}',
+      previewA11y: 'Preview %{label}',
       filterAll: 'All',
       tagLabels: {
         greeting: 'Greeting',

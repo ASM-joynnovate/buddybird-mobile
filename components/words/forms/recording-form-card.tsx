@@ -8,6 +8,7 @@ import { PillButton } from '@/components/ui/pill-button';
 import { SectionKicker } from '@/components/ui/section-kicker';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import type { RecordingLifecycle } from '@/features/audio/audio-types';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface RecordingFormCardProps {
   label: string;
@@ -38,8 +39,8 @@ export function RecordingFormCard({
   startLabel,
   stopLabel,
   rerecordLabel,
-  playLabel = '녹음 재생',
-  stopPlayLabel = '중단',
+  playLabel,
+  stopPlayLabel,
   isPlaying = false,
   errorMessage,
   onStart,
@@ -48,6 +49,9 @@ export function RecordingFormCard({
   onPlay,
   onStopPlay,
 }: RecordingFormCardProps) {
+  const { t } = useI18n();
+  const resolvedPlayLabel: string = playLabel ?? t('recording.playLabel');
+  const resolvedStopPlayLabel: string = stopPlayLabel ?? t('recording.stopPlayLabel');
   return (
     <Card style={styles.card}>
       <SectionKicker>{label}</SectionKicker>
@@ -78,9 +82,9 @@ export function RecordingFormCard({
         {lifecycle === 'recorded' && (
           <>
             {isPlaying ? (
-              <PillButton label={stopPlayLabel} onPress={onStopPlay} style={styles.flex1} variant="primary" />
+              <PillButton label={resolvedStopPlayLabel} onPress={onStopPlay} style={styles.flex1} variant="primary" />
             ) : (
-              <PillButton label={playLabel} onPress={onPlay} style={styles.flex1} variant="teal" />
+              <PillButton label={resolvedPlayLabel} onPress={onPlay} style={styles.flex1} variant="teal" />
             )}
             <PillButton label={rerecordLabel} onPress={onReset} style={styles.flex1} variant="ghost" />
           </>

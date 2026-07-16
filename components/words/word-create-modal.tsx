@@ -94,7 +94,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       onCreated();
     } catch (error: unknown) {
       reportError(error, { scope: 'words.createEntry' });
-      Alert.alert('저장 실패', '단어를 저장하지 못했어요. 다시 시도해 주세요.');
+      Alert.alert(t('wordCreate.saveErrorTitle'), t('wordCreate.saveErrorBody'));
     } finally {
       setIsSaving(false);
     }
