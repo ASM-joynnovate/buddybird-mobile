@@ -79,6 +79,7 @@ interface AppCopy {
     sessionBody: string;
     disabledCta: string;
     startSessionCta: string;
+    startTrainingCta: string;
     totalTrainingTime: string;
     singleProfileTitle: string;
     singleProfileBody: string;
@@ -120,6 +121,52 @@ interface AppCopy {
     selectTemplateError: string;
     storeLoading: string;
     zeroDurationError: string;
+    presets: {
+      short: { label: string; description: string };
+      medium: { label: string; description: string };
+      long: { label: string; description: string };
+    };
+    customPresetLabel: string;
+    customPresetDescription: string;
+    totalDurationLabel: string;
+    hourPickerLabel: string;
+    minutePickerLabel: string;
+    hourUnit: string;
+    minuteUnit: string;
+    learnLabel: string;
+    restLabel: string;
+    wordSelectA11y: string;
+  };
+  sessionActive: {
+    stopLabel: string;
+    stopA11y: string;
+    cycleBadge: string;
+    restingTitle: string;
+    restingBody: string;
+    playingBadge: string;
+    waitingBadge: string;
+    pausedBadge: string;
+    preparing: string;
+    startFailed: string;
+    pause: string;
+    resume: string;
+  };
+  sessionComplete: {
+    title: string;
+    subtitle: string;
+    streakLabel: string;
+    totalTimeLabel: string;
+    continueCta: string;
+  };
+  sessionRecovery: {
+    activeTitle: string;
+    interruptedTitle: string;
+    activeBody: string;
+    interruptedBody: string;
+    activeAction: string;
+    interruptedAction: string;
+    activeActionA11y: string;
+    interruptedActionA11y: string;
   };
   recording: {
     permissionDenied: string;
@@ -287,6 +334,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       sessionBody: '기본 단어를 고르거나 직접 녹음해 오늘 들려줄 학습 오디오를 정해요.',
       disabledCta: '학습 설정 준비 중',
       startSessionCta: '학습 설정하기',
+      startTrainingCta: '학습 시작',
       totalTrainingTime: '누적 학습 시간',
       singleProfileTitle: 'MVP 단일 프로필',
       singleProfileBody: '현재는 한 마리 프로필만 지원해요. 추가 등록과 삭제는 추후 제공 예정입니다.',
@@ -328,6 +376,52 @@ export const translations: Record<AppLocale, AppCopy> = {
       selectTemplateError: '학습 템플릿을 선택해 주세요.',
       storeLoading: '학습 데이터를 준비하고 있어요. 잠시만 기다려 주세요.',
       zeroDurationError: '학습 시간을 1분 이상으로 설정해 주세요.',
+      presets: {
+        short: { label: '짧게', description: '샤워하거나 잠시 자리를 비울 때' },
+        medium: { label: '중간', description: '짧은 외출로 자리를 비울 때' },
+        long: { label: '길게', description: '여행 등으로 인해 길게 자리를 비울 때' },
+      },
+      customPresetLabel: '직접 설정',
+      customPresetDescription: '원하는 시간을 직접 정해요',
+      totalDurationLabel: '총 학습 시간',
+      hourPickerLabel: '시간 선택',
+      minutePickerLabel: '분 선택',
+      hourUnit: '시간',
+      minuteUnit: '분',
+      learnLabel: '학습',
+      restLabel: '휴식',
+      wordSelectA11y: '%{label} 선택',
+    },
+    sessionActive: {
+      stopLabel: '종료',
+      stopA11y: '세션 종료',
+      cycleBadge: '사이클 %{cycle}/%{total}',
+      restingTitle: '잠시 쉬어요',
+      restingBody: '잠시 쉬는 동안에도\n새로 말한 소리는 기록해요.',
+      playingBadge: '"%{word}" 재생 중',
+      waitingBadge: '다음 반복 대기',
+      pausedBadge: '일시정지 중',
+      preparing: '준비 중',
+      startFailed: '시작 실패',
+      pause: '일시정지',
+      resume: '계속하기',
+    },
+    sessionComplete: {
+      title: '학습 완료! 🎉',
+      subtitle: '%{petName} "%{word}"를 %{duration} 동안 들었어요',
+      streakLabel: '연속',
+      totalTimeLabel: '총 학습 시간',
+      continueCta: '계속',
+    },
+    sessionRecovery: {
+      activeTitle: '학습이 계속 진행 중이에요',
+      interruptedTitle: '이전 학습이 중단됐어요',
+      activeBody: '‘%{word}’ 학습 화면으로 돌아갈 수 있어요.',
+      interruptedBody: '‘%{word}’ 학습 %{duration}이 기록에 저장됐어요.',
+      activeAction: '돌아가기',
+      interruptedAction: '닫기',
+      activeActionA11y: '진행 중인 학습으로 돌아가기',
+      interruptedActionA11y: '중단 안내 닫기',
     },
     recording: {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
@@ -509,6 +603,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       sessionBody: 'Choose a preset word or record your own voice to set today’s training audio.',
       disabledCta: 'Session setup coming soon',
       startSessionCta: 'Set up session',
+      startTrainingCta: 'Start training',
       totalTrainingTime: 'Total training time',
       singleProfileTitle: 'Single MVP profile',
       singleProfileBody: 'Only one bird profile is supported for now. Adding and deleting profiles will come later.',
@@ -550,6 +645,52 @@ export const translations: Record<AppLocale, AppCopy> = {
       selectTemplateError: 'Choose a session template.',
       storeLoading: 'Preparing training data. Please wait a moment.',
       zeroDurationError: 'Set the session duration to at least 1 minute.',
+      presets: {
+        short: { label: 'Short', description: 'For a shower or a quick break' },
+        medium: { label: 'Medium', description: 'For a short outing' },
+        long: { label: 'Long', description: 'For longer time away, like a trip' },
+      },
+      customPresetLabel: 'Custom',
+      customPresetDescription: 'Set your own duration',
+      totalDurationLabel: 'Total session time',
+      hourPickerLabel: 'Select hours',
+      minutePickerLabel: 'Select minutes',
+      hourUnit: 'hr',
+      minuteUnit: 'min',
+      learnLabel: 'Learning',
+      restLabel: 'Rest',
+      wordSelectA11y: 'Select %{label}',
+    },
+    sessionActive: {
+      stopLabel: 'End',
+      stopA11y: 'End session',
+      cycleBadge: 'Cycle %{cycle}/%{total}',
+      restingTitle: 'Taking a break',
+      restingBody: 'Even during the break,\nnew sounds are still recorded.',
+      playingBadge: 'Playing "%{word}"',
+      waitingBadge: 'Waiting for next repeat',
+      pausedBadge: 'Paused',
+      preparing: 'Preparing',
+      startFailed: 'Failed to start',
+      pause: 'Pause',
+      resume: 'Resume',
+    },
+    sessionComplete: {
+      title: 'Session complete! 🎉',
+      subtitle: '%{petName} listened to "%{word}" for %{duration}',
+      streakLabel: 'Streak',
+      totalTimeLabel: 'Total time',
+      continueCta: 'Continue',
+    },
+    sessionRecovery: {
+      activeTitle: 'Your session is still running',
+      interruptedTitle: 'Your last session was interrupted',
+      activeBody: 'You can return to the "%{word}" session.',
+      interruptedBody: '%{duration} of "%{word}" training was saved.',
+      activeAction: 'Return',
+      interruptedAction: 'Close',
+      activeActionA11y: 'Return to the running session',
+      interruptedActionA11y: 'Dismiss interruption notice',
     },
     recording: {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',

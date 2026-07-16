@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/app-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography, withAlpha } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface SessionWaveSectionProps {
   isLearning: boolean;
@@ -13,13 +14,14 @@ interface SessionWaveSectionProps {
 }
 
 export function SessionWaveSection({ isLearning, isActive, audioOn, word }: SessionWaveSectionProps) {
+  const { t } = useI18n();
   const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
 
   if (!isLearning) {
     return (
       <View style={styles.section}>
         <Text style={styles.restText}>
-          잠시 쉬는 동안에도{'\n'}새로 말한 소리는 기록해요.
+          {t('sessionActive.restingBody')}
         </Text>
       </View>
     );
@@ -27,7 +29,11 @@ export function SessionWaveSection({ isLearning, isActive, audioOn, word }: Sess
 
   const badgeStyle = audioOn ? { backgroundColor: withAlpha(accent, 0.12) } : styles.badgeWaiting;
   const icon = audioOn ? 'speaker.wave.2.fill' : isActive ? 'mic' : 'pause.fill';
-  const label = audioOn ? `"${word}" 재생 중` : isActive ? '다음 반복 대기' : '일시정지 중';
+  const label = audioOn
+    ? t('sessionActive.playingBadge', { word })
+    : isActive
+      ? t('sessionActive.waitingBadge')
+      : t('sessionActive.pausedBadge');
 
   return (
     <View style={styles.section}>

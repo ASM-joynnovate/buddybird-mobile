@@ -22,21 +22,21 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryP
   return (
     <LedgeView baseStyle={styles.base} depth="card" faceStyle={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.headerLabel}>총 학습 시간</Text>
+        <Text style={styles.headerLabel}>{t('sessionSetup.totalDurationLabel')}</Text>
         <Text style={styles.headerValue}>{formatDurationMins(sessionMins, t)}</Text>
       </View>
       <View style={styles.detailRow}>
         <View style={[styles.cell, styles.cellDivider]}>
           <View style={styles.metricLabelRow}>
             <View style={[styles.dot, styles.dotLearn]} />
-            <Text style={styles.label}>학습</Text>
+            <Text style={styles.label}>{t('sessionSetup.learnLabel')}</Text>
           </View>
           <Text style={[styles.value, styles.valueLearn]}>{formatDurationSecs(totalLearnSecs, t)}</Text>
         </View>
         <View style={styles.cell}>
           <View style={styles.metricLabelRow}>
             <View style={[styles.dot, styles.dotRest]} />
-            <Text style={styles.label}>휴식</Text>
+            <Text style={styles.label}>{t('sessionSetup.restLabel')}</Text>
           </View>
           <Text style={[styles.value, styles.valueRest]}>{formatDurationSecs(totalRestSecs, t)}</Text>
         </View>

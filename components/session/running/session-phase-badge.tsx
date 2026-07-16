@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
 
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface SessionPhaseBadgeProps {
   cycle: number;
@@ -9,10 +10,11 @@ interface SessionPhaseBadgeProps {
 }
 
 export function SessionPhaseBadge({ cycle, totalCycles }: SessionPhaseBadgeProps) {
+  const { t } = useI18n();
   return (
     <View style={styles.row}>
       <View style={styles.cycleBadge}>
-        <Text style={styles.cycleText}>사이클 {cycle}/{totalCycles}</Text>
+        <Text style={styles.cycleText}>{t('sessionActive.cycleBadge', { cycle, total: totalCycles })}</Text>
       </View>
     </View>
   );

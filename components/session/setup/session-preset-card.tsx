@@ -45,14 +45,14 @@ export function SessionPresetCard({
               <View style={styles.optionLeft}>
                 <View style={styles.optionTitleRow}>
                   <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                    {preset.shortLabel}
+                    {t(`sessionSetup.presets.${preset.key}.label`)}
                   </Text>
                   <Text style={styles.optionTime}>
                     {formatDurationMins(totalMins, t)}
                   </Text>
                 </View>
                 <Text numberOfLines={1} style={[styles.optionDescription, selected && styles.optionDescriptionSelected]}>
-                  {preset.description}
+                  {t(`sessionSetup.presets.${preset.key}.description`)}
                 </Text>
               </View>
             </SelectableRowCard>
@@ -65,12 +65,12 @@ export function SessionPresetCard({
           <View style={styles.optionLeft}>
             <View style={styles.optionTitleRow}>
               <Text style={[styles.optionLabel, presetKey === 'custom' && styles.optionLabelSelected]}>
-                직접 설정
+                {t('sessionSetup.customPresetLabel')}
               </Text>
               <Text style={styles.optionTime}>{formatDurationMins(sessionMins, t)}</Text>
             </View>
             <Text numberOfLines={1} style={[styles.optionDescription, presetKey === 'custom' && styles.optionDescriptionSelected]}>
-              원하는 시간을 직접 정해요
+              {t('sessionSetup.customPresetDescription')}
             </Text>
           </View>
         </SelectableRowCard>
@@ -78,27 +78,27 @@ export function SessionPresetCard({
 
       {presetKey === 'custom' && (
         <Card style={styles.durationPicker}>
-          <Text style={styles.durationTitle}>총 학습 시간</Text>
+          <Text style={styles.durationTitle}>{t('sessionSetup.totalDurationLabel')}</Text>
           <View style={styles.durationWheelFrame}>
             <View pointerEvents="none" style={styles.wheelHighlight} />
             <View style={styles.durationPickerRow}>
               <View style={styles.pickerGroup}>
                 <WheelPicker
-                  accessibilityLabel="시간 선택"
+                  accessibilityLabel={t('sessionSetup.hourPickerLabel')}
                   options={HOUR_OPTIONS}
                   selected={selectedHours}
                   onChange={(h) => onChangeSessionMins(h * 60 + selectedMins)}
                 />
-                <Text style={styles.pickerUnit}>시간</Text>
+                <Text style={styles.pickerUnit}>{t('sessionSetup.hourUnit')}</Text>
               </View>
               <View style={styles.pickerGroup}>
                 <WheelPicker
-                  accessibilityLabel="분 선택"
+                  accessibilityLabel={t('sessionSetup.minutePickerLabel')}
                   options={MINUTE_OPTIONS}
                   selected={selectedMins}
                   onChange={(m) => onChangeSessionMins(selectedHours * 60 + m)}
                 />
-                <Text style={styles.pickerUnit}>분</Text>
+                <Text style={styles.pickerUnit}>{t('sessionSetup.minuteUnit')}</Text>
               </View>
             </View>
           </View>

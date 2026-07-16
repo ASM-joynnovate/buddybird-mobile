@@ -3,6 +3,7 @@ import { Text } from '@/components/ui/app-text';
 
 import { Pressable3D } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 import { SessionProgressBar } from './session-progress-bar';
 
@@ -13,6 +14,7 @@ interface SessionHeaderProps {
 }
 
 export function SessionHeader({ progress, isLearning, onStop }: SessionHeaderProps) {
+  const { t } = useI18n();
   return (
     <View style={styles.header}>
       <View style={styles.progress}>
@@ -20,13 +22,13 @@ export function SessionHeader({ progress, isLearning, onStop }: SessionHeaderPro
       </View>
       <Pressable3D
         accessibilityRole="button"
-        accessibilityLabel="세션 종료"
+        accessibilityLabel={t('sessionActive.stopA11y')}
         baseStyle={styles.stopBase}
         depth="card"
         faceStyle={styles.stopFace}
         hitSlop={4}
         onPress={onStop}>
-        <Text style={styles.stopBtnText}>종료</Text>
+        <Text style={styles.stopBtnText}>{t('sessionActive.stopLabel')}</Text>
       </Pressable3D>
     </View>
   );

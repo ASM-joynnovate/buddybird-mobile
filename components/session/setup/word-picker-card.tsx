@@ -15,6 +15,7 @@ import {
   withAlphaOverCanvas,
   type BuddyBirdCategory,
 } from '@/constants/theme';
+import { useI18n } from '@/features/i18n/i18n-context';
 
 interface WordPickerCardProps {
   id: string;
@@ -26,6 +27,7 @@ interface WordPickerCardProps {
 }
 
 export function WordPickerCard({ id, label, tag, active, onSelect, style }: WordPickerCardProps) {
+  const { t } = useI18n();
   const color = categoryColor[tag as BuddyBirdCategory] ?? BuddyBirdColors.primary;
   const tint = categoryTint[tag as BuddyBirdCategory] ?? withAlphaOverCanvas(color, 0.08);
   const initial = label.trim().charAt(0) || '?';
@@ -33,7 +35,7 @@ export function WordPickerCard({ id, label, tag, active, onSelect, style }: Word
 
   return (
     <Pressable3D
-      accessibilityLabel={`${label} 선택`}
+      accessibilityLabel={t('sessionSetup.wordSelectA11y', { label })}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       baseStyle={[styles.base, active ? { backgroundColor: color } : styles.baseDefault]}
