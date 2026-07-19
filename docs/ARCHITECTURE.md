@@ -20,7 +20,7 @@ Domain logic lives here — no JSX. Each subdirectory follows the same pattern: 
 | `feedback/` | 접속일 기반 Prompt 스케줄, AsyncStorage 영속화, 공용 Auth uid를 포함한 Firestore create-only 제출 |
 | `profile/` | `ParrotProfile` CRUD, onboarding draft accumulation, species/goal options |
 | `training/` | `TrainingWord`, `TrainingSession`, `AudioRecording` models and AsyncStorage |
-| `audio/` | `useAudioRecording`, `useAudioPreview` hooks, pitch-transform config, file storage |
+| `audio/` | `useAudioRecording`, `useAudioPreview` hooks, file storage |
 | `i18n/` | `useI18n()` hook, `t()` translations, locale persistence |
 
 ## Components (`components/`)

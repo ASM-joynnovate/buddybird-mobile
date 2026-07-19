@@ -47,6 +47,14 @@ class AudioForegroundService : Service() {
 
   override fun onBind(intent: Intent?): IBinder? = null
 
+  // 최근 앱에서 태스크 제거 = 명시적 종료 의도. 세션을 중단해 복구 기록을 남기고
+  // (5분 이상 진행분은 다음 실행에서 적립) 서비스를 내린다.
+  override fun onTaskRemoved(rootIntent: Intent?) {
+    runCatching { SessionAudioEngineRuntime.stop("task-removed") }
+    stopSelf()
+    super.onTaskRemoved(rootIntent)
+  }
+
   override fun onDestroy() {
     SessionAudioEngineRuntime.onServiceDestroyed()
     super.onDestroy()

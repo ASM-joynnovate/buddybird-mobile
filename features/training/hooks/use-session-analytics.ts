@@ -43,7 +43,7 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
     });
     void flushSessionWordMetrics([buildWordDelta(durationMs)]);
     session.stop();
-    router.back();
+    // 화면 이동은 useSessionExit 가 가로채기를 끈 뒤 처리한다.
     setTimeout(() => clearPendingSession(), 0);
   }
 

@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -19,10 +18,9 @@ export function SessionRecoveryBanner() {
   const { t } = useI18n();
   const { interruptedSession, dismissInterruptedSession } = useTrainingData();
   const { track } = useAnalytics();
-  const router = useRouter();
 
   useEffect(() => {
-    if (!interruptedSession || interruptedSession.kind !== 'recovered' || recoveryReported) return;
+    if (!interruptedSession || recoveryReported) return;
     recoveryReported = true;
     track({
       name: 'training_session_recovered',
@@ -33,42 +31,26 @@ export function SessionRecoveryBanner() {
   if (!interruptedSession) return null;
 
   const creditedMinutes = Math.max(1, Math.round(interruptedSession.creditedLearningSeconds / 60));
-  const isActive = interruptedSession.kind === 'active';
-
-  function handleAction(): void {
-    if (isActive) {
-      dismissInterruptedSession();
-      router.push('/session-active');
-      return;
-    }
-    dismissInterruptedSession();
-  }
 
   return (
     <View style={styles.banner} accessibilityRole="alert">
       <View style={styles.textColumn}>
-        <Text style={styles.title}>
-          {isActive ? t('sessionRecovery.activeTitle') : t('sessionRecovery.interruptedTitle')}
-        </Text>
+        <Text style={styles.title}>{t('sessionRecovery.interruptedTitle')}</Text>
         <Text style={styles.body}>
-          {isActive
-            ? t('sessionRecovery.activeBody', { word: interruptedSession.word })
-            : t('sessionRecovery.interruptedBody', {
-                word: interruptedSession.word,
-                duration: formatDurationMins(creditedMinutes, t),
-              })}
+          {t('sessionRecovery.interruptedBody', {
+            word: interruptedSession.word,
+            duration: formatDurationMins(creditedMinutes, t),
+          })}
         </Text>
       </View>
       <Pressable
-        onPress={handleAction}
+        onPress={dismissInterruptedSession}
         style={styles.dismissButton}
         accessibilityRole="button"
-        accessibilityLabel={isActive ? t('sessionRecovery.activeActionA11y') : t('sessionRecovery.interruptedActionA11y')}
+        accessibilityLabel={t('sessionRecovery.interruptedActionA11y')}
         hitSlop={8}
       >
-        <Text style={styles.dismissLabel}>
-          {isActive ? t('sessionRecovery.activeAction') : t('sessionRecovery.interruptedAction')}
-        </Text>
+        <Text style={styles.dismissLabel}>{t('sessionRecovery.interruptedAction')}</Text>
       </Pressable>
     </View>
   );

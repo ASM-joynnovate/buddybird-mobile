@@ -51,7 +51,7 @@ export interface RecordingSession {
 }
 
 interface UseRecordingSessionOptions {
-  messages: { permissionDenied: string; saveFailed: string; startFailed: string };
+  messages: { permissionDenied: string; saveFailed: string; startFailed: string; blockedBySession: string };
   statusLabels: RecordingStatusLabels;
   maxDurationMs?: number;
   // 이미 저장된 entry 의 재생 소스(편집 모달). 신규 녹음과 상호 배타로 조율된다.
@@ -65,6 +65,7 @@ export function useRecordingSession(options: UseRecordingSessionOptions): Record
     permissionDeniedMessage: options.messages.permissionDenied,
     saveFailedMessage: options.messages.saveFailed,
     startFailedMessage: options.messages.startFailed,
+    blockedBySessionMessage: options.messages.blockedBySession,
     maxDurationMs: options.maxDurationMs,
   });
 

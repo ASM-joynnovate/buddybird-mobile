@@ -4,6 +4,7 @@ import { BuddyBirdColors } from '@/constants/theme';
 import type { UseActiveSessionResult } from '@/features/training/hooks/use-active-session';
 
 import { SessionControls } from './session-controls';
+import { SessionExitConfirmDialog } from './session-exit-confirm-dialog';
 import { SessionHeader } from './session-header';
 import { SessionPhaseBadge } from './session-phase-badge';
 import { SessionProgressRing } from './session-progress-ring';
@@ -24,12 +25,22 @@ interface SessionRunningViewProps {
     | 'audioOn'
   >;
   onStop: () => void;
+  isExitConfirmVisible: boolean;
+  onExitContinue: () => void;
   insetsTop: number;
   insetsBottom: number;
   fmt: (s: number) => string;
 }
 
-export function SessionRunningView({ session, onStop, insetsTop, insetsBottom, fmt }: SessionRunningViewProps) {
+export function SessionRunningView({
+  session,
+  onStop,
+  isExitConfirmVisible,
+  onExitContinue,
+  insetsTop,
+  insetsBottom,
+  fmt,
+}: SessionRunningViewProps) {
   return (
     <View style={[styles.content, { paddingTop: insetsTop }]}>
       <SessionHeader
@@ -56,6 +67,9 @@ export function SessionRunningView({ session, onStop, insetsTop, insetsBottom, f
         paddingBottom={insetsBottom + 44}
         onToggle={session.togglePause}
       />
+      {isExitConfirmVisible ? (
+        <SessionExitConfirmDialog onContinue={onExitContinue} onStop={onStop} />
+      ) : null}
     </View>
   );
 }

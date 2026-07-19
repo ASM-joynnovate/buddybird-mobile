@@ -141,6 +141,10 @@ interface AppCopy {
     startFailed: string;
     pause: string;
     resume: string;
+    exitConfirmTitle: string;
+    exitConfirmBody: string;
+    exitConfirmStop: string;
+    exitConfirmContinue: string;
   };
   sessionComplete: {
     title: string;
@@ -150,19 +154,16 @@ interface AppCopy {
     continueCta: string;
   };
   sessionRecovery: {
-    activeTitle: string;
     interruptedTitle: string;
-    activeBody: string;
     interruptedBody: string;
-    activeAction: string;
     interruptedAction: string;
-    activeActionA11y: string;
     interruptedActionA11y: string;
   };
   recording: {
     permissionDenied: string;
     startFailed: string;
     saveFailed: string;
+    blockedBySession: string;
     tooShort: string;
     playLabel: string;
     stopPlayLabel: string;
@@ -426,6 +427,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: '시작 실패',
       pause: '일시정지',
       resume: '계속하기',
+      exitConfirmTitle: '학습 세션을 종료할까요?',
+      exitConfirmBody: '종료하면 진행 중인 학습이 끝나요. 계속 진행하면 학습 화면으로 돌아가요.',
+      exitConfirmStop: '종료',
+      exitConfirmContinue: '계속 진행',
     },
     sessionComplete: {
       title: '학습 완료! 🎉',
@@ -435,19 +440,16 @@ export const translations: Record<AppLocale, AppCopy> = {
       continueCta: '계속',
     },
     sessionRecovery: {
-      activeTitle: '학습이 계속 진행 중이에요',
       interruptedTitle: '이전 학습이 중단됐어요',
-      activeBody: '‘%{word}’ 학습 화면으로 돌아갈 수 있어요.',
       interruptedBody: '‘%{word}’ 학습 %{duration}이 기록에 저장됐어요.',
-      activeAction: '돌아가기',
       interruptedAction: '닫기',
-      activeActionA11y: '진행 중인 학습으로 돌아가기',
       interruptedActionA11y: '중단 안내 닫기',
     },
     recording: {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
       startFailed: '녹음을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
       saveFailed: '녹음 파일을 저장하지 못했어요. 다시 녹음해 주세요.',
+      blockedBySession: '현재는 녹음할 수 없습니다.',
       tooShort: '녹음이 너무 짧아요. 10초 이상 녹음해 주세요.',
       playLabel: '녹음 재생',
       stopPlayLabel: '중단',
@@ -716,6 +718,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: 'Failed to start',
       pause: 'Pause',
       resume: 'Resume',
+      exitConfirmTitle: 'End the training session?',
+      exitConfirmBody: 'Ending now stops the training in progress. Keep going to return to the session.',
+      exitConfirmStop: 'End',
+      exitConfirmContinue: 'Keep going',
     },
     sessionComplete: {
       title: 'Session complete! 🎉',
@@ -725,19 +731,16 @@ export const translations: Record<AppLocale, AppCopy> = {
       continueCta: 'Continue',
     },
     sessionRecovery: {
-      activeTitle: 'Your session is still running',
       interruptedTitle: 'Your last session was interrupted',
-      activeBody: 'You can return to the "%{word}" session.',
       interruptedBody: '%{duration} of "%{word}" training was saved.',
-      activeAction: 'Return',
       interruptedAction: 'Close',
-      activeActionA11y: 'Return to the running session',
       interruptedActionA11y: 'Dismiss interruption notice',
     },
     recording: {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',
       startFailed: 'Could not start recording. Please try again soon.',
       saveFailed: 'Could not save the recording. Please record again.',
+      blockedBySession: 'Recording is not available right now.',
       tooShort: 'Recording is too short. Please record for at least 10 seconds.',
       playLabel: 'Play recording',
       stopPlayLabel: 'Stop',

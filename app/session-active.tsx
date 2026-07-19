@@ -9,6 +9,7 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useProfile } from '@/features/profile/profile-context';
 import { useActiveSession } from '@/features/training/hooks/use-active-session';
 import { useSessionAnalytics } from '@/features/training/hooks/use-session-analytics';
+import { useSessionExit } from '@/features/training/hooks/use-session-exit';
 import { useTrainingData } from '@/features/training/training-context';
 import { selectTotalTrainingSeconds, selectTrainingRewardSummary } from '@/features/training/training-model';
 
@@ -60,6 +61,7 @@ function SessionActiveInner({
     word: pendingSession.word,
   });
   const { handleStop, handleDismiss } = useSessionAnalytics({ pendingSession, session, clearPendingSession });
+  const { exitWithStop, isConfirmVisible, dismissConfirm } = useSessionExit({ status: session.status, stopSession: handleStop });
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   return (
@@ -77,7 +79,9 @@ function SessionActiveInner({
       ) : (
         <SessionRunningView
           session={session}
-          onStop={handleStop}
+          onStop={exitWithStop}
+          isExitConfirmVisible={isConfirmVisible}
+          onExitContinue={dismissConfirm}
           insetsTop={insetsTop}
           insetsBottom={insetsBottom}
           fmt={fmt}

@@ -13,7 +13,6 @@ import { formatRecordingTime } from '@/components/words/recorder/recording-time'
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useRecordingSession } from '@/features/audio/hooks/use-recording-session';
-import { MVP_PITCH_PROFILE } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import { WORD_TAGS, type WordEntry, type WordTag } from '@/features/word-library/word-library-types';
@@ -47,6 +46,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       permissionDenied: t('recording.permissionDenied'),
       saveFailed: t('recording.saveFailed'),
       startFailed: t('recording.startFailed'),
+      blockedBySession: t('recording.blockedBySession'),
     },
     statusLabels: {
       recording: (seconds) => `${t('sessionSetup.recordingStatus')} · ${formatStatusTime(seconds)}`,
@@ -91,10 +91,8 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
     try {
       const nowIso = new Date().toISOString();
       const didRerecord = isRerecording && session.file !== null;
-      const pitchProfileId =
-        didRerecord && entry.sourceType === 'recording' && !entry.pitchProfileId
-          ? MVP_PITCH_PROFILE.id
-          : entry.pitchProfileId;
+      // 녹음 단어는 변환 없이 원본 그대로 재생한다 — 재녹음 시 기존 pitch 프로필 참조도 지운다 (BB-248)
+      const pitchProfileId = didRerecord ? undefined : entry.pitchProfileId;
 
       await updateEntry({
         ...entry,
