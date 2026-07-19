@@ -27,7 +27,6 @@ export interface PendingSession {
 
 // 이전 실행에서 중단된 세션을 다음 실행 때 부분 적립한 결과. 배너로 사용자에게 알린다.
 export interface InterruptedSessionInfo {
-  kind: 'active' | 'recovered';
   word: string;
   creditedLearningSeconds: number;
 }
@@ -86,12 +85,11 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     async function hydrateTrainingStore(): Promise<void> {
       try {
         const storedTrainingStore = await loadTrainingStore();
-        const { store: recoveredStore, interrupted, pending } = await restoreOrRecoverSession(storedTrainingStore);
+        const { store: recoveredStore, interrupted } = await restoreOrRecoverSession(storedTrainingStore);
 
         if (isMounted) {
           setTrainingStoreState(recoveredStore);
           setInterruptedSession(interrupted);
-          if (pending) setPendingSessionState(pending);
           setLoadFailed(false);
         }
       } catch (error: unknown) {
@@ -231,38 +229,29 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
 // store 저장이 성공한 뒤에만 네이티브 기록을 지워 다음 실행에서 안전하게 재시도할 수 있게 한다.
 async function restoreOrRecoverSession(
   loadedStore: TrainingStore,
-): Promise<{ store: TrainingStore; interrupted: InterruptedSessionInfo | null; pending: PendingSession | null }> {
-  const record = await sessionAudioEngine.getPendingRecovery();
-  if (!record) return { store: loadedStore, interrupted: null, pending: null };
+): Promise<{ store: TrainingStore; interrupted: InterruptedSessionInfo | null }> {
+  let record = await sessionAudioEngine.getPendingRecovery();
+  if (!record) return { store: loadedStore, interrupted: null };
 
   const activeSnapshot = await sessionAudioEngine.getSnapshot();
   if (
     activeSnapshot?.sessionId === record.snapshot.sessionId &&
     ['starting', 'running', 'paused', 'interrupted'].includes(activeSnapshot.state)
   ) {
-    return {
-      store: loadedStore,
-      interrupted: { kind: 'active', word: record.recovery.word, creditedLearningSeconds: 0 },
-      pending: {
-        sessionId: record.snapshot.sessionId,
-        wordId: record.recovery.wordId,
-        word: record.recovery.word,
-        settings: {
-          wordId: record.recovery.wordId,
-          sourceType: record.recovery.sourceType,
-          totalDurationSeconds: record.totalDurationMs / 1000,
-          learningDurationSeconds: record.learningDurationMs / 1000,
-          restDurationSeconds: record.restDurationMs / 1000,
-          libraryEntryId: record.recovery.libraryEntryId,
-        },
-      },
-    };
+    // JS가 새로 시작됐는데 세션이 살아있는 상태 — 최근 앱 제거 시 네이티브가 세션을
+    // 종료하므로 프로덕션에서는 드물다. 세션을 중단하고 아래 적립 경로로 흡수한다.
+    try {
+      record = await sessionAudioEngine.stop();
+    } catch (error: unknown) {
+      reportError(error, { scope: 'training.sessionAudio.stopOrphan' });
+      return { store: loadedStore, interrupted: null };
+    }
   }
 
   const elapsedRunningSeconds = Math.floor(record.snapshot.elapsedRunningMs / 1000);
   if (record.reason !== 'duration-reached' && elapsedRunningSeconds < STREAK_QUALIFYING_SECONDS) {
     await clearRecoverySafely(record.snapshot.sessionId);
-    return { store: loadedStore, interrupted: null, pending: null };
+    return { store: loadedStore, interrupted: null };
   }
 
   try {
@@ -309,12 +298,11 @@ async function restoreOrRecoverSession(
     await clearRecoverySafely(record.snapshot.sessionId);
     return {
       store: nextStore,
-      interrupted: { kind: 'recovered', word: record.recovery.word, creditedLearningSeconds },
-      pending: null,
+      interrupted: { word: record.recovery.word, creditedLearningSeconds },
     };
   } catch (error: unknown) {
     reportError(error, { scope: 'training.sessionAudio.recover' });
-    return { store: loadedStore, interrupted: null, pending: null };
+    return { store: loadedStore, interrupted: null };
   }
 }
 

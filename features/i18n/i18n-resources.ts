@@ -154,13 +154,9 @@ interface AppCopy {
     continueCta: string;
   };
   sessionRecovery: {
-    activeTitle: string;
     interruptedTitle: string;
-    activeBody: string;
     interruptedBody: string;
-    activeAction: string;
     interruptedAction: string;
-    activeActionA11y: string;
     interruptedActionA11y: string;
   };
   recording: {
@@ -444,13 +440,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       continueCta: '계속',
     },
     sessionRecovery: {
-      activeTitle: '학습이 계속 진행 중이에요',
       interruptedTitle: '이전 학습이 중단됐어요',
-      activeBody: '‘%{word}’ 학습 화면으로 돌아갈 수 있어요.',
       interruptedBody: '‘%{word}’ 학습 %{duration}이 기록에 저장됐어요.',
-      activeAction: '돌아가기',
       interruptedAction: '닫기',
-      activeActionA11y: '진행 중인 학습으로 돌아가기',
       interruptedActionA11y: '중단 안내 닫기',
     },
     recording: {
@@ -739,13 +731,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       continueCta: 'Continue',
     },
     sessionRecovery: {
-      activeTitle: 'Your session is still running',
       interruptedTitle: 'Your last session was interrupted',
-      activeBody: 'You can return to the "%{word}" session.',
       interruptedBody: '%{duration} of "%{word}" training was saved.',
-      activeAction: 'Return',
       interruptedAction: 'Close',
-      activeActionA11y: 'Return to the running session',
       interruptedActionA11y: 'Dismiss interruption notice',
     },
     recording: {
