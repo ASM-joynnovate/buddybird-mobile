@@ -22,7 +22,9 @@ export interface CapturePlaybackController {
 const UPDATE_INTERVAL_MS = 50;
 
 export function useCapturePlayback(): CapturePlaybackController {
-  const player = useAudioPlayer(null, { updateInterval: UPDATE_INTERVAL_MS });
+  // keepAudioSessionActive: use-audio-preview.ts 와 같은 이유 — expo-audio의 pause() 지연
+  // 세션 비활성화가 녹음 중인 recorder를 죽이지 않도록 앱 전 플레이어에서 끈다.
+  const player = useAudioPlayer(null, { updateInterval: UPDATE_INTERVAL_MS, keepAudioSessionActive: true });
   const status = useAudioPlayerStatus(player);
 
   const [activeKey, setActiveKey] = useState<string | null>(null);

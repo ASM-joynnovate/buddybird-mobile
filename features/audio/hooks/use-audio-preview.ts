@@ -27,7 +27,10 @@ export function useAudioPreview(
   expectedDurationSeconds?: number,
 ): UseAudioPreviewResult {
   const isModule = typeof audioSource === 'number';
-  const player = useAudioPlayer(null, { updateInterval: PLAYER_UPDATE_INTERVAL_MS });
+  // keepAudioSessionActive: expo-audio는 pause()·재생 완료 시 0.1초 뒤 iOS 오디오 세션을
+  // 비활성화하는데, 이때 녹음 중인 recorder를 확인하지 않아 녹음 시작 직전 stopPreview()의
+  // pause()가 실기기에서 진행 중인 녹음을 무음으로 만든다. 세션 활성화는 audio-mode.ts가 관리한다.
+  const player = useAudioPlayer(null, { updateInterval: PLAYER_UPDATE_INTERVAL_MS, keepAudioSessionActive: true });
   const playerStatus = useAudioPlayerStatus(player);
   const playTokenRef = useRef(0);
   const loadedSourceRef = useRef<string | number | null>(null);
