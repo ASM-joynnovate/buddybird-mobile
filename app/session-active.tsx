@@ -61,7 +61,7 @@ function SessionActiveInner({
     word: pendingSession.word,
   });
   const { handleStop, handleDismiss } = useSessionAnalytics({ pendingSession, session, clearPendingSession });
-  const { exitWithStop } = useSessionExit({ status: session.status, stopSession: handleStop });
+  const { exitWithStop, isConfirmVisible, dismissConfirm } = useSessionExit({ status: session.status, stopSession: handleStop });
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   return (
@@ -80,6 +80,8 @@ function SessionActiveInner({
         <SessionRunningView
           session={session}
           onStop={exitWithStop}
+          isExitConfirmVisible={isConfirmVisible}
+          onExitContinue={dismissConfirm}
           insetsTop={insetsTop}
           insetsBottom={insetsBottom}
           fmt={fmt}
