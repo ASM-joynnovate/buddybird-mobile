@@ -141,6 +141,10 @@ interface AppCopy {
     startFailed: string;
     pause: string;
     resume: string;
+    exitConfirmTitle: string;
+    exitConfirmBody: string;
+    exitConfirmStop: string;
+    exitConfirmContinue: string;
   };
   sessionComplete: {
     title: string;
@@ -163,6 +167,7 @@ interface AppCopy {
     permissionDenied: string;
     startFailed: string;
     saveFailed: string;
+    blockedBySession: string;
     tooShort: string;
     playLabel: string;
     stopPlayLabel: string;
@@ -426,6 +431,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: '시작 실패',
       pause: '일시정지',
       resume: '계속하기',
+      exitConfirmTitle: '학습 세션을 종료할까요?',
+      exitConfirmBody: '계속 진행하면 자리를 비운 동안에도 단어가 반복 재생돼요.',
+      exitConfirmStop: '종료',
+      exitConfirmContinue: '계속 진행',
     },
     sessionComplete: {
       title: '학습 완료! 🎉',
@@ -448,6 +457,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
       startFailed: '녹음을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
       saveFailed: '녹음 파일을 저장하지 못했어요. 다시 녹음해 주세요.',
+      blockedBySession: '현재는 녹음할 수 없습니다.',
       tooShort: '녹음이 너무 짧아요. 10초 이상 녹음해 주세요.',
       playLabel: '녹음 재생',
       stopPlayLabel: '중단',
@@ -716,6 +726,10 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: 'Failed to start',
       pause: 'Pause',
       resume: 'Resume',
+      exitConfirmTitle: 'End the training session?',
+      exitConfirmBody: 'If you keep it running, the word keeps repeating while you are away.',
+      exitConfirmStop: 'End',
+      exitConfirmContinue: 'Keep going',
     },
     sessionComplete: {
       title: 'Session complete! 🎉',
@@ -738,6 +752,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',
       startFailed: 'Could not start recording. Please try again soon.',
       saveFailed: 'Could not save the recording. Please record again.',
+      blockedBySession: 'Recording is not available right now.',
       tooShort: 'Recording is too short. Please record for at least 10 seconds.',
       playLabel: 'Play recording',
       stopPlayLabel: 'Stop',
