@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { resolveAudioSource } from '@/features/audio/audio-source-resolver';
-import { createMvpPitchTransform } from '@/features/audio/pitch-profile';
 import { useI18n } from '@/features/i18n/i18n-context';
 
 import { deriveSessionCycles } from '../session-cycle-model';
@@ -10,7 +9,7 @@ import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
 import { SESSION_PRESETS, calcLearnRestFromTotal } from '../session-config';
 import type { SessionPresetKey } from '../session-config';
-import type { AudioPitchTransform, TrainingAudioSourceType, TrainingSessionSettings } from '../training-types';
+import type { TrainingAudioSourceType, TrainingSessionSettings } from '../training-types';
 
 export interface SessionSelection {
   audioUri: string;
@@ -118,8 +117,6 @@ export function useSessionSetup(): UseSessionSetupResult {
     }
     try {
       const nowIso = new Date().toISOString();
-      const pitchTransform = createMvpPitchTransform(nowIso) as AudioPitchTransform;
-
       const word = createTrainingWord(
         {
           audioUri: selection.audioUri,
@@ -127,7 +124,6 @@ export function useSessionSetup(): UseSessionSetupResult {
           label: selection.label,
           presetKey: selection.presetKey,
           sourceType: selection.sourceType,
-          pitchTransform,
           libraryEntryId: selection.libraryEntryId,
         },
         nowIso

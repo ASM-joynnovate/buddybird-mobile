@@ -9,8 +9,8 @@ export interface WordEntry {
   presetKey?: string;
   audioUri: string;
   transformedAudioUri?: string;
-  // 오디오 도메인 pitch 프로필에 대한 불투명 참조. 실제 pitch 파라미터(배속 등) 해석은
-  // 오디오 도메인(`features/audio/pitch-profile`)이 소유한다.
+  // 과거 pitch 변환 기능이 남긴 참조 — 재생에는 더 이상 사용하지 않는다 (BB-248).
+  // 기존 저장 데이터 호환을 위해 필드만 유지한다.
   pitchProfileId?: string;
   createdAt: string;
   updatedAt: string;
