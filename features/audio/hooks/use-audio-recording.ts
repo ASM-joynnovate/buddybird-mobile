@@ -2,6 +2,7 @@ import { AudioModule, RecordingPresets, useAudioRecorder, useAudioRecorderState 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
 import { configurePlaybackAudioMode, configureRecordingAudioMode } from '../audio-mode';
 import { persistRecordingFile } from '../audio-file-storage';
@@ -13,6 +14,20 @@ const RECORDING_OPTIONS = {
   ...RecordingPresets.HIGH_QUALITY,
   isMeteringEnabled: true,
 };
+// 네이티브 학습 세션이 마이크를 쥐고 있는 상태. training-context 의 "세션 진행 중" 판정과 같은 집합을 쓴다.
+const MIC_HOLDING_SESSION_STATES = ['starting', 'running', 'paused', 'interrupted'];
+
+// 학습 세션이 마이크를 점유 중이면 단어 녹음을 시작할 수 없다.
+// 판정 자체가 실패하면 차단하지 않는다(fail open) — 조회 실패로 정상 녹음을 막는 쪽이 더 나쁘다.
+async function isTrainingSessionHoldingMic(): Promise<boolean> {
+  try {
+    const snapshot = await sessionAudioEngine.getSnapshot();
+    return snapshot !== null && MIC_HOLDING_SESSION_STATES.includes(snapshot.state);
+  } catch (error: unknown) {
+    console.warn('[audio.sessionGate]', error);
+    return false;
+  }
+}
 
 interface UseAudioRecordingResult {
   errorMessage: string | null;
@@ -30,6 +45,7 @@ interface UseAudioRecordingOptions {
   permissionDeniedMessage: string;
   saveFailedMessage: string;
   startFailedMessage: string;
+  blockedBySessionMessage: string;
   tooShortMessage?: string;
   maxDurationMs?: number;
 }
@@ -50,6 +66,14 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setLifecycle('requesting-permission');
       setErrorMessage(null);
 
+      // 권한 요청·오디오 모드 전환보다 먼저 막는다. 실패가 뻔한 시도로 공유 오디오 세션을 흔들면
+      // 백그라운드로 재생 중인 학습 세션까지 영향을 받는다.
+      if (await isTrainingSessionHoldingMic()) {
+        setLifecycle('error');
+        setErrorMessage(options.blockedBySessionMessage);
+        return;
+      }
+
       const permissionStatus = await AudioModule.requestRecordingPermissionsAsync();
 
       if (!permissionStatus.granted) {
@@ -68,7 +92,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       setLifecycle('error');
       setErrorMessage(options.startFailedMessage);
     }
-  }, [audioRecorder, options.permissionDeniedMessage, options.startFailedMessage]);
+  }, [audioRecorder, options.blockedBySessionMessage, options.permissionDeniedMessage, options.startFailedMessage]);
 
   const stopRecording = useCallback(async (): Promise<StableRecordingFile | null> => {
     try {

@@ -36,6 +36,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       permissionDenied: t('recording.permissionDenied'),
       saveFailed: t('recording.saveFailed'),
       startFailed: t('recording.startFailed'),
+      blockedBySession: t('recording.blockedBySession'),
     },
     statusLabels: {
       ready: t('wordCreate.readyStatus'),

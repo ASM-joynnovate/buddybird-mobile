@@ -47,6 +47,7 @@ export function WordEditModal({ visible, entry, onClose, onSaved, onDeleted }: W
       permissionDenied: t('recording.permissionDenied'),
       saveFailed: t('recording.saveFailed'),
       startFailed: t('recording.startFailed'),
+      blockedBySession: t('recording.blockedBySession'),
     },
     statusLabels: {
       recording: (seconds) => `${t('sessionSetup.recordingStatus')} · ${formatStatusTime(seconds)}`,
