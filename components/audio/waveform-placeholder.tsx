@@ -5,6 +5,7 @@ import { Text } from '@/components/ui/app-text';
 import { BuddyBirdColors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { meteringBarLevel, meteringEffectiveLevel } from '@/components/ui/waveform-metering';
 
 const BAR_COUNT = 30;
 const WAVEFORM_HEIGHT = 78;
@@ -77,8 +78,7 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
     }
 
     // 0.25 미만은 배경 잡음으로 간주, 그 이상 구간을 0-1로 재정규화
-    const NOISE_FLOOR = 0.25;
-    const effective = metering < NOISE_FLOOR ? 0 : (metering - NOISE_FLOOR) / (1 - NOISE_FLOOR);
+    const effective = meteringEffectiveLevel(metering);
     const prev = prevEffectiveRef.current;
     prevEffectiveRef.current = effective;
 
@@ -93,16 +93,13 @@ export function WaveformPlaceholder({ state = 'idle', statusLabel, helperText, m
       return;
     }
 
-    const anims = animatedHeights.map((av, i) => {
-      const centreWeight = 1 - Math.abs(i - BAR_COUNT / 2) / (BAR_COUNT / 2);
-      const jitter = (Math.random() - 0.5) * 0.35 * effective;
-      const targetNorm = Math.max(0, Math.min(1, effective * centreWeight + jitter));
-      return Animated.timing(av, {
-        toValue: targetNorm * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
+    const anims = animatedHeights.map((av, i) =>
+      Animated.timing(av, {
+        toValue: meteringBarLevel(effective, i, BAR_COUNT) * BAR_MAX_HEIGHT + BAR_MIN_HEIGHT,
         duration: reducedMotion ? 0 : 80,
         useNativeDriver: false,
-      });
-    });
+      })
+    );
     Animated.parallel(anims).start();
   }, [metering, isRecording, isPlaying, animatedHeights, reducedMotion]);
 
