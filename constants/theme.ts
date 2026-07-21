@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const BuddyBirdColors = {
   primary: '#FF9600',
   primaryDeep: '#FF9600',
@@ -183,19 +185,25 @@ export const Colors = {
   },
 };
 
+// Google 폰트(Fredoka·Nunito)는 config plugin 이 네이티브에 임베드하고 런타임 등록(useFonts)이
+// 없어서, OS 가 폰트를 찾는 이름이 갈린다 — iOS 는 파일 내부 PostScript 이름, Android 는 assets 파일명.
+// 두 이름이 달라 Platform 분기가 필수다(같은 이름으로 쓰려면 useFonts 런타임 등록이 필요, BB-258/BB-201).
+// Pretendard 는 파일명==PostScript 라 한 이름으로 양쪽 다 잡힌다.
+const embeddedFont = (ios: string, android: string) => Platform.select({ ios, default: android });
+
 export const Fonts = {
   sans: 'Pretendard-Regular',
   serif: 'Pretendard-Regular',
-  rounded: 'Nunito_800ExtraBold',
+  rounded: embeddedFont('Nunito-ExtraBold', 'Nunito_800ExtraBold'),
   mono: 'monospace',
-  display: 'Nunito_900Black',
-  displayBold: 'Nunito_700Bold',
-  displayExtraBold: 'Nunito_800ExtraBold',
+  display: embeddedFont('Nunito-Black', 'Nunito_900Black'),
+  displayBold: embeddedFont('Nunito-Bold', 'Nunito_700Bold'),
+  displayExtraBold: embeddedFont('Nunito-ExtraBold', 'Nunito_800ExtraBold'),
   body: 'Pretendard-Regular',
   bodyBold: 'Pretendard-Bold',
   bodyExtraBold: 'Pretendard-ExtraBold',
   bodyBlack: 'Pretendard-Black',
-  splashWordmark: 'Fredoka_600SemiBold',
+  splashWordmark: embeddedFont('Fredoka-SemiBold', 'Fredoka_600SemiBold'),
 } as const;
 
 export const Spacing = {
