@@ -236,10 +236,11 @@ async function restoreOrRecoverSession(
   const activeSnapshot = await sessionAudioEngine.getSnapshot();
   if (
     activeSnapshot?.sessionId === record.snapshot.sessionId &&
-    ['starting', 'running', 'paused', 'interrupted'].includes(activeSnapshot.state)
+    ['starting', 'running', 'paused', 'interrupted', 'completed', 'failed'].includes(activeSnapshot.state)
   ) {
     // JS가 새로 시작됐는데 세션이 살아있는 상태 — 최근 앱 제거 시 네이티브가 세션을
     // 종료하므로 프로덕션에서는 드물다. 세션을 중단하고 아래 적립 경로로 흡수한다.
+    // completed/failed도 configuration이 남아 있으면 이후 start()가 거부되므로 함께 정리한다.
     try {
       record = await sessionAudioEngine.stop();
     } catch (error: unknown) {
