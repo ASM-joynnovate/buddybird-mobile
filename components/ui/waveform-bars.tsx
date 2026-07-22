@@ -3,6 +3,7 @@ import { Animated, StyleSheet, View } from 'react-native';
 
 import { BuddyBirdColors, Motion, Spacing } from '@/constants/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { meteringBarLevel, meteringEffectiveLevel } from '@/components/ui/waveform-metering';
 
 const BAR_HEIGHTS = [
   18, 32, 24, 48, 30, 56, 22, 38, 28, 50, 20, 44, 34, 26, 52, 24,
@@ -18,6 +19,9 @@ interface WaveformBarsProps {
   frozen?: boolean;
   flatLine?: boolean;
   fill?: boolean;
+  // 전달 시 실시간 마이크 metering(0..1|null)에 반응하는 모드로 전환된다(`animated` 무시).
+  // null = 녹음 아님(정지 파형 복귀). 미전달(undefined) = 기존 장식 애니메이션 유지.
+  metering?: number | null;
 }
 
 export function WaveformBars({
@@ -28,6 +32,7 @@ export function WaveformBars({
   frozen = false,
   flatLine = false,
   fill = false,
+  metering,
 }: WaveformBarsProps) {
   const reducedMotion = useReducedMotion();
   const bars = BAR_HEIGHTS.slice(0, barCount);
@@ -39,8 +44,50 @@ export function WaveformBars({
     animValuesRef.current = bars.map((h) => new Animated.Value((h / maxH) * height * 0.9 + height * 0.1));
   }
   const animValues = animValuesRef.current;
+  const prevEffectiveRef = useRef(0);
 
   useEffect(() => {
+    // metering 모드: 실제 마이크 입력에 반응 (opt-in via `metering` prop, `animated` 보다 우선)
+    if (metering !== undefined) {
+      if (metering === null) {
+        // 녹음 아님 — 기본 정지 파형으로 복귀
+        prevEffectiveRef.current = 0;
+        Animated.parallel(
+          bars.map((h, i) =>
+            Animated.timing(animValues[i], {
+              toValue: (h / maxH) * height * 0.9 + height * 0.1,
+              duration: reducedMotion ? 0 : Motion.baseMs,
+              useNativeDriver: false,
+            })
+          )
+        ).start();
+        return;
+      }
+      const effective = meteringEffectiveLevel(metering);
+      const prev = prevEffectiveRef.current;
+      prevEffectiveRef.current = effective;
+      if (effective === 0) {
+        if (prev === 0) return; // 이미 무음 — 애니메이션 불필요
+        // 유음 → 무음 전환: 막대를 최소 높이로 한 번만 내림
+        Animated.parallel(
+          animValues.map((av) =>
+            Animated.timing(av, { toValue: height * 0.1, duration: reducedMotion ? 0 : 150, useNativeDriver: false })
+          )
+        ).start();
+        return;
+      }
+      Animated.parallel(
+        animValues.map((av, i) =>
+          Animated.timing(av, {
+            toValue: meteringBarLevel(effective, i, bars.length) * height * 0.9 + height * 0.1,
+            duration: reducedMotion ? 0 : 80,
+            useNativeDriver: false,
+          })
+        )
+      ).start();
+      return;
+    }
+
     if (animated && !reducedMotion) {
       let active = true;
       function animateLoop() {
@@ -82,7 +129,7 @@ export function WaveformBars({
         })
       )
     ).start();
-  }, [animated, frozen, flatLine, height, reducedMotion]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [animated, frozen, flatLine, height, reducedMotion, metering]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View style={[styles.container, fill ? styles.containerFill : undefined, { height }]}>

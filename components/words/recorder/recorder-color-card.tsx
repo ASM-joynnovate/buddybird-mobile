@@ -23,6 +23,7 @@ interface RecorderColorCardProps {
   kicker: string;
   statusLabel: string;
   lifecycle: RecordingLifecycle;
+  metering: number | null;
   onToggle: () => void;
 }
 
@@ -33,6 +34,7 @@ export function RecorderColorCard({
   kicker,
   statusLabel,
   lifecycle,
+  metering,
   onToggle,
 }: RecorderColorCardProps) {
   const { t } = useI18n();
@@ -52,7 +54,7 @@ export function RecorderColorCard({
         {displayLabel}
       </Text>
       <View style={styles.waveform}>
-        <WaveformBars animated={isRecording} barCount={48} color={BuddyBirdColors.onDark} fill height={48} />
+        <WaveformBars metering={metering} barCount={48} color={BuddyBirdColors.onDark} fill height={48} />
       </View>
       <Pressable3D
         accessibilityLabel={isRecording ? t('recording.stopA11y') : t('recording.startA11y')}

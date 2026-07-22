@@ -131,6 +131,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
               emptyLabel={t('wordCreate.emptyWord')}
               kicker={t('wordCreate.recorderKicker')}
               lifecycle={session.state}
+              metering={session.metering}
               onToggle={handleToggleRecording}
               statusLabel={recorderStatusLabel}
               tag={tag}
