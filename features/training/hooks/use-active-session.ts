@@ -72,6 +72,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const snapshotRef = useRef(snapshot);
   snapshotRef.current = snapshot;
   const completionHandledRef = useRef(false);
+  const failureHandledRef = useRef(false);
   const finalizePromiseRef = useRef<Promise<void> | null>(null);
 
   const acceptSnapshot = useCallback((next: SessionEngineSnapshot): void => {
@@ -250,6 +251,23 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     completionHandledRef.current = true;
     void finalizeSession();
   }, [finalizeSession, snapshot.state]);
+
+  // 실패한 세션도 stop()으로 네이티브 configuration을 비워야 다음 start()가 거부되지 않는다.
+  // 로컬에서만 failed로 표시된 경우(start 자체가 실패)는 네이티브에 세션이 없을 수 있으므로,
+  // 실제 네이티브 세션이 우리 것이거나 종단 상태로 잔존할 때만 정리한다.
+  useEffect(() => {
+    if (snapshot.state !== 'failed' || failureHandledRef.current) return;
+    failureHandledRef.current = true;
+    void sessionAudioEngine.getSnapshot()
+      .then((native) => {
+        if (!native) return;
+        if (native.sessionId !== sessionId && native.state !== 'failed' && native.state !== 'completed') return;
+        return finalizeSession();
+      })
+      .catch((error: unknown) => {
+        reportError(error, { scope: 'training.sessionAudio.finalizeFailed', screen_name: 'session_active' });
+      });
+  }, [finalizeSession, sessionId, snapshot.state]);
 
   useSessionKeepAwake(snapshot.state === 'running');
 
