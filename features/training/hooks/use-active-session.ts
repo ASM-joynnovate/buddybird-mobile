@@ -25,6 +25,10 @@ import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
 import { useSessionKeepAwake } from './use-session-keep-awake';
 
+// 네이티브 주도 종료(알림 "중지" 등) 감지 대상 — starting은 start가 아직 in-flight라
+// 네이티브에 세션이 없는 게 정상이므로 오탐 방지를 위해 제외한다.
+const EXTERNALLY_ENDED_STATUSES: SessionStatus[] = ['running', 'paused', 'interrupted'];
+
 interface UseActiveSessionInput {
   wordId: string;
   settings: TrainingSessionSettings;
@@ -34,6 +38,7 @@ interface UseActiveSessionInput {
 
 export interface UseActiveSessionResult {
   status: SessionStatus;
+  endedExternally: boolean;
   phase: 'learning' | 'rest';
   cycle: number;
   totalCycles: number;
@@ -63,6 +68,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     restSecs,
   });
   const [snapshot, setSnapshot] = useState<SessionEngineSnapshot>(() => initialSnapshot(sessionId));
+  const [endedExternally, setEndedExternally] = useState(false);
   const snapshotRef = useRef(snapshot);
   snapshotRef.current = snapshot;
   const completionHandledRef = useRef(false);
@@ -160,7 +166,13 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
         void sessionAudioEngine.getSnapshot().then((next) => {
-          if (next) acceptSnapshot(next);
+          if (next) {
+            acceptSnapshot(next);
+            return;
+          }
+          // 알림 "중지" 같은 네이티브 주도 종료는 이벤트를 emit하지 않는다 — 로컬이 진행
+          // 계열인데 네이티브에 세션이 없으면 외부 종료로 간주해 화면 이탈을 트리거한다.
+          if (EXTERNALLY_ENDED_STATUSES.includes(snapshotRef.current.state)) setEndedExternally(true);
         }).catch((error: unknown) => reportError(error, { scope: 'training.sessionAudio.getSnapshot' }));
         void syncUnstoredSegments();
         return;
@@ -263,6 +275,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   return {
     status: snapshot.state,
+    endedExternally,
     phase: snapshot.phase,
     cycle: Math.min(snapshot.cycle, totalCycles),
     totalCycles,

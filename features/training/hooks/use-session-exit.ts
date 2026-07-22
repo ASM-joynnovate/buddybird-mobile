@@ -1,6 +1,6 @@
 import { usePreventRemove } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 
 import type { SessionStatus } from '../session-config';
@@ -12,6 +12,8 @@ interface UseSessionExitOptions {
   status: SessionStatus;
   // 세션을 실제로 중단하는 부수효과만 수행한다(화면 이동은 이 훅이 책임진다).
   stopSession: () => void;
+  // 알림 "중지" 등 네이티브 주도 종료가 감지됨 — 종료 버튼과 같은 경로로 정리하고 나간다.
+  endedExternally: boolean;
 }
 
 interface UseSessionExitResult {
@@ -25,18 +27,28 @@ interface UseSessionExitResult {
 // 백그라운드 재생은 홈으로 나가 자리를 비운 동안을 위한 것이지, 앱 안에서 뒤로 나가는 경우가 아니다.
 // 뒤로가기를 그대로 통과시키면 네이티브 세션만 남아 화면 어디에도 보이지 않는 채로 마이크를 붙들기 때문에
 // (그 상태에서는 단어 녹음도 막힌다) 종료할지 계속 진행할지 먼저 묻는다.
-export function useSessionExit({ status, stopSession }: UseSessionExitOptions): UseSessionExitResult {
+export function useSessionExit({ status, stopSession, endedExternally }: UseSessionExitOptions): UseSessionExitResult {
   const router = useRouter();
   const [isExiting, setIsExiting] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+  const exitStartedRef = useRef(false);
 
   // 중단을 결정한 뒤에는 가로채기를 끄고 다음 렌더에서 이동한다.
   // 같은 핸들러 안에서 곧바로 이동하면 아직 가로채기가 살아 있어 확인창이 다시 뜬다.
+  // ref 재진입 가드: 종료 버튼 연타나 외부 종료 감지와 수동 탭이 겹쳐도
+  // stopSession(중단 이벤트·지표 flush)은 한 번만 실행된다.
   const exitWithStop = useCallback((): void => {
+    if (exitStartedRef.current) return;
+    exitStartedRef.current = true;
     setIsConfirmVisible(false);
     stopSession();
     setIsExiting(true);
   }, [stopSession]);
+
+  // 외부 종료(알림 "중지")는 세션이 이미 끝난 상태라 확인 없이 종료 버튼과 같은 경로로 나간다.
+  useEffect(() => {
+    if (endedExternally) exitWithStop();
+  }, [endedExternally, exitWithStop]);
 
   // 뒤로가기는 가로채기만 하고 이동 action 은 버린다 — 확인창을 띄운 채 학습 화면에 머문다.
   usePreventRemove(RUNNING_STATUSES.includes(status) && !isExiting, () => {

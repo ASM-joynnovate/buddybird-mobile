@@ -30,7 +30,12 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   }
 
   function handleStop(): void {
-    const durationMs = Date.now() - startedAtRef.current;
+    // 외부 종료(알림 "중지") 후 뒤늦게 복귀한 경우 벽시계 차이에 백그라운드 공백이 섞이므로
+    // 설정된 세션 총 길이로 클램프해 지표 오염을 막는다.
+    const durationMs = Math.min(
+      Date.now() - startedAtRef.current,
+      pendingSession.settings.totalDurationSeconds * 1000,
+    );
     track({
       name: 'training_session_abandoned',
       params: {
