@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Text } from '@/components/ui/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,7 +75,12 @@ export function OnboardingProfileView({
   return (
     <View style={[styles.safeArea, { paddingTop: insets.top + 56 }]}>
       <OnboardingProgressHeader onBack={onBack} step={2} total={2} />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        bottomOffset={24}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.intro}>
           <Image
             accessibilityLabel={t('common.mascotA11y')}
@@ -105,7 +111,7 @@ export function OnboardingProfileView({
           speciesPlaceholder={speciesPlaceholder}
         />
         {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 34 }]}>
         <PillButton disabled={isSaving} full label={ctaLabel} onPress={onSubmit} size="lg" />
       </View>

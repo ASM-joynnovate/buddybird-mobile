@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { type ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
@@ -31,23 +32,25 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <FcmHeadlessGuard>
       <GestureHandlerRootView style={styles.root}>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-          <AuthProvider>
-            <AnalyticsProvider>
-              <I18nProvider>
-                <ProfileProvider>
-                  <TrainingDataProvider>
-                    <WordLibraryProvider>
-                      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                        <FeedbackProvider>{children}</FeedbackProvider>
-                      </ThemeProvider>
-                    </WordLibraryProvider>
-                  </TrainingDataProvider>
-                </ProfileProvider>
-              </I18nProvider>
-            </AnalyticsProvider>
-          </AuthProvider>
-        </SafeAreaProvider>
+        <KeyboardProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <AuthProvider>
+              <AnalyticsProvider>
+                <I18nProvider>
+                  <ProfileProvider>
+                    <TrainingDataProvider>
+                      <WordLibraryProvider>
+                        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                          <FeedbackProvider>{children}</FeedbackProvider>
+                        </ThemeProvider>
+                      </WordLibraryProvider>
+                    </TrainingDataProvider>
+                  </ProfileProvider>
+                </I18nProvider>
+              </AnalyticsProvider>
+            </AuthProvider>
+          </SafeAreaProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
     </FcmHeadlessGuard>
   );
