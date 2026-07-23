@@ -32,7 +32,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <FcmHeadlessGuard>
       <GestureHandlerRootView style={styles.root}>
-        <KeyboardProvider>
+        <KeyboardProvider navigationBarTranslucent statusBarTranslucent>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <AuthProvider>
               <AnalyticsProvider>
