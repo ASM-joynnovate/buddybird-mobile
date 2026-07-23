@@ -67,7 +67,7 @@ export default function ProfileEditScreen() {
   }
 
   return (
-    <PetScreen contentStyle={styles.content}>
+    <PetScreen avoidKeyboard contentStyle={styles.content}>
       <ProfileEditForm
         form={form}
         errors={errors}
