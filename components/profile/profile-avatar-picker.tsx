@@ -8,6 +8,7 @@ import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { BuddyBirdColors, Depth, Typography } from '@/constants/theme';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
+import { beginMediaPickerGate, endMediaPickerGate } from '@/features/shared/media-picker-gate';
 
 interface ProfileAvatarPickerProps {
   actionIcon?: IconSymbolName;
@@ -24,6 +25,9 @@ export function ProfileAvatarPicker({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function pickImage(): Promise<void> {
+    // 픽커가 떠 있는 동안 Android의 background 전이가 앱 이탈로 오판되지 않게 게이트를 건다.
+    beginMediaPickerGate();
+
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
@@ -38,6 +42,8 @@ export function ProfileAvatarPicker({
     } catch (error: unknown) {
       reportError(error, { scope: 'profile.avatarPick' });
       setErrorMessage(t('profile.avatarError'));
+    } finally {
+      endMediaPickerGate();
     }
   }
 
