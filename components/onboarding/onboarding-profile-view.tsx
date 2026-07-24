@@ -4,30 +4,26 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Text } from '@/components/ui/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { OnboardingProgressHeader } from '@/components/onboarding/onboarding-progress-header';
 import { OnboardingProfileForm } from '@/components/onboarding/onboarding-profile-form';
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
 import { PillButton } from '@/components/ui/pill-button';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
 interface OnboardingProfileViewProps {
-  ageLabel: string;
-  ageMonths: number;
+  birthDate: string | null;
+  birthDateLabel: string;
   ctaLabel: string;
   customMode: boolean;
-  customInputLabel: string;
   errors: ProfileValidationErrors;
   intro: string;
   isSaving: boolean;
   name: string;
   nameLabel: string;
   namePlaceholder: string;
-  onAgeMonthsChange: (months: number) => void;
-  onBack: () => void;
+  onBirthDateChange: (birthDate: string | null) => void;
   onCustomMode: () => void;
   onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;
@@ -38,24 +34,21 @@ interface OnboardingProfileViewProps {
   saveError: string | null;
   species: string;
   speciesLabel: string;
-  speciesOptions: SpeciesOption[];
   speciesPlaceholder: string;
 }
 
 export function OnboardingProfileView({
-  ageLabel,
-  ageMonths,
+  birthDate,
+  birthDateLabel,
   ctaLabel,
   customMode,
-  customInputLabel,
   errors,
   intro,
   isSaving,
   name,
   nameLabel,
   namePlaceholder,
-  onAgeMonthsChange,
-  onBack,
+  onBirthDateChange,
   onCustomMode,
   onCustomSpeciesChange,
   onNameChange,
@@ -66,15 +59,13 @@ export function OnboardingProfileView({
   saveError,
   species,
   speciesLabel,
-  speciesOptions,
   speciesPlaceholder,
 }: OnboardingProfileViewProps) {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top + 56 }]}>
-      <OnboardingProgressHeader onBack={onBack} step={2} total={2} />
+    <View style={[styles.safeArea, { paddingTop: insets.top + Spacing.md }]}>
       <KeyboardAwareScrollView
         bottomOffset={24}
         contentContainerStyle={styles.scrollContent}
@@ -92,22 +83,20 @@ export function OnboardingProfileView({
         </View>
         <ProfileAvatarPicker actionIcon="plus" photoUri={photoUri} onPhotoSelected={onPhotoSelected} />
         <OnboardingProfileForm
-          ageLabel={ageLabel}
-          ageMonths={ageMonths}
+          birthDate={birthDate}
+          birthDateLabel={birthDateLabel}
           customMode={customMode}
-          customInputLabel={customInputLabel}
           errors={errors}
           name={name}
           nameLabel={nameLabel}
           namePlaceholder={namePlaceholder}
-          onAgeMonthsChange={onAgeMonthsChange}
+          onBirthDateChange={onBirthDateChange}
           onCustomMode={onCustomMode}
           onCustomSpeciesChange={onCustomSpeciesChange}
           onNameChange={onNameChange}
           onSpeciesChange={onSpeciesChange}
           species={species}
           speciesLabel={speciesLabel}
-          speciesOptions={speciesOptions}
           speciesPlaceholder={speciesPlaceholder}
         />
         {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
