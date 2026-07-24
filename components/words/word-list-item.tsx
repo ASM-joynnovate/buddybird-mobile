@@ -57,14 +57,16 @@ export function WordListItem({
           <Text style={styles.sourceText}>{sourceLabel}</Text>
         </View>
       </View>
-      <Pressable
-        accessibilityLabel={t('wordLibrary.deleteA11y', { label })}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={onDelete}
-        style={styles.deleteBtn}>
-        <IconSymbol name="trash" size={17} color={BuddyBirdColors.inkMuted} />
-      </Pressable>
+      {!isPreset && (
+        <Pressable
+          accessibilityLabel={t('wordLibrary.deleteA11y', { label })}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={onDelete}
+          style={styles.deleteBtn}>
+          <IconSymbol name="trash" size={17} color={BuddyBirdColors.inkMuted} />
+        </Pressable>
+      )}
       <Pressable3D
         accessibilityLabel={t('wordLibrary.previewA11y', { label })}
         accessibilityRole="button"

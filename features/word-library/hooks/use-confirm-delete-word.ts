@@ -13,6 +13,7 @@ export function useConfirmDeleteWord(): (entry: WordEntry) => void {
 
   return useCallback(
     (entry: WordEntry) => {
+      if (entry.sourceType === 'preset') return; // 프리셋은 삭제 불가 (UI 우회 방지)
       Alert.alert(t('wordEdit.confirmDelete', { label: entry.label }), undefined, [
         { text: t('common.cancel'), style: 'cancel' },
         {
