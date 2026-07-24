@@ -17,6 +17,9 @@ interface ProfileContextValue {
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
+// profile_updated의 fields_changed 대상 — 사용자가 편집 가능한 필드만 (updatedAt 등 메타 제외).
+const PROFILE_UPDATE_TRACKED_FIELDS = ['name', 'species', 'birthDate', 'photoUri'] as const;
+
 export function ProfileProvider({ children }: PropsWithChildren) {
   // analytics seam은 optional로 구독한다. AnalyticsProvider가 바깥에 있으면(정상 순서)
   // 아래 effect가 준비 시점에 user property를 동기화하고, 없으면 동기화를 건너뛴다 —
@@ -24,6 +27,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
   const analytics = useOptionalAnalytics();
   const analyticsReady = analytics?.isReady ?? false;
   const setUserProperty = analytics?.setUserProperty ?? null;
+  const track = analytics?.track ?? null;
 
   const [profile, setProfile] = useState<ParrotProfile | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -106,12 +110,35 @@ export function ProfileProvider({ children }: PropsWithChildren) {
 
   const updateProfile = useCallback(
     async (nextProfile: ParrotProfile): Promise<void> => {
+      const previousProfile = profile;
+
       await saveProfile({
         ...nextProfile,
         updatedAt: new Date().toISOString(),
       });
+
+      // 저장 성공 후에만 발화. 변경 필드가 없으면(동일 내용 저장) 노이즈 방지를 위해 생략.
+      if (!track || !previousProfile) return;
+
+      const fieldsChanged = PROFILE_UPDATE_TRACKED_FIELDS.filter(
+        (field) => previousProfile[field] !== nextProfile[field]
+      );
+
+      if (fieldsChanged.length === 0) return;
+
+      track({
+        name: 'profile_updated',
+        params: {
+          fields_changed: fieldsChanged,
+          ...(fieldsChanged.includes('name') ? { parrot_name: nextProfile.name } : {}),
+          ...(fieldsChanged.includes('species') ? { parrot_species: nextProfile.species } : {}),
+          ...(fieldsChanged.includes('birthDate')
+            ? { parrot_age_months: ageMonthsFromBirthDate(nextProfile.birthDate) ?? undefined }
+            : {}),
+        },
+      });
     },
-    [saveProfile]
+    [profile, saveProfile, track]
   );
 
   const value = useMemo(
