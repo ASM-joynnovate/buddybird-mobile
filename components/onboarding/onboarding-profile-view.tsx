@@ -24,7 +24,6 @@ interface OnboardingProfileViewProps {
   nameLabel: string;
   namePlaceholder: string;
   onBirthDateChange: (birthDate: string | null) => void;
-  onBack: () => void;
   onCustomMode: () => void;
   onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;

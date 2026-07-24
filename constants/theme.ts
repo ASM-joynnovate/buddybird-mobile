@@ -74,7 +74,6 @@ export const BuddyBirdColors = {
   disabledText: '#AFAFAF',
   stage: '#DDF4FF',
   scrim: '#00000066',
-  shineWhite: '#FFFFFF66',
   innerShadowSoft: '#00000014',
   greenTint: '#FFE8CC',
   blueTint: '#DDF4FF',

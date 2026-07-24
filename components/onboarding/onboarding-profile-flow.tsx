@@ -14,11 +14,7 @@ import { createProfileFromDraft, validateProfileDraft } from '@/features/profile
 // 온보딩 기본 생년월일: 약 1살(12개월 전 그 달 1일).
 const DEFAULT_AGE_MONTHS = 12;
 
-interface OnboardingProfileFlowProps {
-  onBack: () => void;
-}
-
-export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
+export function OnboardingProfileFlow() {
   const { t } = useI18n();
   const { track, recordError } = useAnalytics();
   const { draft, setDraft } = useOnboardingDraft();
@@ -127,7 +123,6 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
       nameLabel={t('onboarding.profile.nameLabel')}
       namePlaceholder={t('onboarding.profile.namePlaceholder')}
       onBirthDateChange={handleBirthDateChange}
-      onBack={onBack}
       onCustomMode={toggleCustomMode}
       onCustomSpeciesChange={changeCustomSpecies}
       onNameChange={handleNameChange}
