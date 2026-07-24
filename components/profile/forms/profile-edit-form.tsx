@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '@/components/ui/app-text';
 
 import { BirthDateField } from '@/components/profile/birthdate-field';
+import { CustomSpeciesChip } from '@/components/profile/custom-species-chip';
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
 import { SpeciesChips } from '@/components/profile/species-chips';
 import { FormField } from '@/components/ui/form-field';
@@ -40,8 +41,9 @@ export function ProfileEditForm({
     onPatch({ species: speciesId });
   }
 
-  function enterCustomMode(): void {
-    setIsCustomMode(true);
+  function toggleCustomMode(): void {
+    // 다시 누르면 해제 — 어느 방향이든 선택된 종은 비운다.
+    setIsCustomMode((prev) => !prev);
     onPatch({ species: '' });
   }
 
@@ -66,13 +68,12 @@ export function ProfileEditForm({
             value={form.name}
           />
         </FormField>
-        <FormField error={errors.species} label={t('profile.speciesLabel')} labelStyle={styles.fieldLabel}>
-          <SpeciesChips
-            selectedId={form.species}
-            customActive={isCustomMode}
-            onSelectPreset={selectPreset}
-            onCustom={enterCustomMode}
-          />
+        <FormField
+          error={errors.species}
+          label={t('profile.speciesLabel')}
+          labelStyle={styles.fieldLabel}
+          labelAccessory={<CustomSpeciesChip active={isCustomMode} onPress={toggleCustomMode} />}
+        >
           {isCustomMode ? (
             <TextInput
               autoCapitalize="none"
@@ -83,7 +84,9 @@ export function ProfileEditForm({
               style={styles.input}
               value={form.species}
             />
-          ) : null}
+          ) : (
+            <SpeciesChips selectedId={form.species} onSelectPreset={selectPreset} />
+          )}
         </FormField>
         <BirthDateField
           label={t('common.birthDate.label')}

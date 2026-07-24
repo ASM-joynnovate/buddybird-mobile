@@ -4,7 +4,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Text } from '@/components/ui/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { OnboardingProgressHeader } from '@/components/onboarding/onboarding-progress-header';
 import { OnboardingProfileForm } from '@/components/onboarding/onboarding-profile-form';
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
 import { PillButton } from '@/components/ui/pill-button';
@@ -51,7 +50,6 @@ export function OnboardingProfileView({
   nameLabel,
   namePlaceholder,
   onBirthDateChange,
-  onBack,
   onCustomMode,
   onCustomSpeciesChange,
   onNameChange,
@@ -68,8 +66,7 @@ export function OnboardingProfileView({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top + 56 }]}>
-      <OnboardingProgressHeader onBack={onBack} step={2} total={2} />
+    <View style={[styles.safeArea, { paddingTop: insets.top + Spacing.md }]}>
       <KeyboardAwareScrollView
         bottomOffset={24}
         contentContainerStyle={styles.scrollContent}

@@ -7,15 +7,14 @@ import { useI18n } from '@/features/i18n/i18n-context';
 import { getSpeciesGroups } from '@/features/profile/profile-options';
 
 interface SpeciesChipsProps {
-  selectedId: string; // 현재 선택된 프리셋 종 id ('' 또는 직접입력이면 미선택)
-  customActive: boolean;
+  selectedId: string; // 현재 선택된 프리셋 종 id (없으면 '')
   onSelectPreset: (id: string) => void;
-  onCustom: () => void;
 }
 
-// 종을 소/중/대 그룹으로 묶어 칩으로 배치한다. 온보딩·프로필 편집 폼이 공유.
-export function SpeciesChips({ selectedId, customActive, onSelectPreset, onCustom }: SpeciesChipsProps) {
-  const { locale, t } = useI18n();
+// 종을 소/중/대 그룹으로 묶어 칩으로 배치한다. '직접 입력' 토글은 상위 FormField 라벨 행이 소유하며,
+// 직접 입력 모드에서는 렌더되지 않는다(폼이 입력칸으로 교체). 온보딩·프로필 편집 폼이 공유.
+export function SpeciesChips({ selectedId, onSelectPreset }: SpeciesChipsProps) {
+  const { locale } = useI18n();
   const groups = getSpeciesGroups(locale);
 
   return (
@@ -27,7 +26,7 @@ export function SpeciesChips({ selectedId, customActive, onSelectPreset, onCusto
             {group.options.map((option) => (
               <Chip
                 key={option.id}
-                active={!customActive && selectedId === option.id}
+                active={selectedId === option.id}
                 label={option.label}
                 onPress={() => onSelectPreset(option.id)}
               />
@@ -35,9 +34,6 @@ export function SpeciesChips({ selectedId, customActive, onSelectPreset, onCusto
           </View>
         </View>
       ))}
-      <View style={styles.chips}>
-        <Chip active={customActive} label={t('common.customInput')} onPress={onCustom} tone="sun" />
-      </View>
     </View>
   );
 }

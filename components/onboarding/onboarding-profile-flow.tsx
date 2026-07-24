@@ -70,8 +70,9 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
     setErrors((currentErrors) => ({ ...currentErrors, species: undefined }));
   }
 
-  function enableCustomMode(): void {
-    setCustomMode(true);
+  function toggleCustomMode(): void {
+    // 다시 누르면 해제 — 어느 방향이든 선택된 종은 비운다.
+    setCustomMode((prev) => !prev);
     setSpecies('');
   }
 
@@ -127,7 +128,7 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
       namePlaceholder={t('onboarding.profile.namePlaceholder')}
       onBirthDateChange={handleBirthDateChange}
       onBack={onBack}
-      onCustomMode={enableCustomMode}
+      onCustomMode={toggleCustomMode}
       onCustomSpeciesChange={changeCustomSpecies}
       onNameChange={handleNameChange}
       onPhotoSelected={setPhotoUri}

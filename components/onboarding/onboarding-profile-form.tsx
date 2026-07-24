@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { TextInput } from '@/components/ui/app-text';
 
 import { BirthDateField } from '@/components/profile/birthdate-field';
+import { CustomSpeciesChip } from '@/components/profile/custom-species-chip';
 import { SpeciesChips } from '@/components/profile/species-chips';
 import { FormField } from '@/components/ui/form-field';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
@@ -45,7 +46,7 @@ export function OnboardingProfileForm({
 }: OnboardingProfileFormProps) {
   return (
     <View style={styles.form}>
-      <FormField error={errors.name} label={nameLabel}>
+      <FormField error={errors.name} label={nameLabel} labelStyle={styles.fieldLabel}>
         <TextInput
           autoCapitalize="none"
           onChangeText={onNameChange}
@@ -56,13 +57,12 @@ export function OnboardingProfileForm({
         />
       </FormField>
 
-      <FormField error={errors.species} label={speciesLabel}>
-        <SpeciesChips
-          selectedId={species}
-          customActive={customMode}
-          onSelectPreset={onSpeciesChange}
-          onCustom={onCustomMode}
-        />
+      <FormField
+        error={errors.species}
+        label={speciesLabel}
+        labelStyle={styles.fieldLabel}
+        labelAccessory={<CustomSpeciesChip active={customMode} onPress={onCustomMode} />}
+      >
         {customMode ? (
           <TextInput
             autoCapitalize="none"
@@ -70,14 +70,17 @@ export function OnboardingProfileForm({
             onChangeText={onCustomSpeciesChange}
             placeholder={speciesPlaceholder}
             placeholderTextColor={BuddyBirdColors.placeholderMuted}
-            style={[styles.input, styles.customSpeciesInput]}
+            style={styles.input}
             value={species}
           />
-        ) : null}
+        ) : (
+          <SpeciesChips selectedId={species} onSelectPreset={onSpeciesChange} />
+        )}
       </FormField>
 
       <BirthDateField
         label={birthDateLabel}
+        labelStyle={styles.fieldLabel}
         error={errors.birthDate}
         value={birthDate}
         onChange={onBirthDateChange}
@@ -90,6 +93,9 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.sectionY,
   },
+  fieldLabel: {
+    fontSize: 16,
+  },
   input: {
     backgroundColor: BuddyBirdColors.surface,
     borderColor: BuddyBirdColors.borderMuted,
@@ -101,8 +107,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     minHeight: 50,
     paddingHorizontal: Spacing.fieldPaddingX,
-  },
-  customSpeciesInput: {
-    marginTop: Spacing.sectionHeadGap,
   },
 });

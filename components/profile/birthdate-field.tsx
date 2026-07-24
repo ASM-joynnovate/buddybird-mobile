@@ -44,7 +44,12 @@ export function BirthDateField({ label, value, onChange, error, labelStyle }: Bi
       labelStyle={labelStyle}
       error={error}
       labelAccessory={
-        <Chip active={isUnknown} label={t('common.birthDate.unknown')} onPress={toggleUnknown} tone="sun" />
+        <Chip
+          active={isUnknown}
+          label={isUnknown ? t('common.selected') : t('common.birthDate.unknown')}
+          onPress={toggleUnknown}
+          tone="primary"
+        />
       }
     >
       {value !== null ? (
