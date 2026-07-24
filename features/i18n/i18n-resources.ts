@@ -12,12 +12,6 @@ interface AppCopy {
     saving: string;
     selected: string;
     start: string;
-    age: {
-      months: string;
-      years: string;
-      yearsMonths: string;
-      unknown: string;
-    };
     birthDate: {
       label: string;
       yearUnit: string;
@@ -306,12 +300,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saving: '저장 중...',
       selected: '선택',
       start: '시작하기',
-      age: {
-        months: '%{months}개월',
-        years: '%{years}년',
-        yearsMonths: '%{years}년 %{months}개월',
-        unknown: '나이 모름',
-      },
       birthDate: {
         label: '생년월일',
         yearUnit: '년',
@@ -621,12 +609,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saving: 'Saving...',
       selected: 'Selected',
       start: 'Get started',
-      age: {
-        months: '%{months} mo',
-        years: '%{years} yr',
-        yearsMonths: '%{years} yr %{months} mo',
-        unknown: 'Age unknown',
-      },
       birthDate: {
         label: 'Birth date',
         yearUnit: 'Y',

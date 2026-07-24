@@ -29,21 +29,6 @@ export function validateProfileDraft(draft: ProfileDraft, t: Translate): Profile
   };
 }
 
-export function formatAgeMonths(ageMonths: number, t: Translate): string {
-  const years = Math.floor(ageMonths / 12);
-  const months = ageMonths % 12;
-
-  if (years === 0) {
-    return t('common.age.months', { months });
-  }
-
-  if (months === 0) {
-    return t('common.age.years', { years });
-  }
-
-  return t('common.age.yearsMonths', { months, years });
-}
-
 export function createProfileFromDraft(draft: ProfileDraft, nowIso: string): ParrotProfile {
   const species = draft.species.trim();
 
