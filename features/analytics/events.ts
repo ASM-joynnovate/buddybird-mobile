@@ -185,10 +185,6 @@ export type AnalyticsEvent =
       };
     }
   | {
-      name: 'word_renamed';
-      params: { word_id: string; old_name: string; new_name: string };
-    }
-  | {
       name: 'word_lifetime_metrics';
       params: {
         word_id: string;

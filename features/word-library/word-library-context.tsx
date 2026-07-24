@@ -21,7 +21,6 @@ interface WordLibraryContextValue {
   isHydrated: boolean;
   errorMessage: string | null;
   createEntry: (input: CreateWordEntryInput) => Promise<WordEntry>;
-  updateEntry: (entry: WordEntry) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
 }
 
@@ -114,13 +113,6 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
     [updateStore]
   );
 
-  const updateEntry = useCallback(
-    async (entry: WordEntry): Promise<void> => {
-      await updateStore((current, nowIso) => upsertWordEntry(current, entry, nowIso));
-    },
-    [updateStore]
-  );
-
   const deleteEntry = useCallback(
     async (id: string): Promise<void> => {
       await updateStore((current, nowIso) => deleteWordEntry(current, id, nowIso));
@@ -139,10 +131,9 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       isHydrated,
       errorMessage: loadFailed ? t('wordLibrary.loadError') : null,
       createEntry,
-      updateEntry,
       deleteEntry,
     }),
-    [entries, isHydrated, loadFailed, t, createEntry, updateEntry, deleteEntry]
+    [entries, isHydrated, loadFailed, t, createEntry, deleteEntry]
   );
 
   return <WordLibraryContext.Provider value={value}>{children}</WordLibraryContext.Provider>;
