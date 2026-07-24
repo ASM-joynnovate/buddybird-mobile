@@ -12,10 +12,16 @@ interface AppCopy {
     saving: string;
     selected: string;
     start: string;
-    age: {
-      months: string;
-      years: string;
-      yearsMonths: string;
+    birthDate: {
+      label: string;
+      yearUnit: string;
+      monthUnit: string;
+      dayUnit: string;
+      unknown: string;
+      unknownHint: string;
+      yearPickerA11y: string;
+      monthPickerA11y: string;
+      dayPickerA11y: string;
     };
     duration: {
       seconds: string;
@@ -35,6 +41,7 @@ interface AppCopy {
   validation: {
     nameRequired: string;
     speciesRequired: string;
+    birthDateFuture: string;
   };
   onboarding: {
     welcome: {
@@ -52,7 +59,6 @@ interface AppCopy {
       namePlaceholder: string;
       speciesLabel: string;
       speciesPlaceholder: string;
-      ageLabel: string;
       minusMonth: string;
       plusMonth: string;
     };
@@ -239,9 +245,7 @@ interface AppCopy {
     avatarSelect: string;
     avatarError: string;
     editTitle: string;
-    editSubtitle: string;
     editBackA11y: string;
-    ageLabel: string;
     achievementsTitle: string;
     streakAchievementLabel: string;
     streakAchievementSub: string;
@@ -255,6 +259,7 @@ interface AppCopy {
   };
   profileOptions: {
     speciesOptions: Record<string, string>;
+    sizeLabels: Record<'small' | 'medium' | 'large', string>;
   };
   feedback: {
     promptTitle: string;
@@ -285,17 +290,23 @@ export const translations: Record<AppLocale, AppCopy> = {
     common: {
       add: '추가',
       cancel: '취소',
-      customInput: '+ 직접입력',
+      customInput: '직접 입력',
       directInput: '직접입력',
       next: '다음',
       save: '저장',
       saving: '저장 중...',
       selected: '선택',
       start: '시작하기',
-      age: {
-        months: '%{months}개월',
-        years: '%{years}년',
-        yearsMonths: '%{years}년 %{months}개월',
+      birthDate: {
+        label: '생년월일',
+        yearUnit: '년',
+        monthUnit: '월',
+        dayUnit: '일',
+        unknown: '모름',
+        unknownHint: '생년월일을 몰라도 괜찮아요.',
+        yearPickerA11y: '태어난 연도 선택',
+        monthPickerA11y: '태어난 월 선택',
+        dayPickerA11y: '태어난 일 선택',
       },
       duration: {
         seconds: '%{seconds}초',
@@ -318,6 +329,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: '반려조 이름을 입력해 주세요.',
       speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
+      birthDateFuture: '생년월일은 오늘 이후로 설정할 수 없어요.',
     },
     onboarding: {
       welcome: {
@@ -329,13 +341,12 @@ export const translations: Record<AppLocale, AppCopy> = {
       },
       profile: {
         title: '반려조 프로필을\n알려주세요',
-        intro: '새 친구를 소개해 주세요!',
+        intro: '우리 앵무새를 소개해 주세요!',
         body: '',
         nameLabel: '이름',
         namePlaceholder: '예: 망고',
         speciesLabel: '종',
         speciesPlaceholder: '종을 입력해 주세요',
-        ageLabel: '나이 · %{years}년 %{months}개월',
         minusMonth: '- 1개월',
         plusMonth: '+ 1개월',
       },
@@ -522,9 +533,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       avatarSelect: '프로필 사진 선택',
       avatarError: '사진을 불러오지 못했어요. 사진 없이 계속할 수 있어요.',
       editTitle: '프로필 편집',
-      editSubtitle: '우리 아이의 정보를 수정해요.',
       editBackA11y: '프로필 화면으로 돌아가기',
-      ageLabel: '나이 · %{age}',
       achievementsTitle: '업적',
       streakAchievementLabel: '%{days}일 연속',
       streakAchievementSub: '불꽃 지킴이',
@@ -539,11 +548,25 @@ export const translations: Record<AppLocale, AppCopy> = {
     profileOptions: {
       speciesOptions: {
         'african-grey': '회색앵무',
-        budgie: '사랑앵무',
+        amazon: '아마존앵무',
+        budgie: '사랑앵무(잉꼬)',
+        caique: '카이큐',
+        cockatiel: '왕관앵무',
         cockatoo: '코카투',
         conure: '코뉴어',
+        eclectus: '뉴기니아앵무',
+        lory: '로리앵무',
         lovebird: '모란앵무',
-        parakeet: '잉꼬',
+        macaw: '금강앵무',
+        parrotlet: '유리앵무',
+        quaker: '퀘이커',
+        ringneck: '목도리앵무',
+        senegal: '세네갈앵무',
+      },
+      sizeLabels: {
+        small: '소형',
+        medium: '중형',
+        large: '대형',
       },
     },
     feedback: {
@@ -573,23 +596,29 @@ export const translations: Record<AppLocale, AppCopy> = {
     common: {
       add: 'Add',
       cancel: 'Cancel',
-      customInput: '+ Custom',
+      customInput: 'Custom',
       directInput: 'Custom',
       next: 'Next',
       save: 'Save',
       saving: 'Saving...',
       selected: 'Selected',
       start: 'Get started',
-      age: {
-        months: '%{months} mo',
-        years: '%{years} yr',
-        yearsMonths: '%{years} yr %{months} mo',
+      birthDate: {
+        label: 'Birth date',
+        yearUnit: 'Y',
+        monthUnit: 'M',
+        dayUnit: 'D',
+        unknown: "Don't know",
+        unknownHint: "It's okay if you don't know the birth date.",
+        yearPickerA11y: 'Select birth year',
+        monthPickerA11y: 'Select birth month',
+        dayPickerA11y: 'Select birth day',
       },
       duration: {
-        seconds: '%{seconds} sec',
-        minutes: '%{minutes} min',
-        hours: '%{hours} hr',
-        hoursMinutes: '%{hours} hr %{minutes} min',
+        seconds: '%{seconds}s',
+        minutes: '%{minutes}m',
+        hours: '%{hours}h',
+        hoursMinutes: '%{hours}h %{minutes}m',
       },
       closeA11y: 'Close',
       mascotA11y: 'Buddy mascot',
@@ -606,6 +635,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     validation: {
       nameRequired: "Enter your bird’s name.",
       speciesRequired: "Enter your bird’s species.",
+      birthDateFuture: "Birth date can’t be in the future.",
     },
     onboarding: {
       welcome: {
@@ -617,13 +647,12 @@ export const translations: Record<AppLocale, AppCopy> = {
       },
       profile: {
         title: 'Tell us about\nyour bird',
-        intro: 'Introduce your new friend!',
+        intro: 'Introduce your parrot!',
         body: 'For the MVP, one profile connects the home screen with training history.',
         nameLabel: 'Name',
         namePlaceholder: 'e.g. Mango',
         speciesLabel: 'Species',
         speciesPlaceholder: 'Enter species',
-        ageLabel: 'Age · %{years} yr %{months} mo',
         minusMonth: '- 1 mo',
         plusMonth: '+ 1 mo',
       },
@@ -693,8 +722,8 @@ export const translations: Record<AppLocale, AppCopy> = {
       totalDurationLabel: 'Total session time',
       hourPickerA11y: 'Select hours',
       minutePickerA11y: 'Select minutes',
-      hourUnit: 'hr',
-      minuteUnit: 'min',
+      hourUnit: 'h',
+      minuteUnit: 'm',
       learnLabel: 'Learning',
       restLabel: 'Rest',
       wordSelectA11y: 'Select %{label}',
@@ -810,11 +839,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       avatarSelect: 'Select profile photo',
       avatarError: 'Could not load the photo. You can continue without one.',
       editTitle: 'Edit profile',
-      editSubtitle: 'Update your bird’s details.',
       editBackA11y: 'Back to profile',
-      ageLabel: 'Age · %{age}',
       achievementsTitle: 'Achievements',
-      streakAchievementLabel: '%{days}-day streak',
+      streakAchievementLabel: '%{days} day streak',
       streakAchievementSub: 'Flame keeper',
       todayAchievementSub: 'Today’s learning',
       totalAchievementSub: 'Total learning time',
@@ -827,11 +854,25 @@ export const translations: Record<AppLocale, AppCopy> = {
     profileOptions: {
       speciesOptions: {
         'african-grey': 'African Grey',
+        amazon: 'Amazon',
         budgie: 'Budgie',
+        caique: 'Caique',
+        cockatiel: 'Cockatiel',
         cockatoo: 'Cockatoo',
         conure: 'Conure',
+        eclectus: 'Eclectus',
+        lory: 'Lory',
         lovebird: 'Lovebird',
-        parakeet: 'Parakeet',
+        macaw: 'Macaw',
+        parrotlet: 'Parrotlet',
+        quaker: 'Quaker',
+        ringneck: 'Indian Ringneck',
+        senegal: 'Senegal',
+      },
+      sizeLabels: {
+        small: 'Small',
+        medium: 'Medium',
+        large: 'Large',
       },
     },
     feedback: {

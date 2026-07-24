@@ -3,6 +3,7 @@ import { createContext, use, useCallback, useEffect, useMemo, useState, type Pro
 import { useOptionalAnalytics } from '@/features/analytics/analytics-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
 
+import { ageMonthsFromBirthDate } from './profile-age';
 import type { ParrotProfile } from './profile-types';
 import { loadStoredProfile, saveStoredProfile } from './profile-storage';
 
@@ -50,7 +51,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
         await Promise.all([
           syncUserProperty('parrot_name', profile.name),
           syncUserProperty('parrot_species', profile.species),
-          syncUserProperty('parrot_age_months', profile.ageMonths),
+          syncUserProperty('parrot_age_months', ageMonthsFromBirthDate(profile.birthDate)),
           syncUserProperty('profile_age_days', diffDaysIso(profile.createdAt)),
         ]);
         return;

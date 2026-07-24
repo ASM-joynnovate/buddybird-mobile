@@ -1,5 +1,6 @@
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
+import { birthDateFromAgeMonths } from './profile-age';
 import type { ParrotProfile } from './profile-types';
 
 export const PROFILE_STORAGE_KEY = '@buddybird/parrot-profile';
@@ -38,7 +39,7 @@ function parseStoredProfile(value: unknown): ParrotProfile {
     id: value.id,
     name: value.name,
     species: normalizeStoredSpecies(value.species, value.customSpecies),
-    ageMonths: value.ageMonths,
+    birthDate: normalizeStoredBirthDate(value),
     photoUri: value.photoUri,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
@@ -50,7 +51,10 @@ interface StoredProfileShape {
   name: string;
   species: string;
   customSpecies?: string;
-  ageMonths: number;
+  // string = 생년월일, null = 모름(명시적). 미보유(undefined)는 레거시.
+  birthDate?: string | null;
+  // 레거시(생년월일 도입 전) 프로필은 birthDate 없이 ageMonths 스냅샷만 보유한다.
+  ageMonths?: number;
   photoUri?: string;
   createdAt: string;
   updatedAt: string;
@@ -67,17 +71,32 @@ function isStoredProfile(value: unknown): value is StoredProfileShape {
     typeof profile.id === 'string' &&
     typeof profile.name === 'string' &&
     typeof profile.species === 'string' &&
-    typeof profile.ageMonths === 'number' &&
     typeof profile.createdAt === 'string' &&
     typeof profile.updatedAt === 'string' &&
+    // birthDate(신규: string 또는 명시적 null=모름) 또는 ageMonths(레거시) 중 하나는 있어야 한다.
+    (typeof profile.birthDate === 'string' ||
+      profile.birthDate === null ||
+      typeof profile.ageMonths === 'number') &&
     (profile.photoUri === undefined || typeof profile.photoUri === 'string') &&
     (profile.customSpecies === undefined || typeof profile.customSpecies === 'string')
   );
 }
 
+// birthDate가 저장돼 있으면(string=생일, null=모름) 그대로, 미보유(레거시)면 ageMonths를 역산 back-fill 한다.
+function normalizeStoredBirthDate(value: StoredProfileShape): string | null {
+  if (value.birthDate !== undefined) {
+    return value.birthDate;
+  }
+  return birthDateFromAgeMonths(value.createdAt, value.ageMonths as number);
+}
+
 function normalizeStoredSpecies(species: string, customSpecies: string | undefined): string {
   if (species === 'custom') {
     return customSpecies?.trim() || species;
+  }
+  // 레거시 통합: '잉꼬'(parakeet)와 '사랑앵무'(budgie)는 같은 종이라 budgie로 정규화한다.
+  if (species === 'parakeet') {
+    return 'budgie';
   }
   return species;
 }

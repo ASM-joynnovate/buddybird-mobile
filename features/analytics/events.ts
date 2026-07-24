@@ -28,7 +28,8 @@ export type AnalyticsEvent =
       params: {
         parrot_name: string;
         parrot_species: ParrotSpeciesValue;
-        parrot_age_months: number;
+        // 생년월일 모름이면 나이 미상 → 생략.
+        parrot_age_months?: number;
       };
     }
   | {
