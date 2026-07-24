@@ -21,7 +21,7 @@ interface WordListItemProps {
   isPreset: boolean;
   canPreview: boolean;
   isPlaying: boolean;
-  onEdit: () => void;
+  onDelete: () => void;
   onPlay: () => void;
 }
 
@@ -32,7 +32,7 @@ export function WordListItem({
   isPreset,
   canPreview,
   isPlaying,
-  onEdit,
+  onDelete,
   onPlay,
 }: WordListItemProps) {
   const { t } = useI18n();
@@ -57,14 +57,16 @@ export function WordListItem({
           <Text style={styles.sourceText}>{sourceLabel}</Text>
         </View>
       </View>
-      <Pressable
-        accessibilityLabel={t('wordLibrary.editA11y', { label })}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={onEdit}
-        style={styles.editBtn}>
-        <IconSymbol name="pencil" size={17} color={BuddyBirdColors.inkMuted} />
-      </Pressable>
+      {!isPreset && (
+        <Pressable
+          accessibilityLabel={t('wordLibrary.deleteA11y', { label })}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={onDelete}
+          style={styles.deleteBtn}>
+          <IconSymbol name="trash" size={17} color={BuddyBirdColors.inkMuted} />
+        </Pressable>
+      )}
       <Pressable3D
         accessibilityLabel={t('wordLibrary.previewA11y', { label })}
         accessibilityRole="button"
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '700',
   },
-  editBtn: {
+  deleteBtn: {
     alignItems: 'center',
     backgroundColor: BuddyBirdColors.surface,
     borderColor: BuddyBirdColors.borderMuted,

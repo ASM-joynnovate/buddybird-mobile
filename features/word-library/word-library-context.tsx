@@ -12,7 +12,7 @@ import {
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 
-import { createPresetSeedEntries, createWordEntry, deleteWordEntry, upsertWordEntry } from './word-library-model';
+import { createWordEntry, deleteWordEntry, reconcilePresetSeeds, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
 import type { CreateWordEntryInput, WordEntry, WordLibraryStore } from './word-library-types';
 
@@ -21,7 +21,6 @@ interface WordLibraryContextValue {
   isHydrated: boolean;
   errorMessage: string | null;
   createEntry: (input: CreateWordEntryInput) => Promise<WordEntry>;
-  updateEntry: (entry: WordEntry) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
 }
 
@@ -50,19 +49,13 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
         if (!isMounted) return;
 
-        if (Object.keys(loaded.entriesById).length === 0) {
-          const nowIso = new Date().toISOString();
-          const seeds = createPresetSeedEntries(nowIso);
-          const seeded: WordLibraryStore = {
-            ...loaded,
-            entriesById: Object.fromEntries(seeds.map((s) => [s.id, s])),
-            updatedAt: nowIso,
-          };
-          await saveWordLibraryStore(seeded);
-          setLibraryState(seeded);
-        } else {
-          setLibraryState(loaded);
+        // 프리셋은 삭제 불가 — 빈 스토어 최초 시드와 과거 삭제된 프리셋 복원을 정합화로 함께 처리.
+        const nowIso = new Date().toISOString();
+        const { store: reconciled, changed } = reconcilePresetSeeds(loaded, nowIso);
+        if (changed) {
+          await saveWordLibraryStore(reconciled);
         }
+        setLibraryState(reconciled);
       } catch (error: unknown) {
         reportError(error, { scope: 'word-library.hydrate' });
         if (isMounted) {
@@ -114,13 +107,6 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
     [updateStore]
   );
 
-  const updateEntry = useCallback(
-    async (entry: WordEntry): Promise<void> => {
-      await updateStore((current, nowIso) => upsertWordEntry(current, entry, nowIso));
-    },
-    [updateStore]
-  );
-
   const deleteEntry = useCallback(
     async (id: string): Promise<void> => {
       await updateStore((current, nowIso) => deleteWordEntry(current, id, nowIso));
@@ -139,10 +125,9 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       isHydrated,
       errorMessage: loadFailed ? t('wordLibrary.loadError') : null,
       createEntry,
-      updateEntry,
       deleteEntry,
     }),
-    [entries, isHydrated, loadFailed, t, createEntry, updateEntry, deleteEntry]
+    [entries, isHydrated, loadFailed, t, createEntry, deleteEntry]
   );
 
   return <WordLibraryContext.Provider value={value}>{children}</WordLibraryContext.Provider>;

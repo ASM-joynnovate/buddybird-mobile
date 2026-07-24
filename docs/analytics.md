@@ -132,7 +132,7 @@ await flushSessionWordMetrics([
 | `app/(tabs)/_layout.tsx` | `tab_switched` |
 | `app/(tabs)/words.tsx` | `word_library_opened` |
 | `components/words/word-create-modal.tsx` | `word_added`, `word_recording_started/finished` |
-| `components/words/word-edit-modal.tsx` | `word_renamed`, `word_removed` |
+| `features/word-library/hooks/use-confirm-delete-word.ts` | `word_removed` |
 | `features/audio/hooks/use-audio-recording.ts` | `word_recorded` |
 | `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
 

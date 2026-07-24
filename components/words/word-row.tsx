@@ -9,11 +9,11 @@ import type { WordEntry } from '@/features/word-library/word-library-types';
 
 interface WordRowProps {
   entry: WordEntry;
-  onEdit: (entry: WordEntry) => void;
+  onDelete: (entry: WordEntry) => void;
   onBecameActive: (stopFn: () => void) => void;
 }
 
-export function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
+export function WordRow({ entry, onDelete, onBecameActive }: WordRowProps) {
   const { t } = useI18n();
   const { track } = useAnalytics();
   const { source: audioSource } = resolveAudioSource(entry);
@@ -40,9 +40,9 @@ export function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
     void playPreview();
   }, [entry.id, entry.label, isPreset, onBecameActive, playPreview, previewState, stopPreview, track]);
 
-  const handleEdit = useCallback(() => {
-    onEdit(entry);
-  }, [entry, onEdit]);
+  const handleDelete = useCallback(() => {
+    onDelete(entry);
+  }, [entry, onDelete]);
 
   return (
     <WordListItem
@@ -50,7 +50,7 @@ export function WordRow({ entry, onEdit, onBecameActive }: WordRowProps) {
       isPlaying={previewState === 'playing'}
       isPreset={isPreset}
       label={entry.label}
-      onEdit={handleEdit}
+      onDelete={handleDelete}
       onPlay={handlePlay}
       sourceLabel={sourceLabel}
       tag={entry.tag}

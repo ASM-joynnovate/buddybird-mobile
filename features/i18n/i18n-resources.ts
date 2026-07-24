@@ -202,7 +202,6 @@ interface AppCopy {
     saveErrorBody: string;
   };
   wordEdit: {
-    title: string;
     delete: string;
     confirmDelete: string;
     deleteErrorTitle: string;
@@ -211,13 +210,11 @@ interface AppCopy {
   wordLibrary: {
     empty: string;
     emptyHint: string;
-    editAction: string;
-    deleteAction: string;
     sourcePreset: string;
     sourceRecording: string;
     screenTitle: string;
     addWordA11y: string;
-    editA11y: string;
+    deleteA11y: string;
     previewA11y: string;
     loadError: string;
     filterAll: string;
@@ -493,7 +490,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saveErrorBody: '단어를 저장하지 못했어요. 다시 시도해 주세요.',
     },
     wordEdit: {
-      title: '단어 수정',
       delete: '삭제',
       confirmDelete: '"%{label}" 단어를 삭제할까요?',
       deleteErrorTitle: '삭제 실패',
@@ -502,13 +498,11 @@ export const translations: Record<AppLocale, AppCopy> = {
     wordLibrary: {
       empty: '단어가 없어요.',
       emptyHint: '+ 버튼으로 녹음해 추가해 보세요!',
-      editAction: '편집',
-      deleteAction: '삭제',
       sourcePreset: '프리셋',
       sourceRecording: '내 녹음',
       screenTitle: '단어 관리',
       addWordA11y: '단어 추가',
-      editA11y: '%{label} 수정',
+      deleteA11y: '%{label} 삭제',
       previewA11y: '%{label} 미리듣기',
       loadError: '단어 목록을 불러오지 못했어요.',
       filterAll: '전체',
@@ -802,7 +796,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       saveErrorBody: 'Could not save the word. Please try again.',
     },
     wordEdit: {
-      title: 'Edit word',
       delete: 'Delete',
       confirmDelete: 'Delete "%{label}"?',
       deleteErrorTitle: 'Delete failed',
@@ -811,13 +804,11 @@ export const translations: Record<AppLocale, AppCopy> = {
     wordLibrary: {
       empty: 'No words yet.',
       emptyHint: 'Tap + to record and add a word!',
-      editAction: 'Edit',
-      deleteAction: 'Delete',
       sourcePreset: 'Preset',
       sourceRecording: 'My recording',
       screenTitle: 'Word library',
       addWordA11y: 'Add word',
-      editA11y: 'Edit %{label}',
+      deleteA11y: 'Delete %{label}',
       previewA11y: 'Preview %{label}',
       loadError: 'Could not load your words.',
       filterAll: 'All',
