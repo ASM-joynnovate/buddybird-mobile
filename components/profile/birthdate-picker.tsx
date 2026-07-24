@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
 
@@ -7,8 +7,9 @@ import { BuddyBirdColors, Fonts, Radii, withAlpha } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { daysInMonth, formatBirthDate, parseBirthDate } from '@/features/profile/profile-age';
 
-// 연도 선택 범위. 종전 나이 슬라이더 상한(1200개월 = 100년)과 맞춰,
-// 역산 back-fill된 레거시 생년도 항상 범위 안에 들도록 한다.
+// 연도 선택 범위 기본 폭. 종전 나이 슬라이더 상한(1200개월 = 100년)과 맞춘다.
+// 단, 범위는 '오늘 − 100년'의 슬라이딩 윈도우라 과거에 기록된 생년(레거시 역산·경계 연도 선택)이
+// 해가 바뀌면 범위 밖으로 밀려날 수 있으므로, 하한은 저장된 값의 연도까지 확장한다.
 const MAX_AGE_YEARS = 100;
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -22,10 +23,12 @@ export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
   const { t } = useI18n();
   const { year, month, day } = parseBirthDate(value);
 
-  const yearOptions = useMemo(() => {
+  // 마운트 시점에 한 번만 계산해 상호작용 중 옵션 배열이 재구성되지 않도록 고정한다.
+  const [yearOptions] = useState(() => {
     const currentYear = new Date().getFullYear();
-    return Array.from({ length: MAX_AGE_YEARS + 1 }, (_, i) => currentYear - MAX_AGE_YEARS + i);
-  }, []);
+    const minYear = Math.min(currentYear - MAX_AGE_YEARS, year);
+    return Array.from({ length: currentYear - minYear + 1 }, (_, i) => minYear + i);
+  });
   const dayOptions = useMemo(
     () => Array.from({ length: daysInMonth(year, month) }, (_, i) => i + 1),
     [year, month]
