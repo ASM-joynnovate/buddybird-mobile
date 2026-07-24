@@ -1,50 +1,46 @@
-import Slider from '@react-native-community/slider';
 import { StyleSheet, View } from 'react-native';
 import { TextInput } from '@/components/ui/app-text';
 
-import { Chip } from '@/components/ui/chip';
+import { BirthDateField } from '@/components/profile/birthdate-field';
+import { SpeciesChips } from '@/components/profile/species-chips';
 import { FormField } from '@/components/ui/form-field';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
-import { CUSTOM_SPECIES_MAX_LENGTH, type SpeciesOption } from '@/features/profile/profile-options';
+import { CUSTOM_SPECIES_MAX_LENGTH } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
 interface OnboardingProfileFormProps {
-  ageLabel: string;
-  ageMonths: number;
+  birthDate: string | null;
+  birthDateLabel: string;
   customMode: boolean;
-  customInputLabel: string;
   errors: ProfileValidationErrors;
   name: string;
   nameLabel: string;
   namePlaceholder: string;
-  onAgeMonthsChange: (months: number) => void;
+  onBirthDateChange: (birthDate: string | null) => void;
   onCustomMode: () => void;
   onCustomSpeciesChange: (species: string) => void;
   onNameChange: (name: string) => void;
   onSpeciesChange: (species: string) => void;
   species: string;
   speciesLabel: string;
-  speciesOptions: SpeciesOption[];
   speciesPlaceholder: string;
 }
 
 export function OnboardingProfileForm({
-  ageLabel,
-  ageMonths,
+  birthDate,
+  birthDateLabel,
   customMode,
-  customInputLabel,
   errors,
   name,
   nameLabel,
   namePlaceholder,
-  onAgeMonthsChange,
+  onBirthDateChange,
   onCustomMode,
   onCustomSpeciesChange,
   onNameChange,
   onSpeciesChange,
   species,
   speciesLabel,
-  speciesOptions,
   speciesPlaceholder,
 }: OnboardingProfileFormProps) {
   return (
@@ -61,17 +57,12 @@ export function OnboardingProfileForm({
       </FormField>
 
       <FormField error={errors.species} label={speciesLabel}>
-        <View style={styles.chips}>
-          {speciesOptions.map((option) => (
-            <Chip
-              key={option.id}
-              active={!customMode && species === option.id}
-              label={option.label}
-              onPress={() => onSpeciesChange(option.id)}
-            />
-          ))}
-          <Chip active={customMode} label={customInputLabel} onPress={onCustomMode} tone="sun" />
-        </View>
+        <SpeciesChips
+          selectedId={species}
+          customActive={customMode}
+          onSelectPreset={onSpeciesChange}
+          onCustom={onCustomMode}
+        />
         {customMode ? (
           <TextInput
             autoCapitalize="none"
@@ -85,18 +76,12 @@ export function OnboardingProfileForm({
         ) : null}
       </FormField>
 
-      <FormField error={errors.ageMonths} label={ageLabel}>
-        <Slider
-          maximumTrackTintColor={BuddyBirdColors.border}
-          maximumValue={1200}
-          minimumTrackTintColor={BuddyBirdColors.primary}
-          minimumValue={1}
-          onValueChange={(months) => onAgeMonthsChange(Math.round(months))}
-          step={1}
-          thumbTintColor={BuddyBirdColors.primary}
-          value={ageMonths}
-        />
-      </FormField>
+      <BirthDateField
+        label={birthDateLabel}
+        error={errors.birthDate}
+        value={birthDate}
+        onChange={onBirthDateChange}
+      />
     </View>
   );
 }
@@ -116,11 +101,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     minHeight: 50,
     paddingHorizontal: Spacing.fieldPaddingX,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
   },
   customSpeciesInput: {
     marginTop: Spacing.sectionHeadGap,

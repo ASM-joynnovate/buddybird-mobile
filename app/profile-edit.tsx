@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { PetScreen } from '@/components/layout/pet-screen';
@@ -7,14 +7,12 @@ import { ProfileEditForm } from '@/components/profile/forms/profile-edit-form';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useProfile } from '@/features/profile/profile-context';
-import { getSpeciesOptions } from '@/features/profile/profile-options';
 import { toDraft } from '@/features/profile/profile-display';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { validateProfileDraft } from '@/features/profile/profile-validation';
 
 export default function ProfileEditScreen() {
-  const { locale, t } = useI18n();
-  const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
+  const { t } = useI18n();
   const { profile, updateProfile } = useProfile();
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
@@ -32,7 +30,7 @@ export default function ProfileEditScreen() {
     setSaveErrorMessage(null);
     setErrors((currentErrors) => ({
       ...currentErrors,
-      ageMonths: nextForm.ageMonths === undefined ? currentErrors.ageMonths : undefined,
+      birthDate: nextForm.birthDate === undefined ? currentErrors.birthDate : undefined,
       name: nextForm.name === undefined ? currentErrors.name : undefined,
       species: nextForm.species === undefined ? currentErrors.species : undefined,
     }));
@@ -67,12 +65,11 @@ export default function ProfileEditScreen() {
   }
 
   return (
-    <PetScreen avoidKeyboard contentStyle={styles.content}>
+    <PetScreen avoidKeyboard bottomTabBar={false} contentStyle={styles.content}>
       <ProfileEditForm
         form={form}
         errors={errors}
         saveErrorMessage={saveErrorMessage}
-        speciesOptions={speciesOptions}
         t={t}
         onPatch={patchForm}
         onCancel={() => router.back()}

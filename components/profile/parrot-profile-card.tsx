@@ -5,17 +5,18 @@ import { Text } from '@/components/ui/app-text';
 import { LedgeView } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
+import { parseBirthDate } from '@/features/profile/profile-age';
 import { getSpeciesLabel } from '@/features/profile/profile-options';
 import type { ParrotProfile } from '@/features/profile/profile-types';
-import { formatAgeMonths } from '@/features/profile/profile-validation';
 
 interface ParrotProfileCardProps {
   profile: ParrotProfile;
 }
 
 export function ParrotProfileCard({ profile }: ParrotProfileCardProps) {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const speciesLabel = getSpeciesLabel(locale, profile.species);
+  const birthDateLabel = profile.birthDate ? formatBirthDateLabel(profile.birthDate) : null;
 
   return (
     <LedgeView baseStyle={styles.base} depth="buttonSm" faceStyle={styles.card}>
@@ -29,13 +30,20 @@ export function ParrotProfileCard({ profile }: ParrotProfileCardProps) {
         </View>
         <View style={styles.textWrap}>
           <Text numberOfLines={1} style={styles.name}>{profile.name}</Text>
-          <Text numberOfLines={1} style={styles.meta}>
-            {speciesLabel} · {formatAgeMonths(profile.ageMonths, t)}
-          </Text>
+          <Text numberOfLines={1} style={styles.meta}>{speciesLabel}</Text>
+          {birthDateLabel ? (
+            <Text numberOfLines={1} style={styles.birthDate}>{birthDateLabel}</Text>
+          ) : null}
         </View>
       </View>
     </LedgeView>
   );
+}
+
+// 생년월일 표시용 'YYYY. M. D.' (로케일 무관 숫자 포맷).
+function formatBirthDateLabel(birthDate: string): string {
+  const { year, month, day } = parseBirthDate(birthDate);
+  return `${year}. ${month}. ${day}.`;
 }
 
 const styles = StyleSheet.create({
@@ -86,5 +94,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
+  },
+  birthDate: {
+    color: BuddyBirdColors.onDarkMuted,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 16,
   },
 });

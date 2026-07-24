@@ -1,5 +1,7 @@
 import type { I18n } from 'i18n-js';
 
+import { toLocalDateKey } from '@/features/shared/date-utils';
+
 import type { ParrotProfile, ProfileDraft, ProfileValidationErrors, ProfileValidationResult } from './profile-types';
 
 type Translate = I18n['t'];
@@ -13,6 +15,12 @@ export function validateProfileDraft(draft: ProfileDraft, t: Translate): Profile
 
   if (!draft.species.trim()) {
     errors.species = t('validation.speciesRequired');
+  }
+
+  // birthDate가 null이면 '모름'으로 유효. 값이 있을 때만 미래 날짜를 방어한다.
+  // YYYY-MM-DD 문자열의 사전식 비교는 로컬 날짜 기준 시간순 비교와 같다.
+  if (draft.birthDate !== null && draft.birthDate > toLocalDateKey(new Date())) {
+    errors.birthDate = t('validation.birthDateFuture');
   }
 
   return {
@@ -47,7 +55,7 @@ export function createProfileFromDraft(draft: ProfileDraft, nowIso: string): Par
     id: `parrot-${nowIso}`,
     name: draft.name.trim(),
     species,
-    ageMonths: draft.ageMonths,
+    birthDate: draft.birthDate,
     photoUri: draft.photoUri,
     createdAt: nowIso,
     updatedAt: nowIso,

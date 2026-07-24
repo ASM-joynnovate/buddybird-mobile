@@ -21,10 +21,22 @@ interface PetScreenProps {
    * 기본 false — 기존 소비처 동작 불변. `scroll={false}`이면 무시된다.
    */
   avoidKeyboard?: boolean;
+  /**
+   * 하단 탭바 유무. 기본 true — 탭바 높이(`screenBottomTabs`)만큼 하단 패딩을 예약한다.
+   * 탭바 없는 푸시 스크린(예: 프로필 편집)은 false로 두어 불필요한 하단 여백을 없앤다.
+   * `scroll={false}`이면 무시된다.
+   */
+  bottomTabBar?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
 }
 
-export function PetScreen({ children, scroll = true, avoidKeyboard = false, contentStyle }: PetScreenProps) {
+export function PetScreen({
+  children,
+  scroll = true,
+  avoidKeyboard = false,
+  bottomTabBar = true,
+  contentStyle,
+}: PetScreenProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
@@ -38,10 +50,11 @@ export function PetScreen({ children, scroll = true, avoidKeyboard = false, cont
     );
   }
 
+  const scrollBottomPadding = (bottomTabBar ? Spacing.screenBottomTabs : Spacing.sectionY) + insets.bottom;
   const scrollContentStyle = [
     styles.scrollContent,
     widthCapStyle,
-    { paddingBottom: Spacing.screenBottomTabs + insets.bottom },
+    { paddingBottom: scrollBottomPadding },
     contentStyle,
   ];
 

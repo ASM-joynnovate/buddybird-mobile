@@ -6,16 +6,20 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useOnboardingDraft } from '@/features/profile/onboarding-draft-context';
 import { useProfile } from '@/features/profile/profile-context';
-import { getSpeciesOptions, isPresetSpeciesId } from '@/features/profile/profile-options';
+import { ageMonthsFromBirthDate, birthDateFromAgeMonths } from '@/features/profile/profile-age';
+import { isPresetSpeciesId } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
 import { createProfileFromDraft, validateProfileDraft } from '@/features/profile/profile-validation';
+
+// 온보딩 기본 생년월일: 약 1살(12개월 전 그 달 1일).
+const DEFAULT_AGE_MONTHS = 12;
 
 interface OnboardingProfileFlowProps {
   onBack: () => void;
 }
 
 export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { track, recordError } = useAnalytics();
   const { draft, setDraft } = useOnboardingDraft();
   const { saveProfile } = useProfile();
@@ -30,21 +34,29 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
   const [name, setName] = useState(draft.name ?? '');
   const [species, setSpecies] = useState(initialSpecies);
   const [customMode, setCustomMode] = useState(initialCustomMode);
-  const initialTotal = draft.ageMonths ?? 12;
-  const [ageMonths, setAgeMonths] = useState(Math.max(1, initialTotal));
+  const [birthDate, setBirthDate] = useState<string | null>(() =>
+    // undefined(미입력)면 기본값, null(모름)·string이면 draft 값을 유지한다.
+    draft.birthDate !== undefined
+      ? draft.birthDate
+      : birthDateFromAgeMonths(new Date().toISOString(), DEFAULT_AGE_MONTHS)
+  );
   const [photoUri, setPhotoUri] = useState(draft.photoUri);
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const speciesOptions = useMemo(() => getSpeciesOptions(locale), [locale]);
   const profileDraft = useMemo<ProfileDraft>(
-    () => ({ ageMonths, name, photoUri, species }),
-    [ageMonths, name, photoUri, species]
+    () => ({ birthDate, name, photoUri, species }),
+    [birthDate, name, photoUri, species]
   );
 
   function handleNameChange(nextName: string): void {
     setName(nextName);
     setErrors((currentErrors) => ({ ...currentErrors, name: undefined }));
+  }
+
+  function handleBirthDateChange(nextBirthDate: string | null): void {
+    setBirthDate(nextBirthDate);
+    setErrors((currentErrors) => ({ ...currentErrors, birthDate: undefined }));
   }
 
   function selectSpecies(nextSpecies: string): void {
@@ -84,7 +96,7 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
         params: {
           parrot_name: profile.name,
           parrot_species: profile.species,
-          parrot_age_months: profile.ageMonths,
+          parrot_age_months: ageMonthsFromBirthDate(profile.birthDate) ?? undefined,
         },
       });
       track({
@@ -103,21 +115,17 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
 
   return (
     <OnboardingProfileView
-      ageLabel={t('onboarding.profile.ageLabel', {
-        months: ageMonths % 12,
-        years: Math.floor(ageMonths / 12),
-      })}
-      ageMonths={ageMonths}
+      birthDate={birthDate}
+      birthDateLabel={t('common.birthDate.label')}
       ctaLabel={isSaving ? t('common.saving') : t('common.start')}
       customMode={customMode}
-      customInputLabel={t('common.customInput')}
       errors={errors}
       intro={t('onboarding.profile.intro')}
       isSaving={isSaving}
       name={name}
       nameLabel={t('onboarding.profile.nameLabel')}
       namePlaceholder={t('onboarding.profile.namePlaceholder')}
-      onAgeMonthsChange={setAgeMonths}
+      onBirthDateChange={handleBirthDateChange}
       onBack={onBack}
       onCustomMode={enableCustomMode}
       onCustomSpeciesChange={changeCustomSpecies}
@@ -129,7 +137,6 @@ export function OnboardingProfileFlow({ onBack }: OnboardingProfileFlowProps) {
       saveError={saveError}
       species={species}
       speciesLabel={t('onboarding.profile.speciesLabel')}
-      speciesOptions={speciesOptions}
       speciesPlaceholder={t('onboarding.profile.speciesPlaceholder')}
     />
   );

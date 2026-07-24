@@ -1,25 +1,23 @@
-import Slider from '@react-native-community/slider';
 import type { I18n } from 'i18n-js';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '@/components/ui/app-text';
 
+import { BirthDateField } from '@/components/profile/birthdate-field';
 import { ProfileAvatarPicker } from '@/components/profile/profile-avatar-picker';
-import { Chip } from '@/components/ui/chip';
+import { SpeciesChips } from '@/components/profile/species-chips';
 import { FormField } from '@/components/ui/form-field';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { InlineError } from '@/components/ui/inline-error';
 import { PillButton } from '@/components/ui/pill-button';
-import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
-import { CUSTOM_SPECIES_MAX_LENGTH, isPresetSpeciesId, type SpeciesOption } from '@/features/profile/profile-options';
+import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
+import { CUSTOM_SPECIES_MAX_LENGTH, isPresetSpeciesId } from '@/features/profile/profile-options';
 import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/profile-types';
-import { formatAgeMonths } from '@/features/profile/profile-validation';
 
 interface ProfileEditFormProps {
   form: ProfileDraft;
   errors: ProfileValidationErrors;
   saveErrorMessage: string | null;
-  speciesOptions: SpeciesOption[];
   t: I18n['t'];
   onPatch: (patch: Partial<ProfileDraft>) => void;
   onCancel: () => void;
@@ -30,7 +28,6 @@ export function ProfileEditForm({
   form,
   errors,
   saveErrorMessage,
-  speciesOptions,
   t,
   onPatch,
   onCancel,
@@ -57,14 +54,9 @@ export function ProfileEditForm({
         <Text style={styles.kicker}>{t('profile.editTitle')}</Text>
       </View>
 
-      <View style={styles.titleBlock}>
-        <Text style={styles.title}>{t('profile.editTitle')}</Text>
-        <Text style={styles.subtitle}>{t('profile.editSubtitle')}</Text>
-      </View>
-
       <View style={styles.form}>
         <ProfileAvatarPicker photoUri={form.photoUri} onPhotoSelected={(photoUri) => onPatch({ photoUri })} />
-        <FormField error={errors.name} label={t('profile.nameLabel')}>
+        <FormField error={errors.name} label={t('profile.nameLabel')} labelStyle={styles.fieldLabel}>
           <TextInput
             autoCapitalize="none"
             onChangeText={(name) => onPatch({ name })}
@@ -74,22 +66,13 @@ export function ProfileEditForm({
             value={form.name}
           />
         </FormField>
-        <FormField error={errors.species} label={t('profile.speciesLabel')}>
-          <View style={styles.chips}>
-            {speciesOptions.map((option) => (
-              <Chip
-                key={option.id}
-                active={!isCustomMode && form.species === option.id}
-                label={option.label}
-                onPress={() => selectPreset(option.id)}
-              />
-            ))}
-            <Chip
-              active={isCustomMode}
-              label={t('common.customInput')}
-              onPress={enterCustomMode}
-            />
-          </View>
+        <FormField error={errors.species} label={t('profile.speciesLabel')} labelStyle={styles.fieldLabel}>
+          <SpeciesChips
+            selectedId={form.species}
+            customActive={isCustomMode}
+            onSelectPreset={selectPreset}
+            onCustom={enterCustomMode}
+          />
           {isCustomMode ? (
             <TextInput
               autoCapitalize="none"
@@ -102,18 +85,13 @@ export function ProfileEditForm({
             />
           ) : null}
         </FormField>
-        <FormField error={errors.ageMonths} label={t('profile.ageLabel', { age: formatAgeMonths(form.ageMonths, t) })}>
-          <Slider
-            maximumTrackTintColor={BuddyBirdColors.border}
-            maximumValue={1200}
-            minimumTrackTintColor={BuddyBirdColors.primary}
-            minimumValue={1}
-            onValueChange={(ageMonths) => onPatch({ ageMonths: Math.round(ageMonths) })}
-            step={1}
-            thumbTintColor={BuddyBirdColors.primary}
-            value={form.ageMonths}
-          />
-        </FormField>
+        <BirthDateField
+          label={t('common.birthDate.label')}
+          labelStyle={styles.fieldLabel}
+          error={errors.birthDate}
+          value={form.birthDate}
+          onChange={(birthDate) => onPatch({ birthDate })}
+        />
         <InlineError message={saveErrorMessage} />
       </View>
 
@@ -147,19 +125,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
-  titleBlock: {
-    gap: 4,
-  },
-  title: {
-    ...Typography.title,
-    color: BuddyBirdColors.ink,
-  },
-  subtitle: {
-    color: BuddyBirdColors.inkMuted,
-    fontFamily: Fonts.bodyBold,
-    fontSize: 13.5,
-    fontWeight: '700',
-    lineHeight: 19,
+  fieldLabel: {
+    fontSize: 16,
   },
   form: {
     gap: 20,
@@ -175,11 +142,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     height: 50,
     paddingHorizontal: Spacing.fieldPaddingX,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.chipGap,
   },
   saveBar: {
     borderColor: BuddyBirdColors.border,

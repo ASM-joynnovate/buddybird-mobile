@@ -11,22 +11,20 @@ import { PillButton } from '@/components/ui/pill-button';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
 import { BuddyBirdColors, Spacing, Typography } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
-import type { SpeciesOption } from '@/features/profile/profile-options';
 import type { ProfileValidationErrors } from '@/features/profile/profile-types';
 
 interface OnboardingProfileViewProps {
-  ageLabel: string;
-  ageMonths: number;
+  birthDate: string | null;
+  birthDateLabel: string;
   ctaLabel: string;
   customMode: boolean;
-  customInputLabel: string;
   errors: ProfileValidationErrors;
   intro: string;
   isSaving: boolean;
   name: string;
   nameLabel: string;
   namePlaceholder: string;
-  onAgeMonthsChange: (months: number) => void;
+  onBirthDateChange: (birthDate: string | null) => void;
   onBack: () => void;
   onCustomMode: () => void;
   onCustomSpeciesChange: (species: string) => void;
@@ -38,23 +36,21 @@ interface OnboardingProfileViewProps {
   saveError: string | null;
   species: string;
   speciesLabel: string;
-  speciesOptions: SpeciesOption[];
   speciesPlaceholder: string;
 }
 
 export function OnboardingProfileView({
-  ageLabel,
-  ageMonths,
+  birthDate,
+  birthDateLabel,
   ctaLabel,
   customMode,
-  customInputLabel,
   errors,
   intro,
   isSaving,
   name,
   nameLabel,
   namePlaceholder,
-  onAgeMonthsChange,
+  onBirthDateChange,
   onBack,
   onCustomMode,
   onCustomSpeciesChange,
@@ -66,7 +62,6 @@ export function OnboardingProfileView({
   saveError,
   species,
   speciesLabel,
-  speciesOptions,
   speciesPlaceholder,
 }: OnboardingProfileViewProps) {
   const { t } = useI18n();
@@ -92,22 +87,20 @@ export function OnboardingProfileView({
         </View>
         <ProfileAvatarPicker actionIcon="plus" photoUri={photoUri} onPhotoSelected={onPhotoSelected} />
         <OnboardingProfileForm
-          ageLabel={ageLabel}
-          ageMonths={ageMonths}
+          birthDate={birthDate}
+          birthDateLabel={birthDateLabel}
           customMode={customMode}
-          customInputLabel={customInputLabel}
           errors={errors}
           name={name}
           nameLabel={nameLabel}
           namePlaceholder={namePlaceholder}
-          onAgeMonthsChange={onAgeMonthsChange}
+          onBirthDateChange={onBirthDateChange}
           onCustomMode={onCustomMode}
           onCustomSpeciesChange={onCustomSpeciesChange}
           onNameChange={onNameChange}
           onSpeciesChange={onSpeciesChange}
           species={species}
           speciesLabel={speciesLabel}
-          speciesOptions={speciesOptions}
           speciesPlaceholder={speciesPlaceholder}
         />
         {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
