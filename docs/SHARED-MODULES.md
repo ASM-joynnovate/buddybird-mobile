@@ -56,6 +56,8 @@
 | `installGlobalErrorReporting` | `@/features/analytics/error-reporter` | `({ client, getCurrentScreen? }: InstallErrorReportingOptions) => () => void` | 전역 uncaught 핸들러 + Hermes rejection 추적 설치 (AnalyticsProvider 전용) |
 | `ErrorContext` (type) | `@/features/analytics/error-reporter` | `{ scope: ErrorScope; screen_name?: string; is_fatal?: string }` | `reportError` 컨텍스트 — 알려진 키만 허용 |
 | `ErrorScope` / `ErrorDomain` (type) | `@/features/analytics/error-reporter` | `ErrorDomain \| \`${ErrorDomain}.${string}\`` | scope 도메인 prefix 강제(자유 string 금지). 새 도메인은 `ErrorDomain` union에 먼저 추가하고 method 부분은 자유. `persistKeyedStore` config의 `scope`도 이 타입 |
+| `readWordLifetimeMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<WordLifetimeMetrics \| null>` | 단어별 누적 연습 지표 조회 (없으면 null). `word_removed`·`word_practice_started` 파라미터 소스 |
+| `removeWordMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<void>` | 단어 삭제 시 orphan 지표 정리 (idempotent) |
 | `reportProviderFailure` | `@/features/analytics/analytics-utils` | `(provider: string, op: string, error: unknown) => void` | provider별 fanout 실패 격리 로깅 |
 | `clampEventName` | `@/features/analytics/events` | `(name: string) => string` | 이벤트 이름을 40자 이하로 절단 (Firebase 제약) |
 | `toFirebaseParams` | `@/features/analytics/events` | `(params: AnalyticsParams) => Record<string, string \| number \| boolean>` | Firebase params 직렬화 |
