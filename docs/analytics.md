@@ -24,15 +24,14 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 const { track } = useAnalytics();
 
 track({
-  name: 'word_recorded',
+  name: 'word_added',
   params: {
-    session_id: sessionId,
-    word_id: word.id,
-    word_name: word.name,
-    attempt_number: 1,
+    word_id: entry.id,
+    word_name: entry.label,
+    category: 'greeting',
+    registration_method: 'voice_recording',
     recording_duration_ms: 3200,
     audio_size_bytes: 51200,
-    recording_method: 'voice',
   },
 });
 ```
@@ -124,17 +123,17 @@ await flushSessionWordMetrics([
 | `features/profile/profile-context.tsx` | 펫 user properties 자동 동기화 + `profile_updated` (updateProfile 성공·변경 필드 diff 시) |
 | `features/training/hooks/use-session-start.ts` | `training_session_started` |
 | `app/session-active.tsx` | `training_session_completed` / `training_session_abandoned` + `flushSessionWordMetrics` |
+| `app/(tabs)/words.tsx` | `word_library_opened` (focus마다, hydration 게이트 — `use-track-word-library-opened.ts`) |
+| `components/words/word-create-modal.tsx` | `word_added`, `word_recording_started/finished` (lifecycle 전이 발화 — 자동 정지 포함) |
+| `features/word-library/hooks/use-confirm-delete-word.ts` | `word_removed` (프리셋 삭제 시 미발화, orphan 지표 정리 포함) |
+| `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
 
 ## 4. 후속 통합 작업 (향후)
 
 | 위치 | 이벤트 |
 |---|---|
 | `app/(tabs)/_layout.tsx` | `tab_switched` |
-| `app/(tabs)/words.tsx` | `word_library_opened` |
-| `components/words/word-create-modal.tsx` | `word_added`, `word_recording_started/finished` |
-| `features/word-library/hooks/use-confirm-delete-word.ts` | `word_removed` |
-| `features/audio/hooks/use-audio-recording.ts` | `word_recorded` |
-| `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
+| (재설계 필요) | `word_recorded` — BB-272에서 범위 제외. 파라미터(`session_id`·`attempt_number`)가 학습 세션 문맥인데 현행 앱에는 세션 중 사용자 녹음 플로우가 없어 배선 불가. 이벤트 재정의 별도 티켓에서 처리 |
 
 ## 5. 검증 가이드
 
