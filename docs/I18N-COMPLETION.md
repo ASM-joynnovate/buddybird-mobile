@@ -46,7 +46,7 @@
 | `components/words/word-filter-bar.tsx:49-55` | 제네릭 컴포넌트(값을 그대로 라벨로 렌더) + 한국어 키 색 맵 `toneByCategory` |
 | `features/word-library/word-library-model.ts:39-42` | 프리셋 단어의 `tag`에 한국어 값 저장 |
 | `components/words/word-create-fields.tsx:44,59-64` | `WORD_TAGS`를 Chip 라벨로 직접 렌더 + 한국어 키 `toneByTag` |
-| `components/words/word-create-modal.tsx:31,62` · `word-edit-modal.tsx:37,369-372` | `useState<WordTag>('인사')` 기본값 + 한국어 키 색 맵 |
+| `components/words/word-create-modal.tsx:31,62` | `useState<WordTag>('인사')` 기본값 + 한국어 키 색 맵 〔BB-268: `word-edit-modal.tsx` 삭제로 해당 참조 제거〕 |
 | `app/(tabs)/words.tsx:63-73` + `features/analytics/events.ts:149-152` | **analytics 의존성** — `word_library_filter_changed`가 태그 값을 raw 전송. 키 전환 시 `from`/`to` 파라미터 값이 영문으로 바뀜 (0.7.0 프리릴리즈라 신 값 그대로 전송하기로 결정, PR에 명시) |
 
 (그 외 `word-list-item.tsx`·`recorder-color-card.tsx`·`recorded-playback-row.tsx`·`use-word-selection.ts`는 `WordTag` 타입만 소비 — 키 전환 시 컴파일러가 강제.)
@@ -78,9 +78,9 @@ features는 JSX·훅 사용이 불가하므로 `profile-validation.ts`의 기존
 | 파일 | 내용 |
 |---|---|
 | `app/(tabs)/words.tsx` | "단어 관리", '전체' 필터(§3.1과 연동), "단어 추가" 접근성 라벨 |
-| `components/words/word-edit-modal.tsx`, `word-create-modal.tsx` | 이미 ~90% `t()` 이관 완료 — 잔여분만: Alert("저장 실패"/"삭제 실패"), 삭제 확인 문구, "닫기" 접근성 라벨 |
+| `components/words/word-create-modal.tsx` · 삭제 확인은 `features/word-library/hooks/use-confirm-delete-word.ts` | 이미 ~90% `t()` 이관 완료 — 잔여분만: Alert("저장 실패"), "닫기" 접근성 라벨 〔BB-268: `word-edit-modal.tsx` 삭제 — 삭제 확인/에러 문구는 신규 훅에서 이미 `t()` 적용〕 |
 | `features/word-library/word-library-context.tsx:67` | `'단어 목록을 불러오지 못했어요.'` — words 화면 `<InlineError>` 노출 → 이관 대상 (§3.6에서 편입) |
-| `components/words/word-create-fields.tsx`, `word-create-header.tsx`, `word-list-item.tsx`, `word-filter-bar.tsx`, `forms/recording-form-card.tsx`, `recorder/recorder-color-card.tsx` | 폼·리스트 카피와 접근성 라벨 |
+| `components/words/word-create-fields.tsx`, `word-create-header.tsx`, `word-list-item.tsx`, `word-filter-bar.tsx`, `recorder/recorder-color-card.tsx` | 폼·리스트 카피와 접근성 라벨 〔BB-268: `forms/recording-form-card.tsx` 삭제로 해당 참조 제거〕 |
 
 ### 3.5 프로필 · 홈 · 내비게이션
 
@@ -94,7 +94,7 @@ features는 JSX·훅 사용이 불가하므로 `profile-validation.ts`의 기존
 | `components/navigation/floating-tab-bar.tsx:12-14` | 탭 라벨(학습/단어/프로필) |
 | `components/onboarding/onboarding-progress-header.tsx`, `onboarding-profile-view.tsx`, `components/mascot/buddy-bird.tsx` | 잔여 1~2건씩 (접근성 라벨) |
 
-(`components/audio/waveform-placeholder.tsx`는 이미 이관 완료 — 잔여 한국어는 주석뿐, 감사 목록에서 제외.)
+(〔BB-268: `components/audio/waveform-placeholder.tsx`는 `word-edit-modal.tsx` 재녹음 UI 전용이라 함께 삭제됨 — 감사 대상 아님.〕)
 
 ### 3.6 판정 확정 (2026-07-16 호출 경로 추적)
 

@@ -8,7 +8,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { InlineError } from '@/components/ui/inline-error';
 import { Pressable3D } from '@/components/ui/ledge-surface';
 import { WordCreateModal } from '@/components/words/word-create-modal';
-import { WordEditModal } from '@/components/words/word-edit-modal';
 import { WordFilterBar } from '@/components/words/word-filter-bar';
 import { WordRow } from '@/components/words/word-row';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography } from '@/constants/theme';
@@ -16,6 +15,7 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/word-library/word-categories';
+import { useConfirmDeleteWord } from '@/features/word-library/hooks/use-confirm-delete-word';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
@@ -24,11 +24,11 @@ export default function WordsScreen() {
   const { track } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { entries, errorMessage } = useWordLibrary();
+  const confirmDeleteWord = useConfirmDeleteWord();
   useScreenTracking('words');
 
   const [filter, setFilter] = useState<WordCategory>('all');
   const [showCreate, setShowCreate] = useState(false);
-  const [editEntry, setEditEntry] = useState<WordEntry | null>(null);
 
   const stopCurrentPlayerRef = useRef<(() => void) | null>(null);
   const handleBecameActive = useCallback((stopFn: () => void) => {
@@ -36,11 +36,14 @@ export default function WordsScreen() {
     stopCurrentPlayerRef.current = stopFn;
   }, []);
 
-  const handleEdit = useCallback((entry: WordEntry) => {
-    stopCurrentPlayerRef.current?.();
-    stopCurrentPlayerRef.current = null;
-    setEditEntry(entry);
-  }, []);
+  const handleDelete = useCallback(
+    (entry: WordEntry) => {
+      stopCurrentPlayerRef.current?.();
+      stopCurrentPlayerRef.current = null;
+      confirmDeleteWord(entry);
+    },
+    [confirmDeleteWord],
+  );
 
   const handleCreate = useCallback(() => {
     stopCurrentPlayerRef.current?.();
@@ -101,7 +104,7 @@ export default function WordsScreen() {
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + Spacing.screenBottomTabs }]}
       >
         {visible.map((e) => (
-          <WordRow key={e.id} entry={e} onEdit={handleEdit} onBecameActive={handleBecameActive} />
+          <WordRow key={e.id} entry={e} onDelete={handleDelete} onBecameActive={handleBecameActive} />
         ))}
 
         {visible.length === 0 && (
@@ -117,14 +120,6 @@ export default function WordsScreen() {
         visible={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={() => setShowCreate(false)}
-      />
-
-      <WordEditModal
-        visible={editEntry !== null}
-        entry={editEntry}
-        onClose={() => setEditEntry(null)}
-        onSaved={() => setEditEntry(null)}
-        onDeleted={() => setEditEntry(null)}
       />
     </View>
   );

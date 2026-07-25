@@ -29,6 +29,7 @@ const MAPPING = {
   'mic': 'mic',
   'bell.fill': 'notifications',
   'pencil': 'edit',
+  'trash': 'delete',
   'camera.fill': 'photo-camera',
   'play.fill': 'play-arrow',
   'pause.fill': 'pause',
