@@ -73,8 +73,6 @@ export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabe
       <View style={styles.center}>
         <BuddyBird size={90} animation="bounce" />
         <Text
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
           numberOfLines={1}
           style={isLearning ? styles.word : styles.restTitle}>
           {isLearning ? word : t('sessionActive.restingTitle')}

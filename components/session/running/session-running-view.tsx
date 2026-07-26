@@ -59,7 +59,6 @@ export function SessionRunningView({
         isLearning={session.isLearning}
         isActive={session.status === 'running'}
         audioOn={session.audioOn}
-        word={session.currentWord}
       />
       <SessionControls
         status={session.status}

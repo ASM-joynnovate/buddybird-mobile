@@ -10,10 +10,9 @@ interface SessionWaveSectionProps {
   isLearning: boolean;
   isActive: boolean;
   audioOn: boolean;
-  word: string;
 }
 
-export function SessionWaveSection({ isLearning, isActive, audioOn, word }: SessionWaveSectionProps) {
+export function SessionWaveSection({ isLearning, isActive, audioOn }: SessionWaveSectionProps) {
   const { t } = useI18n();
   const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
 
@@ -30,7 +29,7 @@ export function SessionWaveSection({ isLearning, isActive, audioOn, word }: Sess
   const badgeStyle = audioOn ? { backgroundColor: withAlpha(accent, 0.12) } : styles.badgeWaiting;
   const icon = audioOn ? 'speaker.wave.2.fill' : isActive ? 'mic' : 'pause.fill';
   const label = audioOn
-    ? t('sessionActive.playingBadge', { word })
+    ? t('sessionActive.playingBadge')
     : isActive
       ? t('sessionActive.waitingBadge')
       : t('sessionActive.pausedBadge');
