@@ -128,6 +128,15 @@ await flushSessionWordMetrics([
 | `features/word-library/hooks/use-confirm-delete-word.ts` | `word_removed` (프리셋 삭제 시 미발화, orphan 지표 정리 포함) |
 | `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
 
+### 측정 한계 (알려진 제약)
+
+세션 이벤트 카운터는 JS 훅 로컬이라 네이티브 세션과 수명이 다르다. 완전한 해결은 세션 엔진 연동 확장이 필요해 보류하며, 지표 해석 시 다음을 감안한다:
+
+- `word_practice_completed`의 `recordings_count`/`replay_count`: 세션 화면 remount(이탈 후 복귀, 앱 재실행) 시 복귀 후 구간만 집계. 백그라운드 중 캡처돼 `syncUnstoredSegments`로 복구된 세그먼트는 미포함. 반면 `practice_duration_ms`는 엔진의 전체 경과 시간.
+- `recording_played`: 재생 도중 세션이 종료되면 마지막 재생 이벤트가 유실될 수 있고, 재생 중 백그라운드 전환 시 `playback_duration_ms`에 배경 갭이 포함될 수 있음.
+- `word_recording_finished`의 `retry_count`: 성공적으로 완료된 녹음 기준 (에러·중단 경로의 재시도는 미집계, started/finished 쌍은 에러 경로에서 불균형).
+- `recordings_count`의 정본은 `word_practice_completed`(실제 캡처 세그먼트 수). `word_lifetime_metrics`에 누적되는 `lifetime_recording_count`는 세션 flush의 `audioUri ? 1 : 0` 휴리스틱이라 정의가 다름.
+
 ## 4. 후속 통합 작업 (향후)
 
 | 위치 | 이벤트 |
