@@ -117,12 +117,12 @@ await flushSessionWordMetrics([
 | `app/_layout.tsx` | `app_open` |
 | `app/(onboarding)/_layout.tsx` | `onboarding_started` |
 | `app/(onboarding)/index.tsx` | `onboarding_step_completed{welcome}` |
-| `app/(onboarding)/profile.tsx` | `onboarding_step_completed{profile}` |
-| `app/(onboarding)/goals.tsx` | `onboarding_step_completed{goals}` + `profile_created` + `onboarding_completed` |
+| `components/onboarding/onboarding-profile-flow.tsx` | `onboarding_step_completed{profile}` + `profile_created` + `onboarding_completed` |
+| `components/onboarding/onboarding-abandon-tracker.tsx` (`(onboarding)/_layout.tsx` 마운트) | `onboarding_abandoned` — background 도달 시에만, 온보딩 시도당 1회, 미디어 픽커 게이트 활성 중 제외 |
 | `features/auth/auth-context.tsx` | eager 익명 로그인, uid 소유, foreground 재시도 |
 | `features/analytics/analytics-context.tsx` | Auth uid를 analytics user id로 자동 동기화 |
-| `features/profile/profile-context.tsx` | 펫 user properties 자동 동기화 |
-| `app/(tabs)/session-setup.tsx` | `training_session_started` |
+| `features/profile/profile-context.tsx` | 펫 user properties 자동 동기화 + `profile_updated` (updateProfile 성공·변경 필드 diff 시) |
+| `features/training/hooks/use-session-start.ts` | `training_session_started` |
 | `app/session-active.tsx` | `training_session_completed` / `training_session_abandoned` + `flushSessionWordMetrics` |
 
 ## 4. 후속 통합 작업 (향후)

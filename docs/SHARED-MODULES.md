@@ -36,6 +36,13 @@
 | `AuthProvider` | `@/features/auth/auth-context` | React Provider | eager 익명 로그인, uid 단일 소유, 첫 실행 오프라인 뒤 foreground 재시도 |
 | `useAuth` / `useOptionalAuth` | `@/features/auth/auth-context` | `() => AuthContextValue` / `() => AuthContextValue \| null` | uid 소비 및 provider 순서에 안전한 optional 구독 |
 
+### 2.3 미디어 픽커 게이트 — `features/shared/`
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `beginMediaPickerGate` / `endMediaPickerGate` | `@/features/shared/media-picker-gate` | `(): void` | 시스템 미디어 픽커 노출 구간 표시. 픽커 launch 전 `begin`, `try/finally`로 `end` (producer: `components/profile/profile-avatar-picker.tsx` 단일 전제) |
+| `isMediaPickerGateActive` | `@/features/shared/media-picker-gate` | `(): boolean` | 게이트 활성 여부. Android에서 픽커 activity로 인한 AppState background 전이를 "앱 이탈" 판정(예: `onboarding_abandoned`)에서 제외할 때 소비 |
+
 ## 3. Analytics — `features/analytics/`
 
 | Export | 경로 | 시그니처 | 용도 |

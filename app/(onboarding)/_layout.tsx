@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 
+import { OnboardingAbandonTracker } from '@/components/onboarding/onboarding-abandon-tracker';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { OnboardingDraftProvider } from '@/features/profile/onboarding-draft-context';
 
@@ -15,6 +16,7 @@ export default function OnboardingLayout() {
 
   return (
     <OnboardingDraftProvider>
+      <OnboardingAbandonTracker />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="profile" />
