@@ -16,6 +16,7 @@ import { useScreenTracking } from '@/features/analytics/hooks/use-screen-trackin
 import { useI18n } from '@/features/i18n/i18n-context';
 import { CATS, type WordCategory } from '@/features/word-library/word-categories';
 import { useConfirmDeleteWord } from '@/features/word-library/hooks/use-confirm-delete-word';
+import { useTrackWordLibraryOpened } from '@/features/word-library/hooks/use-track-word-library-opened';
 import { useWordLibrary } from '@/features/word-library/word-library-context';
 import type { WordEntry } from '@/features/word-library/word-library-types';
 
@@ -26,6 +27,7 @@ export default function WordsScreen() {
   const { entries, errorMessage } = useWordLibrary();
   const confirmDeleteWord = useConfirmDeleteWord();
   useScreenTracking('words');
+  useTrackWordLibraryOpened();
 
   const [filter, setFilter] = useState<WordCategory>('all');
   const [showCreate, setShowCreate] = useState(false);

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { cycleProgressPercent } from '@/features/training/session-cycle-model';
@@ -20,14 +20,17 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   }
   const progressPercent = cycleProgressPercent(session.cycle, session.totalCycles);
 
-  function buildWordDelta(durationMs: number) {
-    return {
-      word_id: pendingSession.wordId,
-      word_name: pendingSession.word,
-      practice_duration_ms: durationMs,
-      recordings_count: 0,
-    } as const;
-  }
+  const buildWordDeltas = useCallback(
+    (durationMs: number, recordingsCount: number) => [
+      {
+        word_id: pendingSession.wordId,
+        word_name: pendingSession.word,
+        practice_duration_ms: durationMs,
+        recordings_count: recordingsCount,
+      },
+    ],
+    [pendingSession.wordId, pendingSession.word],
+  );
 
   function handleStop(): void {
     // 외부 종료(알림 "중지") 후 뒤늦게 복귀한 경우 벽시계 차이에 백그라운드 공백이 섞이므로
@@ -46,7 +49,7 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
         last_word_name: pendingSession.word,
       },
     });
-    void flushSessionWordMetrics([buildWordDelta(durationMs)]);
+    void flushSessionWordMetrics(buildWordDeltas(durationMs, 0));
     session.stop();
     // 화면 이동은 useSessionExit 가 가로채기를 끈 뒤 처리한다.
     setTimeout(() => clearPendingSession(), 0);
@@ -75,22 +78,14 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
         avg_recording_duration_ms: avgRecordingMs,
       },
     });
-    void flushSessionWordMetrics([
-      {
-        word_id: pendingSession.wordId,
-        word_name: pendingSession.word,
-        practice_duration_ms: durationMs,
-        recordings_count: totalRecordings,
-      },
-    ]);
+    void flushSessionWordMetrics(buildWordDeltas(durationMs, totalRecordings));
   }, [
     session.status,
     session.learnSecs,
     track,
     flushSessionWordMetrics,
+    buildWordDeltas,
     pendingSession.sessionId,
-    pendingSession.wordId,
-    pendingSession.word,
     pendingSession.audioUri,
   ]);
 

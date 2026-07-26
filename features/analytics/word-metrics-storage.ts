@@ -98,6 +98,19 @@ async function writeMap(map: WordMetricsMap): Promise<void> {
   await metricsStore.save(map);
 }
 
+export async function readWordLifetimeMetrics(wordId: string): Promise<WordLifetimeMetrics | null> {
+  const map = await readMap();
+  return map[wordId] ?? null;
+}
+
+// 단어 삭제 시 orphan 지표 정리. 항목이 없으면 저장을 건너뛴다(idempotent).
+export async function removeWordMetrics(wordId: string): Promise<void> {
+  const map = await readMap();
+  if (!(wordId in map)) return;
+  delete map[wordId];
+  await writeMap(map);
+}
+
 export async function applySessionDeltas(deltas: readonly WordSessionDelta[]): Promise<readonly WordLifetimeMetrics[]> {
   if (deltas.length === 0) {
     return [];
