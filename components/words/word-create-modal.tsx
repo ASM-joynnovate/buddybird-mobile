@@ -93,12 +93,12 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
         name: 'word_recording_finished',
         params: {
           word_name: labelRef.current.trim(),
-          recording_duration_ms: session.elapsedSeconds * 1000,
+          recording_duration_ms: session.recordedDurationMs ?? session.elapsedSeconds * 1000,
           retry_count: retryCountRef.current,
         },
       });
     }
-  }, [session.state, session.elapsedSeconds, track]);
+  }, [session.state, session.elapsedSeconds, session.recordedDurationMs, track]);
 
   const canSave = session.ui.canPlayback && label.trim().length > 0;
   const recorderStatusLabel = session.ui.statusLabel ?? '';
@@ -148,7 +148,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
           category: tag,
           // 현행 생성 플로우는 녹음이 필수라 등록 방식이 단일하다.
           registration_method: 'voice_recording',
-          recording_duration_ms: session.elapsedSeconds * 1000,
+          recording_duration_ms: session.recordedDurationMs ?? session.elapsedSeconds * 1000,
           ...(audioSizeBytes !== undefined ? { audio_size_bytes: audioSizeBytes } : {}),
         },
       });
