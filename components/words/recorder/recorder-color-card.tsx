@@ -50,7 +50,7 @@ export function RecorderColorCard({
       depth="buttonSm"
       faceStyle={[styles.cardFace, { backgroundColor: color }]}>
       <Text style={styles.kicker}>{kicker}</Text>
-      <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={styles.word}>
+      <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={3} style={styles.word}>
         {displayLabel}
       </Text>
       <View style={styles.waveform}>
