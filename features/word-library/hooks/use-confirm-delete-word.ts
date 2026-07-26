@@ -25,7 +25,11 @@ export function useConfirmDeleteWord(): (entry: WordEntry) => void {
           onPress: () => {
             void (async () => {
               // 지표는 제거 전에 읽는다 — 삭제 성공 후에만 발화하므로 순서 보장 필요.
-              const metrics = await readWordLifetimeMetrics(entry.id);
+              // 읽기 실패는 비치명: 분석용 조회가 삭제 자체를 막으면 안 된다 (지표 0으로 발화).
+              const metrics = await readWordLifetimeMetrics(entry.id).catch((error: unknown) => {
+                console.warn('[words.readWordLifetimeMetrics]', error);
+                return null;
+              });
               await deleteEntry(entry.id);
               track({
                 name: 'word_removed',
