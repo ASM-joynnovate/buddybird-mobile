@@ -5,7 +5,6 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 import { cycleProgressPercent } from '@/features/training/session-cycle-model';
 import type { PendingSession } from '@/features/training/training-context';
 import type { UseActiveSessionResult } from '@/features/training/hooks/use-active-session';
-import { useWordLibrary } from '@/features/word-library/word-library-context';
 
 interface SessionAnalyticsParams {
   pendingSession: PendingSession;
@@ -15,32 +14,21 @@ interface SessionAnalyticsParams {
 
 export function useSessionAnalytics({ pendingSession, session, clearPendingSession }: SessionAnalyticsParams) {
   const { track, flushSessionWordMetrics } = useAnalytics();
-  const { entries, isHydrated } = useWordLibrary();
   const startedAtRef = useRef<number>(null!);
   if (startedAtRef.current === null) {
     startedAtRef.current = Date.now();
   }
   const progressPercent = cycleProgressPercent(session.cycle, session.totalCycles);
 
-  // 세션 도중 삭제된 단어의 지표를 flush가 되살리지 않도록 존재 확인용 스냅샷을 ref로 유지
-  // (기존 effect deps를 흔들지 않기 위해 ref 패턴 사용). hydration 미완료면 fail open —
-  // 조회 불가를 이유로 정상 단어의 지표를 버리는 쪽이 더 나쁘다.
-  const wordExistsRef = useRef<(wordId: string) => boolean>(() => true);
-  wordExistsRef.current = (wordId: string) =>
-    !isHydrated || entries.some((entry) => entry.id === wordId);
-
   const buildWordDeltas = useCallback(
-    (durationMs: number, recordingsCount: number) => {
-      if (!wordExistsRef.current(pendingSession.wordId)) return [];
-      return [
-        {
-          word_id: pendingSession.wordId,
-          word_name: pendingSession.word,
-          practice_duration_ms: durationMs,
-          recordings_count: recordingsCount,
-        },
-      ] as const;
-    },
+    (durationMs: number, recordingsCount: number) => [
+      {
+        word_id: pendingSession.wordId,
+        word_name: pendingSession.word,
+        practice_duration_ms: durationMs,
+        recordings_count: recordingsCount,
+      },
+    ],
     [pendingSession.wordId, pendingSession.word],
   );
 
@@ -98,8 +86,6 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
     flushSessionWordMetrics,
     buildWordDeltas,
     pendingSession.sessionId,
-    pendingSession.wordId,
-    pendingSession.word,
     pendingSession.audioUri,
   ]);
 
