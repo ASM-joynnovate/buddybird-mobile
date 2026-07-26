@@ -114,7 +114,8 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       }),
     ];
 
-    // 신규 시작 경로에서만 발화 — 기존 세션 복귀(remount) 경로는 위 early return으로 제외된다.
+    // 신규 시작 경로에서만 발화 — startNativeSession의 기존 세션 복귀(remount) early return
+    // 경로에서는 호출되지 않는다.
     async function trackPracticeStarted(): Promise<void> {
       const lifetime = await readWordLifetimeMetrics(wordId).catch((error: unknown) => {
         console.warn('[training.practiceStarted]', error);
@@ -161,7 +162,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           },
         });
         if (!cancelled) acceptSnapshot(next);
-        void trackPracticeStarted();
+        if (!cancelled) void trackPracticeStarted();
         await syncUnstoredSegments();
       } catch (error: unknown) {
         reportError(error, { scope: 'training.sessionAudio.start', screen_name: 'session_active' });
