@@ -49,7 +49,7 @@ export function SessionControls({
   return (
     <View style={[styles.controls, { paddingBottom }]}>
       {isFailed ? (
-        <View style={styles.failureBox}>
+        <View style={styles.failureBox} accessibilityRole="alert">
           <Text style={styles.failureTitle}>
             {t(failedDuringSession ? 'sessionActive.sessionFailed' : 'sessionActive.startFailed')}
           </Text>
