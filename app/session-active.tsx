@@ -74,7 +74,7 @@ function SessionActiveInner({
           totalTrainingSeconds={totalTrainingSeconds}
           streakDays={streakDays}
           onDismiss={handleDismiss}
-          onDebugAccess={() => router.push({ pathname: '/session-captures', params: { sessionId: pendingSession.sessionId, word: session.currentWord } })}
+          onDebugAccess={() => router.push({ pathname: '/session-captures', params: { sessionId: session.sessionId, word: session.currentWord } })}
         />
       ) : (
         <SessionRunningView

@@ -64,13 +64,13 @@ final class SessionAudioEngineCoordinator: NSObject {
       }
 
       let nextConfiguration = NativeSessionConfiguration(input)
-      try validateFiles(nextConfiguration)
-      configuration = nextConfiguration
-      state = "starting"
-      elapsedBeforeRunMs = 0
-      runningSinceMs = nil
-      lastStopRecord = nil
       do {
+        try validateFiles(nextConfiguration)
+        configuration = nextConfiguration
+        state = "starting"
+        elapsedBeforeRunMs = 0
+        runningSinceMs = nil
+        lastStopRecord = nil
         try activateAudio()
         runningSinceMs = monotonicMilliseconds()
         state = "running"
@@ -80,8 +80,10 @@ final class SessionAudioEngineCoordinator: NSObject {
       } catch {
         // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면
         // 이후 모든 start()가 sessionAlreadyRunning으로 거부돼 엔진이 고착된다.
+        // rejection에는 code가 실리지 않으므로 롤백 전에 onFailure로 code를 내보낸다.
         stopAudio()
         try? persist(reason: "failure")
+        emitFailure(error)
         configuration = nil
         state = "idle"
         throw error
@@ -119,9 +121,8 @@ final class SessionAudioEngineCoordinator: NSObject {
         scheduleTargetPlaybackIfNeeded()
         try persist(reason: nil)
       } catch {
-        state = "failed"
         stopAudio()
-        try? persist(reason: "failure")
+        markFailed(error)
         throw error
       }
       let snapshot = snapshotDictionary()
@@ -239,14 +240,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       try persist(reason: nil)
       onStateChanged?(snapshotDictionary())
     } catch {
-      state = "failed"
-      try? persist(reason: "failure")
-      onFailure?([
-        "code": "audio-engine-failed",
-        "message": error.localizedDescription,
-        "recoverable": false
-      ])
-      onStateChanged?(snapshotDictionary())
+      markFailed(error)
     }
   }
 
@@ -288,7 +282,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       let input = engine.inputNode
       let inputFormat = input.inputFormat(forBus: 0)
       guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
-        throw SessionAudioEngineError.audioEngineFailed("The current audio input route is unavailable.")
+        throw SessionAudioEngineError.audioRouteUnavailable
       }
       if capturePipeline == nil {
         let pipeline = VoiceCapturePipeline(configuration: configuration, store: captureStore)
@@ -521,15 +515,25 @@ final class SessionAudioEngineCoordinator: NSObject {
   private func failSession(code: String, error: Error) {
     guard configuration != nil, state == "running" || state == "starting" || state == "interrupted" else { return }
     foldElapsed()
-    state = "failed"
     stopAudio()
+    markFailed(error, code: code)
+  }
+
+  // 실패 종단 공통 전이 — code 미지정 시 throw된 에러에서 파생한다.
+  private func markFailed(_ error: Error, code: String? = nil) {
+    state = "failed"
     try? persist(reason: "failure")
+    emitFailure(error, code: code)
+    onStateChanged?(snapshotDictionary())
+  }
+
+  private func emitFailure(_ error: Error, code: String? = nil) {
+    let resolvedCode = code ?? (error as? SessionAudioEngineError)?.failureCode ?? "audio-engine-failed"
     onFailure?([
-      "code": code,
+      "code": resolvedCode,
       "message": error.localizedDescription,
       "recoverable": false
     ])
-    onStateChanged?(snapshotDictionary())
   }
 
   private func isoNow() -> String {

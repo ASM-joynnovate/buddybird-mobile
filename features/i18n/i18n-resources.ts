@@ -145,6 +145,13 @@ interface AppCopy {
     pausedBadge: string;
     preparing: string;
     startFailed: string;
+    sessionFailed: string;
+    retry: string;
+    failurePermissionDenied: string;
+    failureAudioSourceUnavailable: string;
+    failureAudioRouteUnavailable: string;
+    failureStorageUnavailable: string;
+    failureEngine: string;
     pause: string;
     resume: string;
     exitConfirmTitle: string;
@@ -433,6 +440,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       pausedBadge: '일시정지 중',
       preparing: '준비 중',
       startFailed: '시작 실패',
+      sessionFailed: '세션 중단',
+      retry: '다시 시도',
+      failurePermissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
+      failureAudioSourceUnavailable: '학습 음원을 준비하지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.',
+      failureAudioRouteUnavailable: '마이크·스피커를 사용할 수 없어요. 이어폰 연결을 확인한 뒤 다시 시도해 주세요.',
+      failureStorageUnavailable: '녹음을 저장할 공간이 없어요. 기기 저장 공간을 확인한 뒤 다시 시도해 주세요.',
+      failureEngine: '오디오 재생·녹음에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.',
       pause: '일시정지',
       resume: '계속하기',
       exitConfirmTitle: '학습 세션을 종료할까요?',
@@ -739,6 +753,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       pausedBadge: 'Paused',
       preparing: 'Preparing',
       startFailed: 'Failed to start',
+      sessionFailed: 'Session interrupted',
+      retry: 'Try again',
+      failurePermissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',
+      failureAudioSourceUnavailable: 'Could not prepare the training audio. Check your connection and try again.',
+      failureAudioRouteUnavailable: 'The microphone or speaker is unavailable. Check your headset connection and try again.',
+      failureStorageUnavailable: 'There is no space to save recordings. Free up device storage and try again.',
+      failureEngine: 'Audio playback or recording ran into a problem. Please try again soon.',
       pause: 'Pause',
       resume: 'Resume',
       exitConfirmTitle: 'End the training session?',

@@ -51,7 +51,13 @@ export function useSessionExit({ status, stopSession, endedExternally }: UseSess
   }, [endedExternally, exitWithStop]);
 
   // 뒤로가기는 가로채기만 하고 이동 action 은 버린다 — 확인창을 띄운 채 학습 화면에 머문다.
-  usePreventRemove(RUNNING_STATUSES.includes(status) && !isExiting, () => {
+  // failed도 가로챈다: 도중 실패 직후에는 네이티브 세션(마이크)이 아직 정리 전일 수 있어
+  // stop 경로를 반드시 태우되, 이미 실패한 세션이므로 확인 없이 바로 나간다.
+  usePreventRemove((RUNNING_STATUSES.includes(status) || status === 'failed') && !isExiting, () => {
+    if (status === 'failed') {
+      exitWithStop();
+      return;
+    }
     setIsConfirmVisible(true);
   });
 

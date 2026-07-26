@@ -30,6 +30,13 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+// JS `SessionEngineFailureCode` union 과 1:1 — onFailure 이벤트로 나가는 기계 판독용 코드를 나른다.
+internal class SessionFailureException(
+  val failureCode: String,
+  message: String,
+  cause: Throwable? = null,
+) : CodedException(message, cause)
+
 object SessionAudioEngineRuntime {
   var onStateChanged: ((Map<String, Any?>) -> Unit)? = null
   var onProgress: ((Map<String, Any?>) -> Unit)? = null
@@ -85,7 +92,13 @@ object SessionAudioEngineRuntime {
       }
       val appContext = requireNotNull(context) { "SessionAudioEngine is not initialized." }
       val next = NativeSessionConfiguration.from(input)
-      validateFiles(next)
+      try {
+        validateFiles(next)
+      } catch (error: Throwable) {
+        // start rejection에는 code가 실리지 않으므로 onFailure 이벤트로 code를 내보낸다.
+        emitFailure(error)
+        throw error
+      }
       configuration = next
       elapsedBeforeRunMs = 0
       runningSinceMs = null
@@ -100,7 +113,9 @@ object SessionAudioEngineRuntime {
         } catch (error: Throwable) {
           configuration = null
           state = "idle"
-          throw CodedException("The audio foreground service is not allowed to start.", error)
+          val failure = SessionFailureException("service-start-not-allowed", "The audio foreground service is not allowed to start.", error)
+          emitFailure(failure)
+          throw failure
         }
       }
     }
@@ -110,7 +125,9 @@ object SessionAudioEngineRuntime {
         state = "idle"
       }
       context?.let { it.stopService(Intent(it, AudioForegroundService::class.java)) }
-      throw CodedException("The audio foreground service did not start in time.")
+      val failure = SessionFailureException("service-start-not-allowed", "The audio foreground service did not start in time.")
+      emitFailure(failure)
+      throw failure
     }
     serviceStartError?.let {
       // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면 이후 모든
@@ -140,7 +157,7 @@ object SessionAudioEngineRuntime {
       state = "failed"
       stopAudio()
       runCatching { persist("failure") }
-      onFailure?.invoke(mapOf("code" to "audio-engine-failed", "message" to (error.message ?: "Audio engine failed."), "recoverable" to false))
+      emitFailure(error)
       context?.stopService(Intent(context, AudioForegroundService::class.java))
     } finally {
       serviceReadyLatch?.countDown()
@@ -155,6 +172,7 @@ object SessionAudioEngineRuntime {
     serviceStartError = error
     state = "failed"
     runCatching { persist("failure") }
+    emitFailure("service-start-not-allowed", error.message)
     serviceReadyLatch?.countDown()
   }
 
@@ -245,15 +263,19 @@ object SessionAudioEngineRuntime {
   private fun validateFiles(config: NativeSessionConfiguration) {
     val source = Uri.parse(config.targetAudioUri)
     if (source.scheme != "file" || !File(requireNotNull(source.path)).isFile) {
-      throw CodedException("The target audio file is unavailable.")
+      throw SessionFailureException("audio-source-unavailable", "The target audio file is unavailable.")
     }
     val directory = Uri.parse(config.captureDirectoryUri)
     if (directory.scheme != "file" || !File(requireNotNull(directory.path)).let { it.isDirectory || it.mkdirs() }) {
-      throw CodedException("The capture directory is unavailable.")
+      throw SessionFailureException("storage-unavailable", "The capture directory is unavailable.")
     }
-    requireNotNull(captureStore).reconcile(config.captureDirectoryUri)
+    try {
+      requireNotNull(captureStore).reconcile(config.captureDirectoryUri)
+    } catch (error: Throwable) {
+      throw SessionFailureException("storage-unavailable", "The capture directory is unavailable.", error)
+    }
     if (ContextCompat.checkSelfPermission(requireNotNull(context), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-      throw CodedException("Microphone permission is required.")
+      throw SessionFailureException("permission-denied", "Microphone permission is required.")
     }
   }
 
@@ -271,7 +293,7 @@ object SessionAudioEngineRuntime {
     )
     if (recorder.state != AudioRecord.STATE_INITIALIZED) {
       recorder.release()
-      throw CodedException("The microphone audio source is unavailable.")
+      throw SessionFailureException("audio-route-unavailable", "The microphone audio source is unavailable.")
     }
     audioRecord = recorder
     val thread = HandlerThread("SessionAudioPlayback").apply { start() }
@@ -312,7 +334,7 @@ object SessionAudioEngineRuntime {
     if (!playerReady.await(4, TimeUnit.SECONDS) || playerFailure != null) {
       handler.post { mediaPlayer?.release() }
       thread.quitSafely()
-      throw CodedException("The target audio file could not be prepared.", playerFailure)
+      throw SessionFailureException("audio-source-unavailable", "The target audio file could not be prepared.", playerFailure)
     }
     playbackThread = thread
     playbackHandler = handler
@@ -330,7 +352,7 @@ object SessionAudioEngineRuntime {
     }
     recorder.startRecording()
     if (recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
-      throw CodedException("The microphone did not enter the recording state.")
+      throw SessionFailureException("audio-route-unavailable", "The microphone did not enter the recording state.")
     }
     recording.set(true)
     recordingThread = Thread({
@@ -398,7 +420,9 @@ object SessionAudioEngineRuntime {
       @Suppress("DEPRECATION")
       manager.requestAudioFocus(audioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
     }
-    if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) throw CodedException("The audio output route is unavailable.")
+    if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+      throw SessionFailureException("audio-route-unavailable", "The audio output route is unavailable.")
+    }
     audioManager = manager
   }
 
@@ -441,7 +465,7 @@ object SessionAudioEngineRuntime {
             .onFailure {
               state = "failed"
               persist("failure")
-              onFailure?.invoke(mapOf("code" to "audio-engine-failed", "message" to (it.message ?: "Audio engine failed."), "recoverable" to false))
+              emitFailure(it)
               onStateChanged?.invoke(snapshot())
             }
         }
@@ -455,9 +479,16 @@ object SessionAudioEngineRuntime {
     state = "failed"
     stopAudio()
     persist("failure")
-    onFailure?.invoke(mapOf("code" to code, "message" to (error.message ?: "Audio engine failed."), "recoverable" to false))
+    emitFailure(code, error.message)
     onStateChanged?.invoke(snapshot())
     context?.stopService(Intent(context, AudioForegroundService::class.java))
+  }
+
+  private fun emitFailure(error: Throwable) =
+    emitFailure((error as? SessionFailureException)?.failureCode ?: "audio-engine-failed", error.message)
+
+  private fun emitFailure(code: String, message: String?) {
+    onFailure?.invoke(mapOf("code" to code, "message" to (message ?: "Audio engine failed."), "recoverable" to false))
   }
 
   private fun scheduleTargetPlaybackIfNeeded() {

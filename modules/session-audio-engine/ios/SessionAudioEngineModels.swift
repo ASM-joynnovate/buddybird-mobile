@@ -116,6 +116,7 @@ enum SessionAudioEngineError: LocalizedError {
   case noSession
   case permissionDenied
   case audioSourceUnavailable
+  case audioRouteUnavailable
   case storageUnavailable
   case audioEngineFailed(String)
 
@@ -126,8 +127,20 @@ enum SessionAudioEngineError: LocalizedError {
     case .noSession: return "There is no active training session."
     case .permissionDenied: return "Microphone permission is required."
     case .audioSourceUnavailable: return "The target audio file is unavailable."
+    case .audioRouteUnavailable: return "The current audio input route is unavailable."
     case .storageUnavailable: return "The capture directory is unavailable."
     case .audioEngineFailed(let message): return message
+    }
+  }
+
+  // JS `SessionEngineFailureCode` union 과 1:1 — onFailure 이벤트로 나가는 기계 판독용 코드.
+  var failureCode: String {
+    switch self {
+    case .permissionDenied: return "permission-denied"
+    case .audioSourceUnavailable: return "audio-source-unavailable"
+    case .audioRouteUnavailable: return "audio-route-unavailable"
+    case .storageUnavailable: return "storage-unavailable"
+    case .invalidInput, .sessionAlreadyRunning, .noSession, .audioEngineFailed: return "audio-engine-failed"
     }
   }
 }

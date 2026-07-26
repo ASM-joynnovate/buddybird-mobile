@@ -4,9 +4,11 @@ import { AppState } from 'react-native';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
 import { readWordLifetimeMetrics } from '@/features/analytics/word-metrics-storage';
+import { createSessionId } from '@/features/shared/ids';
 import {
   sessionAudioEngine,
   type CapturedSegment,
+  type SessionEngineFailure,
   type SessionEngineSnapshot,
   type SessionRecoveryRecord,
 } from '@/modules/session-audio-engine';
@@ -38,8 +40,13 @@ interface UseActiveSessionInput {
 }
 
 export interface UseActiveSessionResult {
+  // 엔진에 실제로 붙은 세션 id — 재시도하면 pendingSession.sessionId와 달라진다.
+  sessionId: string;
   status: SessionStatus;
   endedExternally: boolean;
+  failure: SessionEngineFailure | null;
+  // true면 세션이 진행되다 실패한 것 — "시작 실패"와 구분해 표기한다.
+  failedDuringSession: boolean;
   phase: 'learning' | 'rest';
   cycle: number;
   totalCycles: number;
@@ -50,6 +57,7 @@ export interface UseActiveSessionResult {
   isLearning: boolean;
   currentWord: string;
   togglePause: () => void;
+  retry: () => void;
   stop: () => void;
   dismissCompletion: () => void;
   learnSecs: number;
@@ -68,12 +76,17 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     learnSecs,
     restSecs,
   });
+  // 재시도 런은 새 엔진 세션 id로 돈다 — 도중 실패 시 진행분이 기존 id로 이미 저장됐을 수 있고,
+  // 저장소는 같은 id의 세션을 무시하기 때문이다(completeTrainingSession).
+  const [engineSessionId, setEngineSessionId] = useState(sessionId);
   const [snapshot, setSnapshot] = useState<SessionEngineSnapshot>(() => initialSnapshot(sessionId));
   const [endedExternally, setEndedExternally] = useState(false);
+  const [failure, setFailure] = useState<SessionEngineFailure | null>(null);
   const snapshotRef = useRef(snapshot);
   snapshotRef.current = snapshot;
   const completionHandledRef = useRef(false);
   const failureHandledRef = useRef(false);
+  const hadRunRef = useRef(false);
   const finalizePromiseRef = useRef<Promise<void> | null>(null);
   // word_practice_completed 파라미터용 세션 내 카운터 (캡처 세그먼트 수·목표 음원 재생 수).
   const capturedCountRef = useRef(0);
@@ -81,27 +94,33 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const playStartAtRef = useRef<number | null>(null);
 
   const acceptSnapshot = useCallback((next: SessionEngineSnapshot): void => {
-    if (next.sessionId === sessionId) setSnapshot(next);
-  }, [sessionId]);
+    if (next.sessionId !== engineSessionId) return;
+    // 진행 계열 상태를 한 번이라도 지나면 이후 실패는 "시작 실패"가 아니라 도중 실패다.
+    // (재진입 시 paused/interrupted 스냅샷으로 이어받는 경우 포함)
+    if (next.state === 'running' || next.state === 'paused' || next.state === 'interrupted') {
+      hadRunRef.current = true;
+    }
+    setSnapshot(next);
+  }, [engineSessionId]);
 
   const storeSegment = useCallback(async (segment: CapturedSegment): Promise<void> => {
-    if (segment.sessionId !== sessionId) return;
+    if (segment.sessionId !== engineSessionId) return;
     capturedCountRef.current += 1;
     try {
       await storeNativeCapturedSegments([segment], wordId);
     } catch (error: unknown) {
       reportError(error, { scope: 'training.sessionAudio.storeSegment' });
     }
-  }, [sessionId, wordId]);
+  }, [engineSessionId, wordId]);
 
   const syncUnstoredSegments = useCallback(async (): Promise<void> => {
     try {
       const segments = await sessionAudioEngine.getUnstoredSegments();
-      await storeNativeCapturedSegments(segments.filter((segment) => segment.sessionId === sessionId), wordId);
+      await storeNativeCapturedSegments(segments.filter((segment) => segment.sessionId === engineSessionId), wordId);
     } catch (error: unknown) {
       reportError(error, { scope: 'training.sessionAudio.syncSegments' });
     }
-  }, [sessionId, wordId]);
+  }, [engineSessionId, wordId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,8 +128,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       sessionAudioEngine.onStateChanged(acceptSnapshot),
       sessionAudioEngine.onProgress(acceptSnapshot),
       sessionAudioEngine.onSegmentCaptured((segment) => { void storeSegment(segment); }),
-      sessionAudioEngine.onFailure((failure) => {
-        reportError(new Error(`${failure.code}: ${failure.message}`), { scope: 'training.sessionAudio.native' });
+      sessionAudioEngine.onFailure((nativeFailure) => {
+        reportError(new Error(`${nativeFailure.code}: ${nativeFailure.message}`), { scope: 'training.sessionAudio.native' });
+        if (!cancelled) setFailure(nativeFailure);
       }),
     ];
 
@@ -135,17 +155,19 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     }
 
     async function startNativeSession(): Promise<void> {
+      let audioSourceReady = false;
       try {
         const existing = await sessionAudioEngine.getSnapshot();
-        if (existing?.sessionId === sessionId) {
+        if (existing?.sessionId === engineSessionId) {
           if (!cancelled) acceptSnapshot(existing);
           await syncUnstoredSegments();
           return;
         }
-        if (!sessionId || audioUri === undefined) throw new Error('세션 음원 또는 세션 ID가 없습니다.');
+        if (!engineSessionId || audioUri === undefined) throw new Error('세션 음원 또는 세션 ID가 없습니다.');
         const targetAudioUri = await prepareSessionAudioUri(audioUri);
+        audioSourceReady = true;
         const next = await sessionAudioEngine.start({
-          sessionId,
+          sessionId: engineSessionId,
           targetAudioUri,
           captureDirectoryUri: prepareSessionCaptureDirectoryUri(),
           totalDurationMs: settings.totalDurationSeconds * 1000,
@@ -166,7 +188,15 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         await syncUnstoredSegments();
       } catch (error: unknown) {
         reportError(error, { scope: 'training.sessionAudio.start', screen_name: 'session_active' });
-        if (!cancelled) setSnapshot((current) => ({ ...current, state: 'failed', savedAt: new Date().toISOString() }));
+        if (cancelled) return;
+        // 네이티브가 code를 emit하지 못한 경로(JS 준비 실패 등) 대비 fallback —
+        // onFailure 이벤트로 이미 받은 code를 덮지 않는다.
+        setFailure((current) => current ?? {
+          code: audioSourceReady ? 'audio-engine-failed' : 'audio-source-unavailable',
+          message: error instanceof Error ? error.message : String(error),
+          recoverable: false,
+        });
+        setSnapshot((current) => ({ ...current, state: 'failed' }));
       }
     }
 
@@ -178,9 +208,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [
     acceptSnapshot,
     audioUri,
+    engineSessionId,
     learnSecs,
     restSecs,
-    sessionId,
     settings.libraryEntryId,
     settings.sourceType,
     settings.totalDurationSeconds,
@@ -325,13 +355,35 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     void sessionAudioEngine.getSnapshot()
       .then((native) => {
         if (!native) return;
-        if (native.sessionId !== sessionId && native.state !== 'failed' && native.state !== 'completed') return;
+        if (native.sessionId !== engineSessionId && native.state !== 'failed' && native.state !== 'completed') return;
         return finalizeSession();
       })
       .catch((error: unknown) => {
         reportError(error, { scope: 'training.sessionAudio.finalizeFailed', screen_name: 'session_active' });
       });
-  }, [finalizeSession, sessionId, snapshot.state]);
+  }, [engineSessionId, finalizeSession, snapshot.state]);
+
+  // 실패 상태에서 새 엔진 세션으로 처음부터 다시 시작한다. 도중 실패라면 finalize가
+  // 네이티브 정리와 진행분 저장(기준 시간 이상)을 먼저 끝낸다.
+  const retry = useCallback((): void => {
+    void sessionAudioEngine.getSnapshot()
+      .then((native) => {
+        if (native) return finalizeSession();
+      })
+      .catch((error: unknown) => {
+        reportError(error, { scope: 'training.sessionAudio.retry', screen_name: 'session_active' });
+      })
+      .then(() => {
+        failureHandledRef.current = false;
+        completionHandledRef.current = false;
+        finalizePromiseRef.current = null;
+        hadRunRef.current = false;
+        const nextId = createSessionId();
+        setFailure(null);
+        setSnapshot(initialSnapshot(nextId));
+        setEngineSessionId(nextId);
+      });
+  }, [finalizeSession]);
 
   useSessionKeepAwake(snapshot.state === 'running');
 
@@ -356,8 +408,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const creditedLearningSeconds = elapsedLearningSeconds(snapshot.cycle, snapshot.phase, phaseElapsed, learnSecs);
 
   return {
+    sessionId: engineSessionId,
     status: snapshot.state,
     endedExternally,
+    failure,
+    failedDuringSession: snapshot.state === 'failed' && hadRunRef.current,
     phase: snapshot.phase,
     cycle: Math.min(snapshot.cycle, totalCycles),
     totalCycles,
@@ -368,6 +423,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     isLearning: snapshot.phase === 'learning',
     currentWord: word,
     togglePause,
+    retry,
     stop,
     dismissCompletion,
     learnSecs,
