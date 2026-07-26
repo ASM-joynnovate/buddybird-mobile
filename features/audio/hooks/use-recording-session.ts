@@ -33,6 +33,8 @@ export interface RecordingSession {
   metering: number | null;
   file: StableRecordingFile | null;
   elapsedSeconds: number;
+  // 완료된 녹음의 실측 길이(ms). analytics 등 정밀 소비처용 — UI 표기는 elapsedSeconds.
+  recordedDurationMs: number | null;
   errorMessage: string | null;
   actions: {
     start: () => Promise<void>;
@@ -130,6 +132,7 @@ export function useRecordingSession(options: UseRecordingSessionOptions): Record
       metering: recording.metering,
       file: recording.recordingFile,
       elapsedSeconds: recording.elapsedSeconds,
+      recordedDurationMs: recording.recordedDurationMs,
       errorMessage: recording.errorMessage,
       actions: { start, stop: stopRecording, reset },
       playback,
@@ -145,6 +148,7 @@ export function useRecordingSession(options: UseRecordingSessionOptions): Record
       recording.metering,
       recording.recordingFile,
       recording.elapsedSeconds,
+      recording.recordedDurationMs,
       recording.errorMessage,
       recording.isRecording,
       start,

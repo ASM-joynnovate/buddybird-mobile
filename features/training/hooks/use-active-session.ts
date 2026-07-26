@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
+import { readWordLifetimeMetrics } from '@/features/analytics/word-metrics-storage';
 import {
   sessionAudioEngine,
   type CapturedSegment,
@@ -74,6 +75,10 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const completionHandledRef = useRef(false);
   const failureHandledRef = useRef(false);
   const finalizePromiseRef = useRef<Promise<void> | null>(null);
+  // word_practice_completed 파라미터용 세션 내 카운터 (캡처 세그먼트 수·목표 음원 재생 수).
+  const capturedCountRef = useRef(0);
+  const playCountRef = useRef(0);
+  const playStartAtRef = useRef<number | null>(null);
 
   const acceptSnapshot = useCallback((next: SessionEngineSnapshot): void => {
     if (next.sessionId === sessionId) setSnapshot(next);
@@ -81,6 +86,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   const storeSegment = useCallback(async (segment: CapturedSegment): Promise<void> => {
     if (segment.sessionId !== sessionId) return;
+    capturedCountRef.current += 1;
     try {
       await storeNativeCapturedSegments([segment], wordId);
     } catch (error: unknown) {
@@ -107,6 +113,26 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         reportError(new Error(`${failure.code}: ${failure.message}`), { scope: 'training.sessionAudio.native' });
       }),
     ];
+
+    // 신규 시작 경로에서만 발화 — startNativeSession의 기존 세션 복귀(remount) early return
+    // 경로에서는 호출되지 않는다.
+    async function trackPracticeStarted(): Promise<void> {
+      const lifetime = await readWordLifetimeMetrics(wordId).catch((error: unknown) => {
+        console.warn('[training.practiceStarted]', error);
+        return null;
+      });
+      track({
+        name: 'word_practice_started',
+        params: {
+          session_id: sessionId,
+          word_id: wordId,
+          word_name: word,
+          attempt_number: (lifetime?.lifetime_practice_count ?? 0) + 1,
+          cumulative_practice_count: lifetime?.lifetime_practice_count ?? 0,
+          cumulative_practice_duration_ms: lifetime?.lifetime_practice_duration_ms ?? 0,
+        },
+      });
+    }
 
     async function startNativeSession(): Promise<void> {
       try {
@@ -136,6 +162,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           },
         });
         if (!cancelled) acceptSnapshot(next);
+        if (!cancelled) void trackPracticeStarted();
         await syncUnstoredSegments();
       } catch (error: unknown) {
         reportError(error, { scope: 'training.sessionAudio.start', screen_name: 'session_active' });
@@ -159,9 +186,35 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     settings.totalDurationSeconds,
     storeSegment,
     syncUnstoredSegments,
+    track,
     word,
     wordId,
   ]);
+
+  // 목표 음원 재생 추적 — isTargetPlaying false→true 전이를 재생 1회로 카운트하고,
+  // true→false 전이 시점에 재생 시간을 확정해 recording_played 를 발화한다.
+  useEffect(() => {
+    if (snapshot.isTargetPlaying) {
+      if (playStartAtRef.current === null) {
+        playStartAtRef.current = Date.now();
+        playCountRef.current += 1;
+      }
+      return;
+    }
+    if (playStartAtRef.current === null) return;
+    const playbackDurationMs = Date.now() - playStartAtRef.current;
+    playStartAtRef.current = null;
+    track({
+      name: 'recording_played',
+      params: {
+        session_id: sessionId,
+        word_id: wordId,
+        word_name: word,
+        play_count: playCountRef.current,
+        playback_duration_ms: playbackDurationMs,
+      },
+    });
+  }, [sessionId, snapshot.isTargetPlaying, track, word, wordId]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -249,8 +302,19 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   useEffect(() => {
     if (snapshot.state !== 'completed' || completionHandledRef.current) return;
     completionHandledRef.current = true;
+    track({
+      name: 'word_practice_completed',
+      params: {
+        session_id: sessionId,
+        word_id: wordId,
+        word_name: word,
+        practice_duration_ms: snapshotRef.current.elapsedRunningMs,
+        recordings_count: capturedCountRef.current,
+        replay_count: Math.max(0, playCountRef.current - 1),
+      },
+    });
     void finalizeSession();
-  }, [finalizeSession, snapshot.state]);
+  }, [finalizeSession, sessionId, snapshot.state, track, word, wordId]);
 
   // 실패한 세션도 stop()으로 네이티브 configuration을 비워야 다음 start()가 거부되지 않는다.
   // 로컬에서만 failed로 표시된 경우(start 자체가 실패)는 네이티브에 세션이 없을 수 있으므로,

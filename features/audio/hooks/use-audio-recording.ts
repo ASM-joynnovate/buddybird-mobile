@@ -35,6 +35,8 @@ interface UseAudioRecordingResult {
   lifecycle: RecordingLifecycle;
   metering: number | null;
   recordingFile: StableRecordingFile | null;
+  // 완료된 녹음의 실측 길이(ms, recorder state 기준). elapsedSeconds는 1초 해상도 UI용.
+  recordedDurationMs: number | null;
   isRecording: boolean;
   requestAndStartRecording: () => Promise<void>;
   stopRecording: () => Promise<StableRecordingFile | null>;
@@ -58,6 +60,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   const [lifecycle, setLifecycle] = useState<RecordingLifecycle>('idle');
   const [recordingFile, setRecordingFile] = useState<StableRecordingFile | null>(null);
+  const [recordedDurationMs, setRecordedDurationMs] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
@@ -86,6 +89,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       await audioRecorder.prepareToRecordAsync();
       audioRecorder.record();
       setRecordingFile(null);
+      setRecordedDurationMs(null);
       setLifecycle('recording');
     } catch (error: unknown) {
       reportError(error, { scope: 'audio.requestAndStartRecording' });
@@ -96,6 +100,8 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
 
   const stopRecording = useCallback(async (): Promise<StableRecordingFile | null> => {
     try {
+      // stop() 이후 recorder state가 초기화될 수 있으므로 실측 길이는 정지 직전에 캡처한다.
+      const durationMs = recorderStateRef.current.durationMillis;
       await audioRecorder.stop();
 
       if (!audioRecorder.uri) {
@@ -107,6 +113,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
       const stableFile = await persistRecordingFile(audioRecorder.uri, new Date().toISOString());
       await configurePlaybackAudioMode();
       setRecordingFile(stableFile);
+      setRecordedDurationMs(durationMs);
       setLifecycle('recorded');
       setErrorMessage(null);
       return stableFile;
@@ -129,6 +136,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
     });
     setLifecycle('idle');
     setRecordingFile(null);
+    setRecordedDurationMs(null);
     setErrorMessage(null);
   }, [audioRecorder]);
 
@@ -157,6 +165,7 @@ export function useAudioRecording(options: UseAudioRecordingOptions): UseAudioRe
     lifecycle,
     metering,
     recordingFile,
+    recordedDurationMs,
     requestAndStartRecording,
     resetRecording,
     stopRecording,
