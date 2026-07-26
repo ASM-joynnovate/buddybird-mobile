@@ -87,6 +87,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const completionHandledRef = useRef(false);
   const failureHandledRef = useRef(false);
   const hadRunRef = useRef(false);
+  const retryingRef = useRef(false);
   const finalizePromiseRef = useRef<Promise<void> | null>(null);
   // word_practice_completed 파라미터용 세션 내 카운터 (캡처 세그먼트 수·목표 음원 재생 수).
   const capturedCountRef = useRef(0);
@@ -95,9 +96,15 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   const acceptSnapshot = useCallback((next: SessionEngineSnapshot): void => {
     if (next.sessionId !== engineSessionId) return;
-    // 진행 계열 상태를 한 번이라도 지나면 이후 실패는 "시작 실패"가 아니라 도중 실패다.
-    // (재진입 시 paused/interrupted 스냅샷으로 이어받는 경우 포함)
-    if (next.state === 'running' || next.state === 'paused' || next.state === 'interrupted') {
+    // 진행 계열 상태를 지났거나 진행 시간이 쌓인 스냅샷이면 이후 실패는 "시작 실패"가
+    // 아니라 도중 실패다. elapsed 조건은 백그라운드에서 이미 failed가 된 세션을
+    // 재진입으로 이어받는 경우(진행 계열 상태를 관측하지 못함)를 커버한다.
+    if (
+      next.state === 'running' ||
+      next.state === 'paused' ||
+      next.state === 'interrupted' ||
+      next.elapsedRunningMs > 0
+    ) {
       hadRunRef.current = true;
     }
     setSnapshot(next);
@@ -366,6 +373,12 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   // 실패 상태에서 새 엔진 세션으로 처음부터 다시 시작한다. 도중 실패라면 finalize가
   // 네이티브 정리와 진행분 저장(기준 시간 이상)을 먼저 끝낸다.
   const retry = useCallback((): void => {
+    // 연타 가드: 체인이 도는 동안 두 번째 재시도가 겹치면 서로 다른 새 세션 id 두 개가
+    // 경합해 나중 start가 sessionAlreadyRunning으로 거부된다. ref로 재진입을 막고,
+    // 스냅샷을 즉시 starting으로 바꿔 버튼도 비활성화한다.
+    if (retryingRef.current) return;
+    retryingRef.current = true;
+    setSnapshot((current) => ({ ...current, state: 'starting' }));
     void sessionAudioEngine.getSnapshot()
       .then((native) => {
         if (native) return finalizeSession();
@@ -382,6 +395,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         setFailure(null);
         setSnapshot(initialSnapshot(nextId));
         setEngineSessionId(nextId);
+        retryingRef.current = false;
       });
   }, [finalizeSession]);
 
