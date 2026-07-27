@@ -432,7 +432,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       restLabel: '휴식',
       wordSelectA11y: '%{label} 선택',
       micPermissionTitle: '마이크 권한이 필요해요',
-      micPermissionBody: '학습 중 새가 말한 소리를 기록하려면 마이크 권한이 필요해요. 기기 설정에서 권한을 허용해 주세요.',
+      micPermissionBody: '학습 중 앵이가 말한 소리를 기록하려면 마이크 권한이 필요해요. 기기 설정에서 권한을 허용해 주세요.',
       micPermissionOpenSettings: '설정 열기',
     },
     sessionActive: {
@@ -748,7 +748,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       restLabel: 'Rest',
       wordSelectA11y: 'Select %{label}',
       micPermissionTitle: 'Microphone permission needed',
-      micPermissionBody: 'Training sessions record sounds from your bird. Allow microphone access in device settings.',
+      micPermissionBody: 'Microphone access is needed to record what your birdie says during training. Please allow it in device settings.',
       micPermissionOpenSettings: 'Open Settings',
     },
     sessionActive: {
