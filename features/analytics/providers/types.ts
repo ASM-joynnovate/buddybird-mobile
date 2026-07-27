@@ -17,4 +17,11 @@ export interface AnalyticsProviderAdapter {
   setScreen(name: string, screenClass?: string): Promise<void>;
   setEnabled(enabled: boolean): Promise<void>;
   recordError(error: Error, context?: Record<string, string>): Promise<void>;
+  /**
+   * 세션 리플레이(화면 캡처)를 하는 provider(현재 Clarity)만 실제 동작 — 나머지는 no-op.
+   * pause 상태는 consent 게이팅(setEnabled)과 독립이며, resume 이 consent-off 를
+   * 뒤집어서는 안 된다.
+   */
+  pauseSessionReplay(): Promise<void>;
+  resumeSessionReplay(): Promise<void>;
 }

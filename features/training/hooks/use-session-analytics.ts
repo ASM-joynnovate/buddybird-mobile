@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
+import { useSessionReplayPause } from '@/features/analytics/hooks/use-session-replay-pause';
 import { cycleProgressPercent } from '@/features/training/session-cycle-model';
 import type { PendingSession } from '@/features/training/training-context';
 import type { UseActiveSessionResult } from '@/features/training/hooks/use-active-session';
@@ -14,6 +15,8 @@ interface SessionAnalyticsParams {
 
 export function useSessionAnalytics({ pendingSession, session, clearPendingSession }: SessionAnalyticsParams) {
   const { track, flushSessionWordMetrics } = useAnalytics();
+  // 세션 화면 수명 동안 Clarity 캡처 중단 — OOM 크래시 방지 (BB-276).
+  useSessionReplayPause();
   const startedAtRef = useRef<number>(null!);
   if (startedAtRef.current === null) {
     startedAtRef.current = Date.now();

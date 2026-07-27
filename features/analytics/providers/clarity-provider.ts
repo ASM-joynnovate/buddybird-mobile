@@ -16,6 +16,8 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
   private readonly config: ClarityProviderConfig;
   private initialized = false;
   private enabled = true;
+  // 세션 화면의 캡처·직렬화가 힙 소진 OOM 을 유발해 화면 단위로 캡처를 멈춘다 (BB-276).
+  private sessionReplayPaused = false;
 
   constructor(config: ClarityProviderConfig) {
     this.config = config;
@@ -84,10 +86,28 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
       return;
     }
 
-    if (enabled) {
-      Clarity.resume();
-    } else {
+    if (!enabled) {
       Clarity.pause();
+    } else if (!this.sessionReplayPaused) {
+      // 세션 화면에서 캡처가 멈춰 있는 동안에는 consent 허용이 와도 재개하지 않는다.
+      Clarity.resume();
+    }
+  }
+
+  async pauseSessionReplay(): Promise<void> {
+    this.sessionReplayPaused = true;
+
+    if (this.initialized && this.enabled) {
+      Clarity.pause();
+    }
+  }
+
+  async resumeSessionReplay(): Promise<void> {
+    this.sessionReplayPaused = false;
+
+    // consent-off(enabled=false)면 pause 상태를 유지해야 하므로 재개하지 않는다.
+    if (this.initialized && this.enabled) {
+      Clarity.resume();
     }
   }
 

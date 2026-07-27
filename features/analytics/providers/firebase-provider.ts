@@ -68,4 +68,8 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
 
     recordError(this.crashlytics, error);
   }
+
+  // 세션 리플레이 미지원 — 의도된 no-op.
+  async pauseSessionReplay(): Promise<void> {}
+  async resumeSessionReplay(): Promise<void> {}
 }

@@ -11,4 +11,6 @@ export class NoopProvider implements AnalyticsProviderAdapter {
   async setScreen(_name: string, _screenClass?: string): Promise<void> {}
   async setEnabled(_enabled: boolean): Promise<void> {}
   async recordError(_error: Error, _context?: Record<string, string>): Promise<void> {}
+  async pauseSessionReplay(): Promise<void> {}
+  async resumeSessionReplay(): Promise<void> {}
 }

@@ -9,6 +9,8 @@ export interface AnalyticsClient {
   setScreen(name: string, screenClass?: string): Promise<void>;
   setEnabled(enabled: boolean): Promise<void>;
   recordError(error: Error, context?: Record<string, string>): Promise<void>;
+  pauseSessionReplay(): Promise<void>;
+  resumeSessionReplay(): Promise<void>;
 }
 
 export type ProviderFailureReporter = (providerName: string, operation: string, error: unknown) => void;
@@ -57,6 +59,12 @@ export function createFanoutAnalyticsClient(options: FanoutClientOptions): Analy
     },
     async recordError(error, context) {
       await run('recordError', (provider) => provider.recordError(error, context));
+    },
+    async pauseSessionReplay() {
+      await run('pauseSessionReplay', (provider) => provider.pauseSessionReplay());
+    },
+    async resumeSessionReplay() {
+      await run('resumeSessionReplay', (provider) => provider.resumeSessionReplay());
     },
   };
 }
