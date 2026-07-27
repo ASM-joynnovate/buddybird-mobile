@@ -103,6 +103,18 @@
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
   },
+  "resolutions": {
+    "expo-image-picker@npm:~17.0.11": "patch:expo-image-picker@npm%3A17.0.11#~/.yarn/patches/expo-image-picker-npm-17.0.11-4ae3f57c52.patch"
+  },
+  "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": [
+          "expo-image-picker"
+        ]
+      }
+    }
+  },
   "private": true,
   "packageManager": "yarn@4.14.1"
 }

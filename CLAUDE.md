@@ -55,6 +55,7 @@ skill이 (1) 해당 카테고리 docs 갱신, (2) `docs/POLICY-HISTORY.md`에 �
 - `main` 브랜치 직접 push 금지 — PR-only 보호 브랜치. 단 운영 릴리즈 `git tag vX.Y.Z` push 는 허용 (태그 = 운영 게이트, 보호 정책 `docs/BUILD-AND-RELEASE.md` §12.10)
 - `ios.buildNumber` / `android.versionCode` 를 `app.config.ts` 에 명시 금지 — EAS remote autoIncrement 가 관리
 - expo 네이티브 의존성(`expo-*` + bundledNativeModules 의 react-native-*)은 `npx expo install <pkg>` 로만 추가·업그레이드 — `yarn add` 직접 사용 금지, 변경 후 `npx expo install --check` 0건 의무 (`docs/CONVENTIONS.md` §7, CI `_verify.yml` 게이트)
+- 네이티브 의존성 패치는 Yarn patch(`.yarn/patches` + `resolutions`)로만 — patch-package 금지. 패치된 패키지 업그레이드 시 패치 재생성 + `resolutions` 키·`expo.autolinking.android.buildFromSource` 동기 갱신 의무 (`docs/CONVENTIONS.md` §7.2, CI `_verify.yml` 게이트)
 
 ## 브랜치 전략 — 단일 트렁크 (trunk-based)
 

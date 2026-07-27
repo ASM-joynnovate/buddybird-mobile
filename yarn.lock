@@ -7731,7 +7731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-image-picker@npm:~17.0.11":
+"expo-image-picker@npm:17.0.11":
   version: 17.0.11
   resolution: "expo-image-picker@npm:17.0.11"
   dependencies:
@@ -7739,6 +7739,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/4708eca0f93258b9214d4a107edeed52562ade4bc1b53c5fa6dcb1218ccdf56ba46e5993110cda81b19e6d5a52e61572e057ccbcb7efdd6a48d99f5633b178ec
+  languageName: node
+  linkType: hard
+
+"expo-image-picker@patch:expo-image-picker@npm%3A17.0.11#~/.yarn/patches/expo-image-picker-npm-17.0.11-4ae3f57c52.patch":
+  version: 17.0.11
+  resolution: "expo-image-picker@patch:expo-image-picker@npm%3A17.0.11#~/.yarn/patches/expo-image-picker-npm-17.0.11-4ae3f57c52.patch::version=17.0.11&hash=1f7f27"
+  dependencies:
+    expo-image-loader: "npm:~6.0.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/9d4625a00b84340196228807c6b43af1b9e59a26bbef6977cb6610cf831563ea52f402375dbd16ffde29065430875ec655cdd2d24f6068e80df5643837625967
   languageName: node
   linkType: hard
 
