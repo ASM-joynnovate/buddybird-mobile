@@ -1,5 +1,6 @@
+import { AudioModule } from 'expo-audio';
 import { router } from 'expo-router';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
@@ -24,8 +25,28 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
 
   const startLabel = t('home.startTrainingCta');
 
+  // 마이크 권한은 네이티브 세션 시작(validateFiles)의 필수 조건이라 차단형으로 확보한다.
+  // 미결정 상태면 시스템 프롬프트가 뜨고, 거부 상태(iOS는 최초 거부 후 재프롬프트 불가)면
+  // 설정으로 안내한다 — 세션 화면에 들어가 실패로 알게 하는 대신 시작 시점에 막는다.
+  async function ensureMicPermission(): Promise<boolean> {
+    let granted = false;
+    try {
+      granted = (await AudioModule.requestRecordingPermissionsAsync()).granted;
+    } catch (error: unknown) {
+      reportError(error, { scope: 'training.sessionMicPermission' });
+      return false;
+    }
+    if (granted) return true;
+    Alert.alert(t('sessionSetup.micPermissionTitle'), t('sessionSetup.micPermissionBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('sessionSetup.micPermissionOpenSettings'), onPress: () => { void Linking.openSettings(); } },
+    ]);
+    return false;
+  }
+
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;
+    if (!(await ensureMicPermission())) return;
     await requestSessionNotificationPermission();
     const result = await setup.saveSessionSetup({
       audioUri: selectedEntry.audioUri,
