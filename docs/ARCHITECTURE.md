@@ -90,6 +90,12 @@ Firebase 익명 Auth uid가 iOS·Android 사용자 식별자의 정본이다. �
   - `./plugins/withReactActivityInitGuards`
   - `expo-tracking-transparency` (ATT)
 
+### 네이티브 의존성 패치 (Yarn patch)
+
+- `expo-image-picker@17.0.11`: 크롭 출력 캐시 디렉토리를 쓰기 직전에 재생성하는 패치 (`.yarn/patches/`, BB-235 ENOENT fatal 수정). `package.json`의 `resolutions`로 연결되고, `expo.autolinking.android.buildFromSource`에 등록되어 있어 이 모듈만 프리컴파일 AAR 대신 소스에서 빌드된다 (SDK 54 기본값은 AAR — 등록 해제 시 패치가 조용히 무력화됨).
+- `expo.autolinking` 키는 expo-modules-autolinking이 **`package.json`에서만** 읽는다 — `app.config.ts`로 이동 금지.
+- 패치 운영 절차(생성·업그레이드·CI 게이트)는 `docs/CONVENTIONS.md` §7.2가 정본.
+
 ### 프로젝트 루트 `firebase.json`
 
 ```json

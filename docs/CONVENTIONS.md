@@ -176,6 +176,9 @@ wc -l app/\(tabs\)/session-setup.tsx  # ≤80
 
 # expo 네이티브 의존성 SDK 정합성 (§7) — CI `_verify.yml`에서도 강제
 npx expo install --check
+
+# 네이티브 의존성 패치 활성 확인 (§7.2) — CI `_verify.yml`에서도 강제
+grep "expo-image-picker@patch:" yarn.lock
 ```
 
 ## 6. 데이터 영구화 (Storage)
@@ -205,3 +208,15 @@ expo가 버전을 관리하는 패키지(`expo-*`, 그리고 `react-native-gestu
 - expo 관련 패키지 추가·업그레이드는 반드시 `npx expo install <pkg>` 사용 — `yarn add <expo-pkg>` 직접 사용 금지.
 - 의존성 변경 후 `npx expo install --check`가 0건이어야 커밋 가능 — CI `_verify.yml`이 모든 PR에서 동일 검사로 차단.
 - SDK 기대치보다 최신 버전이 필요한 예외는 PR 본문에 사유 명시 + 에뮬레이터 기동 검증 결과 첨부 후에만 허용.
+
+### 7.2 네이티브 의존성 패치는 Yarn patch (`.yarn/patches` + `resolutions`)로 관리
+
+네이티브 의존성의 버그를 앱에서 우회할 수 없을 때(예: 네이티브 fatal 크래시)는 Yarn 네이티브 patch 프로토콜로 수정합니다 (도입 사례: BB-235, expo-image-picker 크롭 ENOENT 크래시).
+
+규칙 (단정문):
+
+- 패치 생성은 `yarn patch <pkg>` → 수정 → `yarn patch-commit -s` 로만. patch-package 금지 — Yarn Berry에서는 postinstall 재실행이 보장되지 않아 패치가 **무음 유실**됨 (재현 확인됨).
+- 패치는 `.yarn/patches/`에 커밋하고 `package.json`의 `resolutions`에 range descriptor(`<pkg>@npm:<범위>`)로 연결. `dependencies` 항목은 원래 버전 범위를 유지해야 `npx expo install --check` 게이트(§7.1)가 통과 — `dependencies`를 `patch:` 프로토콜로 직접 바꾸지 않는다.
+- Android 소스를 패치한 expo 모듈은 `package.json`의 `expo.autolinking.android.buildFromSource` 배열에 등록 의무 — SDK 54부터 expo 모듈은 프리컴파일 AAR(`local-maven-repo`)로 소비되므로 등록 없이는 소스 패치가 빌드에 반영되지 않음. 이 `expo` 키는 expo-modules-autolinking이 `package.json`에서만 읽는다 — `app.config.ts`로 옮기면 조용히 무력화됨.
+- 패치된 패키지를 업그레이드할 때는 `yarn patch`로 패치를 재생성하고 `resolutions` 키의 버전 범위를 함께 갱신. 키가 `dependencies` 범위와 불일치하면 Yarn 4는 **경고 없이 패치를 드롭**함 → CI `_verify.yml`이 `yarn.lock`의 `@patch:` 항목 존재를 게이트로 검증.
+- 현재 패치 목록: `expo-image-picker@17.0.11` — 크롭 출력 디렉토리 사전 재생성 (BB-235). 업스트림 수정 릴리즈 시 패치·`resolutions`·`buildFromSource`·CI 게이트를 함께 제거.
