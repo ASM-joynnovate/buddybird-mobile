@@ -51,6 +51,7 @@
 | `useOptionalAnalytics` | `@/features/analytics/analytics-context` | `() => AnalyticsContextValue \| null` | AnalyticsProvider 바깥에서도 throw 없이 구독(없으면 null). provider 마운트 순서에 하드 결합되면 안 되는 소비처가 effect 게이팅으로 사용 |
 | `AnalyticsProvider` | `@/features/analytics/analytics-context` | React Provider | root layout에서 한 번만 마운트 |
 | `useScreenTracking` | `@/features/analytics/hooks/use-screen-tracking` | `(screenName: string, screenClass?: string) => { elapsedMs: () => number }` | 스크린 진입 자동 추적 + 체류 시간 측정 |
+| `useSessionReplayPause` | `@/features/analytics/hooks/use-session-replay-pause` | `() => void` | 마운트 동안 세션 리플레이(Clarity 캡처) 중단 — 무거운 화면의 OOM 방지 (BB-276). consent-off 상태는 뒤집지 않음. **동시 마운트 비지원**(단일 boolean, 비-refcount) — 두 번째 소비처 추가 시 refcount 전환 선행. 단일 caller 등재 사유: training→analytics 도메인 seam (Clarity 상세 은닉) |
 | `reportError` | `@/features/analytics/error-reporter` | `(error: unknown, context?: ErrorContext) => void` | fatal 에러 보고 (Crashlytics fanout). `context.scope` 필수 — 미지정 키는 컴파일 에러. provider 중 `supportsErrorReporting === false`(Clarity·noop)는 의도된 no-op |
 | `registerErrorReporter` | `@/features/analytics/error-reporter` | `(client: AnalyticsClient) => () => void` | AnalyticsProvider가 reporter를 등록할 때 사용 |
 | `installGlobalErrorReporting` | `@/features/analytics/error-reporter` | `({ client, getCurrentScreen? }: InstallErrorReportingOptions) => () => void` | 전역 uncaught 핸들러 + Hermes rejection 추적 설치 (AnalyticsProvider 전용) |

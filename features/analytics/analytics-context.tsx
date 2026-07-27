@@ -38,6 +38,8 @@ export interface AnalyticsContextValue {
   setScreen: (name: string, screenClass?: string) => void;
   flushSessionWordMetrics: (deltas: readonly WordSessionDelta[]) => Promise<readonly WordLifetimeMetrics[]>;
   recordError: (error: Error, context?: Record<string, string>) => Promise<void>;
+  pauseSessionReplay: () => void;
+  resumeSessionReplay: () => void;
   currentScreen: string | null;
 }
 
@@ -201,6 +203,14 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     []
   );
 
+  const pauseSessionReplay = useCallback((): void => {
+    void clientRef.current.pauseSessionReplay();
+  }, []);
+
+  const resumeSessionReplay = useCallback((): void => {
+    void clientRef.current.resumeSessionReplay();
+  }, []);
+
   const value = useMemo<AnalyticsContextValue>(
     () => ({
       isReady,
@@ -211,6 +221,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       setScreen,
       flushSessionWordMetrics,
       recordError,
+      pauseSessionReplay,
+      resumeSessionReplay,
     }),
     [
       isReady,
@@ -221,6 +233,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       setScreen,
       flushSessionWordMetrics,
       recordError,
+      pauseSessionReplay,
+      resumeSessionReplay,
     ]
   );
 
