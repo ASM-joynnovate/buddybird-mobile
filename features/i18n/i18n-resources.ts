@@ -133,6 +133,9 @@ interface AppCopy {
     learnLabel: string;
     restLabel: string;
     wordSelectA11y: string;
+    micPermissionTitle: string;
+    micPermissionBody: string;
+    micPermissionOpenSettings: string;
   };
   sessionActive: {
     stopLabel: string;
@@ -145,6 +148,13 @@ interface AppCopy {
     pausedBadge: string;
     preparing: string;
     startFailed: string;
+    sessionFailed: string;
+    retry: string;
+    failurePermissionDenied: string;
+    failureAudioSourceUnavailable: string;
+    failureAudioRouteUnavailable: string;
+    failureStorageUnavailable: string;
+    failureEngine: string;
     pause: string;
     resume: string;
     exitConfirmTitle: string;
@@ -421,6 +431,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       learnLabel: '학습',
       restLabel: '휴식',
       wordSelectA11y: '%{label} 선택',
+      micPermissionTitle: '마이크 권한이 필요해요',
+      micPermissionBody: '학습 중 앵이가 말한 소리를 기록하려면 마이크 권한이 필요해요. 기기 설정에서 권한을 허용해 주세요.',
+      micPermissionOpenSettings: '설정 열기',
     },
     sessionActive: {
       stopLabel: '종료',
@@ -433,6 +446,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       pausedBadge: '일시정지 중',
       preparing: '준비 중',
       startFailed: '시작 실패',
+      sessionFailed: '세션 중단',
+      retry: '다시 시도',
+      failurePermissionDenied: '마이크 권한이 거부됐어요.\n기기 설정에서 권한을 허용한 뒤 앱을 재시작해 주세요.',
+      failureAudioSourceUnavailable: '학습 음원을 준비하지 못했어요.\n연결 상태를 확인한 뒤 다시 시도해 주세요.',
+      failureAudioRouteUnavailable: '마이크·스피커를 사용할 수 없어요.\n이어폰, 스피커 연결을 확인한 뒤 다시 시도해 주세요.',
+      failureStorageUnavailable: '기기 저장 공간이 부족해요.\n저장 공간을 확보한 뒤 다시 시도해 주세요.',
+      failureEngine: '오디오 재생·녹음에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.',
       pause: '일시정지',
       resume: '계속하기',
       exitConfirmTitle: '학습 세션을 종료할까요?',
@@ -727,6 +747,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       learnLabel: 'Learning',
       restLabel: 'Rest',
       wordSelectA11y: 'Select %{label}',
+      micPermissionTitle: 'Microphone permission needed',
+      micPermissionBody: 'Microphone access is needed to record what your birdie says during training. Please allow it in device settings.',
+      micPermissionOpenSettings: 'Open Settings',
     },
     sessionActive: {
       stopLabel: 'End',
@@ -739,6 +762,13 @@ export const translations: Record<AppLocale, AppCopy> = {
       pausedBadge: 'Paused',
       preparing: 'Preparing',
       startFailed: 'Failed to start',
+      sessionFailed: 'Session interrupted',
+      retry: 'Try again',
+      failurePermissionDenied: 'Microphone permission was denied.\nAllow access in device settings, then restart the app.',
+      failureAudioSourceUnavailable: 'Could not prepare the training audio.\nCheck your connection, then try again.',
+      failureAudioRouteUnavailable: 'The microphone or speaker is unavailable.\nCheck your earphone or speaker connection, then try again.',
+      failureStorageUnavailable: 'The device is low on storage.\nFree up space, then try again.',
+      failureEngine: 'Audio playback or recording ran into a problem. Please try again soon.',
       pause: 'Pause',
       resume: 'Resume',
       exitConfirmTitle: 'End the training session?',

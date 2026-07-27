@@ -21,6 +21,9 @@ interface SessionRunningViewProps {
     | 'phaseRemaining'
     | 'status'
     | 'togglePause'
+    | 'retry'
+    | 'failure'
+    | 'failedDuringSession'
     | 'progress'
     | 'audioOn'
   >;
@@ -65,6 +68,9 @@ export function SessionRunningView({
         isLearning={session.isLearning}
         paddingBottom={insetsBottom + 44}
         onToggle={session.togglePause}
+        onRetry={session.retry}
+        failure={session.failure}
+        failedDuringSession={session.failedDuringSession}
       />
       {isExitConfirmVisible ? (
         <SessionExitConfirmDialog onContinue={onExitContinue} onStop={onStop} />
