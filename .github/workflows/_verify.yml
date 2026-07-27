@@ -17,6 +17,15 @@ jobs:
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
+      # BB-235: expo-image-picker 패치는 resolutions 키가 dependencies 버전 범위와 일치할 때만
+      # 적용된다. SDK 업그레이드로 키가 어긋나면 빌드는 그린인 채 패치만 무음 드롭되므로
+      # yarn.lock에 patch 항목이 살아 있는지 게이트로 확인한다 (docs/CONVENTIONS.md §7.2).
+      - name: Verify expo-image-picker patch is active
+        run: |
+          grep -q "expo-image-picker@patch:" yarn.lock || {
+            echo "::error::expo-image-picker patch dropped from yarn.lock — package.json resolutions 키가 dependencies 버전 범위와 일치하는지 확인하세요 (docs/CONVENTIONS.md §7.2)"
+            exit 1
+          }
       - run: npx expo install --check
       - run: yarn lint
       - run: yarn typecheck
