@@ -147,7 +147,6 @@ interface AppCopy {
     startFailed: string;
     sessionFailed: string;
     retry: string;
-    openSettings: string;
     failurePermissionDenied: string;
     failureAudioSourceUnavailable: string;
     failureAudioRouteUnavailable: string;
@@ -443,7 +442,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: '시작 실패',
       sessionFailed: '세션 중단',
       retry: '다시 시도',
-      openSettings: '설정 열기',
       failurePermissionDenied: '마이크 권한이 거부됐어요.\n기기 설정에서 권한을 허용한 뒤 앱을 재시작해 주세요.',
       failureAudioSourceUnavailable: '학습 음원을 준비하지 못했어요.\n연결 상태를 확인한 뒤 다시 시도해 주세요.',
       failureAudioRouteUnavailable: '마이크·스피커를 사용할 수 없어요.\n이어폰, 스피커 연결을 확인한 뒤 다시 시도해 주세요.',
@@ -757,7 +755,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       startFailed: 'Failed to start',
       sessionFailed: 'Session interrupted',
       retry: 'Try again',
-      openSettings: 'Open settings',
       failurePermissionDenied: 'Microphone permission was denied.\nAllow access in device settings, then restart the app.',
       failureAudioSourceUnavailable: 'Could not prepare the training audio.\nCheck your connection, then try again.',
       failureAudioRouteUnavailable: 'The microphone or speaker is unavailable.\nCheck your earphone or speaker connection, then try again.',

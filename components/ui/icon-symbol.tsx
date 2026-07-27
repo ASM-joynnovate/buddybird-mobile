@@ -45,7 +45,6 @@ const MAPPING = {
   'checkmark': 'check',
   'checkmark.circle.fill': 'check-circle',
   'speaker.wave.2.fill': 'volume-up',
-  'gearshape.fill': 'settings',
 } as const satisfies Partial<IconMapping>;
 
 /**

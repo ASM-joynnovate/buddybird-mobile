@@ -1,4 +1,4 @@
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/app-text';
 import { PillButton } from '@/components/ui/pill-button';
@@ -38,25 +38,13 @@ export function SessionControls({
   const isRunning = status === 'running';
   const isFailed = status === 'failed';
   const canPress = isRunning || status === 'paused' || status === 'interrupted' || isFailed;
-  // 권한 거부는 재시도로 풀리지 않는다(엔진만 다시 부름) — 앱 설정으로 보내 사용자가 직접 허용하게 한다.
-  const isPermissionDenied = isFailed && failure?.code === 'permission-denied';
-  const label = isPermissionDenied
-    ? t('sessionActive.openSettings')
-    : isFailed
-      ? t('sessionActive.retry')
-      : status === 'starting'
-        ? t('sessionActive.preparing')
-        : isRunning
-          ? t('sessionActive.pause')
-          : t('sessionActive.resume');
-  const icon = isPermissionDenied ? 'gearshape.fill' : isRunning ? 'pause.fill' : 'play.fill';
-  const onPress = isPermissionDenied
-    ? () => {
-        void Linking.openSettings();
-      }
-    : isFailed
-      ? onRetry
-      : onToggle;
+  const label = isFailed
+    ? t('sessionActive.retry')
+    : status === 'starting'
+      ? t('sessionActive.preparing')
+      : isRunning
+        ? t('sessionActive.pause')
+        : t('sessionActive.resume');
 
   return (
     <View style={[styles.controls, { paddingBottom }]}>
@@ -72,9 +60,9 @@ export function SessionControls({
       ) : null}
       <PillButton
         full
-        icon={icon}
+        icon={isRunning ? 'pause.fill' : 'play.fill'}
         label={label}
-        onPress={onPress}
+        onPress={isFailed ? onRetry : onToggle}
         disabled={!canPress}
         size="lg"
         variant={isLearning ? 'primary' : 'blue'}
