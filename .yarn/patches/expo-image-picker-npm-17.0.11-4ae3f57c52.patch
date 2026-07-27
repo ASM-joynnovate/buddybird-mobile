@@ -1,0 +1,23 @@
+diff --git a/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt b/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
+index 59ca71889cd1813acb3be36ae18158eb1dd8827a..b3213dc3cf80057f29535e3f877dcb2a480cf05c 100644
+--- a/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
++++ b/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
+@@ -40,6 +40,18 @@ class ExpoCropImageActivity : CropImageActivity() {
+     tintAllMenuItems(menu)
+     return result
+   }
++
++  override fun cropImage() {
++    // The output file under <cacheDir>/ImagePicker is pre-created when the crop intent is
++    // built, but the OS or vendor cleaners may wipe the cache while the crop screen is open.
++    // `writeBitmapToUri` does not recreate the parent directory, so the write would crash the
++    // process with a fatal FileNotFoundException (ENOENT). Recreate the directory just before
++    // cropping so the output stream can be opened again.
++    getCropOptions()?.customOutputUri?.path?.let { path ->
++      java.io.File(path).parentFile?.mkdirs()
++    }
++    super.cropImage()
++  }
+   // endregion
+ 
+   private fun applyPalette(isNight: Boolean, opts: CropImageOptions) {
