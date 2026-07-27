@@ -1,23 +1,27 @@
 diff --git a/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt b/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
-index 59ca71889cd1813acb3be36ae18158eb1dd8827a..b3213dc3cf80057f29535e3f877dcb2a480cf05c 100644
+index 59ca71889cd1813acb3be36ae18158eb1dd8827a..940316b4a3a40b50e887bb33bf2fbfa4e589f74c 100644
 --- a/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
 +++ b/android/src/main/java/expo/modules/imagepicker/ExpoCropImageActivity.kt
-@@ -40,6 +40,18 @@ class ExpoCropImageActivity : CropImageActivity() {
-     tintAllMenuItems(menu)
-     return result
+@@ -42,6 +42,22 @@ class ExpoCropImageActivity : CropImageActivity() {
    }
-+
+   // endregion
+ 
 +  override fun cropImage() {
 +    // The output file under <cacheDir>/ImagePicker is pre-created when the crop intent is
 +    // built, but the OS or vendor cleaners may wipe the cache while the crop screen is open.
 +    // `writeBitmapToUri` does not recreate the parent directory, so the write would crash the
 +    // process with a fatal FileNotFoundException (ENOENT). Recreate the directory just before
-+    // cropping so the output stream can be opened again.
-+    getCropOptions()?.customOutputUri?.path?.let { path ->
-+      java.io.File(path).parentFile?.mkdirs()
++    // cropping so the output stream can be opened again. Relies on customOutputUri being a
++    // file:// URI, which CropImageContract always builds from the cache directory.
++    val outputPath = getCropOptions()?.customOutputUri?.path
++    if (outputPath != null) {
++      java.io.File(outputPath).parentFile?.mkdirs()
++    } else {
++      android.util.Log.w("ExpoCropImageActivity", "Could not read customOutputUri via reflection; skipping output dir recreation")
 +    }
 +    super.cropImage()
 +  }
-   // endregion
- 
++
    private fun applyPalette(isNight: Boolean, opts: CropImageOptions) {
+     // Apply palette to options and get the toolbar widget color
+     val toolbarWidgetColor = ExpoCropImageUtils.applyPaletteToOptions(theme, resources, isNight, opts)
