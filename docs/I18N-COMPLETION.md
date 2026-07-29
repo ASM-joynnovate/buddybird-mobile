@@ -68,10 +68,12 @@ features는 JSX·훅 사용이 불가하므로 `profile-validation.ts`의 기존
 | `features/training/session-config.ts` | 프리셋 `shortLabel`(짧게/중간/길게)·`description` — 카피를 키로 바꾸고 UI에서 `t()` 해석 |
 | `components/session/running/session-completion-view.tsx` | "학습 완료! 🎉" 등 + `withSubjectParticle`(이/가 조사 로직) — 조사 처리는 한국어 전용이므로 로케일 분기 필요 (en은 조사 없음) |
 | `components/session/setup/session-preset-card.tsx`, `cycle-summary.tsx`, `word-picker-card.tsx` | 세션 설정 카피 |
-| `components/session/session-recovery-banner.tsx`, `running/session-header.tsx`, `session-controls.tsx`, `session-phase-badge.tsx`, `session-progress-ring.tsx`, `session-wave-section.tsx` | 세션 진행 카피 |
+| `components/session/running/session-header.tsx`, `session-controls.tsx`, `session-phase-badge.tsx`, `session-progress-ring.tsx`, `session-wave-section.tsx` | 세션 진행 카피 |
 | `features/training/hooks/use-session-start.ts:23` | `'학습 시작'` — 홈 시작 버튼 라벨+접근성 라벨(`index.tsx:59,63`)로 노출 확정 → 이관 |
 | `features/training/hooks/use-active-session.ts:112` | throw 메시지는 `reportError`로만 흐르고 렌더 텍스트는 `session-controls.tsx`의 '시작 실패' → 로그 전용 확정, 비목표 |
 | `features/training/training-storage.ts:27`, `training-validation.ts:21`, `training-context.tsx:98` | **에러 메시지가 홈 화면에 렌더링** (`use-learning-setup.ts` → `index.tsx:51 <InlineError>`) → 이관 대상 (§3.6에서 편입) |
+
+**이관 이후 변경 (2026-07-29)**: 이관 대상이었던 `components/session/session-recovery-banner.tsx`(중단 안내 배너)와 그 `sessionRecovery` 리소스 블록은 배너 폐지로 함께 제거됐다 (`docs/POLICY-HISTORY.md` 2026-07-29 행).
 
 ### 3.4 단어 관리 화면
 
