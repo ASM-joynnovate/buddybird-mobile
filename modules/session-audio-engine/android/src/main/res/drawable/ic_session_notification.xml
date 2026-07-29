@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 학습 세션 알림의 상태바 아이콘. 알림 small icon 은 알파 채널만 쓰이므로 단색 실루엣이어야
+     한다(앱 아이콘의 컬러 앵무새를 그대로 쓸 수 없는 이유). 24dp 상태바 크기에서도 새 머리로
+     읽히도록 형태를 머리 + 뾰족한 부리 + 눈 구멍으로 단순화했다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+  <!-- 머리(원)에서 눈을 도려낸다 — evenOdd 라 두 번째 부분경로가 구멍이 된다. -->
+  <path
+      android:fillColor="#FFFFFFFF"
+      android:fillType="evenOdd"
+      android:pathData="M10,4.5 C13.87,4.5 17,7.63 17,11.5 C17,15.37 13.87,18.5 10,18.5 C6.13,18.5 3,15.37 3,11.5 C3,7.63 6.13,4.5 10,4.5 Z M12.7,8.2 C11.76,8.2 11,8.96 11,9.9 C11,10.84 11.76,11.6 12.7,11.6 C13.64,11.6 14.4,10.84 14.4,9.9 C14.4,8.96 13.64,8.2 12.7,8.2 Z" />
+  <!-- 부리. 머리와 겹치는 별도 path 라 evenOdd 구멍 규칙에 걸리지 않는다. -->
+  <path
+      android:fillColor="#FFFFFFFF"
+      android:pathData="M14.6,7.9 L22.2,10.7 C22.8,10.9 22.8,11.8 22.2,12.0 L14.6,14.8 Z" />
+</vector>

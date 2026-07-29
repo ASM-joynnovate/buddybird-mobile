@@ -22,6 +22,12 @@ class SessionRecoveryInput : Record {
   @Field var startedAt: String = ""
 }
 
+class SessionNotificationInput : Record {
+  @Field var learningSubtitle: String = ""
+  @Field var restSubtitle: String = ""
+  @Field var pausedSubtitle: String = ""
+}
+
 class SessionAudioEngineStartInputRecord : Record {
   @Field var sessionId: String = ""
   @Field var targetAudioUri: String = ""
@@ -32,6 +38,7 @@ class SessionAudioEngineStartInputRecord : Record {
   @Field var maxPendingCaptureBytes: Double = 0.0
   @Field var vad: SessionVadInput = SessionVadInput()
   @Field var recovery: SessionRecoveryInput = SessionRecoveryInput()
+  @Field var notification: SessionNotificationInput = SessionNotificationInput()
 }
 
 data class NativeRecoveryInfo(
@@ -48,6 +55,18 @@ data class NativeRecoveryInfo(
     "libraryEntryId" to libraryEntryId,
     "startedAt" to startedAt,
   )
+}
+
+// 부제목은 `%{cycle}`·`%{total}` 자리표시자를 담고 있고 알림을 다시 그릴 때마다 치환한다.
+data class NativeNotificationCopy(
+  val learningSubtitle: String,
+  val restSubtitle: String,
+  val pausedSubtitle: String,
+) {
+  fun subtitle(phase: String, cycle: Int, totalCycles: Int): String =
+    (if (phase == "rest") restSubtitle else learningSubtitle)
+      .replace("%{cycle}", cycle.toString())
+      .replace("%{total}", totalCycles.toString())
 }
 
 data class NativeVadConfiguration(
@@ -71,7 +90,16 @@ data class NativeSessionConfiguration(
   val maxPendingCaptureBytes: Long,
   val vad: NativeVadConfiguration,
   val recovery: NativeRecoveryInfo,
+  val notification: NativeNotificationCopy,
 ) {
+  // 마지막 회차는 일부만 진행될 수 있으므로 올림한다 — 알림의 "사이클 2/4" 분모.
+  val totalCycles: Int
+    get() {
+      val cycleMs = learningDurationMs + restDurationMs
+      if (cycleMs <= 0) return 1
+      return maxOf(1, ((totalDurationMs + cycleMs - 1) / cycleMs).toInt())
+    }
+
   companion object {
     fun from(input: SessionAudioEngineStartInputRecord) = NativeSessionConfiguration(
       sessionId = input.sessionId,
@@ -97,6 +125,11 @@ data class NativeSessionConfiguration(
         sourceType = input.recovery.sourceType,
         libraryEntryId = input.recovery.libraryEntryId,
         startedAt = input.recovery.startedAt,
+      ),
+      notification = NativeNotificationCopy(
+        learningSubtitle = input.notification.learningSubtitle,
+        restSubtitle = input.notification.restSubtitle,
+        pausedSubtitle = input.notification.pausedSubtitle,
       ),
     )
   }

@@ -27,6 +27,7 @@ final class SessionAudioEngineCoordinator: NSObject {
   private var capturePipeline: VoiceCapturePipeline?
   private var targetPlaying = false
   private var captureAllowedAfterMs: Int64 = 0
+  private let nowPlaying = SessionNowPlaying()
 
   override init() {
     super.init()
@@ -77,6 +78,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         startTimer()
         scheduleTargetPlaybackIfNeeded()
         try persist(reason: nil)
+        activateNowPlaying()
       } catch {
         // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면
         // 이후 모든 start()가 sessionAlreadyRunning으로 거부돼 엔진이 고착된다.
@@ -88,67 +90,73 @@ final class SessionAudioEngineCoordinator: NSObject {
         state = "idle"
         throw error
       }
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
+      emitStateChanged()
+      return snapshotDictionary()
     }
   }
 
-  func pause() throws -> [String: Any] {
-    try queue.sync {
-      guard configuration != nil else { throw SessionAudioEngineError.noSession }
-      guard state == "running" || state == "interrupted" else { return snapshotDictionary() }
-      foldElapsed()
-      state = "paused"
-      stopAudio()
+  func pause() throws -> [String: Any] { try queue.sync { try pauseLocked() } }
+
+  func resume() throws -> [String: Any] { try queue.sync { try resumeLocked() } }
+
+  func stop() throws -> [String: Any] { try queue.sync { try stopLocked() } }
+
+  // *Locked 는 이미 queue 위에서 실행 중일 때 쓴다. 잠금화면 원격 커맨드가 queue.async 로
+  // 들어오는데 거기서 queue.sync 를 부르면 같은 직렬 큐에서 자기 자신을 기다려 교착된다.
+  private func pauseLocked() throws -> [String: Any] {
+    guard configuration != nil else { throw SessionAudioEngineError.noSession }
+    guard state == "running" || state == "interrupted" else { return snapshotDictionary() }
+    foldElapsed()
+    state = "paused"
+    // 오디오 세션은 active 로 유지한다 — 내리면 Now Playing 항목과 원격 커맨드가 사라져
+    // 잠금화면의 재생 버튼이 누를 대상을 잃는다. 카테고리만 .playback 으로 낮춰 마이크를 놓아
+    // 일시정지 중 주황 프라이버시 인디케이터가 남지 않게 한다.
+    // 카테고리 강등 실패는 인디케이터가 남을 뿐 세션 진행에 영향이 없어 무시한다.
+    stopAudio(deactivateSession: false)
+    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    try persist(reason: nil)
+    emitStateChanged()
+    return snapshotDictionary()
+  }
+
+  private func resumeLocked() throws -> [String: Any] {
+    guard configuration != nil else { throw SessionAudioEngineError.noSession }
+    guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
+    state = "starting"
+    do {
+      try activateAudio()
+      runningSinceMs = monotonicMilliseconds()
+      state = "running"
+      startTimer()
+      scheduleTargetPlaybackIfNeeded()
       try persist(reason: nil)
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
-    }
-  }
-
-  func resume() throws -> [String: Any] {
-    try queue.sync {
-      guard configuration != nil else { throw SessionAudioEngineError.noSession }
-      guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
-      state = "starting"
-      do {
-        try activateAudio()
-        runningSinceMs = monotonicMilliseconds()
-        state = "running"
-        startTimer()
-        scheduleTargetPlaybackIfNeeded()
-        try persist(reason: nil)
-      } catch {
-        stopAudio()
-        markFailed(error)
-        throw error
-      }
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
-    }
-  }
-
-  func stop() throws -> [String: Any] {
-    try queue.sync {
-      if configuration == nil, let lastStopRecord { return lastStopRecord }
-      guard let configuration else { throw SessionAudioEngineError.noSession }
-      let wasCompleted = state == "completed"
-      let wasFailed = state == "failed"
-      foldElapsed()
-      state = "stopping"
+    } catch {
       stopAudio()
-      let reason = wasCompleted ? "duration-reached" : (wasFailed ? "failure" : "user-stopped")
-      try persist(reason: reason)
-      let result = recoveryDictionary(configuration: configuration, reason: reason)
-      lastStopRecord = result
-      capturePipeline = nil
-      self.configuration = nil
-      state = "idle"
-      return result
+      markFailed(error)
+      throw error
     }
+    emitStateChanged()
+    return snapshotDictionary()
+  }
+
+  private func stopLocked() throws -> [String: Any] {
+    if configuration == nil, let lastStopRecord { return lastStopRecord }
+    guard let configuration else { throw SessionAudioEngineError.noSession }
+    let wasCompleted = state == "completed"
+    let wasFailed = state == "failed"
+    foldElapsed()
+    state = "stopping"
+    stopAudio()
+    let reason = wasCompleted ? "duration-reached" : (wasFailed ? "failure" : "user-stopped")
+    try persist(reason: reason)
+    let result = recoveryDictionary(configuration: configuration, reason: reason)
+    lastStopRecord = result
+    capturePipeline = nil
+    self.configuration = nil
+    state = "idle"
+    // 세션이 끝났으므로 잠금화면 위젯과 원격 커맨드를 걷어낸다.
+    nowPlaying.deactivate()
+    return result
   }
 
   func snapshot() -> [String: Any]? {
@@ -181,6 +189,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       timer?.cancel()
       timer = nil
       stopAudio()
+      nowPlaying.deactivate()
     }
     NotificationCenter.default.removeObserver(self)
   }
@@ -195,7 +204,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         self.state = "interrupted"
         self.stopAudio()
         try? self.persist(reason: nil)
-        self.onStateChanged?(self.snapshotDictionary())
+        self.emitStateChanged()
         return
       }
       let rawOptions = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
@@ -238,7 +247,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       state = "running"
       scheduleTargetPlaybackIfNeeded()
       try persist(reason: nil)
-      onStateChanged?(snapshotDictionary())
+      emitStateChanged()
     } catch {
       markFailed(error)
     }
@@ -321,7 +330,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     }
   }
 
-  private func stopAudio() {
+  private func stopAudio(deactivateSession: Bool = true) {
     capturePipeline?.flush()
     playbackGeneration += 1
     targetPlaying = false
@@ -331,6 +340,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     playerNode = nil
     audioFile = nil
     audioEngine = nil
+    guard deactivateSession else { return }
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
@@ -340,7 +350,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     let generation = playbackGeneration
     targetPlaying = true
     capturePipeline?.flush()
-    onStateChanged?(snapshotDictionary())
+    emitStateChanged()
     playerNode.scheduleFile(audioFile, at: nil, completionCallbackType: .dataPlayedBack) { [weak self] _ in
       guard let self else { return }
       let durationSeconds = Double(audioFile.length) / audioFile.processingFormat.sampleRate
@@ -348,7 +358,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         guard self.playbackGeneration == generation else { return }
         self.targetPlaying = false
         self.captureAllowedAfterMs = self.monotonicMilliseconds() + (self.configuration?.vad.echoTailGuardMs ?? 0)
-        self.onStateChanged?(self.snapshotDictionary())
+        self.emitStateChanged()
       }
       self.queue.asyncAfter(deadline: .now() + durationSeconds) {
         guard self.playbackGeneration == generation,
@@ -378,8 +388,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       state = "completed"
       stopAudio()
       try? persist(reason: "duration-reached")
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
+      emitStateChanged()
       return
     }
 
@@ -392,7 +401,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
       try? persist(reason: nil)
-      onStateChanged?(snapshotDictionary())
+      emitStateChanged()
     }
 
     let progressSecond = elapsed / 1000
@@ -524,7 +533,48 @@ final class SessionAudioEngineCoordinator: NSObject {
     state = "failed"
     try? persist(reason: "failure")
     emitFailure(error, code: code)
+    emitStateChanged()
+  }
+
+  // 모든 상태 전이는 이 경로로 나간다 — JS 이벤트와 잠금화면 위젯이 어긋나지 않게 한 곳에 묶는다.
+  private func emitStateChanged() {
     onStateChanged?(snapshotDictionary())
+    refreshNowPlaying()
+  }
+
+  // 원격 커맨드는 메인 스레드로 도착한다. 엔진 명령은 오디오 장치를 열고 닫느라 시간이 걸리므로
+  // coordinator 직렬 큐로 넘긴다 — 여기서 동기 호출하면 UI 스레드가 막힌다.
+  private func activateNowPlaying() {
+    nowPlaying.activate(
+      SessionNowPlaying.Handlers(
+        // 잠금화면 조작 실패는 위젯 상태로 이미 드러나므로 세션을 깨지 않고 무시한다.
+        play: { [weak self] in self?.queue.async { _ = try? self?.resumeLocked() } },
+        pause: { [weak self] in self?.queue.async { _ = try? self?.pauseLocked() } },
+        stop: { [weak self] in self?.queue.async { _ = try? self?.stopLocked() } }
+      )
+    )
+    refreshNowPlaying()
+  }
+
+  private func refreshNowPlaying() {
+    guard let configuration else {
+      nowPlaying.deactivate()
+      return
+    }
+    let position = phasePosition()
+    let paused = state == "paused" || state == "interrupted"
+    // 이 앱 버전 이전에 저장된 복구 기록으로 복원한 세션에는 문구가 없다.
+    let copy = configuration.notification
+    let subtitle = paused
+      ? (copy?.pausedSubtitle ?? "")
+      : (copy?.subtitle(phase: position.phase, cycle: position.cycle, totalCycles: configuration.totalCycles) ?? "")
+    nowPlaying.update(
+      title: configuration.recovery.word,
+      subtitle: subtitle,
+      isPlaying: state == "running",
+      elapsedMs: elapsedRunningMs(),
+      durationMs: configuration.totalDurationMs
+    )
   }
 
   private func emitFailure(_ error: Error, code: String? = nil) {

@@ -27,6 +27,16 @@ export interface SessionRecoveryInfo {
   startedAt: string;
 }
 
+// 잠금화면 미디어 알림(Android MediaStyle / iOS Now Playing)에 쓸 문구.
+// 네이티브 문자열 리소스를 쓰면 OS 로케일을 따라가 인앱 언어 토글이 반영되지 않으므로
+// (docs/I18N.md) JS 가 t() 로 해석한 문구를 넘긴다. 제목은 recovery.word 를 그대로 쓴다.
+// 부제목은 네이티브가 %{cycle}·%{total} 을 현재 값으로 치환한다.
+export interface SessionNotificationCopy {
+  learningSubtitle: string;
+  restSubtitle: string;
+  pausedSubtitle: string;
+}
+
 export interface SessionAudioEngineStartInput {
   sessionId: string;
   targetAudioUri: string;
@@ -37,6 +47,7 @@ export interface SessionAudioEngineStartInput {
   maxPendingCaptureBytes: number;
   vad: SessionVadConfig;
   recovery: SessionRecoveryInfo;
+  notification: SessionNotificationCopy;
 }
 
 export interface SessionEngineSnapshot {
