@@ -169,12 +169,6 @@ interface AppCopy {
     totalTimeLabel: string;
     continueCta: string;
   };
-  sessionRecovery: {
-    interruptedTitle: string;
-    interruptedBody: string;
-    interruptedAction: string;
-    interruptedActionA11y: string;
-  };
   recording: {
     permissionDenied: string;
     startFailed: string;
@@ -466,12 +460,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       streakLabel: '연속',
       totalTimeLabel: '총 학습 시간',
       continueCta: '계속',
-    },
-    sessionRecovery: {
-      interruptedTitle: '이전 학습이 중단됐어요',
-      interruptedBody: '‘%{word}’ 학습 %{duration}이 기록에 저장됐어요.',
-      interruptedAction: '닫기',
-      interruptedActionA11y: '중단 안내 닫기',
     },
     recording: {
       permissionDenied: '마이크 권한이 거부됐어요. 기기 설정에서 권한을 허용한 뒤 다시 시도해 주세요.',
@@ -782,12 +770,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       streakLabel: 'Streak',
       totalTimeLabel: 'Total time',
       continueCta: 'Continue',
-    },
-    sessionRecovery: {
-      interruptedTitle: 'Your last session was interrupted',
-      interruptedBody: '%{duration} of "%{word}" training was saved.',
-      interruptedAction: 'Close',
-      interruptedActionA11y: 'Dismiss interruption notice',
     },
     recording: {
       permissionDenied: 'Microphone permission was denied. Allow access in device settings and try again.',

@@ -25,12 +25,6 @@ export interface PendingSession {
   word: string;
 }
 
-// 이전 실행에서 중단된 세션을 다음 실행 때 부분 적립한 결과. 배너로 사용자에게 알린다.
-export interface InterruptedSessionInfo {
-  word: string;
-  creditedLearningSeconds: number;
-}
-
 interface TrainingDataContextValue {
   store: TrainingStore | null;
   isHydrated: boolean;
@@ -44,8 +38,6 @@ interface TrainingDataContextValue {
   pendingSession: PendingSession | null;
   setPendingSession: (next: PendingSession) => void;
   clearPendingSession: () => void;
-  interruptedSession: InterruptedSessionInfo | null;
-  dismissInterruptedSession: () => void;
 }
 
 const TrainingDataContext = createContext<TrainingDataContextValue | null>(null);
@@ -55,7 +47,6 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [pendingSession, setPendingSessionState] = useState<PendingSession | null>(null);
-  const [interruptedSession, setInterruptedSession] = useState<InterruptedSessionInfo | null>(null);
   const storeRef = useRef<TrainingStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
   const { t } = useI18n();
@@ -66,10 +57,6 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
 
   const clearPendingSession = useCallback((): void => {
     setPendingSessionState(null);
-  }, []);
-
-  const dismissInterruptedSession = useCallback((): void => {
-    setInterruptedSession(null);
   }, []);
 
   const setTrainingStoreState = useCallback((nextStore: TrainingStore | null): void => {
@@ -85,11 +72,10 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     async function hydrateTrainingStore(): Promise<void> {
       try {
         const storedTrainingStore = await loadTrainingStore();
-        const { store: recoveredStore, interrupted } = await restoreOrRecoverSession(storedTrainingStore);
+        const recoveredStore = await restoreOrRecoverSession(storedTrainingStore);
 
         if (isMounted) {
           setTrainingStoreState(recoveredStore);
-          setInterruptedSession(interrupted);
           setLoadFailed(false);
         }
       } catch (error: unknown) {
@@ -200,15 +186,11 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
       pendingSession,
       setPendingSession,
       clearPendingSession,
-      interruptedSession,
-      dismissInterruptedSession,
     }),
     [
       clearPendingSession,
-      dismissInterruptedSession,
       loadFailed,
       t,
-      interruptedSession,
       isHydrated,
       markWordSuccess,
       pendingSession,
@@ -227,11 +209,9 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
 
 // 네이티브 엔진의 중단 기록을 감지해, 정상 완료 또는 5분 이상 진행한 세션을 학습 store에 반영한다.
 // store 저장이 성공한 뒤에만 네이티브 기록을 지워 다음 실행에서 안전하게 재시도할 수 있게 한다.
-async function restoreOrRecoverSession(
-  loadedStore: TrainingStore,
-): Promise<{ store: TrainingStore; interrupted: InterruptedSessionInfo | null }> {
+async function restoreOrRecoverSession(loadedStore: TrainingStore): Promise<TrainingStore> {
   let record = await sessionAudioEngine.getPendingRecovery();
-  if (!record) return { store: loadedStore, interrupted: null };
+  if (!record) return loadedStore;
 
   const activeSnapshot = await sessionAudioEngine.getSnapshot();
   if (
@@ -245,14 +225,14 @@ async function restoreOrRecoverSession(
       record = await sessionAudioEngine.stop();
     } catch (error: unknown) {
       reportError(error, { scope: 'training.sessionAudio.stopOrphan' });
-      return { store: loadedStore, interrupted: null };
+      return loadedStore;
     }
   }
 
   const elapsedRunningSeconds = Math.floor(record.snapshot.elapsedRunningMs / 1000);
   if (record.reason !== 'duration-reached' && elapsedRunningSeconds < STREAK_QUALIFYING_SECONDS) {
     await clearRecoverySafely(record.snapshot.sessionId);
-    return { store: loadedStore, interrupted: null };
+    return loadedStore;
   }
 
   try {
@@ -297,13 +277,10 @@ async function restoreOrRecoverSession(
     );
     await saveTrainingStore(nextStore);
     await clearRecoverySafely(record.snapshot.sessionId);
-    return {
-      store: nextStore,
-      interrupted: { word: record.recovery.word, creditedLearningSeconds },
-    };
+    return nextStore;
   } catch (error: unknown) {
     reportError(error, { scope: 'training.sessionAudio.recover' });
-    return { store: loadedStore, interrupted: null };
+    return loadedStore;
   }
 }
 
