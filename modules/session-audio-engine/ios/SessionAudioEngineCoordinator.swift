@@ -108,12 +108,12 @@ final class SessionAudioEngineCoordinator: NSObject {
     guard state == "running" || state == "interrupted" else { return snapshotDictionary() }
     foldElapsed()
     state = "paused"
-    // 오디오 세션은 active 로 유지한다 — 내리면 Now Playing 항목과 원격 커맨드가 사라져
-    // 잠금화면의 재생 버튼이 누를 대상을 잃는다. 카테고리만 .playback 으로 낮춰 마이크를 놓아
-    // 일시정지 중 주황 프라이버시 인디케이터가 남지 않게 한다.
-    // 카테고리 강등 실패는 인디케이터가 남을 뿐 세션 진행에 영향이 없어 무시한다.
-    stopAudio(deactivateSession: false)
-    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    // 마이크를 놓지 않는다 — 놓았다가 잠긴 화면에서 다시 잡으면 iOS(TCC)가 마이크 identity
+    // 재구성을 막아(kTCCServiceMicrophone) 재개가 실패한다. 목표 재생만 멈추고 세션·엔진·
+    // 마이크는 살려 둔다(일시정지 중 주황 인디케이터는 유지). 녹음은 캡처 탭의 running 가드로 막는다.
+    playbackGeneration += 1
+    targetPlaying = false
+    playerNode?.stop()
     try persist(reason: nil)
     emitStateChanged()
     return snapshotDictionary()
@@ -124,7 +124,12 @@ final class SessionAudioEngineCoordinator: NSObject {
     guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
     state = "starting"
     do {
-      try activateAudio()
+      // 마이크를 놓지 않은 일시정지는 엔진이 살아 있어 재획득이 필요 없다 — 잠긴 화면에서
+      // .playAndRecord 재활성화는 TCC가 막으므로 살아 있으면 건드리지 않는다. 인터럽션 등으로
+      // 엔진이 내려간(멈춘) 경우에만 다시 활성화한다.
+      if audioEngine?.isRunning != true {
+        try activateAudio()
+      }
       runningSinceMs = monotonicMilliseconds()
       state = "running"
       startTimer()
@@ -311,6 +316,8 @@ final class SessionAudioEngineCoordinator: NSObject {
         }
         let sampleRate = buffer.format.sampleRate
         self.queue.async {
+          // 일시정지 중에는 마이크를 살려 두지만 녹음은 하지 않는다 — running 일 때만 캡처한다.
+          guard self.state == "running" else { return }
           let samples = self.resampleTo16k(mono, sourceRate: sampleRate)
           let position = self.phasePosition()
           let allowed = !self.targetPlaying && self.monotonicMilliseconds() >= self.captureAllowedAfterMs
