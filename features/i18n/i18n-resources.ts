@@ -169,15 +169,6 @@ interface AppCopy {
     restSubtitle: string;
     pausedSubtitle: string;
   };
-  // 학습 탭 상단에 진행 중 세션을 알리는 배너.
-  sessionBanner: {
-    runningTitle: string;
-    pausedTitle: string;
-    body: string;
-    openA11y: string;
-    stopAction: string;
-    stopA11y: string;
-  };
   sessionComplete: {
     title: string;
     subtitle: string;
@@ -480,14 +471,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       learningSubtitle: '학습 중 · 사이클 %{cycle}/%{total}',
       restSubtitle: '쉬는 중 · 사이클 %{cycle}/%{total}',
       pausedSubtitle: '일시정지됨',
-    },
-    sessionBanner: {
-      runningTitle: '"%{word}" 학습 중',
-      pausedTitle: '"%{word}" 일시정지됨',
-      body: '사이클 %{cycle}/%{total} · %{remaining} 남음',
-      openA11y: '진행 중인 학습 세션 열기',
-      stopAction: '종료',
-      stopA11y: '진행 중인 학습 세션 종료',
     },
     sessionComplete: {
       title: '학습 완료! 🎉',
@@ -809,14 +792,6 @@ export const translations: Record<AppLocale, AppCopy> = {
       learningSubtitle: 'Training · Cycle %{cycle}/%{total}',
       restSubtitle: 'Resting · Cycle %{cycle}/%{total}',
       pausedSubtitle: 'Paused',
-    },
-    sessionBanner: {
-      runningTitle: 'Training "%{word}"',
-      pausedTitle: '"%{word}" paused',
-      body: 'Cycle %{cycle}/%{total} · %{remaining} left',
-      openA11y: 'Open the training session in progress',
-      stopAction: 'End',
-      stopA11y: 'End the training session in progress',
     },
     sessionComplete: {
       title: 'Session complete! 🎉',
