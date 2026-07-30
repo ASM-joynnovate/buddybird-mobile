@@ -1,5 +1,6 @@
 import Foundation
 import MediaPlayer
+import UIKit
 
 // 잠금화면·제어센터의 재생 위젯. Android 의 MediaStyle 알림에 대응한다.
 //
@@ -41,6 +42,13 @@ final class SessionNowPlaying {
       return .success
     }
     center.stopCommand.addTarget { _ in handlers.stop(); return .success }
+
+    // 최신 iOS 는 MPRemoteCommandCenter 타깃 등록만으로 원격 컨트롤을 켜지만, 콜드/첫 실행에서는
+    // 앱이 Now Playing 소스로 등록되지 않아 잠금화면 컨트롤이 회색으로 남는 경우가 있다.
+    // 명시 호출로 첫 실행부터 확실히 수신하게 한다. (UIApplication 은 메인 스레드 전용)
+    DispatchQueue.main.async {
+      UIApplication.shared.beginReceivingRemoteControlEvents()
+    }
   }
 
   func update(title: String, subtitle: String, isPlaying: Bool, elapsedMs: Int64, durationMs: Int64) {
@@ -69,6 +77,9 @@ final class SessionNowPlaying {
     center.pauseCommand.isEnabled = false
     center.togglePlayPauseCommand.isEnabled = false
     center.stopCommand.isEnabled = false
+    DispatchQueue.main.async {
+      UIApplication.shared.endReceivingRemoteControlEvents()
+    }
   }
 
   private var isPlaying = false
