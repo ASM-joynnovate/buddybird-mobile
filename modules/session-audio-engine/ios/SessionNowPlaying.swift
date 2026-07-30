@@ -46,10 +46,6 @@ final class SessionNowPlaying {
         return .success
       }
       center.stopCommand.addTarget { _ in handlers.stop(); return .success }
-
-      // 진단(임시, #2 해결 후 제거): 등록이 메인에서 실행됐는지 확인 — mediaremoted 의
-      // supportedCommands 스냅샷 타이밍과 대조하기 위한 마커.
-      NSLog("[SessionNowPlaying] remote commands registered on main thread (play/pause/toggle/stop enabled)")
     }
   }
 
