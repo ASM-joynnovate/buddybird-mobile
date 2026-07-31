@@ -224,6 +224,7 @@ expo가 버전을 관리하는 패키지(`expo-*`, 그리고 `react-native-gestu
 ## 8. e2e 테스트 (Maestro)
 
 BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird.dev`) — prod 빌드로 실행 금지 (운영 Firebase 오염).
+시나리오별 절차·커버리지는 `docs/E2E-SCENARIOS.md` (사람이 읽는 카탈로그) 참고 — 본 §8은 규약·레시피의 단일 출처.
 
 ### 8.1 testID·플로우 규약
 
