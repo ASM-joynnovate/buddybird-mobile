@@ -1,0 +1,4 @@
+# Maestro workspace — 실행: yarn e2e:android (레시피·시나리오: todo.md, 추후 docs/CONVENTIONS.md §8)
+# subflows/ 는 flow 목록에서 제외 (runFlow 전용)
+flows:
+  - "flows/*.yaml"

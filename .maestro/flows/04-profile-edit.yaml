@@ -1,0 +1,38 @@
+# 시나리오 04 — 프로필 편집: 저장된 데이터를 수정할 수 있다 (이름만 — 아바타·종은 범위 외)
+appId: com.joynnovate.buddybird.dev
+tags:
+  - smoke
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+- extendedWaitUntil:
+    notVisible:
+      id: "profile-name-input"
+    timeout: 15000
+- tapOn:
+    id: "tab-profile"
+- assertVisible: "Mango"
+- tapOn:
+    id: "profile-edit-cta"
+- extendedWaitUntil:
+    visible:
+      id: "profile-edit-name-input"
+    timeout: 10000
+- tapOn:
+    id: "profile-edit-name-input"
+- eraseText
+- inputText: "Coco"
+- hideKeyboard
+# 저장 버튼은 폼 스크롤 하단
+- scrollUntilVisible:
+    element:
+      id: "profile-edit-save"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "profile-edit-save"
+# 저장 → 편집 화면 종료 → 프로필 탭에서 변경된 이름 확인
+- extendedWaitUntil:
+    notVisible:
+      id: "profile-edit-save"
+    timeout: 10000
+- assertVisible: "Coco"

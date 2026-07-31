@@ -1,0 +1,49 @@
+# 시나리오 05 — 단어 생성: 사용자가 직접 단어를 만들 수 있다 (절차 + 저장 CRUD)
+# 한계: 오디오 내용은 검증 불가 — 에뮬레이터 무음 녹음도 통과 (최소 길이·레벨 게이트 없음 확인됨)
+# waitForAnimationToEnd는 녹음 시간 확보용 유일한 시간 기반 대기 (녹음은 본질적으로 시간이 걸리는 행위)
+# smoke 승격: 2026-07-30, 전체 스위트 2회 연속 green 확인 후
+appId: com.joynnovate.buddybird.dev
+tags:
+  - smoke
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+- extendedWaitUntil:
+    notVisible:
+      id: "profile-name-input"
+    timeout: 15000
+- tapOn:
+    id: "tab-words"
+- assertVisible: "안녕"
+- tapOn:
+    id: "word-add-cta"
+- extendedWaitUntil:
+    visible:
+      id: "word-label-input"
+    timeout: 10000
+- tapOn:
+    id: "word-label-input"
+- inputText: "Bori"
+- hideKeyboard
+# 녹음 시작 → ~2초 녹음 → 정지
+- tapOn:
+    id: "word-record-toggle"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: "word-record-toggle"
+# recorded 상태 진입 → 미리듣기 행 표시 + 저장 활성 (녹음+이름 조건 로직 검증)
+- extendedWaitUntil:
+    visible:
+      id: "word-preview-toggle"
+    timeout: 10000
+- assertVisible:
+    id: "word-save"
+    enabled: true
+- tapOn:
+    id: "word-save"
+# 모달 닫힘(저장 완료) → 목록에 새 단어 표시
+- extendedWaitUntil:
+    notVisible:
+      id: "word-label-input"
+    timeout: 10000
+- assertVisible: "Bori"

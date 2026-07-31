@@ -1,0 +1,24 @@
+# 시나리오 02 — 탭 이동과 데이터 표시: 만든 데이터가 앱 전체에서 일관되게 보인다
+# 콘텐츠 assert("안녕"/"Mango")는 로케일 무관 데이터 — 시드 단어 라벨은 언어 설정과 무관하게 한국어
+appId: com.joynnovate.buddybird.dev
+tags:
+  - smoke
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+- extendedWaitUntil:
+    notVisible:
+      id: "profile-name-input"
+    timeout: 15000
+- tapOn:
+    id: "tab-words"
+- assertVisible: "안녕"
+- tapOn:
+    id: "tab-profile"
+- assertVisible: "Mango"
+- tapOn:
+    id: "tab-index"
+- scrollUntilVisible:
+    element:
+      id: "session-start-cta"
+    direction: DOWN
+    centerElement: true

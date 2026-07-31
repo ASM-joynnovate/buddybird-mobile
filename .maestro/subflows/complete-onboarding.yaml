@@ -1,0 +1,82 @@
+# 공통 subflow: 신규 사용자 온보딩 완주 (clearState = fresh install 재현)
+# 이름은 ASCII "Mango" — Android IME 한글 inputText flaky 회피 (한글 검증은 시드 단어 렌더링 assert가 커버)
+appId: com.joynnovate.buddybird.dev
+---
+- launchApp:
+    clearState: true
+    permissions:
+      microphone: allow
+      notifications: allow
+# debug(dev-client) 빌드는 clearState 시 Metro 연결 정보도 지워져 런처 화면에 멈춤 →
+# 런처가 자동 감지한 Metro 서버(호스트 10.0.2.2:8081) 행을 탭해 번들 로드. release 빌드(CI)에서는 불필요
+# (openLink 딥링크는 launchApp 직후 인텐트가 유실되는 타이밍 이슈가 있어 UI 탭 방식 사용)
+# 에뮬레이터 ANR 다이얼로그("대기"/"Wait")가 무작위로 뜰 수 있어 정리하며 대기
+- repeat:
+    times: 30
+    while:
+      notVisible: "http://10.0.2.2:8081"
+    commands:
+      - runFlow:
+          when:
+            visible: "대기"
+          commands:
+            - tapOn: "대기"
+      - runFlow:
+          when:
+            visible: "Wait"
+          commands:
+            - tapOn: "Wait"
+- tapOn: "http://10.0.2.2:8081"
+# 웰컴 도달까지 방해 요소를 반복 정리하는 자가 회복 루프 (등장 타이밍이 전부 비결정적이라 순서 고정 불가):
+# - dev menu 인트로(clearState마다, 등장 시점 가변) → Continue
+# - dev menu 본체(인트로 닫은 뒤 열린 채 남음) → back
+# - 앱 업데이트 모달(리모트 컨피그 fetch 타이밍 의존) → 닫기
+# - 에뮬레이터 ANR 다이얼로그(ko/en) → 대기/Wait
+# 오버레이 윈도우가 떠 있는 동안 웰컴 CTA는 hierarchy에 노출되지 않으므로 루프 종료 조건이 안전함
+- repeat:
+    times: 60
+    while:
+      notVisible:
+        id: "onboarding-welcome-cta"
+    commands:
+      - runFlow:
+          when:
+            visible: "Continue"
+          commands:
+            - tapOn: "Continue"
+      - runFlow:
+          when:
+            visible: "Reload"
+          commands:
+            - pressKey: back
+      - runFlow:
+          when:
+            visible:
+              id: "app-update-close"
+          commands:
+            - tapOn:
+                id: "app-update-close"
+      - runFlow:
+          when:
+            visible: "대기"
+          commands:
+            - tapOn: "대기"
+      - runFlow:
+          when:
+            visible: "Wait"
+          commands:
+            - tapOn: "Wait"
+- assertVisible:
+    id: "onboarding-welcome-cta"
+- tapOn:
+    id: "onboarding-welcome-cta"
+- assertVisible:
+    id: "profile-name-input"
+- tapOn:
+    id: "profile-name-input"
+- inputText: "Mango"
+- hideKeyboard
+- tapOn:
+    id: "species-chip-budgie"
+- tapOn:
+    id: "onboarding-profile-submit"
