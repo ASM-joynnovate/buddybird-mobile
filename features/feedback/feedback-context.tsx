@@ -15,6 +15,7 @@ import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { toLocalDateKey } from '@/features/shared/date-utils';
+import { useUploadConsent } from '@/features/upload-consent/upload-consent-context';
 
 import {
   advanceAfterResponse,
@@ -54,6 +55,7 @@ const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const { track } = useAnalytics();
   const { locale } = useI18n();
+  const { settled: consentSettled } = useUploadConsent();
 
   // 스케줄러 상태·노출 여부는 렌더 밖 로직에서도 읽어야 해 ref 로 미러링한다(콜백 안정성 유지).
   const stateRef = useRef<PromptSchedulerState>(createInitialSchedulerState());
@@ -62,6 +64,8 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const promptVisibleRef = useRef(false);
   const formSourceRef = useRef<FeedbackSource | null>(null);
   const submitInFlightRef = useRef<Promise<void> | null>(null);
+  const consentSettledRef = useRef(false);
+  const deferredPromptRef = useRef(false);
 
   const [promptVisible, setPromptVisibleState] = useState(false);
   const [formSource, setFormSourceState] = useState<FeedbackSource | null>(null);
@@ -102,10 +106,25 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
     // 이미 팝업/폼이 떠 있으면 중복 노출·중복 analytics 를 피한다.
     if (shouldPrompt(next) && !promptVisibleRef.current && formSourceRef.current === null) {
+      // 팝업 우선순위(동의 → 피드백): 수집 동의 차례가 끝나기 전엔 표출을 보류한다.
+      // settled 전환 effect 가 재평가하며, shown 이벤트도 실제 표시 시점에 기록된다.
+      if (!consentSettledRef.current) {
+        deferredPromptRef.current = true;
+        return;
+      }
       setPromptVisible(true);
       track({ name: 'feedback_prompt_shown', params: { threshold: currentThreshold(next) } });
     }
   }, [persist, setPromptVisible, track]);
+
+  // 수집 동의가 결론나는 순간 보류해 둔 팝업 판정을 재실행한다 (같은 날 재등록은 멱등).
+  useEffect(() => {
+    consentSettledRef.current = consentSettled;
+    if (consentSettled && deferredPromptRef.current) {
+      deferredPromptRef.current = false;
+      evaluateActiveDay();
+    }
+  }, [consentSettled, evaluateActiveDay]);
 
   // 스케줄러 상태를 1회 로드(hydrate)한다. cold start 의 접속일 반영과 팝업 판정은
   // 스플래시가 사라져 홈이 보이는 순간 `AppSplashGate` 가 evaluateActiveDay 로 트리거한다
