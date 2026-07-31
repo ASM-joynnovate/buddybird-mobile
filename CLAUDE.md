@@ -92,12 +92,14 @@ yarn eas:build:local:dev:ios     # 그 외: local:{dev,preview,prod}:{ios,androi
 
 # 검증
 yarn lint                        # ESLint via expo lint
-yarn typecheck                   # tsc --noEmit (no Jest; no test runner configured)
+yarn typecheck                   # tsc --noEmit (unit test runner 없음)
+yarn e2e:android                 # Maestro e2e 전체 (에뮬레이터 + Metro 필요, docs/CONVENTIONS.md §8)
+yarn e2e:android:smoke           # smoke 태그만
 ```
 
 환경별 식별자 매핑, EAS Secret 등록, Firebase config 배치, Keystore·credentials.json 운영, App Store/Play Store 제출 절차 등 빌드/배포의 모든 상세는 `docs/BUILD-AND-RELEASE.md` (배포 SSoT) 에서 단일하게 관리한다. 본 Commands 블록은 발견용 인용일 뿐이며 절차 본문을 두지 않는다.
 
-There is no test suite. Verification is done manually per the checklist in README.md.
+Unit tests are not configured. E2e smoke flows run via Maestro (`yarn e2e:android:smoke`, `docs/CONVENTIONS.md` §8); everything else (audio quality, session completion, iOS) is verified manually per the checklist in README.md.
 
 
 ## Behavioral Guidelines
