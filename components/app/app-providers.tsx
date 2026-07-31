@@ -13,6 +13,7 @@ import { FeedbackProvider } from '@/features/feedback/feedback-context';
 import { I18nProvider } from '@/features/i18n/i18n-context';
 import { ProfileProvider } from '@/features/profile/profile-context';
 import { TrainingDataProvider } from '@/features/training/training-context';
+import { UploadConsentProvider } from '@/features/upload-consent/upload-consent-context';
 import { WordLibraryProvider } from '@/features/word-library/word-library-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -23,6 +24,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
  * 순서 의존(권장): `AnalyticsProvider`는 `AuthProvider`의 uid를 구독하고,
  * `ProfileProvider`는 `AnalyticsProvider`에 user property를 동기화한다. `FeedbackProvider`는
  * analytics와 i18n을 사용한다. provider 간 의존이 모두 충족되도록 이 순서를 유지한다.
+ *
+ * 팝업 우선순위 체인(업데이트 → 수집 동의 → 피드백): `UploadConsentProvider`는
+ * `AppUpdateProvider`의 판정을, `FeedbackProvider`는 `UploadConsentProvider`의 `settled`를
+ * 읽어 양보하므로 이 세 provider 의 중첩 순서는 필수다.
  *
  * `FcmHeadlessGuard`는 provider가 아닌 가드지만 트리 최외곽이므로 "순서를 한 곳에"
  * 원칙을 지키기 위해 함께 감싼다.
@@ -42,9 +47,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
                     <TrainingDataProvider>
                       <WordLibraryProvider>
                         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                          <FeedbackProvider>
-                            <AppUpdateProvider>{children}</AppUpdateProvider>
-                          </FeedbackProvider>
+                          <AppUpdateProvider>
+                            <UploadConsentProvider>
+                              <FeedbackProvider>{children}</FeedbackProvider>
+                            </UploadConsentProvider>
+                          </AppUpdateProvider>
                         </ThemeProvider>
                       </WordLibraryProvider>
                     </TrainingDataProvider>
