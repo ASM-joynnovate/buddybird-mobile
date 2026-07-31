@@ -247,7 +247,7 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 1. 에뮬레이터 기동 후 애니메이션 비활성화(재부팅 시 재적용): `adb shell settings put global window_animation_scale 0` + `transition_animation_scale`·`animator_duration_scale` 동일
 2. debug 빌드는 Metro 필수 — `yarn start:dev` 켠 상태에서 `yarn e2e:android`(전체) / `yarn e2e:android:smoke`(smoke만)
 3. 최초 1회 또는 네이티브 변경 시 `yarn android:dev`로 설치
-4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리 — release 빌드(CI)에서는 해당 없음
+4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. **현 스위트는 debug 빌드 전용** — subflow의 런처 진입 스텝(Metro 서버 행 탭)이 무조건 실행되므로 release 빌드에서는 실패한다. release/CI용 진입 구조(런처 스텝 조건부화·Metro 주소 파라미터화)는 CI 도입 시점에 함께 조정한다
 5. e2e 표준 기기 로케일은 **en-US** — 기기 로케일이 ko면 Gboard가 한국어 자판이 되어 Maestro `inputText`의 ASCII가 한글로 조합됨 (BB-159 실측: "Mango" → "ㅡ무해"). 시나리오는 로케일 무관 설계(인터랙션 testID + 콘텐츠 assert는 시드 한글 라벨)라 ko 고정이 필요 없다. 실행 전 확인: `adb shell settings get system system_locales`가 `en-US`가 아니면 `settings put system system_locales en-US` 후 Gboard 재시작(`am force-stop com.google.android.inputmethod.latin`)
 
 ### 8.4 검증 한계 (e2e가 보장하지 않는 것)
