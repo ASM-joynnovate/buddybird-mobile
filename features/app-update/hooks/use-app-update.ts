@@ -17,6 +17,8 @@ import {
 import type { UpdatePrompt } from '../app-update-types';
 
 export interface UseAppUpdateResult {
+  /** 콜드 스타트 판정이 결론났는가. 후순위 팝업(수집 동의)은 이 신호 전에는 뜨지 않는다. */
+  checked: boolean;
   /** 표시할 프롬프트. 없으면 `null`. */
   prompt: UpdatePrompt | null;
   /** 소프트 프롬프트 '취소' — 이 버전을 거부 기록하고 닫는다. 강제 프롬프트에선 무시. */
@@ -33,6 +35,7 @@ export function useAppUpdate(): UseAppUpdateResult {
   const { isReady, track } = useAnalytics();
   const { locale } = useI18n();
 
+  const [checked, setChecked] = useState(false);
   const [prompt, setPrompt] = useState<UpdatePrompt | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const isMountedRef = useRef(true);
@@ -81,7 +84,8 @@ export function useAppUpdate(): UseAppUpdateResult {
   useEffect(() => {
     if (!isReady) return;
 
-    void runCheck({ respectInterval: false });
+    // 성공·실패·조기 return 어느 경로든 결론이 나면 checked 를 세워 후순위 팝업 차례를 연다.
+    void runCheck({ respectInterval: false }).finally(() => setChecked(true));
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       const prevState = appStateRef.current;
@@ -131,7 +135,7 @@ export function useAppUpdate(): UseAppUpdateResult {
     }
   }, [prompt, track]);
 
-  return { prompt, dismiss, openStore };
+  return { checked, prompt, dismiss, openStore };
 }
 
 function getCurrentVersion(): string | null {
