@@ -11,9 +11,14 @@ tags:
     timeout: 15000
 - tapOn:
     id: "tab-words"
+# 화면 고유 앵커로 탭 전환 자체를 먼저 검증 — "안녕"은 홈에도 존재해 단독으로는 vacuous
+- assertVisible:
+    id: "word-add-cta"
 - assertVisible: "안녕"
 - tapOn:
     id: "tab-profile"
+- assertVisible:
+    id: "profile-edit-cta"
 - assertVisible: "Mango"
 - tapOn:
     id: "tab-index"

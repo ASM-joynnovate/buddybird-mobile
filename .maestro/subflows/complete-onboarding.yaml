@@ -8,8 +8,10 @@ appId: com.joynnovate.buddybird.dev
       microphone: allow
       notifications: allow
 # debug(dev-client) 빌드는 clearState 시 Metro 연결 정보도 지워져 런처 화면에 멈춤 →
-# 런처가 자동 감지한 Metro 서버(호스트 10.0.2.2:8081) 행을 탭해 번들 로드. release 빌드(CI)에서는 불필요
+# 런처가 자동 감지한 Metro 서버(호스트 10.0.2.2:8081) 행을 탭해 번들 로드
 # (openLink 딥링크는 launchApp 직후 인텐트가 유실되는 타이밍 이슈가 있어 UI 탭 방식 사용)
+# 주의: 이 진입 스텝은 무조건 실행이라 현 subflow는 debug 빌드 전용 —
+# release/CI 전환 시 조건부화 + Metro 주소 파라미터화 필요 (Phase 3, docs/CONVENTIONS.md §8.3)
 # 에뮬레이터 ANR 다이얼로그("대기"/"Wait")가 무작위로 뜰 수 있어 정리하며 대기
 - repeat:
     times: 30
