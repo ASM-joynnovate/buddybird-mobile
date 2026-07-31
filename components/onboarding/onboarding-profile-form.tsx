@@ -53,6 +53,7 @@ export function OnboardingProfileForm({
           placeholder={namePlaceholder}
           placeholderTextColor={BuddyBirdColors.placeholderMuted}
           style={styles.input}
+          testID="profile-name-input"
           value={name}
         />
       </FormField>

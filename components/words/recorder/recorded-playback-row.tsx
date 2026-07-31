@@ -45,7 +45,8 @@ export function RecordedPlaybackRow({
         depth="card"
         faceStyle={[styles.playButtonFace, { backgroundColor: color }]}
         onPress={onToggle}
-        style={styles.playButton}>
+        style={styles.playButton}
+        testID="word-preview-toggle">
         <IconSymbol color={BuddyBirdColors.onDark} name={isPlaying ? 'pause.fill' : 'play.fill'} size={17} />
       </Pressable3D>
       <View style={styles.copy}>

@@ -29,6 +29,7 @@ export function SpeciesChips({ selectedId, onSelectPreset }: SpeciesChipsProps) 
                 active={selectedId === option.id}
                 label={option.label}
                 onPress={() => onSelectPreset(option.id)}
+                testID={`species-chip-${option.id}`}
               />
             ))}
           </View>

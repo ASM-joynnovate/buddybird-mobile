@@ -27,6 +27,7 @@ export function WordCreateActions({
         onPress={onSave}
         size="lg"
         style={styles.saveButton}
+        testID="word-save"
         variant="primary"
       />
     </View>
