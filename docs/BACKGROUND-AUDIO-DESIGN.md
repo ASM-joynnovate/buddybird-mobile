@@ -102,7 +102,7 @@ idle
 | `idle` | 실행 중인 세션 없음 |
 | `starting` | 권한, 음원, 마이크, 출력 장치 준비 중 |
 | `running` | 세션 시간 계산과 재생 및 녹음 진행 중 |
-| `paused` | 사용자가 일시정지해 오디오 자원 해제 |
+| `paused` | 사용자가 일시정지 — Android는 오디오 자원 해제, iOS는 목표 재생만 정지 |
 | `interrupted` | 전화나 audio focus 상실로 오디오 사용 중단 |
 | `completed` | 설정한 세션 시간을 모두 채움 |
 | `failed` | 자동 복구할 수 없는 오류 발생 |
@@ -116,9 +116,31 @@ configuration을 해제해 `idle`로 복귀한다 — 실패가 이후 `start()`
 
 `stop()`은 여러 번 호출해도 첫 호출과 같은 종료 기록을 반환한다.
 
-사용자가 일시정지하면 재생과 녹음을 모두 멈춘다.
-Android에서는 `foreground service`도 종료한다.
-다시 시작할 때는 앱 화면이 보이는 상태에서 microphone service를 새로 시작한다.
+사용자가 일시정지하면 목표 음원 재생과 녹음을 모두 멈춘다.
+세션을 표시하는 자원(알림, 잠금화면 위젯)은 유지한다.
+잠금화면 미디어 위젯의 재생 버튼이 일시정지 중에도 눌릴 대상을 가져야 하기 때문이다.
+오디오 자원을 어디까지 놓는지는 플랫폼마다 다르다.
+
+- Android는 오디오 자원(마이크, 재생, audio focus)을 놓고 `foreground service`와 그
+  타입(`microphone|mediaPlayback`)만 그대로 유지한다.
+  일시정지에 서비스를 내리면 알림이 사라지고, 백그라운드에서 microphone 타입 `foreground service`를
+  새로 시작하는 것은 Android 12 이상에서 제한되고 Android 14 이상에서는 while-in-use 검사에
+  걸려 재개 자체가 불가능하다.[^android-fgs-start]
+  실제 캡처가 멈추므로 마이크 프라이버시 인디케이터는 꺼진다.
+- iOS는 `AVAudioSession`을 `.playAndRecord` active 그대로 두고 마이크도 놓지 않는다.
+  놓았다가 잠긴 화면에서 다시 잡으면 TCC(`kTCCServiceMicrophone`)가 마이크 identity 재구성을
+  막아 재개가 실패한다. 목표 재생만 멈추고 엔진과 입력 tap은 살려 두며, 녹음은 캡처 경로의
+  `running` 가드로 막는다.
+  마이크를 계속 잡고 있으므로 일시정지 중에도 마이크 프라이버시 인디케이터는 유지된다 —
+  Android와 다른 지점이다.
+  일시정지 중에도 세션이 활성이므로 인터럽션(전화·Siri)이 오면 OS가 엔진을 내린다.
+  이때 `interrupted`로 전이해 두고, 인터럽션 종료 통지(백그라운드 오디오 재활성화가 허용되는
+  창)에서 엔진·마이크만 되살려 `paused`로 복귀한다 — 사용자가 일시정지했던 세션이므로 재생은
+  재개하지 않는다. 복원이 실패하거나 `.shouldResume`이 없으면(통화 중 다른 앱이 오디오를 잡은
+  경우 등) 엔진 없는 `paused`로 강등되어 앱 화면에서만 재개할 수 있다.
+
+서비스가 이미 사라진 뒤의 재개(OS의 프로세스 정리 등)만 앱 화면이 보이는 상태에서
+microphone service를 새로 시작하는 경로를 탄다.
 
 전화나 다른 앱이 오디오를 점유하면 세션 시간을 멈춘다.
 오디오를 사용하지 못한 시간은 학습 시간에 포함하지 않는다.
@@ -158,6 +180,12 @@ export interface SessionRecoveryInfo {
   startedAt: string;
 }
 
+export interface SessionNotificationCopy {
+  learningSubtitle: string;
+  restSubtitle: string;
+  pausedSubtitle: string;
+}
+
 export interface SessionAudioEngineStartInput {
   sessionId: string;
   targetAudioUri: string;
@@ -168,6 +196,7 @@ export interface SessionAudioEngineStartInput {
   maxPendingCaptureBytes: number;
   vad: SessionVadConfig;
   recovery: SessionRecoveryInfo;
+  notification: SessionNotificationCopy;
 }
 
 export interface SessionEngineSnapshot {
@@ -238,6 +267,13 @@ export interface SessionAudioEngine {
 이벤트 listener는 `start()` 전에 등록한다.
 네이티브는 명령을 받은 순서대로 실행한다.
 각 명령은 작업이 끝난 뒤 Promise를 완료한다.
+
+`notification`은 잠금화면 재생 위젯에 표시할 문구다.
+네이티브 문자열 리소스를 쓰면 OS 로케일을 따라가 인앱 언어 설정이 반영되지 않으므로
+(`docs/I18N.md`) JS가 해석한 문구를 넘긴다.
+제목은 `recovery.word`를 그대로 쓰고, 부제목의 `%{cycle}`·`%{total}`은 네이티브가 갱신할 때마다
+현재 회차로 치환한다.
+문구는 `start()` 시점에 고정되므로 세션 도중 언어를 바꾸면 다음 세션부터 반영된다.
 
 ## 6. 세션 진행
 
@@ -392,7 +428,7 @@ React context가 없어도 서비스가 실행 중이면 세션을 이어 간다
 | 목표 음원 재생 | `AudioTrack` 또는 media3 |
 | 세션 시간 | `SystemClock.elapsedRealtime()` |
 | 서비스 재시작 | `START_NOT_STICKY` |
-| 알림 | 앱 열기 action과 세션 종료 action 제공 |
+| 알림 | `MediaStyle` + `MediaSession` — 재생/일시정지, 종료 action 제공 |
 
 마이크 입력은 기존 Expo 녹음 경로와 같은 `MediaRecorder.AudioSource.MIC`을 사용한다.
 고정 RMS 임계값을 쓰는 동안에는 AGC가 빠지는 `VOICE_RECOGNITION` source를 사용하지 않는다.
@@ -424,6 +460,27 @@ Android 13 이상에서는 세션 시작 화면에서 `POST_NOTIFICATIONS` 권�
 
 알림의 종료 action은 JS 실행 여부와 관계없이 서비스에서 세션을 끝낸다.
 종료 action은 진행 상태를 저장하고 recorder, player, audio focus, 알림을 해제한다.
+일시정지 상태에서는 알림을 밀어 없앨 수 있으므로 `deleteIntent`도 종료 action과 같게 처리한다.
+그러지 않으면 화면에도 알림에도 보이지 않는 세션이 서비스만 붙들고 남는다.
+
+알림은 `androidx.media3.session.MediaSession`을 붙인 `MediaStyle`로 그려 잠금화면과 빠른 설정의
+미디어 영역에 표시한다.
+MediaSession에 붙이는 `Player`는 목표 음원을 재생하는 `ExoPlayer`가 아니라 학습 세션 전체를
+한 곡처럼 표현하는 `SimpleBasePlayer` 구현이다.
+
+- 실제 재생은 몇 초짜리 클립을 따라하기 공백을 두고 반복하고 휴식 구간에는 멈춘다.
+  `ExoPlayer`를 그대로 노출하면 재생 상태가 몇 초마다 깜빡이고 진행바가 세션 진행률이 아니라
+  클립 안의 위치를 가리킨다.
+- `ExoPlayer`는 오디오를 열 때마다 새로 만들고 멈출 때 해제하므로, 일시정지를 오가는 동안
+  살아 있어야 하는 MediaSession의 수명주기와 맞지 않는다.
+
+가상 플레이어는 duration에 세션 전체 길이를, position에 세션 경과 시간을 노출하고
+탐색(seek)과 트랙 이동 command는 제공하지 않는다.
+엔진 상태가 바뀔 때만 알림을 다시 발행하고, 마지막으로 그린 값과 같으면 건너뛴다.
+위치는 MediaSession이 폴링하므로 초당 갱신이 필요 없다.
+
+알림 액션과 MediaSession 명령은 전용 스레드에서 엔진을 호출한다.
+메인 스레드에서 호출하면 오디오 장치를 여는 동안(최대 4초) UI가 멈춘다.
 
 Android 15는 `dataSync`와 `mediaProcessing`을 24시간 동안 총 6시간까지 허용한다.
 `microphone`과 `mediaPlayback`에는 이 시간 제한이 없다.[^android-fgs-types]
@@ -456,6 +513,26 @@ speaker로 목표 음원을 재생하면서 microphone을 열면 재생음이 �
 재생 중에는 발화 파일을 만들지 않는다.
 재생이 끝난 뒤 남는 echo를 얼마나 무시할지는 실제 기기에서 측정한다.
 
+### 잠금화면 재생 위젯
+
+iOS에는 상주 알림이 없으므로 Android의 `MediaStyle` 알림에 대응하는 자리가
+잠금화면과 제어센터의 Now Playing 위젯이다.
+
+`MPNowPlayingInfoCenter`에 제목(단어), 부제목(구간·회차), 세션 전체 길이, 경과 시간,
+재생 속도를 싣는다.
+재생 위치는 시스템이 경과 시간과 재생 속도로 외삽하므로 매초 갱신하지 않고
+상태 전이와 구간 전환에서만 갱신한다.
+
+`MPRemoteCommandCenter`에는 재생, 일시정지, 재생/일시정지 토글, 정지만 활성화한다.
+세션은 단어 하나짜리이고 경과 시간이 학습 기록의 근거이므로
+트랙 이동과 재생 위치 변경 command는 비활성화한다.
+
+원격 커맨드는 메인 스레드로 도착하므로 coordinator의 직렬 큐로 넘겨 실행한다.
+큐 안에서 다시 `queue.sync`를 부르면 같은 직렬 큐에서 자기 자신을 기다려 교착되므로,
+공개 메서드(`pause`/`resume`/`stop`)와 큐 위에서 도는 내부 구현을 분리한다.
+
+세션이 끝나면 Now Playing 정보를 비우고 원격 커맨드를 해제한다.
+
 ## 12. 앱 연동
 
 | 기존 코드 | 변경 |
@@ -474,6 +551,15 @@ speaker로 목표 음원을 재생하면서 microphone을 열면 재생음이 �
 화면의 일시정지 버튼은 `engine.pause()`를 호출한다.
 다시 시작 버튼은 `engine.resume()`을 호출한다.
 종료 버튼은 `engine.stop()` 결과를 학습 기록에 반영한다.
+
+잠금화면에서 일시정지·재개하면 네이티브가 `onStateChanged`를 보내므로 화면이 따라온다.
+반대로 네이티브 주도 **종료**는 세션이 사라져 이벤트를 보낼 대상이 없으므로,
+foreground 복귀 시 `getSnapshot()`이 `null`인 것으로 판정한다 (`use-active-session.ts`).
+
+진행 중 세션을 학습 탭에 배너로 노출하는 방안은 검토했다가 폐기했다 (`cca96fd`).
+배너가 뜨려면 "네비가 학습 탭으로 리셋"과 "네이티브 세션은 생존"이 동시에 성립해야 하는데,
+세션 화면 이탈 가드(`usePreventRemove`)가 실행 중 화면 이탈을 막고 JS 컨텍스트가 리셋되면
+네이티브 세션도 함께 정리돼 두 조건이 상호 배타적이다.
 
 ## 13. 구현 순서
 
@@ -519,6 +605,10 @@ speaker로 목표 음원을 재생하면서 microphone을 열면 재생음이 �
 - 시작 탭 직후 즉시 화면 잠금/홈 전환 시 크래시 없이 시작 실패 또는 정상 진행
 - 백그라운드 service 시작 요청 거부
 - 알림 종료 action 처리
+- 잠금화면·빠른 설정 미디어 영역에 단어·구간·회차·진행바 표시
+- 일시정지 후에도 알림이 남고 백그라운드 상태에서 재생 action 으로 재개
+- 일시정지 상태에서 알림을 밀어 없애면 세션 종료
+- 일시정지 중 마이크 프라이버시 인디케이터 해제
 - task manager에서 앱을 중지했을 때 처리
 - recent task 제거 후 service 동작
 - Doze 상태에서 세션 시간과 녹음 유지
@@ -529,8 +619,13 @@ speaker로 목표 음원을 재생하면서 microphone을 열면 재생음이 �
 
 - 화면 잠금 후 재생과 녹음 유지
 - 다른 앱으로 전환한 뒤 재생과 녹음 유지
+- 잠금화면·제어센터 Now Playing 에 단어·구간·회차 표시
+- 일시정지한 채 백그라운드로 둔 뒤에도 잠금화면 재생 버튼으로 재개
+- 일시정지 중 마이크 인디케이터 유지 (TCC 재획득 제약에 따른 의도된 동작)
 - 전화 종료 후 세션 재개
 - Siri 종료 후 세션 재개
+- 일시정지 중 전화/Siri 인터럽션 후 잠금화면 재생 버튼으로 재개 (통화 종료 시 paused 복원, 재생은 재개 안 함)
+- 일시정지 중 인터럽션 종료에 `.shouldResume` 없을 때 앱 화면에서 재개 (엔진 없는 paused 강등 경로)
 - 유선 오디오 장치 연결과 해제
 - Bluetooth 오디오 장치 연결과 해제
 - media services reset 후 엔진 재구성

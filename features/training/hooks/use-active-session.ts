@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 import { reportError } from '@/features/analytics/error-reporter';
 import { readWordLifetimeMetrics } from '@/features/analytics/word-metrics-storage';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { createSessionId } from '@/features/shared/ids';
 import {
   sessionAudioEngine,
@@ -68,6 +69,7 @@ export interface UseActiveSessionResult {
 export function useActiveSession({ wordId, settings, audioUri, word }: UseActiveSessionInput): UseActiveSessionResult {
   const { saveCompletedSession, pendingSession } = useTrainingData();
   const { track } = useAnalytics();
+  const { t } = useI18n();
   const sessionId = pendingSession?.sessionId ?? '';
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
@@ -189,6 +191,16 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
             libraryEntryId: settings.libraryEntryId,
             startedAt: new Date().toISOString(),
           },
+          // 잠금화면 알림 문구. 네이티브 문자열 리소스는 OS 로케일을 따라가 인앱 언어 토글이
+          // 반영되지 않으므로(docs/I18N.md) 해석된 문구를 넘긴다. 회차 자리표시자는 네이티브가
+          // 매 갱신마다 치환해야 하므로 자기 자신을 값으로 넘겨 i18n-js 보간에서 살려 둔다
+          // (미지정 시 i18n-js가 `[missing ... value]`로 바꾼다).
+          // 문구는 start 시점에 고정된다 — 세션 도중 언어를 바꾸면 다음 세션부터 반영된다.
+          notification: {
+            learningSubtitle: t('sessionNotification.learningSubtitle', { cycle: '%{cycle}', total: '%{total}' }),
+            restSubtitle: t('sessionNotification.restSubtitle', { cycle: '%{cycle}', total: '%{total}' }),
+            pausedSubtitle: t('sessionNotification.pausedSubtitle'),
+          },
         });
         if (!cancelled) acceptSnapshot(next);
         if (!cancelled) void trackPracticeStarted();
@@ -223,6 +235,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
     settings.totalDurationSeconds,
     storeSegment,
     syncUnstoredSegments,
+    t,
     track,
     word,
     wordId,

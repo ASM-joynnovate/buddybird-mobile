@@ -37,11 +37,23 @@ internal class SessionFailureException(
   cause: Throwable? = null,
 ) : CodedException(message, cause)
 
+// 잠금화면 알림과 MediaSession 이 읽는 표시 상태. 엔진 내부 상태를 그대로 노출하지 않고
+// 화면에 필요한 값만 추린다.
+data class SessionMediaState(
+  val sessionId: String,
+  val title: String,
+  val subtitle: String,
+  val isPlaying: Boolean,
+  val durationMs: Long,
+)
+
 object SessionAudioEngineRuntime {
   var onStateChanged: ((Map<String, Any?>) -> Unit)? = null
   var onProgress: ((Map<String, Any?>) -> Unit)? = null
   var onFailure: ((Map<String, Any?>) -> Unit)? = null
   var onSegmentCaptured: ((Map<String, Any?>) -> Unit)? = null
+  // 알림·MediaSession 을 다시 그려야 할 때 호출된다. 서비스가 살아 있는 동안만 설정된다.
+  var onMediaStateChanged: (() -> Unit)? = null
 
   private val scheduler = Executors.newSingleThreadScheduledExecutor()
   private val captureExecutor = Executors.newSingleThreadExecutor()
@@ -58,6 +70,9 @@ object SessionAudioEngineRuntime {
   private var timer: ScheduledFuture<*>? = null
   private var serviceReadyLatch: CountDownLatch? = null
   private var serviceStartError: Throwable? = null
+  // 일시정지 중에도 서비스는 살아 있으므로 "세션 있음"과 별개로 추적해야 한다 — resume이
+  // 오디오만 다시 열면 되는지, 서비스부터 새로 띄워야 하는지를 이 값으로 가른다.
+  private var serviceRunning = false
   private var audioRecord: AudioRecord? = null
   private var mediaPlayer: ExoPlayer? = null
   private var playbackThread: HandlerThread? = null
@@ -142,16 +157,23 @@ object SessionAudioEngineRuntime {
     return snapshot()
   }
 
+  // 오디오 자원을 열고 running 으로 진입한다. 최초 시작(onServiceStarted)과
+  // 일시정지 해제(resume)가 공유하는 경로다.
+  private fun activateRunningState() {
+    activateAudio()
+    runningSinceMs = SystemClock.elapsedRealtime()
+    state = "running"
+    startTimer()
+    scheduleTargetPlaybackIfNeeded()
+    persist(null)
+    emitStateChanged()
+  }
+
   @Synchronized
   fun onServiceStarted() {
+    serviceRunning = true
     try {
-      activateAudio()
-      runningSinceMs = SystemClock.elapsedRealtime()
-      state = "running"
-      startTimer()
-      scheduleTargetPlaybackIfNeeded()
-      persist(null)
-      onStateChanged?.invoke(snapshot())
+      activateRunningState()
     } catch (error: Throwable) {
       serviceStartError = error
       state = "failed"
@@ -176,6 +198,10 @@ object SessionAudioEngineRuntime {
     serviceReadyLatch?.countDown()
   }
 
+  // 일시정지는 마이크·재생·audio focus 만 놓고 foreground service 는 유지한다.
+  // 서비스를 내리면 알림이 사라져 잠금화면의 재생 버튼이 누를 대상을 잃고, 백그라운드에서
+  // mic 타입 FGS 를 새로 시작하는 것은 Android 14+ while-in-use 검사에 막혀 재개도 불가능하다.
+  // 실제 캡처가 멈추므로 마이크 프라이버시 인디케이터는 꺼진다.
   @Synchronized
   fun pause(): Map<String, Any?> {
     checkSession()
@@ -184,10 +210,8 @@ object SessionAudioEngineRuntime {
     state = "paused"
     stopAudio()
     persist(null)
-    val result = snapshot()
-    onStateChanged?.invoke(result)
-    context?.stopService(Intent(context, AudioForegroundService::class.java))
-    return result
+    emitStateChanged()
+    return snapshot()
   }
 
   fun resume(): Map<String, Any?> {
@@ -195,6 +219,19 @@ object SessionAudioEngineRuntime {
       checkSession()
       if (state != "paused" && state != "interrupted") return snapshot()
       val appContext = requireNotNull(context)
+      // 서비스가 살아 있으면 오디오만 다시 연다 — 백그라운드에서 동작하는 유일한 경로다.
+      if (serviceRunning) {
+        state = "starting"
+        try {
+          activateRunningState()
+        } catch (error: Throwable) {
+          state = "paused"
+          stopAudio()
+          throw CodedException("Could not resume the training session audio.", error)
+        }
+        return snapshot()
+      }
+      // 서비스가 이미 사라진 경우(OS 종료 등)에만 새로 띄운다. 앱 화면이 보이는 상태에서만 성공한다.
       state = "starting"
       serviceStartError = null
       CountDownLatch(1).also {
@@ -241,6 +278,28 @@ object SessionAudioEngineRuntime {
   }
 
   @Synchronized fun getSnapshot(): Map<String, Any?>? = if (configuration == null) null else snapshot()
+
+  @Synchronized
+  fun mediaState(): SessionMediaState? {
+    val config = configuration ?: return null
+    val position = phasePosition()
+    val paused = state == "paused" || state == "interrupted"
+    return SessionMediaState(
+      sessionId = config.sessionId,
+      title = config.recovery.word,
+      subtitle = if (paused) {
+        config.notification.pausedSubtitle
+      } else {
+        config.notification.subtitle(position.second, position.first, config.totalCycles)
+      },
+      isPlaying = state == "running",
+      durationMs = config.totalDurationMs,
+    )
+  }
+
+  // MediaSession 의 진행바가 폴링하는 위치. 세션 전체 경과를 쓴다(목표 음원 클립 위치가 아니다).
+  @Synchronized
+  fun mediaPositionMs(): Long = if (configuration == null) 0 else elapsedRunningMs()
   fun getPendingRecovery(): Map<String, Any?>? = recoveryStore?.load()
   fun clearPendingRecovery(sessionId: String) = requireNotNull(recoveryStore).clear(sessionId)
   fun getUnstoredSegments(): List<Map<String, Any?>> = requireNotNull(captureStore).all().map { it.toMap() }
@@ -254,9 +313,11 @@ object SessionAudioEngineRuntime {
     onSegmentCaptured = null
   }
 
+  // paused 포함 — 일시정지 중에도 서비스는 유지되므로, 이때 사라졌다면 비정상 종료다.
   @Synchronized
   fun onServiceDestroyed() {
-    if (state !in setOf("running", "starting", "interrupted")) return
+    serviceRunning = false
+    if (state !in LIVE_SESSION_STATES) return
     failSession("audio-engine-failed", CodedException("The audio foreground service stopped unexpectedly."))
   }
 
@@ -449,7 +510,7 @@ object SessionAudioEngineRuntime {
           state = "interrupted"
           stopAudio(abandonFocus = false)
           persist(null)
-          onStateChanged?.invoke(snapshot())
+          emitStateChanged()
         }
         AudioManager.AUDIOFOCUS_GAIN -> {
           if (state != "interrupted") return
@@ -460,13 +521,13 @@ object SessionAudioEngineRuntime {
               state = "running"
               scheduleTargetPlaybackIfNeeded()
               persist(null)
-              onStateChanged?.invoke(snapshot())
+              emitStateChanged()
             }
             .onFailure {
               state = "failed"
               persist("failure")
               emitFailure(it)
-              onStateChanged?.invoke(snapshot())
+              emitStateChanged()
             }
         }
       }
@@ -474,14 +535,20 @@ object SessionAudioEngineRuntime {
   }
 
   private fun failSession(code: String, error: Throwable) {
-    if (configuration == null || state !in setOf("running", "starting", "interrupted")) return
+    if (configuration == null || state !in LIVE_SESSION_STATES) return
     foldElapsed()
     state = "failed"
     stopAudio()
     persist("failure")
     emitFailure(code, error.message)
-    onStateChanged?.invoke(snapshot())
+    emitStateChanged()
     context?.stopService(Intent(context, AudioForegroundService::class.java))
+  }
+
+  // 모든 상태 전이는 이 경로로 나간다 — JS 이벤트와 잠금화면 알림이 어긋나지 않게 한 곳에 묶는다.
+  private fun emitStateChanged() {
+    onStateChanged?.invoke(snapshot())
+    onMediaStateChanged?.invoke()
   }
 
   private fun emitFailure(error: Throwable) =
@@ -498,7 +565,7 @@ object SessionAudioEngineRuntime {
     playbackGeneration += 1
     targetPlaying = true
     capturePipeline?.flush()
-    onStateChanged?.invoke(snapshot())
+    emitStateChanged()
     handler.post {
       player.seekTo(0)
       player.play()
@@ -510,7 +577,7 @@ object SessionAudioEngineRuntime {
       if (!targetPlaying || state != "running") return
       targetPlaying = false
       captureAllowedAfterMs = SystemClock.elapsedRealtime() + (configuration?.vad?.echoTailGuardMs ?: 0)
-      onStateChanged?.invoke(snapshot())
+      emitStateChanged()
       playbackGeneration
     }
     scheduler.schedule({
@@ -536,7 +603,7 @@ object SessionAudioEngineRuntime {
       state = "completed"
       stopAudio()
       persist("duration-reached")
-      onStateChanged?.invoke(snapshot())
+      emitStateChanged()
       context?.stopService(Intent(context, AudioForegroundService::class.java))
       return
     }
@@ -631,4 +698,7 @@ object SessionAudioEngineRuntime {
     val phase: String,
     val cycle: Int,
   )
+
+  // 세션이 오디오 자원이나 서비스를 아직 붙들고 있는 상태 — 비정상 종료로 판정할 대상.
+  private val LIVE_SESSION_STATES = setOf("running", "starting", "interrupted", "paused")
 }

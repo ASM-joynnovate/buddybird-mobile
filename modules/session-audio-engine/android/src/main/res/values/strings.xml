@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 기본 로케일은 한국어 (앱이 한국어 우선). 영어는 values-en/strings.xml. -->
+<!-- 기본 로케일은 한국어 (앱이 한국어 우선). 영어는 values-en/strings.xml.
+     알림 제목·부제목은 JS 가 인앱 언어 설정에 맞춰 넘긴다 (SessionAudioEngineStartInput.notification).
+     여기 남은 문구는 채널 표시명과 액션 라벨처럼 세션 설정이 도착하기 전에도 필요한 것들이다. -->
 <resources>
   <string name="session_audio_channel_name">학습 세션</string>
   <string name="session_audio_channel_description">진행 중인 버디버드 음성 학습</string>
   <string name="session_audio_notification_title">버디버드 학습 중</string>
   <string name="session_audio_notification_text">목표 단어 재생과 발화 녹음을 진행하고 있어요.</string>
   <string name="session_audio_stop_action">학습 종료</string>
+  <string name="session_audio_pause_action">일시정지</string>
+  <string name="session_audio_resume_action">계속하기</string>
 </resources>

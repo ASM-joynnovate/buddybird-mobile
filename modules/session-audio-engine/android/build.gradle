@@ -18,4 +18,9 @@ dependencies {
   // Keep this aligned with the Media3 version used by the installed expo-audio module.
   implementation 'androidx.core:core:1.13.1'
   implementation 'androidx.media3:media3-exoplayer:1.8.0'
+  // MediaSession + MediaStyle notification (lock screen / quick settings media controls).
+  implementation 'androidx.media3:media3-session:1.8.0'
+  // SimpleBasePlayer command handlers return Guava ListenableFuture. Declared explicitly so the
+  // compile classpath does not depend on Media3 re-exporting it.
+  implementation 'com.google.guava:guava:33.3.1-android'
 }

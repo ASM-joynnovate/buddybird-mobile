@@ -12,5 +12,5 @@ export const SESSION_VAD_CONFIG: SessionVadConfig = {
   releaseMs: VAD_RELEASE_SAMPLES * 100,
   preRollMs: 500,
   echoTailGuardMs: 200,
-  maxSegmentMs: 30000,
+  maxSegmentMs: 10000, // 10초가 넘어가면 오디오 캡쳐가 잘림
 };

@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.frameworks = 'AVFoundation'
+  # MediaPlayer: 잠금화면·제어센터의 Now Playing 정보와 원격 재생 커맨드.
+  s.frameworks = 'AVFoundation', 'MediaPlayer'
   s.source_files = '**/*.{h,m,swift}'
 end
