@@ -294,6 +294,13 @@ interface AppCopy {
     updateButton: string;
     cancelButton: string;
   };
+  // 자리표시 문안 — 최종 문안은 법적 검토 후 교체한다. 바꿀 때 UPLOAD_CONSENT_NOTICE_VERSION 도 올린다.
+  uploadConsent: {
+    title: string;
+    body: string;
+    grantButton: string;
+    denyButton: string;
+  };
 }
 
 export const translations: Record<AppLocale, AppCopy> = {
@@ -611,6 +618,17 @@ export const translations: Record<AppLocale, AppCopy> = {
       updateButton: '업데이트',
       cancelButton: '닫기',
     },
+    uploadConsent: {
+      title: '오디오 수집 동의',
+      body: [
+        '버디버드는 앵무새의 발음 학습 기능을 만들고 개선하기 위해 학습 중에 녹음된 소리를 수집합니다.',
+        '모든 기록은 계정 정보 없이 익명으로 저장합니다.',
+        '녹음된 소리는 180일 이후 자동 삭제됩니다.',
+        '* 거부해도 서비스 사용에는 차이가 없습니다.',
+      ].join('\n'),
+      grantButton: '동의',
+      denyButton: '거부',
+    },
   },
   en: {
     common: {
@@ -925,6 +943,17 @@ export const translations: Record<AppLocale, AppCopy> = {
       versionPrefix: 'v',
       updateButton: 'Update',
       cancelButton: 'Close',
+    },
+    uploadConsent: {
+      title: 'Audio collection',
+      body: [
+        'BuddyBird collects the sounds recorded during training so we can build and improve speech coaching for parrots.',
+        'Everything is stored anonymously, without any account information.',
+        'Recordings are deleted automatically after 180 days.',
+        '* Declining does not change how you use the app.',
+      ].join('\n'),
+      grantButton: 'Agree',
+      denyButton: 'Decline',
     },
   },
 };

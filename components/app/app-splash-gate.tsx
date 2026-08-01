@@ -12,6 +12,7 @@ import { SplashArtwork } from '@/components/app/splash-artwork';
 import { BuddyBirdColors, Motion } from '@/constants/theme';
 import { useFeedback } from '@/features/feedback/feedback-context';
 import { useProfile } from '@/features/profile/profile-context';
+import { useUploadConsent } from '@/features/upload-consent/upload-consent-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 /**
@@ -22,6 +23,7 @@ import { useReducedMotion } from '@/hooks/use-reduced-motion';
 export function AppSplashGate() {
   const { isHydrated } = useProfile();
   const { evaluateActiveDay } = useFeedback();
+  const { markSplashDone } = useUploadConsent();
   const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
   const [firstBlinkDone, setFirstBlinkDone] = useState(false);
@@ -58,13 +60,15 @@ export function AppSplashGate() {
   }, [isHydrated, firstBlinkDone, opacity, reducedMotion]);
 
   // 스플래시 오버레이가 사라져 홈 화면이 처음 보이는 순간(visible→false) 딱 한 번,
-  // cold start 접속일을 반영하고 피드백 팝업 조건을 확인한다. reduced-motion 즉시 해제와
-  // 페이드아웃 완료 두 경로 모두 visible 전환으로 수렴하므로 한 effect 로 충분하다.
+  // 수집 동의 팝업 게이트를 열고, cold start 접속일을 반영해 피드백 팝업 조건을 확인한다.
+  // 팝업은 네이티브 Modal 이라 이 JS 오버레이 위에 그려지므로 해제 전에는 어떤 팝업도 못 뜬다.
+  // reduced-motion 즉시 해제와 페이드아웃 완료 두 경로 모두 visible 전환으로 수렴한다.
   useEffect(() => {
     if (visible || evaluatedRef.current) return;
     evaluatedRef.current = true;
+    markSplashDone();
     evaluateActiveDay();
-  }, [visible, evaluateActiveDay]);
+  }, [visible, evaluateActiveDay, markSplashDone]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 

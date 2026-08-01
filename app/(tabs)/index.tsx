@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/app-text';
 import { FeedbackPromptHost } from '@/components/app/feedback-prompt-host';
+import { UploadConsentHost } from '@/components/app/upload-consent-host';
 import { PetScreen } from '@/components/layout/pet-screen';
 import { ScreenHeader } from '@/components/layout/screen-header';
 import { CycleSummary } from '@/components/session/setup/cycle-summary';
@@ -61,6 +62,7 @@ export default function SessionSetupScreen() {
         accessibilityLabel={canContinue ? startLabel : t('home.startDisabledA11y')}
       />
 
+      <UploadConsentHost />
       <FeedbackPromptHost />
     </PetScreen>
   );
