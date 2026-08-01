@@ -87,3 +87,16 @@ appId: com.joynnovate.buddybird.dev
     notVisible:
       id: "onboarding-name-input"
     timeout: 15000
+# 오디오 수집 동의 팝업(BB-245) 닫기 — clearState 상태에선 항상 표출, dismissable 아님.
+# 표출 시점은 업데이트 판정(네트워크) 완료 뒤라 비결정적 → 대기 후 거부 탭.
+# 거부 선택: 05·06의 실제 녹음이 수집 대상이 되지 않도록. 거부해도 앱 동작 차이 없음
+- extendedWaitUntil:
+    visible:
+      id: "upload-consent-deny"
+    timeout: 15000
+- tapOn:
+    id: "upload-consent-deny"
+- extendedWaitUntil:
+    notVisible:
+      id: "upload-consent-deny"
+    timeout: 5000
