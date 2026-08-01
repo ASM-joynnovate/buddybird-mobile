@@ -29,6 +29,7 @@ class AudioForegroundService : Service() {
   // 목표 음원 재생이 몇 초마다 시작·종료되며 상태 이벤트를 쏟아내지만 알림 내용은 그대로다.
   // 마지막으로 그린 값과 같으면 다시 그리지 않아 깜빡임과 불필요한 갱신을 막는다.
   private var lastRenderedState: SessionMediaState? = null
+  private var stopping = false
 
   override fun onCreate() {
     super.onCreate()
@@ -48,8 +49,13 @@ class AudioForegroundService : Service() {
       ACTION_STOP -> {
         // 알림을 밀어서 없애는 것도(deleteIntent) 이 경로다 — 일시정지 중에는 알림이 dismiss
         // 가능해지는데, 서비스만 남겨 두면 화면에도 알림에도 없는 세션이 마이크를 붙든다.
-        commandExecutor.execute { runCatching { SessionAudioEngineRuntime.stop() } }
-        stopSelf()
+        // stopSelf 가 stop 보다 먼저 나가면 onServiceDestroyed 가 아직 살아 있는 state 를 보고
+        // 정상 종료를 failSession 으로 기록
+        stopping = true
+        commandExecutor.execute {
+          runCatching { SessionAudioEngineRuntime.stop() }
+          stopSelf()
+        }
         return START_NOT_STICKY
       }
       ACTION_PAUSE -> {
@@ -107,6 +113,8 @@ class AudioForegroundService : Service() {
   private fun refreshNotification() {
     // 세션이 끝난 뒤에도 플레이어는 무효화해야 잠금화면 위젯이 남지 않는다.
     mediaPlayer?.refreshState()
+    // 종료 요청 뒤 재발행 금지 — dismiss 로 없앤 알림 부활 방지
+    if (stopping) return
     val media = SessionAudioEngineRuntime.mediaState() ?: return
     if (media == lastRenderedState) return
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification())
