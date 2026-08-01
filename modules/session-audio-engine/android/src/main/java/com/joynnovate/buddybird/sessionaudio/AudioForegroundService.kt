@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.media3.common.util.UnstableApi
@@ -53,17 +54,17 @@ class AudioForegroundService : Service() {
         // 정상 종료를 failSession 으로 기록
         stopping = true
         commandExecutor.execute {
-          runCatching { SessionAudioEngineRuntime.stop() }
+          runCommand("stop") { SessionAudioEngineRuntime.stop() }
           stopSelf()
         }
         return START_NOT_STICKY
       }
       ACTION_PAUSE -> {
-        commandExecutor.execute { runCatching { SessionAudioEngineRuntime.pause() } }
+        commandExecutor.execute { runCommand("pause") { SessionAudioEngineRuntime.pause() } }
         return START_NOT_STICKY
       }
       ACTION_RESUME -> {
-        commandExecutor.execute { runCatching { SessionAudioEngineRuntime.resume() } }
+        commandExecutor.execute { runCommand("resume") { SessionAudioEngineRuntime.resume() } }
         return START_NOT_STICKY
       }
     }
@@ -93,10 +94,16 @@ class AudioForegroundService : Service() {
   // 최근 앱에서 태스크 제거 = 명시적 종료 의도. 세션을 중단해 복구 기록을 남기고
   // (5분 이상 진행분은 다음 실행에서 적립) 서비스를 내린다.
   override fun onTaskRemoved(rootIntent: Intent?) {
-    runCatching { SessionAudioEngineRuntime.stop("task-removed") }
+    runCommand("task-removed stop") { SessionAudioEngineRuntime.stop("task-removed") }
     stopSelf()
     super.onTaskRemoved(rootIntent)
   }
+
+  // 알림 액션과 태스크 제거로 들어오는 엔진 명령은 실패해도 화면에 아무 흔적을 남기지 않는다.
+  // 잠금화면·백그라운드에서 일어나 재현이 어려우므로 최소한 logcat 단서는 남긴다
+  // (SessionMediaPlayer.dispatch 와 같은 처리).
+  private fun runCommand(name: String, action: () -> Unit) =
+    runCatching(action).onFailure { Log.w(TAG, "Session $name command failed", it) }
 
   override fun onDestroy() {
     SessionAudioEngineRuntime.onMediaStateChanged = null
@@ -188,6 +195,7 @@ class AudioForegroundService : Service() {
     const val ACTION_STOP = "com.joynnovate.buddybird.sessionaudio.STOP"
     const val ACTION_PAUSE = "com.joynnovate.buddybird.sessionaudio.PAUSE"
     const val ACTION_RESUME = "com.joynnovate.buddybird.sessionaudio.RESUME"
+    private const val TAG = "AudioForegroundService"
     private const val CHANNEL_ID = "buddybird-training-session"
     private const val NOTIFICATION_ID = 4021
   }
