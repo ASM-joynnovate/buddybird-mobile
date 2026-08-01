@@ -1,4 +1,4 @@
-import { useAppUpdate } from '@/features/app-update/hooks/use-app-update';
+import { useAppUpdateContext } from '@/features/app-update/app-update-context';
 
 import { UpdatePromptDialog } from './update-prompt-dialog';
 
@@ -7,7 +7,7 @@ import { UpdatePromptDialog } from './update-prompt-dialog';
  * `AppOpenTracker` 처럼 `_layout` 에 형제로 마운트되는 부트스트랩 컴포넌트다.
  */
 export function AppUpdateGate() {
-  const { prompt, dismiss, openStore } = useAppUpdate();
+  const { prompt, dismiss, openStore } = useAppUpdateContext();
 
   if (!prompt) {
     return null;

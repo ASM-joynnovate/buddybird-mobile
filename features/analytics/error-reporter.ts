@@ -16,6 +16,7 @@ export type ErrorDomain =
   | 'notifications'
   | 'profile'
   | 'training'
+  | 'upload-consent'
   | 'word-library'
   | 'words';
 
