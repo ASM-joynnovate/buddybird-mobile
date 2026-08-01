@@ -104,11 +104,18 @@
 - 네이티브 의존성 패치는 Yarn patch(`.yarn/patches` + `resolutions`)로만 — patch-package 금지, Android 소스 패치 모듈은 `expo.autolinking.android.buildFromSource` 등록 의무, 업그레이드 시 패치 재생성 + resolutions 키 동기 갱신 (`docs/CONVENTIONS.md` §7.2)
 
 ### 2.6 커밋 디시플린
-- Conventional commits 소문자: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`, `ci`
+- Conventional commits 소문자: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`, `ci`, `test`
 - scope는 도메인 (`feat(analytics):`, `refactor(audio):`)
 - 책임 단위 분리 (deps / config / feature / wiring을 각각의 커밋으로)
 - 커밋 전 `yarn lint && yarn typecheck` 그린
 - `--no-verify` 금지, try/catch 우회 금지, attribution 라인 금지 (전역 settings)
+
+### 2.7 테스트
+- 유닛 테스트 러너 없음 — 핵심 happy path는 Maestro e2e(smoke/regression 태그)로 회귀 검증 (`docs/CONVENTIONS.md` §8, 시나리오 카탈로그 `docs/E2E-SCENARIOS.md`)
+- 셀렉터는 testID 우선(`<screen>-<element>` kebab-case) — UI 카피 텍스트 셀렉터 금지
+- `sleep` 금지, assertion 기반 대기 — 행동(tapOn)은 관찰 가능한 결과(assertVisible)와 짝짓기
+- 대상은 dev variant 전용(현 스위트는 debug 빌드 전용), e2e 표준 기기 로케일 en-US
+- 오디오 내용·세션 자연 완주·iOS는 수동 체크리스트(README) 몫
 
 ## 3. 갱신 규칙
 

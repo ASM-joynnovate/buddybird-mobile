@@ -117,7 +117,7 @@
 <type>(<scope>): <description>
 ```
 
-`type`: `feat` | `fix` | `refactor` | `chore` | `docs` | `perf` | `ci`
+`type`: `feat` | `fix` | `refactor` | `chore` | `docs` | `perf` | `ci` | `test`
 `scope`: 도메인 (`analytics`, `audio`, `training`, `profile`, `theme`, `i18n`, `words`, `ios`, `deps`, …)
 
 예:
@@ -231,7 +231,7 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 - 인터랙션 셀렉터는 **testID**, 콘텐츠 assert만 텍스트(로케일 무관 데이터 — 시드 단어 라벨 등). UI 카피 텍스트 셀렉터 금지 — i18n(en fallback)·카피 변경·`textTransform: uppercase`에 취약.
 - 네이밍: `<screen>-<element>` kebab-case (`onboarding-welcome-cta`, `session-start-cta`). 동적 목록은 `<prefix>-<id>` (`species-chip-budgie`, `tab-words`).
 - 공용 터치 컴포넌트(`PillButton`·`Chip`)는 `testID?: string`을 받아 `Pressable3D`로 전달. 신규 공용 터치 컴포넌트도 동일 패턴 의무.
-- 플로우는 모든 행동(tapOn)을 관찰 가능한 결과(assertVisible)와 짝지어 작성. `sleep` 금지 — auto-wait + `extendedWaitUntil` 사용 (예외: 녹음처럼 본질적으로 시간이 걸리는 행위는 `waitForAnimationToEnd` 바운디드 대기 허용).
+- 플로우는 모든 행동(tapOn)을 관찰 가능한 결과(assertVisible)와 짝지어 작성. `sleep` 금지 — auto-wait + `extendedWaitUntil` 사용. 녹음 최소 길이는 상태 라벨의 경과 타이머 텍스트(예: `0:02`) 대기로 보장 (예외: 재생 유지처럼 assert할 상태가 없는 경우만 `waitForAnimationToEnd` 바운디드 대기 허용).
 - 플로우 = 사용자 절차 단위(선형, 조건 분기 금지). 인프라 방해 요소 정리만 subflow의 자가 회복 루프(조건부)로 처리.
 
 ### 8.2 레이아웃
@@ -255,3 +255,4 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 
 - 오디오 **내용** — 에뮬레이터 무음 녹음도 통과 (최소 길이·레벨 게이트 없음). 절차·UI 상태까지만 검증
 - 세션 자연 완주·재생 소리·iOS 플로우(ATT) — README 수동 체크리스트 몫
+- **업데이트 모달 간섭** — subflow 자가 회복 루프는 웰컴 도달 전 모달만 정리. 플로우 본편 중 등장하면 실패하고, 강제 업데이트 모달(닫기 없음)은 회복 불가. 근본 해결은 dev 리모트 컨피그 조정(별도 결정 전까지 알려진 리스크)

@@ -61,7 +61,7 @@ skill이 (1) 해당 카테고리 docs 갱신, (2) `docs/POLICY-HISTORY.md`에 �
 
 **핵심: 환경(개발계/운영계)은 브랜치가 아니라 EAS profile/channel + 트리거로 가른다.** 장수 환경 브랜치(`dev`/`staging`)는 폐지됐다 — squash promote 가 평행 브랜치를 구조적으로 분기시켜 back-merge 가 무한 재발하던 원인. 트렁크는 `main` 하나뿐.
 
-- `feat/*` (그 외 `fix/*`·`chore/*`·`refactor/*`·`docs/*`·`ci/*`) → `main`: 유일한 통합 지점. PR-only, squash merge 후 브랜치 삭제 (단명 → squash 안전). CI: lint/typecheck + CodeQL
+- `feat/*` (그 외 `fix/*`·`chore/*`·`refactor/*`·`docs/*`·`ci/*`·`test/*`) → `main`: 유일한 통합 지점. PR-only, squash merge 후 브랜치 삭제 (단명 → squash 안전). CI: lint/typecheck + CodeQL
 - **개발계(internal)** = `main` 에서 `eas-staging.yml` 을 `workflow_dispatch` 수동 트리거 → staging profile 빌드 → Play internal + TestFlight Internal 자동 제출. 브랜치 이동 없음
 - **운영계(production)** = `main` 의 커밋에 `git tag vX.Y.Z` push → `eas-production.yml` 자동 빌드 → tag/GitHub Release 자동 생성, 출시는 수동 promote. **태그가 곧 운영 게이트** (릴리즈 전 `yarn release:bump` 필수, `docs/BUILD-AND-RELEASE.md` §12.3·§12.6)
 - **핫픽스** = `main` 에서 직접 `fix(...)` + `yarn release:bump patch` 커밋 → `git tag` (back-merge cascade 없음). `main` 에 미출시 작업이 섞여 있어 통째 릴리즈가 곤란하면 그 운영 태그에서 `release/x.y` 브랜치를 cut → 거기서 고쳐 tag → `main` 으로는 cherry-pick forward (**머지백 금지**, `docs/BUILD-AND-RELEASE.md` §12.7)
