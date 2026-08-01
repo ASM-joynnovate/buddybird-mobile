@@ -1,6 +1,6 @@
 # 네이티브 알림에 인앱 언어 전환 반영
 
-Status: needs-triage
+Status: done
 
 ## 배경
 
@@ -15,3 +15,16 @@ Status: needs-triage
 
 - `docs/I18N.md` §4, `modules/session-audio-engine/android/.../AudioForegroundService.kt`
 - BB-155 후속
+
+## Comments
+
+**2026-07-29 (BB-217)** — 첫 번째 방향 후보로 해결. `SessionAudioEngineStartInput`에 `notification`
+필드를 추가해 JS가 `t()`로 해석한 제목·부제목을 `start()` 시점에 넘긴다. 회차 자리표시자
+(`%{cycle}`·`%{total}`)만 네이티브가 갱신할 때마다 치환한다. Android·iOS 양쪽에 같은 문구가
+필요해진 김에 처리했다 (iOS에는 애초에 문자열 리소스가 없었다).
+
+남은 한계 두 가지:
+
+- 알림 **채널 이름·설명**은 여전히 OS 로케일을 따른다. 서비스 `onCreate` 시점(세션 설정 도착 전)에
+  필요하고 채널은 생성 후 표시명 변경이 제한되므로 `strings.xml`에 남겼다.
+- 문구는 `start()` 시점에 고정된다. 세션 도중 언어를 바꾸면 다음 세션부터 반영된다.

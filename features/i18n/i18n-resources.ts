@@ -162,6 +162,13 @@ interface AppCopy {
     exitConfirmStop: string;
     exitConfirmContinue: string;
   };
+  // 잠금화면 미디어 알림(Android MediaStyle / iOS Now Playing)에 실어 보내는 문구.
+  // 네이티브가 %{cycle}·%{total} 을 치환하므로 t() 로 미리 보간하지 않는다.
+  sessionNotification: {
+    learningSubtitle: string;
+    restSubtitle: string;
+    pausedSubtitle: string;
+  };
   sessionComplete: {
     title: string;
     subtitle: string;
@@ -453,6 +460,11 @@ export const translations: Record<AppLocale, AppCopy> = {
       exitConfirmBody: '종료하면 진행 중인 학습이 끝나요. 계속 진행하면 학습 화면으로 돌아가요.',
       exitConfirmStop: '종료',
       exitConfirmContinue: '계속 진행',
+    },
+    sessionNotification: {
+      learningSubtitle: '학습 중 · 사이클 %{cycle}/%{total}',
+      restSubtitle: '쉬는 중 · 사이클 %{cycle}/%{total}',
+      pausedSubtitle: '일시정지됨',
     },
     sessionComplete: {
       title: '학습 완료! 🎉',
@@ -763,6 +775,11 @@ export const translations: Record<AppLocale, AppCopy> = {
       exitConfirmBody: 'Ending now stops the training in progress. Keep going to return to the session.',
       exitConfirmStop: 'End',
       exitConfirmContinue: 'Keep going',
+    },
+    sessionNotification: {
+      learningSubtitle: 'Training · Cycle %{cycle}/%{total}',
+      restSubtitle: 'Resting · Cycle %{cycle}/%{total}',
+      pausedSubtitle: 'Paused',
     },
     sessionComplete: {
       title: 'Session complete! 🎉',

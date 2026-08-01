@@ -5,4 +5,6 @@
   <string name="session_audio_notification_title">BuddyBird is training</string>
   <string name="session_audio_notification_text">Playing target words and recording your bird’s speech.</string>
   <string name="session_audio_stop_action">End training</string>
+  <string name="session_audio_pause_action">Pause</string>
+  <string name="session_audio_resume_action">Resume</string>
 </resources>

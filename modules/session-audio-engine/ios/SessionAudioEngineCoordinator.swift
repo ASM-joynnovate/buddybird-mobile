@@ -1,6 +1,7 @@
 import AVFoundation
 import Darwin.Mach
 import Foundation
+import os
 
 final class SessionAudioEngineCoordinator: NSObject {
   var onStateChanged: (([String: Any]) -> Void)?
@@ -27,6 +28,11 @@ final class SessionAudioEngineCoordinator: NSObject {
   private var capturePipeline: VoiceCapturePipeline?
   private var targetPlaying = false
   private var captureAllowedAfterMs: Int64 = 0
+  private let nowPlaying = SessionNowPlaying()
+  // 인터럽션이 사용자 일시정지 중에 왔는지 기억한다 — 종료 통지에서 재생을 재개하지 않고
+  // pause 계약(엔진·마이크 유지)만 복원하기 위해서다. 매 .began 에서 다시 계산된다.
+  private var pausedBeforeInterruption = false
+  private let log = Logger(subsystem: "com.joynnovate.buddybird", category: "session-audio-engine")
 
   override init() {
     super.init()
@@ -77,6 +83,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         startTimer()
         scheduleTargetPlaybackIfNeeded()
         try persist(reason: nil)
+        activateNowPlaying()
       } catch {
         // start 실패 시 세션은 성립하지 않은 것으로 본다 — configuration을 유지하면
         // 이후 모든 start()가 sessionAlreadyRunning으로 거부돼 엔진이 고착된다.
@@ -88,67 +95,84 @@ final class SessionAudioEngineCoordinator: NSObject {
         state = "idle"
         throw error
       }
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
+      emitStateChanged()
+      return snapshotDictionary()
     }
   }
 
-  func pause() throws -> [String: Any] {
-    try queue.sync {
-      guard configuration != nil else { throw SessionAudioEngineError.noSession }
-      guard state == "running" || state == "interrupted" else { return snapshotDictionary() }
-      foldElapsed()
-      state = "paused"
-      stopAudio()
-      try persist(reason: nil)
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
-    }
+  func pause() throws -> [String: Any] { try queue.sync { try pauseLocked() } }
+
+  func resume() throws -> [String: Any] { try queue.sync { try resumeLocked() } }
+
+  func stop() throws -> [String: Any] { try queue.sync { try stopLocked() } }
+
+  // *Locked 는 이미 queue 위에서 실행 중일 때 쓴다. 잠금화면 원격 커맨드가 queue.async 로
+  // 들어오는데 거기서 queue.sync 를 부르면 같은 직렬 큐에서 자기 자신을 기다려 교착된다.
+  private func pauseLocked() throws -> [String: Any] {
+    guard configuration != nil else { throw SessionAudioEngineError.noSession }
+    guard state == "running" || state == "interrupted" else { return snapshotDictionary() }
+    foldElapsed()
+    state = "paused"
+    // 마이크를 놓지 않는다 — 놓았다가 잠긴 화면에서 다시 잡으면 iOS(TCC)가 마이크 identity
+    // 재구성을 막아(kTCCServiceMicrophone) 재개가 실패한다. 목표 재생만 멈추고 세션·엔진·
+    // 마이크는 살려 둔다(일시정지 중 주황 인디케이터는 유지). 녹음은 캡처 탭의 running 가드로 막는다.
+    playbackGeneration += 1
+    targetPlaying = false
+    playerNode?.stop()
+    try persist(reason: nil)
+    emitStateChanged()
+    return snapshotDictionary()
   }
 
-  func resume() throws -> [String: Any] {
-    try queue.sync {
-      guard configuration != nil else { throw SessionAudioEngineError.noSession }
-      guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
-      state = "starting"
-      do {
+  private func resumeLocked() throws -> [String: Any] {
+    guard configuration != nil else { throw SessionAudioEngineError.noSession }
+    guard state == "paused" || state == "interrupted" else { return snapshotDictionary() }
+    state = "starting"
+    do {
+      // 마이크를 놓지 않은 일시정지는 엔진이 살아 있어 재획득이 필요 없다 — 잠긴 화면에서
+      // .playAndRecord 재활성화는 TCC가 막으므로 살아 있으면 건드리지 않는다. 인터럽션 등으로
+      // 엔진이 내려간(멈춘) 경우에만 다시 활성화한다.
+      if audioEngine?.isRunning != true {
         try activateAudio()
-        runningSinceMs = monotonicMilliseconds()
-        state = "running"
-        startTimer()
-        scheduleTargetPlaybackIfNeeded()
-        try persist(reason: nil)
-      } catch {
-        stopAudio()
-        markFailed(error)
-        throw error
       }
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
-      return snapshot
+      runningSinceMs = monotonicMilliseconds()
+      state = "running"
+      startTimer()
+      scheduleTargetPlaybackIfNeeded()
+      try persist(reason: nil)
+    } catch {
+      // 재개 실패는 복구 가능한 상황이다 — 잠긴 화면에서 TCC가 마이크 재획득을 막으면
+      // 앱을 열어 다시 시도하면 된다. 세션을 죽이지 않고 paused로 되돌린다.
+      // stopAudio()는 부르지 않는다 — 엔진이 살아 있는 일시정지(예: persist 실패)에서
+      // 마이크·세션까지 내리면 pause 계약이 깨져 이후 잠금화면 재개가 전부 TCC에 막힌다.
+      // activateAudio() 실패는 부분 생성물이 지역 변수라 별도 정리가 필요 없다.
+      state = "paused"
+      runningSinceMs = nil
+      emitStateChanged()
+      throw error
     }
+    emitStateChanged()
+    return snapshotDictionary()
   }
 
-  func stop() throws -> [String: Any] {
-    try queue.sync {
-      if configuration == nil, let lastStopRecord { return lastStopRecord }
-      guard let configuration else { throw SessionAudioEngineError.noSession }
-      let wasCompleted = state == "completed"
-      let wasFailed = state == "failed"
-      foldElapsed()
-      state = "stopping"
-      stopAudio()
-      let reason = wasCompleted ? "duration-reached" : (wasFailed ? "failure" : "user-stopped")
-      try persist(reason: reason)
-      let result = recoveryDictionary(configuration: configuration, reason: reason)
-      lastStopRecord = result
-      capturePipeline = nil
-      self.configuration = nil
-      state = "idle"
-      return result
-    }
+  private func stopLocked() throws -> [String: Any] {
+    if configuration == nil, let lastStopRecord { return lastStopRecord }
+    guard let configuration else { throw SessionAudioEngineError.noSession }
+    let wasCompleted = state == "completed"
+    let wasFailed = state == "failed"
+    foldElapsed()
+    state = "stopping"
+    stopAudio()
+    let reason = wasCompleted ? "duration-reached" : (wasFailed ? "failure" : "user-stopped")
+    try persist(reason: reason)
+    let result = recoveryDictionary(configuration: configuration, reason: reason)
+    lastStopRecord = result
+    capturePipeline = nil
+    self.configuration = nil
+    state = "idle"
+    // 세션이 끝났으므로 잠금화면 위젯과 원격 커맨드를 걷어낸다.
+    nowPlaying.deactivate()
+    return result
   }
 
   func snapshot() -> [String: Any]? {
@@ -181,6 +205,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       timer?.cancel()
       timer = nil
       stopAudio()
+      nowPlaying.deactivate()
     }
     NotificationCenter.default.removeObserver(self)
   }
@@ -190,17 +215,40 @@ final class SessionAudioEngineCoordinator: NSObject {
           let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
     queue.async {
       if type == .began {
-        guard self.state == "running" else { return }
+        // paused 포함 — 일시정지도 엔진·마이크를 잡고 있으므로(활성 세션) 인터럽션이 오면
+        // OS 가 엔진을 내린다. 무시하면 엔진만 죽은 paused 가 남아 이후 잠금화면 재개가
+        // 전부 TCC 재획득에 막힌다.
+        guard self.state == "running" || self.state == "paused" else { return }
+        self.pausedBeforeInterruption = self.state == "paused"
         self.foldElapsed()
         self.state = "interrupted"
         self.stopAudio()
         try? self.persist(reason: nil)
-        self.onStateChanged?(self.snapshotDictionary())
+        self.emitStateChanged()
         return
       }
       let rawOptions = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
       let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
-      guard self.state == "interrupted", options.contains(.shouldResume) else { return }
+      guard self.state == "interrupted" else { return }
+      if self.pausedBeforeInterruption {
+        // 일시정지 중이던 세션은 재생을 재개하지 않는다 — 인터럽션 종료 통지는 백그라운드
+        // 재활성화가 허용되는 창이므로, 여기서 엔진·마이크만 되살려 pause 계약을 복원해야
+        // 이후 잠금화면 재개가 TCC 에 막히지 않는다.
+        self.pausedBeforeInterruption = false
+        if options.contains(.shouldResume) {
+          do {
+            try self.activateAudio()
+          } catch {
+            // 복원 실패: 엔진 없는 paused 로 강등 — 재개는 앱 화면에서만 가능해진다.
+            self.logFailure("restore-paused-audio", error)
+          }
+        }
+        self.state = "paused"
+        try? self.persist(reason: nil)
+        self.emitStateChanged()
+        return
+      }
+      guard options.contains(.shouldResume) else { return }
       self.resumeAfterInterruption()
     }
   }
@@ -223,9 +271,23 @@ final class SessionAudioEngineCoordinator: NSObject {
 
   @objc private func handleMediaServicesReset(_ notification: Notification) {
     queue.async {
-      guard self.configuration != nil, self.state == "running" || self.state == "interrupted" else { return }
+      guard self.configuration != nil,
+            self.state == "running" || self.state == "interrupted" || self.state == "paused" else { return }
+      let wasPaused = self.state == "paused"
       self.foldElapsed()
       self.stopAudio()
+      if wasPaused {
+        // 일시정지 중 미디어 데몬 리셋: 엔진 객체가 전부 무효화되므로 재생은 재개하지 않고
+        // 엔진·마이크만 다시 세워 pause 계약을 복원한다.
+        do {
+          try self.activateAudio()
+        } catch {
+          self.logFailure("rebuild-paused-audio", error)
+        }
+        try? self.persist(reason: nil)
+        self.emitStateChanged()
+        return
+      }
       self.resumeAfterInterruption()
     }
   }
@@ -238,7 +300,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       state = "running"
       scheduleTargetPlaybackIfNeeded()
       try persist(reason: nil)
-      onStateChanged?(snapshotDictionary())
+      emitStateChanged()
     } catch {
       markFailed(error)
     }
@@ -302,6 +364,8 @@ final class SessionAudioEngineCoordinator: NSObject {
         }
         let sampleRate = buffer.format.sampleRate
         self.queue.async {
+          // 일시정지 중에는 마이크를 살려 두지만 녹음은 하지 않는다 — running 일 때만 캡처한다.
+          guard self.state == "running" else { return }
           let samples = self.resampleTo16k(mono, sourceRate: sampleRate)
           let position = self.phasePosition()
           let allowed = !self.targetPlaying && self.monotonicMilliseconds() >= self.captureAllowedAfterMs
@@ -340,7 +404,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     let generation = playbackGeneration
     targetPlaying = true
     capturePipeline?.flush()
-    onStateChanged?(snapshotDictionary())
+    emitStateChanged()
     playerNode.scheduleFile(audioFile, at: nil, completionCallbackType: .dataPlayedBack) { [weak self] _ in
       guard let self else { return }
       let durationSeconds = Double(audioFile.length) / audioFile.processingFormat.sampleRate
@@ -348,7 +412,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         guard self.playbackGeneration == generation else { return }
         self.targetPlaying = false
         self.captureAllowedAfterMs = self.monotonicMilliseconds() + (self.configuration?.vad.echoTailGuardMs ?? 0)
-        self.onStateChanged?(self.snapshotDictionary())
+        self.emitStateChanged()
       }
       self.queue.asyncAfter(deadline: .now() + durationSeconds) {
         guard self.playbackGeneration == generation,
@@ -378,8 +442,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       state = "completed"
       stopAudio()
       try? persist(reason: "duration-reached")
-      let snapshot = snapshotDictionary()
-      onStateChanged?(snapshot)
+      emitStateChanged()
       return
     }
 
@@ -392,7 +455,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
       try? persist(reason: nil)
-      onStateChanged?(snapshotDictionary())
+      emitStateChanged()
     }
 
     let progressSecond = elapsed / 1000
@@ -524,7 +587,58 @@ final class SessionAudioEngineCoordinator: NSObject {
     state = "failed"
     try? persist(reason: "failure")
     emitFailure(error, code: code)
+    emitStateChanged()
+  }
+
+  // 모든 상태 전이는 이 경로로 나간다 — JS 이벤트와 잠금화면 위젯이 어긋나지 않게 한 곳에 묶는다.
+  private func emitStateChanged() {
     onStateChanged?(snapshotDictionary())
+    refreshNowPlaying()
+  }
+
+  // 원격 커맨드는 메인 스레드로 도착한다. 엔진 명령은 오디오 장치를 열고 닫느라 시간이 걸리므로
+  // coordinator 직렬 큐로 넘긴다 — 여기서 동기 호출하면 UI 스레드가 막힌다.
+  private func activateNowPlaying() {
+    nowPlaying.activate(
+      SessionNowPlaying.Handlers(
+        // 잠금화면 조작 실패는 세션을 깨지 않고 무시하되, 잠금화면·백그라운드에서 일어나
+        // 재현이 어려우므로 최소한 로그 단서는 남긴다 (Android AudioForegroundService.runCommand
+        // 와 같은 처리).
+        play: { [weak self] in self?.queue.async { self?.runRemoteCommand("play") { try self?.resumeLocked() } } },
+        pause: { [weak self] in self?.queue.async { self?.runRemoteCommand("pause") { try self?.pauseLocked() } } },
+        stop: { [weak self] in self?.queue.async { self?.runRemoteCommand("stop") { try self?.stopLocked() } } }
+      )
+    )
+    refreshNowPlaying()
+  }
+
+  private func runRemoteCommand(_ name: String, _ action: () throws -> Any?) {
+    do { _ = try action() } catch { logFailure(name, error) }
+  }
+
+  private func logFailure(_ name: String, _ error: Error) {
+    log.warning("Session \(name, privacy: .public) command failed: \(String(describing: error), privacy: .public)")
+  }
+
+  private func refreshNowPlaying() {
+    guard let configuration else {
+      nowPlaying.deactivate()
+      return
+    }
+    let position = phasePosition()
+    let paused = state == "paused" || state == "interrupted"
+    // 이 앱 버전 이전에 저장된 복구 기록으로 복원한 세션에는 문구가 없다.
+    let copy = configuration.notification
+    let subtitle = paused
+      ? (copy?.pausedSubtitle ?? "")
+      : (copy?.subtitle(phase: position.phase, cycle: position.cycle, totalCycles: configuration.totalCycles) ?? "")
+    nowPlaying.update(
+      title: configuration.recovery.word,
+      subtitle: subtitle,
+      isPlaying: state == "running",
+      elapsedMs: elapsedRunningMs(),
+      durationMs: configuration.totalDurationMs
+    )
   }
 
   private func emitFailure(_ error: Error, code: String? = nil) {

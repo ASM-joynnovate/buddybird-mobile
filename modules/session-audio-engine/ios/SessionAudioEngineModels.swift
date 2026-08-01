@@ -26,6 +26,25 @@ struct NativeRecoveryInfo: Codable {
   }
 }
 
+// 부제목은 `%{cycle}`·`%{total}` 자리표시자를 담고 있고 Now Playing 을 갱신할 때마다 치환한다.
+struct NativeNotificationCopy: Codable {
+  let learningSubtitle: String
+  let restSubtitle: String
+  let pausedSubtitle: String
+
+  init(_ input: SessionNotificationInput) {
+    learningSubtitle = input.learningSubtitle
+    restSubtitle = input.restSubtitle
+    pausedSubtitle = input.pausedSubtitle
+  }
+
+  func subtitle(phase: String, cycle: Int, totalCycles: Int) -> String {
+    (phase == "rest" ? restSubtitle : learningSubtitle)
+      .replacingOccurrences(of: "%{cycle}", with: String(cycle))
+      .replacingOccurrences(of: "%{total}", with: String(totalCycles))
+  }
+}
+
 struct NativeVadConfiguration: Codable {
   let dbFloor: Double
   let dbCeil: Double
@@ -58,6 +77,15 @@ struct NativeSessionConfiguration: Codable {
   let maxPendingCaptureBytes: Int64
   let vad: NativeVadConfiguration
   let recovery: NativeRecoveryInfo
+  // 이 앱 버전 이전에 저장된 복구 기록에는 없는 필드다. optional 이어야 예전 기록도 디코딩된다.
+  let notification: NativeNotificationCopy?
+
+  // 마지막 회차는 일부만 진행될 수 있으므로 올림한다 — Now Playing 의 "사이클 2/4" 분모.
+  var totalCycles: Int {
+    let cycleMs = learningDurationMs + restDurationMs
+    guard cycleMs > 0 else { return 1 }
+    return max(1, Int((totalDurationMs + cycleMs - 1) / cycleMs))
+  }
 
   init(_ input: SessionAudioEngineStartInputRecord) {
     sessionId = input.sessionId
@@ -69,6 +97,7 @@ struct NativeSessionConfiguration: Codable {
     maxPendingCaptureBytes = Int64(input.maxPendingCaptureBytes)
     vad = NativeVadConfiguration(input.vad)
     recovery = NativeRecoveryInfo(input.recovery)
+    notification = NativeNotificationCopy(input.notification)
   }
 }
 
