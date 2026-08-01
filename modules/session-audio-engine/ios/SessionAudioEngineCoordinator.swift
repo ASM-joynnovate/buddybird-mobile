@@ -136,8 +136,11 @@ final class SessionAudioEngineCoordinator: NSObject {
       scheduleTargetPlaybackIfNeeded()
       try persist(reason: nil)
     } catch {
+      // 재개 실패는 복구 가능한 상황이다 — 잠긴 화면에서 TCC가 마이크 재획득을 막으면
+      // 앱을 열어 다시 시도하면 된다. 세션을 죽이지 않고 paused로 되돌린다
+      // (Android SessionAudioEngineRuntime.resume 과 같은 계약).
+      state = "paused"
       stopAudio()
-      markFailed(error)
       throw error
     }
     emitStateChanged()
@@ -337,7 +340,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     }
   }
 
-  private func stopAudio(deactivateSession: Bool = true) {
+  private func stopAudio() {
     capturePipeline?.flush()
     playbackGeneration += 1
     targetPlaying = false
@@ -347,7 +350,6 @@ final class SessionAudioEngineCoordinator: NSObject {
     playerNode = nil
     audioFile = nil
     audioEngine = nil
-    guard deactivateSession else { return }
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
