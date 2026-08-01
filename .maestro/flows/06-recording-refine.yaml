@@ -7,10 +7,6 @@ tags:
   - regression
 ---
 - runFlow: ../subflows/complete-onboarding.yaml
-- extendedWaitUntil:
-    notVisible:
-      id: "profile-name-input"
-    timeout: 15000
 - tapOn:
     id: "tab-words"
 - tapOn:
@@ -23,11 +19,13 @@ tags:
     id: "word-label-input"
 - inputText: "Kiwi"
 - hideKeyboard
-# 1차 녹음
+# 1차 녹음 — 경과 타이머 ≥0:02 표시(2초 이상 녹음 보장) 후 정지
+# 0:02 단일 값은 1초만 표시돼 폴링이 놓치면 영영 미매칭 — 0:02~0:09 범위로 창을 넓힘
 - tapOn:
     id: "word-record-toggle"
-- waitForAnimationToEnd:
-    timeout: 2000
+- extendedWaitUntil:
+    visible: ".*0:0[2-9].*"
+    timeout: 15000
 - tapOn:
     id: "word-record-toggle"
 - extendedWaitUntil:
@@ -46,8 +44,10 @@ tags:
     notVisible:
       id: "word-preview-toggle"
     timeout: 10000
-- waitForAnimationToEnd:
-    timeout: 2000
+# 2차 녹음도 타이머 ≥0:02 표시까지 대기 (재녹음 시 타이머는 0:00부터 재시작)
+- extendedWaitUntil:
+    visible: ".*0:0[2-9].*"
+    timeout: 15000
 - tapOn:
     id: "word-record-toggle"
 - extendedWaitUntil:

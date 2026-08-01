@@ -6,10 +6,6 @@ tags:
   - smoke
 ---
 - runFlow: ../subflows/complete-onboarding.yaml
-- extendedWaitUntil:
-    notVisible:
-      id: "profile-name-input"
-    timeout: 15000
 # 홈 기본 상태: 시드 단어 "안녕" + 학습 시간 프리셋이 이미 선택되어 있음
 - assertVisible: "안녕"
 - scrollUntilVisible:

@@ -73,12 +73,17 @@ appId: com.joynnovate.buddybird.dev
 - tapOn:
     id: "onboarding-welcome-cta"
 - assertVisible:
-    id: "profile-name-input"
+    id: "onboarding-name-input"
 - tapOn:
-    id: "profile-name-input"
+    id: "onboarding-name-input"
 - inputText: "Mango"
 - hideKeyboard
 - tapOn:
     id: "species-chip-budgie"
 - tapOn:
     id: "onboarding-profile-submit"
+# 제출 → saveProfile → 프로필 게이트 전환(온보딩 폼 소멸)까지 대기 — 공통 꼬리 (각 플로우 중복 제거)
+- extendedWaitUntil:
+    notVisible:
+      id: "onboarding-name-input"
+    timeout: 15000

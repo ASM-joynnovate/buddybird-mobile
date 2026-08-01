@@ -1,4 +1,4 @@
-# Maestro workspace — 실행: yarn e2e:android (레시피·시나리오: todo.md, 추후 docs/CONVENTIONS.md §8)
+# Maestro workspace — 실행: yarn e2e:android (규약·레시피: docs/CONVENTIONS.md §8, 시나리오 카탈로그: docs/E2E-SCENARIOS.md)
 # subflows/ 는 flow 목록에서 제외 (runFlow 전용)
 flows:
   - "flows/*.yaml"
