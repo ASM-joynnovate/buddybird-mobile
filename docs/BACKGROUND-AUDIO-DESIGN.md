@@ -102,7 +102,7 @@ idle
 | `idle` | 실행 중인 세션 없음 |
 | `starting` | 권한, 음원, 마이크, 출력 장치 준비 중 |
 | `running` | 세션 시간 계산과 재생 및 녹음 진행 중 |
-| `paused` | 사용자가 일시정지해 오디오 자원 해제 |
+| `paused` | 사용자가 일시정지 — Android는 오디오 자원 해제, iOS는 목표 재생만 정지 |
 | `interrupted` | 전화나 audio focus 상실로 오디오 사용 중단 |
 | `completed` | 설정한 세션 시간을 모두 채움 |
 | `failed` | 자동 복구할 수 없는 오류 발생 |
@@ -116,17 +116,23 @@ configuration을 해제해 `idle`로 복귀한다 — 실패가 이후 `start()`
 
 `stop()`은 여러 번 호출해도 첫 호출과 같은 종료 기록을 반환한다.
 
-사용자가 일시정지하면 재생과 녹음을 모두 멈춘다.
-오디오 자원(마이크, 재생, audio focus)만 놓고 세션을 표시하는 자원은 유지한다.
+사용자가 일시정지하면 목표 음원 재생과 녹음을 모두 멈춘다.
+세션을 표시하는 자원(알림, 잠금화면 위젯)은 유지한다.
 잠금화면 미디어 위젯의 재생 버튼이 일시정지 중에도 눌릴 대상을 가져야 하기 때문이다.
+오디오 자원을 어디까지 놓는지는 플랫폼마다 다르다.
 
-- Android는 `foreground service`와 그 타입(`microphone|mediaPlayback`)을 그대로 유지한다.
+- Android는 오디오 자원(마이크, 재생, audio focus)을 놓고 `foreground service`와 그
+  타입(`microphone|mediaPlayback`)만 그대로 유지한다.
   일시정지에 서비스를 내리면 알림이 사라지고, 백그라운드에서 microphone 타입 `foreground service`를
   새로 시작하는 것은 Android 12 이상에서 제한되고 Android 14 이상에서는 while-in-use 검사에
   걸려 재개 자체가 불가능하다.[^android-fgs-start]
   실제 캡처가 멈추므로 마이크 프라이버시 인디케이터는 꺼진다.
-- iOS는 `AVAudioSession`을 active로 유지하고 카테고리만 `.playback`으로 낮춰 마이크를 놓는다.
-  세션을 비활성화하면 Now Playing 정보와 원격 커맨드가 사라져 잠금화면 조작이 동작하지 않는다.
+- iOS는 `AVAudioSession`을 `.playAndRecord` active 그대로 두고 마이크도 놓지 않는다.
+  놓았다가 잠긴 화면에서 다시 잡으면 TCC(`kTCCServiceMicrophone`)가 마이크 identity 재구성을
+  막아 재개가 실패한다. 목표 재생만 멈추고 엔진과 입력 tap은 살려 두며, 녹음은 캡처 경로의
+  `running` 가드로 막는다.
+  마이크를 계속 잡고 있으므로 일시정지 중에도 마이크 프라이버시 인디케이터는 유지된다 —
+  Android와 다른 지점이다.
 
 서비스가 이미 사라진 뒤의 재개(OS의 프로세스 정리 등)만 앱 화면이 보이는 상태에서
 microphone service를 새로 시작하는 경로를 탄다.
@@ -545,10 +551,10 @@ iOS에는 상주 알림이 없으므로 Android의 `MediaStyle` 알림에 대응
 반대로 네이티브 주도 **종료**는 세션이 사라져 이벤트를 보낼 대상이 없으므로,
 foreground 복귀 시 `getSnapshot()`이 `null`인 것으로 판정한다 (`use-active-session.ts`).
 
-진행 중 세션은 학습 탭에도 배너로 보인다 (`components/session/running-session-banner.tsx`).
-`useActiveSession`은 `start()`를 소유하고 자기 `sessionId`로 스냅샷을 걸러내므로 학습 화면
-바깥에서 쓸 수 없다. 배너는 명령을 보내지 않고 구독만 하는 별도 훅
-(`features/training/hooks/use-running-session-watcher.ts`)을 쓴다.
+진행 중 세션을 학습 탭에 배너로 노출하는 방안은 검토했다가 폐기했다 (`cca96fd`).
+배너가 뜨려면 "네비가 학습 탭으로 리셋"과 "네이티브 세션은 생존"이 동시에 성립해야 하는데,
+세션 화면 이탈 가드(`usePreventRemove`)가 실행 중 화면 이탈을 막고 JS 컨텍스트가 리셋되면
+네이티브 세션도 함께 정리돼 두 조건이 상호 배타적이다.
 
 ## 13. 구현 순서
 
@@ -610,7 +616,7 @@ foreground 복귀 시 `getSnapshot()`이 `null`인 것으로 판정한다 (`use-
 - 다른 앱으로 전환한 뒤 재생과 녹음 유지
 - 잠금화면·제어센터 Now Playing 에 단어·구간·회차 표시
 - 일시정지한 채 백그라운드로 둔 뒤에도 잠금화면 재생 버튼으로 재개
-- 일시정지 중 마이크 인디케이터 해제
+- 일시정지 중 마이크 인디케이터 유지 (TCC 재획득 제약에 따른 의도된 동작)
 - 전화 종료 후 세션 재개
 - Siri 종료 후 세션 재개
 - 유선 오디오 장치 연결과 해제
