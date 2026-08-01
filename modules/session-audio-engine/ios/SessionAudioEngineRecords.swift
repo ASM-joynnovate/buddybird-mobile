@@ -19,6 +19,12 @@ struct SessionRecoveryInput: Record {
   @Field var startedAt: String = ""
 }
 
+struct SessionNotificationInput: Record {
+  @Field var learningSubtitle: String = ""
+  @Field var restSubtitle: String = ""
+  @Field var pausedSubtitle: String = ""
+}
+
 struct SessionAudioEngineStartInputRecord: Record {
   @Field var sessionId: String = ""
   @Field var targetAudioUri: String = ""
@@ -29,4 +35,5 @@ struct SessionAudioEngineStartInputRecord: Record {
   @Field var maxPendingCaptureBytes: Double = 0
   @Field var vad: SessionVadInput = SessionVadInput()
   @Field var recovery: SessionRecoveryInput = SessionRecoveryInput()
+  @Field var notification: SessionNotificationInput = SessionNotificationInput()
 }
