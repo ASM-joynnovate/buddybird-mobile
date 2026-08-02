@@ -1,5 +1,6 @@
 # 시나리오 03 — 학습 세션 시작 + 중도 종료: 단어를 골라 세션을 시작하고 빠져나올 수 있다
-# 중도 종료 = 뒤로가기 → 확인 다이얼로그 경로 (종료 버튼은 확인 없이 즉시 종료하는 설계 — use-session-exit.ts)
+# 중도 종료 경로 2개를 모두 검증 (use-session-exit.ts):
+#   ① 뒤로가기 → 확인 다이얼로그 → 확정  ② 종료 버튼 → 확인 없이 즉시 종료
 # 세션 자연 완주는 범위 외 (수 분간 오디오 재생 의존)
 appId: com.joynnovate.buddybird.dev
 tags:
@@ -31,6 +32,25 @@ tags:
     timeout: 10000
 - tapOn:
     id: "session-exit-confirm"
+- extendedWaitUntil:
+    notVisible:
+      id: "session-active-view"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "session-start-cta"
+    direction: DOWN
+    centerElement: true
+# 두 번째 중도 종료: 종료 버튼(session-stop)은 확인 다이얼로그 없이 즉시 종료하는 별도 경로
+# 홈 복귀 후에도 단어·시간 선택이 유지되어 시작 버튼이 여전히 활성이어야 한다
+- tapOn:
+    id: "session-start-cta"
+- extendedWaitUntil:
+    visible:
+      id: "session-active-view"
+    timeout: 15000
+- tapOn:
+    id: "session-stop"
 - extendedWaitUntil:
     notVisible:
       id: "session-active-view"
