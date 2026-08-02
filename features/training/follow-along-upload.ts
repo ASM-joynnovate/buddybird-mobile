@@ -1,11 +1,12 @@
 // 캡처 업로드 flush 오케스트레이터 (SPEC-0003 §오디오 클립 업로드).
 // 트리거 5종(누적·세션 종료·포그라운드·네트워크 복구·동의 전환)은 전부 fire-and-forget
-// `requestCaptureFlush()` 하나로 수렴한다 — 진행 중이면 no-op(single-flight), 세션 경험에
-// 개입하지 않는다 (NFR-01). 루프: 게이트 재확인 → 잔여 zip 청소 → 백필 → 배치 조립 → 전송 →
-// 항목 처리 → 큐가 남고 게이트가 유지되면 반복.
+// `requestCaptureFlush()` 하나로 수렴한다 — 진행 중이면 종료 후 재실행 예약(single-flight),
+// 세션 경험에 개입하지 않는다 (NFR-01). 루프: 게이트 재확인 → 잔여 zip 청소 → 백필 → 배치 조립
+// → 전송 → 항목 처리 → 큐가 남고 게이트가 유지되면 반복.
 
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
@@ -23,15 +24,29 @@ import { type CaptureBatchOutcome, interpretCaptureBatchResult } from './follow-
 import { loadTrainingStore } from './training-storage';
 
 let flushInFlight = false;
+// flush 도중 도착한 트리거의 재실행 예약. 루프가 배치마다 스토어를 재읽으므로 성공 진행 중의
+// 신규 클립은 같은 실행이 집어가지만, halt(5xx·네트워크) 직전 도착분은 이번 실행이 못 본다 —
+// 종료 후 1회 재기동해 트리거의 "즉시 전송" 보장을 지킨다.
+let rerunRequested = false;
 
-/** 모든 업로드 트리거의 단일 진입점. 진행 중이면 no-op. */
+/** 모든 업로드 트리거의 단일 진입점. 진행 중이면 종료 후 1회 재실행을 예약한다. */
 export function requestCaptureFlush(): void {
-  if (flushInFlight) return;
+  // 웹은 게이트 판정에 쓰는 Firebase auth(getApp)가 미지원이라 판정 전에 throw 난다 —
+  // 배선 지점마다 가드를 두는 대신 진입점에서 차단한다 (spec 대상 플랫폼도 iOS·Android 뿐).
+  if (Platform.OS === 'web') return;
+  if (flushInFlight) {
+    rerunRequested = true;
+    return;
+  }
   flushInFlight = true;
   runFlushLoop()
     .catch((error: unknown) => reportError(error, { scope: 'training.captureFlush' }))
     .finally(() => {
       flushInFlight = false;
+      if (rerunRequested) {
+        rerunRequested = false;
+        requestCaptureFlush();
+      }
     });
 }
 
