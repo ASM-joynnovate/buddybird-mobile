@@ -53,8 +53,14 @@ async function runFlushLoop(): Promise<void> {
 
     cleanupCaptureUploadArtifacts();
     const metadata = buildCaptureBatchMetadata(plan.batch, Application.nativeApplicationVersion);
-    const result = await sendCaptureBatch({ apiBaseUrl, uid, batch: plan.batch, metadata });
-    const outcome = interpretCaptureBatchResult(result, plan.batch.map((capture) => capture.id));
+    const send = await sendCaptureBatch({ apiBaseUrl, uid, batch: plan.batch, metadata });
+    if (send.unreadableIds.length > 0) {
+      // 읽을 수 없는 파일은 "파일 없음"과 동일 — 삭제해야 배치 선두 고착이 안 생긴다.
+      console.warn('[training.captureFlush]', `deleting unreadable captures: ${send.unreadableIds.join(', ')}`);
+      await deleteCaptures(send.unreadableIds);
+    }
+    if (!send.http) continue; // 전송할 파일이 없었다 — 실패분 삭제 후 다음 배치로.
+    const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
 
     if (outcome.kind === 'halt') return;
 
@@ -71,12 +77,15 @@ async function runFlushLoop(): Promise<void> {
     }
 
     if (outcome.kind === 'discard') {
-      await discardRejectedCapture(plan.batch[0].id);
+      await discardRejectedCapture(send.sentIds[0]);
       continue;
     }
 
-    // split: 배치를 1건씩 쪼개 재전송. 5xx·네트워크 오류를 만나면 flush 전체를 중단한다.
-    const halted = await resendIndividually(plan.batch, metadata, apiBaseUrl, uid);
+    // split: 실제 전송된 것만 1건씩 쪼개 재전송. 5xx·네트워크 오류를 만나면 flush 전체를 중단한다.
+    const sentIdSet = new Set(send.sentIds);
+    const sentBatch = plan.batch.filter((capture) => sentIdSet.has(capture.id));
+    const sentMetadata = metadata.filter((_, index) => sentIdSet.has(plan.batch[index].id));
+    const halted = await resendIndividually(sentBatch, sentMetadata, apiBaseUrl, uid);
     if (halted) return;
   }
 }
@@ -89,13 +98,15 @@ async function resendIndividually(
 ): Promise<boolean> {
   for (let i = 0; i < batch.length; i += 1) {
     const capture = batch[i];
-    const result = await sendCaptureBatch({
+    const send = await sendCaptureBatch({
       apiBaseUrl,
       uid,
       batch: [capture],
       metadata: [metadata[i]],
     });
-    const outcome = interpretCaptureBatchResult(result, [capture.id]);
+    if (send.unreadableIds.length > 0) await deleteCaptures(send.unreadableIds);
+    if (!send.http) continue; // 그 사이 파일이 사라짐 — 삭제 후 다음 단건으로.
+    const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
     if (outcome.kind === 'halt') return true;
     if (outcome.kind === 'processed') {
       await deleteCaptures([...outcome.successIds, ...outcome.rejectedIds]);
