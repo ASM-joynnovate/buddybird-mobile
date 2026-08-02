@@ -3,8 +3,13 @@ import { loadStoredProfile } from '@/features/profile/profile-storage';
 import { sessionAudioEngine, type CapturedSegment } from '@/modules/session-audio-engine';
 
 import { buildCaptureRegistrationMeta, type CaptureRegistrationMeta } from './follow-along-capture-meta';
-import { appendFollowAlongCapture } from './follow-along-capture-storage';
+import { appendFollowAlongCapture, loadFollowAlongCaptures } from './follow-along-capture-storage';
+import { requestCaptureFlush } from './follow-along-upload';
 import { loadTrainingStore } from './training-storage';
+
+// 업로드 트리거 ① (SPEC-0003): 미전송 클립이 이만큼 쌓이면 즉시 flush 를 건다.
+// 성공한 캡처는 즉시 삭제되므로 스토어에 남아 있는 레코드 전부가 미전송이다.
+const CAPTURE_FLUSH_ACCUMULATION_THRESHOLD = 10;
 
 // 등록 시점 메타(치환 단어 id·프로필 스냅샷) 로드. 실패 시 null — 캡처는 메타 없이 저장되고
 // flush 의 legacy 백필이 재시도한다 (일시 오류에 강등값을 영속화하지 않기 위함).
@@ -44,6 +49,10 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
     }
   }
 
-  if (storedIds.length > 0) await sessionAudioEngine.markSegmentsStored(storedIds);
+  if (storedIds.length > 0) {
+    await sessionAudioEngine.markSegmentsStored(storedIds);
+    const { capturesById } = await loadFollowAlongCaptures();
+    if (Object.keys(capturesById).length >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
+  }
   if (firstError) throw firstError;
 }

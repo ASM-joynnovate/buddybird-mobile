@@ -5,6 +5,7 @@ import { useI18n } from '@/features/i18n/i18n-context';
 import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
 import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
+import { requestCaptureFlush } from './follow-along-upload';
 import { storeNativeCapturedSegments } from './native-session-capture-storage';
 import {
   completeTrainingSession,
@@ -277,6 +278,8 @@ async function restoreOrRecoverSession(loadedStore: TrainingStore): Promise<Trai
     );
     await saveTrainingStore(nextStore);
     await clearRecoverySafely(record.snapshot.sessionId);
+    // 업로드 트리거 ② (SPEC-0003): 크래시 복구로 뒤늦게 확정된 세션 종료 — 복구 캡처 저장 직후 flush.
+    requestCaptureFlush();
     return nextStore;
   } catch (error: unknown) {
     reportError(error, { scope: 'training.sessionAudio.recover' });
