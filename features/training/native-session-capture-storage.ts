@@ -51,8 +51,14 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
 
   if (storedIds.length > 0) {
     await sessionAudioEngine.markSegmentsStored(storedIds);
-    const { capturesById } = await loadFollowAlongCaptures();
-    if (Object.keys(capturesById).length >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
+    // 트리거 판정은 best-effort — 판정용 읽기 실패가 저장 성공/실패 계약을 오염시키면 안 된다
+    // (크래시 복구 경로에서 세션 적립을 무산시킴). 트리거를 놓쳐도 다음 트리거가 커버한다.
+    try {
+      const { capturesById } = await loadFollowAlongCaptures();
+      if (Object.keys(capturesById).length >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
+    } catch (error: unknown) {
+      console.warn('[training.captureFlush]', error);
+    }
   }
   if (firstError) throw firstError;
 }
