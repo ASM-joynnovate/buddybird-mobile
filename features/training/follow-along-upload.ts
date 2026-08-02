@@ -19,7 +19,7 @@ import type { FollowAlongCapture } from './follow-along-capture-types';
 import { buildCaptureBatchMetadata, planCaptureBatch } from './follow-along-upload-batch';
 import { cleanupCaptureUploadArtifacts, sendCaptureBatch } from './follow-along-upload-client';
 import { isUploadGateOpen } from './follow-along-upload-gate';
-import { interpretCaptureBatchResult } from './follow-along-upload-response';
+import { type CaptureBatchOutcome, interpretCaptureBatchResult } from './follow-along-upload-response';
 import { loadTrainingStore } from './training-storage';
 
 let flushInFlight = false;
@@ -65,14 +65,8 @@ async function runFlushLoop(): Promise<void> {
     if (outcome.kind === 'halt') return;
 
     if (outcome.kind === 'processed') {
-      if (outcome.rejectedIds.length > 0) {
-        console.warn('[training.captureFlush]', `server rejected captures: ${outcome.rejectedIds.join(', ')}`);
-      }
-      const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
-      // 아무 항목도 해소되지 않았다면(malformed 응답 등) 같은 배치를 곧장 재전송하는
-      // 무한 루프가 되므로 중단하고 다음 트리거에 맡긴다.
-      if (resolvedIds.length === 0) return;
-      await deleteCaptures(resolvedIds);
+      const progressed = await applyProcessedOutcome(outcome);
+      if (!progressed) return;
       continue;
     }
 
@@ -109,13 +103,31 @@ async function resendIndividually(
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
     if (outcome.kind === 'halt') return true;
     if (outcome.kind === 'processed') {
-      await deleteCaptures([...outcome.successIds, ...outcome.rejectedIds]);
+      // 단건에서도 해소 0건이면 외부 루프와 같은 원칙으로 flush 전체를 중단한다 —
+      // 안 그러면 외부 루프가 같은 배치를 재조립해 4xx→split→빈 200 무한 루프가 된다.
+      const progressed = await applyProcessedOutcome(outcome);
+      if (!progressed) return true;
       continue;
     }
     // 1건 배치라 split 은 나올 수 없다 — discard 만 남는다.
     await discardRejectedCapture(capture.id);
   }
   return false;
+}
+
+// processed 응답의 항목 처리: rejected 경고 + 해소분(success·rejected) 삭제.
+// 해소 0건(malformed 응답 등)이면 false — 같은 배치를 곧장 재전송하는 무한 루프가
+// 되므로 호출부는 flush 를 중단해야 한다.
+async function applyProcessedOutcome(
+  outcome: Extract<CaptureBatchOutcome, { kind: 'processed' }>,
+): Promise<boolean> {
+  if (outcome.rejectedIds.length > 0) {
+    console.warn('[training.captureFlush]', `server rejected captures: ${outcome.rejectedIds.join(', ')}`);
+  }
+  const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
+  if (resolvedIds.length === 0) return false;
+  await deleteCaptures(resolvedIds);
+  return true;
 }
 
 // 단건에서도 4xx 로 거부된 클립은 폐기하고 보고한다 (SPEC-0003 §실패).
