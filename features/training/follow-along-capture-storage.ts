@@ -32,7 +32,7 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
   if (typeof v.uri !== 'string' || typeof v.fileName !== 'string') return null;
-  return {
+  const capture: FollowAlongCapture = {
     id: typeof v.id === 'string' ? v.id : id,
     sessionId: typeof v.sessionId === 'string' ? v.sessionId : '',
     wordId: typeof v.wordId === 'string' ? v.wordId : '',
@@ -46,6 +46,11 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
     sizeBytes: typeof v.sizeBytes === 'number' ? v.sizeBytes : 0,
     uploaded: v.uploaded === true,
   };
+  // 등록 시점 메타는 부재 = legacy 가 백필 판별자라, 유효할 때만 부착하고 기본값을 채우지 않는다.
+  if (typeof v.clientWordId === 'string') capture.clientWordId = v.clientWordId;
+  if (typeof v.parrotSpecies === 'string' || v.parrotSpecies === null) capture.parrotSpecies = v.parrotSpecies;
+  if (typeof v.parrotBirthdate === 'string' || v.parrotBirthdate === null) capture.parrotBirthdate = v.parrotBirthdate;
+  return capture;
 }
 
 function parseSegments(value: unknown): CaptureSegment[] {
