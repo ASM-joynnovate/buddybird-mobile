@@ -3887,6 +3887,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/netinfo@npm:11.4.1":
+  version: 11.4.1
+  resolution: "@react-native-community/netinfo@npm:11.4.1"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 10c0/118ba6d495bd14c2dab3d228a0c1857620a293ae8592d170d70eaf88a6ac6a4e35c7f84527975a9054e36891a9694aacc8ec053326b5f05961459ed08a70dd35
+  languageName: node
+  linkType: hard
+
 "@react-native-community/slider@npm:5.0.1":
   version: 5.0.1
   resolution: "@react-native-community/slider@npm:5.0.1"
@@ -5882,6 +5891,7 @@ __metadata:
     "@microsoft/react-native-clarity": "npm:^4.6.2"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/cli": "npm:20.1.3"
+    "@react-native-community/netinfo": "npm:11.4.1"
     "@react-native-community/slider": "npm:5.0.1"
     "@react-native-firebase/analytics": "npm:^24.0.0"
     "@react-native-firebase/app": "npm:^24.0.0"
@@ -5905,6 +5915,7 @@ __metadata:
     expo-constants: "npm:~18.0.13"
     expo-crypto: "npm:~15.0.9"
     expo-dev-client: "npm:~6.0.21"
+    expo-device: "npm:~8.0.10"
     expo-file-system: "npm:~19.0.23"
     expo-font: "npm:~14.0.12"
     expo-haptics: "npm:~15.0.8"
@@ -5921,6 +5932,7 @@ __metadata:
     expo-tracking-transparency: "npm:~6.0.0"
     expo-updates: "npm:~29.0.19"
     expo-web-browser: "npm:~15.0.10"
+    fflate: "npm:^0.8.3"
     i18n-js: "npm:^4.5.3"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -7683,6 +7695,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-device@npm:~8.0.10":
+  version: 8.0.10
+  resolution: "expo-device@npm:8.0.10"
+  dependencies:
+    ua-parser-js: "npm:^0.7.33"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/5e18593cd5589687fb26dab37bcad03bbbd76c3cbd54a0c7f894736530b8802ffe5492731d9356a5204aea18a802f7ccf1f0fa6e17b613b4869ded0fc9fa2262
+  languageName: node
+  linkType: hard
+
 "expo-eas-client@npm:~1.0.8":
   version: 1.0.8
   resolution: "expo-eas-client@npm:1.0.8"
@@ -8238,6 +8261,13 @@ __metadata:
   version: 4.1.1
   resolution: "fetch-retry@npm:4.1.1"
   checksum: 10c0/f55cdc82d096e8ef92f92218a8379a01d56cc01726a0ac554845eb943758ceca8be2619682678adfbff88ecb4d97269375200af7ca94a726a8195781aa4c2f49
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.3":
+  version: 0.8.3
+  resolution: "fflate@npm:0.8.3"
+  checksum: 10c0/eab181ca37f5348ae76d4b6f840e0026e30220e33153289ac942222d8b9638237d486507dbcc09878d724095bd354993a2ee48bbee99c8f2c6440d4448719aa7
   languageName: node
   linkType: hard
 
@@ -13941,6 +13971,15 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
+  languageName: node
+  linkType: hard
+
+"ua-parser-js@npm:^0.7.33":
+  version: 0.7.41
+  resolution: "ua-parser-js@npm:0.7.41"
+  bin:
+    ua-parser-js: script/cli.js
+  checksum: 10c0/b134bc0d8da10c76e07740a0ade61c193fd4c4d120ba2cb2530e26931f6b550dd60b6e801d8891f6d9c23dfebadf5590294739069edff94396f173cc8cc5767e
   languageName: node
   linkType: hard
 
