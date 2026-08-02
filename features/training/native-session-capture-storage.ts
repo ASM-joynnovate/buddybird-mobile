@@ -3,7 +3,7 @@ import { loadStoredProfile } from '@/features/profile/profile-storage';
 import { sessionAudioEngine, type CapturedSegment } from '@/modules/session-audio-engine';
 
 import { buildCaptureRegistrationMeta, type CaptureRegistrationMeta } from './follow-along-capture-meta';
-import { appendFollowAlongCapture, loadFollowAlongCaptures } from './follow-along-capture-storage';
+import { appendFollowAlongCapture } from './follow-along-capture-storage';
 import { requestCaptureFlush } from './follow-along-upload';
 import { loadTrainingStore } from './training-storage';
 
@@ -26,11 +26,12 @@ async function loadRegistrationMeta(wordId: string): Promise<CaptureRegistration
 export async function storeNativeCapturedSegments(segments: CapturedSegment[], wordId: string): Promise<void> {
   const storedIds: string[] = [];
   let firstError: unknown = null;
+  let remainingCount = 0;
   const meta = segments.length > 0 ? await loadRegistrationMeta(wordId) : null;
 
   for (const segment of segments) {
     try {
-      await appendFollowAlongCapture({
+      remainingCount = await appendFollowAlongCapture({
         id: segment.segmentId,
         sessionId: segment.sessionId,
         wordId,
@@ -51,14 +52,9 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
 
   if (storedIds.length > 0) {
     await sessionAudioEngine.markSegmentsStored(storedIds);
-    // 트리거 판정은 best-effort — 판정용 읽기 실패가 저장 성공/실패 계약을 오염시키면 안 된다
-    // (크래시 복구 경로에서 세션 적립을 무산시킴). 트리거를 놓쳐도 다음 트리거가 커버한다.
-    try {
-      const { capturesById } = await loadFollowAlongCaptures();
-      if (Object.keys(capturesById).length >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
-    } catch (error: unknown) {
-      console.warn('[training.captureFlush]', error);
-    }
+    // 판정은 append 가 반환한 잔여 수 재사용 — 판정용 스토어 읽기를 따로 두면 그 읽기의
+    // 실패가 저장 성공/실패 계약을 오염시키기 때문에(크래시 복구의 세션 적립 무산) 두지 않는다.
+    if (remainingCount >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
   }
   if (firstError) throw firstError;
 }

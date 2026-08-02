@@ -76,18 +76,24 @@ export async function loadFollowAlongCaptures(): Promise<FollowAlongCaptureStore
 // 갭 종료마다 append 가 근접 발생할 수 있어 read-modify-write 를 직렬화한다.
 // 이전 작업 실패가 체인을 끊지 않도록 성공/실패 모두 이어서 실행한다.
 let writeQueue: Promise<void> = Promise.resolve();
-function enqueueWrite(op: () => Promise<void>): Promise<void> {
+function enqueueWrite<T>(op: () => Promise<T>): Promise<T> {
   const run = writeQueue.then(op, op);
-  writeQueue = run.catch(() => {});
+  writeQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
   return run;
 }
 
-export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<void> {
+// 저장 후 스토어에 남은 캡처 수를 반환한다 — 업로드 트리거 ①(누적 판정)이 별도 스토어
+// 읽기 없이 이 값을 재사용한다 (판정용 읽기 실패가 저장 성공을 오염시키지 않도록).
+export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<number> {
   return enqueueWrite(async () => {
     const store = await captureStore.load();
     store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
     evictOldestOverCap(store);
     await captureStore.save(store);
+    return Object.keys(store.capturesById).length;
   });
 }
 

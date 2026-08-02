@@ -4,8 +4,8 @@ import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
-import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
 import { requestCaptureFlush } from './follow-along-upload';
+import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
 import { storeNativeCapturedSegments } from './native-session-capture-storage';
 import {
   completeTrainingSession,
