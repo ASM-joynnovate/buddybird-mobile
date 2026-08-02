@@ -1,6 +1,7 @@
 import type { FollowAlongCapture } from '../follow-along-capture-types';
 import {
   buildCaptureBatchMetadata,
+  MAX_CAPTURE_BATCH_BYTES,
   MAX_CAPTURE_BATCH_SIZE,
   planCaptureBatch,
 } from '../follow-along-upload-batch';
@@ -59,6 +60,26 @@ describe('planCaptureBatch', () => {
     const { batch, missingFileIds } = planCaptureBatch(captures, (c) => c.id !== 'cap-1');
     expect(batch.map((c) => c.id)).toEqual(['cap-0', 'cap-2']);
     expect(missingFileIds).toEqual(['cap-1']);
+  });
+
+  it('cuts the batch when the raw byte budget would be exceeded', () => {
+    const half = MAX_CAPTURE_BATCH_BYTES / 2;
+    const captures = makeCaptures(3).map((c) => ({ ...c, sizeBytes: half }));
+    // 2건 = 정확히 예산(포함), 3건째는 초과라 2건에서 끊긴다.
+    const { batch } = planCaptureBatch(captures, fileAlwaysExists);
+    expect(batch.map((c) => c.id)).toEqual(['cap-0', 'cap-1']);
+  });
+
+  it('fills all 10 when the budget is not exceeded', () => {
+    const captures = makeCaptures(11).map((c) => ({ ...c, sizeBytes: 100 }));
+    expect(planCaptureBatch(captures, fileAlwaysExists).batch).toHaveLength(MAX_CAPTURE_BATCH_SIZE);
+  });
+
+  it('keeps a single over-budget capture so the queue cannot stall', () => {
+    const captures = makeCaptures(2).map((c) => ({ ...c, sizeBytes: MAX_CAPTURE_BATCH_BYTES * 2 }));
+    // 첫 건이 혼자 예산을 넘어도 1건은 담는다 — 서버 단건 검증(rejected)에 맡긴다.
+    const { batch } = planCaptureBatch(captures, fileAlwaysExists);
+    expect(batch.map((c) => c.id)).toEqual(['cap-0']);
   });
 });
 

@@ -5,12 +5,17 @@ import type { FollowAlongCapture } from './follow-along-capture-types';
 
 export const MAX_CAPTURE_BATCH_SIZE = 10;
 
+// 서버 계약(SPEC-0002)의 zip ≤10MB 상한을 원본 합계로 보장하는 예산. WAV 는 deflate 로
+// 커지지 않으므로 원본 ≤9MB → zip ≤10MB 가 성립한다 (zip 오버헤드·편차 여유 1MB).
+// 동기 zipSync 의 JS 힙 점유 상한도 이 예산이 함께 묶는다.
+export const MAX_CAPTURE_BATCH_BYTES = 9 * 1024 * 1024;
+
 // 서버 계약(SPEC-0002)의 필드 상한. 클라이언트가 초과분을 잘라 400을 예방한다.
 const APP_VERSION_MAX_LENGTH = 12;
 const PARROT_SPECIES_MAX_LENGTH = 50;
 
 export interface CaptureBatchPlan {
-  /** capturedAt 오래된 순 최대 10건 — 로컬 파일이 있는 레코드만 */
+  /** capturedAt 오래된 순 최대 10건·원본 합계 ≤9MB — 로컬 파일이 있는 레코드만 */
   batch: FollowAlongCapture[];
   /** 로컬 오디오 파일이 없는 레코드 — 전송 대상에서 제외하고 삭제한다 */
   missingFileIds: string[];
@@ -27,7 +32,17 @@ export function planCaptureBatch(
     else missingFileIds.push(capture.id);
   }
   uploadable.sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
-  return { batch: uploadable.slice(0, MAX_CAPTURE_BATCH_SIZE), missingFileIds };
+
+  const batch: FollowAlongCapture[] = [];
+  let totalBytes = 0;
+  for (const capture of uploadable) {
+    if (batch.length >= MAX_CAPTURE_BATCH_SIZE) break;
+    // 예산을 넘겨도 최소 1건은 담는다 — 단건 초과분은 서버가 rejected 로 걸러 큐가 막히지 않는다.
+    if (batch.length > 0 && totalBytes + capture.sizeBytes > MAX_CAPTURE_BATCH_BYTES) break;
+    batch.push(capture);
+    totalBytes += capture.sizeBytes;
+  }
+  return { batch, missingFileIds };
 }
 
 /** `POST /api/v1/captures` 의 `metadata` 항목 (SPEC-0002 §클립 업로드). snake_case 는 서버 계약. */
