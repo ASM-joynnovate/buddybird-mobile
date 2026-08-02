@@ -22,7 +22,6 @@ export interface FollowAlongCapture {
   segments: CaptureSegment[];
   // 오디오 파일 크기(bytes) — 로컬 보관 상한 계산에 사용.
   sizeBytes: number;
-  uploaded: boolean;
   // 등록 시점 치환값 (preset-<key> | wentry-… | 원본 wordId 강등). 부재 = legacy — flush 시 백필.
   clientWordId?: string;
   // 등록 시점 앵무새 프로필 스냅샷. null = 프로필 없음, 부재 = legacy — flush 시 백필.

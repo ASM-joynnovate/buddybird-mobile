@@ -35,7 +35,6 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
         uri: segment.uri,
         fileName: segment.fileName,
         segments: [{ startMs: segment.speechStartMs, endMs: segment.speechEndMs }],
-        uploaded: false,
         ...(meta ?? {}),
       });
       storedIds.push(segment.segmentId);

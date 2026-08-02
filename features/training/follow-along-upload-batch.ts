@@ -1,0 +1,82 @@
+// 캡처 배치 조립 규칙 (SPEC-0003 §배치 생성·payload 생성). 순수 함수 — I/O 없음.
+// 파일 존재 여부는 predicate 로 주입받아 판정만 담당한다.
+
+import type { FollowAlongCapture } from './follow-along-capture-types';
+
+export const MAX_CAPTURE_BATCH_SIZE = 10;
+
+// 서버 계약(SPEC-0002)의 필드 상한. 클라이언트가 초과분을 잘라 400을 예방한다.
+const APP_VERSION_MAX_LENGTH = 12;
+const PARROT_SPECIES_MAX_LENGTH = 50;
+
+export interface CaptureBatchPlan {
+  /** capturedAt 오래된 순 최대 10건 — 로컬 파일이 있는 레코드만 */
+  batch: FollowAlongCapture[];
+  /** 로컬 오디오 파일이 없는 레코드 — 전송 대상에서 제외하고 삭제한다 */
+  missingFileIds: string[];
+}
+
+export function planCaptureBatch(
+  captures: readonly FollowAlongCapture[],
+  hasLocalFile: (capture: FollowAlongCapture) => boolean,
+): CaptureBatchPlan {
+  const missingFileIds: string[] = [];
+  const uploadable: FollowAlongCapture[] = [];
+  for (const capture of captures) {
+    if (hasLocalFile(capture)) uploadable.push(capture);
+    else missingFileIds.push(capture.id);
+  }
+  uploadable.sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
+  return { batch: uploadable.slice(0, MAX_CAPTURE_BATCH_SIZE), missingFileIds };
+}
+
+/** `POST /api/v1/captures` 의 `metadata` 항목 (SPEC-0002 §클립 업로드). snake_case 는 서버 계약. */
+export interface CaptureUploadMetadataItem {
+  client_capture_id: string;
+  client_word_id: string;
+  client_session_id: string;
+  cycle: number;
+  phase: 'LE' | 'RE';
+  captured_at: string;
+  /** zip 안에서 이 클립의 오디오를 가리키는 이름 */
+  file_name: string;
+  app_version?: string;
+  parrot_species?: string;
+  parrot_birthdate?: string;
+}
+
+// batch 와 같은 순서로 metadata 항목을 만든다. file_name 은 레코드의 fileName 을 재사용하되
+// 배치 안에서 충돌하면 id 를 접두해 유일하게 만든다 — zip 조립도 이 값을 그대로 쓴다.
+export function buildCaptureBatchMetadata(
+  batch: readonly FollowAlongCapture[],
+  appVersion: string | null,
+): CaptureUploadMetadataItem[] {
+  const usedFileNames = new Set<string>();
+  return batch.map((capture) => {
+    const fileName = usedFileNames.has(capture.fileName)
+      ? `${capture.id}-${capture.fileName}`
+      : capture.fileName;
+    usedFileNames.add(fileName);
+
+    const item: CaptureUploadMetadataItem = {
+      client_capture_id: capture.id,
+      // flush 직전 백필로 채워지지만, 만약을 대비해 원본 wordId 강등과 동일하게 폴백한다.
+      client_word_id: capture.clientWordId ?? capture.wordId,
+      client_session_id: capture.sessionId,
+      cycle: capture.cycle,
+      phase: capture.phase === 'rest' ? 'RE' : 'LE',
+      captured_at: toUtcIso(capture.capturedAt),
+      file_name: fileName,
+    };
+    if (appVersion) item.app_version = appVersion.slice(0, APP_VERSION_MAX_LENGTH);
+    if (capture.parrotSpecies) item.parrot_species = capture.parrotSpecies.slice(0, PARROT_SPECIES_MAX_LENGTH);
+    if (capture.parrotBirthdate) item.parrot_birthdate = capture.parrotBirthdate;
+    return item;
+  });
+}
+
+// 저장된 ISO 를 UTC(Z) 로 정규화. 파싱 불가하면 원본 그대로 — 서버 검증에 맡긴다.
+function toUtcIso(value: string): string {
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? value : new Date(time).toISOString();
+}

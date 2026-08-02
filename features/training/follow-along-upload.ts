@@ -1,74 +1,140 @@
+// 캡처 업로드 flush 오케스트레이터 (SPEC-0003 §오디오 클립 업로드).
+// 트리거 5종(누적·세션 종료·포그라운드·네트워크 복구·동의 전환)은 전부 fire-and-forget
+// `requestCaptureFlush()` 하나로 수렴한다 — 진행 중이면 no-op(single-flight), 세션 경험에
+// 개입하지 않는다 (NFR-01). 루프: 게이트 재확인 → 잔여 zip 청소 → 백필 → 배치 조립 → 전송 →
+// 항목 처리 → 큐가 남고 게이트가 유지되면 반복.
+
+import * as Application from 'expo-application';
+import Constants from 'expo-constants';
+
 import { reportError } from '@/features/analytics/error-reporter';
+import { recordingFileExists } from '@/features/audio/audio-file-storage';
+import { getCurrentUid } from '@/features/auth/auth-identity';
+import { loadStoredProfile } from '@/features/profile/profile-storage';
+import { loadUploadConsent } from '@/features/upload-consent/upload-consent-storage';
 
-import type { CapturePhase, CaptureSegment, FollowAlongCapture } from './follow-along-capture-types';
-import { loadFollowAlongCaptures, markCaptureUploaded } from './follow-along-capture-storage';
+import { buildCaptureRegistrationMeta, type CaptureRegistrationMeta } from './follow-along-capture-meta';
+import { applyCaptureMeta, deleteCaptures, loadFollowAlongCaptures } from './follow-along-capture-storage';
+import type { FollowAlongCapture } from './follow-along-capture-types';
+import { buildCaptureBatchMetadata, planCaptureBatch } from './follow-along-upload-batch';
+import { cleanupCaptureUploadArtifacts, sendCaptureBatch } from './follow-along-upload-client';
+import { isUploadGateOpen } from './follow-along-upload-gate';
+import { interpretCaptureBatchResult } from './follow-along-upload-response';
+import { loadTrainingStore } from './training-storage';
 
-// 백엔드로 보낼 캡처 페이로드. 파일(fileUri)은 hydrate 된 절대 경로.
-export interface FollowAlongUploadPayload {
-  captureId: string;
-  sessionId: string;
-  wordId: string;
-  cycle: number;
-  phase: CapturePhase;
-  capturedAt: string;
-  fileUri: string;
-  fileName: string;
-  segments: CaptureSegment[];
+let flushInFlight = false;
+
+/** 모든 업로드 트리거의 단일 진입점. 진행 중이면 no-op. */
+export function requestCaptureFlush(): void {
+  if (flushInFlight) return;
+  flushInFlight = true;
+  runFlushLoop()
+    .catch((error: unknown) => reportError(error, { scope: 'training.captureFlush' }))
+    .finally(() => {
+      flushInFlight = false;
+    });
 }
 
-export type UploadOutcome =
-  | { status: 'uploaded'; remoteId?: string }
-  | { status: 'skipped-no-backend' }
-  | { status: 'failed'; error: unknown };
+async function runFlushLoop(): Promise<void> {
+  for (;;) {
+    // 게이트는 배치마다 재확인한다 — flush 도중 동의 철회 등 상태 변화를 존중.
+    const consent = await loadUploadConsent();
+    const uid = getCurrentUid();
+    const apiBaseUrl = resolveApiBaseUrl();
+    if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl }) || !uid || !apiBaseUrl) return;
 
-// 백엔드 미연결: null 이면 전송하지 않고 로컬 보관을 유지한다.
-// 백엔드 미연결: null 반환. 서버 연결 시 이 함수가 실제 엔드포인트를 반환하도록 바꾼다
-// (env·remote config 등). 함수로 두어 호출부의 정적 unreachable 판정을 피한다.
-function resolveUploadEndpoint(): string | null {
-  return null;
-}
-
-// 캡처 1건을 백엔드로 전송한다. 현재는 백엔드 미연결이라 no-op(로컬 보관 유지).
-// 백엔드 연결 시 이 함수 안에서 multipart POST(파일 payload.fileUri + 메타 payload)를 수행하고,
-// 성공 시 { status: 'uploaded', remoteId }, 실패 시 reportError({ scope: 'training.followAlong.upload' })
-// 후 { status: 'failed', error } 를 반환하도록 구현한다.
-export async function uploadFollowAlongCapture(payload: FollowAlongUploadPayload): Promise<UploadOutcome> {
-  const endpoint = resolveUploadEndpoint();
-  if (!endpoint) {
-    return { status: 'skipped-no-backend' };
-  }
-  // 엔드포인트가 생기기 전까지 도달하지 않는 경로. 실제 전송 구현이 여기 들어간다.
-  return { status: 'skipped-no-backend' };
-}
-
-function toPayload(capture: FollowAlongCapture): FollowAlongUploadPayload {
-  return {
-    captureId: capture.id,
-    sessionId: capture.sessionId,
-    wordId: capture.wordId,
-    cycle: capture.cycle,
-    phase: capture.phase,
-    capturedAt: capture.capturedAt,
-    fileUri: capture.uri, // load 시 seam 이 절대 경로로 hydrate 함
-    fileName: capture.fileName,
-    segments: capture.segments,
-  };
-}
-
-// 미업로드 캡처를 순회하며 백엔드로 전송하고, 성공한 건만 uploaded 로 표시한다.
-// 백엔드 미연결이면 각 건이 skipped-no-backend 로 no-op 되어 로컬 보관이 유지된다.
-export async function flushPendingFollowAlongCaptures(): Promise<void> {
-  try {
     const store = await loadFollowAlongCaptures();
-    const pending = Object.values(store.capturesById).filter((capture) => !capture.uploaded);
+    const captures = await backfillLegacyCaptureMeta(Object.values(store.capturesById));
+    if (captures.length === 0) return;
 
-    for (const capture of pending) {
-      const outcome = await uploadFollowAlongCapture(toPayload(capture));
-      if (outcome.status === 'uploaded') {
-        await markCaptureUploaded(capture.id);
+    const plan = planCaptureBatch(captures, (capture) => recordingFileExists(capture.uri));
+    if (plan.missingFileIds.length > 0) await deleteCaptures(plan.missingFileIds);
+    if (plan.batch.length === 0) return;
+
+    cleanupCaptureUploadArtifacts();
+    const metadata = buildCaptureBatchMetadata(plan.batch, Application.nativeApplicationVersion);
+    const result = await sendCaptureBatch({ apiBaseUrl, uid, batch: plan.batch, metadata });
+    const outcome = interpretCaptureBatchResult(result, plan.batch.map((capture) => capture.id));
+
+    if (outcome.kind === 'halt') return;
+
+    if (outcome.kind === 'processed') {
+      if (outcome.rejectedIds.length > 0) {
+        console.warn('[training.captureFlush]', `server rejected captures: ${outcome.rejectedIds.join(', ')}`);
       }
+      const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
+      // 아무 항목도 해소되지 않았다면(malformed 응답 등) 같은 배치를 곧장 재전송하는
+      // 무한 루프가 되므로 중단하고 다음 트리거에 맡긴다.
+      if (resolvedIds.length === 0) return;
+      await deleteCaptures(resolvedIds);
+      continue;
     }
-  } catch (error: unknown) {
-    reportError(error, { scope: 'training.followAlong.flush' });
+
+    if (outcome.kind === 'discard') {
+      await discardRejectedCapture(plan.batch[0].id);
+      continue;
+    }
+
+    // split: 배치를 1건씩 쪼개 재전송. 5xx·네트워크 오류를 만나면 flush 전체를 중단한다.
+    const halted = await resendIndividually(plan.batch, metadata, apiBaseUrl, uid);
+    if (halted) return;
   }
+}
+
+async function resendIndividually(
+  batch: readonly FollowAlongCapture[],
+  metadata: ReturnType<typeof buildCaptureBatchMetadata>,
+  apiBaseUrl: string,
+  uid: string,
+): Promise<boolean> {
+  for (let i = 0; i < batch.length; i += 1) {
+    const capture = batch[i];
+    const result = await sendCaptureBatch({
+      apiBaseUrl,
+      uid,
+      batch: [capture],
+      metadata: [metadata[i]],
+    });
+    const outcome = interpretCaptureBatchResult(result, [capture.id]);
+    if (outcome.kind === 'halt') return true;
+    if (outcome.kind === 'processed') {
+      await deleteCaptures([...outcome.successIds, ...outcome.rejectedIds]);
+      continue;
+    }
+    // 1건 배치라 split 은 나올 수 없다 — discard 만 남는다.
+    await discardRejectedCapture(capture.id);
+  }
+  return false;
+}
+
+// 단건에서도 4xx 로 거부된 클립은 폐기하고 보고한다 (SPEC-0003 §실패).
+async function discardRejectedCapture(id: string): Promise<void> {
+  await deleteCaptures([id]);
+  reportError(new Error(`capture discarded after 4xx: ${id}`), { scope: 'training.captureFlush' });
+}
+
+// legacy 레코드(clientWordId 부재)에 등록 시점과 같은 규칙으로 메타를 보충하고 영속화한다
+// (결정 ③ — 1회 보충, 이후에는 부재 레코드가 없어 no-op). 매핑 실패는 원본 wordId 강등.
+async function backfillLegacyCaptureMeta(captures: FollowAlongCapture[]): Promise<FollowAlongCapture[]> {
+  const legacy = captures.filter((capture) => capture.clientWordId === undefined);
+  if (legacy.length === 0) return captures;
+
+  const [trainingStore, profile] = await Promise.all([loadTrainingStore(), loadStoredProfile()]);
+  const metaById: Record<string, CaptureRegistrationMeta> = {};
+  for (const capture of legacy) {
+    metaById[capture.id] = buildCaptureRegistrationMeta(
+      capture.wordId,
+      trainingStore.wordsById[capture.wordId],
+      profile,
+    );
+  }
+  await applyCaptureMeta(metaById);
+  return captures.map((capture) =>
+    metaById[capture.id] ? { ...capture, ...metaById[capture.id] } : capture,
+  );
+}
+
+function resolveApiBaseUrl(): string | null {
+  const value = Constants.expoConfig?.extra?.apiBaseUrl;
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
