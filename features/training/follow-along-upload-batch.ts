@@ -60,19 +60,14 @@ export interface CaptureUploadMetadataItem {
   parrot_birthdate?: string;
 }
 
-// batch 와 같은 순서로 metadata 항목을 만든다. file_name 은 레코드의 fileName 을 재사용하되
-// 배치 안에서 충돌하면 id 를 접두해 유일하게 만든다 — zip 조립도 이 값을 그대로 쓴다.
+// batch 와 같은 순서로 metadata 항목을 만든다. file_name 은 레코드의 fileName 을 그대로
+// zip 항목 이름으로 쓴다 — 네이티브가 session-<sessionId>-<segmentId>.wav 로 생성하고
+// segmentId 가 캡처 id(스토어 맵 키)라 배치 안에서 충돌할 수 없다.
 export function buildCaptureBatchMetadata(
   batch: readonly FollowAlongCapture[],
   appVersion: string | null,
 ): CaptureUploadMetadataItem[] {
-  const usedFileNames = new Set<string>();
   return batch.map((capture) => {
-    const fileName = usedFileNames.has(capture.fileName)
-      ? `${capture.id}-${capture.fileName}`
-      : capture.fileName;
-    usedFileNames.add(fileName);
-
     const item: CaptureUploadMetadataItem = {
       client_capture_id: capture.id,
       // flush 직전 백필로 채워지지만, 만약을 대비해 원본 wordId 강등과 동일하게 폴백한다.
@@ -81,7 +76,7 @@ export function buildCaptureBatchMetadata(
       cycle: capture.cycle,
       phase: capture.phase === 'rest' ? 'RE' : 'LE',
       captured_at: toUtcIso(capture.capturedAt),
-      file_name: fileName,
+      file_name: capture.fileName,
     };
     if (appVersion) item.app_version = appVersion.slice(0, APP_VERSION_MAX_LENGTH);
     if (capture.parrotSpecies) item.parrot_species = capture.parrotSpecies.slice(0, PARROT_SPECIES_MAX_LENGTH);

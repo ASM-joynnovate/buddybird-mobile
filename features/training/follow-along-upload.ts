@@ -38,10 +38,12 @@ export function requestCaptureFlush(): void {
 async function runFlushLoop(): Promise<void> {
   for (;;) {
     // 게이트는 배치마다 재확인한다 — flush 도중 동의 철회 등 상태 변화를 존중.
+    // uid·apiBaseUrl 선제 체크는 TS 내로잉용 — 판정의 소유자는 gate 모듈이다.
     const consent = await loadUploadConsent();
     const uid = getCurrentUid();
     const apiBaseUrl = resolveApiBaseUrl();
-    if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl }) || !uid || !apiBaseUrl) return;
+    if (!uid || !apiBaseUrl) return;
+    if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl })) return;
 
     const store = await loadFollowAlongCaptures();
     const captures = await backfillLegacyCaptureMeta(Object.values(store.capturesById));

@@ -133,18 +133,6 @@ describe('buildCaptureBatchMetadata', () => {
     expect(item.client_word_id).toBe('word-1');
   });
 
-  it('prefixes the id on file name collisions within a batch', () => {
-    const items = buildCaptureBatchMetadata(
-      [
-        makeCapture({ id: 'cap-a', fileName: 'same.wav' }),
-        makeCapture({ id: 'cap-b', fileName: 'same.wav' }),
-      ],
-      null,
-    );
-    expect(items[0].file_name).toBe('same.wav');
-    expect(items[1].file_name).toBe('cap-b-same.wav');
-  });
-
   it('truncates over-limit app_version and parrot_species', () => {
     const [item] = buildCaptureBatchMetadata(
       [makeCapture({ id: 'cap-a', parrotSpecies: 'x'.repeat(60) })],
