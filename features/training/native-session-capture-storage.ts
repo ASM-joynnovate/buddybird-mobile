@@ -54,7 +54,7 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
     await sessionAudioEngine.markSegmentsStored(storedIds);
     // 판정은 append 가 반환한 잔여 수 재사용 — 판정용 스토어 읽기를 따로 두면 그 읽기의
     // 실패가 저장 성공/실패 계약을 오염시키기 때문에(크래시 복구의 세션 적립 무산) 두지 않는다.
-    if (remainingCount >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush();
+    if (remainingCount >= CAPTURE_FLUSH_ACCUMULATION_THRESHOLD) requestCaptureFlush({ fromAccumulation: true });
   }
   if (firstError) throw firstError;
 }

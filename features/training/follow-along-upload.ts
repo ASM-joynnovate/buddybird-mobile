@@ -28,12 +28,23 @@ let flushInFlight = false;
 // 신규 클립은 같은 실행이 집어가지만, halt(5xx·네트워크) 직전 도착분은 이번 실행이 못 본다 —
 // 종료 후 1회 재기동해 트리거의 "즉시 전송" 보장을 지킨다.
 let rerunRequested = false;
+// 일시 장애(5xx·네트워크 오류·해석 불가 응답)로 halt 한 사실의 기억. 서 있는 동안 누적
+// 트리거(①)의 재시도만 억제한다 — 오프라인 세션에서 캡처 저장마다 같은 배치를 재압축·재전송
+// 하는 낭비를 막는다 (NFR-01). 나머지 트리거(②~⑤)는 상황 변화 신호라 플래그를 풀고 진행한다.
+// 클립은 큐에 그대로 남으므로 데이터 손실은 없다 (SPEC-0003 §실패 — 각주 참조).
+let haltedByTransientFailure = false;
 
-/** 모든 업로드 트리거의 단일 진입점. 진행 중이면 종료 후 1회 재실행을 예약한다. */
-export function requestCaptureFlush(): void {
+/**
+ * 모든 업로드 트리거의 단일 진입점. 진행 중이면 종료 후 1회 재실행을 예약한다.
+ * 누적 트리거(①)는 `fromAccumulation` 을 표시한다 — 직전 flush 가 일시 장애로 중단된
+ * 상태에서는 no-op 이 된다 (상황 변화 트리거 ②~⑤가 오면 억제가 풀린다).
+ */
+export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): void {
   // 웹은 게이트 판정에 쓰는 Firebase auth(getApp)가 미지원이라 판정 전에 throw 난다 —
   // 배선 지점마다 가드를 두는 대신 진입점에서 차단한다 (spec 대상 플랫폼도 iOS·Android 뿐).
   if (Platform.OS === 'web') return;
+  if (options?.fromAccumulation && haltedByTransientFailure) return;
+  haltedByTransientFailure = false;
   if (flushInFlight) {
     rerunRequested = true;
     return;
@@ -79,11 +90,17 @@ async function runFlushLoop(): Promise<void> {
     if (!send.http) continue; // 전송할 파일이 없었다 — 실패분 삭제 후 다음 배치로.
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
 
-    if (outcome.kind === 'halt') return;
+    if (outcome.kind === 'halt') {
+      haltedByTransientFailure = true;
+      return;
+    }
 
     if (outcome.kind === 'processed') {
       const progressed = await applyProcessedOutcome(outcome);
-      if (!progressed) return;
+      if (!progressed) {
+        haltedByTransientFailure = true;
+        return;
+      }
       continue;
     }
 
@@ -97,7 +114,10 @@ async function runFlushLoop(): Promise<void> {
     const sentBatch = plan.batch.filter((capture) => sentIdSet.has(capture.id));
     const sentMetadata = metadata.filter((_, index) => sentIdSet.has(plan.batch[index].id));
     const halted = await resendIndividually(sentBatch, sentMetadata, apiBaseUrl, uid);
-    if (halted) return;
+    if (halted) {
+      haltedByTransientFailure = true;
+      return;
+    }
   }
 }
 
