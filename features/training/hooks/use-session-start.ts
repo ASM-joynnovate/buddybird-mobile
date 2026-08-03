@@ -1,6 +1,6 @@
 import { AudioModule } from 'expo-audio';
 import { router } from 'expo-router';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
@@ -25,10 +25,13 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
   const { profile } = useProfile();
 
   const startLabel = t('home.startTrainingCta');
-  // 권한 프롬프트와 저장이 끝날 때까지 버튼이 계속 눌리는 상태라, 그 사이의 재탭이 두 번째
-  // 세션을 만들고 네이티브가 그 start 를 sessionAlreadyRunning 으로 거부했다 (BB-300).
-  // state 가 아니라 ref 로 막는다. setState 는 다음 렌더에 반영돼 연속 탭을 놓친다.
+  // 권한 프롬프트와 저장이 끝날 때까지 버튼이 계속 눌리는 상태라, 그 사이에 버튼을 다시
+  // 누르면 두 번째 세션이 만들어지고 네이티브가 그 start 를 sessionAlreadyRunning 으로
+  // 거부했다 (BB-300). 두 겹으로 막는다.
+  // ref: 같은 tick 의 연속 탭까지 즉시 차단한다. setState 는 다음 렌더에 반영돼 놓친다.
+  // state: 버튼을 비활성으로 그려 두 번째 탭이 아예 들어오지 않게 한다.
   const startingRef = useRef(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   // 마이크 권한은 네이티브 세션 시작(validateFiles)의 필수 조건이라 차단형으로 확보한다.
   // 미결정 상태면 시스템 프롬프트가 뜨고, 거부 상태(iOS는 최초 거부 후 재프롬프트 불가)면
@@ -53,6 +56,7 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
     if (!selectedEntry) return;
     if (startingRef.current) return;
     startingRef.current = true;
+    setIsStarting(true);
     try {
       if (!(await ensureMicPermission())) return;
       await requestSessionNotificationPermission();
@@ -88,10 +92,11 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
       router.push('/session-active');
     } finally {
       startingRef.current = false;
+      setIsStarting(false);
     }
   }
 
-  return { handleStart, startLabel };
+  return { handleStart, isStarting, startLabel };
 }
 
 async function requestSessionNotificationPermission(): Promise<void> {
