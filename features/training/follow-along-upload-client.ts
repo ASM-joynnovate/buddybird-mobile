@@ -16,6 +16,10 @@ const UPLOAD_TMP_DIR_NAME = 'capture-upload';
 // RN/Hermes 는 Web Worker 가 없어 zipSync(동기) 사용 — 저레벨로 JS 스레드 점유를 줄인다 (결정 ④).
 const ZIP_COMPRESSION_LEVEL = 2;
 
+// 플랫폼 fetch 기본값에 맡기면 무응답 서버에 flush 가 무기한 잡힐 수 있다 — zip ≤10MB
+// 저속망 업로드를 감안한 상한. 초과 시 abort 는 네트워크 오류와 동일하게 처리된다 (halt·큐 유지).
+const CAPTURE_UPLOAD_TIMEOUT_MS = 60_000;
+
 function getUploadTmpDirectory(): Directory {
   return new Directory(Paths.cache, UPLOAD_TMP_DIR_NAME);
 }
@@ -123,12 +127,20 @@ async function postCaptureBatch(
     // RN 의 FormData 파일 파트는 DOM 타입에 없어 단언이 필요하다.
   } as unknown as Blob);
 
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), CAPTURE_UPLOAD_TIMEOUT_MS);
   let response: Response;
   try {
-    response = await fetch(`${input.apiBaseUrl}/api/v1/captures`, { method: 'POST', body: form });
+    response = await fetch(`${input.apiBaseUrl}/api/v1/captures`, {
+      method: 'POST',
+      body: form,
+      signal: abortController.signal,
+    });
   } catch (error: unknown) {
     console.warn('[training.captureUpload.network]', error);
     return { status: null, body: null };
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   let body: unknown = null;
