@@ -28,9 +28,10 @@
 ```bash
 yarn lint
 yarn typecheck
+yarn test        # 테스트가 존재하는 영역을 변경한 경우 (docs/TESTING.md)
 ```
 
-둘 다 그린이어야 함. `--no-verify` 절대 금지.
+모두 그린이어야 함. `--no-verify` 절대 금지.
 
 ### 3.2 검증 grep (모두 0건)
 
@@ -57,13 +58,14 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 - 책임 단위로 분리 — 한 커밋 = 한 책임
 - 본문 영어, attribution 라인 금지
 
-## 4. 테스트 정책 (MVP)
+## 4. 테스트 정책
 
-- **MVP 단계에서는 자동 테스트를 작성하지 않습니다.** (`yarn` 스크립트에 Jest 미설치)
+- unit 테스트 러너: jest-expo 기반 Jest (`yarn test`) — 범위·의무 사항은 `docs/TESTING.md` 가 단일 출처
+- 신규 순수 모듈은 unit 테스트를 함께 작성. 기존 코드 소급 작성은 금지
 - 검증은 다음에 의존:
   1. TypeScript (`yarn typecheck`)
   2. Lint (`yarn lint`)
-  3. 수동 user flow (README 체크리스트)
-  4. Firebase DebugView / Clarity Live (analytics 변경 시)
-
-테스트 도입은 별도 정책 변경으로 결정합니다.
+  3. Unit (`yarn test` — 순수 모듈, `docs/TESTING.md`)
+  4. 수동 user flow (README 체크리스트)
+  5. Firebase DebugView / Clarity Live (analytics 변경 시)
+- CI `_verify.yml` 게이트 편입은 별도 결정으로 이월 (2026-08-03 기준 로컬 검증만 의무)
