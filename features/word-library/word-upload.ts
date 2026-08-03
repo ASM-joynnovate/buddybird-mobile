@@ -17,13 +17,10 @@ import type { WordEntry } from './word-library-types';
 import { sendWord } from './word-upload-client';
 import { interpretWordUploadResult } from './word-upload-response';
 import { loadWordUploadState, markWordUploadResult } from './word-upload-state';
-import { selectPendingWords } from './word-upload-target';
-
-type UploadTarget = { kind: 'all' } | { kind: 'single'; wordId: string };
+import { mergeUploadTargets, selectPendingWords, type UploadTarget } from './word-upload-target';
 
 let flushInFlight = false;
-// flush 도중 도착한 트리거의 재실행 예약. 대상이 다르면 넓은 쪽(all)으로 합친다 —
-// 어느 쪽이든 미처리 단어만 고르므로 넓혀도 중복 전송이 생기지 않는다.
+/** flush 도중 도착한 트리거의 재실행 예약. 합치는 규칙은 target 모듈이 소유한다. */
 let queuedTarget: UploadTarget | null = null;
 
 /** 트리거 ①: 단어 생성 — 생성된 단어 1건만 보낸다. */
@@ -42,7 +39,7 @@ function request(target: UploadTarget): void {
   if (Platform.OS === 'web') return;
 
   if (flushInFlight) {
-    queuedTarget = mergeTargets(queuedTarget, target);
+    queuedTarget = mergeUploadTargets(queuedTarget, target);
     return;
   }
 
@@ -57,12 +54,6 @@ function request(target: UploadTarget): void {
       queuedTarget = null;
       if (queued) request(queued);
     });
-}
-
-function mergeTargets(queued: UploadTarget | null, incoming: UploadTarget): UploadTarget {
-  if (queued === null) return incoming;
-  if (queued.kind === 'all' || incoming.kind === 'all') return { kind: 'all' };
-  return queued.wordId === incoming.wordId ? queued : { kind: 'all' };
 }
 
 async function runUploadLoop(target: UploadTarget): Promise<void> {

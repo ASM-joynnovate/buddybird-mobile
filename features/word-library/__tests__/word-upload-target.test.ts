@@ -1,6 +1,6 @@
 import type { WordEntry } from '../word-library-types';
 import type { WordUploadState } from '../word-upload-state';
-import { selectPendingWords } from '../word-upload-target';
+import { mergeUploadTargets, selectPendingWords } from '../word-upload-target';
 
 function makeEntry(overrides: Partial<WordEntry> & Pick<WordEntry, 'id'>): WordEntry {
   return {
@@ -48,5 +48,35 @@ describe('selectPendingWords', () => {
     const state: WordUploadState = { done: { status: 'uploaded' } };
 
     expect(selectPendingWords(entries, state).map((entry) => entry.id)).toEqual(['pending']);
+  });
+});
+
+describe('mergeUploadTargets', () => {
+  it('takes the incoming target when nothing is queued', () => {
+    expect(mergeUploadTargets(null, { kind: 'single', wordId: 'w1' })).toEqual({
+      kind: 'single',
+      wordId: 'w1',
+    });
+  });
+
+  it('keeps a single target when the same word arrives again', () => {
+    const queued = { kind: 'single', wordId: 'w1' } as const;
+
+    expect(mergeUploadTargets(queued, { kind: 'single', wordId: 'w1' })).toEqual(queued);
+  });
+
+  // 둘 중 하나를 버리면 그 단어가 다음 콜드 스타트까지 서버에 올라가지 못한다.
+  it('widens to all when two different words are queued', () => {
+    const queued = { kind: 'single', wordId: 'w1' } as const;
+
+    expect(mergeUploadTargets(queued, { kind: 'single', wordId: 'w2' })).toEqual({ kind: 'all' });
+  });
+
+  it.each([
+    ['queued all, incoming single', { kind: 'all' } as const, { kind: 'single', wordId: 'w1' } as const],
+    ['queued single, incoming all', { kind: 'single', wordId: 'w1' } as const, { kind: 'all' } as const],
+    ['both all', { kind: 'all' } as const, { kind: 'all' } as const],
+  ])('stays on all when %s', (_label, queued, incoming) => {
+    expect(mergeUploadTargets(queued, incoming)).toEqual({ kind: 'all' });
   });
 });
