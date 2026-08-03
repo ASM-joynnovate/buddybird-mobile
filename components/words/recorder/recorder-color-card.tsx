@@ -71,7 +71,8 @@ export function RecorderColorCard({
           { backgroundColor: isRecording ? BuddyBirdColors.accentRed : BuddyBirdColors.onDark },
         ]}
         onPress={onToggle}
-        style={styles.recordButton}>
+        style={styles.recordButton}
+        testID="word-record-toggle">
         {isRecording ? (
           <View style={styles.stopGlyph} />
         ) : (

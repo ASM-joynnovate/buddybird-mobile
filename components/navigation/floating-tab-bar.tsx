@@ -59,6 +59,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             accessibilityLabel={label}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
+            testID={`tab-${tab.name}`}
           >
             {active ? (
               <LedgeView depth="selectedCard" baseStyle={styles.activeBase} faceStyle={styles.activeFace}>

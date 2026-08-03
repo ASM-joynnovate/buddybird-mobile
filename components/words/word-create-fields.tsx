@@ -37,6 +37,7 @@ export function WordCreateFields({
           placeholderTextColor={BuddyBirdColors.placeholderMuted}
           returnKeyType="done"
           style={styles.input}
+          testID="word-label-input"
           value={label}
         />
       </FormField>

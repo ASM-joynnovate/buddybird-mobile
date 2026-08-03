@@ -90,7 +90,8 @@ export default function WordsScreen() {
           baseStyle={styles.addBtnBase}
           depth="selectedCard"
           faceStyle={styles.addBtn}
-          onPress={handleCreate}>
+          onPress={handleCreate}
+          testID="word-add-cta">
           <IconSymbol name="plus" size={24} color={BuddyBirdColors.onDark} />
         </Pressable3D>
       </View>

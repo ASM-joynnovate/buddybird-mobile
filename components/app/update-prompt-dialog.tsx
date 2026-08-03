@@ -43,7 +43,7 @@ export function UpdatePromptDialog({ prompt, onCancel, onUpdate }: UpdatePromptD
       <CenterDialog.Footer>
         {isForced ? null : (
           <View style={styles.footerButton}>
-            <PillButton label={t('appUpdate.cancelButton')} variant="white" full onPress={onCancel} />
+            <PillButton label={t('appUpdate.cancelButton')} variant="white" full onPress={onCancel} testID="app-update-close" />
           </View>
         )}
         <View style={styles.footerButton}>

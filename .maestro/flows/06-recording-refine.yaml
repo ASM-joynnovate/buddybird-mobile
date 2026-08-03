@@ -1,0 +1,66 @@
+# 시나리오 06 — 녹음 다듬기: 녹음을 듣고 마음에 안 들어 다시 녹음한 뒤 저장한다
+# 녹음기 상태 머신(녹음→재생→재녹음→재저장) 회귀 감시. 재녹음은 별도 버튼이 아니라
+# recorded 상태에서 녹음 토글을 다시 누르는 방식 (word-create-modal.tsx handleToggleRecording)
+# 한계: 재생 '소리'는 검증 불가 — 상태 전환(미리듣기 행 소멸/재등장)까지만
+appId: com.joynnovate.buddybird.dev
+tags:
+  - regression
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+- tapOn:
+    id: "tab-words"
+- tapOn:
+    id: "word-add-cta"
+- extendedWaitUntil:
+    visible:
+      id: "word-label-input"
+    timeout: 10000
+- tapOn:
+    id: "word-label-input"
+- inputText: "Kiwi"
+- hideKeyboard
+# 1차 녹음 — 경과 타이머 ≥0:02 표시(2초 이상 녹음 보장) 후 정지
+# 0:02 단일 값은 1초만 표시돼 폴링이 놓치면 영영 미매칭 — 0:02~0:59 범위로 창을 넓힘
+- tapOn:
+    id: "word-record-toggle"
+- extendedWaitUntil:
+    visible: ".*0:(0[2-9]|[1-5][0-9]).*"
+    timeout: 15000
+- tapOn:
+    id: "word-record-toggle"
+- extendedWaitUntil:
+    visible:
+      id: "word-preview-toggle"
+    timeout: 10000
+# 미리듣기 재생 (짧은 녹음이라 곧 종료 — 탭 후 잠시 유지)
+- tapOn:
+    id: "word-preview-toggle"
+- waitForAnimationToEnd:
+    timeout: 1500
+# 재녹음: recorded 상태에서 녹음 토글 재탭 → 이전 녹음 폐기·미리듣기 행 소멸 (상태 머신 리셋 검증)
+- tapOn:
+    id: "word-record-toggle"
+- extendedWaitUntil:
+    notVisible:
+      id: "word-preview-toggle"
+    timeout: 10000
+# 2차 녹음도 타이머 ≥0:02 표시까지 대기 (재녹음 시 타이머는 0:00부터 재시작)
+- extendedWaitUntil:
+    visible: ".*0:(0[2-9]|[1-5][0-9]).*"
+    timeout: 15000
+- tapOn:
+    id: "word-record-toggle"
+- extendedWaitUntil:
+    visible:
+      id: "word-preview-toggle"
+    timeout: 10000
+- assertVisible:
+    id: "word-save"
+    enabled: true
+- tapOn:
+    id: "word-save"
+- extendedWaitUntil:
+    notVisible:
+      id: "word-label-input"
+    timeout: 10000
+- assertVisible: "Kiwi"
