@@ -1,5 +1,6 @@
 import { AudioModule } from 'expo-audio';
 import { router } from 'expo-router';
+import { useRef } from 'react';
 import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
@@ -24,6 +25,10 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
   const { profile } = useProfile();
 
   const startLabel = t('home.startTrainingCta');
+  // 권한 프롬프트와 저장이 끝날 때까지 버튼이 계속 눌리는 상태라, 그 사이의 재탭이 두 번째
+  // 세션을 만들고 네이티브가 그 start 를 sessionAlreadyRunning 으로 거부했다 (BB-300).
+  // state 가 아니라 ref 로 막는다. setState 는 다음 렌더에 반영돼 연속 탭을 놓친다.
+  const startingRef = useRef(false);
 
   // 마이크 권한은 네이티브 세션 시작(validateFiles)의 필수 조건이라 차단형으로 확보한다.
   // 미결정 상태면 시스템 프롬프트가 뜨고, 거부 상태(iOS는 최초 거부 후 재프롬프트 불가)면
@@ -46,38 +51,44 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
 
   async function handleStart(): Promise<void> {
     if (!selectedEntry) return;
-    if (!(await ensureMicPermission())) return;
-    await requestSessionNotificationPermission();
-    const result = await setup.saveSessionSetup({
-      audioUri: selectedEntry.audioUri,
-      label: selectedEntry.label,
-      presetKey: selectedEntry.presetKey,
-      sourceType: selectedEntry.sourceType,
-      libraryEntryId: selectedEntry.id,
-    });
-    if (!result) return;
+    if (startingRef.current) return;
+    startingRef.current = true;
+    try {
+      if (!(await ensureMicPermission())) return;
+      await requestSessionNotificationPermission();
+      const result = await setup.saveSessionSetup({
+        audioUri: selectedEntry.audioUri,
+        label: selectedEntry.label,
+        presetKey: selectedEntry.presetKey,
+        sourceType: selectedEntry.sourceType,
+        libraryEntryId: selectedEntry.id,
+      });
+      if (!result) return;
 
-    const sessionId = createSessionId();
-    setPendingSession({
-      sessionId,
-      wordId: result.wordId,
-      settings: result.settings,
-      audioUri: result.audioUri,
-      word: result.word,
-    });
-    track({
-      name: 'training_session_started',
-      params: {
-        session_id: sessionId,
-        word_count: 1,
-        target_word_ids: [result.wordId],
-        target_word_names: [result.word],
-        profile_age_days: profile ? diffDaysIso(profile.createdAt) : 0,
-        parrot_species: profile?.species ?? '',
-        parrot_name: profile?.name ?? '',
-      },
-    });
-    router.push('/session-active');
+      const sessionId = createSessionId();
+      setPendingSession({
+        sessionId,
+        wordId: result.wordId,
+        settings: result.settings,
+        audioUri: result.audioUri,
+        word: result.word,
+      });
+      track({
+        name: 'training_session_started',
+        params: {
+          session_id: sessionId,
+          word_count: 1,
+          target_word_ids: [result.wordId],
+          target_word_names: [result.word],
+          profile_age_days: profile ? diffDaysIso(profile.createdAt) : 0,
+          parrot_species: profile?.species ?? '',
+          parrot_name: profile?.name ?? '',
+        },
+      });
+      router.push('/session-active');
+    } finally {
+      startingRef.current = false;
+    }
   }
 
   return { handleStart, startLabel };
