@@ -5,13 +5,13 @@
 // → 전송 → 항목 처리 → 큐가 남고 게이트가 유지되면 반복.
 
 import * as Application from 'expo-application';
-import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { loadStoredProfile } from '@/features/profile/profile-storage';
+import { readExtraString } from '@/features/shared/expo-extra';
 import { loadUploadConsent } from '@/features/upload-consent/upload-consent-storage';
 
 import { buildCaptureRegistrationMeta, type CaptureRegistrationMeta } from './follow-along-capture-meta';
@@ -71,7 +71,7 @@ async function runFlushLoop(): Promise<void> {
     // uid·apiBaseUrl 선제 체크는 TS 내로잉용 — 판정의 소유자는 gate 모듈이다.
     const consent = await loadUploadConsent();
     const uid = getCurrentUid();
-    const apiBaseUrl = resolveApiBaseUrl();
+    const apiBaseUrl = readExtraString('apiBaseUrl');
     if (!uid || !apiBaseUrl) return;
     if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl })) return;
 
@@ -196,9 +196,4 @@ async function backfillLegacyCaptureMeta(captures: FollowAlongCapture[]): Promis
   return captures.map((capture) =>
     metaById[capture.id] ? { ...capture, ...metaById[capture.id] } : capture,
   );
-}
-
-function resolveApiBaseUrl(): string | null {
-  const value = Constants.expoConfig?.extra?.apiBaseUrl;
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
