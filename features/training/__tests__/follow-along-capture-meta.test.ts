@@ -47,7 +47,7 @@ describe('buildCaptureRegistrationMeta', () => {
     });
   });
 
-  it('keeps birthDate null when unknown (프로필 생년월일 모름)', () => {
+  it('keeps birthDate null when the profile has no birth date', () => {
     expect(
       buildCaptureRegistrationMeta('word-1', { libraryEntryId: 'wentry-abc' }, { species: 'cockatiel', birthDate: null }),
     ).toEqual({

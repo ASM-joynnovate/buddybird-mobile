@@ -17,7 +17,11 @@ import { loadUploadConsent } from '@/features/upload-consent/upload-consent-stor
 import { buildCaptureRegistrationMeta, type CaptureRegistrationMeta } from './follow-along-capture-meta';
 import { applyCaptureMeta, deleteCaptures, loadFollowAlongCaptures } from './follow-along-capture-storage';
 import type { FollowAlongCapture } from './follow-along-capture-types';
-import { buildCaptureBatchMetadata, planCaptureBatch } from './follow-along-upload-batch';
+import {
+  buildCaptureBatchMetadata,
+  type CaptureUploadMetadataItem,
+  planCaptureBatch,
+} from './follow-along-upload-batch';
 import { cleanupCaptureUploadArtifacts, sendCaptureBatch } from './follow-along-upload-client';
 import { isUploadGateOpen } from './follow-along-upload-gate';
 import { type CaptureBatchOutcome, interpretCaptureBatchResult } from './follow-along-upload-response';
@@ -123,7 +127,7 @@ async function runFlushLoop(): Promise<void> {
 
 async function resendIndividually(
   batch: readonly FollowAlongCapture[],
-  metadata: ReturnType<typeof buildCaptureBatchMetadata>,
+  metadata: readonly CaptureUploadMetadataItem[],
   apiBaseUrl: string,
   uid: string,
 ): Promise<boolean> {
@@ -170,7 +174,7 @@ async function applyProcessedOutcome(
 // 단건에서도 4xx 로 거부된 클립은 폐기하고 보고한다 (SPEC-0003 §실패).
 async function discardRejectedCapture(id: string): Promise<void> {
   await deleteCaptures([id]);
-  reportError(new Error(`capture discarded after 4xx: ${id}`), { scope: 'training.captureFlush' });
+  reportError(new Error(`capture discarded after 4xx: ${id}`), { scope: 'training.captureFlush.discard' });
 }
 
 // legacy 레코드(clientWordId 부재)에 등록 시점과 같은 규칙으로 메타를 보충하고 영속화한다

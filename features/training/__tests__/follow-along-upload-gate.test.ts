@@ -1,7 +1,7 @@
 import { isUploadGateOpen } from '../follow-along-upload-gate';
 
 describe('isUploadGateOpen', () => {
-  // 2³ 조합 — granted × uid × baseUrl 전부 참일 때만 열린다.
+  // 세 조건(granted·uid·baseUrl)의 전체 조합 — 전부 참일 때만 열린다.
   it.each([
     ['granted', 'uid-1', 'https://api.test', true],
     ['granted', 'uid-1', null, false],
