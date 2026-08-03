@@ -59,7 +59,12 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
   }
   flushInFlight = true;
   runFlushLoop()
-    .catch((error: unknown) => reportError(error, { scope: 'training.captureFlush' }))
+    .catch((error: unknown) => {
+      // 예외로 죽은 실패(디스크 가득 참의 zip 쓰기 throw 등)도 정상 halt 와 같은 억제 계약을
+      // 따른다 — 안 세우면 캡처 저장마다 누적 트리거가 같은 실패(재압축 포함)를 반복한다.
+      haltedByTransientFailure = true;
+      reportError(error, { scope: 'training.captureFlush' });
+    })
     .finally(() => {
       flushInFlight = false;
       if (rerunRequested) {

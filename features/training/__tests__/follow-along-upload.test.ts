@@ -230,6 +230,30 @@ describe('requestCaptureFlush', () => {
     await drainFlush();
   });
 
+  // 판정을 거치지 않고 예외로 죽은 flush(디스크 가득 참의 zip 쓰기 throw 등)도 정상 halt 와
+  // 같은 억제 계약을 따라야 한다 — 안 그러면 캡처 저장마다 누적 트리거가 같은 실패를 반복한다.
+  it('suppresses accumulation retries after the flush loop dies with an exception', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    sendMock.mockRejectedValue(new Error('disk full'));
+
+    requestCaptureFlush();
+    await drainFlush();
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(reportErrorMock).toHaveBeenCalledTimes(1);
+    expect(reportErrorMock.mock.calls[0][1]).toEqual({ scope: 'training.captureFlush' });
+    expect(queue.size).toBe(1); // 클립은 큐에 남는다 — 데이터 손실 없음
+
+    // 예외로 끝난 뒤에도 누적 트리거(①)는 no-op 이어야 한다.
+    requestCaptureFlush({ fromAccumulation: true });
+    await drainFlush();
+    expect(sendMock).toHaveBeenCalledTimes(1);
+
+    // 상황 변화 트리거(②~⑤)는 억제를 풀고 재시도한다.
+    requestCaptureFlush();
+    await drainFlush();
+    expect(sendMock).toHaveBeenCalledTimes(2);
+  });
+
   it('reruns after halt when a non-accumulation trigger arrived mid-flight', async () => {
     queue.set('cap-1', makeCapture('cap-1'));
     const haltOutcome: SendCaptureBatchOutcome = {
