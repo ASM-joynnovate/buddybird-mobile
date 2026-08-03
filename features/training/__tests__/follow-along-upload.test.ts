@@ -14,8 +14,8 @@ import { loadUploadConsent } from '@/features/upload-consent/upload-consent-stor
 import type { CaptureRegistrationMeta } from '../follow-along-capture-meta';
 import { applyCaptureMeta, deleteCaptures, loadFollowAlongCaptures } from '../follow-along-capture-storage';
 import type { FollowAlongCapture } from '../follow-along-capture-types';
-import { sendCaptureBatch } from '../follow-along-upload-client';
 import { requestCaptureFlush } from '../follow-along-upload';
+import { sendCaptureBatch, type SendCaptureBatchOutcome } from '../follow-along-upload-client';
 import { loadTrainingStore } from '../training-storage';
 import type { TrainingStore, TrainingWord } from '../training-types';
 
@@ -200,5 +200,57 @@ describe('requestCaptureFlush', () => {
     await drainFlush();
     expect(sendMock).toHaveBeenCalledTimes(2);
     expect(queue.size).toBe(1);
+  });
+
+  // in-flight 창(전송 pending 중)에 도착한 트리거의 rerun 예약이 트리거 종류를 보존하는지 —
+  // 순차 호출 테스트가 못 잡는 엣지. 예약이 누적(①)뿐이면 halt 후 rerun 도 억제돼야 한다.
+  it('keeps accumulation backoff when the mid-flight trigger was accumulation-only', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    const haltOutcome: SendCaptureBatchOutcome = {
+      http: { status: null, body: null },
+      sentIds: ['cap-1'],
+      unreadableIds: [],
+    };
+    let resolveSend!: (outcome: SendCaptureBatchOutcome) => void;
+    sendMock.mockImplementation(() => new Promise((resolve) => { resolveSend = resolve; }));
+
+    requestCaptureFlush();
+    await drainFlush(); // 루프가 sendCaptureBatch 에 도달, 전송 pending
+    requestCaptureFlush({ fromAccumulation: true }); // in-flight 중 누적 트리거 → rerun 예약
+    resolveSend(haltOutcome); // 네트워크 오류 → halt
+    await drainFlush();
+    // 예약이 누적뿐이었으므로 rerun 도 억제 대상 — 재전송이 일어나면 안 된다.
+    expect(sendMock).toHaveBeenCalledTimes(1);
+
+    requestCaptureFlush(); // 상황 변화 트리거가 억제를 푼다
+    await drainFlush();
+    expect(sendMock).toHaveBeenCalledTimes(2);
+
+    resolveSend(haltOutcome); // 두 번째 전송 종료 (모듈 in-flight 상태 정리)
+    await drainFlush();
+  });
+
+  it('reruns after halt when a non-accumulation trigger arrived mid-flight', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    const haltOutcome: SendCaptureBatchOutcome = {
+      http: { status: null, body: null },
+      sentIds: ['cap-1'],
+      unreadableIds: [],
+    };
+    let resolveSend!: (outcome: SendCaptureBatchOutcome) => void;
+    sendMock.mockImplementation(() => new Promise((resolve) => { resolveSend = resolve; }));
+
+    requestCaptureFlush();
+    await drainFlush();
+    requestCaptureFlush({ fromAccumulation: true });
+    requestCaptureFlush(); // 비-누적 트리거도 도착 — 상황 변화 신호가 예약에 섞임
+    resolveSend(haltOutcome);
+    await drainFlush();
+    // 예약에 상황 변화 신호가 있었으므로 rerun 은 진행돼야 한다 (억제 과잉 방지).
+    expect(sendMock).toHaveBeenCalledTimes(2);
+
+    resolveSend(haltOutcome);
+    await drainFlush();
+    expect(sendMock).toHaveBeenCalledTimes(2); // 추가 rerun 없음
   });
 });

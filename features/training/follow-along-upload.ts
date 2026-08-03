@@ -30,8 +30,11 @@ import { loadTrainingStore } from './training-storage';
 let flushInFlight = false;
 // flush 도중 도착한 트리거의 재실행 예약. 루프가 배치마다 스토어를 재읽으므로 성공 진행 중의
 // 신규 클립은 같은 실행이 집어가지만, halt(5xx·네트워크) 직전 도착분은 이번 실행이 못 본다 —
-// 종료 후 1회 재기동해 트리거의 "즉시 전송" 보장을 지킨다.
+// 종료 후 1회 재기동해 트리거의 "즉시 전송" 보장을 지킨다. 예약은 트리거 종류를 보존한다:
+// 누적(①)만으로 예약된 rerun 은 누적 취급이라 halt 후엔 억제된다 — 안 그러면 전송 대기
+// (최대 timeout 60초) 중 유입되는 캡처마다 rerun 이 억제를 풀어 재압축 사슬이 된다.
 let rerunRequested = false;
+let rerunFromAccumulationOnly = true;
 // 일시 장애(5xx·네트워크 오류·해석 불가 응답)로 halt 한 사실의 기억. 서 있는 동안 누적
 // 트리거(①)의 재시도만 억제한다 — 오프라인 세션에서 캡처 저장마다 같은 배치를 재압축·재전송
 // 하는 낭비를 막는다 (NFR-01). 나머지 트리거(②~⑤)는 상황 변화 신호라 플래그를 풀고 진행한다.
@@ -51,6 +54,7 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
   haltedByTransientFailure = false;
   if (flushInFlight) {
     rerunRequested = true;
+    if (!options?.fromAccumulation) rerunFromAccumulationOnly = false;
     return;
   }
   flushInFlight = true;
@@ -59,8 +63,10 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
     .finally(() => {
       flushInFlight = false;
       if (rerunRequested) {
+        const fromAccumulation = rerunFromAccumulationOnly;
         rerunRequested = false;
-        requestCaptureFlush();
+        rerunFromAccumulationOnly = true;
+        requestCaptureFlush(fromAccumulation ? { fromAccumulation: true } : undefined);
       }
     });
 }
