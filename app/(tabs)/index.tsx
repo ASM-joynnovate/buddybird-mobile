@@ -60,6 +60,7 @@ export default function SessionSetupScreen() {
         size="lg"
         variant="primary"
         accessibilityLabel={canContinue ? startLabel : t('home.startDisabledA11y')}
+        testID="session-start-cta"
       />
 
       <UploadConsentHost />

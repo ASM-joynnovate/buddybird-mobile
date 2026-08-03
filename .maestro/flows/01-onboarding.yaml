@@ -1,0 +1,12 @@
+# 시나리오 01 — 온보딩 완주: 처음 설치한 사용자가 프로필을 만들고 학습 화면에 도달한다
+appId: com.joynnovate.buddybird.dev
+tags:
+  - smoke
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+# 학습 시작 CTA는 홈 화면 스크롤 하단에 있어 스크롤하며 도달 확인
+- scrollUntilVisible:
+    element:
+      id: "session-start-cta"
+    direction: DOWN
+    centerElement: true

@@ -24,7 +24,13 @@ export function UploadConsentDialog({ onGrant, onDeny }: UploadConsentDialogProp
 
       <CenterDialog.Footer>
         <View style={styles.footerButton}>
-          <PillButton label={t('uploadConsent.denyButton')} variant="white" full onPress={onDeny} />
+          <PillButton
+            label={t('uploadConsent.denyButton')}
+            variant="white"
+            full
+            onPress={onDeny}
+            testID="upload-consent-deny"
+          />
         </View>
         <View style={styles.footerButton}>
           <PillButton

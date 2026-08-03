@@ -27,7 +27,8 @@ export function SessionHeader({ progress, isLearning, onStop }: SessionHeaderPro
         depth="card"
         faceStyle={styles.stopFace}
         hitSlop={4}
-        onPress={onStop}>
+        onPress={onStop}
+        testID="session-stop">
         <Text style={styles.stopBtnText}>{t('sessionActive.stopLabel')}</Text>
       </Pressable3D>
     </View>

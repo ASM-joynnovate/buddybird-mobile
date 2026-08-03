@@ -57,13 +57,13 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 - 책임 단위로 분리 — 한 커밋 = 한 책임
 - 본문 영어, attribution 라인 금지
 
-## 4. 테스트 정책 (MVP)
+## 4. 테스트 정책
 
-- **MVP 단계에서는 자동 테스트를 작성하지 않습니다.** (`yarn` 스크립트에 Jest 미설치)
-- 검증은 다음에 의존:
+- **e2e 스모크 테스트는 Maestro로 자동화한다** (BB-159, 2026-07-29 도입). testID 규약·레이아웃·실행 레시피·검증 한계는 `docs/CONVENTIONS.md` §8.
+- 유닛 테스트는 계속 범위 외 (Jest 미설치). 도입은 별도 정책 변경으로 결정합니다.
+- 검증 스택:
   1. TypeScript (`yarn typecheck`)
   2. Lint (`yarn lint`)
-  3. 수동 user flow (README 체크리스트)
-  4. Firebase DebugView / Clarity Live (analytics 변경 시)
-
-테스트 도입은 별도 정책 변경으로 결정합니다.
+  3. e2e 스모크 (`yarn e2e:android:smoke` — 핵심 happy path 회귀)
+  4. 수동 user flow (README 체크리스트 — e2e 범위 외 영역: 오디오 품질·세션 완주·iOS)
+  5. Firebase DebugView / Clarity Live (analytics 변경 시)

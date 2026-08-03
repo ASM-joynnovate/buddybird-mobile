@@ -12,9 +12,10 @@ interface ChipProps {
   active?: boolean;
   tone?: ChipTone;
   onPress?: () => void;
+  testID?: string;
 }
 
-export function Chip({ label, active = false, tone = 'primary', onPress }: ChipProps) {
+export function Chip({ label, active = false, tone = 'primary', onPress, testID }: ChipProps) {
   return (
     <Pressable3D
       accessibilityLabel={label}
@@ -24,7 +25,8 @@ export function Chip({ label, active = false, tone = 'primary', onPress }: ChipP
       depth="chip"
       faceStyle={[styles.chip, active ? faceStylesByTone[tone] : styles.inactive]}
       hitSlop={6}
-      onPress={onPress}>
+      onPress={onPress}
+      testID={testID}>
       <Text style={[styles.label, active ? labelStylesByTone[tone] : styles.inactiveLabel]}>{label}</Text>
     </Pressable3D>
   );

@@ -45,7 +45,7 @@ export function OnboardingWelcomeView({
           <Text style={styles.bodyEmphasis}>{bodyEmphasis}</Text>
           {bodyAfter}
         </Text>
-        <PillButton full label={ctaLabel} onPress={onStart} size="lg" style={{ width: ctaWidth }} />
+        <PillButton full label={ctaLabel} onPress={onStart} size="lg" style={{ width: ctaWidth }} testID="onboarding-welcome-cta" />
       </View>
 
       <View style={styles.bottomSpacer} />

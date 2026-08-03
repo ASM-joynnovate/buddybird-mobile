@@ -56,6 +56,7 @@ export default function ProfileScreen() {
           onPress={() => router.push('/profile-edit')}
           size="lg"
           style={styles.ctaButton}
+          testID="profile-edit-cta"
           variant="white"
         />
         <PillButton

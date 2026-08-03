@@ -102,7 +102,7 @@ export function OnboardingProfileView({
         {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
       </KeyboardAwareScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 34 }]}>
-        <PillButton disabled={isSaving} full label={ctaLabel} onPress={onSubmit} size="lg" />
+        <PillButton disabled={isSaving} full label={ctaLabel} onPress={onSubmit} size="lg" testID="onboarding-profile-submit" />
       </View>
     </View>
   );

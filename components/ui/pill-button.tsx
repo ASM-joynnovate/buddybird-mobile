@@ -19,6 +19,7 @@ interface PillButtonProps {
   icon?: IconSymbolName;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 export function PillButton({
@@ -31,6 +32,7 @@ export function PillButton({
   icon,
   accessibilityLabel,
   style,
+  testID,
 }: PillButtonProps) {
   const isQuietVariant = variant === 'ghost' || variant === 'white';
   const isYellowVariant = variant === 'yellow' || variant === 'sun';
@@ -64,7 +66,8 @@ export function PillButton({
         full ? styles.full : undefined,
       ]}
       onPress={onPress}
-      style={[full ? styles.full : undefined, style]}>
+      style={[full ? styles.full : undefined, style]}
+      testID={testID}>
       <View style={styles.content}>
         {icon ? <IconSymbol color={iconColor} name={icon} size={sizeIconBySize[size]} /> : null}
         <Text style={[styles.label, isKoreanLabel ? styles.labelKorean : styles.labelLatin, labelToneStyle]}>
