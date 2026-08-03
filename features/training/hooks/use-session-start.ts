@@ -1,6 +1,6 @@
 import { AudioModule } from 'expo-audio';
-import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
@@ -33,6 +33,17 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
   const startingRef = useRef(false);
   const [isStarting, setIsStarting] = useState(false);
 
+  // 성공 경로에서는 가드를 바로 풀지 않는다 — router.push 가 반환된 뒤에도 전환 애니메이션
+  // 동안 setup 화면이 탭을 받으므로, finally 에서 풀면 그 틈의 재탭이 두 번째 세션을 만들어
+  // 네이티브 거부(sessionAlreadyRunning)를 다시 일으킨다 (BB-300). 세션 화면에서 이
+  // 화면으로 복귀(focus)할 때 푼다.
+  useFocusEffect(
+    useCallback(() => {
+      startingRef.current = false;
+      setIsStarting(false);
+    }, []),
+  );
+
   // 마이크 권한은 네이티브 세션 시작(validateFiles)의 필수 조건이라 차단형으로 확보한다.
   // 미결정 상태면 시스템 프롬프트가 뜨고, 거부 상태(iOS는 최초 거부 후 재프롬프트 불가)면
   // 설정으로 안내한다 — 세션 화면에 들어가 실패로 알게 하는 대신 시작 시점에 막는다.
@@ -57,6 +68,7 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
     if (startingRef.current) return;
     startingRef.current = true;
     setIsStarting(true);
+    let navigated = false;
     try {
       if (!(await ensureMicPermission())) return;
       await requestSessionNotificationPermission();
@@ -90,9 +102,12 @@ export function useSessionStart({ selectedEntry, setup }: SessionStartParams) {
         },
       });
       router.push('/session-active');
+      navigated = true;
     } finally {
-      startingRef.current = false;
-      setIsStarting(false);
+      if (!navigated) {
+        startingRef.current = false;
+        setIsStarting(false);
+      }
     }
   }
 
