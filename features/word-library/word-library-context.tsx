@@ -15,6 +15,7 @@ import { useI18n } from '@/features/i18n/i18n-context';
 import { createWordEntry, deleteWordEntry, reconcilePresetSeeds, upsertWordEntry } from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
 import type { CreateWordEntryInput, WordEntry, WordLibraryStore } from './word-library-types';
+import { requestWordUpload } from './word-upload';
 
 interface WordLibraryContextValue {
   entries: WordEntry[];
@@ -102,6 +103,9 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
       const nowIso = new Date().toISOString();
       const entry = createWordEntry(input, nowIso);
       await updateStore((current, iso) => upsertWordEntry(current, entry, iso));
+      // 업로드 트리거 ① (SPEC-0003): 단어 생성 — 게이트가 저장소를 읽으므로 영속화 후에 건다.
+      // 프리셋 단어는 서버가 시드하므로 보내지 않는다.
+      if (entry.sourceType === 'recording') requestWordUpload(entry.id);
       return entry;
     },
     [updateStore]
