@@ -1,11 +1,19 @@
-import { buildWordUploadRequest } from '../word-upload-request';
+// 요청 구성 (SPEC-0002 §단어 업로드 — 요청값). 순수 함수라 협력자 없이 입력·출력만 본다.
+// 입력값은 실제 앱이 넘기는 형태 — clientWordId 는 `wentry-<ISO>-<random>`,
+// audioUri 는 hydrate 된 Documents/recordings 절대 경로다.
 
-const baseInput = {
-  apiBaseUrl: 'https://api.test',
-  uid: 'uid-1',
-  clientWordId: 'wentry-1',
-  label: '안녕',
-  audioUri: 'file:///abs/recordings/recording-1.m4a',
+import { buildWordUploadRequest, type WordUploadRequestInput } from '../word-upload-request';
+
+const RECORDING_FILE_NAME = 'recording-2026-08-01T09-14-32-118Z.m4a';
+const RECORDINGS_DIRECTORY =
+  'file:///var/mobile/Containers/Data/Application/6F3C1E1A-2B77-4E5D-9C42-8D0B5A9E7C31/Documents/recordings';
+
+const baseInput: WordUploadRequestInput = {
+  apiBaseUrl: 'https://api.buddybird.app',
+  uid: 'Xj2mQ8pLd0Zb7Nf4Rk1Ts6Vy9Cw3',
+  clientWordId: 'wentry-2026-08-01T09:14:32.118Z-k3n8v2qa',
+  label: '사랑해',
+  audioUri: `${RECORDINGS_DIRECTORY}/${RECORDING_FILE_NAME}`,
   platformOS: 'ios',
   osVersion: '18.4.1',
   modelName: 'iPhone 17 Pro',
@@ -14,15 +22,16 @@ const baseInput = {
 describe('buildWordUploadRequest fields', () => {
   it('maps every field the contract requires', () => {
     expect(buildWordUploadRequest(baseInput).fields).toEqual({
-      client_word_id: 'wentry-1',
-      firebase_anon_uid: 'uid-1',
-      label: '안녕',
+      client_word_id: 'wentry-2026-08-01T09:14:32.118Z-k3n8v2qa',
+      firebase_anon_uid: 'Xj2mQ8pLd0Zb7Nf4Rk1Ts6Vy9Cw3',
+      label: '사랑해',
       device_platform: 'iOS',
       device_os_version: '18.4.1',
       device_model: 'iPhone 17 Pro',
     });
   });
 
+  // 계약값은 `iOS`·`Android` 두 가지다 — 그 외 플랫폼은 빈 문자열로 보낸다.
   it.each([
     ['ios', 'iOS'],
     ['android', 'Android'],
@@ -31,7 +40,7 @@ describe('buildWordUploadRequest fields', () => {
     expect(buildWordUploadRequest({ ...baseInput, platformOS }).fields.device_platform).toBe(expected);
   });
 
-  it('sends empty device fields when the device info is unavailable', () => {
+  it('sends empty device fields when expo-device read nothing', () => {
     const { fields } = buildWordUploadRequest({ ...baseInput, osVersion: null, modelName: null });
 
     expect(fields.device_os_version).toBe('');
@@ -40,18 +49,22 @@ describe('buildWordUploadRequest fields', () => {
 });
 
 describe('buildWordUploadRequest field limits', () => {
-  // 단어 이름 입력란에 길이 제한이 없어 사용자가 상한을 넘길 수 있다.
-  it('truncates a label longer than 50 characters', () => {
-    const label = '가'.repeat(60);
+  // 단어 이름 입력란에 길이 제한이 없어 사용자가 문장을 그대로 넣을 수 있다.
+  const OVERLONG_LABEL = '우리 집 앵무새 초코가 아침마다 현관에서 하는 인사말 안녕하세요 반가워요 오늘도 좋은 하루 보내세요';
+  // 상한 초과는 실기기에서 드물지만, 벤더 커스텀 빌드 문자열이 넘길 수 있다.
+  const VENDOR_OS_VERSION = '15.0.0_custom_vendor_build_20260801';
+  const VENDOR_MODEL_NAME = 'SM-S928N Galaxy S24 Ultra 5G Enterprise Edition';
 
-    const sent = buildWordUploadRequest({ ...baseInput, label }).fields.label;
+  // 초과분을 클라이언트가 자르지 않으면 400 이 오고, 400 은 영구 `failed` 로 굳는다.
+  it('truncates a label longer than the contract limit', () => {
+    const { fields } = buildWordUploadRequest({ ...baseInput, label: OVERLONG_LABEL });
 
-    expect(sent).toHaveLength(50);
-    expect(sent).toBe(label.slice(0, 50));
+    expect(fields.label).toHaveLength(50);
+    expect(fields.label).toBe(OVERLONG_LABEL.slice(0, 50));
   });
 
-  it('keeps a label of exactly 50 characters intact', () => {
-    const label = '나'.repeat(50);
+  it('leaves a label at exactly the contract limit intact', () => {
+    const label = OVERLONG_LABEL.slice(0, 50);
 
     expect(buildWordUploadRequest({ ...baseInput, label }).fields.label).toBe(label);
   });
@@ -59,48 +72,67 @@ describe('buildWordUploadRequest field limits', () => {
   it('truncates device fields to their contract limits', () => {
     const { fields } = buildWordUploadRequest({
       ...baseInput,
-      osVersion: 'v'.repeat(40),
-      modelName: 'm'.repeat(40),
+      osVersion: VENDOR_OS_VERSION,
+      modelName: VENDOR_MODEL_NAME,
     });
 
-    expect(fields.device_os_version).toHaveLength(20);
-    expect(fields.device_model).toHaveLength(30);
+    expect(fields.device_os_version).toBe(VENDOR_OS_VERSION.slice(0, 20));
+    expect(fields.device_model).toBe(VENDOR_MODEL_NAME.slice(0, 30));
   });
 });
 
 describe('buildWordUploadRequest url', () => {
   it('targets the plural words path', () => {
-    expect(buildWordUploadRequest(baseInput).url).toBe('https://api.test/api/v1/words');
+    expect(buildWordUploadRequest(baseInput).url).toBe('https://api.buddybird.app/api/v1/words');
   });
 
-  // 끝 슬래시를 그대로 이으면 `//api/v1/words` 가 되고, 서버가 404 를 주면 4xx 폐기 경로로 흐른다.
-  it.each(['https://api.test/', 'https://api.test///'])('normalizes a trailing slash in %s', (apiBaseUrl) => {
-    expect(buildWordUploadRequest({ ...baseInput, apiBaseUrl }).url).toBe('https://api.test/api/v1/words');
-  });
+  // 끝 슬래시를 그대로 이으면 `//api/v1/words` 가 되고, 서버 404 는 4xx 폐기 경로로 흐른다 —
+  // 설정 실수 하나가 단어 전량의 영구 실패로 증폭된다.
+  it.each(['https://api.buddybird.app/', 'https://api.buddybird.app///'])(
+    'normalizes the trailing slash in %s',
+    (apiBaseUrl) => {
+      expect(buildWordUploadRequest({ ...baseInput, apiBaseUrl }).url).toBe(
+        'https://api.buddybird.app/api/v1/words',
+      );
+    },
+  );
 });
 
-describe('buildWordUploadRequest file', () => {
+describe('buildWordUploadRequest file part', () => {
   it('names the part after the stored recording file', () => {
     expect(buildWordUploadRequest(baseInput).file).toEqual({
-      uri: 'file:///abs/recordings/recording-1.m4a',
-      name: 'recording-1.m4a',
+      uri: `${RECORDINGS_DIRECTORY}/${RECORDING_FILE_NAME}`,
+      name: RECORDING_FILE_NAME,
       type: 'audio/x-m4a',
     });
   });
 
+  // 서버는 파일 내용으로 타입을 감지한다 — 이 값은 참고용이고, 모르는 확장자는 서버에 맡긴다.
   it.each([
-    ['recording.m4a', 'audio/x-m4a'],
-    ['recording.wav', 'audio/wav'],
-    ['recording.mp3', 'audio/mpeg'],
-    ['recording.aac', 'audio/aac'],
-    ['recording.bin', 'application/octet-stream'],
-  ])('derives the mime type of %s as %s', (fileName, expected) => {
-    const audioUri = `file:///abs/${fileName}`;
+    ['m4a', 'audio/x-m4a'],
+    ['mp4', 'audio/mp4'],
+    ['wav', 'audio/wav'],
+    ['mp3', 'audio/mpeg'],
+    ['aac', 'audio/aac'],
+    ['caf', 'application/octet-stream'],
+  ])('derives the mime type of a .%s recording as %s', (extension, expected) => {
+    const audioUri = `${RECORDINGS_DIRECTORY}/recording-2026-08-01T09-14-32-118Z.${extension}`;
 
     expect(buildWordUploadRequest({ ...baseInput, audioUri }).file.type).toBe(expected);
   });
 
-  it('falls back to a default name when the uri has no file segment', () => {
-    expect(buildWordUploadRequest({ ...baseInput, audioUri: 'file:///' }).file.name).toBe('reference-audio.m4a');
+  it('ignores a query string when reading the file name and extension', () => {
+    const audioUri = `${RECORDINGS_DIRECTORY}/${RECORDING_FILE_NAME}?generation=2`;
+
+    const { file } = buildWordUploadRequest({ ...baseInput, audioUri });
+
+    expect(file.name).toBe(RECORDING_FILE_NAME);
+    expect(file.type).toBe('audio/x-m4a');
+  });
+
+  it('falls back to a default name when the uri carries no file segment', () => {
+    expect(buildWordUploadRequest({ ...baseInput, audioUri: `${RECORDINGS_DIRECTORY}/` }).file.name).toBe(
+      'reference-audio.m4a',
+    );
   });
 });

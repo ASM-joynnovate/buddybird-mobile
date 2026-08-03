@@ -1,25 +1,35 @@
+// 전송 결과의 판정 (SPEC-0003 §단어 업로드 — 응답 처리).
+// 상태 코드와 후속 행동 3종(uploaded·failed·halt)의 대응만 검증한다.
+
 import { interpretWordUploadResult } from '../word-upload-response';
 
 describe('interpretWordUploadResult', () => {
-  it.each([200, 201, 204])('marks %s as uploaded', (status) => {
-    expect(interpretWordUploadResult({ status })).toEqual({ kind: 'uploaded' });
+  describe('uploaded', () => {
+    it.each([200, 201, 204])('resolves status %i to uploaded', (status) => {
+      expect(interpretWordUploadResult({ status })).toEqual({ kind: 'uploaded' });
+    });
   });
 
-  // 4xx 는 같은 요청을 다시 보내도 같은 답이 온다 — 영구 실패로 굳히고 재전송하지 않는다.
-  it.each([400, 404, 413, 422, 499])('marks %s as failed', (status) => {
-    expect(interpretWordUploadResult({ status })).toEqual({ kind: 'failed' });
+  describe('failed', () => {
+    // 4xx 는 영구 거부다. `failed` 로 굳혀 그 단어를 다시 보내지 않는다.
+    it.each([400, 404, 413, 422, 499])('resolves status %i to failed', (status) => {
+      expect(interpretWordUploadResult({ status })).toEqual({ kind: 'failed' });
+    });
   });
 
-  it.each([500, 502, 503])('halts on %s so the word stays retriable', (status) => {
-    expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
-  });
+  describe('halt', () => {
+    // 5xx 는 서버측 일시 장애다. 기록을 남기지 않아 다음 트리거가 다시 보낸다.
+    it.each([500, 502, 503])('resolves status %i to halt', (status) => {
+      expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
+    });
 
-  it('halts when the request produced no response', () => {
-    expect(interpretWordUploadResult({ status: null })).toEqual({ kind: 'halt' });
-  });
+    it('resolves a missing response to halt', () => {
+      expect(interpretWordUploadResult({ status: null })).toEqual({ kind: 'halt' });
+    });
 
-  // 3xx 는 계약에 없다 — 단어를 영구 실패로 굳히지 않는 쪽으로 판정한다.
-  it.each([301, 302])('halts on unexpected status %s', (status) => {
-    expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
+    // 계약에 없는 상태 코드는 영구 실패로 굳히지 않는 쪽으로 보수 판정한다.
+    it.each([301, 302, 100])('resolves the uncontracted status %i to halt', (status) => {
+      expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
+    });
   });
 });
