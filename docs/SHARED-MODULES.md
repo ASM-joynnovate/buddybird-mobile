@@ -43,6 +43,12 @@
 | `beginMediaPickerGate` / `endMediaPickerGate` | `@/features/shared/media-picker-gate` | `(): void` | 시스템 미디어 픽커 노출 구간 표시. 픽커 launch 전 `begin`, `try/finally`로 `end` (producer: `components/profile/profile-avatar-picker.tsx` 단일 전제) |
 | `isMediaPickerGateActive` | `@/features/shared/media-picker-gate` | `(): boolean` | 게이트 활성 여부. Android에서 픽커 activity로 인한 AppState background 전이를 "앱 이탈" 판정(예: `onboarding_abandoned`)에서 제외할 때 소비 |
 
+### 2.4 설정 — `features/shared/`
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `readExtraString` | `@/features/shared/expo-extra` | `(key: string) => string \| null` | `app.config.ts` `extra` 설정값 읽기 — 비어 있지 않은 string 만 trim 해 반환, 그 외 null. 소비처: 업로드 게이트 `apiBaseUrl`, 앱 업데이트 `iosAppStoreId`, analytics `clarityProjectId` |
+
 ## 3. Analytics — `features/analytics/`
 
 | Export | 경로 | 시그니처 | 용도 |
@@ -128,7 +134,8 @@ dark-surface 대응이 새로 필요하면 `*OnDark` 변형을 토큰으로 먼�
 | `completedCyclesAtPosition` | `@/features/training/session-cycle-model` | `(cycle, phase, phaseElapsed, restSecs) => number` | 부분 마지막 회차를 포함한 네이티브 위치에서 완전히 끝낸 회차 수 계산 |
 | `loadFollowAlongCaptures` / `appendFollowAlongCapture` / `deleteCaptures` / `applyCaptureMeta` | `@/features/training/follow-along-capture-storage` | `() => Promise<FollowAlongCaptureStore>` / `(c: Omit<FollowAlongCapture,'sizeBytes'>) => Promise<number>` / `(ids: readonly string[]) => Promise<void>` / `(metaById: Record<string, CaptureRegistrationMeta>) => Promise<void>` | `persistKeyedStore` 기반 캡처 로컬 스토어(`@buddybird/follow-along-captures`, `capturesById.uri` 오디오 URI 컬렉션). append 는 파일 크기를 측정해 기록하고 총량 500MB 초과 시 `capturedAt` 오래된 순으로 파일·기록을 삭제하며, 저장 후 잔여 캡처 수를 반환한다(업로드 트리거 ① 누적 판정이 별도 읽기 없이 재사용). delete 는 업로드 성공·거부·파일 유실 정리용 파일+레코드 일괄 삭제, applyCaptureMeta 는 legacy 레코드 메타 백필 영속화. 쓰기 전부 모듈 write-queue 로 직렬화. 손상 시 조용히 초기화(학습 스토어의 throw-to-brick 와 반대 — best-effort 사이드 채널) |
 | `CapturePhase` (type) | `@/features/training/follow-along-capture-types` | `'learning' \| 'rest'` | 캡처가 발생한 세션 phase. `FollowAlongCapture.phase` 필수 필드이자 업로드 페이로드 필드. 파서는 phase 도입 이전 기록을 `'learning'` 으로 읽는다(하위 호환) |
-| `requestCaptureFlush` | `@/features/training/follow-along-upload` | `(options?: { fromAccumulation?: boolean }) => void` | 캡처 업로드 flush 오케스트레이터의 단일 진입점 — 트리거 5종(10건 누적·세션 종료·콜드 스타트/포그라운드·네트워크 복구·동의 granted)이 전부 이 함수로 수렴 (SPEC-0003). fire-and-forget single-flight — 진행 중 호출은 종료 후 1회 재기동 예약. 누적 트리거(①)는 `fromAccumulation` 표시 필수 — 직전 flush 가 일시 장애(5xx·네트워크·해석 불가 응답)로 중단된 상태면 no-op, 상황 변화 트리거(②~⑤)가 오면 억제 해제. 게이트(동의·익명 uid·`extra.apiBaseUrl`) 판정, legacy 백필, 배치 조립·전송·응답 처리는 내부 소관이라 호출부는 시점만 책임진다. 웹 no-op |
+| `requestCaptureFlush` | `@/features/training/follow-along-upload` | `(options?: { fromAccumulation?: boolean }) => void` | 캡처 업로드 flush 오케스트레이터의 단일 진입점 — 트리거 5종(10건 누적·세션 종료·콜드 스타트/포그라운드·네트워크 복구·동의 granted)이 전부 이 함수로 수렴 (SPEC-0003). fire-and-forget single-flight — 진행 중 호출은 종료 후 1회 재기동 예약. 누적 트리거(①)는 `fromAccumulation` 표시 필수 — 직전 flush 가 일시 장애(5xx·네트워크·해석 불가 응답)로 중단된 상태면 no-op, 상황 변화 트리거(②~⑤)가 오면 억제 해제. 게이트(동의·익명 uid·`extra.apiBaseUrl`) 판정, legacy 백필, 배치 조립·전송·응답 처리는 내부 소관이라 호출부는 시점만 책임진다. 내부 구성은 역할 모듈 4개 — `follow-along-upload-gate`(게이트 판정)·`-batch`(배치 조립·metadata payload)·`-response`(응답·실패 분기 해석)는 순수, `-client`(zip 생성·multipart 전송)만 I/O — 단어 업로드 등 후속 flush 골격 재사용 시 이 모듈들을 먼저 확인. 웹 no-op |
+| `resolveClientWordId` / `buildCaptureRegistrationMeta` | `@/features/training/follow-along-capture-meta` | `(wordId: string, word?: Pick<TrainingWord,'presetKey'\|'libraryEntryId'>) => string` / `(wordId, word, profile: Pick<ParrotProfile,'species'\|'birthDate'> \| null) => CaptureRegistrationMeta` | 캡처 등록 시점 메타 계산 (순수) — `client_word_id` 치환(`preset-<presetKey>` > `libraryEntryId`(wentry-…) > 원본 wordId 강등)과 앵무새 프로필 스냅샷. 등록(`storeNativeCapturedSegments`)과 flush 의 legacy 백필이 같은 함수를 재사용해 치환 규칙을 일치시킨다 |
 | `prepareSessionAudioUri` / `prepareSessionCaptureDirectoryUri` | `@/features/training/session-audio-assets` | `(source: string \| number) => Promise<string>` / `() => string` | preset Metro asset을 로컬 `file://` URI로 준비하고 네이티브 캡처 디렉터리를 생성 |
 | `SESSION_VAD_CONFIG` / `MAX_PENDING_CAPTURE_BYTES` | `@/features/training/session-audio-engine-config` | `SessionVadConfig` / `number` | 양 플랫폼 네이티브 엔진에 전달하는 공통 VAD 초기값과 미처리 파일 상한 |
 | `storeNativeCapturedSegments` | `@/features/training/native-session-capture-storage` | `(segments: CapturedSegment[], wordId: string) => Promise<void>` | 네이티브 미처리 발화를 기존 캡처 store에 idempotent 저장하고 성공한 ID만 네이티브 목록에서 확인 처리 |
