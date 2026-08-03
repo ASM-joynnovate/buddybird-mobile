@@ -20,6 +20,11 @@ const ZIP_COMPRESSION_LEVEL = 2;
 // 저속망 업로드를 감안한 상한. 초과 시 abort 는 네트워크 오류와 동일하게 처리된다 (halt·큐 유지).
 const CAPTURE_UPLOAD_TIMEOUT_MS = 60_000;
 
+// 서버 계약(SPEC-0002)의 필드 상한. 클라이언트가 초과분을 잘라 400을 예방한다 — 배치 단위
+// 필드라 초과 시 단건 분할로도 회복 불가(같은 값이 다시 붙음), 4xx 폐기 경로로 증폭된다.
+const DEVICE_OS_VERSION_MAX_LENGTH = 20;
+const DEVICE_MODEL_MAX_LENGTH = 30;
+
 function getUploadTmpDirectory(): Directory {
   return new Directory(Paths.cache, UPLOAD_TMP_DIR_NAME);
 }
@@ -117,8 +122,8 @@ async function postCaptureBatch(
   const form = new FormData();
   form.append('firebase_anon_uid', input.uid);
   form.append('device_platform', resolveDevicePlatform());
-  form.append('device_os_version', Device.osVersion ?? '');
-  form.append('device_model', Device.modelName ?? '');
+  form.append('device_os_version', (Device.osVersion ?? '').slice(0, DEVICE_OS_VERSION_MAX_LENGTH));
+  form.append('device_model', (Device.modelName ?? '').slice(0, DEVICE_MODEL_MAX_LENGTH));
   form.append('metadata', JSON.stringify(sentMetadata));
   form.append('file', {
     uri: zipFile.uri,
@@ -127,11 +132,15 @@ async function postCaptureBatch(
     // RN 의 FormData 파일 파트는 DOM 타입에 없어 단언이 필요하다.
   } as unknown as Blob);
 
+  // base URL 끝 슬래시를 정규화한다 — `//api/v1/captures` 는 서버가 404 를 줄 수 있고,
+  // 404 는 4xx 폐기 경로로 흘러 설정 실수 하나가 캡처 전량 폐기로 증폭된다.
+  const apiBaseUrl = input.apiBaseUrl.replace(/\/+$/, '');
+
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), CAPTURE_UPLOAD_TIMEOUT_MS);
   let response: Response;
   try {
-    response = await fetch(`${input.apiBaseUrl}/api/v1/captures`, {
+    response = await fetch(`${apiBaseUrl}/api/v1/captures`, {
       method: 'POST',
       body: form,
       signal: abortController.signal,
