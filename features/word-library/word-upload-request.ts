@@ -1,7 +1,7 @@
 // 단어 업로드 요청의 구성 (SPEC-0002 §단어 업로드 — 요청값). 순수 함수 — I/O 없음.
 // 무엇을 어디로 보낼지만 정하고, 실제 전송은 client 가 한다.
 
-// 서버 계약(SPEC-0002)의 필드 상한. 클라이언트가 초과분을 잘라 400 을 예방한다 —
+// 서버 계약(SPEC-0002)의 필드 상한(코드포인트 기준). 클라이언트가 초과분을 잘라 400 을 예방한다 —
 // 400 은 영구 `failed` 로 굳어 그 단어가 다시 올라가지 않는다.
 // label 은 사용자 입력이고 단어 이름 입력란에 길이 제한이 없어 실제로 초과할 수 있다.
 // 앱 안의 단어 이름은 그대로 두고 서버에 보내는 값만 자른다.
@@ -37,10 +37,10 @@ export function buildWordUploadRequest(input: WordUploadRequestInput): WordUploa
     fields: {
       client_word_id: input.clientWordId,
       firebase_anon_uid: input.uid,
-      label: input.label.slice(0, LABEL_MAX_LENGTH),
+      label: truncateToCodePoints(input.label, LABEL_MAX_LENGTH),
       device_platform: resolveDevicePlatform(input.platformOS),
-      device_os_version: (input.osVersion ?? '').slice(0, DEVICE_OS_VERSION_MAX_LENGTH),
-      device_model: (input.modelName ?? '').slice(0, DEVICE_MODEL_MAX_LENGTH),
+      device_os_version: truncateToCodePoints(input.osVersion ?? '', DEVICE_OS_VERSION_MAX_LENGTH),
+      device_model: truncateToCodePoints(input.modelName ?? '', DEVICE_MODEL_MAX_LENGTH),
     },
     file: {
       uri: input.audioUri,
@@ -48,6 +48,14 @@ export function buildWordUploadRequest(input: WordUploadRequestInput): WordUploa
       type: resolveMimeType(input.audioUri),
     },
   };
+}
+
+// 코드포인트 기준으로 자른다. `slice` 는 UTF-16 코드 유닛 기준이라 상한이 이모지 한가운데
+// 걸리면 서로게이트 페어를 쪼개 lone surrogate 를 남기고, 그 값은 UTF-8 로 U+FFFD 가 되어
+// 서버에 깨진 라벨이 저장된다. 서버 계약의 상한도 코드포인트 기준이다.
+function truncateToCodePoints(value: string, maxLength: number): string {
+  const codePoints = Array.from(value);
+  return codePoints.length <= maxLength ? value : codePoints.slice(0, maxLength).join('');
 }
 
 // base URL 끝 슬래시를 정규화한다 — `//api/v1/words` 는 서버가 404 를 줄 수 있고,

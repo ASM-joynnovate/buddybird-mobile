@@ -81,6 +81,48 @@ describe('buildWordUploadRequest field limits', () => {
   });
 });
 
+// 상한이 이모지 한가운데 걸리는 경우. 코드 유닛 기준으로 자르면 서로게이트 페어가 쪼개져
+// lone surrogate 가 남고, UTF-8 로 인코딩되며 U+FFFD 로 깨진 라벨이 서버에 저장된다.
+// 단어 이름 입력란에 길이 제한이 없어 사용자가 실제로 이 경계를 만들 수 있다.
+describe('buildWordUploadRequest label encoding', () => {
+  const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+  it('does not split an emoji that straddles the label limit', () => {
+    const label = `${'가'.repeat(49)}🦜 하고 인사하기`;
+
+    const sent = buildWordUploadRequest({ ...baseInput, label }).fields.label;
+
+    expect(sent).not.toMatch(LONE_SURROGATE);
+    // lone surrogate 는 UTF-8 로 인코딩할 수 없어 여기서 throw 한다.
+    expect(() => encodeURIComponent(sent)).not.toThrow();
+    // 50번째 코드포인트가 이모지 전체다 — 쪼개는 대신 온전히 담고 그 뒤를 버린다.
+    expect(sent).toBe(`${'가'.repeat(49)}🦜`);
+    expect(Array.from(sent)).toHaveLength(50);
+  });
+
+  it('counts the label limit in code points, not utf-16 code units', () => {
+    const label = '🦜'.repeat(60);
+
+    const sent = buildWordUploadRequest({ ...baseInput, label }).fields.label;
+
+    expect(Array.from(sent)).toHaveLength(50);
+    expect(sent).toBe('🦜'.repeat(50));
+  });
+
+  it('keeps an emoji label that fits the limit intact', () => {
+    const label = `안녕 🦜`;
+
+    expect(buildWordUploadRequest({ ...baseInput, label }).fields.label).toBe(label);
+  });
+
+  it('applies the same code point rule to device fields', () => {
+    const { fields } = buildWordUploadRequest({ ...baseInput, modelName: '📱'.repeat(40) });
+
+    expect(fields.device_model).not.toMatch(LONE_SURROGATE);
+    expect(Array.from(fields.device_model)).toHaveLength(30);
+  });
+});
+
 describe('buildWordUploadRequest url', () => {
   it('targets the plural words path', () => {
     expect(buildWordUploadRequest(baseInput).url).toBe('https://api.buddybird.app/api/v1/words');
