@@ -43,6 +43,9 @@ tags:
     centerElement: true
 # 두 번째 중도 종료: 종료 버튼(session-stop)은 확인 다이얼로그 없이 즉시 종료하는 별도 경로
 # 홈 복귀 후에도 단어·시간 선택이 유지되어 시작 버튼이 여전히 활성이어야 한다
+- assertVisible:
+    id: "session-start-cta"
+    enabled: true
 - tapOn:
     id: "session-start-cta"
 - extendedWaitUntil:
