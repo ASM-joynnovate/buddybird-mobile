@@ -16,6 +16,7 @@
 | `*-validation.ts` | 입력 검증 |
 | `*-model.ts` | 도메인 비즈니스 로직 (순수 함수) |
 | `*-config.ts` | 상수·프리셋 |
+| `*-<role>.ts` (예: `*-gate.ts`·`*-batch.ts`·`*-response.ts`·`*-meta.ts`) | 단일 역할 순수 모듈 — `*-model.ts` 하나로 커질 로직을 역할 단위로 분리 (I/O 없음). 외부 API I/O 는 `*-client.ts` 로 격리 |
 
 ### 1.2 `hooks/` 서브폴더 사용 기준
 

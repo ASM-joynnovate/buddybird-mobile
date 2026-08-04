@@ -1,7 +1,8 @@
 import * as Application from 'expo-application';
-import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { Alert, Platform } from 'react-native';
+
+import { readExtraString } from '@/features/shared/expo-extra';
 
 /**
  * 플랫폼별 스토어 페이지를 연다. Android 는 런타임 applicationId 로 `market://` 링크를
@@ -58,6 +59,5 @@ function resolveStoreTarget(): StoreTarget | null {
 }
 
 function readIosAppStoreId(): string | null {
-  const value = Constants.expoConfig?.extra?.iosAppStoreId;
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  return readExtraString('iosAppStoreId');
 }

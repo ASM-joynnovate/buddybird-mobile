@@ -2,6 +2,7 @@ import { createContext, use, useCallback, useEffect, useMemo, useState, type Rea
 
 import { reportError } from '@/features/analytics/error-reporter';
 import { useAppUpdateContext } from '@/features/app-update/app-update-context';
+import { requestCaptureFlush } from '@/features/training/follow-along-upload';
 
 import { shouldShowUploadConsentNotice } from './upload-consent-decision';
 import { UPLOAD_CONSENT_NOTICE_VERSION } from './upload-consent-notice';
@@ -55,9 +56,14 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
 
   const decide = useCallback((status: Exclude<UploadConsentStatus, 'unknown'>) => {
     setShouldPrompt(false);
-    saveUploadConsentDecision(status, UPLOAD_CONSENT_NOTICE_VERSION).catch((error: unknown) => {
-      reportError(error, { scope: 'upload-consent.saveDecision' });
-    });
+    saveUploadConsentDecision(status, UPLOAD_CONSENT_NOTICE_VERSION)
+      .then(() => {
+        // 업로드 트리거 ⑤ (SPEC-0003): granted 전환 — 게이트가 저장소를 읽으므로 영속화 후에 건다.
+        if (status === 'granted') requestCaptureFlush();
+      })
+      .catch((error: unknown) => {
+        reportError(error, { scope: 'upload-consent.saveDecision' });
+      });
   }, []);
 
   const markSplashDone = useCallback(() => setSplashDone(true), []);

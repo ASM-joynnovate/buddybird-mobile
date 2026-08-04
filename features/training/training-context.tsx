@@ -4,6 +4,7 @@ import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { sessionAudioEngine } from '@/modules/session-audio-engine';
 
+import { requestCaptureFlush } from './follow-along-upload';
 import { completedCyclesAtPosition, elapsedLearningSeconds, STREAK_QUALIFYING_SECONDS } from './session-cycle-model';
 import { storeNativeCapturedSegments } from './native-session-capture-storage';
 import {
@@ -289,6 +290,8 @@ async function restoreOrRecoverSession(saveSession: (session: TrainingSession) =
     );
     await saveSession(session);
     await clearRecoverySafely(record.snapshot.sessionId);
+    // 업로드 트리거 ② (SPEC-0003): 크래시 복구로 뒤늦게 확정된 세션 종료 — 복구 캡처 저장 직후 flush.
+    requestCaptureFlush();
   } catch (error: unknown) {
     reportError(error, { scope: 'training.sessionAudio.recover' });
   }

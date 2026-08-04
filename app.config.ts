@@ -201,6 +201,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
     extra: {
         appVariant: APP_VARIANT,
+        // 수집 API base URL. 미설정이면 업로드 게이트가 닫혀 클립 전송이 꺼진다 —
+        // 로컬은 .env, EAS 빌드는 profile별 env 로 공급 (docs/BUILD-AND-RELEASE.md).
+        apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
         clarityProjectId: 'wre3hgbj48',
         // iOS '업데이트' 버튼이 여는 App Store ID. Android 는 런타임 applicationId 로
         // market:// 링크를 구성하므로 별도 값이 불필요하다.

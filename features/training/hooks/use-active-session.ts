@@ -14,6 +14,7 @@ import {
   type SessionRecoveryRecord,
 } from '@/modules/session-audio-engine';
 
+import { requestCaptureFlush } from '../follow-along-upload';
 import { storeNativeCapturedSegments } from '../native-session-capture-storage';
 import type { SessionStatus } from '../session-config';
 import {
@@ -344,6 +345,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       .then(persistRecovery)
       .catch((error: unknown) => {
         reportError(error, { scope: 'training.sessionAudio.stop', screen_name: 'session_active' });
+      })
+      .then(() => {
+        // 업로드 트리거 ② (SPEC-0003): 세션 종료(정상 완료·중도 종료·외부 종료·실패 정리
+        // 전부 이 깔때기를 지난다) 시 미전송 클립 flush. 정리 성패와 무관하게 건다.
+        requestCaptureFlush();
       });
     finalizePromiseRef.current = operation;
     return operation;
