@@ -28,9 +28,10 @@
 ```bash
 yarn lint
 yarn typecheck
+yarn test        # 테스트가 존재하는 영역을 변경한 경우 (docs/TESTING.md)
 ```
 
-둘 다 그린이어야 함. `--no-verify` 절대 금지.
+모두 그린이어야 함. `--no-verify` 절대 금지.
 
 ### 3.2 검증 grep (모두 0건)
 
@@ -59,11 +60,14 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 
 ## 4. 테스트 정책
 
+- unit 테스트 러너: jest-expo 기반 Jest (`yarn test`) — 범위·의무 사항은 `docs/TESTING.md` 가 단일 출처
+- 신규 순수 모듈은 unit 테스트를 함께 작성. 기존 코드 소급 작성은 금지
 - **e2e 스모크 테스트는 Maestro로 자동화한다** (BB-159, 2026-07-29 도입). testID 규약·레이아웃·실행 레시피·검증 한계는 `docs/CONVENTIONS.md` §8.
-- 유닛 테스트는 계속 범위 외 (Jest 미설치). 도입은 별도 정책 변경으로 결정합니다.
 - 검증 스택:
   1. TypeScript (`yarn typecheck`)
   2. Lint (`yarn lint`)
-  3. e2e 스모크 (`yarn e2e:android:smoke` — 핵심 happy path 회귀)
-  4. 수동 user flow (README 체크리스트 — e2e 범위 외 영역: 오디오 품질·세션 완주·iOS)
-  5. Firebase DebugView / Clarity Live (analytics 변경 시)
+  3. Unit (`yarn test` — 순수 모듈, `docs/TESTING.md`)
+  4. e2e 스모크 (`yarn e2e:android:smoke` — 핵심 happy path 회귀)
+  5. 수동 user flow (README 체크리스트 — e2e 범위 외 영역: 오디오 품질·세션 완주·iOS)
+  6. Firebase DebugView / Clarity Live (analytics 변경 시)
+- CI `_verify.yml` 게이트 편입은 별도 결정으로 이월 (2026-08-03 기준 로컬 검증만 의무)

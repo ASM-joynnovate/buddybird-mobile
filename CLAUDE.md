@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `docs/POLICY-HISTORY.md` | 정책 도입 이력 (출처 plan/commit + 영향 범위) |
 | `docs/analytics.md` §정책 | 이벤트 grammar, ATT, PII, 에러 보고, Firebase modular API |
 | `docs/I18N.md` | 로케일 결정(인앱 선택 > 기기 언어, 미지원 언어는 en fallback)·번역 리소스 규칙·프리셋 단어/오디오 로케일 분기 |
+| `docs/TESTING.md` | unit 테스트 정책 — jest-expo 러너(`yarn test`)·신규 순수 모듈 범위·기존 코드 소급 금지·CI 게이트 이월 |
 | `docs/ARCHITECTURE.md` §네이티브 설정 | Firebase RNFirebase v24 핀, Podfile plugin, gitignore |
 | `docs/BUILD-AND-RELEASE.md` | 환경별 빌드(dev/staging/prod)·EAS Secret·Firebase config·CI/CD 파이프라인(staging→자동 internal 배포, main→자동 빌드+수동 promote)·semver/buildNumber 정책 (배포 SSoT) |
 
@@ -92,14 +93,15 @@ yarn eas:build:local:dev:ios     # 그 외: local:{dev,preview,prod}:{ios,androi
 
 # 검증
 yarn lint                        # ESLint via expo lint
-yarn typecheck                   # tsc --noEmit (unit test runner 없음)
+yarn typecheck                   # tsc --noEmit
+yarn test                        # Jest unit tests (jest-expo preset, 순수 모듈 대상 — docs/TESTING.md)
 yarn e2e:android                 # Maestro e2e 전체 (에뮬레이터 + Metro 필요, docs/CONVENTIONS.md §8)
 yarn e2e:android:smoke           # smoke 태그만
 ```
 
 환경별 식별자 매핑, EAS Secret 등록, Firebase config 배치, Keystore·credentials.json 운영, App Store/Play Store 제출 절차 등 빌드/배포의 모든 상세는 `docs/BUILD-AND-RELEASE.md` (배포 SSoT) 에서 단일하게 관리한다. 본 Commands 블록은 발견용 인용일 뿐이며 절차 본문을 두지 않는다.
 
-Unit tests are not configured. E2e smoke flows run via Maestro (`yarn e2e:android:smoke`, `docs/CONVENTIONS.md` §8); everything else (audio quality, session completion, iOS) is verified manually per the checklist in README.md.
+Unit tests cover new pure modules only (`yarn test`, policy in `docs/TESTING.md`). E2e smoke flows run via Maestro (`yarn e2e:android:smoke`, `docs/CONVENTIONS.md` §8); everything else (audio quality, session completion, iOS) is verified manually per the checklist in README.md.
 
 
 ## Behavioral Guidelines

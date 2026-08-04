@@ -1,7 +1,7 @@
-import { reportError } from '@/features/analytics/error-reporter';
 import { deleteRecordingFile, getRecordingFileSize } from '@/features/audio/audio-file-storage';
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
+import type { CaptureRegistrationMeta } from './follow-along-capture-meta';
 import type { CaptureSegment, FollowAlongCapture, FollowAlongCaptureStore } from './follow-along-capture-types';
 
 export const FOLLOW_ALONG_CAPTURE_KEY = '@buddybird/follow-along-captures';
@@ -32,7 +32,7 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
   if (typeof v.uri !== 'string' || typeof v.fileName !== 'string') return null;
-  return {
+  const capture: FollowAlongCapture = {
     id: typeof v.id === 'string' ? v.id : id,
     sessionId: typeof v.sessionId === 'string' ? v.sessionId : '',
     wordId: typeof v.wordId === 'string' ? v.wordId : '',
@@ -44,8 +44,12 @@ function parseCapture(id: string, value: unknown): FollowAlongCapture | null {
     fileName: v.fileName,
     segments: parseSegments(v.segments),
     sizeBytes: typeof v.sizeBytes === 'number' ? v.sizeBytes : 0,
-    uploaded: v.uploaded === true,
   };
+  // 등록 시점 메타는 부재 = legacy 가 백필 판별자라, 유효할 때만 부착하고 기본값을 채우지 않는다.
+  if (typeof v.clientWordId === 'string') capture.clientWordId = v.clientWordId;
+  if (typeof v.parrotSpecies === 'string' || v.parrotSpecies === null) capture.parrotSpecies = v.parrotSpecies;
+  if (typeof v.parrotBirthdate === 'string' || v.parrotBirthdate === null) capture.parrotBirthdate = v.parrotBirthdate;
+  return capture;
 }
 
 function parseSegments(value: unknown): CaptureSegment[] {
@@ -72,18 +76,24 @@ export async function loadFollowAlongCaptures(): Promise<FollowAlongCaptureStore
 // 갭 종료마다 append 가 근접 발생할 수 있어 read-modify-write 를 직렬화한다.
 // 이전 작업 실패가 체인을 끊지 않도록 성공/실패 모두 이어서 실행한다.
 let writeQueue: Promise<void> = Promise.resolve();
-function enqueueWrite(op: () => Promise<void>): Promise<void> {
+function enqueueWrite<T>(op: () => Promise<T>): Promise<T> {
   const run = writeQueue.then(op, op);
-  writeQueue = run.catch(() => {});
+  writeQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
   return run;
 }
 
-export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<void> {
+// 저장 후 스토어에 남은 캡처 수를 반환한다 — 업로드 트리거 ①(누적 판정)이 별도 스토어
+// 읽기 없이 이 값을 재사용한다 (판정용 읽기 실패가 저장 성공을 오염시키지 않도록).
+export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<number> {
   return enqueueWrite(async () => {
     const store = await captureStore.load();
     store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
     evictOldestOverCap(store);
     await captureStore.save(store);
+    return Object.keys(store.capturesById).length;
   });
 }
 
@@ -103,16 +113,35 @@ function evictOldestOverCap(store: FollowAlongCaptureStore): void {
   }
 }
 
-export function markCaptureUploaded(id: string): Promise<void> {
+// 업로드 성공·거부·파일 유실 등으로 더 보관할 필요가 없어진 캡처를 파일과 함께 삭제한다.
+export function deleteCaptures(ids: readonly string[]): Promise<void> {
+  if (ids.length === 0) return Promise.resolve();
   return enqueueWrite(async () => {
-    try {
-      const store = await captureStore.load();
+    const store = await captureStore.load();
+    let changed = false;
+    for (const id of ids) {
       const capture = store.capturesById[id];
-      if (!capture) return;
-      store.capturesById[id] = { ...capture, uploaded: true };
-      await captureStore.save(store);
-    } catch (error: unknown) {
-      reportError(error, { scope: 'training.followAlongCaptures.markUploaded' });
+      if (!capture) continue;
+      deleteRecordingFile(capture.uri);
+      delete store.capturesById[id];
+      changed = true;
     }
+    if (changed) await captureStore.save(store);
+  });
+}
+
+// legacy 레코드에 등록 시점 메타(치환 단어 id·프로필 스냅샷)를 1회 보충해 영속화한다.
+export function applyCaptureMeta(metaById: Record<string, CaptureRegistrationMeta>): Promise<void> {
+  if (Object.keys(metaById).length === 0) return Promise.resolve();
+  return enqueueWrite(async () => {
+    const store = await captureStore.load();
+    let changed = false;
+    for (const [id, meta] of Object.entries(metaById)) {
+      const capture = store.capturesById[id];
+      if (!capture) continue;
+      store.capturesById[id] = { ...capture, ...meta };
+      changed = true;
+    }
+    if (changed) await captureStore.save(store);
   });
 }

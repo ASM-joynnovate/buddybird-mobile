@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import {
   createContext,
   use,
@@ -14,6 +13,7 @@ import { Platform } from 'react-native';
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { useOptionalAuth } from '@/features/auth/auth-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
+import { readExtraString } from '@/features/shared/expo-extra';
 
 import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
@@ -46,8 +46,8 @@ export interface AnalyticsContextValue {
 const AnalyticsContext = createContext<AnalyticsContextValue | null>(null);
 
 function resolveClarityProjectId(): string | null {
-  const fromExtra = Constants.expoConfig?.extra?.clarityProjectId;
-  if (typeof fromExtra === 'string' && fromExtra.length > 0) {
+  const fromExtra = readExtraString('clarityProjectId');
+  if (fromExtra) {
     return fromExtra;
   }
 

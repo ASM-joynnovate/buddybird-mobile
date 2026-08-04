@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
+import { CaptureUploadBootstrap } from '@/components/app/capture-upload-bootstrap';
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
 import { AnalyticsProvider } from '@/features/analytics/analytics-context';
 import { AppUpdateProvider } from '@/features/app-update/app-update-context';
@@ -49,7 +50,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
                         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                           <AppUpdateProvider>
                             <UploadConsentProvider>
-                              <FeedbackProvider>{children}</FeedbackProvider>
+                              <FeedbackProvider>
+                                {/* 컨텍스트 의존 없는 구독 전용 널 컴포넌트 — 위치는 순서 제약과 무관. */}
+                                <CaptureUploadBootstrap />
+                                {children}
+                              </FeedbackProvider>
                             </UploadConsentProvider>
                           </AppUpdateProvider>
                         </ThemeProvider>
