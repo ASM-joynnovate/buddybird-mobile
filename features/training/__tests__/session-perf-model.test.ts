@@ -35,25 +35,25 @@ describe('shouldEmit', () => {
   const GAP = SESSION_PERF_THRESHOLDS.minEventGapMs;
   const MAX = SESSION_PERF_THRESHOLDS.maxEventsPerSession;
 
-  it('첫 발행은 허용하고 카운트·시각을 기록한다', () => {
+  it('allows the first emit and records count and timestamp', () => {
     const { emit, next } = shouldEmit(createThrottleState(), 'ui_lag', 10_000);
     expect(emit).toBe(true);
     expect(next.byKind.ui_lag).toEqual({ count: 1, lastEmitAtMs: 10_000 });
   });
 
-  it('최소 간격 내 재발행은 차단하고 상태를 바꾸지 않는다', () => {
+  it('blocks re-emits within the minimum gap without changing state', () => {
     const first = shouldEmit(createThrottleState(), 'ui_lag', 10_000).next;
     const { emit, next } = shouldEmit(first, 'ui_lag', 10_000 + GAP - 1);
     expect(emit).toBe(false);
     expect(next).toBe(first);
   });
 
-  it('최소 간격 경과(동률 포함) 시 재발행을 허용한다', () => {
+  it('allows re-emits once the minimum gap has passed, boundary inclusive', () => {
     const first = shouldEmit(createThrottleState(), 'ui_lag', 10_000).next;
     expect(shouldEmit(first, 'ui_lag', 10_000 + GAP).emit).toBe(true);
   });
 
-  it('세션당 상한 도달 후에는 간격이 지나도 영구 차단한다', () => {
+  it('permanently blocks after the per-session cap even when the gap has passed', () => {
     let state = createThrottleState();
     for (let i = 0; i < MAX; i += 1) {
       const result = shouldEmit(state, 'ui_lag', i * GAP);
@@ -64,7 +64,7 @@ describe('shouldEmit', () => {
     expect(shouldEmit(state, 'ui_lag', MAX * GAP * 2).emit).toBe(false);
   });
 
-  it('kind별 카운터·간격이 독립이다', () => {
+  it('tracks counters and gaps independently per kind', () => {
     const afterUiLag = shouldEmit(createThrottleState(), 'ui_lag', 10_000).next;
     // ui_lag 발행 직후여도 audio_delay는 간격 제약 없이 허용
     const { emit, next } = shouldEmit(afterUiLag, 'audio_delay', 10_001);
