@@ -4,8 +4,7 @@
 
 import { createWordEntry } from '../word-library-model';
 import type { WordEntry } from '../word-library-types';
-import type { WordUploadState } from '../word-upload-state';
-import { mergeUploadTargets, selectPendingWords, type UploadTarget } from '../word-upload-target';
+import { mergeUploadTargets, selectUploadableWords, type UploadTarget } from '../word-upload-target';
 
 const CREATED_FIRST = '2026-08-01T09:14:32.118Z';
 const CREATED_SECOND = '2026-08-02T20:37:05.441Z';
@@ -30,20 +29,22 @@ function presetWord(presetKey: string, label: string, createdAt: string): WordEn
   );
 }
 
-describe('selectPendingWords', () => {
+describe('selectUploadableWords', () => {
   describe('selected words', () => {
-    it('includes a recorded word that has no processing record', () => {
+    it('includes a recorded word', () => {
       const saranghae = recordedWord('사랑해', CREATED_FIRST);
 
-      expect(selectPendingWords([saranghae], {})).toEqual([saranghae]);
+      expect(selectUploadableWords([saranghae])).toEqual([saranghae]);
     });
 
-    it('excludes only the recorded word and leaves the rest pending', () => {
-      const uploaded = recordedWord('사과', CREATED_FIRST);
-      const pending = recordedWord('다녀와', CREATED_SECOND);
-      const state: WordUploadState = { [uploaded.id]: { status: 'uploaded' } };
+    // 첫 배포에는 처리 기록이 없다 — 이미 보낸 단어도 매번 다시 고른다 (BB-238 결정).
+    // 서버에서 데이터가 지워져도 다음 콜드 스타트에 회수된다.
+    it('keeps selecting every recorded word on each run', () => {
+      const saranghae = recordedWord('사랑해', CREATED_FIRST);
+      const danyeowa = recordedWord('다녀와', CREATED_SECOND);
 
-      expect(selectPendingWords([uploaded, pending], state)).toEqual([pending]);
+      expect(selectUploadableWords([saranghae, danyeowa])).toEqual([saranghae, danyeowa]);
+      expect(selectUploadableWords([saranghae, danyeowa])).toEqual([saranghae, danyeowa]);
     });
   });
 
@@ -52,15 +53,14 @@ describe('selectPendingWords', () => {
     it('excludes preset words', () => {
       const hello = presetWord('hello', '안녕', CREATED_FIRST);
 
-      expect(selectPendingWords([hello], {})).toEqual([]);
+      expect(selectUploadableWords([hello])).toEqual([]);
     });
 
-    // `failed` 는 4xx 거부라 재전송해도 결과가 같다 — `uploaded` 와 동일하게 제외한다.
-    it.each(['uploaded', 'failed'] as const)('excludes a word already recorded as %s', (status) => {
-      const saranghae = recordedWord('사랑해', CREATED_FIRST);
-      const state: WordUploadState = { [saranghae.id]: { status } };
+    it('excludes preset words while keeping recorded ones', () => {
+      const hello = presetWord('hello', '안녕', CREATED_FIRST);
+      const saranghae = recordedWord('사랑해', CREATED_SECOND);
 
-      expect(selectPendingWords([saranghae], state)).toEqual([]);
+      expect(selectUploadableWords([hello, saranghae])).toEqual([saranghae]);
     });
   });
 
@@ -70,7 +70,7 @@ describe('selectPendingWords', () => {
       const oldest = recordedWord('사랑해', CREATED_FIRST);
       const middle = recordedWord('사과', CREATED_SECOND);
 
-      expect(selectPendingWords([newest, oldest, middle], {})).toEqual([oldest, middle, newest]);
+      expect(selectUploadableWords([newest, oldest, middle])).toEqual([oldest, middle, newest]);
     });
   });
 });

@@ -1,7 +1,12 @@
 // 단어 업로드 flush 오케스트레이터 (SPEC-0003 §단어 업로드).
 // 트리거 3종은 두 진입점으로 나뉜다 — 단어 생성은 그 1건만(`requestWordUpload`),
-// 콜드 스타트·동의 granted 전환은 미처리 전체(`requestWordUploadFlush`). 둘 다
+// 콜드 스타트·동의 granted 전환은 전체(`requestWordUploadFlush`). 둘 다
 // fire-and-forget single-flight 다. 클립 업로드와는 독립으로 동작한다 (BB-238 §제외).
+//
+// 첫 배포에는 처리 기록(전송 이력)을 두지 않는다 (BB-238 결정). 서버에서 데이터가 지워졌을 때
+// 클라이언트가 재전송하지 못해 누락이 고착되는 것을 막기 위한 선택이며, 대신 콜드 스타트마다
+// 전량을 다시 보낸다. 4xx 로 거부된 단어도 매번 다시 보낸다 — 재전송을 거르는 규칙은
+// 다음 업데이트에서 논의해 넣는다.
 
 import { Platform } from 'react-native';
 
@@ -16,8 +21,7 @@ import { loadWordLibraryStore } from './word-library-storage';
 import type { WordEntry } from './word-library-types';
 import { sendWord } from './word-upload-client';
 import { interpretWordUploadResult } from './word-upload-response';
-import { loadWordUploadState, markWordUploadResult } from './word-upload-state';
-import { mergeUploadTargets, selectPendingWords, type UploadTarget } from './word-upload-target';
+import { mergeUploadTargets, selectUploadableWords, type UploadTarget } from './word-upload-target';
 
 let flushInFlight = false;
 /** flush 도중 도착한 트리거의 재실행 예약. 합치는 규칙은 target 모듈이 소유한다. */
@@ -65,9 +69,10 @@ async function runUploadLoop(target: UploadTarget): Promise<void> {
   if (!uid || !apiBaseUrl) return;
   if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl })) return;
 
-  const [library, state] = await Promise.all([loadWordLibraryStore(), loadWordUploadState()]);
-  const pending = selectPendingWords(Object.values(library.entriesById), state);
-  const targets = target.kind === 'single' ? pending.filter((entry) => entry.id === target.wordId) : pending;
+  const library = await loadWordLibraryStore();
+  const uploadable = selectUploadableWords(Object.values(library.entriesById));
+  const targets =
+    target.kind === 'single' ? uploadable.filter((entry) => entry.id === target.wordId) : uploadable;
 
   // 요청은 언제나 동시에 1건씩만 보낸다 (SPEC-0003 §요청 전송).
   for (const entry of targets) {
@@ -78,10 +83,11 @@ async function runUploadLoop(target: UploadTarget): Promise<void> {
       await sendWord({ apiBaseUrl, uid, clientWordId: entry.id, label: entry.label, audioUri }),
     );
 
-    // 5xx·네트워크 오류는 기록을 남기지 않고 다음 트리거에서 재시도한다 (SPEC-0003 §실패).
+    // 5xx·네트워크 오류는 이 실행을 중단하고 다음 트리거에서 재시도한다 (SPEC-0003 §실패).
     if (outcome.kind === 'halt') return;
 
-    await markWordUploadResult(entry.id, outcome.kind === 'uploaded' ? 'uploaded' : 'failed');
+    // 4xx 는 거부를 알리기만 하고 다음 단어로 넘어간다. 처리 기록이 없어 다음 트리거에서
+    // 다시 보내므로, 같은 단어의 거부가 리포팅에 반복해 쌓인다.
     if (outcome.kind === 'failed') {
       reportError(new Error(`word upload rejected with 4xx: ${entry.id}`), {
         scope: 'word-library.uploadFlush.rejected',

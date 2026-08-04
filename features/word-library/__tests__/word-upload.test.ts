@@ -6,7 +6,6 @@
 
 import { createWordEntry } from '../word-library-model';
 import type { WordEntry } from '../word-library-types';
-import type { WordUploadState } from '../word-upload-state';
 
 jest.mock('@/features/analytics/error-reporter', () => ({ reportError: jest.fn() }));
 jest.mock('@/features/audio/audio-file-storage', () => ({
@@ -18,10 +17,6 @@ jest.mock('@/features/shared/expo-extra', () => ({ readExtraString: jest.fn() })
 jest.mock('@/features/upload-consent/upload-consent-storage', () => ({ loadUploadConsent: jest.fn() }));
 jest.mock('../word-library-storage', () => ({ loadWordLibraryStore: jest.fn() }));
 jest.mock('../word-upload-client', () => ({ sendWord: jest.fn() }));
-jest.mock('../word-upload-state', () => ({
-  loadWordUploadState: jest.fn(),
-  markWordUploadResult: jest.fn(),
-}));
 
 const API_BASE_URL = 'https://api.buddybird.app';
 const FIREBASE_ANON_UID = 'Xj2mQ8pLd0Zb7Nf4Rk1Ts6Vy9Cw3';
@@ -57,7 +52,7 @@ type Harness = ReturnType<typeof loadHarness>;
 
 // 모듈 그래프를 새로 만들고 기본 상태(동의 granted·uid·baseUrl·파일 존재)를 세운다.
 // Platform 은 리셋된 레지스트리의 인스턴스를 덮어야 오케스트레이터가 그 값을 본다.
-function loadHarness(uploadState: WordUploadState, platformOS: 'ios' | 'android' | 'web' = 'ios') {
+function loadHarness(platformOS: 'ios' | 'android' | 'web' = 'ios') {
   jest.resetModules();
 
   /* eslint-disable @typescript-eslint/no-require-imports */
@@ -71,12 +66,10 @@ function loadHarness(uploadState: WordUploadState, platformOS: 'ios' | 'android'
   const consent = require('@/features/upload-consent/upload-consent-storage') as typeof import('@/features/upload-consent/upload-consent-storage');
   const libraryStorage = require('../word-library-storage') as typeof import('../word-library-storage');
   const client = require('../word-upload-client') as typeof import('../word-upload-client');
-  const state = require('../word-upload-state') as typeof import('../word-upload-state');
   const orchestrator = require('../word-upload') as typeof import('../word-upload');
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   const send = jest.mocked(client.sendWord);
-  const mark = jest.mocked(state.markWordUploadResult);
   const reportError = jest.mocked(reporter.reportError);
   const loadLibrary = jest.mocked(libraryStorage.loadWordLibraryStore);
 
@@ -92,10 +85,6 @@ function loadHarness(uploadState: WordUploadState, platformOS: 'ios' | 'android'
     uri?.startsWith('recording://') ? `${RECORDINGS_DIRECTORY}/${uri.slice('recording://'.length)}` : uri,
   );
   jest.mocked(audio.recordingFileExists).mockReturnValue(true);
-  jest.mocked(state.loadWordUploadState).mockImplementation(async () => uploadState);
-  mark.mockImplementation(async (clientWordId, status) => {
-    uploadState[clientWordId] = { status };
-  });
   send.mockResolvedValue({ status: 200 });
 
   function setLibrary(...entries: WordEntry[]): void {
@@ -116,19 +105,16 @@ function loadHarness(uploadState: WordUploadState, platformOS: 'ios' | 'android'
     identity,
     extra,
     send,
-    mark,
     reportError,
     setLibrary,
     sentWordIds: () => send.mock.calls.map(([input]) => input.clientWordId),
   };
 }
 
-let uploadState: WordUploadState;
 let harness: Harness;
 
 beforeEach(() => {
-  uploadState = {};
-  harness = loadHarness(uploadState);
+  harness = loadHarness();
 });
 
 describe('requestWordUpload', () => {
@@ -150,20 +136,10 @@ describe('requestWordUpload', () => {
     });
   });
 
-  it('records the word as uploaded on success', async () => {
-    const saranghae = recordedWord('사랑해', CREATED_FIRST);
-    harness.setLibrary(saranghae);
-
-    harness.requestWordUpload(saranghae.id);
-    await drainFlush();
-
-    expect(harness.mark).toHaveBeenCalledWith(saranghae.id, 'uploaded');
-    expect(uploadState).toEqual({ [saranghae.id]: { status: 'uploaded' } });
-  });
 });
 
 describe('requestWordUploadFlush', () => {
-  it('sends every pending word oldest first', async () => {
+  it('sends every recorded word oldest first', async () => {
     const saranghae = recordedWord('사랑해', CREATED_FIRST);
     const danyeowa = recordedWord('다녀와', CREATED_SECOND);
     harness.setLibrary(danyeowa, saranghae);
@@ -174,16 +150,33 @@ describe('requestWordUploadFlush', () => {
     expect(harness.sentWordIds()).toEqual([saranghae.id, danyeowa.id]);
   });
 
-  it('skips a word that already has a processing record', async () => {
+  // 첫 배포에는 처리 기록이 없다 (BB-238 결정). 서버에서 데이터가 지워져도 다음 콜드 스타트에
+  // 회수되도록, 이미 보낸 단어도 트리거마다 다시 보낸다.
+  it('sends a word again on the next flush even after a successful upload', async () => {
     const saranghae = recordedWord('사랑해', CREATED_FIRST);
-    const danyeowa = recordedWord('다녀와', CREATED_SECOND);
-    harness.setLibrary(saranghae, danyeowa);
-    uploadState[saranghae.id] = { status: 'failed' };
+    harness.setLibrary(saranghae);
 
     harness.requestWordUploadFlush();
     await drainFlush();
+    harness.requestWordUploadFlush();
+    await drainFlush();
 
-    expect(harness.sentWordIds()).toEqual([danyeowa.id]);
+    expect(harness.sentWordIds()).toEqual([saranghae.id, saranghae.id]);
+  });
+
+  // 4xx 로 거부된 단어도 기록이 없어 다시 보낸다 — 재전송을 거르는 규칙은 다음 업데이트 소관.
+  it('sends a word again on the next flush even after a 4xx rejection', async () => {
+    const saranghae = recordedWord('사랑해', CREATED_FIRST);
+    harness.setLibrary(saranghae);
+    harness.send.mockResolvedValue({ status: 400 });
+
+    harness.requestWordUploadFlush();
+    await drainFlush();
+    harness.requestWordUploadFlush();
+    await drainFlush();
+
+    expect(harness.sentWordIds()).toEqual([saranghae.id, saranghae.id]);
+    expect(harness.reportError).toHaveBeenCalledTimes(2);
   });
 
   it('skips preset words because the server seeds them', async () => {
@@ -219,12 +212,11 @@ describe('upload gate', () => {
     await drainFlush();
 
     expect(harness.send).not.toHaveBeenCalled();
-    expect(harness.mark).not.toHaveBeenCalled();
   });
 
   // 웹은 게이트 판정에 쓰는 Firebase auth 가 미지원이라 판정 전에 throw 난다 — 진입점에서 막는다.
   it('sends nothing on web', async () => {
-    const webHarness = loadHarness(uploadState, 'web');
+    const webHarness = loadHarness('web');
     webHarness.setLibrary(recordedWord('사랑해', CREATED_FIRST));
 
     webHarness.requestWordUploadFlush();
@@ -235,15 +227,13 @@ describe('upload gate', () => {
 });
 
 describe('failure handling', () => {
-  it('records a 4xx word as failed and reports it', async () => {
-    const saranghae = recordedWord('사랑해', CREATED_FIRST);
-    harness.setLibrary(saranghae);
+  it('reports a 4xx rejection', async () => {
+    harness.setLibrary(recordedWord('사랑해', CREATED_FIRST));
     harness.send.mockResolvedValue({ status: 400 });
 
     harness.requestWordUploadFlush();
     await drainFlush();
 
-    expect(harness.mark).toHaveBeenCalledWith(saranghae.id, 'failed');
     expect(harness.reportError).toHaveBeenCalledWith(expect.any(Error), {
       scope: 'word-library.uploadFlush.rejected',
     });
@@ -259,21 +249,7 @@ describe('failure handling', () => {
     await drainFlush();
 
     expect(harness.sentWordIds()).toEqual([saranghae.id, danyeowa.id]);
-    expect(harness.mark).toHaveBeenCalledWith(saranghae.id, 'failed');
-    expect(harness.mark).toHaveBeenCalledWith(danyeowa.id, 'uploaded');
-  });
-
-  // 5xx 는 기록을 남기지 않는다 — 기록이 남으면 그 단어는 다시 올라가지 못한다.
-  it('leaves no record on 5xx so the next trigger retries the word', async () => {
-    const saranghae = recordedWord('사랑해', CREATED_FIRST);
-    harness.setLibrary(saranghae);
-    harness.send.mockResolvedValue({ status: 500 });
-
-    harness.requestWordUploadFlush();
-    await drainFlush();
-
-    expect(harness.mark).not.toHaveBeenCalled();
-    expect(uploadState).toEqual({});
+    expect(harness.reportError).toHaveBeenCalledTimes(1);
   });
 
   it('stops the run on 5xx instead of sending the rest', async () => {
@@ -286,8 +262,20 @@ describe('failure handling', () => {
     expect(harness.send).toHaveBeenCalledTimes(1);
   });
 
-  // 기준 음성이 없으면 보낼 것이 없다. 기록을 남기지 않아 다음 트리거가 다시 보지만,
-  // 파일 존재 확인만 하고 넘어가므로 비용이 없다.
+  it('retries the halted word on the next trigger', async () => {
+    const saranghae = recordedWord('사랑해', CREATED_FIRST);
+    harness.setLibrary(saranghae);
+    harness.send.mockResolvedValueOnce({ status: 500 }).mockResolvedValueOnce({ status: 200 });
+
+    harness.requestWordUploadFlush();
+    await drainFlush();
+    harness.requestWordUploadFlush();
+    await drainFlush();
+
+    expect(harness.sentWordIds()).toEqual([saranghae.id, saranghae.id]);
+  });
+
+  // 기준 음성이 없으면 보낼 것이 없다. 파일 존재 확인만 하고 다음 단어로 넘어간다.
   it('skips a word whose reference audio file is gone', async () => {
     harness.setLibrary(recordedWord('사랑해', CREATED_FIRST));
     jest.mocked(harness.audio.recordingFileExists).mockReturnValue(false);
@@ -296,7 +284,6 @@ describe('failure handling', () => {
     await drainFlush();
 
     expect(harness.send).not.toHaveBeenCalled();
-    expect(harness.mark).not.toHaveBeenCalled();
   });
 });
 
@@ -318,7 +305,8 @@ describe('single-flight', () => {
     resolveFirstSend({ status: 200 });
     await drainFlush();
 
-    expect(harness.sentWordIds()).toEqual([saranghae.id, danyeowa.id]);
+    // 처리 기록이 없어 재실행이 방금 보낸 단어까지 다시 담는다 (BB-238 결정).
+    expect(harness.sentWordIds()).toEqual([saranghae.id, saranghae.id, danyeowa.id]);
   });
 
   // 서로 다른 단어가 예약되면 전체로 넓힌다 — 하나를 버리면 다음 콜드 스타트까지 올라가지 못한다.
@@ -338,7 +326,7 @@ describe('single-flight', () => {
     resolveFirstSend({ status: 200 });
     await drainFlush();
 
-    expect(harness.sentWordIds()).toEqual([saranghae.id, danyeowa.id, sagwa.id]);
+    expect(harness.sentWordIds()).toEqual([saranghae.id, saranghae.id, danyeowa.id, sagwa.id]);
   });
 
   it('does not rerun when no trigger arrived during the flush', async () => {

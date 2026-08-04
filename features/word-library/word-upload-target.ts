@@ -1,9 +1,8 @@
 // 업로드 대상 단어 선별 (SPEC-0003 §단어 업로드 — 대상). 순수 함수 — I/O 없음.
 
 import type { WordEntry } from './word-library-types';
-import type { WordUploadState } from './word-upload-state';
 
-/** 한 번의 flush 가 다룰 범위. 단어 생성은 그 1건, 나머지 트리거는 미처리 전체다. */
+/** 한 번의 flush 가 다룰 범위. 단어 생성은 그 1건, 나머지 트리거는 전체다. */
 export type UploadTarget = { kind: 'all' } | { kind: 'single'; wordId: string };
 
 /**
@@ -19,17 +18,17 @@ export function mergeUploadTargets(queued: UploadTarget | null, incoming: Upload
 }
 
 /**
- * 아직 서버로 보내지 않은 사용자 생성 단어를 오래된 순서로 고른다.
+ * 사용자 생성 단어를 오래된 순서로 고른다.
  *
- * - 프리셋 단어는 서버가 시드하므로 제외한다
- * - `uploaded`·`failed` 어느 쪽이든 처리 기록이 있으면 제외한다 — `failed`는 4xx 거부라
- *   같은 요청을 다시 보내도 같은 결과가 돌아온다
+ * 첫 배포에서는 처리 기록을 두지 않아 전송 여부와 무관하게 매번 전체를 고른다 (BB-238 결정).
+ * 서버에서 데이터가 지워져도 다음 콜드 스타트에 회수되게 하려는 것이며, 서버가
+ * `(firebase_anon_uid, client_word_id)` 멱등이라 중복 행은 생기지 않는다.
+ * 재전송을 거르는 규칙은 다음 업데이트에서 논의해 넣는다.
+ *
+ * 프리셋 단어는 서버가 시드하므로 제외한다.
  */
-export function selectPendingWords(
-  entries: readonly WordEntry[],
-  state: WordUploadState,
-): WordEntry[] {
+export function selectUploadableWords(entries: readonly WordEntry[]): WordEntry[] {
   return entries
-    .filter((entry) => entry.sourceType === 'recording' && state[entry.id] === undefined)
+    .filter((entry) => entry.sourceType === 'recording')
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
