@@ -64,7 +64,8 @@ await flushSessionWordMetrics([
 
 ### 이벤트 grammar
 - 이름은 `snake_case`, `<domain>_<action>` 패턴, **≤40 chars**
-- 신규 이벤트는 `features/analytics/events.ts`의 `AnalyticsEvent` discriminated union에 **먼저 등록**한 뒤에만 `track()`에 전달 가능
+- 신규 이벤트는 `features/analytics/events.ts`의 `AnalyticsEvent` discriminated union에 **먼저 등록**한 뒤에만 발행 가능
+- 발행 경로는 둘뿐이다. 컴포넌트·훅은 `useAnalytics().track`, React 밖 순수 모듈은 `@/features/analytics/event-tracker`의 `trackEvent` (BB-284) — 훅을 쓰려고 계측 대상 모듈을 React에 묶지 않는다
 - 직렬화는 `toFirebaseParams()`를 거치며, 이름 길이 안전망은 `clampEventName()`
 
 ### 스크린 트래킹 의무
@@ -127,6 +128,8 @@ await flushSessionWordMetrics([
 | `components/words/word-create-modal.tsx` | `word_added`, `word_recording_started/finished` (lifecycle 전이 발화 — 자동 정지 포함) |
 | `features/word-library/hooks/use-confirm-delete-word.ts` | `word_removed` (프리셋 삭제 시 미발화, orphan 지표 정리 포함) |
 | `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
+| `features/training/follow-along-capture-storage.ts` | `follow_along_capture_created` (저장 성공 후), `capture_evicted_before_upload` (보관 상한 초과 시 지워지는 클립마다 1건) |
+| `features/training/follow-along-upload.ts` | `capture_upload_succeeded`, `capture_upload_failed` (서버 거부 — 항목 `rejected` / 단건 4xx 폐기), `capture_flush_aborted` (flush 종료 지점 1곳에서만 발행) |
 
 ### 측정 한계 (알려진 제약)
 
@@ -136,6 +139,14 @@ await flushSessionWordMetrics([
 - `recording_played`: 재생 도중 세션이 종료되면 마지막 재생 이벤트가 유실될 수 있고, 재생 중 백그라운드 전환 시 `playback_duration_ms`에 배경 갭이 포함될 수 있음.
 - `word_recording_finished`의 `retry_count`: 성공적으로 완료된 녹음 기준 (에러·중단 경로의 재시도는 미집계, started/finished 쌍은 에러 경로에서 불균형).
 - `recordings_count`의 정본은 `word_practice_completed`(실제 캡처 세그먼트 수). `word_lifetime_metrics`에 누적되는 `lifetime_recording_count`는 세션 flush의 `audioUri ? 1 : 0` 휴리스틱이라 정의가 다름.
+
+캡처 업로드 계측(BB-284)의 제약은 다음과 같다:
+
+- `capture_upload_succeeded`의 `latency_ms`는 서버 저장 확인 시각이 아니라 클라이언트가 응답을 받은 시각 기준. 업로드 성공률(캡처 후 24시간)은 이 값으로 근사한다.
+- 결말 없는 클립이 정상적으로 존재한다. 5xx·네트워크 오류는 클립을 큐에 남기므로 `capture_upload_failed`를 내지 않고 `capture_flush_aborted`로만 잡히며, 해당 클립은 대기로 집계한다 (PRD FR-04).
+- `capture_flush_aborted`의 `pending_count`는 그 flush가 본 큐에서 자신의 삭제분을 뺀 값이라, 같은 시점 세션이 새 캡처를 넣거나 상한 eviction이 돌면 실제 큐 크기와 어긋날 수 있다.
+- 유실 경로 중 계측되는 것은 보관 상한 초과뿐이다. 로컬 오디오 파일이 사라져 배치에서 제외되는 클립은 이벤트를 내지 않는다.
+- `follow_along_capture_created`는 캡처 스토어 저장에 성공한 뒤 발행하므로, 저장 자체가 실패한 캡처는 어떤 이벤트로도 남지 않는다.
 
 ## 4. 후속 통합 작업 (향후)
 
