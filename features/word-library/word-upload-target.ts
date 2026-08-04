@@ -9,7 +9,8 @@ export type UploadTarget = { kind: 'all' } | { kind: 'single'; wordId: string };
  * flush 도중 도착한 트리거의 대상을 앞선 예약과 합친다.
  *
  * 서로 다른 단어를 가리키면 전체로 넓힌다 — 둘 중 하나를 버리면 그 단어가 다음 콜드 스타트까지
- * 남고, 넓혀도 미처리 단어만 고르므로 이미 보낸 단어가 다시 나가지 않는다.
+ * 남는다. 넓히면 이미 보낸 단어도 다시 나가지만, 서버가
+ * `(firebase_anon_uid, client_word_id)` 멱등이라 중복 행이 생기지 않는다.
  */
 export function mergeUploadTargets(queued: UploadTarget | null, incoming: UploadTarget): UploadTarget {
   if (queued === null) return incoming;

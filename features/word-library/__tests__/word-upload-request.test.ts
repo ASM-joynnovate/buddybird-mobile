@@ -55,7 +55,7 @@ describe('buildWordUploadRequest field limits', () => {
   const VENDOR_OS_VERSION = '15.0.0_custom_vendor_build_20260801';
   const VENDOR_MODEL_NAME = 'SM-S928N Galaxy S24 Ultra 5G Enterprise Edition';
 
-  // 초과분을 클라이언트가 자르지 않으면 400 이 오고, 400 은 영구 `failed` 로 굳는다.
+  // 초과분을 클라이언트가 자르지 않으면 400 이 오고, 그 단어는 트리거마다 같은 거부를 반복한다.
   it('truncates a label longer than the contract limit', () => {
     const { fields } = buildWordUploadRequest({ ...baseInput, label: OVERLONG_LABEL });
 
@@ -128,8 +128,8 @@ describe('buildWordUploadRequest url', () => {
     expect(buildWordUploadRequest(baseInput).url).toBe('https://api.buddybird.app/api/v1/words');
   });
 
-  // 끝 슬래시를 그대로 이으면 `//api/v1/words` 가 되고, 서버 404 는 4xx 폐기 경로로 흐른다 —
-  // 설정 실수 하나가 단어 전량의 영구 실패로 증폭된다.
+  // 끝 슬래시를 그대로 이으면 `//api/v1/words` 가 되고, 서버 404 는 4xx 거부 경로로 흐른다 —
+  // 설정 실수 하나로 단어 전량이 앱 실행마다 거부되고 리포팅이 쌓인다.
   it.each(['https://api.buddybird.app/', 'https://api.buddybird.app///'])(
     'normalizes the trailing slash in %s',
     (apiBaseUrl) => {

@@ -224,6 +224,41 @@ describe('upload gate', () => {
 
     expect(webHarness.send).not.toHaveBeenCalled();
   });
+
+  // 전량 전송이라 실행이 길어질 수 있다. 그사이 동의가 철회되면 남은 단어를 보내지 않는다.
+  it('stops before the next word when consent is revoked mid-flush', async () => {
+    const saranghae = recordedWord('사랑해', CREATED_FIRST);
+    const danyeowa = recordedWord('다녀와', CREATED_SECOND);
+    harness.setLibrary(saranghae, danyeowa);
+    harness.send.mockImplementationOnce(async () => {
+      jest.mocked(harness.consent.loadUploadConsent).mockResolvedValue({
+        status: 'denied',
+        decidedAt: CREATED_SECOND,
+        noticeVersion: 1,
+      });
+      return { status: 200 };
+    });
+
+    harness.requestWordUploadFlush();
+    await drainFlush();
+
+    expect(harness.sentWordIds()).toEqual([saranghae.id]);
+  });
+
+  it('stops before the next word when the firebase uid disappears mid-flush', async () => {
+    const saranghae = recordedWord('사랑해', CREATED_FIRST);
+    const danyeowa = recordedWord('다녀와', CREATED_SECOND);
+    harness.setLibrary(saranghae, danyeowa);
+    harness.send.mockImplementationOnce(async () => {
+      jest.mocked(harness.identity.getCurrentUid).mockReturnValue(null);
+      return { status: 200 };
+    });
+
+    harness.requestWordUploadFlush();
+    await drainFlush();
+
+    expect(harness.sentWordIds()).toEqual([saranghae.id]);
+  });
 });
 
 describe('failure handling', () => {

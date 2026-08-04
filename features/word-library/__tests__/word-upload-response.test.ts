@@ -18,7 +18,7 @@ describe('interpretWordUploadResult', () => {
   });
 
   describe('halt', () => {
-    // 5xx 는 서버측 일시 장애다. 기록을 남기지 않아 다음 트리거가 다시 보낸다.
+    // 5xx 는 서버측 일시 장애다. 실행을 중단하고 다음 트리거가 다시 보낸다.
     it.each([500, 502, 503])('resolves status %i to halt', (status) => {
       expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
     });
@@ -27,7 +27,7 @@ describe('interpretWordUploadResult', () => {
       expect(interpretWordUploadResult({ status: null })).toEqual({ kind: 'halt' });
     });
 
-    // 계약에 없는 상태 코드는 영구 실패로 굳히지 않는 쪽으로 보수 판정한다.
+    // 계약에 없는 상태 코드는 거부로 단정하지 않고 중단해 다음 트리거에 맡긴다.
     it.each([301, 302, 100])('resolves the uncontracted status %i to halt', (status) => {
       expect(interpretWordUploadResult({ status })).toEqual({ kind: 'halt' });
     });

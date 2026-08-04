@@ -2,12 +2,9 @@
 // 파일 파트({ uri, name, type })는 RN 의 FormData 구현에서만 객체로 유지되고 이 환경에서는
 // 문자열로 평탄화되므로 존재 여부만 확인한다.
 
-import { sendWord, type SendWordInput } from '../word-upload-client';
+import { WORD_UPLOAD_TIMEOUT_MS, sendWord, type SendWordInput } from '../word-upload-client';
 
 jest.mock('expo-device', () => ({ osVersion: '18.4.1', modelName: 'iPhone 17 Pro' }));
-
-// word-upload-client.ts 의 WORD_UPLOAD_TIMEOUT_MS 와 같은 값.
-const UPLOAD_TIMEOUT_MS = 30_000;
 
 const RECORDINGS_DIRECTORY =
   'file:///var/mobile/Containers/Data/Application/6F3C1E1A-2B77-4E5D-9C42-8D0B5A9E7C31/Documents/recordings';
@@ -72,22 +69,69 @@ describe('sendWord transport', () => {
 
 describe('sendWord result', () => {
   it.each([200, 400, 500])('returns the http status %i as-is', async (status) => {
-    fetchMock.mockResolvedValue({ status });
+    fetchMock.mockResolvedValue({ status, json: async () => ({}) });
 
-    expect(await sendWord(baseInput)).toEqual({ status });
+    expect((await sendWord(baseInput)).status).toBe(status);
   });
 
   // 네트워크 오류는 여기서 throw 하지 않는다 — 해석은 response 모듈이 한다.
   it('returns a null status when the request produced no response', async () => {
     fetchMock.mockRejectedValue(new Error('Network request failed'));
 
-    expect(await sendWord(baseInput)).toEqual({ status: null });
+    expect(await sendWord(baseInput)).toEqual({ status: null, errorCode: null });
   });
 
   it('returns a null status when the request is aborted', async () => {
     fetchMock.mockRejectedValue(Object.assign(new Error('Aborted'), { name: 'AbortError' }));
 
-    expect(await sendWord(baseInput)).toEqual({ status: null });
+    expect(await sendWord(baseInput)).toEqual({ status: null, errorCode: null });
+  });
+});
+
+// 파일 문제 3가지가 전부 400 이라 상태 코드만으로는 원인을 가를 수 없다.
+describe('sendWord error code', () => {
+  it('reads the error code from a rejection body', async () => {
+    fetchMock.mockResolvedValue({
+      status: 400,
+      json: async () => ({ code: 400, error_code: 'FILE__NOT_ALLOWED_FILE_TYPE', message: '허용되지 않는 파일 형식입니다.' }),
+    });
+
+    expect(await sendWord(baseInput)).toEqual({ status: 400, errorCode: 'FILE__NOT_ALLOWED_FILE_TYPE' });
+  });
+
+  // 성공 응답은 형식이 달라 `error_code` 가 없다. 본문을 읽지 않는다.
+  it('does not read the body on success', async () => {
+    const json = jest.fn();
+    fetchMock.mockResolvedValue({ status: 200, json });
+
+    expect(await sendWord(baseInput)).toEqual({ status: 200, errorCode: null });
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it('does not read the body on a server error', async () => {
+    const json = jest.fn();
+    fetchMock.mockResolvedValue({ status: 503, json });
+
+    expect(await sendWord(baseInput)).toEqual({ status: 503, errorCode: null });
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  // 프록시가 준 HTML 처럼 JSON 이 아닌 본문도 온다.
+  it('falls back to a null error code when the body is not json', async () => {
+    fetchMock.mockResolvedValue({
+      status: 404,
+      json: async () => {
+        throw new SyntaxError('Unexpected token < in JSON');
+      },
+    });
+
+    expect(await sendWord(baseInput)).toEqual({ status: 404, errorCode: null });
+  });
+
+  it('falls back to a null error code when the body has no error code', async () => {
+    fetchMock.mockResolvedValue({ status: 422, json: async () => ({ code: 422, message: '요청값이 올바르지 않습니다.' }) });
+
+    expect(await sendWord(baseInput)).toEqual({ status: 422, errorCode: null });
   });
 });
 
@@ -104,16 +148,16 @@ describe('sendWord timeout', () => {
     });
 
     const pending = sendWord(baseInput);
-    jest.advanceTimersByTime(UPLOAD_TIMEOUT_MS);
+    jest.advanceTimersByTime(WORD_UPLOAD_TIMEOUT_MS);
 
-    await expect(pending).resolves.toEqual({ status: null });
+    await expect(pending).resolves.toEqual({ status: null, errorCode: null });
   });
 
   it('leaves the signal untouched when the server answers in time', async () => {
     jest.useFakeTimers();
 
     await sendWord(baseInput);
-    jest.advanceTimersByTime(UPLOAD_TIMEOUT_MS);
+    jest.advanceTimersByTime(WORD_UPLOAD_TIMEOUT_MS);
 
     expect(sentRequest().signal.aborted).toBe(false);
   });

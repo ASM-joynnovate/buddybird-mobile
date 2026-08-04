@@ -2,7 +2,7 @@
 // 무엇을 어디로 보낼지만 정하고, 실제 전송은 client 가 한다.
 
 // 서버 계약(SPEC-0002)의 필드 상한(코드포인트 기준). 클라이언트가 초과분을 잘라 400 을 예방한다 —
-// 400 은 영구 `failed` 로 굳어 그 단어가 다시 올라가지 않는다.
+// 처리 기록을 두지 않으므로 400 을 받은 단어는 트리거마다 같은 거부를 반복한다.
 // label 은 사용자 입력이고 단어 이름 입력란에 길이 제한이 없어 실제로 초과할 수 있다.
 // 앱 안의 단어 이름은 그대로 두고 서버에 보내는 값만 자른다.
 const LABEL_MAX_LENGTH = 50;
@@ -59,7 +59,7 @@ function truncateToCodePoints(value: string, maxLength: number): string {
 }
 
 // base URL 끝 슬래시를 정규화한다 — `//api/v1/words` 는 서버가 404 를 줄 수 있고,
-// 404 는 4xx 경로로 흘러 설정 실수 하나가 단어 전량의 영구 실패로 증폭된다.
+// 404 는 4xx 거부 경로로 흘러 설정 실수 하나로 단어 전량이 앱 실행마다 거부된다.
 function buildWordUploadUrl(apiBaseUrl: string): string {
   return `${apiBaseUrl.replace(/\/+$/, '')}/api/v1/words`;
 }
