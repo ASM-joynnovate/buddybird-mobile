@@ -40,6 +40,9 @@ export function OnboardingProfileFlow() {
   const [errors, setErrors] = useState<ProfileValidationErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // 2연타 가드 — isSaving 의 disabled 는 다음 렌더에 반영돼 같은 tick 재탭을 놓친다 (BB-300).
+  // 성공 시 프로필 생성으로 온보딩이 unmount 되므로 실패(재시도) 경로에서만 푼다.
+  const submittingRef = useRef(false);
   const profileDraft = useMemo<ProfileDraft>(
     () => ({ birthDate, name, photoUri, species }),
     [birthDate, name, photoUri, species]
@@ -73,6 +76,8 @@ export function OnboardingProfileFlow() {
   }
 
   async function submitProfileStep(): Promise<void> {
+    if (submittingRef.current) return;
+
     const validation = validateProfileDraft(profileDraft, t);
 
     if (!validation.isValid) {
@@ -80,6 +85,7 @@ export function OnboardingProfileFlow() {
       return;
     }
 
+    submittingRef.current = true;
     setDraft(profileDraft);
     track({ name: 'onboarding_step_completed', params: { step: 'profile', duration_ms: elapsedMs() } });
     setIsSaving(true);
@@ -101,6 +107,7 @@ export function OnboardingProfileFlow() {
         params: { total_duration_ms: Date.now() - onboardingStartedAtRef.current },
       });
     } catch (error: unknown) {
+      submittingRef.current = false;
       void recordError(error instanceof Error ? error : new Error(String(error)), {
         screen_name: 'onboarding_profile',
       });

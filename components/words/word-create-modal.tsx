@@ -44,6 +44,9 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('greeting');
   const [isSaving, setIsSaving] = useState(false);
+  // 2연타 가드 — disabled(isSaving) 는 다음 렌더에 반영돼 같은 tick 재탭을 놓친다 (BB-300).
+  // 모달 인스턴스가 재사용되므로 finally 에서 풀어 다음 저장을 허용한다.
+  const savingRef = useRef(false);
 
   // 재녹음 횟수(retry_count). 자동 정지(maxDuration)도 잡기 위해 버튼 핸들러가 아니라
   // lifecycle 전이로 발화하므로, 부가 상태도 ref로 함께 추적한다.
@@ -129,7 +132,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   }
 
   async function handleSave() {
-    if (!canSave || !session.file) return;
+    if (savingRef.current || !canSave || !session.file) return;
+    savingRef.current = true;
     setIsSaving(true);
     try {
       const entry = await createEntry({
@@ -158,6 +162,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       reportError(error, { scope: 'words.createEntry' });
       Alert.alert(t('wordCreate.saveErrorTitle'), t('wordCreate.saveErrorBody'));
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   }

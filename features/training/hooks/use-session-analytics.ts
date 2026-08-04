@@ -21,6 +21,7 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   if (startedAtRef.current === null) {
     startedAtRef.current = Date.now();
   }
+  const dismissedRef = useRef(false);
   const progressPercent = cycleProgressPercent(session.cycle, session.totalCycles);
 
   const buildWordDeltas = useCallback(
@@ -59,6 +60,10 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   }
 
   function handleDismiss(): void {
+    // 2연타 가드 — flat stack 이라 router.back() 은 1회지만 dismiss·clear 가 2회 실행된다 (BB-300).
+    // 세션 화면은 세션마다 새로 push 돼 훅이 재마운트되므로 풀지 않는다.
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
     session.dismissCompletion();
     router.back();
     setTimeout(() => clearPendingSession(), 0);

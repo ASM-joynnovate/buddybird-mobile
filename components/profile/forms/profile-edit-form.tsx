@@ -18,6 +18,7 @@ import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/p
 interface ProfileEditFormProps {
   form: ProfileDraft;
   errors: ProfileValidationErrors;
+  isSaving: boolean;
   saveErrorMessage: string | null;
   t: I18n['t'];
   onPatch: (patch: Partial<ProfileDraft>) => void;
@@ -28,6 +29,7 @@ interface ProfileEditFormProps {
 export function ProfileEditForm({
   form,
   errors,
+  isSaving,
   saveErrorMessage,
   t,
   onPatch,
@@ -100,7 +102,7 @@ export function ProfileEditForm({
       </View>
 
       <View style={styles.saveBar}>
-        <PillButton full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" testID="profile-edit-save" />
+        <PillButton disabled={isSaving} full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" testID="profile-edit-save" />
       </View>
     </View>
   );
