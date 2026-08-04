@@ -1,3 +1,4 @@
+import { trackEvent } from '@/features/analytics/event-tracker';
 import { deleteRecordingFile, getRecordingFileSize } from '@/features/audio/audio-file-storage';
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
@@ -90,10 +91,26 @@ function enqueueWrite<T>(op: () => Promise<T>): Promise<T> {
 export function appendFollowAlongCapture(capture: Omit<FollowAlongCapture, 'sizeBytes'>): Promise<number> {
   return enqueueWrite(async () => {
     const store = await captureStore.load();
-    store.capturesById[capture.id] = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
+    const stored: FollowAlongCapture = { ...capture, sizeBytes: getRecordingFileSize(capture.uri) };
+    store.capturesById[capture.id] = stored;
     evictOldestOverCap(store);
     await captureStore.save(store);
-    return Object.keys(store.capturesById).length;
+
+    const pendingCount = Object.keys(store.capturesById).length;
+    trackEvent({
+      name: 'follow_along_capture_created',
+      params: {
+        client_capture_id: stored.id,
+        session_id: stored.sessionId,
+        // legacy 레코드와 같은 강등 규칙 — 치환값이 없으면 원본 wordId 로 기록한다.
+        client_word_id: stored.clientWordId ?? stored.wordId,
+        cycle: stored.cycle,
+        phase: stored.phase,
+        audio_size_bytes: stored.sizeBytes,
+        pending_count: pendingCount,
+      },
+    });
+    return pendingCount;
   });
 }
 
@@ -104,12 +121,21 @@ function evictOldestOverCap(store: FollowAlongCaptureStore): void {
   let total = captures.reduce((sum, capture) => sum + capture.sizeBytes, 0);
   if (total <= MAX_TOTAL_BYTES) return;
 
+  const now = Date.now();
   const oldestFirst = [...captures].sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
   for (const capture of oldestFirst) {
     if (total <= MAX_TOTAL_BYTES) break;
     deleteRecordingFile(capture.uri);
     delete store.capturesById[capture.id];
     total -= capture.sizeBytes;
+    trackEvent({
+      name: 'capture_evicted_before_upload',
+      params: {
+        client_capture_id: capture.id,
+        age_ms: now - Date.parse(capture.capturedAt),
+        audio_size_bytes: capture.sizeBytes,
+      },
+    });
   }
 }
 

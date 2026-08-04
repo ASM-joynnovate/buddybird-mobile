@@ -8,6 +8,8 @@ import * as Application from 'expo-application';
 import { Platform } from 'react-native';
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { trackEvent } from '@/features/analytics/event-tracker';
+import type { CaptureFlushAbortReason } from '@/features/analytics/events';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { loadStoredProfile } from '@/features/profile/profile-storage';
@@ -40,6 +42,20 @@ let rerunFromAccumulationOnly = true;
 // 하는 낭비를 막는다 (NFR-01). 나머지 트리거(②~⑤)는 상황 변화 신호라 플래그를 풀고 진행한다.
 // 클립은 큐에 그대로 남으므로 데이터 손실은 없다 (SPEC-0003 §실패 — 각주 참조).
 let haltedByTransientFailure = false;
+// 진행 중 flush 1회의 계측 누계 (BB-284). single-flight 가 동시 실행을 막으므로 모듈 레벨에
+// 둔다 — 정상 halt 와 예외 종료가 같은 값을 읽는다.
+let flushSucceededCount = 0;
+let flushPendingCount = 0;
+
+/** flush 를 중단시킨 사유. 대기 건수·성공 건수는 모듈 누계에서 읽으므로 여기 담지 않는다. */
+interface FlushAbort {
+  reason: CaptureFlushAbortReason;
+  httpStatus?: number;
+}
+
+function abortWith(reason: CaptureFlushAbortReason, httpStatus: number | null): FlushAbort {
+  return { reason, ...(httpStatus === null ? {} : { httpStatus }) };
+}
 
 /**
  * 모든 업로드 트리거의 단일 진입점. 진행 중이면 종료 후 1회 재실행을 예약한다.
@@ -59,10 +75,17 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
   }
   flushInFlight = true;
   runFlushLoop()
+    .then((abort) => {
+      // 중단 기록은 halt 지점마다가 아니라 여기 한 곳에서 낸다 — flush 단위 1회 계약 (BB-284).
+      if (!abort) return;
+      haltedByTransientFailure = true;
+      trackFlushAborted(abort);
+    })
     .catch((error: unknown) => {
       // 예외로 죽은 실패(디스크 가득 참의 zip 쓰기 throw 등)도 정상 halt 와 같은 억제 계약을
       // 따른다 — 안 세우면 캡처 저장마다 누적 트리거가 같은 실패(재압축 포함)를 반복한다.
       haltedByTransientFailure = true;
+      trackFlushAborted({ reason: 'exception' });
       reportError(error, { scope: 'training.captureFlush' });
     })
     .finally(() => {
@@ -76,23 +99,30 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
     });
 }
 
-async function runFlushLoop(): Promise<void> {
+async function runFlushLoop(): Promise<FlushAbort | null> {
+  flushSucceededCount = 0;
+  flushPendingCount = 0;
+
   for (;;) {
     // 게이트는 배치마다 재확인한다 — flush 도중 동의 철회 등 상태 변화를 존중.
     // uid·apiBaseUrl 선제 체크는 TS 내로잉용 — 판정의 소유자는 gate 모듈이다.
     const consent = await loadUploadConsent();
     const uid = getCurrentUid();
     const apiBaseUrl = readExtraString('apiBaseUrl');
-    if (!uid || !apiBaseUrl) return;
-    if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl })) return;
+    if (!uid || !apiBaseUrl) return null;
+    if (!isUploadGateOpen({ consentStatus: consent.status, uid, apiBaseUrl })) return null;
 
     const store = await loadFollowAlongCaptures();
     const captures = await backfillLegacyCaptureMeta(Object.values(store.capturesById));
-    if (captures.length === 0) return;
+    if (captures.length === 0) return null;
+    flushPendingCount = captures.length;
 
     const plan = planCaptureBatch(captures, (capture) => recordingFileExists(capture.uri));
-    if (plan.missingFileIds.length > 0) await deleteCaptures(plan.missingFileIds);
-    if (plan.batch.length === 0) return;
+    if (plan.missingFileIds.length > 0) {
+      await deleteCaptures(plan.missingFileIds);
+      flushPendingCount -= plan.missingFileIds.length;
+    }
+    if (plan.batch.length === 0) return null;
 
     cleanupCaptureUploadArtifacts();
     const metadata = buildCaptureBatchMetadata(plan.batch, Application.nativeApplicationVersion);
@@ -101,26 +131,24 @@ async function runFlushLoop(): Promise<void> {
       // 읽을 수 없는 파일은 "파일 없음"과 동일 — 삭제해야 배치 선두 고착이 안 생긴다.
       console.warn('[training.captureFlush]', `deleting unreadable captures: ${send.unreadableIds.join(', ')}`);
       await deleteCaptures(send.unreadableIds);
+      flushPendingCount -= send.unreadableIds.length;
     }
     if (!send.http) continue; // 전송할 파일이 없었다 — 실패분 삭제 후 다음 배치로.
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
 
-    if (outcome.kind === 'halt') {
-      haltedByTransientFailure = true;
-      return;
-    }
+    if (outcome.kind === 'halt') return abortWith(outcome.reason, send.http.status);
 
     if (outcome.kind === 'processed') {
-      const progressed = await applyProcessedOutcome(outcome);
-      if (!progressed) {
-        haltedByTransientFailure = true;
-        return;
-      }
+      const progressed = await applyProcessedOutcome(outcome, plan.batch, false);
+      if (!progressed) return abortWith('unreadable_response', send.http.status);
       continue;
     }
 
     if (outcome.kind === 'discard') {
-      await discardRejectedCapture(send.sentIds[0]);
+      const sentIdSet = new Set(send.sentIds);
+      for (const capture of plan.batch.filter((item) => sentIdSet.has(item.id))) {
+        await discardRejectedCapture(capture, send.http.status);
+      }
       continue;
     }
 
@@ -128,11 +156,8 @@ async function runFlushLoop(): Promise<void> {
     const sentIdSet = new Set(send.sentIds);
     const sentBatch = plan.batch.filter((capture) => sentIdSet.has(capture.id));
     const sentMetadata = metadata.filter((_, index) => sentIdSet.has(plan.batch[index].id));
-    const halted = await resendIndividually(sentBatch, sentMetadata, apiBaseUrl, uid);
-    if (halted) {
-      haltedByTransientFailure = true;
-      return;
-    }
+    const abort = await resendIndividually(sentBatch, sentMetadata, apiBaseUrl, uid);
+    if (abort) return abort;
   }
 }
 
@@ -141,7 +166,7 @@ async function resendIndividually(
   metadata: readonly CaptureUploadMetadataItem[],
   apiBaseUrl: string,
   uid: string,
-): Promise<boolean> {
+): Promise<FlushAbort | null> {
   for (let i = 0; i < batch.length; i += 1) {
     const capture = batch[i];
     const send = await sendCaptureBatch({
@@ -150,21 +175,24 @@ async function resendIndividually(
       batch: [capture],
       metadata: [metadata[i]],
     });
-    if (send.unreadableIds.length > 0) await deleteCaptures(send.unreadableIds);
+    if (send.unreadableIds.length > 0) {
+      await deleteCaptures(send.unreadableIds);
+      flushPendingCount -= send.unreadableIds.length;
+    }
     if (!send.http) continue; // 그 사이 파일이 사라짐 — 삭제 후 다음 단건으로.
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
-    if (outcome.kind === 'halt') return true;
+    if (outcome.kind === 'halt') return abortWith(outcome.reason, send.http.status);
     if (outcome.kind === 'processed') {
       // 단건에서도 해소 0건이면 외부 루프와 같은 원칙으로 flush 전체를 중단한다 —
       // 안 그러면 외부 루프가 같은 배치를 재조립해 4xx→split→빈 200 무한 루프가 된다.
-      const progressed = await applyProcessedOutcome(outcome);
-      if (!progressed) return true;
+      const progressed = await applyProcessedOutcome(outcome, [capture], true);
+      if (!progressed) return abortWith('unreadable_response', send.http.status);
       continue;
     }
     // 1건 배치라 split 은 나올 수 없다 — discard 만 남는다.
-    await discardRejectedCapture(capture.id);
+    await discardRejectedCapture(capture, send.http.status);
   }
-  return false;
+  return null;
 }
 
 // processed 응답의 항목 처리: rejected 경고 + 해소분(success·rejected) 삭제.
@@ -172,20 +200,82 @@ async function resendIndividually(
 // 되므로 호출부는 flush 를 중단해야 한다.
 async function applyProcessedOutcome(
   outcome: Extract<CaptureBatchOutcome, { kind: 'processed' }>,
+  batch: readonly FollowAlongCapture[],
+  isRetrySingle: boolean,
 ): Promise<boolean> {
+  const capturedAtById = new Map(batch.map((capture) => [capture.id, capture.capturedAt]));
+  const now = Date.now();
+
+  for (const id of outcome.successIds) {
+    const capturedAt = capturedAtById.get(id);
+    if (capturedAt === undefined) continue;
+    trackEvent({
+      name: 'capture_upload_succeeded',
+      params: {
+        client_capture_id: id,
+        latency_ms: now - Date.parse(capturedAt),
+        batch_size: batch.length,
+        is_retry_single: isRetrySingle,
+      },
+    });
+  }
+
   if (outcome.rejectedIds.length > 0) {
     console.warn('[training.captureFlush]', `server rejected captures: ${outcome.rejectedIds.join(', ')}`);
+    for (const id of outcome.rejectedIds) {
+      const capturedAt = capturedAtById.get(id);
+      if (capturedAt === undefined) continue;
+      // 항목 rejected 는 200 응답이라 상태 코드가 없다 — 단건 4xx 폐기와 여기서 갈린다.
+      trackEvent({
+        name: 'capture_upload_failed',
+        params: {
+          client_capture_id: id,
+          reason: 'server_reject',
+          age_ms: now - Date.parse(capturedAt),
+        },
+      });
+    }
   }
+
   const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
   if (resolvedIds.length === 0) return false;
   await deleteCaptures(resolvedIds);
+  flushSucceededCount += outcome.successIds.length;
+  flushPendingCount -= resolvedIds.length;
   return true;
 }
 
 // 단건에서도 4xx 로 거부된 클립은 폐기하고 보고한다 (SPEC-0003 §실패).
-async function discardRejectedCapture(id: string): Promise<void> {
-  await deleteCaptures([id]);
-  reportError(new Error(`capture discarded after 4xx: ${id}`), { scope: 'training.captureFlush.discard' });
+async function discardRejectedCapture(
+  capture: FollowAlongCapture,
+  httpStatus: number | null,
+): Promise<void> {
+  await deleteCaptures([capture.id]);
+  flushPendingCount -= 1;
+  trackEvent({
+    name: 'capture_upload_failed',
+    params: {
+      client_capture_id: capture.id,
+      reason: 'server_reject',
+      age_ms: Date.now() - Date.parse(capture.capturedAt),
+      ...(httpStatus === null ? {} : { http_status: httpStatus }),
+    },
+  });
+  reportError(new Error(`capture discarded after 4xx: ${capture.id}`), {
+    scope: 'training.captureFlush.discard',
+  });
+}
+
+function trackFlushAborted(abort: FlushAbort): void {
+  trackEvent({
+    name: 'capture_flush_aborted',
+    params: {
+      reason: abort.reason,
+      pending_count: flushPendingCount,
+      succeeded_before_abort: flushSucceededCount,
+      ...(abort.httpStatus === undefined ? {} : { http_status: abort.httpStatus }),
+    },
+  });
 }
 
 // legacy 레코드(clientWordId 부재)에 등록 시점과 같은 규칙으로 메타를 보충하고 영속화한다

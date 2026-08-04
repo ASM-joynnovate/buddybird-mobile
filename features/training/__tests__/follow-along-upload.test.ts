@@ -4,6 +4,8 @@
 // halt 플래그는 모듈 상태로 남지만 비-누적 트리거가 풀므로 각 테스트는 자급자족한다.
 
 import { reportError } from '@/features/analytics/error-reporter';
+import { trackEvent } from '@/features/analytics/event-tracker';
+import type { AnalyticsEvent } from '@/features/analytics/events';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { loadStoredProfile } from '@/features/profile/profile-storage';
@@ -21,6 +23,7 @@ import type { TrainingStore, TrainingWord } from '../training-types';
 
 jest.mock('expo-application', () => ({ nativeApplicationVersion: '1.2.3' }));
 jest.mock('@/features/analytics/error-reporter', () => ({ reportError: jest.fn() }));
+jest.mock('@/features/analytics/event-tracker', () => ({ trackEvent: jest.fn() }));
 jest.mock('@/features/audio/audio-file-storage', () => ({ recordingFileExists: jest.fn() }));
 jest.mock('@/features/auth/auth-identity', () => ({ getCurrentUid: jest.fn() }));
 jest.mock('@/features/profile/profile-storage', () => ({ loadStoredProfile: jest.fn() }));
@@ -41,6 +44,15 @@ const sendMock = jest.mocked(sendCaptureBatch);
 const applyMetaMock = jest.mocked(applyCaptureMeta);
 const deleteMock = jest.mocked(deleteCaptures);
 const reportErrorMock = jest.mocked(reportError);
+const trackEventMock = jest.mocked(trackEvent);
+
+// 발행 순서를 보존한 채 한 이벤트만 뽑는다 — "flush 단위 1회" 같은 건수 계약을 그대로 본다.
+function trackedParams(name: AnalyticsEvent['name']): Record<string, unknown>[] {
+  return trackEventMock.mock.calls
+    .map(([event]) => event)
+    .filter((event) => event.name === name)
+    .map((event) => ({ ...event.params }));
+}
 
 // fire-and-forget 진입점이라 완료를 직접 기다릴 수 없다 — mock 만 쓰는 promise 체인은
 // macrotask 경계 하나면 전부 소진된다.
@@ -276,5 +288,110 @@ describe('requestCaptureFlush', () => {
     resolveSend(haltOutcome);
     await drainFlush();
     expect(sendMock).toHaveBeenCalledTimes(2); // 추가 rerun 없음
+  });
+});
+
+// BB-284 — 클립 1건이 캡처 이후 어떤 결말을 맞았는지 이벤트만으로 복원되는지 본다.
+describe('requestCaptureFlush 계측', () => {
+  it('records one succeeded event per uploaded clip', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    queue.set('cap-2', makeCapture('cap-2'));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_upload_succeeded')).toEqual([
+      { client_capture_id: 'cap-1', latency_ms: expect.any(Number), batch_size: 2, is_retry_single: false },
+      { client_capture_id: 'cap-2', latency_ms: expect.any(Number), batch_size: 2, is_retry_single: false },
+    ]);
+    expect(trackedParams('capture_flush_aborted')).toEqual([]);
+  });
+
+  it('omits http_status when an item is rejected inside a 200 response', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    sendMock.mockImplementation(async ({ batch }) => ({
+      http: { status: 200, body: { data: { 'cap-1': { status: 'rejected' } } } },
+      sentIds: batch.map((capture) => capture.id),
+      unreadableIds: [],
+    }));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_upload_failed')).toEqual([
+      { client_capture_id: 'cap-1', reason: 'server_reject', age_ms: expect.any(Number) },
+    ]);
+  });
+
+  it('records http_status when a single-item batch is discarded on a 4xx', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    sendMock.mockImplementation(async ({ batch }) => ({
+      http: { status: 400, body: null },
+      sentIds: batch.map((capture) => capture.id),
+      unreadableIds: [],
+    }));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_upload_failed')).toEqual([
+      { client_capture_id: 'cap-1', reason: 'server_reject', age_ms: expect.any(Number), http_status: 400 },
+    ]);
+  });
+
+  // 중단 기록은 halt 지점 수와 무관하게 flush 하나에 1건이어야 한다.
+  it('records a single abort event carrying the clips uploaded and left waiting', async () => {
+    for (let i = 0; i < 12; i += 1) {
+      queue.set(`cap-${i}`, makeCapture(`cap-${i}`, {
+        capturedAt: `2026-08-01T00:00:${String(i).padStart(2, '0')}.000Z`,
+      }));
+    }
+    sendMock.mockImplementation(async ({ batch }) => {
+      const sentIds = batch.map((capture) => capture.id);
+      if (batch.length === 10) {
+        return { http: { status: 200, body: successBody(sentIds) }, sentIds, unreadableIds: [] };
+      }
+      return { http: { status: null, body: null }, sentIds, unreadableIds: [] };
+    });
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    // 네트워크 오류는 응답이 없어 http_status 가 붙지 않는다.
+    expect(trackedParams('capture_flush_aborted')).toEqual([
+      { reason: 'network_error', pending_count: 2, succeeded_before_abort: 10 },
+    ]);
+  });
+
+  it('reports a server error abort with its status code', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    sendMock.mockImplementation(async ({ batch }) => ({
+      http: { status: 503, body: null },
+      sentIds: batch.map((capture) => capture.id),
+      unreadableIds: [],
+    }));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_flush_aborted')).toEqual([
+      { reason: 'server_error', pending_count: 1, succeeded_before_abort: 0, http_status: 503 },
+    ]);
+  });
+
+  it('reports an unreadable response abort when no item could be resolved', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    sendMock.mockImplementation(async ({ batch }) => ({
+      http: { status: 200, body: { data: {} } },
+      sentIds: batch.map((capture) => capture.id),
+      unreadableIds: [],
+    }));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_flush_aborted')).toEqual([
+      { reason: 'unreadable_response', pending_count: 1, succeeded_before_abort: 0, http_status: 200 },
+    ]);
   });
 });
