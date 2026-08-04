@@ -14,6 +14,11 @@ import {
 } from './upload-consent-storage';
 
 interface UploadConsentContextValue {
+  /**
+   * 현재 동의 상태 — 저장소 로드 전에는 `unknown`, 이후 결정(`decide`)을 즉시 반영.
+   * 이벤트 라벨링 등 동기 소비자용 (BB-285 `consent_status`) — 업로드 게이트는 저장소를 직접 읽는다.
+   */
+  status: UploadConsentStatus;
   /** 동의 다이얼로그를 지금 띄워야 하는가 — 스플래시 해제 + 업데이트 판정 완료 후에만 참. */
   promptVisible: boolean;
   /** 이번 세션에 동의 팝업이 더는 뜰 일이 없는가. 후순위 팝업(피드백)이 이걸 기다린다. */
@@ -38,6 +43,7 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const [shouldPrompt, setShouldPrompt] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
+  const [status, setStatus] = useState<UploadConsentStatus>('unknown');
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +51,7 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const record = await loadUploadConsent();
       if (!cancelled) {
+        setStatus(record.status);
         setShouldPrompt(shouldShowUploadConsentNotice(record));
         setLoaded(true);
       }
@@ -55,13 +62,14 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const decide = useCallback((status: Exclude<UploadConsentStatus, 'unknown'>) => {
+  const decide = useCallback((decision: Exclude<UploadConsentStatus, 'unknown'>) => {
+    setStatus(decision);
     setShouldPrompt(false);
-    saveUploadConsentDecision(status, UPLOAD_CONSENT_NOTICE_VERSION)
+    saveUploadConsentDecision(decision, UPLOAD_CONSENT_NOTICE_VERSION)
       .then(() => {
         // 업로드 트리거 ⑤ (SPEC-0003): granted 전환 — 게이트가 저장소를 읽으므로 영속화 후에 건다.
         // 단어와 클립은 독립 트리거로 동작한다 (BB-238 §제외) — 순서를 조율하지 않는다.
-        if (status === 'granted') {
+        if (decision === 'granted') {
           requestCaptureFlush();
           requestWordUploadFlush();
         }
@@ -75,12 +83,13 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<UploadConsentContextValue>(
     () => ({
+      status,
       promptVisible: splashDone && checked && prompt === null && shouldPrompt,
       settled: loaded && !shouldPrompt,
       decide,
       markSplashDone,
     }),
-    [splashDone, checked, prompt, shouldPrompt, loaded, decide, markSplashDone]
+    [status, splashDone, checked, prompt, shouldPrompt, loaded, decide, markSplashDone]
   );
 
   return <UploadConsentContext.Provider value={value}>{children}</UploadConsentContext.Provider>;

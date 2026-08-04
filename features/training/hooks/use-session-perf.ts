@@ -1,16 +1,14 @@
 // 세션 성능 저하 계측 (BB-285, PRD-0001 NFR-01) — 기준치 초과 시 session_perf_degraded 발행.
-// 엔진 이벤트를 독립 구독(리스너 멀티캐스트)하고, AppState active + 엔진 running일 때만 측정한다 —
-// 백그라운드 타이머 스로틀이 복귀 시 만드는 거대한 가짜 드리프트를 오탐하지 않기 위함.
-// 업로드 동의 상태는 읽기만 한다 — 측정·발행을 게이트하지 않는다 (동의 거부 세션 = 대조군, 완료 조건 2).
+// 엔진 이벤트를 독립 구독(리스너 멀티캐스트)한다. ui_lag은 AppState active + 엔진 running일 때만
+// 측정한다 — 백그라운드 타이머 스로틀이 복귀 시 만드는 거대한 가짜 드리프트를 오탐하지 않기 위함.
+// audio_delay는 네이티브 실측이라 백그라운드(포그라운드 서비스 재생 중)에서도 유효 — 게이트하지 않는다.
+// 업로드 동의 상태는 컨텍스트에서 읽기만 한다 — 측정·발행을 게이트하지 않는다 (동의 거부 세션 = 대조군, 완료 조건 2).
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useAnalytics } from '@/features/analytics/analytics-context';
-import {
-  loadUploadConsent,
-  type UploadConsentStatus,
-} from '@/features/upload-consent/upload-consent-storage';
+import { useUploadConsent } from '@/features/upload-consent/upload-consent-context';
 import { sessionAudioEngine, type SessionEngineSnapshot } from '@/modules/session-audio-engine';
 
 import { isCaptureFlushInFlight } from '../follow-along-upload';
@@ -32,12 +30,13 @@ interface UseSessionPerfInput {
 
 export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInput): void {
   const { track } = useAnalytics();
+  // 동의 팝업은 학습 탭 진입 트리거라 세션 중 불변 — Provider가 앱 시작 시 로드해 둔 동기 값
+  // (자체 async 로드였다면 세션 초반 발행이 'unknown'으로 오라벨될 창이 생긴다 — 피어리뷰 P2-3).
+  const { status: consentStatus } = useUploadConsent();
   const [running, setRunning] = useState(false);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   const throttleRef = useRef(createThrottleState());
   const lastObservedDelayRef = useRef<number | null | undefined>(undefined);
-  // 동의 팝업은 학습 탭 진입 트리거라 세션 중 불변 — mount 시 1회 로드해 발행 경로를 동기로 유지.
-  const consentRef = useRef<UploadConsentStatus>('unknown');
 
   useEffect(() => {
     throttleRef.current = createThrottleState();
@@ -49,20 +48,6 @@ export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInp
   useEffect(() => {
     lastObservedDelayRef.current = undefined;
   }, [engineSessionId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    loadUploadConsent()
-      .then((record) => {
-        if (!cancelled) consentRef.current = record.status;
-      })
-      .catch((error: unknown) => {
-        console.warn('[training.sessionPerf]', error);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const emitDegraded = useCallback(
     (kind: SessionPerfKind, valueMs: number): void => {
@@ -76,11 +61,11 @@ export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInp
           value_ms: Math.round(valueMs),
           during_upload: isCaptureFlushInFlight(),
           session_id: sessionId,
-          consent_status: consentRef.current,
+          consent_status: consentStatus,
         },
       });
     },
-    [sessionId, track],
+    [consentStatus, sessionId, track],
   );
 
   useEffect(() => {
