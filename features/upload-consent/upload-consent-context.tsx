@@ -3,6 +3,7 @@ import { createContext, use, useCallback, useEffect, useMemo, useState, type Rea
 import { reportError } from '@/features/analytics/error-reporter';
 import { useAppUpdateContext } from '@/features/app-update/app-update-context';
 import { requestCaptureFlush } from '@/features/training/follow-along-upload';
+import { requestWordUploadFlush } from '@/features/word-library/word-upload';
 
 import { shouldShowUploadConsentNotice } from './upload-consent-decision';
 import { UPLOAD_CONSENT_NOTICE_VERSION } from './upload-consent-notice';
@@ -59,7 +60,11 @@ export function UploadConsentProvider({ children }: { children: ReactNode }) {
     saveUploadConsentDecision(status, UPLOAD_CONSENT_NOTICE_VERSION)
       .then(() => {
         // 업로드 트리거 ⑤ (SPEC-0003): granted 전환 — 게이트가 저장소를 읽으므로 영속화 후에 건다.
-        if (status === 'granted') requestCaptureFlush();
+        // 단어와 클립은 독립 트리거로 동작한다 (BB-238 §제외) — 순서를 조율하지 않는다.
+        if (status === 'granted') {
+          requestCaptureFlush();
+          requestWordUploadFlush();
+        }
       })
       .catch((error: unknown) => {
         reportError(error, { scope: 'upload-consent.saveDecision' });
