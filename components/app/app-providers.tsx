@@ -6,8 +6,8 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { CaptureUploadBootstrap } from '@/components/app/capture-upload-bootstrap';
-import { WordUploadBootstrap } from '@/components/app/word-upload-bootstrap';
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
+import { WordUploadBootstrap } from '@/components/app/word-upload-bootstrap';
 import { AnalyticsProvider } from '@/features/analytics/analytics-context';
 import { AppUpdateProvider } from '@/features/app-update/app-update-context';
 import { AuthProvider } from '@/features/auth/auth-context';
