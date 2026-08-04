@@ -7,6 +7,7 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 
 import { CaptureUploadBootstrap } from '@/components/app/capture-upload-bootstrap';
 import { FcmHeadlessGuard } from '@/components/app/fcm-headless-guard';
+import { WordUploadBootstrap } from '@/components/app/word-upload-bootstrap';
 import { AnalyticsProvider } from '@/features/analytics/analytics-context';
 import { AppUpdateProvider } from '@/features/app-update/app-update-context';
 import { AuthProvider } from '@/features/auth/auth-context';
@@ -53,6 +54,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
                               <FeedbackProvider>
                                 {/* 컨텍스트 의존 없는 구독 전용 널 컴포넌트 — 위치는 순서 제약과 무관. */}
                                 <CaptureUploadBootstrap />
+                                <WordUploadBootstrap />
                                 {children}
                               </FeedbackProvider>
                             </UploadConsentProvider>
