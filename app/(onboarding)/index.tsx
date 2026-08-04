@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useRef } from 'react';
 
 import { OnboardingWelcomeView } from '@/components/onboarding/onboarding-welcome-view';
 import { useAnalytics } from '@/features/analytics/analytics-context';
@@ -9,8 +10,17 @@ export default function OnboardingWelcomeScreen() {
   const { t } = useI18n();
   const { track } = useAnalytics();
   const { elapsedMs } = useScreenTracking('onboarding_welcome');
+  const hasStartedRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      hasStartedRef.current = false;
+    }, []),
+  );
 
   function startOnboarding(): void {
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
     track({ name: 'onboarding_step_completed', params: { step: 'welcome', duration_ms: elapsedMs() } });
     router.push('/(onboarding)/profile');
   }
