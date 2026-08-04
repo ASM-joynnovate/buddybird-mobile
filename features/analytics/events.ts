@@ -295,7 +295,13 @@ export function toFirebaseParams(params: AnalyticsParams): Record<string, string
       continue;
     }
 
-    if (typeof value === 'number' || typeof value === 'boolean') {
+    // NaN·Infinity 는 그대로 나가면 지표를 조용히 오염시킨다 — 키째 뺀다.
+    if (typeof value === 'number') {
+      if (Number.isFinite(value)) sanitized[safeKey] = value;
+      continue;
+    }
+
+    if (typeof value === 'boolean') {
       sanitized[safeKey] = value;
       continue;
     }
