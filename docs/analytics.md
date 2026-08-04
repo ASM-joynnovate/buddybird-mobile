@@ -141,6 +141,7 @@ await flushSessionWordMetrics([
 - `word_recording_finished`의 `retry_count`: 성공적으로 완료된 녹음 기준 (에러·중단 경로의 재시도는 미집계, started/finished 쌍은 에러 경로에서 불균형).
 - `recordings_count`의 정본은 `word_practice_completed`(실제 캡처 세그먼트 수). `word_lifetime_metrics`에 누적되는 `lifetime_recording_count`는 세션 flush의 `audioUri ? 1 : 0` 휴리스틱이라 정의가 다름.
 - `session_perf_degraded`의 `audio_delay`: iOS는 실제 가청 시작이 아니라 스케줄 지연(의도→`play()` 디스패치) 근사 — Android(실제 재생 시작 관측)와 측정 범위가 다르므로 플랫폼 간 절대값 비교 금지. iOS ATT denied 시 analytics 자체가 비활성이라 iOS 대조군(동의 거부 코호트)에 편향 가능.
+- `session_perf_degraded`의 측정 구간은 kind별로 다름: `ui_lag`은 AppState active + 세션 running에서만(백그라운드 타이머 스로틀의 가짜 드리프트 차단), `audio_delay`는 네이티브 실측이라 백그라운드(포그라운드 서비스 재생 중) 발행 포함.
 
 캡처 업로드 계측(BB-284)의 제약은 다음과 같다:
 
