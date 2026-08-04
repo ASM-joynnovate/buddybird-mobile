@@ -16,7 +16,7 @@ export type CaptureBatchOutcome =
   /** 요청 4xx (1건 배치) — 그 클립 폐기 + reportError */
   | { kind: 'discard' }
   /** 5xx·네트워크 오류 — zip 만 삭제, 클립 큐 유지, flush 중단 */
-  | { kind: 'halt' };
+  | { kind: 'halt'; reason: 'network_error' | 'server_error' };
 
 export function interpretCaptureBatchResult(
   result: CaptureBatchHttpResult,
@@ -30,7 +30,8 @@ export function interpretCaptureBatchResult(
     return batchIds.length > 1 ? { kind: 'split' } : { kind: 'discard' };
   }
   // 5xx·네트워크 오류·그 외 예상 밖 상태 — 클립을 지우지 않는 쪽으로 보수적으로 중단한다.
-  return { kind: 'halt' };
+  // 응답이 없으면 네트워크 오류, 그 밖은 전부 서버 오류로 묶는다 (PRD FR-04 실패 3분류).
+  return { kind: 'halt', reason: status === null ? 'network_error' : 'server_error' };
 }
 
 // 응답 data 는 client_capture_id 키 객체, 항목은 { status: 'success' | 'rejected' }.
