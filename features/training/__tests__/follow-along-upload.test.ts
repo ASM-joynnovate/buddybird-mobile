@@ -307,6 +307,21 @@ describe('requestCaptureFlush 계측', () => {
     expect(trackedParams('capture_flush_aborted')).toEqual([]);
   });
 
+  // batch_size 는 계획 배치가 아니라 실제 전송분이어야 한다 — 읽기 실패분이 섞이면 갈린다.
+  it('reports the sent batch size when a file could not be read', async () => {
+    for (const id of ['cap-1', 'cap-2', 'cap-3']) queue.set(id, makeCapture(id));
+    sendMock.mockImplementation(async ({ batch }) => {
+      const sentIds = batch.map((capture) => capture.id).filter((id) => id !== 'cap-3');
+      return { http: { status: 200, body: successBody(sentIds) }, sentIds, unreadableIds: ['cap-3'] };
+    });
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_upload_succeeded').map((params) => params.batch_size)).toEqual([2, 2]);
+    expect(queue.size).toBe(0);
+  });
+
   it('omits http_status when an item is rejected inside a 200 response', async () => {
     queue.set('cap-1', makeCapture('cap-1'));
     sendMock.mockImplementation(async ({ batch }) => ({

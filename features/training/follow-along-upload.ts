@@ -138,23 +138,25 @@ async function runFlushLoop(): Promise<FlushAbort | null> {
 
     if (outcome.kind === 'halt') return abortWith(outcome.reason, send.http.status);
 
+    // 읽기 실패분을 뺀 "실제 전송된 것"이 이후 분기의 공통 기준이다 — 계획 배치를 쓰면
+    // 계측의 batch_size 가 부풀고 응답 해석 기준(sentIds)과도 어긋난다.
+    const sentIdSet = new Set(send.sentIds);
+    const sentBatch = plan.batch.filter((capture) => sentIdSet.has(capture.id));
+
     if (outcome.kind === 'processed') {
-      const progressed = await applyProcessedOutcome(outcome, plan.batch, false);
+      const progressed = await applyProcessedOutcome(outcome, sentBatch, false);
       if (!progressed) return abortWith('unreadable_response', send.http.status);
       continue;
     }
 
     if (outcome.kind === 'discard') {
-      const sentIdSet = new Set(send.sentIds);
-      for (const capture of plan.batch.filter((item) => sentIdSet.has(item.id))) {
+      for (const capture of sentBatch) {
         await discardRejectedCapture(capture, send.http.status);
       }
       continue;
     }
 
     // split: 실제 전송된 것만 1건씩 쪼개 재전송. 5xx·네트워크 오류를 만나면 flush 전체를 중단한다.
-    const sentIdSet = new Set(send.sentIds);
-    const sentBatch = plan.batch.filter((capture) => sentIdSet.has(capture.id));
     const sentMetadata = metadata.filter((_, index) => sentIdSet.has(plan.batch[index].id));
     const abort = await resendIndividually(sentBatch, sentMetadata, apiBaseUrl, uid);
     if (abort) return abort;
