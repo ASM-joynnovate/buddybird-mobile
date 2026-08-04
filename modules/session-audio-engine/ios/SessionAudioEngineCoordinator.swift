@@ -28,6 +28,9 @@ final class SessionAudioEngineCoordinator: NSObject {
   private var capturePipeline: VoiceCapturePipeline?
   private var targetPlaying = false
   private var captureAllowedAfterMs: Int64 = 0
+  // BB-285 audio_delay: 의도(스케줄 진입)→play() 디스패치 완료까지의 근사 지연. 관찰 전용.
+  // AVAudioPlayerNode 첫 render 관측이 번거로워 스케줄 지연 근사로 측정한다 (Android는 실제 시작 관측).
+  private var lastPlaybackStartDelayMs: Int64?
   private let nowPlaying = SessionNowPlaying()
   // 인터럽션이 사용자 일시정지 중에 왔는지 기억한다 — 종료 통지에서 재생을 재개하지 않고
   // pause 계약(엔진·마이크 유지)만 복원하기 위해서다. 매 .began 에서 다시 계산된다.
@@ -77,6 +80,7 @@ final class SessionAudioEngineCoordinator: NSObject {
         elapsedBeforeRunMs = 0
         runningSinceMs = nil
         lastStopRecord = nil
+        lastPlaybackStartDelayMs = nil
         try activateAudio()
         runningSinceMs = monotonicMilliseconds()
         state = "running"
@@ -403,6 +407,8 @@ final class SessionAudioEngineCoordinator: NSObject {
           let playerNode, let audioFile else { return }
     let generation = playbackGeneration
     targetPlaying = true
+    let playbackIntentAtMs = monotonicMilliseconds()
+    lastPlaybackStartDelayMs = nil
     capturePipeline?.flush()
     emitStateChanged()
     playerNode.scheduleFile(audioFile, at: nil, completionCallbackType: .dataPlayedBack) { [weak self] _ in
@@ -422,6 +428,9 @@ final class SessionAudioEngineCoordinator: NSObject {
       }
     }
     playerNode.play()
+    // 스케줄 지연 확정 — 확정 시점에 기존 이벤트로만 내보낸다 (신규 이벤트 없음).
+    lastPlaybackStartDelayMs = monotonicMilliseconds() - playbackIntentAtMs
+    emitStateChanged()
   }
 
   private func startTimer() {
@@ -498,7 +507,7 @@ final class SessionAudioEngineCoordinator: NSObject {
   private func snapshotDictionary() -> [String: Any] {
     guard let configuration else { return [:] }
     let position = phasePosition()
-    return [
+    var dictionary: [String: Any] = [
       "sessionId": configuration.sessionId,
       "state": state,
       "elapsedRunningMs": elapsedRunningMs(),
@@ -508,6 +517,8 @@ final class SessionAudioEngineCoordinator: NSObject {
       "isTargetPlaying": targetPlaying,
       "savedAt": isoNow()
     ]
+    if let delayMs = lastPlaybackStartDelayMs { dictionary["lastPlaybackStartDelayMs"] = delayMs }
+    return dictionary
   }
 
   private func persist(reason: String?) throws {

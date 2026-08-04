@@ -58,6 +58,12 @@ export interface SessionEngineSnapshot {
   phase: 'learning' | 'rest';
   phaseElapsedMs: number;
   isTargetPlaying: boolean;
+  /**
+   * 직전 목표 음원 재생의 의도(스케줄)→시작 지연 ms (BB-285 audio_delay).
+   * Android는 실제 재생 시작(onIsPlayingChanged) 관측, iOS는 play() 디스패치까지의 근사.
+   * 스케줄마다 리셋되므로 미확정 구간·과거 세션 스냅샷에는 없다 — Android는 null, iOS는 키 생략.
+   */
+  lastPlaybackStartDelayMs?: number | null;
   savedAt: string;
 }
 

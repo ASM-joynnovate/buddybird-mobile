@@ -32,6 +32,7 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
   const [running, setRunning] = useState(false);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   const throttleRef = useRef(createThrottleState());
+  const lastObservedDelayRef = useRef<number | null | undefined>(undefined);
   // 동의 팝업은 학습 탭 진입 트리거라 세션 중 불변 — mount 시 1회 로드해 발행 경로를 동기로 유지.
   const consentRef = useRef<UploadConsentStatus>('unknown');
 
@@ -53,22 +54,6 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
     };
   }, []);
 
-  useEffect(() => {
-    const apply = (snapshot: SessionEngineSnapshot): void => {
-      if (snapshot.sessionId !== sessionId) return;
-      setRunning(snapshot.state === 'running');
-    };
-    const unsubscribers = [sessionAudioEngine.onStateChanged(apply), sessionAudioEngine.onProgress(apply)];
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
-  }, [sessionId]);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      setAppActive(nextState === 'active');
-    });
-    return () => subscription.remove();
-  }, []);
-
   const emitDegraded = useCallback(
     (kind: SessionPerfKind, valueMs: number): void => {
       const verdict = shouldEmit(throttleRef.current, kind, Date.now());
@@ -87,6 +72,30 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
     },
     [sessionId, track],
   );
+
+  useEffect(() => {
+    const apply = (snapshot: SessionEngineSnapshot): void => {
+      if (snapshot.sessionId !== sessionId) return;
+      setRunning(snapshot.state === 'running');
+      // audio_delay: 네이티브가 확정한 의도→재생 시작 지연 (측정·running 게이트는 네이티브 소관).
+      // 값 전이로만 판정한다 — 스케줄마다 네이티브가 필드를 리셋(undefined)하므로 재생 1회당 1판정.
+      // Android는 미확정 구간에 null 값, iOS는 키 생략 — 둘 다 "값 없음"으로 취급한다.
+      const delayMs = snapshot.lastPlaybackStartDelayMs;
+      if (delayMs !== lastObservedDelayRef.current) {
+        lastObservedDelayRef.current = delayMs;
+        if (delayMs != null && isDegraded('audio_delay', delayMs)) emitDegraded('audio_delay', delayMs);
+      }
+    };
+    const unsubscribers = [sessionAudioEngine.onStateChanged(apply), sessionAudioEngine.onProgress(apply)];
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  }, [emitDegraded, sessionId]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      setAppActive(nextState === 'active');
+    });
+    return () => subscription.remove();
+  }, []);
 
   // ui_lag: interval 예상 tick 대비 실제 시각 드리프트 = JS 스레드 점유(zipSync 등) 직접 포착.
   // 게이트를 벗어나면 interval 해제 — 기준점도 함께 버려져 복귀 시 드리프트가 0부터 시작한다.

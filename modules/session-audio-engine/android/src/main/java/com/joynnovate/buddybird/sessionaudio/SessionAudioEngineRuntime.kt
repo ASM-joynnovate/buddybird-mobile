@@ -87,6 +87,10 @@ object SessionAudioEngineRuntime {
   private var capturePipeline: VoiceCapturePipeline? = null
   private var targetPlaying = false
   private var captureAllowedAfterMs = 0L
+  // BB-285 audio_delay: 재생 의도(스케줄) 시각 → 실제 재생 시작(onIsPlayingChanged) 지연 측정.
+  // 스케줄마다 의도 시각을 새로 찍고 직전 지연을 리셋해 낡은 값 재보고를 막는다. 관찰 전용 — 재생 제어 무관여.
+  private var playbackIntentAtMs: Long? = null
+  private var lastPlaybackStartDelayMs: Long? = null
 
   @Synchronized
   fun initialize(applicationContext: Context) {
@@ -119,6 +123,8 @@ object SessionAudioEngineRuntime {
       runningSinceMs = null
       state = "starting"
       lastStopRecord = null
+      playbackIntentAtMs = null
+      lastPlaybackStartDelayMs = null
       serviceStartError = null
       CountDownLatch(1).also {
         serviceReadyLatch = it
@@ -378,6 +384,10 @@ object SessionAudioEngineRuntime {
           if (playbackState == Player.STATE_ENDED) handlePlaybackCompleted(player.duration.coerceAtLeast(0))
         }
 
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+          if (isPlaying) handlePlaybackStarted()
+        }
+
         override fun onPlayerError(error: PlaybackException) {
           playerFailure = error
           playerReady.countDown()
@@ -446,6 +456,7 @@ object SessionAudioEngineRuntime {
     capturePipeline?.flush()
     playbackGeneration += 1
     targetPlaying = false
+    playbackIntentAtMs = null
     val player = mediaPlayer
     playbackHandler?.post {
       player?.stop()
@@ -564,11 +575,26 @@ object SessionAudioEngineRuntime {
     if (state != "running" || phasePosition().second != "learning") return
     playbackGeneration += 1
     targetPlaying = true
+    playbackIntentAtMs = SystemClock.elapsedRealtime()
+    lastPlaybackStartDelayMs = null
     capturePipeline?.flush()
     emitStateChanged()
     handler.post {
       player.seekTo(0)
       player.play()
+    }
+  }
+
+  // 실제 재생 시작 관측 (BB-285 audio_delay). handlePlaybackCompleted와 같은 synchronized 가드 —
+  // 세션 종료·위상 전환 뒤 도착한 낡은 콜백은 targetPlaying/의도 시각 부재로 무시된다.
+  // 의도 시각은 1회 소비라 재생 1회당 지연도 1회만 확정되고, 확정 시점에 기존 이벤트로만 내보낸다.
+  private fun handlePlaybackStarted() {
+    synchronized(this) {
+      if (!targetPlaying || state != "running") return
+      val intentAtMs = playbackIntentAtMs ?: return
+      playbackIntentAtMs = null
+      lastPlaybackStartDelayMs = SystemClock.elapsedRealtime() - intentAtMs
+      emitStateChanged()
     }
   }
 
@@ -669,6 +695,7 @@ object SessionAudioEngineRuntime {
       "phase" to position.second,
       "phaseElapsedMs" to position.third,
       "isTargetPlaying" to targetPlaying,
+      "lastPlaybackStartDelayMs" to lastPlaybackStartDelayMs,
       "savedAt" to Instant.now().toString(),
     )
   }
