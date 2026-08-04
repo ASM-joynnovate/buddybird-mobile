@@ -420,7 +420,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [finalizeSession]);
 
   useSessionKeepAwake(snapshot.state === 'running');
-  useSessionPerf({ sessionId: engineSessionId });
+  useSessionPerf({ engineSessionId, sessionId });
 
   function togglePause(): void {
     const command = snapshot.state === 'running' ? sessionAudioEngine.pause() : sessionAudioEngine.resume();

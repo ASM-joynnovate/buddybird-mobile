@@ -24,10 +24,13 @@ import {
 } from '../session-perf-model';
 
 interface UseSessionPerfInput {
+  /** 엔진에 실제로 붙은 세션 id — 스냅샷 필터·측정 스트림 리셋용 (재시도 시 새 id로 갈린다) */
+  engineSessionId: string;
+  /** analytics 세션 id (pendingSession.sessionId) — 이벤트 param·스로틀 키. 기존 세션 이벤트들과 같은 체계라 재시도 세션에서도 조인이 유지된다 */
   sessionId: string;
 }
 
-export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
+export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInput): void {
   const { track } = useAnalytics();
   const [running, setRunning] = useState(false);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
@@ -39,6 +42,13 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
   useEffect(() => {
     throttleRef.current = createThrottleState();
   }, [sessionId]);
+
+  // 재시도로 엔진 세션이 갈리면 측정 스트림도 새로 시작 — 직전 런 마지막 관측값과 새 런 첫
+  // 확정값이 같은 ms일 때 전이 미감지로 발행이 누락되는 케이스 방지. 스로틀은 analytics 세션
+  // 기준이라 리셋하지 않는다 (세션당 상한 20건 계약이 재시도로 불어나지 않게).
+  useEffect(() => {
+    lastObservedDelayRef.current = undefined;
+  }, [engineSessionId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +85,7 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
 
   useEffect(() => {
     const apply = (snapshot: SessionEngineSnapshot): void => {
-      if (snapshot.sessionId !== sessionId) return;
+      if (snapshot.sessionId !== engineSessionId) return;
       setRunning(snapshot.state === 'running');
       // audio_delay: 네이티브가 확정한 의도→재생 시작 지연 (측정·running 게이트는 네이티브 소관).
       // 값 전이로만 판정한다 — 스케줄마다 네이티브가 필드를 리셋(undefined)하므로 재생 1회당 1판정.
@@ -88,7 +98,7 @@ export function useSessionPerf({ sessionId }: UseSessionPerfInput): void {
     };
     const unsubscribers = [sessionAudioEngine.onStateChanged(apply), sessionAudioEngine.onProgress(apply)];
     return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
-  }, [emitDegraded, sessionId]);
+  }, [emitDegraded, engineSessionId]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
