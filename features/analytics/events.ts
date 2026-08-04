@@ -5,6 +5,12 @@ export type RecordingMethod = 'voice' | 'upload';
 export type RegistrationMethod = 'text' | 'voice_recording';
 export type WordSelectSource = 'list' | 'recommendation' | 'search';
 export type ParrotSpeciesValue = string;
+export type CaptureUploadFailureReason = 'server_reject' | 'network_error' | 'server_error';
+export type CaptureFlushAbortReason =
+  | 'server_error'
+  | 'network_error'
+  | 'unreadable_response'
+  | 'exception';
 
 export type AnalyticsEvent =
   | { name: 'app_open'; params: { cold_start: boolean } }
@@ -138,6 +144,55 @@ export type AnalyticsEvent =
         session_id: string;
         phase: 'learning' | 'rest';
         elapsed_seconds: number;
+      };
+    }
+  | {
+      name: 'follow_along_capture_created';
+      params: {
+        client_capture_id: string;
+        session_id: string;
+        client_word_id: string;
+        cycle: number;
+        phase: 'learning' | 'rest';
+        audio_size_bytes: number;
+        pending_count: number;
+      };
+    }
+  | {
+      name: 'capture_upload_succeeded';
+      params: {
+        client_capture_id: string;
+        latency_ms: number;
+        batch_size: number;
+        is_retry_single: boolean;
+      };
+    }
+  | {
+      name: 'capture_upload_failed';
+      params: {
+        client_capture_id: string;
+        reason: CaptureUploadFailureReason;
+        age_ms: number;
+        // 항목 rejected 는 200 응답이라 상태 코드가 없다 — 단건 4xx 폐기 경로에서만 채운다.
+        http_status?: number;
+      };
+    }
+  | {
+      name: 'capture_flush_aborted';
+      params: {
+        reason: CaptureFlushAbortReason;
+        pending_count: number;
+        succeeded_before_abort: number;
+        // 네트워크 오류는 응답이 없어 생략.
+        http_status?: number;
+      };
+    }
+  | {
+      name: 'capture_evicted_before_upload';
+      params: {
+        client_capture_id: string;
+        age_ms: number;
+        audio_size_bytes: number;
       };
     }
   | { name: 'word_library_opened'; params: { total_words_count: number } }
