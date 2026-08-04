@@ -53,7 +53,7 @@ export default function ProfileScreen() {
       <View style={styles.ctaRow}>
         <PillButton
           label={t('profile.editCta')}
-          onPress={() => router.push('/profile-edit')}
+          onPress={() => router.navigate('/profile-edit')}
           size="lg"
           style={styles.ctaButton}
           testID="profile-edit-cta"
