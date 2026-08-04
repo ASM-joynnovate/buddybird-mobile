@@ -1,5 +1,6 @@
 import { trackEvent } from '@/features/analytics/event-tracker';
 import { deleteRecordingFile, getRecordingFileSize } from '@/features/audio/audio-file-storage';
+import { elapsedMsSince } from '@/features/shared/date-utils';
 import { persistKeyedStore } from '@/features/shared/persist-keyed-store';
 
 import type { CaptureRegistrationMeta } from './follow-along-capture-meta';
@@ -128,11 +129,12 @@ function evictOldestOverCap(store: FollowAlongCaptureStore): void {
     deleteRecordingFile(capture.uri);
     delete store.capturesById[capture.id];
     total -= capture.sizeBytes;
+    const ageMs = elapsedMsSince(capture.capturedAt, now);
     trackEvent({
       name: 'capture_evicted_before_upload',
       params: {
         client_capture_id: capture.id,
-        age_ms: now - Date.parse(capture.capturedAt),
+        ...(ageMs === null ? {} : { age_ms: ageMs }),
         audio_size_bytes: capture.sizeBytes,
       },
     });

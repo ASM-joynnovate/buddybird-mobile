@@ -13,6 +13,7 @@ import type { CaptureFlushAbortReason } from '@/features/analytics/events';
 import { recordingFileExists } from '@/features/audio/audio-file-storage';
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { loadStoredProfile } from '@/features/profile/profile-storage';
+import { elapsedMsSince } from '@/features/shared/date-utils';
 import { readExtraString } from '@/features/shared/expo-extra';
 import { loadUploadConsent } from '@/features/upload-consent/upload-consent-storage';
 
@@ -42,12 +43,10 @@ let rerunFromAccumulationOnly = true;
 // 하는 낭비를 막는다 (NFR-01). 나머지 트리거(②~⑤)는 상황 변화 신호라 플래그를 풀고 진행한다.
 // 클립은 큐에 그대로 남으므로 데이터 손실은 없다 (SPEC-0003 §실패 — 각주 참조).
 let haltedByTransientFailure = false;
-// 진행 중 flush 1회의 계측 누계 (BB-284). single-flight 가 동시 실행을 막으므로 모듈 레벨에
-// 둔다 — 정상 halt 와 예외 종료가 같은 값을 읽는다.
+// 이번 flush 가 올린 건수. single-flight 가 동시 실행을 막으므로 모듈 레벨에 둔다 (BB-284).
 let flushSucceededCount = 0;
-let flushPendingCount = 0;
 
-/** flush 를 중단시킨 사유. 대기 건수·성공 건수는 모듈 누계에서 읽으므로 여기 담지 않는다. */
+/** flush 를 중단시킨 사유. 대기 건수는 발행 시점에 큐를 읽고, 성공 건수는 누계에서 읽는다. */
 interface FlushAbort {
   reason: CaptureFlushAbortReason;
   httpStatus?: number;
@@ -75,17 +74,19 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
   }
   flushInFlight = true;
   runFlushLoop()
-    .then((abort) => {
-      // 중단 기록은 halt 지점마다가 아니라 여기 한 곳에서 낸다 — flush 단위 1회 계약 (BB-284).
+    .then(async (abort) => {
+      // 중단 기록은 halt 지점마다가 아니라 루프가 끝난 뒤(settle 시점)에 낸다 —
+      // flush 단위 1회 계약 (BB-284). rerun 이 누계를 건드리기 전에 발행을 끝내야 하므로
+      // 체인 안에서 await 한다.
       if (!abort) return;
       haltedByTransientFailure = true;
-      trackFlushAborted(abort);
+      await trackFlushAborted(abort);
     })
-    .catch((error: unknown) => {
+    .catch(async (error: unknown) => {
       // 예외로 죽은 실패(디스크 가득 참의 zip 쓰기 throw 등)도 정상 halt 와 같은 억제 계약을
       // 따른다 — 안 세우면 캡처 저장마다 누적 트리거가 같은 실패(재압축 포함)를 반복한다.
       haltedByTransientFailure = true;
-      trackFlushAborted({ reason: 'exception' });
+      await trackFlushAborted({ reason: 'exception' });
       reportError(error, { scope: 'training.captureFlush' });
     })
     .finally(() => {
@@ -101,7 +102,6 @@ export function requestCaptureFlush(options?: { fromAccumulation?: boolean }): v
 
 async function runFlushLoop(): Promise<FlushAbort | null> {
   flushSucceededCount = 0;
-  flushPendingCount = 0;
 
   for (;;) {
     // 게이트는 배치마다 재확인한다 — flush 도중 동의 철회 등 상태 변화를 존중.
@@ -115,13 +115,9 @@ async function runFlushLoop(): Promise<FlushAbort | null> {
     const store = await loadFollowAlongCaptures();
     const captures = await backfillLegacyCaptureMeta(Object.values(store.capturesById));
     if (captures.length === 0) return null;
-    flushPendingCount = captures.length;
 
     const plan = planCaptureBatch(captures, (capture) => recordingFileExists(capture.uri));
-    if (plan.missingFileIds.length > 0) {
-      await deleteCaptures(plan.missingFileIds);
-      flushPendingCount -= plan.missingFileIds.length;
-    }
+    if (plan.missingFileIds.length > 0) await deleteCaptures(plan.missingFileIds);
     if (plan.batch.length === 0) return null;
 
     cleanupCaptureUploadArtifacts();
@@ -131,7 +127,6 @@ async function runFlushLoop(): Promise<FlushAbort | null> {
       // 읽을 수 없는 파일은 "파일 없음"과 동일 — 삭제해야 배치 선두 고착이 안 생긴다.
       console.warn('[training.captureFlush]', `deleting unreadable captures: ${send.unreadableIds.join(', ')}`);
       await deleteCaptures(send.unreadableIds);
-      flushPendingCount -= send.unreadableIds.length;
     }
     if (!send.http) continue; // 전송할 파일이 없었다 — 실패분 삭제 후 다음 배치로.
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
@@ -177,10 +172,7 @@ async function resendIndividually(
       batch: [capture],
       metadata: [metadata[i]],
     });
-    if (send.unreadableIds.length > 0) {
-      await deleteCaptures(send.unreadableIds);
-      flushPendingCount -= send.unreadableIds.length;
-    }
+    if (send.unreadableIds.length > 0) await deleteCaptures(send.unreadableIds);
     if (!send.http) continue; // 그 사이 파일이 사라짐 — 삭제 후 다음 단건으로.
     const outcome = interpretCaptureBatchResult(send.http, send.sentIds);
     if (outcome.kind === 'halt') return abortWith(outcome.reason, send.http.status);
@@ -205,17 +197,26 @@ async function applyProcessedOutcome(
   batch: readonly FollowAlongCapture[],
   isRetrySingle: boolean,
 ): Promise<boolean> {
+  const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
+  if (resolvedIds.length === 0) return false;
+
   const capturedAtById = new Map(batch.map((capture) => [capture.id, capture.capturedAt]));
+  // 삭제 소요는 업로드 지연이 아니므로 삭제 전 시각을 기준으로 잰다.
   const now = Date.now();
 
+  // 삭제가 끝난 뒤에 발행한다 — 삭제가 실패하면 클립이 큐에 남아 다음 트리거에서
+  // 재업로드되므로, 먼저 발행하면 같은 client_capture_id 로 succeeded 가 중복 적재된다.
+  await deleteCaptures(resolvedIds);
+  flushSucceededCount += outcome.successIds.length;
+
   for (const id of outcome.successIds) {
-    const capturedAt = capturedAtById.get(id);
-    if (capturedAt === undefined) continue;
+    // 손상 레코드는 capturedAt 이 비어 경과 시간을 계산할 수 없다 — 키째 뺀다.
+    const latencyMs = elapsedMsSince(capturedAtById.get(id), now);
     trackEvent({
       name: 'capture_upload_succeeded',
       params: {
         client_capture_id: id,
-        latency_ms: now - Date.parse(capturedAt),
+        ...(latencyMs === null ? {} : { latency_ms: latencyMs }),
         batch_size: batch.length,
         is_retry_single: isRetrySingle,
       },
@@ -225,25 +226,19 @@ async function applyProcessedOutcome(
   if (outcome.rejectedIds.length > 0) {
     console.warn('[training.captureFlush]', `server rejected captures: ${outcome.rejectedIds.join(', ')}`);
     for (const id of outcome.rejectedIds) {
-      const capturedAt = capturedAtById.get(id);
-      if (capturedAt === undefined) continue;
+      const ageMs = elapsedMsSince(capturedAtById.get(id), now);
       // 항목 rejected 는 200 응답이라 상태 코드가 없다 — 단건 4xx 폐기와 여기서 갈린다.
       trackEvent({
         name: 'capture_upload_failed',
         params: {
           client_capture_id: id,
           reason: 'server_reject',
-          age_ms: now - Date.parse(capturedAt),
+          ...(ageMs === null ? {} : { age_ms: ageMs }),
         },
       });
     }
   }
 
-  const resolvedIds = [...outcome.successIds, ...outcome.rejectedIds];
-  if (resolvedIds.length === 0) return false;
-  await deleteCaptures(resolvedIds);
-  flushSucceededCount += outcome.successIds.length;
-  flushPendingCount -= resolvedIds.length;
   return true;
 }
 
@@ -253,13 +248,13 @@ async function discardRejectedCapture(
   httpStatus: number | null,
 ): Promise<void> {
   await deleteCaptures([capture.id]);
-  flushPendingCount -= 1;
+  const ageMs = elapsedMsSince(capture.capturedAt);
   trackEvent({
     name: 'capture_upload_failed',
     params: {
       client_capture_id: capture.id,
       reason: 'server_reject',
-      age_ms: Date.now() - Date.parse(capture.capturedAt),
+      ...(ageMs === null ? {} : { age_ms: ageMs }),
       ...(httpStatus === null ? {} : { http_status: httpStatus }),
     },
   });
@@ -268,16 +263,32 @@ async function discardRejectedCapture(
   });
 }
 
-function trackFlushAborted(abort: FlushAbort): void {
+// 대기 건수는 부기하지 않고 중단이 확정된 시점에 큐를 1회 재조회한다 — 루프가 세던 값은
+// 예외로 죽는 경로에서 실제 큐와 어긋났다 (BB-284 리뷰 P1-3).
+async function trackFlushAborted(abort: FlushAbort): Promise<void> {
+  const succeededBeforeAbort = flushSucceededCount;
+  const pendingCount = await countPendingCaptures();
   trackEvent({
     name: 'capture_flush_aborted',
     params: {
       reason: abort.reason,
-      pending_count: flushPendingCount,
-      succeeded_before_abort: flushSucceededCount,
+      ...(pendingCount === null ? {} : { pending_count: pendingCount }),
+      succeeded_before_abort: succeededBeforeAbort,
       ...(abort.httpStatus === undefined ? {} : { http_status: abort.httpStatus }),
     },
   });
+}
+
+// 큐를 읽지 못하면 null — 스토리지 고장으로 죽은 flush 에서 대기 건수를 0 으로 단정하느니
+// 키를 빼는 편이 낫다.
+async function countPendingCaptures(): Promise<number | null> {
+  try {
+    const store = await loadFollowAlongCaptures();
+    return Object.keys(store.capturesById).length;
+  } catch (error: unknown) {
+    console.warn('[training.captureFlush.pendingCount]', error);
+    return null;
+  }
 }
 
 // legacy 레코드(clientWordId 부재)에 등록 시점과 같은 규칙으로 메타를 보충하고 영속화한다
