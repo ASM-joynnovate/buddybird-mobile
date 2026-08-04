@@ -118,7 +118,7 @@
 <type>(<scope>): <description>
 ```
 
-`type`: `feat` | `fix` | `refactor` | `chore` | `docs` | `perf` | `ci`
+`type`: `feat` | `fix` | `refactor` | `chore` | `docs` | `perf` | `ci` | `test`
 `scope`: 도메인 (`analytics`, `audio`, `training`, `profile`, `theme`, `i18n`, `words`, `ios`, `deps`, …)
 
 예:
@@ -221,3 +221,39 @@ expo가 버전을 관리하는 패키지(`expo-*`, 그리고 `react-native-gestu
 - Android 소스를 패치한 expo 모듈은 `package.json`의 `expo.autolinking.android.buildFromSource` 배열에 등록 의무 — SDK 54부터 expo 모듈은 프리컴파일 AAR(`local-maven-repo`)로 소비되므로 등록 없이는 소스 패치가 빌드에 반영되지 않음. 이 `expo` 키는 expo-modules-autolinking이 `package.json`에서만 읽는다 — `app.config.ts`로 옮기면 조용히 무력화됨.
 - 패치된 패키지를 업그레이드할 때는 `yarn patch`로 패치를 재생성하고 `resolutions` 키의 버전 범위를 함께 갱신. 키가 `dependencies` 범위와 불일치하면 Yarn 4는 **경고 없이 패치를 드롭**함 → CI `_verify.yml`이 `yarn.lock`의 `@patch:` 항목 존재를 게이트로 검증.
 - 현재 패치 목록: `expo-image-picker@17.0.11` — 크롭 출력 디렉토리 사전 재생성 (BB-235). 업스트림 수정 릴리즈 시 패치·`resolutions`·`buildFromSource`·CI 게이트를 함께 제거.
+
+## 8. e2e 테스트 (Maestro)
+
+BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird.dev`) — prod 빌드로 실행 금지 (운영 Firebase 오염).
+시나리오별 절차·커버리지는 `docs/E2E-SCENARIOS.md` (사람이 읽는 카탈로그) 참고 — 본 §8은 규약·레시피의 단일 출처.
+
+### 8.1 testID·플로우 규약
+
+- 인터랙션 셀렉터는 **testID**, 콘텐츠 assert만 텍스트(로케일 무관 데이터 — 시드 단어 라벨 등). UI 카피 텍스트 셀렉터 금지 — i18n(en fallback)·카피 변경·`textTransform: uppercase`에 취약.
+- 네이밍: `<screen>-<element>` kebab-case (`onboarding-welcome-cta`, `session-start-cta`). 동적 목록은 `<prefix>-<id>` (`species-chip-budgie`, `tab-words`).
+- 공용 터치 컴포넌트(`PillButton`·`Chip`)는 `testID?: string`을 받아 `Pressable3D`로 전달. 신규 공용 터치 컴포넌트도 동일 패턴 의무.
+- 플로우는 모든 행동(tapOn)을 관찰 가능한 결과(assertVisible)와 짝지어 작성. `sleep` 금지 — auto-wait + `extendedWaitUntil` 사용. 녹음 최소 길이는 상태 라벨의 경과 타이머 텍스트(예: `0:02`) 대기로 보장 (예외: 재생 유지처럼 assert할 상태가 없는 경우만 `waitForAnimationToEnd` 바운디드 대기 허용).
+- 플로우 = 사용자 절차 단위(선형, 조건 분기 금지). 인프라 방해 요소 정리만 subflow의 자가 회복 루프(조건부)로 처리.
+
+### 8.2 레이아웃
+
+```
+.maestro/
+  config.yaml        # 워크스페이스 (flows 포함 패턴)
+  flows/             # 시나리오 (tags: smoke / regression)
+  subflows/          # 공통 절차 (complete-onboarding — clearState + 방해 요소 자가 회복 루프)
+```
+
+### 8.3 로컬 실행 레시피
+
+1. 에뮬레이터 기동 후 애니메이션 비활성화(재부팅 시 재적용): `adb shell settings put global window_animation_scale 0` + `transition_animation_scale`·`animator_duration_scale` 동일
+2. debug 빌드는 Metro 필수 — `yarn start:dev` 켠 상태에서 `yarn e2e:android`(전체) / `yarn e2e:android:smoke`(smoke만)
+3. 최초 1회 또는 네이티브 변경 시 `yarn android:dev`로 설치
+4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. **현 스위트는 debug 빌드 전용** — subflow의 런처 진입 스텝(Metro 서버 행 탭)이 무조건 실행되므로 release 빌드에서는 실패한다. release/CI용 진입 구조(런처 스텝 조건부화·Metro 주소 파라미터화)는 CI 도입 시점에 함께 조정한다
+5. e2e 표준 기기 로케일은 **en-US** — 기기 로케일이 ko면 Gboard가 한국어 자판이 되어 Maestro `inputText`의 ASCII가 한글로 조합됨 (BB-159 실측: "Mango" → "ㅡ무해"). 시나리오는 로케일 무관 설계(인터랙션 testID + 콘텐츠 assert는 시드 한글 라벨)라 ko 고정이 필요 없다. 실행 전 확인: `adb shell settings get system system_locales`가 `en-US`가 아니면 `settings put system system_locales en-US` 후 Gboard 재시작(`am force-stop com.google.android.inputmethod.latin`)
+
+### 8.4 검증 한계 (e2e가 보장하지 않는 것)
+
+- 오디오 **내용** — 에뮬레이터 무음 녹음도 통과 (최소 길이·레벨 게이트 없음). 절차·UI 상태까지만 검증
+- 세션 자연 완주·재생 소리·iOS 플로우(ATT) — README 수동 체크리스트 몫
+- **업데이트 모달 간섭** — subflow 자가 회복 루프는 웰컴 도달 전 모달만 정리. 플로우 본편 중 등장하면 실패하고, 강제 업데이트 모달(닫기 없음)은 회복 불가. 근본 해결은 dev 리모트 컨피그 조정(별도 결정 전까지 알려진 리스크)

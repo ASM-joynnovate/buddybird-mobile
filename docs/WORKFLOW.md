@@ -62,10 +62,12 @@ rg "analytics\(\)\.|crashlytics\(\)\." features/ app/
 
 - unit 테스트 러너: jest-expo 기반 Jest (`yarn test`) — 범위·의무 사항은 `docs/TESTING.md` 가 단일 출처
 - 신규 순수 모듈은 unit 테스트를 함께 작성. 기존 코드 소급 작성은 금지
-- 검증은 다음에 의존:
+- **e2e 스모크 테스트는 Maestro로 자동화한다** (BB-159, 2026-07-29 도입). testID 규약·레이아웃·실행 레시피·검증 한계는 `docs/CONVENTIONS.md` §8.
+- 검증 스택:
   1. TypeScript (`yarn typecheck`)
   2. Lint (`yarn lint`)
   3. Unit (`yarn test` — 순수 모듈, `docs/TESTING.md`)
-  4. 수동 user flow (README 체크리스트)
-  5. Firebase DebugView / Clarity Live (analytics 변경 시)
+  4. e2e 스모크 (`yarn e2e:android:smoke` — 핵심 happy path 회귀)
+  5. 수동 user flow (README 체크리스트 — e2e 범위 외 영역: 오디오 품질·세션 완주·iOS)
+  6. Firebase DebugView / Clarity Live (analytics 변경 시)
 - CI `_verify.yml` 게이트 편입은 별도 결정으로 이월 (2026-08-03 기준 로컬 검증만 의무)

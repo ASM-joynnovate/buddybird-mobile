@@ -45,7 +45,7 @@ export function SessionRunningView({
   fmt,
 }: SessionRunningViewProps) {
   return (
-    <View style={[styles.content, { paddingTop: insetsTop }]}>
+    <View style={[styles.content, { paddingTop: insetsTop }]} testID="session-active-view">
       <SessionHeader
         progress={session.progress}
         isLearning={session.isLearning}

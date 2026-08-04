@@ -65,6 +65,7 @@ export function ProfileEditForm({
             placeholder={t('profile.namePlaceholder')}
             placeholderTextColor={BuddyBirdColors.placeholderMuted}
             style={styles.input}
+            testID="profile-edit-name-input"
             value={form.name}
           />
         </FormField>
@@ -99,7 +100,7 @@ export function ProfileEditForm({
       </View>
 
       <View style={styles.saveBar}>
-        <PillButton full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" />
+        <PillButton full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" testID="profile-edit-save" />
       </View>
     </View>
   );

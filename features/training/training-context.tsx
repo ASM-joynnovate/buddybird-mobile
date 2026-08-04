@@ -71,12 +71,13 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
     let isMounted = true;
 
     async function hydrateTrainingStore(): Promise<void> {
+      let loadedStore: TrainingStore | null = null;
+
       try {
-        const storedTrainingStore = await loadTrainingStore();
-        const recoveredStore = await restoreOrRecoverSession(storedTrainingStore);
+        loadedStore = await loadTrainingStore();
 
         if (isMounted) {
-          setTrainingStoreState(recoveredStore);
+          setTrainingStoreState(loadedStore);
           setLoadFailed(false);
         }
       } catch (error: unknown) {
@@ -91,6 +92,16 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
           setIsHydrated(true);
         }
       }
+
+      // 중단된 세션 복구는 hydration 을 기다리게 하지 않는다. 캡처 세그먼트가 쌓여 있으면
+      // 적립이 오래 걸리는데 그동안 isHydrated 가 false 라 학습 시작 버튼이 비활성으로
+      // 남았다 (BB-300).
+      if (!isMounted || !loadedStore) return;
+
+      restoreOrRecoverSession(saveCompletedSession).catch((error: unknown) => {
+        // 복구 실패는 학습 데이터 로드 실패가 아니므로 loadFailed 를 세우지 않는다.
+        reportError(error, { scope: 'training.restoreSession' });
+      });
     }
 
     hydrateTrainingStore();
@@ -209,10 +220,12 @@ export function TrainingDataProvider({ children }: PropsWithChildren) {
 }
 
 // 네이티브 엔진의 중단 기록을 감지해, 정상 완료 또는 5분 이상 진행한 세션을 학습 store에 반영한다.
-// store 저장이 성공한 뒤에만 네이티브 기록을 지워 다음 실행에서 안전하게 재시도할 수 있게 한다.
-async function restoreOrRecoverSession(loadedStore: TrainingStore): Promise<TrainingStore> {
+// 세션 적립은 `saveSession`(write queue)이 맡고, 무거운 캡처 세그먼트 저장은 큐 밖에서 돈다.
+// 학습 시작이 세그먼트 저장 뒤에서 대기하지 않게 하기 위한 분리다 (BB-300).
+// 적립이 성공한 뒤에만 네이티브 기록을 지워 다음 실행에서 안전하게 재시도할 수 있게 한다.
+async function restoreOrRecoverSession(saveSession: (session: TrainingSession) => Promise<void>): Promise<void> {
   let record = await sessionAudioEngine.getPendingRecovery();
-  if (!record) return loadedStore;
+  if (!record) return;
 
   const activeSnapshot = await sessionAudioEngine.getSnapshot();
   if (
@@ -226,14 +239,14 @@ async function restoreOrRecoverSession(loadedStore: TrainingStore): Promise<Trai
       record = await sessionAudioEngine.stop();
     } catch (error: unknown) {
       reportError(error, { scope: 'training.sessionAudio.stopOrphan' });
-      return loadedStore;
+      return;
     }
   }
 
   const elapsedRunningSeconds = Math.floor(record.snapshot.elapsedRunningMs / 1000);
   if (record.reason !== 'duration-reached' && elapsedRunningSeconds < STREAK_QUALIFYING_SECONDS) {
     await clearRecoverySafely(record.snapshot.sessionId);
-    return loadedStore;
+    return;
   }
 
   try {
@@ -270,20 +283,17 @@ async function restoreOrRecoverSession(loadedStore: TrainingStore): Promise<Trai
       ),
       id: record.snapshot.sessionId,
     };
-    const nextStore = completeTrainingSession(loadedStore, session, endedAt);
     const captures = await sessionAudioEngine.getUnstoredSegments();
     await storeNativeCapturedSegments(
       captures.filter((capture) => capture.sessionId === record.snapshot.sessionId),
       record.recovery.wordId,
     );
-    await saveTrainingStore(nextStore);
+    await saveSession(session);
     await clearRecoverySafely(record.snapshot.sessionId);
     // 업로드 트리거 ② (SPEC-0003): 크래시 복구로 뒤늦게 확정된 세션 종료 — 복구 캡처 저장 직후 flush.
     requestCaptureFlush();
-    return nextStore;
   } catch (error: unknown) {
     reportError(error, { scope: 'training.sessionAudio.recover' });
-    return loadedStore;
   }
 }
 

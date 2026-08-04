@@ -62,7 +62,7 @@ skill이 (1) 해당 카테고리 docs 갱신, (2) `docs/POLICY-HISTORY.md`에 �
 
 **핵심: 환경(개발계/운영계)은 브랜치가 아니라 EAS profile/channel + 트리거로 가른다.** 장수 환경 브랜치(`dev`/`staging`)는 폐지됐다 — squash promote 가 평행 브랜치를 구조적으로 분기시켜 back-merge 가 무한 재발하던 원인. 트렁크는 `main` 하나뿐.
 
-- `feat/*` (그 외 `fix/*`·`chore/*`·`refactor/*`·`docs/*`·`ci/*`) → `main`: 유일한 통합 지점. PR-only, squash merge 후 브랜치 삭제 (단명 → squash 안전). CI: lint/typecheck + CodeQL
+- `feat/*` (그 외 `fix/*`·`chore/*`·`refactor/*`·`docs/*`·`ci/*`·`test/*`) → `main`: 유일한 통합 지점. PR-only, squash merge 후 브랜치 삭제 (단명 → squash 안전). CI: lint/typecheck + CodeQL
 - **개발계(internal)** = `main` 에서 `eas-staging.yml` 을 `workflow_dispatch` 수동 트리거 → staging profile 빌드 → Play internal + TestFlight Internal 자동 제출. 브랜치 이동 없음
 - **운영계(production)** = `main` 의 커밋에 `git tag vX.Y.Z` push → `eas-production.yml` 자동 빌드 → tag/GitHub Release 자동 생성, 출시는 수동 promote. **태그가 곧 운영 게이트** (릴리즈 전 `yarn release:bump` 필수, `docs/BUILD-AND-RELEASE.md` §12.3·§12.6)
 - **핫픽스** = `main` 에서 직접 `fix(...)` + `yarn release:bump patch` 커밋 → `git tag` (back-merge cascade 없음). `main` 에 미출시 작업이 섞여 있어 통째 릴리즈가 곤란하면 그 운영 태그에서 `release/x.y` 브랜치를 cut → 거기서 고쳐 tag → `main` 으로는 cherry-pick forward (**머지백 금지**, `docs/BUILD-AND-RELEASE.md` §12.7)
@@ -95,11 +95,13 @@ yarn eas:build:local:dev:ios     # 그 외: local:{dev,preview,prod}:{ios,androi
 yarn lint                        # ESLint via expo lint
 yarn typecheck                   # tsc --noEmit
 yarn test                        # Jest unit tests (jest-expo preset, 순수 모듈 대상 — docs/TESTING.md)
+yarn e2e:android                 # Maestro e2e 전체 (에뮬레이터 + Metro 필요, docs/CONVENTIONS.md §8)
+yarn e2e:android:smoke           # smoke 태그만
 ```
 
 환경별 식별자 매핑, EAS Secret 등록, Firebase config 배치, Keystore·credentials.json 운영, App Store/Play Store 제출 절차 등 빌드/배포의 모든 상세는 `docs/BUILD-AND-RELEASE.md` (배포 SSoT) 에서 단일하게 관리한다. 본 Commands 블록은 발견용 인용일 뿐이며 절차 본문을 두지 않는다.
 
-Unit tests cover new pure modules only (`yarn test`, policy in `docs/TESTING.md`). Everything else is verified manually per the checklist in README.md.
+Unit tests cover new pure modules only (`yarn test`, policy in `docs/TESTING.md`). E2e smoke flows run via Maestro (`yarn e2e:android:smoke`, `docs/CONVENTIONS.md` §8); everything else (audio quality, session completion, iOS) is verified manually per the checklist in README.md.
 
 
 ## Behavioral Guidelines

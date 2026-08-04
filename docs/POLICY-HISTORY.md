@@ -61,6 +61,7 @@
 | 2026-07-29 | conversation (배너 불필요 판단) | **중단 세션 복구 안내 배너 폐지** — 2026-07-16 `033ce60`(BB-28)이 도입한 학습 탭 상단 배너("이전 학습이 중단됐어요")를 제거한다. 비정상 종료된 세션의 진행분을 다음 실행에 적립하는 **복구 로직 자체는 유지**하고(`restoreOrRecoverSession`), 사용자에게 알리는 UI만 없앤다 — 적립은 기록 화면에서 확인 가능하므로 별도 고지가 불필요하다는 판단. 배너 전용 배선(`interruptedSession`·`dismissInterruptedSession`·`InterruptedSessionInfo`, i18n `sessionRecovery` 블록, analytics `training_session_recovered`)도 함께 제거해 죽은 코드를 남기지 않는다. `restoreOrRecoverSession`은 `{ store, interrupted }` 대신 `TrainingStore`를 직접 반환 | `components/session/session-recovery-banner.tsx`(삭제), `app/(tabs)/index.tsx`, `features/training/training-context.tsx`, `features/i18n/i18n-resources.ts`, `features/analytics/events.ts` |
 | 2026-08-03 | conversation (BB-283, 2026-08-02 사용자 승인, 커밋 72ab6d1·ae24bf3) | **unit 테스트 러너 도입 — "MVP 단계 자동 테스트 미작성" 정책 deprecated.** jest-expo 기반 Jest(`yarn test`)를 공식 검증 수단으로 등재. 범위 = 신규 순수 모듈부터(BB-283 업로드 파이프라인 gate·batch·response·capture-meta + flush 오케스트레이터 시나리오가 최초 적용), 기존 코드 소급 작성 금지. 테스트가 존재하는 영역 변경 시 커밋 전 `yarn test` green 의무. CI `_verify.yml` 게이트 편입은 별도 결정으로 이월 | `package.json`(`test` 스크립트·jest-expo), `features/training/__tests__/`, `docs/TESTING.md`(신규), `docs/WORKFLOW.md` §3.1·§4, `CLAUDE.md` Project Rules·Commands |
 | 2026-08-03 | conversation (BB-283 Phase 2 피어리뷰 P3-5) | **순수 모듈 역할 접미사 컨벤션 등재** — 도메인 순수 로직이 커지면 `*-model.ts` 단일 파일 대신 역할 접미사 파일(`*-gate.ts`·`*-batch.ts`·`*-response.ts`·`*-meta.ts` 등, I/O 없음)로 분리하고, 외부 API I/O 는 `*-client.ts` 로 격리한다 (BB-283 업로드 파이프라인이 선례) | `docs/CONVENTIONS.md` §1.1 |
+| 2026-07-29 | conversation (BB-159, 브랜치 `test/bb-159-maestro-e2e`) | **Maestro 기반 Android e2e 스모크 테스트 도입** — WORKFLOW §4 "자동 테스트 미작성(MVP)" 정책 폐지·개정: 핵심 happy path(온보딩 완주·탭 이동·세션 시작/중도 종료·프로필 편집·단어 생성·녹음 다듬기)는 Maestro 플로우(smoke/regression 태그)로 자동 회귀 검증, 유닛 테스트는 계속 범위 외. 셀렉터는 testID 우선(`<screen>-<element>` kebab-case, 공용 터치 컴포넌트는 testID 전달 의무) — UI 카피 텍스트 셀렉터 금지(i18n en fallback·카피 변경·uppercase 변환에 취약). 대상은 dev variant 전용, sleep 금지(assertion 기반 대기), 행동+검증 짝짓기, debug 빌드 방해 요소는 subflow 자가 회복 루프로 처리. e2e 표준 기기 로케일은 en-US(ko 로케일 시 Gboard 한국어 자판이 ASCII `inputText`를 한글로 조합 — 실측). 오디오 내용·세션 완주·iOS는 계속 수동 검증 | `.maestro/`(신규), `components/ui/{pill-button,chip}.tsx`, onboarding·profile·words·session·navigation·app 컴포넌트 testID, `package.json` scripts(`e2e:android*`), `docs/WORKFLOW.md` §4, `docs/CONVENTIONS.md` §8(신규), `CLAUDE.md` Commands |
 
 ## 2. 정책 카테고리별 요약
 
@@ -106,11 +107,19 @@
 - 네이티브 의존성 패치는 Yarn patch(`.yarn/patches` + `resolutions`)로만 — patch-package 금지, Android 소스 패치 모듈은 `expo.autolinking.android.buildFromSource` 등록 의무, 업그레이드 시 패치 재생성 + resolutions 키 동기 갱신 (`docs/CONVENTIONS.md` §7.2)
 
 ### 2.6 커밋 디시플린
-- Conventional commits 소문자: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`, `ci`
+- Conventional commits 소문자: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`, `ci`, `test`
 - scope는 도메인 (`feat(analytics):`, `refactor(audio):`)
 - 책임 단위 분리 (deps / config / feature / wiring을 각각의 커밋으로)
 - 커밋 전 `yarn lint && yarn typecheck` 그린
 - `--no-verify` 금지, try/catch 우회 금지, attribution 라인 금지 (전역 settings)
+
+### 2.7 테스트
+- unit 테스트: jest-expo 기반 Jest (`yarn test`) — 신규 순수 모듈 범위, 기존 코드 소급 금지 (`docs/TESTING.md`)
+- 핵심 happy path는 Maestro e2e(smoke/regression 태그)로 회귀 검증 (`docs/CONVENTIONS.md` §8, 시나리오 카탈로그 `docs/E2E-SCENARIOS.md`)
+- 셀렉터는 testID 우선(`<screen>-<element>` kebab-case) — UI 카피 텍스트 셀렉터 금지
+- `sleep` 금지, assertion 기반 대기 — 행동(tapOn)은 관찰 가능한 결과(assertVisible)와 짝짓기
+- 대상은 dev variant 전용(현 스위트는 debug 빌드 전용), e2e 표준 기기 로케일 en-US
+- 오디오 내용·세션 자연 완주·iOS는 수동 체크리스트(README) 몫
 
 ## 3. 갱신 규칙
 

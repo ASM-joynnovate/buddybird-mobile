@@ -39,7 +39,9 @@
     "release:bump": "npm version --no-git-tag-version",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "e2e:android": "maestro test .maestro",
+    "e2e:android:smoke": "maestro test --include-tags smoke .maestro"
   },
   "jest": {
     "preset": "jest-expo"

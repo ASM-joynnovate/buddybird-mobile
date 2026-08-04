@@ -21,7 +21,7 @@ export default function SessionSetupScreen() {
   useScreenTracking('session_setup');
   const setup = useSessionSetup();
   const { selectedEntryId, setSelectedEntryId, selectedEntry, pickerItems, isLibraryHydrated } = useWordSelection();
-  const { handleStart, startLabel } = useSessionStart({ selectedEntry, setup });
+  const { handleStart, isStarting, startLabel } = useSessionStart({ selectedEntry, setup });
 
   const canContinue = setup.isHydrated && isLibraryHydrated && selectedEntry !== undefined && setup.isDurationValid;
 
@@ -52,7 +52,7 @@ export default function SessionSetupScreen() {
       <InlineError message={setup.durationValidationError} />
 
       <PillButton
-        disabled={!canContinue}
+        disabled={!canContinue || isStarting}
         full
         icon="play.fill"
         label={startLabel}
@@ -60,6 +60,7 @@ export default function SessionSetupScreen() {
         size="lg"
         variant="primary"
         accessibilityLabel={canContinue ? startLabel : t('home.startDisabledA11y')}
+        testID="session-start-cta"
       />
 
       <UploadConsentHost />

@@ -38,6 +38,7 @@ export function SessionExitConfirmDialog({ onContinue, onStop }: SessionExitConf
             variant="primary"
             full
             onPress={onStop}
+            testID="session-exit-confirm"
           />
         </View>
       </CenterDialog.Footer>
