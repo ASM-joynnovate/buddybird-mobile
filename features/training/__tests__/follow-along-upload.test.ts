@@ -292,7 +292,7 @@ describe('requestCaptureFlush', () => {
 });
 
 // BB-284 — 클립 1건이 캡처 이후 어떤 결말을 맞았는지 이벤트만으로 복원되는지 본다.
-describe('requestCaptureFlush 계측', () => {
+describe('requestCaptureFlush instrumentation', () => {
   it('records one succeeded event per uploaded clip', async () => {
     queue.set('cap-1', makeCapture('cap-1'));
     queue.set('cap-2', makeCapture('cap-2'));
@@ -305,6 +305,19 @@ describe('requestCaptureFlush 계측', () => {
       { client_capture_id: 'cap-2', latency_ms: expect.any(Number), batch_size: 2, is_retry_single: false },
     ]);
     expect(trackedParams('capture_flush_aborted')).toEqual([]);
+  });
+
+  // 발행이 삭제보다 앞서면, 삭제 실패로 큐에 남은 클립이 다음 트리거에서 재업로드되며
+  // 같은 client_capture_id 로 succeeded 가 중복 적재된다 — 성공률이 부풀어 오른다.
+  it('emits no succeeded event when the uploaded clips could not be deleted', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    deleteMock.mockRejectedValue(new Error('disk full'));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_upload_succeeded')).toEqual([]);
+    expect(queue.size).toBe(1);
   });
 
   // batch_size 는 계획 배치가 아니라 실제 전송분이어야 한다 — 읽기 실패분이 섞이면 갈린다.
@@ -407,6 +420,33 @@ describe('requestCaptureFlush 계측', () => {
 
     expect(trackedParams('capture_flush_aborted')).toEqual([
       { reason: 'unreadable_response', pending_count: 1, succeeded_before_abort: 0, http_status: 200 },
+    ]);
+  });
+
+  // 루프가 부기하던 시절에는 첫 스토어 읽기 전에 죽으면 대기 0건으로 보고됐다 —
+  // 중단 시점에 큐를 재조회하므로 실제 잔여가 나가야 한다.
+  it('reports the real pending count when the loop dies before reading the queue', async () => {
+    for (const id of ['cap-1', 'cap-2', 'cap-3']) queue.set(id, makeCapture(id));
+    jest.mocked(loadUploadConsent).mockRejectedValueOnce(new Error('storage unavailable'));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_flush_aborted')).toEqual([
+      { reason: 'exception', pending_count: 3, succeeded_before_abort: 0 },
+    ]);
+    expect(reportErrorMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('omits pending_count when the queue itself cannot be read', async () => {
+    queue.set('cap-1', makeCapture('cap-1'));
+    jest.mocked(loadFollowAlongCaptures).mockRejectedValue(new Error('storage unavailable'));
+
+    requestCaptureFlush();
+    await drainFlush();
+
+    expect(trackedParams('capture_flush_aborted')).toEqual([
+      { reason: 'exception', succeeded_before_abort: 0 },
     ]);
   });
 });

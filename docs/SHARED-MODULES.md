@@ -17,6 +17,7 @@
 | `createSessionId` | `@/features/shared/ids` | `(): string` | 세션 ID 생성. 형식: `sess_<base36 ts>_<base36 rand>` |
 | `createCaptureId` | `@/features/shared/ids` | `(): string` | 따라하기 캡처 ID 생성. 형식: `cap_<base36 ts>_<base36 rand>` |
 | `diffDaysIso` | `@/features/shared/date-utils` | `(fromIso: string, toMs?: number) => number` | ISO 날짜 문자열로부터 경과 일수 (floor) |
+| `elapsedMsSince` | `@/features/shared/date-utils` | `(iso: string \| undefined, toMs?: number) => number \| null` | ISO 시각으로부터 경과 밀리초. 값이 없거나 파싱 불가면 null — 계측 파라미터가 NaN 으로 나가지 않도록 결측 판정을 한 곳에 모은다 (BB-284) |
 | `toLocalDateKey` | `@/features/shared/date-utils` | `(date: Date) => string` | 로컬 타임존 기준 `'YYYY-MM-DD'` 날짜 키 (streak·접속일 카운트 등 하루 단위 비교). 소비처: `features/training/training-model.ts`, `features/feedback/` |
 
 ### 2.1 영속 — `features/shared/`
