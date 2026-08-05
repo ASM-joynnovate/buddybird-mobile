@@ -87,13 +87,14 @@ export function OnboardingProfileFlow() {
 
     submittingRef.current = true;
     setDraft(profileDraft);
-    track({ name: 'onboarding_step_completed', params: { step: 'profile', duration_ms: elapsedMs() } });
     setIsSaving(true);
 
     try {
       const nowIso = new Date().toISOString();
       const profile = createProfileFromDraft(profileDraft, nowIso);
       await saveProfile(profile);
+      // 저장 성공 뒤에 기록한다 — 실패 후 재시도가 스텝 완료를 재계상하면 안 된다.
+      track({ name: 'onboarding_step_completed', params: { step: 'profile', duration_ms: elapsedMs() } });
       track({
         name: 'profile_created',
         params: {
