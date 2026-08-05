@@ -52,7 +52,7 @@ export function ProfileEditForm({
   return (
     <View style={styles.root}>
       <View style={styles.backHeader}>
-        <Pressable accessibilityLabel={t('profile.editBackA11y')} accessibilityRole="button" onPress={onCancel} style={styles.backButton}>
+        <Pressable accessibilityLabel={t('profile.editBackA11y')} accessibilityRole="button" disabled={isSaving} onPress={onCancel} style={styles.backButton}>
           <IconSymbol color={BuddyBirdColors.inkMuted} name="chevron.left" size={26} />
         </Pressable>
         <Text style={styles.kicker}>{t('profile.editTitle')}</Text>

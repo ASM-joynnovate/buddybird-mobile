@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Stack, router, useNavigation } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
@@ -21,6 +21,10 @@ export default function ProfileEditScreen() {
   // 2연타 가드 — disabled(isSaving) 는 다음 렌더에 반영돼 같은 tick 재탭을 놓친다 (BB-300).
   // 성공 시 router.back() 으로 화면이 pop 되므로 실패(재시도) 경로에서만 푼다.
   const savingRef = useRef(false);
+  // 뒤로가기 2연타 가드 — pop 애니메이션 동안에도 탭을 받아 두 번째 GO_BACK 이 탭
+  // 네비게이터로 버블돼 홈 탭으로 튕긴다. pop 으로 unmount 되므로 풀지 않는다.
+  const leavingRef = useRef(false);
+  const navigation = useNavigation();
 
   if (!profile || !form) {
     return null;
@@ -38,6 +42,12 @@ export default function ProfileEditScreen() {
       name: nextForm.name === undefined ? currentErrors.name : undefined,
       species: nextForm.species === undefined ? currentErrors.species : undefined,
     }));
+  }
+
+  function cancelEdit(): void {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    router.back();
   }
 
   async function saveEdit(): Promise<void> {
@@ -66,7 +76,9 @@ export default function ProfileEditScreen() {
         ...currentForm,
         species: speciesTrimmed,
       });
-      router.back();
+      // 저장 중 하드웨어 백 등으로 이미 떠났으면 back 을 또 쏘지 않는다 — 처리 못 한
+      // GO_BACK 이 탭 네비게이터로 버블돼 홈 탭으로 튕긴다.
+      if (navigation.isFocused()) router.back();
     } catch (error: unknown) {
       savingRef.current = false;
       setIsSaving(false);
@@ -77,6 +89,7 @@ export default function ProfileEditScreen() {
 
   return (
     <PetScreen avoidKeyboard bottomTabBar={false} contentStyle={styles.content}>
+      <Stack.Screen options={{ gestureEnabled: !isSaving }} />
       <ProfileEditForm
         form={form}
         errors={errors}
@@ -84,7 +97,7 @@ export default function ProfileEditScreen() {
         saveErrorMessage={saveErrorMessage}
         t={t}
         onPatch={patchForm}
-        onCancel={() => router.back()}
+        onCancel={cancelEdit}
         onSave={saveEdit}
       />
     </PetScreen>
