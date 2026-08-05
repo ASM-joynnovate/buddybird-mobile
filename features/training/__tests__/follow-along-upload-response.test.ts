@@ -69,10 +69,23 @@ describe('interpretCaptureBatchResult', () => {
   });
 
   it('halts on a 5xx', () => {
-    expect(interpretCaptureBatchResult({ status: 500, body: null }, IDS)).toEqual({ kind: 'halt' });
+    expect(interpretCaptureBatchResult({ status: 500, body: null }, IDS)).toEqual({
+      kind: 'halt',
+      reason: 'server_error',
+    });
   });
 
   it('halts on a network error (no response)', () => {
-    expect(interpretCaptureBatchResult({ status: null, body: null }, IDS)).toEqual({ kind: 'halt' });
+    expect(interpretCaptureBatchResult({ status: null, body: null }, IDS)).toEqual({
+      kind: 'halt',
+      reason: 'network_error',
+    });
+  });
+
+  it('halts on an unexpected status with the server-error reason', () => {
+    expect(interpretCaptureBatchResult({ status: 302, body: null }, IDS)).toEqual({
+      kind: 'halt',
+      reason: 'server_error',
+    });
   });
 });
