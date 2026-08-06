@@ -45,7 +45,8 @@ export default function ProfileEditScreen() {
   }
 
   function cancelEdit(): void {
-    if (leavingRef.current) return;
+    // savingRef 도 함께 본다 — 저장 중 이탈 차단은 disabled(isSaving) 뿐이라 같은 tick 동시 탭을 놓친다.
+    if (leavingRef.current || savingRef.current) return;
     leavingRef.current = true;
     router.back();
   }
