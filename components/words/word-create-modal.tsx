@@ -115,6 +115,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     onClose();
   }
 
+  // 사용자 이탈 경로만 저장 중 차단 — createEntry 는 취소가 안 되므로 닫아도 단어는 저장되고
+  // word_added 까지 발화한다. 저장 성공 후의 handleClose 는 이 가드를 타지 않는다.
+  function cancelCreate() {
+    if (savingRef.current) return;
+    handleClose();
+  }
+
   async function handleToggleRecording() {
     if (session.state === 'recording') {
       await session.actions.stop();
@@ -172,8 +179,9 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <WordCreateHeader
           body={t('wordCreate.body')}
+          disabled={isSaving}
           kicker={t('wordCreate.kicker')}
-          onBack={handleClose}
+          onBack={cancelCreate}
           title={t('wordCreate.title')}
         />
 
@@ -220,9 +228,10 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
           ) : null}
 
           <WordCreateActions
+            cancelDisabled={isSaving}
             cancelLabel={t('wordCreate.cancel')}
             disabled={!canSave || isSaving}
-            onCancel={handleClose}
+            onCancel={cancelCreate}
             onSave={handleSave}
             saveLabel={isSaving ? t('common.saving') : t('wordCreate.addToTraining')}
           />
