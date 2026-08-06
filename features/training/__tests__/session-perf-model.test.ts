@@ -2,6 +2,7 @@ import {
   computeTickDriftMs,
   createThrottleState,
   isDegraded,
+  observeAudioDelay,
   SESSION_PERF_THRESHOLDS,
   shouldEmit,
 } from '../session-perf-model';
@@ -28,6 +29,51 @@ describe('isDegraded', () => {
     ['ui_lag', SESSION_PERF_THRESHOLDS.uiLagMs + 1, true],
   ] as const)('kind=%s value=%d → %s', (kind, valueMs, expected) => {
     expect(isDegraded(kind, valueMs)).toBe(expected);
+  });
+});
+
+describe('observeAudioDelay', () => {
+  it('confirms a delay only on transition to a number', () => {
+    expect(observeAudioDelay(undefined, 250)).toEqual({ nextObserved: 250, confirmedDelayMs: 250 });
+  });
+
+  it('confirms zero as a valid measured delay', () => {
+    expect(observeAudioDelay(null, 0)).toEqual({ nextObserved: 0, confirmedDelayMs: 0 });
+  });
+
+  it('does not re-confirm when the same value is observed again', () => {
+    expect(observeAudioDelay(250, 250)).toEqual({ nextObserved: 250, confirmedDelayMs: null });
+  });
+
+  // "값 없음"은 Android null·iOS 키 생략(undefined) 둘 다 — 어느 쪽도 확정이 아니다.
+  it.each([
+    [undefined, null],
+    [null, undefined],
+    [250, null],
+    [250, undefined],
+  ])('treats no-value transitions as unconfirmed (last=%p observed=%p)', (lastObserved, observed) => {
+    expect(observeAudioDelay(lastObserved, observed).confirmedDelayMs).toBeNull();
+  });
+
+  // 플랫폼이 "값 없음" 표현을 null↔undefined로 바꿔도 판정은 동일해야 한다 (계약 비대칭 흡수).
+  it('confirms a delay identically regardless of the no-value representation', () => {
+    expect(observeAudioDelay(null, 300).confirmedDelayMs).toBe(300);
+    expect(observeAudioDelay(undefined, 300).confirmedDelayMs).toBe(300);
+  });
+
+  // 전이 감지의 전제: 연속 두 재생의 지연이 같은 ms여도, 사이에 네이티브 리셋(값 없음)
+  // 스냅샷이 관측되면 두 번째도 확정된다. 리셋 스냅샷이 누락되면 두 번째 판정이 사라진다.
+  it('re-confirms an identical delay when a reset snapshot is observed in between', () => {
+    const afterFirst = observeAudioDelay(undefined, 250);
+    expect(afterFirst.confirmedDelayMs).toBe(250);
+    const afterReset = observeAudioDelay(afterFirst.nextObserved, null);
+    expect(afterReset.confirmedDelayMs).toBeNull();
+    expect(observeAudioDelay(afterReset.nextObserved, 250).confirmedDelayMs).toBe(250);
+  });
+
+  it('misses the second of two identical delays when the reset snapshot is dropped', () => {
+    const afterFirst = observeAudioDelay(undefined, 250);
+    expect(observeAudioDelay(afterFirst.nextObserved, 250).confirmedDelayMs).toBeNull();
   });
 });
 

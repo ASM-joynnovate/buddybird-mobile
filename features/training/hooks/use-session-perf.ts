@@ -16,8 +16,10 @@ import {
   computeTickDriftMs,
   createThrottleState,
   isDegraded,
+  observeAudioDelay,
   SESSION_PERF_THRESHOLDS,
   shouldEmit,
+  type ObservedDelayMs,
   type SessionPerfKind,
 } from '../session-perf-model';
 
@@ -36,7 +38,7 @@ export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInp
   const [running, setRunning] = useState(false);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   const throttleRef = useRef(createThrottleState());
-  const lastObservedDelayRef = useRef<number | null | undefined>(undefined);
+  const lastObservedDelayRef = useRef<ObservedDelayMs>(undefined);
 
   useEffect(() => {
     throttleRef.current = createThrottleState();
@@ -73,12 +75,14 @@ export function useSessionPerf({ engineSessionId, sessionId }: UseSessionPerfInp
       if (snapshot.sessionId !== engineSessionId) return;
       setRunning(snapshot.state === 'running');
       // audio_delay: 네이티브가 확정한 의도→재생 시작 지연 (측정·running 게이트는 네이티브 소관).
-      // 값 전이로만 판정한다 — 스케줄마다 네이티브가 필드를 리셋(undefined)하므로 재생 1회당 1판정.
-      // Android는 미확정 구간에 null 값, iOS는 키 생략 — 둘 다 "값 없음"으로 취급한다.
-      const delayMs = snapshot.lastPlaybackStartDelayMs;
-      if (delayMs !== lastObservedDelayRef.current) {
-        lastObservedDelayRef.current = delayMs;
-        if (delayMs != null && isDegraded('audio_delay', delayMs)) emitDegraded('audio_delay', delayMs);
+      // 전이 판정·값 없음 규약은 순수 모델(observeAudioDelay) 소관 — 훅은 ref 갱신과 발행만.
+      const { nextObserved, confirmedDelayMs } = observeAudioDelay(
+        lastObservedDelayRef.current,
+        snapshot.lastPlaybackStartDelayMs,
+      );
+      lastObservedDelayRef.current = nextObserved;
+      if (confirmedDelayMs !== null && isDegraded('audio_delay', confirmedDelayMs)) {
+        emitDegraded('audio_delay', confirmedDelayMs);
       }
     };
     const unsubscribers = [sessionAudioEngine.onStateChanged(apply), sessionAudioEngine.onProgress(apply)];

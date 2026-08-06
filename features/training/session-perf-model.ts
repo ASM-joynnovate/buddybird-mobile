@@ -28,6 +28,23 @@ export function isDegraded(kind: SessionPerfKind, valueMs: number): boolean {
   return valueMs > threshold;
 }
 
+/** 네이티브 스냅샷의 audio_delay 필드 값 — "값 없음"은 Android `null`·iOS 키 생략(`undefined`) 둘 다. */
+export type ObservedDelayMs = number | null | undefined;
+
+/**
+ * audio_delay 스냅샷 관측 1회 판정 — 값 전이일 때만 확정 지연으로 본다 (재생 1회당 1판정).
+ * `null`/`undefined`는 동일하게 "값 없음"으로 취급한다.
+ * 전제: 네이티브가 스케줄마다 필드를 값 없음으로 리셋한 스냅샷이 먼저 관측된다 —
+ * 이 리셋 스냅샷이 누락되면 연속 두 재생의 지연이 같은 ms일 때 두 번째 판정이 사라진다.
+ */
+export function observeAudioDelay(
+  lastObserved: ObservedDelayMs,
+  observed: ObservedDelayMs,
+): { nextObserved: ObservedDelayMs; confirmedDelayMs: number | null } {
+  if (observed === lastObserved) return { nextObserved: lastObserved, confirmedDelayMs: null };
+  return { nextObserved: observed, confirmedDelayMs: observed ?? null };
+}
+
 interface KindThrottleEntry {
   readonly count: number;
   readonly lastEmitAtMs: number | null;
