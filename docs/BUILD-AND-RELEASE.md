@@ -250,15 +250,17 @@ eas env:pull development --environment development --path .env.local
 
 - 흐름: `.env`(로컬) 또는 EAS env의 `EXPO_PUBLIC_API_BASE_URL` → `app.config.ts` `extra.apiBaseUrl` → 캡처 업로드 게이트 3조건 중 하나. **미설정 = 게이트 닫힘 = 업로드 꺼짐** — 환경별 업로드 활성화 타이밍을 이 값으로 제어한다
 - 로컬: `.env`(gitignore)에 기입. `extra` → Metro manifest 경유라 값 변경에 재빌드 불필요 — Metro 재시작만 필요
-- EAS 빌드: 환경별 string env로 등록. 공개 엔드포인트라 `--visibility plain` 사용 가능
+- EAS 빌드: 환경별 string env로 등록. 공개 엔드포인트라 `--visibility plaintext` 사용 가능
+- 실제 서버 host: production `https://buddybird.xyz` (등록 완료, v1.0.1) / development `https://dev.buddybird.xyz` (EAS 미등록 — 로컬 `.env`로 사용)
 
 ```bash
-eas env:create \
+eas env:set \
   --environment production \
   --name EXPO_PUBLIC_API_BASE_URL \
-  --value https://<captures-api-host> \
-  --visibility plain
+  --value https://buddybird.xyz \
+  --visibility plaintext --scope project
 # development·preview 는 대상 서버가 준비된 환경에만 동일하게 등록
+# (eas-cli 21.x: env:create 는 deprecated, visibility 값은 plaintext|sensitive|secret)
 ```
 
 - ⚠️ **등록 전 서버 라우트 정상 응답 확인 의무**: `POST /api/v1/captures` 가 실제 배포되어 정상(2xx) 응답하는지 확인한 뒤에만 주입한다. 미배포 서버(404 등 4xx)에 URL 을 선주입하면 클라이언트의 4xx 처리 경로(배치 split → 단건 4xx → **클립 폐기**)가 발동해 사용자 캡처가 손실된다 (BB-283 검증 중 실데이터 폐기로 실증). 404 를 폐기 대상에서 분리할지는 SPEC-0003 재논의 대상 (팀 결정 대기)
