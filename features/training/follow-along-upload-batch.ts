@@ -1,6 +1,8 @@
 // 캡처 배치 조립 규칙 (SPEC-0003 §배치 생성·payload 생성). 순수 함수 — I/O 없음.
 // 파일 존재 여부는 predicate 로 주입받아 판정만 담당한다.
 
+import { truncateToCodePoints } from '@/features/shared/text-truncate';
+
 import type { FollowAlongCapture } from './follow-along-capture-types';
 
 export const MAX_CAPTURE_BATCH_SIZE = 10;
@@ -10,7 +12,8 @@ export const MAX_CAPTURE_BATCH_SIZE = 10;
 // 동기 zipSync 의 JS 힙 점유 상한도 이 예산이 함께 묶는다.
 export const MAX_CAPTURE_BATCH_BYTES = 9 * 1024 * 1024;
 
-// 서버 계약(SPEC-0002)의 필드 상한. 클라이언트가 초과분을 잘라 400을 예방한다.
+// 서버 계약(SPEC-0002)의 필드 상한(코드포인트 기준). 클라이언트가 초과분을 잘라 400을 예방한다.
+// parrotSpecies 는 프로필의 "직접입력" 자유 문자열이라 이모지가 상한에 걸릴 수 있다.
 const APP_VERSION_MAX_LENGTH = 12;
 const PARROT_SPECIES_MAX_LENGTH = 50;
 
@@ -78,8 +81,10 @@ export function buildCaptureBatchMetadata(
       captured_at: toUtcIso(capture.capturedAt),
       file_name: capture.fileName,
     };
-    if (appVersion) item.app_version = appVersion.slice(0, APP_VERSION_MAX_LENGTH);
-    if (capture.parrotSpecies) item.parrot_species = capture.parrotSpecies.slice(0, PARROT_SPECIES_MAX_LENGTH);
+    if (appVersion) item.app_version = truncateToCodePoints(appVersion, APP_VERSION_MAX_LENGTH);
+    if (capture.parrotSpecies) {
+      item.parrot_species = truncateToCodePoints(capture.parrotSpecies, PARROT_SPECIES_MAX_LENGTH);
+    }
     if (capture.parrotBirthdate) item.parrot_birthdate = capture.parrotBirthdate;
     return item;
   });

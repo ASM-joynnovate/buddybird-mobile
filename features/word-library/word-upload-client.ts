@@ -5,6 +5,8 @@
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
+import { postUploadForm } from '@/features/shared/upload-transport';
+
 import { buildWordUploadRequest } from './word-upload-request';
 import type { WordUploadHttpResult } from './word-upload-response';
 
@@ -40,21 +42,20 @@ export async function sendWord(input: SendWordInput): Promise<WordUploadHttpResu
   // RN 의 FormData 파일 파트는 DOM 타입에 없어 단언이 필요하다.
   form.append('audio_file', request.file as unknown as Blob);
 
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), WORD_UPLOAD_TIMEOUT_MS);
-  try {
-    const response = await fetch(request.url, {
-      method: 'POST',
-      body: form,
-      signal: abortController.signal,
-    });
-    return { status: response.status, errorCode: await readErrorCode(response) };
-  } catch (error: unknown) {
-    console.warn('[word-library.upload.network]', error);
-    return { status: null, errorCode: null };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  // 본문(`error_code`) 읽기까지 타임아웃 창 안에서 돈다 — 헤더만 주고 멎는 서버에
+  // flush 가 잡히면 다음 트리거가 전부 예약만 되고 실행되지 않는다.
+  const result = await postUploadForm<WordUploadHttpResult>({
+    url: request.url,
+    form,
+    timeoutMs: WORD_UPLOAD_TIMEOUT_MS,
+    scope: 'word-library.upload.network',
+    readResponse: async (response) => ({
+      status: response.status,
+      errorCode: await readErrorCode(response),
+    }),
+  });
+
+  return result ?? { status: null, errorCode: null };
 }
 
 /**
