@@ -5,6 +5,12 @@ export type RecordingMethod = 'voice' | 'upload';
 export type RegistrationMethod = 'text' | 'voice_recording';
 export type WordSelectSource = 'list' | 'recommendation' | 'search';
 export type ParrotSpeciesValue = string;
+export type CaptureUploadFailureReason = 'server_reject' | 'network_error' | 'server_error';
+export type CaptureFlushAbortReason =
+  | 'server_error'
+  | 'network_error'
+  | 'unreadable_response'
+  | 'exception';
 
 export type AnalyticsEvent =
   | { name: 'app_open'; params: { cold_start: boolean } }
@@ -140,6 +146,57 @@ export type AnalyticsEvent =
         elapsed_seconds: number;
       };
     }
+  | {
+      name: 'follow_along_capture_created';
+      params: {
+        client_capture_id: string;
+        session_id: string;
+        client_word_id: string;
+        cycle: number;
+        phase: 'learning' | 'rest';
+        audio_size_bytes: number;
+        pending_count: number;
+      };
+    }
+  | {
+      name: 'capture_upload_succeeded';
+      params: {
+        client_capture_id: string;
+        // 손상 레코드는 capturedAt 이 비어 경과 시간을 계산할 수 없다 — 그때만 생략된다.
+        latency_ms?: number;
+        batch_size: number;
+        is_retry_single: boolean;
+      };
+    }
+  | {
+      name: 'capture_upload_failed';
+      params: {
+        client_capture_id: string;
+        reason: CaptureUploadFailureReason;
+        age_ms?: number;
+        // 항목 rejected 는 200 응답이라 상태 코드가 없다 — 단건 4xx 폐기 경로에서만 채운다.
+        http_status?: number;
+      };
+    }
+  | {
+      name: 'capture_flush_aborted';
+      params: {
+        reason: CaptureFlushAbortReason;
+        // 중단 시점에 큐를 읽어 채운다 — 스토리지 고장으로 읽지 못하면 생략된다.
+        pending_count?: number;
+        succeeded_before_abort: number;
+        // 응답이 있었을 때만 — 네트워크 오류와 예외 경로는 생략된다.
+        http_status?: number;
+      };
+    }
+  | {
+      name: 'capture_evicted_before_upload';
+      params: {
+        client_capture_id: string;
+        age_ms?: number;
+        audio_size_bytes: number;
+      };
+    }
   | { name: 'word_library_opened'; params: { total_words_count: number } }
   | {
       name: 'word_library_filter_changed';
@@ -240,7 +297,13 @@ export function toFirebaseParams(params: AnalyticsParams): Record<string, string
       continue;
     }
 
-    if (typeof value === 'number' || typeof value === 'boolean') {
+    // NaN·Infinity 는 그대로 나가면 지표를 조용히 오염시킨다 — 키째 뺀다.
+    if (typeof value === 'number') {
+      if (Number.isFinite(value)) sanitized[safeKey] = value;
+      continue;
+    }
+
+    if (typeof value === 'boolean') {
       sanitized[safeKey] = value;
       continue;
     }

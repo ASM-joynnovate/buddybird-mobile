@@ -18,6 +18,7 @@ import { readExtraString } from '@/features/shared/expo-extra';
 import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
 import { installGlobalErrorReporting, registerErrorReporter } from './error-reporter';
+import { registerEventTracker } from './event-tracker';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
 import { ClarityProvider } from './providers/clarity-provider';
@@ -112,6 +113,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     let isMounted = true;
     let uninstallErrorReporting: (() => void) | null = null;
     const unregisterReporter = registerErrorReporter(clientRef.current);
+    const unregisterTracker = registerEventTracker(clientRef.current);
 
     async function bootstrap(): Promise<void> {
       const client = clientRef.current;
@@ -144,6 +146,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     return () => {
       isMounted = false;
       uninstallErrorReporting?.();
+      unregisterTracker();
       unregisterReporter();
     };
   }, []);

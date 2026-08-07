@@ -17,6 +17,7 @@
 | `createSessionId` | `@/features/shared/ids` | `(): string` | 세션 ID 생성. 형식: `sess_<base36 ts>_<base36 rand>` |
 | `createCaptureId` | `@/features/shared/ids` | `(): string` | 따라하기 캡처 ID 생성. 형식: `cap_<base36 ts>_<base36 rand>` |
 | `diffDaysIso` | `@/features/shared/date-utils` | `(fromIso: string, toMs?: number) => number` | ISO 날짜 문자열로부터 경과 일수 (floor) |
+| `elapsedMsSince` | `@/features/shared/date-utils` | `(iso: string \| undefined, toMs?: number) => number \| null` | ISO 시각으로부터 경과 밀리초. 값이 없거나 파싱 불가면 null — 계측 파라미터가 NaN 으로 나가지 않도록 결측 판정을 한 곳에 모은다 (BB-284) |
 | `toLocalDateKey` | `@/features/shared/date-utils` | `(date: Date) => string` | 로컬 타임존 기준 `'YYYY-MM-DD'` 날짜 키 (streak·접속일 카운트 등 하루 단위 비교). 소비처: `features/training/training-model.ts`, `features/feedback/` |
 
 ### 2.1 영속 — `features/shared/`
@@ -63,6 +64,8 @@
 | `installGlobalErrorReporting` | `@/features/analytics/error-reporter` | `({ client, getCurrentScreen? }: InstallErrorReportingOptions) => () => void` | 전역 uncaught 핸들러 + Hermes rejection 추적 설치 (AnalyticsProvider 전용) |
 | `ErrorContext` (type) | `@/features/analytics/error-reporter` | `{ scope: ErrorScope; screen_name?: string; is_fatal?: string }` | `reportError` 컨텍스트 — 알려진 키만 허용 |
 | `ErrorScope` / `ErrorDomain` (type) | `@/features/analytics/error-reporter` | `ErrorDomain \| \`${ErrorDomain}.${string}\`` | scope 도메인 prefix 강제(자유 string 금지). 새 도메인은 `ErrorDomain` union에 먼저 추가하고 method 부분은 자유. `persistKeyedStore` config의 `scope`도 이 타입 |
+| `trackEvent` | `@/features/analytics/event-tracker` | `<E extends AnalyticsEvent>(event: E) => void` | React 밖(순수 모듈)에서 이벤트 발행 — 훅을 못 쓰는 업로드 파이프라인용. provider 등록 전이면 조용히 no-op. 컴포넌트·훅에서는 `useAnalytics().track` 을 쓴다 |
+| `registerEventTracker` | `@/features/analytics/event-tracker` | `(client: AnalyticsClient) => () => void` | AnalyticsProvider가 tracker를 등록할 때 사용 |
 | `readWordLifetimeMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<WordLifetimeMetrics \| null>` | 단어별 누적 연습 지표 조회 (없으면 null). `word_removed`·`word_practice_started` 파라미터 소스 |
 | `removeWordMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<void>` | 단어 삭제 시 orphan 지표 정리 (idempotent) |
 | `reportProviderFailure` | `@/features/analytics/analytics-utils` | `(provider: string, op: string, error: unknown) => void` | provider별 fanout 실패 격리 로깅 |
