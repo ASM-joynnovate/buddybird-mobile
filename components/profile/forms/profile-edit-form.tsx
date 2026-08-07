@@ -18,6 +18,7 @@ import type { ProfileDraft, ProfileValidationErrors } from '@/features/profile/p
 interface ProfileEditFormProps {
   form: ProfileDraft;
   errors: ProfileValidationErrors;
+  isSaving: boolean;
   saveErrorMessage: string | null;
   t: I18n['t'];
   onPatch: (patch: Partial<ProfileDraft>) => void;
@@ -28,6 +29,7 @@ interface ProfileEditFormProps {
 export function ProfileEditForm({
   form,
   errors,
+  isSaving,
   saveErrorMessage,
   t,
   onPatch,
@@ -50,7 +52,7 @@ export function ProfileEditForm({
   return (
     <View style={styles.root}>
       <View style={styles.backHeader}>
-        <Pressable accessibilityLabel={t('profile.editBackA11y')} accessibilityRole="button" onPress={onCancel} style={styles.backButton}>
+        <Pressable accessibilityLabel={t('profile.editBackA11y')} accessibilityRole="button" disabled={isSaving} onPress={onCancel} style={styles.backButton}>
           <IconSymbol color={BuddyBirdColors.inkMuted} name="chevron.left" size={26} />
         </Pressable>
         <Text style={styles.kicker}>{t('profile.editTitle')}</Text>
@@ -100,7 +102,7 @@ export function ProfileEditForm({
       </View>
 
       <View style={styles.saveBar}>
-        <PillButton full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" testID="profile-edit-save" />
+        <PillButton disabled={isSaving} full icon="checkmark" label={t('common.save')} onPress={onSave} size="lg" testID="profile-edit-save" />
       </View>
     </View>
   );
