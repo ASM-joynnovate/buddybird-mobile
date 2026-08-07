@@ -29,6 +29,7 @@ import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
 import { useSessionKeepAwake } from './use-session-keep-awake';
+import { useSessionPerf } from './use-session-perf';
 
 // 네이티브 주도 종료(알림 "중지" 등) 감지 대상 — starting은 start가 아직 in-flight라
 // 네이티브에 세션이 없는 게 정상이므로 오탐 방지를 위해 제외한다.
@@ -419,6 +420,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [finalizeSession]);
 
   useSessionKeepAwake(snapshot.state === 'running');
+  useSessionPerf({ engineSessionId, sessionId });
 
   function togglePause(): void {
     const command = snapshot.state === 'running' ? sessionAudioEngine.pause() : sessionAudioEngine.resume();

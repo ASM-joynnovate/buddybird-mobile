@@ -130,6 +130,7 @@ await flushSessionWordMetrics([
 | `features/training/hooks/use-active-session.ts` | `word_practice_started`, `word_practice_completed`, `recording_played` |
 | `features/training/follow-along-capture-storage.ts` | `follow_along_capture_created` (저장 성공 후), `capture_evicted_before_upload` (보관 상한 초과 시 지워지는 클립마다 1건) |
 | `features/training/follow-along-upload.ts` | `capture_upload_succeeded`, `capture_upload_failed` (서버 거부 — 항목 `rejected` / 단건 4xx 폐기), `capture_flush_aborted` (flush 종료 지점 1곳에서만 발행) |
+| `features/training/hooks/use-session-perf.ts` (`use-active-session.ts` 배선) | `session_perf_degraded` — 기준치·스로틀은 `session-perf-model.ts` `SESSION_PERF_THRESHOLDS`, 이벤트 정의 SSoT는 BB-285 티켓 |
 
 ### 측정 한계 (알려진 제약)
 
@@ -139,6 +140,9 @@ await flushSessionWordMetrics([
 - `recording_played`: 재생 도중 세션이 종료되면 마지막 재생 이벤트가 유실될 수 있고, 재생 중 백그라운드 전환 시 `playback_duration_ms`에 배경 갭이 포함될 수 있음.
 - `word_recording_finished`의 `retry_count`: 성공적으로 완료된 녹음 기준 (에러·중단 경로의 재시도는 미집계, started/finished 쌍은 에러 경로에서 불균형).
 - `recordings_count`의 정본은 `word_practice_completed`(실제 캡처 세그먼트 수). `word_lifetime_metrics`에 누적되는 `lifetime_recording_count`는 세션 flush의 `audioUri ? 1 : 0` 휴리스틱이라 정의가 다름.
+- `session_perf_degraded`의 `audio_delay`: iOS는 실제 가청 시작이 아니라 스케줄 지연(의도→`play()` 디스패치) 근사 — Android(실제 재생 시작 관측)와 측정 범위가 다르므로 플랫폼 간 절대값 비교 금지. iOS ATT denied 시 analytics 자체가 비활성이라 iOS 대조군(동의 거부 코호트)에 편향 가능.
+- iOS `audio_delay` **무신호 ≠ 정상**: iOS 측정 구간은 네이티브 큐 위의 동기 실행이라 통상 수십 ms 이내이고, 이 이벤트가 잡으려는 저하 원인(업로드 zipSync 등 JS 스레드 점유)은 이 구간에 원리적으로 잡히지 않는다. 대시보드의 iOS `audio_delay` 0건을 "iOS는 오디오 지연 없음"으로 읽지 말 것 — iOS 재생 지연 판단은 `ui_lag`·Android 코호트로 보완한다. 반대로 iOS에서 기준치 초과가 잡히면 오디오 지연이 아니라 네이티브 큐 정체(`flush()` 지연 등)의 신호로 해석한다.
+- `session_perf_degraded`의 측정 구간은 kind별로 다름: `ui_lag`은 AppState active + 세션 running에서만(백그라운드 타이머 스로틀의 가짜 드리프트 차단), `audio_delay`는 네이티브 실측이라 백그라운드(포그라운드 서비스 재생 중) 발행 포함.
 
 캡처 업로드 계측(BB-284)의 제약은 다음과 같다:
 

@@ -56,6 +56,11 @@ function abortWith(reason: CaptureFlushAbortReason, httpStatus: number | null): 
   return { reason, ...(httpStatus === null ? {} : { httpStatus }) };
 }
 
+/** perf 계측용 동기 샘플링 — flush 루프(zip 압축 포함) 진행 중 여부 (BB-285). 읽기 전용. */
+export function isCaptureFlushInFlight(): boolean {
+  return flushInFlight;
+}
+
 /**
  * 모든 업로드 트리거의 단일 진입점. 진행 중이면 종료 후 1회 재실행을 예약한다.
  * 누적 트리거(①)는 `fromAccumulation` 을 표시한다 — 직전 flush 가 일시 장애로 중단된

@@ -1,3 +1,5 @@
+import type { UploadConsentStatus } from '@/features/upload-consent/upload-consent-storage';
+
 import type { AnalyticsParams } from './providers/types';
 
 export type OnboardingStep = 'welcome' | 'profile';
@@ -195,6 +197,18 @@ export type AnalyticsEvent =
         client_capture_id: string;
         age_ms?: number;
         audio_size_bytes: number;
+      };
+    }
+  | {
+      // 세션 중 성능 저하 계측 (BB-285, PRD-0001 NFR-01). 이벤트 정의 SSoT는 BB-285 티켓.
+      // consent_status는 코호트 구분용(동의 vs 거부 세션 비교) — 측정·발행을 게이트하지 않는다.
+      name: 'session_perf_degraded';
+      params: {
+        kind: 'audio_delay' | 'ui_lag';
+        value_ms: number;
+        during_upload: boolean;
+        session_id: string;
+        consent_status: UploadConsentStatus;
       };
     }
   | { name: 'word_library_opened'; params: { total_words_count: number } }
