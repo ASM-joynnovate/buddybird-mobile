@@ -93,7 +93,7 @@ describe('sendWord error code', () => {
   it('reads the error code from a rejection body', async () => {
     fetchMock.mockResolvedValue({
       status: 400,
-      json: async () => ({ code: 400, error_code: 'FILE__NOT_ALLOWED_FILE_TYPE', message: '허용되지 않는 파일 형식입니다.' }),
+      json: async () => ({ error_code: 'FILE__NOT_ALLOWED_FILE_TYPE', message: '허용되지 않는 파일 형식입니다.' }),
     });
 
     expect(await sendWord(baseInput)).toEqual({ status: 400, errorCode: 'FILE__NOT_ALLOWED_FILE_TYPE' });
@@ -129,7 +129,7 @@ describe('sendWord error code', () => {
   });
 
   it('falls back to a null error code when the body has no error code', async () => {
-    fetchMock.mockResolvedValue({ status: 422, json: async () => ({ code: 422, message: '요청값이 올바르지 않습니다.' }) });
+    fetchMock.mockResolvedValue({ status: 422, json: async () => ({ message: '요청값이 올바르지 않습니다.' }) });
 
     expect(await sendWord(baseInput)).toEqual({ status: 422, errorCode: null });
   });
