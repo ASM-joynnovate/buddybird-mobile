@@ -5,6 +5,7 @@ import { PillButton } from '@/components/ui/pill-button';
 interface WordCreateActionsProps {
   cancelLabel: string;
   saveLabel: string;
+  cancelDisabled: boolean;
   disabled: boolean;
   onCancel: () => void;
   onSave: () => void;
@@ -13,13 +14,14 @@ interface WordCreateActionsProps {
 export function WordCreateActions({
   cancelLabel,
   saveLabel,
+  cancelDisabled,
   disabled,
   onCancel,
   onSave,
 }: WordCreateActionsProps) {
   return (
     <View style={styles.row}>
-      <PillButton label={cancelLabel} onPress={onCancel} size="lg" variant="ghost" />
+      <PillButton disabled={cancelDisabled} label={cancelLabel} onPress={onCancel} size="lg" variant="ghost" />
       <PillButton
         disabled={disabled}
         icon="checkmark"

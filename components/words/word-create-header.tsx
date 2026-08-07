@@ -9,10 +9,11 @@ interface WordCreateHeaderProps {
   kicker: string;
   title: string;
   body: string;
+  disabled: boolean;
   onBack: () => void;
 }
 
-export function WordCreateHeader({ kicker, title, body, onBack }: WordCreateHeaderProps) {
+export function WordCreateHeader({ kicker, title, body, disabled, onBack }: WordCreateHeaderProps) {
   const { t } = useI18n();
   return (
     <>
@@ -20,6 +21,7 @@ export function WordCreateHeader({ kicker, title, body, onBack }: WordCreateHead
         <Pressable
           accessibilityLabel={t('wordCreate.backA11y')}
           accessibilityRole="button"
+          disabled={disabled}
           hitSlop={8}
           onPress={onBack}
           style={styles.backButton}>

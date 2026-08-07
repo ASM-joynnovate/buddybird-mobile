@@ -44,6 +44,9 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   const [label, setLabel] = useState('');
   const [tag, setTag] = useState<WordTag>('greeting');
   const [isSaving, setIsSaving] = useState(false);
+  // 2연타 가드 — disabled(isSaving) 는 다음 렌더에 반영돼 같은 tick 재탭을 놓친다 (BB-300).
+  // 모달 인스턴스가 재사용되므로 finally 에서 풀어 다음 저장을 허용한다.
+  const savingRef = useRef(false);
 
   // 재녹음 횟수(retry_count). 자동 정지(maxDuration)도 잡기 위해 버튼 핸들러가 아니라
   // lifecycle 전이로 발화하므로, 부가 상태도 ref로 함께 추적한다.
@@ -112,6 +115,13 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
     onClose();
   }
 
+  // 사용자 이탈 경로만 저장 중 차단 — createEntry 는 취소가 안 되므로 닫아도 단어는 저장되고
+  // word_added 까지 발화한다. 저장 성공 후의 handleClose 는 이 가드를 타지 않는다.
+  function cancelCreate() {
+    if (savingRef.current) return;
+    handleClose();
+  }
+
   async function handleToggleRecording() {
     if (session.state === 'recording') {
       await session.actions.stop();
@@ -129,7 +139,8 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
   }
 
   async function handleSave() {
-    if (!canSave || !session.file) return;
+    if (savingRef.current || !canSave || !session.file) return;
+    savingRef.current = true;
     setIsSaving(true);
     try {
       const entry = await createEntry({
@@ -158,6 +169,7 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       reportError(error, { scope: 'words.createEntry' });
       Alert.alert(t('wordCreate.saveErrorTitle'), t('wordCreate.saveErrorBody'));
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   }
@@ -167,8 +179,9 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <WordCreateHeader
           body={t('wordCreate.body')}
+          disabled={isSaving}
           kicker={t('wordCreate.kicker')}
-          onBack={handleClose}
+          onBack={cancelCreate}
           title={t('wordCreate.title')}
         />
 
@@ -215,9 +228,10 @@ export function WordCreateModal({ visible, onClose, onCreated }: WordCreateModal
           ) : null}
 
           <WordCreateActions
+            cancelDisabled={isSaving}
             cancelLabel={t('wordCreate.cancel')}
             disabled={!canSave || isSaving}
-            onCancel={handleClose}
+            onCancel={cancelCreate}
             onSave={handleSave}
             saveLabel={isSaving ? t('common.saving') : t('wordCreate.addToTraining')}
           />
