@@ -141,4 +141,19 @@ describe('buildCaptureBatchMetadata', () => {
     expect(item.app_version).toHaveLength(12);
     expect(item.parrot_species).toHaveLength(50);
   });
+
+  // parrotSpecies 는 프로필의 "직접입력" 자유 문자열이다. 코드 유닛 기준으로 자르면
+  // 상한에 걸친 이모지가 쪼개져 lone surrogate 가 남고, 서버에 U+FFFD 로 저장된다.
+  it('does not split an emoji that straddles the parrot_species limit', () => {
+    const [item] = buildCaptureBatchMetadata(
+      [makeCapture({ id: 'cap-a', parrotSpecies: `${'가'.repeat(49)}🦜 앵무` })],
+      null,
+    );
+
+    expect(item.parrot_species).not.toMatch(
+      /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/,
+    );
+    expect(item.parrot_species).toBe(`${'가'.repeat(49)}🦜`);
+    expect(() => encodeURIComponent(item.parrot_species as string)).not.toThrow();
+  });
 });

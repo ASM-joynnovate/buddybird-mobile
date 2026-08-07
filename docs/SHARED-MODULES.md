@@ -50,6 +50,25 @@
 |---|---|---|---|
 | `readExtraString` | `@/features/shared/expo-extra` | `(key: string) => string \| null` | `app.config.ts` `extra` 설정값 읽기 — 비어 있지 않은 string 만 trim 해 반환, 그 외 null. 소비처: 업로드 게이트 `apiBaseUrl`, 앱 업데이트 `iosAppStoreId`, analytics `clarityProjectId` |
 
+### 2.5 문자열 절단 — `features/shared/`
+
+**수집 서버(SPEC-0002)로 나가는 문자열 필드를 자를 때는 반드시 `truncateToCodePoints`를 쓴다 — `slice`는 UTF-16 코드 유닛 기준이라 상한에 걸린 이모지를 쪼개 lone surrogate 를 남기고, 서버에 U+FFFD 로 저장된다.** 계약 상한이 코드포인트 단위임이 확인된 곳에만 쓴다 — Firebase 파라미터·user property 상한은 네이티브 SDK 가 UTF-16 코드 유닛으로 세므로 이 헬퍼의 대상이 아니다.
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `truncateToCodePoints` | `@/features/shared/text-truncate` | `(value: string, maxLength: number) => string` | 코드포인트 기준 절단. 소비처: `upload-contract`(기기 필드), `word-upload-request`(label), `follow-along-upload-batch`(app_version·parrot_species) |
+
+### 2.6 수집 서버 업로드 계약 — `features/shared/`
+
+단어 업로드(`features/word-library/word-upload-*`)와 클립 업로드(`features/training/follow-along-upload-*`)가 공유하는 SPEC-0002 계약 매핑·전송 골격. 무엇을 언제 보낼지·응답을 어떻게 읽을지는 각 파이프라인이 계속 소유한다.
+
+| Export | 경로 | 시그니처 | 용도 |
+|---|---|---|---|
+| `buildDeviceContractFields` | `@/features/shared/upload-contract` | `(input: DeviceContractInput) => DeviceContractFields` | `device_platform`·`device_os_version`·`device_model` 3종 필드 생성. 플랫폼 매핑(`ios→iOS`/`android→Android`/그 외 `''`)과 기기 필드 상한(20/30)이 여기에만 존재. `Platform.OS`·`expo-device` 값은 호출부가 주입 (순수) |
+| `DeviceContractInput` / `DeviceContractFields` (type) | `@/features/shared/upload-contract` | `{ platformOS, osVersion, modelName }` / `{ device_platform, device_os_version, device_model }` | 위 함수의 입출력 타입. 출력 snake_case 는 서버 계약 |
+| `buildUploadUrl` | `@/features/shared/upload-contract` | `(apiBaseUrl: string, path: string) => string` | base URL 끝 슬래시를 정규화해 경로를 잇는다 — `//api/v1/...` 은 서버 404 를 유발하고 404 는 4xx 경로(단어 거부·캡처 폐기)로 흘러 전량 손실로 증폭된다 |
+| `postUploadForm` | `@/features/shared/upload-transport` | `(input: PostUploadFormInput) => Promise<Response \| null>` | multipart POST + 타임아웃 abort 골격. 네트워크 오류·타임아웃을 `null` 로 흡수(throw 없음)하고 `console.warn('[scope]', error)` 로 남긴다. 타임아웃 값은 페이로드 크기별로 호출부가 소유(단어 30s / 클립 60s), 상태·본문 해석도 호출부 몫 |
+
 ## 3. Analytics — `features/analytics/`
 
 | Export | 경로 | 시그니처 | 용도 |
