@@ -42,6 +42,8 @@ export interface TrainingSessionSettings {
   totalDurationSeconds: number;
   learningDurationSeconds: number;
   restDurationSeconds: number;
+  // BB-380 이전에 저장된 설정·세션에는 없다. 소비처는 `?? 0`으로 읽는다.
+  stressCareDurationSeconds?: number;
   libraryEntryId?: string;
 }
 
@@ -52,6 +54,7 @@ export interface TrainingSession {
   totalDurationSeconds: number;
   learningDurationSeconds: number;
   restDurationSeconds: number;
+  stressCareDurationSeconds?: number;
   completedCycles: number;
   totalLearningSeconds: number;
   startedAt: string;

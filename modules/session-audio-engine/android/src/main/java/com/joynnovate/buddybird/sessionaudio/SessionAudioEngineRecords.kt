@@ -25,6 +25,7 @@ class SessionRecoveryInput : Record {
 class SessionNotificationInput : Record {
   @Field var learningSubtitle: String = ""
   @Field var restSubtitle: String = ""
+  @Field var stressCareSubtitle: String = ""
   @Field var pausedSubtitle: String = ""
 }
 
@@ -35,6 +36,8 @@ class SessionAudioEngineStartInputRecord : Record {
   @Field var totalDurationMs: Double = 0.0
   @Field var learningDurationMs: Double = 0.0
   @Field var restDurationMs: Double = 0.0
+  @Field var stressCareDurationMs: Double = 0.0
+  @Field var stressCareAudioUris: List<String> = emptyList()
   @Field var maxPendingCaptureBytes: Double = 0.0
   @Field var vad: SessionVadInput = SessionVadInput()
   @Field var recovery: SessionRecoveryInput = SessionRecoveryInput()
@@ -61,10 +64,17 @@ data class NativeRecoveryInfo(
 data class NativeNotificationCopy(
   val learningSubtitle: String,
   val restSubtitle: String,
+  val stressCareSubtitle: String,
   val pausedSubtitle: String,
 ) {
   fun subtitle(phase: String, cycle: Int, totalCycles: Int): String =
-    (if (phase == "rest") restSubtitle else learningSubtitle)
+    when (phase) {
+      "rest" -> restSubtitle
+      // iOS 와 달리 fallback 이 없다 — Android 는 copy 를 복구 기록에 영속하지 않고 항상
+      // 살아있는 start 입력에서 받으므로 구버전 기록 경로가 존재하지 않는다.
+      "stress-care" -> stressCareSubtitle
+      else -> learningSubtitle
+    }
       .replace("%{cycle}", cycle.toString())
       .replace("%{total}", totalCycles.toString())
 }
@@ -87,6 +97,8 @@ data class NativeSessionConfiguration(
   val totalDurationMs: Long,
   val learningDurationMs: Long,
   val restDurationMs: Long,
+  val stressCareDurationMs: Long,
+  val stressCareAudioUris: List<String>,
   val maxPendingCaptureBytes: Long,
   val vad: NativeVadConfiguration,
   val recovery: NativeRecoveryInfo,
@@ -95,7 +107,7 @@ data class NativeSessionConfiguration(
   // 마지막 회차는 일부만 진행될 수 있으므로 올림한다 — 알림의 "사이클 2/4" 분모.
   val totalCycles: Int
     get() {
-      val cycleMs = learningDurationMs + restDurationMs
+      val cycleMs = learningDurationMs + restDurationMs + stressCareDurationMs
       if (cycleMs <= 0) return 1
       return maxOf(1, ((totalDurationMs + cycleMs - 1) / cycleMs).toInt())
     }
@@ -108,6 +120,8 @@ data class NativeSessionConfiguration(
       totalDurationMs = input.totalDurationMs.toLong(),
       learningDurationMs = input.learningDurationMs.toLong(),
       restDurationMs = input.restDurationMs.toLong(),
+      stressCareDurationMs = input.stressCareDurationMs.toLong(),
+      stressCareAudioUris = input.stressCareAudioUris,
       maxPendingCaptureBytes = input.maxPendingCaptureBytes.toLong(),
       vad = NativeVadConfiguration(
         dbFloor = input.vad.dbFloor,
@@ -129,6 +143,7 @@ data class NativeSessionConfiguration(
       notification = NativeNotificationCopy(
         learningSubtitle = input.notification.learningSubtitle,
         restSubtitle = input.notification.restSubtitle,
+        stressCareSubtitle = input.notification.stressCareSubtitle,
         pausedSubtitle = input.notification.pausedSubtitle,
       ),
     )

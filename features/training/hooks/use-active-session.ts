@@ -10,6 +10,7 @@ import {
   sessionAudioEngine,
   type CapturedSegment,
   type SessionEngineFailure,
+  type SessionEnginePhase,
   type SessionEngineSnapshot,
   type SessionRecoveryRecord,
 } from '@/modules/session-audio-engine';
@@ -25,6 +26,7 @@ import {
 } from '../session-cycle-model';
 import { prepareSessionAudioUri, prepareSessionCaptureDirectoryUri } from '../session-audio-assets';
 import { MAX_PENDING_CAPTURE_BYTES, SESSION_VAD_CONFIG } from '../session-audio-engine-config';
+import { STRESS_CARE_TRACK_MODULES } from '../stress-care-tracks';
 import { useTrainingData } from '../training-context';
 import { createTrainingSession } from '../training-model';
 import type { CreateTrainingSessionInput, TrainingSessionSettings } from '../training-types';
@@ -50,7 +52,7 @@ export interface UseActiveSessionResult {
   failure: SessionEngineFailure | null;
   // true면 세션이 진행되다 실패한 것 — "시작 실패"와 구분해 표기한다.
   failedDuringSession: boolean;
-  phase: 'learning' | 'rest';
+  phase: SessionEnginePhase;
   cycle: number;
   totalCycles: number;
   phaseRemaining: number;
@@ -75,10 +77,12 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   const sessionId = pendingSession?.sessionId ?? '';
   const learnSecs = settings.learningDurationSeconds;
   const restSecs = settings.restDurationSeconds;
+  const careSecs = settings.stressCareDurationSeconds ?? 0;
   const { totalCycles, sessionMins, totalSessionSeconds } = deriveSessionCycles({
     totalSeconds: settings.totalDurationSeconds,
     learnSecs,
     restSecs,
+    careSecs,
   });
   // 재시도 런은 새 엔진 세션 id로 돈다 — 도중 실패 시 진행분이 기존 id로 이미 저장됐을 수 있고,
   // 저장소는 같은 id의 세션을 무시하기 때문이다(completeTrainingSession).
@@ -176,6 +180,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         }
         if (!engineSessionId || audioUri === undefined) throw new Error('세션 음원 또는 세션 ID가 없습니다.');
         const targetAudioUri = await prepareSessionAudioUri(audioUri);
+        // 스트레스 케어 트랙(BB-380)은 전부 로컬 URI로 준비해 넘긴다 — 구간마다 하나를
+        // 랜덤 재생하는 추첨은 백그라운드에서 구간이 시작되므로 네이티브가 수행한다.
+        const stressCareAudioUris = careSecs > 0
+          ? await Promise.all(STRESS_CARE_TRACK_MODULES.map((module) => prepareSessionAudioUri(module)))
+          : [];
         audioSourceReady = true;
         const next = await sessionAudioEngine.start({
           sessionId: engineSessionId,
@@ -184,6 +193,8 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           totalDurationMs: settings.totalDurationSeconds * 1000,
           learningDurationMs: learnSecs * 1000,
           restDurationMs: restSecs * 1000,
+          stressCareDurationMs: careSecs * 1000,
+          stressCareAudioUris,
           maxPendingCaptureBytes: MAX_PENDING_CAPTURE_BYTES,
           vad: SESSION_VAD_CONFIG,
           recovery: {
@@ -201,6 +212,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           notification: {
             learningSubtitle: t('sessionNotification.learningSubtitle', { cycle: '%{cycle}', total: '%{total}' }),
             restSubtitle: t('sessionNotification.restSubtitle', { cycle: '%{cycle}', total: '%{total}' }),
+            stressCareSubtitle: t('sessionNotification.stressCareSubtitle', { cycle: '%{cycle}', total: '%{total}' }),
             pausedSubtitle: t('sessionNotification.pausedSubtitle'),
           },
         });
@@ -229,6 +241,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }, [
     acceptSnapshot,
     audioUri,
+    careSecs,
     engineSessionId,
     learnSecs,
     restSecs,
@@ -321,11 +334,13 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         totalDurationSeconds: record.totalDurationMs / 1000,
         learningDurationSeconds: record.learningDurationMs / 1000,
         restDurationSeconds: record.restDurationMs / 1000,
+        stressCareDurationSeconds: (record.stressCareDurationMs ?? 0) / 1000,
         completedCycles: completedCyclesAtPosition(
           record.snapshot.cycle,
           record.snapshot.phase,
           phaseElapsedSeconds,
           record.restDurationMs / 1000,
+          (record.stressCareDurationMs ?? 0) / 1000,
         ),
         totalLearningSeconds,
         startedAt: record.recovery.startedAt,
@@ -438,7 +453,7 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
   }
 
   const phaseElapsed = snapshot.phaseElapsedMs / 1000;
-  const phaseDuration = snapshot.phase === 'learning' ? learnSecs : restSecs;
+  const phaseDuration = snapshot.phase === 'learning' ? learnSecs : snapshot.phase === 'stress-care' ? careSecs : restSecs;
   const elapsedSeconds = snapshot.elapsedRunningMs / 1000;
   const creditedLearningSeconds = elapsedLearningSeconds(snapshot.cycle, snapshot.phase, phaseElapsed, learnSecs);
 

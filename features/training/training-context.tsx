@@ -252,6 +252,7 @@ async function restoreOrRecoverSession(saveSession: (session: TrainingSession) =
   try {
     const learnSecs = record.learningDurationMs / 1000;
     const restSecs = record.restDurationMs / 1000;
+    const careSecs = (record.stressCareDurationMs ?? 0) / 1000;
     const creditedLearningSeconds = elapsedLearningSeconds(
       record.snapshot.cycle,
       record.snapshot.phase,
@@ -268,11 +269,13 @@ async function restoreOrRecoverSession(saveSession: (session: TrainingSession) =
         totalDurationSeconds: record.totalDurationMs / 1000,
         learningDurationSeconds: learnSecs,
         restDurationSeconds: restSecs,
+        stressCareDurationSeconds: careSecs,
         completedCycles: completedCyclesAtPosition(
           record.snapshot.cycle,
           record.snapshot.phase,
           Math.floor(record.snapshot.phaseElapsedMs / 1000),
           restSecs,
+          careSecs,
         ),
         totalLearningSeconds: creditedLearningSeconds,
         startedAt: record.recovery.startedAt,
