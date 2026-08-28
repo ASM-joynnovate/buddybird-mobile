@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   dotLearn: { backgroundColor: BuddyBirdColors.primary },
   dotRest: { backgroundColor: BuddyBirdColors.secondary },
-  dotCare: { backgroundColor: BuddyBirdColors.tertiary },
+  dotCare: { backgroundColor: BuddyBirdColors.secondary },
   value: {
     ...Typography.value,
     fontSize: 18,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   valueLearn: { color: BuddyBirdColors.primary },
   valueRest: { color: BuddyBirdColors.secondary },
-  valueCare: { color: BuddyBirdColors.tertiary },
+  valueCare: { color: BuddyBirdColors.secondary },
   label: {
     ...Typography.caption,
     color: BuddyBirdColors.inkMuted,
