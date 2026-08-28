@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes as Media3AudioAttributes
 import androidx.media3.common.C
@@ -75,6 +76,13 @@ object SessionAudioEngineRuntime {
   private var serviceRunning = false
   private var audioRecord: AudioRecord? = null
   private var mediaPlayer: ExoPlayer? = null
+  // 스트레스 케어 트랙 전용 플레이어 (BB-380). 목표 음원 플레이어와 분리해 STATE_ENDED 재스케줄
+  // 로직(학습 반복)이 케어 재생에 반응하지 않게 한다. 같은 playbackThread 루퍼를 공유한다.
+  private var careMediaPlayer: ExoPlayer? = null
+  // 한 케어 구간(사이클) 안에서는 트랙을 고정한다 — 일시정지·포커스 복귀가 재추첨하면
+  // 같은 구간에서 다른 트랙의 중간부터 이어지기 때문 (FR-18 "구간마다 랜덤 1개").
+  private var careSelectedUri: String? = null
+  private var careSelectedCycle = -1
   private var playbackThread: HandlerThread? = null
   private var playbackHandler: Handler? = null
   private var audioManager: AudioManager? = null
@@ -106,7 +114,7 @@ object SessionAudioEngineRuntime {
         if (current.sessionId != input.sessionId) throw CodedException("A different training session is already running.")
         return snapshot()
       }
-      if (input.sessionId.isEmpty() || input.totalDurationMs <= 0 || input.learningDurationMs <= 0 || input.restDurationMs < 0) {
+      if (input.sessionId.isEmpty() || input.totalDurationMs <= 0 || input.learningDurationMs <= 0 || input.restDurationMs < 0 || input.stressCareDurationMs < 0) {
         throw CodedException("Session durations and sessionId are required.")
       }
       val appContext = requireNotNull(context) { "SessionAudioEngine is not initialized." }
@@ -125,6 +133,8 @@ object SessionAudioEngineRuntime {
       lastStopRecord = null
       playbackIntentAtMs = null
       lastPlaybackStartDelayMs = null
+      careSelectedUri = null
+      careSelectedCycle = -1
       serviceStartError = null
       CountDownLatch(1).also {
         serviceReadyLatch = it
@@ -171,6 +181,7 @@ object SessionAudioEngineRuntime {
     state = "running"
     startTimer()
     scheduleTargetPlaybackIfNeeded()
+    scheduleStressCarePlaybackIfNeeded()
     persist(null)
     emitStateChanged()
   }
@@ -332,6 +343,17 @@ object SessionAudioEngineRuntime {
     if (source.scheme != "file" || !File(requireNotNull(source.path)).isFile) {
       throw SessionFailureException("audio-source-unavailable", "The target audio file is unavailable.")
     }
+    if (config.stressCareDurationMs > 0) {
+      if (config.stressCareAudioUris.isEmpty()) {
+        throw CodedException("Stress care audio URIs are required.")
+      }
+      config.stressCareAudioUris.forEach { uriString ->
+        val uri = Uri.parse(uriString)
+        if (uri.scheme != "file" || !File(requireNotNull(uri.path)).isFile) {
+          throw SessionFailureException("audio-source-unavailable", "A stress care audio file is unavailable.")
+        }
+      }
+    }
     val directory = Uri.parse(config.captureDirectoryUri)
     if (directory.scheme != "file" || !File(requireNotNull(directory.path)).let { it.isDirectory || it.mkdirs() }) {
       throw SessionFailureException("storage-unavailable", "The capture directory is unavailable.")
@@ -401,9 +423,36 @@ object SessionAudioEngineRuntime {
       player.setMediaItem(MediaItem.fromUri(config.targetAudioUri))
       player.prepare()
       mediaPlayer = player
+      if (config.stressCareDurationMs > 0) {
+        // 케어 트랙 재생 실패는 세션을 죽이지 않는다 — 학습·감지가 본체이므로 구간만 무음으로
+        // 넘긴다 (NFR-01). 미디어 아이템은 구간 진입 시점에 랜덤 트랙으로 설정한다.
+        val carePlayer = ExoPlayer.Builder(appContext)
+          .setLooper(thread.looper)
+          .setAudioAttributes(
+            Media3AudioAttributes.Builder()
+              .setUsage(C.USAGE_MEDIA)
+              .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+              .build(),
+            false,
+          )
+          .build()
+        carePlayer.addListener(object : Player.Listener {
+          override fun onPlayerError(error: PlaybackException) {
+            Log.w(TAG, "Stress care playback failed", error)
+          }
+        })
+        careMediaPlayer = carePlayer
+      }
     }
     if (!playerReady.await(4, TimeUnit.SECONDS) || playerFailure != null) {
-      handler.post { mediaPlayer?.release() }
+      // careMediaPlayer 도 같은 루퍼에 이미 생성됐을 수 있다 — 루퍼를 내리기 전에 함께 해제해야
+      // 재시도 반복에서 ExoPlayer 인스턴스가 누적 누수되지 않는다.
+      handler.post {
+        mediaPlayer?.release()
+        careMediaPlayer?.release()
+        mediaPlayer = null
+        careMediaPlayer = null
+      }
       thread.quitSafely()
       throw SessionFailureException("audio-source-unavailable", "The target audio file could not be prepared.", playerFailure)
     }
@@ -436,7 +485,11 @@ object SessionAudioEngineRuntime {
           captureExecutor.execute {
             val capture = synchronized(this@SessionAudioEngineRuntime) {
               val position = phasePosition()
-              val allowed = state == "running" && !targetPlaying && SystemClock.elapsedRealtime() >= captureAllowedAfterMs
+              // 스트레스 케어 구간은 스피커에서 트랙이 연속 재생돼 echo tail guard 로 배제할 수
+              // 없으므로 구간 전체를 캡처 판정에서 제외한다 (BB-380).
+              val allowed = state == "running" && !targetPlaying &&
+                position.second != "stress-care" &&
+                SystemClock.elapsedRealtime() >= captureAllowedAfterMs
               CaptureWork(capturePipeline, allowed, position.second, position.first)
             }
             capture.pipeline?.process(copied, copied.size, capture.allowed, capture.phase, capture.cycle)
@@ -458,11 +511,15 @@ object SessionAudioEngineRuntime {
     targetPlaying = false
     playbackIntentAtMs = null
     val player = mediaPlayer
+    val carePlayer = careMediaPlayer
     playbackHandler?.post {
       player?.stop()
       player?.release()
+      carePlayer?.stop()
+      carePlayer?.release()
     }
     mediaPlayer = null
+    careMediaPlayer = null
     playbackThread?.quitSafely()
     playbackThread = null
     playbackHandler = null
@@ -531,6 +588,7 @@ object SessionAudioEngineRuntime {
               runningSinceMs = SystemClock.elapsedRealtime()
               state = "running"
               scheduleTargetPlaybackIfNeeded()
+              scheduleStressCarePlaybackIfNeeded()
               persist(null)
               emitStateChanged()
             }
@@ -567,6 +625,31 @@ object SessionAudioEngineRuntime {
 
   private fun emitFailure(code: String, message: String?) {
     onFailure?.invoke(mapOf("code" to code, "message" to (message ?: "Audio engine failed."), "recoverable" to false))
+  }
+
+  // 스트레스 케어 구간 진입 시 번들 트랙 중 하나를 랜덤 재생한다 (BB-380, FR-18).
+  // 트랙 길이 = 구간 길이(5분)라 1회 재생으로 충분하고, 구간 종료 시 handleTimer 가 멈춘다.
+  private fun scheduleStressCarePlaybackIfNeeded() {
+    val config = configuration ?: return
+    if (config.stressCareDurationMs <= 0 || config.stressCareAudioUris.isEmpty()) return
+    val player = careMediaPlayer ?: return
+    val handler = playbackHandler ?: return
+    val position = phasePosition()
+    if (state != "running" || position.second != "stress-care") return
+    // 같은 케어 구간(사이클) 재진입(일시정지·포커스 복귀)에는 처음 뽑은 트랙을 유지한다.
+    if (careSelectedCycle != position.first) {
+      careSelectedCycle = position.first
+      careSelectedUri = config.stressCareAudioUris.random()
+    }
+    val uri = careSelectedUri ?: return
+    // 재개로 구간 중간에 들어오면 그 지점부터 이어 재생한다.
+    val offsetMs = position.third
+    handler.post {
+      player.setMediaItem(MediaItem.fromUri(uri))
+      player.prepare()
+      if (offsetMs > 0) player.seekTo(offsetMs)
+      player.play()
+    }
   }
 
   private fun scheduleTargetPlaybackIfNeeded() {
@@ -638,10 +721,15 @@ object SessionAudioEngineRuntime {
       capturePipeline?.flush()
       lastPhase = phase
       val player = mediaPlayer
-      playbackHandler?.post { player?.pause() }
+      val carePlayer = careMediaPlayer
+      playbackHandler?.post {
+        player?.pause()
+        carePlayer?.pause()
+      }
       playbackGeneration += 1
       targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
+      scheduleStressCarePlaybackIfNeeded()
       persist(null)
     }
     val second = elapsed / 1_000
@@ -669,18 +757,26 @@ object SessionAudioEngineRuntime {
 
   private fun phasePosition(): Triple<Int, String, Long> {
     val config = configuration ?: return Triple(1, "learning", 0)
-    val cycleDuration = config.learningDurationMs + config.restDurationMs
+    val careMs = config.stressCareDurationMs
+    val cycleDuration = config.learningDurationMs + config.restDurationMs + careMs
     if (cycleDuration <= 0) return Triple(1, "learning", 0)
     val elapsed = elapsedRunningMs()
     if (elapsed >= config.totalDurationMs && elapsed % cycleDuration == 0L) {
-      return Triple((elapsed / cycleDuration).toInt().coerceAtLeast(1), "rest", config.restDurationMs)
+      val lastPhase = if (careMs > 0) "stress-care" else "rest"
+      val lastPhaseMs = if (careMs > 0) careMs else config.restDurationMs
+      return Triple((elapsed / cycleDuration).toInt().coerceAtLeast(1), lastPhase, lastPhaseMs)
     }
     val completeCycles = elapsed / cycleDuration
     val insideCycle = elapsed % cycleDuration
-    return if (insideCycle < config.learningDurationMs) {
-      Triple(completeCycles.toInt() + 1, "learning", insideCycle)
+    val cycle = completeCycles.toInt() + 1
+    if (insideCycle < config.learningDurationMs) {
+      return Triple(cycle, "learning", insideCycle)
+    }
+    val insideRest = insideCycle - config.learningDurationMs
+    return if (insideRest < config.restDurationMs || careMs <= 0) {
+      Triple(cycle, "rest", insideRest)
     } else {
-      Triple(completeCycles.toInt() + 1, "rest", insideCycle - config.learningDurationMs)
+      Triple(cycle, "stress-care", insideRest - config.restDurationMs)
     }
   }
 
@@ -715,6 +811,7 @@ object SessionAudioEngineRuntime {
       "totalDurationMs" to config.totalDurationMs,
       "learningDurationMs" to config.learningDurationMs,
       "restDurationMs" to config.restDurationMs,
+      "stressCareDurationMs" to config.stressCareDurationMs,
       "reason" to reason,
     )
   }
@@ -728,4 +825,6 @@ object SessionAudioEngineRuntime {
 
   // 세션이 오디오 자원이나 서비스를 아직 붙들고 있는 상태 — 비정상 종료로 판정할 대상.
   private val LIVE_SESSION_STATES = setOf("running", "starting", "interrupted", "paused")
+
+  private const val TAG = "SessionAudioEngineRuntime"
 }

@@ -7,7 +7,7 @@ import { useI18n } from '@/features/i18n/i18n-context';
 import { deriveSessionCycles } from '../session-cycle-model';
 import { useTrainingData } from '../training-context';
 import { createTrainingWord, selectTrainingWordSummaries } from '../training-model';
-import { SESSION_PRESETS, calcLearnRestFromTotal } from '../session-config';
+import { SESSION_PRESETS, calcCycleSecsFromTotal } from '../session-config';
 import type { SessionPresetKey } from '../session-config';
 import type { TrainingAudioSourceType, TrainingSessionSettings } from '../training-types';
 
@@ -33,6 +33,7 @@ export interface UseSessionSetupResult {
   setSessionMins: (n: number) => void;
   learnSecs: number;
   restSecs: number;
+  careSecs: number;
   totalCycles: number;
   isHydrated: boolean;
   trainingErrorMessage: string | null;
@@ -58,10 +59,11 @@ export function useSessionSetup(): UseSessionSetupResult {
 
   const [presetKey, setPresetKeyState] = useState<SessionPresetKey>(DEFAULT_PRESET_KEY);
   const [sessionMins, setSessionMinsState] = useState(
-    (_defaultPreset.learnSecs + _defaultPreset.restSecs) / 60 * _defaultPreset.cycles
+    (_defaultPreset.learnSecs + _defaultPreset.restSecs + _defaultPreset.careSecs) / 60 * _defaultPreset.cycles
   );
   const [learnSecs, setLearnSecs] = useState<number>(_defaultPreset.learnSecs);
   const [restSecs, setRestSecs] = useState<number>(_defaultPreset.restSecs);
+  const [careSecs, setCareSecs] = useState<number>(_defaultPreset.careSecs);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   function setPresetKey(key: SessionPresetKey) {
@@ -69,27 +71,30 @@ export function useSessionSetup(): UseSessionSetupResult {
     if (key === 'custom') {
       const defaultMins = 25;
       setSessionMinsState(defaultMins);
-      const { learnSecs: ls, restSecs: rs } = calcLearnRestFromTotal(defaultMins * 60);
+      const { learnSecs: ls, restSecs: rs, careSecs: cs } = calcCycleSecsFromTotal(defaultMins * 60);
       setLearnSecs(ls);
       setRestSecs(rs);
+      setCareSecs(cs);
     } else {
       const preset = SESSION_PRESETS.find((p) => p.key === key)!;
       setLearnSecs(preset.learnSecs);
       setRestSecs(preset.restSecs);
-      setSessionMinsState((preset.learnSecs + preset.restSecs) / 60 * preset.cycles);
+      setCareSecs(preset.careSecs);
+      setSessionMinsState((preset.learnSecs + preset.restSecs + preset.careSecs) / 60 * preset.cycles);
     }
   }
 
   function setSessionMins(mins: number) {
     setSessionMinsState(mins);
     if (presetKey === 'custom') {
-      const { learnSecs: ls, restSecs: rs } = calcLearnRestFromTotal(mins * 60);
+      const { learnSecs: ls, restSecs: rs, careSecs: cs } = calcCycleSecsFromTotal(mins * 60);
       setLearnSecs(ls);
       setRestSecs(rs);
+      setCareSecs(cs);
     }
   }
 
-  const { totalCycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs });
+  const { totalCycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs, careSecs });
   const isDurationValid = sessionMins > 0;
   const durationValidationError = isDurationValid ? null : t('sessionSetup.zeroDurationError');
 
@@ -131,6 +136,7 @@ export function useSessionSetup(): UseSessionSetupResult {
       const settings: TrainingSessionSettings = {
         learningDurationSeconds: learnSecs,
         restDurationSeconds: restSecs,
+        stressCareDurationSeconds: careSecs,
         sourceType: selection.sourceType,
         totalDurationSeconds: sessionMins * 60,
         wordId: word.id,
@@ -161,6 +167,7 @@ export function useSessionSetup(): UseSessionSetupResult {
     setSessionMins,
     learnSecs,
     restSecs,
+    careSecs,
     totalCycles,
     isHydrated,
     trainingErrorMessage,

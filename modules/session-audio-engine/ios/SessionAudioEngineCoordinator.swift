@@ -23,6 +23,18 @@ final class SessionAudioEngineCoordinator: NSObject {
   private var audioEngine: AVAudioEngine?
   private var playerNode: AVAudioPlayerNode?
   private var audioFile: AVAudioFile?
+  // 스트레스 케어 트랙 전용 노드 (BB-380). 목표 음원과 파일 포맷이 달라 연결 포맷을 공유할 수
+  // 없으므로 별도 노드를 쓴다. 트랙 3종은 같은 인코딩이라 디코딩 포맷이 동일하므로 엔진 활성화
+  // 시점에 한 번만 연결한다 — 러닝 엔진에 connect 를 반복하면 NSException 크래시 표면이 된다.
+  private var carePlayerNode: AVAudioPlayerNode?
+  // 스케줄된 파일이 재생 끝까지 해제되지 않게 붙잡는 lifetime anchor — 다른 용도로 읽지 않는다.
+  private var careAudioFile: AVAudioFile?
+  // 케어 노드가 연결된 포맷. nil 이면 연결 실패 상태라 케어 재생을 건너뛴다 (세션은 유지).
+  private var careConnectedFormat: AVAudioFormat?
+  // 한 케어 구간(사이클) 안에서는 트랙을 고정한다 — 일시정지·인터럽션 복귀가 재추첨하면
+  // 같은 구간에서 다른 트랙의 중간부터 이어지기 때문 (FR-18 "구간마다 랜덤 1개").
+  private var careSelectedUri: String?
+  private var careSelectedCycle = -1
   private var playbackGeneration = 0
   private var lastStopRecord: [String: Any]?
   private var capturePipeline: VoiceCapturePipeline?
@@ -68,7 +80,8 @@ final class SessionAudioEngineCoordinator: NSObject {
       guard !input.sessionId.isEmpty,
             input.totalDurationMs > 0,
             input.learningDurationMs > 0,
-            input.restDurationMs >= 0 else {
+            input.restDurationMs >= 0,
+            input.stressCareDurationMs >= 0 else {
         throw SessionAudioEngineError.invalidInput("Session durations and sessionId are required.")
       }
 
@@ -81,11 +94,14 @@ final class SessionAudioEngineCoordinator: NSObject {
         runningSinceMs = nil
         lastStopRecord = nil
         lastPlaybackStartDelayMs = nil
+        careSelectedUri = nil
+        careSelectedCycle = -1
         try activateAudio()
         runningSinceMs = monotonicMilliseconds()
         state = "running"
         startTimer()
         scheduleTargetPlaybackIfNeeded()
+        scheduleStressCarePlaybackIfNeeded()
         try persist(reason: nil)
         activateNowPlaying()
       } catch {
@@ -123,6 +139,7 @@ final class SessionAudioEngineCoordinator: NSObject {
     playbackGeneration += 1
     targetPlaying = false
     playerNode?.stop()
+    carePlayerNode?.stop()
     try persist(reason: nil)
     emitStateChanged()
     return snapshotDictionary()
@@ -143,6 +160,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       state = "running"
       startTimer()
       scheduleTargetPlaybackIfNeeded()
+      scheduleStressCarePlaybackIfNeeded()
       try persist(reason: nil)
     } catch {
       // 재개 실패는 복구 가능한 상황이다 — 잠긴 화면에서 TCC가 마이크 재획득을 막으면
@@ -303,6 +321,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       runningSinceMs = monotonicMilliseconds()
       state = "running"
       scheduleTargetPlaybackIfNeeded()
+      scheduleStressCarePlaybackIfNeeded()
       try persist(reason: nil)
       emitStateChanged()
     } catch {
@@ -315,6 +334,16 @@ final class SessionAudioEngineCoordinator: NSObject {
           audioURL.isFileURL,
           FileManager.default.fileExists(atPath: audioURL.path) else {
       throw SessionAudioEngineError.audioSourceUnavailable
+    }
+    if configuration.careDurationMs > 0 {
+      guard !configuration.careAudioUris.isEmpty else {
+        throw SessionAudioEngineError.invalidInput("Stress care audio URIs are required.")
+      }
+      for uriString in configuration.careAudioUris {
+        guard let url = URL(string: uriString), url.isFileURL, FileManager.default.fileExists(atPath: url.path) else {
+          throw SessionAudioEngineError.audioSourceUnavailable
+        }
+      }
     }
     guard let captureURL = URL(string: configuration.captureDirectoryUri), captureURL.isFileURL else {
       throw SessionAudioEngineError.storageUnavailable
@@ -345,6 +374,22 @@ final class SessionAudioEngineCoordinator: NSObject {
       let file = try AVAudioFile(forReading: audioURL)
       engine.attach(player)
       engine.connect(player, to: engine.mainMixerNode, format: file.processingFormat)
+      // 케어 노드는 여기서 한 번만 연결한다. 트랙 3종의 디코딩 포맷이 동일하므로 첫 트랙의
+      // 포맷을 대표로 쓴다. 연결 실패는 케어만 무음으로 강등하고 세션은 살린다 (NFR-01).
+      let carePlayer = AVAudioPlayerNode()
+      engine.attach(carePlayer)
+      careConnectedFormat = nil
+      if configuration.careDurationMs > 0,
+         let firstCareUri = configuration.careAudioUris.first,
+         let firstCareURL = URL(string: firstCareUri) {
+        do {
+          let careFormat = try AVAudioFile(forReading: firstCareURL).processingFormat
+          engine.connect(carePlayer, to: engine.mainMixerNode, format: careFormat)
+          careConnectedFormat = careFormat
+        } catch {
+          logFailure("stress-care-connect", error)
+        }
+      }
       let input = engine.inputNode
       let inputFormat = input.inputFormat(forBus: 0)
       guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
@@ -372,7 +417,11 @@ final class SessionAudioEngineCoordinator: NSObject {
           guard self.state == "running" else { return }
           let samples = self.resampleTo16k(mono, sourceRate: sampleRate)
           let position = self.phasePosition()
-          let allowed = !self.targetPlaying && self.monotonicMilliseconds() >= self.captureAllowedAfterMs
+          // 스트레스 케어 구간은 스피커에서 트랙이 연속 재생돼 echo tail guard 로 배제할 수 없으므로
+          // 구간 전체를 캡처 판정에서 제외한다 (BB-380).
+          let allowed = !self.targetPlaying
+            && position.phase != "stress-care"
+            && self.monotonicMilliseconds() >= self.captureAllowedAfterMs
           self.capturePipeline?.process(samples: samples, captureAllowed: allowed, phase: position.phase, cycle: position.cycle)
         }
       }
@@ -380,6 +429,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       try engine.start()
       audioEngine = engine
       playerNode = player
+      carePlayerNode = carePlayer
       audioFile = file
       playbackGeneration += 1
     } catch let error as SessionAudioEngineError {
@@ -394,10 +444,14 @@ final class SessionAudioEngineCoordinator: NSObject {
     playbackGeneration += 1
     targetPlaying = false
     playerNode?.stop()
+    carePlayerNode?.stop()
     audioEngine?.inputNode.removeTap(onBus: 0)
     audioEngine?.stop()
     playerNode = nil
+    carePlayerNode = nil
     audioFile = nil
+    careAudioFile = nil
+    careConnectedFormat = nil
     audioEngine = nil
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
@@ -433,6 +487,40 @@ final class SessionAudioEngineCoordinator: NSObject {
     emitStateChanged()
   }
 
+  // 스트레스 케어 구간 진입 시 번들 트랙 중 하나를 랜덤 재생한다 (BB-380, FR-18).
+  // 트랙 길이 = 구간 길이(5분)라 1회 스케줄로 충분하고, 구간 종료 시 handleTimer 가 노드를 멈춘다.
+  // 재생 실패는 세션을 죽이지 않는다 — 학습·감지가 본체이므로 구간만 무음으로 넘긴다 (NFR-01).
+  private func scheduleStressCarePlaybackIfNeeded() {
+    guard state == "running", let configuration, configuration.careDurationMs > 0 else { return }
+    let position = phasePosition()
+    guard position.phase == "stress-care",
+          let audioEngine, audioEngine.isRunning,
+          let carePlayerNode, let careConnectedFormat else { return }
+    // 같은 케어 구간(사이클) 재진입(일시정지·인터럽션 복귀)에는 처음 뽑은 트랙을 유지한다.
+    if careSelectedCycle != position.cycle {
+      careSelectedCycle = position.cycle
+      careSelectedUri = configuration.careAudioUris.randomElement()
+    }
+    guard let uriString = careSelectedUri, let url = URL(string: uriString) else { return }
+    do {
+      let file = try AVAudioFile(forReading: url)
+      // 연결 포맷과 다른 파일은 재생하지 않는다 — 러닝 엔진 재연결(NSException 표면) 대신 무음.
+      // 트랙 3종은 같은 인코딩이라 실전에서는 도달하지 않는 경로다.
+      guard file.processingFormat.isEqual(careConnectedFormat) else {
+        log.warning("Stress care track format mismatch — skipping playback")
+        return
+      }
+      // 재개로 구간 중간에 들어오면 그 지점부터 이어 재생한다.
+      let startFrame = AVAudioFramePosition(Double(position.phaseElapsedMs) / 1000 * file.processingFormat.sampleRate)
+      guard startFrame < file.length else { return }
+      careAudioFile = file
+      carePlayerNode.scheduleSegment(file, startingFrame: startFrame, frameCount: AVAudioFrameCount(file.length - startFrame), at: nil)
+      carePlayerNode.play()
+    } catch {
+      logFailure("stress-care-playback", error)
+    }
+  }
+
   private func startTimer() {
     guard timer == nil else { return }
     let timer = DispatchSource.makeTimerSource(queue: queue)
@@ -460,9 +548,11 @@ final class SessionAudioEngineCoordinator: NSObject {
       capturePipeline?.flush()
       lastPhase = position.phase
       playerNode?.stop()
+      carePlayerNode?.stop()
       playbackGeneration += 1
       targetPlaying = false
       scheduleTargetPlaybackIfNeeded()
+      scheduleStressCarePlaybackIfNeeded()
       try? persist(reason: nil)
       emitStateChanged()
     }
@@ -490,18 +580,26 @@ final class SessionAudioEngineCoordinator: NSObject {
 
   private func phasePosition() -> (cycle: Int, phase: String, phaseElapsedMs: Int64) {
     guard let configuration else { return (1, "learning", 0) }
-    let cycleDuration = configuration.learningDurationMs + configuration.restDurationMs
+    let careMs = configuration.careDurationMs
+    let cycleDuration = configuration.learningDurationMs + configuration.restDurationMs + careMs
     guard cycleDuration > 0 else { return (1, "learning", 0) }
     let elapsed = elapsedRunningMs()
     if elapsed >= configuration.totalDurationMs && elapsed % cycleDuration == 0 {
-      return (max(1, Int(elapsed / cycleDuration)), "rest", configuration.restDurationMs)
+      let lastPhase = careMs > 0 ? "stress-care" : "rest"
+      let lastPhaseMs = careMs > 0 ? careMs : configuration.restDurationMs
+      return (max(1, Int(elapsed / cycleDuration)), lastPhase, lastPhaseMs)
     }
     let completedCycles = elapsed / cycleDuration
     let insideCycle = elapsed % cycleDuration
+    let cycle = Int(completedCycles) + 1
     if insideCycle < configuration.learningDurationMs {
-      return (Int(completedCycles) + 1, "learning", insideCycle)
+      return (cycle, "learning", insideCycle)
     }
-    return (Int(completedCycles) + 1, "rest", insideCycle - configuration.learningDurationMs)
+    let insideRest = insideCycle - configuration.learningDurationMs
+    if insideRest < configuration.restDurationMs || careMs == 0 {
+      return (cycle, "rest", insideRest)
+    }
+    return (cycle, "stress-care", insideRest - configuration.restDurationMs)
   }
 
   private func snapshotDictionary() -> [String: Any] {
@@ -545,6 +643,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       "totalDurationMs": configuration.totalDurationMs,
       "learningDurationMs": configuration.learningDurationMs,
       "restDurationMs": configuration.restDurationMs,
+      "stressCareDurationMs": configuration.careDurationMs,
       "reason": reason as Any
     ]
   }
@@ -565,6 +664,7 @@ final class SessionAudioEngineCoordinator: NSObject {
       "totalDurationMs": record.configuration.totalDurationMs,
       "learningDurationMs": record.configuration.learningDurationMs,
       "restDurationMs": record.configuration.restDurationMs,
+      "stressCareDurationMs": record.configuration.careDurationMs,
       "reason": record.reason as Any
     ]
   }

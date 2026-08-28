@@ -22,6 +22,7 @@ struct SessionRecoveryInput: Record {
 struct SessionNotificationInput: Record {
   @Field var learningSubtitle: String = ""
   @Field var restSubtitle: String = ""
+  @Field var stressCareSubtitle: String = ""
   @Field var pausedSubtitle: String = ""
 }
 
@@ -32,6 +33,8 @@ struct SessionAudioEngineStartInputRecord: Record {
   @Field var totalDurationMs: Double = 0
   @Field var learningDurationMs: Double = 0
   @Field var restDurationMs: Double = 0
+  @Field var stressCareDurationMs: Double = 0
+  @Field var stressCareAudioUris: [String] = []
   @Field var maxPendingCaptureBytes: Double = 0
   @Field var vad: SessionVadInput = SessionVadInput()
   @Field var recovery: SessionRecoveryInput = SessionRecoveryInput()

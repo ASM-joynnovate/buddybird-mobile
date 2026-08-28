@@ -14,6 +14,7 @@ interface SessionRunningViewProps {
   session: Pick<
     UseActiveSessionResult,
     | 'isLearning'
+    | 'phase'
     | 'cycle'
     | 'totalCycles'
     | 'phaseProgress'
@@ -48,18 +49,18 @@ export function SessionRunningView({
     <View style={[styles.content, { paddingTop: insetsTop }]} testID="session-active-view">
       <SessionHeader
         progress={session.progress}
-        isLearning={session.isLearning}
+        phase={session.phase}
         onStop={onStop}
       />
       <SessionPhaseBadge cycle={session.cycle} totalCycles={session.totalCycles} />
       <SessionProgressRing
-        isLearning={session.isLearning}
+        phase={session.phase}
         phaseProgress={session.phaseProgress}
         word={session.currentWord}
         timerLabel={fmt(session.phaseRemaining)}
       />
       <SessionWaveSection
-        isLearning={session.isLearning}
+        phase={session.phase}
         isActive={session.status === 'running'}
         audioOn={session.audioOn}
       />

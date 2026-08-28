@@ -8,6 +8,9 @@ import { BuddyBird } from '@/components/mascot/buddy-bird';
 import { BuddyBirdColors, Fonts, Motion } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import type { SessionEnginePhase } from '@/modules/session-audio-engine';
+
+import { PHASE_ACCENTS } from './session-phase-accent';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -18,17 +21,18 @@ const RING_CENTER = RING_SIZE / 2;
 const RING_STROKE = 18;
 
 interface SessionProgressRingProps {
-  isLearning: boolean;
+  phase: SessionEnginePhase;
   phaseProgress: number;
   word: string;
   timerLabel: string;
 }
 
-export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabel }: SessionProgressRingProps) {
+export function SessionProgressRing({ phase, phaseProgress, word, timerLabel }: SessionProgressRingProps) {
   const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const animatedOffset = useSharedValue(CIRCUM);
-  const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
+  const isLearning = phase === 'learning';
+  const accent = PHASE_ACCENTS[phase];
 
   useEffect(() => {
     if (phaseProgress === 0) {
@@ -75,7 +79,7 @@ export function SessionProgressRing({ isLearning, phaseProgress, word, timerLabe
         <Text
           numberOfLines={1}
           style={isLearning ? styles.word : styles.restTitle}>
-          {isLearning ? word : t('sessionActive.restingTitle')}
+          {isLearning ? word : t(phase === 'stress-care' ? 'sessionActive.stressCareTitle' : 'sessionActive.restingTitle')}
         </Text>
         <Text style={styles.timer}>
           {timerLabel}

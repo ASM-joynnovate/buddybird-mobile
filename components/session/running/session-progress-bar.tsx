@@ -9,16 +9,19 @@ import Animated, {
 
 import { BuddyBirdColors, Motion, Radii } from '@/constants/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import type { SessionEnginePhase } from '@/modules/session-audio-engine';
+
+import { PHASE_ACCENTS } from './session-phase-accent';
 
 interface SessionProgressBarProps {
   progress: number;
-  isLearning: boolean;
+  phase: SessionEnginePhase;
 }
 
-export function SessionProgressBar({ progress, isLearning }: SessionProgressBarProps) {
+export function SessionProgressBar({ progress, phase }: SessionProgressBarProps) {
   const reducedMotion = useReducedMotion();
   const animatedProgress = useSharedValue(clampProgress(progress));
-  const fillColor = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
+  const fillColor = PHASE_ACCENTS[phase];
 
   useEffect(() => {
     animatedProgress.set(

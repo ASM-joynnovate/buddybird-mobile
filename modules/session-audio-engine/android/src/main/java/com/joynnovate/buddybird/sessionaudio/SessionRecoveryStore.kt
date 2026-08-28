@@ -21,6 +21,7 @@ class SessionRecoveryStore(context: Context) {
       put("totalDurationMs", configuration.totalDurationMs)
       put("learningDurationMs", configuration.learningDurationMs)
       put("restDurationMs", configuration.restDurationMs)
+      put("stressCareDurationMs", configuration.stressCareDurationMs)
       put("maxPendingCaptureBytes", configuration.maxPendingCaptureBytes)
       put("recovery", recovery)
       put("snapshot", JSONObject(snapshot))
@@ -59,6 +60,8 @@ class SessionRecoveryStore(context: Context) {
       "totalDurationMs" to json.getLong("totalDurationMs"),
       "learningDurationMs" to json.getLong("learningDurationMs"),
       "restDurationMs" to json.getLong("restDurationMs"),
+      // BB-380 이전 앱 버전이 남긴 기록에는 없다 — 0으로 읽는다.
+      "stressCareDurationMs" to json.optLong("stressCareDurationMs", 0),
       "reason" to reason,
     )
   }

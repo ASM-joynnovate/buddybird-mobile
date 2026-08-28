@@ -44,7 +44,7 @@ export default function SessionSetupScreen() {
           sessionMins={setup.sessionMins}
           onChangeSessionMins={setup.setSessionMins}
         />
-        <CycleSummary sessionMins={setup.sessionMins} learnSecs={setup.learnSecs} restSecs={setup.restSecs} />
+        <CycleSummary sessionMins={setup.sessionMins} learnSecs={setup.learnSecs} restSecs={setup.restSecs} careSecs={setup.careSecs} />
       </View>
 
       <InlineError message={setup.trainingErrorMessage} />

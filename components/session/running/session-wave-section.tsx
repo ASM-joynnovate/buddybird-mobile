@@ -5,22 +5,26 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { WaveformBars } from '@/components/ui/waveform-bars';
 import { BuddyBirdColors, Fonts, Radii, Spacing, Typography, withAlpha } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
+import type { SessionEnginePhase } from '@/modules/session-audio-engine';
+
+import { PHASE_ACCENTS } from './session-phase-accent';
 
 interface SessionWaveSectionProps {
-  isLearning: boolean;
+  phase: SessionEnginePhase;
   isActive: boolean;
   audioOn: boolean;
 }
 
-export function SessionWaveSection({ isLearning, isActive, audioOn }: SessionWaveSectionProps) {
+export function SessionWaveSection({ phase, isActive, audioOn }: SessionWaveSectionProps) {
   const { t } = useI18n();
-  const accent = isLearning ? BuddyBirdColors.primary : BuddyBirdColors.secondary;
+  const accent = PHASE_ACCENTS[phase];
 
-  if (!isLearning) {
+  if (phase !== 'learning') {
     return (
       <View style={styles.section}>
         <Text style={styles.restText}>
-          {t('sessionActive.restingBody')}
+          {/* 케어 구간은 캡처를 하지 않으므로(BB-380) "기록해요" 휴식 문구를 쓰면 안 된다. */}
+          {t(phase === 'stress-care' ? 'sessionActive.stressCareBody' : 'sessionActive.restingBody')}
         </Text>
       </View>
     );
