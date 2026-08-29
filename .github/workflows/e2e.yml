@@ -1,0 +1,130 @@
+name: E2E (Maestro)
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  schedule:
+    # 매일 KST 02:00 (UTC 17:00) — 전체 suite (smoke + regression)
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "실행 대상 (smoke = 01~05, full = 전체)"
+        type: choice
+        options: [smoke, full]
+        default: smoke
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Maestro 버전 핀 — 로컬 개발자 머신과 동일 버전 유지 (docs/CONVENTIONS.md §8.3)
+  MAESTRO_VERSION: "1.39.0"
+
+jobs:
+  e2e:
+    name: E2E Smoke/Full (Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Resolve suite
+        id: suite
+        run: |
+          # PR = smoke, schedule = full, dispatch = 입력값
+          case "${{ github.event_name }}" in
+            pull_request) suite="smoke" ;;
+            schedule)     suite="full" ;;
+            *)            suite="${{ inputs.suite }}" ;;
+          esac
+          if [ "$suite" = "smoke" ]; then
+            echo "tags=--include-tags smoke" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "label=$suite" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+      - run: corepack enable
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: yarn
+      - run: yarn install --immutable
+
+      - name: Write Firebase config (dev, android)
+        env:
+          JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+        run: |
+          mkdir -p config/dev/firebase
+          echo "$JSON_B64" | base64 --decode > config/dev/firebase/google-services.json
+
+      - name: EAS Build (preview, android) → APK
+        run: |
+          # preview 프로필 = developmentClient 미포함(JS 번들 내장) → Metro 불필요, dev variant/dev Firebase
+          build_json="$(eas build --profile preview --platform android --non-interactive --wait --json)"
+          apk_url="$(echo "$build_json" | jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl')"
+          if [ -z "$apk_url" ] || [ "$apk_url" = "null" ]; then
+            echo "::error::EAS 빌드 아티팩트 URL을 찾지 못했습니다"
+            echo "$build_json" | jq '.[0].artifacts // .[0]'
+            exit 1
+          fi
+          echo "Downloading APK: $apk_url"
+          curl -fLo app.apk "$apk_url"
+
+      - name: Install Maestro (pinned)
+        run: |
+          export MAESTRO_VERSION="${MAESTRO_VERSION}"
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Maestro (${{ steps.suite.outputs.label }})
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            # 로케일 en-US 강제 — ko면 Gboard 한국어 자판이 inputText ASCII를 한글로 조합 (§8.3 step 5)
+            adb shell settings put system system_locales en-US || true
+            adb shell am force-stop com.google.android.inputmethod.latin || true
+            adb install -r app.apk
+            maestro test -e DEV_CLIENT=false ${{ steps.suite.outputs.tags }} .maestro
+
+      - name: Upload Maestro report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report-${{ steps.suite.outputs.label }}
+          path: |
+            ~/.maestro/tests
+          if-no-files-found: ignore
+          retention-days: 14
+
+  notify-result:
+    name: Notify Slack (Result)
+    needs: e2e
+    # 실패/취소 시에만 알림 (성공은 소음)
+    if: ${{ always() && needs.e2e.result != 'success' && needs.e2e.result != 'skipped' }}
+    uses: ./.github/workflows/_notify-slack.yml
+    with:
+      status: ${{ needs.e2e.result }}
+      env: e2e
+    secrets: inherit

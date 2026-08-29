@@ -763,7 +763,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | Reusable | 역할 | 호출처 |
 |---|---|---|
 | `.github/workflows/_verify.yml` | install + `yarn lint` + `yarn typecheck` | `ci.yml` · `eas-staging.yml` · `eas-production.yml` |
-| `.github/workflows/_notify-slack.yml` | Slack Incoming Webhook 전송 (started/success/failure/cancelled) | `eas-staging.yml` · `eas-production.yml` |
+| `.github/workflows/_notify-slack.yml` | Slack Incoming Webhook 전송 (started/success/failure/cancelled) | `eas-staging.yml` · `eas-production.yml` · `e2e.yml` |
 
 신규 검증 step(예: 새 lint 도구)은 `_verify.yml`에만 추가한다.
 개별 워크플로우에 inline으로 검증 step을 추가하지 않는다. (동기화 누락 위험)
@@ -781,6 +781,9 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | push `main` | `ci.yml` | reusable `_verify.yml` 호출 |
 | `workflow_dispatch` (개발계 빌드) | `eas-staging.yml` | verify → Slack 시작 → EAS build (staging profile, Android+iOS) → submit (Play internal + TestFlight Internal) → Slack 결과 |
 | push tag `v*` (운영 릴리즈) | `eas-production.yml` | verify → Slack 시작 → EAS build (production profile, Android+iOS) → GitHub Release 생성 → Slack 결과 (submit 없음) |
+| PR (→ `main`, docs·md 제외) | `e2e.yml` | EAS build (preview, Android) → 에뮬레이터 → Maestro **smoke**(01~05) → 실패 시 Slack + 리포트 아티팩트 |
+| nightly KST 02:00 (UTC 17:00) | `e2e.yml` | 위와 동일, **전체 suite**(smoke + regression) |
+| `workflow_dispatch` (suite 선택) | `e2e.yml` | 수동 실행 (smoke/full) |
 | weekly Sun 03:00 KST | `cleanup-artifacts.yml` | 14일 초과 artifact 자동 삭제 |
 
 ### 12.12 트러블슈팅 (CI/CD)

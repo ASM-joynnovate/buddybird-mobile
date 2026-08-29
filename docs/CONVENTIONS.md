@@ -249,7 +249,7 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 1. 에뮬레이터 기동 후 애니메이션 비활성화(재부팅 시 재적용): `adb shell settings put global window_animation_scale 0` + `transition_animation_scale`·`animator_duration_scale` 동일
 2. debug 빌드는 Metro 필수 — `yarn start:dev` 켠 상태에서 `yarn e2e:android`(전체) / `yarn e2e:android:smoke`(smoke만)
 3. 최초 1회 또는 네이티브 변경 시 `yarn android:dev`로 설치
-4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. **현 스위트는 debug 빌드 전용** — subflow의 런처 진입 스텝(Metro 서버 행 탭)이 무조건 실행되므로 release 빌드에서는 실패한다. release/CI용 진입 구조(런처 스텝 조건부화·Metro 주소 파라미터화)는 CI 도입 시점에 함께 조정한다
+4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. subflow의 Metro 런처 진입 블록은 **`DEV_CLIENT` env로 게이트**된다 — 기본값 `true`(로컬 debug + Metro), CI(EAS preview, JS 번들 내장)는 `-e DEV_CLIENT=false`로 실행해 이 블록 전체를 스킵한다. `yarn e2e:android[:smoke]`가 `DEV_CLIENT=true`를 주입하므로 로컬 실행 절차는 종전과 동일하다. dev menu(Continue/Reload)는 dev-client 전용이라 preview 빌드엔 노출되지 않고 `when:visible` 가드로 자동 무시된다 (BB-384)
 5. e2e 표준 기기 로케일은 **en-US** — 기기 로케일이 ko면 Gboard가 한국어 자판이 되어 Maestro `inputText`의 ASCII가 한글로 조합됨 (BB-159 실측: "Mango" → "ㅡ무해"). 시나리오는 로케일 무관 설계(인터랙션 testID + 콘텐츠 assert는 시드 한글 라벨)라 ko 고정이 필요 없다. 실행 전 확인: `adb shell settings get system system_locales`가 `en-US`가 아니면 `settings put system system_locales en-US` 후 Gboard 재시작(`am force-stop com.google.android.inputmethod.latin`)
 
 ### 8.4 검증 한계 (e2e가 보장하지 않는 것)
@@ -257,3 +257,13 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 - 오디오 **내용** — 에뮬레이터 무음 녹음도 통과 (최소 길이·레벨 게이트 없음). 절차·UI 상태까지만 검증
 - 세션 자연 완주·재생 소리·iOS 플로우(ATT) — README 수동 체크리스트 몫
 - **업데이트 모달 간섭** — subflow 자가 회복 루프는 웰컴 도달 전 모달만 정리. 플로우 본편 중 등장하면 실패하고, 강제 업데이트 모달(닫기 없음)은 회복 불가. 근본 해결은 dev 리모트 컨피그 조정(별도 결정 전까지 알려진 리스크)
+
+### 8.5 CI 실행 (BB-384)
+
+`.github/workflows/e2e.yml` 가 GitHub Actions에서 실행. 상세 파이프라인은 `docs/BUILD-AND-RELEASE.md` §12.11, 규약 요점만 여기 둔다.
+
+- **빌드**: EAS `preview` 프로필로 Android APK 빌드 → 에뮬레이터 설치. preview는 `developmentClient` 미포함(JS 번들 내장)이라 **Metro 불필요** → `-e DEV_CLIENT=false`로 실행해 subflow의 Metro 런처 진입 블록을 스킵 (§8.3 step 4). dev variant(`com.joynnovate.buddybird.dev`)·dev Firebase 유지.
+- **트리거**: PR→main = smoke(01~05) 머지 전 게이트 / nightly(schedule) = 전체 suite / `workflow_dispatch` = 수동(suite 선택). docs·마크다운만 바뀐 PR은 `paths-ignore`로 스킵.
+- **Maestro 버전**: 워크플로우 `env.MAESTRO_VERSION`으로 핀 고정 — 로컬 개발자 머신과 동일 버전 유지.
+- **에뮬레이터**: `reactivecircus/android-emulator-runner`(api-level 34, x86_64). 애니메이션 비활성화·로케일 en-US(§8.3 step 5)를 스크립트에서 강제.
+- **실패 시**: Slack 알림(`_notify-slack.yml` 재사용) + Maestro 리포트 아티팩트 업로드.
