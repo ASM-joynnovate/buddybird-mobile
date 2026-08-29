@@ -18,14 +18,16 @@ on:
 
 concurrency:
   group: e2e-${{ github.ref }}
-  cancel-in-progress: true
+  # PR에서만 취소 — nightly·수동은 ref가 main이라 같은 group이라 서로 죽이지 않도록.
+  # (취소는 러너만 죽이고 EAS 클라우드 빌드는 끝까지 돌아 크레딧·큐 슬롯을 낭비하므로 PR 한정)
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 env:
-  # Maestro 버전 핀 — 로컬 개발자 머신과 동일 버전 유지 (docs/CONVENTIONS.md §8.3)
-  MAESTRO_VERSION: "1.39.0"
+  # Maestro 버전 핀 — 로컬 개발자 머신과 동일 버전 유지 (docs/CONVENTIONS.md §8.5)
+  MAESTRO_VERSION: "2.7.0"
 
 jobs:
   e2e:
@@ -73,7 +75,8 @@ jobs:
         run: |
           # preview 프로필 = developmentClient 미포함(JS 번들 내장) → Metro 불필요, dev variant/dev Firebase
           build_json="$(eas build --profile preview --platform android --non-interactive --wait --json)"
-          apk_url="$(echo "$build_json" | jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl')"
+          # applicationArchiveUrl 만 직접 설치 가능한 APK. buildUrl 은 expo.dev 웹페이지라 fallback 금지 (curl→HTML→adb install 오인)
+          apk_url="$(echo "$build_json" | jq -r '.[0].artifacts.applicationArchiveUrl // empty')"
           if [ -z "$apk_url" ] || [ "$apk_url" = "null" ]; then
             echo "::error::EAS 빌드 아티팩트 URL을 찾지 못했습니다"
             echo "$build_json" | jq '.[0].artifacts // .[0]'
@@ -83,8 +86,8 @@ jobs:
           curl -fLo app.apk "$apk_url"
 
       - name: Install Maestro (pinned)
+        # MAESTRO_VERSION 은 workflow env 로 이미 export → 설치 스크립트가 그 버전을 집음
         run: |
-          export MAESTRO_VERSION="${MAESTRO_VERSION}"
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
@@ -99,10 +102,12 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
+          target: google_apis
           profile: pixel_6
           disable-animations: true
           script: |
             # 로케일 en-US 강제 — ko면 Gboard 한국어 자판이 inputText ASCII를 한글로 조합 (§8.3 step 5)
+            # best-effort(|| true): 시나리오는 로케일 무관 설계라 로케일 write 실패가 job 을 죽이지 않도록
             adb shell settings put system system_locales en-US || true
             adb shell am force-stop com.google.android.inputmethod.latin || true
             adb install -r app.apk
@@ -122,8 +127,8 @@ jobs:
   notify-result:
     name: Notify Slack (Result)
     needs: e2e
-    # 실패/취소 시에만 알림 (성공은 소음)
-    if: ${{ always() && needs.e2e.result != 'success' && needs.e2e.result != 'skipped' }}
+    # 실패 시에만 알림 — cancelled(PR push마다 정상 발생)·success·skipped 는 소음이라 제외
+    if: ${{ always() && needs.e2e.result == 'failure' }}
     uses: ./.github/workflows/_notify-slack.yml
     with:
       status: ${{ needs.e2e.result }}

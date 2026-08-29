@@ -637,10 +637,10 @@ staging CI는 GitHub Secret `ASC_API_KEY_P8_BASE64` + `eas.json` 평문(`ascApiK
 |---|---|---|
 | `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
 | `GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64` / `_PROD_BASE64` | base64 | CI runner에서 config introspect용 Firebase iOS config. `eas-staging.yml`/`eas-production.yml`의 "Write Firebase config" step이 decode해 `config/{env}/firebase/`에 작성 |
-| `GOOGLE_SERVICES_JSON_DEV_BASE64` / `_PROD_BASE64` | base64 | 위와 동일, Android config |
+| `GOOGLE_SERVICES_JSON_DEV_BASE64` / `_PROD_BASE64` | base64 | 위와 동일, Android config. `e2e.yml`도 DEV JSON을 decode해 `config/dev/firebase/google-services.json`에 작성 |
 | `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit용 service account JSON. `eas-staging.yml`의 "Write Play service account" step이 decode 후 `/tmp/play-service-account.json`으로 작성하면, `eas.json`의 `submit.staging.android.serviceAccountKeyPath`가 이 path를 참조 |
 | `ASC_API_KEY_P8_BASE64` | base64 | iOS TestFlight submit용 App Store Connect API Key(.p8). `eas-staging.yml`의 "Write ASC API key" step이 decode 후 `/tmp/asc-api-key.p8`으로 작성하면, `eas.json`의 `submit.staging.ios.ascApiKeyPath`가 이 path를 참조 |
-| `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL. `_notify-slack.yml`이 빌드 시작·결과 알림 전송용으로 사용. 미설정 시 알림 step은 `continue-on-error`로 처리되고 빌드는 정상 진행 |
+| `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL. `_notify-slack.yml`이 빌드 시작·결과 알림 전송용으로 사용(`eas-staging`/`eas-production`/`e2e` 워크플로우). 미설정 시 알림 step은 `continue-on-error`로 처리되고 빌드는 정상 진행 |
 
 등록 명령(1회성, 자격증명 회전 시에도 동일)은 다음과 같다.
 
@@ -746,6 +746,8 @@ Ruleset의 required status checks에 등록할 컨텍스트 이름은 워크플�
 | `main` | `Verify (lint + typecheck) / Verify (lint + typecheck)` · `PR Title (Semantic)` · `Auto Label` · `CodeQL Analyze (javascript-typescript)` |
 
 실측 방법은 `gh api repos/<owner>/<repo>/commits/main/check-runs --jq '.check_runs[].name'`이다.
+
+> **E2E(`E2E Smoke/Full (Android)`)를 required check로 승격할 때 주의 (BB-384 follow-up)** — `e2e.yml`은 `paths-ignore`(`**.md`·`docs/**`)로 docs-only PR에선 아예 트리거되지 않는다. required로 등록하면 그런 PR에서 체크가 영영 "Expected"로 대기해 머지가 막힌다(GitHub 알려진 함정). 승격 전 `paths-ignore` 제거(대신 job 내부에서 조기 skip) 또는 docs-only 판정 후 성공 리포트 방식으로 구조를 바꿔야 한다.
 
 핫픽스 시 임시 우회가 필요하면 ruleset enforcement를 토글한다. (bypass_actors가 비어 있으므로)
 

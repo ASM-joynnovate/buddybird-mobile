@@ -10,8 +10,8 @@ appId: com.joynnovate.buddybird.dev
 # [dev-client 전용 진입 — 빌드 종류로 자동 분기] debug(dev-client) 빌드는 clearState 시 Metro 연결 정보도
 # 지워져 런처 화면에 멈춤 → 런처가 자동 감지한 Metro 서버(호스트 10.0.2.2:8081) 행을 탭해 번들 로드.
 # (openLink 딥링크는 launchApp 직후 인텐트가 유실되는 타이밍 이슈가 있어 UI 탭 방식 사용)
-# preview/release 빌드(JS 번들 내장)엔 런처 화면이 없다 → Metro 행이 끝내 안 뜨므로 아래 repeat는 그냥 소진되고
-# 조건부 tap(when:visible)은 스킵된다. env 플래그 없이 Metro 행 가시성만으로 debug/CI를 가른다 (BB-384).
+# preview/release 빌드(JS 번들 내장)엔 런처 화면이 없다 → Metro 행이 끝내 안 뜨므로 아래 tapOn(optional)은
+# 대기 타임아웃 후 실패 없이 그냥 진행된다. env 플래그 없이 Metro 행 존재 여부로 debug/CI를 가른다 (BB-384).
 # 에뮬레이터 ANR 다이얼로그("대기"/"Wait")가 무작위로 뜰 수 있어 정리하며 대기
 - repeat:
     times: 30
@@ -28,11 +28,10 @@ appId: com.joynnovate.buddybird.dev
             visible: "Wait"
           commands:
             - tapOn: "Wait"
-- runFlow:
-    when:
-      visible: "http://10.0.2.2:8081"
-    commands:
-      - tapOn: "http://10.0.2.2:8081"
+# optional: true — debug 는 행이 뜰 때까지 암묵 대기 후 탭(느린 Metro 연결도 견딤), preview 는 끝내 없어도 실패 없이 진행
+- tapOn:
+    text: "http://10.0.2.2:8081"
+    optional: true
 # 웰컴 도달까지 방해 요소를 반복 정리하는 자가 회복 루프 (등장 타이밍이 전부 비결정적이라 순서 고정 불가):
 # - dev menu 인트로(clearState마다, 등장 시점 가변) → Continue
 # - dev menu 본체(인트로 닫은 뒤 열린 채 남음) → back
