@@ -40,8 +40,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "e2e:android": "maestro test -e DEV_CLIENT=true .maestro",
-    "e2e:android:smoke": "maestro test -e DEV_CLIENT=true --include-tags smoke .maestro"
+    "e2e:android": "maestro test .maestro",
+    "e2e:android:smoke": "maestro test --include-tags smoke .maestro"
   },
   "jest": {
     "preset": "jest-expo"

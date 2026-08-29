@@ -106,7 +106,8 @@ jobs:
             adb shell settings put system system_locales en-US || true
             adb shell am force-stop com.google.android.inputmethod.latin || true
             adb install -r app.apk
-            maestro test -e DEV_CLIENT=false ${{ steps.suite.outputs.tags }} .maestro
+            # preview 빌드(JS 번들 내장)엔 Metro 런처 화면이 없어 subflow 진입 스텝이 자동 스킵됨 (가시성 조건부, §8.3)
+            maestro test ${{ steps.suite.outputs.tags }} .maestro
 
       - name: Upload Maestro report on failure
         if: failure()
