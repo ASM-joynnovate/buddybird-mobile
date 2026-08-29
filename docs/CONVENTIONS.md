@@ -267,5 +267,5 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 - **빌드**: EAS `preview` 프로필로 Android APK 빌드 → 에뮬레이터 설치. preview는 `developmentClient` 미포함(JS 번들 내장)이라 **Metro 불필요** → subflow의 Metro 런처 진입 스텝(`optional: true` tapOn)이 실패 없이 자동 스킵됨 (§8.3 step 4). dev variant(`com.joynnovate.buddybird.dev`)·dev Firebase 유지.
 - **트리거**: PR→main = smoke(01~05) 머지 전 게이트 / nightly(schedule) = 전체 suite / `workflow_dispatch` = 수동(suite 선택). docs·마크다운만 바뀐 PR은 `paths-ignore`로 스킵.
 - **Maestro 버전**: 워크플로우 `env.MAESTRO_VERSION`(현재 `2.7.0`)으로 핀 고정 — 로컬도 같은 버전 설치 유지(§8.3). 버전이 어긋나면 로컬/CI 한쪽만 깨지는 실패가 난다.
-- **에뮬레이터**: `reactivecircus/android-emulator-runner`(api-level 34, x86_64, `target: google_apis` — 로컬 개발 이미지와 동일하게 Play services 포함). 애니메이션 비활성화·로케일 en-US(§8.3 step 5)를 스크립트에서 강제.
+- **에뮬레이터**: `reactivecircus/android-emulator-runner`(api-level 34, x86_64, 기본 AOSP 이미지). google_apis 는 Firebase 실 init(네트워크)으로 스플래시 부팅이 느려져 웰컴 대기를 간헐 초과함(BB-384 실측: AOSP 5/5 vs google_apis 3/5) — e2e 는 UI·절차만 검증(§8.4)이라 Firebase 실동작이 불필요하므로 AOSP 로 결정적 부팅을 택함. 애니메이션 비활성화·로케일 en-US(§8.3 step 5)를 스크립트에서 강제.
 - **실패 시**: Slack 알림(`_notify-slack.yml` 재사용) + Maestro 리포트 아티팩트 업로드.
