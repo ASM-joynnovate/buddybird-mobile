@@ -1,3 +1,4 @@
+import type { AppLocale } from '@/features/i18n/i18n-resources';
 import type { CreateWordEntryInput, WordEntry, WordLibraryStore, WordTag } from './word-library-types';
 
 export function createWordEntry(input: CreateWordEntryInput, nowIso: string): WordEntry {
@@ -35,13 +36,18 @@ export function deleteWordEntry(store: WordLibraryStore, id: string, nowIso: str
   };
 }
 
-// label 은 앵무새가 학습할 콘텐츠 데이터 — 프리셋 음원이 한국어뿐이라 언어 설정과 무관하게 동일 시드.
-// key 는 audio-source-resolver 의 PRESET_AUDIO_MODULES(단일 네임스페이스)와 1:1.
+// label 은 앵무새가 학습할 콘텐츠 데이터 — 전 로케일 프리셋의 유니온을 항상 시드하고,
+// 표시 여부만 filterEntriesByLocale 로 로케일 분기한다 (BB-407). reconcile 을 로케일 무관으로
+// 유지해야 로케일 전환 시 entry id 가 안정적이다 (training 이 wordId 를 세션 간 참조).
+// key 는 audio-source-resolver 의 PRESET_AUDIO_MODULES 와 1:1 — 비-ko 키는 로케일 접두 필수
+// (docs/I18N.md §3), ko 키는 하위 호환을 위해 무접두 유지.
 const SEED_PRESETS: Array<{ key: string; label: string; tag: WordTag }> = [
   { key: 'hello', label: '안녕', tag: 'greeting' },
   { key: 'apple', label: '사과', tag: 'food' },
   { key: 'saranghae', label: '사랑해', tag: 'greeting' },
   { key: 'bye', label: '다녀와', tag: 'greeting' },
+  { key: 'en-hi', label: 'Hi', tag: 'greeting' },
+  { key: 'en-hello', label: 'Hello', tag: 'greeting' },
 ];
 
 // 프리셋 엔트리 집합을 SEED_PRESETS 와 정확히 일치시킨다 (presetKey 기준) — idempotent.
@@ -80,4 +86,15 @@ export function reconcilePresetSeeds(
     entriesById[entry.id] = entry;
   }
   return { store: { ...store, entriesById, updatedAt: nowIso }, changed: true };
+}
+
+// 프리셋 키의 로케일 — `<locale>-` 접두로 파생 (스키마 필드 없음). ko 키는 무접두라 fallback.
+export function presetLocale(presetKey: string | undefined): AppLocale {
+  return presetKey?.startsWith('en-') ? 'en' : 'ko';
+}
+
+// 표시용 로케일 필터 — 프리셋만 현재 로케일로 거르고 사용자 녹음은 항상 남긴다.
+// 스토어 자체는 유니온을 유지하므로 표시 계층(word-library-context)에서만 사용한다.
+export function filterEntriesByLocale(entries: WordEntry[], locale: AppLocale): WordEntry[] {
+  return entries.filter((e) => e.sourceType !== 'preset' || presetLocale(e.presetKey) === locale);
 }
