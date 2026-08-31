@@ -12,8 +12,8 @@
 | 05 | 단어 생성 | 사용자가 직접 단어를 녹음해 추가할 수 있다 | smoke |
 | 06 | 녹음 다듬기 | 녹음을 들어보고 다시 녹음한 뒤 저장할 수 있다 | regression |
 
-- **smoke**: 핵심 happy path. 로컬 검증·(추후) CI 기본 실행 대상 (`yarn e2e:android:smoke`)
-- **regression**: 회귀 감시용 심화 플로우. nightly/수동 실행 (`yarn e2e:android` 전체에 포함)
+- **smoke**: 핵심 happy path. 로컬 검증 + **PR→main CI 게이트** (`yarn e2e:android:smoke`, `.github/workflows/e2e.yml`)
+- **regression**: 회귀 감시용 심화 플로우. **nightly CI**·수동 실행 (`yarn e2e:android` 전체에 포함)
 
 파일 위치: `.maestro/flows/<번호>-<이름>.yaml`, 공통 절차는 `.maestro/subflows/complete-onboarding.yaml`
 

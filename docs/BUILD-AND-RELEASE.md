@@ -637,10 +637,10 @@ staging CI는 GitHub Secret `ASC_API_KEY_P8_BASE64` + `eas.json` 평문(`ascApiK
 |---|---|---|
 | `EXPO_TOKEN` | plain | EAS CLI 인증 (robot user 토큰) |
 | `GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64` / `_PROD_BASE64` | base64 | CI runner에서 config introspect용 Firebase iOS config. `eas-staging.yml`/`eas-production.yml`의 "Write Firebase config" step이 decode해 `config/{env}/firebase/`에 작성 |
-| `GOOGLE_SERVICES_JSON_DEV_BASE64` / `_PROD_BASE64` | base64 | 위와 동일, Android config |
+| `GOOGLE_SERVICES_JSON_DEV_BASE64` / `_PROD_BASE64` | base64 | 위와 동일, Android config. `e2e.yml`도 DEV JSON을 decode해 `config/dev/firebase/google-services.json`에 작성 |
 | `PLAY_SERVICE_ACCOUNT_BASE64` | base64 | Google Play submit용 service account JSON. `eas-staging.yml`의 "Write Play service account" step이 decode 후 `/tmp/play-service-account.json`으로 작성하면, `eas.json`의 `submit.staging.android.serviceAccountKeyPath`가 이 path를 참조 |
 | `ASC_API_KEY_P8_BASE64` | base64 | iOS TestFlight submit용 App Store Connect API Key(.p8). `eas-staging.yml`의 "Write ASC API key" step이 decode 후 `/tmp/asc-api-key.p8`으로 작성하면, `eas.json`의 `submit.staging.ios.ascApiKeyPath`가 이 path를 참조 |
-| `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL. `_notify-slack.yml`이 빌드 시작·결과 알림 전송용으로 사용. 미설정 시 알림 step은 `continue-on-error`로 처리되고 빌드는 정상 진행 |
+| `SLACK_WEBHOOK_URL` | plain | Slack Incoming Webhook URL. `_notify-slack.yml`이 빌드 시작·결과 알림 전송용으로 사용(`eas-staging`/`eas-production`/`e2e` 워크플로우). 미설정 시 알림 step은 `continue-on-error`로 처리되고 빌드는 정상 진행 |
 
 등록 명령(1회성, 자격증명 회전 시에도 동일)은 다음과 같다.
 
@@ -747,6 +747,8 @@ Ruleset의 required status checks에 등록할 컨텍스트 이름은 워크플�
 
 실측 방법은 `gh api repos/<owner>/<repo>/commits/main/check-runs --jq '.check_runs[].name'`이다.
 
+> **E2E(`E2E Smoke/Full (Android)`)를 required check로 승격할 때 주의 (BB-384 follow-up)** — `e2e.yml`은 `paths-ignore`(`**.md`·`docs/**`)로 docs-only PR에선 아예 트리거되지 않는다. required로 등록하면 그런 PR에서 체크가 영영 "Expected"로 대기해 머지가 막힌다(GitHub 알려진 함정). 승격 전 `paths-ignore` 제거(대신 job 내부에서 조기 skip) 또는 docs-only 판정 후 성공 리포트 방식으로 구조를 바꿔야 한다.
+
 핫픽스 시 임시 우회가 필요하면 ruleset enforcement를 토글한다. (bypass_actors가 비어 있으므로)
 
 ```bash
@@ -763,7 +765,7 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | Reusable | 역할 | 호출처 |
 |---|---|---|
 | `.github/workflows/_verify.yml` | install + `yarn lint` + `yarn typecheck` | `ci.yml` · `eas-staging.yml` · `eas-production.yml` |
-| `.github/workflows/_notify-slack.yml` | Slack Incoming Webhook 전송 (started/success/failure/cancelled) | `eas-staging.yml` · `eas-production.yml` |
+| `.github/workflows/_notify-slack.yml` | Slack Incoming Webhook 전송 (started/success/failure/cancelled) | `eas-staging.yml` · `eas-production.yml` · `e2e.yml` |
 
 신규 검증 step(예: 새 lint 도구)은 `_verify.yml`에만 추가한다.
 개별 워크플로우에 inline으로 검증 step을 추가하지 않는다. (동기화 누락 위험)
@@ -781,6 +783,9 @@ gh api -X PATCH repos/<owner>/<repo>/rulesets/<main-ruleset-id> -f enforcement=a
 | push `main` | `ci.yml` | reusable `_verify.yml` 호출 |
 | `workflow_dispatch` (개발계 빌드) | `eas-staging.yml` | verify → Slack 시작 → EAS build (staging profile, Android+iOS) → submit (Play internal + TestFlight Internal) → Slack 결과 |
 | push tag `v*` (운영 릴리즈) | `eas-production.yml` | verify → Slack 시작 → EAS build (production profile, Android+iOS) → GitHub Release 생성 → Slack 결과 (submit 없음) |
+| PR (→ `main`, docs·md 제외) | `e2e.yml` | EAS build (preview, Android) → 에뮬레이터 → Maestro **smoke**(01~05) → 실패 시 Slack + 리포트 아티팩트 |
+| nightly KST 02:00 (UTC 17:00) | `e2e.yml` | 위와 동일, **전체 suite**(smoke + regression) |
+| `workflow_dispatch` (suite 선택) | `e2e.yml` | 수동 실행 (smoke/full) |
 | weekly Sun 03:00 KST | `cleanup-artifacts.yml` | 14일 초과 artifact 자동 삭제 |
 
 ### 12.12 트러블슈팅 (CI/CD)
