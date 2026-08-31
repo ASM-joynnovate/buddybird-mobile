@@ -7,8 +7,8 @@ tags:
   - smoke
 ---
 - runFlow: ../subflows/complete-onboarding.yaml
-# 홈 기본 상태: 시드 단어 "안녕" + 학습 시간 프리셋이 이미 선택되어 있음
-- assertVisible: "안녕"
+# 홈 기본 상태: CI 표준 로케일(en-US)의 시드 단어 "Hello" + 학습 시간 프리셋이 이미 선택되어 있음
+- assertVisible: "Hello"
 - scrollUntilVisible:
     element:
       id: "session-start-cta"

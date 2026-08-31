@@ -8,7 +8,7 @@ tags:
 - runFlow: ../subflows/complete-onboarding.yaml
 - tapOn:
     id: "tab-words"
-- assertVisible: "안녕"
+- assertVisible: "Hello"
 - tapOn:
     id: "word-add-cta"
 - extendedWaitUntil:
