@@ -126,13 +126,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
 
   // 표시 전용 로케일 필터 (BB-407) — 스토어/영속/reconcile 은 전 로케일 유니온을 그대로 유지한다.
   const entries = useMemo(
-    () =>
-      store
-        ? filterEntriesByLocale(
-            Object.values(store.entriesById).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
-            locale
-          )
-        : [],
+    () => (store ? filterEntriesByLocale(Object.values(store.entriesById), locale) : []),
     [store, locale]
   );
 

@@ -49,6 +49,7 @@ const SEED_PRESETS: Array<{ key: string; label: string; tag: WordTag }> = [
   { key: 'en-hi', label: 'Hi', tag: 'greeting' },
   { key: 'en-hello', label: 'Hello', tag: 'greeting' },
 ];
+const PRESET_DISPLAY_ORDER = new Map(SEED_PRESETS.map((preset, index) => [preset.key, index]));
 
 // 프리셋 엔트리 집합을 SEED_PRESETS 와 정확히 일치시킨다 (presetKey 기준) — idempotent.
 // 프리셋은 삭제 불가 정책이라, (1) 빈 스토어 최초 시드, (2) 과거에 삭제된 프리셋 복원,
@@ -96,5 +97,24 @@ export function presetLocale(presetKey: string | undefined): AppLocale {
 // 표시용 로케일 필터 — 프리셋만 현재 로케일로 거르고 사용자 녹음은 항상 남긴다.
 // 스토어 자체는 유니온을 유지하므로 표시 계층(word-library-context)에서만 사용한다.
 export function filterEntriesByLocale(entries: WordEntry[], locale: AppLocale): WordEntry[] {
-  return entries.filter((e) => e.sourceType !== 'preset' || presetLocale(e.presetKey) === locale);
+  return entries
+    .filter((e) => e.sourceType !== 'preset' || presetLocale(e.presetKey) === locale)
+    .sort(compareEntriesForDisplay);
+}
+
+function compareEntriesForDisplay(a: WordEntry, b: WordEntry): number {
+  if (a.sourceType !== b.sourceType) return a.sourceType === 'preset' ? -1 : 1;
+
+  if (a.sourceType === 'preset') {
+    const orderA = presetDisplayOrder(a);
+    const orderB = presetDisplayOrder(b);
+    if (orderA !== orderB) return orderA - orderB;
+  }
+
+  const createdAtOrder = a.createdAt.localeCompare(b.createdAt);
+  return createdAtOrder === 0 ? a.id.localeCompare(b.id) : createdAtOrder;
+}
+
+function presetDisplayOrder(entry: WordEntry): number {
+  return PRESET_DISPLAY_ORDER.get(entry.presetKey ?? '') ?? Number.MAX_SAFE_INTEGER;
 }

@@ -5,6 +5,7 @@ import { createWordEntry, filterEntriesByLocale, presetLocale, reconcilePresetSe
 import type { WordLibraryStore } from '../word-library-types';
 
 const ISO = '2026-08-25T10:00:00.000Z';
+const BETWEEN = '2026-08-25T10:30:00.000Z';
 const LATER = '2026-08-25T11:00:00.000Z';
 
 const KO_PRESET_KEYS = ['hello', 'apple', 'saranghae', 'bye'];
@@ -108,5 +109,26 @@ describe('filterEntriesByLocale', () => {
       [...EN_PRESET_KEYS].sort(),
     );
     expect(en).toContain(recording);
+  });
+
+  it('마이그레이션으로 늦게 추가된 en 프리셋도 사용자 녹음보다 먼저 표시한다', () => {
+    const koPresets = [
+      presetEntryOf('hello', '안녕'),
+      presetEntryOf('apple', '사과'),
+      presetEntryOf('saranghae', '사랑해'),
+      presetEntryOf('bye', '다녀와'),
+    ];
+    const recording = createWordEntry(
+      { label: '까꿍', tag: 'greeting', sourceType: 'recording', audioUri: 'recording://a.m4a' },
+      BETWEEN,
+    );
+    const migrated = reconcilePresetSeeds(storeOf(...koPresets, recording), LATER).store;
+    const chronologicalEntries = Object.values(migrated.entriesById).sort((a, b) =>
+      a.createdAt.localeCompare(b.createdAt),
+    );
+
+    const en = filterEntriesByLocale(chronologicalEntries, 'en');
+
+    expect(en.map((e) => e.presetKey ?? e.label)).toEqual(['en-hi', 'en-hello', '까꿍']);
   });
 });
