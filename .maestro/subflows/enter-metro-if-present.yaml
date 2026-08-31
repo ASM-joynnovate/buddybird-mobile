@@ -1,0 +1,26 @@
+# 공통 subflow: debug(dev-client) 빌드에서 Metro 런처가 보이면 진입한다.
+# preview/release 빌드(JS 번들 내장)에는 런처 화면이 없어서 optional tap이 스킵된다.
+appId: com.joynnovate.buddybird.dev
+---
+# Dev client가 Metro URL 선택 화면을 띄우는 동안 기다린다.
+# 에뮬레이터 ANR 다이얼로그("대기"/"Wait")가 무작위로 뜰 수 있어 정리하며 대기한다.
+- repeat:
+    times: 30
+    while:
+      notVisible: "http://10.0.2.2:8081"
+    commands:
+      - runFlow:
+          when:
+            visible: "대기"
+          commands:
+            - tapOn: "대기"
+      - runFlow:
+          when:
+            visible: "Wait"
+          commands:
+            - tapOn: "Wait"
+
+# optional: true — debug 는 행이 뜰 때까지 암묵 대기 후 탭(느린 Metro 연결도 견딤), preview 는 끝내 없어도 실패 없이 진행
+- tapOn:
+    text: "http://10.0.2.2:8081"
+    optional: true

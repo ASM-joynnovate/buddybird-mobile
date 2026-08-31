@@ -241,7 +241,7 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 .maestro/
   config.yaml        # 워크스페이스 (flows 포함 패턴)
   flows/             # 시나리오 (tags: smoke / regression)
-  subflows/          # 공통 절차 (complete-onboarding — clearState + 방해 요소 자가 회복 루프)
+  subflows/          # 공통 절차 (complete-onboarding, enter-metro-if-present 등)
 ```
 
 ### 8.3 로컬 실행 레시피
@@ -249,8 +249,9 @@ BB-159로 도입. Android-first, 대상은 dev variant(`com.joynnovate.buddybird
 1. 에뮬레이터 기동 후 애니메이션 비활성화(재부팅 시 재적용): `adb shell settings put global window_animation_scale 0` + `transition_animation_scale`·`animator_duration_scale` 동일
 2. debug 빌드는 Metro 필수 — `yarn start:dev` 켠 상태에서 `yarn e2e:android`(전체) / `yarn e2e:android:smoke`(smoke만)
 3. 최초 1회 또는 네이티브 변경 시 `yarn android:dev`로 설치
-4. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. subflow의 Metro 런처 진입 스텝은 **`optional: true` tapOn**이다 — debug 빌드엔 그 행이 뜰 때까지 암묵 대기 후 탭되고(느린 Metro 연결도 견딤), preview/release 빌드(JS 번들 내장)엔 끝내 안 떠 실패 없이 스킵된다. env 플래그 없이 빌드 종류로 자동 분기하므로 로컬(`yarn e2e:android[:smoke]`)·CI 모두 커맨드가 같다. dev menu(Continue/Reload)도 dev-client 전용이라 preview엔 노출되지 않고 `when:visible` 가드로 무시된다 (BB-384)
-5. e2e 표준 기기 로케일은 **en-US** — 기기 로케일이 ko면 Gboard가 한국어 자판이 되어 Maestro `inputText`의 ASCII가 한글로 조합됨 (BB-159 실측: "Mango" → "ㅡ무해"). 인터랙션은 testID로 검증하고, 프리셋 콘텐츠 assert는 en-US에서 표시되는 영어 시드 라벨을 사용한다. 실행 전 확인: `adb shell settings get system system_locales`가 `en-US`가 아니면 `settings put system system_locales en-US` 후 Gboard 재시작(`am force-stop com.google.android.inputmethod.latin`)
+4. 공통 온보딩 subflow는 `stopApp` → `clearState` → `launchApp(stopApp: false)` 순서로 fresh install 상태를 만든다. Maestro `launchApp`은 기본적으로 실행 전 stop을 한 번 더 수행하므로, Android CI에서 남은 task cleanup이 첫 `MainActivity` 프로세스를 종료하지 않도록 reset과 launch를 분리한다. 웰컴 CTA가 보이지 않으면 `clearState` 없이 한 번만 재실행한다.
+5. debug 빌드 전용 방해 요소(dev-client 런처·dev menu·업데이트 모달·에뮬레이터 ANR)는 subflow 자가 회복 루프가 정리. `enter-metro-if-present`의 Metro 런처 진입 스텝은 **`optional: true` tapOn**이다 — debug 빌드엔 그 행이 뜰 때까지 암묵 대기 후 탭되고(느린 Metro 연결도 견딤), preview/release 빌드(JS 번들 내장)엔 끝내 안 떠 실패 없이 스킵된다. env 플래그 없이 빌드 종류로 자동 분기하므로 로컬(`yarn e2e:android[:smoke]`)·CI 모두 커맨드가 같다. dev menu(Continue/Reload)도 dev-client 전용이라 preview엔 노출되지 않고 `when:visible` 가드로 무시된다 (BB-384)
+6. e2e 표준 기기 로케일은 **en-US** — 기기 로케일이 ko면 Gboard가 한국어 자판이 되어 Maestro `inputText`의 ASCII가 한글로 조합됨 (BB-159 실측: "Mango" → "ㅡ무해"). 인터랙션은 testID로 검증하고, 프리셋 콘텐츠 assert는 en-US에서 표시되는 영어 시드 라벨을 사용한다. 실행 전 확인: `adb shell settings get system system_locales`가 `en-US`가 아니면 `settings put system system_locales en-US` 후 Gboard 재시작(`am force-stop com.google.android.inputmethod.latin`)
 
 > **Maestro 버전은 CI와 맞춘다** — CI 핀은 `e2e.yml`의 `env.MAESTRO_VERSION`(현재 `2.7.0`). 로컬 설치·고정: `curl -Ls https://get.maestro.mobile.dev | MAESTRO_VERSION=2.7.0 bash`. 버전이 어긋나면 로컬은 통과하고 CI만 깨지는(또는 반대) 실패가 난다.
 
