@@ -9,7 +9,7 @@ on:
       env:
         required: true
         type: string
-        description: "staging | production"
+        description: "staging | production | e2e"
       message:
         required: false
         type: string
