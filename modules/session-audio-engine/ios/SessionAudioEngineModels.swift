@@ -30,16 +30,25 @@ struct NativeRecoveryInfo: Codable {
 struct NativeNotificationCopy: Codable {
   let learningSubtitle: String
   let restSubtitle: String
+  // BB-380 이전에 저장된 복구 기록에는 없는 필드다. optional 이어야 예전 기록도 디코딩된다.
+  let stressCareSubtitle: String?
   let pausedSubtitle: String
 
   init(_ input: SessionNotificationInput) {
     learningSubtitle = input.learningSubtitle
     restSubtitle = input.restSubtitle
+    stressCareSubtitle = input.stressCareSubtitle
     pausedSubtitle = input.pausedSubtitle
   }
 
   func subtitle(phase: String, cycle: Int, totalCycles: Int) -> String {
-    (phase == "rest" ? restSubtitle : learningSubtitle)
+    let template: String
+    switch phase {
+    case "rest": template = restSubtitle
+    case "stress-care": template = stressCareSubtitle ?? restSubtitle
+    default: template = learningSubtitle
+    }
+    return template
       .replacingOccurrences(of: "%{cycle}", with: String(cycle))
       .replacingOccurrences(of: "%{total}", with: String(totalCycles))
   }
@@ -74,15 +83,21 @@ struct NativeSessionConfiguration: Codable {
   let totalDurationMs: Int64
   let learningDurationMs: Int64
   let restDurationMs: Int64
+  // BB-380 이전에 저장된 복구 기록에는 없는 필드다. optional 이어야 예전 기록도 디코딩된다.
+  let stressCareDurationMs: Int64?
+  let stressCareAudioUris: [String]?
   let maxPendingCaptureBytes: Int64
   let vad: NativeVadConfiguration
   let recovery: NativeRecoveryInfo
   // 이 앱 버전 이전에 저장된 복구 기록에는 없는 필드다. optional 이어야 예전 기록도 디코딩된다.
   let notification: NativeNotificationCopy?
 
+  var careDurationMs: Int64 { stressCareDurationMs ?? 0 }
+  var careAudioUris: [String] { stressCareAudioUris ?? [] }
+
   // 마지막 회차는 일부만 진행될 수 있으므로 올림한다 — Now Playing 의 "사이클 2/4" 분모.
   var totalCycles: Int {
-    let cycleMs = learningDurationMs + restDurationMs
+    let cycleMs = learningDurationMs + restDurationMs + careDurationMs
     guard cycleMs > 0 else { return 1 }
     return max(1, Int((totalDurationMs + cycleMs - 1) / cycleMs))
   }
@@ -94,6 +109,8 @@ struct NativeSessionConfiguration: Codable {
     totalDurationMs = Int64(input.totalDurationMs)
     learningDurationMs = Int64(input.learningDurationMs)
     restDurationMs = Int64(input.restDurationMs)
+    stressCareDurationMs = Int64(input.stressCareDurationMs)
+    stressCareAudioUris = input.stressCareAudioUris
     maxPendingCaptureBytes = Int64(input.maxPendingCaptureBytes)
     vad = NativeVadConfiguration(input.vad)
     recovery = NativeRecoveryInfo(input.recovery)

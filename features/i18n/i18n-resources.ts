@@ -132,6 +132,7 @@ interface AppCopy {
     minuteUnit: string;
     learnLabel: string;
     restLabel: string;
+    stressCareLabel: string;
     wordSelectA11y: string;
     micPermissionTitle: string;
     micPermissionBody: string;
@@ -142,7 +143,9 @@ interface AppCopy {
     stopA11y: string;
     cycleBadge: string;
     restingTitle: string;
+    stressCareTitle: string;
     restingBody: string;
+    stressCareBody: string;
     playingBadge: string;
     waitingBadge: string;
     pausedBadge: string;
@@ -167,6 +170,7 @@ interface AppCopy {
   sessionNotification: {
     learningSubtitle: string;
     restSubtitle: string;
+    stressCareSubtitle: string;
     pausedSubtitle: string;
   };
   sessionComplete: {
@@ -438,6 +442,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       minuteUnit: '분',
       learnLabel: '학습',
       restLabel: '휴식',
+      stressCareLabel: '스트레스 케어',
       wordSelectA11y: '%{label} 선택',
       micPermissionTitle: '마이크 권한이 필요해요',
       micPermissionBody: '학습 중 앵이가 말한 소리를 기록하려면 마이크 권한이 필요해요. 기기 설정에서 권한을 허용해 주세요.',
@@ -448,7 +453,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       stopA11y: '세션 종료',
       cycleBadge: '사이클 %{cycle}/%{total}',
       restingTitle: '잠시 쉬어요',
+      stressCareTitle: '스트레스 케어',
       restingBody: '잠시 쉬는 동안에도\n새로 말한 소리는 기록해요.',
+      stressCareBody: '마음이 편안해지는 자연의 소리를 들려줘요.',
       playingBadge: '재생 중',
       waitingBadge: '다음 반복 대기',
       pausedBadge: '일시정지 중',
@@ -471,6 +478,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     sessionNotification: {
       learningSubtitle: '학습 중 · 사이클 %{cycle}/%{total}',
       restSubtitle: '쉬는 중 · 사이클 %{cycle}/%{total}',
+      stressCareSubtitle: '스트레스 케어 중 · 사이클 %{cycle}/%{total}',
       pausedSubtitle: '일시정지됨',
     },
     sessionComplete: {
@@ -764,6 +772,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       minuteUnit: 'm',
       learnLabel: 'Learning',
       restLabel: 'Rest',
+      stressCareLabel: 'Stress care',
       wordSelectA11y: 'Select %{label}',
       micPermissionTitle: 'Microphone permission needed',
       micPermissionBody: 'Microphone access is needed to record what your birdie says during training. Please allow it in device settings.',
@@ -774,7 +783,9 @@ export const translations: Record<AppLocale, AppCopy> = {
       stopA11y: 'End session',
       cycleBadge: 'Cycle %{cycle}/%{total}',
       restingTitle: 'Taking a break',
+      stressCareTitle: 'Stress care',
       restingBody: 'Even during the break,\nnew sounds are still recorded.',
+      stressCareBody: 'Soothing nature sounds are playing.',
       playingBadge: 'Playing',
       waitingBadge: 'Waiting for next repeat',
       pausedBadge: 'Paused',
@@ -797,6 +808,7 @@ export const translations: Record<AppLocale, AppCopy> = {
     sessionNotification: {
       learningSubtitle: 'Training · Cycle %{cycle}/%{total}',
       restSubtitle: 'Resting · Cycle %{cycle}/%{total}',
+      stressCareSubtitle: 'Stress care · Cycle %{cycle}/%{total}',
       pausedSubtitle: 'Paused',
     },
     sessionComplete: {

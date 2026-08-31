@@ -11,13 +11,15 @@ interface CycleSummaryProps {
   sessionMins: number;
   learnSecs: number;
   restSecs: number;
+  careSecs: number;
 }
 
-export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryProps) {
+export function CycleSummary({ sessionMins, learnSecs, restSecs, careSecs }: CycleSummaryProps) {
   const { t } = useI18n();
-  const { totalCycles: cycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs });
+  const { totalCycles: cycles } = deriveSessionCycles({ totalSeconds: sessionMins * 60, learnSecs, restSecs, careSecs });
   const totalLearnSecs = cycles * learnSecs;
   const totalRestSecs = cycles * restSecs;
+  const totalCareSecs = cycles * careSecs;
 
   return (
     <LedgeView baseStyle={styles.base} depth="card" faceStyle={styles.card}>
@@ -33,12 +35,19 @@ export function CycleSummary({ sessionMins, learnSecs, restSecs }: CycleSummaryP
           </View>
           <Text style={[styles.value, styles.valueLearn]}>{formatDurationSecs(totalLearnSecs, t)}</Text>
         </View>
-        <View style={styles.cell}>
+        <View style={[styles.cell, styles.cellDivider]}>
           <View style={styles.metricLabelRow}>
             <View style={[styles.dot, styles.dotRest]} />
             <Text style={styles.label}>{t('sessionSetup.restLabel')}</Text>
           </View>
           <Text style={[styles.value, styles.valueRest]}>{formatDurationSecs(totalRestSecs, t)}</Text>
+        </View>
+        <View style={styles.cell}>
+          <View style={styles.metricLabelRow}>
+            <View style={[styles.dot, styles.dotCare]} />
+            <Text style={styles.label}>{t('sessionSetup.stressCareLabel')}</Text>
+          </View>
+          <Text style={[styles.value, styles.valueCare]}>{formatDurationSecs(totalCareSecs, t)}</Text>
         </View>
       </View>
     </LedgeView>
@@ -107,6 +116,7 @@ const styles = StyleSheet.create({
   },
   dotLearn: { backgroundColor: BuddyBirdColors.primary },
   dotRest: { backgroundColor: BuddyBirdColors.secondary },
+  dotCare: { backgroundColor: BuddyBirdColors.secondary },
   value: {
     ...Typography.value,
     fontSize: 18,
@@ -114,6 +124,7 @@ const styles = StyleSheet.create({
   },
   valueLearn: { color: BuddyBirdColors.primary },
   valueRest: { color: BuddyBirdColors.secondary },
+  valueCare: { color: BuddyBirdColors.secondary },
   label: {
     ...Typography.caption,
     color: BuddyBirdColors.inkMuted,

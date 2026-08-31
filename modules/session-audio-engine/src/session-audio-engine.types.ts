@@ -34,8 +34,12 @@ export interface SessionRecoveryInfo {
 export interface SessionNotificationCopy {
   learningSubtitle: string;
   restSubtitle: string;
+  stressCareSubtitle: string;
   pausedSubtitle: string;
 }
+
+// 세션 사이클 구간. 학습 → 휴식 → 스트레스 케어 순으로 반복한다 (BB-380, PRD FR-07).
+export type SessionEnginePhase = 'learning' | 'rest' | 'stress-care';
 
 export interface SessionAudioEngineStartInput {
   sessionId: string;
@@ -44,6 +48,10 @@ export interface SessionAudioEngineStartInput {
   totalDurationMs: number;
   learningDurationMs: number;
   restDurationMs: number;
+  /** 스트레스 케어 구간 ms. 0이면 구간 없이 기존 2구간 사이클로 돈다. */
+  stressCareDurationMs: number;
+  /** 스트레스 케어 트랙 로컬 파일 URI 목록 — 구간마다 네이티브가 하나를 랜덤 재생한다. */
+  stressCareAudioUris: string[];
   maxPendingCaptureBytes: number;
   vad: SessionVadConfig;
   recovery: SessionRecoveryInfo;
@@ -55,7 +63,7 @@ export interface SessionEngineSnapshot {
   state: SessionEngineState;
   elapsedRunningMs: number;
   cycle: number;
-  phase: 'learning' | 'rest';
+  phase: SessionEnginePhase;
   phaseElapsedMs: number;
   isTargetPlaying: boolean;
   /**
@@ -75,6 +83,8 @@ export interface SessionRecoveryRecord {
   totalDurationMs: number;
   learningDurationMs: number;
   restDurationMs: number;
+  // BB-380 이전 앱 버전이 남긴 기록에는 없다. 소비처는 `?? 0`으로 읽는다.
+  stressCareDurationMs?: number;
   reason: SessionRecoveryReason;
 }
 
@@ -83,7 +93,7 @@ export interface CapturedSegment {
   sessionId: string;
   uri: string;
   fileName: string;
-  phase: 'learning' | 'rest';
+  phase: SessionEnginePhase;
   cycle: number;
   capturedAt: string;
   durationMs: number;

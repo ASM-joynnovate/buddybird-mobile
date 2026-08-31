@@ -6,6 +6,7 @@ export type {
   SessionAudioEngineStartInput,
   SessionEngineFailure,
   SessionEngineFailureCode,
+  SessionEnginePhase,
   SessionEngineSnapshot,
   SessionEngineState,
   SessionRecoveryInfo,

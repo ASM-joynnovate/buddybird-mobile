@@ -4,21 +4,22 @@ import { Text } from '@/components/ui/app-text';
 import { Pressable3D } from '@/components/ui/ledge-surface';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
+import type { SessionEnginePhase } from '@/modules/session-audio-engine';
 
 import { SessionProgressBar } from './session-progress-bar';
 
 interface SessionHeaderProps {
   progress: number;
-  isLearning: boolean;
+  phase: SessionEnginePhase;
   onStop: () => void;
 }
 
-export function SessionHeader({ progress, isLearning, onStop }: SessionHeaderProps) {
+export function SessionHeader({ progress, phase, onStop }: SessionHeaderProps) {
   const { t } = useI18n();
   return (
     <View style={styles.header}>
       <View style={styles.progress}>
-        <SessionProgressBar progress={progress} isLearning={isLearning} />
+        <SessionProgressBar progress={progress} phase={phase} />
       </View>
       <Pressable3D
         accessibilityRole="button"

@@ -30,6 +30,12 @@ export async function storeNativeCapturedSegments(segments: CapturedSegment[], w
   const meta = segments.length > 0 ? await loadRegistrationMeta(wordId) : null;
 
   for (const segment of segments) {
+    // 스트레스 케어 구간은 네이티브가 캡처를 차단하므로(BB-380) 여기 도달할 수 없지만,
+    // 서버 계약의 phase enum(learning|rest)을 지키기 위해 방어적으로 걸러 정리만 한다.
+    if (segment.phase === 'stress-care') {
+      storedIds.push(segment.segmentId);
+      continue;
+    }
     try {
       remainingCount = await appendFollowAlongCapture({
         id: segment.segmentId,

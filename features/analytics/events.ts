@@ -144,7 +144,7 @@ export type AnalyticsEvent =
       name: 'training_session_backgrounded';
       params: {
         session_id: string;
-        phase: 'learning' | 'rest';
+        phase: 'learning' | 'rest' | 'stress-care';
         elapsed_seconds: number;
       };
     }

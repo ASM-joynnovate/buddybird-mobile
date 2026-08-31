@@ -35,7 +35,7 @@ export function SessionPresetCard({
       <View style={styles.grid}>
         {SESSION_PRESETS.map((preset) => {
           const selected = presetKey === preset.key;
-          const totalMins = (preset.learnSecs + preset.restSecs) * preset.cycles / 60;
+          const totalMins = (preset.learnSecs + preset.restSecs + preset.careSecs) * preset.cycles / 60;
           return (
             <SelectableRowCard
               key={preset.key}

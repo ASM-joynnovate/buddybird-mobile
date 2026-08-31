@@ -141,6 +141,7 @@ function isTrainingSessionSettings(value: unknown): value is TrainingSessionSett
     isPositiveFiniteNumber(settings.totalDurationSeconds) &&
     isPositiveFiniteNumber(settings.learningDurationSeconds) &&
     isNonNegativeFiniteNumber(settings.restDurationSeconds) &&
+    (settings.stressCareDurationSeconds === undefined || isNonNegativeFiniteNumber(settings.stressCareDurationSeconds)) &&
     (settings.libraryEntryId === undefined || typeof settings.libraryEntryId === 'string')
   );
 }
