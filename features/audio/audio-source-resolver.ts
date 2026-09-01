@@ -7,13 +7,16 @@
 export const PRESET_URI_PREFIX = 'preset://';
 
 // require()는 정적 문자열만 허용하므로 각 파일을 개별 등록한다.
-// 키는 로케일 무관 단일 네임스페이스 (word-library-model 의 SEED_PRESETS 와 1:1).
-// 프리셋 음원은 현재 ko 만 제공 — 새 로케일 음원 추가 시 assets/audio/<locale-dir>/ 에 배치한다.
+// 키는 단일 네임스페이스 (word-library-model 의 SEED_PRESETS 와 1:1) — 비-ko 키는 로케일
+// 접두 필수(예: en-hi), ko 키는 하위 호환을 위해 무접두 유지 (docs/I18N.md §3).
+// 새 로케일 음원 추가 시 assets/audio/<locale-dir>/ 에 배치한다.
 const PRESET_AUDIO_MODULES: Record<string, number> = {
   hello: require('@/assets/audio/ko-kr/default_An-nyeong.m4a'),
   apple: require('@/assets/audio/ko-kr/default_Sa-gwa.m4a'),
   saranghae: require('@/assets/audio/ko-kr/default_Sa-rang-hae.m4a'),
   bye: require('@/assets/audio/ko-kr/default_Da-nyeo-wa.m4a'),
+  'en-hi': require('@/assets/audio/en-us/default_hi.m4a'),
+  'en-hello': require('@/assets/audio/en-us/default_hello.m4a'),
 };
 
 export function isPresetUri(uri: string | undefined): boolean {

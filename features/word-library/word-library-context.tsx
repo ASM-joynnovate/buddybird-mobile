@@ -12,7 +12,13 @@ import {
 import { reportError } from '@/features/analytics/error-reporter';
 import { useI18n } from '@/features/i18n/i18n-context';
 
-import { createWordEntry, deleteWordEntry, reconcilePresetSeeds, upsertWordEntry } from './word-library-model';
+import {
+  createWordEntry,
+  deleteWordEntry,
+  filterEntriesByLocale,
+  reconcilePresetSeeds,
+  upsertWordEntry,
+} from './word-library-model';
 import { loadWordLibraryStore, saveWordLibraryStore } from './word-library-storage';
 import type { CreateWordEntryInput, WordEntry, WordLibraryStore } from './word-library-types';
 import { requestWordUpload } from './word-upload';
@@ -33,7 +39,7 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
   const [loadFailed, setLoadFailed] = useState(false);
   const storeRef = useRef<WordLibraryStore | null>(null);
   const writeQueueRef = useRef<Promise<void> | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const setLibraryState = useCallback((nextStore: WordLibraryStore): void => {
     const cloned: WordLibraryStore = { ...nextStore, entriesById: cloneRecord(nextStore.entriesById) };
@@ -118,9 +124,10 @@ export function WordLibraryProvider({ children }: PropsWithChildren) {
     [updateStore]
   );
 
+  // 표시 전용 로케일 필터 (BB-407) — 스토어/영속/reconcile 은 전 로케일 유니온을 그대로 유지한다.
   const entries = useMemo(
-    () => (store ? Object.values(store.entriesById).sort((a, b) => a.createdAt.localeCompare(b.createdAt)) : []),
-    [store]
+    () => (store ? filterEntriesByLocale(Object.values(store.entriesById), locale) : []),
+    [store, locale]
   );
 
   const value = useMemo(

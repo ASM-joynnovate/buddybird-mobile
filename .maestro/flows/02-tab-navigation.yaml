@@ -1,5 +1,5 @@
 # 시나리오 02 — 탭 이동과 데이터 표시: 만든 데이터가 앱 전체에서 일관되게 보인다
-# 콘텐츠 assert("안녕"/"Mango")는 로케일 무관 데이터 — 시드 단어 라벨은 언어 설정과 무관하게 한국어
+# CI 표준 로케일(en-US)에서는 en 프리셋 "Hello"가 표시된다 (BB-407)
 appId: com.joynnovate.buddybird.dev
 tags:
   - smoke
@@ -7,10 +7,10 @@ tags:
 - runFlow: ../subflows/complete-onboarding.yaml
 - tapOn:
     id: "tab-words"
-# 화면 고유 앵커로 탭 전환 자체를 먼저 검증 — "안녕"은 홈에도 존재해 단독으로는 vacuous
+# 화면 고유 앵커로 탭 전환 자체를 먼저 검증 — "Hello"는 홈에도 존재해 단독으로는 vacuous
 - assertVisible:
     id: "word-add-cta"
-- assertVisible: "안녕"
+- assertVisible: "Hello"
 - tapOn:
     id: "tab-profile"
 - assertVisible:
