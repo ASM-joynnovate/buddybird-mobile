@@ -1,0 +1,98 @@
+{
+  "description": "Fixture-backed Android in-place update and native handoff evidence; isolated emulator only.",
+  "baselineCommit": "d5464b7",
+  "baselineReleaseApkSha256": "eff82d7a3401a8e3f2a5a7bb6c623294e07afb54afede6d902b6b0d3fc711b51",
+  "finalReleaseApkSha256": "3ec0fde066ebef4f172bbe43ccf47d345b7c7df9f7d5422e188fb26de8a731c2",
+  "manifestOnlyExportInstrumentation": true,
+  "releaseBuildConfigDebugWasFalse": true,
+  "finalInstalledApkNotDebuggable": true,
+  "checks": {
+    "migrationComplete": true,
+    "allOriginalAsyncStorageBytesPreserved": true,
+    "allOriginalAsyncStorageKeysArchived": true,
+    "profileIdPreserved": true,
+    "profileNamePreserved": true,
+    "legacySpeciesMigrated": true,
+    "legacyBirthDateMigrated": true,
+    "libraryIdsPreserved": true,
+    "libraryStoredFieldsPreserved": true,
+    "trainingAliasesPreserved": true,
+    "originalHistoryIdsAndFieldsPreserved": true,
+    "localePreserved": true,
+    "analyticsConsentPreserved": true,
+    "uploadConsentDecisionPreserved": true,
+    "oneRecoveredHistoryRow": true,
+    "recoveredLearningCreditedOnce": true,
+    "recoveredSessionCountCreditedOnce": true,
+    "achievementMarkerPreserved": true,
+    "nativeCaptureIdPreserved": true,
+    "captureSpeechOffsetsPreserved": true,
+    "captureReferencesPreserved": true,
+    "allOriginalMediaPreserved": true,
+    "durableProfilePhotoPreserved": true,
+    "nativeCaptureAcknowledged": true,
+    "nativeRecoveryClearedAfterCredit": true,
+    "repeatLaunchNoDuplicateCredit": true,
+    "exactFinalReleaseVisibleProfile": true,
+    "exactFinalReleaseNotDebuggable": true
+  },
+  "counts": {
+    "originalKeys": 12,
+    "originalLibraryWords": 7,
+    "originalHistoryRows": 1,
+    "recoveredHistoryRows": 1,
+    "originalMediaFiles": 3,
+    "recoveredCaptures": 1
+  },
+  "syntheticIds": {
+    "profile": "parrot-2026-06-20T12:00:00.000Z",
+    "recovery": "sess_android_recovery_0011223344",
+    "capture": "aaaaaa11-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+  },
+  "media": [
+    {
+      "sha256": "ea64f20f6a1c4e607c4ebdce9b4e624c6ce74f806b2d9cf388ab005de3622f75",
+      "sizeBytes": 17306,
+      "preserved": true
+    },
+    {
+      "sha256": "22d202670c877c64066d806b844cf846d95620501eb1d4547c9858ce1e9030af",
+      "sizeBytes": 160281,
+      "preserved": true
+    },
+    {
+      "sha256": "c65462093377f1b7bd993d9ef6b37683347bae40b8a0ba571f4311e4a3333a09",
+      "sizeBytes": 32044,
+      "preserved": true
+    }
+  ],
+  "repeatLaunchCheck": [
+    {
+      "launch": 1,
+      "sameHistoryIds": true,
+      "sameLearningCredit": true,
+      "sameSessionCounts": true,
+      "sameCaptureIds": true,
+      "migrationStillComplete": true
+    },
+    {
+      "launch": 2,
+      "sameHistoryIds": true,
+      "sameLearningCredit": true,
+      "sameSessionCounts": true,
+      "sameCaptureIds": true,
+      "migrationStillComplete": true
+    }
+  ],
+  "firebaseUidContinuityVerified": false,
+  "fixtureRecoveryCreditedSeconds": 600,
+  "actualTenMinuteSessionExecuted": false,
+  "exactFinalProfileAndPhotoVisible": true,
+  "exactFinalTotalLearningMinutesVisible": 30,
+  "limitations": [
+    "The 600-second recovery credit came from a seeded interrupted-session record, not an actual 10-minute Android training run.",
+    "Manifest-only debuggability instrumentation was used to export baseline and updated stores; exact final nondebuggable APK was installed and visibly verified afterward.",
+    "Firebase UID continuity is unverified; no auth-token or Firebase credential store was inspected.",
+    "This isolated emulator test does not prove physical-device interruption/Bluetooth/long-session behavior."
+  ]
+}

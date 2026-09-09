@@ -1,0 +1,18 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main, refactor/ignite-rewrite]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn check

@@ -1,0 +1,140 @@
+{
+  "date": "2026-09-09",
+  "branch": "refactor/ignite-rewrite",
+  "baseline": "d5464b7",
+  "typescriptTests": {
+    "passed": 37,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "eslint": "passed",
+  "dependencyCruiser": {
+    "violations": 0,
+    "modules": 98,
+    "dependencies": 283
+  },
+  "swiftNativeChecks": "passed",
+  "kotlinNativeChecks": "passed",
+  "androidRelease": "passed",
+  "iosReleaseSimulator": "passed",
+  "androidMaestroSmoke": {
+    "passed": true,
+    "completedCommands": 53,
+    "optionalAbsentSystemPrompt": 2,
+    "artifacts": "/private/tmp/buddybird-android-readability-final-smoke",
+    "changedFeedbackStepRetested": "passed /private/tmp/buddybird-android-final-feedback"
+  },
+  "androidNaturalSession": {
+    "durationSeconds": 120,
+    "phasesObserved": ["learning", "rest", "stress-care"],
+    "completedScreenObserved": true,
+    "creditedLearningSeconds": 60,
+    "relaunchTotalUnchanged": true,
+    "automation": "Start, background PID check, and finish ran as consecutive verification stages on the final APK; every stage passed.",
+    "artifacts": "/private/tmp/buddybird-android-final-natural-finish"
+  },
+  "iosMaestro": {
+    "passed": true,
+    "exitCode": 0,
+    "completedCommands": 56,
+    "optionalAbsentSystemPrompt": 1,
+    "failedFeedbackAttemptRecoveredByBoundedRetry": 1,
+    "artifacts": "/Users/user/.maestro/tests/2026-09-09_184123/BuddyBird isolated development installation"
+  },
+  "physicalDevices": "not verified",
+  "liveMediaUploadOrFeedback": "not sent",
+  "androidReleaseApk": {
+    "path": "/Users/user/orca/workspaces/buddybird-mobile/refactor-ignite-rewrite/android/app/build/outputs/apk/release/app-release.apk",
+    "sha256": "3ec0fde066ebef4f172bbe43ccf47d345b7c7df9f7d5422e188fb26de8a731c2"
+  },
+  "iosReleaseJavaScript": {
+    "path": "/private/tmp/buddybird-ui-review/release-ios/DEV.app/main.jsbundle",
+    "sha256": "be5971585e9e644a9e98ce636912b795fb895f4cb003dc304e131e10f3032cca"
+  },
+  "readability": {
+    "typescriptAndNativeLogicalGroups": "reviewed",
+    "relativeCodeImports": 0,
+    "convertedImports": 206,
+    "enforcedByESLint": [
+      "absolute imports",
+      "one declaration per statement",
+      "braced control flow",
+      "blank lines between statement groups"
+    ]
+  },
+  "androidBackground": {
+    "beforePid": "14892",
+    "backgroundPid": "14892",
+    "afterPid": "14892",
+    "minimumBackgroundSeconds": 16,
+    "elapsedWallSeconds": 18.308,
+    "sameProcess": true,
+    "countdownBefore": "00:21",
+    "countdownAfter": "00:03",
+    "evidence": "Simulator; does not replace physical device audio/lock/route verification."
+  },
+  "androidUpdateInstrumentation": {
+    "buildConfigDebug": false,
+    "packagedManifestDebuggable": true,
+    "sameReleaseJavaScript": true,
+    "sameNativeLibraries": true,
+    "javascriptSha256": "25723e346975b0ed71b00543beae21864056d0a725ada9b17b992763644cfb81",
+    "finalApkSha256": "3ec0fde066ebef4f172bbe43ccf47d345b7c7df9f7d5422e188fb26de8a731c2",
+    "exportApkSha256": "9f8c10fd23be3c0f98967763efaf2ae6911b66049eafb6201b0fcf55f93bf59b"
+  },
+  "maestroTimeoutBehavior": {
+    "version": "2.10.0",
+    "scope": "Visibility timeout budget starts at the last UI mutation; earlier assertions consume the same budget.",
+    "deviceFreeProbe": "/private/tmp/buddybird-maestro-timeout-probe.log",
+    "configuredRecordingWaitMs": 30000
+  },
+  "physicalDeviceDiscovery": {
+    "iosPhysicalDevices": 0,
+    "androidPhysicalDevices": 0,
+    "isolatedAndroidEmulators": [5580, 5582],
+    "checkedOn": "2026-09-09"
+  },
+  "iosBackground": {
+    "sameProcess": true,
+    "beforePid": 67305,
+    "afterPid": 67305,
+    "minimumBackgroundSeconds": 37.405,
+    "homeCompletedLocal": "2026-09-09 18:39:05.991",
+    "foregroundRequestedLocal": "2026-09-09 18:39:43.396",
+    "timezone": "Asia/Seoul",
+    "startCountdown": "01:00",
+    "returnCountdown": "00:01",
+    "interpretation": "Start and return screenshots were not adjacent to the Home command. They prove ongoing progress, not an exact clock drift measurement.",
+    "artifacts": "/Users/user/.maestro/tests/2026-09-09_183940/background-return"
+  },
+  "iosNaturalSession": {
+    "durationSeconds": 120,
+    "phasesObserved": ["learning", "rest", "stress-care"],
+    "completedScreenObserved": true,
+    "creditedLearningSeconds": 60,
+    "relaunchTotalUnchanged": true,
+    "completedCommands": 21,
+    "artifacts": "/Users/user/.maestro/tests/2026-09-09_183959/natural-completion"
+  },
+  "iosUpdatedInstallationUI": {
+    "passed": true,
+    "completedCommands": 15,
+    "actualFlowerPhotoVisible": true,
+    "profileWordLocaleAndStatisticsPreserved": true,
+    "manualDataMutationsPerformed": false,
+    "artifacts": "/Users/user/.maestro/tests/2026-09-09_184420/migration-ui"
+  },
+  "androidUpdatedInstallation": {
+    "passedChecks": 28,
+    "failedChecks": 0,
+    "repeatLaunches": 2,
+    "fixtureBacked": true,
+    "report": "android-update.json",
+    "firebaseUidContinuityVerified": false
+  },
+  "iosReleaseNative": {
+    "path": "/private/tmp/buddybird-ui-review/release-ios/DEV.app/DEV",
+    "sha256": "77c8b30f9fa1e780c5ce9ba45e44186a10c413f1f92ec3c643642047be2f6498"
+  },
+  "overallAcceptance": "Not met: physical devices, production server/signing/UID verification, and the documented source-path exposure limitation remain."
+}

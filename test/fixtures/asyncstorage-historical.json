@@ -1,0 +1,186 @@
+{
+  "description": "Synthetic standalone historical variants; each replaces the named value in current fixture. Missing optional fields intentionally remain absent.",
+  "cases": [
+    {
+      "name": "profile-age-custom-species",
+      "key": "@buddybird/parrot-profile",
+      "value": {
+        "id": "parrot-2026-06-20T12:00:00.000Z",
+        "name": "구름",
+        "species": "custom",
+        "photoUri": "file:///old-container/Library/Caches/ImagePicker/profile-fixture.jpg",
+        "createdAt": "2026-06-20T12:00:00.000Z",
+        "updatedAt": "2026-09-01T09:00:00.000Z",
+        "customSpecies": "  장미앵무  ",
+        "ageMonths": 7,
+        "trainingGoalIds": ["greet", "song"]
+      },
+      "expected": {
+        "birthDate": "2025-11-01",
+        "species": "장미앵무"
+      }
+    },
+    {
+      "name": "profile-parakeet",
+      "key": "@buddybird/parrot-profile",
+      "value": {
+        "id": "parrot-2026-06-20T12:00:00.000Z",
+        "name": "구름",
+        "species": "parakeet",
+        "photoUri": "file:///old-container/Library/Caches/ImagePicker/profile-fixture.jpg",
+        "createdAt": "2026-06-20T12:00:00.000Z",
+        "updatedAt": "2026-09-01T09:00:00.000Z",
+        "customSpecies": "  장미앵무  ",
+        "ageMonths": 7,
+        "trainingGoalIds": ["greet", "song"]
+      },
+      "expected": {
+        "species": "budgie"
+      }
+    },
+    {
+      "name": "explicit-unknown-birthday",
+      "key": "@buddybird/parrot-profile",
+      "value": {
+        "id": "parrot-2026-06-20T12:00:00.000Z",
+        "name": "구름",
+        "species": "budgie",
+        "birthDate": null,
+        "photoUri": "file:///old-container/Library/Caches/ImagePicker/profile-fixture.jpg",
+        "createdAt": "2026-06-20T12:00:00.000Z",
+        "updatedAt": "2026-09-01T09:00:00.000Z",
+        "ageMonths": 7
+      },
+      "expected": {
+        "birthDate": null
+      }
+    },
+    {
+      "name": "word-korean-tag-absolute-uri-pitch",
+      "key": "@buddybird/wordLibrary",
+      "value": {
+        "version": 1,
+        "entriesById": {
+          "wentry-2026-06-20T12:01:00.000Z-library01": {
+            "id": "wentry-2026-06-20T12:01:00.000Z-library01",
+            "label": "잘 자",
+            "tag": "인사",
+            "sourceType": "recording",
+            "audioUri": "file:///old-container/Documents/recordings/recording-2026-06-20T12-01-00-000Z.m4a",
+            "createdAt": "2026-06-20T12:00:00.000Z",
+            "updatedAt": "2026-09-01T09:00:00.000Z",
+            "transformedAudioUri": "recording://pitch-fixture.m4a",
+            "pitchProfileId": "parrot-mvp-high"
+          }
+        },
+        "updatedAt": "2026-09-01T09:00:00.000Z"
+      },
+      "expected": {
+        "tag": "greeting",
+        "originalFileMustRemain": true,
+        "transformedFileMustRemain": true
+      }
+    },
+    {
+      "name": "capture-before-phase-and-metadata",
+      "key": "@buddybird/follow-along-captures",
+      "value": {
+        "capturesById": {
+          "cap_legacy_0011223344": {
+            "id": "cap_legacy_0011223344",
+            "sessionId": "sess_mf4k9000_0011223344",
+            "wordId": "word-2026-06-20T12:05:00.000Z-training01",
+            "cycle": 1,
+            "capturedAt": "2026-09-01T08:02:00.000Z",
+            "uri": "recording://session-captures/session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+            "fileName": "session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+            "segments": [
+              {
+                "startMs": 200,
+                "endMs": 1100
+              }
+            ],
+            "sizeBytes": 51244,
+            "uploaded": false
+          }
+        }
+      },
+      "expected": {
+        "phase": "learning",
+        "clientWordId": "wentry-2026-06-20T12:01:00.000Z-library01"
+      }
+    },
+    {
+      "name": "training-word-before-library-link",
+      "trainingWord": {
+        "id": "word-2026-06-20T12:05:00.000Z-training01",
+        "label": "잘 자",
+        "locale": "ko-KR",
+        "sourceType": "recording",
+        "audioUri": "recording://recording-2026-06-20T12-01-00-000Z.m4a",
+        "recordingId": "rec_fixture_01",
+        "createdAt": "2026-06-20T12:00:00.000Z",
+        "updatedAt": "2026-09-01T09:00:00.000Z",
+        "pitchTransform": {
+          "profileId": "parrot-mvp-high",
+          "playbackRate": 1.3,
+          "preservesPitch": false,
+          "transformedUri": "recording://pitch-fixture.m4a",
+          "appliedAt": "2026-06-20T12:00:00.000Z"
+        }
+      },
+      "expected": {
+        "preserveId": "word-2026-06-20T12:05:00.000Z-training01",
+        "doNotMergeByLabel": true
+      }
+    },
+    {
+      "name": "malformed-nonempty-training",
+      "key": "@buddybird/training-store",
+      "raw": "{\"version\":1,\"wordsById\":",
+      "expected": {
+        "migrationCompletes": false,
+        "blockMutationsLearningUploads": true,
+        "deleteOriginal": false
+      }
+    },
+    {
+      "name": "unknown-upload-consent",
+      "key": "@buddybird/upload-consent",
+      "value": {
+        "status": "unknown",
+        "decidedAt": null,
+        "noticeVersion": 0
+      },
+      "expected": {
+        "allowUpload": false
+      }
+    },
+    {
+      "name": "explicit-null-capture-profile",
+      "capture": {
+        "id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "sessionId": "sess_mf4k9000_0011223344",
+        "wordId": "word-2026-06-20T12:05:00.000Z-training01",
+        "cycle": 1,
+        "phase": "learning",
+        "capturedAt": "2026-09-01T08:02:00.000Z",
+        "uri": "recording://session-captures/session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+        "fileName": "session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+        "segments": [
+          {
+            "startMs": 200,
+            "endMs": 1100
+          }
+        ],
+        "sizeBytes": 51244,
+        "clientWordId": "wentry-2026-06-20T12:01:00.000Z-library01",
+        "parrotSpecies": null,
+        "parrotBirthdate": null
+      },
+      "expected": {
+        "doNotBackfillProfile": true
+      }
+    }
+  ]
+}

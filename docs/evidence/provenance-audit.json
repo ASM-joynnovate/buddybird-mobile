@@ -1,0 +1,135 @@
+{
+  "auditedAt": "2026-09-09T09:43:26.947235+00:00",
+  "baselineCommit": "d5464b76f472dfef71b9e4d56a7111943c47f753",
+  "rewriteBranch": "refactor/ignite-rewrite",
+  "baselineFileCount": 562,
+  "baselineUniqueBlobs": 556,
+  "rewriteFilesExamined": 141,
+  "deletedTrackedFilesSkipped": 0,
+  "exactMatches": 19,
+  "countsByCategory": {
+    "allowed media asset": 18,
+    "allowed deployment or toolchain configuration": 1
+  },
+  "unchangedProductCodeOrTests": [],
+  "unchangedDocumentation": [],
+  "matches": [
+    {
+      "rewritePath": "assets/audio/en-us/default_hello.m4a",
+      "gitBlobSha1": "e6a5c2a5e03d96ec3b172f2b195b35ea414b9e1a",
+      "sizeBytes": 28364,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/en-us/default_hi.m4a",
+      "gitBlobSha1": "fbe311ec951c9580e43c48264829dd4056d611ac",
+      "sizeBytes": 23554,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/ko-kr/default_An-nyeong.m4a",
+      "gitBlobSha1": "622dc6bd76c8424a483028ef57a977fad61e249c",
+      "sizeBytes": 23505,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/ko-kr/default_Da-nyeo-wa.m4a",
+      "gitBlobSha1": "469c20647db59c4b4ed59e2ff6d442222a9c3f1e",
+      "sizeBytes": 22816,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/ko-kr/default_Sa-gwa.m4a",
+      "gitBlobSha1": "1dec4688840a77cd94bae7de8fb4b5036434fd02",
+      "sizeBytes": 20701,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/ko-kr/default_Sa-rang-hae.m4a",
+      "gitBlobSha1": "1bd74fbb03e9a9d1b9b6638e46c4a00b37339f49",
+      "sizeBytes": 16255,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/stress-care/track-02.m4a",
+      "gitBlobSha1": "a913d326767541b9e018cac77569857cc8127d64",
+      "sizeBytes": 1830942,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/stress-care/track-03.m4a",
+      "gitBlobSha1": "45c2c8f3fbf19d2fa7dd951af61fced44aee3058",
+      "sizeBytes": 1840664,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/audio/stress-care/track-04.m4a",
+      "gitBlobSha1": "926abe4d67d7a160e7d672a00bcf14c6ac8a9011",
+      "sizeBytes": 1819207,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/fonts/Pretendard-Black.otf",
+      "gitBlobSha1": "a0d849e748cba07a672505cc6184f178587e03bd",
+      "sizeBytes": 1559552,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/fonts/Pretendard-Bold.otf",
+      "gitBlobSha1": "8e5e30a28b4435359945cf08b261c86d0de8da53",
+      "sizeBytes": 1576660,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/fonts/Pretendard-ExtraBold.otf",
+      "gitBlobSha1": "388f3ca4ee6e949cd4e7aa25cd0a5995c2a90f70",
+      "sizeBytes": 1568512,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/fonts/Pretendard-Regular.otf",
+      "gitBlobSha1": "08bf4cfc2164a0bff74a4bf844128d3b843bbf87",
+      "sizeBytes": 1574352,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/images/android-icon-foreground.png",
+      "gitBlobSha1": "9e238ea23e674ee993d2e21254fcd49126a78b4a",
+      "sizeBytes": 122681,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/images/buddy-bird.png",
+      "gitBlobSha1": "b0d27e05405ab433cb1eeea5836490f0902e04fa",
+      "sizeBytes": 160281,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/images/favicon.ico",
+      "gitBlobSha1": "f91fb1ef297512735c9acdc4f910c0b49213ad12",
+      "sizeBytes": 5238,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/images/icon.png",
+      "gitBlobSha1": "628b57ce7d9097a9665218e876075de5004deabb",
+      "sizeBytes": 819629,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "assets/images/splash-wordmark.png",
+      "gitBlobSha1": "77fffa367269a2b3068e632eae1aee82f47c6f7f",
+      "sizeBytes": 13014,
+      "category": "allowed media asset"
+    },
+    {
+      "rewritePath": "eas.json",
+      "gitBlobSha1": "2b5ace35ad6fdd53fbc478b9915ee8de769bebd2",
+      "sizeBytes": 1549,
+      "category": "allowed deployment or toolchain configuration"
+    }
+  ],
+  "originalWorkspaceStatusUnchanged": true,
+  "scope": "Exact raw blob comparison across every extant tracked or nonignored untracked rewrite file regardless of source filename; ignored generated/dependency/build outputs excluded.",
+  "limitation": "Exact matching detects identical files, not modified copying or semantic equivalence. Physical device and release-credential checks remain separate."
+}

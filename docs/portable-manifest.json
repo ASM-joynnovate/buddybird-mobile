@@ -1,0 +1,146 @@
+[
+  {
+    "path": "assets/audio/en-us/default_hello.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "771e034b115a093dee7371628874a2a9233c5db0ec8954b273af065991e2c6df"
+  },
+  {
+    "path": "assets/audio/en-us/default_hi.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "27588a2bf0d6fb189ef9dd73146a1aa47d04b2083768c0513e7a17648493ed2a"
+  },
+  {
+    "path": "assets/audio/ko-kr/default_An-nyeong.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "f61819c043563de7c7c36f5a6e058f744cb2c57c116fca57694d672617c1c2bf"
+  },
+  {
+    "path": "assets/audio/ko-kr/default_Da-nyeo-wa.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "79929d285c2847ad19cfa98be3dcb0babcf3836e0eae984346a6a103f73b6ef9"
+  },
+  {
+    "path": "assets/audio/ko-kr/default_Sa-gwa.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "ddcf44e5836e9a9b7acf0cdaba906337d74415bb83cfc925573e7f15f9d9efe1"
+  },
+  {
+    "path": "assets/audio/ko-kr/default_Sa-rang-hae.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "9da68b1066a09ca65532b8bfd97d7fe5563efa6a228f798c8e0dd89107fc3aef"
+  },
+  {
+    "path": "assets/audio/stress-care/track-02.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "06577560cf30ca8ea3f936dce0125863e290e47ee5a24748a04b731f2394530b"
+  },
+  {
+    "path": "assets/audio/stress-care/track-03.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "9cba02b5eddb89881e68a27d85cf2e01f50bf843bcda2bb4ed8439c9c5c95f8a"
+  },
+  {
+    "path": "assets/audio/stress-care/track-04.m4a",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "268ce5c8786ebb783d738ef89c815be836d6c9beb69a1d7d11011807cabe0cdb"
+  },
+  {
+    "path": "assets/fonts/Pretendard-Black.otf",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "94628b0bcea8936b6e5c30d98d685eb9bbaffb0fe2ed255542ecc656c248e021"
+  },
+  {
+    "path": "assets/fonts/Pretendard-Bold.otf",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "2e91915fab54df71cc9598ebf608b2bdb54c6fe3c066ac61dff0bc44fca71cc7"
+  },
+  {
+    "path": "assets/fonts/Pretendard-ExtraBold.otf",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "c35fe941b7568d52a96010561540e47f9d3948dfde66ba25bc1908233e0a40cd"
+  },
+  {
+    "path": "assets/fonts/Pretendard-Regular.otf",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93"
+  },
+  {
+    "path": "assets/images/android-icon-foreground.png",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "061ab322e7e5574a2c8f05a25f3202c0ff663b701f36d038092704e813ac06a3"
+  },
+  {
+    "path": "assets/images/buddy-bird.png",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "22d202670c877c64066d806b844cf846d95620501eb1d4547c9858ce1e9030af"
+  },
+  {
+    "path": "assets/images/favicon.ico",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "dfd05ece9bef1c3fac0ca4ab404cb9cdc3af8a88ab6de22355e8485a775e7afe"
+  },
+  {
+    "path": "assets/images/icon.png",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "2950fbb3909e11ed237237ac4f4608225e9d91fb177f0dc2195fc7b47c55369d"
+  },
+  {
+    "path": "assets/images/splash-wordmark.png",
+    "kind": "allowed asset",
+    "source": "d5464b7",
+    "sha256": "01adefcca0d400e73e2c8876291810e1a2e635ed6cc91db90b4b22bd300170eb"
+  },
+  {
+    "path": "config/dev/firebase/GoogleService-Info.plist",
+    "kind": "Firebase deployment identity, local ignored configuration",
+    "source": "original local config (not versioned)",
+    "sha256": "3baba77ccd61d069fe7e4edcc4722090495dfb9d1d764d661f481deca0ab4182"
+  },
+  {
+    "path": "config/dev/firebase/google-services.json",
+    "kind": "Firebase deployment identity, local ignored configuration",
+    "source": "original local config (not versioned)",
+    "sha256": "7da1cfbc17af97c49e429c2cb5bdcf66cddc9f8a02b97d4fa85bdee4d0afcf2e"
+  },
+  {
+    "path": "config/prod/firebase/GoogleService-Info.plist",
+    "kind": "Firebase deployment identity, local ignored configuration",
+    "source": "original local config (not versioned)",
+    "sha256": "7537f2b4ab34ee9207554dad3a13ac92b636c311dc0ffeed9f1cfdb9326b57c8"
+  },
+  {
+    "path": "config/prod/firebase/google-services.json",
+    "kind": "Firebase deployment identity, local ignored configuration",
+    "source": "original local config (not versioned)",
+    "sha256": "87d9395303c86275a62404e6c2f08f0ab226fb8d0540098c1c1a607b0c22b1bf"
+  },
+  {
+    "path": "eas.json",
+    "kind": "essential deployment configuration",
+    "source": "d5464b7",
+    "sha256": "5aeea70389bec311086710fdc1458b30ad4a142284409818c8148c1642a67b2f"
+  },
+  {
+    "path": "firebase.json",
+    "kind": "essential deployment configuration",
+    "source": "d5464b7",
+    "sha256": "a238e069594644cdf033eb913dd7fa9609ae758cc9fd2df87393dc9d3ecb12d5"
+  }
+]

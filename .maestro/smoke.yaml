@@ -1,0 +1,132 @@
+appId: com.joynnovate.buddybird.dev
+name: BuddyBird isolated development installation
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn:
+    text: "(허용 안 함|Don’t Allow|Don't Allow)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: onboarding-start
+    timeout: 30000
+- tapOn:
+    id: profile-name
+- inputText: Maestro Bird
+- tapOn: (함께할 앵무새를 소개해 주세요!|Tell us about your parrot!)
+- tapOn:
+    id: species-conure
+- scrollUntilVisible:
+    element:
+      id: birthday-unknown
+    direction: DOWN
+- tapOn:
+    id: birthday-unknown
+- tapOn:
+    id: onboarding-start
+- tapOn:
+    text: "(허용 안 함|Don’t Allow|Don't Allow)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: audio-consent-decline
+    timeout: 15000
+- tapOn:
+    id: audio-consent-decline
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: language-en
+    direction: DOWN
+- tapOn:
+    id: language-en
+- assertVisible: App language
+- scrollUntilVisible:
+    element:
+      id: profile-feedback
+    direction: DOWN
+    centerElement: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: profile-feedback
+      - assertVisible:
+          id: feedback-message
+- tapOn: Cancel
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-add
+- tapOn:
+    id: word-name
+- inputText: Maestro word
+- tapOn: Record a word
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 500
+- assertVisible: Stop recording
+- extendedWaitUntil:
+    visible: "Recording · 0:(0[2-9]|[1-5][0-9]) · Tap to stop"
+    timeout: 30000
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 500
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- tapOn:
+    id: word-save
+- extendedWaitUntil:
+    visible:
+      id: tab-words
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: Maestro word
+- tapOn:
+    id: tab-learn
+- assertVisible:
+    id: tab-learn
+    selected: true
+- tapOn: (Select )?Maestro word
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+    centerElement: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: session-countdown
+    timeout: 30000
+- extendedWaitUntil:
+    visible: 09:[0-5][0-9]
+    timeout: 30000
+- tapOn:
+    id: session-pause
+- assertVisible: Resume
+- tapOn:
+    id: session-end
+- extendedWaitUntil:
+    visible:
+      id: tab-words
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-delete-.*
+- tapOn: Delete
+- assertNotVisible: Maestro word

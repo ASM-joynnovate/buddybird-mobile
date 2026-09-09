@@ -1,0 +1,122 @@
+{
+  "description": "Synthetic persisted native formats; absent reason is intentional interrupted checkpoint. Files must be supplied separately for device tests.",
+  "pendingCaptures": [
+    {
+      "segmentId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "sessionId": "sess_mf4k9000_0011223344",
+      "uri": "file:///current-container/Documents/recordings/session-captures/session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+      "fileName": "session-sess_mf4k9000_0011223344-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee.wav",
+      "phase": "learning",
+      "cycle": 1,
+      "capturedAt": "2026-09-01T08:02:00.000Z",
+      "durationMs": 1600,
+      "speechStartMs": 200,
+      "speechEndMs": 1100
+    }
+  ],
+  "iosPendingRecovery": {
+    "configuration": {
+      "sessionId": "sess_mf4k9000_0011223344",
+      "targetAudioUri": "file:///current-container/Documents/recordings/recording-2026-06-20T12-01-00-000Z.m4a",
+      "captureDirectoryUri": "file:///current-container/Documents/recordings/session-captures/",
+      "totalDurationMs": 2400000,
+      "learningDurationMs": 600000,
+      "restDurationMs": 300000,
+      "stressCareDurationMs": 300000,
+      "stressCareAudioUris": ["file:///current-container/Library/Caches/track-02.m4a"],
+      "maxPendingCaptureBytes": 524288000,
+      "vad": {
+        "dbFloor": -60,
+        "dbCeil": -10,
+        "threshold": 0.35,
+        "sustainMs": 300,
+        "releaseMs": 500,
+        "preRollMs": 500,
+        "echoTailGuardMs": 200,
+        "maxSegmentMs": 10000
+      },
+      "recovery": {
+        "wordId": "word-2026-06-20T12:05:00.000Z-training01",
+        "word": "잘 자",
+        "sourceType": "recording",
+        "libraryEntryId": "wentry-2026-06-20T12:01:00.000Z-library01",
+        "startedAt": "2026-09-01T08:00:00.000Z"
+      },
+      "notification": {
+        "learningSubtitle": "Learning %{cycle}/%{total}",
+        "restSubtitle": "Rest %{cycle}/%{total}",
+        "stressCareSubtitle": "Care %{cycle}/%{total}",
+        "pausedSubtitle": "Paused"
+      }
+    },
+    "elapsedRunningMs": 615000,
+    "cycle": 1,
+    "phase": "rest",
+    "phaseElapsedMs": 15000,
+    "savedAt": "2026-09-01T08:10:15.000Z"
+  },
+  "androidSharedPreferences": {
+    "file": "session-audio-engine",
+    "key": "pending-recovery",
+    "value": "{\"sessionId\":\"sess_mf4k9000_0011223344\",\"targetAudioUri\":\"file:///current-container/Documents/recordings/recording-2026-06-20T12-01-00-000Z.m4a\",\"captureDirectoryUri\":\"file:///current-container/Documents/recordings/session-captures/\",\"totalDurationMs\":2400000,\"learningDurationMs\":600000,\"restDurationMs\":300000,\"stressCareDurationMs\":300000,\"maxPendingCaptureBytes\":524288000,\"recovery\":{\"wordId\":\"word-2026-06-20T12:05:00.000Z-training01\",\"word\":\"잘 자\",\"sourceType\":\"recording\",\"libraryEntryId\":\"wentry-2026-06-20T12:01:00.000Z-library01\",\"startedAt\":\"2026-09-01T08:00:00.000Z\"},\"snapshot\":{\"sessionId\":\"sess_mf4k9000_0011223344\",\"state\":\"running\",\"elapsedRunningMs\":615000,\"cycle\":1,\"phase\":\"rest\",\"phaseElapsedMs\":15000,\"isTargetPlaying\":false,\"savedAt\":\"2026-09-01T08:10:15.000Z\"}}"
+  },
+  "expected": {
+    "eligibleForCredit": true,
+    "historyId": "sess_mf4k9000_0011223344",
+    "learningSeconds": 600,
+    "completedCycles": 0,
+    "captureId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+    "deleteWavOnAck": false,
+    "autoResumeAfterProcessDeath": false
+  },
+  "iosHistoricalWithoutCareOrNotification": {
+    "configuration": {
+      "sessionId": "sess_mf4k9000_0011223344",
+      "targetAudioUri": "file:///current-container/Documents/recordings/recording-2026-06-20T12-01-00-000Z.m4a",
+      "captureDirectoryUri": "file:///current-container/Documents/recordings/session-captures/",
+      "totalDurationMs": 2400000,
+      "learningDurationMs": 600000,
+      "restDurationMs": 300000,
+      "maxPendingCaptureBytes": 524288000,
+      "vad": {
+        "dbFloor": -60,
+        "dbCeil": -10,
+        "threshold": 0.35,
+        "sustainMs": 300,
+        "releaseMs": 500,
+        "preRollMs": 500,
+        "echoTailGuardMs": 200,
+        "maxSegmentMs": 10000
+      },
+      "recovery": {
+        "wordId": "word-2026-06-20T12:05:00.000Z-training01",
+        "word": "잘 자",
+        "sourceType": "recording",
+        "libraryEntryId": "wentry-2026-06-20T12:01:00.000Z-library01",
+        "startedAt": "2026-09-01T08:00:00.000Z"
+      }
+    },
+    "elapsedRunningMs": 615000,
+    "cycle": 1,
+    "phase": "rest",
+    "phaseElapsedMs": 15000,
+    "savedAt": "2026-09-01T08:10:15.000Z"
+  },
+  "maxSegmentOffsetExamples": [
+    {
+      "durationMs": 10000,
+      "speechStartMs": 200,
+      "speechEndMs": 10000
+    },
+    {
+      "durationMs": 10000,
+      "speechStartMs": 200,
+      "speechEndMs": 9800
+    },
+    {
+      "durationMs": 3000,
+      "speechStartMs": 0,
+      "speechEndMs": 2500
+    }
+  ]
+}
