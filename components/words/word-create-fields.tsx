@@ -5,7 +5,7 @@ import { Chip, type ChipTone } from '@/components/ui/chip';
 import { FormField } from '@/components/ui/form-field';
 import { BuddyBirdColors, Fonts, Radii, Spacing } from '@/constants/theme';
 import { useI18n } from '@/features/i18n/i18n-context';
-import { WORD_TAGS, type WordTag } from '@/features/word-library/word-library-types';
+import { WORD_LABEL_MAX_LENGTH, WORD_TAGS, type WordTag } from '@/features/word-library/word-library-types';
 
 interface WordCreateFieldsProps {
   wordLabel: string;
@@ -32,6 +32,7 @@ export function WordCreateFields({
       <FormField label={wordLabel}>
         <TextInput
           autoCapitalize="none"
+          maxLength={WORD_LABEL_MAX_LENGTH}
           onChangeText={onChangeLabel}
           placeholder={placeholder}
           placeholderTextColor={BuddyBirdColors.placeholderMuted}

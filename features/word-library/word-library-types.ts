@@ -1,6 +1,10 @@
 // 데이터 키 — 표시 라벨은 i18n(`wordLibrary.tagLabels.*`)으로 해석한다.
 export type WordTag = 'greeting' | 'food' | 'name' | 'etc';
 export const WORD_TAGS: readonly WordTag[] = ['greeting', 'food', 'name', 'etc'];
+
+// 단어 이름 상한 — 입력란 maxLength 와 서버 업로드 절단(SPEC-0002 §단어 업로드)이 공유하는 단일 출처.
+export const WORD_LABEL_MAX_LENGTH = 50;
+
 export interface WordEntry {
   id: string;
   label: string;

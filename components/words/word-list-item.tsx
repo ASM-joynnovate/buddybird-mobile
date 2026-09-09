@@ -42,16 +42,11 @@ export function WordListItem({
 
   return (
     <LedgeView baseStyle={styles.cardBase} depth="card" faceStyle={styles.card}>
-      <View style={[styles.avatar, { backgroundColor: tint }]}>
-        <Text style={[styles.avatarText, { color }]}>{label.charAt(0)}</Text>
-      </View>
       <View style={styles.info}>
-        <View style={styles.titleRow}>
-          <Text numberOfLines={1} style={styles.word}>{label}</Text>
-          <View style={[styles.catPill, { backgroundColor: tint }]}>
-            <Text style={[styles.catPillText, { color }]}>{t(`wordLibrary.tagLabels.${tag}`)}</Text>
-          </View>
+        <View style={[styles.catPill, { backgroundColor: tint }]}>
+          <Text style={[styles.catPillText, { color }]}>{t(`wordLibrary.tagLabels.${tag}`)}</Text>
         </View>
+        <Text numberOfLines={1} style={styles.word}>{label}</Text>
         <View style={styles.sourceRow}>
           <IconSymbol name={sourceIcon} size={13} color={BuddyBirdColors.inkMuted} />
           <Text style={styles.sourceText}>{sourceLabel}</Text>
@@ -99,35 +94,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  avatar: {
-    alignItems: 'center',
-    borderRadius: 13,
-    flexShrink: 0,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  avatarText: {
-    fontFamily: Fonts.bodyBlack,
-    fontSize: 22,
-    fontWeight: '900',
-  },
   info: {
     alignItems: 'flex-start',
     flex: 1,
     flexDirection: 'column',
-    gap: 3,
+    gap: 4,
     minWidth: 0,
   },
-  titleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    maxWidth: '100%',
-  },
   word: {
+    alignSelf: 'stretch',
     color: BuddyBirdColors.ink,
-    flexShrink: 1,
     fontFamily: Fonts.bodyBlack,
     fontSize: 18,
     fontWeight: '900',
@@ -179,9 +155,6 @@ const styles = StyleSheet.create({
   playBtnBase: {
     backgroundColor: BuddyBirdColors.primaryShadow,
     borderRadius: Radii.full,
-  },
-  disabledBtn: {
-    opacity: 0.3,
   },
   disabledPreviewBtn: {
     opacity: 0.4,

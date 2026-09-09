@@ -3,12 +3,13 @@
 
 import { truncateToCodePoints } from '@/features/shared/text-truncate';
 import { buildDeviceContractFields, buildUploadUrl } from '@/features/shared/upload-contract';
+import { WORD_LABEL_MAX_LENGTH } from '@/features/word-library/word-library-types';
 
 // 서버 계약(SPEC-0002)의 필드 상한(코드포인트 기준). 클라이언트가 초과분을 잘라 400 을 예방한다 —
 // 처리 기록을 두지 않으므로 400 을 받은 단어는 트리거마다 같은 거부를 반복한다.
-// label 은 사용자 입력이고 단어 이름 입력란에 길이 제한이 없어 실제로 초과할 수 있다.
+// 입력란도 같은 값(WORD_LABEL_MAX_LENGTH)을 maxLength 로 걸지만 단위가 다르다 — maxLength 는 UTF-16
+// 코드유닛, 여기는 코드포인트 기준이라 입력란이 더 엄격(이모지 등). 비 UI 경로를 위해 방어적으로 한 번 더 자른다.
 // 앱 안의 단어 이름은 그대로 두고 서버에 보내는 값만 자른다. 기기 필드 상한은 공용 모듈이 소유한다.
-const LABEL_MAX_LENGTH = 50;
 
 export interface WordUploadRequestInput {
   apiBaseUrl: string;
@@ -38,7 +39,7 @@ export function buildWordUploadRequest(input: WordUploadRequestInput): WordUploa
     fields: {
       client_word_id: input.clientWordId,
       firebase_anon_uid: input.uid,
-      label: truncateToCodePoints(input.label, LABEL_MAX_LENGTH),
+      label: truncateToCodePoints(input.label, WORD_LABEL_MAX_LENGTH),
       // 계약이 요구하는 3개만 명시해 넘긴다 — `input` 을 통째로 넘기면 나중에 이름이 겹치는
       // 선택적 필드가 계약에 추가됐을 때 단어 쪽만 조용히 그 값을 집어 간다.
       ...buildDeviceContractFields({
