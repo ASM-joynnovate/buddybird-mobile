@@ -782,7 +782,7 @@ export const translations: Record<AppLocale, AppCopy> = {
       stopLabel: 'End',
       stopA11y: 'End session',
       cycleBadge: 'Cycle %{cycle}/%{total}',
-      restingTitle: 'Taking a break',
+      restingTitle: 'Break time',
       stressCareTitle: 'Stress care',
       restingBody: 'Even during the break,\nnew sounds are still recorded.',
       stressCareBody: 'Soothing nature sounds are playing.',
