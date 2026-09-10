@@ -1,0 +1,33 @@
+# 시나리오 07 — 학습 시간 프리셋 표시: short/medium/long 총 시간이 화면에 올바르게 표기된다
+# 총 시간 = (학습10분 + 휴식5분 + 스트레스케어5분) × 사이클 (session-config.ts SESSION_PRESETS)
+#   short 2사이클 = 40분 · medium 4사이클 = 80분 · long 12사이클 = 240분
+# 표기 형식: features/shared/duration-format.ts formatDurationMins + i18n common.duration.*
+#   CI 표준 로케일 en-US → "%{m}m" / "%{h}h %{m}m" / "%{h}h" → "40m" / "1h 20m" / "4h"
+# 세 카드는 선택 여부와 무관하게 각자 총 시간을 항상 표기(component: totalMins 계산) → 탭 없이 assert만
+# 한계: 카드 타이틀 바깥 영역의 값 변화(custom 휠피커)는 범위 외 — 프리셋 3종의 고정 표기만 회귀 감시
+# 태그: 신규 플로우이므로 regression 으로 시작 — 2회 연속 green 확인 후 smoke 승격 (E2E-SCENARIOS.md §추가·수정)
+appId: com.joynnovate.buddybird.dev
+tags:
+  - regression
+---
+- runFlow: ../subflows/complete-onboarding.yaml
+# 학습 시간 프리셋 카드까지 스크롤 (단어 선택과 시작 CTA 사이). 라벨로 섹션 도달을 먼저 확인
+- scrollUntilVisible:
+    element:
+      text: "Short"
+    direction: DOWN
+    centerElement: true
+# short = 2사이클 × 20분 = 40분
+- assertVisible: "Short"
+- assertVisible: "40m"
+# medium = 4사이클 × 20분 = 80분 = 1시간 20분 (기본 선택 프리셋)
+- assertVisible: "Medium"
+- assertVisible: "1h 20m"
+# long = 12사이클 × 20분 = 240분 = 4시간 (custom 카드가 아래 있어 별도 스크롤로 노출 보장)
+- scrollUntilVisible:
+    element:
+      text: "Long"
+    direction: DOWN
+    centerElement: true
+- assertVisible: "Long"
+- assertVisible: "4h"
