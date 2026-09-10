@@ -1,10 +1,8 @@
 name: E2E (Maestro)
+# PR 머지 전 게이트에서 제외됨 (2026-09-10): EAS Free 플랜 Android 빌드 쿼터 소진 문제로
+# 매 PR 클라우드 빌드를 중단했다. PR 작성자가 로컬에서 smoke를 실행하고 결과를 PR 본문에 첨부한다
+# (docs/CONVENTIONS.md §8.4). CI는 nightly 회귀와 수동 실행만 담당하며, 빌드는 --local 이라 쿼터를 쓰지 않는다.
 on:
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
   schedule:
     # 매일 KST 02:00 (UTC 17:00) — 전체 suite (smoke + regression)
     - cron: "0 17 * * *"
@@ -18,9 +16,8 @@ on:
 
 concurrency:
   group: e2e-${{ github.ref }}
-  # PR에서만 취소 — nightly·수동은 ref가 main이라 같은 group이라 서로 죽이지 않도록.
-  # (취소는 러너만 죽이고 EAS 클라우드 빌드는 끝까지 돌아 크레딧·큐 슬롯을 낭비하므로 PR 한정)
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # nightly·수동은 서로 죽이지 않는다 (PR 트리거가 없어 cancel 대상이 없음)
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -33,16 +30,16 @@ jobs:
   e2e:
     name: E2E Smoke/Full (Android)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # --local 빌드(prebuild+gradle)가 러너에서 도므로 클라우드 대비 시간 여유를 둔다
+    timeout-minutes: 90
     steps:
       - name: Resolve suite
         id: suite
         run: |
-          # PR = smoke, schedule = full, dispatch = 입력값
+          # schedule = full, dispatch = 입력값(기본 smoke)
           case "${{ github.event_name }}" in
-            pull_request) suite="smoke" ;;
-            schedule)     suite="full" ;;
-            *)            suite="${{ inputs.suite }}" ;;
+            schedule) suite="full" ;;
+            *)        suite="${{ inputs.suite }}" ;;
           esac
           if [ "$suite" = "smoke" ]; then
             echo "tags=--include-tags smoke" >> "$GITHUB_OUTPUT"
@@ -57,6 +54,11 @@ jobs:
           node-version: 22
           cache: yarn
       - run: corepack enable
+      # 로컬 gradle 빌드용 JDK 17 (AGP / RN 0.81 요구). 클라우드 EAS 빌드엔 불필요했으나 --local 은 러너에서 빌드한다
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
@@ -71,19 +73,12 @@ jobs:
           mkdir -p config/dev/firebase
           echo "$JSON_B64" | base64 --decode > config/dev/firebase/google-services.json
 
-      - name: EAS Build (preview, android) → APK
+      - name: EAS Build (preview, android, --local) → APK
         run: |
-          # preview 프로필 = developmentClient 미포함(JS 번들 내장) → Metro 불필요, dev variant/dev Firebase
-          build_json="$(eas build --profile preview --platform android --non-interactive --wait --json)"
-          # applicationArchiveUrl 만 직접 설치 가능한 APK. buildUrl 은 expo.dev 웹페이지라 fallback 금지 (curl→HTML→adb install 오인)
-          apk_url="$(echo "$build_json" | jq -r '.[0].artifacts.applicationArchiveUrl // empty')"
-          if [ -z "$apk_url" ] || [ "$apk_url" = "null" ]; then
-            echo "::error::EAS 빌드 아티팩트 URL을 찾지 못했습니다"
-            echo "$build_json" | jq '.[0].artifacts // .[0]'
-            exit 1
-          fi
-          echo "Downloading APK: $apk_url"
-          curl -fLo app.apk "$apk_url"
+          # --local: 러너에서 prebuild + gradle 로 빌드 → EAS 클라우드 빌드 쿼터를 쓰지 않는다.
+          # 서명 크레덴셜만 EXPO_TOKEN 으로 fetch (쿼터와 무관). preview 프로필은 developmentClient 미포함
+          # (JS 번들 내장 → Metro 불필요). 산출물을 app.apk 로 직접 받는다 (클라우드 빌드의 URL 다운로드 불필요).
+          eas build --profile preview --platform android --local --non-interactive --output "$PWD/app.apk"
 
       - name: Install Maestro (pinned)
         # MAESTRO_VERSION 은 workflow env 로 이미 export → 설치 스크립트가 그 버전을 집음
@@ -103,8 +98,8 @@ jobs:
           api-level: 34
           arch: x86_64
           # target 미지정(기본 AOSP) — google_apis 는 Firebase 실 init(네트워크)으로 스플래시 부팅이 느려져
-          # 웰컴 대기(~2분)를 간헐 초과했다(BB-384 재현: AOSP 5/5 vs google_apis 3/5). e2e 는 UI·절차만
-          # 검증하므로(§8.4) Firebase 실동작이 불필요하고 AOSP 로 결정적·빠른 부팅을 확보한다
+          # 웰컴 대기(~2분)를 간헐 초과했다(BB-384 실측: AOSP 5/5 vs google_apis 3/5). e2e 는 UI·절차만
+          # 검증하므로(§8.4) Firebase 실동작이 불필요하므로 AOSP 로 결정적·빠른 부팅을 택한다
           profile: pixel_6
           disable-animations: true
           script: |
@@ -129,7 +124,7 @@ jobs:
   notify-result:
     name: Notify Slack (Result)
     needs: e2e
-    # 실패 시에만 알림 — cancelled(PR push마다 정상 발생)·success·skipped 는 소음이라 제외
+    # 실패 시에만 알림 — success·skipped 는 소음이라 제외
     if: ${{ always() && needs.e2e.result == 'failure' }}
     uses: ./.github/workflows/_notify-slack.yml
     with:
