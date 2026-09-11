@@ -16,7 +16,7 @@ import { isMediaPickerGateActive } from '@/features/shared/media-picker-gate';
  * window에서도 발화하지 않는다.
  */
 export function OnboardingAbandonTracker() {
-  const { isReady, track } = useAnalytics();
+  const { track } = useAnalytics();
   const { profile } = useProfile();
   const pathname = usePathname();
 
@@ -43,8 +43,6 @@ export function OnboardingAbandonTracker() {
   }, [step]);
 
   useEffect(() => {
-    if (!isReady) return;
-
     const subscription = AppState.addEventListener('change', (nextState) => {
       const prevState = appStateRef.current;
       appStateRef.current = nextState;
@@ -69,7 +67,7 @@ export function OnboardingAbandonTracker() {
     });
 
     return () => subscription.remove();
-  }, [isReady, track]);
+  }, [track]);
 
   return null;
 }

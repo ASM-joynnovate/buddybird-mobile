@@ -3,6 +3,6 @@
     "crashlytics_debug_enabled": false,
     "crashlytics_disable_auto_disabler": true,
     "crashlytics_auto_collection_enabled": true,
-    "analytics_auto_collection_enabled": true
+    "analytics_auto_collection_enabled": false
   }
 }

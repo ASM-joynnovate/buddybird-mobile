@@ -98,17 +98,30 @@ async function writeMap(map: WordMetricsMap): Promise<void> {
   await metricsStore.save(map);
 }
 
+// 조회도 같은 순서를 따른다. 다음 학습의 누계 조회와 삭제가 미완료 저장을 추월하지 않는다.
+let metricsQueue: Promise<void> = Promise.resolve();
+function enqueueMetrics<T>(operation: () => Promise<T>): Promise<T> {
+  const result = metricsQueue.then(operation, operation);
+  // 오류는 호출자에게 전달하되 다음 작업은 계속 실행한다.
+  metricsQueue = result.then(() => undefined, () => undefined);
+  return result;
+}
+
 export async function readWordLifetimeMetrics(wordId: string): Promise<WordLifetimeMetrics | null> {
-  const map = await readMap();
-  return map[wordId] ?? null;
+  return enqueueMetrics(async () => {
+    const map = await readMap();
+    return map[wordId] ?? null;
+  });
 }
 
 // 단어 삭제 시 orphan 지표 정리. 항목이 없으면 저장을 건너뛴다(idempotent).
 export async function removeWordMetrics(wordId: string): Promise<void> {
-  const map = await readMap();
-  if (!(wordId in map)) return;
-  delete map[wordId];
-  await writeMap(map);
+  return enqueueMetrics(async () => {
+    const map = await readMap();
+    if (!(wordId in map)) return;
+    delete map[wordId];
+    await writeMap(map);
+  });
 }
 
 export async function applySessionDeltas(deltas: readonly WordSessionDelta[]): Promise<readonly WordLifetimeMetrics[]> {
@@ -116,28 +129,29 @@ export async function applySessionDeltas(deltas: readonly WordSessionDelta[]): P
     return [];
   }
 
-  const map = await readMap();
-  const nowIso = new Date().toISOString();
+  return enqueueMetrics(async () => {
+    const map = await readMap();
+    const nowIso = new Date().toISOString();
 
-  const updated: WordLifetimeMetrics[] = [];
+    const updated: WordLifetimeMetrics[] = [];
 
-  for (const delta of deltas) {
-    const previous = map[delta.word_id];
-    const next: WordLifetimeMetrics = {
-      word_id: delta.word_id,
-      word_name: delta.word_name,
-      lifetime_practice_count: (previous?.lifetime_practice_count ?? 0) + 1,
-      lifetime_practice_duration_ms:
-        (previous?.lifetime_practice_duration_ms ?? 0) + delta.practice_duration_ms,
-      lifetime_recording_count: (previous?.lifetime_recording_count ?? 0) + delta.recordings_count,
-      last_practiced_at_iso: nowIso,
-    };
+    for (const delta of deltas) {
+      const previous = map[delta.word_id];
+      const next: WordLifetimeMetrics = {
+        word_id: delta.word_id,
+        word_name: delta.word_name,
+        lifetime_practice_count: (previous?.lifetime_practice_count ?? 0) + 1,
+        lifetime_practice_duration_ms:
+          (previous?.lifetime_practice_duration_ms ?? 0) + delta.practice_duration_ms,
+        lifetime_recording_count: (previous?.lifetime_recording_count ?? 0) + delta.recordings_count,
+        last_practiced_at_iso: nowIso,
+      };
 
-    map[delta.word_id] = next;
-    updated.push(next);
-  }
+      map[delta.word_id] = next;
+      updated.push(next);
+    }
 
-  await writeMap(map);
-  return updated;
+    await writeMap(map);
+    return updated;
+  });
 }
-

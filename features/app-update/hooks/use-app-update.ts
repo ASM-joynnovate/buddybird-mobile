@@ -32,7 +32,7 @@ export interface UseAppUpdateResult {
  * 판정한다. 실제 팝업 렌더링은 소비 컴포넌트(`AppUpdateGate`)가 담당한다.
  */
 export function useAppUpdate(): UseAppUpdateResult {
-  const { isReady, track } = useAnalytics();
+  const { track } = useAnalytics();
   const { locale } = useI18n();
 
   const [checked, setChecked] = useState(false);
@@ -82,8 +82,6 @@ export function useAppUpdate(): UseAppUpdateResult {
   }, []);
 
   useEffect(() => {
-    if (!isReady) return;
-
     // 성공·실패·조기 return 어느 경로든 결론이 나면 checked 를 세워 후순위 팝업 차례를 연다.
     void runCheck({ respectInterval: false }).finally(() => setChecked(true));
 
@@ -97,7 +95,7 @@ export function useAppUpdate(): UseAppUpdateResult {
     });
 
     return () => subscription.remove();
-  }, [isReady, runCheck]);
+  }, [runCheck]);
 
   // 프롬프트가 표시되는 순간(버전당 1회) shown 이벤트를 기록한다.
   useEffect(() => {

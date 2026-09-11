@@ -26,7 +26,7 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
   private readonly crashlytics = getCrashlytics();
 
   async init(): Promise<void> {
-    await setAnalyticsCollectionEnabled(this.analytics, true);
+    await setAnalyticsCollectionEnabled(this.analytics, false);
     await setCrashlyticsCollectionEnabled(this.crashlytics, true);
   }
 
@@ -47,8 +47,9 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
     await logEvent(this.analytics, clampEventName(name), toFirebaseParams(params));
   }
 
-  async setScreen(name: string, screenClass?: string): Promise<void> {
+  async setScreen(name: string, screenClass?: string, metadata: AnalyticsParams = {}): Promise<void> {
     await logEvent(this.analytics, 'screen_view', {
+      ...toFirebaseParams(metadata),
       screen_name: name,
       screen_class: screenClass ?? name,
     });

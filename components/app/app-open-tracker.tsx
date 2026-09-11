@@ -4,14 +4,16 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { useAnalytics } from '@/features/analytics/analytics-context';
 
 export function AppOpenTracker() {
-  const { isReady, track } = useAnalytics();
+  const { track } = useAnalytics();
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const openedRef = useRef(false);
   const foregroundedAtRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!isReady) return;
-
-    track({ name: 'app_open', params: { cold_start: true } });
+    if (!openedRef.current) {
+      openedRef.current = true;
+      track({ name: 'app_open', params: { cold_start: true } });
+    }
     foregroundedAtRef.current = Date.now();
 
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -34,7 +36,7 @@ export function AppOpenTracker() {
     });
 
     return () => subscription.remove();
-  }, [isReady, track]);
+  }, [track]);
 
   return null;
 }
