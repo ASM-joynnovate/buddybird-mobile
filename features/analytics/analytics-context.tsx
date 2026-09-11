@@ -9,7 +9,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { getCurrentUid } from '@/features/auth/auth-identity';
 import { useOptionalAuth } from '@/features/auth/auth-context';
@@ -20,6 +20,7 @@ import { reportProviderFailure } from './analytics-utils';
 import { createFanoutAnalyticsClient, type AnalyticsClient } from './client';
 import { installGlobalErrorReporting, registerErrorReporter } from './error-reporter';
 import { registerEventTracker } from './event-tracker';
+import { analyticsOutboxStore } from './event-outbox';
 import { consentAllowsCollection, ensureTrackingConsent, type ConsentState } from './consent';
 import type { AnalyticsEvent, UserPropertyKey } from './events';
 import { ClarityProvider } from './providers/clarity-provider';
@@ -37,7 +38,7 @@ export type UserProperties = Partial<Record<UserPropertyKey, string | number | n
 export interface AnalyticsContextValue {
   isReady: boolean;
   consent: ConsentState;
-  track: <E extends AnalyticsEvent>(event: E | Promise<E | null>) => void;
+  track: <E extends AnalyticsEvent>(event: E | Promise<E | null>, recoveryEvent?: AnalyticsEvent | Promise<AnalyticsEvent | null>) => void;
   initializeUserProperties: (properties: UserProperties) => void;
   setUserProperties: (properties: UserProperties) => void;
   setUserProperty: (key: UserPropertyKey, value: string | number | null) => Promise<void>;
@@ -98,6 +99,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
   if (clientRef.current === null) {
     clientRef.current = createFanoutAnalyticsClient({
       providers: buildProviders(),
+      outboxStore: analyticsOutboxStore,
+      getUserId: () => Platform.OS === 'web' ? null : getCurrentUid(),
       onProviderFailure: reportProviderFailure,
     });
   }
@@ -119,6 +122,18 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let isMounted = true;
+    const client = clientRef.current;
+    client.retryPending();
+    let consentResolved = false;
+    let bootstrapping = false;
+    let consentRetry: ReturnType<typeof setTimeout> | null = null;
+    let consentRetryDelay = 1000;
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        client.retryPending();
+        if (!consentResolved) void bootstrap();
+      }
+    });
     const unregisterReporter = registerErrorReporter(clientRef.current);
     const uninstallErrorReporting = installGlobalErrorReporting({
       client: clientRef.current,
@@ -126,35 +141,40 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     });
 
     async function bootstrap(): Promise<void> {
-      const client = clientRef.current;
-      // init()이 먼저 끝나야 setEnabled/setUserId를 호출할 수 있다.
-      await client.init();
-      if (!isMounted) return;
-
-      const resolvedConsent = await ensureTrackingConsent();
-      if (!isMounted) return;
-
-      // 이미 복원된 uid는 첫 app_open보다 먼저 적용한다. uid가 아직 없으면 기다리지 않고
-      // 익명 수집을 시작하고, 이후 auth 구독 effect가 확보 시점에 적용한다.
-      await client.startCollection(
-        consentAllowsCollection(resolvedConsent),
-        () => Platform.OS === 'web' ? null : getCurrentUid(),
-      );
-
-      if (isMounted) {
+      if (!isMounted || bootstrapping || consentResolved) return;
+      bootstrapping = true;
+      try {
+        const resolvedConsent = await ensureTrackingConsent();
+        if (!isMounted) return;
+        consentResolved = true;
         setConsent(resolvedConsent);
-        setIsReady(true);
+        await client.startCollection(
+          consentAllowsCollection(resolvedConsent),
+          () => Platform.OS === 'web' ? null : getCurrentUid(),
+        );
+        if (isMounted) setIsReady(true);
+      } catch (error: unknown) {
+        console.warn('[analytics.bootstrap] consent lookup failed; events retained', error);
+        // 조회 실패는 거부가 아니다. 전송을 보류하고 복구 후 동의를 다시 확인한다.
+        if (isMounted && consentRetry === null) {
+          consentRetry = setTimeout(() => {
+            consentRetry = null;
+            void bootstrap();
+          }, consentRetryDelay);
+          consentRetryDelay = Math.min(consentRetryDelay * 2, 60000);
+        }
+      } finally {
+        bootstrapping = false;
       }
     }
 
-    void bootstrap().catch((error: unknown) => {
-      console.warn('[analytics.bootstrap]', error);
-      // 동의를 확인하지 못한 경우 대기 이벤트를 전송하지 않는다.
-      void clientRef.current.startCollection(false, () => null);
-    });
+    void bootstrap();
 
     return () => {
       isMounted = false;
+      appStateSubscription.remove();
+      if (consentRetry !== null) clearTimeout(consentRetry);
+      client.dispose();
       uninstallErrorReporting();
       unregisterReporter();
     };
@@ -166,8 +186,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     void clientRef.current.setUserId(uid);
   }, [authIsInitializing, isReady, uid]);
 
-  const track = useCallback(<E extends AnalyticsEvent>(event: E | Promise<E | null>): void => {
-    void clientRef.current.logEvent(event);
+  const track = useCallback(<E extends AnalyticsEvent>(event: E | Promise<E | null>, recoveryEvent?: AnalyticsEvent | Promise<AnalyticsEvent | null>): void => {
+    void clientRef.current.logEvent(event, recoveryEvent);
   }, []);
 
   const setUserProperty = useCallback(

@@ -176,7 +176,10 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
           cumulative_practice_count: metrics?.lifetime_practice_count ?? 0,
           cumulative_practice_duration_ms: metrics?.lifetime_practice_duration_ms ?? 0,
         },
-      })) : null));
+      })) : null), started.then((confirmed) => confirmed ? {
+        name: 'word_practice_started' as const,
+        params: { session_id: sessionId, word_id: wordId, word_name: word },
+      } : null));
     }
 
     async function startNativeSession(): Promise<void> {

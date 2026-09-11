@@ -8,7 +8,6 @@ type TrackerFn = (event: AnalyticsEvent) => void;
 
 let activeTracker: TrackerFn | null = null;
 const pendingEvents: AnalyticsEvent[] = [];
-const MAX_PENDING_EVENTS = 200;
 
 export function registerEventTracker(client: AnalyticsClient): () => void {
   const tracker: TrackerFn = (event) => {
@@ -27,9 +26,7 @@ export function registerEventTracker(client: AnalyticsClient): () => void {
 export function trackEvent<E extends AnalyticsEvent>(event: E): void {
   if (activeTracker) {
     activeTracker(event);
-  } else if (pendingEvents.length < MAX_PENDING_EVENTS) {
-    pendingEvents.push(event);
   } else {
-    console.warn('[analytics.tracker] pending event limit reached; dropping event');
+    pendingEvents.push(event);
   }
 }

@@ -80,9 +80,10 @@ export type AnalyticsEvent =
         session_id: string;
         word_id: string;
         word_name: string;
-        attempt_number: number;
-        cumulative_practice_count: number;
-        cumulative_practice_duration_ms: number;
+        // 누계 조회 중 프로세스가 종료돼 시작만 복구한 경우에는 미확정 누계를 생략한다.
+        attempt_number?: number;
+        cumulative_practice_count?: number;
+        cumulative_practice_duration_ms?: number;
       };
     }
   | {

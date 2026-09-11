@@ -14,7 +14,7 @@ export interface AnalyticsProviderAdapter {
   setUserId(id: string | null): Promise<void>;
   setUserProperty(key: string, value: string | null): Promise<void>;
   logEvent(name: string, params: AnalyticsParams): Promise<void>;
-  setScreen(name: string, screenClass?: string): Promise<void>;
+  setScreen(name: string, screenClass?: string, metadata?: AnalyticsParams): Promise<void>;
   setEnabled(enabled: boolean): Promise<void>;
   recordError(error: Error, context?: Record<string, string>): Promise<void>;
   /**

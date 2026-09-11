@@ -116,18 +116,15 @@ it('continues after a failed deferred payload', async () => {
   warning.mockRestore();
 });
 
-it('bounds pending events while preserving later property changes', async () => {
-  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+it('preserves more than 200 pending events and later property changes', async () => {
   const { client, received, provider } = fixture();
   const events = Array.from({ length: 201 }, () => client.logEvent(foreground));
   const update = client.setUserProperties({ parrot_species: 'cockatiel' });
   client.initializeUserProperties({ parrot_species: 'budgie' });
   await client.startCollection(true, () => null);
   await Promise.all([...events, update]);
-  expect(received).toHaveLength(200);
+  expect(received).toHaveLength(201);
   expect(provider.setUserProperty).toHaveBeenLastCalledWith('parrot_species', 'cockatiel');
-  expect(warning).toHaveBeenCalledTimes(1);
-  warning.mockRestore();
 });
 
 it('routes module events through the same startup queue, including pre-registration events', async () => {
@@ -144,13 +141,20 @@ it('routes module events through the same startup queue, including pre-registrat
   expect(received.every((event) => event.species === 'budgie')).toBe(true);
 });
 
-it('continues applying species after an unrelated property fails', async () => {
+it('applies other properties after one fails and retries before sending events', async () => {
+  jest.useFakeTimers();
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
   const { client, provider, received } = fixture();
   jest.mocked(provider.setUserProperty).mockRejectedValueOnce(new Error('name failed'));
   client.initializeUserProperties({ parrot_name: 'Bird', parrot_species: 'budgie' });
-  await client.startCollection(true, () => null);
+  const started = client.startCollection(true, () => null);
+  await jest.advanceTimersByTimeAsync(1000);
+  await started;
   await client.logEvent(foreground);
   expect(received).toEqual([{ name: 'app_foreground', species: 'budgie' }]);
+  client.dispose();
+  warning.mockRestore();
+  jest.useRealTimers();
 });
 
 it('uses the UID restored during initial property application for the first event', async () => {
