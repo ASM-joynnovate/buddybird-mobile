@@ -22,6 +22,7 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
     startedAtRef.current = Date.now();
   }
   const dismissedRef = useRef(false);
+  const endedRef = useRef(false);
   const progressPercent = cycleProgressPercent(session.cycle, session.totalCycles);
 
   const buildWordDeltas = useCallback(
@@ -37,6 +38,8 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   );
 
   function handleStop(): void {
+    if (endedRef.current) return;
+    endedRef.current = true;
     // 외부 종료(알림 "중지") 후 뒤늦게 복귀한 경우 벽시계 차이에 백그라운드 공백이 섞이므로
     // 설정된 세션 총 길이로 클램프해 지표 오염을 막는다.
     const durationMs = Math.min(
@@ -53,7 +56,9 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
         last_word_name: pendingSession.word,
       },
     });
-    void flushSessionWordMetrics(buildWordDeltas(durationMs, 0));
+    void flushSessionWordMetrics(buildWordDeltas(durationMs, 0)).catch((error: unknown) => {
+      console.warn('[training.wordMetrics]', error);
+    });
     session.stop();
     // 화면 이동은 useSessionExit 가 가로채기를 끈 뒤 처리한다.
     setTimeout(() => clearPendingSession(), 0);
@@ -70,7 +75,8 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
   }
 
   useEffect(() => {
-    if (session.status !== 'completed') return;
+    if (session.status !== 'completed' || endedRef.current) return;
+    endedRef.current = true;
     const durationMs = Date.now() - startedAtRef.current;
     const totalRecordings = pendingSession.audioUri ? 1 : 0;
     const avgRecordingMs = totalRecordings > 0 ? session.learnSecs * 1000 : 0;
@@ -86,7 +92,9 @@ export function useSessionAnalytics({ pendingSession, session, clearPendingSessi
         avg_recording_duration_ms: avgRecordingMs,
       },
     });
-    void flushSessionWordMetrics(buildWordDeltas(durationMs, totalRecordings));
+    void flushSessionWordMetrics(buildWordDeltas(durationMs, totalRecordings)).catch((error: unknown) => {
+      console.warn('[training.wordMetrics]', error);
+    });
   }, [
     session.status,
     session.learnSecs,

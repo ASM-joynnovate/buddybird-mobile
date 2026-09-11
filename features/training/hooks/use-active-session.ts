@@ -139,9 +139,19 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
 
   useEffect(() => {
     let cancelled = false;
+    let startingNewSession = false;
+    let confirmStarted!: (started: boolean) => void;
+    const started = new Promise<boolean>((resolve) => { confirmStarted = resolve; });
+    const acceptNativeSnapshot = (next: SessionEngineSnapshot): void => {
+      if (startingNewSession && next.sessionId === engineSessionId &&
+        (next.state === 'running' || next.state === 'paused' || next.state === 'interrupted' || next.elapsedRunningMs > 0)) {
+        confirmStarted(true);
+      }
+      acceptSnapshot(next);
+    };
     const unsubscribers = [
-      sessionAudioEngine.onStateChanged(acceptSnapshot),
-      sessionAudioEngine.onProgress(acceptSnapshot),
+      sessionAudioEngine.onStateChanged(acceptNativeSnapshot),
+      sessionAudioEngine.onProgress(acceptNativeSnapshot),
       sessionAudioEngine.onSegmentCaptured((segment) => { void storeSegment(segment); }),
       sessionAudioEngine.onFailure((nativeFailure) => {
         reportError(new Error(`${nativeFailure.code}: ${nativeFailure.message}`), { scope: 'training.sessionAudio.native' });
@@ -149,32 +159,34 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       }),
     ];
 
-    // 신규 시작 경로에서만 발화 — startNativeSession의 기존 세션 복귀(remount) early return
-    // 경로에서는 호출되지 않는다.
-    async function trackPracticeStarted(): Promise<void> {
-      const lifetime = await readWordLifetimeMetrics(wordId).catch((error: unknown) => {
+    function reservePracticeStarted(): void {
+      // 네이티브 응답·누계 조회보다 먼저 순서를 예약한다. 기존 세션 복귀나 시작 실패는
+      // null로 해제하고, 네이티브 상태가 먼저 도착하면 시작 성공으로 확정한다.
+      const lifetime = readWordLifetimeMetrics(wordId).catch((error: unknown) => {
         console.warn('[training.practiceStarted]', error);
         return null;
       });
-      track({
-        name: 'word_practice_started',
+      track(started.then((confirmed) => confirmed ? lifetime.then((metrics) => ({
+        name: 'word_practice_started' as const,
         params: {
           session_id: sessionId,
           word_id: wordId,
           word_name: word,
-          attempt_number: (lifetime?.lifetime_practice_count ?? 0) + 1,
-          cumulative_practice_count: lifetime?.lifetime_practice_count ?? 0,
-          cumulative_practice_duration_ms: lifetime?.lifetime_practice_duration_ms ?? 0,
+          attempt_number: (metrics?.lifetime_practice_count ?? 0) + 1,
+          cumulative_practice_count: metrics?.lifetime_practice_count ?? 0,
+          cumulative_practice_duration_ms: metrics?.lifetime_practice_duration_ms ?? 0,
         },
-      });
+      })) : null));
     }
 
     async function startNativeSession(): Promise<void> {
       let audioSourceReady = false;
       try {
         const existing = await sessionAudioEngine.getSnapshot();
+        if (cancelled) return;
         if (existing?.sessionId === engineSessionId) {
-          if (!cancelled) acceptSnapshot(existing);
+          confirmStarted(false);
+          acceptSnapshot(existing);
           await syncUnstoredSegments();
           return;
         }
@@ -185,7 +197,9 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
         const stressCareAudioUris = careSecs > 0
           ? await Promise.all(STRESS_CARE_TRACK_MODULES.map((module) => prepareSessionAudioUri(module)))
           : [];
+        if (cancelled) return;
         audioSourceReady = true;
+        startingNewSession = true;
         const next = await sessionAudioEngine.start({
           sessionId: engineSessionId,
           targetAudioUri,
@@ -216,10 +230,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
             pausedSubtitle: t('sessionNotification.pausedSubtitle'),
           },
         });
+        confirmStarted(true);
         if (!cancelled) acceptSnapshot(next);
-        if (!cancelled) void trackPracticeStarted();
         await syncUnstoredSegments();
       } catch (error: unknown) {
+        confirmStarted(false);
         reportError(error, { scope: 'training.sessionAudio.start', screen_name: 'session_active' });
         if (cancelled) return;
         // 네이티브가 code를 emit하지 못한 경로(JS 준비 실패 등) 대비 fallback —
@@ -233,9 +248,11 @@ export function useActiveSession({ wordId, settings, audioUri, word }: UseActive
       }
     }
 
+    reservePracticeStarted();
     void startNativeSession();
     return () => {
       cancelled = true;
+      confirmStarted(false);
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [
