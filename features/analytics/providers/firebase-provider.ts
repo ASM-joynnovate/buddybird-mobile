@@ -26,7 +26,7 @@ export class FirebaseProvider implements AnalyticsProviderAdapter {
   private readonly crashlytics = getCrashlytics();
 
   async init(): Promise<void> {
-    await setAnalyticsCollectionEnabled(this.analytics, true);
+    await setAnalyticsCollectionEnabled(this.analytics, false);
     await setCrashlyticsCollectionEnabled(this.crashlytics, true);
   }
 

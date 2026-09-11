@@ -15,7 +15,7 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
   readonly supportsErrorReporting = false;
   private readonly config: ClarityProviderConfig;
   private initialized = false;
-  private enabled = true;
+  private enabled = false;
   // 세션 화면의 캡처·직렬화가 힙 소진 OOM 을 유발해 화면 단위로 캡처를 멈춘다 (BB-276).
   private sessionReplayPaused = false;
 
@@ -45,7 +45,7 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
   }
 
   async setUserId(id: string | null): Promise<void> {
-    if (!this.initialized || !this.enabled) {
+    if (!this.initialized) {
       return;
     }
 
@@ -55,7 +55,7 @@ export class ClarityProvider implements AnalyticsProviderAdapter {
   }
 
   async setUserProperty(key: string, value: string | null): Promise<void> {
-    if (!this.initialized || !this.enabled || value === null) {
+    if (!this.initialized || value === null) {
       return;
     }
 

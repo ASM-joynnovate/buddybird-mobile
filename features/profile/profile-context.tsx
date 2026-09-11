@@ -1,6 +1,6 @@
 import { createContext, use, useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
-import { useOptionalAnalytics } from '@/features/analytics/analytics-context';
+import { useOptionalAnalytics, type UserProperties } from '@/features/analytics/analytics-context';
 import { diffDaysIso } from '@/features/shared/date-utils';
 
 import { ageMonthsFromBirthDate } from './profile-age';
@@ -22,11 +22,10 @@ const PROFILE_UPDATE_TRACKED_FIELDS = ['name', 'species', 'birthDate', 'photoUri
 
 export function ProfileProvider({ children }: PropsWithChildren) {
   // analytics seam은 optional로 구독한다. AnalyticsProvider가 바깥에 있으면(정상 순서)
-  // 아래 effect가 준비 시점에 user property를 동기화하고, 없으면 동기화를 건너뛴다 —
-  // 마운트 순서에 대한 하드 크래시 결합 대신 effect 게이팅으로 완화한다.
+  // 복원 완료 시 초기 속성을 전달하고 저장 성공 시 변경을 등록한다.
   const analytics = useOptionalAnalytics();
-  const analyticsReady = analytics?.isReady ?? false;
-  const setUserProperty = analytics?.setUserProperty ?? null;
+  const initializeUserProperties = analytics?.initializeUserProperties;
+  const setUserProperties = analytics?.setUserProperties;
   const track = analytics?.track ?? null;
 
   const [profile, setProfile] = useState<ParrotProfile | null>(null);
@@ -44,33 +43,9 @@ export function ProfileProvider({ children }: PropsWithChildren) {
   }, [hasAnalytics]);
 
   useEffect(() => {
-    if (!analyticsReady || !setUserProperty) return;
-
-    // null 가드 후 non-null로 좁혀진 참조를 로컬에 고정한다 — 중첩 async 클로저에서는
-    // TS가 외부 const의 narrowing을 유지하지 않기 때문이다.
-    const syncUserProperty = setUserProperty;
-
-    async function syncUserProperties(): Promise<void> {
-      if (profile) {
-        await Promise.all([
-          syncUserProperty('parrot_name', profile.name),
-          syncUserProperty('parrot_species', profile.species),
-          syncUserProperty('parrot_age_months', ageMonthsFromBirthDate(profile.birthDate)),
-          syncUserProperty('profile_age_days', diffDaysIso(profile.createdAt)),
-        ]);
-        return;
-      }
-
-      await Promise.all([
-        syncUserProperty('parrot_name', null),
-        syncUserProperty('parrot_species', null),
-        syncUserProperty('parrot_age_months', null),
-        syncUserProperty('profile_age_days', null),
-      ]);
-    }
-
-    void syncUserProperties();
-  }, [analyticsReady, profile, setUserProperty]);
+    if (!isHydrated) return;
+    initializeUserProperties?.(profileProperties(profile));
+  }, [initializeUserProperties, isHydrated, profile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,9 +79,11 @@ export function ProfileProvider({ children }: PropsWithChildren) {
 
   const saveProfile = useCallback(async (nextProfile: ParrotProfile): Promise<void> => {
     await saveStoredProfile(nextProfile);
+    // 전송 완료는 기다리지 않지만 후속 이벤트보다 먼저 속성 변경을 등록한다.
+    setUserProperties?.(profileProperties(nextProfile));
     setProfile({ ...nextProfile });
     setErrorMessage(null);
-  }, []);
+  }, [setUserProperties]);
 
   const updateProfile = useCallback(
     async (nextProfile: ParrotProfile): Promise<void> => {
@@ -163,4 +140,13 @@ export function useProfile(): ProfileContextValue {
   }
 
   return context;
+}
+
+function profileProperties(profile: ParrotProfile | null): UserProperties {
+  return {
+    parrot_name: profile?.name ?? null,
+    parrot_species: profile?.species ?? null,
+    parrot_age_months: profile ? ageMonthsFromBirthDate(profile.birthDate) : null,
+    profile_age_days: profile ? diffDaysIso(profile.createdAt) : null,
+  };
 }

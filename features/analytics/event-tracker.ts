@@ -7,12 +7,15 @@ import type { AnalyticsEvent } from './events';
 type TrackerFn = (event: AnalyticsEvent) => void;
 
 let activeTracker: TrackerFn | null = null;
+const pendingEvents: AnalyticsEvent[] = [];
+const MAX_PENDING_EVENTS = 200;
 
 export function registerEventTracker(client: AnalyticsClient): () => void {
   const tracker: TrackerFn = (event) => {
     void client.logEvent(event);
   };
   activeTracker = tracker;
+  for (const event of pendingEvents.splice(0)) tracker(event);
   return () => {
     if (activeTracker === tracker) {
       activeTracker = null;
@@ -20,7 +23,13 @@ export function registerEventTracker(client: AnalyticsClient): () => void {
   };
 }
 
-/** provider 등록 전이거나 해제된 뒤에는 조용히 버린다 — 계측이 기능 동작을 막지 않는다. */
+/** provider 등록 전 이벤트도 보관하고 등록 시 공통 전송 대기열에 전달한다. */
 export function trackEvent<E extends AnalyticsEvent>(event: E): void {
-  activeTracker?.(event);
+  if (activeTracker) {
+    activeTracker(event);
+  } else if (pendingEvents.length < MAX_PENDING_EVENTS) {
+    pendingEvents.push(event);
+  } else {
+    console.warn('[analytics.tracker] pending event limit reached; dropping event');
+  }
 }

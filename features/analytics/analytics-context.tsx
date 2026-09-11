@@ -3,6 +3,7 @@ import {
   use,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -31,10 +32,14 @@ import {
   type WordSessionDelta,
 } from './word-metrics-storage';
 
+export type UserProperties = Partial<Record<UserPropertyKey, string | number | null>>;
+
 export interface AnalyticsContextValue {
   isReady: boolean;
   consent: ConsentState;
-  track: <E extends AnalyticsEvent>(event: E) => void;
+  track: <E extends AnalyticsEvent>(event: E | Promise<E | null>) => void;
+  initializeUserProperties: (properties: UserProperties) => void;
+  setUserProperties: (properties: UserProperties) => void;
   setUserProperty: (key: UserPropertyKey, value: string | number | null) => Promise<void>;
   setScreen: (name: string, screenClass?: string) => void;
   flushSessionWordMetrics: (deltas: readonly WordSessionDelta[]) => Promise<readonly WordLifetimeMetrics[]>;
@@ -109,31 +114,32 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     );
   }, [hasAuth]);
 
+  // 하위 컴포넌트의 passive effect에서 발생한 업로드 이벤트도 같은 client에 등록한다.
+  useLayoutEffect(() => registerEventTracker(clientRef.current), []);
+
   useEffect(() => {
     let isMounted = true;
-    let uninstallErrorReporting: (() => void) | null = null;
     const unregisterReporter = registerErrorReporter(clientRef.current);
-    const unregisterTracker = registerEventTracker(clientRef.current);
+    const uninstallErrorReporting = installGlobalErrorReporting({
+      client: clientRef.current,
+      getCurrentScreen: () => currentScreenRef.current,
+    });
 
     async function bootstrap(): Promise<void> {
       const client = clientRef.current;
       // init()이 먼저 끝나야 setEnabled/setUserId를 호출할 수 있다.
       await client.init();
+      if (!isMounted) return;
 
       const resolvedConsent = await ensureTrackingConsent();
-      const restoredUid = Platform.OS === 'web' ? null : getCurrentUid();
+      if (!isMounted) return;
 
       // 이미 복원된 uid는 첫 app_open보다 먼저 적용한다. uid가 아직 없으면 기다리지 않고
       // 익명 수집을 시작하고, 이후 auth 구독 effect가 확보 시점에 적용한다.
-      await Promise.all([
-        client.setEnabled(consentAllowsCollection(resolvedConsent)),
-        client.setUserId(restoredUid),
-      ]);
-
-      uninstallErrorReporting = installGlobalErrorReporting({
-        client,
-        getCurrentScreen: () => currentScreenRef.current,
-      });
+      await client.startCollection(
+        consentAllowsCollection(resolvedConsent),
+        () => Platform.OS === 'web' ? null : getCurrentUid(),
+      );
 
       if (isMounted) {
         setConsent(resolvedConsent);
@@ -141,12 +147,15 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       }
     }
 
-    void bootstrap();
+    void bootstrap().catch((error: unknown) => {
+      console.warn('[analytics.bootstrap]', error);
+      // 동의를 확인하지 못한 경우 대기 이벤트를 전송하지 않는다.
+      void clientRef.current.startCollection(false, () => null);
+    });
 
     return () => {
       isMounted = false;
-      uninstallErrorReporting?.();
-      unregisterTracker();
+      uninstallErrorReporting();
       unregisterReporter();
     };
   }, []);
@@ -157,7 +166,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     void clientRef.current.setUserId(uid);
   }, [authIsInitializing, isReady, uid]);
 
-  const track = useCallback(<E extends AnalyticsEvent>(event: E): void => {
+  const track = useCallback(<E extends AnalyticsEvent>(event: E | Promise<E | null>): void => {
     void clientRef.current.logEvent(event);
   }, []);
 
@@ -169,6 +178,14 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
     []
   );
 
+  const initializeUserProperties = useCallback((properties: UserProperties): void => {
+    clientRef.current.initializeUserProperties(stringifyProperties(properties));
+  }, []);
+
+  const setUserProperties = useCallback((properties: UserProperties): void => {
+    void clientRef.current.setUserProperties(stringifyProperties(properties));
+  }, []);
+
   const setScreen = useCallback((name: string, screenClass?: string): void => {
     currentScreenRef.current = name;
     setCurrentScreen(name);
@@ -177,21 +194,26 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
 
   const flushSessionWordMetrics = useCallback(
     async (deltas: readonly WordSessionDelta[]): Promise<readonly WordLifetimeMetrics[]> => {
-      const updated = await applySessionDeltas(deltas);
+      const updated = applySessionDeltas(deltas);
       const client = clientRef.current;
 
-      for (const metric of updated) {
-        await client.logEvent({
-          name: 'word_lifetime_metrics',
-          params: {
-            word_id: metric.word_id,
-            word_name: metric.word_name,
-            lifetime_practice_count: metric.lifetime_practice_count,
-            lifetime_practice_duration_ms: metric.lifetime_practice_duration_ms,
-            lifetime_recording_count: metric.lifetime_recording_count,
-            last_practiced_at_days_ago: diffDaysIso(metric.last_practiced_at_iso),
-          },
-        });
+      // 저장 완료 전에 이벤트 순서를 예약한다. 다음 세션의 시작이 누계 이벤트를 추월하지 않는다.
+      for (let index = 0; index < deltas.length; index += 1) {
+        const metricIndex = index;
+        void client.logEvent(updated.then((metrics) => {
+          const metric = metrics[metricIndex];
+          return {
+            name: 'word_lifetime_metrics' as const,
+            params: {
+              word_id: metric.word_id,
+              word_name: metric.word_name,
+              lifetime_practice_count: metric.lifetime_practice_count,
+              lifetime_practice_duration_ms: metric.lifetime_practice_duration_ms,
+              lifetime_recording_count: metric.lifetime_recording_count,
+              last_practiced_at_days_ago: diffDaysIso(metric.last_practiced_at_iso),
+            },
+          };
+        }));
       }
 
       return updated;
@@ -221,6 +243,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       currentScreen,
       track,
       setUserProperty,
+      initializeUserProperties,
+      setUserProperties,
       setScreen,
       flushSessionWordMetrics,
       recordError,
@@ -233,6 +257,8 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
       currentScreen,
       track,
       setUserProperty,
+      initializeUserProperties,
+      setUserProperties,
       setScreen,
       flushSessionWordMetrics,
       recordError,
@@ -261,4 +287,10 @@ export function useAnalytics(): AnalyticsContextValue {
   }
 
   return context;
+}
+
+function stringifyProperties(properties: UserProperties): Record<string, string | null> {
+  return Object.fromEntries(Object.entries(properties).map(([key, value]) => [
+    key, value === null ? null : String(value),
+  ]));
 }
