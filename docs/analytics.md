@@ -41,7 +41,7 @@ track({
 ### 2.2 화면 자동 추적
 
 ```tsx
-import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { useScreenTracking } from '@/features/analytics/hooks/use-screen-tracking';
 
 useScreenTracking('session_active');
 ```
@@ -57,6 +57,30 @@ await flushSessionWordMetrics([
   { word_id, word_name, practice_duration_ms, recordings_count },
 ]);
 ```
+
+### 2.4 전송 순서 (BB-445)
+
+수동 이벤트는 SDK 초기화, 수집 동의, 로컬 프로필 복원과 초기 속성 적용이 완료된 뒤 전송한다. 프로필 없음이 확정되면 null 속성으로 시작하며, 신규 사용자의 종 선택이나 오프라인 인증 완료를 기다리지 않는다.
+
+- `track`, `setScreen`, React 외부의 `trackEvent`, `app_error`, `word_lifetime_metrics`는 같은 전송 대기열 사용
+- 프로필 저장 성공 시 `setUserProperties`를 먼저 등록하고 생성·수정·다음 화면 이벤트를 뒤에 등록. 속성 SDK 호출 완료 후 후속 이벤트 전송
+- 화면 이동은 종 속성 재설정의 계기가 아님. 프로필 복원 중에는 임시 null 속성 전송 없음
+- 비동기 파라미터는 `track(promise)`로 즉시 순서 예약. Promise의 null 결과는 예약 취소, reject는 경고 후 건너뜀
+- 학습 시작은 네이티브 응답과 누계 조회 전에 순서를 예약. 실제 시작이 확인된 신규 세션만 전송하고, 복귀·시작 실패·시작 확인 전 취소는 해제
+- UID는 이벤트 전송 직전에도 확인하여 속성 초기화 도중이나 실행 중 확보된 UID 반영
+- 전역 오류 핸들러는 Provider effect에서 즉시 설치. Crashlytics 기록은 GA 대기열과 별개로 실행
+
+전송 대기는 메모리에만 보관한다. 공통 대기열의 대기 이벤트 상한은 200개이며 초과분은 경고 후 폐기한다. 속성 변경 명령은 보존한다. SDK나 비동기 조회가 끝나지 않으면 뒤의 이벤트도 대기하지만 프로필 저장과 화면 사용은 계속할 수 있다. 앱 프로세스 종료 시 미전송 이벤트는 소실되며 자동 재전송은 하지 않는다. SDK 호출 실패는 경고 후 다음 속성·이벤트를 계속 시도하므로, 실패한 속성의 반영까지 보장하지는 않는다.
+
+`flushSessionWordMetrics`의 Promise는 로컬 누계 저장 완료를 의미한다. 이벤트 전송 완료를 기다리지 않는다. 지표 읽기·증가·삭제는 같은 저장 대기열에서 실행하므로 다음 세션 조회는 이전 저장을 기다리고, 저장 중첩으로 증가량이 사라지거나 앞선 저장이 삭제를 되돌리는 것을 방지한다.
+
+### 2.5 네이티브·기기 검증 범위
+
+`firebase.json`의 `analytics_auto_collection_enabled` 기본값과 Firebase 어댑터 초기화는 수집 비활성으로 시작한다. 동의 및 초기 사용자 속성 적용 후 활성화한다. `firebase.json` 변경은 네이티브 재빌드에 포함해야 한다.
+
+JavaScript 대기열은 수동 전송 경로만 제어한다. Firebase SDK의 기존 저장 설정과 JavaScript 실행 전 자동 이벤트, 자동 화면 계측은 Android·iOS DebugView로 별도 확인해야 한다. 자동 화면 설정은 이번 변경에서 유지했으며, 실제 자동·수동 `screen_view` 중복 여부와 네이티브 자동 이벤트 시점은 아직 미검증이다. 순서 보장은 SDK 호출 순서에 대한 것으로 서버 수신 시각의 정렬까지 보장하지 않는다.
+
+배포 후 이벤트에 적용되는 변경이며 과거 중복 이벤트나 `(not set)` 값은 소급 수정하지 않는다. 기존 데이터는 필요 시 앱 버전·수집 기간을 나누어 해석한다.
 
 ## 정책 (Policies)
 

@@ -73,7 +73,10 @@
 
 | Export | 경로 | 시그니처 | 용도 |
 |---|---|---|---|
-| `useAnalytics` | `@/features/analytics/analytics-context` | `() => { track, setScreen, flushSessionWordMetrics }` | 이벤트 발송·스크린 설정·단어 메트릭 flush 진입점. AnalyticsProvider 바깥이면 throw |
+| `useAnalytics` | `@/features/analytics/analytics-context` | `() => AnalyticsContextValue` | 이벤트 발송·스크린 설정·단어 메트릭 flush 진입점. AnalyticsProvider 바깥이면 throw |
+| `AnalyticsContextValue.track` | `@/features/analytics/analytics-context` | `<E extends AnalyticsEvent>(event: E \| Promise<E \| null>) => void` | SDK·동의·초기 프로필 속성 준비 후 등록 순서로 전송. 비동기 파라미터는 Promise로 즉시 예약하고, null은 예약 취소 |
+| `AnalyticsContextValue.initializeUserProperties` | `@/features/analytics/analytics-context` | `(properties: UserProperties) => void` | ProfileProvider가 로컬 복원 완료 후 초기 속성 제공. 최초 호출만 적용 |
+| `AnalyticsContextValue.setUserProperties` | `@/features/analytics/analytics-context` | `(properties: UserProperties) => void` | 프로필 저장 성공 후 속성 묶음을 후속 이벤트보다 먼저 등록. UI는 SDK 완료를 기다리지 않음 |
 | `useOptionalAnalytics` | `@/features/analytics/analytics-context` | `() => AnalyticsContextValue \| null` | AnalyticsProvider 바깥에서도 throw 없이 구독(없으면 null). provider 마운트 순서에 하드 결합되면 안 되는 소비처가 effect 게이팅으로 사용 |
 | `AnalyticsProvider` | `@/features/analytics/analytics-context` | React Provider | root layout에서 한 번만 마운트 |
 | `useScreenTracking` | `@/features/analytics/hooks/use-screen-tracking` | `(screenName: string, screenClass?: string) => { elapsedMs: () => number }` | 스크린 진입 자동 추적 + 체류 시간 측정 |
@@ -83,10 +86,10 @@
 | `installGlobalErrorReporting` | `@/features/analytics/error-reporter` | `({ client, getCurrentScreen? }: InstallErrorReportingOptions) => () => void` | 전역 uncaught 핸들러 + Hermes rejection 추적 설치 (AnalyticsProvider 전용) |
 | `ErrorContext` (type) | `@/features/analytics/error-reporter` | `{ scope: ErrorScope; screen_name?: string; is_fatal?: string }` | `reportError` 컨텍스트 — 알려진 키만 허용 |
 | `ErrorScope` / `ErrorDomain` (type) | `@/features/analytics/error-reporter` | `ErrorDomain \| \`${ErrorDomain}.${string}\`` | scope 도메인 prefix 강제(자유 string 금지). 새 도메인은 `ErrorDomain` union에 먼저 추가하고 method 부분은 자유. `persistKeyedStore` config의 `scope`도 이 타입 |
-| `trackEvent` | `@/features/analytics/event-tracker` | `<E extends AnalyticsEvent>(event: E) => void` | React 밖(순수 모듈)에서 이벤트 발행 — 훅을 못 쓰는 업로드 파이프라인용. provider 등록 전이면 조용히 no-op. 컴포넌트·훅에서는 `useAnalytics().track` 을 쓴다 |
+| `trackEvent` | `@/features/analytics/event-tracker` | `<E extends AnalyticsEvent>(event: E) => void` | React 밖(순수 모듈)에서 이벤트 발행 — 훅을 못 쓰는 업로드 파이프라인용. provider 등록 전에는 최대 200개를 메모리에 대기시키고 등록 후 공통 전송 대기열로 전달. 초과 이벤트는 경고 후 폐기. 컴포넌트·훅에서는 `useAnalytics().track` 을 쓴다 |
 | `registerEventTracker` | `@/features/analytics/event-tracker` | `(client: AnalyticsClient) => () => void` | AnalyticsProvider가 tracker를 등록할 때 사용 |
-| `readWordLifetimeMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<WordLifetimeMetrics \| null>` | 단어별 누적 연습 지표 조회 (없으면 null). `word_removed`·`word_practice_started` 파라미터 소스 |
-| `removeWordMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<void>` | 단어 삭제 시 orphan 지표 정리 (idempotent) |
+| `readWordLifetimeMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<WordLifetimeMetrics \| null>` | 앞서 등록된 지표 저장·삭제 완료 후 단어별 누적 연습 지표 조회 (없으면 null). `word_removed`·`word_practice_started` 파라미터 소스 |
+| `removeWordMetrics` | `@/features/analytics/word-metrics-storage` | `(wordId: string) => Promise<void>` | 지표 갱신과 같은 대기열에서 단어 삭제 시 orphan 지표 정리 (idempotent) |
 | `reportProviderFailure` | `@/features/analytics/analytics-utils` | `(provider: string, op: string, error: unknown) => void` | provider별 fanout 실패 격리 로깅 |
 | `clampEventName` | `@/features/analytics/events` | `(name: string) => string` | 이벤트 이름을 40자 이하로 절단 (Firebase 제약) |
 | `toFirebaseParams` | `@/features/analytics/events` | `(params: AnalyticsParams) => Record<string, string \| number \| boolean>` | Firebase params 직렬화 |
