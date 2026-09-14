@@ -9,10 +9,11 @@ import { Card } from "@/components/ui/surface"
 
 import { IconButton } from "@/components/ui/icon-button"
 import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { categoryColors, colors, font } from "@/theme"
 
 export function RecordingPanel({
 	label,
+	category,
 	isRecording,
 	durationMillis,
 	metering,
@@ -21,6 +22,7 @@ export function RecordingPanel({
 	toggleRecording,
 }: {
 	label: string
+	category: keyof typeof categoryColors
 	isRecording: boolean
 	durationMillis: number
 	metering?: number
@@ -29,6 +31,7 @@ export function RecordingPanel({
 	toggleRecording(): Promise<void>
 }) {
 	const { t } = useTranslation()
+	const palette = categoryColors[category]
 	const seconds = Math.floor(durationMillis / 1000)
 	const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`
 	let recordingStatusText: string
@@ -43,8 +46,9 @@ export function RecordingPanel({
 
 	return (
 		<Card
-			tone="primary"
-			cornerRadius={radius.hero}
+			tone={palette.tone}
+			cornerRadius={22}
+			depth={4}
 			style={styles.spacing}
 			contentStyle={styles.recordingCard}
 		>
@@ -57,10 +61,10 @@ export function RecordingPanel({
 					testID="recording-waveform"
 					active={isRecording}
 					level={meteringLevel(metering)}
-					color={isRecording ? colors.onAccent : colors.orangeSoft}
+					color={isRecording ? colors.onAccent : palette.soft}
 					height={48}
-					barCount={23}
-					barWidth={5}
+					barCount={48}
+					barWidth={3}
 				/>
 			</View>
 			<View style={styles.recordButton}>
@@ -70,10 +74,11 @@ export function RecordingPanel({
 					label={t(isRecording ? "words.stopRecording" : "words.record")}
 					onPress={() => void toggleRecording()}
 					disabled={busy}
-					size={82}
+					size={80}
+					iconSize={isRecording ? 26 : 34}
 					tone={isRecording ? "danger" : "neutral"}
 					round
-					color={isRecording ? colors.background : colors.orange}
+					color={isRecording ? colors.background : palette.color}
 				/>
 				{busy ? <ActivityIndicator style={styles.busy} color={colors.onAccent} /> : null}
 			</View>
@@ -85,29 +90,30 @@ export function RecordingPanel({
 }
 
 const styles = StyleSheet.create({
-	spacing: { marginTop: 24 },
+	spacing: { marginTop: 18 },
 	recordingCard: {
 		alignItems: "center",
-		paddingHorizontal: 20,
-		paddingTop: 28,
+		paddingHorizontal: 24,
+		paddingTop: 24,
 		paddingBottom: 24,
 	},
-	targetLabel: { fontSize: 20, color: colors.onAccent },
+	targetLabel: { fontSize: 12, color: colors.onAccent },
 	target: {
 		fontFamily: font.black,
-		fontSize: 32,
+		fontSize: 34,
+		lineHeight: 40,
 		textAlign: "center",
 		marginTop: 12,
 		color: colors.onAccent,
 	},
-	waveform: { marginVertical: 16 },
+	waveform: { marginVertical: 16, width: "100%" },
 	recordButton: { position: "relative" },
 	busy: { position: "absolute", right: -18, top: 25 },
 	recordingStatus: {
 		color: colors.onAccent,
-		fontSize: 20,
+		fontSize: 13,
 		textAlign: "center",
 		marginTop: 18,
-		lineHeight: 28,
+		lineHeight: 20,
 	},
 })

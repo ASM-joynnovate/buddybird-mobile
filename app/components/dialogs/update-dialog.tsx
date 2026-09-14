@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native"
 
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
+import { ui } from "@/components/ui/styles"
 import { InlineError } from "@/components/ui/inline-error"
 import { Copy } from "@/components/ui/text"
 
@@ -56,6 +57,27 @@ export function UpdateDialog({
 			visible={visible}
 			onClose={dismiss}
 			title={t(forced ? "update.required" : "update.title")}
+			footer={
+				<View style={[ui.actions, styles.actions]}>
+					{!forced ? (
+						<Button
+							testID="update-later"
+							label={t("update.later")}
+							variant="secondary"
+							disabled={blocked}
+							onPress={onDismiss}
+							style={ui.action}
+						/>
+					) : null}
+					<Button
+						testID="update-open-store"
+						label={t("update.accept")}
+						loading={blocked}
+						onPress={() => void accept()}
+						style={ui.action}
+					/>
+				</View>
+			}
 		>
 			<Copy style={styles.body}>
 				{t(forced ? "update.requiredBody" : "update.body", { version: latestVersion })}
@@ -66,33 +88,12 @@ export function UpdateDialog({
 				</Copy>
 			))}
 			<InlineError message={error ? t("update.error") : null} />
-
-			<View style={styles.actions}>
-				{!forced ? (
-					<Button
-						testID="update-later"
-						label={t("update.later")}
-						variant="secondary"
-						disabled={blocked}
-						onPress={onDismiss}
-						style={styles.action}
-					/>
-				) : null}
-				<Button
-					testID="update-open-store"
-					label={t("update.accept")}
-					loading={blocked}
-					onPress={() => void accept()}
-					style={styles.action}
-				/>
-			</View>
 		</Dialog>
 	)
 }
 
 const styles = StyleSheet.create({
 	body: { fontSize: 17, lineHeight: 27 },
-	actions: { flexDirection: "row", gap: 12, marginTop: 26 },
-	action: { flex: 1 },
+	actions: { marginTop: 0 },
 	note: { marginTop: 12, lineHeight: 24 },
 })

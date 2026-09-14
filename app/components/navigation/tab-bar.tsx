@@ -21,7 +21,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 	const { t } = useTranslation()
 
 	return (
-		<View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+		<View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 30) }]}>
 			{state.routes.map((route, index) => {
 				const selected = state.index === index
 				const tabName = route.name.toLowerCase()
@@ -46,31 +46,33 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 				}
 
 				return (
-					<PressableSurface
-						key={route.key}
-						testID={`tab-${tabName}`}
-						accessibilityRole="tab"
-						accessibilityLabel={tabLabel}
-						accessibilityState={{ selected }}
-						tone={selected ? "primary" : "plain"}
-						cornerRadius={radius.card}
-						style={styles.tabCell}
-						contentStyle={styles.tab}
-						onPress={selectTab}
-					>
-						<Icon
-							name={icons[route.name as keyof MainTabParamList]}
-							color={selected ? colors.onAccent : colors.muted}
-							size={25}
-						/>
-						<Copy
-							numberOfLines={1}
-							adjustsFontSizeToFit
-							style={[styles.tabLabel, selected && { color: colors.onAccent }]}
+					<View key={route.key} style={styles.tabCell}>
+						<PressableSurface
+							testID={`tab-${tabName}`}
+							accessibilityRole="tab"
+							accessibilityLabel={tabLabel}
+							accessibilityState={{ selected }}
+							tone={selected ? "primary" : "plain"}
+							depth={selected ? 3 : 0}
+							cornerRadius={radius.control}
+							style={styles.tabTarget}
+							contentStyle={styles.tab}
+							onPress={selectTab}
 						>
-							{tabLabel}
-						</Copy>
-					</PressableSurface>
+							<Icon
+								name={icons[route.name as keyof MainTabParamList]}
+								color={selected ? colors.onAccent : colors.muted}
+								size={25}
+							/>
+							<Copy
+								numberOfLines={1}
+								adjustsFontSizeToFit
+								style={[styles.tabLabel, selected && { color: colors.onAccent }]}
+							>
+								{tabLabel}
+							</Copy>
+						</PressableSurface>
+					</View>
 				)
 			})}
 		</View>
@@ -86,21 +88,21 @@ const styles = StyleSheet.create({
 		borderColor: colors.border,
 		backgroundColor: colors.background,
 		paddingTop: 12,
-		paddingHorizontal: 15,
-		gap: 20,
+		paddingHorizontal: 8,
+		gap: 6,
 	},
-	tabCell: { width: 76 },
+	tabCell: { flex: 1, minWidth: 0, maxWidth: 68 },
+	tabTarget: { width: "100%", aspectRatio: 1 },
 	tab: {
-		aspectRatio: 1,
-		paddingHorizontal: 12,
-		paddingVertical: 9,
+		paddingHorizontal: 8,
+		paddingVertical: 8,
 		alignItems: "center",
 		justifyContent: "center",
-		gap: 7,
+		gap: 4,
 	},
 	tabLabel: {
 		fontFamily: font.extraBold,
-		fontSize: 13,
+		fontSize: 11,
 		color: colors.muted,
 		textAlign: "center",
 		alignSelf: "stretch",

@@ -2,9 +2,8 @@ import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { Button } from "@/components/ui/button"
-import { Chip } from "@/components/ui/chip"
-import { Card } from "@/components/ui/surface"
+import { Icon } from "@/components/ui/icon"
+import { Card, PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors } from "@/theme"
 import type { Capture } from "@/types/capture"
@@ -31,16 +30,18 @@ export const CaptureItem = memo(function CaptureItem({
 
 	return (
 		<Card contentStyle={styles.card} style={styles.item}>
-			<Copy style={styles.meta}>
-				{t("captures.row", {
-					cycle: capture.cycle,
-					phase: t(capture.phase === "rest" ? "captures.rest" : "captures.learning"),
-					time: new Date(capture.capturedAt).toLocaleTimeString(i18n.language, {
+			<View style={styles.header}>
+				<Copy style={styles.cycle}>{t("captures.cycle", { cycle: capture.cycle })}</Copy>
+				<Copy style={styles.phase}>
+					{t(capture.phase === "rest" ? "captures.rest" : "captures.learning")}
+				</Copy>
+				<Copy style={styles.meta}>
+					{new Date(capture.capturedAt).toLocaleTimeString(i18n.language, {
 						hour12: false,
-					}),
-					size: (capture.sizeBytes / 1024).toFixed(1),
-				})}
-			</Copy>
+					})}
+				</Copy>
+				<Copy style={styles.meta}>· {(capture.sizeBytes / 1024).toFixed(0)} KB</Copy>
+			</View>
 			<View style={styles.summary}>
 				<Copy style={styles.description}>
 					{t("captures.speech", {
@@ -48,12 +49,10 @@ export const CaptureItem = memo(function CaptureItem({
 						seconds: (speechMs / 1000).toFixed(1),
 					})}
 				</Copy>
-				<Button
+				<PlaybackButton
 					testID={`capture-full-${capture.id}`}
 					label={t(fullPlaying ? "captures.stop" : "captures.playFull")}
-					icon={fullPlaying ? "stop" : "play"}
-					compact
-					variant={fullPlaying ? "primary" : "secondary"}
+					active={fullPlaying}
 					onPress={() => (fullPlaying ? stop() : void play(capture))}
 				/>
 			</View>
@@ -83,15 +82,16 @@ export const CaptureItem = memo(function CaptureItem({
 					</View>
 					<View style={styles.segments}>
 						{capture.segments.map((segment, index) => (
-							<Chip
+							<PlaybackButton
 								key={index}
 								testID={`capture-segment-${capture.id}-${index}`}
+								tone={activeKey === `${capture.id}:${index}` ? "primary" : "blue"}
 								label={t("captures.segment", {
 									index: index + 1,
 									start: (segment.startMs / 1000).toFixed(1),
 									end: (segment.endMs / 1000).toFixed(1),
 								})}
-								selected={activeKey === `${capture.id}:${index}`}
+								active={activeKey === `${capture.id}:${index}`}
 								onPress={() =>
 									activeKey === `${capture.id}:${index}`
 										? stop()
@@ -108,13 +108,88 @@ export const CaptureItem = memo(function CaptureItem({
 	)
 })
 
+function PlaybackButton({
+	label,
+	active,
+	onPress,
+	testID,
+	tone,
+}: {
+	label: string
+	active: boolean
+	onPress(): void
+	testID: string
+	tone?: "primary" | "blue"
+}) {
+	return (
+		<PressableSurface
+			testID={testID}
+			onPress={onPress}
+			accessibilityLabel={label}
+			accessibilityState={{ selected: active }}
+			depth={0}
+			tone="plain"
+			cornerRadius={10}
+			hitSlop={6}
+			backgroundColor={
+				active ? colors.orange : tone ? colors.blueSoft : colors.disabledBackground
+			}
+			contentStyle={styles.playButton}
+		>
+			<Icon
+				name={active ? "stop" : "play"}
+				size={13}
+				color={active ? colors.onAccent : colors.blue}
+			/>
+			<Copy style={[styles.playLabel, active && { color: colors.onAccent }]}>{label}</Copy>
+		</PressableSurface>
+	)
+}
+
 const styles = StyleSheet.create({
+	header: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
+	cycle: {
+		paddingHorizontal: 8,
+		paddingVertical: 2,
+		borderRadius: 10,
+		backgroundColor: colors.orangeSoft,
+		color: colors.orangeDark,
+		fontSize: 12,
+	},
+	phase: {
+		paddingHorizontal: 8,
+		paddingVertical: 2,
+		borderRadius: 10,
+		backgroundColor: colors.blueSoft,
+		color: colors.blue,
+		fontSize: 12,
+	},
+	playButton: {
+		borderWidth: 0,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 4,
+		paddingHorizontal: 8,
+		paddingVertical: 6,
+	},
+	playLabel: { flexShrink: 1, fontSize: 12 },
 	item: { marginBottom: 16 },
 	card: { gap: 14 },
 	meta: { fontSize: 13, lineHeight: 20, color: colors.muted },
 	summary: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 12 },
-	description: { flex: 1, minWidth: 130, lineHeight: 24 },
-	timeline: { height: 18, backgroundColor: colors.border, overflow: "hidden" },
-	segment: { position: "absolute", top: 0, bottom: 0 },
+	description: {
+		flexGrow: 1,
+		flexShrink: 1,
+		flexBasis: "50%",
+		minWidth: 0,
+		lineHeight: 24,
+	},
+	timeline: {
+		height: 26,
+		borderRadius: 10,
+		backgroundColor: colors.disabledBackground,
+		overflow: "hidden",
+	},
+	segment: { position: "absolute", top: 3, bottom: 3, minWidth: 3, borderRadius: 3 },
 	segments: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 })

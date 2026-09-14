@@ -21,10 +21,10 @@ export function App() {
 
 	return (
 		<RootProviders>
-			{ready && splashFinished ? (
+			{ready ? (
 				<AppProvider>
 					<SessionProvider>
-						<AppContent />
+						<AppContent showDialogs={splashFinished} />
 					</SessionProvider>
 				</AppProvider>
 			) : (
@@ -35,13 +35,13 @@ export function App() {
 	)
 }
 
-function AppContent() {
+function AppContent({ showDialogs }: { showDialogs: boolean }) {
 	useAppServices()
 
 	return (
 		<>
 			<AppNavigator />
-			<AppRuntime />
+			{showDialogs ? <AppRuntime /> : null}
 		</>
 	)
 }

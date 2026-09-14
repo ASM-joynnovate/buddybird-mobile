@@ -1,7 +1,21 @@
-import { Picker } from "@react-native-picker/picker"
-import { Platform, StyleSheet, useWindowDimensions, View } from "react-native"
+import { PropsWithChildren, useEffect, useRef, useState } from "react"
 
+import { NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from "react-native"
+import { ScrollView } from "react-native-gesture-handler"
+
+import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
+
+const itemHeight = 40
+
+export function WheelRow({ children }: PropsWithChildren) {
+	return (
+		<View style={styles.row}>
+			<View pointerEvents="none" style={styles.selection} />
+			{children}
+		</View>
+	)
+}
 
 export function Wheel({
 	value,
@@ -16,49 +30,112 @@ export function Wheel({
 	label: string
 	testID: string
 }) {
-	const { fontScale } = useWindowDimensions()
-	const optionStyle = { ...styles.option, fontSize: 18 / fontScale }
+	const scroll = useRef<ScrollView>(null)
+	const dragging = useRef(false)
+	const selectedIndex = Math.max(0, values.indexOf(value))
+	const initialOffset = useRef({ x: 0, y: selectedIndex * itemHeight })
+	const [centeredIndex, setCenteredIndex] = useState(selectedIndex)
+
+	useEffect(() => {
+		if (!dragging.current) {
+			scroll.current?.scrollTo({ y: selectedIndex * itemHeight, animated: false })
+			setCenteredIndex(selectedIndex)
+		}
+	}, [selectedIndex])
+
+	function indexAt(offset: number) {
+		return Math.max(0, Math.min(values.length - 1, Math.round(offset / itemHeight)))
+	}
+
+	function finishScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+		if (!dragging.current) {
+			return
+		}
+
+		dragging.current = false
+
+		const index = indexAt(event.nativeEvent.contentOffset.y)
+
+		setCenteredIndex(index)
+		onChange(values[index])
+	}
 
 	return (
-		<View style={styles.container}>
-			<Picker
-				testID={testID}
-				accessibilityLabel={label}
-				selectedValue={value}
-				onValueChange={(next) => onChange(Number(next))}
-				itemStyle={styles.item}
-				style={styles.picker}
-				dropdownIconColor={colors.text}
-			>
-				{values.map((item) => (
-					<Picker.Item
-						key={item}
-						label={String(item)}
-						value={item}
-						color={colors.text}
-						style={optionStyle}
-					/>
-				))}
-			</Picker>
-			{Platform.OS === "ios" ? <View pointerEvents="none" style={styles.selection} /> : null}
-		</View>
+		<ScrollView
+			ref={scroll}
+			testID={testID}
+			accessible
+			accessibilityLabel={label}
+			accessibilityRole="adjustable"
+			accessibilityValue={{
+				min: values[0],
+				max: values[values.length - 1],
+				now: value,
+				text: String(value),
+			}}
+			accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+			onAccessibilityAction={({ nativeEvent: { actionName } }) => {
+				if (actionName === "increment" || actionName === "decrement") {
+					const next =
+						values[
+							Math.max(
+								0,
+								Math.min(
+									values.length - 1,
+									selectedIndex + (actionName === "increment" ? 1 : -1),
+								),
+							)
+						]
+
+					onChange(next)
+				}
+			}}
+			style={styles.wheel}
+			contentContainerStyle={styles.content}
+			contentOffset={initialOffset.current}
+			snapToInterval={itemHeight}
+			decelerationRate="fast"
+			showsVerticalScrollIndicator={false}
+			scrollEventThrottle={50}
+			nestedScrollEnabled
+			onScrollBeginDrag={() => {
+				dragging.current = true
+			}}
+			onScroll={(event) => setCenteredIndex(indexAt(event.nativeEvent.contentOffset.y))}
+			onScrollEndDrag={(event) => {
+				if (event.nativeEvent.velocity?.y === 0) {
+					finishScroll(event)
+				}
+			}}
+			onMomentumScrollEnd={finishScroll}
+		>
+			{values.map((item, index) => (
+				<View key={item} style={styles.item}>
+					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>
+						{item}
+					</Copy>
+				</View>
+			))}
+		</ScrollView>
 	)
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: "center", minWidth: 64 },
-	picker: { width: "100%", color: colors.text },
-	item: { fontFamily: font.extraBold, fontSize: 18, height: 180, color: colors.text },
-	option: { backgroundColor: colors.background },
+	row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
+	wheel: { height: itemHeight * 5, flex: 1, minWidth: 0 },
+	content: { paddingVertical: itemHeight * 2 },
+	item: { height: itemHeight, alignItems: "center", justifyContent: "center" },
+	selectedText: { fontFamily: font.black, fontSize: 22, color: colors.text },
+	text: { fontFamily: font.bold, fontSize: 18, color: `${colors.text}59` },
 	selection: {
 		position: "absolute",
-		top: "50%",
-		marginTop: -20,
-		height: 40,
+		top: itemHeight * 2,
+		height: itemHeight,
 		left: 0,
 		right: 0,
-		borderTopWidth: 2,
-		borderBottomWidth: 2,
+		borderWidth: 2,
+		borderRadius: 12,
 		borderColor: colors.orange,
+		backgroundColor: `${colors.orange}0f`,
 	},
 })

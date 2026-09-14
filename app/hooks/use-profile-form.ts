@@ -20,27 +20,29 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 	const { profile } = useAppData()
 	const navigation = useNavigation()
 
+	const initial = onboarding?.draft ?? profile
 	const now = new Date()
-	const initialDate = profile?.birthDate?.split("-").map(Number) ?? [
+	const initialDate = initial?.birthDate?.split("-").map(Number) ?? [
 		now.getFullYear() - 1,
 		now.getMonth() + 1,
 		1,
 	]
-	const savedSpecies = profile?.species ?? ""
+	const savedSpecies = initial?.species ?? ""
 	const hasKnownSpecies = speciesIds.includes(savedSpecies)
-	const [name, setName] = useState(profile?.name ?? "")
+	const [name, setName] = useState(initial?.name ?? "")
 	const [species, setSpecies] = useState(hasKnownSpecies ? savedSpecies : "")
 	const [custom, setCustom] = useState(Boolean(savedSpecies && !hasKnownSpecies))
 	const [customSpecies, setCustomSpecies] = useState(custom ? savedSpecies : "")
-	const [unknownBirthday, setUnknownBirthday] = useState(Boolean(profile && !profile.birthDate))
+	const [unknownBirthday, setUnknownBirthday] = useState(Boolean(initial && !initial.birthDate))
 	const [year, setYear] = useState(initialDate[0])
 	const [month, setMonth] = useState(initialDate[1])
 	const [day, setDay] = useState(initialDate[2])
-	const [photoUri, setPhotoUri] = useState(profile?.photoUri)
-	const [submitted, setSubmitted] = useState(false)
+	const [photoUri, setPhotoUri] = useState(initial?.photoUri)
+	const [invalid, setInvalid] = useState({ name: false, species: false, birthday: false })
 	const [busy, setBusy] = useState(false)
 	const [saved, setSaved] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [photoError, setPhotoError] = useState<string | null>(null)
 	const saving = useRef(false)
 	const leaving = useRef(false)
 	const effectiveSpecies = (custom ? customSpecies : species).trim()
@@ -56,11 +58,11 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 		: `${year}-${String(month).padStart(2, "0")}-${String(chosenDay).padStart(2, "0")}`
 	const futureBirthday =
 		!unknownBirthday && new Date(year, month - 1, chosenDay).getTime() > Date.now()
-	const nameError = submitted && !name.trim() ? t("profile.nameRequired") : null
-	const speciesError = submitted && !effectiveSpecies ? t("profile.speciesRequired") : null
-	const birthdayError = submitted && futureBirthday ? t("profile.birthdayInvalid") : error
+	const nameError = invalid.name ? t("profile.nameRequired") : null
+	const speciesError = invalid.species ? t("profile.speciesRequired") : null
+	const birthdayError = invalid.birthday ? t("profile.birthdayInvalid") : null
 
-	usePreventRemove(!onboarding && busy, () => {})
+	usePreventRemove(busy, () => {})
 	useEffect(() => {
 		if (!onboarding) {
 			return
@@ -104,22 +106,22 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 			const result = await ImagePicker.launchImageLibraryAsync({
 				mediaTypes: ["images"],
 				allowsEditing: true,
-				aspect: [1, 1],
-				quality: 0.8,
+				quality: 0.85,
 			})
 
 			if (!result.canceled) {
 				setPhotoUri(result.assets[0].uri)
+				setPhotoError(null)
 			}
 		} catch {
-			setError(t("profile.photoError"))
+			setPhotoError(t("profile.photoError"))
 		} finally {
 			onboarding?.onPhotoPickerChange(false)
 		}
 	}
 
 	async function save() {
-		setSubmitted(true)
+		setInvalid({ name: !name.trim(), species: !effectiveSpecies, birthday: futureBirthday })
 
 		if (
 			saving.current ||
@@ -131,6 +133,7 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 			return
 		}
 
+		onboarding?.onDraft({ name, species: effectiveSpecies, birthDate, photoUri })
 		saving.current = true
 		setBusy(true)
 		setError(null)
@@ -175,32 +178,64 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 	}
 
 	return {
-		name: { name, setName, nameError },
-		photo: { photoUri, choosePhoto, busy },
+		name: {
+			name,
+			setName: (value: string) => {
+				setName(value)
+				setInvalid((current) => ({ ...current, name: false }))
+			},
+			nameError,
+		},
+		photo: { photoUri, choosePhoto, busy, error: photoError },
 		species: {
 			custom,
-			setCustom,
+			setCustom: (value: boolean) => {
+				setCustom(value)
+				setSpecies("")
+				setCustomSpecies("")
+			},
 			customSpecies,
-			setCustomSpecies,
+			setCustomSpecies: (value: string) => {
+				setCustomSpecies(value)
+				setInvalid((current) => ({ ...current, species: false }))
+			},
 			species,
-			setSpecies,
+			setSpecies: (value: string) => {
+				setSpecies(value)
+				setInvalid((current) => ({ ...current, species: false }))
+			},
 			busy,
 			speciesError,
 		},
 		birthday: {
 			unknownBirthday,
-			setUnknownBirthday,
+			setUnknownBirthday: (value: boolean) => {
+				setUnknownBirthday(value)
+				setInvalid((current) => ({ ...current, birthday: false }))
+			},
 			year,
-			setYear,
+			setYear: (value: number) => {
+				setInvalid((current) => ({ ...current, birthday: false }))
+				setYear(value)
+				setDay((current) => Math.min(current, new Date(value, month, 0).getDate()))
+			},
 			years,
 			month,
-			setMonth,
+			setMonth: (value: number) => {
+				setInvalid((current) => ({ ...current, birthday: false }))
+				setMonth(value)
+				setDay((current) => Math.min(current, new Date(year, value, 0).getDate()))
+			},
 			chosenDay,
-			setDay,
+			setDay: (value: number) => {
+				setDay(value)
+				setInvalid((current) => ({ ...current, birthday: false }))
+			},
 			days,
 			birthdayError,
 		},
 		busy,
+		error,
 		goBack,
 		save,
 	}

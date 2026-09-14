@@ -26,7 +26,15 @@ export function DurationBreakdown({ timing, locale }: { timing: Timing; locale: 
 			<View style={styles.phases}>
 				{(["learning", "rest", "care"] as const).map((phase, index) => (
 					<View key={phase} style={[styles.phase, index > 0 && styles.phaseBorder]}>
-						<Copy style={styles.phaseLabel}>{t(`learning.${phase}`)}</Copy>
+						<View style={styles.phaseLabelRow}>
+							<View
+								style={[
+									styles.dot,
+									{ backgroundColor: index === 0 ? colors.orange : colors.blue },
+								]}
+							/>
+							<Copy style={styles.phaseLabel}>{t(`learning.${phase}`)}</Copy>
+						</View>
 						<Copy
 							testID={`duration-total-${phase}`}
 							style={[
@@ -52,19 +60,22 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: radius.card - 2,
 		padding: 16,
 		flexDirection: "row",
+		flexWrap: "wrap",
 		alignItems: "center",
 		justifyContent: "space-between",
 		gap: 10,
 	},
-	breakdownTitle: { fontSize: 15, color: colors.muted, flex: 1 },
-	total: { fontFamily: font.black, fontSize: 23 },
+	breakdownTitle: { fontSize: 13, color: colors.muted, flex: 1 },
+	total: { flexShrink: 1, fontFamily: font.black, fontSize: 17 },
 	phases: {
 		flexDirection: "row",
 		borderTopWidth: 2,
 		borderColor: colors.border,
 	},
-	phase: { flex: 1, padding: 14 },
+	phase: { flex: 1, minWidth: 0, padding: 14 },
 	phaseBorder: { borderLeftWidth: 2, borderColor: colors.border },
-	phaseLabel: { color: colors.muted, fontSize: 13 },
-	phaseTime: { fontFamily: font.black, fontSize: 22, marginTop: 8 },
+	phaseLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+	dot: { width: 9, height: 9, borderRadius: 9 },
+	phaseLabel: { flexShrink: 1, color: colors.muted, fontSize: 13 },
+	phaseTime: { fontFamily: font.black, fontSize: 18, marginTop: 4 },
 })

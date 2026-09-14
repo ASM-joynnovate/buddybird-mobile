@@ -10,12 +10,12 @@ export function SessionScreen({ onContinue }: { onContinue(): void }) {
 		busy,
 		commandError,
 		command,
-		end,
 		togglePause,
 		goBack,
 		confirmEnd,
 		closeConfirmation,
 		confirmExit,
+		requestExit,
 	} = useSessionControls(onContinue)
 
 	if (snapshot.state === "completed") {
@@ -34,7 +34,7 @@ export function SessionScreen({ onContinue }: { onContinue(): void }) {
 				onBack={goBack}
 				busy={busy}
 				commandError={commandError}
-				onEnd={() => void command(end)}
+				onEnd={requestExit}
 				onRetry={() =>
 					void command(
 						snapshot.state === "failed" ? session.retry : session.retryRecovery,

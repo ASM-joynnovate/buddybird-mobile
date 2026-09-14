@@ -7,6 +7,7 @@ import { AudioWaveform } from "@/components/ui/audio-waveform"
 import { usePlaybackMetering } from "@/hooks/use-playback-metering"
 import { meteringLevel } from "@/lib/audio-waveform"
 
+import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { colors, radius } from "@/theme"
 import type { SessionSnapshot } from "@modules/session-audio-engine"
@@ -20,7 +21,9 @@ export function SessionStatus({ snapshot }: { snapshot: SessionSnapshot }) {
 	const accent = learning ? colors.orange : colors.blue
 	let statusKey = "session.waiting"
 
-	if (snapshot.state === "interrupted") {
+	if (snapshot.state === "starting") {
+		statusKey = "session.preparing"
+	} else if (snapshot.state === "interrupted") {
 		statusKey = "session.interrupted"
 	} else if (paused) {
 		statusKey = "session.paused"
@@ -28,39 +31,36 @@ export function SessionStatus({ snapshot }: { snapshot: SessionSnapshot }) {
 		statusKey = "session.playing"
 	}
 
-	let phaseHintKey = snapshot.phase === "rest" ? "session.restHint" : "session.careHint"
-
-	if (paused) {
-		phaseHintKey = snapshot.state === "interrupted" ? "session.interrupted" : "session.paused"
+	if (!learning) {
+		return null
 	}
 
 	return (
 		<>
-			{learning ? (
-				<>
-					<View style={styles.waveform}>
-						<AudioWaveform
-							testID="session-waveform"
-							active={playing}
-							level={meteringLevel(decibels)}
-							color={accent}
-							height={36}
-							barCount={33}
-							barWidth={4}
-						/>
-					</View>
-					<Copy
-						style={[
-							styles.status,
-							{ backgroundColor: paused ? colors.surface : colors.orangeSoft },
-						]}
-					>
-						{t(statusKey)}
-					</Copy>
-				</>
-			) : (
-				<Copy style={styles.phaseHint}>{t(phaseHintKey)}</Copy>
-			)}
+			<View style={styles.waveform}>
+				<AudioWaveform
+					testID="session-waveform"
+					active={playing}
+					level={meteringLevel(decibels)}
+					color={accent}
+					height={44}
+					barCount={38}
+					barWidth={4}
+				/>
+			</View>
+			<View
+				style={[
+					styles.status,
+					{ backgroundColor: playing ? colors.orangeSoft : colors.surface },
+				]}
+			>
+				<Icon
+					name={playing ? "volume" : paused ? "pause" : "mic"}
+					size={15}
+					color={playing ? accent : colors.muted}
+				/>
+				<Copy style={styles.statusText}>{t(statusKey)}</Copy>
+			</View>
 		</>
 	)
 }
@@ -69,11 +69,12 @@ const styles = StyleSheet.create({
 	waveform: { marginBottom: 16 },
 	status: {
 		alignSelf: "center",
-		paddingVertical: 11,
-		paddingHorizontal: 18,
+		paddingVertical: 6,
+		paddingHorizontal: 14,
 		borderRadius: radius.pill,
-		fontSize: 14,
-		textAlign: "center",
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
 	},
-	phaseHint: { textAlign: "center", color: colors.muted, lineHeight: 25, marginBottom: 8 },
+	statusText: { fontSize: 12, color: colors.muted },
 })

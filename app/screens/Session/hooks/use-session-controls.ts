@@ -78,6 +78,7 @@ export function useSessionControls(onContinue: () => void) {
 		commandError,
 		confirmEnd: confirmEnd && active,
 		closeConfirmation: () => setConfirmEnd(false),
+		requestExit: () => (snapshot.state === "failed" ? void command(end) : setConfirmEnd(true)),
 		confirmExit: () => {
 			setConfirmEnd(false)
 			void command(end)

@@ -38,7 +38,7 @@ export function ProfileScreen() {
 	}
 
 	return (
-		<Screen>
+		<Screen contentContainerStyle={ui.tabContent}>
 			<ProfileCard profile={profile} />
 
 			<ProfileStatistics stats={stats} locale={locale} />
@@ -51,7 +51,7 @@ export function ProfileScreen() {
 			<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.section]}>
 				{t("profile.language")}
 			</Copy>
-			<View style={ui.row}>
+			<View style={ui.wrap}>
 				<Chip
 					testID="language-ko"
 					label="한국어"

@@ -1,5 +1,3 @@
-import { useFonts } from "expo-font"
-
 import { useEffect, useState } from "react"
 
 import { Appearance } from "react-native"
@@ -7,14 +5,11 @@ import { Appearance } from "react-native"
 import { bootstrap } from "@/services/bootstrap"
 import { connectQueryLifecycle } from "@/services/lifecycle/query-client"
 import { reportError } from "@/services/telemetry/client"
-import { fontsToLoad } from "@/theme"
 
 export function useAppBootstrap() {
 	const [state, setState] = useState<"loading" | "ready" | "failed" | "headless">("loading")
 
 	const [attempt, setAttempt] = useState(0)
-
-	const [fontsLoaded, fontError] = useFonts(fontsToLoad)
 
 	useEffect(connectQueryLifecycle, [])
 
@@ -47,7 +42,7 @@ export function useAppBootstrap() {
 		}
 	}, [attempt])
 
-	const settled = state !== "loading" && Boolean(fontsLoaded || fontError)
+	const settled = state !== "loading"
 	const ready = state === "ready" && settled
 
 	return { state, ready, settled, retry: () => setAttempt((value) => value + 1) }

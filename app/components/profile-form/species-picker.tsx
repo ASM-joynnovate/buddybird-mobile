@@ -37,7 +37,9 @@ export function SpeciesPicker({
 			<View style={styles.labelRow}>
 				<Copy style={[ui.label, styles.noMargin]}>{t("profile.species")}</Copy>
 				<Chip
-					label={t(custom ? "common.select" : "profile.custom")}
+					label={t(custom ? "common.selected" : "profile.custom")}
+					selected={custom}
+					disabled={busy}
 					onPress={() => setCustom(!custom)}
 				/>
 			</View>
@@ -62,6 +64,7 @@ export function SpeciesPicker({
 									testID={`species-${id}`}
 									label={t(`species.${id}`)}
 									selected={species === id}
+									disabled={busy}
 									onPress={() => setSpecies(id)}
 								/>
 							))}
@@ -86,5 +89,5 @@ const styles = StyleSheet.create({
 	},
 	noMargin: { marginBottom: 0 },
 	group: { marginBottom: 10 },
-	groupLabel: { fontSize: 14, color: colors.muted, marginBottom: 8 },
+	groupLabel: { fontSize: 12, color: colors.muted, marginBottom: 8 },
 })

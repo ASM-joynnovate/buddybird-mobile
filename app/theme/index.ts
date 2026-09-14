@@ -8,20 +8,26 @@ export const colors = {
 	surface: "#f7f7f7",
 	orange: "#ff9600",
 	orangeDark: "#e07f00",
-	orangeSoft: "#fff2e0",
+	orangeSoft: "#FFE8CC",
 	orangeSelected: "#fff7eb",
 	blue: "#1cb0f6",
 	blueDark: "#1899d6",
-	blueSoft: "#e3f5fe",
-	purpleSoft: "#f7efff",
-	error: "#b3261e",
-	disabled: "#adadad",
+	blueSoft: "#DDF4FF",
+	purple: "#ce82ff",
+	purpleSoft: "#F2E1FF",
+	purpleDark: "#A85FD6",
+	yellow: "#FFC800",
+	yellowDark: "#E6A800",
+	scrim: "#00000066",
+	disabledBackground: "#EBEBEB",
+	error: "#FF4B4B",
+	disabled: "#AFAFAF",
 }
 
 export const radius = {
-	card: 20,
-	control: 18,
-	hero: 26,
+	card: 18,
+	control: 16,
+	hero: 20,
 	pill: 999,
 }
 
@@ -30,13 +36,41 @@ export const font = {
 	bold: "Pretendard-Bold",
 	extraBold: "Pretendard-ExtraBold",
 	black: "Pretendard-Black",
+	display: "Nunito-Black",
+	displayBold: "Nunito-Bold",
+	rounded: "Nunito-ExtraBold",
+	splash: "Fredoka-SemiBold",
 }
 
-export const fontsToLoad = {
-	"Pretendard-Regular": require("@assets/fonts/Pretendard-Regular.otf"),
-	"Pretendard-Bold": require("@assets/fonts/Pretendard-Bold.otf"),
-	"Pretendard-ExtraBold": require("@assets/fonts/Pretendard-ExtraBold.otf"),
-	"Pretendard-Black": require("@assets/fonts/Pretendard-Black.otf"),
-}
+export const categoryColors = {
+	greeting: {
+		color: colors.orange,
+		shadow: colors.orangeDark,
+		tint: "#FFF7EB",
+		soft: "#FFF2E0",
+		tone: "primary",
+	},
+	food: {
+		color: colors.blue,
+		shadow: colors.blueDark,
+		tint: "#EDF9FE",
+		soft: "#E4F6FE",
+		tone: "blue",
+	},
+	name: {
+		color: colors.purple,
+		shadow: colors.purpleDark,
+		tint: "#FBF5FF",
+		soft: "#F9F0FF",
+		tone: "purple",
+	},
+	etc: {
+		color: colors.orange,
+		shadow: colors.orangeDark,
+		tint: "#FFF7EB",
+		soft: "#FFF2E0",
+		tone: "primary",
+	},
+} as const
 
 export const mascot = require("@assets/images/buddy-bird.png")

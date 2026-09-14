@@ -1,4 +1,4 @@
-import { useNavigation, usePreventRemove } from "@react-navigation/native"
+import { useFocusEffect, useNavigation, usePreventRemove } from "@react-navigation/native"
 
 import {
 	AudioModule,
@@ -12,9 +12,10 @@ import {
 
 import { File } from "expo-file-system"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { useTranslation } from "react-i18next"
+import { Alert } from "react-native"
 
 import { useAppData } from "@/hooks/use-app-data"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
@@ -34,6 +35,7 @@ export function useWordEditor() {
 	const [busy, setBusy] = useState(false)
 	const [saved, setSaved] = useState(false)
 	const inFlight = useRef(false)
+	const savedWord = useRef(false)
 	const elapsedMilliseconds = useRef(0)
 	const retryCount = useRef(0)
 	const finishedRecordingUri = useRef<string | null>(null)
@@ -60,6 +62,31 @@ export function useWordEditor() {
 			navigation.goBack()
 		}
 	}, [saved, busy, navigation])
+
+	useFocusEffect(
+		useCallback(
+			() => () => {
+				try {
+					player.pause()
+
+					if (recorder.getStatus().isRecording) {
+						void recorder
+							.stop()
+							.catch((error) => reportError(error, "recording_cleanup"))
+					}
+				} catch (error) {
+					reportError(error, "recording_cleanup")
+				}
+
+				void setAudioModeAsync({
+					allowsRecording: false,
+					shouldPlayInBackground: false,
+					allowsBackgroundRecording: false,
+				}).catch((error) => reportError(error, "recording_cleanup"))
+			},
+			[player, recorder],
+		),
+	)
 
 	function finishRecording(uri: string, milliseconds: number) {
 		if (finishedRecordingUri.current === uri) {
@@ -159,7 +186,13 @@ export function useWordEditor() {
 	}
 
 	async function save() {
-		if (inFlight.current || recordingState.isRecording || !label.trim() || !recorded) {
+		if (
+			inFlight.current ||
+			savedWord.current ||
+			recordingState.isRecording ||
+			!label.trim() ||
+			!recorded
+		) {
 			return
 		}
 
@@ -167,19 +200,49 @@ export function useWordEditor() {
 		setBusy(true)
 		setError(null)
 
+		let word: Word
+
 		try {
 			player.pause()
-			const word = await saveWord({ label, tag: category, recordingUri: recorded.uri })
+			word = await saveWord({ label, tag: category, recordingUri: recorded.uri })
+		} catch (cause) {
+			inFlight.current = false
+			setBusy(false)
+			reportError(cause, "word_save")
+			Alert.alert(t("words.saveErrorTitle"), t("words.saveError"))
 
+			return
+		}
+
+		savedWord.current = true
+		setSaved(true)
+		inFlight.current = false
+		setBusy(false)
+
+		let size: number | undefined
+
+		try {
+			const bytes = new File(recorded.uri).size
+
+			size = Number.isFinite(bytes) && bytes >= 0 ? bytes : undefined
+		} catch (error) {
+			reportError(error, "word_audio_size")
+		}
+
+		try {
 			void queueWordUpload(word.id).catch((error) => reportError(error, "word-upload"))
+		} catch (error) {
+			reportError(error, "word-upload")
+		}
 
+		try {
 			track("word_added", {
 				word_id: word.id,
 				word_name: word.label,
 				category,
 				registration_method: "voice_recording",
 				recording_duration_ms: recorded.duration,
-				audio_size_bytes: new File(recorded.uri).size,
+				...(size === undefined ? {} : { audio_size_bytes: size }),
 			})
 			setUserProperties({
 				total_words_registered:
@@ -187,14 +250,8 @@ export function useWordEditor() {
 						(item) => !item.archived && item.sourceType === "recording",
 					).length + 1,
 			})
-
-			// Navigation waits until the save guard is released on the next render.
-			setSaved(true)
-		} catch {
-			setError(t("words.saveError"))
-		} finally {
-			inFlight.current = false
-			setBusy(false)
+		} catch (error) {
+			reportError(error, "word_analytics")
 		}
 	}
 

@@ -35,7 +35,7 @@ export function LearningScreen() {
 	} = useLearningSetup()
 
 	return (
-		<Screen>
+		<Screen contentContainerStyle={ui.tabContent}>
 			<Title>{t("learning.title")}</Title>
 			<Copy style={ui.subtitle}>{t("learning.subtitle")}</Copy>
 

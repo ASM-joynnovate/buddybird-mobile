@@ -90,23 +90,23 @@ export function ProfileAchievements({
 
 const styles = StyleSheet.create({
 	achievements: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-	cell: { width: "48%" },
+	cell: { flexGrow: 1, flexShrink: 1, flexBasis: 160, minWidth: 0 },
 	achievement: {
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 12,
-		minHeight: 90,
+		minHeight: 78,
 		padding: 14,
 	},
 	achievementBadge: {
-		width: 36,
-		height: 40,
+		width: 46,
+		height: 46,
 		borderRadius: radius.card / 2,
 		alignItems: "center",
 		justifyContent: "center",
 	},
-	locked: { backgroundColor: colors.surface },
-	achievementText: { flex: 1 },
-	achievementValue: { fontFamily: font.extraBold, fontSize: 16 },
-	achievementLabel: { fontSize: 12, color: colors.muted, marginTop: 4 },
+	locked: { opacity: 0.55 },
+	achievementText: { flex: 1, minWidth: 0 },
+	achievementValue: { fontFamily: font.extraBold, fontSize: 14, lineHeight: 18 },
+	achievementLabel: { fontSize: 11, lineHeight: 14, color: colors.muted, marginTop: 2 },
 })

@@ -16,6 +16,6 @@ export function Title({ children, style }: PropsWithChildren<{ style?: StyleProp
 }
 
 const styles = StyleSheet.create({
-	copy: { fontFamily: font.bold, fontSize: 16, color: colors.text },
-	title: { fontFamily: font.black, fontSize: 32, lineHeight: 40 },
+	copy: { fontFamily: font.bold, fontSize: 15, color: colors.text },
+	title: { fontFamily: font.black, fontSize: 26, lineHeight: 32 },
 })

@@ -1,3 +1,11 @@
+import { useEffect } from "react"
+import Animated, {
+	cancelAnimation,
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming,
+} from "react-native-reanimated"
+
 import { useTranslation } from "react-i18next"
 
 import { ScrollView, StyleSheet, View } from "react-native"
@@ -33,10 +41,20 @@ export function ActiveSession({
 }) {
 	const { t } = useTranslation()
 	const { session, snapshot, settings, word } = useSessionDetails()
-	const { timer, cycleCount, progress, elapsedPercent } = sessionCountdown(snapshot, settings)
+	const { timer, cycleCount, progress, elapsedPercent, phaseDuration, remaining } =
+		sessionCountdown(snapshot, settings)
 	const paused = snapshot.state === "paused" || snapshot.state === "interrupted"
 	const learning = snapshot.phase === "learning"
 	const accent = learning ? colors.orange : colors.blue
+
+	const progressValue = useSharedValue(0)
+	const progressStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progressValue.get() }] }))
+
+	useEffect(() => {
+		progressValue.set(withTiming(elapsedPercent / 100, { duration: 500 }))
+
+		return () => cancelAnimation(progressValue)
+	}, [elapsedPercent, progressValue])
 
 	return (
 		<SafeAreaView style={styles.screen}>
@@ -60,11 +78,11 @@ export function ActiveSession({
 						}}
 						style={styles.progressTrack}
 					>
-						<View
+						<Animated.View
 							style={[
 								styles.progressFill,
+								progressStyle,
 								{
-									width: `${elapsedPercent}%`,
 									backgroundColor: accent,
 								},
 							]}
@@ -86,9 +104,13 @@ export function ActiveSession({
 				</Copy>
 				<SessionRing
 					phase={snapshot.phase}
+					cycle={snapshot.cycle}
 					wordLabel={word?.label}
 					timer={timer}
 					progress={progress}
+					running={snapshot.state === "running"}
+					phaseDurationMs={phaseDuration}
+					remainingMs={remaining}
 				/>
 
 				<SessionStatus snapshot={snapshot} />
@@ -111,15 +133,18 @@ export function ActiveSession({
 					<Button
 						testID={snapshot.state === "failed" ? "session-retry" : "session-pause"}
 						label={t(
-							snapshot.state === "failed"
-								? "session.retry"
-								: paused
-									? "session.resume"
-									: "session.pause",
+							snapshot.state === "starting"
+								? "session.preparing"
+								: snapshot.state === "failed"
+									? "session.retry"
+									: paused
+										? "session.resume"
+										: "session.pause",
 						)}
 						icon={paused || snapshot.state === "failed" ? "play" : "pause"}
 						variant={learning ? "primary" : "blue"}
 						loading={busy || snapshot.state === "stopping"}
+						disabled={snapshot.state === "starting"}
 						onPress={snapshot.state === "failed" ? onRetry : onTogglePause}
 						style={styles.pause}
 					/>
@@ -131,7 +156,7 @@ export function ActiveSession({
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: colors.background },
-	sessionContent: { flexGrow: 1, padding: 22, width: "100%", maxWidth: 680, alignSelf: "center" },
+	sessionContent: { flexGrow: 1, padding: 22, width: "100%", maxWidth: 480, alignSelf: "center" },
 	header: { flexDirection: "row", alignItems: "center", gap: 14 },
 	progressTrack: {
 		flex: 1,
@@ -140,7 +165,7 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		overflow: "hidden",
 	},
-	progressFill: { height: "100%", borderRadius: 8 },
+	progressFill: { width: "100%", height: "100%", borderRadius: 8, transformOrigin: "left" },
 	cycle: {
 		alignSelf: "center",
 		borderWidth: 2,
@@ -149,8 +174,8 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 9,
 		color: colors.muted,
-		fontSize: 14,
-		marginTop: 22,
+		fontSize: 12,
+		marginTop: 16,
 	},
 	pause: { marginTop: 22 },
 	retry: { marginTop: 12 },

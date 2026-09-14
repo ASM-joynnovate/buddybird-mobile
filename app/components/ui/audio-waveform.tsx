@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { memo, useEffect } from "react"
 import { StyleSheet, View } from "react-native"
 import Animated, {
 	ReduceMotion,
@@ -41,7 +41,10 @@ export function AudioWaveform({
 	return (
 		<View
 			testID={testID}
-			style={[styles.waveform, { height, gap: barWidth }]}
+			style={[
+				styles.waveform,
+				{ height, width: barCount * barWidth * 2, columnGap: `${50 / barCount}%` },
+			]}
 			accessibilityElementsHidden
 			importantForAccessibility="no-hide-descendants"
 		>
@@ -59,7 +62,7 @@ export function AudioWaveform({
 	)
 }
 
-function WaveBar({
+const WaveBar = memo(function WaveBar({
 	index,
 	strength,
 	color,
@@ -88,9 +91,15 @@ function WaveBar({
 	return (
 		<Animated.View style={[styles.bar, { height, width, backgroundColor: color }, animation]} />
 	)
-}
+})
 
 const styles = StyleSheet.create({
-	waveform: { flexDirection: "row", justifyContent: "center", alignItems: "center" },
-	bar: { borderRadius: 3 },
+	waveform: {
+		maxWidth: "100%",
+		alignSelf: "center",
+		flexDirection: "row",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	bar: { borderRadius: 3, flexShrink: 1 },
 })

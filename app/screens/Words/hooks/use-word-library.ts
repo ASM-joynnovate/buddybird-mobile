@@ -2,7 +2,7 @@ import { useFocusEffect } from "@react-navigation/native"
 
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useTranslation } from "react-i18next"
 
@@ -13,14 +13,14 @@ import { filters } from "@/screens/Words/filters"
 import { resolvePreviewAudio } from "@/services/media/audio"
 import { screen, setUserProperties, track } from "@/services/telemetry/client"
 import { removeWord } from "@/services/words/library"
-import { currentWord, visibleWords } from "@/services/words/selectors"
+import { visibleWords } from "@/services/words/selectors"
 import { Word } from "@/types/word"
 
 export function useWordLibrary() {
 	const { t } = useTranslation()
 
 	const data = useAppData()
-	const words = visibleWords(data, data.settings.locale)
+	const words = useMemo(() => visibleWords(data, data.settings.locale), [data])
 
 	const player = useAudioPlayer(null, { keepAudioSessionActive: true })
 	const status = useAudioPlayerStatus(player)
@@ -54,101 +54,108 @@ export function useWordLibrary() {
 		}
 	}, [status.didJustFinish])
 
-	async function preview(word: Word) {
-		const requestId = ++previewRequestId.current
+	const preview = useCallback(
+		async (word: Word) => {
+			const requestId = ++previewRequestId.current
 
-		setError(null)
+			setError(null)
 
-		if (playingId === word.id && status.playing) {
-			player.pause()
-			setPlayingId(null)
-			track("word_library_preview_played", {
-				word_id: word.id,
-				word_name: word.label,
-				source_type: word.sourceType,
-				action: "stop",
-			})
-
-			return
-		}
-
-		player.pause()
-
-		try {
-			const uri = await resolvePreviewAudio(word)
-
-			if (requestId !== previewRequestId.current || !isFocused.current) {
-				return
-			}
-
-			await setAudioModeAsync({
-				playsInSilentMode: true,
-				allowsRecording: false,
-				shouldPlayInBackground: false,
-				interruptionMode: "doNotMix",
-			})
-
-			if (requestId !== previewRequestId.current || !isFocused.current) {
-				return
-			}
-
-			player.replace({ uri })
-			player.play()
-			setPlayingId(word.id)
-
-			track("word_library_preview_played", {
-				word_id: word.id,
-				word_name: word.label,
-				source_type: word.sourceType,
-				action: "play",
-			})
-		} catch {
-			setError(t("words.playbackError"))
-			setPlayingId(null)
-		}
-	}
-
-	function deleteWord(word: Word) {
-		try {
-			if (playingId === word.id) {
-				previewRequestId.current++
+			if (playingId === word.id && status.playing) {
 				player.pause()
 				setPlayingId(null)
+				track("word_library_preview_played", {
+					word_id: word.id,
+					word_name: word.label,
+					source_type: word.sourceType,
+					action: "stop",
+				})
+
+				return
 			}
 
-			removeWord(word.id)
-			const progress = Object.entries(data.progress)
-				.filter(([id]) => currentWord(data, id)?.id === word.id)
-				.map(([, item]) => item)
-			const lifetimePracticeCount = progress.reduce((sum, item) => sum + item.sessionCount, 0)
-			const lifetimePracticeDurationMs =
-				progress.reduce((sum, item) => sum + item.totalTrainingSeconds, 0) * 1000
+			player.pause()
 
-			track("word_removed", {
-				word_id: word.id,
-				word_name: word.label,
-				lifetime_practice_count: lifetimePracticeCount,
-				lifetime_practice_duration_ms: lifetimePracticeDurationMs,
-			})
-			setUserProperties({
-				total_words_registered:
-					words.filter((item) => item.sourceType === "recording").length - 1,
-			})
-		} catch {
-			setError(t("words.removeError"))
-		}
-	}
+			try {
+				const uri = await resolvePreviewAudio(word)
 
-	function confirmDelete(word: Word) {
-		Alert.alert(t("words.confirmDelete", { word: word.label }), undefined, [
-			{ text: t("common.cancel"), style: "cancel" },
-			{
-				text: t("common.delete"),
-				style: "destructive",
-				onPress: () => deleteWord(word),
-			},
-		])
-	}
+				if (requestId !== previewRequestId.current || !isFocused.current) {
+					return
+				}
+
+				await setAudioModeAsync({
+					playsInSilentMode: true,
+					allowsRecording: false,
+					shouldPlayInBackground: false,
+					interruptionMode: "doNotMix",
+				})
+
+				if (requestId !== previewRequestId.current || !isFocused.current) {
+					return
+				}
+
+				player.replace({ uri })
+				player.play()
+				setPlayingId(word.id)
+
+				track("word_library_preview_played", {
+					word_id: word.id,
+					word_name: word.label,
+					source_type: word.sourceType,
+					action: "play",
+				})
+			} catch {
+				setError(t("words.playbackError"))
+				setPlayingId(null)
+			}
+		},
+		[player, playingId, status.playing, t],
+	)
+
+	const deleteWord = useCallback(
+		(word: Word) => {
+			try {
+				if (playingId === word.id) {
+					previewRequestId.current++
+					player.pause()
+					setPlayingId(null)
+				}
+
+				const metrics = removeWord(word.id)
+
+				track("word_removed", {
+					word_id: word.id,
+					word_name: word.label,
+					lifetime_practice_count: metrics.lifetime_practice_count,
+					lifetime_practice_duration_ms: metrics.lifetime_practice_duration_ms,
+				})
+				setUserProperties({
+					total_words_registered:
+						words.filter((item) => item.sourceType === "recording").length - 1,
+				})
+			} catch {
+				setError(t("words.removeError"))
+			}
+		},
+		[player, playingId, t, words],
+	)
+
+	const confirmDelete = useCallback(
+		(word: Word) => {
+			previewRequestId.current++
+			player.pause()
+			setPlayingId(null)
+
+			Alert.alert(t("words.confirmDelete", { word: word.label }), undefined, [
+				{ text: t("common.cancel"), style: "cancel" },
+				{
+					text: t("common.delete"),
+					style: "destructive",
+					onPress: () => deleteWord(word),
+				},
+			])
+		},
+		[deleteWord, player, t],
+	)
 
 	function changeFilter(next: typeof filter) {
 		if (next === filter) {
@@ -161,6 +168,17 @@ export function useWordLibrary() {
 			visible_words_count:
 				next === "all" ? words.length : words.filter((word) => word.tag === next).length,
 		})
+		previewRequestId.current++
+
+		if (
+			playingId &&
+			next !== "all" &&
+			words.find((word) => word.id === playingId)?.tag !== next
+		) {
+			player.pause()
+			setPlayingId(null)
+		}
+
 		setFilter(next)
 	}
 

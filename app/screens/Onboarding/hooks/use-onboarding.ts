@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from "react"
 import { AppState } from "react-native"
 
 import { screen, track } from "@/services/telemetry/client"
-import type { ProfileOnboarding } from "@/types/profile"
+import type { ProfileDraft, ProfileOnboarding } from "@/types/profile"
 
 export function useOnboarding() {
+	const [draft, setDraft] = useState<ProfileDraft>()
 	const [step, setStep] = useState<"welcome" | "profile">("welcome")
 	const attempt = useRef({
 		startedAt: Date.now(),
@@ -73,6 +74,8 @@ export function useOnboarding() {
 	}
 
 	const profile: ProfileOnboarding = {
+		draft,
+		onDraft: setDraft,
 		onBack: () => changeStep("welcome"),
 		onPhotoPickerChange: (open) => {
 			attempt.current.pickerOpen = open

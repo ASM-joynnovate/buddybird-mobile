@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, TextInputProps, View } from "react-native"
 import { Copy } from "@/components/ui/text"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
-import { colors, font, radius } from "@/theme"
+import { colors, font } from "@/theme"
 
 export function TextField({
 	label,
@@ -20,7 +20,7 @@ export function TextField({
 				accessibilityLabel={accessibilityLabel ?? label}
 				allowFontScaling={false}
 				placeholderTextColor={colors.muted}
-				style={[styles.input, style]}
+				style={[styles.input, error && { borderColor: colors.error }, style]}
 			/>
 			<InlineError message={error} />
 		</View>
@@ -29,14 +29,14 @@ export function TextField({
 
 const styles = StyleSheet.create({
 	input: {
-		minHeight: 54,
+		minHeight: 50,
 		borderWidth: 2,
 		borderColor: colors.border,
-		borderRadius: radius.control,
+		borderRadius: 14,
 		paddingHorizontal: 16,
-		paddingVertical: 12,
+		paddingVertical: 10,
 		fontFamily: font.bold,
-		fontSize: 19,
+		fontSize: 16,
 		color: colors.text,
 	},
 })

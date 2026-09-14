@@ -2,11 +2,14 @@ import * as SplashScreen from "expo-splash-screen"
 
 import { useEffect, useRef, useState } from "react"
 
-import { Image, StyleSheet, View } from "react-native"
+import { StyleSheet } from "react-native"
 
 import Animated, {
 	cancelAnimation,
+	Easing,
 	runOnJS,
+	SharedValue,
+	useAnimatedProps,
 	useAnimatedStyle,
 	useReducedMotion,
 	useSharedValue,
@@ -15,10 +18,48 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated"
 
-import Svg, { Circle, Ellipse, Path, Rect } from "react-native-svg"
+import Svg, { Ellipse, G, Path, Rect, Text as SvgText } from "react-native-svg"
 
 import { reportError } from "@/services/telemetry/client"
-import { colors } from "@/theme"
+import { colors, font } from "@/theme"
+import artwork from "@assets/images/splash-artwork.json"
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect)
+const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse)
+
+function SplashEye({ offset, openness }: { offset: number; openness: SharedValue<number> }) {
+	const white = useAnimatedProps(() => ({
+		y: 755 - 196 * openness.get(),
+		height: 392 * openness.get(),
+	}))
+	const pupil = useAnimatedProps(() => ({
+		cy: 755 + 36.5 * openness.get(),
+		ry: 73.5 * openness.get(),
+	}))
+	const glint = useAnimatedProps(() => ({
+		cy: 755 + 6.5 * openness.get(),
+		ry: 19.5 * openness.get(),
+	}))
+
+	return (
+		<>
+			<AnimatedRect
+				x={54 + offset}
+				width={240}
+				rx={120}
+				fill={artwork.eyeWhite}
+				animatedProps={white}
+			/>
+			<AnimatedEllipse cx={177 + offset} rx={61} fill={artwork.pupil} animatedProps={pupil} />
+			<AnimatedEllipse
+				cx={195.5 + offset}
+				rx={18.5}
+				fill={artwork.eyeWhite}
+				animatedProps={glint}
+			/>
+		</>
+	)
+}
 
 export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete(): void }) {
 	const reducedMotion = useReducedMotion()
@@ -26,8 +67,12 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 	const [blinked, setBlinked] = useState(reducedMotion)
 	const laidOut = useRef(false)
 	const eyes = useSharedValue(1)
+	const enter = useSharedValue(reducedMotion ? 1 : 0)
 	const opacity = useSharedValue(1)
-	const eyeStyle = useAnimatedStyle(() => ({ transform: [{ scaleY: eyes.get() }] }))
+	const enterStyle = useAnimatedStyle(() => ({
+		opacity: enter.get(),
+		transform: [{ scale: 1.035 - 0.035 * enter.get() }],
+	}))
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }))
 
 	useEffect(() => {
@@ -35,26 +80,40 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 			return
 		}
 
+		enter.set(withTiming(1, { duration: 760, easing: Easing.bezier(0.22, 1, 0.36, 1) }))
 		eyes.set(
-			withSequence(
-				withDelay(180, withTiming(0.06, { duration: 90 })),
-				withTiming(1, { duration: 130 }, (finished) => {
-					if (finished) {
-						runOnJS(setBlinked)(true)
-					}
-				}),
+			withDelay(
+				1000,
+				withSequence(
+					withTiming(0.07, { duration: 90, easing: Easing.in(Easing.quad) }),
+					withTiming(1, { duration: 130, easing: Easing.out(Easing.quad) }),
+					withTiming(0.07, { duration: 90, easing: Easing.in(Easing.quad) }),
+					withTiming(
+						1,
+						{ duration: 130, easing: Easing.out(Easing.quad) },
+						(finished) => {
+							if (finished) {
+								runOnJS(setBlinked)(true)
+							}
+						},
+					),
+				),
 			),
 		)
 
-		return () => cancelAnimation(eyes)
-	}, [eyes, reducedMotion, shown])
+		return () => {
+			cancelAnimation(enter)
+			cancelAnimation(eyes)
+		}
+	}, [enter, eyes, reducedMotion, shown])
+
 	useEffect(() => {
 		if (!ready || !shown || !blinked) {
 			return
 		}
 
 		opacity.set(
-			withTiming(0, { duration: reducedMotion ? 0 : 180 }, (finished) => {
+			withTiming(0, { duration: reducedMotion ? 0 : 200 }, (finished) => {
 				if (finished) {
 					runOnJS(onComplete)()
 				}
@@ -82,53 +141,49 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 			onLayout={reveal}
 			style={[styles.screen, fadeStyle]}
 		>
-			<View
-				style={styles.mascot}
+			<Animated.View
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
+				style={[StyleSheet.absoluteFill, enterStyle]}
 			>
-				<Svg width={220} height={220} viewBox="0 0 200 200">
-					<Circle cx={100} cy={100} r={98} fill={colors.onAccent} />
-					<Path
-						d="M34 88 C34 8 166 8 166 88"
-						fill="none"
-						stroke={colors.text}
-						strokeWidth={13}
-					/>
-					<Ellipse cx={100} cy={110} rx={65} ry={72} fill={colors.brand} />
-					<Ellipse cx={100} cy={149} rx={45} ry={31} fill={colors.orange} />
-					<Rect x={19} y={66} width={23} height={52} rx={11} fill={colors.text} />
-					<Rect x={158} y={66} width={23} height={52} rx={11} fill={colors.text} />
-					<Path d="M86 108 Q100 97 114 108 L100 130 Z" fill={colors.text} />
-					<Ellipse cx={74} cy={181} rx={17} ry={7} fill={colors.orange} />
-					<Ellipse cx={126} cy={181} rx={17} ry={7} fill={colors.orange} />
+				<Svg
+					style={StyleSheet.absoluteFill}
+					width="100%"
+					height="100%"
+					viewBox="0 0 860 1851"
+					preserveAspectRatio="none"
+				>
+					<Path {...artwork.body} transform="translate(4 0)" />
 				</Svg>
-				<Animated.View style={[styles.eyes, eyeStyle]}>
-					<Svg width={106} height={47} viewBox="0 0 96 42">
-						<Ellipse cx={20} cy={21} rx={16} ry={21} fill={colors.onAccent} />
-						<Ellipse cx={76} cy={21} rx={16} ry={21} fill={colors.onAccent} />
-						<Circle cx={23} cy={22} r={8} fill={colors.text} />
-						<Circle cx={73} cy={22} r={8} fill={colors.text} />
-					</Svg>
-				</Animated.View>
-			</View>
-			<Image
-				accessible={false}
-				source={require("@assets/images/splash-wordmark.png")}
-				style={styles.wordmark}
-			/>
+				<Svg
+					width="100%"
+					height="100%"
+					viewBox="0 0 860 1851"
+					preserveAspectRatio="xMidYMid meet"
+				>
+					<G transform="translate(4 0)">
+						<SplashEye offset={0} openness={eyes} />
+						<SplashEye offset={507} openness={eyes} />
+						{artwork.face.map((part, index) => (
+							<Path key={index} {...part} />
+						))}
+					</G>
+					<SvgText
+						x={430}
+						y={1540}
+						textAnchor="middle"
+						fontFamily={font.splash}
+						fontSize={104}
+						fill="#F7F2EA"
+					>
+						BuddyBird
+					</SvgText>
+				</Svg>
+			</Animated.View>
 		</Animated.View>
 	)
 }
 
 const styles = StyleSheet.create({
-	screen: {
-		...StyleSheet.absoluteFillObject,
-		backgroundColor: colors.brand,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	mascot: { width: 220, height: 220 },
-	eyes: { position: "absolute", left: 57, top: 67 },
-	wordmark: { width: 340, height: 80, resizeMode: "cover", marginTop: 26 },
+	screen: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.brand },
 })

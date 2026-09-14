@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next"
 
 import { ScrollView, StyleSheet, View } from "react-native"
 
+import { categoryColors } from "@/theme"
+
 import { Chip } from "@/components/ui/chip"
 import { filters, WordFilter } from "@/screens/Words/filters"
 
@@ -17,6 +19,7 @@ export function WordFilters({
 	return (
 		<View style={styles.filterArea}>
 			<ScrollView
+				style={styles.scroll}
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={styles.filters}
@@ -27,6 +30,7 @@ export function WordFilters({
 						testID={`word-filter-${item}`}
 						label={t(`categories.${item}`)}
 						selected={filter === item}
+						tone={item === "all" ? "primary" : categoryColors[item].tone}
 						onPress={() => changeFilter(item)}
 					/>
 				))}
@@ -36,6 +40,7 @@ export function WordFilters({
 }
 
 const styles = StyleSheet.create({
-	filterArea: { width: "100%", maxWidth: 680, alignSelf: "center" },
+	scroll: { flexGrow: 0 },
+	filterArea: { width: "100%", maxWidth: 480, alignSelf: "center" },
 	filters: { paddingHorizontal: 22, paddingBottom: 10, gap: 8 },
 })

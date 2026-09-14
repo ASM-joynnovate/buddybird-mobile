@@ -1342,6 +1342,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo-google-fonts/material-symbols@npm:^0.4.1":
+  version: 0.4.47
+  resolution: "@expo-google-fonts/material-symbols@npm:0.4.47"
+  checksum: 10c0/b60f1b8f5738b7cde34f8ab444e0ecaf2e4e9c4e1bab86104bce2e0edd5b82fd4eb939c797c7b86084e12741ee42737f0fb1d925fc4fc700f62b77710af3fbc3
+  languageName: node
+  linkType: hard
+
 "@expo/cli@npm:55.0.15":
   version: 55.0.15
   resolution: "@expo/cli@npm:55.0.15"
@@ -4471,6 +4478,7 @@ __metadata:
     expo-localization: "npm:~55.0.8"
     expo-notifications: "npm:~55.0.10"
     expo-splash-screen: "npm:~55.0.10"
+    expo-symbols: "npm:~55.0.9"
     expo-system-ui: "npm:~55.0.9"
     expo-tracking-transparency: "npm:~55.0.8"
     fflate: "npm:0.8.3"
@@ -6058,6 +6066,21 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/1cd4c3e11dd191f779eaf8c5e519b3bbbdc057d0c6985a036e9c1b2f44917c4bac2b17d8b2fffd45e0e97d13e6a2c426505bbfeecd828c035167c108908b8971
+  languageName: node
+  linkType: hard
+
+"expo-symbols@npm:~55.0.9":
+  version: 55.0.9
+  resolution: "expo-symbols@npm:55.0.9"
+  dependencies:
+    "@expo-google-fonts/material-symbols": "npm:^0.4.1"
+    sf-symbols-typescript: "npm:^2.0.0"
+  peerDependencies:
+    expo: "*"
+    expo-font: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/b7f028a70d0b7a4340fa4346f6a956a1a16633cf4dd2eb7135178737d9e0374338aba3bc3140cb9f73f10216f803354671d9b1d9c801fe7fade9c80ae96ad837
   languageName: node
   linkType: hard
 
@@ -9824,7 +9847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sf-symbols-typescript@npm:^2.1.0":
+"sf-symbols-typescript@npm:^2.0.0, sf-symbols-typescript@npm:^2.1.0":
   version: 2.2.0
   resolution: "sf-symbols-typescript@npm:2.2.0"
   checksum: 10c0/3f3bbf33aaad19e619d6f169899b39e9fe9c5fd21f0d6d511100e36887606ad349109ddc6ff82933f2b8cbf437dd7105c2ae6b0059b291dc47f143b30c2074cc

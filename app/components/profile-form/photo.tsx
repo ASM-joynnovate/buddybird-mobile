@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { Image, StyleSheet, View } from "react-native"
 
+import { InlineError } from "@/components/ui/inline-error"
 import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
@@ -12,10 +13,14 @@ export function ProfilePhoto({
 	photoUri,
 	choosePhoto,
 	busy,
+	error,
+	action = "edit",
 }: {
 	photoUri?: string
 	choosePhoto(): Promise<void>
 	busy: boolean
+	error?: string | null
+	action?: "plus" | "edit"
 }) {
 	const { t } = useTranslation()
 
@@ -26,7 +31,8 @@ export function ProfilePhoto({
 				accessibilityLabel={t("profile.photo")}
 				disabled={busy}
 				onPress={() => void choosePhoto()}
-				cornerRadius={60}
+				cornerRadius={55}
+				depth={0}
 				style={styles.photoTouch}
 				contentStyle={styles.photoPreview}
 			>
@@ -38,33 +44,33 @@ export function ProfilePhoto({
 					</Copy>
 				)}
 				<View style={styles.photoPlus}>
-					<Icon name="plus" size={28} color={colors.onAccent} />
+					<Icon name={action} size={20} color={colors.onAccent} />
 				</View>
 			</PressableSurface>
+			<InlineError message={error} />
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
-	photoArea: { width: 120, height: 130, alignSelf: "center", marginBottom: 24 },
-	photoTouch: { width: 120, height: 124 },
+	photoArea: { alignItems: "center", marginBottom: 20, gap: 10 },
+	photoTouch: { width: "40%", maxWidth: 110, aspectRatio: 1 },
 	photoPreview: {
-		width: 120,
-		height: 120,
-		borderRadius: 60,
+		aspectRatio: 1,
+		borderRadius: 55,
 		backgroundColor: colors.surface,
 		alignItems: "center",
 		justifyContent: "center",
 	},
-	photo: { width: 114, height: 114, borderRadius: 57 },
-	parrot: { fontSize: 56 },
+	photo: { width: "100%", aspectRatio: 1, borderRadius: 55 },
+	parrot: { fontSize: 52 },
 	photoPlus: {
 		position: "absolute",
-		right: -5,
-		bottom: -5,
-		width: 44,
-		height: 44,
-		borderRadius: 22,
+		right: -2,
+		bottom: -2,
+		width: 38,
+		height: 38,
+		borderRadius: 19,
 		backgroundColor: colors.orange,
 		borderWidth: 3,
 		borderColor: colors.background,

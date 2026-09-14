@@ -1,6 +1,8 @@
-import { PropsWithChildren } from "react"
+import { PropsWithChildren, ReactNode } from "react"
 
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native"
+
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 
@@ -12,22 +14,36 @@ export function Dialog({
 	onClose,
 	title,
 	children,
-}: PropsWithChildren<{ visible: boolean; onClose(): void; title: string }>) {
+	footer,
+}: PropsWithChildren<{ visible: boolean; onClose(): void; title: string; footer: ReactNode }>) {
+	const insets = useSafeAreaInsets()
+
 	return (
-		<Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+		<Modal
+			statusBarTranslucent
+			visible={visible}
+			transparent
+			animationType="fade"
+			onRequestClose={onClose}
+		>
 			<GestureHandlerRootView style={{ flex: 1 }}>
 				<KeyboardAvoidingView
 					behavior={Platform.OS === "ios" ? "padding" : "height"}
-					style={styles.backdrop}
+					style={[
+						styles.backdrop,
+						{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 },
+					]}
 				>
 					<View accessibilityViewIsModal style={styles.dialog}>
+						<Title style={styles.title}>{title}</Title>
 						<ScrollView
+							style={styles.body}
 							keyboardShouldPersistTaps="handled"
 							contentContainerStyle={styles.content}
 						>
-							<Title style={styles.title}>{title}</Title>
 							{children}
 						</ScrollView>
+						{footer}
 					</View>
 				</KeyboardAvoidingView>
 			</GestureHandlerRootView>
@@ -40,16 +56,20 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		backgroundColor: "rgba(0,0,0,0.42)",
+		backgroundColor: colors.scrim,
 		padding: 20,
 	},
 	dialog: {
 		width: "100%",
-		maxWidth: 520,
-		maxHeight: "90%",
-		borderRadius: radius.hero,
+		maxWidth: 480,
+		maxHeight: "100%",
+		borderRadius: radius.card,
+		paddingHorizontal: 20,
+		paddingVertical: 24,
+		gap: 20,
 		backgroundColor: colors.background,
 	},
-	content: { padding: 22 },
-	title: { fontSize: 26, lineHeight: 33, marginBottom: 22 },
+	body: { flexGrow: 0, flexShrink: 1, minHeight: 0 },
+	content: { gap: 12 },
+	title: { fontSize: 18, lineHeight: 24 },
 })

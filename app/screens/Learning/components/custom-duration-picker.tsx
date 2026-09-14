@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Card } from "@/components/ui/surface"
-
-import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { Wheel } from "@/components/ui/wheel"
+import { Wheel, WheelRow } from "@/components/ui/wheel"
+import { font } from "@/theme"
+
 const hours = Array.from({ length: 24 }, (_, index) => index)
 const minutes = Array.from({ length: 60 }, (_, index) => index)
 
@@ -22,31 +22,38 @@ export function CustomDurationPicker({
 	const { t } = useTranslation()
 
 	return (
-		<Card style={styles.pickerCard}>
+		<Card style={styles.pickerCard} contentStyle={styles.content}>
 			<Copy style={styles.pickerTitle}>{t("learning.total")}</Copy>
-			<View style={ui.row}>
-				<Wheel
-					testID="duration-hours"
-					label={t("learning.hourPicker")}
-					value={Math.floor(customMinutes / 60)}
-					values={hours}
-					onChange={changeCustomHours}
-				/>
-				<Copy>{t("common.hours")}</Copy>
-				<Wheel
-					testID="duration-minutes"
-					label={t("learning.minutePicker")}
-					value={customMinutes % 60}
-					values={minutes}
-					onChange={changeCustomMinutes}
-				/>
-				<Copy>{t("common.minutes")}</Copy>
-			</View>
+			<WheelRow>
+				<View style={styles.group}>
+					<Wheel
+						testID="duration-hours"
+						label={t("learning.hourPicker")}
+						value={Math.floor(customMinutes / 60)}
+						values={hours}
+						onChange={changeCustomHours}
+					/>
+					<Copy style={styles.unit}>{t("common.hours")}</Copy>
+				</View>
+				<View style={styles.group}>
+					<Wheel
+						testID="duration-minutes"
+						label={t("learning.minutePicker")}
+						value={customMinutes % 60}
+						values={minutes}
+						onChange={changeCustomMinutes}
+					/>
+					<Copy style={styles.unit}>{t("common.minutes")}</Copy>
+				</View>
+			</WheelRow>
 		</Card>
 	)
 }
 
 const styles = StyleSheet.create({
 	pickerCard: { marginBottom: 16 },
-	pickerTitle: { textAlign: "center", marginBottom: 4 },
+	content: { padding: 12, gap: 10 },
+	pickerTitle: { textAlign: "center", fontSize: 12, lineHeight: 17 },
+	group: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 6 },
+	unit: { fontFamily: font.extraBold, fontSize: 18, minWidth: 34 },
 })

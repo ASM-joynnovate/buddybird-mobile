@@ -37,7 +37,7 @@ export function Button({
 
 	if (inactive) {
 		tone = "muted"
-		foregroundColor = colors.muted
+		foregroundColor = colors.disabled
 	}
 
 	let leadingContent = null
@@ -53,18 +53,30 @@ export function Button({
 			{...props}
 			accessibilityRole="button"
 			accessibilityLabel={props.accessibilityLabel ?? label}
-			accessibilityState={{ disabled: Boolean(inactive), busy: Boolean(loading) }}
+			accessibilityState={{
+				...props.accessibilityState,
+				disabled: Boolean(inactive),
+				busy: Boolean(loading),
+			}}
 			disabled={inactive}
 			tone={tone}
+			depth={inactive ? 0 : compact ? 4 : 7}
 			cornerRadius={radius.control}
 			style={style}
-			contentStyle={[styles.button, compact && styles.compact]}
+			contentStyle={[
+				styles.button,
+				{ borderWidth: variant === "secondary" ? 2 : 0 },
+				compact && styles.compact,
+			]}
 		>
 			{leadingContent}
 			<Copy
 				style={[
 					styles.buttonText,
-					{ color: foregroundColor },
+					{
+						color: foregroundColor,
+						fontFamily: /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(label) ? font.extraBold : font.rounded,
+					},
 					compact && styles.compactText,
 				]}
 			>
@@ -76,17 +88,25 @@ export function Button({
 
 const styles = StyleSheet.create({
 	button: {
-		minHeight: 62,
+		minHeight: 58,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "center",
-		gap: 10,
-		paddingHorizontal: 16,
-		paddingVertical: 14,
+		gap: 8,
+		paddingHorizontal: 22,
+		paddingVertical: 10,
 	},
-	buttonText: { fontFamily: font.extraBold, fontSize: 20, textAlign: "center", flexShrink: 1 },
+	buttonText: {
+		fontFamily: font.extraBold,
+		fontSize: 16,
+		letterSpacing: 0.32,
+		textTransform: "uppercase",
+		textAlign: "center",
+		flexShrink: 1,
+		minWidth: 0,
+	},
 	compact: {
-		minHeight: 48,
+		minHeight: 42,
 		paddingHorizontal: 14,
 		paddingVertical: 8,
 	},

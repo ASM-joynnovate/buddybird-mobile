@@ -78,11 +78,17 @@ const config: ExpoConfig = {
     ],
     [
       "expo-splash-screen",
-      { backgroundColor: "#DB030F", image: "./assets/images/splash-wordmark.png", imageWidth: 220 },
+      {
+        backgroundColor: "#DB030F",
+        image: "./assets/images/splash-wordmark.png",
+        imageWidth: 288,
+        resizeMode: "contain",
+        dark: { backgroundColor: "#DB030F" },
+      },
     ],
     [
       "expo-font",
-      { fonts: ["./assets/fonts/Pretendard-Regular.otf", "./assets/fonts/Pretendard-Bold.otf"] },
+      { fonts: ["./assets/fonts/Pretendard-Regular.otf", "./assets/fonts/Pretendard-Bold.otf", "./assets/fonts/Pretendard-ExtraBold.otf", "./assets/fonts/Pretendard-Black.otf", "./assets/fonts/Nunito-Bold.ttf", "./assets/fonts/Nunito-ExtraBold.ttf", "./assets/fonts/Nunito-Black.ttf", "./assets/fonts/Fredoka-SemiBold.ttf"] },
     ],
     "expo-localization",
     "expo-image-picker",

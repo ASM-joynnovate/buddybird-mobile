@@ -38,7 +38,7 @@ export function SessionCapturesScreen({
 				/>
 				<View style={styles.heading}>
 					<Title style={styles.title}>{t("captures.title")}</Title>
-					<Copy numberOfLines={1}>{word}</Copy>
+					<Copy>{word}</Copy>
 				</View>
 			</View>
 			<View style={styles.status}>
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 		padding: 22,
 		paddingBottom: 16,
 		width: "100%",
-		maxWidth: 680,
+		maxWidth: 480,
 		alignSelf: "center",
 	},
 	heading: { flex: 1, gap: 4 },
@@ -88,10 +88,10 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22,
 		paddingBottom: 16,
 		width: "100%",
-		maxWidth: 680,
+		maxWidth: 480,
 		alignSelf: "center",
 	},
 	meta: { fontSize: 14, color: colors.muted, lineHeight: 22 },
-	list: { flexGrow: 1, paddingHorizontal: 22, width: "100%", maxWidth: 680, alignSelf: "center" },
+	list: { flexGrow: 1, paddingHorizontal: 22, width: "100%", maxWidth: 480, alignSelf: "center" },
 	empty: { textAlign: "center", color: colors.muted, lineHeight: 26, marginTop: 44 },
 })

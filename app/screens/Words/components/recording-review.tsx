@@ -7,18 +7,21 @@ import { AudioWaveform } from "@/components/ui/audio-waveform"
 
 import { IconButton } from "@/components/ui/icon-button"
 import { Copy } from "@/components/ui/text"
-import { colors } from "@/theme"
+import { categoryColors, colors } from "@/theme"
 
 export function RecordingReview({
 	playing,
+	category,
 	elapsedSeconds,
 	preview,
 }: {
 	playing: boolean
+	category: keyof typeof categoryColors
 	elapsedSeconds: number
 	preview(): Promise<void>
 }) {
 	const { t } = useTranslation()
+	const palette = categoryColors[category]
 	const seconds = Math.floor(Math.max(0, elapsedSeconds))
 	// ponytail: decorative bars; use audio samples if amplitude becomes product data.
 	const level = 0.35 + Math.abs(Math.sin(elapsedSeconds * 8)) * 0.4
@@ -29,12 +32,12 @@ export function RecordingReview({
 				testID="word-review-play"
 				icon={playing ? "pause" : "play"}
 				label={t(playing ? "session.pause" : "words.listen")}
-				tone="primary"
+				tone={palette.tone}
 				round
 				color={colors.onAccent}
 				onPress={() => void preview()}
 			/>
-			<View>
+			<View style={styles.description}>
 				<Copy>{t("words.listen")}</Copy>
 				<Copy style={styles.original}>{t("words.original")}</Copy>
 			</View>
@@ -43,7 +46,7 @@ export function RecordingReview({
 					testID="word-review-waveform"
 					active={playing}
 					level={level}
-					color={colors.orange}
+					color={palette.color}
 					height={30}
 					barCount={9}
 					barWidth={3}
@@ -57,6 +60,7 @@ export function RecordingReview({
 }
 
 const styles = StyleSheet.create({
+	description: { flexGrow: 1, flexShrink: 1, minWidth: 0 },
 	playback: { marginLeft: "auto", alignItems: "center", gap: 6 },
 	time: { fontVariant: ["tabular-nums"], fontSize: 14, color: colors.muted },
 	spacing: { marginTop: 16 },

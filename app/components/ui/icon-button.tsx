@@ -14,6 +14,8 @@ export function IconButton({
 	disabled,
 	tone = "plain",
 	round = false,
+	iconSize = 24,
+	depth,
 }: {
 	icon: IconName
 	label: string
@@ -24,6 +26,8 @@ export function IconButton({
 	disabled?: boolean
 	tone?: SurfaceTone
 	round?: boolean
+	iconSize?: number
+	depth?: number
 }) {
 	return (
 		<PressableSurface
@@ -34,12 +38,12 @@ export function IconButton({
 			onPress={onPress}
 			testID={testID}
 			tone={tone}
-			depth={tone === "plain" ? 0 : 4}
+			depth={depth ?? (tone === "plain" ? 0 : 4)}
 			cornerRadius={round ? radius.pill : radius.control}
-			style={{ width: size }}
-			contentStyle={[styles.iconButton, { width: size, height: size }]}
+			style={{ minWidth: size, flexShrink: 0 }}
+			contentStyle={[styles.iconButton, { minWidth: size, minHeight: size }]}
 		>
-			<Icon name={icon} color={color} />
+			<Icon name={icon} color={disabled ? colors.disabled : color} size={iconSize} />
 		</PressableSurface>
 	)
 }

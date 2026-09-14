@@ -4,6 +4,7 @@ import { View } from "react-native"
 
 import { Chip } from "@/components/ui/chip"
 import { ui } from "@/components/ui/styles"
+import { categoryColors } from "@/theme"
 import { Word } from "@/types/word"
 const categories: Word["tag"][] = ["greeting", "food", "name", "etc"]
 
@@ -24,6 +25,7 @@ export function CategorySelector({
 					testID={`word-category-${item}`}
 					label={t(`categories.${item}`)}
 					selected={category === item}
+					tone={categoryColors[item].tone}
 					onPress={() => setCategory(item)}
 				/>
 			))}

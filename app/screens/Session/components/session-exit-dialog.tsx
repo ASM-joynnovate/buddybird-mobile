@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native"
 
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
+import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 
 export function SessionExitDialog({
@@ -18,28 +19,33 @@ export function SessionExitDialog({
 	const { t } = useTranslation()
 
 	return (
-		<Dialog visible={visible} title={t("session.confirmEndTitle")} onClose={onClose}>
+		<Dialog
+			visible={visible}
+			title={t("session.confirmEndTitle")}
+			onClose={onClose}
+			footer={
+				<View style={[ui.actions, styles.actions]}>
+					<Button
+						testID="session-exit-continue"
+						label={t("session.continueLearning")}
+						variant="secondary"
+						onPress={onClose}
+						style={ui.action}
+					/>
+					<Button
+						testID="session-exit-end"
+						label={t("session.endLabel")}
+						onPress={onEnd}
+						style={ui.action}
+					/>
+				</View>
+			}
+		>
 			<Copy>{t("session.confirmEndMessage")}</Copy>
-			<View style={styles.actions}>
-				<Button
-					testID="session-exit-continue"
-					label={t("common.cancel")}
-					variant="secondary"
-					onPress={onClose}
-					style={styles.action}
-				/>
-				<Button
-					testID="session-exit-end"
-					label={t("session.endLabel")}
-					onPress={onEnd}
-					style={styles.action}
-				/>
-			</View>
 		</Dialog>
 	)
 }
 
 const styles = StyleSheet.create({
-	actions: { flexDirection: "row", gap: 12, marginTop: 24 },
-	action: { flex: 1 },
+	actions: { marginTop: 0 },
 })

@@ -10,6 +10,7 @@ import { TextField } from "@/components/ui/text-field"
 
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
+import { ui } from "@/components/ui/styles"
 import { InlineError } from "@/components/ui/inline-error"
 import { Copy } from "@/components/ui/text"
 import { feedbackMutationOptions } from "@/hooks/apis/feedback"
@@ -47,6 +48,10 @@ export function FeedbackDialog({
 	}
 
 	function submit() {
+		if (mutation.isPending || !message.trim()) {
+			return
+		}
+
 		mutation.mutate(
 			{ message: message.trim(), locale: data.settings.locale },
 			{
@@ -61,44 +66,80 @@ export function FeedbackDialog({
 
 	if (mutation.isSuccess) {
 		return (
-			<Dialog visible={visible} onClose={close} title={t("feedback.sent")}>
-				<Image accessible={false} source={mascot} style={styles.promptMascot} />
-				<Button
-					testID="feedback-thanks-close"
-					label={t("common.close")}
-					onPress={close}
-					style={styles.thanksClose}
-				/>
+			<Dialog
+				visible={visible}
+				onClose={close}
+				title={t("feedback.sent")}
+				footer={
+					<Button
+						testID="feedback-thanks-close"
+						label={t("feedback.thanksClose")}
+						onPress={close}
+						style={styles.thanksClose}
+					/>
+				}
+			>
+				<Copy style={styles.promptMessage}>{t("feedback.thanks")}</Copy>
 			</Dialog>
 		)
 	}
 
 	if (prompt) {
 		return (
-			<Dialog visible={visible} onClose={prompt.onDismiss} title={t("feedback.promptTitle")}>
+			<Dialog
+				visible={visible}
+				onClose={prompt.onDismiss}
+				title={t("feedback.promptTitle")}
+				footer={
+					<View style={[ui.actions, styles.actions]}>
+						<Button
+							testID="feedback-prompt-later"
+							label={t("feedback.later")}
+							variant="secondary"
+							onPress={prompt.onDismiss}
+							style={ui.action}
+						/>
+						<Button
+							testID="feedback-prompt-write"
+							label={t("feedback.write")}
+							onPress={prompt.onWrite}
+							style={ui.action}
+						/>
+					</View>
+				}
+			>
 				<Image accessible={false} source={mascot} style={styles.promptMascot} />
 				<Copy style={styles.promptMessage}>{t("feedback.promptMessage")}</Copy>
-				<View style={styles.actions}>
-					<Button
-						testID="feedback-prompt-later"
-						label={t("feedback.later")}
-						variant="secondary"
-						onPress={prompt.onDismiss}
-						style={styles.action}
-					/>
-					<Button
-						testID="feedback-prompt-write"
-						label={t("feedback.write")}
-						onPress={prompt.onWrite}
-						style={styles.action}
-					/>
-				</View>
 			</Dialog>
 		)
 	}
 
 	return (
-		<Dialog visible={visible} onClose={close} title={t("feedback.title")}>
+		<Dialog
+			visible={visible}
+			onClose={close}
+			title={t("feedback.title")}
+			footer={
+				<View style={[ui.actions, styles.actions]}>
+					<Button
+						label={t("common.cancel")}
+						variant="secondary"
+						disabled={mutation.isPending}
+						onPress={close}
+						style={ui.action}
+					/>
+					<Button
+						testID="feedback-send"
+						label={t(mutation.isError ? "feedback.retry" : "feedback.send")}
+						icon="send"
+						disabled={!message.trim()}
+						loading={mutation.isPending}
+						onPress={submit}
+						style={ui.action}
+					/>
+				</View>
+			}
+		>
 			<TextField
 				testID="feedback-message"
 				accessibilityLabel={t("feedback.title")}
@@ -113,35 +154,21 @@ export function FeedbackDialog({
 			/>
 			<Copy style={styles.privacy}>{t("feedback.privacy")}</Copy>
 			<InlineError message={mutation.isError ? t("feedback.error") : null} />
-
-			<View style={styles.actions}>
-				<Button
-					label={t("common.cancel")}
-					variant="secondary"
-					disabled={mutation.isPending}
-					onPress={close}
-					style={styles.action}
-				/>
-				<Button
-					testID="feedback-send"
-					label={t("feedback.send")}
-					icon="send"
-					disabled={!message.trim()}
-					loading={mutation.isPending}
-					onPress={submit}
-					style={styles.action}
-				/>
-			</View>
 		</Dialog>
 	)
 }
 
 const styles = StyleSheet.create({
-	thanksClose: { marginTop: 26 },
-	promptMascot: { width: 96, height: 96, resizeMode: "contain", alignSelf: "center" },
-	promptMessage: { fontSize: 17, lineHeight: 27, textAlign: "center", marginTop: 16 },
-	actions: { flexDirection: "row", gap: 12, marginTop: 26 },
-	action: { flex: 1 },
-	message: { height: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
+	thanksClose: { marginTop: 0 },
+	promptMascot: {
+		width: "40%",
+		maxWidth: 96,
+		aspectRatio: 1,
+		resizeMode: "contain",
+		alignSelf: "center",
+	},
+	promptMessage: { fontSize: 14, lineHeight: 20, textAlign: "center", marginTop: 16 },
+	actions: { marginTop: 0 },
+	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
 	privacy: { fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 12 },
 })

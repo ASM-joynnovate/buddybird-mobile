@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native"
 
 import { useTranslation } from "react-i18next"
 
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native"
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native"
 
 import { TextField } from "@/components/ui/text-field"
 
@@ -44,75 +44,102 @@ export function WordEditorScreen() {
 			style={styles.screen}
 			behavior={Platform.OS === "ios" ? "padding" : undefined}
 		>
-			<Screen>
-				<View style={styles.header}>
-					<IconButton
-						icon="back"
-						label={t("common.back")}
-						onPress={() => navigation.goBack()}
-						disabled={busy}
-					/>
-					<Copy style={styles.headerText}>{t("words.editTitle")}</Copy>
+			<Screen scroll={false}>
+				<View style={styles.headingContent}>
+					<View style={styles.header}>
+						<IconButton
+							icon="back"
+							label={t("common.back")}
+							onPress={() => navigation.goBack()}
+							disabled={busy}
+						/>
+						<Copy style={styles.headerText}>{t("words.editTitle")}</Copy>
+					</View>
+
+					<Title>{t("words.recordTitle")}</Title>
+					<Copy style={ui.subtitle}>{t("words.recordHint")}</Copy>
 				</View>
-
-				<Title>{t("words.recordTitle")}</Title>
-				<Copy style={ui.subtitle}>{t("words.recordHint")}</Copy>
-
-				<TextField
-					testID="word-name"
-					label={t("words.label")}
-					value={label}
-					onChangeText={setLabel}
-					maxLength={WORD_NAME_LIMIT}
-					editable={!busy && !recordingState.isRecording}
-					placeholder={t("words.labelHint")}
-				/>
-
-				<Copy style={[ui.label, ui.section]}>{t("words.category")}</Copy>
-				<CategorySelector category={category} setCategory={setCategory} />
-
-				<RecordingPanel
-					label={label}
-					isRecording={recordingState.isRecording}
-					durationMillis={recordingState.durationMillis}
-					metering={recordingState.metering}
-					recorded={!!recorded}
-					busy={busy}
-					toggleRecording={toggleRecording}
-				/>
-
-				{recorded && !recordingState.isRecording ? (
-					<RecordingReview
-						playing={playing}
-						elapsedSeconds={playbackSeconds}
-						preview={preview}
+				<ScrollView
+					keyboardShouldPersistTaps="handled"
+					keyboardDismissMode="on-drag"
+					contentContainerStyle={styles.body}
+				>
+					<TextField
+						testID="word-name"
+						label={t("words.label")}
+						value={label}
+						onChangeText={setLabel}
+						maxLength={WORD_NAME_LIMIT}
+						editable={!busy}
+						placeholder={t("words.labelHint")}
 					/>
-				) : null}
 
-				<InlineError message={error} />
-				<View style={styles.actions}>
-					<Button
-						label={t("common.cancel")}
-						variant="secondary"
-						disabled={busy}
-						onPress={() => navigation.goBack()}
-						style={styles.cancel}
+					<Copy style={[ui.label, ui.section]}>{t("words.category")}</Copy>
+					<CategorySelector category={category} setCategory={setCategory} />
+
+					<RecordingPanel
+						category={category}
+						label={label}
+						isRecording={recordingState.isRecording}
+						durationMillis={
+							recordingState.isRecording ? recordingState.durationMillis : 0
+						}
+						metering={recordingState.metering}
+						recorded={!!recorded}
+						busy={busy}
+						toggleRecording={toggleRecording}
 					/>
-					<Button
-						testID="word-save"
-						label={t("words.addToTraining")}
-						loading={busy}
-						disabled={saveDisabled}
-						onPress={() => void save()}
-						style={styles.save}
-					/>
-				</View>
+
+					<InlineError message={error} />
+
+					{recorded && !recordingState.isRecording ? (
+						<RecordingReview
+							category={category}
+							playing={playing}
+							elapsedSeconds={playbackSeconds}
+							preview={preview}
+						/>
+					) : null}
+
+					<View style={[ui.actions, styles.actions]}>
+						<Button
+							label={t("common.cancel")}
+							variant="secondary"
+							disabled={busy}
+							onPress={() => navigation.goBack()}
+							style={ui.action}
+						/>
+						<Button
+							testID="word-save"
+							label={t("words.addToTraining")}
+							loading={busy}
+							disabled={saveDisabled}
+							onPress={() => void save()}
+							style={ui.action}
+						/>
+					</View>
+				</ScrollView>
 			</Screen>
 		</KeyboardAvoidingView>
 	)
 }
 
 const styles = StyleSheet.create({
+	headingContent: {
+		paddingHorizontal: 20,
+		paddingTop: 8,
+		width: "100%",
+		maxWidth: 480,
+		alignSelf: "center",
+	},
+	body: {
+		paddingHorizontal: 20,
+		paddingTop: 8,
+		paddingBottom: 24,
+		width: "100%",
+		maxWidth: 480,
+		alignSelf: "center",
+	},
 	screen: { flex: 1, backgroundColor: colors.background },
 	header: {
 		flexDirection: "row",
@@ -121,8 +148,6 @@ const styles = StyleSheet.create({
 		marginLeft: -8,
 		marginBottom: 10,
 	},
-	headerText: { fontFamily: font.extraBold, fontSize: 16 },
-	actions: { flexDirection: "row", gap: 10, marginTop: 28 },
-	cancel: { flex: 1 },
-	save: { flex: 2 },
+	headerText: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13, color: colors.muted },
+	actions: { marginTop: 28 },
 })

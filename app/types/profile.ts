@@ -8,7 +8,11 @@ export type Profile = {
 	updatedAt: string
 }
 
+export type ProfileDraft = Pick<Profile, "name" | "species" | "birthDate" | "photoUri">
+
 export type ProfileOnboarding = {
+	draft?: ProfileDraft
+	onDraft(draft: ProfileDraft): void
 	onBack(): void
 	onComplete(): void
 	onPhotoPickerChange(open: boolean): void

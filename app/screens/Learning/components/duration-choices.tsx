@@ -50,7 +50,7 @@ export function DurationChoices({
 							) : null}
 						</View>
 						<View style={styles.choiceText}>
-							<View style={ui.row}>
+							<View style={[ui.wrap, styles.titleRow]}>
 								<Copy style={styles.choiceTitle}>{t(`learning.${item}`)}</Copy>
 								<Copy style={styles.duration}>{duration}</Copy>
 							</View>
@@ -64,12 +64,12 @@ export function DurationChoices({
 }
 
 const styles = StyleSheet.create({
-	spacing: { marginBottom: 12 },
+	spacing: { marginBottom: 8 },
 	choice: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 14,
-		minHeight: 86,
+		gap: 12,
+		minHeight: 76,
 	},
 	radio: {
 		width: 25,
@@ -81,8 +81,9 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	radioSelected: { borderColor: colors.orange, backgroundColor: colors.orange },
-	choiceText: { flex: 1 },
-	choiceTitle: { fontFamily: font.black, fontSize: 21 },
-	duration: { fontSize: 17, color: colors.orange, fontFamily: font.extraBold, flexShrink: 1 },
-	choiceHint: { color: colors.muted, fontSize: 15, marginTop: 7, lineHeight: 21 },
+	choiceText: { flex: 1, minWidth: 0 },
+	titleRow: { alignItems: "baseline" },
+	choiceTitle: { flexGrow: 1, flexShrink: 1, fontFamily: font.black, fontSize: 16 },
+	duration: { fontSize: 12.5, color: colors.orange, fontFamily: font.extraBold, flexShrink: 1 },
+	choiceHint: { color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 },
 })

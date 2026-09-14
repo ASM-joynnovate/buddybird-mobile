@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next"
 
-import { Image, ScrollView, StyleSheet, View } from "react-native"
+import { ScrollView, StyleSheet, View } from "react-native"
 
-import { SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { useCaptureShortcut } from "@/screens/Session/hooks/use-capture-shortcut"
+import { Mascot } from "@/components/mascot"
 import { Card, PressableSurface } from "@/components/ui/surface"
 
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,7 @@ import { Confetti } from "@/screens/Session/components/confetti"
 import { useSessionDetails } from "@/screens/Session/hooks/use-session-details"
 import { profileStats } from "@/services/profile/statistics"
 import { learningSeconds } from "@/services/session/history"
-import { colors, font, mascot, radius } from "@/theme"
+import { colors, font } from "@/theme"
 
 export function SessionComplete({
 	busy,
@@ -30,6 +31,7 @@ export function SessionComplete({
 	onContinue(): void
 }) {
 	const { t } = useTranslation()
+	const insets = useSafeAreaInsets()
 	const { data, session, snapshot, history, settings, word } = useSessionDetails()
 	const stats = profileStats(data)
 	const openCaptures = useCaptureShortcut(snapshot.sessionId, word?.label ?? "")
@@ -38,7 +40,7 @@ export function SessionComplete({
 		(settings ? learningSeconds(snapshot.elapsedRunningMs, settings) : 0)
 
 	return (
-		<SafeAreaView style={styles.complete}>
+		<SafeAreaView edges={["top"]} style={styles.complete}>
 			<Confetti />
 			<ScrollView contentContainerStyle={styles.completeScroll}>
 				<View style={styles.completeContent}>
@@ -46,12 +48,12 @@ export function SessionComplete({
 						testID="session-capture-shortcut"
 						tone="plain"
 						depth={0}
-						accessibilityLabel="Buddy"
+						accessibilityLabel={t("common.mascot")}
 						accessibilityHint={t("captures.shortcut")}
 						onPress={openCaptures}
 						contentStyle={styles.shortcut}
 					>
-						<Image accessible={false} source={mascot} style={styles.completeMascot} />
+						<Mascot size={140} motion="bounce" />
 					</PressableSurface>
 					<Copy
 						accessibilityRole="header"
@@ -67,24 +69,34 @@ export function SessionComplete({
 									? withSubjectParticle(data.profile?.name ?? "")
 									: (data.profile?.name ?? ""),
 							word: word?.label ?? "",
-							duration: durationText(learned, data.settings.locale),
+							duration: `${Math.max(1, Math.round(learned / 60))}${t("common.minutes")}`,
 						})}
 					</Copy>
 				</View>
 
-				<View style={styles.completeFooter}>
-					<View style={ui.row}>
-						<Card style={styles.cell} contentStyle={styles.completeStat}>
+				<View style={[styles.completeFooter, { paddingBottom: insets.bottom + 22 }]}>
+					<View style={ui.wrap}>
+						<Card
+							color={colors.orange}
+							style={styles.cell}
+							contentStyle={styles.completeStat}
+						>
 							<Copy style={styles.completeStatLabel}>{t("session.streak")}</Copy>
 							<View style={[ui.row, styles.statValueRow]}>
 								<Icon name="flame" color={colors.orange} />
 								<Copy style={styles.completeStatValue}>{stats.streakDays}</Copy>
 							</View>
 						</Card>
-						<Card style={styles.cell} contentStyle={styles.completeStat}>
-							<Copy style={styles.completeStatLabel}>{t("session.total")}</Copy>
+						<Card
+							color={colors.yellow}
+							style={styles.cell}
+							contentStyle={styles.completeStat}
+						>
+							<Copy style={[styles.completeStatLabel, { color: colors.yellowDark }]}>
+								{t("session.total")}
+							</Copy>
 							<View style={[ui.row, styles.statValueRow]}>
-								<Icon name="clock" color={colors.orange} />
+								<Icon name="clock" color={colors.yellow} />
 								<Copy style={styles.completeStatValue}>
 									{durationText(stats.totalSeconds, data.settings.locale)}
 								</Copy>
@@ -120,33 +132,35 @@ const styles = StyleSheet.create({
 	complete: { flex: 1, backgroundColor: colors.orange },
 	completeScroll: { flexGrow: 1 },
 	completeContent: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 22 },
-	completeMascot: { width: 160, height: 180, resizeMode: "contain", marginBottom: 22 },
 	completeTitle: {
 		fontFamily: font.black,
-		fontSize: 38,
+		fontSize: 34,
+		lineHeight: 40,
+		marginTop: 24,
 		textAlign: "center",
 		color: colors.onAccent,
 	},
 	completeDescription: {
-		fontSize: 20,
+		fontSize: 16,
+		fontFamily: font.extraBold,
 		textAlign: "center",
 		color: colors.onAccent,
-		marginTop: 15,
-		lineHeight: 27,
+		marginTop: 6,
+		lineHeight: 23,
 	},
 	completeFooter: {
 		backgroundColor: colors.background,
-		borderTopLeftRadius: radius.hero,
-		borderTopRightRadius: radius.hero,
+		borderTopLeftRadius: 28,
+		borderTopRightRadius: 28,
 		padding: 22,
 		width: "100%",
-		maxWidth: 680,
+		maxWidth: 480,
 		alignSelf: "center",
 	},
-	cell: { flex: 1 },
-	completeStat: { alignItems: "center", gap: 10, borderColor: colors.orange },
-	completeStatLabel: { fontSize: 12, color: colors.orange },
-	statValueRow: { flexWrap: "wrap", justifyContent: "center" },
-	completeStatValue: { fontSize: 28, fontFamily: font.black, flexShrink: 1, textAlign: "center" },
+	cell: { flexGrow: 1, flexShrink: 1, flexBasis: 140, minWidth: 0 },
+	completeStat: { alignItems: "center", gap: 4, minHeight: 102, justifyContent: "center" },
+	completeStatLabel: { fontSize: 11, color: colors.orangeDark },
+	statValueRow: { flexWrap: "wrap", justifyContent: "center", maxWidth: "100%" },
+	completeStatValue: { fontSize: 24, fontFamily: font.black, flexShrink: 1, textAlign: "center" },
 	continue: { marginTop: 20 },
 })

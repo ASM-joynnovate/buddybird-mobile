@@ -3,13 +3,14 @@ import { useFocusEffect } from "@react-navigation/native"
 import { useCallback, useRef, useState } from "react"
 
 import { useTranslation } from "react-i18next"
+import { Alert, Linking } from "react-native"
 
 import { useAppData } from "@/hooks/use-app-data"
 import { useSession } from "@/hooks/use-session"
 import { choices, presetMinutes } from "@/screens/Learning/durations"
 import { sessionFailure } from "@/services/session/failure"
 import { customTiming, presetTiming } from "@/services/session/timing"
-import { screen } from "@/services/telemetry/client"
+import { reportError, screen } from "@/services/telemetry/client"
 import { visibleWords } from "@/services/words/selectors"
 import type { SessionFailure } from "@modules/session-audio-engine/types"
 
@@ -70,21 +71,39 @@ export function useLearningSetup() {
 		try {
 			await session.start(word.id, timing)
 		} catch (cause) {
-			setError(sessionFailure(cause))
+			const failure = sessionFailure(cause)
+
+			if (failure.code === "permission-denied") {
+				Alert.alert(t("learning.microphoneTitle"), t("learning.microphoneMessage"), [
+					{ text: t("common.cancel"), style: "cancel" },
+					{
+						text: t("learning.openSettings"),
+						onPress: () => {
+							void Linking.openSettings().catch((error) =>
+								reportError(error, "microphone_settings"),
+							)
+						},
+					},
+				])
+			} else {
+				setError(failure)
+			}
 		} finally {
 			starting.current = false
 			setBusy(false)
 		}
 	}
 
+	const selectWord = useCallback((id: string) => {
+		setWordId(id)
+		setError(null)
+	}, [])
+
 	return {
 		locale,
 		words,
 		word,
-		setWordId: (id: string) => {
-			setWordId(id)
-			setError(null)
-		},
+		setWordId: selectWord,
 		choice,
 		choose,
 		timing,

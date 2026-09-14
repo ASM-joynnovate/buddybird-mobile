@@ -6,7 +6,7 @@ import {
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { useAppData } from "@/hooks/use-app-data"
 import { useSession } from "@/hooks/use-session"
@@ -27,6 +27,7 @@ export function AppNavigator() {
 	const navigation = useNavigationContainerRef<RootStackParamList>()
 
 	const [ready, setReady] = useState(false)
+	const lastDismissed = useRef<string | null>(null)
 	const [dismissed, setDismissed] = useState<string | null>(null)
 
 	const hasProfile = Boolean(data.profile)
@@ -63,6 +64,11 @@ export function AppNavigator() {
 	}, [ready, hasProfile, snapshot.state, snapshot.sessionId, dismissed, navigation])
 
 	function continueFromSession() {
+		if (lastDismissed.current === snapshot.sessionId) {
+			return
+		}
+
+		lastDismissed.current = snapshot.sessionId
 		setDismissed(snapshot.sessionId)
 		navigation.dispatch(StackActions.popTo("Main"))
 	}
@@ -81,7 +87,11 @@ export function AppNavigator() {
 					<>
 						<Stack.Screen name="Main" component={MainTabs} />
 						<Stack.Screen name="ProfileEditor" component={ProfileEditorScreen} />
-						<Stack.Screen name="WordEditor" component={WordEditorScreen} />
+						<Stack.Screen
+							name="WordEditor"
+							component={WordEditorScreen}
+							options={{ presentation: "fullScreenModal", animation: "fade" }}
+						/>
 						<Stack.Screen name="SessionCaptures" component={SessionCapturesScreen} />
 						<Stack.Screen name="Session" options={{ animation: "fade" }}>
 							{() => <SessionScreen onContinue={continueFromSession} />}
