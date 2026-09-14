@@ -36,6 +36,11 @@ tags: [smoke, full]
     id: tab-words
 - assertVisible: 단어 관리
 - assertVisible: 안녕
+- runFlow: helpers/restart-app.yaml
+- tapOn:
+    id: tab-words
+- assertVisible: 단어 관리
+- assertVisible: 안녕
 - tapOn:
     id: tab-profile
 - scrollUntilVisible:

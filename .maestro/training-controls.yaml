@@ -1,5 +1,5 @@
 appId: com.joynnovate.buddybird.dev
-name: Training can continue or end after a back request
+name: Training pauses its countdown, resumes, and can be ended
 tags: [smoke, full]
 ---
 - runFlow: helpers/fresh-profile.yaml
@@ -43,11 +43,35 @@ tags: [smoke, full]
 - assertVisible:
     id: session-pause
     text: Resume
+- copyTextFrom:
+    id: session-countdown
+- evalScript: ${output.pausedCountdown = maestro.copiedText; output.pauseStartedAt = Date.now()}
+- repeat:
+    while:
+      true: ${Date.now() - output.pauseStartedAt < 3000}
+    commands:
+      - assertVisible:
+          id: session-countdown
+          text: ${output.pausedCountdown}
+- assertVisible:
+    id: session-countdown
+    text: ${output.pausedCountdown}
 - tapOn:
     id: session-pause
+    waitToSettleTimeoutMs: 100
 - assertVisible:
     id: session-pause
     text: Pause
+- extendedWaitUntil:
+    notVisible:
+      id: session-countdown
+      text: ${output.pausedCountdown}
+    timeout: 15000
+- copyTextFrom:
+    id: session-countdown
+- assertTrue:
+    condition: ${maestro.copiedText < output.pausedCountdown}
+    label: Remaining time decreases after resuming
 - scrollUntilVisible:
     element:
       id: session-back

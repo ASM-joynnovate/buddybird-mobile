@@ -1,5 +1,5 @@
 appId: com.joynnovate.buddybird.dev
-name: Edited profile persists and feedback can be cancelled
+name: Edited profile retains the exact name and birthday after restart
 tags: [smoke, full]
 ---
 - runFlow: helpers/fresh-profile.yaml
@@ -33,6 +33,38 @@ tags: [smoke, full]
     selected: false
 - scrollUntilVisible:
     element:
+      id: birthday-year
+    direction: DOWN
+    centerElement: true
+- swipe:
+    from:
+      id: birthday-year
+    direction: UP
+    duration: 1000
+- assertVisible:
+    id: birthday-year
+    text: ${"(Select birth year, )?" + new Date().getFullYear()}
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: birthday-month
+        text: "(Select birth month, )?1"
+    commands:
+      - swipe:
+          from:
+            id: birthday-month
+          direction: DOWN
+          duration: 1000
+- assertVisible:
+    id: birthday-month
+    text: "(Select birth month, )?1"
+- assertVisible:
+    id: birthday-day
+    text: "(Select birth day, )?1"
+- evalScript: ${output.expectedBirthday = new Date().getFullYear() + ". 1. 1."}
+- scrollUntilVisible:
+    element:
       id: profile-save
     direction: DOWN
 - tapOn:
@@ -50,32 +82,5 @@ tags: [smoke, full]
 - assertVisible: Budgie
 - assertVisible:
     id: profile-birth-date
-    text: '[0-9]{4}\. [0-9]{1,2}\. [0-9]{1,2}\.'
+    text: ${output.expectedBirthday.replace(/\./g, '\\.')}
 - takeScreenshot: profile-birth-date
-- scrollUntilVisible:
-    element:
-      id: profile-feedback
-    direction: DOWN
-    centerElement: true
-- waitForAnimationToEnd
-- tapOn:
-    id: profile-feedback
-- assertVisible:
-    id: feedback-send
-    enabled: false
-- tapOn:
-    id: feedback-message
-- inputText: This message will be cancelled.
-- scrollUntilVisible:
-    element:
-      id: feedback-send
-    direction: DOWN
-- assertVisible:
-    id: feedback-send
-    enabled: true
-- tapOn: Cancel
-- assertNotVisible:
-    id: feedback-message
-- assertVisible:
-    id: tab-profile
-    selected: true

@@ -1,0 +1,73 @@
+appId: com.joynnovate.buddybird.dev
+name: Denied microphone access blocks recording and training without getting stuck
+tags: [full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- stopApp
+- launchApp:
+    permissions:
+      all: allow
+      microphone: deny
+- extendedWaitUntil:
+    visible:
+      id: tab-learn
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible: BuddyBird
+    timeout: 30000
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-add
+- tapOn:
+    id: word-name
+- inputText: Permission check
+- tapOn: Record word
+- scrollUntilVisible:
+    element:
+      id: word-record
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: word-record
+- tapOn:
+    text: "(Don't allow|Don’t allow|허용 안 함)"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: Microphone access is off\..*
+    direction: DOWN
+- assertVisible: Microphone access is off\..*
+- assertNotVisible: Stop recording
+- assertNotVisible:
+    id: word-review-play
+- assertVisible:
+    id: word-record
+    enabled: true
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- assertVisible:
+    id: word-save
+    enabled: false
+- tapOn: Cancel
+- tapOn:
+    id: tab-learn
+- tapOn: Select Hello
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- tapOn:
+    id: learning-start
+- tapOn:
+    text: "(Don't allow|Don’t allow|허용 안 함)"
+    optional: true
+- assertVisible: Microphone permission needed
+- tapOn: Cancel
+- assertNotVisible:
+    id: session-countdown
+- assertVisible:
+    id: learning-start
+    enabled: true
