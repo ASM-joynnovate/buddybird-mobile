@@ -30,10 +30,10 @@ tags: [smoke, full]
     commands:
       - tapOn:
           id: session-back
-- assertVisible: End this session\?
+- assertVisible: End the training session\?
 - tapOn:
     id: session-exit-continue
-- assertNotVisible: End this session\?
+- assertNotVisible: End the training session\?
 - scrollUntilVisible:
     element:
       id: session-pause
@@ -54,7 +54,7 @@ tags: [smoke, full]
     direction: UP
 - tapOn:
     id: session-back
-- assertVisible: End this session\?
+- assertVisible: End the training session\?
 - takeScreenshot: confirm-session-exit
 - tapOn:
     id: session-exit-end
@@ -76,8 +76,10 @@ tags: [smoke, full]
     timeout: 20000
 - tapOn:
     id: session-end
+- tapOn:
+    id: session-exit-end
 - extendedWaitUntil:
     visible:
       id: learning-start
     timeout: 20000
-- assertNotVisible: End this session\?
+- assertNotVisible: End the training session\?

@@ -13,8 +13,7 @@ tags: [smoke, full]
 - assertVisible:
     id: learning-start
     enabled: true
-- stopApp
-- launchApp
+- runFlow: helpers/restart-app.yaml
 - tapOn:
     id: tab-profile
 - assertVisible:

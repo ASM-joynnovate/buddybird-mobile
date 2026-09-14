@@ -10,7 +10,7 @@ tags: [full]
 - tapOn:
     id: word-name
 - inputText: Second take
-- tapOn: Record a word
+- tapOn: Record word
 - runFlow: helpers/record-clip.yaml
 - tapOn:
     id: word-review-play
@@ -66,8 +66,7 @@ tags: [full]
     visible:
       id: word-add
     timeout: 15000
-- stopApp
-- launchApp
+- runFlow: helpers/restart-app.yaml
 - tapOn:
     id: tab-words
 - scrollUntilVisible:

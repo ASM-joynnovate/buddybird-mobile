@@ -13,7 +13,8 @@
     "format": "prettier --write app modules plugins docs *.json *.js *.ts *.tsx",
     "check:deps": "depcruise app modules --config .dependency-cruiser.cjs",
     "check": "yarn typecheck && yarn lint && yarn check:deps",
-    "test:maestro": "maestro test --include-tags full .maestro",
+    "test:maestro:ios": "test -n \"$0\" && APP_VARIANT=development expo prebuild --platform ios --no-install && APP_VARIANT=development expo run:ios --configuration Release --device \"$0\" --no-bundler && maestro --device \"$0\" test --include-tags full .maestro",
+    "test:maestro:android": "test -n \"$0\" && APP_VARIANT=development expo prebuild --platform android --no-install && APP_VARIANT=development android/gradlew -p android :app:assembleRelease && adb -s \"$0\" install -r android/app/build/outputs/apk/release/app-release.apk && maestro --device \"$0\" test --include-tags full .maestro",
     "export:ios": "expo export --platform ios",
     "export:android": "expo export --platform android",
     "postinstall": "node .husky/install.mjs"

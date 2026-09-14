@@ -18,7 +18,7 @@ appId: com.joynnovate.buddybird.dev
 - tapOn:
     id: profile-name
 - inputText: E2E Parrot
-- tapOn: "(Tell us about your parrot!|함께할 앵무새를 소개해 주세요!)"
+- tapOn: "(Introduce your parrot!|우리 앵무새를 소개해 주세요!)"
 - scrollUntilVisible:
     element:
       id: species-budgie
@@ -29,8 +29,12 @@ appId: com.joynnovate.buddybird.dev
     element:
       id: birthday-unknown
     direction: DOWN
+    centerElement: true
 - tapOn:
     id: birthday-unknown
+- assertVisible:
+    id: birthday-unknown
+    selected: true
 - tapOn:
     id: onboarding-start
 - runFlow:

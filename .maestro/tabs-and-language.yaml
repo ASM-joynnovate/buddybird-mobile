@@ -34,7 +34,7 @@ tags: [smoke, full]
     selected: true
 - tapOn:
     id: tab-words
-- assertVisible: 단어장
+- assertVisible: 단어 관리
 - assertVisible: 안녕
 - tapOn:
     id: tab-profile
@@ -44,8 +44,7 @@ tags: [smoke, full]
     direction: DOWN
 - tapOn:
     id: language-en
-- stopApp
-- launchApp
+- runFlow: helpers/restart-app.yaml
 - tapOn:
     id: tab-words
 - assertVisible: Word library

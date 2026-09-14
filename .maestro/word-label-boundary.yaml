@@ -26,7 +26,7 @@ tags: [full]
 - assertVisible:
     id: word-name
     text: '01234567890123456789012345678901234567890123456789'
-- tapOn: Record a word
+- tapOn: Record word
 - runFlow: helpers/record-clip.yaml
 - tapOn:
     id: word-save
@@ -34,8 +34,7 @@ tags: [full]
     visible:
       id: word-add
     timeout: 15000
-- stopApp
-- launchApp
+- runFlow: helpers/restart-app.yaml
 - tapOn:
     id: tab-words
 - scrollUntilVisible:

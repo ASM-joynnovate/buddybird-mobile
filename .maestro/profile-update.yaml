@@ -25,8 +25,12 @@ tags: [smoke, full]
     element:
       id: birthday-unknown
     direction: DOWN
+    centerElement: true
 - tapOn:
     id: birthday-unknown
+- assertVisible:
+    id: birthday-unknown
+    selected: false
 - scrollUntilVisible:
     element:
       id: profile-save
@@ -37,8 +41,7 @@ tags: [smoke, full]
     notVisible:
       id: profile-save
     timeout: 15000
-- stopApp
-- launchApp
+- runFlow: helpers/restart-app.yaml
 - tapOn:
     id: tab-profile
 - assertVisible:
