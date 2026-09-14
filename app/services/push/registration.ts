@@ -59,7 +59,10 @@ export async function registerPush() {
 
 	updateData((data) => {
 		data.settings.push = {
-			token: data.settings.push?.token ?? null,
+			token:
+				authorizationStatus === "denied" || authorizationStatus === "not_determined"
+					? null
+					: (data.settings.push?.token ?? null),
 			authorizationStatus,
 			updatedAt: new Date().toISOString(),
 		}
