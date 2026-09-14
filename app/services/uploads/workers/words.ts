@@ -6,11 +6,12 @@ export function createWordWorker(
 ) {
 	let wordUploadTask: Promise<void> | null = null
 	let wordTriggerCount = 0
+	const requestedIds = new Set<string>()
 
 	function triggerWords(all = false, wordId?: string, signal?: AbortSignal) {
-		dependencies.update((data) => {
-			let wordIdsToQueue: string[] = []
+		let wordIdsToQueue: string[] = []
 
+		dependencies.update((data) => {
 			if (all) {
 				wordIdsToQueue = Object.values(data.words)
 					.filter((word) => word.sourceType === "recording" && !word.archived)
@@ -21,6 +22,7 @@ export function createWordWorker(
 
 			data.pendingWords = [...new Set([...data.pendingWords, ...wordIdsToQueue])]
 		})
+		wordIdsToQueue.forEach((id) => requestedIds.add(id))
 		wordTriggerCount++
 
 		if (wordUploadTask) {
@@ -28,18 +30,26 @@ export function createWordWorker(
 		}
 
 		wordUploadTask = (async () => {
+			const skipped = new Set<string>()
+
 			do {
 				const observedTriggerCount = wordTriggerCount
 
 				try {
 					const data = dependencies.read()
-					const pendingWordIds = [...data.pendingWords].sort((a, b) =>
+					const pendingWordIds = [...requestedIds].sort((a, b) =>
 						(data.words[a]?.createdAt ?? "").localeCompare(
 							data.words[b]?.createdAt ?? "",
 						),
 					)
 
+					requestedIds.clear()
+
 					for (const id of pendingWordIds) {
+						if (skipped.has(id)) {
+							continue
+						}
+
 						if (!canUpload(signal)) {
 							break
 						}
@@ -52,11 +62,13 @@ export function createWordWorker(
 							try {
 								fileInfo = await dependencies.inspect(word.audioUri)
 							} catch (error) {
+								skipped.add(id)
 								dependencies.error(error)
 								continue
 							}
 
 							if (!fileInfo.exists) {
+								skipped.add(id)
 								continue
 							}
 

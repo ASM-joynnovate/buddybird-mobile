@@ -60,11 +60,25 @@ export async function saveWord(input: {
 }
 
 export function removeWord(id: string) {
+	const metrics = { lifetime_practice_count: 0, lifetime_practice_duration_ms: 0 }
+
 	updateData((data) => {
 		const word = data.words[id]
 
-		if (!word || word.sourceType !== "recording") {
+		if (!word || word.archived || word.sourceType !== "recording") {
 			throw new Error("Word cannot be deleted")
+		}
+
+		const metricIds = Object.keys(data.settings.wordMetrics).filter(
+			(key) => key === id || data.wordAliases[key] === id,
+		)
+
+		for (const key of metricIds) {
+			const item = data.settings.wordMetrics[key]
+
+			metrics.lifetime_practice_count += item.lifetime_practice_count
+			metrics.lifetime_practice_duration_ms += item.lifetime_practice_duration_ms
+			delete data.settings.wordMetrics[key]
 		}
 
 		word.archived = true
@@ -77,4 +91,6 @@ export function removeWord(id: string) {
 			data.pendingFileDeletes.push(word.transformedAudioUri)
 		}
 	})
+
+	return metrics
 }
