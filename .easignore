@@ -29,3 +29,6 @@ config/*/firebase/*
 !config/dev/firebase/google-services.json
 !config/prod/firebase/GoogleService-Info.plist
 !config/prod/firebase/google-services.json
+
+**/build/
+**/.gradle/
