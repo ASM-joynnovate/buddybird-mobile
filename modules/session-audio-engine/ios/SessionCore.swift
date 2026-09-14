@@ -23,25 +23,18 @@ func sessionPosition(elapsed: Double, total: Double, learning: Double, rest: Dou
 {
   let elapsedRunningMs = min(max(0, elapsed), total)
   let cycleDurationMs = learning + rest + care
-  let isCompleted = elapsedRunningMs >= total
-  let cycle: Int
-  if isCompleted && elapsedRunningMs > 0 {
-    cycle = Int(ceil(elapsedRunningMs / cycleDurationMs))
-  } else {
-    cycle = Int(floor(elapsedRunningMs / cycleDurationMs)) + 1
+  let fullCycles = Int(elapsedRunningMs / cycleDurationMs)
+  let inside = elapsedRunningMs.truncatingRemainder(dividingBy: cycleDurationMs)
+  if elapsedRunningMs >= total && inside == 0 {
+    return PhasePosition(cycle: max(1, fullCycles), phase: care > 0 ? "stress-care" : "rest", elapsed: care > 0 ? care : rest)
   }
-
-  var phaseElapsedMs = elapsedRunningMs - Double(cycle - 1) * cycleDurationMs
-  for (phase, durationMs) in [("learning", learning), ("rest", rest), ("stress-care", care)]
-  where durationMs > 0 {
-    if phaseElapsedMs < durationMs || (isCompleted && phaseElapsedMs <= durationMs) {
-      return PhasePosition(cycle: cycle, phase: phase, elapsed: phaseElapsedMs)
-    }
-
-    phaseElapsedMs -= durationMs
+  if inside < learning {
+    return PhasePosition(cycle: fullCycles + 1, phase: "learning", elapsed: inside)
   }
-
-  return PhasePosition(cycle: cycle, phase: "learning", elapsed: 0)
+  let afterLearning = inside - learning
+  return afterLearning < rest || care == 0
+    ? PhasePosition(cycle: fullCycles + 1, phase: "rest", elapsed: afterLearning)
+    : PhasePosition(cycle: fullCycles + 1, phase: "stress-care", elapsed: afterLearning - rest)
 }
 
 struct VADSettings: Codable {
@@ -104,8 +97,8 @@ final class SpeechDetector {
         onsetSamples += samples
 
         if onsetSamples.count / 16 >= settings.sustainMs {
-          speechStartMs = preRollSamples.count / 16
-          segmentSamples = preRollSamples + onsetSamples
+          segmentSamples = Array((preRollSamples + onsetSamples).suffix(settings.preRollMs * 16))
+          speechStartMs = max(0, segmentSamples.count / 16 - settings.sustainMs)
           preRollSamples.removeAll(keepingCapacity: true)
           onsetSamples.removeAll(keepingCapacity: true)
         }
@@ -206,6 +199,7 @@ struct CapturedAudio: Codable {
   let durationMs: Int
   let speechStartMs: Int
   let speechEndMs: Int
+  var fileStatus: String? = nil
 
   func validate() throws {
     guard UUID(uuidString: segmentId) != nil, !sessionId.isEmpty,
@@ -240,7 +234,11 @@ private struct CaptureChanges: Codable {
   var evicted: [EvictedAudio]
 }
 
-func isoNow() -> String { ISO8601DateFormatter().string(from: Date()) }
+func isoNow() -> String {
+  let formatter = ISO8601DateFormatter()
+  formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  return formatter.string(from: Date())
+}
 
 // All reads/writes are serialized by the engine queue. Atomic metadata writes precede final WAV rename.
 final class SessionPersistence {
@@ -350,14 +348,9 @@ final class SessionPersistence {
         CapturedAudio.self, from: Data(contentsOf: metadataURL))
       try capture.validate()
 
-      let finalURL = captures.appendingPathComponent(capture.fileName)
-      let temporaryURL = captures.appendingPathComponent(".\(capture.fileName).tmp")
-
       if !acknowledgedIDs.contains(capture.segmentId), !pendingCaptures.contains(where: {
         $0.segmentId == capture.segmentId
-      }),
-        manager.fileExists(atPath: finalURL.path) || manager.fileExists(atPath: temporaryURL.path)
-      {
+      }) {
         pendingCaptures.append(capture)
       }
     }
@@ -380,13 +373,16 @@ final class SessionPersistence {
       let temporaryURL = captures.appendingPathComponent(
         ".\(pendingCaptures[captureIndex].fileName).tmp")
 
-      if !manager.fileExists(atPath: finalURL.path), manager.fileExists(atPath: temporaryURL.path) {
-        try manager.moveItem(at: temporaryURL, to: finalURL)
-      }
-      guard manager.fileExists(atPath: finalURL.path) else {
-        throw EngineFailure(
-          "storage-unavailable",
-          "Pending capture file unavailable: \(pendingCaptures[captureIndex].fileName)")
+      pendingCaptures[captureIndex].fileStatus = nil
+      do {
+        if !manager.fileExists(atPath: finalURL.path), manager.fileExists(atPath: temporaryURL.path) {
+          try manager.moveItem(at: temporaryURL, to: finalURL)
+        }
+        if (try? finalURL.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true {
+          pendingCaptures[captureIndex].fileStatus = "unreadable"
+        }
+      } catch {
+        pendingCaptures[captureIndex].fileStatus = "unreadable"
       }
       pendingCaptures[captureIndex].uri = finalURL.absoluteString
     }
@@ -400,6 +396,17 @@ final class SessionPersistence {
         $0.segmentId == capture.segmentId
       }) {
         try manager.removeItem(at: metadataURL)
+      }
+    }
+
+    let referenced = Set(pendingCaptures.map { ".\($0.fileName).tmp" })
+    for file in try manager.contentsOfDirectory(at: captures, includingPropertiesForKeys: nil) {
+      let name = file.lastPathComponent
+      if name.hasPrefix(".session-"), name.hasSuffix(".wav.tmp"), !referenced.contains(name),
+        isManagedCapture(captures.appendingPathComponent(String(name.dropFirst().dropLast(4)))) ,
+        (try? file.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == false
+      {
+        try manager.removeItem(at: file)
       }
     }
 
@@ -453,7 +460,8 @@ final class SessionPersistence {
     // Both released and current engines write this name. Direct word recordings use recording-UUID.
     let pattern = #"^session-[A-Za-z0-9_-]{1,200}-[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\.wav$"#
     return file.lastPathComponent.range(of: pattern, options: .regularExpression) != nil
-      && file.resolvingSymlinksInPath() == captures.resolvingSymlinksInPath().appendingPathComponent(file.lastPathComponent)
+      && file.deletingLastPathComponent().resolvingSymlinksInPath().path == captures.resolvingSymlinksInPath().path
+      && (try? file.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) != true
   }
 
   private func finishEvictions() throws {

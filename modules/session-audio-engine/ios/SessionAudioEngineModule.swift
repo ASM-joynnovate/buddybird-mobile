@@ -209,9 +209,10 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
 
     observe(AVAudioSession.interruptionNotification) { engine, note in engine.interruption(note) }
     observe(AVAudioSession.routeChangeNotification) { engine, note in
-      guard let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-        reason != AVAudioSession.RouteChangeReason.categoryChange.rawValue,
-        reason != AVAudioSession.RouteChangeReason.override.rawValue
+      guard engine.state == "running",
+        let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+        [AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue,
+         AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue].contains(reason)
       else {
         return
       }
@@ -257,17 +258,20 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     sendEvent(event, body)
   }
 
-  private func startTargetPlayback(delayMs: Double, offsetSeconds: Double = 0) throws {
+  private func startTargetPlayback() throws {
+    let requestedAt = continuousMilliseconds()
     guard let player = targetPlayer else {
       throw EngineFailure("audio-engine-failed", "Target player is unavailable")
     }
-    playbackRemainingMs = max(0, (player.duration - offsetSeconds) * 1000)
+    player.currentTime = 0
+    playbackRemainingMs = player.duration * 1000
     guard player.play() else {
       throw EngineFailure("audio-engine-failed", "Target playback failed")
     }
-    lastPlaybackStartDelayMs = delayMs
+    lastPlaybackStartDelayMs = max(0, continuousMilliseconds() - requestedAt)
     targetPlaybackCount += 1
     playbackStartedAtMs = continuousMilliseconds()
+    nextPlaybackElapsedMs = .infinity
   }
 
   private func finishTargetPlayback() {
@@ -453,6 +457,9 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     engine.prepare()
     do {
       try engine.start()
+      guard engine.isRunning else {
+        throw EngineFailure("audio-engine-failed", "Microphone engine did not start")
+      }
       audioEngine = engine
     } catch {
       input.removeTap(onBus: 0)
@@ -532,7 +539,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         elapsed: elapsedRunningMs, total: config.totalDurationMs,
         learning: config.learningDurationMs, rest: config.restDurationMs,
         care: config.stressCareDurationMs)
-      if nextPhase.cycle != phasePosition.cycle || nextPhase.phase != phasePosition.phase {
+      if nextPhase.phase != phasePosition.phase {
         try flush()
 
         targetPlayer?.stop()
@@ -563,11 +570,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       {
         try flush()
 
-        guard let player = targetPlayer else {
-          throw EngineFailure("audio-engine-failed", "Target player is unavailable")
-        }
-        player.currentTime = 0
-        try startTargetPlayback(delayMs: max(0, elapsedRunningMs - nextPlaybackElapsedMs))
+        try startTargetPlayback()
         nextPlaybackElapsedMs = .infinity
         emit("onStateChanged", snapshot())
       } else if phasePosition.phase == "stress-care", chosenCare == nil {
@@ -663,13 +666,14 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     }
   }
 
-  func resume() throws -> [String: Any] {
+  func resume(automatically: Bool = false) throws -> [String: Any] {
     guard state == "paused" || state == "interrupted" else {
       return snapshot()
     }
 
     do {
-      if audioEngine == nil {
+      if audioEngine?.isRunning != true {
+        releaseAudio(deactivate: false)
         try acquireAudio()
       }
 
@@ -681,8 +685,8 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         if player.currentTime < player.duration {
           player.play()
         }
-      } else if phasePosition.phase == "learning", nextPlaybackElapsedMs.isInfinite {
-        try startTargetPlayback(delayMs: 0, offsetSeconds: targetPlayer?.currentTime ?? 0)
+      } else if phasePosition.phase == "learning" {
+        try startTargetPlayback()
       }
       lastFailure = nil
 
@@ -696,10 +700,14 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       return snapshot()
     } catch {
       elapsedBeforeRunMs = currentElapsedRunningMs()
-      state = "interrupted"
-      releaseAudio(deactivate: true)
-      emit("onFailure", failure(error, recoverable: true))
-      emit("onStateChanged", snapshot())
+      if automatically {
+        fail(error)
+      } else {
+        state = "paused"
+        releaseAudio(deactivate: true)
+        emit("onFailure", failure(error, recoverable: true))
+        emit("onStateChanged", snapshot())
+      }
       throw error
     }
   }
@@ -854,11 +862,13 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       let options = AVAudioSession.InterruptionOptions(
         rawValue: note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0)
       if resumeAfterInterruption && options.contains(.shouldResume) {
-        _ = try? resume()
-      } else if state == "paused" {
+        _ = try? resume(automatically: true)
+      } else if state == "paused", options.contains(.shouldResume) {
         do {
+          releaseAudio(deactivate: false)
           try acquireAudio()
         } catch {
+          releaseAudio(deactivate: true)
           emit("onFailure", failure(error, recoverable: true))
         }
       }
@@ -879,30 +889,34 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
 
     do {
       try flush()
-      let targetOffset = targetPlayer?.currentTime ?? 0
       releaseAudio(deactivate: false)
 
       if let config = configuration {
         targetPlayer = try AVAudioPlayer(contentsOf: config.targetAudioFile)
         targetPlayer?.delegate = self
         targetPlayer?.isMeteringEnabled = true
-        targetPlayer?.currentTime = targetOffset
         if let chosenCare {
-          carePlayer = try? AVAudioPlayer(contentsOf: chosenCare)
+          carePlayer = try AVAudioPlayer(contentsOf: chosenCare)
           carePlayer?.currentTime = min(phasePosition.elapsed / 1000, carePlayer?.duration ?? 0)
         }
       }
 
       try acquireAudio()
       if wasRunning {
-        _ = try resume()
+        _ = try resume(automatically: true)
       } else {
         try checkpoint()
         updateNowPlaying()
       }
     } catch {
-      emit("onFailure", failure(error, recoverable: true))
-      emit("onStateChanged", snapshot())
+      if wasRunning {
+        if state != "failed" { fail(error) }
+      } else {
+        state = "paused"
+        releaseAudio(deactivate: true)
+        emit("onFailure", failure(error, recoverable: true))
+        emit("onStateChanged", snapshot())
+      }
     }
   }
 
@@ -936,6 +950,12 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         self.remoteTargets.append((command, target))
       }
       center.changePlaybackPositionCommand.isEnabled = false
+      center.nextTrackCommand.isEnabled = false
+      center.previousTrackCommand.isEnabled = false
+      center.seekForwardCommand.isEnabled = false
+      center.seekBackwardCommand.isEnabled = false
+      center.skipForwardCommand.isEnabled = false
+      center.skipBackwardCommand.isEnabled = false
     }
     updateNowPlaying()
   }

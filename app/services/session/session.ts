@@ -1,13 +1,15 @@
 import { AudioModule } from "expo-audio"
 import { randomUUID } from "expo-crypto"
-import { File } from "expo-file-system"
 
 import { resolveAudio, stressCareAudio } from "@/services/media/audio"
+import { drainFileDeletes } from "@/services/media/cleanup"
+import { inspect } from "@/services/media/inspect"
+import { practiceDurationMs, abandonedProgress } from "@/services/session/history"
 import { captureDirectory } from "@/services/media/files"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { transferNativeState } from "@/services/session/transfer"
 import { readData, updateData } from "@/services/storage/data-store"
-import { reserveEvents, track } from "@/services/telemetry/client"
+import { reportError, reserveEvents, track } from "@/services/telemetry/client"
 import { currentWord } from "@/services/words/selectors"
 import { CAPTURE_STORAGE_LIMIT_BYTES } from "@/types/capture"
 import { SessionDraft, SessionSettings } from "@/types/session"
@@ -30,15 +32,9 @@ export function recoverNativeData(): Promise<void> {
 			await transferNativeState(engine, {
 				read: readData,
 				update: updateData,
-				fileSize: (uri) => {
-					const file = new File(resolveRecordingUri(uri))
-
-					if (!file.exists) {
-						throw new Error("Pending native recording unavailable")
-					}
-
-					return file.size
-				},
+				inspect,
+				resolve: resolveRecordingUri,
+				error: (error) => reportError(error, "capture_recovery"),
 				captureSaved: (capture, pendingCount) => {
 					track("follow_along_capture_created", {
 						client_capture_id: capture.id,
@@ -100,7 +96,7 @@ export function recoverNativeData(): Promise<void> {
 
 						track("training_session_completed", {
 							session_id: recovery.sessionId,
-							total_duration_ms: recovery.snapshot.elapsedRunningMs,
+							total_duration_ms: practiceDurationMs(recovery),
 							words_practiced_count: 1,
 							words_recorded_count: referenceCount,
 							words_skipped_count: 0,
@@ -112,16 +108,15 @@ export function recoverNativeData(): Promise<void> {
 					} else {
 						track("training_session_abandoned", {
 							session_id: recovery.sessionId,
-							duration_ms: recovery.snapshot.elapsedRunningMs,
-							progress_percent:
-								recovery.snapshot.elapsedRunningMs /
-								(draft.settings.totalDurationSeconds * 10),
+							duration_ms: practiceDurationMs(recovery),
+							progress_percent: abandonedProgress(recovery),
 							last_word_id: draft.settings.wordId,
 							last_word_name: draft.word.label,
 						})
 					}
 				},
 			})
+			await drainFileDeletes()
 		} while (reconcileAgain)
 	})().finally(() => {
 		reconciliation = undefined
@@ -273,6 +268,12 @@ export async function startSession(
 		})
 
 		confirmStart(snapshot)
+
+		if (snapshot.state === "idle" && snapshot.elapsedRunningMs === 0) {
+			updateData((next) => {
+				delete next.sessionDrafts[id]
+			})
+		}
 
 		return snapshot
 	} finally {

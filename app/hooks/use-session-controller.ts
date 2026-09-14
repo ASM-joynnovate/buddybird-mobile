@@ -37,6 +37,7 @@ export function useSessionController() {
 	const [snapshot, setSnapshot] = useState(idle)
 	const [error, setError] = useState<SessionFailure | null>(null)
 
+	const commandId = useRef(0)
 	const latestSnapshot = useRef(snapshot)
 	const performanceReporter = useRef<ReturnType<typeof createPerformanceReporter> | null>(null)
 	const performanceSessionId = useRef<string | null>(null)
@@ -185,8 +186,14 @@ export function useSessionController() {
 	}, [recordSessionError, applySnapshot, reconcileSessionData])
 
 	async function runSessionCommand(action: () => Promise<SessionSnapshot>) {
+		const id = ++commandId.current
+
 		try {
 			const next = await action()
+
+			if (id !== commandId.current) {
+				return
+			}
 
 			applySnapshot(next)
 
@@ -196,7 +203,9 @@ export function useSessionController() {
 
 			setError(null)
 		} catch (cause) {
-			throw recordSessionError(cause)
+			if (id === commandId.current) {
+				throw recordSessionError(cause)
+			}
 		}
 	}
 

@@ -17,29 +17,15 @@ fun sessionPosition(
 ): PhasePosition {
     val elapsedRunningMs = elapsed.coerceIn(0.0, total)
     val cycleDurationMs = learning + rest + care
-    val isCompleted = elapsedRunningMs >= total
-    val cycle =
-        if (isCompleted && elapsedRunningMs > 0) {
-            ceil(elapsedRunningMs / cycleDurationMs).toInt()
-        } else {
-            floor(elapsedRunningMs / cycleDurationMs).toInt() + 1
-        }
-
-    var phaseElapsedMs = elapsedRunningMs - (cycle - 1) * cycleDurationMs
-    for ((phase, durationMs) in
-        listOf("learning" to learning, "rest" to rest, "stress-care" to care)) {
-        if (durationMs <= 0) {
-            continue
-        }
-
-        if (phaseElapsedMs < durationMs || (isCompleted && phaseElapsedMs <= durationMs)) {
-            return PhasePosition(cycle, phase, phaseElapsedMs)
-        }
-
-        phaseElapsedMs -= durationMs
+    val fullCycles = (elapsedRunningMs / cycleDurationMs).toInt()
+    val inside = elapsedRunningMs % cycleDurationMs
+    if (elapsedRunningMs >= total && inside == 0.0) {
+        return PhasePosition(max(1, fullCycles), if (care > 0) "stress-care" else "rest", if (care > 0) care else rest)
     }
-
-    return PhasePosition(cycle, "learning", 0.0)
+    if (inside < learning) return PhasePosition(fullCycles + 1, "learning", inside)
+    val afterLearning = inside - learning
+    return if (afterLearning < rest || care == 0.0) PhasePosition(fullCycles + 1, "rest", afterLearning)
+        else PhasePosition(fullCycles + 1, "stress-care", afterLearning - rest)
 }
 
 data class VADSettings(
@@ -103,10 +89,10 @@ class SpeechDetector(private val settings: VADSettings) {
                 onsetSamples += samples
 
                 if (onsetSamples.size / 16 >= settings.sustainMs) {
-                    speechStartMs = preRollSamples.size / 16
-                    preRollSamples.copyInto(segmentSamples)
-                    onsetSamples.copyInto(segmentSamples, preRollSamples.size)
-                    segmentSampleCount = preRollSamples.size + onsetSamples.size
+                    val retained = (preRollSamples + onsetSamples).takeLast(settings.preRollMs * 16).toShortArray()
+                    speechStartMs = max(0, retained.size / 16 - settings.sustainMs)
+                    retained.copyInto(segmentSamples)
+                    segmentSampleCount = retained.size
                     preRollSamples = ShortArray(0)
                     onsetSamples = ShortArray(0)
                 }

@@ -7,7 +7,6 @@ version = '1.0.0'
 android {
   namespace 'com.joynnovate.buddybird.sessionaudio'
   defaultConfig { versionCode 1; versionName '1.0.0' }
-  sourceSets { test.java.srcDirs += '../../../test' }
 }
 
-dependencies { testImplementation 'junit:junit:4.13.2' }
+dependencies { implementation 'androidx.media3:media3-exoplayer:1.8.0' }

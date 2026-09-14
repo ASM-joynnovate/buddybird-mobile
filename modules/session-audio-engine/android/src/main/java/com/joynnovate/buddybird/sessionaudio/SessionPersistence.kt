@@ -152,13 +152,10 @@ class SessionPersistence(context: Context) {
             val capture = JSONObject(String(AtomicFile(metadataFile).readFully(), Charsets.UTF_8))
             validate(capture)
 
-            val finalFile = File(captures, capture.getString("fileName"))
-            val temporaryFile = File(captures, ".${finalFile.name}.tmp")
-
             if (
                 capture.getString("segmentId") !in acknowledgedIds && pendingCaptures.none {
                     it.getString("segmentId") == capture.getString("segmentId")
-                } && (finalFile.exists() || temporaryFile.exists())
+                }
             ) {
                 pendingCaptures.add(capture)
             }
@@ -192,17 +189,16 @@ class SessionPersistence(context: Context) {
                 }
             val temporaryFile = File(captures, ".${currentFile.name}.tmp")
 
-            if (
-                !finalFile.exists() && temporaryFile.exists() && !temporaryFile.renameTo(finalFile)
-            ) {
-                throw EngineFailure("storage-unavailable", "Cannot finalize interrupted capture")
-            }
-
-            if (!finalFile.isFile) {
-                throw EngineFailure(
-                    "storage-unavailable",
-                    "Pending capture file unavailable: ${finalFile.name}",
-                )
+            capture.remove("fileStatus")
+            try {
+                if (!finalFile.exists() && temporaryFile.exists() && !temporaryFile.renameTo(finalFile)) {
+                    capture.put("fileStatus", "unreadable")
+                }
+                if (finalFile.canonicalFile != File(finalFile.parentFile.canonicalFile, finalFile.name)) {
+                    capture.put("fileStatus", "unreadable")
+                }
+            } catch (_: Exception) {
+                capture.put("fileStatus", "unreadable")
             }
             capture.put("uri", Uri.fromFile(finalFile).toString())
         }
@@ -217,6 +213,16 @@ class SessionPersistence(context: Context) {
                 }) && !metadataFile.delete()
             ) {
                 throw EngineFailure("storage-unavailable", "Cannot finalize capture metadata")
+            }
+        }
+
+        val referenced = pendingCaptures.map { ".${it.getString("fileName")}.tmp" }.toSet()
+        for (file in captures.listFiles() ?: throw EngineFailure("storage-unavailable", "Cannot read capture directory")) {
+            if (file.name.startsWith(".session-") && file.name.endsWith(".wav.tmp") &&
+                file.name !in referenced && isManagedCapture(File(captures, file.name.drop(1).dropLast(4))) &&
+                file.canonicalFile == File(captures.canonicalFile, file.name) && !file.delete()
+            ) {
+                throw EngineFailure("storage-unavailable", "Cannot remove unused capture temporary file")
             }
         }
 

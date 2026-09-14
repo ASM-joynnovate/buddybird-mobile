@@ -18,5 +18,9 @@ export function isMediaReferenced(data: AppData, uri: string, resolve: (uri: str
 		...Object.values(data.captures).map((capture) => capture.uri),
 	]
 
+	if (data.nativeCaptureReceipts.some((id) => target.endsWith("-" + id + ".wav"))) {
+		return true
+	}
+
 	return references.some((reference) => reference && resolve(reference) === target)
 }

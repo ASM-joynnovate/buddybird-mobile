@@ -86,6 +86,7 @@ export interface SessionSnapshot {
 }
 
 export interface CapturedSegment {
+	fileStatus?: "unreadable"
 	segmentId: string
 	sessionId: string
 	uri: string

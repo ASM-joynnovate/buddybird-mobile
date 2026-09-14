@@ -4,6 +4,29 @@ import { History, SessionDraft, SessionSettings } from "@/types/session"
 import { WordSnapshot } from "@/types/word"
 import type { PendingRecovery } from "@modules/session-audio-engine/types"
 
+export function practiceDurationMs(recovery: PendingRecovery) {
+	const elapsed = Date.parse(recovery.snapshot.savedAt) - Date.parse(recovery.recovery.startedAt)
+
+	if (!Number.isFinite(elapsed)) {
+		throw new Error("Invalid session timestamps")
+	}
+
+	return Math.max(
+		0,
+		recovery.reason === "duration-reached"
+			? elapsed
+			: Math.min(elapsed, recovery.totalDurationMs),
+	)
+}
+
+export function abandonedProgress(recovery: PendingRecovery) {
+	const cycle =
+		recovery.learningDurationMs + recovery.restDurationMs + recovery.stressCareDurationMs
+	const totalCycles = Math.max(1, Math.ceil(recovery.totalDurationMs / cycle))
+
+	return Math.round((recovery.snapshot.cycle / totalCycles) * 100)
+}
+
 export function learningSeconds(elapsedMs: number, settings: SessionSettings) {
 	const elapsedSeconds = Math.max(0, Math.min(elapsedMs / 1000, settings.totalDurationSeconds))
 	const cycleDurationSeconds =
@@ -106,7 +129,7 @@ export function creditRecovery(data: AppData, recovery: PendingRecovery): Histor
 			word_name: draft.word.label,
 			lifetime_practice_count: (metrics?.lifetime_practice_count ?? 0) + 1,
 			lifetime_practice_duration_ms:
-				(metrics?.lifetime_practice_duration_ms ?? 0) + totalLearningSeconds * 1000,
+				(metrics?.lifetime_practice_duration_ms ?? 0) + practiceDurationMs(recovery),
 			// Completion counts the practiced reference once; VAD captures have separate events.
 			lifetime_recording_count:
 				(metrics?.lifetime_recording_count ?? 0) +

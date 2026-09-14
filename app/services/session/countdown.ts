@@ -22,5 +22,5 @@ export function sessionCountdown(snapshot: SessionSnapshot, settings?: SessionSe
 	const progress = phaseDuration > 0 ? Math.min(1, snapshot.phaseElapsedMs / phaseDuration) : 0
 	const elapsedPercent = Math.min(100, (snapshot.elapsedRunningMs / total) * 100)
 
-	return { timer, cycleCount, progress, elapsedPercent }
+	return { timer, cycleCount, progress, elapsedPercent, phaseDuration, remaining }
 }

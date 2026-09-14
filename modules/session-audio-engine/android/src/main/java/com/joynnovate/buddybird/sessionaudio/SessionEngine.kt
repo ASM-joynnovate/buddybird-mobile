@@ -8,6 +8,11 @@ import android.media.*
 import android.media.audiofx.Visualizer
 import android.net.Uri
 import android.os.*
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
@@ -153,7 +158,8 @@ class SessionEngine private constructor(private val context: Context) {
     private var runningStartedAtMs = 0L
     private var phasePosition = PhasePosition(1, "learning", 0.0)
 
-    private var targetPlayer: MediaPlayer? = null
+    private var targetPlayer: ExoPlayer? = null
+    private var targetRequestAtMs: Long? = null
     private var carePlayer: MediaPlayer? = null
     private var chosenCare: File? = null
 
@@ -214,6 +220,8 @@ class SessionEngine private constructor(private val context: Context) {
     private var lastCheckpointElapsedMs = 0.0
 
     private var service: SessionAudioService? = null
+    @Volatile internal var startRequestId = 0L
+        private set
     private var pendingStartCallback: ((Map<String, Any?>?, Throwable?) -> Unit)? = null
     private var failing = false
 
@@ -245,16 +253,16 @@ class SessionEngine private constructor(private val context: Context) {
         events?.invoke(event, body)
     }
 
-    private fun startTargetPlayback(delayMs: Double, offsetMs: Int = 0) {
+    private fun startTargetPlayback() {
         val player = targetPlayer ?: throw EngineFailure("audio-engine-failed", "Target player is unavailable")
-        playbackRemainingMs = max(0.0, player.duration.toDouble() - offsetMs)
-        player.start()
-        lastPlaybackStartDelayMs = delayMs
-        targetPlaybackCount++
-        playbackStartedAtMs = SystemClock.elapsedRealtime()
+        targetRequestAtMs = SystemClock.elapsedRealtime()
+        player.seekTo(0)
+        player.play()
+        nextPlaybackElapsedMs = Double.POSITIVE_INFINITY
     }
 
     private fun finishTargetPlayback() {
+        targetRequestAtMs = null
         val started = playbackStartedAtMs ?: return
         playbackStartedAtMs = null
         val id = configuration?.sessionId ?: return
@@ -306,6 +314,7 @@ class SessionEngine private constructor(private val context: Context) {
     }
 
     fun requestStart(input: Map<String, Any?>, callback: (Map<String, Any?>?, Throwable?) -> Unit) {
+        var requestId: Long? = null
         try {
             if (active) {
                 if (input["sessionId"] != configuration?.sessionId) {
@@ -358,6 +367,8 @@ class SessionEngine private constructor(private val context: Context) {
             lastCheckpointElapsedMs = 0.0
 
             detector = SpeechDetector(config.vadSettings)
+            startRequestId++
+            requestId = startRequestId
             pendingStartCallback = callback
             emit("onStateChanged", snapshot())
 
@@ -365,6 +376,7 @@ class SessionEngine private constructor(private val context: Context) {
                 val serviceIntent =
                     Intent(context, SessionAudioService::class.java)
                         .setAction(SessionAudioService.START)
+                        .putExtra("requestId", requestId)
                 if (Build.VERSION.SDK_INT >= 26) {
                     context.startForegroundService(serviceIntent)
                 } else {
@@ -378,8 +390,9 @@ class SessionEngine private constructor(private val context: Context) {
             }
             handler.postDelayed(
                 {
-                    if (state == "starting" && configuration === config) {
+                    if (state == "starting" && requestId == startRequestId) {
                         startFailed(
+                            requestId,
                             EngineFailure(
                                 "service-start-not-allowed",
                                 "Microphone service did not start",
@@ -387,63 +400,75 @@ class SessionEngine private constructor(private val context: Context) {
                         )
                     }
                 },
-                10000,
+                4000,
             )
         } catch (error: Throwable) {
-            if (pendingStartCallback != null) {
-                startFailed(error)
+            if (requestId != null) {
+                startFailed(requestId, error)
             } else {
                 callback(null, error)
             }
         }
     }
 
-    internal fun serviceStarted(value: SessionAudioService) {
-        if (state != "starting") {
-            main.post { value.stopSelf() }
+    internal fun serviceStarted(value: SessionAudioService, requestId: Long, serviceStartId: Int) {
+        if (state != "starting" || requestId != startRequestId || pendingStartCallback == null) {
+            if (!active) main.post { value.stopSelf(serviceStartId) }
             return
         }
         service = value
         try {
             acquireAudio()
-
             val config = configuration!!
-            targetPlayer =
-                newPlayer(config.targetAudioFile).also { player ->
-                    if (player.duration <= 0) {
-                        throw EngineFailure(
-                            "audio-source-unavailable",
-                            "Target audio cannot be decoded",
-                        )
-                    }
-                    player.setOnCompletionListener {
-                        if (it === targetPlayer && active && !it.isPlaying) {
-                            finishTargetPlayback()
-                            nextPlaybackElapsedMs = currentElapsedRunningMs() + it.duration
-                            echoGuardUntilMs =
-                                SystemClock.elapsedRealtime() + config.vadSettings.echoTailGuardMs
-                            emit("onStateChanged", snapshot())
+            val player = ExoPlayer.Builder(context).setLooper(handler.looper).build()
+            targetPlayer = player
+            player.setAudioAttributes(
+                androidx.media3.common.AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_SPEECH).build(),
+                false,
+            )
+            player.addListener(object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    if (targetPlayer !== player || state != "running" || !isPlaying) return
+                    val requested = targetRequestAtMs ?: return
+                    targetRequestAtMs = null
+                    lastPlaybackStartDelayMs = max(0L, SystemClock.elapsedRealtime() - requested).toDouble()
+                    targetPlaybackCount++
+                    playbackStartedAtMs = SystemClock.elapsedRealtime()
+                    playbackRemainingMs = max(0L, player.duration).toDouble()
+                    emit("onStateChanged", snapshot())
+                }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (targetPlayer !== player || state != "running" || playbackState != Player.STATE_ENDED) return
+                    finishTargetPlayback()
+                    nextPlaybackElapsedMs = currentElapsedRunningMs() + max(0L, player.duration)
+                    echoGuardUntilMs = SystemClock.elapsedRealtime() + config.vadSettings.echoTailGuardMs
+                    emit("onStateChanged", snapshot())
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    if (targetPlayer === player && active) fail(EngineFailure("audio-engine-failed", error.message ?: "Target playback failed"))
+                }
+
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (targetPlayer !== player) return
+                    playbackMeter?.release()
+                    playbackMeter = null
+                    if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
+                    try {
+                        playbackMeter = Visualizer(audioSessionId).apply {
+                            measurementMode = Visualizer.MEASUREMENT_MODE_PEAK_RMS
+                            enabled = true
                         }
-                    }
-                    player.setOnErrorListener { _, what, extra ->
-                        fail(
-                            EngineFailure(
-                                "audio-engine-failed",
-                                "Target playback failed ($what/$extra)",
-                            )
-                        )
-                        true
+                    } catch (_: RuntimeException) {
+                        playbackMeter?.release()
+                        playbackMeter = null
                     }
                 }
-            try {
-                playbackMeter = Visualizer(targetPlayer!!.audioSessionId)
-                playbackMeter?.measurementMode = Visualizer.MEASUREMENT_MODE_PEAK_RMS
-                playbackMeter?.enabled = true
-            } catch (_: RuntimeException) {
-                // Visualization availability must not prevent audio playback or capture.
-                playbackMeter?.release()
-                playbackMeter = null
-            }
+            })
+            player.setMediaItem(MediaItem.fromUri(Uri.fromFile(config.targetAudioFile)))
+            player.prepare()
             runningStartedAtMs = SystemClock.elapsedRealtime()
             state = "running"
             checkpoint()
@@ -452,15 +477,21 @@ class SessionEngine private constructor(private val context: Context) {
 
             emit("onStateChanged", snapshot())
 
-            val callback = pendingStartCallback
-            pendingStartCallback = null
-            callback?.invoke(snapshot(), null)
+            completeStart(requestId, snapshot(), null)
         } catch (error: Throwable) {
-            startFailed(error)
+            startFailed(requestId, error)
         }
     }
 
-    private fun startFailed(error: Throwable) {
+    private fun completeStart(requestId: Long, result: Map<String, Any?>?, error: Throwable?) {
+        if (requestId != startRequestId) return
+        val callback = pendingStartCallback ?: return
+        pendingStartCallback = null
+        callback(result, error)
+    }
+
+    private fun startFailed(requestId: Long, error: Throwable) {
+        if (requestId != startRequestId || pendingStartCallback == null) return
         lastFailure = failure(error)
         state = "failed"
         cleanupAudio()
@@ -479,9 +510,7 @@ class SessionEngine private constructor(private val context: Context) {
         emit("onFailure", failure(error))
         emit("onStateChanged", snapshot())
 
-        val callback = pendingStartCallback
-        pendingStartCallback = null
-        callback?.invoke(null, error)
+        completeStart(requestId, null, error)
     }
 
     private fun newPlayer(file: File): MediaPlayer {
@@ -723,7 +752,7 @@ class SessionEngine private constructor(private val context: Context) {
                     config.restDurationMs,
                     config.stressCareDurationMs,
                 )
-            if (nextPhase.cycle != phasePosition.cycle || nextPhase.phase != phasePosition.phase) {
+            if (nextPhase.phase != phasePosition.phase) {
                 flush()
 
                 targetPlayer?.pause()
@@ -757,14 +786,7 @@ class SessionEngine private constructor(private val context: Context) {
             ) {
                 flush()
 
-                val player =
-                    targetPlayer
-                        ?: throw EngineFailure(
-                            "audio-engine-failed",
-                            "Target player is unavailable",
-                        )
-                player.seekTo(0)
-                startTargetPlayback(max(0.0, elapsedRunningMs - nextPlaybackElapsedMs))
+                startTargetPlayback()
                 emit("onStateChanged", snapshot())
                 nextPlaybackElapsedMs = Double.POSITIVE_INFINITY
             } else if (phasePosition.phase == "stress-care" && chosenCare == null) {
@@ -857,8 +879,8 @@ class SessionEngine private constructor(private val context: Context) {
                         it.start()
                     }
                 }
-            } else if (phasePosition.phase == "learning" && nextPlaybackElapsedMs.isInfinite()) {
-                startTargetPlayback(0.0, targetPlayer?.currentPosition ?: 0)
+            } else if (phasePosition.phase == "learning") {
+                startTargetPlayback()
             }
             lastFailure = null
 
@@ -895,12 +917,18 @@ class SessionEngine private constructor(private val context: Context) {
         }
     }
 
-    fun stop(): Map<String, Any?> =
-        if (active) {
-            finish("user-stopped")
-        } else {
-            snapshot()
+    fun stop(): Map<String, Any?> {
+        if (state == "starting") {
+            val requestId = startRequestId
+            state = "idle"
+            cleanupAudio()
+            val cancelled = snapshot()
+            emit("onStateChanged", cancelled)
+            completeStart(requestId, cancelled, null)
+            return cancelled
         }
+        return if (active) finish("user-stopped") else snapshot()
+    }
 
     private fun finish(reason: String): Map<String, Any?> {
         elapsedBeforeRunMs = currentElapsedRunningMs()
@@ -929,7 +957,7 @@ class SessionEngine private constructor(private val context: Context) {
     internal fun taskRemoved() {
         if (active) {
             try {
-                finish("task-removed")
+                if (state == "starting") stop() else finish("task-removed")
             } catch (_: Exception) {
                 // finish() persists and emits its failure before the service stops.
             }
@@ -951,12 +979,8 @@ class SessionEngine private constructor(private val context: Context) {
         }
     }
 
-    internal fun serviceFailed(error: Throwable) {
-        if (state == "starting") {
-            startFailed(error)
-        } else {
-            fail(error)
-        }
+    internal fun serviceFailed(requestId: Long, error: Throwable) {
+        if (requestId == startRequestId && state == "starting") startFailed(requestId, error)
     }
 
     private fun checkpoint(reason: String? = null) {
@@ -983,6 +1007,10 @@ class SessionEngine private constructor(private val context: Context) {
         )
 
     private fun fail(error: Throwable) {
+        if (pendingStartCallback != null) {
+            startFailed(startRequestId, error)
+            return
+        }
         if (failing) {
             return
         }
@@ -1023,7 +1051,9 @@ class SessionEngine private constructor(private val context: Context) {
 
         val stopping = service
         service = null
+        val stoppedRequestId = startRequestId
         main.post {
+            if (startRequestId != stoppedRequestId) return@post
             stopping?.stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE)
             stopping?.stopSelf()
         }
