@@ -21,7 +21,7 @@ import { RootStackParamList } from "@/types/navigation"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
-export function AppNavigator({ telemetryReady }: { telemetryReady: boolean }) {
+export function AppNavigator() {
 	const data = useAppData()
 	const { snapshot } = useSession()
 	const navigation = useNavigationContainerRef<RootStackParamList>()
@@ -76,9 +76,7 @@ export function AppNavigator({ telemetryReady }: { telemetryReady: boolean }) {
 				}}
 			>
 				{!hasProfile ? (
-					<Stack.Screen name="Onboarding">
-						{() => <OnboardingScreen telemetryReady={telemetryReady} />}
-					</Stack.Screen>
+					<Stack.Screen name="Onboarding" component={OnboardingScreen} />
 				) : (
 					<>
 						<Stack.Screen name="Main" component={MainTabs} />

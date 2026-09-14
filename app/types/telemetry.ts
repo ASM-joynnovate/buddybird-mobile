@@ -146,6 +146,10 @@ export type Events = {
 	screen_view: { screen_name: string; screen_class: string }
 }
 
+export type TelemetryEvent = {
+	[K in keyof Events]: { name: K; params: Events[K] }
+}[keyof Events]
+
 export type UserProperties = Partial<
 	Record<
 		| "profile_age_days"

@@ -36,12 +36,12 @@ export function App() {
 }
 
 function AppContent() {
-	const telemetryReady = useAppServices()
+	useAppServices()
 
 	return (
 		<>
-			<AppNavigator telemetryReady={telemetryReady} />
-			<AppRuntime telemetryReady={telemetryReady} />
+			<AppNavigator />
+			<AppRuntime />
 		</>
 	)
 }

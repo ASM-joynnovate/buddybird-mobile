@@ -13,7 +13,7 @@ import { reportError, track } from "@/services/telemetry/client"
 import { evaluateUpdate } from "@/services/updates/policy"
 import { dismissUpdate } from "@/services/updates/preferences"
 
-export function useUpdatePrompt(telemetryReady: boolean) {
+export function useUpdatePrompt() {
 	const { t } = useTranslation()
 
 	const data = useAppData()
@@ -24,7 +24,7 @@ export function useUpdatePrompt(telemetryReady: boolean) {
 
 	const shownUpdate = useRef<string | null>(null)
 
-	const update = useQuery({ ...updateQueryOptions(), enabled: telemetryReady })
+	const update = useQuery(updateQueryOptions())
 
 	const decision = update.data
 		? evaluateUpdate(
@@ -39,24 +39,18 @@ export function useUpdatePrompt(telemetryReady: boolean) {
 		!!decision && (decision.forced || acceptedUpdate !== decision.latestVersion)
 
 	const updatesSettled =
-		telemetryReady &&
 		!update.isFetching &&
 		(update.isSuccess || update.isError || update.fetchStatus === "paused")
 
 	useEffect(() => {
-		if (
-			telemetryReady &&
-			updateVisible &&
-			decision &&
-			shownUpdate.current !== decision.latestVersion
-		) {
+		if (updateVisible && decision && shownUpdate.current !== decision.latestVersion) {
 			shownUpdate.current = decision.latestVersion
 			track("update_prompt_shown", {
 				latest_version: decision.latestVersion,
 				is_forced: decision.forced,
 			})
 		}
-	}, [telemetryReady, updateVisible, decision])
+	}, [updateVisible, decision])
 
 	async function acceptUpdate() {
 		if (!decision || storeOpening) {

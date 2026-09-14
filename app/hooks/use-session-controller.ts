@@ -209,49 +209,6 @@ export function useSessionController() {
 		}
 
 		await runSessionCommand(() => startSession(wordId, settings, notification))
-		const next = latestSnapshot.current
-
-		if (next.sessionId) {
-			const data = readData()
-			const draft = data.sessionDrafts[next.sessionId]
-			const profile = data.profile
-
-			if (draft && profile) {
-				track("training_session_started", {
-					session_id: next.sessionId,
-					word_count: 1,
-					target_word_ids: [draft.settings.wordId],
-					target_word_names: [draft.word.label],
-					profile_age_days: Math.max(
-						0,
-						Math.floor((Date.now() - Date.parse(profile.createdAt)) / 86400_000),
-					),
-					parrot_species: profile.species,
-					parrot_name: profile.name,
-				})
-				track("word_selected", {
-					session_id: next.sessionId,
-					word_id: draft.settings.wordId,
-					word_name: draft.word.label,
-					source: "list",
-				})
-				const metrics =
-					data.settings.wordMetrics[
-						draft.settings.libraryEntryId ??
-							data.wordAliases[draft.settings.wordId] ??
-							draft.settings.wordId
-					]
-
-				track("word_practice_started", {
-					session_id: next.sessionId,
-					word_id: draft.settings.wordId,
-					word_name: draft.word.label,
-					attempt_number: (metrics?.lifetime_practice_count ?? 0) + 1,
-					cumulative_practice_count: metrics?.lifetime_practice_count ?? 0,
-					cumulative_practice_duration_ms: metrics?.lifetime_practice_duration_ms ?? 0,
-				})
-			}
-		}
 	}
 
 	async function retry() {

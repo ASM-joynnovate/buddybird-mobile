@@ -9,9 +9,9 @@ import { Copy, Title } from "@/components/ui/text"
 import { useOnboarding } from "@/screens/Onboarding/hooks/use-onboarding"
 import { colors, mascot } from "@/theme"
 
-export function OnboardingScreen({ telemetryReady }: { telemetryReady: boolean }) {
+export function OnboardingScreen() {
 	const { t } = useTranslation()
-	const { step, begin, profile } = useOnboarding(telemetryReady)
+	const { step, begin, profile } = useOnboarding()
 
 	if (step === "profile") {
 		return <ProfileForm onboarding={profile} />

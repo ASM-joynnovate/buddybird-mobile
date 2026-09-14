@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef } from "react"
 
 import { AppState } from "react-native"
 
@@ -9,7 +9,6 @@ import { identityQueryOptions } from "@/hooks/apis/identity"
 import { useAppData } from "@/hooks/use-app-data"
 import { queryClient } from "@/lib/query-client"
 import { countFeedbackDay } from "@/services/feedback/policy"
-import { ageMonths, profileStats } from "@/services/profile/statistics"
 import { startPush } from "@/services/push/lifecycle"
 import { mergePushReceipts } from "@/services/push/receipts"
 import { readData, updateData } from "@/services/storage/data-store"
@@ -17,7 +16,7 @@ import {
 	initializeTelemetry,
 	reportError,
 	setTelemetryIdentity,
-	setUserProperties,
+	syncUserProperties,
 	track,
 } from "@/services/telemetry/client"
 import { installGlobalErrorReporting } from "@/services/telemetry/global-errors"
@@ -29,22 +28,19 @@ export function useAppServices() {
 
 	const profileId = data.profile?.id
 
-	const [telemetryReady, setTelemetryReady] = useState(false)
+	const opened = useRef(false)
 
 	const identity = useQuery(identityQueryOptions())
 
 	useEffect(() => {
 		const removeErrors = installGlobalErrorReporting()
-		let mounted = true
 
-		void initializeTelemetry()
-			.catch((error) => reportError(error, "telemetry_start"))
-			.finally(() => {
-				if (mounted) {
-					setTelemetryReady(true)
-					track("app_open", { cold_start: true })
-				}
-			})
+		void initializeTelemetry().catch((error) => reportError(error, "telemetry_start"))
+
+		if (!opened.current) {
+			opened.current = true
+			track("app_open", { cold_start: true })
+		}
 
 		const uploads = startUploads()
 		const auth = subscribeIdentity((uid) => {
@@ -63,9 +59,10 @@ export function useAppServices() {
 		const lifecycle = AppState.addEventListener("change", (next) => {
 			if (next === "active" && previous !== "active") {
 				foregroundAt = Date.now()
-				void initializeTelemetry(false)
-					.then(() => track("app_foreground", {}))
-					.catch((error) => reportError(error, "telemetry_foreground"))
+				void initializeTelemetry(false).catch((error) =>
+					reportError(error, "telemetry_foreground"),
+				)
+				track("app_foreground", {})
 
 				try {
 					mergePushReceipts()
@@ -91,7 +88,6 @@ export function useAppServices() {
 		})
 
 		return () => {
-			mounted = false
 			removeErrors()
 			uploads()
 			auth()
@@ -113,26 +109,5 @@ export function useAppServices() {
 		return startPush()
 	}, [profileId])
 
-	useEffect(() => {
-		if (!telemetryReady || !data.profile) {
-			return
-		}
-
-		const stats = profileStats(data)
-
-		setUserProperties({
-			profile_age_days: Math.max(
-				0,
-				Math.floor((Date.now() - Date.parse(data.profile.createdAt)) / 86400_000),
-			),
-			parrot_name: data.profile.name,
-			parrot_species: data.profile.species,
-			parrot_age_months: ageMonths(data.profile.birthDate),
-			total_words_registered: stats.wordCount,
-			total_training_sessions: stats.sessionCount,
-			locale: data.settings.locale,
-		})
-	}, [data, telemetryReady])
-
-	return telemetryReady
+	useEffect(syncUserProperties, [data])
 }

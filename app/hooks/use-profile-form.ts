@@ -12,7 +12,7 @@ import { useAppData } from "@/hooks/use-app-data"
 import { saveProfile } from "@/services/profile/profile"
 import { speciesIds } from "@/services/profile/species"
 import { ageMonths } from "@/services/profile/statistics"
-import { setUserProperties, track } from "@/services/telemetry/client"
+import { syncUserProperties, track } from "@/services/telemetry/client"
 import type { ProfileOnboarding } from "@/types/profile"
 
 export function useProfileForm(onboarding?: ProfileOnboarding) {
@@ -149,7 +149,7 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 				...(age !== null ? { parrot_age_months: age } : {}),
 			}
 
-			setUserProperties(properties)
+			syncUserProperties()
 
 			if (onboarding) {
 				track("profile_created", properties)

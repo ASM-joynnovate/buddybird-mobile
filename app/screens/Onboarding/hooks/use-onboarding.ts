@@ -5,7 +5,7 @@ import { AppState } from "react-native"
 import { screen, track } from "@/services/telemetry/client"
 import type { ProfileOnboarding } from "@/types/profile"
 
-export function useOnboarding(telemetryReady: boolean) {
+export function useOnboarding() {
 	const [step, setStep] = useState<"welcome" | "profile">("welcome")
 	const attempt = useRef({
 		startedAt: Date.now(),
@@ -21,11 +21,11 @@ export function useOnboarding(telemetryReady: boolean) {
 		screen(step === "welcome" ? "onboarding_welcome" : "onboarding_profile")
 	}, [step])
 	useEffect(() => {
-		if (telemetryReady && !attempt.current.started) {
+		if (!attempt.current.started) {
 			attempt.current.started = true
 			track("onboarding_started", {})
 		}
-	}, [telemetryReady])
+	}, [])
 	useEffect(() => {
 		let previous = AppState.currentState
 		const subscription = AppState.addEventListener("change", (next) => {

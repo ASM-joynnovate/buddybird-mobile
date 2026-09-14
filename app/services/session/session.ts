@@ -7,7 +7,7 @@ import { captureDirectory } from "@/services/media/files"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { transferNativeState } from "@/services/session/transfer"
 import { readData, updateData } from "@/services/storage/data-store"
-import { track } from "@/services/telemetry/client"
+import { reserveEvents, track } from "@/services/telemetry/client"
 import { currentWord } from "@/services/words/selectors"
 import { CAPTURE_STORAGE_LIMIT_BYTES } from "@/types/capture"
 import { SessionDraft, SessionSettings } from "@/types/session"
@@ -207,27 +207,78 @@ export async function startSession(
 		next.settings.lastSession = sessionSettings
 	})
 
-	return engine.start({
-		sessionId: id,
-		targetAudioUri,
-		captureDirectoryUri: captureDirectory(),
-		totalDurationMs: settings.totalDurationSeconds * 1000,
-		learningDurationMs: settings.learningDurationSeconds * 1000,
-		restDurationMs: settings.restDurationSeconds * 1000,
-		stressCareDurationMs: settings.stressCareDurationSeconds * 1000,
-		stressCareAudioUris: care,
-		maxPendingCaptureBytes: CAPTURE_STORAGE_LIMIT_BYTES,
-		vad: defaultVAD,
-		recovery: {
-			wordId: previousId,
-			word: word.label,
-			sourceType: word.sourceType,
-			libraryEntryId: word.id,
-			startedAt: draft.startedAt,
-			wordSnapshot: { ...draft.word },
+	const metrics = data.settings.wordMetrics[word.id]
+	const wordEvent = { session_id: id, word_id: previousId, word_name: word.label }
+	const settle = reserveEvents([
+		{
+			name: "training_session_started",
+			params: {
+				session_id: id,
+				word_count: 1,
+				target_word_ids: [previousId],
+				target_word_names: [word.label],
+				profile_age_days: Math.max(
+					0,
+					Math.floor((Date.now() - Date.parse(data.profile.createdAt)) / 86_400_000),
+				),
+				parrot_species: data.profile.species,
+				parrot_name: data.profile.name,
+			},
 		},
-		notification,
-	})
+		{ name: "word_selected", params: { ...wordEvent, source: "list" } },
+		{
+			name: "word_practice_started",
+			params: {
+				...wordEvent,
+				attempt_number: (metrics?.lifetime_practice_count ?? 0) + 1,
+				cumulative_practice_count: metrics?.lifetime_practice_count ?? 0,
+				cumulative_practice_duration_ms: metrics?.lifetime_practice_duration_ms ?? 0,
+			},
+		},
+	])
+	const confirmStart = (snapshot: SessionSnapshot) => {
+		if (
+			snapshot.sessionId === id &&
+			(["running", "paused", "interrupted"].includes(snapshot.state) ||
+				snapshot.elapsedRunningMs > 0)
+		) {
+			settle(true)
+		}
+	}
+
+	let listener: { remove(): void } | undefined
+
+	try {
+		listener = engine.addListener("onStateChanged", confirmStart)
+		const snapshot = await engine.start({
+			sessionId: id,
+			targetAudioUri,
+			captureDirectoryUri: captureDirectory(),
+			totalDurationMs: settings.totalDurationSeconds * 1000,
+			learningDurationMs: settings.learningDurationSeconds * 1000,
+			restDurationMs: settings.restDurationSeconds * 1000,
+			stressCareDurationMs: settings.stressCareDurationSeconds * 1000,
+			stressCareAudioUris: care,
+			maxPendingCaptureBytes: CAPTURE_STORAGE_LIMIT_BYTES,
+			vad: defaultVAD,
+			recovery: {
+				wordId: previousId,
+				word: word.label,
+				sourceType: word.sourceType,
+				libraryEntryId: word.id,
+				startedAt: draft.startedAt,
+				wordSnapshot: { ...draft.word },
+			},
+			notification,
+		})
+
+		confirmStart(snapshot)
+
+		return snapshot
+	} finally {
+		listener?.remove()
+		settle(false)
+	}
 }
 
 export { engine }

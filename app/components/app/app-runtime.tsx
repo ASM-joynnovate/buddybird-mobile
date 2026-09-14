@@ -10,7 +10,7 @@ import { useUpdatePrompt } from "@/hooks/use-update-prompt"
 import { setUploadConsent } from "@/services/uploads/consent"
 import { shouldPromptUploadConsent } from "@/services/uploads/consent-policy"
 
-export function AppRuntime({ telemetryReady }: { telemetryReady: boolean }) {
+export function AppRuntime() {
 	const data = useAppData()
 
 	const feedback = useFeedbackDialog()
@@ -25,7 +25,7 @@ export function AppRuntime({ telemetryReady }: { telemetryReady: boolean }) {
 		storeOpening,
 		acceptUpdate,
 		dismissUpdatePrompt,
-	} = useUpdatePrompt(telemetryReady)
+	} = useUpdatePrompt()
 
 	const consentVisible = !!data.profile && updatesSettled && !updateVisible && !consentResolved
 
