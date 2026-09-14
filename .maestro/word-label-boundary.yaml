@@ -1,0 +1,53 @@
+appId: com.joynnovate.buddybird.dev
+name: Word labels stop at 50 characters and retain that value
+tags: [full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-add
+- tapOn:
+    id: word-name
+- inputText: '0123456789012345678901234567890123456789012345678'
+- assertVisible:
+    id: word-name
+    text: '0123456789012345678901234567890123456789012345678'
+- inputText: '9'
+- assertVisible:
+    id: word-name
+    text: '01234567890123456789012345678901234567890123456789'
+- inputText: X
+- assertVisible:
+    id: word-name
+    text: '01234567890123456789012345678901234567890123456789'
+- eraseText
+- inputText: '012345678901234567890123456789012345678901234567890123456789'
+- assertVisible:
+    id: word-name
+    text: '01234567890123456789012345678901234567890123456789'
+- tapOn: Record a word
+- runFlow: helpers/record-clip.yaml
+- tapOn:
+    id: word-save
+- extendedWaitUntil:
+    visible:
+      id: word-add
+    timeout: 15000
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-words
+- scrollUntilVisible:
+    element:
+      text: Preview 01234567890123456789012345678901234567890123456789
+    direction: DOWN
+- takeScreenshot: saved-boundary-word
+- tapOn:
+    text: Preview 01234567890123456789012345678901234567890123456789
+    waitToSettleTimeoutMs: 100
+- assertVisible: Stop playing 01234567890123456789012345678901234567890123456789
+- tapOn: Stop playing 01234567890123456789012345678901234567890123456789
+- tapOn: Delete 01234567890123456789012345678901234567890123456789
+- tapOn: Delete
+- assertNotVisible: Preview 01234567890123456789012345678901234567890123456789

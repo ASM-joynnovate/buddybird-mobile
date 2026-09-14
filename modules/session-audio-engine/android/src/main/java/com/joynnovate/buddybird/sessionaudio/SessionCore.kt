@@ -249,6 +249,11 @@ fun recoveredSession(record: Map<String, Any?>): Map<String, Any?> {
         malformed()
     }
 
+    val playbackCount =
+        if (!savedSnapshot.containsKey("targetPlaybackCount")) 0.0
+        else (savedSnapshot["targetPlaybackCount"] as? Number)?.toDouble() ?: malformed()
+    if (!playbackCount.isFinite() || playbackCount < 0 || playbackCount > Int.MAX_VALUE || playbackCount % 1.0 != 0.0) malformed()
+
     val reason = record["reason"] as? String
     val phasePosition =
         sessionPosition(
@@ -276,6 +281,8 @@ fun recoveredSession(record: Map<String, Any?>): Map<String, Any?> {
             "savedAt" to savedAt,
             "isTargetPlaying" to false,
             "lastPlaybackStartDelayMs" to null,
+            "targetPlaybackCount" to playbackCount.toInt(),
+            "failure" to (savedSnapshot["failure"] as? Map<*, *>),
         )
 
     return mapOf(

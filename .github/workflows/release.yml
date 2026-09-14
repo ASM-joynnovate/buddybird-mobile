@@ -1,0 +1,110 @@
+name: Mobile release
+on:
+  push:
+    tags: [v*]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS destination (production builds require manual store release)
+        type: choice
+        options: [staging, production]
+        default: staging
+permissions:
+  contents: read
+concurrency:
+  group: mobile-release-${{ github.event_name == 'push' && 'production' || inputs.profile }}
+  cancel-in-progress: false
+jobs:
+  checks:
+    uses: ./.github/workflows/check.yml
+
+  started:
+    needs: checks
+    uses: ./.github/workflows/notify.yml
+    with:
+      text: "${{ github.repository }}: ${{ github.event_name == 'push' && 'production' || inputs.profile }} build started (${{ github.ref_name }})"
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  package:
+    needs: [checks, started]
+    runs-on: ubuntu-latest
+    env:
+      EAS_PROFILE: ${{ github.event_name == 'push' && 'production' || inputs.profile }}
+      RELEASE_REF: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: yarn install --immutable
+      - uses: expo/expo-github-action@v8
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+          eas-version: latest
+          packager: yarn
+      - name: Prepare Firebase identity for EAS configuration
+        env:
+          DEV_IOS: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+          DEV_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+          PROD_IOS: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_PROD_BASE64 }}
+          PROD_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 }}
+        run: |
+          variant=dev
+          ios_config="$DEV_IOS"
+          android_config="$DEV_ANDROID"
+          if [ "$EAS_PROFILE" = production ]; then
+            variant=prod
+            ios_config="$PROD_IOS"
+            android_config="$PROD_ANDROID"
+          fi
+          test -n "$ios_config"
+          test -n "$android_config"
+          mkdir -p "config/$variant/firebase"
+          printf '%s' "$ios_config" | base64 -d > "config/$variant/firebase/GoogleService-Info.plist"
+          printf '%s' "$android_config" | base64 -d > "config/$variant/firebase/google-services.json"
+      - name: Build both store binaries
+        run: |
+          eas build --platform all --profile "$EAS_PROFILE" --non-interactive \
+            --wait --json --message "$RELEASE_REF" > "$RUNNER_TEMP/builds.json"
+      - name: Submit staging binaries to internal testing
+        if: env.EAS_PROFILE == 'staging'
+        env:
+          PLAY_KEY: ${{ secrets.PLAY_SERVICE_ACCOUNT_BASE64 }}
+          APPLE_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+        run: |
+          test -n "$PLAY_KEY"
+          test -n "$APPLE_KEY"
+          umask 077
+          trap 'rm -f /tmp/play-service-account.json /tmp/asc-api-key.p8' EXIT
+          printf '%s' "$PLAY_KEY" | base64 -d > /tmp/play-service-account.json
+          printf '%s' "$APPLE_KEY" | base64 -d > /tmp/asc-api-key.p8
+          for platform in android ios; do
+            build_id=$(jq -er --arg platform "$platform" \
+              '.[] | select((.platform | ascii_downcase) == $platform) | .id | select(type == "string" and length > 0)' "$RUNNER_TEMP/builds.json")
+            eas submit --platform "$platform" --profile staging --id "$build_id" --non-interactive --wait
+          done
+
+  release-notes:
+    needs: package
+    if: github.ref_type == 'tag' && (github.event_name == 'push' || inputs.profile == 'production')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish build release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes
+
+  finished:
+    needs: [checks, package, release-notes]
+    if: always()
+    uses: ./.github/workflows/notify.yml
+    with:
+      text: "${{ github.repository }}: ${{ github.event_name == 'push' && 'production' || inputs.profile }} ${{ contains(needs.*.result, 'failure') && 'failed' || contains(needs.*.result, 'cancelled') && 'cancelled' || 'completed' }} (${{ github.ref_name }})"
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

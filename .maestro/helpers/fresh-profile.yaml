@@ -1,0 +1,61 @@
+appId: com.joynnovate.buddybird.dev
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- tapOn:
+    text: "(Don't Allow|Don’t Allow|허용 안 함)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: onboarding-welcome-start
+    timeout: 30000
+- tapOn:
+    id: onboarding-welcome-start
+- assertVisible:
+    id: profile-name
+- tapOn:
+    id: profile-name
+- inputText: E2E Parrot
+- tapOn: "(Tell us about your parrot!|함께할 앵무새를 소개해 주세요!)"
+- scrollUntilVisible:
+    element:
+      id: species-budgie
+    direction: DOWN
+- tapOn:
+    id: species-budgie
+- scrollUntilVisible:
+    element:
+      id: birthday-unknown
+    direction: DOWN
+- tapOn:
+    id: birthday-unknown
+- tapOn:
+    id: onboarding-start
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: "(Don't Allow|Don’t Allow|허용 안 함)"
+          optional: true
+- extendedWaitUntil:
+    visible:
+      id: audio-consent-decline
+    timeout: 20000
+- tapOn:
+    id: audio-consent-decline
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: language-en
+    direction: DOWN
+- tapOn:
+    id: language-en
+- assertVisible:
+    id: language-en
+    selected: true
+- tapOn:
+    id: tab-learn

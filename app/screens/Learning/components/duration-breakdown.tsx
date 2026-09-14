@@ -1,0 +1,70 @@
+import { useTranslation } from "react-i18next"
+
+import { StyleSheet, View } from "react-native"
+
+import { Card } from "@/components/ui/surface"
+
+import { Copy } from "@/components/ui/text"
+import { durationText } from "@/i18n/duration"
+import type { Timing } from "@/types/session"
+import { phaseTotals } from "@/services/session/timing"
+import { colors, font, radius } from "@/theme"
+import type { Locale } from "@/types/locale"
+
+export function DurationBreakdown({ timing, locale }: { timing: Timing; locale: Locale }) {
+	const { t } = useTranslation()
+	const totals = phaseTotals(timing)
+
+	return (
+		<Card style={styles.spacing} contentStyle={styles.breakdown}>
+			<View style={styles.breakdownHeader}>
+				<Copy style={styles.breakdownTitle}>{t("learning.total")}</Copy>
+				<Copy style={styles.total}>
+					{durationText(timing.totalDurationSeconds, locale)}
+				</Copy>
+			</View>
+			<View style={styles.phases}>
+				{(["learning", "rest", "care"] as const).map((phase, index) => (
+					<View key={phase} style={[styles.phase, index > 0 && styles.phaseBorder]}>
+						<Copy style={styles.phaseLabel}>{t(`learning.${phase}`)}</Copy>
+						<Copy
+							testID={`duration-total-${phase}`}
+							style={[
+								styles.phaseTime,
+								{ color: index === 0 ? colors.orange : colors.blue },
+							]}
+						>
+							{durationText(totals[index], locale)}
+						</Copy>
+					</View>
+				))}
+			</View>
+		</Card>
+	)
+}
+
+const styles = StyleSheet.create({
+	spacing: { marginTop: 4 },
+	breakdown: { padding: 0 },
+	breakdownHeader: {
+		backgroundColor: colors.surface,
+		borderTopLeftRadius: radius.card - 2,
+		borderTopRightRadius: radius.card - 2,
+		padding: 16,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		gap: 10,
+	},
+	breakdownTitle: { fontSize: 15, color: colors.muted, flex: 1 },
+	total: { fontFamily: font.black, fontSize: 23 },
+	phases: {
+		flexDirection: "row",
+		borderTopWidth: 2,
+		borderColor: colors.border,
+	},
+	phase: { flex: 1, padding: 14 },
+	phaseBorder: { borderLeftWidth: 2, borderColor: colors.border },
+	phaseLabel: { color: colors.muted, fontSize: 13 },
+	phaseTime: { fontFamily: font.black, fontSize: 22, marginTop: 8 },
+})

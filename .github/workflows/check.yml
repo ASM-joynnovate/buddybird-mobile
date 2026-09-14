@@ -1,18 +1,22 @@
 name: Check
 on:
+  workflow_call:
   pull_request:
   push:
-    branches: [main, refactor/ignite-rewrite]
+    branches: [main]
 permissions:
   contents: read
 jobs:
   check:
+    name: Verify (lint + typecheck) / Verify (lint + typecheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
       - run: corepack enable
       - run: yarn install --immutable
       - run: yarn check
+      - name: Validate GitHub Actions workflows
+        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.11 .github/workflows/*.yml

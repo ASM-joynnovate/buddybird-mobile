@@ -1,0 +1,84 @@
+appId: com.joynnovate.buddybird.dev
+name: Replacing a previewed recording requires a completed new take
+tags: [full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-add
+- tapOn:
+    id: word-name
+- inputText: Second take
+- tapOn: Record a word
+- runFlow: helpers/record-clip.yaml
+- tapOn:
+    id: word-review-play
+    waitToSettleTimeoutMs: 100
+- assertVisible:
+    id: word-review-play
+    text: Pause
+- tapOn:
+    id: word-review-play
+- assertVisible:
+    id: word-review-play
+    text: Listen to recording
+- scrollUntilVisible:
+    element:
+      id: word-record
+    direction: UP
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 100
+- assertVisible: Stop recording
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- assertVisible:
+    id: word-save
+    enabled: false
+- assertNotVisible:
+    id: word-review-play
+- scrollUntilVisible:
+    element:
+      id: word-record
+    direction: UP
+- extendedWaitUntil:
+    visible: 'Recording · 0:(0[5-9]|[1-5][0-9]) · Tap to stop'
+    timeout: 20000
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 100
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- assertVisible:
+    id: word-save
+    enabled: true
+- assertVisible:
+    id: word-review-play
+- takeScreenshot: replacement-ready
+- tapOn:
+    id: word-save
+- extendedWaitUntil:
+    visible:
+      id: word-add
+    timeout: 15000
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-words
+- scrollUntilVisible:
+    element:
+      text: Preview Second take
+    direction: DOWN
+- tapOn:
+    text: Preview Second take
+    waitToSettleTimeoutMs: 100
+- assertVisible: Stop playing Second take
+- tapOn: Stop playing Second take
+- tapOn: Delete Second take
+- tapOn: Delete
+- assertNotVisible: Preview Second take

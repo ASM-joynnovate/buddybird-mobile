@@ -1,0 +1,58 @@
+appId: com.joynnovate.buddybird.dev
+name: Tabs show their data and retain the chosen language
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn:
+    id: tab-words
+- assertVisible:
+    id: tab-words
+    selected: true
+- assertVisible:
+    id: word-add
+- assertVisible: Hello
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    id: tab-profile
+    selected: true
+- scrollUntilVisible:
+    element:
+      id: profile-display-name
+    direction: UP
+- assertVisible:
+    id: profile-display-name
+    text: E2E Parrot
+- scrollUntilVisible:
+    element:
+      id: language-ko
+    direction: DOWN
+- tapOn:
+    id: language-ko
+- assertVisible:
+    id: language-ko
+    selected: true
+- tapOn:
+    id: tab-words
+- assertVisible: 단어장
+- assertVisible: 안녕
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: language-en
+    direction: DOWN
+- tapOn:
+    id: language-en
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-words
+- assertVisible: Word library
+- assertVisible: Hello
+- tapOn:
+    id: tab-learn
+- assertVisible:
+    id: tab-learn
+    selected: true
+- assertVisible: Select Hello

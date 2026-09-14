@@ -1,0 +1,243 @@
+import { creditRecovery, recoveryDraft } from "@/services/session/history"
+import type { AppData } from "@/types/app-data"
+import type { Capture } from "@/types/capture"
+import type { SessionDraft } from "@/types/session"
+import type {
+	CaptureChanges,
+	CapturedSegment,
+	EvictedCapture,
+	PendingRecovery,
+	SessionAudioEngineModule,
+} from "@modules/session-audio-engine"
+
+type TransferStore = {
+	read(): AppData
+	update(change: (data: AppData) => void): AppData
+	fileSize(uri: string): number
+	captureSaved?(capture: Capture, pendingCount: number): void
+	captureEvicted?(eviction: EvictedCapture, capture?: Capture): void
+	finalized?(recovery: PendingRecovery, draft: SessionDraft): void
+}
+type NativeTransfer = Pick<
+	SessionAudioEngineModule,
+	| "getSnapshot"
+	| "getPendingRecovery"
+	| "getCaptureChanges"
+	| "ackCaptureChanges"
+	| "clearPendingRecovery"
+>
+
+function captureDraft(
+	data: AppData,
+	segment: CapturedSegment,
+	recovery: PendingRecovery | null,
+): SessionDraft {
+	const saved = data.sessionDrafts[segment.sessionId]
+
+	if (saved) {
+		return saved
+	}
+
+	if (recovery?.sessionId === segment.sessionId) {
+		return recoveryDraft(data, recovery)
+	}
+
+	const history = data.history[segment.sessionId]
+
+	if (!history) {
+		throw new Error("Capture context unavailable: " + segment.sessionId)
+	}
+
+	return {
+		id: history.id,
+		settings: history,
+		word: history.word,
+		startedAt: history.startedAt,
+		clientWordId: history.word.presetKey
+			? "preset-" + history.word.presetKey
+			: (history.libraryEntryId ?? history.wordId),
+		parrotSpecies: data.profile?.species ?? null,
+		parrotBirthdate: data.profile?.birthDate ?? null,
+	}
+}
+
+function creditCapture(data: AppData, draft: SessionDraft) {
+	data.sessionDrafts[draft.id] = {
+		...draft,
+		captureCount: (draft.captureCount ?? 0) + 1,
+	}
+}
+
+/** Save and verify changes before acknowledging native captures or eviction receipts. */
+export async function transferNativeState(native: NativeTransfer, store: TransferStore) {
+	const receipts = store.read().nativeCaptureReceipts
+
+	if (receipts.length) {
+		// An upload may already have removed a file after JS saved it but before native ACK.
+		await native.ackCaptureChanges(
+			receipts.filter((id) => !id.startsWith("evicted:")),
+			receipts.filter((id) => id.startsWith("evicted:")).map((id) => id.slice(8)),
+		)
+		store.update((data) => {
+			data.nativeCaptureReceipts = []
+		})
+	}
+
+	async function persistAndAcknowledge(
+		changes: CaptureChanges,
+		recovery: PendingRecovery | null,
+	) {
+		const capturedIds = new Set<string>()
+		const evictedNames = new Set<string>()
+
+		function evict(eviction: EvictedCapture) {
+			const data = store.read()
+			const receipt = "evicted:" + eviction.fileName
+			const capture =
+				data.captures[eviction.segmentId] ??
+				Object.values(data.captures).find((item) => item.fileName === eviction.fileName)
+
+			if (!data.nativeCaptureReceipts.includes(receipt)) {
+				const segment = eviction.capture
+				const draft =
+					segment && !capture && !data.nativeCaptureReceipts.includes(segment.segmentId)
+						? captureDraft(data, segment, recovery)
+						: undefined
+
+				store.update((next) => {
+					if (capture) {
+						delete next.captures[capture.id]
+					}
+
+					if (draft && segment) {
+						creditCapture(next, draft)
+					}
+
+					next.nativeCaptureReceipts.push(receipt)
+				})
+
+				if (capture || segment) {
+					store.captureEvicted?.(eviction, capture)
+				}
+			}
+
+			evictedNames.add(eviction.fileName)
+		}
+
+		for (const eviction of changes.evicted) {
+			evict(eviction)
+		}
+
+		for (const segment of changes.captures) {
+			if (evictedNames.has(segment.fileName)) {
+				continue
+			}
+
+			const data = store.read()
+
+			if (
+				data.nativeCaptureReceipts.includes(segment.segmentId) ||
+				data.captures[segment.segmentId]
+			) {
+				if (!data.nativeCaptureReceipts.includes(segment.segmentId)) {
+					store.update((next) => {
+						next.nativeCaptureReceipts.push(segment.segmentId)
+					})
+				}
+
+				capturedIds.add(segment.segmentId)
+				continue
+			}
+
+			const draft = captureDraft(data, segment, recovery)
+			let sizeBytes: number
+
+			try {
+				sizeBytes = store.fileSize(segment.uri)
+
+				if (!Number.isFinite(sizeBytes) || sizeBytes < 44) {
+					throw new Error("Pending native recording unavailable")
+				}
+			} catch (error) {
+				// A capacity eviction can happen after the first bridge snapshot.
+				const latest = await native.getCaptureChanges()
+				const eviction = latest.evicted.find((item) => item.fileName === segment.fileName)
+
+				if (!eviction) {
+					throw error
+				}
+
+				evict(eviction)
+				continue
+			}
+
+			const capture: Capture = {
+				id: segment.segmentId,
+				sessionId: segment.sessionId,
+				wordId: draft.settings.wordId,
+				clientWordId: draft.clientWordId,
+				parrotSpecies: draft.parrotSpecies,
+				parrotBirthdate: draft.parrotBirthdate,
+				cycle: segment.cycle,
+				phase: segment.phase,
+				capturedAt: segment.capturedAt,
+				uri: "recording://session-captures/" + segment.fileName,
+				fileName: segment.fileName,
+				segments: [
+					{
+						startMs: Math.min(segment.durationMs, Math.max(0, segment.speechStartMs)),
+						endMs: Math.min(
+							segment.durationMs,
+							Math.max(segment.speechStartMs, segment.speechEndMs),
+						),
+					},
+				],
+				sizeBytes,
+			}
+			const saved = store.update((next) => {
+				next.captures[capture.id] = capture
+				next.nativeCaptureReceipts.push(capture.id)
+				creditCapture(next, draft)
+			})
+
+			store.captureSaved?.(capture, Object.keys(saved.captures).length)
+			capturedIds.add(segment.segmentId)
+		}
+
+		if (capturedIds.size || evictedNames.size) {
+			await native.ackCaptureChanges([...capturedIds], [...evictedNames])
+		}
+
+		// Reconciliation is the sole writer. Remaining receipts belong to completed ACKs.
+		if (store.read().nativeCaptureReceipts.length) {
+			store.update((data) => {
+				data.nativeCaptureReceipts = []
+			})
+		}
+	}
+
+	await persistAndAcknowledge(await native.getCaptureChanges(), await native.getPendingRecovery())
+	const snapshot = await native.getSnapshot()
+
+	if (["starting", "running", "paused", "interrupted", "stopping"].includes(snapshot.state)) {
+		return
+	}
+
+	const finalRecovery = await native.getPendingRecovery()
+
+	if (!finalRecovery) {
+		return
+	}
+
+	await persistAndAcknowledge(await native.getCaptureChanges(), finalRecovery)
+	const draft = recoveryDraft(store.read(), finalRecovery)
+
+	store.update((data) => {
+		creditRecovery(data, finalRecovery)
+	})
+	await native.clearPendingRecovery(finalRecovery.sessionId)
+	store.finalized?.(finalRecovery, draft)
+	store.update((data) => {
+		delete data.sessionDrafts[finalRecovery.sessionId]
+	})
+}

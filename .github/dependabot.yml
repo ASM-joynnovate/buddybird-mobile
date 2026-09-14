@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - directory: /
+    package-ecosystem: github-actions
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 5
+    labels: ['dependencies', 'area: ci']
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      compatible-actions:
+        update-types: [minor, patch]
+  - directory: /
+    package-ecosystem: npm
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
+    ignore:
+      - dependency-name: expo
+      - dependency-name: react
+      - dependency-name: react-native
+      - dependency-name: expo-*
+        update-types: [version-update:semver-major]
+      - dependency-name: react-native-*
+        update-types: [version-update:semver-major]
+    groups:
+      patches:
+        update-types: [patch]
+      development:
+        dependency-type: development
+        update-types: [minor, patch]

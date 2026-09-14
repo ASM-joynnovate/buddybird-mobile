@@ -1,0 +1,18 @@
+name: Artifact retention
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * 6'
+permissions:
+  contents: read
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: c-hive/gha-remove-artifacts@v1
+        with:
+          skip-recent: 5
+          skip-tags: 'true'
+          age: 14 days

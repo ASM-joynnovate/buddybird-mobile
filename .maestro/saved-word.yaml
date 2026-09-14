@@ -1,0 +1,83 @@
+appId: com.joynnovate.buddybird.dev
+name: A recorded word persists, plays, trains, and can be deleted
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn:
+    id: tab-words
+- tapOn:
+    id: word-add
+- tapOn:
+    id: word-name
+- inputText: Echo check
+- tapOn: Record a word
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- assertVisible:
+    id: word-save
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: word-record
+    direction: UP
+- runFlow: helpers/record-clip.yaml
+- tapOn:
+    id: word-save
+- extendedWaitUntil:
+    visible:
+      id: word-add
+    timeout: 15000
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-words
+- scrollUntilVisible:
+    element:
+      text: Preview Echo check
+    direction: DOWN
+- tapOn:
+    text: Preview Echo check
+    waitToSettleTimeoutMs: 100
+- assertVisible: Stop playing Echo check
+- tapOn: Stop playing Echo check
+- assertVisible: Preview Echo check
+- tapOn:
+    id: tab-learn
+- tapOn: Select Echo check
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-countdown
+    timeout: 20000
+- extendedWaitUntil:
+    visible: '09:[0-5][0-9]'
+    timeout: 20000
+- assertVisible: Echo check
+- tapOn:
+    id: session-end
+- extendedWaitUntil:
+    visible:
+      id: tab-words
+    timeout: 20000
+- tapOn:
+    id: tab-words
+- scrollUntilVisible:
+    element:
+      text: Delete Echo check
+    direction: DOWN
+- tapOn: Delete Echo check
+- tapOn: Delete
+- assertNotVisible: Preview Echo check
+- stopApp
+- launchApp
+- tapOn:
+    id: tab-words
+- assertNotVisible: Echo check

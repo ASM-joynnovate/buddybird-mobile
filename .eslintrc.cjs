@@ -25,7 +25,6 @@ module.exports = {
           { pattern: "@/**", group: "internal" },
           { pattern: "@assets/**", group: "internal" },
           { pattern: "@modules/**", group: "internal" },
-          { pattern: "@test/**", group: "internal" },
         ],
         "pathGroupsExcludedImportTypes": ["builtin"],
         "newlines-between": "always-and-inside-groups",
@@ -37,11 +36,32 @@ module.exports = {
         patterns: [
           {
             group: ["./*", "../*"],
-            message: "Use the project's @/, @assets/, @modules/, or @test/ import aliases.",
+            message: "Use the project's @/, @assets/, or @modules/ import aliases.",
           },
         ],
       },
     ],
     "no-restricted-modules": ["error", { patterns: ["./*", "../*"] }],
   },
+  overrides: [{
+    files: ["app/**/*.tsx"],
+    excludedFiles: ["app/components/ui/surface.tsx", "app/components/ui/text-field.tsx"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{ group: ["./*", "../*"], message: "Use the project's import aliases." }],
+        paths: [
+          {
+            name: "react-native",
+            importNames: ["Pressable", "TouchableOpacity", "TouchableHighlight", "TouchableWithoutFeedback", "TextInput"],
+            message: "Use the shared controls/ChoiceCard/PressableSurface or TextField from components/ui.",
+          },
+          {
+            name: "react-native-gesture-handler",
+            importNames: ["Gesture", "GestureDetector"],
+            message: "Keep press gestures in the shared PressableSurface.",
+          },
+        ],
+      }],
+    },
+  }],
 }

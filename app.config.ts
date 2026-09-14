@@ -1,4 +1,9 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
+
 import type { ExpoConfig } from "expo/config"
+
+const { version } = JSON.parse(readFileSync(path.join(__dirname, "package.json"), "utf8")) as { version: string }
 
 const production = process.env.APP_VARIANT === "production"
 const variant = production ? "prod" : "dev"
@@ -8,7 +13,7 @@ const config: ExpoConfig = {
   name: production ? "버디버드" : "버디버드 (DEV)",
   slug: "buddybird",
   owner: "joynnovate0410",
-  version: "1.1.0",
+  version,
   orientation: "portrait",
   scheme: production ? "buddybird" : "buddybird-dev",
   userInterfaceStyle: "automatic",

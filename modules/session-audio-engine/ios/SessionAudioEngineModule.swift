@@ -13,7 +13,7 @@ public final class SessionAudioEngineModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("SessionAudioEngine")
-    Events("onStateChanged", "onProgress", "onSegmentCaptured", "onFailure")
+    Events("onStateChanged", "onProgress", "onSegmentCaptured", "onFailure", "onPlaybackMetering", "onTargetPlayback")
 
     AsyncFunction("start") { (input: [String: Any]) in
       try self.engine.start(input)
@@ -37,11 +37,11 @@ public final class SessionAudioEngineModule: Module {
     AsyncFunction("clearPendingRecovery") { (sessionId: String) in
       try self.engine.clearRecovery(sessionId)
     }.runOnQueue(queue)
-    AsyncFunction("getUnstoredSegments") {
-      try self.engine.persistence.pending().map { $0.dictionary }
+    AsyncFunction("getCaptureChanges") {
+      try self.engine.persistence.changes()
     }.runOnQueue(queue)
-    AsyncFunction("markSegmentsStored") { (segmentIds: [String]) in
-      try self.engine.persistence.acknowledge(segmentIds)
+    AsyncFunction("ackCaptureChanges") { (segmentIds: [String], evictedFileNames: [String]) in
+      try self.engine.persistence.acknowledge(segmentIds, evictedFileNames: evictedFileNames)
     }.runOnQueue(queue)
 
     OnDestroy {
@@ -156,7 +156,7 @@ private final class SessionConfiguration {
 
 private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
   let queue: DispatchQueue
-  let emit: (String, [String: Any]) -> Void
+  private let sendEvent: (String, [String: Any]) -> Void
   let persistence: SessionPersistence
 
   private let session = AVAudioSession.sharedInstance()
@@ -180,6 +180,10 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
   private var nextPlaybackElapsedMs: Double = 0
   private var echoGuardUntilMs: Double = 0
   private var lastPlaybackStartDelayMs: Double?
+  private var targetPlaybackCount = 0
+  private var playbackStartedAtMs: Double?
+  private var playbackRemainingMs = 0.0
+  private var lastFailure: [String: Any]?
 
   private var lastProgressSecond = -1
   private var lastCheckpointElapsedMs: Double = 0
@@ -193,7 +197,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
 
   init(queue: DispatchQueue, emit: @escaping (String, [String: Any]) -> Void) {
     self.queue = queue
-    self.emit = emit
+    self.sendEvent = emit
 
     let files = FileManager.default
     persistence = SessionPersistence(
@@ -248,6 +252,36 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     return min(config.totalDurationMs, elapsedRunningMs)
   }
 
+  private func emit(_ event: String, _ body: [String: Any]) {
+    if event == "onFailure" { lastFailure = body }
+    sendEvent(event, body)
+  }
+
+  private func startTargetPlayback(delayMs: Double, offsetSeconds: Double = 0) throws {
+    guard let player = targetPlayer else {
+      throw EngineFailure("audio-engine-failed", "Target player is unavailable")
+    }
+    playbackRemainingMs = max(0, (player.duration - offsetSeconds) * 1000)
+    guard player.play() else {
+      throw EngineFailure("audio-engine-failed", "Target playback failed")
+    }
+    lastPlaybackStartDelayMs = delayMs
+    targetPlaybackCount += 1
+    playbackStartedAtMs = continuousMilliseconds()
+  }
+
+  private func finishTargetPlayback() {
+    guard let started = playbackStartedAtMs else { return }
+    playbackStartedAtMs = nil
+    guard let id = configuration?.sessionId else { return }
+    emit("onTargetPlayback", [
+      "sessionId": id,
+      "sequence": targetPlaybackCount,
+      "durationMs": min(playbackRemainingMs, max(0, continuousMilliseconds() - started)),
+      "startDelayMs": lastPlaybackStartDelayMs as Any? ?? NSNull(),
+    ])
+  }
+
   func snapshot() -> [String: Any] {
     let elapsedRunningMs = currentElapsedRunningMs()
     let currentPhase =
@@ -268,6 +302,8 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       "isTargetPlaying": state == "running" && (targetPlayer?.isPlaying ?? false),
       "savedAt": isoNow(),
       "lastPlaybackStartDelayMs": lastPlaybackStartDelayMs as Any? ?? NSNull(),
+      "targetPlaybackCount": targetPlaybackCount,
+      "failure": lastFailure as Any? ?? NSNull(),
     ]
   }
 
@@ -313,6 +349,9 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       lastCheckpointElapsedMs = 0
       nextPlaybackElapsedMs = 0
       lastPlaybackStartDelayMs = nil
+      targetPlaybackCount = 0
+      playbackStartedAtMs = nil
+      lastFailure = nil
       emit("onStateChanged", snapshot())
 
       detector = SpeechDetector(config.vadSettings)
@@ -325,6 +364,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         throw EngineFailure("audio-source-unavailable", "Target audio cannot be decoded")
       }
       target.delegate = self
+      target.isMeteringEnabled = true
 
       runningStartedAtMs = continuousMilliseconds()
       state = "running"
@@ -333,7 +373,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       installRemoteControls()
 
       let source = DispatchSource.makeTimerSource(queue: queue)
-      source.schedule(deadline: .now(), repeating: .milliseconds(250), leeway: .milliseconds(20))
+      source.schedule(deadline: .now(), repeating: .milliseconds(80), leeway: .milliseconds(10))
       source.setEventHandler { [weak self] in self?.tick() }
       timer = source
       source.resume()
@@ -428,6 +468,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     audioEngine = nil
 
     targetPlayer?.pause()
+    finishTargetPlayback()
     carePlayer?.pause()
     pendingSamples.removeAll(keepingCapacity: true)
 
@@ -495,6 +536,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         try flush()
 
         targetPlayer?.stop()
+        finishTargetPlayback()
         targetPlayer?.currentTime = 0
         carePlayer?.stop()
         carePlayer = nil
@@ -524,12 +566,10 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         guard let player = targetPlayer else {
           throw EngineFailure("audio-engine-failed", "Target player is unavailable")
         }
-        lastPlaybackStartDelayMs = max(0, elapsedRunningMs - nextPlaybackElapsedMs)
         player.currentTime = 0
-        guard player.play() else {
-          throw EngineFailure("audio-engine-failed", "Target playback failed")
-        }
+        try startTargetPlayback(delayMs: max(0, elapsedRunningMs - nextPlaybackElapsedMs))
         nextPlaybackElapsedMs = .infinity
+        emit("onStateChanged", snapshot())
       } else if phasePosition.phase == "stress-care", chosenCare == nil {
         chosenCare = config.careAudioFiles.randomElement()
         if let track = chosenCare {
@@ -552,6 +592,11 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         }
       }
 
+      if let player = targetPlayer, player.isPlaying, phasePosition.phase == "learning" {
+        player.updateMeters()
+        emit("onPlaybackMetering", ["decibels": player.averagePower(forChannel: 0)])
+      }
+
       if elapsedRunningMs - lastCheckpointElapsedMs >= 15000 {
         try checkpoint()
       }
@@ -568,7 +613,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
     queue.async { [weak self] in
-      guard let self, player === self.targetPlayer, self.active else {
+      guard let self, player === self.targetPlayer, self.active, !player.isPlaying else {
         return
       }
 
@@ -576,9 +621,11 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
         self.fail(EngineFailure("audio-engine-failed", "Target playback stopped unexpectedly"))
         return
       }
+      self.finishTargetPlayback()
       self.nextPlaybackElapsedMs = self.currentElapsedRunningMs() + player.duration * 1000
       self.echoGuardUntilMs =
         continuousMilliseconds() + Double(self.configuration?.vadSettings.echoTailGuardMs ?? 200)
+      self.emit("onStateChanged", self.snapshot())
     }
   }
 
@@ -602,6 +649,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     do {
       try flush()
       targetPlayer?.pause()
+      finishTargetPlayback()
       carePlayer?.pause()
 
       try checkpoint()
@@ -634,10 +682,9 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
           player.play()
         }
       } else if phasePosition.phase == "learning", nextPlaybackElapsedMs.isInfinite {
-        guard targetPlayer?.play() == true else {
-          throw EngineFailure("audio-engine-failed", "Target resume failed")
-        }
+        try startTargetPlayback(delayMs: 0, offsetSeconds: targetPlayer?.currentTime ?? 0)
       }
+      lastFailure = nil
 
       echoGuardUntilMs =
         continuousMilliseconds() + Double(configuration?.vadSettings.echoTailGuardMs ?? 200)
@@ -676,6 +723,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     }
 
     cleanupAudio()
+    lastFailure = nil
     state = reason == "duration-reached" ? "completed" : "idle"
 
     do {
@@ -700,6 +748,8 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       "cycle": currentSnapshot["cycle"]!, "phase": currentSnapshot["phase"]!,
       "phaseElapsedMs": currentSnapshot["phaseElapsedMs"]!,
       "savedAt": currentSnapshot["savedAt"]!,
+      "targetPlaybackCount": targetPlaybackCount,
+      "failure": lastFailure as Any? ?? NSNull(),
     ]
     if let reason {
       record["reason"] = reason
@@ -743,6 +793,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     }
 
     cleanupAudio()
+    lastFailure = failure(error, recoverable: true)
     do {
       try checkpoint(reason: "failure")
     } catch {
@@ -765,11 +816,14 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
     carePlayer = nil
     chosenCare = nil
 
-    for (command, target) in remoteTargets {
-      command.removeTarget(target)
+    DispatchQueue.main.async {
+      for (command, target) in self.remoteTargets {
+        command.removeTarget(target)
+        command.isEnabled = false
+      }
+      self.remoteTargets.removeAll()
+      MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
-    remoteTargets.removeAll()
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
 
   private func interruption(_ note: Notification) {
@@ -831,6 +885,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       if let config = configuration {
         targetPlayer = try AVAudioPlayer(contentsOf: config.targetAudioFile)
         targetPlayer?.delegate = self
+        targetPlayer?.isMeteringEnabled = true
         targetPlayer?.currentTime = targetOffset
         if let chosenCare {
           carePlayer = try? AVAudioPlayer(contentsOf: chosenCare)
@@ -852,35 +907,36 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
   }
 
   private func installRemoteControls() {
-    let center = MPRemoteCommandCenter.shared()
-    for (command, action) in [
-      (center.playCommand, "resume"), (center.pauseCommand, "pause"), (center.stopCommand, "stop"),
-      (center.togglePlayPauseCommand, "toggle"),
-    ] {
-      command.isEnabled = true
-      let target = command.addTarget { [weak self] _ in
-        guard let self else {
-          return .commandFailed
-        }
-        self.queue.async {
-          do {
-            if action == "stop" {
-              _ = try self.stop()
-            } else if action == "pause" || (action == "toggle" && self.state == "running") {
-              _ = try self.pause()
-            } else {
-              _ = try self.resume()
+    guard let sessionId = configuration?.sessionId else { return }
+    DispatchQueue.main.async {
+      let center = MPRemoteCommandCenter.shared()
+      for (command, action) in [
+        (center.playCommand, "resume"), (center.pauseCommand, "pause"), (center.stopCommand, "stop"),
+        (center.togglePlayPauseCommand, "toggle"),
+      ] {
+        command.isEnabled = true
+        let target = command.addTarget { [weak self] _ in
+          guard let self else { return .commandFailed }
+          self.queue.async {
+            guard self.configuration?.sessionId == sessionId else { return }
+            do {
+              if action == "stop" {
+                _ = try self.stop()
+              } else if action == "pause" || (action == "toggle" && self.state == "running") {
+                _ = try self.pause()
+              } else {
+                _ = try self.resume()
+              }
+            } catch {
+              self.emit("onFailure", self.failure(error, recoverable: true))
             }
-          } catch {
-            self.emit("onFailure", self.failure(error, recoverable: true))
           }
+          return .success
         }
-
-        return .success
+        self.remoteTargets.append((command, target))
       }
-      remoteTargets.append((command, target))
+      center.changePlaybackPositionCommand.isEnabled = false
     }
-    center.changePlaybackPositionCommand.isEnabled = false
     updateNowPlaying()
   }
 
@@ -908,7 +964,7 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       .replacingOccurrences(of: "%{cycle}", with: String(phasePosition.cycle))
       .replacingOccurrences(of: "%{total}", with: String(totalCycles))
 
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = [
+    let information: [String: Any] = [
       MPMediaItemPropertyTitle: config.recoveryMetadata["word"] ?? "",
       MPMediaItemPropertyArtist: subtitle,
       MPMediaItemPropertyPlaybackDuration: config.totalDurationMs / 1000,
@@ -916,6 +972,9 @@ private final class SessionEngine: NSObject, AVAudioPlayerDelegate {
       MPNowPlayingInfoPropertyPlaybackRate: state == "running" ? 1.0 : 0.0,
       MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
     ]
+    DispatchQueue.main.async {
+      MPNowPlayingInfoCenter.default().nowPlayingInfo = information
+    }
   }
 
   func pendingRecovery() throws -> [String: Any]? {

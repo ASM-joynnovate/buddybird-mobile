@@ -1,0 +1,100 @@
+import { useFocusEffect } from "@react-navigation/native"
+
+import { useCallback, useRef, useState } from "react"
+
+import { useTranslation } from "react-i18next"
+
+import { useAppData } from "@/hooks/use-app-data"
+import { useSession } from "@/hooks/use-session"
+import { choices, presetMinutes } from "@/screens/Learning/durations"
+import { sessionFailure } from "@/services/session/failure"
+import { customTiming, presetTiming } from "@/services/session/timing"
+import { screen } from "@/services/telemetry/client"
+import { visibleWords } from "@/services/words/selectors"
+import type { SessionFailure } from "@modules/session-audio-engine/types"
+
+export function useLearningSetup() {
+	const { t } = useTranslation()
+	const data = useAppData()
+	const session = useSession()
+
+	const locale = data.settings.locale
+	const words = visibleWords(data, locale)
+	const [wordId, setWordId] = useState<string | undefined>()
+	const [choice, setChoice] = useState<(typeof choices)[number]>("medium")
+	const [customMinutes, setCustomMinutes] = useState(25)
+	const [busy, setBusy] = useState(false)
+	const [error, setError] = useState<SessionFailure | null>(null)
+	const starting = useRef(false)
+	const word = words.find((item) => item.id === wordId) ?? words[0]
+	const timing =
+		choice === "custom" ? customTiming(customMinutes) : presetTiming(presetMinutes[choice])
+
+	const hasZeroDuration = timing.totalDurationSeconds === 0
+	const startDisabled = !word || hasZeroDuration
+	const errorMessage = hasZeroDuration ? t("learning.invalid") : null
+
+	useFocusEffect(
+		useCallback(() => {
+			screen("session_setup")
+		}, []),
+	)
+
+	function choose(next: typeof choice) {
+		setChoice(next)
+
+		if (next === "custom") {
+			setCustomMinutes(25)
+		}
+
+		setError(null)
+	}
+
+	function changeCustomHours(nextHours: number) {
+		setCustomMinutes(nextHours * 60 + (customMinutes % 60))
+	}
+
+	function changeCustomMinutes(nextMinutes: number) {
+		setCustomMinutes(Math.floor(customMinutes / 60) * 60 + nextMinutes)
+	}
+
+	async function start() {
+		if (starting.current || !word || timing.totalDurationSeconds === 0) {
+			return
+		}
+
+		starting.current = true
+		setBusy(true)
+		setError(null)
+
+		try {
+			await session.start(word.id, timing)
+		} catch (cause) {
+			setError(sessionFailure(cause))
+		} finally {
+			starting.current = false
+			setBusy(false)
+		}
+	}
+
+	return {
+		locale,
+		words,
+		word,
+		setWordId: (id: string) => {
+			setWordId(id)
+			setError(null)
+		},
+		choice,
+		choose,
+		timing,
+		customMinutes,
+		changeCustomHours,
+		changeCustomMinutes,
+		start,
+		startDisabled,
+		errorMessage,
+		failure: error,
+		busy,
+	}
+}

@@ -1,0 +1,83 @@
+appId: com.joynnovate.buddybird.dev
+name: Training can continue or end after a back request
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn: Select Hello
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-countdown
+    timeout: 20000
+- extendedWaitUntil:
+    visible: '09:[0-5][0-9]'
+    timeout: 20000
+- assertVisible: Hello
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: session-back
+- assertVisible: End this session\?
+- tapOn:
+    id: session-exit-continue
+- assertNotVisible: End this session\?
+- scrollUntilVisible:
+    element:
+      id: session-pause
+    direction: DOWN
+- tapOn:
+    id: session-pause
+- assertVisible:
+    id: session-pause
+    text: Resume
+- tapOn:
+    id: session-pause
+- assertVisible:
+    id: session-pause
+    text: Pause
+- scrollUntilVisible:
+    element:
+      id: session-back
+    direction: UP
+- tapOn:
+    id: session-back
+- assertVisible: End this session\?
+- takeScreenshot: confirm-session-exit
+- tapOn:
+    id: session-exit-end
+- extendedWaitUntil:
+    visible:
+      id: learning-start
+    timeout: 20000
+- assertNotVisible:
+    id: session-countdown
+- assertVisible:
+    id: learning-start
+    enabled: true
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-end
+    timeout: 20000
+- tapOn:
+    id: session-end
+- extendedWaitUntil:
+    visible:
+      id: learning-start
+    timeout: 20000
+- assertNotVisible: End this session\?

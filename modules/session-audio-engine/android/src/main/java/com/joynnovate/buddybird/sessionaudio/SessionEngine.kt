@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.*
+import android.media.audiofx.Visualizer
 import android.net.Uri
 import android.os.*
 import java.io.File
@@ -104,6 +105,16 @@ internal class SessionConfiguration(val input: JSONObject) {
     }
 }
 
+internal data class SessionNotification(
+    val state: String = "idle",
+    val title: String = "BuddyBird",
+    val subtitle: String = "",
+    val totalDurationMs: Long = 0,
+    val elapsedRunningMs: Long = 0,
+) {
+    val active: Boolean get() = state in listOf("starting", "running", "paused", "interrupted", "stopping")
+}
+
 class SessionEngine private constructor(private val context: Context) {
     companion object {
         @Volatile private var instance: SessionEngine? = null
@@ -116,9 +127,17 @@ class SessionEngine private constructor(private val context: Context) {
     }
 
     val persistence = SessionPersistence(context)
-    var events: ((String, Map<String, Any?>) -> Unit)? = null
+    @Volatile var events: ((String, Map<String, Any?>) -> Unit)? = null
+    @Volatile internal var notificationState = SessionNotification()
+        private set
 
-    private val handler = Handler(Looper.getMainLooper())
+    private val worker = HandlerThread("BuddyBirdSession").apply { start() }
+    private val handler = Handler(worker.looper)
+    private val main = Handler(Looper.getMainLooper())
+
+    internal fun dispatch(block: () -> Unit) {
+        handler.post { block() }
+    }
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val audioAttributes =
         AudioAttributes.Builder()
@@ -138,6 +157,9 @@ class SessionEngine private constructor(private val context: Context) {
     private var carePlayer: MediaPlayer? = null
     private var chosenCare: File? = null
 
+    private var playbackMeter: Visualizer? = null
+    private val playbackMeasurement = Visualizer.MeasurementPeakRms()
+
     private var microphone: AudioRecord? = null
     private val microphoneGeneration = AtomicInteger(0)
 
@@ -147,6 +169,10 @@ class SessionEngine private constructor(private val context: Context) {
     private var focusHeld = false
     private var focusRequest: AudioFocusRequest? = null
     private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
+        handler.post { focusChanged(change) }
+    }
+
+    private fun focusChanged(change: Int) {
         if (
             change == AudioManager.AUDIOFOCUS_GAIN &&
                 state in listOf("interrupted", "starting", "running")
@@ -179,6 +205,10 @@ class SessionEngine private constructor(private val context: Context) {
     private var nextPlaybackElapsedMs = 0.0
     private var echoGuardUntilMs = 0L
     private var lastPlaybackStartDelayMs: Double? = null
+    private var targetPlaybackCount = 0
+    private var playbackStartedAtMs: Long? = null
+    private var playbackRemainingMs = 0.0
+    private var lastFailure: Map<String, Any?>? = null
 
     private var lastProgressSecond = -1
     private var lastCheckpointElapsedMs = 0.0
@@ -196,14 +226,44 @@ class SessionEngine private constructor(private val context: Context) {
                 if (active) {
                     advance()
                     if (active) {
-                        handler.postDelayed(this, 250)
+                        handler.postDelayed(this, 80)
                     }
                 }
             }
         }
 
     private fun emit(event: String, body: Map<String, Any?>) {
+        if (event == "onFailure") lastFailure = body
+        if (event == "onStateChanged" || event == "onProgress") {
+            val notification = SessionNotification(
+                state, notificationTitle(), notificationSubtitle(), totalDuration(),
+                (body["elapsedRunningMs"] as? Number)?.toLong() ?: 0,
+            )
+            notificationState = notification
+            service?.let { current -> main.post { current.refresh(notification) } }
+        }
         events?.invoke(event, body)
+    }
+
+    private fun startTargetPlayback(delayMs: Double, offsetMs: Int = 0) {
+        val player = targetPlayer ?: throw EngineFailure("audio-engine-failed", "Target player is unavailable")
+        playbackRemainingMs = max(0.0, player.duration.toDouble() - offsetMs)
+        player.start()
+        lastPlaybackStartDelayMs = delayMs
+        targetPlaybackCount++
+        playbackStartedAtMs = SystemClock.elapsedRealtime()
+    }
+
+    private fun finishTargetPlayback() {
+        val started = playbackStartedAtMs ?: return
+        playbackStartedAtMs = null
+        val id = configuration?.sessionId ?: return
+        emit("onTargetPlayback", mapOf(
+            "sessionId" to id,
+            "sequence" to targetPlaybackCount,
+            "durationMs" to min(playbackRemainingMs, max(0L, SystemClock.elapsedRealtime() - started).toDouble()),
+            "startDelayMs" to lastPlaybackStartDelayMs,
+        ))
     }
 
     private fun currentElapsedRunningMs(): Double {
@@ -240,6 +300,8 @@ class SessionEngine private constructor(private val context: Context) {
             "isTargetPlaying" to (state == "running" && targetPlayer?.isPlaying == true),
             "savedAt" to isoNow(),
             "lastPlaybackStartDelayMs" to lastPlaybackStartDelayMs,
+            "targetPlaybackCount" to targetPlaybackCount,
+            "failure" to lastFailure,
         )
     }
 
@@ -289,6 +351,9 @@ class SessionEngine private constructor(private val context: Context) {
 
             nextPlaybackElapsedMs = 0.0
             lastPlaybackStartDelayMs = null
+            targetPlaybackCount = 0
+            playbackStartedAtMs = null
+            lastFailure = null
             lastProgressSecond = -1
             lastCheckpointElapsedMs = 0.0
 
@@ -335,7 +400,7 @@ class SessionEngine private constructor(private val context: Context) {
 
     internal fun serviceStarted(value: SessionAudioService) {
         if (state != "starting") {
-            value.stopSelf()
+            main.post { value.stopSelf() }
             return
         }
         service = value
@@ -352,10 +417,12 @@ class SessionEngine private constructor(private val context: Context) {
                         )
                     }
                     player.setOnCompletionListener {
-                        if (it === targetPlayer && active) {
+                        if (it === targetPlayer && active && !it.isPlaying) {
+                            finishTargetPlayback()
                             nextPlaybackElapsedMs = currentElapsedRunningMs() + it.duration
                             echoGuardUntilMs =
                                 SystemClock.elapsedRealtime() + config.vadSettings.echoTailGuardMs
+                            emit("onStateChanged", snapshot())
                         }
                     }
                     player.setOnErrorListener { _, what, extra ->
@@ -368,11 +435,19 @@ class SessionEngine private constructor(private val context: Context) {
                         true
                     }
                 }
+            try {
+                playbackMeter = Visualizer(targetPlayer!!.audioSessionId)
+                playbackMeter?.measurementMode = Visualizer.MEASUREMENT_MODE_PEAK_RMS
+                playbackMeter?.enabled = true
+            } catch (_: RuntimeException) {
+                // Visualization availability must not prevent audio playback or capture.
+                playbackMeter?.release()
+                playbackMeter = null
+            }
             runningStartedAtMs = SystemClock.elapsedRealtime()
             state = "running"
             checkpoint()
 
-            service?.refresh()
             handler.post(tick)
 
             emit("onStateChanged", snapshot())
@@ -386,6 +461,7 @@ class SessionEngine private constructor(private val context: Context) {
     }
 
     private fun startFailed(error: Throwable) {
+        lastFailure = failure(error)
         state = "failed"
         cleanupAudio()
 
@@ -558,6 +634,8 @@ class SessionEngine private constructor(private val context: Context) {
             // Cleanup can run after the player has entered an error state.
         }
 
+        finishTargetPlayback()
+
         try {
             carePlayer?.pause()
         } catch (_: IllegalStateException) {
@@ -649,6 +727,7 @@ class SessionEngine private constructor(private val context: Context) {
                 flush()
 
                 targetPlayer?.pause()
+                finishTargetPlayback()
                 targetPlayer?.seekTo(0)
                 carePlayer?.release()
                 carePlayer = null
@@ -684,9 +763,9 @@ class SessionEngine private constructor(private val context: Context) {
                             "audio-engine-failed",
                             "Target player is unavailable",
                         )
-                lastPlaybackStartDelayMs = max(0.0, elapsedRunningMs - nextPlaybackElapsedMs)
                 player.seekTo(0)
-                player.start()
+                startTargetPlayback(max(0.0, elapsedRunningMs - nextPlaybackElapsedMs))
+                emit("onStateChanged", snapshot())
                 nextPlaybackElapsedMs = Double.POSITIVE_INFINITY
             } else if (phasePosition.phase == "stress-care" && chosenCare == null) {
                 chosenCare = config.careAudioFiles.random()
@@ -716,6 +795,17 @@ class SessionEngine private constructor(private val context: Context) {
                 }
             }
 
+            if (phasePosition.phase == "learning" && targetPlayer?.isPlaying == true) {
+                val decibels = try {
+                    if (playbackMeter?.getMeasurementPeakRms(playbackMeasurement) == Visualizer.SUCCESS) {
+                        playbackMeasurement.mRms / 100.0
+                    } else -160.0
+                } catch (_: IllegalStateException) {
+                    -160.0
+                }
+                emit("onPlaybackMetering", mapOf("decibels" to decibels))
+            }
+
             if (elapsedRunningMs - lastCheckpointElapsedMs >= 15000) {
                 checkpoint()
             }
@@ -723,7 +813,6 @@ class SessionEngine private constructor(private val context: Context) {
             if ((elapsedRunningMs / 1000).toInt() != lastProgressSecond) {
                 lastProgressSecond = (elapsedRunningMs / 1000).toInt()
                 emit("onProgress", snapshot())
-                service?.refresh()
             }
         } catch (error: Exception) {
             fail(error)
@@ -744,7 +833,6 @@ class SessionEngine private constructor(private val context: Context) {
             checkpoint()
 
             emit("onStateChanged", snapshot())
-            service?.refresh()
             return snapshot()
         } catch (error: Exception) {
             fail(error)
@@ -770,8 +858,9 @@ class SessionEngine private constructor(private val context: Context) {
                     }
                 }
             } else if (phasePosition.phase == "learning" && nextPlaybackElapsedMs.isInfinite()) {
-                targetPlayer?.start()
+                startTargetPlayback(0.0, targetPlayer?.currentPosition ?: 0)
             }
+            lastFailure = null
 
             echoGuardUntilMs =
                 SystemClock.elapsedRealtime() + (configuration?.vadSettings?.echoTailGuardMs ?: 200)
@@ -779,7 +868,6 @@ class SessionEngine private constructor(private val context: Context) {
             checkpoint()
 
             emit("onStateChanged", snapshot())
-            service?.refresh()
             return snapshot()
         } catch (error: Exception) {
             elapsedBeforeRunMs = currentElapsedRunningMs()
@@ -787,7 +875,6 @@ class SessionEngine private constructor(private val context: Context) {
             releaseAudio(true)
             emit("onFailure", failure(error))
             emit("onStateChanged", snapshot())
-            service?.refresh()
             throw error
         }
     }
@@ -803,7 +890,6 @@ class SessionEngine private constructor(private val context: Context) {
             checkpoint()
 
             emit("onStateChanged", snapshot())
-            service?.refresh()
         } catch (error: Exception) {
             fail(error)
         }
@@ -823,6 +909,7 @@ class SessionEngine private constructor(private val context: Context) {
         try {
             flush()
             cleanupAudio()
+            lastFailure = null
             state =
                 if (reason == "duration-reached") {
                     "completed"
@@ -910,6 +997,7 @@ class SessionEngine private constructor(private val context: Context) {
         }
 
         cleanupAudio()
+        lastFailure = failure(error)
         try {
             checkpoint("failure")
         } catch (storageError: Exception) {
@@ -925,6 +1013,8 @@ class SessionEngine private constructor(private val context: Context) {
         handler.removeCallbacks(tick)
 
         releaseAudio(true)
+        playbackMeter?.release()
+        playbackMeter = null
         targetPlayer?.release()
         targetPlayer = null
         carePlayer?.release()
@@ -933,8 +1023,10 @@ class SessionEngine private constructor(private val context: Context) {
 
         val stopping = service
         service = null
-        stopping?.stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE)
-        stopping?.stopSelf()
+        main.post {
+            stopping?.stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE)
+            stopping?.stopSelf()
+        }
     }
 
     internal fun notificationTitle(): String =

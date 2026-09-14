@@ -1,0 +1,28 @@
+name: Workflow notification
+on:
+  workflow_call:
+    inputs:
+      text:
+        type: string
+        required: true
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: false
+permissions:
+  contents: read
+jobs:
+  notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post workflow status
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          NOTICE: ${{ inputs.text }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            jq -n --arg text "$NOTICE — $RUN_URL" '{text: $text}' |
+              curl --fail --silent --show-error --max-time 15 \
+                -H 'Content-Type: application/json' --data-binary @- "$SLACK_WEBHOOK_URL"
+          fi

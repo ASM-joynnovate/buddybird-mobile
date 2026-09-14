@@ -4,9 +4,14 @@ import android.content.Context
 import android.net.Uri
 import android.util.AtomicFile
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 
 fun JSONObject.toMap(): Map<String, Any?> =
     keys().asSequence().associateWith { key ->
@@ -29,6 +34,8 @@ class SessionPersistence(context: Context) {
     private val directory = File(context.filesDir, "session-audio-engine")
     val captures = File(context.filesDir, "recordings/session-captures")
     private val manifest = File(directory, "pending-captures.json")
+    private var evicted = mutableListOf<JSONObject>()
+    private val captureFileName = Regex("""session-[A-Za-z0-9_-]{1,200}-[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\.wav""")
 
     private val preferences =
         context.getSharedPreferences("session-audio-engine", Context.MODE_PRIVATE)
@@ -113,20 +120,29 @@ class SessionPersistence(context: Context) {
 
     private fun writeManifest(pendingCaptures: List<JSONObject>) {
         prepare()
-        atomicWrite(manifest, JSONArray(pendingCaptures).toString().toByteArray(Charsets.UTF_8))
+        val changes = JSONObject()
+            .put("captures", JSONArray(pendingCaptures))
+            .put("evicted", JSONArray(evicted))
+        atomicWrite(manifest, changes.toString().toByteArray(Charsets.UTF_8))
     }
 
-    fun pending(): MutableList<JSONObject> {
+    fun pending(acknowledgedIds: Set<String> = emptySet()): MutableList<JSONObject> {
         prepare()
 
-        val encodedRecord =
+        val saved =
             if (manifest.exists() || File(manifest.path + ".bak").exists()) {
-                JSONArray(String(AtomicFile(manifest).readFully(), Charsets.UTF_8))
+                JSONTokener(String(AtomicFile(manifest).readFully(), Charsets.UTF_8)).nextValue()
             } else {
                 JSONArray()
             }
+        val encodedRecord = if (saved is JSONArray) saved else (saved as JSONObject).getJSONArray("captures")
+        val removed = if (saved is JSONObject) saved.getJSONArray("evicted") else JSONArray()
+        evicted = (0 until removed.length()).map { removed.getJSONObject(it) }.toMutableList()
         val pendingCaptures =
-            (0 until encodedRecord.length()).map { encodedRecord.getJSONObject(it) }.toMutableList()
+            (0 until encodedRecord.length()).map { encodedRecord.getJSONObject(it) }
+                .filter { it.getString("segmentId") !in acknowledgedIds }.toMutableList()
+        pendingCaptures.forEach { validate(it) }
+        finishEvictions()
 
         val metadataFiles =
             captures.listFiles()?.filter { it.name.endsWith(".metadata.json") }
@@ -140,7 +156,7 @@ class SessionPersistence(context: Context) {
             val temporaryFile = File(captures, ".${finalFile.name}.tmp")
 
             if (
-                pendingCaptures.none {
+                capture.getString("segmentId") !in acknowledgedIds && pendingCaptures.none {
                     it.getString("segmentId") == capture.getString("segmentId")
                 } && (finalFile.exists() || temporaryFile.exists())
             ) {
@@ -196,9 +212,9 @@ class SessionPersistence(context: Context) {
         for (metadataFile in metadataFiles) {
             val capture = JSONObject(metadataFile.readText())
             if (
-                pendingCaptures.any {
+                (capture.getString("segmentId") in acknowledgedIds || pendingCaptures.any {
                     it.getString("segmentId") == capture.getString("segmentId")
-                } && !metadataFile.delete()
+                }) && !metadataFile.delete()
             ) {
                 throw EngineFailure("storage-unavailable", "Cannot finalize capture metadata")
             }
@@ -232,15 +248,7 @@ class SessionPersistence(context: Context) {
                 .put("speechStartMs", audio.speechStartMs)
                 .put("speechEndMs", audio.speechEndMs)
 
-        val storedBytes =
-            captures.listFiles()?.sumOf { it.length() }
-                ?: throw EngineFailure("storage-unavailable", "Cannot measure capture storage")
-        if (storedBytes + audio.samples.size * 2 + 44 > maxBytes) {
-            throw EngineFailure(
-                "storage-unavailable",
-                "Capture storage limit reached; existing recordings retained",
-            )
-        }
+        makeRoom(audio.samples.size.toLong() * 2 + 44, maxBytes, pendingCaptures)
 
         val metadataFile = File(captures, ".$fileName.metadata.json")
         atomicWrite(metadataFile, capture.toString().toByteArray(Charsets.UTF_8))
@@ -262,8 +270,77 @@ class SessionPersistence(context: Context) {
         return capture
     }
 
-    fun acknowledge(ids: List<String>) {
+    fun changes(): Map<String, Any?> {
+        val captures = pending()
+        return mapOf("captures" to captures.map { it.toMap() }, "evicted" to evicted.map { it.toMap() })
+    }
+
+    fun acknowledge(ids: List<String>, evictedFileNames: List<String>) {
         val acknowledgedIds = ids.toSet()
-        writeManifest(pending().filter { it.getString("segmentId") !in acknowledgedIds })
+        val captures = pending(acknowledgedIds)
+        evicted.removeAll { it.getString("fileName") in evictedFileNames }
+        writeManifest(captures.filter { it.getString("segmentId") !in acknowledgedIds })
+    }
+
+    private fun isManagedCapture(file: File): Boolean {
+        // Both released and current engines write this name. Direct word recordings use recording-UUID.
+        return captureFileName.matches(file.name) && file.canonicalFile == File(captures.canonicalFile, file.name)
+    }
+
+    private fun finishEvictions() {
+        for (entry in evicted) {
+            entry.optJSONObject("capture")?.let { capture ->
+                validate(capture)
+                if (capture.getString("fileName") != entry.getString("fileName") ||
+                    capture.getString("segmentId") != entry.getString("segmentId")
+                ) {
+                    throw EngineFailure("storage-unavailable", "Mismatched capture eviction")
+                }
+            }
+            val name = entry.getString("fileName")
+            if (name != File(name).name || !isManagedCapture(File(captures, name)) ||
+                entry.getLong("sizeBytes") < 0 || entry.getString("capturedAt").isEmpty()
+            ) {
+                throw EngineFailure("storage-unavailable", "Malformed capture eviction")
+            }
+        }
+        for (entry in evicted) {
+            val file = File(captures, entry.getString("fileName"))
+            if (file.exists() && !file.delete()) {
+                throw EngineFailure("storage-unavailable", "Cannot remove old learning capture: " + file.name)
+            }
+        }
+    }
+
+    private fun makeRoom(incomingBytes: Long, maxBytes: Long, pendingCaptures: MutableList<JSONObject>) {
+        if (incomingBytes > maxBytes) {
+            throw EngineFailure("storage-unavailable", "One capture exceeds the storage limit")
+        }
+        // ponytail: scan the bounded capture directory; cache totals only if scans become a bottleneck.
+        val files = captures.listFiles()?.filter { it.isFile && isManagedCapture(it) }
+            ?.map { Triple(it, it.length(), it.lastModified()) }
+            ?: throw EngineFailure("storage-unavailable", "Cannot measure capture storage")
+        var bytes = files.sumOf { it.second }
+        if (bytes + incomingBytes <= maxBytes) return
+
+        val removed = mutableSetOf<String>()
+        for ((file, size, modified) in files.sortedWith(compareBy<Triple<File, Long, Long>> { it.third }.thenBy { it.first.name })) {
+            if (bytes + incomingBytes <= maxBytes) break
+            val pending = pendingCaptures.find { it.getString("fileName") == file.name }
+            val segmentId = pending?.getString("segmentId")
+                ?: UUID.fromString(file.name.removeSuffix(".wav").takeLast(36)).toString()
+            val capturedAt = pending?.getString("capturedAt") ?: SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date(modified))
+            val entry = JSONObject().put("fileName", file.name).put("segmentId", segmentId).put("sizeBytes", size).put("capturedAt", capturedAt)
+            if (pending != null) entry.put("capture", pending)
+            evicted.add(entry)
+            removed.add(file.name)
+            bytes -= size
+        }
+        pendingCaptures.removeAll { it.getString("fileName") in removed }
+        // Persist the intent before unlinking. Recovery completes interrupted deletions before ACK.
+        writeManifest(pendingCaptures)
+        finishEvictions()
     }
 }

@@ -223,6 +223,23 @@ struct CapturedAudio: Codable {
   }
 }
 
+struct EvictedAudio: Codable {
+  let capture: CapturedAudio?
+  let fileName: String
+  let segmentId: String
+  let sizeBytes: Int64
+  let capturedAt: String
+
+  var dictionary: [String: Any] {
+    (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self))) as? [String: Any] ?? [:]
+  }
+}
+
+private struct CaptureChanges: Codable {
+  var captures: [CapturedAudio]
+  var evicted: [EvictedAudio]
+}
+
 func isoNow() -> String { ISO8601DateFormatter().string(from: Date()) }
 
 // All reads/writes are serialized by the engine queue. Atomic metadata writes precede final WAV rename.
@@ -230,6 +247,7 @@ final class SessionPersistence {
   let directory: URL
   let captures: URL
   private let manager = FileManager.default
+  private var evicted: [EvictedAudio] = []
 
   private var writingOptions: Data.WritingOptions {
     #if os(iOS)
@@ -295,7 +313,7 @@ final class SessionPersistence {
   private func writeManifest(_ pendingCaptures: [CapturedAudio]) throws {
     try prepare()
 
-    let encoded = try JSONEncoder().encode(pendingCaptures)
+    let encoded = try JSONEncoder().encode(CaptureChanges(captures: pendingCaptures, evicted: evicted))
     try encoded.write(to: manifestURL, options: writingOptions)
 
     guard try Data(contentsOf: manifestURL) == encoded else {
@@ -303,14 +321,24 @@ final class SessionPersistence {
     }
   }
 
-  func pending() throws -> [CapturedAudio] {
+  func pending(acknowledgedIDs: Set<String> = []) throws -> [CapturedAudio] {
     try prepare()
 
     var pendingCaptures: [CapturedAudio] = []
+    evicted = []
     if manager.fileExists(atPath: manifestURL.path) {
-      pendingCaptures = try JSONDecoder().decode(
-        [CapturedAudio].self, from: Data(contentsOf: manifestURL))
+      let data = try Data(contentsOf: manifestURL)
+      if try JSONSerialization.jsonObject(with: data) is [Any] {
+        pendingCaptures = try JSONDecoder().decode([CapturedAudio].self, from: data)
+      } else {
+        let changes = try JSONDecoder().decode(CaptureChanges.self, from: data)
+        pendingCaptures = changes.captures
+        evicted = changes.evicted
+      }
     }
+    pendingCaptures.removeAll { acknowledgedIDs.contains($0.segmentId) }
+    try pendingCaptures.forEach { try $0.validate() }
+    try finishEvictions()
 
     let metadataURLs = try manager.contentsOfDirectory(
       at: captures, includingPropertiesForKeys: nil
@@ -325,7 +353,7 @@ final class SessionPersistence {
       let finalURL = captures.appendingPathComponent(capture.fileName)
       let temporaryURL = captures.appendingPathComponent(".\(capture.fileName).tmp")
 
-      if !pendingCaptures.contains(where: {
+      if !acknowledgedIDs.contains(capture.segmentId), !pendingCaptures.contains(where: {
         $0.segmentId == capture.segmentId
       }),
         manager.fileExists(atPath: finalURL.path) || manager.fileExists(atPath: temporaryURL.path)
@@ -368,7 +396,7 @@ final class SessionPersistence {
     for metadataURL in metadataURLs {
       let capture = try JSONDecoder().decode(
         CapturedAudio.self, from: Data(contentsOf: metadataURL))
-      if pendingCaptures.contains(where: {
+      if acknowledgedIDs.contains(capture.segmentId) || pendingCaptures.contains(where: {
         $0.segmentId == capture.segmentId
       }) {
         try manager.removeItem(at: metadataURL)
@@ -392,15 +420,7 @@ final class SessionPersistence {
       cycle: cycle, capturedAt: isoNow(), durationMs: audio.durationMs,
       speechStartMs: audio.speechStartMs, speechEndMs: audio.speechEndMs)
 
-    let storedBytes = try manager.contentsOfDirectory(
-      at: captures, includingPropertiesForKeys: [.fileSizeKey]
-    ).reduce(Int64(0)) { total, file in
-      total + Int64(try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
-    }
-    guard storedBytes + Int64(audio.samples.count * 2 + 44) <= maxBytes else {
-      throw EngineFailure(
-        "storage-unavailable", "Capture storage limit reached; existing recordings retained")
-    }
+    try makeRoom(incomingBytes: Int64(audio.samples.count * 2 + 44), maxBytes: maxBytes, pendingCaptures: &pendingCaptures)
 
     let metadataURL = captures.appendingPathComponent(".\(fileName).metadata.json")
     try JSONEncoder().encode(capture).write(to: metadataURL, options: writingOptions)
@@ -417,9 +437,79 @@ final class SessionPersistence {
     return capture
   }
 
-  func acknowledge(_ ids: [String]) throws {
+  func changes() throws -> [String: Any] {
+    let captures = try pending()
+    return ["captures": captures.map { $0.dictionary }, "evicted": evicted.map { $0.dictionary }]
+  }
+
+  func acknowledge(_ ids: [String], evictedFileNames: [String]) throws {
     let acknowledgedIDs = Set(ids)
-    try writeManifest(pending().filter { !acknowledgedIDs.contains($0.segmentId) })
+    let captures = try pending(acknowledgedIDs: acknowledgedIDs)
+    evicted.removeAll { evictedFileNames.contains($0.fileName) }
+    try writeManifest(captures.filter { !acknowledgedIDs.contains($0.segmentId) })
+  }
+
+  private func isManagedCapture(_ file: URL) -> Bool {
+    // Both released and current engines write this name. Direct word recordings use recording-UUID.
+    let pattern = #"^session-[A-Za-z0-9_-]{1,200}-[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\.wav$"#
+    return file.lastPathComponent.range(of: pattern, options: .regularExpression) != nil
+      && file.resolvingSymlinksInPath() == captures.resolvingSymlinksInPath().appendingPathComponent(file.lastPathComponent)
+  }
+
+  private func finishEvictions() throws {
+    for entry in evicted {
+      if let capture = entry.capture {
+        try capture.validate()
+        guard capture.fileName == entry.fileName, capture.segmentId == entry.segmentId else {
+          throw EngineFailure("storage-unavailable", "Mismatched capture eviction")
+        }
+      }
+      guard entry.fileName == URL(fileURLWithPath: entry.fileName).lastPathComponent,
+        isManagedCapture(captures.appendingPathComponent(entry.fileName)),
+        entry.sizeBytes >= 0, !entry.capturedAt.isEmpty
+      else {
+        throw EngineFailure("storage-unavailable", "Malformed capture eviction")
+      }
+    }
+    for entry in evicted {
+      let file = captures.appendingPathComponent(entry.fileName)
+      if manager.fileExists(atPath: file.path) {
+        try manager.removeItem(at: file)
+      }
+    }
+  }
+
+  private func makeRoom(incomingBytes: Int64, maxBytes: Int64, pendingCaptures: inout [CapturedAudio]) throws {
+    guard incomingBytes <= maxBytes else {
+      throw EngineFailure("storage-unavailable", "One capture exceeds the storage limit")
+    }
+    // ponytail: scan the bounded capture directory; cache totals only if scans become a bottleneck.
+    let files = try manager.contentsOfDirectory(at: captures, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey])
+      .filter { isManagedCapture($0) }
+      .compactMap { file -> (url: URL, size: Int64, modified: Date)? in
+        let values = try file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey])
+        guard values.isRegularFile == true else { return nil }
+        return (file, Int64(values.fileSize ?? 0), values.contentModificationDate ?? .distantPast)
+      }
+    var bytes = files.reduce(Int64(0)) { $0 + $1.size }
+    guard bytes + incomingBytes > maxBytes else { return }
+
+    var removed = Set<String>()
+    for file in files.sorted(by: { $0.modified == $1.modified ? $0.url.lastPathComponent < $1.url.lastPathComponent : $0.modified < $1.modified }) {
+      if bytes + incomingBytes <= maxBytes { break }
+      let name = file.url.lastPathComponent
+      let pending = pendingCaptures.first { $0.fileName == name }
+      let segmentID = pending?.segmentId ?? String(file.url.deletingPathExtension().lastPathComponent.suffix(36)).lowercased()
+      evicted.append(EvictedAudio(
+        capture: pending, fileName: name, segmentId: segmentID, sizeBytes: file.size,
+        capturedAt: pending?.capturedAt ?? ISO8601DateFormatter().string(from: file.modified)))
+      removed.insert(name)
+      bytes -= file.size
+    }
+    pendingCaptures.removeAll { removed.contains($0.fileName) }
+    // Persist the intent before unlinking. Recovery completes interrupted deletions before ACK.
+    try writeManifest(pendingCaptures)
+    try finishEvictions()
   }
 }
 
@@ -454,6 +544,10 @@ func recoveredSession(_ record: [String: Any]) throws -> [String: Any] {
     throw EngineFailure("storage-unavailable", "Malformed recovery durations")
   }
 
+  let playbackCount = record["targetPlaybackCount"] as? Int ?? 0
+  guard playbackCount >= 0, record["targetPlaybackCount"] == nil || record["targetPlaybackCount"] is Int else {
+    throw EngineFailure("storage-unavailable", "Malformed playback counter")
+  }
   let reason = record["reason"] as? String
   let phasePosition = sessionPosition(
     elapsed: elapsedRunningMs, total: totalDurationMs, learning: learningDurationMs,
@@ -468,6 +562,8 @@ func recoveredSession(_ record: [String: Any]) throws -> [String: Any] {
     "savedAt": savedAt,
     "isTargetPlaying": false,
     "lastPlaybackStartDelayMs": NSNull(),
+    "targetPlaybackCount": playbackCount,
+    "failure": record["failure"] as? [String: Any] as Any? ?? NSNull(),
   ]
 
   return [

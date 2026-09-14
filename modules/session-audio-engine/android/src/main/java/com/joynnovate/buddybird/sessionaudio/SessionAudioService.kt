@@ -22,6 +22,7 @@ class SessionAudioService : Service() {
 
     private lateinit var engine: SessionEngine
     private lateinit var media: MediaSession
+    private var destroyed = false
 
     override fun onCreate() {
         super.onCreate()
@@ -29,7 +30,8 @@ class SessionAudioService : Service() {
 
         if (Build.VERSION.SDK_INT >= 26) {
             val channel =
-                NotificationChannel(CHANNEL, "BuddyBird", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL, getString(R.string.buddybird_session_channel), NotificationManager.IMPORTANCE_LOW)
+            channel.description = getString(R.string.buddybird_session_channel_description)
             channel.setSound(null, null)
             channel.enableVibration(false)
             channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
@@ -57,29 +59,27 @@ class SessionAudioService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == START && engine.state == "starting") {
+        val snapshot = engine.notificationState
+        if (intent?.action == START && snapshot.state == "starting") {
             try {
                 if (Build.VERSION.SDK_INT >= 30) {
                     startForeground(
                         NOTIFICATION_ID,
-                        notification(),
+                        notification(snapshot),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
                             ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
                     )
                 } else {
-                    startForeground(NOTIFICATION_ID, notification())
+                    startForeground(NOTIFICATION_ID, notification(snapshot))
                 }
-                engine.serviceStarted(this)
+                engine.dispatch { engine.serviceStarted(this) }
             } catch (error: Exception) {
-                engine.serviceFailed(
-                    EngineFailure(
-                        "service-start-not-allowed",
-                        "Cannot start microphone foreground service: ${error.message}",
-                    )
-                )
+                engine.dispatch {
+                    engine.serviceFailed(EngineFailure("service-start-not-allowed", "Cannot start microphone foreground service: ${error.message}"))
+                }
                 stopSelf()
             }
-        } else if (engine.active) {
+        } else if (snapshot.active) {
             command(intent?.action)
         } else {
             stopSelf()
@@ -89,14 +89,16 @@ class SessionAudioService : Service() {
     }
 
     private fun command(action: String?) {
-        try {
-            when (action) {
-                STOP -> engine.stop()
-                PAUSE -> engine.pause()
-                RESUME -> engine.resume()
+        engine.dispatch {
+            try {
+                when (action) {
+                    STOP -> engine.stop()
+                    PAUSE -> engine.pause()
+                    RESUME -> engine.resume()
+                }
+            } catch (_: Exception) {
+                /* Engine reports and persists command failures. */
             }
-        } catch (_: Exception) {
-            /* Engine reports and persists command failures. */
         }
     }
 
@@ -108,8 +110,8 @@ class SessionAudioService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    private fun notification(): Notification {
-        val running = engine.state == "running" || engine.state == "starting"
+    private fun notification(snapshot: SessionNotification): Notification {
+        val running = snapshot.state == "running" || snapshot.state == "starting"
         val builder =
             if (Build.VERSION.SDK_INT >= 26) {
                 Notification.Builder(this, CHANNEL)
@@ -130,8 +132,8 @@ class SessionAudioService : Service() {
 
         return builder
             .setSmallIcon(android.R.drawable.ic_media_play)
-            .setContentTitle(engine.notificationTitle())
-            .setContentText(engine.notificationSubtitle())
+            .setContentTitle(snapshot.title)
+            .setContentText(snapshot.subtitle)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setOnlyAlertOnce(true)
@@ -146,9 +148,9 @@ class SessionAudioService : Service() {
                             android.R.drawable.ic_media_play
                         },
                         if (running) {
-                            "Pause"
+                            getString(R.string.buddybird_session_pause)
                         } else {
-                            "Play"
+                            getString(R.string.buddybird_session_resume)
                         },
                         actionIntent(
                             if (running) {
@@ -164,7 +166,7 @@ class SessionAudioService : Service() {
             .addAction(
                 Notification.Action.Builder(
                         android.R.drawable.ic_menu_close_clear_cancel,
-                        "Stop",
+                        getString(R.string.buddybird_session_stop),
                         actionIntent(STOP, 2),
                     )
                     .build()
@@ -177,14 +179,14 @@ class SessionAudioService : Service() {
             .build()
     }
 
-    fun refresh() {
-        val snapshot = engine.snapshot()
-        val running = engine.state == "running"
+    internal fun refresh(snapshot: SessionNotification) {
+        if (destroyed) return
+        val running = snapshot.state == "running"
         media.setMetadata(
             MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, engine.notificationTitle())
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, engine.notificationSubtitle())
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, engine.totalDuration())
+                .putString(MediaMetadata.METADATA_KEY_TITLE, snapshot.title)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, snapshot.subtitle)
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, snapshot.totalDurationMs)
                 .build()
         )
 
@@ -202,7 +204,7 @@ class SessionAudioService : Service() {
                     } else {
                         PlaybackState.STATE_PAUSED
                     },
-                    (snapshot["elapsedRunningMs"] as Number).toLong(),
+                    snapshot.elapsedRunningMs,
                     if (running) {
                         1f
                     } else {
@@ -213,17 +215,18 @@ class SessionAudioService : Service() {
                 .build()
         )
 
-        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification())
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(snapshot))
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        engine.taskRemoved()
+        engine.dispatch { engine.taskRemoved() }
         stopSelf()
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
-        engine.serviceDestroyed(this)
+        destroyed = true
+        engine.dispatch { engine.serviceDestroyed(this) }
         media.isActive = false
         media.release()
 
