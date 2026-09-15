@@ -34,7 +34,7 @@ export function SessionExitDialog({
 					/>
 					<Button
 						testID="session-exit-end"
-						label={t("session.endLabel")}
+						label={t("session.end")}
 						onPress={onEnd}
 						style={ui.action}
 					/>

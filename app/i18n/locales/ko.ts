@@ -191,7 +191,6 @@ export const ko = {
 		confirmEndMessage:
 			"종료하면 진행 중인 학습이 끝나요. 계속 진행하면 학습 화면으로 돌아가요.",
 		end: "종료",
-		endLabel: "학습 종료",
 		cycle: "사이클 {{cycle}}/{{total}}",
 		playing: "재생 중",
 		waiting: "다음 반복 대기",

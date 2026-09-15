@@ -192,7 +192,6 @@ export const en: typeof ko = {
 		confirmEndMessage:
 			"Ending now stops the training in progress. Keep going to return to the session.",
 		end: "End",
-		endLabel: "End session",
 		cycle: "Cycle {{cycle}}/{{total}}",
 		playing: "Playing",
 		waiting: "Waiting for next repeat",

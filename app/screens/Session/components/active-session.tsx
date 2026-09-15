@@ -91,7 +91,7 @@ export function ActiveSession({
 					<Button
 						testID="session-end"
 						label={t("session.end")}
-						accessibilityLabel={t("session.endLabel")}
+						accessibilityLabel={t("session.end")}
 						compact
 						variant="secondary"
 						disabled={busy}
