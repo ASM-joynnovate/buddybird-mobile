@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native"
 import type { RootStackParamList } from "@/types/navigation"
 import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
 import { Button } from "@/components/ui/button"
+import { SignOutAction } from "@/components/auth/sign-out-action"
 import { ui } from "@/components/ui/styles"
 
 export function ProfileActions() {
@@ -14,22 +15,27 @@ export function ProfileActions() {
 	const feedback = useFeedbackDialog()
 
 	return (
-		<View style={[ui.actions, styles.actions]}>
-			<Button
-				testID="profile-edit"
-				label={t("profile.edit")}
-				variant="secondary"
-				onPress={() => navigation.navigate("ProfileEditor")}
-				style={ui.action}
-			/>
-			<Button
-				testID="profile-feedback"
-				label={t("profile.feedback")}
-				variant="secondary"
-				onPress={() => feedback.open("profile")}
-				style={ui.action}
-			/>
-		</View>
+		<>
+			<View style={[ui.actions, styles.actions]}>
+				<Button
+					testID="profile-edit"
+					label={t("profile.edit")}
+					variant="secondary"
+					onPress={() => navigation.navigate("ProfileEditor")}
+					style={ui.action}
+				/>
+				<Button
+					testID="profile-feedback"
+					label={t("profile.feedback")}
+					variant="secondary"
+					onPress={() => feedback.open("profile")}
+					style={ui.action}
+				/>
+			</View>
+			<View style={styles.actions}>
+				<SignOutAction />
+			</View>
+		</>
 	)
 }
 

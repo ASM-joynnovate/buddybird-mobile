@@ -21,6 +21,8 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   ios: {
     bundleIdentifier: id,
+    appleTeamId: "73TZC3K2JG",
+    usesAppleSignIn: true,
     supportsTablet: true,
     googleServicesFile:
       process.env.GOOGLE_SERVICES_INFO_PLIST ??
@@ -91,6 +93,8 @@ const config: ExpoConfig = {
       { fonts: ["./assets/fonts/Pretendard-Regular.otf", "./assets/fonts/Pretendard-Bold.otf", "./assets/fonts/Pretendard-ExtraBold.otf", "./assets/fonts/Pretendard-Black.otf", "./assets/fonts/Nunito-Bold.ttf", "./assets/fonts/Nunito-ExtraBold.ttf", "./assets/fonts/Nunito-Black.ttf", "./assets/fonts/Fredoka-SemiBold.ttf"] },
     ],
     "expo-localization",
+    "expo-apple-authentication",
+    "expo-secure-store",
     "expo-image-picker",
     ["expo-audio", { microphonePermission: "단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다." }],
     [
@@ -101,6 +105,8 @@ const config: ExpoConfig = {
   extra: {
     eas: { projectId: "f00b95df-f52f-4021-8543-47971d4fa55e" },
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? "",
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() ?? "",
+    supabasePublishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ?? "",
     clarityProjectId: process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID?.trim() || "wre3hgbj48",
     production,
   },

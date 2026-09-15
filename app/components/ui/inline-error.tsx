@@ -16,5 +16,5 @@ export function InlineError({ message }: { message?: string | null }) {
 }
 
 const styles = StyleSheet.create({
-	error: { color: colors.error, fontSize: 15, lineHeight: 21, marginTop: 10 },
+	error: { color: colors.brand, fontSize: 15, lineHeight: 21, marginTop: 10 },
 })
