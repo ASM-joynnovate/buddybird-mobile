@@ -724,3 +724,5 @@ expo-env.d.ts
 
 # Claude local setting
 .claude/settings.local.json
+
+.e2e/results/
