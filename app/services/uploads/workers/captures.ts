@@ -63,7 +63,7 @@ export function createCaptureWorker(
 			}
 
 			let response: UploadResponse
-			let included = requested
+			let included: Capture[]
 
 			try {
 				const result = await dependencies.sendCaptures(requested, uid, signal)
