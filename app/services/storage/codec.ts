@@ -61,7 +61,6 @@ export function readWordSnapshot(value: unknown): WordSnapshot {
 			"sourceType",
 		),
 		audioUri: requireText(record.audioUri, "word.audioUri"),
-		presetKey: readOptionalText(record.presetKey, "presetKey"),
 		transformedAudioUri: readOptionalText(record.transformedAudioUri, "transformedAudioUri"),
 		libraryEntryId: readOptionalText(record.libraryEntryId, "libraryEntryId"),
 	}

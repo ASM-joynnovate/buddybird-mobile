@@ -1,4 +1,4 @@
-import { parseLegacyWord } from "@/services/migration/legacy/words"
+import { legacyPresetId, parseLegacyWord } from "@/services/migration/legacy/words"
 import type { MigrationStep } from "@/services/migration/step"
 import type { AppData } from "@/types/app-data"
 import { type ObjectValue, requireRecord } from "@/utils/validation"
@@ -17,9 +17,16 @@ export function applyLegacyLibrary(
 			requireRecord(library.entriesById, "entriesById"),
 		)) {
 			step(`words/${id}`, () => {
-				const word = parseLegacyWord(value, id)
+				const record = requireRecord(value, `word ${id}`)
+				const presetId = legacyPresetId(record, id)
 
-				data.words[id] ??= word
+				if (presetId) {
+					data.wordAliases[id] = presetId
+
+					return
+				}
+
+				data.words[id] ??= parseLegacyWord(record, id, record.sourceType === "preset")
 			})
 		}
 	}

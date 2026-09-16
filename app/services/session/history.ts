@@ -58,16 +58,11 @@ export function recoveryDraft(data: AppData, recovery: PendingRecovery): Session
 		label: identity.word,
 		sourceType: identity.sourceType,
 		audioUri: recovery.targetAudioUri,
-		...(word?.presetKey ? { presetKey: word.presetKey } : {}),
 		...(identity.libraryEntryId ? { libraryEntryId: identity.libraryEntryId } : {}),
 	}
 
 	if (supplied && typeof supplied.audioUri === "string") {
 		snapshot.audioUri = supplied.audioUri
-	}
-
-	if (supplied && typeof supplied.presetKey === "string") {
-		snapshot.presetKey = supplied.presetKey
 	}
 
 	if (supplied && typeof supplied.transformedAudioUri === "string") {
@@ -87,9 +82,7 @@ export function recoveryDraft(data: AppData, recovery: PendingRecovery): Session
 			restDurationSeconds: recovery.restDurationMs / 1000,
 			stressCareDurationSeconds: recovery.stressCareDurationMs / 1000,
 		},
-		clientWordId: snapshot.presetKey
-			? `preset-${snapshot.presetKey}`
-			: (identity.libraryEntryId ?? identity.wordId),
+		clientWordId: word?.id ?? identity.libraryEntryId ?? identity.wordId,
 		parrotSpecies: data.profile?.species ?? null,
 		parrotBirthdate: data.profile?.birthDate ?? null,
 	}

@@ -2,16 +2,8 @@ import { Asset } from "expo-asset"
 import { File } from "expo-file-system"
 
 import { resolveRecordingUri } from "@/services/media/uri"
+import { presetByAudioUri } from "@/services/words/presets"
 import type { WordSnapshot } from "@/types/word"
-
-const assets: Record<string, number> = {
-	"hello": require("@assets/audio/ko-kr/default_An-nyeong.m4a"),
-	"apple": require("@assets/audio/ko-kr/default_Sa-gwa.m4a"),
-	"saranghae": require("@assets/audio/ko-kr/default_Sa-rang-hae.m4a"),
-	"bye": require("@assets/audio/ko-kr/default_Da-nyeo-wa.m4a"),
-	"en-hi": require("@assets/audio/en-us/default_hi.m4a"),
-	"en-hello": require("@assets/audio/en-us/default_hello.m4a"),
-}
 
 const careAssets = [
 	require("@assets/audio/stress-care/track-02.m4a"),
@@ -31,13 +23,13 @@ async function localAsset(id: number) {
 
 export async function resolveAudio(word: WordSnapshot) {
 	if (word.sourceType === "preset") {
-		const id = word.presetKey ? assets[word.presetKey] : undefined
+		const preset = presetByAudioUri(word.audioUri)
 
-		if (id === undefined) {
+		if (!preset) {
 			throw new Error("Unknown preset audio")
 		}
 
-		return localAsset(id)
+		return localAsset(preset.asset)
 	}
 
 	const uri = resolveRecordingUri(word.audioUri)
