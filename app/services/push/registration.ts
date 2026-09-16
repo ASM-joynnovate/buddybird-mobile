@@ -10,7 +10,7 @@ import {
 import { PermissionsAndroid, Platform } from "react-native"
 
 import { updateData } from "@/services/storage/data-store"
-import type { PushAuthorization } from "@/types/push"
+import type  { PushAuthorization } from "@/types/push"
 
 export async function authorization(request: boolean): Promise<PushAuthorization> {
 	if (Platform.OS === "android") {

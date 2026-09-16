@@ -4,17 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { AppState } from "react-native"
 
-import { SessionValue } from "@/context/session"
+import type { SessionValue } from "@/context/session"
 import { sessionFailure } from "@/services/session/failure"
 import { engine, recoverNativeData, startSession } from "@/services/session/session"
-import type { Timing } from "@/types/session"
+import type  { Timing } from "@/types/session"
 import { readData } from "@/services/storage/data-store"
 import { reportError, track } from "@/services/telemetry/client"
 import { createPerformanceReporter } from "@/services/telemetry/performance"
 import { isUploading, triggerUploads } from "@/services/uploads/queue"
-import {
-	type FailureCode,
-	type SessionFailure,
+import type {
+	FailureCode,
+	SessionFailure,
 	SessionInput,
 	SessionSnapshot,
 } from "@modules/session-audio-engine"

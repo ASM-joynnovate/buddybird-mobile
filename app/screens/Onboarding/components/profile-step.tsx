@@ -10,7 +10,7 @@ import { Screen } from "@/components/ui/screen"
 import { SpeechBubble } from "@/components/ui/speech-bubble"
 import { useProfileForm } from "@/hooks/use-profile-form"
 import { colors } from "@/theme"
-import { ProfileOnboarding } from "@/types/profile"
+import type { ProfileOnboarding } from "@/types/profile"
 
 export function ProfileStep({ onboarding }: { onboarding: ProfileOnboarding }) {
 	const { t } = useTranslation()

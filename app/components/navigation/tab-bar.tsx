@@ -1,15 +1,15 @@
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs"
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs"
 
 import { useTranslation } from "react-i18next"
 
 import { StyleSheet, View } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
-import { Icon, IconName } from "@/components/ui/icon"
+import { Icon, type IconName } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { track } from "@/services/telemetry/client"
 import { colors, font, radius } from "@/theme"
-import { MainTabParamList } from "@/types/navigation"
+import type { MainTabParamList } from "@/types/navigation"
 
 const icons: Record<keyof MainTabParamList, IconName> = {
 	Learn: "learn",

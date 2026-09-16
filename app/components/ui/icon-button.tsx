@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native"
 
-import { PressableSurface, SurfaceTone } from "@/components/ui/surface"
-import { Icon, IconName } from "@/components/ui/icon"
+import { PressableSurface, type SurfaceTone } from "@/components/ui/surface"
+import { Icon, type IconName } from "@/components/ui/icon"
 import { colors, radius } from "@/theme"
 
 export function IconButton({

@@ -1,5 +1,5 @@
-import { PropsWithChildren, useCallback, useMemo } from "react"
-import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from "react-native"
+import { type PropsWithChildren, useCallback, useMemo } from "react"
+import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
 	ReduceMotion,

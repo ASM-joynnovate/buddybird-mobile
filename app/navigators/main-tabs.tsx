@@ -5,7 +5,7 @@ import { LearningScreen } from "@/screens/Learning/LearningScreen"
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen"
 import { WordsScreen } from "@/screens/Words/WordsScreen"
 import { colors } from "@/theme"
-import { MainTabParamList } from "@/types/navigation"
+import type { MainTabParamList } from "@/types/navigation"
 
 const Tabs = createBottomTabNavigator<MainTabParamList>()
 

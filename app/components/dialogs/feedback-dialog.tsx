@@ -70,14 +70,12 @@ export function FeedbackDialog({
 				visible={visible}
 				onClose={close}
 				title={t("feedback.sent")}
-				footer={
-					<Button
+				footer=<Button
 						testID="feedback-thanks-close"
 						label={t("feedback.thanksClose")}
 						onPress={close}
 						style={styles.thanksClose}
 					/>
-				}
 			>
 				<Copy style={styles.promptMessage}>{t("feedback.thanks")}</Copy>
 			</Dialog>

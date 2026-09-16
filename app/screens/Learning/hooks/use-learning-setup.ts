@@ -8,11 +8,11 @@ import { Alert, Linking } from "react-native"
 import { useProfile, useVisibleWords } from "@/hooks/use-app-data"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSession } from "@/hooks/use-session"
-import { choices, presetMinutes } from "@/screens/Learning/durations"
+import { type choices, presetMinutes } from "@/screens/Learning/durations"
 import { sessionFailure } from "@/services/session/failure"
 import { customTiming, presetTiming } from "@/services/session/timing"
 import { reportError, screen } from "@/services/telemetry/client"
-import type { SessionFailure } from "@modules/session-audio-engine/types"
+import type  { SessionFailure } from "@modules/session-audio-engine/types"
 
 export function useLearningSetup() {
 	const { t } = useTranslation()

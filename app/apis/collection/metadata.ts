@@ -1,4 +1,4 @@
-import type { Capture } from "@/types/capture"
+import type  { Capture } from "@/types/capture"
 
 export function codePoints(value: string, maximum: number) {
 	return Array.from(value).slice(0, maximum).join("")

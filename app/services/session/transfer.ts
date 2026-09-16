@@ -1,9 +1,9 @@
 import { isMediaReferenced } from "@/services/media/references"
 import { creditRecovery, recoveryDraft } from "@/services/session/history"
-import type { AppData } from "@/types/app-data"
-import type { Capture } from "@/types/capture"
-import type { SessionDraft } from "@/types/session"
-import type {
+import type  { AppData } from "@/types/app-data"
+import type  { Capture } from "@/types/capture"
+import type  { SessionDraft } from "@/types/session"
+import type  {
 	CaptureChanges,
 	CapturedSegment,
 	EvictedCapture,

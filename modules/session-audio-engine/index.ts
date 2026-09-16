@@ -1,6 +1,6 @@
-import { NativeModule, requireNativeModule } from "expo-modules-core"
+import { type NativeModule, requireNativeModule } from "expo-modules-core"
 
-import type {
+import type  {
 	CapturedSegment,
 	CaptureChanges,
 	TargetPlayback,

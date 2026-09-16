@@ -1,4 +1,4 @@
-import { PropsWithChildren, ReactNode } from "react"
+import type { PropsWithChildren, ReactNode } from "react"
 
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native"
 

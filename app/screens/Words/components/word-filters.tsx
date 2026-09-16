@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native"
 import { categoryColors } from "@/theme"
 
 import { Chip } from "@/components/ui/chip"
-import { filters, WordFilter } from "@/screens/Words/filters"
+import { filters, type WordFilter } from "@/screens/Words/filters"
 
 export function WordFilters({
 	filter,

@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput, TextInputProps, View } from "react-native"
+import { StyleSheet, TextInput, type TextInputProps, View } from "react-native"
 
 import { Copy } from "@/components/ui/text"
 import { InlineError } from "@/components/ui/inline-error"

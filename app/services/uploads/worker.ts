@@ -1,6 +1,6 @@
 import { createCaptureWorker } from "@/services/uploads/workers/captures"
 import { createWordWorker } from "@/services/uploads/workers/words"
-import { UploadDependencies } from "@/types/uploads"
+import type { UploadDependencies } from "@/types/uploads"
 
 /** Persistence and transport are separate so a failed commit cannot authorize file deletion. */
 export function createUploadWorker(dependencies: UploadDependencies) {

@@ -1,6 +1,6 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import {
-	ObjectValue,
+	type ObjectValue,
 	readNullableText,
 	requireChoice,
 	requireNonnegativeNumber,

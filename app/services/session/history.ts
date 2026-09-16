@@ -1,8 +1,8 @@
 import { currentWord } from "@/services/words/selectors"
-import { AppData } from "@/types/app-data"
-import { History, SessionDraft, SessionSettings } from "@/types/session"
-import { WordSnapshot } from "@/types/word"
-import type { PendingRecovery } from "@modules/session-audio-engine/types"
+import type { AppData } from "@/types/app-data"
+import type { History, SessionDraft, SessionSettings } from "@/types/session"
+import type { WordSnapshot } from "@/types/word"
+import type  { PendingRecovery } from "@modules/session-audio-engine/types"
 
 export function practiceDurationMs(recovery: PendingRecovery) {
 	const elapsed = Date.parse(recovery.snapshot.savedAt) - Date.parse(recovery.recovery.startedAt)

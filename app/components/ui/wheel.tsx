@@ -1,6 +1,6 @@
-import { PropsWithChildren, useEffect, useRef, useState } from "react"
+import { type PropsWithChildren, useEffect, useRef, useState } from "react"
 
-import { NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from "react-native"
+import { type NativeScrollEvent, type NativeSyntheticEvent, StyleSheet, View } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 
 import { Copy } from "@/components/ui/text"

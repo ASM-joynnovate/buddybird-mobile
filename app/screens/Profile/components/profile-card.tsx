@@ -8,7 +8,7 @@ import { Copy } from "@/components/ui/text"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { speciesIds } from "@/services/profile/species"
 import { colors, font } from "@/theme"
-import type { Profile } from "@/types/profile"
+import type  { Profile } from "@/types/profile"
 
 export function ProfileCard({ profile }: { profile: Profile }) {
 	const { t } = useTranslation()

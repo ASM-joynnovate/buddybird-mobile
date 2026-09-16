@@ -1,5 +1,5 @@
-import { DeviceSettings } from "@/types/device-settings"
-import { ObjectValue, readNullableText, requireNonnegativeNumber } from "@/utils/validation"
+import type { DeviceSettings } from "@/types/device-settings"
+import { type ObjectValue, readNullableText, requireNonnegativeNumber } from "@/utils/validation"
 
 export function parseLegacyUpdate(update: ObjectValue): DeviceSettings["update"] {
 	return {

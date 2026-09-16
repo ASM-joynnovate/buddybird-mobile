@@ -4,7 +4,7 @@ import { BirthdayPicker } from "@/components/profile-form/birthday-picker"
 import { SpeciesPicker } from "@/components/profile-form/species-picker"
 import { TextField } from "@/components/ui/text-field"
 import { InlineError } from "@/components/ui/inline-error"
-import { useProfileForm } from "@/hooks/use-profile-form"
+import type { useProfileForm } from "@/hooks/use-profile-form"
 
 export function ProfileForm({ form }: { form: ReturnType<typeof useProfileForm> }) {
 	const { t } = useTranslation()

@@ -2,10 +2,10 @@ import { parseLegacySettings } from "@/services/migration/legacy/session-setting
 import { parseLegacyWord } from "@/services/migration/legacy/words"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
 import { readProgress, readWordSnapshot } from "@/services/storage/codec"
-import { AppData } from "@/types/app-data"
-import { History } from "@/types/session"
+import type { AppData } from "@/types/app-data"
+import type { History } from "@/types/session"
 import {
-	ObjectValue,
+	type ObjectValue,
 	readOptionalText,
 	requireId,
 	requireNonnegativeNumber,

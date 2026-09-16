@@ -1,7 +1,7 @@
 import { memo, useEffect } from "react"
 import { StyleSheet, View } from "react-native"
 import Animated, {
-	SharedValue,
+	type SharedValue,
 	useAnimatedStyle,
 	useReducedMotion,
 	useSharedValue,

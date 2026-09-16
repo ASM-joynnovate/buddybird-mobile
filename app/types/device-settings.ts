@@ -1,5 +1,5 @@
-import type { AnalyticsConsent } from "@/types/consent"
-import type { Locale } from "@/types/locale"
+import type  { AnalyticsConsent } from "@/types/consent"
+import type  { Locale } from "@/types/locale"
 
 export type DeviceSettings = {
 	locale: Locale

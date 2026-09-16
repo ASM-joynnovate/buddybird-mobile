@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 
 export function emptyData(): AppData {
 	return {

@@ -8,9 +8,9 @@ import { applyLegacyTraining } from "@/services/migration/legacy/training"
 import { applyLegacyConsent } from "@/services/migration/legacy/upload-consent"
 import { applyLegacyMetrics } from "@/services/migration/legacy/word-metrics"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
-import type { AppData } from "@/types/app-data"
-import type { DeviceSettings } from "@/types/device-settings"
-import { ObjectValue, requireChoice, requireRecord } from "@/utils/validation"
+import type  { AppData } from "@/types/app-data"
+import type  { DeviceSettings } from "@/types/device-settings"
+import { type ObjectValue, requireChoice, requireRecord } from "@/utils/validation"
 
 export type ImportDeviceSetting = <K extends keyof DeviceSettings>(
 	key: K,

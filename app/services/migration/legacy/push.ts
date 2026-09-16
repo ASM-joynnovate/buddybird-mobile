@@ -1,5 +1,5 @@
-import { AppData } from "@/types/app-data"
-import { ObjectValue, readNullableText, requireChoice, requireText } from "@/utils/validation"
+import type { AppData } from "@/types/app-data"
+import { type ObjectValue, readNullableText, requireChoice, requireText } from "@/utils/validation"
 
 export function applyLegacyPush(data: AppData, push: ObjectValue | undefined) {
 	if (push) {

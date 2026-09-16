@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/surface"
 import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { durationText } from "@/i18n/duration"
-import { profileStats } from "@/services/profile/statistics"
+import type { profileStats } from "@/services/profile/statistics"
 import { colors, font, radius } from "@/theme"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 export function ProfileAchievements({
 	stats,

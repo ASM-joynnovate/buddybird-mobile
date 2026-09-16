@@ -21,7 +21,7 @@ import { useUserWordCount } from "@/hooks/use-app-data"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
 import { queueWordUpload } from "@/services/uploads/queue"
 import { saveWord } from "@/services/words/library"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true }
 
 export function useWordEditor() {

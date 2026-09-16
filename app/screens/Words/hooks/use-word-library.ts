@@ -10,11 +10,11 @@ import { Alert } from "react-native"
 
 import { useUserWordCount, useVisibleWords } from "@/hooks/use-app-data"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
-import { filters } from "@/screens/Words/filters"
+import type { filters } from "@/screens/Words/filters"
 import { resolvePreviewAudio } from "@/services/media/audio"
 import { screen, setUserProperties, track } from "@/services/telemetry/client"
 import { removeWord } from "@/services/words/library"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 
 export function useWordLibrary() {
 	const { t } = useTranslation()

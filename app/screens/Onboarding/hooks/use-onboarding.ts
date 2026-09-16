@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { AppState } from "react-native"
 
 import { screen, track } from "@/services/telemetry/client"
-import type { ProfileDraft, ProfileOnboarding } from "@/types/profile"
+import type  { ProfileDraft, ProfileOnboarding } from "@/types/profile"
 
 export function useOnboarding() {
 	const [draft, setDraft] = useState<ProfileDraft>()

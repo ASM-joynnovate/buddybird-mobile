@@ -7,7 +7,7 @@ import { ChoiceCard } from "@/components/ui/surface"
 import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { categoryColors, colors, font, radius } from "@/theme"
-import type { Word } from "@/types/word"
+import type  { Word } from "@/types/word"
 
 export const WordCard = memo(function WordCard({
 	item,

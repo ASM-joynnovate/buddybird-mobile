@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons"
-import { SymbolView, SymbolViewProps } from "expo-symbols"
-import { ComponentProps } from "react"
+import { SymbolView, type SymbolViewProps } from "expo-symbols"
+import type { ComponentProps } from "react"
 import { Platform } from "react-native"
 
 import { colors } from "@/theme"

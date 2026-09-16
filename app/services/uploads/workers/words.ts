@@ -1,4 +1,4 @@
-import { UploadDependencies } from "@/types/uploads"
+import type { UploadDependencies } from "@/types/uploads"
 
 export function createWordWorker(
 	dependencies: UploadDependencies,

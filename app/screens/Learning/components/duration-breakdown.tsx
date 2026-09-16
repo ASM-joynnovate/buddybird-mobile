@@ -6,10 +6,10 @@ import { Card } from "@/components/ui/surface"
 
 import { Copy } from "@/components/ui/text"
 import { durationText } from "@/i18n/duration"
-import type { Timing } from "@/types/session"
+import type  { Timing } from "@/types/session"
 import { phaseTotals } from "@/services/session/timing"
 import { colors, font, radius } from "@/theme"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 export function DurationBreakdown({ timing, locale }: { timing: Timing; locale: Locale }) {
 	const { t } = useTranslation()

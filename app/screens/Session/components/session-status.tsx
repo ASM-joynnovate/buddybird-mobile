@@ -10,7 +10,7 @@ import { meteringLevel } from "@/lib/audio-waveform"
 import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { colors, radius } from "@/theme"
-import type { SessionSnapshot } from "@modules/session-audio-engine"
+import type  { SessionSnapshot } from "@modules/session-audio-engine"
 
 export function SessionStatus({ snapshot }: { snapshot: SessionSnapshot }) {
 	const { t } = useTranslation()

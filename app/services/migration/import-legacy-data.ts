@@ -14,7 +14,7 @@ import {
 	saveDeviceSetting,
 } from "@/services/storage/device-settings"
 import { DATA_KEY, MIGRATION_KEY, PREVIOUS_DATA_KEY } from "@/services/storage/keys"
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 
 let pending: Promise<AppData> | undefined
 

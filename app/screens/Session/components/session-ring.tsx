@@ -16,7 +16,7 @@ import Svg, { Circle } from "react-native-svg"
 import { Mascot } from "@/components/mascot"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
-import type { SessionSnapshot } from "@modules/session-audio-engine"
+import type  { SessionSnapshot } from "@modules/session-audio-engine"
 
 const ProgressCircle = Animated.createAnimatedComponent(Circle)
 

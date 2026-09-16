@@ -8,7 +8,7 @@ import Animated, {
 	cancelAnimation,
 	Easing,
 	runOnJS,
-	SharedValue,
+	type SharedValue,
 	useAnimatedProps,
 	useAnimatedStyle,
 	useReducedMotion,

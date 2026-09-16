@@ -7,8 +7,8 @@ import { inspect } from "@/services/media/inspect"
 import { readData, updateData } from "@/services/storage/data-store"
 import { reportError, track } from "@/services/telemetry/client"
 import { createUploadWorker } from "@/services/uploads/worker"
-import type { Capture } from "@/types/capture"
-import { type UploadTrigger } from "@/types/uploads"
+import type  { Capture } from "@/types/capture"
+import type { UploadTrigger } from "@/types/uploads"
 
 const age = (capture: Capture) => {
 	const at = Date.parse(capture.capturedAt)

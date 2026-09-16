@@ -1,5 +1,5 @@
-import type { SessionSettings } from "@/types/session"
-import type { SessionSnapshot } from "@modules/session-audio-engine"
+import type  { SessionSettings } from "@/types/session"
+import type  { SessionSnapshot } from "@modules/session-audio-engine"
 
 export function sessionCountdown(snapshot: SessionSnapshot, settings?: SessionSettings) {
 	const total = (settings?.totalDurationSeconds ?? 1) * 1000

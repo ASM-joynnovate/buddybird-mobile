@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import {
 	readNullableText,
 	requireChoice,

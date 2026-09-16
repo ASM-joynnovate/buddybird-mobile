@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { inspect } from "@/services/media/inspect"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { reportError } from "@/services/telemetry/client"
-import type { Capture } from "@/types/capture"
+import type  { Capture } from "@/types/capture"
 
 export function useCapturePlayback() {
 	const player = useAudioPlayer(null, { updateInterval: 50, keepAudioSessionActive: true })

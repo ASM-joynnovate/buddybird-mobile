@@ -1,4 +1,4 @@
-import { Fragment, ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 
 import { useTranslation } from "react-i18next"
 
@@ -6,12 +6,12 @@ import { StyleSheet, useWindowDimensions, View } from "react-native"
 
 import { Card } from "@/components/ui/surface"
 
-import { Icon, IconName } from "@/components/ui/icon"
+import { Icon, type IconName } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { durationParts } from "@/i18n/duration"
-import { profileStats } from "@/services/profile/statistics"
+import type { profileStats } from "@/services/profile/statistics"
 import { colors, font } from "@/theme"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 function DurationValue({
 	seconds,

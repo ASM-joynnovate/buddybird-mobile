@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/surface"
 import { IconButton } from "@/components/ui/icon-button"
 import { Copy } from "@/components/ui/text"
 import { categoryColors, colors, font, radius } from "@/theme"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 
 export const WordListItem = memo(function WordListItem({
 	item,

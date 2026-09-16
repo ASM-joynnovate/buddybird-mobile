@@ -3,7 +3,7 @@ import { Asset } from "expo-asset"
 import { File } from "expo-file-system"
 
 import { resolveRecordingUri } from "@/services/media/uri"
-import { WordSnapshot } from "@/types/word"
+import type { WordSnapshot } from "@/types/word"
 
 const assets: Record<string, number> = {
 	"hello": require("@assets/audio/ko-kr/default_An-nyeong.m4a"),

@@ -5,7 +5,7 @@ import { Linking, StyleSheet, View } from "react-native"
 import { Button } from "@/components/ui/button"
 import { InlineError } from "@/components/ui/inline-error"
 import { reportError } from "@/services/telemetry/client"
-import type { SessionFailure } from "@modules/session-audio-engine/types"
+import type  { SessionFailure } from "@modules/session-audio-engine/types"
 
 export function SessionFailureNotice({
 	failure,

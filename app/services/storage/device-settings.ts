@@ -2,7 +2,7 @@ import { getLocales } from "expo-localization"
 import { MMKV } from "react-native-mmkv"
 
 import { writeVerified } from "@/services/storage/verified-write"
-import type { DeviceSettings } from "@/types/device-settings"
+import type  { DeviceSettings } from "@/types/device-settings"
 import {
 	readNullableText,
 	requireChoice,

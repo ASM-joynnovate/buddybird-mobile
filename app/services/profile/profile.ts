@@ -1,6 +1,6 @@
 import { preservePhoto } from "@/services/media/files"
 import { readData, updateData } from "@/services/storage/data-store"
-import { Profile } from "@/types/profile"
+import type { Profile } from "@/types/profile"
 
 export async function saveProfile(
 	input: Pick<Profile, "name" | "species" | "birthDate" | "photoUri">,

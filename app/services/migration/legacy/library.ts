@@ -1,7 +1,7 @@
 import { parseLegacyWord } from "@/services/migration/legacy/words"
-import type { MigrationStep } from "@/services/migration/step"
-import { AppData } from "@/types/app-data"
-import { ObjectValue, requireRecord } from "@/utils/validation"
+import type  { MigrationStep } from "@/services/migration/step"
+import type { AppData } from "@/types/app-data"
+import { type ObjectValue, requireRecord } from "@/utils/validation"
 
 export function applyLegacyLibrary(
 	data: AppData,

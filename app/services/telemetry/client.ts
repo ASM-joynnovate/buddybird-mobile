@@ -35,8 +35,8 @@ import {
 	type PendingEvent,
 	type Properties,
 } from "@/services/telemetry/outbox"
-import type { AnalyticsConsent } from "@/types/consent"
-import type { Events, TelemetryEvent, UserProperties } from "@/types/telemetry"
+import type  { AnalyticsConsent } from "@/types/consent"
+import type  { Events, TelemetryEvent, UserProperties } from "@/types/telemetry"
 
 // One module owns SDK calls for the entire JS runtime, including React remounts.
 let allowed: boolean | null = null

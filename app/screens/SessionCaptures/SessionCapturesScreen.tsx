@@ -1,4 +1,4 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack"
+import type  { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
@@ -14,7 +14,7 @@ import { useCapturePlayback } from "@/screens/SessionCaptures/hooks/use-capture-
 import { sessionCaptures } from "@/services/session/captures"
 import { colors } from "@/theme"
 import { CAPTURE_STORAGE_LIMIT_BYTES } from "@/types/capture"
-import type { RootStackParamList } from "@/types/navigation"
+import type  { RootStackParamList } from "@/types/navigation"
 
 export function SessionCapturesScreen({
 	route,

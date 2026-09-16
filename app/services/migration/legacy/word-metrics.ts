@@ -1,7 +1,7 @@
-import { AppData } from "@/types/app-data"
-import type { MigrationStep } from "@/services/migration/step"
+import type { AppData } from "@/types/app-data"
+import type  { MigrationStep } from "@/services/migration/step"
 import {
-	ObjectValue,
+	type ObjectValue,
 	readNullableText,
 	requireId,
 	requireNonnegativeNumber,

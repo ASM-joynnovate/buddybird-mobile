@@ -1,9 +1,9 @@
-import type { AppData } from "@/types/app-data"
-import type { Capture } from "@/types/capture"
-import type { Profile } from "@/types/profile"
-import type { Progress } from "@/types/progress"
-import type { History, SessionDraft, SessionSettings } from "@/types/session"
-import type { Word, WordSnapshot } from "@/types/word"
+import type  { AppData } from "@/types/app-data"
+import type  { Capture } from "@/types/capture"
+import type  { Profile } from "@/types/profile"
+import type  { Progress } from "@/types/progress"
+import type  { History, SessionDraft, SessionSettings } from "@/types/session"
+import type  { Word, WordSnapshot } from "@/types/word"
 import {
 	readNullableText,
 	readOptionalText,

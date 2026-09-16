@@ -10,7 +10,7 @@ import {
 	deviceStorage,
 } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
-import type { DeviceSettings } from "@/types/device-settings"
+import type  { DeviceSettings } from "@/types/device-settings"
 
 export function useDeviceSetting<K extends keyof DeviceSettings>(key: K): DeviceSettings[K] {
 	const { t } = useTranslation()

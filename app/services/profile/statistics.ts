@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import { localDate } from "@/utils/date"
 
 export function ageMonths(birthDate: string | null, now = new Date()): number | null {

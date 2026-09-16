@@ -3,7 +3,7 @@ import { useContext, useMemo } from "react"
 import { AppContext } from "@/context/app-data"
 import { profileStats } from "@/services/profile/statistics"
 import { visibleWords } from "@/services/words/selectors"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 export function useAppData() {
 	const data = useContext(AppContext)

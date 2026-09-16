@@ -1,6 +1,6 @@
-import type { AppData } from "@/types/app-data"
-import type { Capture } from "@/types/capture"
-import type { Word } from "@/types/word"
+import type  { AppData } from "@/types/app-data"
+import type  { Capture } from "@/types/capture"
+import type  { Word } from "@/types/word"
 
 export type UploadTrigger =
 	"cold_start" | "foreground" | "network" | "consent" | "session_end" | "accumulation"

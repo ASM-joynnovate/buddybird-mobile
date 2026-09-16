@@ -1,5 +1,5 @@
 import { readStoredWord } from "@/services/storage/codec"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 import { requireRecord } from "@/utils/validation"
 
 export function parseLegacyWord(value: unknown, id: string, archived = false): Word {

@@ -7,7 +7,7 @@ import { installedVersion } from "@/lib/application"
 import { TimeoutError } from "@/lib/http"
 import { validateFeedback } from "@/services/feedback/policy"
 import { readData } from "@/services/storage/data-store"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 export async function submitFeedback(input: { message: string; locale: Locale }) {
 	readData() // The migration gate applies to server writes too.

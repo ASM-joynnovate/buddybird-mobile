@@ -2,7 +2,7 @@ import { useState } from "react"
 import { ScrollView, StyleSheet, useWindowDimensions, View } from "react-native"
 
 import { WordCard } from "@/screens/Learning/components/word-card"
-import type { Word } from "@/types/word"
+import type  { Word } from "@/types/word"
 
 export function WordList({
 	words,

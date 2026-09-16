@@ -1,6 +1,6 @@
-import { PropsWithChildren, useState } from "react"
+import { type PropsWithChildren, useState } from "react"
 
-import { FeedbackContext, FeedbackSource } from "@/context/feedback"
+import { FeedbackContext, type FeedbackSource } from "@/context/feedback"
 
 export function FeedbackProvider({ children }: PropsWithChildren) {
 	const [source, setSource] = useState<FeedbackSource | null>(null)

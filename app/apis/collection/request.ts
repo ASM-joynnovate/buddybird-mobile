@@ -7,7 +7,7 @@ import { currentIdentity } from "@/apis/identity"
 import { config } from "@/config"
 import { HttpError, requestJSON } from "@/lib/http"
 import { readData } from "@/services/storage/data-store"
-import { type UploadResponse } from "@/types/uploads"
+import type { UploadResponse } from "@/types/uploads"
 
 export function uploadOrigin() {
 	const origin = config.apiBaseUrl.trim().replace(/\/+$/, "")

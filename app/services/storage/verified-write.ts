@@ -1,4 +1,4 @@
-import { Store } from "@/types/storage"
+import type { Store } from "@/types/storage"
 
 export function writeVerified(store: Store, key: string, value: string) {
 	store.set(key, value)

@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react"
+import type { PropsWithChildren } from "react"
 
 import { SessionContext } from "@/context/session"
 import { useSessionController } from "@/hooks/use-session-controller"

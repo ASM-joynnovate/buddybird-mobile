@@ -1,6 +1,6 @@
 import { captureOutcomes } from "@/services/uploads/outcomes"
-import type { Capture } from "@/types/capture"
-import { CaptureOutcome, UploadDependencies, UploadResponse, UploadTrigger } from "@/types/uploads"
+import type  { Capture } from "@/types/capture"
+import type { CaptureOutcome, UploadDependencies, UploadResponse, UploadTrigger } from "@/types/uploads"
 
 export function createCaptureWorker(
 	dependencies: UploadDependencies,

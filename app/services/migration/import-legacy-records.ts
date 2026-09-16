@@ -1,6 +1,6 @@
 import { convertLegacy } from "@/services/migration/legacy/convert"
 import { mergeAliasedMetrics } from "@/services/migration/legacy/word-metrics"
-import type { ImportDeviceSetting } from "@/services/migration/legacy/convert"
+import type  { ImportDeviceSetting } from "@/services/migration/legacy/convert"
 import { convertMMKV } from "@/services/migration/convert-mmkv"
 import { readMigrationSource, type MigrationSource } from "@/services/migration/source"
 import { migrationSteps } from "@/services/migration/step"
@@ -8,8 +8,8 @@ import { decodeData } from "@/services/storage/codec"
 import { emptyData } from "@/services/storage/empty-data"
 import { DATA_KEY, SOURCE_KEY } from "@/services/storage/keys"
 import { writeVerified } from "@/services/storage/verified-write"
-import { AppData } from "@/types/app-data"
-import { Store } from "@/types/storage"
+import type { AppData } from "@/types/app-data"
+import type { Store } from "@/types/storage"
 
 export function importLegacyRecords(
 	store: Store,

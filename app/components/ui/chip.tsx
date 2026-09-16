@@ -1,6 +1,6 @@
-import { StyleProp, StyleSheet, ViewStyle } from "react-native"
+import { type StyleProp, StyleSheet, type ViewStyle } from "react-native"
 
-import { PressableSurface, SurfaceTone } from "@/components/ui/surface"
+import { PressableSurface, type SurfaceTone } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 

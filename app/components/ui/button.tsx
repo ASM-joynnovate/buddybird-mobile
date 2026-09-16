@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet } from "react-native"
 
-import { PressableSurface, PressableSurfaceProps } from "@/components/ui/surface"
-import { Icon, IconName } from "@/components/ui/icon"
+import { PressableSurface, type PressableSurfaceProps } from "@/components/ui/surface"
+import { Icon, type IconName } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 

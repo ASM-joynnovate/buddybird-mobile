@@ -1,11 +1,11 @@
-import { WordMetrics } from "@/types/analytics"
-import { Capture } from "@/types/capture"
-import { UploadConsent } from "@/types/consent"
-import { Profile } from "@/types/profile"
-import { Progress } from "@/types/progress"
-import { PushAuthorization, PushReceipt } from "@/types/push"
-import { History, SessionDraft, SessionSettings } from "@/types/session"
-import { Word } from "@/types/word"
+import type { WordMetrics } from "@/types/analytics"
+import type { Capture } from "@/types/capture"
+import type { UploadConsent } from "@/types/consent"
+import type { Profile } from "@/types/profile"
+import type { Progress } from "@/types/progress"
+import type { PushAuthorization, PushReceipt } from "@/types/push"
+import type { History, SessionDraft, SessionSettings } from "@/types/session"
+import type { Word } from "@/types/word"
 
 export type LegacyImportProgress = {
 	complete: boolean

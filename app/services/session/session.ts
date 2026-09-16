@@ -12,8 +12,8 @@ import { readData, updateData } from "@/services/storage/data-store"
 import { reportError, reserveEvents, track } from "@/services/telemetry/client"
 import { currentWord } from "@/services/words/selectors"
 import { CAPTURE_STORAGE_LIMIT_BYTES } from "@/types/capture"
-import { SessionDraft, SessionSettings } from "@/types/session"
-import engine, { defaultVAD, SessionInput, SessionSnapshot } from "@modules/session-audio-engine"
+import type { SessionDraft, SessionSettings } from "@/types/session"
+import engine, { defaultVAD, type SessionInput, type SessionSnapshot } from "@modules/session-audio-engine"
 
 let reconciliation: Promise<void> | undefined
 let reconcileAgain = false

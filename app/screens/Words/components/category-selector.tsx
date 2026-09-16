@@ -5,7 +5,7 @@ import { View } from "react-native"
 import { Chip } from "@/components/ui/chip"
 import { ui } from "@/components/ui/styles"
 import { categoryColors } from "@/theme"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 const categories: Word["tag"][] = ["greeting", "food", "name", "etc"]
 
 export function CategorySelector({

@@ -1,5 +1,5 @@
 import { readSessionSettings } from "@/services/storage/codec"
-import { SessionSettings } from "@/types/session"
+import type { SessionSettings } from "@/types/session"
 import { requireRecord } from "@/utils/validation"
 
 export function parseLegacySettings(value: unknown): SessionSettings {

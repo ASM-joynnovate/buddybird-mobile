@@ -5,7 +5,7 @@ import i18next from "i18next"
 
 import { en } from "@/i18n/locales/en"
 import { ko } from "@/i18n/locales/ko"
-import type { Locale } from "@/types/locale"
+import type  { Locale } from "@/types/locale"
 
 export async function initI18n(locale: Locale) {
 	if (i18next.isInitialized) {

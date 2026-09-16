@@ -1,5 +1,5 @@
-import { PropsWithChildren } from "react"
-import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from "react-native"
+import type { PropsWithChildren } from "react"
+import { type StyleProp, StyleSheet, Text, type TextProps, type TextStyle } from "react-native"
 
 import { colors, font } from "@/theme"
 

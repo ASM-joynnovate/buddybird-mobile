@@ -17,7 +17,7 @@ import { SessionCapturesScreen } from "@/screens/SessionCaptures/SessionCaptures
 import { SessionScreen } from "@/screens/Session/SessionScreen"
 import { WordEditorScreen } from "@/screens/Words/WordEditorScreen"
 import { colors } from "@/theme"
-import { RootStackParamList } from "@/types/navigation"
+import type { RootStackParamList } from "@/types/navigation"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 

@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
 
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 
 import { useTranslation } from "react-i18next"
 
@@ -15,7 +15,7 @@ import { WordFilters } from "@/screens/Words/components/word-filters"
 import { WordListItem } from "@/screens/Words/components/word-list-item"
 import { useWordLibrary } from "@/screens/Words/hooks/use-word-library"
 import { colors } from "@/theme"
-import type { RootStackParamList } from "@/types/navigation"
+import type  { RootStackParamList } from "@/types/navigation"
 
 export function WordsScreen() {
 	const { t } = useTranslation()
@@ -56,7 +56,7 @@ export function WordsScreen() {
 				data={filteredWords}
 				keyExtractor={(item) => item.id}
 				contentContainerStyle={styles.list}
-				ListEmptyComponent={<EmptyWords />}
+				ListEmptyComponent=<EmptyWords />
 				renderItem={({ item }) => (
 					<WordListItem
 						item={item}
