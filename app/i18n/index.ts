@@ -1,7 +1,6 @@
 import "intl-pluralrules"
-
-import { initReactI18next } from "react-i18next"
 import i18next from "i18next"
+import { initReactI18next } from "react-i18next"
 
 import { en } from "@/i18n/locales/en"
 import { ko } from "@/i18n/locales/ko"

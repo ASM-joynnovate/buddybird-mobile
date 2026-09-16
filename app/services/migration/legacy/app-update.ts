@@ -1,14 +1,12 @@
-import { AppData } from "@/types/app-data"
-import { ObjectValue, readNullableText, requireNonnegativeNumber } from "@/utils/validation"
+import type { DeviceSettings } from "@/types/device-settings"
+import { type ObjectValue, readNullableText, requireNonnegativeNumber } from "@/utils/validation"
 
-export function applyLegacyUpdate(data: AppData, update: ObjectValue | undefined) {
-	if (update) {
-		data.settings.update = {
-			dismissedVersion: readNullableText(update.dismissedVersion, "dismissedVersion"),
-			lastCheckedAt:
-				update.lastCheckedAt === null
-					? null
-					: requireNonnegativeNumber(update.lastCheckedAt, "lastCheckedAt"),
-		}
+export function parseLegacyUpdate(update: ObjectValue): DeviceSettings["update"] {
+	return {
+		dismissedVersion: readNullableText(update.dismissedVersion, "dismissedVersion"),
+		lastCheckedAt:
+			update.lastCheckedAt === null
+				? null
+				: requireNonnegativeNumber(update.lastCheckedAt, "lastCheckedAt"),
 	}
 }

@@ -1,8 +1,13 @@
 import { parseLegacyWord } from "@/services/migration/legacy/words"
-import { AppData } from "@/types/app-data"
-import { ObjectValue, requireRecord } from "@/utils/validation"
+import type { MigrationStep } from "@/services/migration/step"
+import type { AppData } from "@/types/app-data"
+import { type ObjectValue, requireRecord } from "@/utils/validation"
 
-export function applyLegacyLibrary(data: AppData, library: ObjectValue | undefined) {
+export function applyLegacyLibrary(
+	data: AppData,
+	library: ObjectValue | undefined,
+	step: MigrationStep,
+) {
 	if (library) {
 		if (library.version !== 1) {
 			throw new Error("Unsupported word library version")
@@ -11,7 +16,11 @@ export function applyLegacyLibrary(data: AppData, library: ObjectValue | undefin
 		for (const [id, value] of Object.entries(
 			requireRecord(library.entriesById, "entriesById"),
 		)) {
-			data.words[id] = parseLegacyWord(value, id)
+			step(`words/${id}`, () => {
+				const word = parseLegacyWord(value, id)
+
+				data.words[id] ??= word
+			})
 		}
 	}
 }

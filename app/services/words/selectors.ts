@@ -1,6 +1,6 @@
 import { presets } from "@/services/words/catalog"
-import { AppData } from "@/types/app-data"
-import { Locale } from "@/types/locale"
+import type { AppData } from "@/types/app-data"
+import type { Locale } from "@/types/locale"
 
 const presetOrder = new Map<string, number>(
 	presets.map((preset, index) => [preset.presetKey, index]),

@@ -1,5 +1,5 @@
 import type { Capture } from "@/types/capture"
-import { CaptureOutcome, UploadResponse } from "@/types/uploads"
+import type { CaptureOutcome, UploadResponse } from "@/types/uploads"
 
 export function captureOutcomes(sent: Capture[], response: UploadResponse): CaptureOutcome[] {
 	if (

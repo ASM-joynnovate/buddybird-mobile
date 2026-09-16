@@ -1,20 +1,18 @@
 import i18next from "i18next"
-
 import { useCallback, useEffect, useRef, useState } from "react"
-
 import { AppState } from "react-native"
 
-import { SessionValue } from "@/context/session"
+import type { SessionValue } from "@/context/session"
 import { sessionFailure } from "@/services/session/failure"
 import { engine, recoverNativeData, startSession } from "@/services/session/session"
-import type { Timing } from "@/types/session"
 import { readData } from "@/services/storage/data-store"
 import { reportError, track } from "@/services/telemetry/client"
 import { createPerformanceReporter } from "@/services/telemetry/performance"
 import { isUploading, triggerUploads } from "@/services/uploads/queue"
-import {
-	type FailureCode,
-	type SessionFailure,
+import type { Timing } from "@/types/session"
+import type {
+	FailureCode,
+	SessionFailure,
 	SessionInput,
 	SessionSnapshot,
 } from "@modules/session-audio-engine"
@@ -76,12 +74,12 @@ export function useSessionController() {
 
 	const recordSessionError = useCallback((cause: unknown, fallback?: FailureCode) => {
 		const failure = sessionFailure(cause, fallback)
-		const error = cause instanceof Error ? cause : new Error(failure.message)
+		const thrown = cause instanceof Error ? cause : new Error(failure.message)
 
 		setError(failure)
-		reportError(error, "session")
+		reportError(thrown, "session")
 
-		return Object.assign(error, failure)
+		return Object.assign(thrown, failure)
 	}, [])
 
 	const reconcileSessionData = useCallback(async () => {
@@ -99,6 +97,7 @@ export function useSessionController() {
 
 	useEffect(() => {
 		void engine.getSnapshot().then(applySnapshot).catch(recordSessionError)
+		void reconcileSessionData().catch((cause) => reportError(cause, "initial_recovery"))
 
 		const state = engine.addListener("onStateChanged", (next) => {
 			applySnapshot(next)
@@ -153,16 +152,16 @@ export function useSessionController() {
 			}
 		})
 
-		const appState = AppState.addEventListener("change", (state) => {
-			if (state !== "active") {
+		const appState = AppState.addEventListener("change", (appStatus) => {
+			if (appStatus !== "active") {
 				performanceReporter.current?.setRunning(false)
 			}
 
-			if (state === "active") {
+			if (appStatus === "active") {
 				void engine.getSnapshot().then(applySnapshot).catch(recordSessionError)
 				void reconcileSessionData().catch(() => {})
 			} else if (
-				state === "background" &&
+				appStatus === "background" &&
 				latestSnapshot.current.sessionId &&
 				latestSnapshot.current.state === "running"
 			) {

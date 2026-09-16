@@ -1,14 +1,11 @@
 import { useTranslation } from "react-i18next"
-
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 
 import { AudioWaveform } from "@/components/ui/audio-waveform"
-import { meteringLevel } from "@/lib/audio-waveform"
-
-import { Card } from "@/components/ui/surface"
-
 import { IconButton } from "@/components/ui/icon-button"
+import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import { meteringLevel } from "@/lib/audio-waveform"
 import { categoryColors, colors, font } from "@/theme"
 
 export function RecordingPanel({
@@ -59,12 +56,11 @@ export function RecordingPanel({
 			<View style={styles.waveform}>
 				<AudioWaveform
 					testID="recording-waveform"
-					active={isRecording}
-					level={meteringLevel(metering)}
-					color={isRecording ? colors.onAccent : palette.soft}
+					level={isRecording ? meteringLevel(metering) : 0}
+					color={colors.onAccent}
 					height={48}
 					barCount={48}
-					barWidth={3}
+					fill
 				/>
 			</View>
 			<View style={styles.recordButton}>

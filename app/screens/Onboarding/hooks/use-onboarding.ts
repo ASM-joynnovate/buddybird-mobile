@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-
 import { AppState } from "react-native"
 
 import { screen, track } from "@/services/telemetry/client"
@@ -8,9 +7,10 @@ import type { ProfileDraft, ProfileOnboarding } from "@/types/profile"
 export function useOnboarding() {
 	const [draft, setDraft] = useState<ProfileDraft>()
 	const [step, setStep] = useState<"welcome" | "profile">("welcome")
+	const [startedAt] = useState(() => Date.now())
 	const attempt = useRef({
-		startedAt: Date.now(),
-		stepAt: Date.now(),
+		startedAt,
+		stepAt: startedAt,
 		started: false,
 		completed: false,
 		abandoned: false,

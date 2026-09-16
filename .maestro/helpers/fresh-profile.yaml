@@ -5,7 +5,7 @@ appId: com.joynnovate.buddybird.dev
     permissions:
       all: allow
 - tapOn:
-    text: "(Don't Allow|Don’t Allow|허용 안 함)"
+    text: "(Don't Allow|Don’t Allow|허용 안 함|Ask App Not to Track|앱에 추적 금지 요청)"
     optional: true
 - extendedWaitUntil:
     visible:
@@ -42,7 +42,7 @@ appId: com.joynnovate.buddybird.dev
       platform: iOS
     commands:
       - tapOn:
-          text: "(Don't Allow|Don’t Allow|허용 안 함)"
+          text: "(Don't Allow|Don’t Allow|허용 안 함|Ask App Not to Track|앱에 추적 금지 요청)"
           optional: true
 - extendedWaitUntil:
     visible:

@@ -1,5 +1,12 @@
 export type SessionState =
-	"idle" | "starting" | "running" | "paused" | "interrupted" | "completed" | "failed" | "stopping"
+	| "idle"
+	| "starting"
+	| "running"
+	| "paused"
+	| "interrupted"
+	| "completed"
+	| "failed"
+	| "stopping"
 
 export type SessionPhase = "learning" | "rest" | "stress-care"
 

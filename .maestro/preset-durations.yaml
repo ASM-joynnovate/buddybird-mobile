@@ -1,0 +1,22 @@
+appId: com.joynnovate.buddybird.dev
+name: Preset duration cards show their total time
+tags: [full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- scrollUntilVisible:
+    element:
+      id: duration-short
+    direction: DOWN
+- assertVisible:
+    id: duration-short
+    text: "(Short, )?40m"
+- assertVisible:
+    id: duration-medium
+    text: "(Medium, )?1h 20m"
+- scrollUntilVisible:
+    element:
+      id: duration-long
+    direction: DOWN
+- assertVisible:
+    id: duration-long
+    text: "(Long, )?4h"

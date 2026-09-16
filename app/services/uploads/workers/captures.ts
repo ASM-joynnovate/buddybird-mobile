@@ -1,6 +1,11 @@
 import { captureOutcomes } from "@/services/uploads/outcomes"
 import type { Capture } from "@/types/capture"
-import { CaptureOutcome, UploadDependencies, UploadResponse, UploadTrigger } from "@/types/uploads"
+import type {
+	CaptureOutcome,
+	UploadDependencies,
+	UploadResponse,
+	UploadTrigger,
+} from "@/types/uploads"
 
 export function createCaptureWorker(
 	dependencies: UploadDependencies,
@@ -47,27 +52,29 @@ export function createCaptureWorker(
 			return false
 		}
 
-		async function uploadCaptureBatch(batch: Capture[], retrySingle = false): Promise<boolean> {
-			if (!canUpload(signal)) {
+		async function uploadCaptureBatch(
+			requested: Capture[],
+			retrySingle = false,
+		): Promise<boolean> {
+			const uid = dependencies.identity()
+
+			if (!canUpload(signal) || !uid) {
 				return false
 			}
 
 			let response: UploadResponse
+			let included: Capture[]
 
 			try {
-				const result = await dependencies.sendCaptures(
-					batch,
-					dependencies.identity()!,
-					signal,
-				)
+				const result = await dependencies.sendCaptures(requested, uid, signal)
 
 				for (const id of result.omittedIds) {
 					omittedIds.add(id)
 				}
 
-				batch = batch.filter((capture) => result.includedIds.includes(capture.id))
+				included = requested.filter((capture) => result.includedIds.includes(capture.id))
 
-				if (!result.response || !batch.length) {
+				if (!result.response || !included.length) {
 					return true
 				}
 
@@ -91,8 +98,8 @@ export function createCaptureWorker(
 			const { status } = response
 
 			if (status >= 400 && status < 500) {
-				if (batch.length > 1) {
-					for (const item of batch) {
+				if (included.length > 1) {
+					for (const item of included) {
 						if (!(await uploadCaptureBatch([item], true))) {
 							return false
 						}
@@ -102,7 +109,7 @@ export function createCaptureWorker(
 				}
 
 				saveCaptureOutcomes(
-					[{ capture: batch[0], status: "rejected" }],
+					[{ capture: included[0], status: "rejected" }],
 					1,
 					retrySingle,
 					status,
@@ -116,13 +123,13 @@ export function createCaptureWorker(
 				return abortCaptureUpload("server_error", status)
 			}
 
-			const outcomes = captureOutcomes(batch, response)
+			const outcomes = captureOutcomes(included, response)
 
 			if (!outcomes.length) {
 				return abortCaptureUpload("unreadable_response", status)
 			}
 
-			saveCaptureOutcomes(outcomes, batch.length, retrySingle)
+			saveCaptureOutcomes(outcomes, included.length, retrySingle)
 			successfulCaptureCount += outcomes.filter((item) => item.status === "success").length
 			await dependencies.cleanup()
 

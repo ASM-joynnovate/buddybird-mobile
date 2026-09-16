@@ -1,13 +1,13 @@
-import { PropsWithChildren, useState } from "react"
+import { type PropsWithChildren, useMemo, useState } from "react"
 
-import { FeedbackContext, FeedbackSource } from "@/context/feedback"
+import { FeedbackContext, type FeedbackSource } from "@/context/feedback"
 
 export function FeedbackProvider({ children }: PropsWithChildren) {
 	const [source, setSource] = useState<FeedbackSource | null>(null)
-
-	return (
-		<FeedbackContext.Provider value={{ source, open: setSource, close: () => setSource(null) }}>
-			{children}
-		</FeedbackContext.Provider>
+	const value = useMemo(
+		() => ({ source, open: setSource, close: () => setSource(null) }),
+		[source],
 	)
+
+	return <FeedbackContext.Provider value={value}>{children}</FeedbackContext.Provider>
 }

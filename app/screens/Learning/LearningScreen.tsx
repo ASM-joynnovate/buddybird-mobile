@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet } from "react-native"
 
 import { SessionFailureNotice } from "@/components/session-failure"

@@ -1,9 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
-
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useTranslation } from "react-i18next"
-
 import { FlatList, StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
@@ -56,7 +53,7 @@ export function WordsScreen() {
 				data={filteredWords}
 				keyExtractor={(item) => item.id}
 				contentContainerStyle={styles.list}
-				ListEmptyComponent={<EmptyWords />}
+				ListEmptyComponent=<EmptyWords />
 				renderItem={({ item }) => (
 					<WordListItem
 						item={item}

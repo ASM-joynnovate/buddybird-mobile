@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import { localDate } from "@/utils/date"
 
 export function ageMonths(birthDate: string | null, now = new Date()): number | null {
@@ -43,6 +43,9 @@ export function profileStats(data: AppData, now = new Date()) {
 	}
 
 	return {
+		incomplete: data.migration.issues.some(({ key }) =>
+			/^(training|history|progress|metrics)(\/|$)/.test(key),
+		),
 		todaySeconds: history
 			.filter(
 				(session) =>

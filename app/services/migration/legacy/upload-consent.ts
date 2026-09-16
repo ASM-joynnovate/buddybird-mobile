@@ -1,6 +1,6 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import {
-	ObjectValue,
+	type ObjectValue,
 	readNullableText,
 	requireChoice,
 	requireNonnegativeNumber,
@@ -8,7 +8,7 @@ import {
 
 export function applyLegacyConsent(data: AppData, consent: ObjectValue | undefined) {
 	if (consent) {
-		data.settings.uploadConsent = {
+		const incoming = {
 			status: requireChoice(
 				consent.status,
 				["unknown", "granted", "denied"] as const,
@@ -16,6 +16,13 @@ export function applyLegacyConsent(data: AppData, consent: ObjectValue | undefin
 			),
 			decidedAt: readNullableText(consent.decidedAt, "decidedAt"),
 			noticeVersion: requireNonnegativeNumber(consent.noticeVersion, "noticeVersion"),
+		}
+
+		if (
+			data.settings.uploadConsent.status === "unknown" &&
+			data.settings.uploadConsent.decidedAt === null
+		) {
+			data.settings.uploadConsent = incoming
 		}
 	}
 }

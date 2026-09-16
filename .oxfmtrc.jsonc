@@ -1,0 +1,13 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"printWidth": 100,
+	"semi": false,
+	"singleQuote": false,
+	"trailingComma": "all",
+	"quoteProps": "consistent",
+	"useTabs": true,
+	"tabWidth": 4,
+	"sortPackageJson": true,
+	"sortImports": { "internalPattern": ["@/", "@assets/", "@modules/"] },
+	"ignorePatterns": ["node_modules", "ios", "android", "dist", ".expo"]
+}

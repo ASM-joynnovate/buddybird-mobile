@@ -1,9 +1,9 @@
 import type { Session } from "@supabase/supabase-js"
-import { PropsWithChildren, useEffect, useState } from "react"
+import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react"
 import { AppState } from "react-native"
 
 import { completeLogin } from "@/apis/auth"
-import { AuthContext, AuthState } from "@/context/auth"
+import { AuthContext, type AuthState } from "@/context/auth"
 import i18next from "@/i18n"
 import { HttpError, ResponseError } from "@/lib/http"
 import { getSupabase } from "@/lib/supabase"
@@ -78,7 +78,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					setState({
 						status: "error",
 						message: i18next.t(
-							error instanceof ResponseError ? "auth.responseError" : "auth.backendError",
+							error instanceof ResponseError
+								? "auth.responseError"
+								: "auth.backendError",
 						),
 					})
 				}
@@ -138,11 +140,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		}
 	}, [attempt])
 
-	return (
-		<AuthContext.Provider value={{ state, retry: () => setAttempt((value) => value + 1), signOut }}>
-			{children}
-		</AuthContext.Provider>
-	)
+	const retry = useCallback(() => setAttempt((value) => value + 1), [])
+	const value = useMemo(() => ({ state, retry, signOut }), [state, retry])
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 async function signOut() {

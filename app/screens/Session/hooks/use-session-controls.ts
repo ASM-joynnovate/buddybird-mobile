@@ -1,5 +1,4 @@
 import { useNavigation, usePreventRemove } from "@react-navigation/native"
-
 import { useEffect, useRef, useState } from "react"
 
 import { useSession } from "@/hooks/use-session"

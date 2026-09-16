@@ -1,10 +1,7 @@
-import { PropsWithChildren, ReactNode } from "react"
-
+import type { PropsWithChildren, ReactNode } from "react"
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native"
-
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-
 import { GestureHandlerRootView } from "react-native-gesture-handler"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Title } from "@/components/ui/text"
 import { colors, radius } from "@/theme"

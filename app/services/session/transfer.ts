@@ -30,6 +30,20 @@ type NativeTransfer = Pick<
 	| "clearPendingRecovery"
 >
 
+function sessionMigrationPending(data: AppData, sessionId: string) {
+	return data.migration.issues.some(
+		({ key }) =>
+			[
+				"training",
+				"history",
+				"sessionDrafts",
+				`history/${sessionId}`,
+				`sessionDrafts/${sessionId}`,
+			].includes(key) ||
+			(key === "profile" && !data.sessionDrafts[sessionId]),
+	)
+}
+
 function captureDraft(
 	data: AppData,
 	segment: CapturedSegment,
@@ -132,6 +146,13 @@ export async function transferNativeState(native: NativeTransfer, store: Transfe
 		}
 
 		for (const eviction of changes.evicted) {
+			if (
+				eviction.capture &&
+				sessionMigrationPending(store.read(), eviction.capture.sessionId)
+			) {
+				continue
+			}
+
 			evict(eviction)
 		}
 
@@ -141,6 +162,10 @@ export async function transferNativeState(native: NativeTransfer, store: Transfe
 			}
 
 			const data = store.read()
+
+			if (sessionMigrationPending(data, segment.sessionId)) {
+				continue
+			}
 
 			if (
 				data.nativeCaptureReceipts.includes(segment.segmentId) ||
@@ -281,6 +306,10 @@ export async function transferNativeState(native: NativeTransfer, store: Transfe
 	const finalRecovery = await native.getPendingRecovery()
 
 	if (finalRecovery) {
+		if (sessionMigrationPending(store.read(), finalRecovery.sessionId)) {
+			throw new Error("Session recovery is waiting for its saved data to be imported")
+		}
+
 		await persistAndAcknowledge(await native.getCaptureChanges(), finalRecovery)
 		const draft = recoveryDraft(store.read(), finalRecovery)
 

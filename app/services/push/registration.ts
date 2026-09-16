@@ -6,7 +6,6 @@ import {
 	registerDeviceForRemoteMessages,
 	requestPermission,
 } from "@react-native-firebase/messaging"
-
 import { PermissionsAndroid, Platform } from "react-native"
 
 import { updateData } from "@/services/storage/data-store"

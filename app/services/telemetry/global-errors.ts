@@ -18,7 +18,7 @@ export function installGlobalErrorReporting() {
 
 	errors?.setGlobalHandler(handler)
 	// Preserve React Native's own reporting after recording rejection context.
-	// eslint-disable-next-line @typescript-eslint/no-require-imports -- Native rejection hooks have no public typed entry.
+	// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-member-access -- Native rejection hooks have no public typed entry.
 	const rejection = require("react-native/Libraries/promiseRejectionTrackingOptions").default as {
 		onUnhandled: (id: number, error: unknown) => void
 	}
@@ -38,7 +38,7 @@ export function installGlobalErrorReporting() {
 		if (hermes?.enablePromiseRejectionTracker) {
 			hermes.enablePromiseRejectionTracker(rejection)
 		} else {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports -- Match React Native's fallback promise tracker.
+			// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-member-access -- Match React Native's fallback promise tracker.
 			require("promise/setimmediate/rejection-tracking").enable(rejection)
 		}
 	}

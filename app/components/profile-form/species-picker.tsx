@@ -1,13 +1,11 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
-
-import { TextField } from "@/components/ui/text-field"
 
 import { Chip } from "@/components/ui/chip"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
+import { TextField } from "@/components/ui/text-field"
 import { speciesGroups } from "@/services/profile/species"
 import { colors } from "@/theme"
 

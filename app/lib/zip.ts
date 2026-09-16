@@ -17,8 +17,8 @@ export async function writeCaptureZip(
 
 		try {
 			write(chunk)
-		} catch (error) {
-			failure = error instanceof Error ? error : new Error("ZIP write failed")
+		} catch (cause) {
+			failure = cause instanceof Error ? cause : new Error("ZIP write failed")
 		}
 
 		finished = final

@@ -35,7 +35,13 @@ export function OAuthButton({
 		>
 			{google ? (
 				// Google's branding configurator supplies these paths.
-				<Svg width={20} height={20} viewBox="0 0 48 48" accessible={false} opacity={loading ? 0 : 1}>
+				<Svg
+					width={20}
+					height={20}
+					viewBox="0 0 48 48"
+					accessible={false}
+					opacity={loading ? 0 : 1}
+				>
 					<Path
 						fill="#EA4335"
 						d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -54,14 +60,26 @@ export function OAuthButton({
 					/>
 				</Svg>
 			) : (
-				<Svg width={20} height={20} viewBox="0 0 18 18" accessible={false} opacity={loading ? 0 : 1}>
+				<Svg
+					width={20}
+					height={20}
+					viewBox="0 0 18 18"
+					accessible={false}
+					opacity={loading ? 0 : 1}
+				>
 					<Path
 						fill="#000000"
 						d="M9 1C4.029 1 0 4.129 0 7.987c0 2.399 1.558 4.516 3.932 5.774l-1 3.665c-.09.323.28.58.563.393L7.87 14.87c.37.041.747.063 1.13.063 4.971 0 9-3.129 9-6.987C18 4.129 13.971 1 9 1Z"
 					/>
 				</Svg>
 			)}
-			<Copy style={[styles.label, google ? styles.googleLabel : styles.kakaoLabel, loading && styles.hidden]}>
+			<Copy
+				style={[
+					styles.label,
+					google ? styles.googleLabel : styles.kakaoLabel,
+					loading && styles.hidden,
+				]}
+			>
 				{t(`auth.${provider}`)}
 			</Copy>
 			{loading ? (
@@ -76,6 +94,9 @@ export function OAuthButton({
 	)
 }
 
+const googleText = "#1F1F1F"
+const kakaoText = "rgba(0, 0, 0, 0.85)"
+
 const styles = StyleSheet.create({
 	button: {
 		minHeight: 56,
@@ -87,8 +108,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 16,
 	},
-	label: { fontFamily: font.bold, fontSize: 16, lineHeight: 22, flexShrink: 1, textAlign: "center" },
-	googleLabel: { color: "#1F1F1F" },
-	kakaoLabel: { color: "rgba(0, 0, 0, 0.85)" },
+	label: {
+		fontFamily: font.bold,
+		fontSize: 16,
+		lineHeight: 22,
+		flexShrink: 1,
+		textAlign: "center",
+	},
+	googleLabel: { color: googleText },
+	kakaoLabel: { color: kakaoText },
 	hidden: { opacity: 0 },
 })

@@ -21,13 +21,12 @@ export async function completeLogin(supabaseUserId: string, signal: AbortSignal)
 		method: "POST",
 		signal,
 		headers: {
-			Authorization: `Bearer ${data.session.access_token}`,
+			"Authorization": `Bearer ${data.session.access_token}`,
 			"X-BuddyBird-Client": "mobile",
 		},
 	})
-	const account = (
-		response as { data?: { user_id?: unknown; is_new_user?: unknown } } | null
-	)?.data
+	const account = (response as { data?: { user_id?: unknown; is_new_user?: unknown } } | null)
+		?.data
 
 	if (
 		typeof account?.user_id !== "string" ||

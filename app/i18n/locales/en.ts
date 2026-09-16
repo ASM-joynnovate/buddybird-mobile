@@ -1,6 +1,6 @@
-import { ko } from "@/i18n/locales/ko"
+import type { Translation } from "@/types/translation"
 
-export const en: typeof ko = {
+export const en: Translation = {
 	startup: {
 		loading: "Preparing your saved data",
 		title: "Could not load your data",
@@ -28,6 +28,19 @@ export const en: typeof ko = {
 		expired: "Your login has expired. Please log in again.",
 		signOut: "Log out on this device",
 		signOutError: "Couldn't log out. Check your connection and try again.",
+	},
+
+	storage: {
+		loading: "Importing your saved data. Data that is ready is available to use.",
+		partial: "Some data could not be imported. The originals are retained. You can try again.",
+		unavailable:
+			"Could not read your saved data. The originals are unchanged. Please try again.",
+		profileUnavailable: "Your saved profile could not be imported. Please retry the import.",
+		historyUnavailable:
+			"Some learning records have not been imported. Statistics may be incomplete.",
+		settingError:
+			"Could not read some device settings. Using defaults without changing the saved values.",
+		saveError: "Could not confirm the save. Please try again.",
 	},
 
 	common: {
@@ -214,7 +227,6 @@ export const en: typeof ko = {
 		confirmEndMessage:
 			"Ending now stops the training in progress. Keep going to return to the session.",
 		end: "End",
-		endLabel: "End session",
 		cycle: "Cycle {{cycle}}/{{total}}",
 		playing: "Playing",
 		waiting: "Waiting for next repeat",

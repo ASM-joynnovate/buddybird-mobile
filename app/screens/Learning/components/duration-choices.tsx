@@ -1,13 +1,12 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
-import { ChoiceCard } from "@/components/ui/surface"
 import { Icon } from "@/components/ui/icon"
 import { ui } from "@/components/ui/styles"
+import { ChoiceCard } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { durationText } from "@/i18n/duration"
-import { choices, DurationChoice, presetMinutes } from "@/screens/Learning/durations"
+import { choices, type DurationChoice, presetMinutes } from "@/screens/Learning/durations"
 import { colors, font, radius } from "@/theme"
 import type { Locale } from "@/types/locale"
 

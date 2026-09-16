@@ -1,23 +1,20 @@
 import { useTranslation } from "react-i18next"
-
 import { ScrollView, StyleSheet, View } from "react-native"
-
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { useCaptureShortcut } from "@/screens/Session/hooks/use-capture-shortcut"
 import { Mascot } from "@/components/mascot"
-import { Card, PressableSurface } from "@/components/ui/surface"
-
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
+import { Card, PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { durationText } from "@/i18n/duration"
 import { withSubjectParticle } from "@/i18n/particles"
 import { Confetti } from "@/screens/Session/components/confetti"
+import { useCaptureShortcut } from "@/screens/Session/hooks/use-capture-shortcut"
 import { useSessionDetails } from "@/screens/Session/hooks/use-session-details"
-import { profileStats } from "@/services/profile/statistics"
 import { learningSeconds } from "@/services/session/history"
 import { colors, font } from "@/theme"
 
@@ -31,9 +28,9 @@ export function SessionComplete({
 	onContinue(): void
 }) {
 	const { t } = useTranslation()
+	const locale = useDeviceSetting("locale")
 	const insets = useSafeAreaInsets()
-	const { data, session, snapshot, history, settings, word } = useSessionDetails()
-	const stats = profileStats(data)
+	const { profile, stats, session, snapshot, history, settings, word } = useSessionDetails()
 	const openCaptures = useCaptureShortcut(snapshot.sessionId, word?.label ?? "")
 	const learned =
 		history?.totalLearningSeconds ??
@@ -65,9 +62,9 @@ export function SessionComplete({
 					<Copy style={styles.completeDescription}>
 						{t("session.listened", {
 							name:
-								data.settings.locale === "ko"
-									? withSubjectParticle(data.profile?.name ?? "")
-									: (data.profile?.name ?? ""),
+								locale === "ko"
+									? withSubjectParticle(profile?.name ?? "")
+									: (profile?.name ?? ""),
 							word: word?.label ?? "",
 							duration: `${Math.max(1, Math.round(learned / 60))}${t("common.minutes")}`,
 						})}
@@ -75,6 +72,9 @@ export function SessionComplete({
 				</View>
 
 				<View style={[styles.completeFooter, { paddingBottom: insets.bottom + 22 }]}>
+					<InlineError
+						message={stats.incomplete ? t("storage.historyUnavailable") : null}
+					/>
 					<View style={ui.wrap}>
 						<Card
 							color={colors.orange}
@@ -98,7 +98,7 @@ export function SessionComplete({
 							<View style={[ui.row, styles.statValueRow]}>
 								<Icon name="clock" color={colors.yellow} />
 								<Copy style={styles.completeStatValue}>
-									{durationText(stats.totalSeconds, data.settings.locale)}
+									{durationText(stats.totalSeconds, locale)}
 								</Copy>
 							</View>
 						</Card>

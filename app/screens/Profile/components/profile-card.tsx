@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next"
-
 import { Image, StyleSheet, View } from "react-native"
 
 import { Card } from "@/components/ui/surface"
-
 import { Copy } from "@/components/ui/text"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { speciesIds } from "@/services/profile/species"

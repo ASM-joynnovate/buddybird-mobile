@@ -1,13 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-
 import { useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { Alert } from "react-native"
 
 import { updateQueryOptions } from "@/hooks/apis/app-update"
-import { useAppData } from "@/hooks/use-app-data"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { installedVersion, openStore } from "@/lib/application"
 import { reportError, track } from "@/services/telemetry/client"
 import { evaluateUpdate } from "@/services/updates/policy"
@@ -16,7 +13,8 @@ import { dismissUpdate } from "@/services/updates/preferences"
 export function useUpdatePrompt() {
 	const { t } = useTranslation()
 
-	const data = useAppData()
+	const locale = useDeviceSetting("locale")
+	const preferences = useDeviceSetting("update")
 
 	const [storeOpening, setStoreOpening] = useState(false)
 
@@ -27,12 +25,7 @@ export function useUpdatePrompt() {
 	const update = useQuery(updateQueryOptions())
 
 	const decision = update.data
-		? evaluateUpdate(
-				update.data,
-				installedVersion,
-				data.settings.update.dismissedVersion,
-				data.settings.locale,
-			)
+		? evaluateUpdate(update.data, installedVersion, preferences.dismissedVersion, locale)
 		: null
 
 	const updateVisible =

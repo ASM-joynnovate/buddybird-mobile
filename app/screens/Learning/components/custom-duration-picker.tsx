@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
 import { Card } from "@/components/ui/surface"

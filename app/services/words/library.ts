@@ -2,7 +2,7 @@ import { randomUUID } from "expo-crypto"
 
 import { preserveRecording } from "@/services/media/files"
 import { readData, updateData } from "@/services/storage/data-store"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 
 export async function saveWord(input: {
 	label: string

@@ -41,7 +41,8 @@ export async function signInWithOAuth(provider: "google" | "kakao") {
 	}
 
 	const providerError =
-		callback.searchParams.get("error") ?? new URLSearchParams(callback.hash.slice(1)).get("error")
+		callback.searchParams.get("error") ??
+		new URLSearchParams(callback.hash.slice(1)).get("error")
 
 	if (providerError === "access_denied") {
 		return

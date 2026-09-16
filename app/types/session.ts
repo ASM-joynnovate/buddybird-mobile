@@ -1,4 +1,4 @@
-import { SourceType, WordSnapshot } from "@/types/word"
+import type { SourceType, WordSnapshot } from "@/types/word"
 
 export type SessionSettings = {
 	wordId: string

@@ -1,14 +1,10 @@
 import { useNavigation, usePreventRemove } from "@react-navigation/native"
-
 import * as ImagePicker from "expo-image-picker"
-
 import { useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { BackHandler } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useProfile } from "@/hooks/use-app-data"
 import { saveProfile } from "@/services/profile/profile"
 import { speciesIds } from "@/services/profile/species"
 import { ageMonths } from "@/services/profile/statistics"
@@ -17,7 +13,7 @@ import type { ProfileOnboarding } from "@/types/profile"
 
 export function useProfileForm(onboarding?: ProfileOnboarding) {
 	const { t } = useTranslation()
-	const { profile } = useAppData()
+	const profile = useProfile()
 	const navigation = useNavigation()
 
 	const initial = onboarding?.draft ?? profile
@@ -57,7 +53,7 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 		? null
 		: `${year}-${String(month).padStart(2, "0")}-${String(chosenDay).padStart(2, "0")}`
 	const futureBirthday =
-		!unknownBirthday && new Date(year, month - 1, chosenDay).getTime() > Date.now()
+		!unknownBirthday && new Date(year, month - 1, chosenDay).getTime() > now.getTime()
 	const nameError = invalid.name ? t("profile.nameRequired") : null
 	const speciesError = invalid.species ? t("profile.speciesRequired") : null
 	const birthdayError = invalid.birthday ? t("profile.birthdayInvalid") : null
@@ -139,16 +135,16 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 		setError(null)
 
 		try {
-			const saved = await saveProfile({
+			const savedProfile = await saveProfile({
 				name,
 				species: effectiveSpecies,
 				birthDate,
 				photoUri,
 			})
-			const age = ageMonths(saved.birthDate)
+			const age = ageMonths(savedProfile.birthDate)
 			const properties = {
-				parrot_name: saved.name,
-				parrot_species: saved.species,
+				parrot_name: savedProfile.name,
+				parrot_species: savedProfile.species,
 				...(age !== null ? { parrot_age_months: age } : {}),
 			}
 
@@ -160,7 +156,7 @@ export function useProfileForm(onboarding?: ProfileOnboarding) {
 			} else {
 				const fieldsChanged = (
 					["name", "species", "birthDate", "photoUri"] as const
-				).filter((key) => saved[key] !== profile?.[key])
+				).filter((key) => savedProfile[key] !== profile?.[key])
 
 				if (fieldsChanged.length) {
 					track("profile_updated", { ...properties, fields_changed: fieldsChanged })

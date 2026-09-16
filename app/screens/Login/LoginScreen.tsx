@@ -81,7 +81,12 @@ export function LoginScreen() {
 	return (
 		<Screen contentContainerStyle={styles.screen}>
 			<View style={styles.intro}>
-				<Image source={mascot} style={styles.mascot} resizeMode="contain" accessible={false} />
+				<Image
+					source={mascot}
+					style={styles.mascot}
+					resizeMode="contain"
+					accessible={false}
+				/>
 				<Title style={styles.center}>{t("auth.title")}</Title>
 				<Copy style={styles.description}>{t("auth.description")}</Copy>
 			</View>
@@ -109,12 +114,23 @@ export function LoginScreen() {
 							<View style={styles.appleButton}>
 								<AppleAuthentication.AppleAuthenticationButton
 									testID="login-apple"
-									buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-									buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+									buttonType={
+										AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+									}
+									buttonStyle={
+										AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+									}
 									cornerRadius={radius.control}
 									style={styles.appleButton}
-									accessibilityLabel={t(loadingProvider === "apple" ? "auth.pending.apple" : "auth.apple")}
-									accessibilityState={{ disabled, busy: loadingProvider === "apple" }}
+									accessibilityLabel={t(
+										loadingProvider === "apple"
+											? "auth.pending.apple"
+											: "auth.apple",
+									)}
+									accessibilityState={{
+										disabled,
+										busy: loadingProvider === "apple",
+									}}
 									pointerEvents={disabled ? "none" : "auto"}
 									onPress={() => void signIn("apple")}
 								/>
@@ -137,7 +153,9 @@ export function LoginScreen() {
 							</View>
 						) : null}
 						<InlineError
-							message={error ?? (state.status === "signedOut" ? state.message : undefined)}
+							message={
+								error ?? (state.status === "signedOut" ? state.message : undefined)
+							}
 						/>
 					</>
 				)}
@@ -145,6 +163,8 @@ export function LoginScreen() {
 		</Screen>
 	)
 }
+
+const appleButtonBackground = "#000000"
 
 const styles = StyleSheet.create({
 	screen: { gap: 36 },
@@ -155,8 +175,8 @@ const styles = StyleSheet.create({
 	actions: { gap: 12 },
 	appleButton: { width: "100%", height: 56 },
 	appleProgress: {
-		...StyleSheet.absoluteFillObject,
-		backgroundColor: "#000000",
+		...StyleSheet.absoluteFill,
+		backgroundColor: appleButtonBackground,
 		borderRadius: radius.control,
 		borderCurve: "continuous",
 	},

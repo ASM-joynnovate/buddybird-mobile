@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 import {
 	readNullableText,
 	requireChoice,
@@ -10,7 +10,7 @@ import {
 
 export function applyLegacyReceipts(data: AppData, receipts: unknown) {
 	if (receipts !== undefined) {
-		data.settings.receipts = requireList(receipts, "receipts").map((value) => {
+		const incoming = requireList(receipts, "receipts").map((value) => {
 			const receiptRecord = requireRecord(value, "receipt")
 
 			return {
@@ -28,5 +28,7 @@ export function applyLegacyReceipts(data: AppData, receipts: unknown) {
 				receivedAt: requireText(receiptRecord.receivedAt, "receivedAt"),
 			}
 		})
+
+		data.settings.receipts = [...incoming, ...data.settings.receipts]
 	}
 }

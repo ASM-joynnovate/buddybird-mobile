@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { Mascot } from "@/components/mascot"
 import { SignOutAction } from "@/components/auth/sign-out-action"
+import { Mascot } from "@/components/mascot"
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { SpeechBubble } from "@/components/ui/speech-bubble"

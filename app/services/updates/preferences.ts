@@ -1,7 +1,8 @@
-import { updateData } from "@/services/storage/data-store"
+import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 
 export function dismissUpdate(latestVersion: string) {
-	updateData((data) => {
-		data.settings.update.dismissedVersion = latestVersion
+	saveDeviceSetting("update", {
+		...readDeviceSetting("update"),
+		dismissedVersion: latestVersion,
 	})
 }

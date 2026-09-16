@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next"
-
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
+import { StyleSheet, View } from "react-native"
 import Animated, {
 	cancelAnimation,
 	Easing,
@@ -9,8 +9,6 @@ import Animated, {
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated"
-import { StyleSheet, View } from "react-native"
-
 import Svg, { Circle } from "react-native-svg"
 
 import { Mascot } from "@/components/mascot"
@@ -140,8 +138,7 @@ export function SessionRing({
 							strokeLinecap="round"
 							strokeDasharray={`${circumference} ${circumference}`}
 							animatedProps={animatedProps}
-							rotation={-90}
-							origin={`${size / 2}, ${size / 2}`}
+							transform={`rotate(-90 ${size / 2} ${size / 2})`}
 						/>
 					</Svg>
 					<View style={styles.ringContent}>
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 	},
 	ringContent: {
-		...StyleSheet.absoluteFillObject,
+		...StyleSheet.absoluteFill,
 		alignItems: "center",
 		justifyContent: "center",
 		gap: 8,

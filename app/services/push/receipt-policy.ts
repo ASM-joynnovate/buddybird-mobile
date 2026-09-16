@@ -1,4 +1,6 @@
-export function newestReceipts(receipts: import("@/types/push").PushReceipt[]) {
+import type { PushReceipt } from "@/types/push"
+
+export function newestReceipts(receipts: PushReceipt[]) {
 	const unique = new Map(receipts.map((receipt) => [JSON.stringify(receipt), receipt]))
 
 	return [...unique.values()]

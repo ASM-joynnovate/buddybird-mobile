@@ -1,5 +1,4 @@
 import { addDoc, collection, getFirestore, serverTimestamp } from "@react-native-firebase/firestore"
-
 import { Platform } from "react-native"
 
 import { ensureAnonymousIdentity } from "@/apis/identity"

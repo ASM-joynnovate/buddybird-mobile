@@ -3,7 +3,12 @@ import type { Capture } from "@/types/capture"
 import type { Word } from "@/types/word"
 
 export type UploadTrigger =
-	"cold_start" | "foreground" | "network" | "consent" | "session_end" | "accumulation"
+	| "cold_start"
+	| "foreground"
+	| "network"
+	| "consent"
+	| "session_end"
+	| "accumulation"
 
 export type UploadResponse = { status: number; body: unknown }
 

@@ -8,7 +8,7 @@ import {
 } from "@react-native-firebase/remote-config"
 
 import { config } from "@/config"
-import { updateData } from "@/services/storage/data-store"
+import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 import { parseReleaseNotes, UPDATE_INTERVAL, versionParts } from "@/services/updates/policy"
 
 export function initializeUpdateCache() {
@@ -32,8 +32,9 @@ export function readUpdatePolicy() {
 }
 
 export async function fetchUpdatePolicy() {
-	updateData((data) => {
-		data.settings.update.lastCheckedAt = Date.now()
+	saveDeviceSetting("update", {
+		...readDeviceSetting("update"),
+		lastCheckedAt: Date.now(),
 	})
 	const remote = getRemoteConfig()
 

@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
 import { Dialog } from "@/components/dialogs/dialog"
@@ -34,7 +33,7 @@ export function SessionExitDialog({
 					/>
 					<Button
 						testID="session-exit-end"
-						label={t("session.endLabel")}
+						label={t("session.end")}
 						onPress={onEnd}
 						style={ui.action}
 					/>

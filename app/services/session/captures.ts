@@ -1,4 +1,4 @@
-import { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 
 export function sessionCaptures(data: AppData, sessionId: string) {
 	const all = Object.values(data.captures)

@@ -1,4 +1,6 @@
-export const ko = {
+import type { Translation } from "@/types/translation"
+
+export const ko: Translation = {
 	startup: {
 		loading: "저장된 데이터를 준비하고 있어요",
 		title: "데이터를 불러오지 못했어요",
@@ -26,6 +28,18 @@ export const ko = {
 		expired: "로그인이 만료되었어요. 다시 로그인해 주세요.",
 		signOut: "이 기기에서 로그아웃",
 		signOutError: "로그아웃하지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+	},
+
+	storage: {
+		loading: "기존 자료를 가져오고 있어요. 준비된 자료는 사용할 수 있어요.",
+		partial: "일부 자료를 가져오지 못했어요. 원본은 그대로 두었으며 다시 시도할 수 있어요.",
+		unavailable: "저장된 자료를 읽지 못했어요. 원본을 변경하지 않았어요. 다시 시도해 주세요.",
+		profileUnavailable: "기존 프로필을 가져오지 못했어요. 자료 가져오기를 다시 시도해 주세요.",
+		historyUnavailable:
+			"아직 가져오지 못한 학습 기록이 있어요. 통계가 일부만 표시될 수 있어요.",
+		settingError:
+			"일부 기기 설정을 읽지 못했어요. 저장된 값은 그대로 두고 기본 설정으로 표시해요.",
+		saveError: "저장 상태를 확인하지 못했어요. 다시 시도해 주세요.",
 	},
 
 	common: {
@@ -213,7 +227,6 @@ export const ko = {
 		confirmEndMessage:
 			"종료하면 진행 중인 학습이 끝나요. 계속 진행하면 학습 화면으로 돌아가요.",
 		end: "종료",
-		endLabel: "학습 종료",
 		cycle: "사이클 {{cycle}}/{{total}}",
 		playing: "재생 중",
 		waiting: "다음 반복 대기",

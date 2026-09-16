@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-
 import { Linking, StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"

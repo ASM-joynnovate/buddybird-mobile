@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-
 import { Appearance } from "react-native"
 
 import { bootstrap } from "@/services/bootstrap"
@@ -21,8 +20,6 @@ export function useAppBootstrap() {
 	useEffect(() => {
 		let mounted = true
 
-		setState("loading")
-
 		void bootstrap()
 			.then((next) => {
 				if (mounted) {
@@ -42,8 +39,13 @@ export function useAppBootstrap() {
 		}
 	}, [attempt])
 
+	function retry() {
+		setState("loading")
+		setAttempt((value) => value + 1)
+	}
+
 	const settled = state !== "loading"
 	const ready = state === "ready" && settled
 
-	return { state, ready, settled, retry: () => setAttempt((value) => value + 1) }
+	return { state, ready, settled, retry }
 }

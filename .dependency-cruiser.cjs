@@ -28,7 +28,7 @@ module.exports = {
     {
       name: "async-storage-only-for-migration",
       severity: "error",
-      from: { pathNot: "^app/services/migration/migrate-data\\.ts$" },
+      from: { pathNot: "^app/services/migration/import-legacy-data\\.ts$" },
       to: { path: "node_modules/@react-native-async-storage/" },
     },
     {

@@ -1,5 +1,5 @@
-import { PropsWithChildren } from "react"
-import { ScrollView, ScrollViewProps, StyleSheet } from "react-native"
+import type { PropsWithChildren } from "react"
+import { ScrollView, type ScrollViewProps, StyleSheet } from "react-native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { colors } from "@/theme"

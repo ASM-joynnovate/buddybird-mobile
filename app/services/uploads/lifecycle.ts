@@ -1,12 +1,11 @@
 import NetInfo from "@react-native-community/netinfo"
-
 import { AppState } from "react-native"
 
 import { currentIdentity, ensureAnonymousIdentity, subscribeIdentity } from "@/apis/identity"
 import { readData } from "@/services/storage/data-store"
 import { reportError, setTelemetryIdentity } from "@/services/telemetry/client"
 import { triggerUploads } from "@/services/uploads/queue"
-import { type UploadTrigger } from "@/types/uploads"
+import type { UploadTrigger } from "@/types/uploads"
 
 export function startUploads() {
 	readData()

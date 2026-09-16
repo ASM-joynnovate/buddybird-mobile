@@ -1,10 +1,9 @@
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
-import { ChoiceCard } from "@/components/ui/surface"
 import { Icon } from "@/components/ui/icon"
+import { ChoiceCard } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { categoryColors, colors, font, radius } from "@/theme"
 import type { Word } from "@/types/word"

@@ -1,7 +1,5 @@
-import { type FirebaseMessagingTypes } from "@react-native-firebase/messaging"
-
+import type { FirebaseMessagingTypes } from "@react-native-firebase/messaging"
 import { randomUUID } from "expo-crypto"
-
 import { MMKV, Mode } from "react-native-mmkv"
 
 import { newestReceipts } from "@/services/push/receipt-policy"

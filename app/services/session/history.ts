@@ -1,7 +1,7 @@
 import { currentWord } from "@/services/words/selectors"
-import { AppData } from "@/types/app-data"
-import { History, SessionDraft, SessionSettings } from "@/types/session"
-import { WordSnapshot } from "@/types/word"
+import type { AppData } from "@/types/app-data"
+import type { History, SessionDraft, SessionSettings } from "@/types/session"
+import type { WordSnapshot } from "@/types/word"
 import type { PendingRecovery } from "@modules/session-audio-engine/types"
 
 export function practiceDurationMs(recovery: PendingRecovery) {

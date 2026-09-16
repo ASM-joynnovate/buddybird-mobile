@@ -1,14 +1,11 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
 import { AudioWaveform } from "@/components/ui/audio-waveform"
-
-import { usePlaybackMetering } from "@/hooks/use-playback-metering"
-import { meteringLevel } from "@/lib/audio-waveform"
-
 import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
+import { usePlaybackMetering } from "@/hooks/use-playback-metering"
+import { meteringLevel } from "@/lib/audio-waveform"
 import { colors, radius } from "@/theme"
 import type { SessionSnapshot } from "@modules/session-audio-engine"
 
@@ -40,12 +37,10 @@ export function SessionStatus({ snapshot }: { snapshot: SessionSnapshot }) {
 			<View style={styles.waveform}>
 				<AudioWaveform
 					testID="session-waveform"
-					active={playing}
-					level={meteringLevel(decibels)}
+					level={playing ? meteringLevel(decibels) : 0}
 					color={accent}
 					height={44}
 					barCount={38}
-					barWidth={4}
 				/>
 			</View>
 			<View

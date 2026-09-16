@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next"
-
 import { Image, StyleSheet, View } from "react-native"
 
-import { InlineError } from "@/components/ui/inline-error"
 import { Icon } from "@/components/ui/icon"
+import { InlineError } from "@/components/ui/inline-error"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { resolveRecordingUri } from "@/services/media/uri"

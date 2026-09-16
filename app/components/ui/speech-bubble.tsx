@@ -1,5 +1,5 @@
-import { PropsWithChildren } from "react"
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native"
+import type { PropsWithChildren } from "react"
+import { type StyleProp, StyleSheet, View, type ViewStyle } from "react-native"
 
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"

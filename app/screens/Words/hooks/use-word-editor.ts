@@ -1,5 +1,4 @@
 import { useFocusEffect, useNavigation, usePreventRemove } from "@react-navigation/native"
-
 import {
 	AudioModule,
 	RecordingPresets,
@@ -9,24 +8,21 @@ import {
 	useAudioRecorder,
 	useAudioRecorderState,
 } from "expo-audio"
-
 import { File } from "expo-file-system"
-
 import { useCallback, useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useUserWordCount } from "@/hooks/use-app-data"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
 import { queueWordUpload } from "@/services/uploads/queue"
 import { saveWord } from "@/services/words/library"
-import { Word } from "@/types/word"
+import type { Word } from "@/types/word"
 const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true }
 
 export function useWordEditor() {
 	const { t } = useTranslation()
-	const data = useAppData()
+	const userWordCount = useUserWordCount()
 	const navigation = useNavigation()
 	const [label, setLabel] = useState("")
 	const [category, setCategory] = useState<Word["tag"]>("greeting")
@@ -72,17 +68,17 @@ export function useWordEditor() {
 					if (recorder.getStatus().isRecording) {
 						void recorder
 							.stop()
-							.catch((error) => reportError(error, "recording_cleanup"))
+							.catch((cause) => reportError(cause, "recording_cleanup"))
 					}
-				} catch (error) {
-					reportError(error, "recording_cleanup")
+				} catch (cause) {
+					reportError(cause, "recording_cleanup")
 				}
 
 				void setAudioModeAsync({
 					allowsRecording: false,
 					shouldPlayInBackground: false,
 					allowsBackgroundRecording: false,
-				}).catch((error) => reportError(error, "recording_cleanup"))
+				}).catch((cause) => reportError(cause, "recording_cleanup"))
 			},
 			[player, recorder],
 		),
@@ -225,14 +221,14 @@ export function useWordEditor() {
 			const bytes = new File(recorded.uri).size
 
 			size = Number.isFinite(bytes) && bytes >= 0 ? bytes : undefined
-		} catch (error) {
-			reportError(error, "word_audio_size")
+		} catch (cause) {
+			reportError(cause, "word_audio_size")
 		}
 
 		try {
-			void queueWordUpload(word.id).catch((error) => reportError(error, "word-upload"))
-		} catch (error) {
-			reportError(error, "word-upload")
+			void queueWordUpload(word.id).catch((cause) => reportError(cause, "word-upload"))
+		} catch (cause) {
+			reportError(cause, "word-upload")
 		}
 
 		try {
@@ -245,13 +241,10 @@ export function useWordEditor() {
 				...(size === undefined ? {} : { audio_size_bytes: size }),
 			})
 			setUserProperties({
-				total_words_registered:
-					Object.values(data.words).filter(
-						(item) => !item.archived && item.sourceType === "recording",
-					).length + 1,
+				total_words_registered: userWordCount + 1,
 			})
-		} catch (error) {
-			reportError(error, "word_analytics")
+		} catch (cause) {
+			reportError(cause, "word_analytics")
 		}
 	}
 

@@ -22,7 +22,9 @@ async function* chunks(file: File, signal?: AbortSignal) {
 			}
 
 			yield chunk
-			await new Promise<void>((resolve) => setTimeout(resolve, 0))
+			await new Promise<void>((resolve) => {
+				setTimeout(resolve, 0)
+			})
 		}
 	} finally {
 		handle.close()

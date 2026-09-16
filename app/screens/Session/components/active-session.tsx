@@ -1,18 +1,13 @@
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { ScrollView, StyleSheet, View } from "react-native"
 import Animated, {
 	cancelAnimation,
 	useAnimatedStyle,
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated"
-
-import { useTranslation } from "react-i18next"
-
-import { ScrollView, StyleSheet, View } from "react-native"
-
 import { SafeAreaView } from "react-native-safe-area-context"
-
-import { SessionStatus } from "@/screens/Session/components/session-status"
 
 import { SessionFailureNotice } from "@/components/session-failure"
 import { Button } from "@/components/ui/button"
@@ -20,6 +15,7 @@ import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { Copy } from "@/components/ui/text"
 import { SessionRing } from "@/screens/Session/components/session-ring"
+import { SessionStatus } from "@/screens/Session/components/session-status"
 import { useSessionDetails } from "@/screens/Session/hooks/use-session-details"
 import { sessionCountdown } from "@/services/session/countdown"
 import { colors } from "@/theme"
@@ -91,7 +87,7 @@ export function ActiveSession({
 					<Button
 						testID="session-end"
 						label={t("session.end")}
-						accessibilityLabel={t("session.endLabel")}
+						accessibilityLabel={t("session.end")}
 						compact
 						variant="secondary"
 						disabled={busy}

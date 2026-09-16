@@ -23,7 +23,8 @@ import * as Clarity from "react-native-clarity"
 import { currentIdentity } from "@/apis/identity"
 import { config } from "@/config"
 import { ageMonths } from "@/services/profile/statistics"
-import { readData, updateData } from "@/services/storage/data-store"
+import { readData } from "@/services/storage/data-store"
+import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 import { firebaseParameters, sendTelemetrySafely } from "@/services/telemetry/events"
 import {
 	clearOutbox,
@@ -135,7 +136,7 @@ function storedProperties(): Properties {
 				(word) => !word.archived && word.sourceType === "recording",
 			).length,
 			total_training_sessions: Object.keys(data.history).length,
-			locale: data.settings.locale,
+			locale: readDeviceSetting("locale"),
 		}).map(([key, value]) => [key, value === null ? null : String(value)]),
 	)
 }
@@ -356,7 +357,7 @@ async function deliver(destination: Destination) {
 				continue
 			}
 
-			entry.properties ??= { ...initialProperties! }
+			entry.properties ??= { ...initialProperties }
 
 			if (entry.uid === undefined) {
 				entry.uid = currentIdentity()
@@ -516,9 +517,7 @@ export function initializeTelemetry(requestATT = true): Promise<AnalyticsConsent
 				consent = permission.status === "granted" ? "granted" : "denied"
 			}
 
-			updateData((data) => {
-				data.settings.analyticsConsent = consent
-			})
+			saveDeviceSetting("analyticsConsent", consent)
 			allowed = consent === "granted" || consent === "not_applicable"
 
 			if (!allowed) {
