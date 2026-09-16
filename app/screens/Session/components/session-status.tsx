@@ -40,12 +40,10 @@ export function SessionStatus({ snapshot }: { snapshot: SessionSnapshot }) {
 			<View style={styles.waveform}>
 				<AudioWaveform
 					testID="session-waveform"
-					active={playing}
-					level={meteringLevel(decibels)}
+					level={playing ? meteringLevel(decibels) : 0}
 					color={accent}
 					height={44}
 					barCount={38}
-					barWidth={4}
 				/>
 			</View>
 			<View

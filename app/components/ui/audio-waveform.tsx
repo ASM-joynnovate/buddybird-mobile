@@ -1,50 +1,71 @@
 import { memo, useEffect } from "react"
 import { StyleSheet, View } from "react-native"
 import Animated, {
-	ReduceMotion,
 	SharedValue,
 	useAnimatedStyle,
+	useReducedMotion,
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated"
 
-type WaveformProps = {
-	active: boolean
-	level: number
-	color: string
-	height: number
-	barCount: number
-	barWidth: number
-	testID: string
-}
+import { liveTargets, loopTargets } from "@/lib/audio-waveform"
+
+const LIVE_MS = 80
+const LOOP_MS = 200
+const MIN_RATIO = 0.1
 
 export function AudioWaveform({
-	active,
-	level,
 	color,
 	height,
 	barCount,
-	barWidth,
+	fill = false,
+	level,
+	animated = false,
 	testID,
-}: WaveformProps) {
-	const strength = useSharedValue(0)
+}: {
+	color: string
+	height: number
+	barCount: number
+	fill?: boolean
+	level?: number | null
+	animated?: boolean
+	testID: string
+}) {
+	const reduced = useReducedMotion()
+	const targets = useSharedValue<number[]>(Array(barCount).fill(0))
+	const duration = useSharedValue(LOOP_MS)
 
 	useEffect(() => {
-		strength.set(
-			withTiming(active ? level : 0, {
-				duration: 80,
-				reduceMotion: ReduceMotion.System,
-			}),
-		)
-	}, [active, level, strength])
+		if (typeof level === "number") {
+			duration.set(reduced ? 0 : LIVE_MS)
+			targets.set(liveTargets(level, barCount))
+
+			return undefined
+		}
+
+		if (animated && !reduced) {
+			const tick = () => {
+				duration.set(LOOP_MS)
+				targets.set(loopTargets(barCount))
+			}
+
+			tick()
+
+			const timer = setInterval(tick, LOOP_MS)
+
+			return () => clearInterval(timer)
+		}
+
+		duration.set(reduced ? 0 : LOOP_MS)
+		targets.set(Array(barCount).fill(0))
+
+		return undefined
+	}, [animated, barCount, duration, level, reduced, targets])
 
 	return (
 		<View
 			testID={testID}
-			style={[
-				styles.waveform,
-				{ height, width: barCount * barWidth * 2, columnGap: `${50 / barCount}%` },
-			]}
+			style={[styles.waveform, fill && styles.fill, { height }]}
 			accessibilityElementsHidden
 			importantForAccessibility="no-hide-descendants"
 		>
@@ -52,10 +73,11 @@ export function AudioWaveform({
 				<WaveBar
 					key={index}
 					index={index}
-					strength={strength}
+					targets={targets}
+					duration={duration}
 					color={color}
 					height={height}
-					width={barWidth}
+					fill={fill}
 				/>
 			))}
 		</View>
@@ -64,42 +86,46 @@ export function AudioWaveform({
 
 const WaveBar = memo(function WaveBar({
 	index,
-	strength,
+	targets,
+	duration,
 	color,
 	height,
-	width,
+	fill,
 }: {
 	index: number
-	strength: SharedValue<number>
+	targets: SharedValue<number[]>
+	duration: SharedValue<number>
 	color: string
 	height: number
-	width: number
+	fill: boolean
 }) {
 	const animation = useAnimatedStyle(() => ({
-		transform: [
-			{
-				scaleY:
-					(6 +
-						(height - 6) *
-							strength.get() *
-							(0.3 + 0.7 * Math.abs(Math.sin(index * 1.4)))) /
-					height,
-			},
-		],
+		height: withTiming(height * (MIN_RATIO + (1 - MIN_RATIO) * targets.get()[index]), {
+			duration: duration.get(),
+		}),
 	}))
 
 	return (
-		<Animated.View style={[styles.bar, { height, width, backgroundColor: color }, animation]} />
+		<Animated.View
+			style={[
+				styles.bar,
+				fill ? styles.fillBar : styles.fixedBar,
+				{ backgroundColor: color },
+				animation,
+			]}
+		/>
 	)
 })
 
 const styles = StyleSheet.create({
 	waveform: {
-		maxWidth: "100%",
-		alignSelf: "center",
 		flexDirection: "row",
 		justifyContent: "center",
 		alignItems: "center",
+		gap: 3,
 	},
-	bar: { borderRadius: 3, flexShrink: 1 },
+	fill: { width: "100%" },
+	bar: { borderRadius: 2 },
+	fixedBar: { width: 4 },
+	fillBar: { flex: 1, minWidth: 1 },
 })

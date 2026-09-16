@@ -59,12 +59,11 @@ export function RecordingPanel({
 			<View style={styles.waveform}>
 				<AudioWaveform
 					testID="recording-waveform"
-					active={isRecording}
-					level={meteringLevel(metering)}
-					color={isRecording ? colors.onAccent : palette.soft}
+					level={isRecording ? meteringLevel(metering) : 0}
+					color={colors.onAccent}
 					height={48}
 					barCount={48}
-					barWidth={3}
+					fill
 				/>
 			</View>
 			<View style={styles.recordButton}>

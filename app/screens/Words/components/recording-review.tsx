@@ -23,8 +23,6 @@ export function RecordingReview({
 	const { t } = useTranslation()
 	const palette = categoryColors[category]
 	const seconds = Math.floor(Math.max(0, elapsedSeconds))
-	// ponytail: decorative bars; use audio samples if amplitude becomes product data.
-	const level = 0.35 + Math.abs(Math.sin(elapsedSeconds * 8)) * 0.4
 
 	return (
 		<Card style={styles.spacing} contentStyle={styles.review}>
@@ -42,15 +40,17 @@ export function RecordingReview({
 				<Copy style={styles.original}>{t("words.original")}</Copy>
 			</View>
 			<View style={styles.playback}>
-				<AudioWaveform
-					testID="word-review-waveform"
-					active={playing}
-					level={level}
-					color={palette.color}
-					height={30}
-					barCount={9}
-					barWidth={3}
-				/>
+				<View style={styles.waveform}>
+					<AudioWaveform
+						testID="word-review-waveform"
+						animated={playing}
+						level={playing ? null : 0}
+						color={palette.color}
+						height={26}
+						barCount={24}
+						fill
+					/>
+				</View>
 				<Copy testID="word-review-time" style={styles.time}>
 					{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
 				</Copy>
@@ -62,6 +62,7 @@ export function RecordingReview({
 const styles = StyleSheet.create({
 	description: { flexGrow: 1, flexShrink: 1, minWidth: 0 },
 	playback: { marginLeft: "auto", alignItems: "center", gap: 6 },
+	waveform: { width: 96 },
 	time: { fontVariant: ["tabular-nums"], fontSize: 14, color: colors.muted },
 	spacing: { marginTop: 16 },
 	review: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 },
