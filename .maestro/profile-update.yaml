@@ -1,0 +1,86 @@
+appId: com.joynnovate.buddybird.dev
+name: Edited profile retains the exact name and birthday after restart
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      id: profile-edit
+    direction: DOWN
+    centerElement: true
+- waitForAnimationToEnd
+- tapOn:
+    id: profile-edit
+- assertVisible:
+    id: profile-name
+    text: E2E Parrot
+- tapOn:
+    id: profile-name
+- eraseText
+- inputText: Updated Parrot
+- tapOn: Edit profile
+- scrollUntilVisible:
+    element:
+      id: birthday-unknown
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: birthday-unknown
+- assertVisible:
+    id: birthday-unknown
+    selected: false
+- scrollUntilVisible:
+    element:
+      id: birthday-year
+    direction: DOWN
+    centerElement: true
+- swipe:
+    from:
+      id: birthday-year
+    direction: UP
+    duration: 1000
+- assertVisible:
+    id: birthday-year
+    text: ${"(Select birth year, )?" + new Date().getFullYear()}
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: birthday-month
+        text: "(Select birth month, )?1"
+    commands:
+      - swipe:
+          from:
+            id: birthday-month
+          direction: DOWN
+          duration: 1000
+- assertVisible:
+    id: birthday-month
+    text: "(Select birth month, )?1"
+- assertVisible:
+    id: birthday-day
+    text: "(Select birth day, )?1"
+- evalScript: ${output.expectedBirthday = new Date().getFullYear() + ". 1. 1."}
+- scrollUntilVisible:
+    element:
+      id: profile-save
+    direction: DOWN
+- tapOn:
+    id: profile-save
+- extendedWaitUntil:
+    notVisible:
+      id: profile-save
+    timeout: 15000
+- runFlow: helpers/restart-app.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    id: profile-display-name
+    text: Updated Parrot
+- assertVisible: Budgie
+- assertVisible:
+    id: profile-birth-date
+    text: ${output.expectedBirthday.replace(/\./g, '\\.')}
+- takeScreenshot: profile-birth-date

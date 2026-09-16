@@ -1,0 +1,92 @@
+appId: com.joynnovate.buddybird.dev
+name: Completed training credits learning time once and survives restart
+tags: [full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn: Select Hello
+- scrollUntilVisible:
+    element:
+      id: duration-custom
+    direction: DOWN
+- tapOn:
+    id: duration-custom
+- scrollUntilVisible:
+    element:
+      id: duration-minutes
+    direction: DOWN
+    centerElement: true
+- repeat:
+    times: 6
+    while:
+      notVisible:
+        id: duration-minutes
+        text: "(Select minutes, )?0"
+    commands:
+      - swipe:
+          from:
+            id: duration-minutes
+          direction: DOWN
+          duration: 1000
+- scrollUntilVisible:
+    element:
+      id: duration-minutes
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    id: duration-hours
+    text: "(Select hours, )?0"
+- assertVisible:
+    id: duration-minutes
+    text: "(Select minutes, )?0"
+- swipe:
+    start: 65%, 50%
+    end: 65%, 45%
+    duration: 1000
+- assertVisible:
+    id: duration-minutes
+    text: "(Select minutes, )?1"
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-countdown
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: session-complete
+    timeout: 90000
+- assertVisible: 30s
+- tapOn:
+    id: session-continue
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      text: TOTAL TIME
+    direction: UP
+    centerElement: true
+- assertVisible:
+    text: 30s
+    below: TOTAL TIME
+    rightOf: TODAY'S TIME
+    above: Achievements
+- assertVisible: 1 day streak
+- runFlow: helpers/restart-app.yaml
+- tapOn:
+    id: tab-profile
+- scrollUntilVisible:
+    element:
+      text: TOTAL TIME
+    direction: UP
+    centerElement: true
+- assertVisible:
+    text: 30s
+    below: TOTAL TIME
+    rightOf: TODAY'S TIME
+    above: Achievements
+- assertVisible: 1 day streak

@@ -1,0 +1,11 @@
+appId: com.joynnovate.buddybird.dev
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-learn
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible: BuddyBird
+    timeout: 30000

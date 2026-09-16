@@ -1,67 +1,71 @@
 {
-  "cli": {
-    "version": ">= 18.13.1",
-    "appVersionSource": "remote"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "channel": "development",
-      "env": {
-        "APP_VARIANT": "development"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "channel": "preview",
-      "env": {
-        "APP_VARIANT": "development"
-      }
-    },
-    "staging": {
-      "distribution": "store",
-      "channel": "staging",
-      "environment": "preview",
-      "autoIncrement": true,
-      "env": {
-        "APP_VARIANT": "development"
-      }
-    },
-    "production": {
-      "autoIncrement": true,
-      "channel": "production",
-      "env": {
-        "APP_VARIANT": "production"
-      }
-    }
-  },
-  "submit": {
-    "staging": {
-      "android": {
-        "serviceAccountKeyPath": "/tmp/play-service-account.json",
-        "track": "internal",
-        "releaseStatus": "completed",
-        "changesNotSentForReview": false
-      },
-      "ios": {
-        "ascAppId": "6784253530",
-        "appleTeamId": "73TZC3K2JG",
-        "ascApiKeyPath": "/tmp/asc-api-key.p8",
-        "ascApiKeyId": "DDGR4YT335",
-        "ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466",
-        "groups": ["joynnovate"]
-      }
-    },
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "/tmp/play-service-account.json",
-        "track": "production",
-        "releaseStatus": "draft"
-      },
-      "ios": {
-        "ascAppId": "6783652711"
-      }
-    }
-  }
+	"cli": {
+		"version": ">= 18.13.1",
+		"appVersionSource": "remote"
+	},
+	"build": {
+		"development": {
+			"developmentClient": true,
+			"distribution": "internal",
+			"channel": "development",
+			"env": {
+				"APP_VARIANT": "development"
+			}
+		},
+		"preview": {
+			"distribution": "internal",
+			"channel": "preview",
+			"env": {
+				"APP_VARIANT": "development"
+			}
+		},
+		"staging": {
+			"distribution": "store",
+			"channel": "staging",
+			"environment": "preview",
+			"autoIncrement": true,
+			"env": {
+				"APP_VARIANT": "development"
+			}
+		},
+		"production": {
+			"autoIncrement": true,
+			"channel": "production",
+			"env": {
+				"APP_VARIANT": "production"
+			}
+		}
+	},
+	"submit": {
+		"staging": {
+			"android": {
+				"serviceAccountKeyPath": "/tmp/play-service-account.json",
+				"track": "internal",
+				"releaseStatus": "completed",
+				"changesNotSentForReview": false
+			},
+			"ios": {
+				"ascAppId": "6784253530",
+				"appleTeamId": "73TZC3K2JG",
+				"ascApiKeyPath": "/tmp/asc-api-key.p8",
+				"ascApiKeyId": "DDGR4YT335",
+				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466",
+				"groups": ["joynnovate"]
+			}
+		},
+		"production": {
+			"android": {
+				"serviceAccountKeyPath": "/tmp/play-service-account.json",
+				"track": "production",
+				"releaseStatus": "draft"
+			},
+			"ios": {
+				"ascAppId": "6783652711",
+				"appleTeamId": "73TZC3K2JG",
+				"ascApiKeyPath": "/tmp/asc-api-key.p8",
+				"ascApiKeyId": "DDGR4YT335",
+				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466"
+			}
+		}
+	}
 }

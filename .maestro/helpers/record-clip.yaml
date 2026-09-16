@@ -1,0 +1,26 @@
+appId: com.joynnovate.buddybird.dev
+---
+- scrollUntilVisible:
+    element:
+      id: word-record
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 100
+- assertVisible: Stop recording
+- extendedWaitUntil:
+    visible: 'Recording · 0:(0[5-9]|[1-5][0-9]) · Tap to stop'
+    timeout: 20000
+- tapOn:
+    id: word-record
+    waitToSettleTimeoutMs: 100
+- scrollUntilVisible:
+    element:
+      id: word-save
+    direction: DOWN
+- assertVisible:
+    id: word-save
+    enabled: true
+- assertVisible:
+    id: word-review-play

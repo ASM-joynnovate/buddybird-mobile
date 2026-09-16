@@ -1,0 +1,593 @@
+import Foundation
+
+struct EngineFailure: Error, LocalizedError {
+  let code: String
+  let message: String
+
+  var errorDescription: String? { message }
+
+  init(_ code: String, _ message: String) {
+    self.code = code
+    self.message = message
+  }
+}
+
+struct PhasePosition {
+  let cycle: Int
+  let phase: String
+  let elapsed: Double
+}
+
+func sessionPosition(elapsed: Double, total: Double, learning: Double, rest: Double, care: Double)
+  -> PhasePosition
+{
+  let elapsedRunningMs = min(max(0, elapsed), total)
+  let cycleDurationMs = learning + rest + care
+  let fullCycles = Int(elapsedRunningMs / cycleDurationMs)
+  let inside = elapsedRunningMs.truncatingRemainder(dividingBy: cycleDurationMs)
+  if elapsedRunningMs >= total && inside == 0 {
+    return PhasePosition(cycle: max(1, fullCycles), phase: care > 0 ? "stress-care" : "rest", elapsed: care > 0 ? care : rest)
+  }
+  if inside < learning {
+    return PhasePosition(cycle: fullCycles + 1, phase: "learning", elapsed: inside)
+  }
+  let afterLearning = inside - learning
+  return afterLearning < rest || care == 0
+    ? PhasePosition(cycle: fullCycles + 1, phase: "rest", elapsed: afterLearning)
+    : PhasePosition(cycle: fullCycles + 1, phase: "stress-care", elapsed: afterLearning - rest)
+}
+
+struct VADSettings: Codable {
+  var dbFloor: Double = -60
+  var dbCeil: Double = -10
+  var threshold: Double = 0.35
+  var sustainMs: Int = 300
+  var releaseMs: Int = 500
+  var preRollMs: Int = 500
+  var echoTailGuardMs: Int = 200
+  var maxSegmentMs: Int = 10000
+
+  func validate() throws {
+    guard dbFloor.isFinite, dbCeil.isFinite, dbFloor < dbCeil, threshold.isFinite,
+      (0...1).contains(threshold), (100...60000).contains(sustainMs),
+      (100...60000).contains(releaseMs), (0...60000).contains(preRollMs),
+      (0...60000).contains(echoTailGuardMs), maxSegmentMs >= preRollMs + sustainMs,
+      maxSegmentMs <= 60000,
+      [sustainMs, releaseMs, preRollMs, maxSegmentMs].allSatisfy({ $0 % 100 == 0 })
+    else {
+      throw EngineFailure("audio-engine-failed", "Invalid VAD calibration")
+    }
+  }
+}
+
+struct SpeechAudio {
+  let samples: [Int16]
+  let speechStartMs: Int
+  let speechEndMs: Int
+
+  var durationMs: Int { samples.count / 16 }
+}
+
+// Receives exactly 100 ms of 16 kHz mono PCM. No overlap is carried across WAVs.
+final class SpeechDetector {
+  let settings: VADSettings
+
+  private var preRollSamples: [Int16] = []
+  private var onsetSamples: [Int16] = []
+  private var segmentSamples: [Int16] = []
+
+  private var speechStartMs = 0
+  private var quietTailMs = 0
+
+  init(_ settings: VADSettings) {
+    self.settings = settings
+  }
+
+  func consume(_ samples: [Int16]) -> SpeechAudio? {
+    precondition(samples.count == 1600)
+
+    let squaredAmplitudeSum = samples.reduce(0.0) { $0 + pow(Double($1) / 32768, 2) }
+    let decibels = 20 * log10(max(sqrt(squaredAmplitudeSum / Double(samples.count)), 0.000000001))
+    let normalizedLevel = min(
+      1, max(0, (decibels - settings.dbFloor) / (settings.dbCeil - settings.dbFloor)))
+    let isAboveThreshold = normalizedLevel > settings.threshold
+
+    if segmentSamples.isEmpty {
+      if isAboveThreshold {
+        onsetSamples += samples
+
+        if onsetSamples.count / 16 >= settings.sustainMs {
+          segmentSamples = Array((preRollSamples + onsetSamples).suffix(settings.preRollMs * 16))
+          speechStartMs = max(0, segmentSamples.count / 16 - settings.sustainMs)
+          preRollSamples.removeAll(keepingCapacity: true)
+          onsetSamples.removeAll(keepingCapacity: true)
+        }
+      } else {
+        preRollSamples += onsetSamples + samples
+        onsetSamples.removeAll(keepingCapacity: true)
+
+        if preRollSamples.count > settings.preRollMs * 16 {
+          preRollSamples.removeFirst(preRollSamples.count - settings.preRollMs * 16)
+        }
+      }
+    } else {
+      segmentSamples += samples
+      quietTailMs = isAboveThreshold ? 0 : quietTailMs + 100
+    }
+
+    if !segmentSamples.isEmpty
+      && (segmentSamples.count / 16 >= settings.maxSegmentMs || quietTailMs >= settings.releaseMs)
+    {
+      return flush()
+    }
+
+    return nil
+  }
+
+  func flush() -> SpeechAudio? {
+    defer { reset() }
+
+    guard !segmentSamples.isEmpty else {
+      return nil
+    }
+
+    let durationMs = segmentSamples.count / 16
+    let clampedSpeechStartMs = min(speechStartMs, durationMs)
+
+    return SpeechAudio(
+      samples: segmentSamples, speechStartMs: clampedSpeechStartMs,
+      speechEndMs: max(clampedSpeechStartMs, durationMs - quietTailMs))
+  }
+
+  func reset() {
+    preRollSamples.removeAll(keepingCapacity: true)
+    onsetSamples.removeAll(keepingCapacity: true)
+    segmentSamples.removeAll(keepingCapacity: true)
+
+    speechStartMs = 0
+    quietTailMs = 0
+  }
+}
+
+func waveData(_ samples: [Int16]) -> Data {
+  var data = Data()
+
+  func writeASCII(_ text: String) {
+    data.append(contentsOf: text.utf8)
+  }
+
+  func writeUInt16(_ value: UInt16) {
+    var littleEndianValue = value.littleEndian
+    withUnsafeBytes(of: &littleEndianValue) { data.append(contentsOf: $0) }
+  }
+
+  func writeUInt32(_ value: UInt32) {
+    var littleEndianValue = value.littleEndian
+    withUnsafeBytes(of: &littleEndianValue) { data.append(contentsOf: $0) }
+  }
+
+  writeASCII("RIFF")
+  writeUInt32(UInt32(samples.count * 2 + 36))
+  writeASCII("WAVEfmt ")
+
+  writeUInt32(16)
+  writeUInt16(1)
+  writeUInt16(1)
+  writeUInt32(16000)
+  writeUInt32(32000)
+  writeUInt16(2)
+  writeUInt16(16)
+
+  writeASCII("data")
+  writeUInt32(UInt32(samples.count * 2))
+
+  for sample in samples {
+    writeUInt16(UInt16(bitPattern: sample))
+  }
+
+  return data
+}
+
+struct CapturedAudio: Codable {
+  let segmentId: String
+  let sessionId: String
+  var uri: String
+  let fileName: String
+  let phase: String
+  let cycle: Int
+  let capturedAt: String
+  let durationMs: Int
+  let speechStartMs: Int
+  let speechEndMs: Int
+  var fileStatus: String? = nil
+
+  func validate() throws {
+    guard UUID(uuidString: segmentId) != nil, !sessionId.isEmpty,
+      fileName == URL(fileURLWithPath: fileName).lastPathComponent,
+      fileName.hasSuffix(".wav"), ["learning", "rest"].contains(phase), cycle > 0,
+      durationMs > 0, speechStartMs >= 0, speechStartMs <= speechEndMs, speechEndMs <= durationMs
+    else {
+      throw EngineFailure(
+        "storage-unavailable", "Malformed pending capture; original manifest retained")
+    }
+  }
+
+  var dictionary: [String: Any] {
+    (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self))) as? [String: Any] ?? [:]
+  }
+}
+
+struct EvictedAudio: Codable {
+  let capture: CapturedAudio?
+  let fileName: String
+  let segmentId: String
+  let sizeBytes: Int64
+  let capturedAt: String
+
+  var dictionary: [String: Any] {
+    (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self))) as? [String: Any] ?? [:]
+  }
+}
+
+private struct CaptureChanges: Codable {
+  var captures: [CapturedAudio]
+  var evicted: [EvictedAudio]
+}
+
+func isoNow() -> String {
+  let formatter = ISO8601DateFormatter()
+  formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  return formatter.string(from: Date())
+}
+
+// All reads/writes are serialized by the engine queue. Atomic metadata writes precede final WAV rename.
+final class SessionPersistence {
+  let directory: URL
+  let captures: URL
+  private let manager = FileManager.default
+  private var evicted: [EvictedAudio] = []
+
+  private var writingOptions: Data.WritingOptions {
+    #if os(iOS)
+      return [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+    #else
+      return .atomic
+    #endif
+  }
+
+  var recoveryURL: URL { directory.appendingPathComponent("pending-recovery.json") }
+
+  var manifestURL: URL { directory.appendingPathComponent("pending-captures.json") }
+
+  init(directory: URL, captures: URL) {
+    self.directory = directory
+    self.captures = captures
+  }
+
+  func prepare() throws {
+    try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+    try manager.createDirectory(at: captures, withIntermediateDirectories: true)
+  }
+
+  func readRecovery() throws -> [String: Any]? {
+    guard manager.fileExists(atPath: recoveryURL.path) else {
+      return nil
+    }
+
+    guard
+      let record = try JSONSerialization.jsonObject(with: Data(contentsOf: recoveryURL))
+        as? [String: Any]
+    else {
+      throw EngineFailure("storage-unavailable", "Malformed recovery; original bytes retained")
+    }
+    return record
+  }
+
+  func writeRecovery(_ record: [String: Any]) throws {
+    try prepare()
+
+    let encoded = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
+    try encoded.write(to: recoveryURL, options: writingOptions)
+
+    guard try Data(contentsOf: recoveryURL) == encoded else {
+      throw EngineFailure("storage-unavailable", "Recovery write verification failed")
+    }
+  }
+
+  func clearRecovery(_ sessionID: String) throws {
+    guard let record = try readRecovery() else {
+      return
+    }
+
+    guard let config = record["configuration"] as? [String: Any],
+      config["sessionId"] as? String == sessionID
+    else {
+      throw EngineFailure("storage-unavailable", "Recovery session ID mismatch")
+    }
+
+    try manager.removeItem(at: recoveryURL)
+  }
+
+  private func writeManifest(_ pendingCaptures: [CapturedAudio]) throws {
+    try prepare()
+
+    let encoded = try JSONEncoder().encode(CaptureChanges(captures: pendingCaptures, evicted: evicted))
+    try encoded.write(to: manifestURL, options: writingOptions)
+
+    guard try Data(contentsOf: manifestURL) == encoded else {
+      throw EngineFailure("storage-unavailable", "Capture manifest write verification failed")
+    }
+  }
+
+  func pending(acknowledgedIDs: Set<String> = []) throws -> [CapturedAudio] {
+    try prepare()
+
+    var pendingCaptures: [CapturedAudio] = []
+    evicted = []
+    if manager.fileExists(atPath: manifestURL.path) {
+      let data = try Data(contentsOf: manifestURL)
+      if try JSONSerialization.jsonObject(with: data) is [Any] {
+        pendingCaptures = try JSONDecoder().decode([CapturedAudio].self, from: data)
+      } else {
+        let changes = try JSONDecoder().decode(CaptureChanges.self, from: data)
+        pendingCaptures = changes.captures
+        evicted = changes.evicted
+      }
+    }
+    pendingCaptures.removeAll { acknowledgedIDs.contains($0.segmentId) }
+    try pendingCaptures.forEach { try $0.validate() }
+    try finishEvictions()
+
+    let metadataURLs = try manager.contentsOfDirectory(
+      at: captures, includingPropertiesForKeys: nil
+    )
+    .filter { $0.lastPathComponent.hasSuffix(".metadata.json") }
+
+    for metadataURL in metadataURLs {
+      let capture = try JSONDecoder().decode(
+        CapturedAudio.self, from: Data(contentsOf: metadataURL))
+      try capture.validate()
+
+      if !acknowledgedIDs.contains(capture.segmentId), !pendingCaptures.contains(where: {
+        $0.segmentId == capture.segmentId
+      }) {
+        pendingCaptures.append(capture)
+      }
+    }
+
+    try pendingCaptures.forEach { try $0.validate() }
+    guard
+      Set(
+        pendingCaptures.map {
+          $0.segmentId
+        }
+      ).count == pendingCaptures.count
+    else {
+      throw EngineFailure("storage-unavailable", "Duplicate pending capture identity")
+    }
+    try writeManifest(pendingCaptures)
+
+    for captureIndex in pendingCaptures.indices {
+      try pendingCaptures[captureIndex].validate()
+      let finalURL = captures.appendingPathComponent(pendingCaptures[captureIndex].fileName)
+      let temporaryURL = captures.appendingPathComponent(
+        ".\(pendingCaptures[captureIndex].fileName).tmp")
+
+      pendingCaptures[captureIndex].fileStatus = nil
+      do {
+        if !manager.fileExists(atPath: finalURL.path), manager.fileExists(atPath: temporaryURL.path) {
+          try manager.moveItem(at: temporaryURL, to: finalURL)
+        }
+        if (try? finalURL.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true {
+          pendingCaptures[captureIndex].fileStatus = "unreadable"
+        }
+      } catch {
+        pendingCaptures[captureIndex].fileStatus = "unreadable"
+      }
+      pendingCaptures[captureIndex].uri = finalURL.absoluteString
+    }
+
+    try writeManifest(pendingCaptures)
+
+    for metadataURL in metadataURLs {
+      let capture = try JSONDecoder().decode(
+        CapturedAudio.self, from: Data(contentsOf: metadataURL))
+      if acknowledgedIDs.contains(capture.segmentId) || pendingCaptures.contains(where: {
+        $0.segmentId == capture.segmentId
+      }) {
+        try manager.removeItem(at: metadataURL)
+      }
+    }
+
+    let referenced = Set(pendingCaptures.map { ".\($0.fileName).tmp" })
+    for file in try manager.contentsOfDirectory(at: captures, includingPropertiesForKeys: nil) {
+      let name = file.lastPathComponent
+      if name.hasPrefix(".session-"), name.hasSuffix(".wav.tmp"), !referenced.contains(name),
+        isManagedCapture(captures.appendingPathComponent(String(name.dropFirst().dropLast(4)))) ,
+        (try? file.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == false
+      {
+        try manager.removeItem(at: file)
+      }
+    }
+
+    return pendingCaptures
+  }
+
+  func save(_ audio: SpeechAudio, sessionId: String, phase: String, cycle: Int, maxBytes: Int64)
+    throws -> CapturedAudio
+  {
+    var pendingCaptures = try pending()
+
+    let segmentID = UUID().uuidString.lowercased()
+    let fileName = "session-\(sessionId)-\(segmentID).wav"
+    let finalURL = captures.appendingPathComponent(fileName)
+    let capture = CapturedAudio(
+      segmentId: segmentID, sessionId: sessionId, uri: finalURL.absoluteString, fileName: fileName,
+      phase: phase,
+      cycle: cycle, capturedAt: isoNow(), durationMs: audio.durationMs,
+      speechStartMs: audio.speechStartMs, speechEndMs: audio.speechEndMs)
+
+    try makeRoom(incomingBytes: Int64(audio.samples.count * 2 + 44), maxBytes: maxBytes, pendingCaptures: &pendingCaptures)
+
+    let metadataURL = captures.appendingPathComponent(".\(fileName).metadata.json")
+    try JSONEncoder().encode(capture).write(to: metadataURL, options: writingOptions)
+
+    let temporaryURL = captures.appendingPathComponent(".\(fileName).tmp")
+    try waveData(audio.samples).write(to: temporaryURL, options: writingOptions)
+
+    pendingCaptures.append(capture)
+    try writeManifest(pendingCaptures)
+
+    try manager.moveItem(at: temporaryURL, to: finalURL)
+    try manager.removeItem(at: metadataURL)
+
+    return capture
+  }
+
+  func changes() throws -> [String: Any] {
+    let captures = try pending()
+    return ["captures": captures.map { $0.dictionary }, "evicted": evicted.map { $0.dictionary }]
+  }
+
+  func acknowledge(_ ids: [String], evictedFileNames: [String]) throws {
+    let acknowledgedIDs = Set(ids)
+    let captures = try pending(acknowledgedIDs: acknowledgedIDs)
+    evicted.removeAll { evictedFileNames.contains($0.fileName) }
+    try writeManifest(captures.filter { !acknowledgedIDs.contains($0.segmentId) })
+  }
+
+  private func isManagedCapture(_ file: URL) -> Bool {
+    // Both released and current engines write this name. Direct word recordings use recording-UUID.
+    let pattern = #"^session-[A-Za-z0-9_-]{1,200}-[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\.wav$"#
+    return file.lastPathComponent.range(of: pattern, options: .regularExpression) != nil
+      && file.deletingLastPathComponent().resolvingSymlinksInPath().path == captures.resolvingSymlinksInPath().path
+      && (try? file.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) != true
+  }
+
+  private func finishEvictions() throws {
+    for entry in evicted {
+      if let capture = entry.capture {
+        try capture.validate()
+        guard capture.fileName == entry.fileName, capture.segmentId == entry.segmentId else {
+          throw EngineFailure("storage-unavailable", "Mismatched capture eviction")
+        }
+      }
+      guard entry.fileName == URL(fileURLWithPath: entry.fileName).lastPathComponent,
+        isManagedCapture(captures.appendingPathComponent(entry.fileName)),
+        entry.sizeBytes >= 0, !entry.capturedAt.isEmpty
+      else {
+        throw EngineFailure("storage-unavailable", "Malformed capture eviction")
+      }
+    }
+    for entry in evicted {
+      let file = captures.appendingPathComponent(entry.fileName)
+      if manager.fileExists(atPath: file.path) {
+        try manager.removeItem(at: file)
+      }
+    }
+  }
+
+  private func makeRoom(incomingBytes: Int64, maxBytes: Int64, pendingCaptures: inout [CapturedAudio]) throws {
+    guard incomingBytes <= maxBytes else {
+      throw EngineFailure("storage-unavailable", "One capture exceeds the storage limit")
+    }
+    // ponytail: scan the bounded capture directory; cache totals only if scans become a bottleneck.
+    let files = try manager.contentsOfDirectory(at: captures, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey])
+      .filter { isManagedCapture($0) }
+      .compactMap { file -> (url: URL, size: Int64, modified: Date)? in
+        let values = try file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey])
+        guard values.isRegularFile == true else { return nil }
+        return (file, Int64(values.fileSize ?? 0), values.contentModificationDate ?? .distantPast)
+      }
+    var bytes = files.reduce(Int64(0)) { $0 + $1.size }
+    guard bytes + incomingBytes > maxBytes else { return }
+
+    var removed = Set<String>()
+    for file in files.sorted(by: { $0.modified == $1.modified ? $0.url.lastPathComponent < $1.url.lastPathComponent : $0.modified < $1.modified }) {
+      if bytes + incomingBytes <= maxBytes { break }
+      let name = file.url.lastPathComponent
+      let pending = pendingCaptures.first { $0.fileName == name }
+      let segmentID = pending?.segmentId ?? String(file.url.deletingPathExtension().lastPathComponent.suffix(36)).lowercased()
+      evicted.append(EvictedAudio(
+        capture: pending, fileName: name, segmentId: segmentID, sizeBytes: file.size,
+        capturedAt: pending?.capturedAt ?? ISO8601DateFormatter().string(from: file.modified)))
+      removed.insert(name)
+      bytes -= file.size
+    }
+    pendingCaptures.removeAll { removed.contains($0.fileName) }
+    // Persist the intent before unlinking. Recovery completes interrupted deletions before ACK.
+    try writeManifest(pendingCaptures)
+    try finishEvictions()
+  }
+}
+
+func recoveredSession(_ record: [String: Any]) throws -> [String: Any] {
+  guard let config = record["configuration"] as? [String: Any],
+    let sessionId = config["sessionId"] as? String,
+    let recoveryMetadata = config["recovery"] as? [String: Any],
+    recoveryMetadata["wordId"] is String,
+    recoveryMetadata["word"] is String,
+    ["preset", "recording"].contains(recoveryMetadata["sourceType"] as? String ?? ""),
+    recoveryMetadata["startedAt"] is String,
+    let totalDurationMs = config["totalDurationMs"] as? Double,
+    let learningDurationMs = config["learningDurationMs"] as? Double,
+    let restDurationMs = config["restDurationMs"] as? Double,
+    let elapsedRunningMs = record["elapsedRunningMs"] as? Double,
+    let savedAt = record["savedAt"] as? String,
+    totalDurationMs > 0, learningDurationMs > 0, restDurationMs >= 0, elapsedRunningMs >= 0,
+    let targetAudioUri = config["targetAudioUri"] as? String
+  else {
+    throw EngineFailure(
+      "storage-unavailable", "Malformed session recovery; original bytes retained")
+  }
+
+  guard config["stressCareDurationMs"] == nil || config["stressCareDurationMs"] is Double else {
+    throw EngineFailure("storage-unavailable", "Malformed recovery care duration")
+  }
+
+  let stressCareDurationMs = config["stressCareDurationMs"] as? Double ?? 0
+  guard validDurations(totalDurationMs, learningDurationMs, restDurationMs, stressCareDurationMs),
+    elapsedRunningMs.isFinite
+  else {
+    throw EngineFailure("storage-unavailable", "Malformed recovery durations")
+  }
+
+  let playbackCount = record["targetPlaybackCount"] as? Int ?? 0
+  guard playbackCount >= 0, record["targetPlaybackCount"] == nil || record["targetPlaybackCount"] is Int else {
+    throw EngineFailure("storage-unavailable", "Malformed playback counter")
+  }
+  let reason = record["reason"] as? String
+  let phasePosition = sessionPosition(
+    elapsed: elapsedRunningMs, total: totalDurationMs, learning: learningDurationMs,
+    rest: restDurationMs, care: stressCareDurationMs)
+  let snapshot: [String: Any] = [
+    "sessionId": sessionId,
+    "state": reason == "duration-reached" ? "completed" : "failed",
+    "elapsedRunningMs": min(totalDurationMs, elapsedRunningMs),
+    "cycle": phasePosition.cycle,
+    "phase": phasePosition.phase,
+    "phaseElapsedMs": phasePosition.elapsed,
+    "savedAt": savedAt,
+    "isTargetPlaying": false,
+    "lastPlaybackStartDelayMs": NSNull(),
+    "targetPlaybackCount": playbackCount,
+    "failure": record["failure"] as? [String: Any] as Any? ?? NSNull(),
+  ]
+
+  return [
+    "sessionId": sessionId,
+    "recovery": recoveryMetadata,
+    "targetAudioUri": targetAudioUri,
+    "totalDurationMs": totalDurationMs,
+    "learningDurationMs": learningDurationMs,
+    "restDurationMs": restDurationMs,
+    "stressCareDurationMs": stressCareDurationMs,
+    "snapshot": snapshot,
+    "reason": reason as Any? ?? NSNull(),
+  ]
+}
+
+func validDurations(_ total: Double, _ learning: Double, _ rest: Double, _ care: Double) -> Bool {
+  [total, learning, rest, care].allSatisfy { $0.isFinite && $0 >= 0 && $0 <= 31_536_000_000 }
+    && total >= 1 && learning >= 1 && total / (learning + rest + care) <= Double(Int32.max)
+}

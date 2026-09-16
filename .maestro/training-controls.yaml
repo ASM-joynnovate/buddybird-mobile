@@ -1,0 +1,109 @@
+appId: com.joynnovate.buddybird.dev
+name: Training pauses its countdown, resumes, and can be ended
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- tapOn: Select Hello
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-countdown
+    timeout: 20000
+- extendedWaitUntil:
+    visible: '09:[0-5][0-9]'
+    timeout: 20000
+- assertVisible: Hello
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: session-back
+- assertVisible: End the training session\?
+- tapOn:
+    id: session-exit-continue
+- assertNotVisible: End the training session\?
+- scrollUntilVisible:
+    element:
+      id: session-pause
+    direction: DOWN
+- tapOn:
+    id: session-pause
+- assertVisible:
+    id: session-pause
+    text: Resume
+- copyTextFrom:
+    id: session-countdown
+- evalScript: ${output.pausedCountdown = maestro.copiedText; output.pauseStartedAt = Date.now()}
+- repeat:
+    while:
+      true: ${Date.now() - output.pauseStartedAt < 3000}
+    commands:
+      - assertVisible:
+          id: session-countdown
+          text: ${output.pausedCountdown}
+- assertVisible:
+    id: session-countdown
+    text: ${output.pausedCountdown}
+- tapOn:
+    id: session-pause
+    waitToSettleTimeoutMs: 100
+- assertVisible:
+    id: session-pause
+    text: Pause
+- extendedWaitUntil:
+    notVisible:
+      id: session-countdown
+      text: ${output.pausedCountdown}
+    timeout: 15000
+- copyTextFrom:
+    id: session-countdown
+- assertTrue:
+    condition: ${maestro.copiedText < output.pausedCountdown}
+    label: Remaining time decreases after resuming
+- scrollUntilVisible:
+    element:
+      id: session-back
+    direction: UP
+- tapOn:
+    id: session-back
+- assertVisible: End the training session\?
+- takeScreenshot: confirm-session-exit
+- tapOn:
+    id: session-exit-end
+- extendedWaitUntil:
+    visible:
+      id: learning-start
+    timeout: 20000
+- assertNotVisible:
+    id: session-countdown
+- assertVisible:
+    id: learning-start
+    enabled: true
+- tapOn:
+    id: learning-start
+    waitToSettleTimeoutMs: 100
+- extendedWaitUntil:
+    visible:
+      id: session-end
+    timeout: 20000
+- tapOn:
+    id: session-end
+- tapOn:
+    id: session-exit-end
+- extendedWaitUntil:
+    visible:
+      id: learning-start
+    timeout: 20000
+- assertNotVisible: End the training session\?

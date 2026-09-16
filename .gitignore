@@ -718,12 +718,11 @@ expo-env.d.ts
 /android/
 /ios/
 
-# Firebase service configs (do not commit)
-/config/prod/firebase/GoogleService-Info.plist
-
 # Per-environment config (Firebase, future per-service keys)
 # Tree: config/{env}/{service}/...
 /config/
 
 # Claude local setting
 .claude/settings.local.json
+
+.e2e/results/

@@ -1,223 +1,126 @@
-// app.config.ts
-import type { ConfigContext, ExpoConfig } from 'expo/config';
+import { readFileSync } from "node:fs"
+import path from "node:path"
 
-import pkg from './package.json';
+import type { ExpoConfig } from "expo/config"
 
-declare const require: (moduleName: string) => { version?: string };
+const { version } = JSON.parse(readFileSync(path.join(__dirname, "package.json"), "utf8")) as {
+	version: string
+}
 
-const APP_NAME = '버디버드';
-// 브랜드/아이콘 배경 (어댑티브 아이콘). 스플래시 배경과 색이 다르므로 분리.
-const BRAND_BACKGROUND_COLOR = '#E0010E';
-// 스플래시 전용 배경 — in-app 스플래시(splashRed)와 일치시켜 네이티브→in-app 핸드오프를 끊김 없이.
-const SPLASH_BACKGROUND_COLOR = '#DB030F';
+const production = process.env.APP_VARIANT === "production"
+const variant = production ? "prod" : "dev"
+const id = production ? "com.joynnovate.buddybird" : "com.joynnovate.buddybird.dev"
 
-const TRACKING_PERMISSION_MESSAGE =
-    '더 나은 학습 경험을 위해 익명화된 사용 통계를 수집합니다. 개인을 식별하지 않으며, 언제든지 거부할 수 있습니다.';
+const config: ExpoConfig = {
+	name: production ? "버디버드" : "버디버드 (DEV)",
+	slug: "buddybird",
+	owner: "joynnovate0410",
+	version,
+	orientation: "portrait",
+	scheme: production ? "buddybird" : "buddybird-dev",
+	userInterfaceStyle: "automatic",
+	locales: { ko: "./app/i18n/native/ko.json", en: "./app/i18n/native/en.json" },
+	icon: "./assets/images/icon.png",
+	ios: {
+		bundleIdentifier: id,
+		supportsTablet: true,
+		googleServicesFile:
+			process.env.GOOGLE_SERVICES_INFO_PLIST ??
+			`./config/${variant}/firebase/GoogleService-Info.plist`,
+		entitlements: { "aps-environment": production ? "production" : "development" },
+		infoPlist: {
+			CFBundleName: "BuddyBird",
+			ITSAppUsesNonExemptEncryption: false,
+			UIBackgroundModes: ["audio", "remote-notification"],
+			NSMicrophoneUsageDescription: "단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다.",
+			NSPhotoLibraryUsageDescription: "앵무새 프로필에 사용할 사진을 선택합니다.",
+			NSCameraUsageDescription: "앵무새 프로필 사진을 촬영합니다.",
+		},
+	},
+	android: {
+		package: id,
+		googleServicesFile:
+			process.env.GOOGLE_SERVICES_JSON ?? `./config/${variant}/firebase/google-services.json`,
+		adaptiveIcon: {
+			foregroundImage: "./assets/images/android-icon-foreground.png",
+			backgroundColor: "#E0010E",
+		},
+		permissions: [
+			"RECORD_AUDIO",
+			"MODIFY_AUDIO_SETTINGS",
+			"POST_NOTIFICATIONS",
+			"FOREGROUND_SERVICE",
+			"FOREGROUND_SERVICE_MICROPHONE",
+			"FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+			"com.google.android.gms.permission.AD_ID",
+		],
+	},
+	plugins: [
+		"./plugins/withSessionAudioEngine",
+		"./plugins/withAndroidBuildMemory",
+		"@react-native-firebase/app",
+		"@react-native-firebase/auth",
+		"@react-native-firebase/crashlytics",
+		[
+			"expo-build-properties",
+			{
+				ios: {
+					useFrameworks: "static",
+					forceStaticLinking: [
+						"RNFBApp",
+						"RNFBAuth",
+						"RNFBAnalytics",
+						"RNFBCrashlytics",
+						"RNFBFirestore",
+						"RNFBMessaging",
+						"RNFBRemoteConfig",
+					],
+				},
+			},
+		],
+		[
+			"expo-splash-screen",
+			{
+				backgroundColor: "#DB030F",
+				image: "./assets/images/splash-wordmark.png",
+				imageWidth: 288,
+				resizeMode: "contain",
+				dark: { backgroundColor: "#DB030F" },
+			},
+		],
+		[
+			"expo-font",
+			{
+				fonts: [
+					"./assets/fonts/Pretendard-Regular.otf",
+					"./assets/fonts/Pretendard-Bold.otf",
+					"./assets/fonts/Pretendard-ExtraBold.otf",
+					"./assets/fonts/Pretendard-Black.otf",
+					"./assets/fonts/Nunito-Bold.ttf",
+					"./assets/fonts/Nunito-ExtraBold.ttf",
+					"./assets/fonts/Nunito-Black.ttf",
+					"./assets/fonts/Fredoka-SemiBold.ttf",
+				],
+			},
+		],
+		"expo-localization",
+		"expo-image-picker",
+		[
+			"expo-audio",
+			{ microphonePermission: "단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다." },
+		],
+		[
+			"expo-tracking-transparency",
+			{ userTrackingPermission: "앱 이용 정보를 분석하여 학습 경험을 개선합니다." },
+		],
+	],
+	extra: {
+		eas: { projectId: "f00b95df-f52f-4021-8543-47971d4fa55e" },
+		apiBaseUrl: String(process.env.EXPO_PUBLIC_API_BASE_URL ?? "").trim(),
+		clarityProjectId:
+			String(process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID ?? "").trim() || "wre3hgbj48",
+		production,
+	},
+}
 
-const MICROPHONE_PERMISSION_MESSAGE =
-    '버디버드가 반려조 학습용 목소리를 녹음할 수 있도록 마이크 접근을 허용해 주세요.';
-
-type AppVariant = 'development' | 'production';
-
-const resolveAppVariant = (): AppVariant =>
-    process.env.APP_VARIANT === 'production' ? 'production' : 'development';
-
-const APP_VARIANT = resolveAppVariant();
-const IS_DEV = APP_VARIANT === 'development';
-
-const BUNDLE_ID_BASE = 'com.joynnovate.buddybird';
-const BUNDLE_ID = IS_DEV ? `${BUNDLE_ID_BASE}.dev` : BUNDLE_ID_BASE;
-const SCHEME = IS_DEV ? 'buddybird-dev' : 'buddybird';
-const DISPLAY_NAME = IS_DEV ? `${APP_NAME} (DEV)` : APP_NAME;
-// 업데이트 프롬프트의 iOS '업데이트' 버튼이 여는 App Store ID(숫자). 개발계/운영계가 별도 앱이라 분기한다.
-const IOS_APP_STORE_ID = IS_DEV ? '6784253530' : '6783652711';
-
-const IOS_GOOGLE_SERVICES_FILE =
-    process.env.GOOGLE_SERVICES_INFO_PLIST ??
-    (IS_DEV
-        ? './config/dev/firebase/GoogleService-Info.plist'
-        : './config/prod/firebase/GoogleService-Info.plist');
-
-const ANDROID_GOOGLE_SERVICES_FILE =
-    process.env.GOOGLE_SERVICES_JSON ??
-    (IS_DEV
-        ? './config/dev/firebase/google-services.json'
-        : './config/prod/firebase/google-services.json');
-
-const getExpoMajorVersion = (): number | null => {
-    try {
-        const { version } = require('expo/package.json');
-        const majorVersion = Number(version?.split('.')[0]);
-
-        return Number.isFinite(majorVersion) ? majorVersion : null;
-    } catch {
-        return null;
-    }
-};
-
-const expoMajorVersion = getExpoMajorVersion();
-
-/**
- * Expo SDK 55부터는 newArchEnabled와 android.edgeToEdgeEnabled가 app config에서 제거되었습니다.
- * SDK 54 이하에서는 기존 app.json 동작을 보존하기 위해 유지합니다.
- */
-const shouldKeepSdk54CompatConfig =
-    expoMajorVersion !== null && expoMajorVersion < 55;
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
-    ...config,
-
-    ...(shouldKeepSdk54CompatConfig
-        ? {
-            newArchEnabled: true,
-        }
-        : {}),
-
-    name: DISPLAY_NAME,
-    slug: 'buddybird',
-    version: pkg.version,
-    orientation: 'portrait',
-    icon: './assets/images/icon.png',
-    scheme: SCHEME,
-    userInterfaceStyle: 'automatic',
-
-    ios: {
-        supportsTablet: true,
-        bundleIdentifier: BUNDLE_ID,
-        googleServicesFile: IOS_GOOGLE_SERVICES_FILE,
-        // HTTPS/TLS·OS 표준 암호화만 사용 (Firebase 포함) — 수출규정 면제.
-        // App Store 빌드가 Missing Compliance 대신 Ready to Submit 으로 들어오게 한다.
-        config: {
-            usesNonExemptEncryption: false,
-        },
-        entitlements: {
-            'aps-environment': IS_DEV ? 'development' : 'production',
-        },
-        infoPlist: {
-            NSUserTrackingUsageDescription: TRACKING_PERMISSION_MESSAGE,
-            // 'audio': iOS에서 화면을 끄고 자리를 비운 동안에도 목표 단어 재생이 이어지게 하는 백그라운드 오디오 모드.
-            // 이 모드가 있어야 백그라운드 재생이 유지된다. 변경 후 prebuild + 재빌드해야 바이너리에 반영된다.
-            UIBackgroundModes: ['remote-notification', 'audio'],
-        },
-    },
-
-    android: {
-        package: BUNDLE_ID,
-        googleServicesFile: ANDROID_GOOGLE_SERVICES_FILE,
-        adaptiveIcon: {
-            backgroundColor: BRAND_BACKGROUND_COLOR,
-            foregroundImage: './assets/images/android-icon-foreground.png'
-        },
-
-        ...(shouldKeepSdk54CompatConfig
-            ? {
-                edgeToEdgeEnabled: true,
-            }
-            : {}),
-
-        predictiveBackGestureEnabled: false,
-        permissions: [
-            'android.permission.RECORD_AUDIO',
-            'android.permission.MODIFY_AUDIO_SETTINGS',
-            'android.permission.POST_NOTIFICATIONS',
-            'android.permission.FOREGROUND_SERVICE',
-            'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-            'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
-            'com.google.android.gms.permission.AD_ID',
-        ],
-    },
-
-    web: {
-        output: 'static',
-        favicon: './assets/images/favicon.ico',
-    },
-
-    plugins: [
-        'expo-router',
-        'expo-asset',
-        [
-            'expo-font',
-            {
-                fonts: [
-                    './node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf',
-                    './node_modules/@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf',
-                    './node_modules/@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf',
-                    './node_modules/@expo-google-fonts/nunito/900Black/Nunito_900Black.ttf',
-                    './assets/fonts/Pretendard-Regular.otf',
-                    './assets/fonts/Pretendard-Bold.otf',
-                    './assets/fonts/Pretendard-ExtraBold.otf',
-                    './assets/fonts/Pretendard-Black.otf',
-                ],
-            },
-        ],
-        [
-            'expo-splash-screen',
-            {
-                image: './assets/images/splash-wordmark.png',
-                imageWidth: 288,
-                resizeMode: 'contain',
-                backgroundColor: SPLASH_BACKGROUND_COLOR,
-                dark: {
-                    backgroundColor: SPLASH_BACKGROUND_COLOR,
-                },
-            },
-        ],
-        [
-            'expo-audio',
-            {
-                microphonePermission: MICROPHONE_PERMISSION_MESSAGE,
-            },
-        ],
-        '@react-native-firebase/app',
-        '@react-native-firebase/crashlytics',
-        '@react-native-firebase/messaging',
-        [
-            'expo-tracking-transparency',
-            {
-                userTrackingPermission: TRACKING_PERMISSION_MESSAGE,
-            },
-        ],
-        [
-            'expo-build-properties',
-            {
-                ios: {
-                    useFrameworks: 'static',
-                    forceStaticLinking: [
-                        'RNFBApp',
-                        'RNFBAnalytics',
-                        'RNFBAuth',
-                        'RNFBCrashlytics',
-                        'RNFBFirestore',
-                        'RNFBMessaging',
-                        'RNFBRemoteConfig',
-                    ],
-                },
-            },
-        ],
-        './plugins/withFirebaseStaticPodfile',
-        './plugins/withGradleJvmArgs',
-        './plugins/withReactActivityInitGuards',
-    ],
-
-    extra: {
-        appVariant: APP_VARIANT,
-        // 수집 API base URL. 미설정이면 업로드 게이트가 닫혀 클립 전송이 꺼진다 —
-        // 로컬은 .env, EAS 빌드는 profile별 env 로 공급 (docs/BUILD-AND-RELEASE.md).
-        apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
-        clarityProjectId: 'wre3hgbj48',
-        // iOS '업데이트' 버튼이 여는 App Store ID. Android 는 런타임 applicationId 로
-        // market:// 링크를 구성하므로 별도 값이 불필요하다.
-        iosAppStoreId: IOS_APP_STORE_ID,
-        router: {},
-        eas: {
-            projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e',
-        },
-    },
-
-    experiments: {
-        typedRoutes: true,
-        reactCompiler: true,
-    },
-
-    owner: 'joynnovate0410',
-});
+export default config

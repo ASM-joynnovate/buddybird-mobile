@@ -1,8 +1,8 @@
 {
-  "name": "session-audio-engine",
-  "version": "0.1.0",
-  "description": "BuddyBird background training session audio engine",
-  "main": "index.ts",
-  "license": "UNLICENSED",
-  "private": true
+	"name": "session-audio-engine",
+	"version": "1.0.0",
+	"private": true,
+	"description": "BuddyBird native learning audio engine",
+	"license": "UNLICENSED",
+	"main": "index.ts"
 }

@@ -1,0 +1,24 @@
+appId: com.joynnovate.buddybird.dev
+name: New profile survives app restart
+tags: [smoke, full]
+---
+- runFlow: helpers/fresh-profile.yaml
+- assertVisible:
+    id: tab-learn
+    selected: true
+- scrollUntilVisible:
+    element:
+      id: learning-start
+    direction: DOWN
+- assertVisible:
+    id: learning-start
+    enabled: true
+- runFlow: helpers/restart-app.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    id: profile-display-name
+    text: E2E Parrot
+- assertVisible: Budgie
+- assertNotVisible:
+    id: onboarding-start
