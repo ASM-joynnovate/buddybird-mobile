@@ -12,8 +12,8 @@ These are recommended PostToolUse automations to keep RN/Expo code healthy. Wire
 ## Suggested PostToolUse checks (on edit of *.ts/*.tsx)
 
 - **Type check:** `tsc --noEmit` — catch type errors early.
-- **Lint:** `npx expo lint` (uses `eslint-config-expo`; flat config `eslint.config.js` is the default from SDK 53+).
-- **Format:** `prettier --write` on changed files.
+- **Lint:** `yarn lint` (oxlint with `oxlint.config.mts`; type-aware rules included).
+- **Format:** `yarn format` (oxfmt; also sorts imports).
 
 ## Pre-release / periodic
 

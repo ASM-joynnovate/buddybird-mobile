@@ -42,7 +42,7 @@ paths:
 Before shipping, all must pass:
 
 - [ ] `tsc --noEmit` clean
-- [ ] `npx expo lint` clean
+- [ ] `yarn lint` clean
 - [ ] Tests green, coverage >= 80% (see testing.md)
 - [ ] `npx expo-doctor` healthy
 - [ ] Critical-flow E2E (Maestro/Detox) pass on a real build
