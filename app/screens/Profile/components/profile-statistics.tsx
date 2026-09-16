@@ -91,29 +91,24 @@ export function ProfileStatistics({
 }
 
 const styles = StyleSheet.create({
-	summaries: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 24 },
-	cell: { flexGrow: 1, flexShrink: 1, flexBasis: 96, minWidth: 0 },
+	summaries: { flexDirection: "row", gap: 10, marginTop: 24 },
+	cell: { flex: 1, minWidth: 0 },
 	summary: {
 		flex: 1,
 		alignItems: "center",
 		justifyContent: "center",
 		paddingHorizontal: 5,
-		paddingVertical: 12,
+		paddingTop: 16,
+		paddingBottom: 8,
 		gap: 2,
 	},
-	heading: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 4,
-	},
+	heading: { alignItems: "center", gap: 4 },
 	value: { minHeight: 52, width: "100%", justifyContent: "center" },
 	compactValue: { minHeight: 44 },
 	stat: { fontSize: 24, lineHeight: 26, fontFamily: font.black, textAlign: "center" },
 	compactStat: { fontSize: 20, lineHeight: 22 },
 	unit: { fontSize: 14, fontFamily: font.bold },
 	compactUnit: { fontSize: 12 },
-	statLabel: { flexShrink: 1, fontSize: 12, lineHeight: 14, color: colors.muted },
+	statLabel: { fontSize: 12, lineHeight: 14, color: colors.muted, textAlign: "center" },
 	compactLabel: { fontSize: 11, lineHeight: 12 },
 })
