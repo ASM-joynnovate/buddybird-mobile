@@ -24,8 +24,8 @@ export function useProfileLanguage() {
 			setUserProperties({ locale: next })
 			track("language_changed", { from: locale, to: next })
 			setError(null)
-		} catch (error) {
-			reportError(error, "change_language")
+		} catch (cause) {
+			reportError(cause, "change_language")
 			setError(t("profile.languageError"))
 		}
 	}

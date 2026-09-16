@@ -24,19 +24,18 @@ export function importLegacyRecords(
 	}
 
 	const original = readMigrationSource(store)
+	const resolved = original ?? source
 
-	if (original) {
-		source = original
-	} else {
+	if (!original) {
 		writeVerified(store, SOURCE_KEY, JSON.stringify(source))
 	}
 
 	const step = migrationSteps(data)
 
-	if (source.kind === "mmkv") {
-		convertMMKV(source.serialized, data, step, importSetting)
+	if (resolved.kind === "mmkv") {
+		convertMMKV(resolved.serialized, data, step, importSetting)
 	} else {
-		convertLegacy(source.values, data, step, importSetting)
+		convertLegacy(resolved.values, data, step, importSetting)
 	}
 
 	mergeAliasedMetrics(data)

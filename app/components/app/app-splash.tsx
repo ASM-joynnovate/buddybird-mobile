@@ -7,7 +7,6 @@ import { StyleSheet } from "react-native"
 import Animated, {
 	cancelAnimation,
 	Easing,
-	runOnJS,
 	type SharedValue,
 	useAnimatedProps,
 	useAnimatedStyle,
@@ -17,6 +16,7 @@ import Animated, {
 	withSequence,
 	withTiming,
 } from "react-native-reanimated"
+import { scheduleOnRN } from "react-native-worklets"
 
 import Svg, { Ellipse, G, Path, Rect, Text as SvgText } from "react-native-svg"
 
@@ -93,7 +93,7 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 						{ duration: 130, easing: Easing.out(Easing.quad) },
 						(finished) => {
 							if (finished) {
-								runOnJS(setBlinked)(true)
+								scheduleOnRN(setBlinked, true)
 							}
 						},
 					),
@@ -115,7 +115,7 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 		opacity.set(
 			withTiming(0, { duration: reducedMotion ? 0 : 200 }, (finished) => {
 				if (finished) {
-					runOnJS(onComplete)()
+					scheduleOnRN(onComplete)
 				}
 			}),
 		)
@@ -185,5 +185,5 @@ export function AppSplash({ ready, onComplete }: { ready: boolean; onComplete():
 }
 
 const styles = StyleSheet.create({
-	screen: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.brand },
+	screen: { ...StyleSheet.absoluteFill, backgroundColor: colors.brand },
 })

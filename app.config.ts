@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import path from "node:path"
 
-import type { ExpoConfig } from "expo/config"
+import type  { ExpoConfig } from "expo/config"
 
 const { version } = JSON.parse(readFileSync(path.join(__dirname, "package.json"), "utf8")) as { version: string }
 
@@ -100,8 +100,8 @@ const config: ExpoConfig = {
   ],
   extra: {
     eas: { projectId: "f00b95df-f52f-4021-8543-47971d4fa55e" },
-    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? "",
-    clarityProjectId: process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID?.trim() || "wre3hgbj48",
+    apiBaseUrl: String(process.env.EXPO_PUBLIC_API_BASE_URL ?? "").trim(),
+    clarityProjectId: String(process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID ?? "").trim() || "wre3hgbj48",
     production,
   },
 }

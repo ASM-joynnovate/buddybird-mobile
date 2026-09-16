@@ -47,7 +47,7 @@ export function isMigrationMediaReferenced(
 			? [JSON.parse(source.serialized)]
 			: Object.entries(source.values)
 					.filter(([key]) => /\/(wordLibrary|training-store|parrot-profile)$/.test(key))
-					.map(([, value]) => JSON.parse(value))
+					.map(([, value]) => JSON.parse(value) as unknown)
 
 	while (records.length) {
 		const record = records.pop()

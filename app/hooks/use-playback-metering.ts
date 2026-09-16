@@ -6,8 +6,6 @@ export function usePlaybackMetering(playing: boolean) {
 	const [decibels, setDecibels] = useState(-160)
 
 	useEffect(() => {
-		setDecibels(-160)
-
 		if (!playing) {
 			return
 		}
@@ -16,7 +14,10 @@ export function usePlaybackMetering(playing: boolean) {
 			setDecibels(measurement.decibels)
 		})
 
-		return () => subscription.remove()
+		return () => {
+			subscription.remove()
+			setDecibels(-160)
+		}
 	}, [playing])
 
 	return decibels

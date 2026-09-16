@@ -1,10 +1,15 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import {
+	createNativeStackNavigator,
+	type NativeStackScreenProps,
+} from "@react-navigation/native-stack"
 
 import { ProfileStep } from "@/screens/Onboarding/components/profile-step"
 import { Welcome } from "@/screens/Onboarding/components/welcome"
 import { useOnboarding } from "@/screens/Onboarding/hooks/use-onboarding"
 
-const Stack = createNativeStackNavigator<{ Welcome: undefined; Profile: undefined }>()
+type OnboardingParams = { Welcome: undefined; Profile: undefined }
+
+const Stack = createNativeStackNavigator<OnboardingParams>()
 
 export function OnboardingScreen() {
 	const { begin, profile } = useOnboarding()
@@ -12,7 +17,7 @@ export function OnboardingScreen() {
 	return (
 		<Stack.Navigator screenOptions={{ headerShown: false }}>
 			<Stack.Screen name="Welcome" listeners={{ focus: profile.onBack }}>
-				{({ navigation }) => (
+				{({ navigation }: NativeStackScreenProps<OnboardingParams, "Welcome">) => (
 					<Welcome
 						onStart={() => {
 							begin()
@@ -22,7 +27,7 @@ export function OnboardingScreen() {
 				)}
 			</Stack.Screen>
 			<Stack.Screen name="Profile">
-				{({ navigation }) => (
+				{({ navigation }: NativeStackScreenProps<OnboardingParams, "Profile">) => (
 					<ProfileStep
 						onboarding={{
 							...profile,

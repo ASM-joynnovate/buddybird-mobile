@@ -113,7 +113,7 @@ export function applyLegacyTraining(
 								current.totalTrainingSeconds + incoming.totalTrainingSeconds,
 							sessionCount: current.sessionCount + incoming.sessionCount,
 							successMarkedAt: current.successMarkedAt ?? incoming.successMarkedAt,
-							updatedAt: [current.updatedAt, incoming.updatedAt].sort().at(-1)!,
+							updatedAt: [current.updatedAt, incoming.updatedAt].sort()[1],
 						}
 					: incoming
 			})

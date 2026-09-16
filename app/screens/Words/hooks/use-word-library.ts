@@ -32,7 +32,6 @@ export function useWordLibrary() {
 	const isFocused = useRef(false)
 	const wordCount = useRef(words.length)
 
-	wordCount.current = words.length
 	const filteredWords = filter === "all" ? words : words.filter((word) => word.tag === filter)
 
 	useFocusEffect(
@@ -49,6 +48,9 @@ export function useWordLibrary() {
 			}
 		}, [player]),
 	)
+	useEffect(() => {
+		wordCount.current = words.length
+	}, [words.length])
 	useEffect(() => {
 		if (status.didJustFinish) {
 			setPlayingId(null)

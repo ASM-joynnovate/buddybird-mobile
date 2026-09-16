@@ -33,7 +33,7 @@ export function Wheel({
 	const scroll = useRef<ScrollView>(null)
 	const dragging = useRef(false)
 	const selectedIndex = Math.max(0, values.indexOf(value))
-	const initialOffset = useRef({ x: 0, y: selectedIndex * itemHeight })
+	const [initialOffset] = useState(() => ({ x: 0, y: selectedIndex * itemHeight }))
 	const [centeredIndex, setCenteredIndex] = useState(selectedIndex)
 
 	useEffect(() => {
@@ -71,7 +71,6 @@ export function Wheel({
 				min: values[0],
 				max: values[values.length - 1],
 				now: value,
-				text: String(value),
 			}}
 			accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
 			onAccessibilityAction={({ nativeEvent: { actionName } }) => {
@@ -92,7 +91,7 @@ export function Wheel({
 			}}
 			style={styles.wheel}
 			contentContainerStyle={styles.content}
-			contentOffset={initialOffset.current}
+			contentOffset={initialOffset}
 			snapToInterval={itemHeight}
 			decelerationRate="fast"
 			showsVerticalScrollIndicator={false}

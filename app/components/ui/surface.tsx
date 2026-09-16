@@ -3,12 +3,12 @@ import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
 	ReduceMotion,
-	runOnJS,
 	useAnimatedStyle,
 	useSharedValue,
 	useReducedMotion,
 	withTiming,
 } from "react-native-reanimated"
+import { scheduleOnRN } from "react-native-worklets"
 
 import { colors, radius } from "@/theme"
 
@@ -116,7 +116,7 @@ export function PressableSurface({
 				})
 				.onEnd((_event, success) => {
 					if (success) {
-						runOnJS(activate)()
+						scheduleOnRN(activate)
 					}
 				})
 				.onFinalize(() => {

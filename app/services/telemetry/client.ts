@@ -357,7 +357,7 @@ async function deliver(destination: Destination) {
 				continue
 			}
 
-			entry.properties ??= { ...initialProperties! }
+			entry.properties ??= { ...initialProperties }
 
 			if (entry.uid === undefined) {
 				entry.uid = currentIdentity()

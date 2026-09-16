@@ -32,7 +32,7 @@ export function AudioWaveform({
 	testID: string
 }) {
 	const reduced = useReducedMotion()
-	const targets = useSharedValue<number[]>(Array(barCount).fill(0))
+	const targets = useSharedValue<number[]>(Array.from({ length: barCount }, () => 0))
 	const duration = useSharedValue(LOOP_MS)
 
 	useEffect(() => {

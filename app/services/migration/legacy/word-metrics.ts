@@ -44,7 +44,7 @@ export function applyLegacyMetrics(
 				const canonicalId = data.wordAliases[id] ?? id
 				const current = data.settings.wordMetrics[canonicalId]
 				const dates = [current?.last_practiced_at_iso, incoming.last_practiced_at_iso]
-					.filter((value): value is string => value !== null && value !== undefined)
+					.filter((date): date is string => date !== null && date !== undefined)
 					.sort()
 
 				data.settings.wordMetrics[canonicalId] = {

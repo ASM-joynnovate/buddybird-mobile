@@ -22,7 +22,10 @@ export function createWordWorker(
 
 			data.pendingWords = [...new Set([...data.pendingWords, ...wordIdsToQueue])]
 		})
-		wordIdsToQueue.forEach((id) => requestedIds.add(id))
+		for (const id of wordIdsToQueue) {
+			requestedIds.add(id)
+		}
+
 		wordTriggerCount++
 
 		if (wordUploadTask) {
@@ -50,7 +53,9 @@ export function createWordWorker(
 							continue
 						}
 
-						if (!canUpload(signal)) {
+						const uid = dependencies.identity()
+
+						if (!canUpload(signal) || !uid) {
 							break
 						}
 
@@ -74,7 +79,7 @@ export function createWordWorker(
 
 							const response = await dependencies.sendWord(
 								word,
-								dependencies.identity()!,
+								uid,
 								signal,
 							)
 

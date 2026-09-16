@@ -36,6 +36,9 @@
     "typeRoots": [
       "./node_modules/@types",
       "./types"
+    ],
+    "types": [
+      "node"
     ]
   },
   "ts-node": {

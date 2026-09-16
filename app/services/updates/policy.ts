@@ -78,7 +78,7 @@ export function evaluateUpdate(
 
 	if (
 		!forced &&
-		(compareVersions(installed, policy.latestVersion)! >= 0 ||
+		((compareVersions(installed, policy.latestVersion) ?? 0) >= 0 ||
 			dismissed === policy.latestVersion)
 	) {
 		return null

@@ -83,8 +83,8 @@ export function useLearningSetup() {
 					{
 						text: t("learning.openSettings"),
 						onPress: () => {
-							void Linking.openSettings().catch((error) =>
-								reportError(error, "microphone_settings"),
+							void Linking.openSettings().catch((settingsError) =>
+								reportError(settingsError, "microphone_settings"),
 							)
 						},
 					},

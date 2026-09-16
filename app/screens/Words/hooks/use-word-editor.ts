@@ -72,17 +72,17 @@ export function useWordEditor() {
 					if (recorder.getStatus().isRecording) {
 						void recorder
 							.stop()
-							.catch((error) => reportError(error, "recording_cleanup"))
+							.catch((cause) => reportError(cause, "recording_cleanup"))
 					}
-				} catch (error) {
-					reportError(error, "recording_cleanup")
+				} catch (cause) {
+					reportError(cause, "recording_cleanup")
 				}
 
 				void setAudioModeAsync({
 					allowsRecording: false,
 					shouldPlayInBackground: false,
 					allowsBackgroundRecording: false,
-				}).catch((error) => reportError(error, "recording_cleanup"))
+				}).catch((cause) => reportError(cause, "recording_cleanup"))
 			},
 			[player, recorder],
 		),
@@ -225,14 +225,14 @@ export function useWordEditor() {
 			const bytes = new File(recorded.uri).size
 
 			size = Number.isFinite(bytes) && bytes >= 0 ? bytes : undefined
-		} catch (error) {
-			reportError(error, "word_audio_size")
+		} catch (cause) {
+			reportError(cause, "word_audio_size")
 		}
 
 		try {
-			void queueWordUpload(word.id).catch((error) => reportError(error, "word-upload"))
-		} catch (error) {
-			reportError(error, "word-upload")
+			void queueWordUpload(word.id).catch((cause) => reportError(cause, "word-upload"))
+		} catch (cause) {
+			reportError(cause, "word-upload")
 		}
 
 		try {
@@ -247,8 +247,8 @@ export function useWordEditor() {
 			setUserProperties({
 				total_words_registered: userWordCount + 1,
 			})
-		} catch (error) {
-			reportError(error, "word_analytics")
+		} catch (cause) {
+			reportError(cause, "word_analytics")
 		}
 	}
 

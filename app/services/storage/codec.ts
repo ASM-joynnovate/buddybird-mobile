@@ -188,8 +188,8 @@ function readCapture(value: unknown, id: string): Capture {
 	requireNonnegativeNumber(record.sizeBytes, "sizeBytes")
 	requireChoice(record.phase, ["learning", "rest"] as const, "phase")
 
-	for (const value of requireList(record.segments, "segments")) {
-		const segment = requireRecord(value, "segment")
+	for (const item of requireList(record.segments, "segments")) {
+		const segment = requireRecord(item, "segment")
 		const start = requireNonnegativeNumber(segment.startMs, "startMs")
 		const end = requireNonnegativeNumber(segment.endMs, "endMs")
 

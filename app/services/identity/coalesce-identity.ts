@@ -9,11 +9,9 @@ export function coalesceIdentity(current: () => string | null, signIn: () => Pro
 			return Promise.resolve(uid)
 		}
 
-		if (!pending) {
-			pending = signIn().finally(() => {
-				pending = null
-			})
-		}
+		pending ??= signIn().finally(() => {
+			pending = null
+		})
 
 		return pending
 	}
