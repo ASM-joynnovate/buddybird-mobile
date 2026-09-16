@@ -1,4 +1,4 @@
-import type  { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 
 export type MigrationStep = (key: string, apply: () => void) => void
 

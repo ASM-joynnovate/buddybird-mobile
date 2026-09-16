@@ -1,8 +1,7 @@
 import { createContext } from "react"
 
-import type  { Timing } from "@/types/session"
-
-import type  { SessionFailure, SessionSnapshot } from "@modules/session-audio-engine/types"
+import type { Timing } from "@/types/session"
+import type { SessionFailure, SessionSnapshot } from "@modules/session-audio-engine/types"
 
 export type SessionValue = {
 	snapshot: SessionSnapshot

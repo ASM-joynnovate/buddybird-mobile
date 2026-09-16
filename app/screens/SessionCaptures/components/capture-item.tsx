@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/icon"
 import { Card, PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors } from "@/theme"
-import type  { Capture } from "@/types/capture"
+import type { Capture } from "@/types/capture"
 
 export const CaptureItem = memo(function CaptureItem({
 	capture,

@@ -77,11 +77,7 @@ export function createWordWorker(
 								continue
 							}
 
-							const response = await dependencies.sendWord(
-								word,
-								uid,
-								signal,
-							)
+							const response = await dependencies.sendWord(word, uid, signal)
 
 							if (response.status >= 400 && response.status < 500) {
 								dependencies.rejectedWord(word, response)

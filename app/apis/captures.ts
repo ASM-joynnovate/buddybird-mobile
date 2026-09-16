@@ -6,8 +6,8 @@ import { installedVersion } from "@/lib/application"
 import { writeCaptureZip } from "@/lib/zip"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { reportError } from "@/services/telemetry/client"
-import type  { Capture } from "@/types/capture"
-import type  { CaptureBatchResult } from "@/types/uploads"
+import type { Capture } from "@/types/capture"
+import type { CaptureBatchResult } from "@/types/uploads"
 
 async function* chunks(file: File, signal?: AbortSignal) {
 	const handle = file.open()

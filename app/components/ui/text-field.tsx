@@ -1,8 +1,8 @@
 import { StyleSheet, TextInput, type TextInputProps, View } from "react-native"
 
-import { Copy } from "@/components/ui/text"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
+import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 
 export function TextField({

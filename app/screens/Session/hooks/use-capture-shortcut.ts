@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native"
-import type  { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useRef } from "react"
 
-import type  { RootStackParamList } from "@/types/navigation"
+import type { RootStackParamList } from "@/types/navigation"
 
 export function useCaptureShortcut(sessionId: string | null, word: string) {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()

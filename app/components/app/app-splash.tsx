@@ -1,9 +1,6 @@
 import * as SplashScreen from "expo-splash-screen"
-
 import { useEffect, useRef, useState } from "react"
-
 import { StyleSheet } from "react-native"
-
 import Animated, {
 	cancelAnimation,
 	Easing,
@@ -16,9 +13,8 @@ import Animated, {
 	withSequence,
 	withTiming,
 } from "react-native-reanimated"
-import { scheduleOnRN } from "react-native-worklets"
-
 import Svg, { Ellipse, G, Path, Rect, Text as SvgText } from "react-native-svg"
+import { scheduleOnRN } from "react-native-worklets"
 
 import { reportError } from "@/services/telemetry/client"
 import { colors, font } from "@/theme"

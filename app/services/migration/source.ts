@@ -1,5 +1,5 @@
-import type  { Store } from "@/types/storage"
 import { SOURCE_KEY } from "@/services/storage/keys"
+import type { Store } from "@/types/storage"
 import { requireRecord, requireText } from "@/utils/validation"
 
 export type MigrationSource =

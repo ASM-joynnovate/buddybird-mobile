@@ -1,5 +1,4 @@
 import { getLocales } from "expo-localization"
-
 import * as SplashScreen from "expo-splash-screen"
 
 import { initializeUpdateCache } from "@/apis/app-update"

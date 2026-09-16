@@ -1,5 +1,4 @@
 import { useFocusEffect, useNavigation, usePreventRemove } from "@react-navigation/native"
-
 import {
 	AudioModule,
 	RecordingPresets,
@@ -9,11 +8,8 @@ import {
 	useAudioRecorder,
 	useAudioRecorderState,
 } from "expo-audio"
-
 import { File } from "expo-file-system"
-
 import { useCallback, useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 

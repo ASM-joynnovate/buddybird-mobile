@@ -1,11 +1,7 @@
 import { useFocusEffect } from "@react-navigation/native"
-
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
-
 import { useCallback, useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { Alert } from "react-native"
 
 import { useUserWordCount, useVisibleWords } from "@/hooks/use-app-data"

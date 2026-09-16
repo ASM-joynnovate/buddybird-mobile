@@ -1,13 +1,11 @@
 import { useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
-import { ui } from "@/components/ui/styles"
 import { InlineError } from "@/components/ui/inline-error"
+import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 
 export function AudioConsentDialog({

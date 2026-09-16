@@ -1,9 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
-
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-
 import { useTranslation } from "react-i18next"
-
 import { FlatList, StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
@@ -15,7 +12,7 @@ import { WordFilters } from "@/screens/Words/components/word-filters"
 import { WordListItem } from "@/screens/Words/components/word-list-item"
 import { useWordLibrary } from "@/screens/Words/hooks/use-word-library"
 import { colors } from "@/theme"
-import type  { RootStackParamList } from "@/types/navigation"
+import type { RootStackParamList } from "@/types/navigation"
 
 export function WordsScreen() {
 	const { t } = useTranslation()

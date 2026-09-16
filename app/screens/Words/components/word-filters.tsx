@@ -1,11 +1,9 @@
 import { useTranslation } from "react-i18next"
-
 import { ScrollView, StyleSheet, View } from "react-native"
-
-import { categoryColors } from "@/theme"
 
 import { Chip } from "@/components/ui/chip"
 import { filters, type WordFilter } from "@/screens/Words/filters"
+import { categoryColors } from "@/theme"
 
 export function WordFilters({
 	filter,

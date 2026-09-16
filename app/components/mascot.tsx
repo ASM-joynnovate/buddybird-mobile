@@ -1,6 +1,6 @@
 import { useEffect } from "react"
-import { Image, StyleSheet } from "react-native"
 import { useTranslation } from "react-i18next"
+import { Image, StyleSheet } from "react-native"
 import Animated, {
 	cancelAnimation,
 	useAnimatedStyle,

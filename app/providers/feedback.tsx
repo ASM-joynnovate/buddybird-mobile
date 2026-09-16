@@ -9,9 +9,5 @@ export function FeedbackProvider({ children }: PropsWithChildren) {
 		[source],
 	)
 
-	return (
-		<FeedbackContext.Provider value={value}>
-			{children}
-		</FeedbackContext.Provider>
-	)
+	return <FeedbackContext.Provider value={value}>{children}</FeedbackContext.Provider>
 }

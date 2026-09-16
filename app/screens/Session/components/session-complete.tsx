@@ -1,22 +1,19 @@
 import { useTranslation } from "react-i18next"
-
 import { ScrollView, StyleSheet, View } from "react-native"
-
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { useCaptureShortcut } from "@/screens/Session/hooks/use-capture-shortcut"
 import { Mascot } from "@/components/mascot"
-import { Card, PressableSurface } from "@/components/ui/surface"
-
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
+import { Card, PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { durationText } from "@/i18n/duration"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
+import { durationText } from "@/i18n/duration"
 import { withSubjectParticle } from "@/i18n/particles"
 import { Confetti } from "@/screens/Session/components/confetti"
+import { useCaptureShortcut } from "@/screens/Session/hooks/use-capture-shortcut"
 import { useSessionDetails } from "@/screens/Session/hooks/use-session-details"
 import { learningSeconds } from "@/services/session/history"
 import { colors, font } from "@/theme"

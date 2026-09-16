@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next"
-
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
+import { StyleSheet, View } from "react-native"
 import Animated, {
 	cancelAnimation,
 	Easing,
@@ -9,14 +9,12 @@ import Animated, {
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated"
-import { StyleSheet, View } from "react-native"
-
 import Svg, { Circle } from "react-native-svg"
 
 import { Mascot } from "@/components/mascot"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
-import type  { SessionSnapshot } from "@modules/session-audio-engine"
+import type { SessionSnapshot } from "@modules/session-audio-engine"
 
 const ProgressCircle = Animated.createAnimatedComponent(Circle)
 

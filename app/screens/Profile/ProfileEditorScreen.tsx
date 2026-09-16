@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 
-import { ProfileForm } from "@/components/profile-form/index"
 import { ProfileFormHeader } from "@/components/profile-form/header"
+import { ProfileForm } from "@/components/profile-form/index"
 import { ProfilePhoto } from "@/components/profile-form/photo"
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"

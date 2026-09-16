@@ -1,4 +1,4 @@
-import type  { AppData } from "@/types/app-data"
+import type { AppData } from "@/types/app-data"
 
 export function isMediaReferenced(data: AppData, uri: string, resolve: (uri: string) => string) {
 	const target = resolve(uri)

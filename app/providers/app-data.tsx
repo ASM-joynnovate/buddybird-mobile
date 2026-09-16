@@ -1,18 +1,16 @@
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
+import { useMMKVString } from "react-native-mmkv"
 import { SafeAreaView } from "react-native-safe-area-context"
 
-import { useMMKVString } from "react-native-mmkv"
-
-import { FeedbackProvider } from "@/providers/feedback"
-
-import { AppContext } from "@/context/app-data"
 import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Copy } from "@/components/ui/text"
+import { AppContext } from "@/context/app-data"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { initI18n } from "@/i18n"
+import { FeedbackProvider } from "@/providers/feedback"
 import { importLegacyData } from "@/services/migration/import-legacy-data"
 import { decodeData } from "@/services/storage/codec"
 import { DATA_KEY, storage } from "@/services/storage/data-store"

@@ -11,7 +11,7 @@ import { mergePushReceipts, saveReceipt, setPushInteractive } from "@/services/p
 import { authorization, registerPush } from "@/services/push/registration"
 import { readData, updateData } from "@/services/storage/data-store"
 import { reportError } from "@/services/telemetry/client"
-import type  { PushReceipt } from "@/types/push"
+import type { PushReceipt } from "@/types/push"
 
 export function startPush() {
 	if (!readData().profile) {

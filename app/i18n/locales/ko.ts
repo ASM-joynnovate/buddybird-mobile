@@ -1,4 +1,4 @@
-import type  { Translation } from "@/types/translation"
+import type { Translation } from "@/types/translation"
 
 export const ko: Translation = {
 	startup: {

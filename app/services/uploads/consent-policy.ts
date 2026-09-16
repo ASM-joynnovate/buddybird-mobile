@@ -1,4 +1,4 @@
-import type  { UploadConsent } from "@/types/consent"
+import type { UploadConsent } from "@/types/consent"
 
 export function shouldPromptUploadConsent(
 	consent: UploadConsent,

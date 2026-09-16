@@ -1,5 +1,4 @@
 import { readData, updateData } from "@/services/storage/data-store"
-
 import { presets } from "@/services/words/catalog"
 
 export function seedPresets() {

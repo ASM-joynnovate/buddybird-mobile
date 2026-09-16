@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-
 import { Appearance } from "react-native"
 
 import { bootstrap } from "@/services/bootstrap"

@@ -1,11 +1,9 @@
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
-import { Card } from "@/components/ui/surface"
 import { AudioWaveform } from "@/components/ui/audio-waveform"
-
 import { IconButton } from "@/components/ui/icon-button"
+import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { categoryColors, colors } from "@/theme"
 

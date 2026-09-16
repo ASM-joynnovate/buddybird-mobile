@@ -1,12 +1,11 @@
 import { useState } from "react"
-
 import { useTranslation } from "react-i18next"
 
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { initI18n } from "@/i18n"
 import { saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
-import type  { Locale } from "@/types/locale"
+import type { Locale } from "@/types/locale"
 
 export function useProfileLanguage() {
 	const { t } = useTranslation()

@@ -1,11 +1,7 @@
 import { useNavigation, usePreventRemove } from "@react-navigation/native"
-
 import * as ImagePicker from "expo-image-picker"
-
 import { useEffect, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { BackHandler } from "react-native"
 
 import { useProfile } from "@/hooks/use-app-data"
@@ -13,7 +9,7 @@ import { saveProfile } from "@/services/profile/profile"
 import { speciesIds } from "@/services/profile/species"
 import { ageMonths } from "@/services/profile/statistics"
 import { syncUserProperties, track } from "@/services/telemetry/client"
-import type  { ProfileOnboarding } from "@/types/profile"
+import type { ProfileOnboarding } from "@/types/profile"
 
 export function useProfileForm(onboarding?: ProfileOnboarding) {
 	const { t } = useTranslation()

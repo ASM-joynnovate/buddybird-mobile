@@ -3,9 +3,7 @@ import {
 	StackActions,
 	useNavigationContainerRef,
 } from "@react-navigation/native"
-
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-
 import { useEffect, useRef, useState } from "react"
 
 import { useNeedsProfileOnboarding, useProfile } from "@/hooks/use-app-data"
@@ -13,8 +11,8 @@ import { useSession } from "@/hooks/use-session"
 import { MainTabs } from "@/navigators/main-tabs"
 import { OnboardingScreen } from "@/screens/Onboarding/OnboardingScreen"
 import { ProfileEditorScreen } from "@/screens/Profile/ProfileEditorScreen"
-import { SessionCapturesScreen } from "@/screens/SessionCaptures/SessionCapturesScreen"
 import { SessionScreen } from "@/screens/Session/SessionScreen"
+import { SessionCapturesScreen } from "@/screens/SessionCaptures/SessionCapturesScreen"
 import { WordEditorScreen } from "@/screens/Words/WordEditorScreen"
 import { colors } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"

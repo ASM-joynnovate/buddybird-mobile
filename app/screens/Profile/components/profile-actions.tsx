@@ -3,10 +3,10 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type  { RootStackParamList } from "@/types/navigation"
-import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
 import { Button } from "@/components/ui/button"
 import { ui } from "@/components/ui/styles"
+import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
+import type { RootStackParamList } from "@/types/navigation"
 
 export function ProfileActions() {
 	const { t } = useTranslation()

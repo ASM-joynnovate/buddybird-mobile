@@ -1,1 +1,8 @@
-{"name":"session-audio-engine","version":"1.0.0","private":true,"main":"index.ts","description":"BuddyBird native learning audio engine","license":"UNLICENSED"}
+{
+	"name": "session-audio-engine",
+	"version": "1.0.0",
+	"private": true,
+	"description": "BuddyBird native learning audio engine",
+	"license": "UNLICENSED",
+	"main": "index.ts"
+}

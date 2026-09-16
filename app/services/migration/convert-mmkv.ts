@@ -1,3 +1,4 @@
+import type { ImportDeviceSetting } from "@/services/migration/legacy/convert"
 import { parseLegacyProfile } from "@/services/migration/legacy/profile"
 import { applyLegacyPush } from "@/services/migration/legacy/push"
 import { applyLegacyReceipts } from "@/services/migration/legacy/push-receipts"
@@ -5,11 +6,10 @@ import { parseLegacySettings } from "@/services/migration/legacy/session-setting
 import { applyLegacyConsent } from "@/services/migration/legacy/upload-consent"
 import { applyLegacyMetrics } from "@/services/migration/legacy/word-metrics"
 import { parseLegacyWord } from "@/services/migration/legacy/words"
-import type  { ImportDeviceSetting } from "@/services/migration/legacy/convert"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
 import { readHistory, readProgress, readSessionDraft } from "@/services/storage/codec"
-import type  { AppData } from "@/types/app-data"
-import type  { DeviceSettings } from "@/types/device-settings"
+import type { AppData } from "@/types/app-data"
+import type { DeviceSettings } from "@/types/device-settings"
 import { requireId, requireList, requireRecord, requireText } from "@/utils/validation"
 
 export function convertMMKV(

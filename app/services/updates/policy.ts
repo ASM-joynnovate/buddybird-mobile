@@ -1,5 +1,5 @@
 import type { UpdateDecision, UpdatePolicy } from "@/types/apis/update"
-import type  { Locale } from "@/types/locale"
+import type { Locale } from "@/types/locale"
 
 export const UPDATE_INTERVAL = 6 * 60 * 60 * 1000
 

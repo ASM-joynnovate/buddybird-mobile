@@ -1,5 +1,4 @@
 import { Asset } from "expo-asset"
-
 import { File } from "expo-file-system"
 
 import { resolveRecordingUri } from "@/services/media/uri"

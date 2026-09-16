@@ -1,5 +1,4 @@
 import * as Device from "expo-device"
-
 import { Platform } from "react-native"
 
 import { codePoints } from "@/apis/collection/metadata"

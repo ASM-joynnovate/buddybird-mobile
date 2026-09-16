@@ -1,12 +1,10 @@
 import type { FirebaseMessagingTypes } from "@react-native-firebase/messaging"
-
 import { randomUUID } from "expo-crypto"
-
 import { MMKV, Mode } from "react-native-mmkv"
 
 import { newestReceipts } from "@/services/push/receipt-policy"
 import { updateData } from "@/services/storage/data-store"
-import type  { PushReceipt } from "@/types/push"
+import type { PushReceipt } from "@/types/push"
 
 let inbox: MMKV | null = null
 

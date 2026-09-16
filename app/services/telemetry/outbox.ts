@@ -1,6 +1,6 @@
 import { storage } from "@/services/storage/data-store"
 import { writeVerified } from "@/services/storage/verified-write"
-import type  { TelemetryEvent } from "@/types/telemetry"
+import type { TelemetryEvent } from "@/types/telemetry"
 import { requireNonnegativeNumber, requireRecord, requireText } from "@/utils/validation"
 
 export type Properties = Record<string, string | null>

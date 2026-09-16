@@ -1,5 +1,4 @@
 import { type PropsWithChildren, useEffect, useRef, useState } from "react"
-
 import { type NativeScrollEvent, type NativeSyntheticEvent, StyleSheet, View } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 

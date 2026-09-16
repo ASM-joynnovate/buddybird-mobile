@@ -1,5 +1,5 @@
 import { parseLegacyWord } from "@/services/migration/legacy/words"
-import type  { MigrationStep } from "@/services/migration/step"
+import type { MigrationStep } from "@/services/migration/step"
 import type { AppData } from "@/types/app-data"
 import { type ObjectValue, requireRecord } from "@/utils/validation"
 

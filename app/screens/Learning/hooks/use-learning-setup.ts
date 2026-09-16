@@ -1,7 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native"
-
 import { useCallback, useRef, useState } from "react"
-
 import { useTranslation } from "react-i18next"
 import { Alert, Linking } from "react-native"
 
@@ -12,7 +10,7 @@ import { type choices, presetMinutes } from "@/screens/Learning/durations"
 import { sessionFailure } from "@/services/session/failure"
 import { customTiming, presetTiming } from "@/services/session/timing"
 import { reportError, screen } from "@/services/telemetry/client"
-import type  { SessionFailure } from "@modules/session-audio-engine/types"
+import type { SessionFailure } from "@modules/session-audio-engine/types"
 
 export function useLearningSetup() {
 	const { t } = useTranslation()

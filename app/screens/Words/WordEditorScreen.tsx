@@ -1,10 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
-
 import { useTranslation } from "react-i18next"
-
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native"
-
-import { TextField } from "@/components/ui/text-field"
 
 import { Button } from "@/components/ui/button"
 import { IconButton } from "@/components/ui/icon-button"
@@ -12,6 +8,7 @@ import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { ui } from "@/components/ui/styles"
 import { Copy, Title } from "@/components/ui/text"
+import { TextField } from "@/components/ui/text-field"
 import { CategorySelector } from "@/screens/Words/components/category-selector"
 import { RecordingPanel } from "@/screens/Words/components/recording-panel"
 import { RecordingReview } from "@/screens/Words/components/recording-review"

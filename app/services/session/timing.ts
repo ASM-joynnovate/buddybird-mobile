@@ -1,4 +1,4 @@
-import type  { Timing } from "@/types/session"
+import type { Timing } from "@/types/session"
 
 /** Input/output contract: docs/ui-identifiers.md. The final cycle may be partial. */
 export function customTiming(minutes: number): Timing {

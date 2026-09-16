@@ -1,6 +1,11 @@
 import { captureOutcomes } from "@/services/uploads/outcomes"
-import type  { Capture } from "@/types/capture"
-import type { CaptureOutcome, UploadDependencies, UploadResponse, UploadTrigger } from "@/types/uploads"
+import type { Capture } from "@/types/capture"
+import type {
+	CaptureOutcome,
+	UploadDependencies,
+	UploadResponse,
+	UploadTrigger,
+} from "@/types/uploads"
 
 export function createCaptureWorker(
 	dependencies: UploadDependencies,
@@ -47,7 +52,10 @@ export function createCaptureWorker(
 			return false
 		}
 
-		async function uploadCaptureBatch(requested: Capture[], retrySingle = false): Promise<boolean> {
+		async function uploadCaptureBatch(
+			requested: Capture[],
+			retrySingle = false,
+		): Promise<boolean> {
 			const uid = dependencies.identity()
 
 			if (!canUpload(signal) || !uid) {
@@ -58,11 +66,7 @@ export function createCaptureWorker(
 			let included = requested
 
 			try {
-				const result = await dependencies.sendCaptures(
-					requested,
-					uid,
-					signal,
-				)
+				const result = await dependencies.sendCaptures(requested, uid, signal)
 
 				for (const id of result.omittedIds) {
 					omittedIds.add(id)

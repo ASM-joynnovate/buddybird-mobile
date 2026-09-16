@@ -1,17 +1,13 @@
 import { File } from "expo-file-system"
-
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
-
 import { StyleSheet, View } from "react-native"
 
 import { Icon } from "@/components/ui/icon"
-import { resolveRecordingUri } from "@/services/media/uri"
-
-import { Card } from "@/components/ui/surface"
-
 import { IconButton } from "@/components/ui/icon-button"
+import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import { resolveRecordingUri } from "@/services/media/uri"
 import { categoryColors, colors, font, radius } from "@/theme"
 import type { Word } from "@/types/word"
 

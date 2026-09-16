@@ -1,5 +1,9 @@
 export type PushAuthorization =
-	"not_determined" | "denied" | "authorized" | "provisional" | "ephemeral"
+	| "not_determined"
+	| "denied"
+	| "authorized"
+	| "provisional"
+	| "ephemeral"
 
 export type PushReceipt = {
 	messageId: string | null

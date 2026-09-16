@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import i18next from "i18next"
-
 import { useEffect, useRef } from "react"
-
 import { Alert, AppState } from "react-native"
 
 import { currentIdentity, subscribeIdentity } from "@/apis/identity"

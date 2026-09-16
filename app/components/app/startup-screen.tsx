@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
-
 import { colors } from "@/theme"
 
 export function StartupScreen({ failed, onRetry }: { failed: boolean; onRetry(): void }) {

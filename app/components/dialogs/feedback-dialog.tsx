@@ -1,18 +1,14 @@
 import { useMutation } from "@tanstack/react-query"
-
 import { useState } from "react"
-
 import { useTranslation } from "react-i18next"
-
 import { Image, StyleSheet, View } from "react-native"
-
-import { TextField } from "@/components/ui/text-field"
 
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
-import { ui } from "@/components/ui/styles"
 import { InlineError } from "@/components/ui/inline-error"
+import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
+import { TextField } from "@/components/ui/text-field"
 import { feedbackMutationOptions } from "@/hooks/apis/feedback"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { track } from "@/services/telemetry/client"
@@ -71,11 +67,11 @@ export function FeedbackDialog({
 				onClose={close}
 				title={t("feedback.sent")}
 				footer=<Button
-						testID="feedback-thanks-close"
-						label={t("feedback.thanksClose")}
-						onPress={close}
-						style={styles.thanksClose}
-					/>
+					testID="feedback-thanks-close"
+					label={t("feedback.thanksClose")}
+					onPress={close}
+					style={styles.thanksClose}
+				/>
 			>
 				<Copy style={styles.promptMessage}>{t("feedback.thanks")}</Copy>
 			</Dialog>

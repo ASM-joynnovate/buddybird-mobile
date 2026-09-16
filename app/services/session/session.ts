@@ -3,17 +3,21 @@ import { randomUUID } from "expo-crypto"
 
 import { resolveAudio, stressCareAudio } from "@/services/media/audio"
 import { drainFileDeletes } from "@/services/media/cleanup"
-import { inspect } from "@/services/media/inspect"
-import { practiceDurationMs, abandonedProgress } from "@/services/session/history"
 import { captureDirectory } from "@/services/media/files"
+import { inspect } from "@/services/media/inspect"
 import { resolveRecordingUri } from "@/services/media/uri"
+import { practiceDurationMs, abandonedProgress } from "@/services/session/history"
 import { transferNativeState } from "@/services/session/transfer"
 import { readData, updateData } from "@/services/storage/data-store"
 import { reportError, reserveEvents, track } from "@/services/telemetry/client"
 import { currentWord } from "@/services/words/selectors"
 import { CAPTURE_STORAGE_LIMIT_BYTES } from "@/types/capture"
 import type { SessionDraft, SessionSettings } from "@/types/session"
-import engine, { defaultVAD, type SessionInput, type SessionSnapshot } from "@modules/session-audio-engine"
+import engine, {
+	defaultVAD,
+	type SessionInput,
+	type SessionSnapshot,
+} from "@modules/session-audio-engine"
 
 let reconciliation: Promise<void> | undefined
 let reconcileAgain = false

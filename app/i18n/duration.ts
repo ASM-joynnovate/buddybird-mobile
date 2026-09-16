@@ -1,4 +1,4 @@
-import type  { Locale } from "@/types/locale"
+import type { Locale } from "@/types/locale"
 
 export function durationParts(seconds: number, locale: Locale) {
 	const value = Math.max(0, Math.round(seconds))

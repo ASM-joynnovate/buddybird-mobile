@@ -1,4 +1,4 @@
-import type  { DeviceSettings } from "@/types/device-settings"
+import type { DeviceSettings } from "@/types/device-settings"
 import { localDate } from "@/utils/date"
 
 export function feedbackThreshold(state: DeviceSettings["feedback"]) {
