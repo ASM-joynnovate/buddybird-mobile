@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint"
 import native from "oxlint-config-universe/native"
 
 const assetExtensions =
-	"\\.(aac|aiff|avif|bmp|caf|db|gif|heic|html|jpeg|jpg|json|m4a|m4v|mov|mp3|mp4|mpeg|mpg|otf|pdf|png|psd|svg|ttf|wav|webm|webp|xml|yaml|yml|zip)$"
+	String.raw`\.(aac|aiff|avif|bmp|caf|db|gif|heic|html|jpeg|jpg|json|m4a|m4v|mov|mp3|mp4|mpeg|mpg|otf|pdf|png|psd|svg|ttf|wav|webm|webp|xml|yaml|yml|zip)$`
 const relativeImport = {
 	group: ["./*", "../*"],
 	message: "Use the project's @/, @assets/, or @modules/ import aliases.",
@@ -17,10 +17,9 @@ export default defineConfig({
 		{ name: "react-native", specifier: "oxlint-plugin-react-native" },
 		{ name: "react-native-a11y", specifier: "eslint-plugin-react-native-a11y" },
 	],
-	options: { typeAware: true },
+	options: { typeAware: true, denyWarnings: true },
 	ignorePatterns: ["node_modules", "ios", "android", "dist", ".expo"],
 	rules: {
-		"react/rules-of-hooks": "error",
 		"react/exhaustive-deps": "warn",
 		"one-var": ["error", "never"],
 		"curly": ["error", "all"],
