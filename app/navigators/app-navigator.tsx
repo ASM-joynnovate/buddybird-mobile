@@ -8,7 +8,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { useEffect, useRef, useState } from "react"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useNeedsProfileOnboarding, useProfile } from "@/hooks/use-app-data"
 import { useSession } from "@/hooks/use-session"
 import { MainTabs } from "@/navigators/main-tabs"
 import { OnboardingScreen } from "@/screens/Onboarding/OnboardingScreen"
@@ -22,7 +22,8 @@ import { RootStackParamList } from "@/types/navigation"
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 export function AppNavigator() {
-	const data = useAppData()
+	const profile = useProfile()
+	const needsOnboarding = useNeedsProfileOnboarding()
 	const { snapshot } = useSession()
 	const navigation = useNavigationContainerRef<RootStackParamList>()
 
@@ -30,7 +31,7 @@ export function AppNavigator() {
 	const lastDismissed = useRef<string | null>(null)
 	const [dismissed, setDismissed] = useState<string | null>(null)
 
-	const hasProfile = Boolean(data.profile)
+	const hasProfile = Boolean(profile)
 
 	useEffect(() => {
 		if (!ready || !hasProfile || !navigation.isReady()) {
@@ -81,7 +82,7 @@ export function AppNavigator() {
 					contentStyle: { backgroundColor: colors.background },
 				}}
 			>
-				{!hasProfile ? (
+				{needsOnboarding ? (
 					<Stack.Screen name="Onboarding" component={OnboardingScreen} />
 				) : (
 					<>

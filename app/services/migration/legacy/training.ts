@@ -1,105 +1,130 @@
 import { parseLegacySettings } from "@/services/migration/legacy/session-settings"
-import { parseLegacyWord, readWordSnapshot } from "@/services/migration/legacy/words"
+import { parseLegacyWord } from "@/services/migration/legacy/words"
+import { migrationGroup, type MigrationStep } from "@/services/migration/step"
+import { readProgress, readWordSnapshot } from "@/services/storage/codec"
 import { AppData } from "@/types/app-data"
 import { History } from "@/types/session"
 import {
 	ObjectValue,
 	readOptionalText,
+	requireId,
 	requireNonnegativeNumber,
 	requireRecord,
 	requireText,
 } from "@/utils/validation"
 
-export function applyLegacyTraining(data: AppData, training: ObjectValue | undefined) {
-	const trainingWords = training ? requireRecord(training.wordsById, "wordsById") : {}
+export function applyLegacyTraining(
+	data: AppData,
+	training: ObjectValue | undefined,
+	step: MigrationStep,
+) {
+	if (!training) {
+		return
+	}
 
-	if (training) {
-		if (training.version !== 1) {
-			throw new Error("Unsupported training version")
-		}
+	if (training.version !== 1) {
+		throw new Error("Unsupported training version")
+	}
 
-		// Recordings are preserved in the immutable source archive; references below keep original media.
-		requireRecord(training.recordingsById, "recordingsById")
+	let trainingWords: ObjectValue = {}
+
+	migrationGroup(data, "trainingWords", () => {
+		trainingWords = requireRecord(training.wordsById, "wordsById")
 
 		for (const [id, value] of Object.entries(trainingWords)) {
-			const trainingWord = requireRecord(value, `training word ${id}`)
-			const libraryId = readOptionalText(trainingWord.libraryEntryId, "libraryEntryId")
+			step(`trainingWords/${id}`, () => {
+				const trainingWord = requireRecord(value, `training word ${id}`)
+				const libraryId = readOptionalText(trainingWord.libraryEntryId, "libraryEntryId")
 
-			if (libraryId && data.words[libraryId]) {
-				data.wordAliases[id] = libraryId
-			} else {
-				if (data.words[id]) {
-					throw new Error(`Ambiguous word identity: ${id}`)
+				requireId(id)
+
+				if (trainingWord.id !== id) {
+					throw new Error(`Training word key mismatch: ${id}`)
 				}
 
-				data.words[id] = parseLegacyWord(trainingWord, id, true)
-			}
-		}
+				if (libraryId) {
+					requireId(libraryId)
+				}
 
+				if (!libraryId || !data.words[libraryId]) {
+					if (data.words[id]) {
+						throw new Error(`Ambiguous word identity: ${id}`)
+					}
+
+					data.words[id] = parseLegacyWord(trainingWord, id, true)
+				}
+
+				if (libraryId) {
+					data.wordAliases[id] = libraryId
+				}
+			})
+		}
+	})
+
+	migrationGroup(data, "history", () => {
 		for (const [id, value] of Object.entries(
 			requireRecord(training.sessionsById, "sessionsById"),
 		)) {
-			const historyRecord = requireRecord(value, `session ${id}`)
+			step(`history/${id}`, () => {
+				const record = requireRecord(value, `session ${id}`)
 
-			if (historyRecord.id !== id) {
-				throw new Error(`Session key mismatch: ${id}`)
-			}
+				requireId(id)
 
-			const session = parseLegacySettings(historyRecord)
-			const original = trainingWords[session.wordId]
-			const fallback = data.words[session.libraryEntryId ?? session.wordId]
+				if (record.id !== id) {
+					throw new Error(`Session key mismatch: ${id}`)
+				}
 
-			if (!original && !fallback) {
-				throw new Error(`Missing historical word: ${session.wordId}`)
-			}
+				const session = parseLegacySettings(record)
+				const original = trainingWords[session.wordId]
+				const fallback = data.words[session.libraryEntryId ?? session.wordId]
+				const history: History = {
+					...session,
+					id,
+					completedCycles: requireNonnegativeNumber(
+						record.completedCycles,
+						"completedCycles",
+					),
+					totalLearningSeconds: requireNonnegativeNumber(
+						record.totalLearningSeconds,
+						"totalLearningSeconds",
+					),
+					startedAt: requireText(record.startedAt, "startedAt"),
+					endedAt: readOptionalText(record.endedAt, "endedAt"),
+					word: readWordSnapshot(requireRecord(original ?? fallback, "historical word")),
+				}
 
-			const historyEntry: History = {
-				...session,
-				id,
-				completedCycles: requireNonnegativeNumber(
-					historyRecord.completedCycles,
-					"completedCycles",
-				),
-				totalLearningSeconds: requireNonnegativeNumber(
-					historyRecord.totalLearningSeconds,
-					"totalLearningSeconds",
-				),
-				startedAt: requireText(historyRecord.startedAt, "startedAt"),
-				endedAt: readOptionalText(historyRecord.endedAt, "endedAt"),
-				word: readWordSnapshot(requireRecord(original ?? fallback, "historical word")),
-			}
-
-			data.history[id] = historyEntry
+				data.history[id] ??= history
+			})
 		}
+	})
 
+	migrationGroup(data, "progress", () => {
 		for (const [id, value] of Object.entries(
 			requireRecord(training.wordProgressByWordId, "wordProgressByWordId"),
 		)) {
-			const progressRecord = requireRecord(value, `progress ${id}`)
+			step(`progress/${id}`, () => {
+				const incoming = readProgress(value, id)
+				const current = data.progress[id]
 
-			if (progressRecord.wordId !== id) {
-				throw new Error(`Progress key mismatch: ${id}`)
-			}
-
-			data.progress[id] = {
-				wordId: id,
-				totalTrainingSeconds: requireNonnegativeNumber(
-					progressRecord.totalTrainingSeconds,
-					"totalTrainingSeconds",
-				),
-				sessionCount: requireNonnegativeNumber(progressRecord.sessionCount, "sessionCount"),
-				successMarkedAt: readOptionalText(
-					progressRecord.successMarkedAt,
-					"successMarkedAt",
-				),
-				updatedAt: requireText(progressRecord.updatedAt, "updatedAt"),
-			}
+				data.progress[id] = current
+					? {
+							...current,
+							totalTrainingSeconds:
+								current.totalTrainingSeconds + incoming.totalTrainingSeconds,
+							sessionCount: current.sessionCount + incoming.sessionCount,
+							successMarkedAt: current.successMarkedAt ?? incoming.successMarkedAt,
+							updatedAt: [current.updatedAt, incoming.updatedAt].sort().at(-1)!,
+						}
+					: incoming
+			})
 		}
+	})
 
+	step("lastSession", () => {
 		if (training.lastSessionSettings !== undefined) {
-			data.settings.lastSession = parseLegacySettings(training.lastSessionSettings)
-		}
-	}
+			const settings = parseLegacySettings(training.lastSessionSettings)
 
-	return trainingWords
+			data.settings.lastSession ??= settings
+		}
+	})
 }

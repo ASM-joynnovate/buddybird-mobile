@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { BackHandler } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useProfile } from "@/hooks/use-app-data"
 import { saveProfile } from "@/services/profile/profile"
 import { speciesIds } from "@/services/profile/species"
 import { ageMonths } from "@/services/profile/statistics"
@@ -17,7 +17,7 @@ import type { ProfileOnboarding } from "@/types/profile"
 
 export function useProfileForm(onboarding?: ProfileOnboarding) {
 	const { t } = useTranslation()
-	const { profile } = useAppData()
+	const profile = useProfile()
 	const navigation = useNavigation()
 
 	const initial = onboarding?.draft ?? profile

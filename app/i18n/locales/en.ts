@@ -8,6 +8,19 @@ export const en: typeof ko = {
 		retry: "Try again",
 	},
 
+	storage: {
+		loading: "Importing your saved data. Data that is ready is available to use.",
+		partial: "Some data could not be imported. The originals are retained. You can try again.",
+		unavailable:
+			"Could not read your saved data. The originals are unchanged. Please try again.",
+		profileUnavailable: "Your saved profile could not be imported. Please retry the import.",
+		historyUnavailable:
+			"Some learning records have not been imported. Statistics may be incomplete.",
+		settingError:
+			"Could not read some device settings. Using defaults without changing the saved values.",
+		saveError: "Could not confirm the save. Please try again.",
+	},
+
 	common: {
 		selected: "Selected",
 		mascot: "Buddy mascot",

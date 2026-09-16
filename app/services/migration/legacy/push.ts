@@ -3,7 +3,7 @@ import { ObjectValue, readNullableText, requireChoice, requireText } from "@/uti
 
 export function applyLegacyPush(data: AppData, push: ObjectValue | undefined) {
 	if (push) {
-		data.settings.push = {
+		const incoming = {
 			token: readNullableText(push.token, "token"),
 			authorizationStatus: requireChoice(
 				push.authorizationStatus,
@@ -12,5 +12,7 @@ export function applyLegacyPush(data: AppData, push: ObjectValue | undefined) {
 			),
 			updatedAt: requireText(push.updatedAt, "push.updatedAt"),
 		}
+
+		data.settings.push ??= incoming
 	}
 }

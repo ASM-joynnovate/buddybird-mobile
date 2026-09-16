@@ -99,6 +99,7 @@ export function useSessionController() {
 
 	useEffect(() => {
 		void engine.getSnapshot().then(applySnapshot).catch(recordSessionError)
+		void reconcileSessionData().catch((error) => reportError(error, "initial_recovery"))
 
 		const state = engine.addListener("onStateChanged", (next) => {
 			applySnapshot(next)

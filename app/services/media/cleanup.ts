@@ -3,21 +3,32 @@ import { File } from "expo-file-system"
 import { inspect } from "@/services/media/inspect"
 import { isMediaReferenced } from "@/services/media/references"
 import { resolveRecordingUri } from "@/services/media/uri"
-import { readData, updateData } from "@/services/storage/data-store"
+import { isMigrationMediaReferenced, readMigrationSource } from "@/services/migration/source"
+import { readData, storage, updateData } from "@/services/storage/data-store"
 import { reportError } from "@/services/telemetry/client"
 
 export async function drainFileDeletes() {
+	function referenced(uri: string) {
+		const source = readMigrationSource(storage)
+
+		return (
+			!source ||
+			isMigrationMediaReferenced(source, uri, resolveRecordingUri) ||
+			isMediaReferenced(readData(), uri, resolveRecordingUri)
+		)
+	}
+
 	for (const uri of readData().pendingFileDeletes) {
-		const resolved = resolveRecordingUri(uri)
-
-		if (isMediaReferenced(readData(), uri, resolveRecordingUri)) {
-			continue
-		}
-
 		try {
+			const resolved = resolveRecordingUri(uri)
+
+			if (referenced(uri)) {
+				continue
+			}
+
 			const info = await inspect(uri)
 
-			if (isMediaReferenced(readData(), uri, resolveRecordingUri)) {
+			if (referenced(uri)) {
 				continue
 			}
 

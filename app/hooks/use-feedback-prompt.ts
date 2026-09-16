@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { Alert } from "react-native"
 
 import { useAppData } from "@/hooks/use-app-data"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
 import { useSession } from "@/hooks/use-session"
 import { consumeFeedbackPrompt, feedbackThreshold } from "@/services/feedback/policy"
-import { updateData } from "@/services/storage/data-store"
+import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError, track } from "@/services/telemetry/client"
 
 export function useFeedbackPrompt(
@@ -12,7 +15,9 @@ export function useFeedbackPrompt(
 	updateVisible: boolean,
 	consentResolved: boolean,
 ) {
+	const { t } = useTranslation()
 	const data = useAppData()
+	const preferences = useDeviceSetting("feedback")
 	const feedback = useFeedbackDialog()
 	const { snapshot } = useSession()
 	const [open, setOpen] = useState(false)
@@ -20,7 +25,7 @@ export function useFeedbackPrompt(
 	const sessionActive = ["starting", "running", "paused", "interrupted", "stopping"].includes(
 		snapshot.state,
 	)
-	const threshold = feedbackThreshold(data.settings.feedback)
+	const threshold = feedbackThreshold(preferences)
 	const eligible =
 		!!data.profile &&
 		updatesSettled &&
@@ -28,7 +33,7 @@ export function useFeedbackPrompt(
 		consentResolved &&
 		!sessionActive &&
 		!feedback.source &&
-		data.settings.feedback.dayCount >= threshold
+		preferences.dayCount >= threshold
 
 	useEffect(() => {
 		if (!eligible || feedbackPromptOpen.current) {
@@ -38,7 +43,7 @@ export function useFeedbackPrompt(
 		feedbackPromptOpen.current = true
 		setOpen(true)
 		track("feedback_prompt_shown", { threshold })
-	}, [data.settings.feedback, eligible, threshold])
+	}, [eligible, threshold])
 
 	function consume(write: boolean) {
 		if (!feedbackPromptOpen.current) {
@@ -48,9 +53,10 @@ export function useFeedbackPrompt(
 		feedbackPromptOpen.current = false
 
 		try {
-			updateData((next) => {
-				consumeFeedbackPrompt(next.settings.feedback)
-			})
+			const next = readDeviceSetting("feedback")
+
+			consumeFeedbackPrompt(next)
+			saveDeviceSetting("feedback", next)
 
 			if (write) {
 				feedback.open("prompt")
@@ -59,6 +65,7 @@ export function useFeedbackPrompt(
 			}
 		} catch (error) {
 			reportError(error, "feedback_prompt")
+			Alert.alert(t("storage.saveError"))
 		} finally {
 			setOpen(false)
 		}

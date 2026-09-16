@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useUserWordCount } from "@/hooks/use-app-data"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
 import { queueWordUpload } from "@/services/uploads/queue"
 import { saveWord } from "@/services/words/library"
@@ -26,7 +26,7 @@ const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: 
 
 export function useWordEditor() {
 	const { t } = useTranslation()
-	const data = useAppData()
+	const userWordCount = useUserWordCount()
 	const navigation = useNavigation()
 	const [label, setLabel] = useState("")
 	const [category, setCategory] = useState<Word["tag"]>("greeting")
@@ -245,10 +245,7 @@ export function useWordEditor() {
 				...(size === undefined ? {} : { audio_size_bytes: size }),
 			})
 			setUserProperties({
-				total_words_registered:
-					Object.values(data.words).filter(
-						(item) => !item.archived && item.sourceType === "recording",
-					).length + 1,
+				total_words_registered: userWordCount + 1,
 			})
 		} catch (error) {
 			reportError(error, "word_analytics")

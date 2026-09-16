@@ -11,13 +11,22 @@ export function captureDirectory() {
 	return directory.uri
 }
 
-export async function preserveRecording(uri: string) {
+export async function preserveRecording(uri: string, migrationId?: string) {
 	const directory = new Directory(Paths.document, "recordings")
 
 	directory.create({ idempotent: true, intermediates: true })
-	const source = new File(uri)
-	const fileName = `recording-${randomUUID()}.${source.extension.replace(/^\./, "") || "m4a"}`
+	const source = new File(resolveRecordingUri(uri))
+	const id = migrationId ? `migrated-${encodeURIComponent(migrationId)}` : randomUUID()
+	const fileName = `recording-${id}.${source.extension.replace(/^\./, "") || "m4a"}`
 	const target = new File(directory, fileName)
+
+	if (target.exists && migrationId && target.size === source.size) {
+		return `recording://${encodeURIComponent(fileName)}`
+	}
+
+	if (target.exists && migrationId) {
+		target.delete()
+	}
 
 	source.copy(target)
 
@@ -25,7 +34,7 @@ export async function preserveRecording(uri: string) {
 		throw new Error("Recording save failed")
 	}
 
-	return `recording://${fileName}`
+	return `recording://${encodeURIComponent(fileName)}`
 }
 
 export async function preservePhoto(uri: string, migrationId?: string) {

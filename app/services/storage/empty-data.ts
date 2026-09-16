@@ -1,9 +1,9 @@
 import { AppData } from "@/types/app-data"
-import { Locale } from "@/types/locale"
 
-export function emptyData(locale: Locale): AppData {
+export function emptyData(): AppData {
 	return {
-		version: 1,
+		version: 2,
+		migration: { complete: false, completed: [], issues: [] },
 		profile: null,
 		words: {},
 		wordAliases: {},
@@ -15,11 +15,7 @@ export function emptyData(locale: Locale): AppData {
 		pendingWords: [],
 		pendingFileDeletes: [],
 		settings: {
-			locale,
-			analyticsConsent: "unknown",
 			uploadConsent: { status: "unknown", decidedAt: null, noticeVersion: 1 },
-			update: { dismissedVersion: null, lastCheckedAt: null },
-			feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
 			push: null,
 			receipts: [],
 			wordMetrics: {},

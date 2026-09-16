@@ -14,7 +14,7 @@ import { ui } from "@/components/ui/styles"
 import { InlineError } from "@/components/ui/inline-error"
 import { Copy } from "@/components/ui/text"
 import { feedbackMutationOptions } from "@/hooks/apis/feedback"
-import { useAppData } from "@/hooks/use-app-data"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { track } from "@/services/telemetry/client"
 import { colors, font, mascot } from "@/theme"
 
@@ -32,7 +32,7 @@ export function FeedbackDialog({
 	onSubmitted?(): void
 }) {
 	const { t } = useTranslation()
-	const data = useAppData()
+	const locale = useDeviceSetting("locale")
 
 	const [message, setMessage] = useState("")
 	const mutation = useMutation(feedbackMutationOptions())
@@ -53,7 +53,7 @@ export function FeedbackDialog({
 		}
 
 		mutation.mutate(
-			{ message: message.trim(), locale: data.settings.locale },
+			{ message: message.trim(), locale },
 			{
 				onSuccess: () => {
 					track("feedback_submitted", { source, message_length: message.trim().length })

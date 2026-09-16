@@ -1,15 +1,21 @@
 import { WordMetrics } from "@/types/analytics"
 import { Capture } from "@/types/capture"
-import { AnalyticsConsent, UploadConsent } from "@/types/consent"
-import { Locale } from "@/types/locale"
+import { UploadConsent } from "@/types/consent"
 import { Profile } from "@/types/profile"
 import { Progress } from "@/types/progress"
 import { PushAuthorization, PushReceipt } from "@/types/push"
 import { History, SessionDraft, SessionSettings } from "@/types/session"
 import { Word } from "@/types/word"
 
+export type LegacyImportProgress = {
+	complete: boolean
+	completed: string[]
+	issues: { key: string; message: string }[]
+}
+
 export type AppData = {
-	version: 1
+	version: 2
+	migration: LegacyImportProgress
 	profile: Profile | null
 	words: Record<string, Word>
 	/** Old training IDs remain stable references to the current canonical word. */
@@ -22,17 +28,8 @@ export type AppData = {
 	pendingWords: string[]
 	pendingFileDeletes: string[]
 	settings: {
-		locale: Locale
-		analyticsConsent: AnalyticsConsent
 		uploadConsent: UploadConsent
 		lastSession?: SessionSettings
-		update: { dismissedVersion: string | null; lastCheckedAt: number | null }
-		feedback: {
-			version: 1
-			lastCountedDate: string | null
-			dayCount: number
-			thresholdIndex: number
-		}
 		push: {
 			token: string | null
 			authorizationStatus: PushAuthorization

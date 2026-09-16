@@ -5,22 +5,22 @@ import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, Linking } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useProfile, useVisibleWords } from "@/hooks/use-app-data"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSession } from "@/hooks/use-session"
 import { choices, presetMinutes } from "@/screens/Learning/durations"
 import { sessionFailure } from "@/services/session/failure"
 import { customTiming, presetTiming } from "@/services/session/timing"
 import { reportError, screen } from "@/services/telemetry/client"
-import { visibleWords } from "@/services/words/selectors"
 import type { SessionFailure } from "@modules/session-audio-engine/types"
 
 export function useLearningSetup() {
 	const { t } = useTranslation()
-	const data = useAppData()
+	const profile = useProfile()
 	const session = useSession()
 
-	const locale = data.settings.locale
-	const words = visibleWords(data, locale)
+	const locale = useDeviceSetting("locale")
+	const words = useVisibleWords(locale)
 	const [wordId, setWordId] = useState<string | undefined>()
 	const [choice, setChoice] = useState<(typeof choices)[number]>("medium")
 	const [customMinutes, setCustomMinutes] = useState(25)
@@ -32,8 +32,12 @@ export function useLearningSetup() {
 		choice === "custom" ? customTiming(customMinutes) : presetTiming(presetMinutes[choice])
 
 	const hasZeroDuration = timing.totalDurationSeconds === 0
-	const startDisabled = !word || hasZeroDuration
-	const errorMessage = hasZeroDuration ? t("learning.invalid") : null
+	const startDisabled = !word || !profile || hasZeroDuration
+	const errorMessage = !profile
+		? t("storage.profileUnavailable")
+		: hasZeroDuration
+			? t("learning.invalid")
+			: null
 
 	useFocusEffect(
 		useCallback(() => {
@@ -60,7 +64,7 @@ export function useLearningSetup() {
 	}
 
 	async function start() {
-		if (starting.current || !word || timing.totalDurationSeconds === 0) {
+		if (starting.current || startDisabled || !word) {
 			return
 		}
 

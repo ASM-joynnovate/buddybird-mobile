@@ -2,25 +2,26 @@ import { useFocusEffect } from "@react-navigation/native"
 
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { useTranslation } from "react-i18next"
 
 import { Alert } from "react-native"
 
-import { useAppData } from "@/hooks/use-app-data"
+import { useUserWordCount, useVisibleWords } from "@/hooks/use-app-data"
+import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { filters } from "@/screens/Words/filters"
 import { resolvePreviewAudio } from "@/services/media/audio"
 import { screen, setUserProperties, track } from "@/services/telemetry/client"
 import { removeWord } from "@/services/words/library"
-import { visibleWords } from "@/services/words/selectors"
 import { Word } from "@/types/word"
 
 export function useWordLibrary() {
 	const { t } = useTranslation()
 
-	const data = useAppData()
-	const words = useMemo(() => visibleWords(data, data.settings.locale), [data])
+	const userWordCount = useUserWordCount()
+	const locale = useDeviceSetting("locale")
+	const words = useVisibleWords(locale)
 
 	const player = useAudioPlayer(null, { keepAudioSessionActive: true })
 	const status = useAudioPlayerStatus(player)
@@ -129,14 +130,13 @@ export function useWordLibrary() {
 					lifetime_practice_duration_ms: metrics.lifetime_practice_duration_ms,
 				})
 				setUserProperties({
-					total_words_registered:
-						words.filter((item) => item.sourceType === "recording").length - 1,
+					total_words_registered: userWordCount - 1,
 				})
 			} catch {
 				setError(t("words.removeError"))
 			}
 		},
-		[player, playingId, t, words],
+		[player, playingId, t, userWordCount],
 	)
 
 	const confirmDelete = useCallback(

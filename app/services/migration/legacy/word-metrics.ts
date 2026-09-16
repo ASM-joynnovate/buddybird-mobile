@@ -1,37 +1,67 @@
 import { AppData } from "@/types/app-data"
+import type { MigrationStep } from "@/services/migration/step"
 import {
 	ObjectValue,
 	readNullableText,
+	requireId,
 	requireNonnegativeNumber,
 	requireRecord,
 	requireText,
 } from "@/utils/validation"
 
-export function applyLegacyMetrics(data: AppData, metrics: ObjectValue | undefined) {
+export function applyLegacyMetrics(
+	data: AppData,
+	metrics: ObjectValue | undefined,
+	step: MigrationStep,
+) {
 	if (metrics) {
 		for (const [id, value] of Object.entries(metrics)) {
-			const wordMetrics = requireRecord(value, `metrics ${id}`)
+			step(`metrics/${id}`, () => {
+				const wordMetrics = requireRecord(value, `metrics ${id}`)
+				const incoming = {
+					word_id: requireId(wordMetrics.word_id),
+					word_name: requireText(wordMetrics.word_name, "word_name"),
+					lifetime_practice_count: requireNonnegativeNumber(
+						wordMetrics.lifetime_practice_count,
+						"lifetime_practice_count",
+					),
+					lifetime_practice_duration_ms: requireNonnegativeNumber(
+						wordMetrics.lifetime_practice_duration_ms,
+						"lifetime_practice_duration_ms",
+					),
+					lifetime_recording_count: requireNonnegativeNumber(
+						wordMetrics.lifetime_recording_count,
+						"lifetime_recording_count",
+					),
+					last_practiced_at_iso: readNullableText(
+						wordMetrics.last_practiced_at_iso,
+						"last_practiced_at_iso",
+					),
+				}
 
-			data.settings.wordMetrics[id] = {
-				word_id: requireText(wordMetrics.word_id, "word_id"),
-				word_name: requireText(wordMetrics.word_name, "word_name"),
-				lifetime_practice_count: requireNonnegativeNumber(
-					wordMetrics.lifetime_practice_count,
-					"lifetime_practice_count",
-				),
-				lifetime_practice_duration_ms: requireNonnegativeNumber(
-					wordMetrics.lifetime_practice_duration_ms,
-					"lifetime_practice_duration_ms",
-				),
-				lifetime_recording_count: requireNonnegativeNumber(
-					wordMetrics.lifetime_recording_count,
-					"lifetime_recording_count",
-				),
-				last_practiced_at_iso: readNullableText(
-					wordMetrics.last_practiced_at_iso,
-					"last_practiced_at_iso",
-				),
-			}
+				requireId(id)
+
+				const canonicalId = data.wordAliases[id] ?? id
+				const current = data.settings.wordMetrics[canonicalId]
+				const dates = [current?.last_practiced_at_iso, incoming.last_practiced_at_iso]
+					.filter((value): value is string => value !== null && value !== undefined)
+					.sort()
+
+				data.settings.wordMetrics[canonicalId] = {
+					...incoming,
+					word_id: canonicalId,
+					word_name: data.words[canonicalId]?.label ?? incoming.word_name,
+					lifetime_practice_count:
+						(current?.lifetime_practice_count ?? 0) + incoming.lifetime_practice_count,
+					lifetime_practice_duration_ms:
+						(current?.lifetime_practice_duration_ms ?? 0) +
+						incoming.lifetime_practice_duration_ms,
+					lifetime_recording_count:
+						(current?.lifetime_recording_count ?? 0) +
+						incoming.lifetime_recording_count,
+					last_practiced_at_iso: dates.at(-1) ?? null,
+				}
+			})
 		}
 	}
 }
