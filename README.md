@@ -12,4 +12,13 @@ yarn ios
 # or: yarn android
 ```
 
+## Lint and format
+```sh
+yarn lint      # oxlint, type-aware rules included
+yarn lint:fix
+yarn format    # oxfmt, also sorts imports
+```
+
+Install the Oxc editor plugin for on-save formatting: `oxc.oxc-vscode` for VS Code, or the Oxc plugin from the JetBrains Marketplace for WebStorm.
+
 Use the existing dev/prod Firebase configuration and signing identity described in the build guide. Expo Go cannot run the custom native audio engine or Firebase modules. Web is outside this project.

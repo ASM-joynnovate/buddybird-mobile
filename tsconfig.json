@@ -22,7 +22,6 @@
     ],
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./app/*"
@@ -45,8 +44,11 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx"
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "modules/**/*.ts",
+    "index.tsx",
+    "app.config.ts"
   ],
   "exclude": [
     "node_modules"
