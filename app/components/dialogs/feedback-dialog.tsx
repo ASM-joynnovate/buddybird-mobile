@@ -160,13 +160,7 @@ export function FeedbackDialog({
 
 const styles = StyleSheet.create({
 	thanksClose: { marginTop: 0 },
-	promptMascot: {
-		width: "40%",
-		maxWidth: 96,
-		aspectRatio: 1,
-		resizeMode: "contain",
-		alignSelf: "center",
-	},
+	promptMascot: { width: 96, height: 96, resizeMode: "contain", alignSelf: "center" },
 	promptMessage: { fontSize: 14, lineHeight: 20, textAlign: "center", marginTop: 16 },
 	actions: { marginTop: 0 },
 	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
