@@ -1,10 +1,9 @@
 import * as AppleAuthentication from "expo-apple-authentication"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ActivityIndicator, Image, Platform, StyleSheet, View } from "react-native"
+import { ActivityIndicator, Alert, Image, Platform, StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
-import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { Copy, Title } from "@/components/ui/text"
 import { useAuth } from "@/context/auth"
@@ -19,7 +18,6 @@ export function LoginScreen() {
 	const { state, retry } = useAuth()
 	const [appleAvailable, setAppleAvailable] = useState(false)
 	const [attempt, setAttempt] = useState<{ provider: Provider; pending: boolean } | null>(null)
-	const [error, setError] = useState<string>()
 	const busy = useRef(false)
 	const completing = state.status === "completing"
 	const disabled = attempt?.pending === true || completing
@@ -52,7 +50,6 @@ export function LoginScreen() {
 
 		busy.current = true
 		setAttempt({ provider, pending: true })
-		setError(undefined)
 
 		try {
 			if (provider === "apple") {
@@ -71,7 +68,7 @@ export function LoginScreen() {
 				return
 			}
 
-			setError(t("auth.signInError"))
+			Alert.alert(t("auth.signInError"))
 		} finally {
 			busy.current = false
 			setAttempt({ provider, pending: false })
@@ -92,10 +89,7 @@ export function LoginScreen() {
 			</View>
 			<View style={styles.actions}>
 				{state.status === "error" ? (
-					<>
-						<InlineError message={state.message} />
-						<Button label={t("common.retry")} onPress={retry} variant="secondary" />
-					</>
+					<Button label={t("common.retry")} onPress={retry} variant="secondary" />
 				) : (
 					<>
 						<OAuthButton
@@ -152,11 +146,6 @@ export function LoginScreen() {
 								/>
 							</View>
 						) : null}
-						<InlineError
-							message={
-								error ?? (state.status === "signedOut" ? state.message : undefined)
-							}
-						/>
 					</>
 				)}
 			</View>

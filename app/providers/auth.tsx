@@ -1,12 +1,13 @@
-import type { Session } from "@supabase/supabase-js"
+import { isAuthRetryableFetchError, type Session } from "@supabase/supabase-js"
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react"
-import { AppState } from "react-native"
+import { Alert, AppState } from "react-native"
 
-import { completeLogin } from "@/apis/auth"
+import { clearLoginCredential, completeLogin } from "@/apis/auth"
 import { AuthContext, type AuthState } from "@/context/auth"
 import i18next from "@/i18n"
 import { HttpError, ResponseError } from "@/lib/http"
 import { getSupabase } from "@/lib/supabase"
+import { clearRegistration, markRegistered, registeredUser } from "@/services/auth/registration"
 
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [state, setState] = useState<AuthState>({ status: "loading" })
@@ -20,7 +21,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		try {
 			supabase = getSupabase()
 		} catch {
-			setState({ status: "error", message: i18next.t("auth.configurationError") })
+			Alert.alert(i18next.t("auth.configurationError"))
+			setState({ status: "error" })
 
 			return
 		}
@@ -29,7 +31,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		let userId: string | null | undefined
 		let request: AbortController | undefined
 		let receivedEvent = false
-		let signedOutMessage: string | undefined
 
 		async function acceptSession(session: Session | null) {
 			const nextId = session?.user.id ?? null
@@ -42,47 +43,52 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			request?.abort()
 
 			if (!nextId) {
-				setState({ status: "signedOut", message: signedOutMessage })
+				clearLoginCredential()
+				clearRegistration()
+				setState({ status: "signedOut" })
+
+				return
+			}
+
+			if (registeredUser() === nextId) {
+				setState({ status: "signedIn" })
 
 				return
 			}
 
 			const controller = new AbortController()
 
-			signedOutMessage = undefined
 			request = controller
 			setState({ status: "completing" })
 
 			try {
-				const account = await completeLogin(nextId, controller.signal)
+				await completeLogin(nextId, controller.signal)
 
 				if (active && !controller.signal.aborted) {
-					setState({ status: "signedIn", ...account })
+					markRegistered(nextId)
+					setState({ status: "signedIn" })
 				}
 			} catch (error) {
 				if (!active || controller.signal.aborted) {
 					return
 				}
 
-				if (error instanceof HttpError && error.status === 401) {
-					signedOutMessage = i18next.t("auth.expired")
+				alertLoginFailure(error)
 
-					try {
-						await signOut()
-					} catch {
-						if (active && !controller.signal.aborted) {
-							setState({ status: "error", message: i18next.t("auth.signOutError") })
-						}
+				if (!(error instanceof HttpError) || error.retryable) {
+					userId = undefined
+					setState({ status: "signedOut" })
+
+					return
+				}
+
+				try {
+					await signOut()
+				} catch {
+					if (active && !controller.signal.aborted) {
+						Alert.alert(i18next.t("auth.signOutError"))
+						setState({ status: "error" })
 					}
-				} else {
-					setState({
-						status: "error",
-						message: i18next.t(
-							error instanceof ResponseError
-								? "auth.responseError"
-								: "auth.backendError",
-						),
-					})
 				}
 			}
 		}
@@ -107,15 +113,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					return
 				}
 
-				if (error) {
-					setState({ status: "error", message: i18next.t("auth.restoreError") })
-				} else {
+				if (!error) {
 					void acceptSession(data.session)
+				} else if (isAuthRetryableFetchError(error) && registeredUser() !== null) {
+					setState({ status: "signedIn" })
+				} else {
+					Alert.alert(i18next.t("auth.restoreError"))
+					setState({ status: "error" })
 				}
 			})
 			.catch(() => {
 				if (active && !receivedEvent) {
-					setState({ status: "error", message: i18next.t("auth.restoreError") })
+					Alert.alert(i18next.t("auth.restoreError"))
+					setState({ status: "error" })
 				}
 			})
 
@@ -144,6 +154,37 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const value = useMemo(() => ({ state, retry, signOut }), [state, retry])
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+const credentialErrorCodes = new Set([
+	"AUTH__PROVIDER_CREDENTIAL_REQUIRED",
+	"AUTH__INVALID_PROVIDER_CREDENTIAL",
+])
+
+function alertLoginFailure(error: unknown) {
+	let key = error instanceof ResponseError ? "auth.responseError" : "auth.backendError"
+	let detail: string | undefined
+
+	if (error instanceof HttpError) {
+		const code =
+			error.body && typeof error.body === "object" && "error_code" in error.body
+				? error.body.error_code
+				: null
+
+		detail = typeof code === "string" ? code : `HTTP ${error.status}`
+
+		if (error.status === 401) {
+			key = "auth.expired"
+		} else if (
+			error.status === 400 &&
+			typeof code === "string" &&
+			credentialErrorCodes.has(code)
+		) {
+			key = "auth.credentialError"
+		}
+	}
+
+	Alert.alert(i18next.t(key), detail)
 }
 
 async function signOut() {

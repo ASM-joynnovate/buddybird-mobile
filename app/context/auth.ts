@@ -1,10 +1,6 @@
 import { createContext, useContext } from "react"
 
-export type AuthState =
-	| { status: "loading" | "completing" }
-	| { status: "signedOut"; message?: string }
-	| { status: "signedIn"; user_id: string; is_new_user: boolean }
-	| { status: "error"; message: string }
+export type AuthState = { status: "loading" | "completing" | "signedOut" | "signedIn" | "error" }
 
 export const AuthContext = createContext<{
 	state: AuthState

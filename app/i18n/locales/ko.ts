@@ -25,6 +25,7 @@ export const ko: Translation = {
 		responseError: "로그인 응답을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
 		restoreError: "저장된 로그인을 확인하지 못했어요. 다시 시도해 주세요.",
 		configurationError: "로그인을 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
+		credentialError: "소셜 로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.",
 		expired: "로그인이 만료되었어요. 다시 로그인해 주세요.",
 		signOut: "이 기기에서 로그아웃",
 		signOutError: "로그아웃하지 못했어요. 연결을 확인하고 다시 시도해 주세요.",

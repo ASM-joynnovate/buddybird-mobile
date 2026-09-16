@@ -2,6 +2,7 @@ import * as AppleAuthentication from "expo-apple-authentication"
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from "expo-crypto"
 import * as WebBrowser from "expo-web-browser"
 
+import { setAppleCredential } from "@/apis/auth"
 import { config } from "@/config"
 import { getSupabase } from "@/lib/supabase"
 
@@ -10,7 +11,13 @@ export async function signInWithOAuth(provider: "google" | "kakao") {
 	const redirectTo = `${config.production ? "buddybird" : "buddybird-dev"}://auth/callback`
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider,
-		options: { redirectTo, skipBrowserRedirect: true },
+		options: {
+			redirectTo,
+			skipBrowserRedirect: true,
+			...(provider === "google"
+				? { queryParams: { access_type: "offline", prompt: "consent" } }
+				: {}),
+		},
 	})
 
 	if (error) {
@@ -71,6 +78,10 @@ export async function signInWithApple() {
 
 	if (!credential.identityToken) {
 		throw new Error("Apple identity token missing")
+	}
+
+	if (credential.authorizationCode) {
+		setAppleCredential(credential.authorizationCode)
 	}
 
 	const { error } = await supabase.auth.signInWithIdToken({

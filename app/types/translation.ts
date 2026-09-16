@@ -22,6 +22,7 @@ export type Translation = {
 		responseError: string
 		restoreError: string
 		configurationError: string
+		credentialError: string
 		expired: string
 		signOut: string
 		signOutError: string

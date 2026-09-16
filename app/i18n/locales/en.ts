@@ -25,6 +25,7 @@ export const en: Translation = {
 		responseError: "Couldn't read the login response. Please try again shortly.",
 		restoreError: "Couldn't restore your login. Please try again.",
 		configurationError: "Login is unavailable. Please try again shortly.",
+		credentialError: "Couldn't verify your social login. Please log in again.",
 		expired: "Your login has expired. Please log in again.",
 		signOut: "Log out on this device",
 		signOutError: "Couldn't log out. Check your connection and try again.",
