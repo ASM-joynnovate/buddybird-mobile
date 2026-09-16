@@ -1,4 +1,6 @@
-export const ko = {
+import type { Translation } from "@/types/translation"
+
+export const ko: Translation = {
 	startup: {
 		loading: "저장된 데이터를 준비하고 있어요",
 		title: "데이터를 불러오지 못했어요",

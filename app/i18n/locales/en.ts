@@ -1,6 +1,6 @@
-import { ko } from "@/i18n/locales/ko"
+import type { Translation } from "@/types/translation"
 
-export const en: typeof ko = {
+export const en: Translation = {
 	startup: {
 		loading: "Preparing your saved data",
 		title: "Could not load your data",
