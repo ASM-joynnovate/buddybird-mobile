@@ -16,7 +16,6 @@ import { decodeData } from "@/services/storage/codec"
 import { DATA_KEY, storage } from "@/services/storage/data-store"
 import { saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
-import { seedPresets } from "@/services/words/presets"
 import { colors } from "@/theme"
 
 export function AppProvider({ children }: PropsWithChildren) {
@@ -44,7 +43,6 @@ export function AppProvider({ children }: PropsWithChildren) {
 		setRunning(true)
 		setFailure(null)
 		void importLegacyData()
-			.then(() => seedPresets())
 			.catch((error) => {
 				reportError(error, "data_migration")
 				setFailure(error)

@@ -1,7 +1,12 @@
 import { parseLegacySettings } from "@/services/migration/legacy/session-settings"
-import { parseLegacyWord } from "@/services/migration/legacy/words"
+import {
+	legacyPresetId,
+	parseLegacyWord,
+	withPresetAudioUri,
+} from "@/services/migration/legacy/words"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
 import { readProgress, readWordSnapshot } from "@/services/storage/codec"
+import { currentWord } from "@/services/words/selectors"
 import type { AppData } from "@/types/app-data"
 import type { History } from "@/types/session"
 import {
@@ -46,7 +51,11 @@ export function applyLegacyTraining(
 					requireId(libraryId)
 				}
 
-				if (!libraryId || !data.words[libraryId]) {
+				const canonical =
+					legacyPresetId(trainingWord, id) ??
+					(libraryId ? (data.wordAliases[libraryId] ?? libraryId) : undefined)
+
+				if (!canonical || !currentWord(data, canonical)) {
 					if (data.words[id]) {
 						throw new Error(`Ambiguous word identity: ${id}`)
 					}
@@ -54,8 +63,8 @@ export function applyLegacyTraining(
 					data.words[id] = parseLegacyWord(trainingWord, id, true)
 				}
 
-				if (libraryId) {
-					data.wordAliases[id] = libraryId
+				if (canonical) {
+					data.wordAliases[id] = canonical
 				}
 			})
 		}
@@ -76,7 +85,7 @@ export function applyLegacyTraining(
 
 				const session = parseLegacySettings(record)
 				const original = trainingWords[session.wordId]
-				const fallback = data.words[session.libraryEntryId ?? session.wordId]
+				const fallback = currentWord(data, session.libraryEntryId ?? session.wordId)
 				const history: History = {
 					...session,
 					id,
@@ -90,7 +99,11 @@ export function applyLegacyTraining(
 					),
 					startedAt: requireText(record.startedAt, "startedAt"),
 					endedAt: readOptionalText(record.endedAt, "endedAt"),
-					word: readWordSnapshot(requireRecord(original ?? fallback, "historical word")),
+					word: readWordSnapshot(
+						original
+							? withPresetAudioUri(original, session.wordId)
+							: requireRecord(fallback, "historical word"),
+					),
 				}
 
 				data.history[id] ??= history

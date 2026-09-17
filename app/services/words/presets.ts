@@ -1,43 +1,81 @@
-import { readData, updateData } from "@/services/storage/data-store"
-import { presets } from "@/services/words/catalog"
+import type { Locale } from "@/types/locale"
+import type { Word } from "@/types/word"
 
-export function seedPresets() {
-	const data = readData()
-	const obsolete = Object.values(data.words).filter(
-		(word) =>
-			!word.archived &&
-			word.sourceType === "preset" &&
-			!presets.some((preset) => preset.presetKey === word.presetKey),
-	)
-	const missing = presets.filter(
-		(preset) =>
-			!Object.values(data.words).some(
-				(word) => word.presetKey === preset.presetKey && !word.archived,
-			),
-	)
+export type Preset = Word & { locale: Locale; asset: number }
 
-	if (!missing.length && !obsolete.length) {
-		return
-	}
+const PRESET_TIME = "1970-01-01T00:00:00.000Z"
 
-	updateData((next) => {
-		const now = new Date().toISOString()
+export const presets: readonly Preset[] = [
+	{
+		id: "preset-annyeong",
+		locale: "ko",
+		label: "안녕",
+		tag: "greeting",
+		sourceType: "preset",
+		audioUri: "preset://annyeong",
+		asset: require("@assets/audio/ko-kr/default_An-nyeong.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+	{
+		id: "preset-sagwa",
+		locale: "ko",
+		label: "사과",
+		tag: "food",
+		sourceType: "preset",
+		audioUri: "preset://sagwa",
+		asset: require("@assets/audio/ko-kr/default_Sa-gwa.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+	{
+		id: "preset-saranghae",
+		locale: "ko",
+		label: "사랑해",
+		tag: "greeting",
+		sourceType: "preset",
+		audioUri: "preset://saranghae",
+		asset: require("@assets/audio/ko-kr/default_Sa-rang-hae.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+	{
+		id: "preset-danyeowa",
+		locale: "ko",
+		label: "다녀와",
+		tag: "greeting",
+		sourceType: "preset",
+		audioUri: "preset://danyeowa",
+		asset: require("@assets/audio/ko-kr/default_Da-nyeo-wa.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+	{
+		id: "preset-hi",
+		locale: "en",
+		label: "Hi",
+		tag: "greeting",
+		sourceType: "preset",
+		audioUri: "preset://hi",
+		asset: require("@assets/audio/en-us/default_hi.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+	{
+		id: "preset-hello",
+		locale: "en",
+		label: "Hello",
+		tag: "greeting",
+		sourceType: "preset",
+		audioUri: "preset://hello",
+		asset: require("@assets/audio/en-us/default_hello.m4a"),
+		createdAt: PRESET_TIME,
+		updatedAt: PRESET_TIME,
+	},
+]
 
-		for (const word of obsolete) {
-			next.words[word.id].archived = true
-		}
+export const presetById = new Map(presets.map((preset) => [preset.id, preset]))
 
-		for (const preset of missing) {
-			const id = `preset-library-${preset.presetKey}`
-
-			next.words[id] = {
-				...preset,
-				id,
-				sourceType: "preset",
-				audioUri: `preset://${preset.presetKey}`,
-				createdAt: now,
-				updatedAt: now,
-			}
-		}
-	})
+export function presetByAudioUri(uri: string): Preset | undefined {
+	return presets.find((preset) => preset.audioUri === uri)
 }

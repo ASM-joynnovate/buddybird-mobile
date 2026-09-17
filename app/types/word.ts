@@ -9,7 +9,6 @@ export type Word = {
 	tag: "greeting" | "food" | "name" | "etc"
 	sourceType: SourceType
 	audioUri: string
-	presetKey?: string
 	transformedAudioUri?: string
 	createdAt: string
 	updatedAt: string
@@ -18,5 +17,5 @@ export type Word = {
 
 export type WordSnapshot = Pick<
 	Word,
-	"label" | "sourceType" | "audioUri" | "presetKey" | "transformedAudioUri"
+	"label" | "sourceType" | "audioUri" | "transformedAudioUri"
 > & { libraryEntryId?: string }

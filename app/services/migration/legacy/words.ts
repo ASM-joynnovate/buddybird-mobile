@@ -1,9 +1,36 @@
 import { readStoredWord } from "@/services/storage/codec"
+import { presetById } from "@/services/words/presets"
 import type { Word } from "@/types/word"
-import { requireRecord } from "@/utils/validation"
+import { type ObjectValue, requireRecord } from "@/utils/validation"
+
+const legacyPresetIds: Record<string, string> = {
+	"hello": "preset-annyeong",
+	"apple": "preset-sagwa",
+	"saranghae": "preset-saranghae",
+	"bye": "preset-danyeowa",
+	"en-hi": "preset-hi",
+	"en-hello": "preset-hello",
+}
+
+export function legacyPresetId(value: unknown, id: string): string | undefined {
+	const wordRecord = requireRecord(value, `word ${id}`)
+
+	if (wordRecord.sourceType !== "preset") {
+		return undefined
+	}
+
+	return legacyPresetIds[String(wordRecord.presetKey)]
+}
+
+export function withPresetAudioUri(value: unknown, id: string): ObjectValue {
+	const wordRecord = requireRecord(value, `word ${id}`)
+	const preset = presetById.get(legacyPresetId(wordRecord, id) ?? "")
+
+	return preset ? { ...wordRecord, audioUri: preset.audioUri } : wordRecord
+}
 
 export function parseLegacyWord(value: unknown, id: string, archived = false): Word {
-	const wordRecord = requireRecord(value, `word ${id}`)
+	const wordRecord = withPresetAudioUri(value, id)
 
 	const tags: Record<string, string> = {
 		인사: "greeting",

@@ -1,5 +1,6 @@
 import { isMediaReferenced } from "@/services/media/references"
 import { creditRecovery, recoveryDraft } from "@/services/session/history"
+import { currentWord } from "@/services/words/selectors"
 import type { AppData } from "@/types/app-data"
 import type { Capture } from "@/types/capture"
 import type { SessionDraft } from "@/types/session"
@@ -70,9 +71,10 @@ function captureDraft(
 		settings: history,
 		word: history.word,
 		startedAt: history.startedAt,
-		clientWordId: history.word.presetKey
-			? "preset-" + history.word.presetKey
-			: (history.libraryEntryId ?? history.wordId),
+		clientWordId:
+			currentWord(data, history.libraryEntryId ?? history.wordId)?.id ??
+			history.libraryEntryId ??
+			history.wordId,
 		parrotSpecies: data.profile?.species ?? null,
 		parrotBirthdate: data.profile?.birthDate ?? null,
 	}

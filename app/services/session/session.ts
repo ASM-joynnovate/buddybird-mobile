@@ -193,10 +193,9 @@ export async function startSession(
 			label: word.label,
 			sourceType: word.sourceType,
 			audioUri: word.audioUri,
-			...(word.presetKey ? { presetKey: word.presetKey } : {}),
 			libraryEntryId: word.id,
 		},
-		clientWordId: word.presetKey ? `preset-${word.presetKey}` : word.id,
+		clientWordId: word.id,
 		parrotSpecies: data.profile.species,
 		parrotBirthdate: data.profile.birthDate,
 	}

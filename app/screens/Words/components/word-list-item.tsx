@@ -24,7 +24,7 @@ export const WordListItem = memo(function WordListItem({
 }) {
 	const { t } = useTranslation()
 	const palette = categoryColors[item.tag]
-	let playable = Boolean(item.presetKey)
+	let playable = item.sourceType === "preset"
 
 	if (item.sourceType === "recording") {
 		try {

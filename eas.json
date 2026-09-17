@@ -60,7 +60,11 @@
 				"releaseStatus": "draft"
 			},
 			"ios": {
-				"ascAppId": "6783652711"
+				"ascAppId": "6783652711",
+				"appleTeamId": "73TZC3K2JG",
+				"ascApiKeyPath": "/tmp/asc-api-key.p8",
+				"ascApiKeyId": "DDGR4YT335",
+				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466"
 			}
 		}
 	}
