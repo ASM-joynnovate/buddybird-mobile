@@ -73,10 +73,7 @@ export function Button({
 			<Copy
 				style={[
 					styles.buttonText,
-					{
-						color: foregroundColor,
-						fontFamily: /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(label) ? font.extraBold : font.rounded,
-					},
+					{ color: foregroundColor },
 					compact && styles.compactText,
 				]}
 			>

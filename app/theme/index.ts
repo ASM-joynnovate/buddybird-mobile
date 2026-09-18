@@ -36,9 +36,6 @@ export const font = {
 	bold: "Pretendard-Bold",
 	extraBold: "Pretendard-ExtraBold",
 	black: "Pretendard-Black",
-	display: "Nunito-Black",
-	displayBold: "Nunito-Bold",
-	rounded: "Nunito-ExtraBold",
 	splash: "Fredoka-SemiBold",
 }
 
