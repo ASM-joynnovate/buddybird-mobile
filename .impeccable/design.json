@@ -1,0 +1,687 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T00:00:00+09:00",
+  "title": "Design System: BuddyBird",
+  "extensions": {
+    "colorMeta": {
+      "parrot-red": {
+        "role": "primary",
+        "displayName": "Parrot Red",
+        "canonical": "#DB030F",
+        "tonalRamp": [
+          "#4b0105",
+          "#850209",
+          "#be030d",
+          "#f80311",
+          "#fc3944",
+          "#fd737b",
+          "#feacb1",
+          "#ffe6e7"
+        ]
+      },
+      "sunrise-orange": {
+        "role": "primary",
+        "displayName": "Sunrise Orange",
+        "canonical": "#ff9600",
+        "tonalRamp": [
+          "#4c2d00",
+          "#874f00",
+          "#c17200",
+          "#fb9400",
+          "#ffac37",
+          "#ffc571",
+          "#ffdcab",
+          "#fff4e6"
+        ]
+      },
+      "orange-edge": {
+        "role": "primary",
+        "displayName": "Orange Edge",
+        "canonical": "#e07f00",
+        "tonalRamp": [
+          "#4c2b00",
+          "#874c00",
+          "#c16d00",
+          "#fb8f00",
+          "#ffa837",
+          "#ffc171",
+          "#ffdbab",
+          "#fff4e6"
+        ]
+      },
+      "orange-mist": {
+        "role": "primary",
+        "displayName": "Orange Mist",
+        "canonical": "#FFE8CC",
+        "tonalRamp": [
+          "#4c2a00",
+          "#874a00",
+          "#c16a00",
+          "#fb8a00",
+          "#ffa537",
+          "#ffbf71",
+          "#ffd9ab",
+          "#fff4e6"
+        ]
+      },
+      "orange-selected": {
+        "role": "primary",
+        "displayName": "Orange Selected",
+        "canonical": "#fff7eb",
+        "tonalRamp": [
+          "#4c2e00",
+          "#875100",
+          "#c17400",
+          "#fb9700",
+          "#ffaf37",
+          "#ffc671",
+          "#ffddab",
+          "#fff5e6"
+        ]
+      },
+      "sky-blue": {
+        "role": "secondary",
+        "displayName": "Sky Blue",
+        "canonical": "#1cb0f6",
+        "tonalRamp": [
+          "#03334a",
+          "#055a82",
+          "#0780ba",
+          "#0aa7f2",
+          "#3ebcf7",
+          "#76cffa",
+          "#aee3fc",
+          "#e6f6fe"
+        ]
+      },
+      "blue-edge": {
+        "role": "secondary",
+        "displayName": "Blue Edge",
+        "canonical": "#1899d6",
+        "tonalRamp": [
+          "#083145",
+          "#0e5779",
+          "#137cae",
+          "#19a2e2",
+          "#4bb7eb",
+          "#7fccf1",
+          "#b4e1f7",
+          "#e8f6fc"
+        ]
+      },
+      "blue-mist": {
+        "role": "secondary",
+        "displayName": "Blue Mist",
+        "canonical": "#DDF4FF",
+        "tonalRamp": [
+          "#00344c",
+          "#005b87",
+          "#0083c1",
+          "#00aafb",
+          "#37beff",
+          "#71d1ff",
+          "#abe4ff",
+          "#e6f7ff"
+        ]
+      },
+      "berry-purple": {
+        "role": "tertiary",
+        "displayName": "Berry Purple",
+        "canonical": "#ce82ff",
+        "tonalRamp": [
+          "#2f004c",
+          "#520087",
+          "#7500c1",
+          "#9900fb",
+          "#b037ff",
+          "#c771ff",
+          "#deabff",
+          "#f5e6ff"
+        ]
+      },
+      "purple-edge": {
+        "role": "tertiary",
+        "displayName": "Purple Edge",
+        "canonical": "#A85FD6",
+        "tonalRamp": [
+          "#2b103d",
+          "#4c1b6b",
+          "#6e279a",
+          "#8f33c8",
+          "#a860d6",
+          "#c28ee2",
+          "#dbbcee",
+          "#f4ebfa"
+        ]
+      },
+      "purple-mist": {
+        "role": "tertiary",
+        "displayName": "Purple Mist",
+        "canonical": "#F2E1FF",
+        "tonalRamp": [
+          "#2b004c",
+          "#4c0087",
+          "#6d00c1",
+          "#8e00fb",
+          "#a837ff",
+          "#c171ff",
+          "#dbabff",
+          "#f4e6ff"
+        ]
+      },
+      "sun-yellow": {
+        "role": "tertiary",
+        "displayName": "Sun Yellow",
+        "canonical": "#FFC800",
+        "tonalRamp": [
+          "#4c3c00",
+          "#876a00",
+          "#c19700",
+          "#fbc500",
+          "#ffd437",
+          "#ffe071",
+          "#ffedab",
+          "#fffae6"
+        ]
+      },
+      "yellow-edge": {
+        "role": "tertiary",
+        "displayName": "Yellow Edge",
+        "canonical": "#E6A800",
+        "tonalRamp": [
+          "#4c3800",
+          "#876200",
+          "#c18d00",
+          "#fbb800",
+          "#ffc937",
+          "#ffd971",
+          "#ffe8ab",
+          "#fff8e6"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#3c3c3c",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "muted-gray": {
+        "role": "neutral",
+        "displayName": "Muted Gray",
+        "canonical": "#777777",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "hairline-gray": {
+        "role": "neutral",
+        "displayName": "Hairline Gray",
+        "canonical": "#e5e5e5",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "cloud-gray": {
+        "role": "neutral",
+        "displayName": "Cloud Gray",
+        "canonical": "#f7f7f7",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "disabled-gray": {
+        "role": "neutral",
+        "displayName": "Disabled Gray",
+        "canonical": "#AFAFAF",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "disabled-surface": {
+        "role": "neutral",
+        "displayName": "Disabled Surface",
+        "canonical": "#EBEBEB",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "alert-red": {
+        "role": "neutral",
+        "displayName": "Alert Red",
+        "canonical": "#FF4B4B",
+        "tonalRamp": [
+          "#4c0000",
+          "#870000",
+          "#c10000",
+          "#fb0000",
+          "#ff3737",
+          "#ff7171",
+          "#ffabab",
+          "#ffe6e6"
+        ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "canonical": "#00000066"
+      },
+      "greeting-tint": {
+        "role": "primary",
+        "displayName": "Greeting Tint",
+        "canonical": "#FFF7EB",
+        "tonalRamp": [
+          "#4c2e00",
+          "#875100",
+          "#c17400",
+          "#fb9700",
+          "#ffaf37",
+          "#ffc671",
+          "#ffddab",
+          "#fff5e6"
+        ]
+      },
+      "greeting-soft": {
+        "role": "primary",
+        "displayName": "Greeting Soft",
+        "canonical": "#FFF2E0",
+        "tonalRamp": [
+          "#4c2c00",
+          "#874e00",
+          "#c17000",
+          "#fb9200",
+          "#ffab37",
+          "#ffc371",
+          "#ffdcab",
+          "#fff4e6"
+        ]
+      },
+      "food-tint": {
+        "role": "secondary",
+        "displayName": "Food Tint",
+        "canonical": "#EDF9FE",
+        "tonalRamp": [
+          "#043448",
+          "#075c80",
+          "#0a84b7",
+          "#0dacee",
+          "#41c0f4",
+          "#78d2f8",
+          "#b0e5fb",
+          "#e7f7fe"
+        ]
+      },
+      "food-soft": {
+        "role": "secondary",
+        "displayName": "Food Soft",
+        "canonical": "#E4F6FE",
+        "tonalRamp": [
+          "#03344a",
+          "#055b82",
+          "#0783ba",
+          "#09abf2",
+          "#3ebff8",
+          "#76d1fa",
+          "#aee4fc",
+          "#e6f7fe"
+        ]
+      },
+      "name-tint": {
+        "role": "tertiary",
+        "displayName": "Name Tint",
+        "canonical": "#FBF5FF",
+        "tonalRamp": [
+          "#2e004c",
+          "#510087",
+          "#7400c1",
+          "#9700fb",
+          "#af37ff",
+          "#c671ff",
+          "#ddabff",
+          "#f5e6ff"
+        ]
+      },
+      "name-soft": {
+        "role": "tertiary",
+        "displayName": "Name Soft",
+        "canonical": "#F9F0FF",
+        "tonalRamp": [
+          "#2e004c",
+          "#510087",
+          "#7400c1",
+          "#9700fb",
+          "#af37ff",
+          "#c671ff",
+          "#ddabff",
+          "#f5e6ff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "세션 완료 축하 제목. 세션 링 안의 단어 제목은 30px Black"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "화면 제목. Title 컴포넌트 기본값"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "섹션 제목과 다이얼로그 제목"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "본문 기본값. Copy 컴포넌트"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "입력 필드 라벨과 말풍선 본문"
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "통계 라벨, 탭 라벨, 단어 카드 라벨, 칩"
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "버튼 라벨. 영문은 대문자, 0.32px 자간"
+      },
+      "timer": {
+        "displayName": "Timer",
+        "purpose": "세션 카운트다운. 고정폭 숫자"
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "스플래시 워드마크 전용"
+      }
+    },
+    "shadows": [
+      {
+        "name": "edge-2",
+        "value": "0 2px 0 <edge>",
+        "purpose": "카드, 칩, 선택되지 않은 ChoiceCard. 그림자가 아니라 아래쪽에 깔린 엣지 판을 웹에서 흉내낸 값"
+      },
+      {
+        "name": "edge-3",
+        "value": "0 3px 0 <edge>",
+        "purpose": "선택된 ChoiceCard, 선택된 탭"
+      },
+      {
+        "name": "edge-4",
+        "value": "0 4px 0 <edge>",
+        "purpose": "기본 Surface, 프로필 카드, 컴팩트 버튼"
+      },
+      {
+        "name": "edge-7",
+        "value": "0 7px 0 <edge>",
+        "purpose": "주 버튼"
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "60ms linear",
+        "purpose": "눌림 시 면이 depth - 1만큼 내려앉고 손을 떼면 돌아온다"
+      },
+      {
+        "name": "mascot-float",
+        "value": "1000ms ease-in-out infinite alternate",
+        "purpose": "마스코트가 높이의 5%를 오르내리며 좌우 2도 기운다"
+      },
+      {
+        "name": "mascot-bounce",
+        "value": "800ms ease-in-out infinite alternate",
+        "purpose": "세션 링 안에서 높이의 8%를 오르내린다"
+      },
+      {
+        "name": "splash-enter",
+        "value": "760ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "스플래시 진입 페이드와 1.035배 축소"
+      },
+      {
+        "name": "waveform-live",
+        "value": "80ms",
+        "purpose": "녹음 레벨에 따른 막대 높이 변화"
+      },
+      {
+        "name": "waveform-loop",
+        "value": "200ms",
+        "purpose": "재생 중 반복 파형"
+      },
+      {
+        "name": "ring-progress",
+        "value": "linear over remaining time",
+        "purpose": "세션 링이 남은 시간 동안 선형으로 줄어든다"
+      },
+      {
+        "name": "dialog",
+        "value": "fade",
+        "purpose": "다이얼로그 등장과 퇴장"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "360px",
+        "purpose": "이 폭 미만에서 통계 숫자와 아이콘을 한 단계 줄인다"
+      },
+      {
+        "name": "content-max",
+        "value": "480px",
+        "purpose": "콘텐츠와 다이얼로그의 최대 폭"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "주 행동. 오렌지 면에 Orange Edge 엣지 7",
+      "html": "<button class=\"ds-btn-primary\">START</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:58px;padding:10px 22px;border-radius:16px;border:2px solid;font-family:'Pretendard',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.32px;text-transform:uppercase;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear;background:#ff9600;border-color:#e07f00;color:#ffffff;box-shadow:0 7px 0 #e07f00;margin-bottom:7px}.ds-btn-primary:hover{background:#ff9600}.ds-btn-primary:active{transform:translateY(6px);box-shadow:0 1px 0 #e07f00}.ds-btn-primary:focus-visible{outline:3px solid #1cb0f6;outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "흰 면에 Hairline Gray 테두리와 엣지",
+      "html": "<button class=\"ds-btn-secondary\">CANCEL</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:58px;padding:10px 22px;border-radius:16px;border:2px solid;font-family:'Pretendard',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.32px;text-transform:uppercase;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear;background:#ffffff;border-color:#e5e5e5;color:#3c3c3c;box-shadow:0 7px 0 #e5e5e5;margin-bottom:7px}.ds-btn-secondary:active{transform:translateY(6px);box-shadow:0 1px 0 #e5e5e5}.ds-btn-secondary:focus-visible{outline:3px solid #1cb0f6;outline-offset:3px}"
+    },
+    {
+      "name": "Disabled Button",
+      "kind": "button",
+      "refersTo": "button-disabled",
+      "description": "엣지 0, Disabled Surface 면",
+      "html": "<button class=\"ds-btn-disabled\" disabled>SAVING</button>",
+      "css": ".ds-btn-disabled{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:58px;padding:10px 22px;border-radius:16px;border:2px solid;font-family:'Pretendard',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.32px;text-transform:uppercase;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear;background:#EBEBEB;border-color:#EBEBEB;color:#AFAFAF;cursor:default}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "알약형 필터. 선택되면 톤 색 면에 흰 글자",
+      "html": "<span class=\"ds-chip\">인사</span> <span class=\"ds-chip ds-chip-selected\">음식</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:4px 14px;border-radius:999px;border:2px solid #e5e5e5;background:#ffffff;color:#777777;font-family:'Pretendard',sans-serif;font-weight:800;font-size:13.5px;box-shadow:0 2px 0 #e5e5e5;margin-bottom:2px;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear}.ds-chip:active{transform:translateY(1px);box-shadow:0 1px 0 #e5e5e5}.ds-chip-selected{background:#ff9600;border-color:#e07f00;color:#ffffff;box-shadow:0 2px 0 #e07f00}.ds-chip-selected:active{box-shadow:0 1px 0 #e07f00}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "흰 면, Hairline Gray 테두리, 엣지 2, 안쪽 여백 16px",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">오늘 학습시간</div><div class=\"ds-card-value\">1<span class=\"ds-card-unit\">시간</span> 20<span class=\"ds-card-unit\">분</span></div></div>",
+      "css": ".ds-card{background:#ffffff;border:2px solid #e5e5e5;border-radius:18px;padding:16px;box-shadow:0 2px 0 #e5e5e5;margin-bottom:2px;color:#3c3c3c;font-family:'Pretendard',sans-serif}.ds-card-title{font-size:12px;line-height:14px;color:#777777;font-weight:700;text-align:center}.ds-card-value{margin-top:8px;font-size:24px;line-height:26px;font-weight:900;text-align:center;font-variant-numeric:tabular-nums}.ds-card-unit{font-size:14px;font-weight:700}"
+    },
+    {
+      "name": "Choice Card",
+      "kind": "card",
+      "refersTo": "choice-card-selected",
+      "description": "단일 선택 카드. 선택되면 Orange Selected 면에 오렌지 엣지 3",
+      "html": "<div class=\"ds-choice ds-choice-selected\" role=\"radio\" aria-checked=\"true\"><span class=\"ds-radio\"></span><span class=\"ds-choice-text\"><span class=\"ds-choice-title\">짧게 <em>10분</em></span><span class=\"ds-choice-hint\">샤워하거나 잠시 자리를 비울 때</span></span></div>",
+      "css": ".ds-choice{display:flex;align-items:center;gap:12px;min-height:76px;padding:16px;background:#ffffff;border:2px solid #e5e5e5;border-radius:18px;box-shadow:0 2px 0 #e5e5e5;margin-bottom:8px;color:#3c3c3c;font-family:'Pretendard',sans-serif;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear}.ds-choice:active{transform:translateY(1px);box-shadow:0 1px 0 #e5e5e5}.ds-choice-selected{background:#fff7eb;border-color:#ff9600;box-shadow:0 3px 0 #ff9600}.ds-choice-selected:active{transform:translateY(2px);box-shadow:0 1px 0 #ff9600}.ds-radio{flex:none;width:25px;height:25px;border-radius:16px;border:3px solid #e5e5e5;box-sizing:border-box}.ds-choice-selected .ds-radio{border-color:#ff9600;background:#ff9600 center/12px no-repeat url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E\")}.ds-choice-text{display:flex;flex-direction:column;min-width:0}.ds-choice-title{font-weight:900;font-size:16px}.ds-choice-title em{font-style:normal;font-weight:800;font-size:12.5px;color:#ff9600;margin-left:6px}.ds-choice-hint{margin-top:4px;font-size:12px;line-height:17px;color:#777777;font-weight:700}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "2px 테두리, 14px 코너, 오류 시 Alert Red 테두리와 Parrot Red 인라인 오류",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">이름</span><input class=\"ds-input\" placeholder=\"예: 망고\"></label>",
+      "css": ".ds-field{display:block;font-family:'Pretendard',sans-serif}.ds-field-label{display:block;font-size:16px;font-weight:800;color:#777777;margin-bottom:10px}.ds-input{width:100%;min-height:50px;padding:10px 16px;box-sizing:border-box;border:2px solid #e5e5e5;border-radius:14px;background:#ffffff;font-family:inherit;font-weight:700;font-size:16px;color:#3c3c3c}.ds-input::placeholder{color:#777777}.ds-input:focus-visible{outline:3px solid #1cb0f6;outline-offset:2px}.ds-input[aria-invalid='true']{border-color:#FF4B4B}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-selected",
+      "description": "상단 2px 선. 선택된 탭은 오렌지 면에 엣지 3",
+      "html": "<nav class=\"ds-tabs\"><button class=\"ds-tab ds-tab-selected\" aria-selected=\"true\"><svg width=\"25\" height=\"25\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z\"/></svg><span>학습</span></button><button class=\"ds-tab\"><svg width=\"25\" height=\"25\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z\"/></svg><span>단어</span></button><button class=\"ds-tab\"><svg width=\"25\" height=\"25\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\"/></svg><span>프로필</span></button></nav>",
+      "css": ".ds-tabs{display:flex;justify-content:space-around;align-items:center;gap:6px;padding:12px 8px 30px;border-top:2px solid #e5e5e5;background:#ffffff}.ds-tab{flex:1;max-width:68px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;border:2px solid transparent;border-radius:16px;background:transparent;color:#777777;font-family:'Pretendard',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:transform 60ms linear, box-shadow 60ms linear}.ds-tab-selected{background:#ff9600;border-color:#e07f00;color:#ffffff;box-shadow:0 3px 0 #e07f00}.ds-tab-selected:active{transform:translateY(2px);box-shadow:0 1px 0 #e07f00}.ds-tab:focus-visible{outline:3px solid #1cb0f6;outline-offset:2px}"
+    },
+    {
+      "name": "Speech Bubble",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "마스코트의 말풍선. 카드와 같은 면에 45도 회전한 꼬리",
+      "html": "<div class=\"ds-bubble\">안녕하세요! 저는 버디예요.<br>함께 앵무새에게 말을 가르쳐 봐요!</div>",
+      "css": ".ds-bubble{position:relative;display:inline-block;max-width:300px;padding:14px 16px;background:#ffffff;border:2px solid #e5e5e5;border-radius:16px;box-shadow:0 2px 0 #e5e5e5;margin-bottom:12px;color:#3c3c3c;font-family:'Pretendard',sans-serif;font-weight:800;font-size:16px;line-height:22px}.ds-bubble::after{content:'';position:absolute;left:50%;bottom:-10px;width:16px;height:16px;background:#ffffff;border-right:2px solid #e5e5e5;border-bottom:2px solid #e5e5e5;transform:translateX(-8px) rotate(45deg)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "통통 튀는 장난감 버튼",
+    "overview": "버디버드의 화면은 유아용 장난감의 큼직한 버튼처럼 두껍고 단단하다.\n눌리는 모든 요소는 2px 테두리와 아래쪽에 깔린 더 진한 색의 엣지로 두께를 드러내고, 누르면 면이 실제로 엣지 위로 내려앉는다.\n그림자와 반투명 질감은 없다.\n깊이는 색과 형태로만 말한다.\n\n색은 밝은 흰 종이 위에 오렌지가 행동을 이끄는 구조다.\n브랜드 레드는 마스코트 버디의 깃털색이며 스플래시와 몇몇 정체성 순간에만 등장한다.\n블루와 퍼플은 단어 카테고리와 통계의 보조색이고, 옐로는 세션 완료 축하에만 쓴다.\n서체는 한글과 영문 모두 Pretendard이며 굵기가 Bold 아래로 내려가지 않는다.\n\n밀도는 한 손 조작을 전제로 넉넉하다.\n버튼 높이 58px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.\n마스코트 버디가 온보딩과 세션 화면에서 떠다니거나 통통 튀며 앱의 성격을 대신 말한다.",
+    "keyCharacteristics": [
+      "엣지 기반 두께. 그림자 대신 아래쪽 색 엣지와 2px 테두리",
+      "오렌지가 모든 주 행동을 담당",
+      "브랜드 레드는 정체성 순간에만 등장",
+      "한글과 영문 모두 Pretendard",
+      "continuous 코너와 알약형 칩",
+      "모든 동작은 시스템 Reduce Motion을 따름"
+    ],
+    "rules": [
+      {
+        "name": "The Red Is the Bird Rule",
+        "body": "Parrot Red는 마스코트와 같은 존재다. 버튼, 탭, 카드 강조에 쓰지 않는다. 새 용도를 추가하려면 정체성 순간인지 먼저 묻는다.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Action Color Rule",
+        "body": "화면에서 행동을 요구하는 요소는 Sunrise Orange만 쓴다. 블루 버튼은 오렌지 버튼과 나란히 놓여 보조 행동임을 드러낼 때만 쓴다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Edge Pair Rule",
+        "body": "색 있는 면은 항상 면색과 한 단계 진한 엣지색을 짝으로 가진다. 엣지 없는 오렌지 면은 없다.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Face Rule",
+        "body": "UI 텍스트는 언어와 관계없이 Pretendard만 쓴다. 영문이라고 다른 서체로 바꾸지 않는다. 스플래시 워드마크의 Fredoka는 로고이므로 예외다.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bold Floor Rule",
+        "body": "Pretendard Bold보다 가는 무게는 쓰지 않는다. Regular는 로드되어 있으나 본문도 Bold다.",
+        "section": "typography"
+      },
+      {
+        "name": "The Edge Rule",
+        "body": "두께가 필요하면 엣지를 늘린다. shadowColor, elevation, 블러는 쓰지 않는다. 최근 로그인 태그에 남은 그림자 값은 확장하지 않는다.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Sit Down Rule",
+        "body": "눌리는 요소는 색을 바꾸지 않고 자리에 앉는다. 눌림 피드백은 위치 변화이며 투명도 변화가 아니다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 눌리는 요소는 Surface 계열 컴포넌트로 만든다. 면색과 엣지색을 짝으로 주고 depth로 두께를 정한다",
+      "Do 새 색 면을 추가하면 한 단계 진한 엣지색을 함께 정의한다",
+      "Do 단일 선택은 ChoiceCard, 다중 필터는 Chip을 쓴다",
+      "Do 모든 애니메이션에 useReducedMotion을 확인하고 정지 상태를 준비한다",
+      "Do 버튼 라벨은 언어와 관계없이 Pretendard ExtraBold를 쓴다. 영문은 대문자",
+      "Do 통계와 업적처럼 나란한 카드는 flex: 1과 minWidth: 0으로 어느 언어에서도 한 줄을 유지한다",
+      "Do 오류 메시지는 Parrot Red 인라인 텍스트로 필드 바로 아래에 둔다"
+    ],
+    "donts": [
+      "Don't 그라데이션을 배경이나 버튼에 쓰지 않는다. 면은 단색이다",
+      "Don't 확산 그림자, 블러, 반투명 유리 질감을 쓰지 않는다. 두께는 엣지로만 표현한다",
+      "Don't Parrot Red를 버튼, 탭, 카드 강조에 쓰지 않는다",
+      "Don't 한 화면에서 오렌지 외의 색으로 주 행동 버튼을 만들지 않는다",
+      "Don't 눌림 피드백으로 투명도나 색 변화를 쓰지 않는다. 면이 내려앉는 것이 눌림이다"
+    ]
+  }
+}
