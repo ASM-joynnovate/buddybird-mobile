@@ -1,7 +1,7 @@
 import * as AppleAuthentication from "expo-apple-authentication"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ActivityIndicator, Alert, Image, Platform, StyleSheet, View } from "react-native"
+import { ActivityIndicator, Alert, Image, StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
@@ -9,17 +9,18 @@ import { Copy, Title } from "@/components/ui/text"
 import { useAuth } from "@/context/auth"
 import { LastLoginTag } from "@/screens/Login/components/last-login-tag"
 import { OAuthButton } from "@/screens/Login/components/oauth-button"
-import { lastLoginProvider } from "@/services/auth/registration"
+import { availableLoginProviders } from "@/services/auth/providers"
+import { lastLoginProvider, type LoginProvider } from "@/services/auth/registration"
 import { signInWithApple, signInWithOAuth } from "@/services/auth/sign-in"
 import { colors, mascot, radius } from "@/theme"
-
-type Provider = "google" | "kakao" | "apple"
 
 export function LoginScreen() {
 	const { t } = useTranslation()
 	const { state, retry } = useAuth()
-	const [appleAvailable, setAppleAvailable] = useState(false)
-	const [attempt, setAttempt] = useState<{ provider: Provider; pending: boolean } | null>(null)
+	const [providers, setProviders] = useState<LoginProvider[]>([])
+	const [attempt, setAttempt] = useState<{ provider: LoginProvider; pending: boolean } | null>(
+		null,
+	)
 	const busy = useRef(false)
 	const completing = state.status === "completing"
 	const disabled = attempt?.pending === true || completing
@@ -28,26 +29,20 @@ export function LoginScreen() {
 	const recentHint = t("auth.recentHint")
 
 	useEffect(() => {
-		if (Platform.OS !== "ios") {
-			return
-		}
-
 		let active = true
 
-		void AppleAuthentication.isAvailableAsync()
-			.then((available) => {
-				if (active) {
-					setAppleAvailable(available)
-				}
-			})
-			.catch(() => {})
+		void availableLoginProviders().then((list) => {
+			if (active) {
+				setProviders(list)
+			}
+		})
 
 		return () => {
 			active = false
 		}
 	}, [])
 
-	async function signIn(provider: Provider) {
+	async function signIn(provider: LoginProvider) {
 		if (busy.current || state.status !== "signedOut") {
 			return
 		}
@@ -96,27 +91,35 @@ export function LoginScreen() {
 					<Button label={t("common.retry")} onPress={retry} variant="secondary" />
 				) : (
 					<>
-						<View>
-							{recent === "google" ? <LastLoginTag label={t("auth.recent")} /> : null}
-							<OAuthButton
-								provider="google"
-								loading={loadingProvider === "google"}
-								disabled={disabled}
-								hint={recent === "google" ? recentHint : undefined}
-								onPress={() => void signIn("google")}
-							/>
-						</View>
-						<View>
-							{recent === "kakao" ? <LastLoginTag label={t("auth.recent")} /> : null}
-							<OAuthButton
-								provider="kakao"
-								loading={loadingProvider === "kakao"}
-								disabled={disabled}
-								hint={recent === "kakao" ? recentHint : undefined}
-								onPress={() => void signIn("kakao")}
-							/>
-						</View>
-						{appleAvailable ? (
+						{providers.includes("google") ? (
+							<View>
+								{recent === "google" ? (
+									<LastLoginTag label={t("auth.recent")} />
+								) : null}
+								<OAuthButton
+									provider="google"
+									loading={loadingProvider === "google"}
+									disabled={disabled}
+									hint={recent === "google" ? recentHint : undefined}
+									onPress={() => void signIn("google")}
+								/>
+							</View>
+						) : null}
+						{providers.includes("kakao") ? (
+							<View>
+								{recent === "kakao" ? (
+									<LastLoginTag label={t("auth.recent")} />
+								) : null}
+								<OAuthButton
+									provider="kakao"
+									loading={loadingProvider === "kakao"}
+									disabled={disabled}
+									hint={recent === "kakao" ? recentHint : undefined}
+									onPress={() => void signIn("kakao")}
+								/>
+							</View>
+						) : null}
+						{providers.includes("apple") ? (
 							<View style={styles.appleButton}>
 								{recent === "apple" ? (
 									<LastLoginTag label={t("auth.recent")} />
