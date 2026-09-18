@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { Copy, Title } from "@/components/ui/text"
 import { useAuth } from "@/context/auth"
+import { LastLoginTag } from "@/screens/Login/components/last-login-tag"
 import { OAuthButton } from "@/screens/Login/components/oauth-button"
+import { lastLoginProvider } from "@/services/auth/registration"
 import { signInWithApple, signInWithOAuth } from "@/services/auth/sign-in"
 import { colors, mascot, radius } from "@/theme"
 
@@ -22,6 +24,8 @@ export function LoginScreen() {
 	const completing = state.status === "completing"
 	const disabled = attempt?.pending === true || completing
 	const loadingProvider = disabled ? attempt?.provider : undefined
+	const recent = lastLoginProvider()
+	const recentHint = t("auth.recentHint")
 
 	useEffect(() => {
 		if (Platform.OS !== "ios") {
@@ -92,20 +96,31 @@ export function LoginScreen() {
 					<Button label={t("common.retry")} onPress={retry} variant="secondary" />
 				) : (
 					<>
-						<OAuthButton
-							provider="google"
-							loading={loadingProvider === "google"}
-							disabled={disabled}
-							onPress={() => void signIn("google")}
-						/>
-						<OAuthButton
-							provider="kakao"
-							loading={loadingProvider === "kakao"}
-							disabled={disabled}
-							onPress={() => void signIn("kakao")}
-						/>
+						<View>
+							{recent === "google" ? <LastLoginTag label={t("auth.recent")} /> : null}
+							<OAuthButton
+								provider="google"
+								loading={loadingProvider === "google"}
+								disabled={disabled}
+								hint={recent === "google" ? recentHint : undefined}
+								onPress={() => void signIn("google")}
+							/>
+						</View>
+						<View>
+							{recent === "kakao" ? <LastLoginTag label={t("auth.recent")} /> : null}
+							<OAuthButton
+								provider="kakao"
+								loading={loadingProvider === "kakao"}
+								disabled={disabled}
+								hint={recent === "kakao" ? recentHint : undefined}
+								onPress={() => void signIn("kakao")}
+							/>
+						</View>
 						{appleAvailable ? (
 							<View style={styles.appleButton}>
+								{recent === "apple" ? (
+									<LastLoginTag label={t("auth.recent")} />
+								) : null}
 								<AppleAuthentication.AppleAuthenticationButton
 									testID="login-apple"
 									buttonType={
@@ -121,6 +136,7 @@ export function LoginScreen() {
 											? "auth.pending.apple"
 											: "auth.apple",
 									)}
+									accessibilityHint={recent === "apple" ? recentHint : undefined}
 									accessibilityState={{
 										disabled,
 										busy: loadingProvider === "apple",

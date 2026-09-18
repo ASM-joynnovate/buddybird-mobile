@@ -208,6 +208,7 @@ MMKV 파일은 기기에 저장되므로, 앱이 제품 서버의 내부 사용�
 - **`buddybird.device`**
     - 기기 설정: 언어, 분석 동의, 업데이트 안내, 피드백 표시 설정
     - 이전 기록: 기존 데이터의 최초 소유 계정과 이전 근거
+    - 기기 식별자: 서버에 등록하는 `client_device_id`, 키 `device/clientId`
 - **`buddybird.user.<계정 ID>`**
     - 단어 전송 대기 데이터: `local/word/<client_generated_id>`
     - 프로필 전송 대기 데이터: `local/bird/<client_generated_id>`

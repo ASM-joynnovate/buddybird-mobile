@@ -4448,7 +4448,6 @@ __metadata:
     expo-system-ui: "npm:~55.0.9"
     expo-tracking-transparency: "npm:~55.0.8"
     expo-web-browser: "npm:~55.0.9"
-    fflate: "npm:0.8.3"
     husky: "npm:9.1.7"
     i18next: "npm:^23.14.0"
     intl-pluralrules: "npm:^2.0.1"
@@ -4469,6 +4468,7 @@ __metadata:
     react-native-svg: "npm:15.15.3"
     react-native-worklets: "npm:0.7.4"
     typescript: "npm:~5.9.2"
+    zod: "npm:^4.6.5"
   languageName: unknown
   linkType: soft
 
@@ -5987,13 +5987,6 @@ __metadata:
   version: 0.4.10
   resolution: "fetch-nodeshim@npm:0.4.10"
   checksum: 10c0/73b840b5d1252e82c416b350526ff24f5aebf554bfe911c713a19fbe4ad1218fb4c488f95055362a132f5dd733679c929fbe6a65ee23339592290c4d107ade92
-  languageName: node
-  linkType: hard
-
-"fflate@npm:0.8.3":
-  version: 0.8.3
-  resolution: "fflate@npm:0.8.3"
-  checksum: 10c0/eab181ca37f5348ae76d4b6f840e0026e30220e33153289ac942222d8b9638237d486507dbcc09878d724095bd354993a2ee48bbee99c8f2c6440d4448719aa7
   languageName: node
   linkType: hard
 
@@ -10454,5 +10447,12 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.6.5":
+  version: 4.6.5
+  resolution: "zod@npm:4.6.5"
+  checksum: 10c0/32eb6c5e98becbe045675b2141c3611451c16ba567f9779231d79af41c4d651ca1c22f154aef7e6c6e77b929f23e43f1154ca05b82e119e922353725d6776af5
   languageName: node
   linkType: hard

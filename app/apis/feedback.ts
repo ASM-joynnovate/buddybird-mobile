@@ -3,10 +3,16 @@ import { Platform } from "react-native"
 
 import { ensureAnonymousIdentity } from "@/apis/identity"
 import { installedVersion } from "@/lib/application"
-import { TimeoutError } from "@/lib/http"
 import { validateFeedback } from "@/services/feedback/policy"
 import { readData } from "@/services/storage/data-store"
 import type { Locale } from "@/types/locale"
+
+class TimeoutError extends Error {
+	constructor() {
+		super("Request timed out")
+		this.name = "TimeoutError"
+	}
+}
 
 export async function submitFeedback(input: { message: string; locale: Locale }) {
 	readData() // The migration gate applies to server writes too.

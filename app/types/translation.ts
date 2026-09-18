@@ -18,14 +18,21 @@ export type Translation = {
 		}
 		completing: string
 		signInError: string
-		backendError: string
-		responseError: string
 		restoreError: string
 		configurationError: string
-		credentialError: string
-		expired: string
+		recent: string
+		recentHint: string
 		signOut: string
 		signOutError: string
+	}
+	apiError: {
+		AUTH__INVALID_TOKEN: string
+		AUTH__INVALID_PROVIDER_CREDENTIAL: string
+		AUTH__PROVIDER_CREDENTIAL_REQUIRED: string
+		AUTH__SERVICE_UNAVAILABLE: string
+		CLIENT__NETWORK: string
+		CLIENT__TIMEOUT: string
+		CLIENT__INVALID_RESPONSE: string
 	}
 	storage: {
 		loading: string

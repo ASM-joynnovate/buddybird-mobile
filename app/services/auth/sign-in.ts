@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser"
 import { setAppleCredential } from "@/apis/auth"
 import { config } from "@/config"
 import { getSupabase } from "@/lib/supabase"
+import { markProvider } from "@/services/auth/registration"
 
 export async function signInWithOAuth(provider: "google" | "kakao") {
 	const supabase = getSupabase()
@@ -61,6 +62,8 @@ export async function signInWithOAuth(provider: "google" | "kakao") {
 		throw new Error("Authentication code missing")
 	}
 
+	markProvider(provider)
+
 	const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
 	if (exchangeError) {
@@ -83,6 +86,8 @@ export async function signInWithApple() {
 	if (credential.authorizationCode) {
 		setAppleCredential(credential.authorizationCode)
 	}
+
+	markProvider("apple")
 
 	const { error } = await supabase.auth.signInWithIdToken({
 		provider: "apple",

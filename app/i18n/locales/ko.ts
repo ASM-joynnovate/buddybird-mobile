@@ -21,14 +21,24 @@ export const ko: Translation = {
 		},
 		completing: "버디버드 로그인을 마무리하고 있어요",
 		signInError: "로그인하지 못했어요. 연결을 확인하고 로그인 버튼을 다시 눌러 주세요.",
-		backendError: "버디버드에 연결하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.",
-		responseError: "로그인 응답을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
 		restoreError: "저장된 로그인을 확인하지 못했어요. 다시 시도해 주세요.",
 		configurationError: "로그인을 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
-		credentialError: "소셜 로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.",
-		expired: "로그인이 만료되었어요. 다시 로그인해 주세요.",
+		recent: "최근 로그인",
+		recentHint: "마지막으로 로그인한 방법이에요",
 		signOut: "이 기기에서 로그아웃",
 		signOutError: "로그아웃하지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+	},
+
+	apiError: {
+		AUTH__INVALID_TOKEN: "로그인이 만료되었어요. 다시 로그인해 주세요.",
+		AUTH__INVALID_PROVIDER_CREDENTIAL:
+			"소셜 로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.",
+		AUTH__PROVIDER_CREDENTIAL_REQUIRED: "소셜 로그인 정보가 필요해요. 다시 로그인해 주세요.",
+		AUTH__SERVICE_UNAVAILABLE:
+			"로그인 서비스를 잠시 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
+		CLIENT__NETWORK: "버디버드에 연결하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.",
+		CLIENT__TIMEOUT: "응답이 너무 늦어요. 연결을 확인한 뒤 다시 시도해 주세요.",
+		CLIENT__INVALID_RESPONSE: "서버 응답을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
 	},
 
 	storage: {

@@ -1,17 +1,21 @@
 import { isAuthRetryableFetchError, type Session } from "@supabase/supabase-js"
+import { useMutation } from "@tanstack/react-query"
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react"
 import { Alert, AppState } from "react-native"
 
-import { clearLoginCredential, completeLogin } from "@/apis/auth"
+import { clearLoginCredential } from "@/apis/auth"
 import { AuthContext, type AuthState } from "@/context/auth"
+import { loginMutationOptions } from "@/hooks/apis/auth"
 import i18next from "@/i18n"
-import { HttpError, ResponseError } from "@/lib/http"
+import { ApiError, apiErrorMessage } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 import { getSupabase } from "@/lib/supabase"
 import { clearRegistration, markRegistered, registeredUser } from "@/services/auth/registration"
 
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [state, setState] = useState<AuthState>({ status: "loading" })
 	const [attempt, setAttempt] = useState(0)
+	const { mutateAsync: runLogin } = useMutation(loginMutationOptions())
 
 	useEffect(() => {
 		let supabase: ReturnType<typeof getSupabase>
@@ -41,6 +45,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			userId = nextId
 			request?.abort()
+			void queryClient.cancelQueries()
 
 			if (!nextId) {
 				clearLoginCredential()
@@ -62,7 +67,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setState({ status: "completing" })
 
 			try {
-				await completeLogin(nextId, controller.signal)
+				await runLogin({ signal: controller.signal })
 
 				if (active && !controller.signal.aborted) {
 					markRegistered(nextId)
@@ -75,7 +80,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 				alertLoginFailure(error)
 
-				if (!(error instanceof HttpError) || error.retryable) {
+				if (
+					!(error instanceof ApiError) ||
+					error.retryable ||
+					error.code === "CLIENT__INVALID_RESPONSE"
+				) {
 					userId = undefined
 					setState({ status: "signedOut" })
 
@@ -148,7 +157,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			lifecycle.remove()
 			void supabase.auth.stopAutoRefresh()
 		}
-	}, [attempt])
+	}, [attempt, runLogin])
 
 	const retry = useCallback(() => setAttempt((value) => value + 1), [])
 	const value = useMemo(() => ({ state, retry, signOut }), [state, retry])
@@ -156,35 +165,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-const credentialErrorCodes = new Set([
-	"AUTH__PROVIDER_CREDENTIAL_REQUIRED",
-	"AUTH__INVALID_PROVIDER_CREDENTIAL",
-])
-
 function alertLoginFailure(error: unknown) {
-	let key = error instanceof ResponseError ? "auth.responseError" : "auth.backendError"
-	let detail: string | undefined
-
-	if (error instanceof HttpError) {
-		const code =
-			error.body && typeof error.body === "object" && "error_code" in error.body
-				? error.body.error_code
-				: null
-
-		detail = typeof code === "string" ? code : `HTTP ${error.status}`
-
-		if (error.status === 401) {
-			key = "auth.expired"
-		} else if (
-			error.status === 400 &&
-			typeof code === "string" &&
-			credentialErrorCodes.has(code)
-		) {
-			key = "auth.credentialError"
-		}
-	}
-
-	Alert.alert(i18next.t(key), detail)
+	Alert.alert(
+		apiErrorMessage(error, i18next.t),
+		error instanceof ApiError ? error.code : undefined,
+	)
 }
 
 async function signOut() {

@@ -10,11 +10,13 @@ export function OAuthButton({
 	provider,
 	loading,
 	disabled,
+	hint,
 	onPress,
 }: {
 	provider: "google" | "kakao"
 	loading: boolean
 	disabled: boolean
+	hint?: string
 	onPress(): void
 }) {
 	const { t } = useTranslation()
@@ -24,6 +26,7 @@ export function OAuthButton({
 		<PressableSurface
 			testID={`login-${provider}`}
 			accessibilityLabel={loading ? t(`auth.pending.${provider}`) : t(`auth.${provider}`)}
+			accessibilityHint={hint}
 			accessibilityState={{ busy: loading }}
 			disabled={disabled || loading}
 			onPress={onPress}

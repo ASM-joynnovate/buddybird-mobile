@@ -21,14 +21,26 @@ export const en: Translation = {
 		},
 		completing: "Finishing your BuddyBird login",
 		signInError: "Couldn't log in. Check your connection and tap a login button to try again.",
-		backendError: "Couldn't connect to BuddyBird. Check your connection and try again.",
-		responseError: "Couldn't read the login response. Please try again shortly.",
 		restoreError: "Couldn't restore your login. Please try again.",
 		configurationError: "Login is unavailable. Please try again shortly.",
-		credentialError: "Couldn't verify your social login. Please log in again.",
-		expired: "Your login has expired. Please log in again.",
+		recent: "Last used",
+		recentHint: "You last logged in this way",
 		signOut: "Log out on this device",
 		signOutError: "Couldn't log out. Check your connection and try again.",
+	},
+
+	apiError: {
+		AUTH__INVALID_TOKEN: "Your login has expired. Please log in again.",
+		AUTH__INVALID_PROVIDER_CREDENTIAL:
+			"Couldn't verify your social login. Please log in again.",
+		AUTH__PROVIDER_CREDENTIAL_REQUIRED:
+			"Your social login details are needed. Please log in again.",
+		AUTH__SERVICE_UNAVAILABLE:
+			"The login service is temporarily unavailable. Please try again shortly.",
+		CLIENT__NETWORK: "Couldn't connect to BuddyBird. Check your connection and try again.",
+		CLIENT__TIMEOUT:
+			"The server took too long to respond. Check your connection and try again.",
+		CLIENT__INVALID_RESPONSE: "Couldn't read the server response. Please try again shortly.",
 	},
 
 	storage: {
