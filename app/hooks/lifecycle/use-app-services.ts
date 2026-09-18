@@ -21,7 +21,6 @@ import {
 } from "@/services/telemetry/client"
 import { installGlobalErrorReporting } from "@/services/telemetry/global-errors"
 import { shouldCheckUpdate } from "@/services/updates/policy"
-import { startUploads } from "@/services/uploads/lifecycle"
 
 export function useAppServices() {
 	const data = useAppData()
@@ -43,7 +42,6 @@ export function useAppServices() {
 			track("app_open", { cold_start: true })
 		}
 
-		const uploads = startUploads()
 		const auth = subscribeIdentity((uid) => {
 			if (uid) {
 				queryClient.setQueryData(["firebase", "identity"], uid)
@@ -100,7 +98,6 @@ export function useAppServices() {
 
 		return () => {
 			removeErrors()
-			uploads()
 			auth()
 			lifecycle.remove()
 		}

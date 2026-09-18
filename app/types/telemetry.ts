@@ -80,24 +80,6 @@ export type Events = {
 		audio_size_bytes: number
 		pending_count: number
 	}
-	capture_upload_succeeded: {
-		client_capture_id: string
-		latency_ms?: number
-		batch_size: number
-		is_retry_single: boolean
-	}
-	capture_upload_failed: {
-		client_capture_id: string
-		reason: "server_reject" | "network_error" | "server_error"
-		age_ms?: number
-		http_status?: number
-	}
-	capture_flush_aborted: {
-		reason: "server_error" | "network_error" | "unreadable_response" | "exception"
-		pending_count?: number
-		succeeded_before_abort: number
-		http_status?: number
-	}
 	capture_evicted_before_upload: {
 		client_capture_id: string
 		age_ms?: number
@@ -106,7 +88,6 @@ export type Events = {
 	session_perf_degraded: {
 		kind: "audio_delay" | "ui_lag"
 		value_ms: number
-		during_upload: boolean
 		session_id: string
 		consent_status: "unknown" | "granted" | "denied"
 	}

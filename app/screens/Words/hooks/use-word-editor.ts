@@ -15,7 +15,6 @@ import { Alert } from "react-native"
 
 import { useUserWordCount } from "@/hooks/use-app-data"
 import { reportError, setUserProperties, track } from "@/services/telemetry/client"
-import { queueWordUpload } from "@/services/uploads/queue"
 import { saveWord } from "@/services/words/library"
 import type { Word } from "@/types/word"
 const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true }
@@ -223,12 +222,6 @@ export function useWordEditor() {
 			size = Number.isFinite(bytes) && bytes >= 0 ? bytes : undefined
 		} catch (cause) {
 			reportError(cause, "word_audio_size")
-		}
-
-		try {
-			void queueWordUpload(word.id).catch((cause) => reportError(cause, "word-upload"))
-		} catch (cause) {
-			reportError(cause, "word-upload")
 		}
 
 		try {

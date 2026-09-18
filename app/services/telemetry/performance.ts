@@ -2,7 +2,7 @@ import { track } from "@/services/telemetry/client"
 
 export function createPerformanceReporter(
 	sessionId: string,
-	state: () => { duringUpload: boolean; consentStatus: "unknown" | "granted" | "denied" },
+	state: () => { consentStatus: "unknown" | "granted" | "denied" },
 ) {
 	const samples = {
 		audio_delay: { count: 0, time: -Infinity },
@@ -23,7 +23,6 @@ export function createPerformanceReporter(
 		track("session_perf_degraded", {
 			kind,
 			value_ms: milliseconds,
-			during_upload: current.duringUpload,
 			session_id: sessionId,
 			consent_status: current.consentStatus,
 		})

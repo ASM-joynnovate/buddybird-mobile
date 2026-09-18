@@ -8,7 +8,6 @@ import { engine, recoverNativeData, startSession } from "@/services/session/sess
 import { readData } from "@/services/storage/data-store"
 import { reportError, track } from "@/services/telemetry/client"
 import { createPerformanceReporter } from "@/services/telemetry/performance"
-import { isUploading, triggerUploads } from "@/services/uploads/queue"
 import type { Timing } from "@/types/session"
 import type {
 	FailureCode,
@@ -54,7 +53,6 @@ export function useSessionController() {
 			performanceSessionId.current = next.sessionId
 			performanceReporter.current = next.sessionId
 				? createPerformanceReporter(next.sessionId, () => ({
-						duringUpload: isUploading(),
 						consentStatus: readData().settings.uploadConsent.status,
 					}))
 				: null
@@ -103,18 +101,14 @@ export function useSessionController() {
 			applySnapshot(next)
 
 			if (["completed", "failed", "idle"].includes(next.state)) {
-				void reconcileSessionData()
-					.then(() => triggerUploads("session_end"))
-					.catch(() => {})
+				void reconcileSessionData().catch(() => {})
 			}
 		})
 
 		const progress = engine.addListener("onProgress", applySnapshot)
 
 		const capture = engine.addListener("onSegmentCaptured", () => {
-			void reconcileSessionData()
-				.then(() => triggerUploads("accumulation"))
-				.catch(() => {})
+			void reconcileSessionData().catch(() => {})
 		})
 
 		const failure = engine.addListener("onFailure", (value) => {
@@ -253,7 +247,6 @@ export function useSessionController() {
 		stop: async () => {
 			await runSessionCommand(() => engine.stop())
 			await reconcileSessionData()
-			await triggerUploads("session_end")
 			performanceReporter.current?.stop()
 		},
 		retry,
