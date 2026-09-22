@@ -5,20 +5,26 @@ import { Alert } from "react-native"
 
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
 import { useAppData } from "@/hooks/use-app-data"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
-import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
-import { consumeFeedbackPrompt, feedbackThreshold } from "@/services/feedback/policy"
-import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
+import { feedbackThreshold } from "@/services/feedback/policy"
 import { reportError, track } from "@/services/telemetry/client"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { useFeedbackStore } from "@/stores/feedback"
 
 export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolean) {
 	const { t } = useTranslation()
+
 	const data = useAppData()
-	const preferences = useDeviceSetting("feedback")
-	const feedback = useFeedbackDialog()
+
+	const preferences = useDeviceSettingsStore((state) => state.feedback)
+
+	const feedback = useFeedbackStore()
+
 	const running = useQuery(runningSessionQueryOptions())
+
 	const [open, setOpen] = useState(false)
+
 	const feedbackPromptOpen = useRef(false)
+
 	const sessionActive = running.data != null
 	const threshold = feedbackThreshold(preferences)
 	const eligible =
@@ -36,6 +42,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 
 		feedbackPromptOpen.current = true
 		setOpen(true)
+
 		track("feedback_prompt_shown", { threshold })
 	}, [eligible, threshold])
 
@@ -47,10 +54,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 		feedbackPromptOpen.current = false
 
 		try {
-			const next = readDeviceSetting("feedback")
-
-			consumeFeedbackPrompt(next)
-			saveDeviceSetting("feedback", next)
+			useDeviceSettingsStore.getState().consumeFeedbackPrompt()
 
 			if (write) {
 				feedback.open("prompt")
@@ -59,6 +63,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 			}
 		} catch (error) {
 			reportError(error, "feedback_prompt")
+
 			Alert.alert(t("app.storage.saveError"))
 		} finally {
 			setOpen(false)

@@ -3,11 +3,10 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useTranslation } from "react-i18next"
 
 import { GuidePager, type GuideStep } from "@/components/guide-pager"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { StartDialogs } from "@/screens/Session/components/start-dialogs"
 import { cameraGranted, useStartSession } from "@/screens/Session/hooks/use-start-session"
-import { saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { RootStackParamList } from "@/types/navigation"
 
 const STEPS = [
@@ -20,10 +19,14 @@ const STEPS = [
 
 export function PlacementGuideScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "PlacementGuide">>()
-	const guides = useDeviceSetting("guides")
+
+	const guides = useDeviceSettingsStore((state) => state.guides)
+
 	const starter = useStartSession((sessionId) => navigation.replace("SessionRun", { sessionId }))
+
 	const steps: GuideStep[] = STEPS.map((step) => ({
 		title: t(`session.placement.${step.key}.title`),
 		scene: t(`session.placement.${step.key}.scene`),
@@ -32,7 +35,7 @@ export function PlacementGuideScreen() {
 
 	function toggle(value: boolean) {
 		try {
-			saveDeviceSetting("guides", { ...guides, placement: value })
+			useDeviceSettingsStore.getState().setGuideSeen("placement", value)
 		} catch (error) {
 			reportError(error, "device_setting_guides")
 		}

@@ -9,7 +9,6 @@ import { Chip } from "@/components/ui/chip"
 import { ScreenHeader } from "@/components/ui/header"
 import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { SessionOverview } from "@/screens/Records/components/session-overview"
@@ -19,18 +18,25 @@ import {
 	type TimelineItem,
 	useSessionDetail,
 } from "@/screens/Records/hooks/use-session-detail"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { RecordsStackParamList } from "@/types/navigation"
 
 export function SessionDetailScreen() {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const insets = useSafeAreaInsets()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RecordsStackParamList>>()
 	const { params } = useRoute<RouteProp<RecordsStackParamList, "SessionDetail">>()
+
 	const player = useSoundPlayer()
+
 	const detail = useSessionDetail(params.sessionId, params.soundId)
 	const record = detail.record
 	const timeline = detail.timeline
+
 	const startedAt = record?.session.period.started_at
 	const multiDay =
 		startedAt !== undefined &&

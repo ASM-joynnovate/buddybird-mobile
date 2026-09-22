@@ -4,9 +4,9 @@ import { StyleSheet, View } from "react-native"
 import { IconButton } from "@/components/ui/icon-button"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDateWithWeekday, formatMonth } from "@/i18n/format"
 import type { DayMark } from "@/screens/Records/hooks/use-records-calendar"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import { localDate } from "@/utils/date"
 
@@ -45,7 +45,9 @@ export function MonthCalendar({
 	onNext,
 }: MonthCalendarProps) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const today = localDate()
 	const cells = monthCells(month)
 

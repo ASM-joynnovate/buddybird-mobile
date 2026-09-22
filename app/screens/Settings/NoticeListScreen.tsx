@@ -11,16 +11,19 @@ import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { noticesQueryOptions } from "@/hooks/apis/notices"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDate } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { Notice } from "@/types/apis/notices"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function NoticeListScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const notices = useInfiniteQuery(noticesQueryOptions())
 
 	function renderItem({ item }: { item: Notice }) {

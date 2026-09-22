@@ -6,9 +6,9 @@ import { SpeechBubble } from "@/components/ui/speech-bubble"
 import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { formatMoment } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { SessionSound } from "@/types/apis/sessions"
 
@@ -24,7 +24,9 @@ export function MimicryBubble({
 	onOpen(): void
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const playing = player.playingId === sound.id
 	const url = sound.audio.url
 	const time = formatMoment(sound.captured_at, locale)

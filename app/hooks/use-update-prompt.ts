@@ -4,17 +4,15 @@ import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
 import { appUpdateQueryOptions } from "@/hooks/apis/app-update"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { installedVersion, openStore } from "@/services/device/application"
 import { reportError, track } from "@/services/telemetry/client"
 import { evaluateUpdate, UPDATE_INTERVAL } from "@/services/updates/policy"
-import { dismissUpdate } from "@/services/updates/preferences"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 
 export function useUpdatePrompt() {
 	const { t } = useTranslation()
 
-	const locale = useDeviceSetting("locale")
-	const preferences = useDeviceSetting("update")
+	const preferences = useDeviceSettingsStore((state) => state.update)
 
 	const [storeOpening, setStoreOpening] = useState(false)
 
@@ -33,7 +31,6 @@ export function useUpdatePrompt() {
 				},
 				installedVersion,
 				preferences.dismissedVersion,
-				locale,
 			)
 		: null
 
@@ -47,6 +44,7 @@ export function useUpdatePrompt() {
 	useEffect(() => {
 		if (updateVisible && decision && shownUpdate.current !== decision.latestVersion) {
 			shownUpdate.current = decision.latestVersion
+
 			track("update_prompt_shown", {
 				latest_version: decision.latestVersion,
 				is_forced: decision.forced,
@@ -66,6 +64,7 @@ export function useUpdatePrompt() {
 				latest_version: decision.latestVersion,
 				is_forced: decision.forced,
 			})
+
 			await openStore()
 
 			if (!decision.forced) {
@@ -85,10 +84,12 @@ export function useUpdatePrompt() {
 		}
 
 		try {
-			dismissUpdate(decision.latestVersion)
+			useDeviceSettingsStore.getState().dismissUpdate(decision.latestVersion)
+
 			track("update_prompt_dismissed", { latest_version: decision.latestVersion })
 		} catch (error) {
 			reportError(error, "dismiss_update")
+
 			Alert.alert(t("app.update.error"))
 		}
 	}

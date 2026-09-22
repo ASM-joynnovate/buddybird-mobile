@@ -12,15 +12,19 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy } from "@/components/ui/text"
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
-import { markAgreed } from "@/screens/Entry/consent-agreements"
+import { useConsentStore } from "@/stores/consent"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function ConsentDetailScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { consentId, source } = useRoute<RouteProp<RootStackParamList, "ConsentDetail">>().params
+
 	const query = useQuery(consentsQueryOptions())
+
 	const mutation = useMutation(saveConsentMutationOptions())
+
 	const consent = query.data?.find((item) => item.id === consentId)
 	const canAgree =
 		consent !== undefined &&
@@ -32,7 +36,8 @@ export function ConsentDetailScreen() {
 		}
 
 		if (source === "entry") {
-			markAgreed(consent.id)
+			useConsentStore.getState().markAgreed(consent.id)
+
 			navigation.goBack()
 
 			return

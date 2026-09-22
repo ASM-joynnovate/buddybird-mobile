@@ -4,7 +4,8 @@ import { randomUUID } from "expo-crypto"
 import { useCallback, useState } from "react"
 
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
-import { latestConsents, takeAgreed } from "@/screens/Entry/consent-agreements"
+import { latestConsents } from "@/screens/Entry/consent-agreements"
+import { useConsentStore } from "@/stores/consent"
 import type { Consent } from "@/types/apis/consents"
 
 export function useConsentChecks(onSaved?: () => void): {
@@ -21,15 +22,18 @@ export function useConsentChecks(onSaved?: () => void): {
 	save(): void
 } {
 	const query = useQuery(consentsQueryOptions())
+
 	const mutation = useMutation(saveConsentMutationOptions())
+
 	const [checked, setChecked] = useState<Record<string, boolean>>({})
+
 	const consents = query.data ? latestConsents(query.data) : undefined
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === "granted"
 	const allChecked = Boolean(consents?.length) && (consents ?? []).every(isChecked)
 
 	useFocusEffect(
 		useCallback(() => {
-			const agreed = takeAgreed()
+			const agreed = useConsentStore.getState().takeAgreed()
 
 			if (agreed.length) {
 				setChecked((current) => ({

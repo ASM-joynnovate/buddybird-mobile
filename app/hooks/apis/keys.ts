@@ -1,6 +1,6 @@
-import { registeredUser } from "@/services/auth/registration"
+import { useAccountStore } from "@/stores/account"
 
-const scope = () => ["api", registeredUser()] as const
+const scope = () => ["api", useAccountStore.getState().registeredUser] as const
 
 export const apiKeys = {
 	appUpdate: () => ["api", "app-update"] as const,

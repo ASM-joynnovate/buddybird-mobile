@@ -9,23 +9,29 @@ import { SoundRow } from "@/components/session/sound-row"
 import { Screen } from "@/components/ui/screen"
 import { Copy } from "@/components/ui/text"
 import { reportQueryOptions } from "@/hooks/apis/reports"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { useSoundsWithAnalysis } from "@/hooks/use-sounds-with-analysis"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { hasRecords, ReportHeader } from "@/screens/Report/components/report-header"
 import { useReportPeriod } from "@/screens/Report/hooks/use-report-period"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 import type { ReportStackParamList, RootStackParamList } from "@/types/navigation"
 
 export function ReportScreen(): ReactElement {
 	const { t } = useTranslation()
+
 	const route = useRoute<RouteProp<ReportStackParamList, "Report">>()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const player = useSoundPlayer()
+
 	const period = useReportPeriod(route.params)
+
 	const report = useQuery(reportQueryOptions(period.period, period.start))
+
 	const reportSounds = report.data && hasRecords(report.data) ? report.data.sounds : []
 	const sounds = useSoundsWithAnalysis(reportSounds).soundsWithAnalysis ?? []
 	const formatSoundTime = period.period === "day" ? formatTime : formatDateTime

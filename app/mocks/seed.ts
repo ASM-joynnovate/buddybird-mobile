@@ -136,14 +136,16 @@ export type MockSettings = {
 	}
 }
 
+export type MockText = { "ko-KR": string; "en-US": string }
+
+export type MockLocale = keyof MockText
+
 export type MockConsent = {
 	id: string
 	kind: string
 	version: number
-	title: string
-	body: string
-	title_en: string
-	body_en: string
+	title: MockText
+	body: MockText
 	is_required: boolean
 	published_at: string
 	status: "granted" | "denied" | null
@@ -520,38 +522,52 @@ function createDevice(
 const consents = [
 	{
 		kind: "terms",
-		title: "서비스 이용약관",
-		body: "제1조 목적\n이 약관은 버디버드 서비스의 이용 조건과 절차를 정합니다.\n\n제2조 서비스 내용\n버디버드는 사용자가 집을 비운 동안 앵무새에게 단어를 들려주고, 앵무새가 낸 소리와 응급 상황을 기록합니다.\n\n제3조 계정\n사용자는 소셜 로그인으로 계정을 만들고, 같은 계정으로 로그인한 기기를 함께 사용합니다.",
-		title_en: "Terms of Service",
-		body_en:
-			"Article 1 Purpose\nThese terms set the conditions and procedures for using BuddyBird.\n\nArticle 2 Service\nBuddyBird plays words to your parrot while you are away and records the sounds and emergencies it detects.\n\nArticle 3 Account\nYou create an account with social login and use every device signed in to the same account.",
+		title: { "ko-KR": "서비스 이용약관", "en-US": "Terms of Service" },
+		body: {
+			"ko-KR":
+				"제1조 목적\n이 약관은 버디버드 서비스의 이용 조건과 절차를 정합니다.\n\n제2조 서비스 내용\n버디버드는 사용자가 집을 비운 동안 앵무새에게 단어를 들려주고, 앵무새가 낸 소리와 응급 상황을 기록합니다.\n\n제3조 계정\n사용자는 소셜 로그인으로 계정을 만들고, 같은 계정으로 로그인한 기기를 함께 사용합니다.",
+			"en-US":
+				"Article 1 Purpose\nThese terms set the conditions and procedures for using BuddyBird.\n\nArticle 2 Service\nBuddyBird plays words to your parrot while you are away and records the sounds and emergencies it detects.\n\nArticle 3 Account\nYou create an account with social login and use every device signed in to the same account.",
+		},
 		is_required: true,
 	},
 	{
 		kind: "privacy",
-		title: "개인정보 수집 및 이용",
-		body: "수집 항목\n이메일, 닉네임, 기기 정보\n\n이용 목적\n계정 확인과 기기 연결\n\n보관 기간\n회원 탈퇴 시까지",
-		title_en: "Collection and Use of Personal Information",
-		body_en:
-			"Collected items\nEmail, nickname, device information\n\nPurpose\nAccount verification and device linking\n\nRetention\nUntil you delete your account",
+		title: {
+			"ko-KR": "개인정보 수집 및 이용",
+			"en-US": "Collection and Use of Personal Information",
+		},
+		body: {
+			"ko-KR":
+				"수집 항목\n이메일, 닉네임, 기기 정보\n\n이용 목적\n계정 확인과 기기 연결\n\n보관 기간\n회원 탈퇴 시까지",
+			"en-US":
+				"Collected items\nEmail, nickname, device information\n\nPurpose\nAccount verification and device linking\n\nRetention\nUntil you delete your account",
+		},
 		is_required: true,
 	},
 	{
 		kind: "media",
-		title: "영상과 음성 수집",
-		body: "새장 앞 기기의 카메라와 마이크로 수집한 영상과 음성을 서버에 저장합니다.\n\n응급 상황 기록은 30일 뒤 자동으로 삭제하고, 회원 탈퇴 시 모든 기록을 함께 삭제합니다.",
-		title_en: "Video and Audio Collection",
-		body_en:
-			"We store video and audio captured by the camera and microphone of the device by the cage.\n\nEmergency recordings are deleted automatically after 30 days, and every record is deleted when you delete your account.",
+		title: { "ko-KR": "영상과 음성 수집", "en-US": "Video and Audio Collection" },
+		body: {
+			"ko-KR":
+				"새장 앞 기기의 카메라와 마이크로 수집한 영상과 음성을 서버에 저장합니다.\n\n응급 상황 기록은 30일 뒤 자동으로 삭제하고, 회원 탈퇴 시 모든 기록을 함께 삭제합니다.",
+			"en-US":
+				"We store video and audio captured by the camera and microphone of the device by the cage.\n\nEmergency recordings are deleted automatically after 30 days, and every record is deleted when you delete your account.",
+		},
 		is_required: true,
 	},
 	{
 		kind: "marketing",
-		title: "새 기능과 이벤트 소식 받기",
-		body: "새 기능과 이벤트 소식을 알림으로 보내 드립니다. 설정에서 언제든 철회할 수 있습니다.",
-		title_en: "News about New Features and Events",
-		body_en:
-			"We send notifications about new features and events. You can withdraw anytime in Settings.",
+		title: {
+			"ko-KR": "새 기능과 이벤트 소식 받기",
+			"en-US": "News about New Features and Events",
+		},
+		body: {
+			"ko-KR":
+				"새 기능과 이벤트 소식을 알림으로 보내 드립니다. 설정에서 언제든 철회할 수 있습니다.",
+			"en-US":
+				"We send notifications about new features and events. You can withdraw anytime in Settings.",
+		},
 		is_required: false,
 	},
 ]

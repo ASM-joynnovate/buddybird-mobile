@@ -13,20 +13,24 @@ import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime } from "@/i18n/format"
 import type { Emergency } from "@/mocks/types"
 import { useEmergencyRecord } from "@/screens/Records/hooks/use-emergency-record"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
 import type { RecordsStackParamList, RootStackParamList } from "@/types/navigation"
 
 export function EmergencyDetailScreen() {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const insets = useSafeAreaInsets()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RecordsStackParamList, "EmergencyDetail">>()
+
 	const record = useEmergencyRecord(params.emergencyId)
 	const emergency = record.query.data
 

@@ -3,7 +3,6 @@ import { useCallback, useState } from "react"
 import { AppRuntime } from "@/components/app/app-runtime"
 import { AppSplash } from "@/components/app/app-splash"
 import { StartupScreen } from "@/components/app/startup-screen"
-import { useAuth } from "@/context/auth"
 import { useAppServices } from "@/hooks/lifecycle/use-app-services"
 import { useAppBootstrap } from "@/hooks/use-app-bootstrap"
 import { AppNavigator } from "@/navigators/app-navigator"
@@ -11,9 +10,11 @@ import { RootProviders } from "@/providers"
 import { AppProvider } from "@/providers/app-data"
 import { AuthProvider } from "@/providers/auth"
 import { LoginScreen } from "@/screens/Login/LoginScreen"
+import { useAuthStore } from "@/stores/auth"
 
 export function App() {
 	const { state, ready, settled, retry } = useAppBootstrap()
+
 	const [splashFinished, setSplashFinished] = useState(false)
 	const finishSplash = useCallback(() => setSplashFinished(true), [])
 
@@ -46,13 +47,14 @@ function AppContent({ showDialogs }: { showDialogs: boolean }) {
 }
 
 function AuthenticatedContent({ showDialogs }: { showDialogs: boolean }) {
-	const { state, retry } = useAuth()
+	const status = useAuthStore((auth) => auth.status)
+	const retry = useAuthStore((auth) => auth.retry)
 
-	if (state.status === "loading") {
+	if (status === "loading") {
 		return <StartupScreen failed={false} onRetry={retry} />
 	}
 
-	if (state.status !== "signedIn") {
+	if (status !== "signedIn") {
 		return <LoginScreen />
 	}
 

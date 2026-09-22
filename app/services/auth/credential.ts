@@ -1,7 +1,7 @@
 import * as Application from "expo-application"
 
 import { getSupabase } from "@/lib/supabase"
-import { loginProvider } from "@/services/auth/registration"
+import { useAccountStore } from "@/stores/account"
 import type { LoginRequest } from "@/types/apis/auth"
 
 type LoginCredential = Pick<LoginRequest, "google" | "apple">
@@ -25,7 +25,7 @@ export function takeCredential(): LoginCredential | undefined {
 }
 
 export async function loginCredential(): Promise<LoginCredential> {
-	const provider = loginProvider()
+	const { provider } = useAccountStore.getState()
 
 	if (provider === "apple") {
 		return takeCredential() ?? {}

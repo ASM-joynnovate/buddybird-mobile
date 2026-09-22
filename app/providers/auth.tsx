@@ -1,35 +1,40 @@
 import { isAuthRetryableFetchError, type Session } from "@supabase/supabase-js"
 import { useMutation } from "@tanstack/react-query"
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react"
+import { type PropsWithChildren, useEffect } from "react"
 import { Alert, AppState } from "react-native"
 
-import { AuthContext, type AuthState } from "@/context/auth"
 import { loginMutationOptions } from "@/hooks/apis/auth"
 import i18next from "@/i18n"
 import { apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
 import { getSupabase } from "@/lib/supabase"
 import { loginCredential, takeCredential } from "@/services/auth/credential"
-import { clearRegistration, markRegistered, registeredUser } from "@/services/auth/registration"
-import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
+import { nextAuthState, signOut } from "@/services/auth/session"
+import { persistAccountQueries } from "@/services/lifecycle/query-client"
 import { reportError } from "@/services/telemetry/client"
+import { useAccountStore } from "@/stores/account"
+import { useAuthStore } from "@/stores/auth"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { ApiError } from "@/types/apis/common"
 
 export function AuthProvider({ children }: PropsWithChildren) {
-	const [state, setState] = useState<AuthState>({ status: "loading" })
-	const [attempt, setAttempt] = useState(0)
+	const attempt = useAuthStore((auth) => auth.attempt)
+
 	const { mutateAsync: runLogin } = useMutation(loginMutationOptions())
 
 	useEffect(() => {
+		const { setStatus } = useAuthStore.getState()
+
 		let supabase: ReturnType<typeof getSupabase>
 
-		setState({ status: "loading" })
+		setStatus("loading")
 
 		try {
 			supabase = getSupabase()
 		} catch {
 			Alert.alert(i18next.t("auth.configurationError"))
-			setState({ status: "error" })
+
+			setStatus("error")
 
 			return
 		}
@@ -41,25 +46,34 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		async function acceptSession(session: Session | null) {
 			const nextId = session?.user.id ?? null
+			const transition = nextAuthState(
+				userId,
+				nextId,
+				useAccountStore.getState().registeredUser,
+			)
 
-			if (!active || userId === nextId) {
+			if (!active || transition === "unchanged") {
 				return
 			}
 
 			userId = nextId
+
 			request?.abort()
 			void queryClient.cancelQueries()
 
-			if (!nextId) {
+			if (transition === "signedOut" || nextId === null) {
 				takeCredential()
-				clearRegistration()
-				setState({ status: "signedOut" })
+				useAccountStore.getState().clearRegistration()
+
+				persistAccountQueries(null)
+
+				setStatus("signedOut")
 
 				return
 			}
 
-			if (registeredUser() === nextId) {
-				setState({ status: "signedIn" })
+			if (transition === "signedIn") {
+				setStatus("signedIn")
 
 				return
 			}
@@ -67,28 +81,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			const controller = new AbortController()
 
 			request = controller
-			setState({ status: "completing" })
+			setStatus("completing")
 
 			try {
 				const credential = await loginCredential()
-				const { is_new_user } = await runLogin({
-					request: { ...credential, language: readDeviceSetting("locale") },
+				const { user_id, is_new_user } = await runLogin({
+					request: {
+						...credential,
+						language:
+							useDeviceSettingsStore.getState().locale === "ko-KR" ? "ko" : "en",
+					},
 					signal: controller.signal,
 				})
 
 				if (active && !controller.signal.aborted) {
-					markRegistered(nextId)
+					useAccountStore.getState().markRegistered(nextId, user_id)
+
+					persistAccountQueries(nextId)
 
 					try {
-						saveDeviceSetting("guides", {
-							...readDeviceSetting("guides"),
-							usage: !is_new_user,
-						})
+						useDeviceSettingsStore.getState().setGuideSeen("usage", !is_new_user)
 					} catch (error) {
 						reportError(error, "usage_guide_save")
 					}
 
-					setState({ status: "signedIn" })
+					setStatus("signedIn")
 				}
 			} catch (error) {
 				if (!active || controller.signal.aborted) {
@@ -103,7 +120,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					error.code === "CLIENT__INVALID_RESPONSE"
 				) {
 					userId = undefined
-					setState({ status: "signedOut" })
+
+					setStatus("signedOut")
 
 					return
 				}
@@ -113,7 +131,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				} catch {
 					if (active && !controller.signal.aborted) {
 						Alert.alert(i18next.t("auth.signOutError"))
-						setState({ status: "error" })
+
+						setStatus("error")
 					}
 				}
 			}
@@ -128,6 +147,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			}
 
 			receivedEvent = true
+
 			// The callback stays synchronous so SDK calls never hold its auth lock.
 			void acceptSession(session)
 		})
@@ -141,17 +161,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 				if (!error) {
 					void acceptSession(data.session)
-				} else if (isAuthRetryableFetchError(error) && registeredUser() !== null) {
-					setState({ status: "signedIn" })
+				} else if (
+					isAuthRetryableFetchError(error) &&
+					useAccountStore.getState().registeredUser !== null
+				) {
+					setStatus("signedIn")
 				} else {
 					Alert.alert(i18next.t("auth.restoreError"))
-					setState({ status: "error" })
+
+					setStatus("error")
 				}
 			})
 			.catch(() => {
 				if (active && !receivedEvent) {
 					Alert.alert(i18next.t("auth.restoreError"))
-					setState({ status: "error" })
+
+					setStatus("error")
 				}
 			})
 
@@ -176,10 +201,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		}
 	}, [attempt, runLogin])
 
-	const retry = useCallback(() => setAttempt((value) => value + 1), [])
-	const value = useMemo(() => ({ state, retry, signOut }), [state, retry])
-
-	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+	return children
 }
 
 function alertLoginFailure(error: unknown) {
@@ -187,12 +209,4 @@ function alertLoginFailure(error: unknown) {
 		apiErrorMessage(error, i18next.t),
 		error instanceof ApiError ? error.code : undefined,
 	)
-}
-
-async function signOut() {
-	const { error } = await getSupabase().auth.signOut({ scope: "local" })
-
-	if (error) {
-		throw error
-	}
 }

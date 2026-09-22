@@ -5,10 +5,9 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { registerPushTokenMutationOptions } from "@/hooks/apis/devices"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { type PermissionKind, requestPermission } from "@/services/device/permissions"
-import { saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 
 const ORDER: readonly PermissionKind[] = ["microphone", "camera", "notifications"]
 
@@ -29,16 +28,18 @@ export function usePermissionRequest(): {
 	later(): void
 } {
 	const { t } = useTranslation()
-	const guides = useDeviceSetting("guides")
+
 	const register = useMutation(registerPushTokenMutationOptions())
+
 	const [busy, setBusy] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	function finish() {
 		try {
-			saveDeviceSetting("guides", { ...guides, usage: true })
+			useDeviceSettingsStore.getState().setGuideSeen("usage", true)
 		} catch (cause) {
 			reportError(cause, "usage_guide_seen")
+
 			setError(t("entry.permissions.saveError"))
 		}
 	}
@@ -70,6 +71,7 @@ export function usePermissionRequest(): {
 		}
 
 		setBusy(false)
+
 		finish()
 	}
 

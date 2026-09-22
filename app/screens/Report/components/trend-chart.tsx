@@ -12,13 +12,12 @@ import type { Locale } from "@/types/locale"
 
 const CHART_HEIGHT = 150
 const MIN_BAR = 3
-const weekdayTags: Record<Locale, string> = { ko: "ko-KR", en: "en-US" }
 
 type Bucket = Report["trend"][number]
 
 function axisLabel(period: ReportPeriod, date: Date, locale: Locale, t: TFunction): string {
 	if (period === "week") {
-		return date.toLocaleDateString(weekdayTags[locale], { weekday: "short" })
+		return date.toLocaleDateString(locale, { weekday: "short" })
 	}
 
 	if (period === "day") {
@@ -38,7 +37,9 @@ export function TrendChart({
 	locale: Locale
 }): ReactElement {
 	const { t } = useTranslation()
+
 	const [selected, setSelected] = useState<number | null>(null)
+
 	const max = Math.max(1, ...trend.map((bucket) => bucket.play_duration_ms))
 	const describe = (bucket: Bucket) =>
 		t("report.bar", {

@@ -4,9 +4,9 @@ import { StyleSheet, View } from "react-native"
 import { AbsenceStrip } from "@/components/session/absence-strip"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDuration } from "@/i18n/format"
 import type { SessionRecord, SessionTimeline } from "@/mocks/types"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 interface Props {
@@ -29,7 +29,9 @@ export function SessionOverview({
 	onSelectTime,
 }: Props) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const start = Date.parse(record.session.period.started_at)
 	const word = record.session.settings.learning_enabled ? record.wordName : null
 	const emergencies = timeline.events.flatMap((event) =>

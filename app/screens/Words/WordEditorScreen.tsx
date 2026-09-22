@@ -17,7 +17,6 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { TextField } from "@/components/ui/text-field"
 import { deleteWordMutationOptions } from "@/hooks/apis/words"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { RecordingsSection } from "@/screens/Words/components/recordings-section"
@@ -27,6 +26,7 @@ import {
 	useWordDraft,
 	type WordDraft,
 } from "@/screens/Words/hooks/use-word-draft"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 import type { RootStackParamList, WordsStackParamList } from "@/types/navigation"
 
@@ -42,21 +42,30 @@ function saveLabel(draft: WordDraft, t: TFunction): string {
 
 export function WordEditorScreen(): ReactElement {
 	const { t } = useTranslation()
+
 	const route = useRoute<RouteProp<WordsStackParamList, "WordEditor">>()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const locale = useDeviceSetting("locale")
-	const guides = useDeviceSetting("guides")
-	const microphone = usePermission("microphone")
-	const player = useSoundPlayer()
 	const routeWordId = route.params?.wordId ?? null
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+	const guides = useDeviceSettingsStore((state) => state.guides)
+
+	const microphone = usePermission("microphone")
+
+	const player = useSoundPlayer()
+
 	const draft = useWordDraft(routeWordId, route.params?.recorded)
+
 	const deleteWord = useMutation(deleteWordMutationOptions())
+
 	const [pending, setPending] = useState<PendingDelete | null>(null)
+
 	const busy = draft.step !== null
 	const wordName = draft.name.trim()
 
 	function openRecorder() {
 		player.stop()
+
 		void microphone.run(() => {
 			if (guides.recording) {
 				navigation.navigate("Recorder", { wordName })

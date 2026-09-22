@@ -3,20 +3,18 @@ import type { Locale } from "@/types/locale"
 
 type Moment = string | number | Date
 
-const tags: Record<Locale, string> = { ko: "ko-KR", en: "en-US" }
-
 const toDate = (value: Moment) => (value instanceof Date ? value : new Date(value))
 
 export function formatTime(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleTimeString(tags[locale], { hour: "numeric", minute: "2-digit" })
+	return toDate(value).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })
 }
 
 export function formatDate(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(tags[locale], { month: "long", day: "numeric" })
+	return toDate(value).toLocaleDateString(locale, { month: "long", day: "numeric" })
 }
 
 export function formatDateWithWeekday(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(tags[locale], {
+	return toDate(value).toLocaleDateString(locale, {
 		month: "long",
 		day: "numeric",
 		weekday: "short",
@@ -24,7 +22,7 @@ export function formatDateWithWeekday(value: Moment, locale: Locale): string {
 }
 
 export function formatFullDate(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(tags[locale], {
+	return toDate(value).toLocaleDateString(locale, {
 		year: "numeric",
 		month: "long",
 		day: "numeric",
@@ -32,7 +30,7 @@ export function formatFullDate(value: Moment, locale: Locale): string {
 }
 
 export function formatMonth(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(tags[locale], { year: "numeric", month: "long" })
+	return toDate(value).toLocaleDateString(locale, { year: "numeric", month: "long" })
 }
 
 export function formatDateTime(value: Moment, locale: Locale): string {
@@ -73,6 +71,7 @@ export function formatTimer(ms: number): string {
 	const hours = Math.floor(total / 3600)
 	const minutes = Math.floor((total % 3600) / 60)
 	const seconds = total % 60
+
 	const pad = (value: number) => String(value).padStart(2, "0")
 
 	return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`

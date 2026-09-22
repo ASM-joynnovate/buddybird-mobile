@@ -7,14 +7,10 @@ import { resolveRecordingUri } from "@/services/media/uri"
 import { importLegacyRecords } from "@/services/migration/import-legacy-records"
 import { type MigrationSource, readMigrationSource } from "@/services/migration/source"
 import { readData, storage, updateData } from "@/services/storage/data-store"
-import {
-	deviceKeys,
-	deviceStorage,
-	readDeviceSetting,
-	saveDeviceSetting,
-} from "@/services/storage/device-settings"
-import { DATA_KEY, MIGRATION_KEY, PREVIOUS_DATA_KEY } from "@/services/storage/keys"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { DATA_KEY, MIGRATION_KEY, PREVIOUS_DATA_KEY } from "@/stores/keys"
 import type { AppData } from "@/types/app-data"
+import { deviceSettingsSchema } from "@/types/device-settings"
 
 let pending: Promise<AppData> | undefined
 
@@ -33,12 +29,14 @@ export function importLegacyData(): Promise<AppData> {
 		}
 
 		const source = await loadSource()
+
 		const data = importLegacyRecords(storage, source, (key, value) => {
-			if (deviceStorage.getString(deviceKeys[key]) === undefined) {
-				saveDeviceSetting(key, value)
-			} else {
-				readDeviceSetting(key)
-			}
+			const settings = deviceSettingsSchema.parse({
+				...useDeviceSettingsStore.getState(),
+				[key]: value,
+			})
+
+			useDeviceSettingsStore.setState(settings)
 		})
 
 		await preserveMigratedMedia(data)
@@ -78,6 +76,7 @@ async function loadSource(): Promise<MigrationSource> {
 		(key) => key.startsWith("@buddybird/") || key.startsWith("@pethub/"),
 	)
 	const entries = await AsyncStorage.multiGet(keys)
+
 	const values: Record<string, string> = {}
 
 	for (const [key, value] of entries) {
@@ -147,6 +146,7 @@ async function preserveMigratedMedia(data: AppData) {
 			word: draft.word,
 		})),
 	]
+
 	const files = new Map<string, string>()
 
 	for (const { key, word } of words) {

@@ -5,10 +5,11 @@ import * as WebBrowser from "expo-web-browser"
 import { config } from "@/config"
 import { getSupabase } from "@/lib/supabase"
 import { setAppleCredential } from "@/services/auth/credential"
-import { markProvider } from "@/services/auth/registration"
+import { useAccountStore } from "@/stores/account"
 
 export async function signInWithOAuth(provider: "google" | "kakao") {
 	const supabase = getSupabase()
+
 	const redirectTo = `${config.production ? "buddybird" : "buddybird-dev"}://auth/callback`
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider,
@@ -62,7 +63,7 @@ export async function signInWithOAuth(provider: "google" | "kakao") {
 		throw new Error("Authentication code missing")
 	}
 
-	markProvider(provider)
+	useAccountStore.getState().markProvider(provider)
 
 	const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
@@ -73,6 +74,7 @@ export async function signInWithOAuth(provider: "google" | "kakao") {
 
 export async function signInWithApple() {
 	const supabase = getSupabase()
+
 	const nonce = randomUUID()
 	const credential = await AppleAuthentication.signInAsync({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
@@ -87,7 +89,7 @@ export async function signInWithApple() {
 		setAppleCredential(credential.authorizationCode)
 	}
 
-	markProvider("apple")
+	useAccountStore.getState().markProvider("apple")
 
 	const { error } = await supabase.auth.signInWithIdToken({
 		provider: "apple",

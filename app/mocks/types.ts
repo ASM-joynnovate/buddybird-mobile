@@ -125,10 +125,7 @@ export const noticeNotificationsSchema = z.object({
 export const appUpdateSchema = z.object({
 	latest_version: z.string(),
 	min_supported_version: z.string(),
-	release_notes: z.object({
-		ko: z.array(z.string()).optional(),
-		en: z.array(z.string()).optional(),
-	}),
+	release_notes: z.array(z.string()),
 })
 
 export type ReportPeriod = z.infer<typeof reportPeriodSchema>

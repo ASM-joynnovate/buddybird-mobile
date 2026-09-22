@@ -9,7 +9,6 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDuration, formatTime } from "@/i18n/format"
 import { Confetti } from "@/screens/Session/components/confetti"
@@ -20,6 +19,7 @@ import {
 	Stat,
 } from "@/screens/Session/components/summary-parts"
 import { type SummaryData, useSummary } from "@/screens/Session/hooks/use-summary"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
@@ -78,8 +78,11 @@ function SummaryBody({
 	onEmergency(id: string): void
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const player = useSoundPlayer()
+
 	const { record, strip, emergencies, best } = data
 	const duration = formatDuration(strip.end - strip.start, locale)
 	const first = emergencies[0]

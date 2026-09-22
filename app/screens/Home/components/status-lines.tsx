@@ -6,11 +6,11 @@ import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { formatMoment, formatTimer } from "@/i18n/format"
 import type { EmergencyBrief } from "@/mocks/types"
 import { isDisconnected, phaseStatus, useNow } from "@/screens/Session/hooks/use-clock"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 export function SessionLine({
@@ -21,7 +21,9 @@ export function SessionLine({
 	onPress(): void
 }) {
 	const { t } = useTranslation()
+
 	const now = useNow()
+
 	const { session, station, sleep } = detail
 	const status = phaseStatus(session.period.started_at, sleep, now)
 	const lost = isDisconnected(session.progress.last_heartbeat_at, now)
@@ -71,7 +73,9 @@ export function EmergencyLine({
 	onPress(): void
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const label = t("home.emergency", {
 		time: formatMoment(emergency.detected_at, locale),
 		kind: t(`common.emergencyKinds.${emergency.kind}`),

@@ -17,28 +17,37 @@ import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { wordsQueryOptions } from "@/hooks/apis/words"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { SleepEditor } from "@/screens/Session/components/sleep-editor"
 import { StartDialogs } from "@/screens/Session/components/start-dialogs"
 import { selectableWords, WordPicker } from "@/screens/Session/components/word-picker"
 import { cameraGranted, useStartSession } from "@/screens/Session/hooks/use-start-session"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 import type { RootStackParamList, SessionDraft } from "@/types/navigation"
 
 export function SessionStartScreen() {
 	const { t } = useTranslation()
+
 	const insets = useSafeAreaInsets()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionStart">>()
+
 	const words = useQuery(wordsQueryOptions())
-	const guides = useDeviceSetting("guides")
+
+	const guides = useDeviceSettingsStore((state) => state.guides)
+
 	const microphone = usePermission("microphone")
+
 	const player = useSoundPlayer()
+
 	const [wordId, setWordId] = useState<string | null>(null)
 	const [learning, setLearning] = useState(true)
+
 	const starter = useStartSession((sessionId) => navigation.replace("SessionRun", { sessionId }))
+
 	const available = selectableWords(words.data ?? [])
 	const selected = available.some((word) => word.id === wordId) ? wordId : null
 
@@ -50,6 +59,7 @@ export function SessionStartScreen() {
 		}
 
 		player.stop()
+
 		void microphone.run(() => void proceed(draft))
 	}
 

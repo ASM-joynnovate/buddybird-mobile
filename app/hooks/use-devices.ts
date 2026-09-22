@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { devicesQueryOptions } from "@/hooks/apis/devices"
 import { deviceNamesQueryOptions } from "@/hooks/apis/mocks"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { clientDeviceId } from "@/services/device/identity"
+import { useAccountStore } from "@/stores/account"
 import type { LinkedDevice } from "@/types/device"
 import { linkDevices } from "@/utils/device"
 
@@ -21,7 +21,7 @@ export function useDevices(): {
 			? linkDevices(
 					devices.data,
 					new Map(names.data.map((item) => [item.device_id, item.name])),
-					clientDeviceId(),
+					useAccountStore.getState().ensureClientDeviceId(),
 					running.data ?? null,
 				)
 			: undefined

@@ -7,26 +7,33 @@ import { Mascot } from "@/components/mascot"
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { Copy, Title } from "@/components/ui/text"
-import { useAuth } from "@/context/auth"
 import { LastLoginTag } from "@/screens/Login/components/last-login-tag"
 import { OAuthButton } from "@/screens/Login/components/oauth-button"
 import { availableLoginProviders } from "@/services/auth/providers"
-import { lastLoginProvider, type LoginProvider } from "@/services/auth/registration"
 import { signInWithApple, signInWithOAuth } from "@/services/auth/sign-in"
+import { useAccountStore } from "@/stores/account"
+import { useAuthStore } from "@/stores/auth"
 import { colors, font, radius } from "@/theme"
+import type { LoginProvider } from "@/types/account"
 
 export function LoginScreen() {
 	const { t } = useTranslation()
-	const { state, retry } = useAuth()
+
+	const status = useAuthStore((auth) => auth.status)
+	const retry = useAuthStore((auth) => auth.retry)
+
+	const recent = useAccountStore((account) => account.lastLogin)
+
 	const [providers, setProviders] = useState<LoginProvider[]>([])
 	const [attempt, setAttempt] = useState<{ provider: LoginProvider; pending: boolean } | null>(
 		null,
 	)
+
 	const busy = useRef(false)
-	const completing = state.status === "completing"
+
+	const completing = status === "completing"
 	const disabled = attempt?.pending === true || completing
 	const loadingProvider = disabled ? attempt?.provider : undefined
-	const recent = lastLoginProvider()
 	const recentHint = t("auth.recentHint")
 
 	useEffect(() => {
@@ -44,11 +51,12 @@ export function LoginScreen() {
 	}, [])
 
 	async function signIn(provider: LoginProvider) {
-		if (busy.current || state.status !== "signedOut") {
+		if (busy.current || status !== "signedOut") {
 			return
 		}
 
 		busy.current = true
+
 		setAttempt({ provider, pending: true })
 
 		try {
@@ -71,6 +79,7 @@ export function LoginScreen() {
 			Alert.alert(t("auth.signInError"))
 		} finally {
 			busy.current = false
+
 			setAttempt({ provider, pending: false })
 		}
 	}
@@ -89,7 +98,7 @@ export function LoginScreen() {
 					<Title style={styles.product}>{t("entry.login.product")}</Title>
 				</View>
 				<View style={styles.actions}>
-					{state.status === "error" ? (
+					{status === "error" ? (
 						<Button label={t("common.retry")} onPress={retry} variant="secondary" />
 					) : (
 						<>

@@ -10,18 +10,23 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy, Title } from "@/components/ui/text"
 import { noticeQueryOptions, readNoticeMutationOptions } from "@/hooks/apis/notices"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDate } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, radius } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function NoticeDetailScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation()
 	const { params } = useRoute<RouteProp<RootStackParamList, "NoticeDetail">>()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const notice = useQuery(noticeQueryOptions(params.noticeId))
+
 	const { mutate } = useMutation(readNoticeMutationOptions())
+
 	const alreadyRead = notice.data?.is_read
 
 	useEffect(() => {

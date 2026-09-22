@@ -18,6 +18,7 @@ export function GeneralGroup({
 	onOpenPermissions(): void
 }) {
 	const { t } = useTranslation()
+
 	const language = useAppLanguage()
 
 	return (
@@ -28,13 +29,13 @@ export function GeneralGroup({
 					<Copy style={styles.label}>{t("settings.general.language")}</Copy>
 					<Chip
 						label={t("settings.general.korean")}
-						selected={language.locale === "ko"}
-						onPress={() => void language.changeLanguage("ko")}
+						selected={language.locale === "ko-KR"}
+						onPress={() => void language.changeLanguage("ko-KR")}
 					/>
 					<Chip
 						label={t("settings.general.english")}
-						selected={language.locale === "en"}
-						onPress={() => void language.changeLanguage("en")}
+						selected={language.locale === "en-US"}
+						onPress={() => void language.changeLanguage("en-US")}
 					/>
 				</View>
 				<NavRow

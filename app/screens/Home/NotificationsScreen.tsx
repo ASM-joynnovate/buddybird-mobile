@@ -14,20 +14,24 @@ import {
 	notificationsQueryOptions,
 	readAllNotificationsMutationOptions,
 } from "@/hooks/apis/notifications"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { InboxNotification } from "@/mocks/types"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 
 export function NotificationsScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const open = useOpenNotification()
 
 	const list = useInfiniteQuery(notificationsQueryOptions())
 	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
+
 	const readAll = useMutation(readAllNotificationsMutationOptions())
 
 	const items: InboxNotification[] = [

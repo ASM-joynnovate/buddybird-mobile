@@ -1,4 +1,3 @@
-import type { Locale } from "@/types/locale"
 import type { UpdateDecision, UpdatePolicy } from "@/types/update"
 
 export const UPDATE_INTERVAL = 6 * 60 * 60 * 1000
@@ -38,7 +37,6 @@ export function evaluateUpdate(
 	policy: UpdatePolicy,
 	installed: string,
 	dismissed: string | null,
-	locale: Locale,
 ): UpdateDecision {
 	if (!policy.latestVersion || compareVersions(installed, policy.latestVersion) === null) {
 		return null
@@ -63,7 +61,7 @@ export function evaluateUpdate(
 	return {
 		latestVersion: policy.latestVersion,
 		forced,
-		notes: policy.notes[locale] ?? policy.notes.en ?? [],
+		notes: policy.notes,
 	}
 }
 

@@ -13,7 +13,6 @@ import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { usePermission } from "@/hooks/use-permission"
 import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
@@ -22,6 +21,7 @@ import { night } from "@/screens/Session/components/night"
 import { RunStatus } from "@/screens/Session/components/run-status"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
 import { useHeartbeat, useIdleReveal } from "@/screens/Session/hooks/use-station"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font, radius } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
@@ -31,16 +31,23 @@ export function SessionRunScreen() {
 	useKeepAwake()
 
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionRun">>()
 	const { sessionId } = params
+
 	const running = useRunningSession()
 	const detail = running.detail?.session.id === sessionId ? running.detail : null
+
 	const microphone = usePermission("microphone")
 	const camera = usePermission("camera")
+
 	const network = useNetInfo()
+
 	const idle = useIdleReveal()
+
 	const [ending, setEnding] = useState(false)
+
 	const finishing = useMutation(finishSessionMutationOptions())
 
 	const showSummary = useCallback(
@@ -120,9 +127,13 @@ interface Props {
 
 function RunInfo({ detail, online, microphone, camera, onEnd }: Props) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const { width } = useWindowDimensions()
+
 	const now = useNow()
+
 	const { session, sleep } = detail
 	const status = phaseStatus(session.period.started_at, sleep, now)
 	const word = session.settings.learning_enabled

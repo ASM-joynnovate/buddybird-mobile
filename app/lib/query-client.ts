@@ -4,6 +4,8 @@ import { ApiError } from "@/types/apis/common"
 
 const MAX_RETRIES = 2
 
+export const QUERY_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
+
 let onUnauthorized: (() => void) | undefined
 
 export function setUnauthorizedHandler(handler: () => void) {
@@ -21,7 +23,7 @@ function handleUnauthorized(error: unknown) {
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
-		queries: { staleTime: 30_000, retry: retryPolicy },
+		queries: { staleTime: 30_000, gcTime: QUERY_CACHE_MAX_AGE_MS, retry: retryPolicy },
 		mutations: { retry: retryPolicy, networkMode: "always" },
 	},
 	queryCache: new QueryCache({ onError: handleUnauthorized }),

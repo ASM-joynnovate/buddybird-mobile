@@ -4,15 +4,17 @@ import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 
 import { GuidePager, type GuideStep } from "@/components/guide-pager"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
-import { saveDeviceSetting } from "@/services/storage/device-settings"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function RecordingGuideScreen(): ReactElement {
 	const { t } = useTranslation()
+
 	const { params } = useRoute<RouteProp<RootStackParamList, "RecordingGuide">>()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const guides = useDeviceSetting("guides")
+
+	const guides = useDeviceSettingsStore((state) => state.guides)
+
 	const steps: GuideStep[] = [
 		{
 			title: t("words.guide.samples"),
@@ -44,7 +46,8 @@ export function RecordingGuideScreen(): ReactElement {
 			finishLabel={t(params.source === "add" ? "words.guide.record" : "words.guide.done")}
 			dontShowAgain={{
 				value: guides.recording,
-				onChange: (recording) => saveDeviceSetting("guides", { ...guides, recording }),
+				onChange: (recording) =>
+					useDeviceSettingsStore.getState().setGuideSeen("recording", recording),
 			}}
 		/>
 	)

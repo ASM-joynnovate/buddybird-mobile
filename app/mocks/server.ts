@@ -1,5 +1,4 @@
 import { randomUUID } from "expo-crypto"
-import { getLocales } from "expo-localization"
 
 import {
 	DAY,
@@ -10,6 +9,7 @@ import {
 	type MockConsent,
 	type MockDevice,
 	type MockEvent,
+	type MockLocale,
 	type MockNotification,
 	type MockRecording,
 	type MockSession,
@@ -93,14 +93,6 @@ function issueUpload(saveUploadedFile: SaveUploadedFile) {
 		headers: {},
 		expires_in: UPLOAD_EXPIRES_SECONDS,
 	}
-}
-
-function consentDto(consent: MockConsent) {
-	const { title_en, body_en, ...rest } = consent
-
-	return getLocales()[0]?.languageCode === "ko"
-		? rest
-		: { ...rest, title: title_en, body: body_en }
 }
 
 function deviceDto({ name: _name, ...device }: MockDevice) {
@@ -345,14 +337,26 @@ function newestStartFirst(a: MockSession, b: MockSession) {
 const APP_UPDATE = {
 	latest_version: "1.2.0",
 	min_supported_version: "1.0.0",
-	release_notes: {},
+	release_notes: [],
+}
+
+let requestLocale: () => MockLocale = () => "en-US"
+
+function consentDto(consent: MockConsent) {
+	return {
+		...consent,
+		title: consent.title[requestLocale()],
+		body: consent.body[requestLocale()],
+	}
 }
 
 export const mockServer = {
 	appUpdate: {
 		get: () => respond(() => APP_UPDATE),
 	},
-	configure: (clientDeviceId: string) => {
+	configure: (clientDeviceId: string, locale: () => MockLocale) => {
+		requestLocale = locale
+
 		db.devices = db.devices.map((device) =>
 			device.id === db.currentDeviceId
 				? { ...device, client_device_id: clientDeviceId }

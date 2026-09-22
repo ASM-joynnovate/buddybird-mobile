@@ -12,9 +12,9 @@ import Animated, {
 import { CountBadge } from "@/components/ui/badge"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDuration, formatRange, formatTime } from "@/i18n/format"
 import { type CalendarSession, sessionEnd } from "@/screens/Records/hooks/use-records-calendar"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 interface Props {
@@ -26,7 +26,9 @@ interface Props {
 
 export function SessionCard({ item, now, highlighted, onPress }: Props) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const { session, wordName, mimicryCount, emergencyCount } = item
 	const running = session.status === "running"
 	const start = Date.parse(session.period.started_at)

@@ -8,11 +8,11 @@ import { IconButton } from "@/components/ui/icon-button"
 import { Card } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy, Title } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
 import type { StationStatus } from "@/mocks/types"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
 
 export function BatteryState({ status }: { status: StationStatus }) {
@@ -115,8 +115,11 @@ export function StatusCard({
 	onChangeWord(): void
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const now = useNow()
+
 	const { session, sleep } = detail
 	const status = phaseStatus(session.period.started_at, sleep, now)
 	const word = session.settings.learning_enabled

@@ -2,12 +2,14 @@ import * as AppleAuthentication from "expo-apple-authentication"
 import { getLocales } from "expo-localization"
 import { Platform } from "react-native"
 
-import { lastLoginProvider, type LoginProvider } from "@/services/auth/registration"
+import { useAccountStore } from "@/stores/account"
+import type { LoginProvider } from "@/types/account"
 
 export async function availableLoginProviders(): Promise<LoginProvider[]> {
 	const locale = getLocales()[0]
 	const korean = locale?.regionCode === "KR" || locale?.languageCode === "ko"
-	const kakao = korean || lastLoginProvider() === "kakao"
+	const kakao = korean || useAccountStore.getState().lastLogin === "kakao"
+
 	const apple =
 		Platform.OS === "ios" && (await AppleAuthentication.isAvailableAsync().catch(() => false))
 

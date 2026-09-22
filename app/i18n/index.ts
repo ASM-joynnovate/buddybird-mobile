@@ -12,10 +12,10 @@ export async function initI18n(locale: Locale) {
 	} else {
 		await i18next.use(initReactI18next).init({
 			lng: locale,
-			fallbackLng: "ko",
+			fallbackLng: "ko-KR",
 			resources: {
-				ko: { translation: ko },
-				en: { translation: en },
+				"ko-KR": { translation: ko },
+				"en-US": { translation: en },
 			},
 			interpolation: { escapeValue: false },
 			initImmediate: false,

@@ -7,8 +7,8 @@ import { CheckRow, GroupedList, NavRow } from "@/components/ui/rows"
 import { Sheet } from "@/components/ui/sheet"
 import { Copy } from "@/components/ui/text"
 import { Wheel, WheelRow } from "@/components/ui/wheel"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatFullDate } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font } from "@/theme"
 
 const months = Array.from({ length: 12 }, (_, index) => index + 1)
@@ -43,7 +43,9 @@ export function BirthdayPicker({
 	first?: boolean
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const [open, setOpen] = useState(false)
 
 	function birthdayLabel() {
@@ -58,6 +60,7 @@ export function BirthdayPicker({
 
 	function confirm() {
 		answer()
+
 		setOpen(false)
 	}
 

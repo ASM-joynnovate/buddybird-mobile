@@ -5,14 +5,15 @@ import { useEffect, useState } from "react"
 import { devicesQueryOptions } from "@/hooks/apis/devices"
 import { readNoticeMutationOptions } from "@/hooks/apis/notices"
 import { finishSessionMutationOptions, runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { clientDeviceId } from "@/services/device/identity"
 import { reportError } from "@/services/telemetry/client"
+import { useAccountStore } from "@/stores/account"
 import type { Notice } from "@/types/apis/notices"
 
 const launch = { stationChecked: false, noticesShown: false }
 
 export function useStaleStationCleanup(): void {
 	const client = useQueryClient()
+
 	const { mutate } = useMutation(finishSessionMutationOptions())
 
 	useEffect(() => {
@@ -21,6 +22,7 @@ export function useStaleStationCleanup(): void {
 		}
 
 		launch.stationChecked = true
+
 		Promise.all([
 			client.query(runningSessionQueryOptions()),
 			client.query(devicesQueryOptions()),
@@ -28,7 +30,10 @@ export function useStaleStationCleanup(): void {
 			.then(([session, devices]) => {
 				const station = devices.find((device) => device.id === session?.station.device_id)
 
-				if (session && station?.client_device_id === clientDeviceId()) {
+				if (
+					session &&
+					station?.client_device_id === useAccountStore.getState().ensureClientDeviceId()
+				) {
 					mutate({ id: session.id, idempotencyKey: randomUUID() })
 				}
 			})
@@ -41,6 +46,7 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 	close(): void
 } {
 	const [queue, setQueue] = useState<readonly Notice[]>([])
+
 	const { mutate } = useMutation(readNoticeMutationOptions())
 
 	useEffect(() => {
@@ -49,6 +55,7 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 		}
 
 		launch.noticesShown = true
+
 		setQueue(notices)
 	}, [notices])
 
@@ -59,6 +66,7 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 		close: () => {
 			if (current) {
 				mutate({ id: current.id, idempotencyKey: randomUUID() })
+
 				setQueue((items) => items.slice(1))
 			}
 		},

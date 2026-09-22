@@ -5,9 +5,9 @@ import Svg, { Line, Polyline, Rect } from "react-native-svg"
 
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDateWithWeekday, formatTime } from "@/i18n/format"
 import { type Phase, phaseSpans, type SleepWindow } from "@/services/session/phases"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 export const phaseColors: Record<Phase, string> = {
@@ -93,7 +93,9 @@ export function AbsenceStrip({
 	onSelectTime,
 }: AbsenceStripProps) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const rows = dayRows(start, end)
 	const multiDay = rows.length > 1
 
@@ -149,8 +151,11 @@ function StripRow({
 	isLast: boolean
 }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const [width, setWidth] = useState(0)
+
 	const span = Math.max(1, to - from)
 	const x = (at: number) => ((at - from) / span) * width
 	const inRow = (at: number) => at >= from && at < to + (isLast ? 1 : 0)
@@ -325,6 +330,7 @@ function Marker({
 
 function Legend() {
 	const { t } = useTranslation()
+
 	const items = [
 		{ label: t("common.strip.learning"), color: colors.orange, round: false },
 		{ label: t("common.strip.rest"), color: colors.blue, round: false },

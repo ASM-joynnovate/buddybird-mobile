@@ -6,7 +6,7 @@ export function durationParts(seconds: number, locale: Locale) {
 	const minutes = Math.floor((value % 3600) / 60)
 	const remainder = value % 60
 
-	const units = locale === "ko" ? ["시간", "분", "초"] : ["h", "m", "s"]
+	const units = locale === "ko-KR" ? ["시간", "분", "초"] : ["h", "m", "s"]
 	const parts: { value: number; unit: string }[] = []
 
 	if (hours > 0) {

@@ -52,13 +52,17 @@ export function convertLegacy(
 			data.profile ??= parsed
 		}
 	})
+
 	step("device/locale", () => {
 		const locale = readRawValue("locale")
 
 		if (locale !== undefined) {
-			importSetting("locale", requireChoice(locale, ["ko", "en"] as const, "locale"))
+			const language = requireChoice(locale, ["ko", "en"] as const, "locale")
+
+			importSetting("locale", language === "ko" ? "ko-KR" : "en-US")
 		}
 	})
+
 	step("device/analyticsConsent", () => {
 		const analytics = readRawValue("analytics-consent")
 
@@ -73,6 +77,7 @@ export function convertLegacy(
 			)
 		}
 	})
+
 	step("device/update", () => {
 		const update = readRecord("app-update")
 
@@ -80,6 +85,7 @@ export function convertLegacy(
 			importSetting("update", parseLegacyUpdate(update))
 		}
 	})
+
 	step("device/feedback", () => {
 		const feedback = readRecord("feedback-prompt")
 

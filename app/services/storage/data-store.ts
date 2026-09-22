@@ -1,11 +1,11 @@
 import { MMKV } from "react-native-mmkv"
 
 import { decodeData } from "@/services/storage/codec"
-import { DATA_KEY } from "@/services/storage/keys"
 import { writeVerified } from "@/services/storage/verified-write"
+import { DATA_KEY, storageIds } from "@/stores/keys"
 import type { AppData } from "@/types/app-data"
 
-export const storage = new MMKV({ id: "buddybird" })
+export const storage = new MMKV({ id: storageIds.legacyData })
 
 export { DATA_KEY }
 

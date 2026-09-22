@@ -1,11 +1,11 @@
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog"
 import { UpdateDialog } from "@/components/dialogs/update-dialog"
-import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
 import { useFeedbackPrompt } from "@/hooks/use-feedback-prompt"
 import { useUpdatePrompt } from "@/hooks/use-update-prompt"
+import { useFeedbackStore } from "@/stores/feedback"
 
 export function AppRuntime() {
-	const feedback = useFeedbackDialog()
+	const feedback = useFeedbackStore()
 
 	const {
 		decision,

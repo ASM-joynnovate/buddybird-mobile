@@ -6,6 +6,7 @@ import { ApiError, envelopeSchema, errorBodySchema } from "@/types/apis/common"
 
 type ApiDependencies = {
 	deviceId: () => string
+	locale: () => string
 	accessToken: () => Promise<string>
 	report: (error: unknown, context: string) => void
 }
@@ -59,6 +60,7 @@ export async function apiRequest<T>(
 	const headers = new Headers({
 		"X-BuddyBird-Client": "mobile",
 		"X-Device-Id": dependencies.deviceId(),
+		"Accept-Language": dependencies.locale(),
 		"Authorization": `Bearer ${await dependencies.accessToken()}`,
 	})
 

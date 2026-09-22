@@ -11,7 +11,6 @@ import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDateWithWeekday } from "@/i18n/format"
 import { DayRuler } from "@/screens/Records/components/day-ruler"
 import { MonthCalendar } from "@/screens/Records/components/month-calendar"
@@ -20,17 +19,24 @@ import {
 	type CalendarSession,
 	useRecordsCalendar,
 } from "@/screens/Records/hooks/use-records-calendar"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { RecordsStackParamList } from "@/types/navigation"
 
 export function RecordsScreen() {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const insets = useSafeAreaInsets()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RecordsStackParamList>>()
+
 	const calendar = useRecordsCalendar()
-	const [highlightedId, setHighlightedId] = useState<string | null>(null)
-	const list = useRef<FlatList<CalendarSession>>(null)
 	const { query, daySessions } = calendar
+
+	const [highlightedId, setHighlightedId] = useState<string | null>(null)
+
+	const list = useRef<FlatList<CalendarSession>>(null)
 
 	function selectBar(id: string) {
 		const index = daySessions.findIndex((item) => item.session.id === id)
@@ -44,6 +50,7 @@ export function RecordsScreen() {
 
 	function openSession(id: string) {
 		setHighlightedId(id)
+
 		navigation.navigate("SessionDetail", { sessionId: id })
 	}
 

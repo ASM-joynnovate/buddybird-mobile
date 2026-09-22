@@ -1,4 +1,4 @@
-import { SOURCE_KEY } from "@/services/storage/keys"
+import { SOURCE_KEY } from "@/stores/keys"
 import type { Store } from "@/types/storage"
 import { requireRecord, requireText } from "@/utils/validation"
 

@@ -6,15 +6,16 @@ import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { TextButton } from "@/components/ui/header"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { useAuth } from "@/context/auth"
+import { signOut } from "@/services/auth/session"
 import { colors } from "@/theme"
 
 type Open = "signOut" | "withdraw" | null
 
 export function AccountActions() {
 	const { t } = useTranslation()
-	const { signOut } = useAuth()
+
 	const busy = useRef(false)
+
 	const [open, setOpen] = useState<Open>(null)
 	const [pending, setPending] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -30,6 +31,7 @@ export function AccountActions() {
 		}
 
 		busy.current = true
+
 		setPending(true)
 		setError(null)
 
@@ -39,6 +41,7 @@ export function AccountActions() {
 			setError(t("auth.signOutError"))
 		} finally {
 			busy.current = false
+
 			setPending(false)
 		}
 	}

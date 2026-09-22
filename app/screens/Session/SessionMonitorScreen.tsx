@@ -19,7 +19,6 @@ import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatMoment } from "@/i18n/format"
@@ -32,6 +31,7 @@ import {
 import { SleepEditor } from "@/screens/Session/components/sleep-editor"
 import { WordChangeModal } from "@/screens/Session/components/word-change-modal"
 import { type MonitorState, useMonitor } from "@/screens/Session/hooks/use-monitor"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
 
 type Navigation = CompositeNavigationProp<
@@ -99,11 +99,15 @@ interface Props {
 
 function MonitorBody({ detail, monitor, connectLive, onFullscreen }: Props) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const player = useSoundPlayer()
+
 	const [live, setLive] = useState(connectLive)
 	const [picking, setPicking] = useState(false)
 	const [ending, setEnding] = useState(false)
+
 	const locked = monitor.disconnected
 
 	const header = (

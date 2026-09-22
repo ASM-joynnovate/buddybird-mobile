@@ -11,8 +11,8 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { Wheel, WheelRow } from "@/components/ui/wheel"
 import { settingsQueryOptions, updateSleepMutationOptions } from "@/hooks/apis/settings"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatClock } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
@@ -24,12 +24,17 @@ const pad = (value: number) => String(value).padStart(2, "0")
 
 export function SleepEditor({ first, disabled }: { first?: boolean; disabled?: boolean }) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const settings = useQuery(settingsQueryOptions())
+	const data = settings.data
+
 	const saving = useMutation(updateSleepMutationOptions())
+
 	const [open, setOpen] = useState(false)
 	const [field, setField] = useState<Field>("sleep_at")
-	const data = settings.data
+
 	const value = data
 		? t("session.sleep.range", {
 				sleep: formatClock(data.sleep.sleep_at, locale),

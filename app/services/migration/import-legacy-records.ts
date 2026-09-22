@@ -6,8 +6,8 @@ import { type MigrationSource, readMigrationSource } from "@/services/migration/
 import { migrationSteps } from "@/services/migration/step"
 import { decodeData } from "@/services/storage/codec"
 import { emptyData } from "@/services/storage/empty-data"
-import { DATA_KEY, SOURCE_KEY } from "@/services/storage/keys"
 import { writeVerified } from "@/services/storage/verified-write"
+import { DATA_KEY, SOURCE_KEY } from "@/stores/keys"
 import type { AppData } from "@/types/app-data"
 import type { Store } from "@/types/storage"
 

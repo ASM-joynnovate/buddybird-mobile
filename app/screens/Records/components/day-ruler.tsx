@@ -3,9 +3,9 @@ import { StyleSheet, View } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDate, formatTime } from "@/i18n/format"
 import type { DayAlarm, DayBar } from "@/screens/Records/hooks/use-records-calendar"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
 type DayRulerProps = {
@@ -22,7 +22,9 @@ const MIN_BAR = 1.5
 
 export function DayRuler({ from, bars, alarms, highlightedId, onSelect }: DayRulerProps) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const percent = (at: number) => ((at - from) / DAY_MS) * 100
 
 	return (

@@ -8,24 +8,28 @@ import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { Copy } from "@/components/ui/text"
 import { AppContext } from "@/context/app-data"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { initI18n } from "@/i18n"
-import { FeedbackProvider } from "@/providers/feedback"
 import { importLegacyData } from "@/services/migration/import-legacy-data"
 import { decodeData } from "@/services/storage/codec"
 import { DATA_KEY, storage } from "@/services/storage/data-store"
-import { saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
+import { locales } from "@/types/locale"
 
 export function AppProvider({ children }: PropsWithChildren) {
 	const { t } = useTranslation()
-	const locale = useDeviceSetting("locale")
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const [serialized] = useMMKVString(DATA_KEY, storage)
+
 	const [running, setRunning] = useState(true)
 	const [failure, setFailure] = useState<unknown>(null)
+
 	const migrating = useRef(false)
 	const reportedIssues = useRef(new Set<string>())
+
 	const restored = useMemo(() => {
 		try {
 			return { data: serialized === undefined ? null : decodeData(serialized), error: null }
@@ -33,7 +37,9 @@ export function AppProvider({ children }: PropsWithChildren) {
 			return { data: null, error }
 		}
 	}, [serialized])
+
 	const data = restored.data
+
 	const retry = useCallback(() => {
 		if (migrating.current) {
 			return
@@ -42,9 +48,11 @@ export function AppProvider({ children }: PropsWithChildren) {
 		migrating.current = true
 		setRunning(true)
 		setFailure(null)
+
 		void importLegacyData()
 			.catch((error) => {
 				reportError(error, "data_migration")
+
 				setFailure(error)
 			})
 			.finally(() => {
@@ -54,12 +62,15 @@ export function AppProvider({ children }: PropsWithChildren) {
 	}, [])
 
 	useEffect(retry, [retry])
+
 	useEffect(() => {
 		void initI18n(locale).catch((error) => {
 			reportError(error, "language_restore")
+
 			setFailure(error)
 		})
 	}, [locale])
+
 	useEffect(() => {
 		if (restored.error) {
 			reportError(restored.error, "data_restore")
@@ -73,6 +84,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 			}
 
 			reportedIssues.current.add(signature)
+
 			reportError(new Error(issue.message), `data_migration_${issue.key}`)
 		}
 	}, [restored.error, data?.migration.issues])
@@ -100,16 +112,17 @@ export function AppProvider({ children }: PropsWithChildren) {
 			<View style={styles.unavailable}>
 				{notice}
 				<View style={styles.languages}>
-					{(["ko", "en"] as const).map((value) => (
+					{locales.map((value) => (
 						<Chip
 							key={value}
-							label={value === "ko" ? "한국어" : "English"}
+							label={value === "ko-KR" ? "한국어" : "English"}
 							selected={locale === value}
 							onPress={() => {
 								try {
-									saveDeviceSetting("locale", value)
+									useDeviceSettingsStore.getState().setLocale(value)
 								} catch (error) {
 									reportError(error, "change_language")
+
 									setFailure(error)
 								}
 							}}
@@ -123,12 +136,10 @@ export function AppProvider({ children }: PropsWithChildren) {
 
 	return (
 		<AppContext.Provider value={data}>
-			<FeedbackProvider>
-				<View style={styles.content}>
-					{!data.migration.complete || failure ? notice : null}
-					{children}
-				</View>
-			</FeedbackProvider>
+			<View style={styles.content}>
+				{!data.migration.complete || failure ? notice : null}
+				{children}
+			</View>
 		</AppContext.Provider>
 	)
 }

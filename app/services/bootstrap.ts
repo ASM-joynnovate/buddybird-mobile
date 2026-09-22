@@ -1,29 +1,49 @@
-import { getLocales } from "expo-localization"
 import * as SplashScreen from "expo-splash-screen"
+import { Alert } from "react-native"
 
-import { initI18n } from "@/i18n"
+import i18next, { initI18n } from "@/i18n"
 import { configureApi } from "@/lib/api"
+import { takeRestoreErrors } from "@/lib/storage"
 import { mockServer } from "@/mocks/server"
 import { accessToken, installUnauthorizedSignOut } from "@/services/auth/session"
-import { clientDeviceId } from "@/services/device/identity"
+import { persistAccountQueries } from "@/services/lifecycle/query-client"
 import { getIsHeadless } from "@/services/push/background"
 import { reportError } from "@/services/telemetry/client"
+import { useAccountStore } from "@/stores/account"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 
-configureApi({ deviceId: clientDeviceId, accessToken, report: reportError })
+const { ensureClientDeviceId } = useAccountStore.getState()
+const locale = () => useDeviceSettingsStore.getState().locale
+
+configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, report: reportError })
+
 installUnauthorizedSignOut()
-mockServer.configure(clientDeviceId())
+
+mockServer.configure(ensureClientDeviceId(), locale)
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, "splash_screen"))
 
 // Register the translation instance before the first useTranslation hook renders.
-const i18nReady = initI18n(getLocales()[0]?.languageCode === "ko" ? "ko" : "en")
+const i18nReady = initI18n(useDeviceSettingsStore.getState().locale)
 
 export async function bootstrap() {
 	await i18nReady
 
+	const restoreErrors = takeRestoreErrors()
+
+	for (const { error, storeName } of restoreErrors) {
+		reportError(error, `restore_${storeName}`)
+	}
+
 	if (await getIsHeadless()) {
 		return "headless" as const
 	}
+
+	if (restoreErrors.length > 0) {
+		Alert.alert(i18next.t("app.storage.settingError"))
+	}
+
+	persistAccountQueries(useAccountStore.getState().registeredUser)
 
 	return "ready" as const
 }

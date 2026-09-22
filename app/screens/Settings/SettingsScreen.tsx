@@ -11,26 +11,34 @@ import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { noticesQueryOptions } from "@/hooks/apis/notices"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
-import { useFeedbackDialog } from "@/hooks/use-feedback-dialog"
 import { usePermission } from "@/hooks/use-permission"
 import { AccountActions } from "@/screens/Settings/components/account-actions"
 import { NotificationGroup } from "@/screens/Settings/components/notification-group"
 import { GeneralGroup, SupportGroup } from "@/screens/Settings/components/settings-groups"
 import { SleepTimeRow } from "@/screens/Settings/components/sleep-time-row"
 import { useSettingsUpdate } from "@/screens/Settings/hooks/use-settings-update"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { useFeedbackStore } from "@/stores/feedback"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function SettingsScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const locale = useDeviceSetting("locale")
-	const feedback = useFeedbackDialog()
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
+	const feedback = useFeedbackStore()
+
 	const notificationPermission = usePermission("notifications")
+
 	const notices = useInfiniteQuery(noticesQueryOptions())
+
 	const form = useSettingsUpdate()
-	const [openWheel, setOpenWheel] = useState<"sleep_at" | "wake_at" | null>(null)
 	const settings = form.settings
+
+	const [openWheel, setOpenWheel] = useState<"sleep_at" | "wake_at" | null>(null)
+
 	const toggleWheel = (key: "sleep_at" | "wake_at") =>
 		setOpenWheel((current) => (current === key ? null : key))
 
