@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
-import { updateQueryOptions } from "@/hooks/apis/app-update"
+import { appUpdateQueryOptions } from "@/hooks/apis/app-update"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
-import { installedVersion, openStore } from "@/lib/application"
+import { installedVersion, openStore } from "@/services/device/application"
 import { reportError, track } from "@/services/telemetry/client"
-import { evaluateUpdate } from "@/services/updates/policy"
+import { evaluateUpdate, UPDATE_INTERVAL } from "@/services/updates/policy"
 import { dismissUpdate } from "@/services/updates/preferences"
 
 export function useUpdatePrompt() {
@@ -22,10 +22,19 @@ export function useUpdatePrompt() {
 
 	const shownUpdate = useRef<string | null>(null)
 
-	const update = useQuery(updateQueryOptions())
+	const update = useQuery({ ...appUpdateQueryOptions(), staleTime: UPDATE_INTERVAL })
 
 	const decision = update.data
-		? evaluateUpdate(update.data, installedVersion, preferences.dismissedVersion, locale)
+		? evaluateUpdate(
+				{
+					latestVersion: update.data.latest_version,
+					minimumVersion: update.data.min_supported_version,
+					notes: update.data.release_notes,
+				},
+				installedVersion,
+				preferences.dismissedVersion,
+				locale,
+			)
 		: null
 
 	const updateVisible =

@@ -6,8 +6,8 @@ import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList, NavRow } from "@/components/ui/rows"
 import { Copy } from "@/components/ui/text"
-import { installedVersion } from "@/lib/application"
 import { useAppLanguage } from "@/screens/Settings/hooks/use-app-language"
+import { installedVersion } from "@/services/device/application"
 import { colors, font } from "@/theme"
 
 export function GeneralGroup({

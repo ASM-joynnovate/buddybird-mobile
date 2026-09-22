@@ -7,9 +7,9 @@ import {
 	runningSessionQueryOptions,
 	startSessionMutationOptions,
 } from "@/hooks/apis/sessions"
-import { ApiError } from "@/lib/api"
 import { readPermission } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
+import { ApiError } from "@/types/apis/common"
 import type { SessionDraft } from "@/types/navigation"
 
 export type StartSessionState = {

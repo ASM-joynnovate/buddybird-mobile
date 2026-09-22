@@ -14,7 +14,7 @@ module.exports = {
     layer("utils", "^app/utils/", "^app/(utils|types)/"),
     layer("lib", "^app/lib/", "^app/(lib|config|types|utils)/"),
     layer("apis", "^app/apis/", "^app/(apis/|lib/api\\.ts$|types/apis/|mocks/)"),
-    layer("mocks", "^app/mocks/", "^app/(mocks|types/apis|utils)/"),
+    layer("mocks", "^app/mocks/", "^app/((mocks|types/apis|utils)/|services/session/phases\\.ts$)"),
     layer("stores", "^app/stores/", "^app/(stores/keys\\.ts$|types/|utils/|lib/storage\\.ts$)"),
     layer("services", "^app/services/", "^app/(services|config|types|utils|lib|apis|mocks|stores|i18n)/"),
     layer(

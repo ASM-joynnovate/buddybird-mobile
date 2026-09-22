@@ -8,7 +8,7 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated"
 
-import { liveTargets, loopTargets } from "@/lib/audio-waveform"
+import { liveTargets, loopTargets } from "@/utils/audio-waveform"
 
 const LIVE_MS = 80
 const LOOP_MS = 200

@@ -122,11 +122,21 @@ export const noticeNotificationsSchema = z.object({
 	notification_sessions: z.array(z.object({ notification_id: uuid, session_id: uuid })),
 })
 
+export const appUpdateSchema = z.object({
+	latest_version: z.string(),
+	min_supported_version: z.string(),
+	release_notes: z.object({
+		ko: z.array(z.string()).optional(),
+		en: z.array(z.string()).optional(),
+	}),
+})
+
 export type ReportPeriod = z.infer<typeof reportPeriodSchema>
 export type Report = z.infer<typeof reportSchema>
 export type EmergencyKind = z.infer<typeof emergencyKindSchema>
 export type EmergencyBrief = z.infer<typeof emergencyBriefSchema>
 export type Emergency = z.infer<typeof emergencySchema>
+export type AppUpdate = z.infer<typeof appUpdateSchema>
 export type HomeExtras = z.infer<typeof homeExtrasSchema>
 export type StationStatus = z.infer<typeof stationStatusSchema>
 export type SoundFeedback = z.infer<typeof soundFeedbackSchema>

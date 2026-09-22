@@ -1,13 +1,16 @@
 import { getLocales } from "expo-localization"
 import * as SplashScreen from "expo-splash-screen"
 
-import { initializeUpdateCache } from "@/apis/app-update"
-import { mockServer } from "@/apis/mock/server"
 import { initI18n } from "@/i18n"
+import { configureApi } from "@/lib/api"
+import { mockServer } from "@/mocks/server"
+import { accessToken, installUnauthorizedSignOut } from "@/services/auth/session"
 import { clientDeviceId } from "@/services/device/identity"
 import { getIsHeadless } from "@/services/push/background"
 import { reportError } from "@/services/telemetry/client"
 
+configureApi({ deviceId: clientDeviceId, accessToken, report: reportError })
+installUnauthorizedSignOut()
 mockServer.configure(clientDeviceId())
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, "splash_screen"))
@@ -21,8 +24,6 @@ export async function bootstrap() {
 	if (await getIsHeadless()) {
 		return "headless" as const
 	}
-
-	await initializeUpdateCache()
 
 	return "ready" as const
 }

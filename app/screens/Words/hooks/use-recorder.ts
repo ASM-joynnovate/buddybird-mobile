@@ -7,8 +7,8 @@ import {
 import { File } from "expo-file-system"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { meteringLevel } from "@/lib/audio-waveform"
 import { reportError } from "@/services/telemetry/client"
+import { meteringLevel } from "@/utils/audio-waveform"
 
 const MAX_SECONDS = 60
 const MAX_BYTES = 5 * 1024 * 1024

@@ -2,8 +2,8 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import { confirmEmergency, deleteEmergency, fetchEmergency } from "@/apis/emergencies"
 import { apiKeys } from "@/hooks/apis/keys"
-import { ApiError } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
+import { ApiError } from "@/types/apis/common"
 
 export function isDeletedRecord(error: unknown): boolean {
 	return error instanceof ApiError && error.status === 404

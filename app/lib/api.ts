@@ -2,28 +2,18 @@ import type { TFunction } from "i18next"
 import type { z } from "zod"
 
 import { config } from "@/config"
-import { getSupabase } from "@/lib/supabase"
-import { clientDeviceId } from "@/services/device/identity"
-import { reportError } from "@/services/telemetry/client"
-import { envelopeSchema, errorBodySchema } from "@/types/apis/common"
+import { ApiError, envelopeSchema, errorBodySchema } from "@/types/apis/common"
 
-export class ApiError extends Error {
-	constructor(
-		readonly status: number,
-		readonly code: string,
-		message: string,
-		readonly requestId: string | null = null,
-		readonly body: unknown = null,
-	) {
-		super(message)
-		this.name = "ApiError"
-	}
+type ApiDependencies = {
+	deviceId: () => string
+	accessToken: () => Promise<string>
+	report: (error: unknown, context: string) => void
+}
 
-	get retryable() {
-		return (
-			this.status === 0 || this.status === 408 || this.status === 429 || this.status === 503
-		)
-	}
+let dependencies: ApiDependencies | undefined
+
+export function configureApi(next: ApiDependencies) {
+	dependencies = next
 }
 
 type QueryValue = string | number | boolean | undefined
@@ -62,10 +52,14 @@ export async function apiRequest<T>(
 		throw new ApiError(0, "CLIENT__NETWORK", "API base URL is not configured")
 	}
 
+	if (!dependencies) {
+		throw new ApiError(0, "CLIENT__NETWORK", "API client is not configured")
+	}
+
 	const headers = new Headers({
 		"X-BuddyBird-Client": "mobile",
-		"X-Device-Id": clientDeviceId(),
-		"Authorization": `Bearer ${await accessToken()}`,
+		"X-Device-Id": dependencies.deviceId(),
+		"Authorization": `Bearer ${await dependencies.accessToken()}`,
 	})
 
 	if (idempotencyKey) {
@@ -121,20 +115,6 @@ export function apiErrorMessage(error: unknown, t: TFunction): string {
 	}
 
 	return t("app.apiError.CLIENT__NETWORK")
-}
-
-async function accessToken() {
-	const { data, error } = await getSupabase().auth.getSession()
-
-	if (error) {
-		throw new ApiError(401, "AUTH__INVALID_TOKEN", error.message)
-	}
-
-	if (!data.session) {
-		throw new ApiError(401, "AUTH__INVALID_TOKEN", "No active session")
-	}
-
-	return data.session.access_token
 }
 
 function queryString(query: Record<string, QueryValue> | undefined) {
@@ -231,7 +211,7 @@ function invalidResponse(response: Received, body: unknown) {
 
 function report(error: ApiError) {
 	if (error.status >= 500 || error.code === "CLIENT__INVALID_RESPONSE") {
-		reportError(error, `api:${error.requestId ?? "-"}`)
+		dependencies?.report(error, `api:${error.requestId ?? "-"}`)
 	}
 
 	return error

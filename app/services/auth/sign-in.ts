@@ -2,9 +2,9 @@ import * as AppleAuthentication from "expo-apple-authentication"
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from "expo-crypto"
 import * as WebBrowser from "expo-web-browser"
 
-import { setAppleCredential } from "@/apis/auth"
 import { config } from "@/config"
 import { getSupabase } from "@/lib/supabase"
+import { setAppleCredential } from "@/services/auth/credential"
 import { markProvider } from "@/services/auth/registration"
 
 export async function signInWithOAuth(provider: "google" | "kakao") {

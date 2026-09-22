@@ -41,6 +41,25 @@ export const clientErrorCodes = [
 	"CLIENT__INVALID_RESPONSE",
 ] as const
 
+export class ApiError extends Error {
+	constructor(
+		readonly status: number,
+		readonly code: string,
+		message: string,
+		readonly requestId: string | null = null,
+		readonly body: unknown = null,
+	) {
+		super(message)
+		this.name = "ApiError"
+	}
+
+	get retryable() {
+		return (
+			this.status === 0 || this.status === 408 || this.status === 429 || this.status === 503
+		)
+	}
+}
+
 export type ApiErrorCode = (typeof apiErrorCodes)[number] | (typeof clientErrorCodes)[number]
 
 export const envelopeSchema = z.object({

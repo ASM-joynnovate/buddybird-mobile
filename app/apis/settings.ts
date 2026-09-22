@@ -1,4 +1,4 @@
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import {
 	type NotificationSettings,
 	type Settings,

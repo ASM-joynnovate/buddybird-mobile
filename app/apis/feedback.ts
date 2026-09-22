@@ -1,4 +1,4 @@
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import { type CreateFeedbackRequest, type Feedback, feedbackSchema } from "@/types/apis/feedback"
 
 export async function submitFeedback(

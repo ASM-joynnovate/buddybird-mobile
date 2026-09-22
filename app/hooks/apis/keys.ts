@@ -3,6 +3,7 @@ import { registeredUser } from "@/services/auth/registration"
 const scope = () => ["api", registeredUser()] as const
 
 export const apiKeys = {
+	appUpdate: () => ["api", "app-update"] as const,
 	all: scope,
 	me: () => [...scope(), "users", "me"] as const,
 	settings: () => [...scope(), "users", "me", "settings"] as const,

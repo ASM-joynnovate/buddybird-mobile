@@ -1,23 +1,21 @@
-import {
-	MutationCache,
-	MutationObserver,
-	type MutationOptions,
-	QueryCache,
-	QueryClient,
-} from "@tanstack/react-query"
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
 
-import { ApiError } from "@/lib/api"
-import { getSupabase } from "@/lib/supabase"
+import { ApiError } from "@/types/apis/common"
 
 const MAX_RETRIES = 2
-const loginKey = "api,auth,login"
+
+let onUnauthorized: (() => void) | undefined
+
+export function setUnauthorizedHandler(handler: () => void) {
+	onUnauthorized = handler
+}
 
 const retryPolicy = (count: number, error: unknown) =>
 	count < MAX_RETRIES && error instanceof ApiError && error.retryable
 
-function signOutOnUnauthorized(error: unknown, mutationKey?: readonly unknown[]) {
-	if (error instanceof ApiError && error.status === 401 && mutationKey?.join() !== loginKey) {
-		void getSupabase().auth.signOut({ scope: "local" })
+function handleUnauthorized(error: unknown) {
+	if (error instanceof ApiError && error.status === 401) {
+		onUnauthorized?.()
 	}
 }
 
@@ -26,16 +24,12 @@ export const queryClient = new QueryClient({
 		queries: { staleTime: 30_000, retry: retryPolicy },
 		mutations: { retry: retryPolicy, networkMode: "always" },
 	},
-	queryCache: new QueryCache({ onError: (error) => signOutOnUnauthorized(error) }),
+	queryCache: new QueryCache({ onError: handleUnauthorized }),
 	mutationCache: new MutationCache({
-		onError: (error, _variables, _context, mutation) =>
-			signOutOnUnauthorized(error, mutation.options.mutationKey),
+		onError: (error, _variables, _context, mutation) => {
+			if (!mutation.meta?.skipUnauthorizedSignOut) {
+				handleUnauthorized(error)
+			}
+		},
 	}),
 })
-
-export function runMutation<TData, TVariables>(
-	options: MutationOptions<TData, Error, TVariables>,
-	variables: TVariables,
-) {
-	return new MutationObserver(queryClient, options).mutate(variables)
-}

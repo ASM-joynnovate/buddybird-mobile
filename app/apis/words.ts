@@ -1,8 +1,8 @@
 import { z } from "zod"
 
-import { mockServer } from "@/apis/mock/server"
 import { putUpload } from "@/apis/mocks"
 import { issueRecordingUpload } from "@/apis/uploads"
+import { mockServer } from "@/mocks/server"
 import { type Word, wordSchema } from "@/types/apis/words"
 
 export async function fetchWords(): Promise<Word[]> {

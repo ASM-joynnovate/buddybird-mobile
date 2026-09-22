@@ -5,6 +5,7 @@ import { Alert, AppState } from "react-native"
 
 import { currentIdentity, subscribeIdentity } from "@/apis/identity"
 import { identityQueryOptions } from "@/hooks/apis/identity"
+import { apiKeys } from "@/hooks/apis/keys"
 import { useAppData } from "@/hooks/use-app-data"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { queryClient } from "@/lib/query-client"
@@ -75,8 +76,15 @@ export function useAppServices() {
 				try {
 					recordVisit()
 
-					if (shouldCheckUpdate(readDeviceSetting("update").lastCheckedAt, false)) {
-						void queryClient.invalidateQueries({ queryKey: ["firebase", "update"] })
+					const updateState = queryClient.getQueryState(apiKeys.appUpdate())
+					const updateAttemptedAt = Math.max(
+						updateState?.dataUpdatedAt ?? 0,
+						updateState?.errorUpdatedAt ?? 0,
+					)
+					const updateCheckedAt = updateAttemptedAt > 0 ? updateAttemptedAt : null
+
+					if (shouldCheckUpdate(updateCheckedAt, false)) {
+						void queryClient.invalidateQueries({ queryKey: apiKeys.appUpdate() })
 					}
 
 					if (!currentIdentity()) {

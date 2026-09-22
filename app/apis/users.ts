@@ -1,6 +1,6 @@
-import { mockServer } from "@/apis/mock/server"
 import { putUpload } from "@/apis/mocks"
 import { issuePhotoUpload } from "@/apis/uploads"
+import { mockServer } from "@/mocks/server"
 import { type UpdateUserRequest, type User, userSchema } from "@/types/apis/users"
 
 export async function fetchMe(): Promise<User> {

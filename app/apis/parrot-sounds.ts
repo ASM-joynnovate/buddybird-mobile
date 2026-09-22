@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import { type Page, pageMetaSchema } from "@/types/apis/common"
 import { parrotSoundSchema } from "@/types/apis/parrot-sounds"
 import type { SessionSound } from "@/types/apis/sessions"

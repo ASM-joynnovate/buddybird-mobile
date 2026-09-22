@@ -19,9 +19,9 @@ import {
 	seed,
 	sleepEvents,
 	sleepWindowOf,
-} from "@/apis/mock/seed"
-import { ApiError } from "@/lib/api"
+} from "@/mocks/seed"
 import { currentSpan } from "@/services/session/phases"
+import { ApiError } from "@/types/apis/common"
 
 const LATENCY_MS = 450
 const APPLY_DELAY_MS = 3000
@@ -342,7 +342,16 @@ function newestStartFirst(a: MockSession, b: MockSession) {
 	return Date.parse(b.started_at) - Date.parse(a.started_at)
 }
 
+const APP_UPDATE = {
+	latest_version: "1.2.0",
+	min_supported_version: "1.0.0",
+	release_notes: {},
+}
+
 export const mockServer = {
+	appUpdate: {
+		get: () => respond(() => APP_UPDATE),
+	},
 	configure: (clientDeviceId: string) => {
 		db.devices = db.devices.map((device) =>
 			device.id === db.currentDeviceId

@@ -3,16 +3,17 @@ import { useMutation } from "@tanstack/react-query"
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react"
 import { Alert, AppState } from "react-native"
 
-import { clearLoginCredential } from "@/apis/auth"
 import { AuthContext, type AuthState } from "@/context/auth"
 import { loginMutationOptions } from "@/hooks/apis/auth"
 import i18next from "@/i18n"
-import { ApiError, apiErrorMessage } from "@/lib/api"
+import { apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
 import { getSupabase } from "@/lib/supabase"
+import { loginCredential, takeCredential } from "@/services/auth/credential"
 import { clearRegistration, markRegistered, registeredUser } from "@/services/auth/registration"
 import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
+import { ApiError } from "@/types/apis/common"
 
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [state, setState] = useState<AuthState>({ status: "loading" })
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			void queryClient.cancelQueries()
 
 			if (!nextId) {
-				clearLoginCredential()
+				takeCredential()
 				clearRegistration()
 				setState({ status: "signedOut" })
 
@@ -69,7 +70,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setState({ status: "completing" })
 
 			try {
-				const { is_new_user } = await runLogin({ signal: controller.signal })
+				const credential = await loginCredential()
+				const { is_new_user } = await runLogin({
+					request: { ...credential, language: readDeviceSetting("locale") },
+					signal: controller.signal,
+				})
 
 				if (active && !controller.signal.aborted) {
 					markRegistered(nextId)

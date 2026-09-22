@@ -1,4 +1,4 @@
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import { type Upload, uploadSchema } from "@/types/apis/uploads"
 
 export async function issuePhotoUpload(): Promise<Upload> {

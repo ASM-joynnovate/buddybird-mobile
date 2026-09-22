@@ -7,8 +7,8 @@ import {
 	updateMeMutationOptions,
 	uploadPhotoMutationOptions,
 } from "@/hooks/apis/users"
-import { ApiError } from "@/lib/api"
 import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
+import { ApiError } from "@/types/apis/common"
 import type { User } from "@/types/apis/users"
 
 const NICKNAME = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import {
 	type Activity,
 	activitySchema,

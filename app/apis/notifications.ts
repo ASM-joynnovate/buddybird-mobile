@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import { type Page, pageMetaSchema } from "@/types/apis/common"
 import { type AppNotification, notificationSchema } from "@/types/apis/notifications"
 

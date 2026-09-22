@@ -34,30 +34,6 @@ export function compareVersions(a: string, b: string): number | null {
 	return 0
 }
 
-export function parseReleaseNotes(raw: string): UpdatePolicy["notes"] {
-	try {
-		const value: unknown = JSON.parse(raw)
-
-		if (!value || typeof value !== "object") {
-			return {}
-		}
-
-		const notes: UpdatePolicy["notes"] = {}
-
-		for (const locale of ["ko", "en"] as const) {
-			const list = (value as Record<string, unknown>)[locale]
-
-			if (Array.isArray(list)) {
-				notes[locale] = list.filter((item): item is string => typeof item === "string")
-			}
-		}
-
-		return notes
-	} catch {
-		return {}
-	}
-}
-
 export function evaluateUpdate(
 	policy: UpdatePolicy,
 	installed: string,

@@ -1,16 +1,12 @@
 import { queryOptions } from "@tanstack/react-query"
 
-import { fetchUpdatePolicy, readUpdatePolicy } from "@/apis/app-update"
-import { UPDATE_INTERVAL } from "@/services/updates/policy"
+import { fetchAppUpdate } from "@/apis/app-update"
+import { apiKeys } from "@/hooks/apis/keys"
 
-// Remote Config owns its cache. A failed attempt also starts the six-hour window.
-export const updateQueryOptions = () =>
+export const appUpdateQueryOptions = () =>
 	queryOptions({
-		queryKey: ["firebase", "update"],
-		queryFn: fetchUpdatePolicy,
-		initialData: readUpdatePolicy,
-		initialDataUpdatedAt: 0,
-		staleTime: UPDATE_INTERVAL,
+		queryKey: apiKeys.appUpdate(),
+		queryFn: fetchAppUpdate,
 		retry: false,
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,

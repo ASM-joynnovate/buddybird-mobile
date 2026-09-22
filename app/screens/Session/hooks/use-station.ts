@@ -3,8 +3,8 @@ import { randomUUID } from "expo-crypto"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { heartbeatMutationOptions } from "@/hooks/apis/sessions"
-import { ApiError } from "@/lib/api"
 import { currentSpan } from "@/services/session/phases"
+import { ApiError } from "@/types/apis/common"
 import type { SleepSettings } from "@/types/apis/settings"
 
 const HEARTBEAT_MS = 10_000

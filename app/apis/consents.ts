@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { mockServer } from "@/apis/mock/server"
+import { mockServer } from "@/mocks/server"
 import { type Consent, consentSchema, type SaveConsentRequest } from "@/types/apis/consents"
 
 export async function fetchConsents(): Promise<Consent[]> {
