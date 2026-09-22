@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { User } from "@/apis/users"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { ProfilePhoto } from "@/components/profile-form/photo"
 import { Button } from "@/components/ui/button"
@@ -9,6 +8,7 @@ import { TextButton } from "@/components/ui/header"
 import { InlineError } from "@/components/ui/inline-error"
 import { TextField } from "@/components/ui/text-field"
 import { useAccountForm } from "@/screens/Profile/hooks/use-account-form"
+import type { User } from "@/types/apis/users"
 
 export function AccountForm({ user, onSaved }: { user: User; onSaved(): void }) {
 	const { t } = useTranslation()

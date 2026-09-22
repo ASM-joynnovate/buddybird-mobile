@@ -2,10 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useEffect, useState } from "react"
 
-import type { Notice } from "@/apis/notices"
+import { devicesQueryOptions } from "@/hooks/apis/devices"
 import { readNoticeMutationOptions } from "@/hooks/apis/notices"
 import { finishSessionMutationOptions, runningSessionQueryOptions } from "@/hooks/apis/sessions"
+import { clientDeviceId } from "@/services/device/identity"
 import { reportError } from "@/services/telemetry/client"
+import type { Notice } from "@/types/apis/notices"
 
 const launch = { stationChecked: false, noticesShown: false }
 
@@ -19,10 +21,14 @@ export function useStaleStationCleanup(): void {
 		}
 
 		launch.stationChecked = true
-		client
-			.query(runningSessionQueryOptions())
-			.then((session) => {
-				if (session?.station_device.is_current) {
+		Promise.all([
+			client.query(runningSessionQueryOptions()),
+			client.query(devicesQueryOptions()),
+		])
+			.then(([session, devices]) => {
+				const station = devices.find((device) => device.id === session?.station.device_id)
+
+				if (session && station?.client_device_id === clientDeviceId()) {
 					mutate({ id: session.id, idempotencyKey: randomUUID() })
 				}
 			})

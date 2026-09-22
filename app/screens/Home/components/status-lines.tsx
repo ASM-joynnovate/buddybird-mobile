@@ -1,25 +1,32 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { EmergencyBrief } from "@/apis/emergencies"
-import type { RunningSession } from "@/apis/sessions"
 import { phaseTone } from "@/components/session/phase-tone"
 import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
+import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { formatMoment, formatTimer } from "@/i18n/format"
+import type { EmergencyBrief } from "@/mocks/types"
 import { isDisconnected, phaseStatus, useNow } from "@/screens/Session/hooks/use-clock"
 import { colors, font } from "@/theme"
 
-export function SessionLine({ session, onPress }: { session: RunningSession; onPress(): void }) {
+export function SessionLine({
+	detail,
+	onPress,
+}: {
+	detail: RunningSessionDetail
+	onPress(): void
+}) {
 	const { t } = useTranslation()
 	const now = useNow()
-	const status = phaseStatus(session, now)
-	const lost = isDisconnected(session.last_heartbeat_at, now)
-	const device = session.station_device.name ?? session.station_device.model
-	const word = session.learning_enabled ? session.word?.name : t("session.run.learningOff")
+	const { session, station, sleep } = detail
+	const status = phaseStatus(session.period.started_at, sleep, now)
+	const lost = isDisconnected(session.progress.last_heartbeat_at, now)
+	const device = station ? (station.name ?? station.model) : ""
+	const word = session.settings.learning_enabled ? detail.wordName : t("session.run.learningOff")
 	const phase = t(`common.phases.${status.phase}`)
 
 	return (
@@ -48,7 +55,9 @@ export function SessionLine({ session, onPress }: { session: RunningSession; onP
 					{lost ? t("home.session.lost", { device }) : device}
 				</Copy>
 			</View>
-			<Copy style={styles.timer}>{formatTimer(now - Date.parse(session.started_at))}</Copy>
+			<Copy style={styles.timer}>
+				{formatTimer(now - Date.parse(session.period.started_at))}
+			</Copy>
 			<Icon name="forward" size={16} color={colors.disabled} />
 		</PressableSurface>
 	)

@@ -1,4 +1,5 @@
 import { randomUUID } from "expo-crypto"
+import { getLocales } from "expo-localization"
 
 import {
 	DAY,
@@ -7,10 +8,17 @@ import {
 	iso,
 	learningMsBetween,
 	type MockConsent,
+	type MockDevice,
+	type MockEvent,
+	type MockNotification,
+	type MockRecording,
 	type MockSession,
-	type MockSettings,
+	type MockSound,
+	type MockWord,
 	plays,
 	seed,
+	sleepEvents,
+	sleepWindowOf,
 } from "@/apis/mock/seed"
 import { ApiError } from "@/lib/api"
 import { currentSpan } from "@/services/session/phases"
@@ -20,9 +28,13 @@ const APPLY_DELAY_MS = 3000
 const PROCESSING_DELAY_MS = 2500
 const PAGE_SIZE = 20
 const MAX_RECORDINGS = 5
+const UPLOAD_EXPIRES_SECONDS = 300
 const TAKEN_NICKNAMES = ["버디", "buddy"]
 
+type SaveUploadedFile = (uri: string, durationMs: number) => void
+
 const db = seed(Date.now())
+const pendingUploads = new Map<string, SaveUploadedFile>()
 
 function respond<T>(produce: () => T): Promise<T> {
 	return new Promise((resolve, reject) => {
@@ -56,14 +68,74 @@ function find<T extends { id: string }>(items: T[], id: string): T {
 	return found
 }
 
-function localizeConsent(consent: MockConsent, locale: "ko" | "en") {
-	const { title_en, body_en, ...rest } = consent
+function toPage<T>(items: T[], pageNumber: number) {
+	const total = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
 
-	return locale === "en" ? { ...rest, title: title_en, body: body_en } : rest
+	return {
+		data: items.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE),
+		meta: {
+			current_page: pageNumber,
+			total_page_count: total,
+			is_first: pageNumber === 1,
+			is_last: pageNumber >= total,
+		},
+	}
 }
 
-function currentDevice() {
-	return db.devices.find((device) => device.is_current) ?? db.devices[0]
+function issueUpload(saveUploadedFile: SaveUploadedFile) {
+	const fileId = randomUUID()
+
+	pendingUploads.set(fileId, saveUploadedFile)
+
+	return {
+		file_id: fileId,
+		url: `mock://uploads/${fileId}`,
+		headers: {},
+		expires_in: UPLOAD_EXPIRES_SECONDS,
+	}
+}
+
+function consentDto(consent: MockConsent) {
+	const { title_en, body_en, ...rest } = consent
+
+	return getLocales()[0]?.languageCode === "ko"
+		? rest
+		: { ...rest, title: title_en, body: body_en }
+}
+
+function deviceDto({ name: _name, ...device }: MockDevice) {
+	return device.id === db.currentDeviceId ? { ...device, last_seen_at: iso(Date.now()) } : device
+}
+
+function recordingDto({ duration_ms: _duration, status: _status, ...recording }: MockRecording) {
+	return recording
+}
+
+function wordDto(word: MockWord) {
+	return { ...word, recordings: word.recordings.map(recordingDto) }
+}
+
+function eventDto(item: MockEvent) {
+	return {
+		id: item.id,
+		kind: item.kind,
+		occurred_at: item.occurred_at,
+		word: item.word_id ? { id: item.word_id } : null,
+	}
+}
+
+function soundDto(sound: MockSound) {
+	return {
+		id: sound.id,
+		session_id: sound.session_id,
+		captured_at: sound.captured_at,
+		audio: { url: sound.audio_url },
+		judgment: sound.analyzed ? { word_id: sound.word_id } : null,
+	}
+}
+
+function notificationDto({ session_id: _session, ...item }: MockNotification) {
+	return item
 }
 
 function runningRecord() {
@@ -74,70 +146,57 @@ function replaceSession(id: string, change: (session: MockSession) => MockSessio
 	db.sessions = db.sessions.map((session) => (session.id === id ? change(session) : session))
 }
 
-function runningView(session: MockSession) {
-	const now = Date.now()
-	const station = find(db.devices, session.station_device_id)
-	const span = currentSpan(Date.parse(session.started_at), now, {
-		sleepAt: session.sleep_at,
-		wakeAt: session.wake_at,
-	})
-
-	return {
-		id: session.id,
-		station_device: {
-			id: station.id,
-			name: station.name,
-			model: station.model,
-			is_current: station.is_current,
-		},
-		word: session.word,
-		learning_enabled: session.learning_enabled,
-		settings_version: session.settings_version,
-		applied_settings_version: session.applied_settings_version,
-		current_phase: span.phase,
-		phase_started_at: iso(span.start),
-		started_at: session.started_at,
-		last_heartbeat_at: station.is_current ? session.last_heartbeat_at : iso(now - 4000),
-		battery_level: session.battery_level,
-		is_charging: session.is_charging,
-		camera_available: session.camera_available,
-		sleep_at: session.sleep_at,
-		wake_at: session.wake_at,
-	}
+function isStationOnOtherDevice(session: MockSession) {
+	return session.station_device_id !== db.currentDeviceId
 }
 
-function summaryView(session: MockSession) {
+function sessionDto(session: MockSession) {
 	const now = Date.now()
-	const end = session.ended_at ? Date.parse(session.ended_at) : now
-	const learned = learningMsBetween(session, Date.parse(session.started_at), end, now)
+	const running = session.status === "running"
+	const span = running
+		? currentSpan(Date.parse(session.started_at), now, sleepWindowOf(db.settings))
+		: null
 
 	return {
 		id: session.id,
 		status: session.status,
-		started_at: session.started_at,
-		ended_at: session.ended_at,
-		ended_by: session.ended_by,
-		word: session.word,
-		learning_enabled: session.learning_enabled,
-		...plays(learned),
-		sound_count: session.sounds.length,
-		mimicry_count: session.sounds.filter((sound) => sound.judgment).length,
-		emergency_count: db.emergencies.filter((item) => item.session_id === session.id).length,
-		sleep_at: session.sleep_at,
-		wake_at: session.wake_at,
+		station: { device_id: session.station_device_id },
+		settings: {
+			word_id: session.word_id,
+			learning_enabled: session.learning_enabled,
+			version: session.settings_version,
+			applied_version: session.applied_settings_version,
+		},
+		progress: {
+			current_phase: span?.phase ?? null,
+			phase_started_at: span ? iso(span.start) : null,
+			last_heartbeat_at:
+				running && isStationOnOtherDevice(session)
+					? iso(now - 4000)
+					: session.last_heartbeat_at,
+		},
+		period: {
+			started_at: session.started_at,
+			ended_at: session.ended_at,
+			ended_by: session.ended_by,
+		},
 	}
 }
 
 function finish(id: string, endedBy: "user" | "server") {
 	const now = Date.now()
 
-	replaceSession(id, (session) => ({
-		...session,
-		status: "finished",
-		ended_at: iso(now),
-		ended_by: endedBy,
-		events: [...session.events, event("session_finished", now)],
-	}))
+	replaceSession(id, (session) => {
+		const ended = { ...session, ended_at: iso(now) }
+
+		return {
+			...ended,
+			status: "finished",
+			ended_by: endedBy,
+			events: [...session.events, event("session_finished", now)],
+			sleep_events: sleepEvents(ended, sleepWindowOf(db.settings), now),
+		}
+	})
 }
 
 function requireRunning(id: string) {
@@ -150,14 +209,41 @@ function requireRunning(id: string) {
 	return session
 }
 
-function wordRef(wordId: string) {
-	const word = find(db.words, wordId)
-
-	return { id: word.id, name: word.name }
-}
-
 function allSounds() {
 	return db.sessions.flatMap((session) => session.sounds)
+}
+
+function parrotSounds() {
+	return allSounds()
+		.filter((sound) => sound.is_parrot_sound === true)
+		.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at))
+}
+
+function changeSessionSettings(
+	id: string,
+	change: Pick<MockSession, "word_id" | "learning_enabled">,
+	changeEvent: MockEvent,
+) {
+	const session = requireRunning(id)
+	const version = session.settings_version + 1
+
+	replaceSession(id, (current) => ({
+		...current,
+		...change,
+		settings_version: version,
+		events: [...current.events, changeEvent],
+	}))
+
+	if (isStationOnOtherDevice(session)) {
+		setTimeout(() => {
+			replaceSession(id, (current) => ({
+				...current,
+				applied_settings_version: Math.max(current.applied_settings_version, version),
+			}))
+		}, APPLY_DELAY_MS)
+	}
+
+	return sessionDto(find(db.sessions, id))
 }
 
 function dayStart(at: number) {
@@ -248,10 +334,38 @@ function overlaps(session: MockSession, from: number, to: number) {
 	return Date.parse(session.started_at) < to && end >= from
 }
 
+function playsBetween(session: MockSession, from: number, to: number) {
+	return plays(learningMsBetween(session, sleepWindowOf(db.settings), from, to, Date.now()))
+}
+
+function newestStartFirst(a: MockSession, b: MockSession) {
+	return Date.parse(b.started_at) - Date.parse(a.started_at)
+}
+
 export const mockServer = {
+	configure: (clientDeviceId: string) => {
+		db.devices = db.devices.map((device) =>
+			device.id === db.currentDeviceId
+				? { ...device, client_device_id: clientDeviceId }
+				: device,
+		)
+	},
+	uploads: {
+		put: (fileId: string, uri: string, durationMs = 0) =>
+			respond(() => {
+				const saveUploadedFile = pendingUploads.get(fileId)
+
+				if (!saveUploadedFile) {
+					throw notFound()
+				}
+
+				pendingUploads.delete(fileId)
+				saveUploadedFile(uri, durationMs)
+			}),
+	},
 	users: {
 		me: () => respond(() => db.user),
-		update: (input: { nickname?: string; photo_url?: string | null }) =>
+		update: (input: { nickname?: string | null }) =>
 			respond(() => {
 				if (
 					input.nickname &&
@@ -262,54 +376,67 @@ export const mockServer = {
 
 				db.user = {
 					...db.user,
-					...(input.nickname === undefined ? {} : { nickname: input.nickname.trim() }),
-					...(input.photo_url === undefined ? {} : { photo_url: input.photo_url }),
+					...(input.nickname === undefined
+						? {}
+						: { nickname: input.nickname?.trim() ?? null }),
 				}
-
-				return db.user
+			}),
+		issuePhotoUpload: () =>
+			respond(() =>
+				issueUpload((uri) => {
+					db.user = { ...db.user, photo: { url: uri } }
+				}),
+			),
+		deletePhoto: () =>
+			respond(() => {
+				db.user = { ...db.user, photo: null }
 			}),
 	},
 	settings: {
 		get: () => respond(() => db.settings),
-		update: (patch: Partial<MockSettings>) =>
+		updateSleep: (sleep: { sleep_at: string; wake_at: string }) =>
 			respond(() => {
-				db.settings = { ...db.settings, ...patch }
+				db.settings = { ...db.settings, sleep }
 
-				const running = runningRecord()
-
-				if (running) {
-					replaceSession(running.id, (session) => ({
-						...session,
-						sleep_at: db.settings.sleep_at,
-						wake_at: db.settings.wake_at,
-					}))
-				}
+				return db.settings
+			}),
+		updateNotifications: (notifications: typeof db.settings.notifications) =>
+			respond(() => {
+				db.settings = { ...db.settings, notifications }
 
 				return db.settings
 			}),
 	},
 	consents: {
-		list: (locale: "ko" | "en") =>
-			respond(() => db.consents.map((consent) => localizeConsent(consent, locale))),
-		save: (decisions: { consent_id: string; status: "granted" | "denied" }[]) =>
+		list: () => respond(() => db.consents.map(consentDto)),
+		save: (decision: { consent_id: string; status: "granted" | "denied" }) =>
 			respond(() => {
-				db.consents = db.consents.map((consent) => {
-					const decision = decisions.find((item) => item.consent_id === consent.id)
+				const consent = find(db.consents, decision.consent_id)
 
-					return decision ? { ...consent, status: decision.status } : consent
-				})
+				db.consents = db.consents.map((item) =>
+					item.id === consent.id ? { ...item, status: decision.status } : item,
+				)
+
+				return {
+					consent_id: consent.id,
+					kind: consent.kind,
+					version: consent.version,
+					status: decision.status,
+					decided_at: iso(Date.now()),
+				}
 			}),
 	},
 	parrots: {
 		list: () => respond(() => db.parrots),
-		create: (input: {
-			name: string
-			species: string
-			birthdate: string | null
-			photo_url: string | null
-		}) =>
+		create: (input: { name: string; species: string; birthdate?: string | null }) =>
 			respond(() => {
-				const parrot = { id: randomUUID(), ...input }
+				const parrot = {
+					id: randomUUID(),
+					name: input.name.trim(),
+					species: input.species.trim(),
+					birthdate: input.birthdate ?? null,
+					photo: null,
+				}
 
 				db.parrots = [...db.parrots, parrot]
 
@@ -317,12 +444,7 @@ export const mockServer = {
 			}),
 		update: (
 			id: string,
-			input: {
-				name: string
-				species: string
-				birthdate: string | null
-				photo_url: string | null
-			},
+			input: { name?: string; species?: string; birthdate?: string | null },
 		) =>
 			respond(() => {
 				const parrot = { ...find(db.parrots, id), ...input }
@@ -336,62 +458,79 @@ export const mockServer = {
 				find(db.parrots, id)
 				db.parrots = db.parrots.filter((item) => item.id !== id)
 			}),
+		issuePhotoUpload: (id: string) =>
+			respond(() => {
+				find(db.parrots, id)
+
+				return issueUpload((uri) => {
+					db.parrots = db.parrots.map((item) =>
+						item.id === id ? { ...item, photo: { url: uri } } : item,
+					)
+				})
+			}),
+		deletePhoto: (id: string) =>
+			respond(() => {
+				find(db.parrots, id)
+				db.parrots = db.parrots.map((item) =>
+					item.id === id ? { ...item, photo: null } : item,
+				)
+			}),
 	},
 	words: {
-		list: () => respond(() => db.words),
-		get: (id: string) => respond(() => find(db.words, id)),
+		list: () => respond(() => db.words.map(wordDto)),
+		get: (id: string) => respond(() => wordDto(find(db.words, id))),
 		create: (name: string) =>
 			respond(() => {
 				const word = { id: randomUUID(), name: name.trim(), recordings: [] }
 
 				db.words = [...db.words, word]
 
-				return word
+				return wordDto(word)
 			}),
-		rename: (id: string, name: string) =>
+		update: (id: string, name: string) =>
 			respond(() => {
 				const word = { ...find(db.words, id), name: name.trim() }
 
 				db.words = db.words.map((item) => (item.id === id ? word : item))
 
-				return word
+				return wordDto(word)
 			}),
 		remove: (id: string) =>
 			respond(() => {
 				find(db.words, id)
 				db.words = db.words.filter((item) => item.id !== id)
 			}),
-		addRecording: (id: string, file: { uri: string; duration_ms: number }) =>
+		issueRecordingUpload: (id: string) =>
 			respond(() => {
 				if (find(db.words, id).recordings.length >= MAX_RECORDINGS) {
 					throw new ApiError(422, "WORD__RECORDING_LIMIT", "Recording limit reached")
 				}
 
-				const recording = {
-					id: randomUUID(),
-					url: file.uri,
-					duration_ms: file.duration_ms,
-					status: "processing" as const,
-					created_at: iso(Date.now()),
-				}
+				return issueUpload((uri, durationMs) => {
+					const recording = {
+						id: randomUUID(),
+						url: uri,
+						duration_ms: durationMs,
+						status: "processing" as const,
+						created_at: iso(Date.now()),
+					}
 
-				db.words = db.words.map((item) =>
-					item.id === id
-						? { ...item, recordings: [...item.recordings, recording] }
-						: item,
-				)
-				setTimeout(() => {
-					db.words = db.words.map((item) => ({
-						...item,
-						recordings: item.recordings.map((entry) =>
-							entry.id === recording.id
-								? { ...entry, status: "ready" as const }
-								: entry,
-						),
-					}))
-				}, PROCESSING_DELAY_MS)
-
-				return recording
+					db.words = db.words.map((item) =>
+						item.id === id
+							? { ...item, recordings: [...item.recordings, recording] }
+							: item,
+					)
+					setTimeout(() => {
+						db.words = db.words.map((item) => ({
+							...item,
+							recordings: item.recordings.map((entry) =>
+								entry.id === recording.id
+									? { ...entry, status: "ready" as const }
+									: entry,
+							),
+						}))
+					}, PROCESSING_DELAY_MS)
+				})
 			}),
 		removeRecording: (id: string, recordingId: string) =>
 			respond(() => {
@@ -414,18 +553,79 @@ export const mockServer = {
 						: item,
 				)
 			}),
+		recordingStatus: (id: string) =>
+			respond(() =>
+				find(db.words, id).recordings.map((recording) => ({
+					recording_id: recording.id,
+					duration_ms: recording.duration_ms,
+					status: recording.status,
+				})),
+			),
 	},
 	devices: {
-		list: () =>
+		list: () => respond(() => db.devices.map(deviceDto)),
+		register: (input: {
+			client_device_id: string
+			platform: string
+			os_version: string
+			model: string
+			app_version: string
+			timezone?: string | null
+		}) =>
 			respond(() => {
-				const running = runningRecord()
+				const currentDevice = find(db.devices, db.currentDeviceId)
+				const { client_device_id, timezone, ...client } = input
+				const registered = {
+					...currentDevice,
+					client_device_id,
+					timezone: timezone ?? null,
+					client,
+				}
 
-				return db.devices.map((device) => ({
-					...device,
-					last_seen_at: device.is_current ? iso(Date.now()) : device.last_seen_at,
-					is_running_session: running?.station_device_id === device.id,
-				}))
+				db.devices = db.devices.map((item) =>
+					item.id === currentDevice.id ? registered : item,
+				)
+
+				return deviceDto(registered)
 			}),
+		updateMe: (input: {
+			app_version?: string
+			os_version?: string
+			timezone?: string | null
+		}) =>
+			respond(() => {
+				const currentDevice = find(db.devices, db.currentDeviceId)
+				const { timezone, ...client } = input
+				const updated = {
+					...currentDevice,
+					timezone: timezone === undefined ? currentDevice.timezone : timezone,
+					client: { ...currentDevice.client, ...client },
+				}
+
+				db.devices = db.devices.map((item) =>
+					item.id === currentDevice.id ? updated : item,
+				)
+
+				return deviceDto(updated)
+			}),
+		updatePushToken: (_token: string) =>
+			respond(() => {
+				const currentDevice = find(db.devices, db.currentDeviceId)
+
+				db.devices = db.devices.map((item) =>
+					item.id === currentDevice.id ? { ...item, push_registered: true } : item,
+				)
+
+				return deviceDto({ ...currentDevice, push_registered: true })
+			}),
+		disconnectMe: () =>
+			respond(() => {
+				db.devices = db.devices.filter((device) => device.id !== db.currentDeviceId)
+			}),
+		names: () =>
+			respond(() =>
+				db.devices.map((device) => ({ device_id: device.id, name: device.name })),
+			),
 		rename: (id: string, name: string | null) =>
 			respond(() => {
 				find(db.devices, id)
@@ -445,24 +645,23 @@ export const mockServer = {
 
 				db.devices = db.devices.filter((device) => device.id !== id)
 			}),
-		registerPushToken: (_token: string) => respond(() => undefined),
 	},
 	sessions: {
-		running: () =>
+		list: (pageNumber: number) =>
+			respond(() =>
+				toPage([...db.sessions].sort(newestStartFirst).map(sessionDto), pageNumber),
+			),
+		range: (from: number, to: number) =>
+			respond(() =>
+				db.sessions
+					.filter((session) => overlaps(session, from, to))
+					.sort(newestStartFirst)
+					.map(sessionDto),
+			),
+		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
+		start: (input: { word_id?: string | null; learning_enabled: boolean }) =>
 			respond(() => {
-				const running = runningRecord()
-
-				return running ? runningView(running) : null
-			}),
-		start: (input: {
-			word_id: string | null
-			learning_enabled: boolean
-			replace_running: boolean
-		}) =>
-			respond(() => {
-				const running = runningRecord()
-
-				if (running && !input.replace_running) {
+				if (runningRecord()) {
 					throw new ApiError(
 						409,
 						"SESSION__ALREADY_RUNNING",
@@ -470,122 +669,175 @@ export const mockServer = {
 					)
 				}
 
-				if (running) {
-					finish(running.id, "user")
+				const now = Date.now()
+				const wordId = input.word_id ?? null
+
+				if (wordId) {
+					find(db.words, wordId)
 				}
 
-				const now = Date.now()
-				const word = input.learning_enabled && input.word_id ? wordRef(input.word_id) : null
 				const session: MockSession = {
 					id: randomUUID(),
 					status: "running",
 					started_at: iso(now),
 					ended_at: null,
 					ended_by: null,
-					word,
+					word_id: wordId,
 					learning_enabled: input.learning_enabled,
-					sleep_at: db.settings.sleep_at,
-					wake_at: db.settings.wake_at,
-					station_device_id: currentDevice().id,
+					station_device_id: db.currentDeviceId,
 					settings_version: 1,
-					applied_settings_version: 1,
-					last_heartbeat_at: iso(now),
+					applied_settings_version: 0,
+					last_heartbeat_at: null,
 					battery_level: null,
 					is_charging: null,
 					camera_available: true,
-					events: [
-						event("session_started", now),
-						...(word ? [event("learning_started", now, { word })] : []),
-					],
+					events: [event("session_started", now)],
+					sleep_events: [],
 					sounds: [],
 					activity: [],
 				}
 
 				db.sessions = [...db.sessions, session]
 
-				return runningView(session)
+				return sessionDto(session)
 			}),
 		finish: (id: string) =>
 			respond(() => {
 				requireRunning(id)
 				finish(id, "user")
 
-				return summaryView(find(db.sessions, id))
+				return sessionDto(find(db.sessions, id))
 			}),
-		updateSettings: (id: string, input: { word_id?: string; learning_enabled?: boolean }) =>
+		changeWord: (id: string, wordId: string | null) =>
 			respond(() => {
-				const session = requireRunning(id)
-				const now = Date.now()
-				const word = input.word_id ? wordRef(input.word_id) : session.word
-				const learning = input.learning_enabled ?? session.learning_enabled
-				const version = session.settings_version + 1
-				const changes = [
-					...(input.word_id ? [event("word_changed", now, { word })] : []),
-					...(input.learning_enabled === undefined
-						? []
-						: [event("learning_toggled", now, { learning_enabled: learning })]),
-				]
-
-				replaceSession(id, (current) => ({
-					...current,
-					word,
-					learning_enabled: learning,
-					settings_version: version,
-					events: [...current.events, ...changes],
-				}))
-
-				if (!find(db.devices, session.station_device_id).is_current) {
-					setTimeout(() => {
-						replaceSession(id, (current) => ({
-							...current,
-							applied_settings_version: Math.max(
-								current.applied_settings_version,
-								version,
-							),
-						}))
-					}, APPLY_DELAY_MS)
+				if (wordId) {
+					find(db.words, wordId)
 				}
 
-				return runningView(find(db.sessions, id))
+				return changeSessionSettings(
+					id,
+					{ word_id: wordId, learning_enabled: find(db.sessions, id).learning_enabled },
+					event("word_changed", Date.now(), { word_id: wordId }),
+				)
 			}),
-		heartbeat: (
+		changeLearning: (id: string, enabled: boolean) =>
+			respond(() =>
+				changeSessionSettings(
+					id,
+					{ word_id: find(db.sessions, id).word_id, learning_enabled: enabled },
+					event("learning_toggled", Date.now(), { learning_enabled: enabled }),
+				),
+			),
+		heartbeat: (id: string, input: { applied_settings_version: number }) =>
+			respond(() => {
+				requireRunning(id)
+				replaceSession(id, (current) => ({
+					...current,
+					applied_settings_version: input.applied_settings_version,
+					last_heartbeat_at: iso(Date.now()),
+				}))
+
+				const session = sessionDto(find(db.sessions, id))
+
+				return {
+					session: { status: session.status, settings: session.settings },
+					acknowledged: [],
+				}
+			}),
+		addEvents: (
 			id: string,
 			input: {
-				applied_settings_version: number
-				battery_level: number | null
-				is_charging: boolean | null
-				camera_available: boolean
+				events: { kind: MockEvent["kind"]; occurred_at: string; word_id?: string | null }[]
 			},
 		) =>
 			respond(() => {
 				requireRunning(id)
 				replaceSession(id, (current) => ({
 					...current,
-					...input,
-					last_heartbeat_at: iso(Date.now()),
+					events: [
+						...current.events,
+						...input.events.map((item) =>
+							event(item.kind, Date.parse(item.occurred_at), {
+								word_id: item.word_id ?? null,
+							}),
+						),
+					],
 				}))
-
-				return runningView(find(db.sessions, id))
 			}),
-		list: (from: number, to: number) =>
-			respond(() =>
-				db.sessions
-					.filter((session) => overlaps(session, from, to))
-					.map(summaryView)
-					.sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at)),
-			),
-		detail: (id: string) => respond(() => summaryView(find(db.sessions, id))),
-		timeline: (id: string) =>
+		events: (id: string) => respond(() => find(db.sessions, id).events.map(eventDto)),
+		sounds: (id: string, pageNumber: number) =>
+			respond(() => toPage(find(db.sessions, id).sounds.map(soundDto), pageNumber)),
+		issueSoundUpload: (id: string, capturedAt: string) =>
+			respond(() => {
+				requireRunning(id)
+
+				return issueUpload((uri) => {
+					const sound: MockSound = {
+						id: randomUUID(),
+						session_id: id,
+						captured_at: capturedAt,
+						audio_url: uri,
+						analyzed: false,
+						word_id: null,
+						is_parrot_sound: null,
+						score: null,
+						feedback: null,
+					}
+
+					replaceSession(id, (session) => ({
+						...session,
+						sounds: [...session.sounds, sound],
+					}))
+				})
+			}),
+		stationStatus: (id: string) =>
 			respond(() => {
 				const session = find(db.sessions, id)
 
 				return {
-					events: session.events,
-					sounds: session.sounds.filter((sound) => sound.is_parrot_sound !== false),
-					activity: session.activity,
+					battery_level: session.battery_level,
+					is_charging: session.is_charging,
+					camera_available: session.camera_available,
 				}
 			}),
-		soundFeedback: (soundId: string, feedback: "up" | "down") =>
+		activity: (id: string) => respond(() => find(db.sessions, id).activity),
+		plays: (id: string) =>
+			respond(() => {
+				const session = find(db.sessions, id)
+
+				return playsBetween(session, Date.parse(session.started_at), Date.now())
+			}),
+		eventExtras: (id: string) =>
+			respond(() => {
+				const session = find(db.sessions, id)
+
+				return {
+					event_details: session.events.map((item) => ({
+						event_id: item.id,
+						learning_enabled: item.learning_enabled,
+						emergency: item.emergency,
+					})),
+					sleep_events:
+						session.status === "running"
+							? sleepEvents(session, sleepWindowOf(db.settings), Date.now())
+							: session.sleep_events,
+				}
+			}),
+	},
+	sounds: {
+		feedback: () =>
+			respond(() =>
+				allSounds().map((sound) => ({ sound_id: sound.id, feedback: sound.feedback })),
+			),
+		analysis: () =>
+			respond(() =>
+				allSounds().map((sound) => ({
+					sound_id: sound.id,
+					is_parrot_sound: sound.is_parrot_sound,
+					score: sound.score,
+				})),
+			),
+		saveFeedback: (soundId: string, feedback: "up" | "down") =>
 			respond(() => {
 				find(allSounds(), soundId)
 				db.sessions = db.sessions.map((session) => ({
@@ -595,6 +847,10 @@ export const mockServer = {
 					),
 				}))
 			}),
+	},
+	parrotSounds: {
+		list: (pageNumber: number) =>
+			respond(() => toPage(parrotSounds().map(soundDto), pageNumber)),
 	},
 	emergencies: {
 		get: (id: string) =>
@@ -626,22 +882,14 @@ export const mockServer = {
 			}),
 	},
 	home: {
-		summary: () =>
+		extras: () =>
 			respond(() => {
-				const running = runningRecord()
-				const latest = allSounds()
-					.filter((sound) => sound.judgment && sound.audio_url)
-					.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at))[0]
 				const alarm = db.emergencies
 					.filter((item) => !item.is_confirmed && !item.deleted)
 					.sort((a, b) => Date.parse(b.detected_at) - Date.parse(a.detected_at))[0]
 
 				return {
-					running_session: running ? runningView(running) : null,
-					unread_notification_count: db.notifications.filter((item) => !item.read_at)
-						.length,
 					streak_days: streakDays(Date.now()),
-					latest_mimicry: latest ?? null,
 					unconfirmed_emergency: alarm
 						? {
 								id: alarm.id,
@@ -650,33 +898,26 @@ export const mockServer = {
 								detected_at: alarm.detected_at,
 							}
 						: null,
-					unread_notices: db.notices
-						.filter((notice) => !notice.is_read)
-						.sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)),
 				}
 			}),
 	},
 	notifications: {
-		list: (page: number) =>
-			respond(() => {
-				const total = Math.max(1, Math.ceil(db.notifications.length / PAGE_SIZE))
-
-				return {
-					data: db.notifications.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-					meta: {
-						current_page: page,
-						total_page_count: total,
-						is_first: page === 1,
-						is_last: page >= total,
-					},
-				}
-			}),
+		list: (pageNumber: number) =>
+			respond(() => toPage(db.notifications.map(notificationDto), pageNumber)),
 		read: (id: string) =>
 			respond(() => {
-				find(db.notifications, id)
-				db.notifications = db.notifications.map((item) =>
-					item.id === id && !item.read_at ? { ...item, read_at: iso(Date.now()) } : item,
-				)
+				const now = iso(Date.now())
+				const markRead = <T extends { id: string; read_at: string | null }>(item: T): T =>
+					item.id === id && !item.read_at ? { ...item, read_at: now } : item
+
+				if (
+					![...db.notifications, ...db.noticeNotifications].some((item) => item.id === id)
+				) {
+					throw notFound()
+				}
+
+				db.notifications = db.notifications.map(markRead)
+				db.noticeNotifications = db.noticeNotifications.map(markRead)
 			}),
 		readAll: () =>
 			respond(() => {
@@ -685,12 +926,29 @@ export const mockServer = {
 				db.notifications = db.notifications.map((item) =>
 					item.read_at ? item : { ...item, read_at: now },
 				)
+				db.noticeNotifications = db.noticeNotifications.map((item) =>
+					item.read_at ? item : { ...item, read_at: now },
+				)
 			}),
+		notices: () =>
+			respond(() => ({
+				notices: db.noticeNotifications,
+				notification_sessions: db.notifications.flatMap((item) =>
+					item.session_id
+						? [{ notification_id: item.id, session_id: item.session_id }]
+						: [],
+				),
+			})),
 	},
 	notices: {
-		list: () =>
+		list: (pageNumber: number) =>
 			respond(() =>
-				[...db.notices].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)),
+				toPage(
+					[...db.notices].sort(
+						(a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at),
+					),
+					pageNumber,
+				),
 			),
 		get: (id: string) => respond(() => find(db.notices, id)),
 		read: (id: string) =>
@@ -699,12 +957,24 @@ export const mockServer = {
 				db.notices = db.notices.map((notice) =>
 					notice.id === id ? { ...notice, is_read: true } : notice,
 				)
+
+				return find(db.notices, id)
 			}),
+	},
+	feedback: {
+		create: (message: string) =>
+			respond(() => ({
+				id: randomUUID(),
+				user_id: db.user.id,
+				device_id: db.currentDeviceId,
+				message: message.trim(),
+				app_version: find(db.devices, db.currentDeviceId).client.app_version,
+				created_at: iso(Date.now()),
+			})),
 	},
 	reports: {
 		get: (period: "day" | "week" | "month", start: string) =>
 			respond(() => {
-				const now = Date.now()
 				const { from, to } = reportRange(period, start)
 				const sessions = db.sessions.filter((session) => overlaps(session, from, to))
 				const counts = new Map<
@@ -715,16 +985,16 @@ export const mockServer = {
 				let totalDuration = 0
 
 				for (const session of sessions) {
-					const played = plays(learningMsBetween(session, from, to, now))
+					const played = playsBetween(session, from, to)
+					const word = db.words.find((item) => item.id === session.word_id)
 
 					totalCount += played.play_count
 					totalDuration += played.play_duration_ms
 
-					if (session.word && played.play_count > 0) {
-						counts.set(session.word.id, {
-							word: session.word,
-							play_count:
-								(counts.get(session.word.id)?.play_count ?? 0) + played.play_count,
+					if (word && played.play_count > 0) {
+						counts.set(word.id, {
+							word: { id: word.id, name: word.name },
+							play_count: (counts.get(word.id)?.play_count ?? 0) + played.play_count,
 						})
 					}
 				}
@@ -744,19 +1014,18 @@ export const mockServer = {
 					end: formatLocalDate(to - HOUR),
 					total_play_count: totalCount,
 					total_play_duration_ms: totalDuration,
-					mimicry_count: sounds.filter((sound) => sound.judgment).length,
+					mimicry_count: sounds.filter((sound) => sound.word_id).length,
 					trend: buckets(period, from, to).map((bucket) => ({
 						start: iso(bucket.start),
 						play_duration_ms: sessions.reduce(
 							(sum, session) =>
 								sum +
-								plays(learningMsBetween(session, bucket.start, bucket.end, now))
-									.play_duration_ms,
+								playsBetween(session, bucket.start, bucket.end).play_duration_ms,
 							0,
 						),
 					})),
 					words: [...counts.values()].sort((a, b) => b.play_count - a.play_count),
-					sounds,
+					sounds: sounds.map(soundDto),
 				}
 			}),
 	},

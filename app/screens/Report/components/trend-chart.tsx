@@ -3,10 +3,10 @@ import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Report, ReportPeriod } from "@/apis/reports"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatDateWithWeekday, formatDuration, formatTime } from "@/i18n/format"
+import type { Report, ReportPeriod } from "@/mocks/types"
 import { colors, font } from "@/theme"
 import type { Locale } from "@/types/locale"
 

@@ -1,26 +1,19 @@
 import { z } from "zod"
 
 import { mockServer } from "@/apis/mock/server"
+import { type Page, pageMetaSchema } from "@/types/apis/common"
+import { type Notice, noticeSchema } from "@/types/apis/notices"
 
-export const noticeSchema = z.object({
-	id: z.uuid(),
-	title: z.string(),
-	body: z.string().nullable(),
-	starts_at: z.iso.datetime({ offset: true }),
-	images: z.array(z.object({ url: z.string() })),
-	is_read: z.boolean(),
-})
+export async function fetchNotices(page: number): Promise<Page<Notice>> {
+	const { data, meta } = await mockServer.notices.list(page)
 
-export type Notice = z.infer<typeof noticeSchema>
-
-export async function fetchNotices(): Promise<Notice[]> {
-	return z.array(noticeSchema).parse(await mockServer.notices.list())
+	return { data: z.array(noticeSchema).parse(data), meta: pageMetaSchema.parse(meta) }
 }
 
 export async function fetchNotice(id: string): Promise<Notice> {
 	return noticeSchema.parse(await mockServer.notices.get(id))
 }
 
-export async function markNoticeRead(id: string, _idempotencyKey: string): Promise<void> {
-	await mockServer.notices.read(id)
+export async function markNoticeRead(id: string, _idempotencyKey: string): Promise<Notice> {
+	return noticeSchema.parse(await mockServer.notices.read(id))
 }

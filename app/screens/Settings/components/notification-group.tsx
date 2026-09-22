@@ -1,18 +1,18 @@
 import { useTranslation } from "react-i18next"
 
-import type { NotificationSetting, Settings } from "@/apis/settings"
 import { GroupedList, NavRow, SwitchRow } from "@/components/ui/rows"
 import type { SettingsMessages } from "@/i18n/types/settings"
+import type { NotificationSetting, Settings } from "@/types/apis/settings"
 
 const ITEMS: readonly {
 	key: NotificationSetting
 	label: keyof SettingsMessages["notifications"]
 }[] = [
-	{ key: "notify_emergency", label: "emergency" },
-	{ key: "notify_mimicry", label: "mimicry" },
-	{ key: "notify_daily_summary", label: "dailySummary" },
-	{ key: "notify_streak", label: "streak" },
-	{ key: "notify_station_disconnect", label: "stationDisconnect" },
+	{ key: "emergency", label: "emergency" },
+	{ key: "mimicry", label: "mimicry" },
+	{ key: "daily_summary", label: "dailySummary" },
+	{ key: "streak", label: "streak" },
+	{ key: "station_disconnect", label: "stationDisconnect" },
 ]
 
 export function NotificationGroup({
@@ -44,7 +44,7 @@ export function NotificationGroup({
 					key={key}
 					first={!permissionOff && index === 0}
 					label={t(`settings.notifications.${label}`)}
-					value={settings[key]}
+					value={settings.notifications[key]}
 					onChange={(value) => onChange(key, value)}
 				/>
 			))}

@@ -5,12 +5,14 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { HomeSummary } from "@/apis/home"
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { homeSummaryQueryOptions } from "@/hooks/apis/home"
+import { homeExtrasQueryOptions } from "@/hooks/apis/mocks"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
+import { wordsQueryOptions } from "@/hooks/apis/words"
+import { useRunningSession } from "@/hooks/use-running-session"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { BuddyHint, MimicryBubble } from "@/screens/Home/components/mimicry-bubble"
 import { NoticePopup } from "@/screens/Home/components/notice-popup"
@@ -19,6 +21,7 @@ import { EmergencyLine, SessionLine } from "@/screens/Home/components/status-lin
 import { HomeTopBar } from "@/screens/Home/components/top-bar"
 import { useNoticePopup, useStaleStationCleanup } from "@/screens/Home/hooks/use-home-startup"
 import { TakeoverDialog } from "@/screens/Session/components/start-dialogs"
+import type { HomeSummary } from "@/types/apis/home"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
 
 const REFRESH_MS = 10_000
@@ -90,24 +93,35 @@ export function HomeScreen() {
 	)
 }
 
-function HomeBody({ summary, navigation }: { summary: HomeSummary; navigation: Navigation }) {
-	const parrots = useQuery(parrotsQueryOptions())
+interface Props {
+	summary: HomeSummary
+	navigation: Navigation
+}
+
+function HomeBody({ summary, navigation }: Props) {
+	const refetchInterval = useIsFocused() ? REFRESH_MS : false
 	const player = useSoundPlayer()
-	const session = summary.running_session
-	const emergency = summary.unconfirmed_emergency
+
+	const parrots = useQuery(parrotsQueryOptions())
+	const words = useQuery(wordsQueryOptions())
+	const extras = useQuery({ ...homeExtrasQueryOptions(), refetchInterval })
+	const running = useRunningSession(refetchInterval)
+
+	const emergency = extras.data?.unconfirmed_emergency ?? null
 	const mimicry = summary.latest_mimicry
+	const mimicryWord = words.data?.find((word) => word.id === mimicry?.judgment?.word_id)
 
 	return (
 		<View style={styles.body}>
 			<HomeTopBar
-				streak={summary.streak_days}
+				streak={extras.data?.streak_days ?? 0}
 				unread={summary.unread_notification_count}
 				onNotifications={() => navigation.navigate("Notifications")}
 				onSettings={() => navigation.navigate("Settings")}
 			/>
-			{session ? (
+			{running.detail ? (
 				<SessionLine
-					session={session}
+					detail={running.detail}
 					onPress={() => navigation.navigate("SessionMonitor")}
 				/>
 			) : null}
@@ -132,6 +146,7 @@ function HomeBody({ summary, navigation }: { summary: HomeSummary; navigation: N
 			{mimicry ? (
 				<MimicryBubble
 					sound={mimicry}
+					wordName={mimicryWord?.name ?? ""}
 					player={player}
 					onOpen={() =>
 						navigation.navigate("Main", {

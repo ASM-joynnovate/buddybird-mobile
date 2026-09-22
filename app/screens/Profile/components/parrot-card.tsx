@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
-import type { Parrot } from "@/apis/parrots"
 import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { isSpeciesId } from "@/services/profile/species"
 import { ageMonths } from "@/services/profile/statistics"
 import { colors, font } from "@/theme"
+import type { Parrot } from "@/types/apis/parrots"
 
 const MONTHS_PER_YEAR = 12
 
@@ -36,8 +36,8 @@ export function ParrotCard({ parrot, onPress }: { parrot: Parrot; onPress(): voi
 			contentStyle={styles.card}
 		>
 			<View style={styles.photo}>
-				{parrot.photo_url ? (
-					<Image source={{ uri: parrot.photo_url }} style={styles.image} />
+				{parrot.photo ? (
+					<Image source={{ uri: parrot.photo.url }} style={styles.image} />
 				) : (
 					<Icon name="photo" size={26} color={colors.disabled} />
 				)}

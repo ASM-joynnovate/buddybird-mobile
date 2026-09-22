@@ -7,8 +7,7 @@ import { useDeviceSetting } from "@/hooks/use-device-setting"
 export type EntryRoute = "loading" | "error" | "Consent" | "ParrotEditor" | "UsageGuide" | "Main"
 
 export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry(): void } {
-	const locale = useDeviceSetting("locale")
-	const consents = useQuery(consentsQueryOptions(locale))
+	const consents = useQuery(consentsQueryOptions())
 	const parrots = useQuery(parrotsQueryOptions())
 	const guides = useDeviceSetting("guides")
 

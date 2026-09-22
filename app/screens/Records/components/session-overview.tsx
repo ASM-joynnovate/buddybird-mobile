@@ -1,17 +1,17 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Session, Timeline } from "@/apis/sessions"
 import { AbsenceStrip } from "@/components/session/absence-strip"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDuration } from "@/i18n/format"
+import type { SessionRecord, SessionTimeline } from "@/mocks/types"
 import { colors, font } from "@/theme"
 
-type SessionOverviewProps = {
-	session: Session
-	timeline: Timeline
+interface Props {
+	record: SessionRecord
+	timeline: SessionTimeline
 	end: number
 	running: boolean
 	cursor: number | null
@@ -20,18 +20,18 @@ type SessionOverviewProps = {
 }
 
 export function SessionOverview({
-	session,
+	record,
 	timeline,
 	end,
 	running,
 	cursor,
 	onSelectKey,
 	onSelectTime,
-}: SessionOverviewProps) {
+}: Props) {
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
-	const start = Date.parse(session.started_at)
-	const word = session.learning_enabled && session.word ? session.word.name : null
+	const start = Date.parse(record.session.period.started_at)
+	const word = record.session.settings.learning_enabled ? record.wordName : null
 	const emergencies = timeline.events.flatMap((event) =>
 		event.kind === "emergency_detected" && event.emergency
 			? [{ id: event.emergency.id, at: Date.parse(event.occurred_at) }]
@@ -50,7 +50,7 @@ export function SessionOverview({
 				start={start}
 				end={Math.max(end, start + 1)}
 				running={running}
-				sleep={{ sleepAt: session.sleep_at, wakeAt: session.wake_at }}
+				sleep={{ sleepAt: record.sleep.sleep_at, wakeAt: record.sleep.wake_at }}
 				activity={timeline.activity.map((point) => ({
 					at: Date.parse(point.at),
 					level: point.level,
@@ -58,7 +58,7 @@ export function SessionOverview({
 				sounds={timeline.sounds.map((sound) => ({
 					id: sound.id,
 					at: Date.parse(sound.captured_at),
-					mimicked: sound.judgment !== null,
+					mimicked: Boolean(sound.judgment?.word_id),
 				}))}
 				emergencies={emergencies}
 				cursor={cursor}
@@ -69,16 +69,16 @@ export function SessionOverview({
 			<View style={styles.stats}>
 				<Stat
 					label={t("records.detail.plays")}
-					value={t("records.detail.times", { count: session.play_count })}
+					value={t("records.detail.times", { count: record.playCount })}
 				/>
 				<Stat
 					label={t("records.detail.mimicry")}
-					value={t("records.detail.times", { count: session.mimicry_count })}
+					value={t("records.detail.times", { count: record.mimicryCount })}
 				/>
 				<Stat
 					label={t("records.detail.emergency")}
-					value={t("records.detail.cases", { count: session.emergency_count })}
-					alert={session.emergency_count > 0}
+					value={t("records.detail.cases", { count: record.emergencyCount })}
+					alert={record.emergencyCount > 0}
 				/>
 			</View>
 		</Card>

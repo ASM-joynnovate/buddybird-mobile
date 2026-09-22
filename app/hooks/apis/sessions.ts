@@ -1,21 +1,19 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import {
+	changeLearning,
+	changeWord,
+	fetchEvents,
 	fetchRunningSession,
 	fetchSession,
-	fetchSessions,
-	fetchTimeline,
+	fetchSounds,
 	finishSession,
-	type HeartbeatInput,
-	saveSoundFeedback,
 	sendHeartbeat,
-	type SessionSettingsInput,
 	startSession,
-	type StartSessionInput,
-	updateSessionSettings,
 } from "@/apis/sessions"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
+import type { HeartbeatRequest, SessionSound, StartSessionRequest } from "@/types/apis/sessions"
 
 const refreshSessions = () =>
 	Promise.all([
@@ -24,20 +22,31 @@ const refreshSessions = () =>
 		queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
 	])
 
+async function fetchAllSounds(id: string): Promise<SessionSound[]> {
+	const sounds: SessionSound[] = []
+
+	for (let page = 1; ; page++) {
+		const result = await fetchSounds(id, page)
+
+		sounds.push(...result.data)
+
+		if (result.meta.is_last) {
+			return sounds
+		}
+	}
+}
+
 export const runningSessionQueryOptions = () =>
 	queryOptions({ queryKey: apiKeys.sessions.running(), queryFn: fetchRunningSession })
-
-export const sessionsQueryOptions = (from: Date, to: Date) =>
-	queryOptions({
-		queryKey: apiKeys.sessions.range(from.toISOString(), to.toISOString()),
-		queryFn: () => fetchSessions({ from, to }),
-	})
 
 export const sessionQueryOptions = (id: string) =>
 	queryOptions({ queryKey: apiKeys.sessions.detail(id), queryFn: () => fetchSession(id) })
 
-export const timelineQueryOptions = (id: string) =>
-	queryOptions({ queryKey: apiKeys.sessions.timeline(id), queryFn: () => fetchTimeline(id) })
+export const sessionEventsQueryOptions = (id: string) =>
+	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => fetchEvents(id) })
+
+export const sessionSoundsQueryOptions = (id: string) =>
+	queryOptions({ queryKey: apiKeys.sessions.sounds(id), queryFn: () => fetchAllSounds(id) })
 
 export const startSessionMutationOptions = () =>
 	mutationOptions({
@@ -46,7 +55,7 @@ export const startSessionMutationOptions = () =>
 			input,
 			idempotencyKey,
 		}: {
-			input: StartSessionInput
+			input: StartSessionRequest
 			idempotencyKey: string
 		}) => startSession(input, idempotencyKey),
 		onSuccess: (session) => {
@@ -72,18 +81,37 @@ export const finishSessionMutationOptions = () =>
 		},
 	})
 
-export const updateSessionSettingsMutationOptions = () =>
+export const changeWordMutationOptions = () =>
 	mutationOptions({
-		mutationKey: apiKeys.mutation("sessions", "settings"),
+		mutationKey: apiKeys.mutation("sessions", "word"),
 		mutationFn: ({
 			id,
-			input,
+			wordId,
 			idempotencyKey,
 		}: {
 			id: string
-			input: SessionSettingsInput
+			wordId: string | null
 			idempotencyKey: string
-		}) => updateSessionSettings(id, input, idempotencyKey),
+		}) => changeWord(id, wordId, idempotencyKey),
+		onSuccess: (session) => {
+			queryClient.setQueryData(apiKeys.sessions.running(), session)
+
+			return queryClient.invalidateQueries({ queryKey: apiKeys.home() })
+		},
+	})
+
+export const changeLearningMutationOptions = () =>
+	mutationOptions({
+		mutationKey: apiKeys.mutation("sessions", "learning"),
+		mutationFn: ({
+			id,
+			enabled,
+			idempotencyKey,
+		}: {
+			id: string
+			enabled: boolean
+			idempotencyKey: string
+		}) => changeLearning(id, enabled, idempotencyKey),
 		onSuccess: (session) => {
 			queryClient.setQueryData(apiKeys.sessions.running(), session)
 
@@ -100,29 +128,9 @@ export const heartbeatMutationOptions = () =>
 			idempotencyKey,
 		}: {
 			id: string
-			input: HeartbeatInput
+			input: HeartbeatRequest
 			idempotencyKey: string
 		}) => sendHeartbeat(id, input, idempotencyKey),
 		retry: false,
-		onSuccess: (session) => queryClient.setQueryData(apiKeys.sessions.running(), session),
-	})
-
-export const soundFeedbackMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("sounds", "feedback"),
-		mutationFn: ({
-			soundId,
-			feedback,
-			idempotencyKey,
-		}: {
-			soundId: string
-			feedback: "up" | "down"
-			idempotencyKey: string
-		}) => saveSoundFeedback(soundId, feedback, idempotencyKey),
-		onSuccess: () =>
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-			]),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
 	})

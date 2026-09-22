@@ -5,7 +5,7 @@ import { config } from "@/config"
 import { getSupabase } from "@/lib/supabase"
 import { clientDeviceId } from "@/services/device/identity"
 import { reportError } from "@/services/telemetry/client"
-import { envelopeSchema, errorBodySchema } from "@/types/api"
+import { envelopeSchema, errorBodySchema } from "@/types/apis/common"
 
 export class ApiError extends Error {
 	constructor(

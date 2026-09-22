@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useEffect, useRef, useState } from "react"
 
-import type { Recording, Word } from "@/apis/words"
+import { recordingStatusQueryOptions } from "@/hooks/apis/mocks"
 import {
 	addRecordingMutationOptions,
 	createWordMutationOptions,
@@ -11,6 +11,8 @@ import {
 	renameWordMutationOptions,
 	wordQueryOptions,
 } from "@/hooks/apis/words"
+import type { RecordingStatus } from "@/mocks/types"
+import type { Recording } from "@/types/apis/words"
 import type { RecordedSample } from "@/types/navigation"
 
 export const MAX_RECORDINGS = 5
@@ -45,11 +47,11 @@ function wait(ms: number): Promise<void> {
 	})
 }
 
-const serverItem = (recording: Recording): DraftItem => ({
+const serverItem = (recording: Recording, statuses: readonly RecordingStatus[]): DraftItem => ({
 	kind: "server",
 	id: recording.id,
 	url: recording.url,
-	durationMs: recording.duration_ms,
+	durationMs: statuses.find((item) => item.recording_id === recording.id)?.duration_ms ?? 0,
 })
 
 export function useWordDraft(
@@ -59,7 +61,13 @@ export function useWordDraft(
 	const queryClient = useQueryClient()
 	const [createdId, setCreatedId] = useState<string | null>(null)
 	const wordId = routeWordId ?? createdId
+
 	const word = useQuery({ ...wordQueryOptions(wordId ?? ""), enabled: Boolean(wordId) })
+	const recordingStatuses = useQuery({
+		...recordingStatusQueryOptions(wordId ?? ""),
+		enabled: Boolean(wordId),
+	})
+
 	const [nameInput, setNameInput] = useState<string | null>(null)
 	const [locals, setLocals] = useState<readonly RecordedSample[]>([])
 	const [removedIds, setRemovedIds] = useState<readonly string[]>([])
@@ -93,7 +101,7 @@ export function useWordDraft(
 	const name = nameInput ?? word.data?.name ?? ""
 	const servers = (word.data?.recordings ?? [])
 		.filter((recording) => !removedIds.includes(recording.id))
-		.map(serverItem)
+		.map((recording) => serverItem(recording, recordingStatuses.data ?? []))
 	const items: DraftItem[] = [
 		...servers,
 		...locals.map((sample): DraftItem => ({
@@ -114,11 +122,14 @@ export function useWordDraft(
 		}
 	}
 
-	async function waitUntilReady(id: string): Promise<Word | null> {
+	async function waitUntilReady(id: string): Promise<RecordingStatus[] | null> {
 		while (alive.current) {
-			const latest = await queryClient.query({ ...wordQueryOptions(id), staleTime: 0 })
+			const latest = await queryClient.query({
+				...recordingStatusQueryOptions(id),
+				staleTime: 0,
+			})
 
-			if (latest.recordings.every((recording) => recording.status === "ready")) {
+			if (latest.every((recording) => recording.status === "ready")) {
 				return latest
 			}
 
@@ -168,7 +179,7 @@ export function useWordDraft(
 			for (const sample of locals) {
 				await upload.mutateAsync({
 					wordId: id,
-					file: { uri: sample.uri, duration_ms: sample.durationMs },
+					file: { uri: sample.uri, durationMs: sample.durationMs },
 					idempotencyKey: sample.key,
 				})
 				setLocals((current) => current.filter((item) => item.key !== sample.key))
@@ -184,7 +195,7 @@ export function useWordDraft(
 			setStep("saving")
 
 			const pending = removedIds.filter((recordingId) =>
-				latest.recordings.some((recording) => recording.id === recordingId),
+				latest.some((recording) => recording.recording_id === recordingId),
 			)
 
 			for (const recordingId of pending) {

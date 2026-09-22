@@ -38,6 +38,7 @@ export type RecordsMessages = {
 		events: {
 			session_started: string
 			learning_started: string
+			learning_finished: string
 			learningOn: string
 			learningOff: string
 			word_changed: string

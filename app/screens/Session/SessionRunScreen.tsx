@@ -1,7 +1,7 @@
 import { useNetInfo } from "@react-native-community/netinfo"
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useKeepAwake } from "expo-keep-awake"
 import { useCallback, useEffect, useState } from "react"
@@ -9,13 +9,13 @@ import { useTranslation } from "react-i18next"
 import { BackHandler, StyleSheet, useWindowDimensions, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
-import type { RunningSession } from "@/apis/sessions"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { finishSessionMutationOptions, runningSessionQueryOptions } from "@/hooks/apis/sessions"
+import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { usePermission } from "@/hooks/use-permission"
+import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
 import { night } from "@/screens/Session/components/night"
@@ -34,8 +34,8 @@ export function SessionRunScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionRun">>()
 	const { sessionId } = params
-	const running = useQuery(runningSessionQueryOptions())
-	const session = running.data?.id === sessionId ? running.data : null
+	const running = useRunningSession()
+	const detail = running.detail?.session.id === sessionId ? running.detail : null
 	const microphone = usePermission("microphone")
 	const camera = usePermission("camera")
 	const network = useNetInfo()
@@ -50,8 +50,9 @@ export function SessionRunScreen() {
 
 	useHeartbeat({
 		sessionId,
-		appliedVersion: session?.settings_version ?? 1,
-		cameraAvailable: camera.granted === true,
+		appliedVersion: detail?.session.settings.version ?? 1,
+		startedAt: detail?.session.period.started_at ?? null,
+		sleep: detail?.sleep ?? null,
 		onEnded: showSummary,
 	})
 
@@ -83,9 +84,9 @@ export function SessionRunScreen() {
 			onPress={idle.reveal}
 			accessibilityLabel={t("session.run.reveal")}
 		>
-			{idle.visible && session ? (
+			{idle.visible && detail ? (
 				<RunInfo
-					session={session}
+					detail={detail}
 					online={network.isConnected}
 					microphone={microphone.granted}
 					camera={camera.granted}
@@ -109,26 +110,23 @@ export function SessionRunScreen() {
 	)
 }
 
-function RunInfo({
-	session,
-	online,
-	microphone,
-	camera,
-	onEnd,
-}: {
-	session: RunningSession
+interface Props {
+	detail: RunningSessionDetail
 	online: boolean | null
 	microphone: boolean | null
 	camera: boolean | null
 	onEnd(): void
-}) {
+}
+
+function RunInfo({ detail, online, microphone, camera, onEnd }: Props) {
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const { width } = useWindowDimensions()
 	const now = useNow()
-	const status = phaseStatus(session, now)
-	const word = session.learning_enabled
-		? (session.word?.name ?? t("session.run.noWord"))
+	const { session, sleep } = detail
+	const status = phaseStatus(session.period.started_at, sleep, now)
+	const word = session.settings.learning_enabled
+		? (detail.wordName ?? t("session.run.noWord"))
 		: t("session.run.learningOff")
 
 	return (
@@ -141,7 +139,7 @@ function RunInfo({
 					</Copy>
 					<Copy style={[styles.label, styles.gap]}>{t("session.run.elapsed")}</Copy>
 					<Copy style={styles.timer}>
-						{formatTimer(now - Date.parse(session.started_at))}
+						{formatTimer(now - Date.parse(session.period.started_at))}
 					</Copy>
 				</View>
 				<RunStatus online={online} microphone={microphone} camera={camera} />
@@ -152,7 +150,7 @@ function RunInfo({
 					phase={status.phase}
 					fraction={status.fraction}
 					title={t(`common.phases.${status.phase}`)}
-					detail={remainingText(status, session.wake_at, t, locale)}
+					detail={remainingText(status, sleep.wake_at, t, locale)}
 				/>
 				<PressableSurface
 					depth={2}

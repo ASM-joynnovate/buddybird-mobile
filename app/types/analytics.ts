@@ -1,6 +1,6 @@
 export type WordMetrics = {
 	word_id: string
-	word_name: string
+	wordName: string
 	lifetime_practice_count: number
 	lifetime_practice_duration_ms: number
 	lifetime_recording_count: number

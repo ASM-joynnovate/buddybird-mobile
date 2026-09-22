@@ -1,8 +1,10 @@
 import { useQueries, useQuery, type UseQueryResult } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
 
-import type { Session } from "@/apis/sessions"
-import { sessionsQueryOptions, timelineQueryOptions } from "@/hooks/apis/sessions"
+import { sessionsInRangeQueryOptions } from "@/hooks/apis/mocks"
+import { sessionEventsQueryOptions, sessionSoundsQueryOptions } from "@/hooks/apis/sessions"
+import { wordsQueryOptions } from "@/hooks/apis/words"
+import type { Session, SessionEvent } from "@/types/apis/sessions"
 import { localDate } from "@/utils/date"
 
 export type DayMark = { session: boolean; emergency: boolean }
@@ -10,6 +12,13 @@ export type DayMark = { session: boolean; emergency: boolean }
 export type DayBar = { id: string; from: number; to: number; running: boolean }
 
 export type DayAlarm = { id: string; at: number }
+
+export type CalendarSession = {
+	session: Session
+	wordName: string | null
+	mimicryCount: number
+	emergencyCount: number
+}
 
 export type RecordsCalendar = {
 	month: Date
@@ -20,7 +29,7 @@ export type RecordsCalendar = {
 	canGoNext: boolean
 	marks: ReadonlyMap<string, DayMark>
 	dayFrom: number
-	daySessions: Session[]
+	daySessions: CalendarSession[]
 	bars: DayBar[]
 	alarms: DayAlarm[]
 	now: number
@@ -42,15 +51,24 @@ function dayStart(key: string): Date {
 }
 
 export function sessionEnd(session: Session, now: number): number {
-	return session.ended_at ? Date.parse(session.ended_at) : now
+	return session.period.ended_at ? Date.parse(session.period.ended_at) : now
 }
 
-function markDays(sessions: readonly Session[], now: number): ReadonlyMap<string, DayMark> {
+function emergencyEvents(events: readonly SessionEvent[]): SessionEvent[] {
+	return events.filter((event) => event.kind === "emergency_detected")
+}
+
+function markDays(
+	sessions: readonly Session[],
+	eventsBySession: ReadonlyMap<string, readonly SessionEvent[]>,
+	now: number,
+): ReadonlyMap<string, DayMark> {
 	const marks = new Map<string, DayMark>()
 
 	for (const session of sessions) {
 		const end = sessionEnd(session, now)
-		const cursor = new Date(Date.parse(session.started_at))
+		const hasEmergency = emergencyEvents(eventsBySession.get(session.id) ?? []).length > 0
+		const cursor = new Date(Date.parse(session.period.started_at))
 
 		cursor.setHours(0, 0, 0, 0)
 
@@ -60,7 +78,7 @@ function markDays(sessions: readonly Session[], now: number): ReadonlyMap<string
 
 			marks.set(key, {
 				session: true,
-				emergency: Boolean(current?.emergency) || session.emergency_count > 0,
+				emergency: Boolean(current?.emergency) || hasEmergency,
 			})
 			cursor.setDate(cursor.getDate() + 1)
 		}
@@ -73,22 +91,32 @@ export function useRecordsCalendar(): RecordsCalendar {
 	const [month, setMonth] = useState(() => monthStart(new Date()))
 	const [selected, setSelected] = useState(() => localDate())
 	const [openedAt] = useState(() => Date.now())
-	const query = useQuery(sessionsQueryOptions(month, addMonths(month, 1)))
+	const query = useQuery(sessionsInRangeQueryOptions(month, addMonths(month, 1)))
 	const now = Math.max(openedAt, query.dataUpdatedAt)
 	const sessions = useMemo(() => query.data ?? [], [query.data])
-	const marks = useMemo(() => markDays(sessions, now), [sessions, now])
+	const eventsBySession = useSessionEvents(sessions)
+	const marks = useMemo(
+		() => markDays(sessions, eventsBySession, now),
+		[sessions, eventsBySession, now],
+	)
+
 	const from = dayStart(selected).getTime()
 	const to = addDay(from)
-	const daySessions = sessions
-		.filter((session) => Date.parse(session.started_at) < to && sessionEnd(session, now) > from)
-		.sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at))
-	const bars: DayBar[] = daySessions.map((session) => ({
+	const sessionsOfDay = sessions
+		.filter(
+			(session) =>
+				Date.parse(session.period.started_at) < to && sessionEnd(session, now) > from,
+		)
+		.sort((a, b) => Date.parse(a.period.started_at) - Date.parse(b.period.started_at))
+	const daySessions = useCalendarSessions(sessionsOfDay, eventsBySession)
+	const bars: DayBar[] = sessionsOfDay.map((session) => ({
 		id: session.id,
-		from: Math.max(from, Date.parse(session.started_at)),
+		from: Math.max(from, Date.parse(session.period.started_at)),
 		to: Math.min(to, sessionEnd(session, now)),
 		running: session.status === "running",
 	}))
-	const alarms = useDayAlarms(daySessions, from, to)
+	const alarms = dayAlarms(sessionsOfDay, eventsBySession, from, to)
+
 	const isCurrentMonth = month.getTime() === monthStart(new Date()).getTime()
 
 	function moveMonth(count: number) {
@@ -124,19 +152,45 @@ function addDay(from: number): number {
 	return next.getTime()
 }
 
-function useDayAlarms(sessions: readonly Session[], from: number, to: number): DayAlarm[] {
-	const withAlarms = sessions.filter((session) => session.emergency_count > 0)
-	const timelines = useQueries({
-		queries: withAlarms.map((session) => timelineQueryOptions(session.id)),
+function useSessionEvents(
+	sessions: readonly Session[],
+): ReadonlyMap<string, readonly SessionEvent[]> {
+	const results = useQueries({
+		queries: sessions.map((session) => sessionEventsQueryOptions(session.id)),
 	})
 
-	return timelines.flatMap((result) =>
-		(result.data?.events ?? []).flatMap((event) => {
+	return new Map(sessions.map((session, index) => [session.id, results[index]?.data ?? []]))
+}
+
+function useCalendarSessions(
+	sessions: readonly Session[],
+	eventsBySession: ReadonlyMap<string, readonly SessionEvent[]>,
+): CalendarSession[] {
+	const words = useQuery(wordsQueryOptions())
+	const soundResults = useQueries({
+		queries: sessions.map((session) => sessionSoundsQueryOptions(session.id)),
+	})
+
+	return sessions.map((session, index) => ({
+		session,
+		wordName: words.data?.find((word) => word.id === session.settings.word_id)?.name ?? null,
+		mimicryCount: (soundResults[index]?.data ?? []).filter((sound) => sound.judgment?.word_id)
+			.length,
+		emergencyCount: emergencyEvents(eventsBySession.get(session.id) ?? []).length,
+	}))
+}
+
+function dayAlarms(
+	sessions: readonly Session[],
+	eventsBySession: ReadonlyMap<string, readonly SessionEvent[]>,
+	from: number,
+	to: number,
+): DayAlarm[] {
+	return sessions.flatMap((session) =>
+		emergencyEvents(eventsBySession.get(session.id) ?? []).flatMap((event) => {
 			const at = Date.parse(event.occurred_at)
 
-			return event.kind === "emergency_detected" && at >= from && at < to
-				? [{ id: event.id, at }]
-				: []
+			return at >= from && at < to ? [{ id: event.id, at }] : []
 		}),
 	)
 }

@@ -1,8 +1,12 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 
-import { startSessionMutationOptions } from "@/hooks/apis/sessions"
+import {
+	finishSessionMutationOptions,
+	runningSessionQueryOptions,
+	startSessionMutationOptions,
+} from "@/hooks/apis/sessions"
 import { ApiError } from "@/lib/api"
 import { readPermission } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
@@ -19,11 +23,26 @@ export type StartSessionState = {
 }
 
 export function useStartSession(onStarted: (sessionId: string) => void): StartSessionState {
+	const queryClient = useQueryClient()
 	const mutation = useMutation(startSessionMutationOptions())
+	const finishing = useMutation(finishSessionMutationOptions())
 	const [pending, setPending] = useState<SessionDraft | null>(null)
 	const [takeoverOpen, setTakeoverOpen] = useState(false)
 
 	function start(draft: SessionDraft) {
+		if (draft.replaceRunning) {
+			setPending(draft)
+			finishRunningThenStart(draft).catch((error: unknown) =>
+				reportError(error, "session_takeover"),
+			)
+
+			return
+		}
+
+		sendStartRequest(draft)
+	}
+
+	function sendStartRequest(draft: SessionDraft) {
 		setPending(draft)
 		setTakeoverOpen(false)
 		mutation.mutate(
@@ -31,7 +50,6 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 				input: {
 					word_id: draft.learningEnabled ? draft.wordId : null,
 					learning_enabled: draft.learningEnabled,
-					replace_running: draft.replaceRunning,
 				},
 				idempotencyKey: randomUUID(),
 			},
@@ -50,14 +68,30 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 		)
 	}
 
+	async function finishRunningThenStart(draft: SessionDraft) {
+		const running = await queryClient.query({
+			...runningSessionQueryOptions(),
+			staleTime: 0,
+		})
+
+		if (running) {
+			await finishing.mutateAsync({ id: running.id, idempotencyKey: randomUUID() })
+		}
+
+		sendStartRequest(draft)
+	}
+
 	return {
-		busy: mutation.isPending,
+		busy: mutation.isPending || finishing.isPending,
 		takeoverOpen,
-		failed: mutation.isError,
+		failed: mutation.isError || finishing.isError,
 		start,
 		confirmTakeover: () => {
 			if (pending) {
-				start({ ...pending, replaceRunning: true })
+				setTakeoverOpen(false)
+				finishRunningThenStart(pending).catch((error: unknown) =>
+					reportError(error, "session_takeover"),
+				)
 			}
 		},
 		retry: () => {

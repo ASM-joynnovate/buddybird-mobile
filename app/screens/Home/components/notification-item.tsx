@@ -2,16 +2,16 @@ import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
-import type { AppNotification } from "@/apis/notifications"
 import { DotBadge } from "@/components/ui/badge"
 import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatMoment } from "@/i18n/format"
+import type { InboxNotification } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 import type { Locale } from "@/types/locale"
 
-const icons: Record<AppNotification["kind"], IconName> = {
+const icons: Record<InboxNotification["kind"], IconName> = {
 	emergency: "warning",
 	mimicry: "mimicry",
 	station_disconnect: "wifiOff",
@@ -20,15 +20,13 @@ const icons: Record<AppNotification["kind"], IconName> = {
 	notice: "notice",
 }
 
-export const NotificationItem = memo(function NotificationItem({
-	item,
-	locale,
-	onOpen,
-}: {
-	item: AppNotification
+interface Props {
+	item: InboxNotification
 	locale: Locale
-	onOpen(item: AppNotification): void
-}) {
+	onOpen(item: InboxNotification): void
+}
+
+export const NotificationItem = memo(function NotificationItem({ item, locale, onOpen }: Props) {
 	const { t } = useTranslation()
 	const unread = !item.read_at
 	const time = formatMoment(item.sent_at, locale)
@@ -69,9 +67,9 @@ export const NotificationItem = memo(function NotificationItem({
 				</Copy>
 				<Copy style={styles.time}>{time}</Copy>
 			</View>
-			{item.image_url ? (
+			{item.kind !== "notice" && item.image ? (
 				<Image
-					source={{ uri: item.image_url }}
+					source={{ uri: item.image.url }}
 					style={styles.image}
 					accessibilityIgnoresInvertColors
 				/>

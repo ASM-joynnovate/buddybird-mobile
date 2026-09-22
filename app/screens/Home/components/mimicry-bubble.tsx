@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Sound } from "@/apis/sessions"
 import { IconButton } from "@/components/ui/icon-button"
 import { SpeechBubble } from "@/components/ui/speech-bubble"
 import { PressableSurface } from "@/components/ui/surface"
@@ -11,35 +10,37 @@ import { useDeviceSetting } from "@/hooks/use-device-setting"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { formatMoment } from "@/i18n/format"
 import { colors, font } from "@/theme"
+import type { SessionSound } from "@/types/apis/sessions"
 
 export function MimicryBubble({
 	sound,
+	wordName,
 	player,
 	onOpen,
 }: {
-	sound: Sound
+	sound: SessionSound
+	wordName: string
 	player: SoundPlayer
 	onOpen(): void
 }) {
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const playing = player.playingId === sound.id
-	const url = sound.audio_url
+	const url = sound.audio.url
 	const time = formatMoment(sound.captured_at, locale)
-	const word = sound.judgment?.word.name ?? ""
 
 	return (
 		<PressableSurface
 			depth={2}
 			cornerRadius={16}
 			onPress={onOpen}
-			accessibilityLabel={t("home.mimicry.label", { word, time })}
+			accessibilityLabel={t("home.mimicry.label", { word: wordName, time })}
 			contentStyle={styles.bubble}
 		>
 			<View pointerEvents="none" style={styles.pointer} />
 			<View style={styles.text}>
 				<View style={styles.row}>
-					<Tag tone="primary" label={word} />
+					<Tag tone="primary" label={wordName} />
 					<Copy style={styles.said}>{t("home.mimicry.said")}</Copy>
 				</View>
 				<Copy style={styles.time}>{time}</Copy>

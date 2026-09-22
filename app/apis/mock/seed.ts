@@ -2,7 +2,10 @@ import { Asset } from "expo-asset"
 import { randomUUID } from "expo-crypto"
 import { Platform } from "react-native"
 
+import type { EmergencyBrief, EmergencyKind } from "@/mocks/types"
 import { phaseSpans } from "@/services/session/phases"
+import type { NotificationKind } from "@/types/apis/notifications"
+import type { SessionEventKind } from "@/types/apis/sessions"
 
 export const MINUTE = 60_000
 export const HOUR = 60 * MINUTE
@@ -10,15 +13,15 @@ export const DAY = 24 * HOUR
 
 export type Ref = { id: string; name: string }
 
-export type EmergencyKind = "audio_cry" | "video_escape" | "video_no_motion" | "video_seizure"
-
 export type MockSound = {
 	id: string
 	session_id: string
 	captured_at: string
-	audio_url: string | null
+	audio_url: string
+	analyzed: boolean
+	word_id: string | null
 	is_parrot_sound: boolean | null
-	judgment: { word: Ref; score: number } | null
+	score: number | null
 	feedback: "up" | "down" | null
 }
 
@@ -34,11 +37,17 @@ export type MockEmergency = {
 
 export type MockEvent = {
 	id: string
-	kind: string
+	kind: SessionEventKind
 	occurred_at: string
-	word: Ref | null
+	word_id: string | null
 	learning_enabled: boolean | null
-	emergency: Pick<MockEmergency, "id" | "session_id" | "kind" | "detected_at"> | null
+	emergency: EmergencyBrief | null
+}
+
+export type MockSleepEvent = {
+	id: string
+	kind: "sleep_started" | "sleep_finished"
+	occurred_at: string
 }
 
 export type MockSession = {
@@ -47,10 +56,8 @@ export type MockSession = {
 	started_at: string
 	ended_at: string | null
 	ended_by: "user" | "server" | null
-	word: Ref | null
+	word_id: string | null
 	learning_enabled: boolean
-	sleep_at: string
-	wake_at: string
 	station_device_id: string
 	settings_version: number
 	applied_settings_version: number
@@ -59,6 +66,7 @@ export type MockSession = {
 	is_charging: boolean | null
 	camera_available: boolean
 	events: MockEvent[]
+	sleep_events: MockSleepEvent[]
 	sounds: MockSound[]
 	activity: { at: string; level: number }[]
 }
@@ -75,26 +83,26 @@ export type MockWord = { id: string; name: string; recordings: MockRecording[] }
 
 export type MockDevice = {
 	id: string
+	client_device_id: string
 	name: string | null
-	model: string
-	platform: "ios" | "android"
+	timezone: string | null
 	last_seen_at: string | null
-	is_current: boolean
+	client: { platform: string; os_version: string; model: string; app_version: string }
+	push_registered: boolean
 }
 
 export type MockNotification = {
 	id: string
-	kind: "emergency" | "mimicry" | "station_disconnect" | "daily_summary" | "streak" | "notice"
+	kind: NotificationKind
 	title: string
 	body: string
+	image: { url: string } | null
+	sound_id: string | null
+	emergency_event_id: string | null
+	report_date: string | null
 	sent_at: string
 	read_at: string | null
-	image_url: string | null
 	session_id: string | null
-	emergency_event_id: string | null
-	sound_id: string | null
-	report_date: string | null
-	notice_id: string | null
 }
 
 export type MockNotice = {
@@ -102,18 +110,30 @@ export type MockNotice = {
 	title: string
 	body: string | null
 	starts_at: string
-	images: { url: string }[]
+	ends_at: string | null
+	images: { id: string; url: string }[]
 	is_read: boolean
 }
 
+export type MockNoticeNotification = {
+	id: string
+	kind: "notice"
+	notice_id: string
+	title: string
+	body: string
+	sent_at: string
+	read_at: string | null
+}
+
 export type MockSettings = {
-	sleep_at: string
-	wake_at: string
-	notify_emergency: boolean
-	notify_mimicry: boolean
-	notify_daily_summary: boolean
-	notify_streak: boolean
-	notify_station_disconnect: boolean
+	sleep: { sleep_at: string; wake_at: string }
+	notifications: {
+		emergency: boolean
+		mimicry: boolean
+		daily_summary: boolean
+		streak: boolean
+		station_disconnect: boolean
+	}
 }
 
 export type MockConsent = {
@@ -125,6 +145,7 @@ export type MockConsent = {
 	title_en: string
 	body_en: string
 	is_required: boolean
+	published_at: string
 	status: "granted" | "denied" | null
 }
 
@@ -133,20 +154,27 @@ export type MockParrot = {
 	name: string
 	species: string
 	birthdate: string | null
-	photo_url: string | null
+	photo: { url: string } | null
 }
 
 export type Database = {
-	user: { id: string; email: string | null; nickname: string | null; photo_url: string | null }
+	user: {
+		id: string
+		email: string | null
+		nickname: string | null
+		photo: { url: string } | null
+	}
 	settings: MockSettings
 	consents: MockConsent[]
 	parrots: MockParrot[]
 	words: MockWord[]
 	devices: MockDevice[]
+	currentDeviceId: string
 	sessions: MockSession[]
 	emergencies: MockEmergency[]
 	notices: MockNotice[]
 	notifications: MockNotification[]
+	noticeNotifications: MockNoticeNotification[]
 }
 
 export const iso = (at: number) => new Date(at).toISOString()
@@ -194,12 +222,21 @@ function word(name: string, urls: string[], createdAt: number): MockWord {
 	}
 }
 
-type Learning = Pick<
-	MockSession,
-	"started_at" | "ended_at" | "learning_enabled" | "sleep_at" | "wake_at"
->
+type Learning = Pick<MockSession, "started_at" | "ended_at" | "learning_enabled">
 
-export function learningMsBetween(session: Learning, from: number, to: number, now: number) {
+export type SleepWindow = { sleepAt: string; wakeAt: string }
+
+export function sleepWindowOf(settings: MockSettings): SleepWindow {
+	return { sleepAt: settings.sleep.sleep_at, wakeAt: settings.sleep.wake_at }
+}
+
+export function learningMsBetween(
+	session: Learning,
+	window: SleepWindow,
+	from: number,
+	to: number,
+	now: number,
+) {
 	if (!session.learning_enabled) {
 		return 0
 	}
@@ -207,10 +244,7 @@ export function learningMsBetween(session: Learning, from: number, to: number, n
 	const start = Date.parse(session.started_at)
 	const end = session.ended_at ? Date.parse(session.ended_at) : now
 
-	return phaseSpans(start, Math.min(end, to), {
-		sleepAt: session.sleep_at,
-		wakeAt: session.wake_at,
-	})
+	return phaseSpans(start, Math.min(end, to), window)
 		.filter((span) => span.phase === "learning")
 		.reduce(
 			(sum, span) => sum + Math.max(0, Math.min(span.end, to) - Math.max(span.start, from)),
@@ -243,9 +277,11 @@ function sounds(
 			id: randomUUID(),
 			session_id: sessionId,
 			captured_at: iso(captured),
-			audio_url: !mimicked && age > 7 * DAY ? null : pick(Object.values(clips)),
+			audio_url: pick(Object.values(clips)),
+			analyzed,
+			word_id: mimicked && target ? target.id : null,
 			is_parrot_sound: analyzed ? true : null,
-			judgment: mimicked && target ? { word: target, score: between(0.42, 0.98) } : null,
+			score: mimicked ? between(0.42, 0.98) : null,
 			feedback: null,
 		}
 	}).sort((a, b) => Date.parse(a.captured_at) - Date.parse(b.captured_at))
@@ -264,15 +300,32 @@ function activity(start: number, end: number) {
 	return points
 }
 
-export function event(kind: string, at: number, extra: Partial<MockEvent> = {}): MockEvent {
+export function event(
+	kind: SessionEventKind,
+	at: number,
+	extra: Partial<MockEvent> = {},
+): MockEvent {
 	return {
 		id: randomUUID(),
 		kind,
 		occurred_at: iso(at),
-		word: null,
+		word_id: null,
 		learning_enabled: null,
 		emergency: null,
 		...extra,
+	}
+}
+
+function createSleepEvent(kind: MockSleepEvent["kind"], at: number): MockSleepEvent {
+	return { id: randomUUID(), kind, occurred_at: iso(at) }
+}
+
+function emergencyBrief(item: MockEmergency): EmergencyBrief {
+	return {
+		id: item.id,
+		session_id: item.session_id,
+		kind: item.kind,
+		detected_at: item.detected_at,
 	}
 }
 
@@ -281,21 +334,9 @@ function events(session: MockSession, emergencies: MockEmergency[], now: number)
 	const end = session.ended_at ? Date.parse(session.ended_at) : now
 	const list = [event("session_started", start)]
 
-	if (session.learning_enabled && session.word) {
-		list.push(event("learning_started", start + 1000, { word: session.word }))
+	if (session.learning_enabled && session.word_id) {
+		list.push(event("learning_started", start + 1000, { word_id: session.word_id }))
 	}
-
-	const spans = phaseSpans(start, end, { sleepAt: session.sleep_at, wakeAt: session.wake_at })
-
-	spans.forEach((span, index) => {
-		if (span.phase === "sleeping") {
-			list.push(event("sleep_started", span.start))
-
-			if (index < spans.length - 1) {
-				list.push(event("sleep_finished", span.end))
-			}
-		}
-	})
 
 	if (end - start > 4 * HOUR && random() > 0.7) {
 		const lost = between(start + HOUR, end - 2 * HOUR)
@@ -309,12 +350,7 @@ function events(session: MockSession, emergencies: MockEmergency[], now: number)
 	for (const item of emergencies) {
 		list.push(
 			event("emergency_detected", Date.parse(item.detected_at), {
-				emergency: {
-					id: item.id,
-					session_id: item.session_id,
-					kind: item.kind,
-					detected_at: item.detected_at,
-				},
+				emergency: emergencyBrief(item),
 			}),
 		)
 	}
@@ -324,6 +360,29 @@ function events(session: MockSession, emergencies: MockEmergency[], now: number)
 	}
 
 	return list.sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at))
+}
+
+export function sleepEvents(
+	session: Pick<MockSession, "started_at" | "ended_at">,
+	window: SleepWindow,
+	now: number,
+): MockSleepEvent[] {
+	const start = Date.parse(session.started_at)
+	const end = session.ended_at ? Date.parse(session.ended_at) : now
+	const spans = phaseSpans(start, end, window)
+
+	return spans.flatMap((span, index) => {
+		if (span.phase !== "sleeping") {
+			return []
+		}
+
+		return index < spans.length - 1
+			? [
+					createSleepEvent("sleep_started", span.start),
+					createSleepEvent("sleep_finished", span.end),
+				]
+			: [createSleepEvent("sleep_started", span.start)]
+	})
 }
 
 function emergency(
@@ -380,10 +439,8 @@ function buildSession(
 		started_at: iso(options.start),
 		ended_at: running ? null : iso(end),
 		ended_by: running ? null : options.endedBy,
-		word: options.word,
+		word_id: options.word?.id ?? null,
 		learning_enabled: options.word !== null,
-		sleep_at: options.settings.sleep_at,
-		wake_at: options.settings.wake_at,
 		station_device_id: options.stationId,
 		settings_version: 1,
 		applied_settings_version: 1,
@@ -392,11 +449,19 @@ function buildSession(
 		is_charging: true,
 		camera_available: true,
 		events: [],
+		sleep_events: [],
 		sounds: sounds(id, options.start, end, options.word, now),
 		activity: activity(options.start, end),
 	}
 
-	return { record: { ...record, events: events(record, emergencies, now) }, emergencies }
+	return {
+		record: {
+			...record,
+			events: events(record, emergencies, now),
+			sleep_events: sleepEvents(record, sleepWindowOf(options.settings), now),
+		},
+		emergencies,
+	}
 }
 
 function startOfDay(at: number) {
@@ -414,7 +479,7 @@ function dateKey(at: number) {
 }
 
 function notification(
-	kind: MockNotification["kind"],
+	kind: NotificationKind,
 	title: string,
 	body: string,
 	sentAt: number,
@@ -425,15 +490,30 @@ function notification(
 		kind,
 		title,
 		body,
+		image: null,
+		sound_id: null,
+		emergency_event_id: null,
+		report_date: null,
 		sent_at: iso(sentAt),
 		read_at: null,
-		image_url: null,
 		session_id: null,
-		emergency_event_id: null,
-		sound_id: null,
-		report_date: null,
-		notice_id: null,
 		...extra,
+	}
+}
+
+function createDevice(
+	name: string | null,
+	client: MockDevice["client"],
+	lastSeenAt: number,
+): MockDevice {
+	return {
+		id: randomUUID(),
+		client_device_id: randomUUID(),
+		name,
+		timezone: "Asia/Seoul",
+		last_seen_at: iso(lastSeenAt),
+		client,
+		push_registered: true,
 	}
 }
 
@@ -478,13 +558,14 @@ const consents = [
 
 export function seed(now: number): Database {
 	const settings: MockSettings = {
-		sleep_at: "20:00",
-		wake_at: "08:00",
-		notify_emergency: true,
-		notify_mimicry: true,
-		notify_daily_summary: true,
-		notify_streak: true,
-		notify_station_disconnect: true,
+		sleep: { sleep_at: "20:00:00", wake_at: "08:00:00" },
+		notifications: {
+			emergency: true,
+			mimicry: true,
+			daily_summary: true,
+			streak: true,
+			station_disconnect: true,
+		},
 	}
 	const created = now - 60 * DAY
 	const words = [
@@ -497,22 +578,18 @@ export function seed(now: number): Database {
 	const refs = words
 		.filter((item) => item.recordings.length > 0)
 		.map((item) => ({ id: item.id, name: item.name }))
-	const station: MockDevice = {
-		id: randomUUID(),
-		name: "거실 공기계",
-		model: "Galaxy S21",
-		platform: "android",
-		last_seen_at: iso(now - 4000),
-		is_current: false,
-	}
-	const current: MockDevice = {
-		id: randomUUID(),
-		name: null,
-		model: Platform.OS === "ios" ? "iPhone 15" : "Pixel 8",
-		platform: Platform.OS === "ios" ? "ios" : "android",
-		last_seen_at: iso(now),
-		is_current: true,
-	}
+	const station = createDevice(
+		"거실 공기계",
+		{ platform: "android", os_version: "14", model: "Galaxy S21", app_version: "1.2.0" },
+		now - 4000,
+	)
+	const current = createDevice(
+		null,
+		Platform.OS === "ios"
+			? { platform: "ios", os_version: "18.0", model: "iPhone 15", app_version: "1.2.0" }
+			: { platform: "android", os_version: "15", model: "Pixel 8", app_version: "1.2.0" },
+		now,
+	)
 	const sessions: MockSession[] = []
 	const emergencies: MockEmergency[] = []
 	const today = startOfDay(now)
@@ -573,7 +650,8 @@ export function seed(now: number): Database {
 			title: "버디버드가 새로워졌어요",
 			body: "이제 집에 둔 기기로 세션을 실행하고, 들고 다니는 기기로 앵무새를 확인할 수 있어요.\n\n응급 상황을 감지하면 바로 알려 드리고, 앵무새가 따라 한 단어도 모아서 보여 드려요.",
 			starts_at: iso(now - 2 * DAY),
-			images: [{ url: sampleImage }],
+			ends_at: null,
+			images: [{ id: randomUUID(), url: sampleImage }],
 			is_read: false,
 		},
 		{
@@ -581,12 +659,14 @@ export function seed(now: number): Database {
 			title: "추석 연휴 고객센터 운영 안내",
 			body: "연휴 동안 문의 답변이 늦어질 수 있어요. 앱의 피드백 보내기로 남겨 주시면 순서대로 답변드릴게요.",
 			starts_at: iso(now - 9 * DAY),
+			ends_at: null,
 			images: [],
 			is_read: true,
 		},
 	]
 	const alarm = running.emergencies[0]
-	const latest = [...running.record.sounds].reverse().find((item) => item.judgment)
+	const latest = [...running.record.sounds].reverse().find((item) => item.word_id)
+	const latestWord = words.find((item) => item.id === latest?.word_id)
 	const oldVideo = emergencies.find((item) => item.kind !== "audio_cry" && !item.deleted)
 	const reportDate = dateKey(today - DAY)
 	const notifications = [
@@ -597,24 +677,17 @@ export function seed(now: number): Database {
 			Date.parse(alarm.detected_at),
 			{ session_id: alarm.session_id, emergency_event_id: alarm.id },
 		),
-		...(latest?.judgment
+		...(latest && latestWord
 			? [
 					notification(
 						"mimicry",
-						`앵무새가 "${latest.judgment.word.name}"를 따라 했어요`,
+						`앵무새가 "${latestWord.name}"를 따라 했어요`,
 						"녹음을 들어 보고 맞았는지 알려 주세요.",
 						Date.parse(latest.captured_at) + MINUTE,
 						{ session_id: latest.session_id, sound_id: latest.id },
 					),
 				]
 			: []),
-		notification(
-			"notice",
-			notices[0].title,
-			"새로워진 버디버드를 소개해요.",
-			Date.parse(notices[0].starts_at),
-			{ notice_id: notices[0].id },
-		),
 		notification(
 			"daily_summary",
 			"어제의 학습 요약",
@@ -646,36 +719,57 @@ export function seed(now: number): Database {
 						{
 							session_id: oldVideo.session_id,
 							emergency_event_id: oldVideo.id,
-							image_url: sampleImage,
+							image: { url: sampleImage },
 							read_at: iso(Date.parse(oldVideo.detected_at) + HOUR),
 						},
 					),
 				]
 			: []),
-		notification(
-			"notice",
-			notices[1].title,
-			"연휴 기간의 운영 시간을 안내해요.",
-			Date.parse(notices[1].starts_at),
-			{ notice_id: notices[1].id, read_at: iso(Date.parse(notices[1].starts_at) + HOUR) },
-		),
 	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
+	const noticeNotifications: MockNoticeNotification[] = [
+		{
+			id: randomUUID(),
+			kind: "notice",
+			notice_id: notices[0].id,
+			title: notices[0].title,
+			body: "새로워진 버디버드를 소개해요.",
+			sent_at: notices[0].starts_at,
+			read_at: null,
+		},
+		{
+			id: randomUUID(),
+			kind: "notice",
+			notice_id: notices[1].id,
+			title: notices[1].title,
+			body: "연휴 기간의 운영 시간을 안내해요.",
+			sent_at: notices[1].starts_at,
+			read_at: iso(Date.parse(notices[1].starts_at) + HOUR),
+		},
+	]
 
 	return {
 		user: {
 			id: randomUUID(),
 			email: "choco.papa@example.com",
 			nickname: "초코아빠",
-			photo_url: null,
+			photo: null,
 		},
 		settings,
-		consents: consents.map((item) => ({ ...item, id: randomUUID(), version: 1, status: null })),
+		consents: consents.map((item) => ({
+			...item,
+			id: randomUUID(),
+			version: 1,
+			published_at: iso(created),
+			status: null,
+		})),
 		parrots: [],
 		words,
 		devices: [current, station],
+		currentDeviceId: current.id,
 		sessions,
 		emergencies,
 		notices,
 		notifications,
+		noticeNotifications,
 	}
 }

@@ -40,6 +40,7 @@ export const records: RecordsMessages = {
 		events: {
 			session_started: "세션 시작",
 			learning_started: "학습 시작",
+			learning_finished: "학습 종료",
 			learningOn: "학습 켜기",
 			learningOff: "학습 끄기",
 			word_changed: "학습 단어 변경",

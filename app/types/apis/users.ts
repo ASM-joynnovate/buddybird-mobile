@@ -1,0 +1,17 @@
+import { z } from "zod"
+
+import { uuid } from "@/types/apis/primitives"
+
+export const userSchema = z.object({
+	id: uuid,
+	email: z.string().nullable(),
+	nickname: z.string().nullable(),
+	photo: z.object({ url: z.string() }).nullable(),
+})
+
+export const updateUserRequestSchema = z.object({
+	nickname: z.string().nullable().optional(),
+})
+
+export type User = z.infer<typeof userSchema>
+export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>

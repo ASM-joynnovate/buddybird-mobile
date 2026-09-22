@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 
-import type { Device } from "@/apis/devices"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
@@ -12,12 +11,12 @@ import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { TextField } from "@/components/ui/text-field"
-import { disconnectDeviceMutationOptions, renameDeviceMutationOptions } from "@/hooks/apis/devices"
+import { disconnectDeviceMutationOptions, renameDeviceMutationOptions } from "@/hooks/apis/mocks"
+import { MAX_DEVICE_NAME } from "@/mocks/types"
 import { deviceName } from "@/screens/Settings/components/device-card"
+import type { LinkedDevice } from "@/types/device"
 
-const MAX_DEVICE_NAME = 30
-
-export function RenameDeviceDialog({ device, onClose }: { device: Device; onClose(): void }) {
+export function RenameDeviceDialog({ device, onClose }: { device: LinkedDevice; onClose(): void }) {
 	const { t } = useTranslation()
 	const mutation = useMutation(renameDeviceMutationOptions())
 	const [name, setName] = useState(device.name ?? "")
@@ -70,7 +69,13 @@ export function RenameDeviceDialog({ device, onClose }: { device: Device; onClos
 	)
 }
 
-export function DisconnectDeviceDialog({ device, onClose }: { device: Device; onClose(): void }) {
+export function DisconnectDeviceDialog({
+	device,
+	onClose,
+}: {
+	device: LinkedDevice
+	onClose(): void
+}) {
 	const { t } = useTranslation()
 	const mutation = useMutation(disconnectDeviceMutationOptions())
 
@@ -91,7 +96,7 @@ export function DisconnectDeviceDialog({ device, onClose }: { device: Device; on
 				)
 			}
 		>
-			{device.is_running_session ? <Copy>{t("settings.devices.sessionEnds")}</Copy> : null}
+			{device.isRunningSession ? <Copy>{t("settings.devices.sessionEnds")}</Copy> : null}
 		</ConfirmDialog>
 	)
 }

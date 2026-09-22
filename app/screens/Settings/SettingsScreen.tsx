@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -27,7 +27,7 @@ export function SettingsScreen() {
 	const locale = useDeviceSetting("locale")
 	const feedback = useFeedbackDialog()
 	const notificationPermission = usePermission("notifications")
-	const notices = useQuery(noticesQueryOptions())
+	const notices = useInfiniteQuery(noticesQueryOptions())
 	const form = useSettingsUpdate()
 	const [openWheel, setOpenWheel] = useState<"sleep_at" | "wake_at" | null>(null)
 	const settings = form.settings
@@ -50,27 +50,33 @@ export function SettingsScreen() {
 						first
 						icon="moon"
 						label={t("settings.care.sleep")}
-						value={settings.sleep_at}
+						value={settings.sleep.sleep_at}
 						locale={locale}
 						open={openWheel === "sleep_at"}
 						onToggle={() => toggleWheel("sleep_at")}
-						onChange={(value) => form.update({ sleep_at: value })}
+						onChange={(value) =>
+							form.updateSleep({ ...settings.sleep, sleep_at: value })
+						}
 					/>
 					<SleepTimeRow
 						icon="sun"
 						label={t("settings.care.wake")}
-						value={settings.wake_at}
+						value={settings.sleep.wake_at}
 						locale={locale}
 						open={openWheel === "wake_at"}
 						onToggle={() => toggleWheel("wake_at")}
-						onChange={(value) => form.update({ wake_at: value })}
+						onChange={(value) =>
+							form.updateSleep({ ...settings.sleep, wake_at: value })
+						}
 					/>
 				</GroupedList>
 				<NotificationGroup
 					settings={settings}
 					permissionOff={notificationPermission.granted === false}
 					onOpenPermissions={() => navigation.navigate("Permissions")}
-					onChange={(key, value) => form.update({ [key]: value })}
+					onChange={(key, value) =>
+						form.updateNotifications({ ...settings.notifications, [key]: value })
+					}
 				/>
 				<InlineError message={form.failed ? t("settings.saveError") : null} />
 			</>
@@ -88,7 +94,11 @@ export function SettingsScreen() {
 				/>
 				<AccountActions />
 				<SupportGroup
-					unreadNotice={Boolean(notices.data?.some((notice) => !notice.is_read))}
+					unreadNotice={Boolean(
+						notices.data?.pages.some((page) =>
+							page.data.some((notice) => !notice.is_read),
+						),
+					)}
 					onFeedback={() => feedback.open("profile")}
 					onOpenNotices={() => navigation.navigate("NoticeList")}
 					onOpenConsents={() => navigation.navigate("ConsentSettings")}

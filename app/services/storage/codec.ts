@@ -299,7 +299,7 @@ export function decodeData(serialized: string): AppData {
 
 		requireId(id)
 		requireId(record.word_id)
-		requireText(record.word_name, "metrics word name")
+		requireText(record.wordName, "metrics word name")
 
 		for (const key of [
 			"lifetime_practice_count",

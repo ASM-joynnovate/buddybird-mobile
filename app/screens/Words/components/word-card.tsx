@@ -2,12 +2,12 @@ import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Word } from "@/apis/words"
 import { IconButton } from "@/components/ui/icon-button"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { colors, font, radius } from "@/theme"
+import type { Word } from "@/types/apis/words"
 
 const MAX_SAMPLES = 5
 

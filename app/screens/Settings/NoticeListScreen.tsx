@@ -1,10 +1,9 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import type { Notice } from "@/apis/notices"
 import { DotBadge } from "@/components/ui/badge"
 import { ScreenHeader } from "@/components/ui/header"
 import { Screen } from "@/components/ui/screen"
@@ -15,13 +14,14 @@ import { noticesQueryOptions } from "@/hooks/apis/notices"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDate } from "@/i18n/format"
 import { colors, font } from "@/theme"
+import type { Notice } from "@/types/apis/notices"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function NoticeListScreen() {
 	const { t } = useTranslation()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const locale = useDeviceSetting("locale")
-	const notices = useQuery(noticesQueryOptions())
+	const notices = useInfiniteQuery(noticesQueryOptions())
 
 	function renderItem({ item }: { item: Notice }) {
 		const date = formatDate(item.starts_at, locale)
@@ -66,9 +66,14 @@ export function NoticeListScreen() {
 
 		return (
 			<FlatList
-				data={notices.data}
+				data={notices.data.pages.flatMap((page) => page.data)}
 				keyExtractor={(item) => item.id}
 				renderItem={renderItem}
+				onEndReached={() => {
+					if (notices.hasNextPage) {
+						void notices.fetchNextPage()
+					}
+				}}
 				contentContainerStyle={styles.list}
 				ListEmptyComponent=<EmptyState message={t("settings.notices.empty")} />
 			/>

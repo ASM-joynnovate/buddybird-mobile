@@ -2,10 +2,14 @@ import { useMutation } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import type { User } from "@/apis/users"
-import { updateMeMutationOptions } from "@/hooks/apis/users"
+import {
+	deletePhotoMutationOptions,
+	updateMeMutationOptions,
+	uploadPhotoMutationOptions,
+} from "@/hooks/apis/users"
 import { ApiError } from "@/lib/api"
 import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
+import type { User } from "@/types/apis/users"
 
 const NICKNAME = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u
 
@@ -22,8 +26,16 @@ export function useAccountForm(
 	save(): void
 } {
 	const { t } = useTranslation()
+
 	const mutation = useMutation(updateMeMutationOptions())
-	const photo = usePhotoPicker(user.photo_url)
+	const photoUpload = useMutation(uploadPhotoMutationOptions())
+	const photoDelete = useMutation(deletePhotoMutationOptions())
+	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
+	const photoSaveFailed = photoUpload.isError || photoDelete.isError
+
+	const savedPhotoUrl = user.photo?.url ?? null
+	const photo = usePhotoPicker(savedPhotoUrl)
+
 	const [nickname, setNickname] = useState(user.nickname ?? "")
 	const [invalid, setInvalid] = useState(false)
 	const duplicate =
@@ -45,11 +57,23 @@ export function useAccountForm(
 			return
 		}
 
-		if (mutation.isPending) {
+		if (busy) {
 			return
 		}
 
-		mutation.mutate({ nickname: trimmed, photo_url: photo.photoUri }, { onSuccess: onSaved })
+		saveAccount(trimmed).catch(() => undefined)
+	}
+
+	async function saveAccount(trimmed: string) {
+		await mutation.mutateAsync({ nickname: trimmed })
+
+		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
+			await photoUpload.mutateAsync(photo.photoUri)
+		} else if (!photo.photoUri && savedPhotoUrl) {
+			await photoDelete.mutateAsync()
+		}
+
+		onSaved()
 	}
 
 	return {
@@ -61,8 +85,9 @@ export function useAccountForm(
 		},
 		nicknameError,
 		photo,
-		busy: mutation.isPending,
-		error: mutation.isError && !duplicate ? t("common.saveErrorKept") : null,
+		busy,
+		error:
+			(mutation.isError && !duplicate) || photoSaveFailed ? t("common.saveErrorKept") : null,
 		save,
 	}
 }

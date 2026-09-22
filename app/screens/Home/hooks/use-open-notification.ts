@@ -1,11 +1,12 @@
 import { type CompositeNavigationProp, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 
-import type { AppNotification } from "@/apis/notifications"
+import { noticeNotificationsQueryOptions } from "@/hooks/apis/mocks"
 import { readNotificationMutationOptions } from "@/hooks/apis/notifications"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
+import type { InboxNotification } from "@/mocks/types"
 import { reportError } from "@/services/telemetry/client"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
 
@@ -14,10 +15,17 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<RootStackParamList>
 >
 
-export function useOpenNotification(): (item: AppNotification) => void {
+export function useOpenNotification(): (item: InboxNotification) => void {
 	const navigation = useNavigation<Navigation>()
 	const client = useQueryClient()
 	const { mutate } = useMutation(readNotificationMutationOptions())
+	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
+
+	function sessionIdOf(notificationId: string) {
+		return noticeNotifications.data?.notification_sessions.find(
+			(item) => item.notification_id === notificationId,
+		)?.session_id
+	}
 
 	async function openMonitorIfRunning() {
 		try {
@@ -29,7 +37,9 @@ export function useOpenNotification(): (item: AppNotification) => void {
 		}
 	}
 
-	function route(item: AppNotification) {
+	function route(item: InboxNotification) {
+		const sessionId = sessionIdOf(item.id)
+
 		if (item.kind === "emergency" && item.emergency_event_id) {
 			navigation.navigate("Main", {
 				screen: "RecordsTab",
@@ -38,12 +48,12 @@ export function useOpenNotification(): (item: AppNotification) => void {
 					params: { emergencyId: item.emergency_event_id },
 				},
 			})
-		} else if (item.kind === "mimicry" && item.session_id) {
+		} else if (item.kind === "mimicry" && sessionId) {
 			navigation.navigate("Main", {
 				screen: "RecordsTab",
 				params: {
 					screen: "SessionDetail",
-					params: { sessionId: item.session_id, soundId: item.sound_id ?? undefined },
+					params: { sessionId, soundId: item.sound_id ?? undefined },
 				},
 			})
 		} else if (item.kind === "station_disconnect") {
@@ -58,7 +68,7 @@ export function useOpenNotification(): (item: AppNotification) => void {
 			})
 		} else if (item.kind === "streak") {
 			navigation.navigate("Main", { screen: "ReportTab", params: { screen: "Report" } })
-		} else if (item.kind === "notice" && item.notice_id) {
+		} else if (item.kind === "notice") {
 			navigation.navigate("NoticeDetail", { noticeId: item.notice_id })
 		}
 	}

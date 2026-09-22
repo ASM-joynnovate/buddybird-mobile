@@ -7,7 +7,6 @@ import {
 	deleteWordRecording,
 	fetchWord,
 	fetchWords,
-	type RecordingFile,
 	renameWord,
 } from "@/apis/words"
 import { apiKeys } from "@/hooks/apis/keys"
@@ -59,7 +58,7 @@ export const addRecordingMutationOptions = () =>
 			idempotencyKey,
 		}: {
 			wordId: string
-			file: RecordingFile
+			file: { uri: string; durationMs: number }
 			idempotencyKey: string
 		}) => addWordRecording(wordId, file, idempotencyKey),
 	})

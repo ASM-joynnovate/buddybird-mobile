@@ -26,7 +26,7 @@ export function LiveVideoScreen() {
 	const session = running.data
 	const disconnected =
 		session !== undefined &&
-		(session === null || isDisconnected(session.last_heartbeat_at, now))
+		(session === null || isDisconnected(session.progress.last_heartbeat_at, now))
 
 	useEffect(() => {
 		const timer = setTimeout(() => setConnecting(false), CONNECT_MS)

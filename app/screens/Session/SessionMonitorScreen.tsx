@@ -9,7 +9,6 @@ import { useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import type { RunningSession } from "@/apis/sessions"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { SoundRow } from "@/components/session/sound-row"
 import { Button } from "@/components/ui/button"
@@ -21,6 +20,7 @@ import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
+import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatMoment } from "@/i18n/format"
 import {
@@ -48,13 +48,14 @@ export function SessionMonitorScreen() {
 		[navigation],
 	)
 	const monitor = useMonitor(showSummary)
-	const session = monitor.session
+	const detail = monitor.detail
+	const stationStatus = monitor.stationStatus
 
 	let content = <Skeleton rows={4} height={96} />
 
 	if (monitor.isError) {
 		content = <ScreenError message={t("common.loadError")} onRetry={monitor.retry} />
-	} else if (!monitor.loading && !session) {
+	} else if (!monitor.loading && !detail) {
 		content = <EmptyState message={t("session.monitor.none")} />
 	}
 
@@ -63,23 +64,21 @@ export function SessionMonitorScreen() {
 			<View style={styles.top}>
 				<ScreenHeader
 					title={
-						session
-							? (session.station_device.name ?? session.station_device.model)
-							: undefined
+						detail?.station ? (detail.station.name ?? detail.station.model) : undefined
 					}
 					onBack={() => navigation.goBack()}
-					right={session ? <BatteryState session={session} /> : null}
+					right={stationStatus ? <BatteryState status={stationStatus} /> : null}
 				/>
-				{session && monitor.disconnected ? (
+				{detail && monitor.disconnected ? (
 					<WarningBanner message={t("session.monitor.disconnected")} />
 				) : null}
-				{session && !monitor.disconnected && session.is_charging === false ? (
+				{detail && !monitor.disconnected && stationStatus?.is_charging === false ? (
 					<WarningBanner message={t("session.monitor.unplugged")} />
 				) : null}
 			</View>
-			{session ? (
+			{detail ? (
 				<MonitorBody
-					session={session}
+					detail={detail}
 					monitor={monitor}
 					connectLive={params?.connectLive ?? false}
 					onFullscreen={() => navigation.navigate("LiveVideo")}
@@ -91,17 +90,14 @@ export function SessionMonitorScreen() {
 	)
 }
 
-function MonitorBody({
-	session,
-	monitor,
-	connectLive,
-	onFullscreen,
-}: {
-	session: RunningSession
+interface Props {
+	detail: RunningSessionDetail
 	monitor: MonitorState
 	connectLive: boolean
 	onFullscreen(): void
-}) {
+}
+
+function MonitorBody({ detail, monitor, connectLive, onFullscreen }: Props) {
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const player = useSoundPlayer()
@@ -113,7 +109,7 @@ function MonitorBody({
 	const header = (
 		<View style={styles.header}>
 			<StatusCard
-				session={session}
+				detail={detail}
 				applyingWord={monitor.applying === "word"}
 				disabled={locked}
 				onChangeWord={() => setPicking(true)}
@@ -122,10 +118,10 @@ function MonitorBody({
 				<SwitchRow
 					first
 					label={t("session.start.learning")}
-					value={session.learning_enabled}
+					value={detail.session.settings.learning_enabled}
 					disabled={locked}
 					busy={monitor.applying === "learning"}
-					onChange={(value) => monitor.change({ learning_enabled: value })}
+					onChange={monitor.changeLearning}
 				/>
 				<SleepEditor disabled={locked} />
 			</GroupedList>
@@ -142,7 +138,7 @@ function MonitorBody({
 		<>
 			<LiveArea
 				requested={live}
-				cameraAvailable={session.camera_available}
+				cameraAvailable={monitor.stationStatus?.camera_available ?? false}
 				disabled={locked}
 				onPlay={() => setLive(true)}
 				onFullscreen={onFullscreen}
@@ -169,10 +165,10 @@ function MonitorBody({
 			/>
 			<WordChangeModal
 				visible={picking}
-				currentId={session.word?.id ?? null}
+				currentId={detail.session.settings.word_id}
 				saving={monitor.changing}
 				failed={monitor.changeFailed}
-				onSave={(wordId) => monitor.change({ word_id: wordId }, () => setPicking(false))}
+				onSave={(wordId) => monitor.changeWord(wordId, () => setPicking(false))}
 				onClose={() => setPicking(false)}
 			/>
 			<ConfirmDialog

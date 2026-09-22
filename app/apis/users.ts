@@ -1,22 +1,20 @@
-import { z } from "zod"
-
 import { mockServer } from "@/apis/mock/server"
-
-const userSchema = z.object({
-	id: z.uuid(),
-	email: z.string().nullable(),
-	nickname: z.string().nullable(),
-	photo_url: z.string().nullable(),
-})
-
-export type User = z.infer<typeof userSchema>
-
-export type UpdateMeInput = { nickname?: string; photo_url?: string | null }
+import { putUpload } from "@/apis/mocks"
+import { issuePhotoUpload } from "@/apis/uploads"
+import { type UpdateUserRequest, type User, userSchema } from "@/types/apis/users"
 
 export async function fetchMe(): Promise<User> {
 	return userSchema.parse(await mockServer.users.me())
 }
 
-export async function updateMe(input: UpdateMeInput): Promise<User> {
-	return userSchema.parse(await mockServer.users.update(input))
+export async function updateMe(input: UpdateUserRequest): Promise<void> {
+	await mockServer.users.update(input)
+}
+
+export async function uploadPhoto(uri: string): Promise<void> {
+	await putUpload(await issuePhotoUpload(), uri)
+}
+
+export async function deletePhoto(): Promise<void> {
+	await mockServer.users.deletePhoto()
 }

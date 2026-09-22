@@ -3,12 +3,14 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query"
 import {
 	createParrot,
 	deleteParrot,
+	deleteParrotPhoto,
 	fetchParrots,
-	type ParrotInput,
 	updateParrot,
+	uploadParrotPhoto,
 } from "@/apis/parrots"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
+import type { CreateParrotRequest } from "@/types/apis/parrots"
 
 const refresh = () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() })
 
@@ -24,7 +26,7 @@ export const saveParrotMutationOptions = () =>
 			idempotencyKey,
 		}: {
 			id: string | null
-			input: ParrotInput
+			input: CreateParrotRequest
 			idempotencyKey: string
 		}) => (id ? updateParrot(id, input, idempotencyKey) : createParrot(input, idempotencyKey)),
 		onSuccess: refresh,
@@ -35,5 +37,28 @@ export const deleteParrotMutationOptions = () =>
 		mutationKey: apiKeys.mutation("parrots", "delete"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteParrot(id, idempotencyKey),
+		onSuccess: refresh,
+	})
+
+export const uploadParrotPhotoMutationOptions = () =>
+	mutationOptions({
+		mutationKey: apiKeys.mutation("parrots", "photo", "upload"),
+		mutationFn: ({
+			id,
+			uri,
+			idempotencyKey,
+		}: {
+			id: string
+			uri: string
+			idempotencyKey: string
+		}) => uploadParrotPhoto(id, uri, idempotencyKey),
+		onSuccess: refresh,
+	})
+
+export const deleteParrotPhotoMutationOptions = () =>
+	mutationOptions({
+		mutationKey: apiKeys.mutation("parrots", "photo", "delete"),
+		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
+			deleteParrotPhoto(id, idempotencyKey),
 		onSuccess: refresh,
 	})

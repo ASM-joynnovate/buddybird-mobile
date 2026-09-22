@@ -80,12 +80,12 @@ function SummaryBody({
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const player = useSoundPlayer()
-	const { session, strip, emergencies, best } = data
+	const { record, strip, emergencies, best } = data
 	const duration = formatDuration(strip.end - strip.start, locale)
 	const first = emergencies[0]
 
 	function playSound(id: string) {
-		const url = data.timeline.sounds.find((sound) => sound.id === id)?.audio_url
+		const url = data.timeline.sounds.find((sound) => sound.id === id)?.audio.url
 
 		if (url) {
 			player.toggle(id, url)
@@ -99,7 +99,7 @@ function SummaryBody({
 				start={strip.start}
 				end={strip.end}
 				running={false}
-				sleep={{ sleepAt: session.sleep_at, wakeAt: session.wake_at }}
+				sleep={{ sleepAt: record.sleep.sleep_at, wakeAt: record.sleep.wake_at }}
 				activity={strip.activity}
 				sounds={strip.sounds}
 				emergencies={strip.emergencies}
@@ -112,7 +112,7 @@ function SummaryBody({
 		<View style={styles.stats}>
 			<Stat value={duration} label={t("session.summary.duration")} />
 			<Stat
-				value={t("session.summary.times", { count: session.play_count })}
+				value={t("session.summary.times", { count: record.playCount })}
 				label={t("session.summary.plays")}
 			/>
 		</View>
@@ -120,7 +120,7 @@ function SummaryBody({
 	const mimicry = best ? (
 		<BestMimicry
 			sound={best}
-			count={session.mimicry_count}
+			count={record.mimicryCount}
 			analyzing={data.analyzing}
 			player={player}
 		/>

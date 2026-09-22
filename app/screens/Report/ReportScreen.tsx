@@ -11,6 +11,7 @@ import { Copy } from "@/components/ui/text"
 import { reportQueryOptions } from "@/hooks/apis/reports"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
+import { useSoundsWithAnalysis } from "@/hooks/use-sounds-with-analysis"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { hasRecords, ReportHeader } from "@/screens/Report/components/report-header"
 import { useReportPeriod } from "@/screens/Report/hooks/use-report-period"
@@ -25,7 +26,8 @@ export function ReportScreen(): ReactElement {
 	const player = useSoundPlayer()
 	const period = useReportPeriod(route.params)
 	const report = useQuery(reportQueryOptions(period.period, period.start))
-	const sounds = report.data && hasRecords(report.data) ? report.data.sounds : []
+	const reportSounds = report.data && hasRecords(report.data) ? report.data.sounds : []
+	const sounds = useSoundsWithAnalysis(reportSounds).soundsWithAnalysis ?? []
 	const formatSoundTime = period.period === "day" ? formatTime : formatDateTime
 
 	const header = (

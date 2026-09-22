@@ -4,24 +4,22 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useTranslation } from "react-i18next"
 
-import type { Consent } from "@/apis/consents"
 import { ScreenHeader } from "@/components/ui/header"
 import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
-import { consentsQueryOptions, saveConsentsMutationOptions } from "@/hooks/apis/consents"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
+import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
 import { ConsentRow } from "@/screens/Entry/components/consent-row"
 import { latestConsents } from "@/screens/Entry/consent-agreements"
+import type { Consent } from "@/types/apis/consents"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function ConsentSettingsScreen() {
 	const { t } = useTranslation()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const locale = useDeviceSetting("locale")
-	const query = useQuery(consentsQueryOptions(locale))
-	const mutation = useMutation(saveConsentsMutationOptions())
+	const query = useQuery(consentsQueryOptions())
+	const mutation = useMutation(saveConsentMutationOptions())
 
 	function toggle(consent: Consent) {
 		if (mutation.isPending) {
@@ -29,12 +27,10 @@ export function ConsentSettingsScreen() {
 		}
 
 		mutation.mutate({
-			decisions: [
-				{
-					consent_id: consent.id,
-					status: consent.status === "granted" ? "denied" : "granted",
-				},
-			],
+			decision: {
+				consent_id: consent.id,
+				status: consent.status === "granted" ? "denied" : "granted",
+			},
 			idempotencyKey: randomUUID(),
 		})
 	}

@@ -2,9 +2,9 @@ import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Report } from "@/apis/reports"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
+import type { Report } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 
 export function WordBars({ words }: { words: Report["words"] }): ReactElement | null {

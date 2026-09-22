@@ -2,17 +2,17 @@ import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { EmergencyBrief } from "@/apis/emergencies"
-import type { SessionEvent } from "@/apis/sessions"
 import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import type { EmergencyBrief, TimelineEvent } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 
-const eventIcons: Record<SessionEvent["kind"], IconName> = {
+const eventIcons: Record<TimelineEvent["kind"], IconName> = {
 	session_started: "play",
 	learning_started: "learn",
 	learning_toggled: "learn",
+	learning_finished: "learn",
 	word_changed: "words",
 	sleep_started: "moon",
 	sleep_finished: "sun",
@@ -22,7 +22,7 @@ const eventIcons: Record<SessionEvent["kind"], IconName> = {
 	session_finished: "stop",
 }
 
-function eventName(event: SessionEvent, t: TFunction): string {
+function eventName(event: TimelineEvent, t: TFunction): string {
 	if (event.kind === "learning_toggled") {
 		return t(
 			event.learning_enabled
@@ -40,7 +40,7 @@ export function EventRow({
 	endedByServer,
 	highlighted,
 }: {
-	event: SessionEvent
+	event: TimelineEvent
 	timeLabel: string
 	endedByServer: boolean
 	highlighted: boolean

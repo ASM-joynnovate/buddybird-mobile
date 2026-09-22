@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next"
 
-import type { Consent } from "@/apis/consents"
 import { IconButton } from "@/components/ui/icon-button"
 import { CheckRow } from "@/components/ui/rows"
 import { colors } from "@/theme"
+import type { Consent } from "@/types/apis/consents"
 
 export function ConsentRow({
 	consent,

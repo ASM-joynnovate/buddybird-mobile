@@ -29,11 +29,12 @@ export function SessionDetailScreen() {
 	const { params } = useRoute<RouteProp<RecordsStackParamList, "SessionDetail">>()
 	const player = useSoundPlayer()
 	const detail = useSessionDetail(params.sessionId, params.soundId)
-	const session = detail.session.data
-	const timeline = detail.timeline.data
+	const record = detail.record
+	const timeline = detail.timeline
+	const startedAt = record?.session.period.started_at
 	const multiDay =
-		session !== undefined &&
-		new Date(session.started_at).toDateString() !== new Date(detail.end).toDateString()
+		startedAt !== undefined &&
+		new Date(startedAt).toDateString() !== new Date(detail.end).toDateString()
 	const timeLabel = (at: number | string) =>
 		multiDay ? formatDateTime(at, locale) : formatTime(at, locale)
 
@@ -68,26 +69,18 @@ export function SessionDetailScreen() {
 			<EventRow
 				event={item.event}
 				timeLabel={timeLabel(item.at)}
-				endedByServer={session?.ended_by === "server"}
+				endedByServer={record?.session.period.ended_by === "server"}
 				highlighted={highlighted}
 			/>
 		)
 	}
 
 	function renderBody() {
-		if (detail.session.isError || detail.timeline.isError) {
-			return (
-				<ScreenError
-					message={t("common.loadError")}
-					onRetry={() => {
-						void detail.session.refetch()
-						void detail.timeline.refetch()
-					}}
-				/>
-			)
+		if (detail.isError) {
+			return <ScreenError message={t("common.loadError")} onRetry={detail.retry} />
 		}
 
-		if (!session || !timeline) {
+		if (!record || !timeline) {
 			return <Skeleton rows={4} />
 		}
 
@@ -104,7 +97,7 @@ export function SessionDetailScreen() {
 				ListHeaderComponent={
 					<View style={styles.header}>
 						<SessionOverview
-							session={session}
+							record={record}
 							timeline={timeline}
 							end={detail.end}
 							running={detail.running}
@@ -133,7 +126,7 @@ export function SessionDetailScreen() {
 		<Screen scroll={false}>
 			<View style={styles.content}>
 				<ScreenHeader
-					title={session ? formatDateTime(session.started_at, locale) : undefined}
+					title={startedAt ? formatDateTime(startedAt, locale) : undefined}
 					onBack={() => navigation.goBack()}
 				/>
 				{renderBody()}

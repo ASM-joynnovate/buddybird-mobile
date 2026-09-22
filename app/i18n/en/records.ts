@@ -40,6 +40,7 @@ export const records: RecordsMessages = {
 		events: {
 			session_started: "Session started",
 			learning_started: "Learning started",
+			learning_finished: "Learning ended",
 			learningOn: "Learning on",
 			learningOff: "Learning off",
 			word_changed: "Word changed",

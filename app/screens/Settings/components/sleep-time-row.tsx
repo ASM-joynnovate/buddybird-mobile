@@ -56,7 +56,7 @@ export function SleepTimeRow({
 								label={t("settings.care.hourPicker", { label })}
 								value={hour}
 								values={HOURS}
-								onChange={(next) => onChange(`${pad(next)}:${pad(minute)}`)}
+								onChange={(next) => onChange(`${pad(next)}:${pad(minute)}:00`)}
 							/>
 							<Copy style={styles.unit}>{t("settings.care.hour")}</Copy>
 						</View>
@@ -66,7 +66,7 @@ export function SleepTimeRow({
 								label={t("settings.care.minutePicker", { label })}
 								value={minute}
 								values={MINUTES}
-								onChange={(next) => onChange(`${pad(hour)}:${pad(next)}`)}
+								onChange={(next) => onChange(`${pad(hour)}:${pad(next)}:00`)}
 							/>
 							<Copy style={styles.unit}>{t("settings.care.minute")}</Copy>
 						</View>

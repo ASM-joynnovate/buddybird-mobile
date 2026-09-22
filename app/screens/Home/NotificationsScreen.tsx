@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native"
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
@@ -9,11 +9,13 @@ import { ScreenHeader, TextButton } from "@/components/ui/header"
 import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { noticeNotificationsQueryOptions } from "@/hooks/apis/mocks"
 import {
 	notificationsQueryOptions,
 	readAllNotificationsMutationOptions,
 } from "@/hooks/apis/notifications"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
+import type { InboxNotification } from "@/mocks/types"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
 import { colors } from "@/theme"
@@ -22,10 +24,16 @@ export function NotificationsScreen() {
 	const { t } = useTranslation()
 	const navigation = useNavigation()
 	const locale = useDeviceSetting("locale")
-	const list = useInfiniteQuery(notificationsQueryOptions())
-	const readAll = useMutation(readAllNotificationsMutationOptions())
 	const open = useOpenNotification()
-	const items = list.data?.pages.flatMap((page) => page.data) ?? []
+
+	const list = useInfiniteQuery(notificationsQueryOptions())
+	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
+	const readAll = useMutation(readAllNotificationsMutationOptions())
+
+	const items: InboxNotification[] = [
+		...(list.data?.pages.flatMap((page) => page.data) ?? []),
+		...(noticeNotifications.data?.notices ?? []),
+	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
 	const hasUnread = items.some((item) => !item.read_at)
 
 	let empty = <Skeleton rows={5} />

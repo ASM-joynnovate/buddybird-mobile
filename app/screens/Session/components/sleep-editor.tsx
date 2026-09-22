@@ -10,7 +10,7 @@ import { NavRow } from "@/components/ui/rows"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { Wheel, WheelRow } from "@/components/ui/wheel"
-import { settingsQueryOptions, updateSettingsMutationOptions } from "@/hooks/apis/settings"
+import { settingsQueryOptions, updateSleepMutationOptions } from "@/hooks/apis/settings"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatClock } from "@/i18n/format"
 import { colors, font } from "@/theme"
@@ -26,22 +26,24 @@ export function SleepEditor({ first, disabled }: { first?: boolean; disabled?: b
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const settings = useQuery(settingsQueryOptions())
-	const saving = useMutation(updateSettingsMutationOptions())
+	const saving = useMutation(updateSleepMutationOptions())
 	const [open, setOpen] = useState(false)
 	const [field, setField] = useState<Field>("sleep_at")
 	const data = settings.data
 	const value = data
 		? t("session.sleep.range", {
-				sleep: formatClock(data.sleep_at, locale),
-				wake: formatClock(data.wake_at, locale),
+				sleep: formatClock(data.sleep.sleep_at, locale),
+				wake: formatClock(data.sleep.wake_at, locale),
 			})
 		: undefined
 
 	function change(hour: number, minute: number) {
-		const time = `${pad(hour)}:${pad(minute)}`
+		if (!data) {
+			return
+		}
 
 		saving.mutate({
-			patch: field === "sleep_at" ? { sleep_at: time } : { wake_at: time },
+			sleep: { ...data.sleep, [field]: `${pad(hour)}:${pad(minute)}:00` },
 			idempotencyKey: randomUUID(),
 		})
 	}
@@ -73,7 +75,7 @@ export function SleepEditor({ first, disabled }: { first?: boolean; disabled?: b
 					</View>
 					<TimeWheels
 						key={field}
-						time={data[field]}
+						time={data.sleep[field]}
 						label={t(`session.sleep.${field}`)}
 						onChange={change}
 					/>

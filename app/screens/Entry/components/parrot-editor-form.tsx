@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Parrot } from "@/apis/parrots"
 import { BuddySays } from "@/components/buddy-says"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
@@ -20,6 +19,7 @@ import { Screen } from "@/components/ui/screen"
 import { TextField } from "@/components/ui/text-field"
 import { deleteParrotMutationOptions } from "@/hooks/apis/parrots"
 import { useParrotForm } from "@/screens/Entry/hooks/use-parrot-form"
+import type { Parrot } from "@/types/apis/parrots"
 
 export function ParrotEditorForm({
 	parrot,

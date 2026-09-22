@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
-import type { Notice } from "@/apis/notices"
 import { Dialog } from "@/components/dialogs/dialog"
 import { Button } from "@/components/ui/button"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { colors, radius } from "@/theme"
+import type { Notice } from "@/types/apis/notices"
 
 export function NoticePopup({
 	notice,

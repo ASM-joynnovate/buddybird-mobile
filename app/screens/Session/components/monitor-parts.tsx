@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 
-import type { RunningSession } from "@/apis/sessions"
 import { phaseTone } from "@/components/session/phase-tone"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
@@ -10,30 +9,32 @@ import { Card } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy, Title } from "@/components/ui/text"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
+import type { RunningSessionDetail } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
+import type { StationStatus } from "@/mocks/types"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
 import { colors, font, radius } from "@/theme"
 
-export function BatteryState({ session }: { session: RunningSession }) {
+export function BatteryState({ status }: { status: StationStatus }) {
 	const { t } = useTranslation()
 
-	if (session.battery_level === null && session.is_charging === null) {
+	if (status.battery_level === null && status.is_charging === null) {
 		return null
 	}
 
-	const percent = session.battery_level === null ? null : Math.round(session.battery_level * 100)
+	const percent = status.battery_level === null ? null : Math.round(status.battery_level * 100)
 
 	return (
 		<View
 			style={styles.battery}
 			accessible
 			accessibilityLabel={t(
-				session.is_charging ? "session.monitor.charging" : "session.monitor.battery",
+				status.is_charging ? "session.monitor.charging" : "session.monitor.battery",
 				{ percent: percent ?? "-" },
 			)}
 		>
 			<Icon
-				name={session.is_charging ? "charging" : "battery"}
+				name={status.is_charging ? "charging" : "battery"}
 				size={22}
 				color={colors.muted}
 			/>
@@ -103,12 +104,12 @@ export function LiveArea({
 }
 
 export function StatusCard({
-	session,
+	detail,
 	applyingWord,
 	disabled,
 	onChangeWord,
 }: {
-	session: RunningSession
+	detail: RunningSessionDetail
 	applyingWord: boolean
 	disabled: boolean
 	onChangeWord(): void
@@ -116,18 +117,17 @@ export function StatusCard({
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
 	const now = useNow()
-	const status = phaseStatus(session, now)
-	const word = session.learning_enabled
-		? (session.word?.name ?? t("session.run.noWord"))
+	const { session, sleep } = detail
+	const status = phaseStatus(session.period.started_at, sleep, now)
+	const word = session.settings.learning_enabled
+		? (detail.wordName ?? t("session.run.noWord"))
 		: t("session.run.learningOff")
 
 	return (
 		<Card contentStyle={styles.card}>
 			<View style={styles.row}>
 				<Tag tone={phaseTone(status.phase)} label={t(`common.phases.${status.phase}`)} />
-				<Copy style={styles.timer}>
-					{remainingText(status, session.wake_at, t, locale)}
-				</Copy>
+				<Copy style={styles.timer}>{remainingText(status, sleep.wake_at, t, locale)}</Copy>
 			</View>
 			<View style={styles.row}>
 				<Title style={styles.word}>{word}</Title>
@@ -142,7 +142,7 @@ export function StatusCard({
 			</View>
 			<Copy style={styles.elapsed}>
 				{t("session.monitor.elapsed", {
-					time: formatTimer(now - Date.parse(session.started_at)),
+					time: formatTimer(now - Date.parse(session.period.started_at)),
 				})}
 			</Copy>
 		</Card>

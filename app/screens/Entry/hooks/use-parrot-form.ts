@@ -3,10 +3,14 @@ import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import type { Parrot, ParrotInput } from "@/apis/parrots"
-import { saveParrotMutationOptions } from "@/hooks/apis/parrots"
+import {
+	deleteParrotPhotoMutationOptions,
+	saveParrotMutationOptions,
+	uploadParrotPhotoMutationOptions,
+} from "@/hooks/apis/parrots"
 import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
 import { isSpeciesId } from "@/services/profile/species"
+import type { CreateParrotRequest, Parrot } from "@/types/apis/parrots"
 
 const MAX_NAME = 20
 const MAX_AGE_YEARS = 100
@@ -90,7 +94,13 @@ export type ParrotForm = {
 
 export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): ParrotForm {
 	const { t } = useTranslation()
+
 	const mutation = useMutation(saveParrotMutationOptions())
+	const photoUpload = useMutation(uploadParrotPhotoMutationOptions())
+	const photoDelete = useMutation(deleteParrotPhotoMutationOptions())
+	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
+	const saveFailed = mutation.isError || photoUpload.isError || photoDelete.isError
+
 	const known = parrot ? isSpeciesId(parrot.species) : false
 	const [name, setName] = useState(parrot?.name ?? "")
 	const [species, setSpecies] = useState(known && parrot ? parrot.species : "")
@@ -99,10 +109,11 @@ export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): 
 		species: false,
 		birthday: false,
 	})
-	const photo = usePhotoPicker(parrot?.photo_url ?? null)
 	const clear = (key: keyof Invalid) => setInvalid((current) => ({ ...current, [key]: false }))
+
+	const savedPhotoUrl = parrot?.photo?.url ?? null
+	const photo = usePhotoPicker(savedPhotoUrl)
 	const birthday = useBirthday(parrot ? parrot.birthdate : undefined, () => clear("birthday"))
-	const busy = mutation.isPending
 
 	function save() {
 		const trimmed = name.trim()
@@ -118,17 +129,27 @@ export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): 
 			return
 		}
 
-		const input: ParrotInput = {
-			name: trimmed,
-			species,
-			birthdate: birthday.value,
-			photo_url: photo.photoUri,
+		saveParrot({ name: trimmed, species, birthdate: birthday.value }).catch(() => undefined)
+	}
+
+	async function saveParrot(input: CreateParrotRequest) {
+		const saved = await mutation.mutateAsync({
+			id: parrot?.id ?? null,
+			input,
+			idempotencyKey: randomUUID(),
+		})
+
+		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
+			await photoUpload.mutateAsync({
+				id: saved.id,
+				uri: photo.photoUri,
+				idempotencyKey: randomUUID(),
+			})
+		} else if (!photo.photoUri && savedPhotoUrl) {
+			await photoDelete.mutateAsync({ id: saved.id, idempotencyKey: randomUUID() })
 		}
 
-		mutation.mutate(
-			{ id: parrot?.id ?? null, input, idempotencyKey: randomUUID() },
-			{ onSuccess: onSaved },
-		)
+		onSaved()
 	}
 
 	return {
@@ -156,7 +177,7 @@ export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): 
 		},
 		busy,
 		ready: name.trim().length > 0 && isSpeciesId(species) && birthday.answered,
-		error: mutation.isError ? t("common.saveErrorKept") : null,
+		error: saveFailed ? t("common.saveErrorKept") : null,
 		save,
 	}
 }

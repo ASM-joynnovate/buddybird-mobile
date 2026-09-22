@@ -5,7 +5,7 @@ import { applyLegacyReceipts } from "@/services/migration/legacy/push-receipts"
 import { parseLegacySettings } from "@/services/migration/legacy/session-settings"
 import { applyLegacyConsent } from "@/services/migration/legacy/upload-consent"
 import { applyLegacyMetrics } from "@/services/migration/legacy/word-metrics"
-import { isLegacyPreset, parseLegacyWord } from "@/services/migration/legacy/words"
+import { parseLegacyWord } from "@/services/migration/legacy/words"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
 import { readHistory, readProgress, readSessionDraft } from "@/services/storage/codec"
 import type { AppData } from "@/types/app-data"
@@ -47,10 +47,6 @@ export function convertMMKV(
 			for (const [id, entry] of Object.entries(requireRecord(value[key], key))) {
 				step(`${key}/${id}`, () => {
 					let record = requireRecord(entry, id)
-
-					if (key === "words" && isLegacyPreset(record, id)) {
-						return
-					}
 
 					if (key === "history") {
 						record = { ...record, ...parseLegacySettings(record) }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 
 import { formatClock, formatTimer } from "@/i18n/format"
 import { currentSpan, type Phase } from "@/services/session/phases"
+import type { SleepSettings } from "@/types/apis/settings"
 import type { Locale } from "@/types/locale"
 
 const DISCONNECT_MS = 60_000
@@ -27,13 +28,10 @@ export function useNow(enabled = true, intervalMs = 1000): number {
 
 export type PhaseStatus = { phase: Phase; remainingMs: number; fraction: number }
 
-export function phaseStatus(
-	session: { started_at: string; sleep_at: string; wake_at: string },
-	now: number,
-): PhaseStatus {
-	const span = currentSpan(Date.parse(session.started_at), now, {
-		sleepAt: session.sleep_at,
-		wakeAt: session.wake_at,
+export function phaseStatus(startedAt: string, sleep: SleepSettings, now: number): PhaseStatus {
+	const span = currentSpan(Date.parse(startedAt), now, {
+		sleepAt: sleep.sleep_at,
+		wakeAt: sleep.wake_at,
 	})
 	const total = span.end - span.start
 

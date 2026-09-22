@@ -1,21 +1,21 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Share, StyleSheet, View } from "react-native"
 
-import type { Sound } from "@/apis/sessions"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
-import { soundFeedbackMutationOptions } from "@/hooks/apis/sessions"
+import { soundFeedbackMutationOptions, soundFeedbackQueryOptions } from "@/hooks/apis/mocks"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
+import type { TimelineSound } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 
-type SoundRowProps = {
-	sound: Sound
+interface Props {
+	sound: TimelineSound
 	timeLabel: string
 	player: SoundPlayer
 	highlighted?: boolean
@@ -30,23 +30,31 @@ export function similarityLevel(score: number): 1 | 2 | 3 {
 	return score < 0.8 ? 2 : 3
 }
 
-export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: SoundRowProps) {
+export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Props) {
 	const { t } = useTranslation()
-	const [feedback, setFeedback] = useState(sound.feedback)
-	const [shareFailed, setShareFailed] = useState(false)
+
+	const savedFeedback = useQuery(soundFeedbackQueryOptions()).data?.find(
+		(item) => item.sound_id === sound.id,
+	)?.feedback
 	const saving = useMutation(soundFeedbackMutationOptions())
+	const [chosenFeedback, setChosenFeedback] = useState<"up" | "down" | null>(null)
+	const [shareFailed, setShareFailed] = useState(false)
+
+	const feedback = chosenFeedback ?? savedFeedback ?? null
 	const playing = player.playingId === sound.id
 	const heard = player.finishedIds.has(sound.id) || feedback !== null
-	const level = sound.judgment ? similarityLevel(sound.judgment.score) : 0
-	const url = sound.audio_url
+	const mimicked = Boolean(sound.judgment?.word_id)
+	const score = sound.analysis?.score
+	const level = mimicked && score != null ? similarityLevel(score) : 0
+	const url = sound.audio.url
 
 	function choose(value: "up" | "down") {
-		const previous = feedback
+		const previous = chosenFeedback
 
-		setFeedback(value)
+		setChosenFeedback(value)
 		saving.mutate(
 			{ soundId: sound.id, feedback: value, idempotencyKey: randomUUID() },
-			{ onError: () => setFeedback(previous) },
+			{ onError: () => setChosenFeedback(previous) },
 		)
 	}
 
@@ -88,9 +96,9 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Sou
 			>
 				<View style={styles.info}>
 					<Copy style={styles.time}>{timeLabel}</Copy>
-					{sound.judgment ? (
+					{mimicked ? (
 						<View style={styles.judgment}>
-							<Tag tone="primary" label={sound.judgment.word.name} />
+							<Tag tone="primary" label={sound.wordName ?? ""} />
 							<View
 								style={styles.dots}
 								accessible
@@ -105,9 +113,7 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Sou
 							</View>
 						</View>
 					) : null}
-					{!sound.judgment && sound.is_parrot_sound === null ? (
-						<Tag label={t("common.sound.analyzing")} />
-					) : null}
+					{sound.judgment === null ? <Tag label={t("common.sound.analyzing")} /> : null}
 				</View>
 				{heard ? (
 					<View style={styles.feedback}>

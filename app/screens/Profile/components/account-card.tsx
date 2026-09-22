@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
-import type { User } from "@/apis/users"
 import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy, Title } from "@/components/ui/text"
 import { colors } from "@/theme"
+import type { User } from "@/types/apis/users"
 
 export function AccountCard({ user, onPress }: { user: User; onPress(): void }) {
 	const { t } = useTranslation()
@@ -20,8 +20,8 @@ export function AccountCard({ user, onPress }: { user: User; onPress(): void }) 
 			contentStyle={styles.card}
 		>
 			<View style={styles.photo}>
-				{user.photo_url ? (
-					<Image source={{ uri: user.photo_url }} style={styles.image} />
+				{user.photo ? (
+					<Image source={{ uri: user.photo.url }} style={styles.image} />
 				) : (
 					<Icon name="profile" size={34} color={colors.disabled} />
 				)}

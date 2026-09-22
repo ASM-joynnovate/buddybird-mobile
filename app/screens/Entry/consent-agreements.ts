@@ -1,4 +1,4 @@
-import type { Consent } from "@/apis/consents"
+import type { Consent } from "@/types/apis/consents"
 
 let agreed: readonly string[] = []
 

@@ -1,26 +1,22 @@
-import { keepPreviousData, mutationOptions, queryOptions } from "@tanstack/react-query"
+import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
-import { type ConsentDecision, fetchConsents, saveConsents } from "@/apis/consents"
+import { fetchConsents, saveConsent } from "@/apis/consents"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
-import type { Locale } from "@/types/locale"
+import type { SaveConsentRequest } from "@/types/apis/consents"
 
-export const consentsQueryOptions = (locale: Locale) =>
-	queryOptions({
-		queryKey: apiKeys.consents.list(locale),
-		queryFn: () => fetchConsents(locale),
-		placeholderData: keepPreviousData,
-	})
+export const consentsQueryOptions = () =>
+	queryOptions({ queryKey: apiKeys.consents.all(), queryFn: fetchConsents })
 
-export const saveConsentsMutationOptions = () =>
+export const saveConsentMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation("users", "me", "consents"),
 		mutationFn: ({
-			decisions,
+			decision,
 			idempotencyKey,
 		}: {
-			decisions: ConsentDecision[]
+			decision: SaveConsentRequest
 			idempotencyKey: string
-		}) => saveConsents(decisions, idempotencyKey),
+		}) => saveConsent(decision, idempotencyKey),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.consents.all() }),
 	})

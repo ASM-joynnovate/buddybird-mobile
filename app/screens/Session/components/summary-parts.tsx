@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import type { Sound } from "@/apis/sessions"
 import { Mascot } from "@/components/mascot"
 import { AudioWaveform } from "@/components/ui/audio-waveform"
 import { Icon } from "@/components/ui/icon"
@@ -11,6 +10,7 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
+import type { TimelineSound } from "@/mocks/types"
 import { colors, font } from "@/theme"
 
 export function Greeting({ message }: { message: string }) {
@@ -68,14 +68,14 @@ export function BestMimicry({
 	analyzing,
 	player,
 }: {
-	sound: Sound
+	sound: TimelineSound
 	count: number
 	analyzing: boolean
 	player: SoundPlayer
 }) {
 	const { t } = useTranslation()
 	const playing = player.playingId === sound.id
-	const url = sound.audio_url
+	const url = sound.audio.url
 
 	return (
 		<View style={styles.best}>
@@ -96,9 +96,7 @@ export function BestMimicry({
 			/>
 			<View style={styles.grow}>
 				<View style={styles.tags}>
-					{sound.judgment ? (
-						<Tag tone="primary" label={sound.judgment.word.name} />
-					) : null}
+					{sound.wordName ? <Tag tone="primary" label={sound.wordName} /> : null}
 					{analyzing ? <Tag label={t("common.sound.analyzing")} /> : null}
 				</View>
 				{playing ? (

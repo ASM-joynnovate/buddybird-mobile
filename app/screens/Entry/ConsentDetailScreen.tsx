@@ -11,8 +11,7 @@ import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy } from "@/components/ui/text"
-import { consentsQueryOptions, saveConsentsMutationOptions } from "@/hooks/apis/consents"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
+import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
 import { markAgreed } from "@/screens/Entry/consent-agreements"
 import type { RootStackParamList } from "@/types/navigation"
 
@@ -20,9 +19,8 @@ export function ConsentDetailScreen() {
 	const { t } = useTranslation()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { consentId, source } = useRoute<RouteProp<RootStackParamList, "ConsentDetail">>().params
-	const locale = useDeviceSetting("locale")
-	const query = useQuery(consentsQueryOptions(locale))
-	const mutation = useMutation(saveConsentsMutationOptions())
+	const query = useQuery(consentsQueryOptions())
+	const mutation = useMutation(saveConsentMutationOptions())
 	const consent = query.data?.find((item) => item.id === consentId)
 	const canAgree =
 		consent !== undefined &&
@@ -42,7 +40,7 @@ export function ConsentDetailScreen() {
 
 		mutation.mutate(
 			{
-				decisions: [{ consent_id: consent.id, status: "granted" }],
+				decision: { consent_id: consent.id, status: "granted" },
 				idempotencyKey: randomUUID(),
 			},
 			{ onSuccess: () => navigation.goBack() },

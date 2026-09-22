@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 
-import type { EmergencyBrief } from "@/apis/emergencies"
-import type { Session, Sound, Timeline } from "@/apis/sessions"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
-import { sessionQueryOptions, timelineQueryOptions } from "@/hooks/apis/sessions"
+import { useSessionRecord } from "@/hooks/use-session-record"
+import type { EmergencyBrief, SessionRecord, SessionTimeline, TimelineSound } from "@/mocks/types"
 
 export type StripData = {
 	start: number
@@ -14,40 +13,47 @@ export type StripData = {
 }
 
 export type SummaryData = {
-	session: Session
-	timeline: Timeline
+	record: SessionRecord
+	timeline: SessionTimeline
 	parrotName: string | null
 	strip: StripData
 	emergencies: EmergencyBrief[]
-	best: Sound | null
+	best: TimelineSound | null
 	analyzing: boolean
 }
 
-function bestMimicry(sounds: readonly Sound[]): Sound | null {
-	return sounds.reduce<Sound | null>((best, sound) => {
-		if (!sound.judgment || !sound.audio_url) {
+function bestMimicry(sounds: readonly TimelineSound[]): TimelineSound | null {
+	return sounds.reduce<TimelineSound | null>((best, sound) => {
+		const score = sound.analysis?.score
+
+		if (!sound.judgment?.word_id || score == null) {
 			return best
 		}
 
-		return !best?.judgment || sound.judgment.score > best.judgment.score ? sound : best
+		return !best || score > (best.analysis?.score ?? 0) ? sound : best
 	}, null)
 }
 
-function summarize(session: Session, timeline: Timeline, parrotName: string | null): SummaryData {
+function summarize(
+	record: SessionRecord,
+	timeline: SessionTimeline,
+	parrotName: string | null,
+): SummaryData {
+	const { session } = record
 	const emergencies = timeline.events.flatMap((event) =>
 		event.kind === "emergency_detected" && event.emergency ? [event.emergency] : [],
 	)
 
 	return {
-		session,
+		record,
 		timeline,
 		parrotName,
 		emergencies,
 		best: bestMimicry(timeline.sounds),
-		analyzing: timeline.sounds.some((sound) => sound.is_parrot_sound === null),
+		analyzing: timeline.sounds.some((sound) => sound.judgment === null),
 		strip: {
-			start: Date.parse(session.started_at),
-			end: session.ended_at ? Date.parse(session.ended_at) : Date.now(),
+			start: Date.parse(session.period.started_at),
+			end: session.period.ended_at ? Date.parse(session.period.ended_at) : Date.now(),
 			activity: timeline.activity.map((item) => ({
 				at: Date.parse(item.at),
 				level: item.level,
@@ -55,7 +61,7 @@ function summarize(session: Session, timeline: Timeline, parrotName: string | nu
 			sounds: timeline.sounds.map((sound) => ({
 				id: sound.id,
 				at: Date.parse(sound.captured_at),
-				mimicked: sound.judgment !== null,
+				mimicked: Boolean(sound.judgment?.word_id),
 			})),
 			emergencies: emergencies.map((item) => ({
 				id: item.id,
@@ -70,20 +76,10 @@ export function useSummary(sessionId: string): {
 	isError: boolean
 	retry(): void
 } {
-	const session = useQuery(sessionQueryOptions(sessionId))
-	const timeline = useQuery(timelineQueryOptions(sessionId))
+	const { record, timeline, isError, retry } = useSessionRecord(sessionId)
 	const parrots = useQuery(parrotsQueryOptions())
 	const data =
-		session.data && timeline.data
-			? summarize(session.data, timeline.data, parrots.data?.[0]?.name ?? null)
-			: null
+		record && timeline ? summarize(record, timeline, parrots.data?.[0]?.name ?? null) : null
 
-	return {
-		data,
-		isError: session.isError || timeline.isError,
-		retry: () => {
-			void session.refetch()
-			void timeline.refetch()
-		},
-	}
+	return { data, isError, retry }
 }

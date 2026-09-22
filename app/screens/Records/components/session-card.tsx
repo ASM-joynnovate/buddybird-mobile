@@ -9,29 +9,29 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated"
 
-import type { Session } from "@/apis/sessions"
 import { CountBadge } from "@/components/ui/badge"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { formatDuration, formatRange, formatTime } from "@/i18n/format"
-import { sessionEnd } from "@/screens/Records/hooks/use-records-calendar"
+import { type CalendarSession, sessionEnd } from "@/screens/Records/hooks/use-records-calendar"
 import { colors, font } from "@/theme"
 
-type SessionCardProps = {
-	session: Session
+interface Props {
+	item: CalendarSession
 	now: number
 	highlighted: boolean
 	onPress(): void
 }
 
-export function SessionCard({ session, now, highlighted, onPress }: SessionCardProps) {
+export function SessionCard({ item, now, highlighted, onPress }: Props) {
 	const { t } = useTranslation()
 	const locale = useDeviceSetting("locale")
+	const { session, wordName, mimicryCount, emergencyCount } = item
 	const running = session.status === "running"
-	const start = Date.parse(session.started_at)
+	const start = Date.parse(session.period.started_at)
 	const end = sessionEnd(session, now)
-	const title = session.learning_enabled && session.word ? session.word.name : null
+	const title = session.settings.learning_enabled ? wordName : null
 	const range = running
 		? `${formatTime(start, locale)} ~ ${t("records.card.now")}`
 		: formatRange(start, end, locale)
@@ -47,10 +47,8 @@ export function SessionCard({ session, now, highlighted, onPress }: SessionCardP
 				title ?? t("records.card.learningOff"),
 				range,
 				duration,
-				t("records.card.mimicry", { count: session.mimicry_count }),
-				session.emergency_count > 0
-					? t("records.card.emergency", { count: session.emergency_count })
-					: null,
+				t("records.card.mimicry", { count: mimicryCount }),
+				emergencyCount > 0 ? t("records.card.emergency", { count: emergencyCount }) : null,
 			]
 				.filter(Boolean)
 				.join(", ")}
@@ -69,15 +67,15 @@ export function SessionCard({ session, now, highlighted, onPress }: SessionCardP
 			</View>
 			<View style={styles.badges}>
 				<CountBadge
-					count={session.mimicry_count}
+					count={mimicryCount}
 					icon="mimicry"
-					label={t("records.card.mimicry", { count: session.mimicry_count })}
+					label={t("records.card.mimicry", { count: mimicryCount })}
 				/>
-				{session.emergency_count > 0 ? (
+				{emergencyCount > 0 ? (
 					<CountBadge
-						count={session.emergency_count}
+						count={emergencyCount}
 						tone="danger"
-						label={t("records.card.emergency", { count: session.emergency_count })}
+						label={t("records.card.emergency", { count: emergencyCount })}
 					/>
 				) : null}
 			</View>

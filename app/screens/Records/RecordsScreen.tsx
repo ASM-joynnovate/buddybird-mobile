@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import type { Session } from "@/apis/sessions"
 import { Illustration } from "@/components/illustration"
 import { ScreenHeader } from "@/components/ui/header"
 import { Screen } from "@/components/ui/screen"
@@ -17,7 +16,10 @@ import { formatDateWithWeekday } from "@/i18n/format"
 import { DayRuler } from "@/screens/Records/components/day-ruler"
 import { MonthCalendar } from "@/screens/Records/components/month-calendar"
 import { SessionCard } from "@/screens/Records/components/session-card"
-import { useRecordsCalendar } from "@/screens/Records/hooks/use-records-calendar"
+import {
+	type CalendarSession,
+	useRecordsCalendar,
+} from "@/screens/Records/hooks/use-records-calendar"
 import type { RecordsStackParamList } from "@/types/navigation"
 
 export function RecordsScreen() {
@@ -27,11 +29,11 @@ export function RecordsScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RecordsStackParamList>>()
 	const calendar = useRecordsCalendar()
 	const [highlightedId, setHighlightedId] = useState<string | null>(null)
-	const list = useRef<FlatList<Session>>(null)
+	const list = useRef<FlatList<CalendarSession>>(null)
 	const { query, daySessions } = calendar
 
 	function selectBar(id: string) {
-		const index = daySessions.findIndex((session) => session.id === id)
+		const index = daySessions.findIndex((item) => item.session.id === id)
 
 		setHighlightedId(id)
 
@@ -69,7 +71,7 @@ export function RecordsScreen() {
 			<FlatList
 				ref={list}
 				data={daySessions}
-				keyExtractor={(session) => session.id}
+				keyExtractor={(item) => item.session.id}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 20 }]}
 				ItemSeparatorComponent={Separator}
@@ -105,10 +107,10 @@ export function RecordsScreen() {
 				ListEmptyComponent={renderEmpty()}
 				renderItem={({ item }) => (
 					<SessionCard
-						session={item}
+						item={item}
 						now={calendar.now}
-						highlighted={item.id === highlightedId}
-						onPress={() => openSession(item.id)}
+						highlighted={item.session.id === highlightedId}
+						onPress={() => openSession(item.session.id)}
 					/>
 				)}
 			/>

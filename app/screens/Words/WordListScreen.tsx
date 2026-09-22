@@ -23,7 +23,7 @@ export function WordListScreen(): ReactElement {
 	const words = useQuery(wordsQueryOptions())
 	const running = useQuery(runningSessionQueryOptions())
 	const player = useSoundPlayer()
-	const learningWordId = running.data?.word?.id ?? null
+	const learningWordId = running.data?.settings.word_id ?? null
 	const addWord = () => navigation.navigate("WordEditor", {})
 
 	const addButton = <IconButton icon="plus" label={t("words.list.add")} onPress={addWord} />

@@ -1,0 +1,97 @@
+import { z } from "zod"
+
+import { mockServer } from "@/apis/mock/server"
+import {
+	type Activity,
+	activitySchema,
+	type DeviceName,
+	deviceNameSchema,
+	type EventExtras,
+	eventExtrasSchema,
+	type HomeExtras,
+	homeExtrasSchema,
+	type NoticeNotifications,
+	noticeNotificationsSchema,
+	type RecordingStatus,
+	recordingStatusSchema,
+	type SessionPlays,
+	type SoundAnalysis,
+	soundAnalysisSchema,
+	sessionPlaysSchema,
+	type SoundFeedback,
+	soundFeedbackSchema,
+	type StationStatus,
+	stationStatusSchema,
+} from "@/mocks/types"
+import { type Session, sessionSchema } from "@/types/apis/sessions"
+import type { Upload } from "@/types/apis/uploads"
+
+export async function putUpload(upload: Upload, uri: string, durationMs?: number): Promise<void> {
+	await mockServer.uploads.put(upload.file_id, uri, durationMs)
+}
+
+export async function fetchSessionsInRange(from: Date, to: Date): Promise<Session[]> {
+	return z
+		.array(sessionSchema)
+		.parse(await mockServer.sessions.range(from.getTime(), to.getTime()))
+}
+
+export async function fetchHomeExtras(): Promise<HomeExtras> {
+	return homeExtrasSchema.parse(await mockServer.home.extras())
+}
+
+export async function fetchStationStatus(sessionId: string): Promise<StationStatus> {
+	return stationStatusSchema.parse(await mockServer.sessions.stationStatus(sessionId))
+}
+
+export async function fetchActivity(sessionId: string): Promise<Activity[]> {
+	return z.array(activitySchema).parse(await mockServer.sessions.activity(sessionId))
+}
+
+export async function fetchSessionPlays(sessionId: string): Promise<SessionPlays> {
+	return sessionPlaysSchema.parse(await mockServer.sessions.plays(sessionId))
+}
+
+export async function fetchEventExtras(sessionId: string): Promise<EventExtras> {
+	return eventExtrasSchema.parse(await mockServer.sessions.eventExtras(sessionId))
+}
+
+export async function fetchSoundFeedback(): Promise<SoundFeedback[]> {
+	return z.array(soundFeedbackSchema).parse(await mockServer.sounds.feedback())
+}
+
+export async function fetchSoundAnalysis(): Promise<SoundAnalysis[]> {
+	return z.array(soundAnalysisSchema).parse(await mockServer.sounds.analysis())
+}
+
+export async function saveSoundFeedback(
+	soundId: string,
+	feedback: "up" | "down",
+	_idempotencyKey: string,
+): Promise<void> {
+	await mockServer.sounds.saveFeedback(soundId, feedback)
+}
+
+export async function fetchDeviceNames(): Promise<DeviceName[]> {
+	return z.array(deviceNameSchema).parse(await mockServer.devices.names())
+}
+
+export async function renameDevice(
+	id: string,
+	name: string | null,
+	_idempotencyKey: string,
+): Promise<void> {
+	await mockServer.devices.rename(id, name)
+}
+
+export async function disconnectDevice(id: string, _idempotencyKey: string): Promise<void> {
+	await mockServer.devices.disconnect(id)
+}
+
+export async function fetchRecordingStatus(wordId: string): Promise<RecordingStatus[]> {
+	return z.array(recordingStatusSchema).parse(await mockServer.words.recordingStatus(wordId))
+}
+
+export async function fetchNoticeNotifications(): Promise<NoticeNotifications> {
+	return noticeNotificationsSchema.parse(await mockServer.notifications.notices())
+}

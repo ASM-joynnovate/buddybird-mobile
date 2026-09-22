@@ -3,13 +3,15 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useEffect, useRef, useState } from "react"
 
-import type { RunningSession, SessionSettingsInput, Sound } from "@/apis/sessions"
+import { stationStatusQueryOptions } from "@/hooks/apis/mocks"
 import {
+	changeLearningMutationOptions,
+	changeWordMutationOptions,
 	finishSessionMutationOptions,
-	runningSessionQueryOptions,
-	timelineQueryOptions,
-	updateSessionSettingsMutationOptions,
 } from "@/hooks/apis/sessions"
+import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
+import { useSessionTimeline } from "@/hooks/use-session-timeline"
+import type { StationStatus, TimelineSound } from "@/mocks/types"
 import { isDisconnected, useNow } from "@/screens/Session/hooks/use-clock"
 
 const REFRESH_MS = 10_000
@@ -17,10 +19,11 @@ const REFRESH_MS = 10_000
 type ChangeField = "word" | "learning"
 
 export type MonitorState = {
-	session: RunningSession | null
+	detail: RunningSessionDetail | null
+	stationStatus: StationStatus | null
 	loading: boolean
 	isError: boolean
-	sounds: Sound[]
+	sounds: TimelineSound[]
 	disconnected: boolean
 	applying: ChangeField | null
 	changeFailed: boolean
@@ -28,7 +31,8 @@ export type MonitorState = {
 	finishing: boolean
 	finishFailed: boolean
 	retry(): void
-	change(input: SessionSettingsInput, onDone?: () => void): void
+	changeWord(wordId: string, onDone?: () => void): void
+	changeLearning(enabled: boolean): void
 	finish(): void
 	resetFinish(): void
 }
@@ -36,62 +40,77 @@ export type MonitorState = {
 export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 	const focused = useIsFocused()
 	const refetchInterval = focused ? REFRESH_MS : false
-	const running = useQuery({ ...runningSessionQueryOptions(), refetchInterval })
-	const session = running.data ?? null
-	const timeline = useQuery({
-		...timelineQueryOptions(session?.id ?? ""),
+	const now = useNow(focused, 5000)
+
+	const running = useRunningSession(refetchInterval)
+	const session = running.detail?.session ?? null
+	const stationStatus = useQuery({
+		...stationStatusQueryOptions(session?.id ?? ""),
 		enabled: session !== null,
 		refetchInterval,
 	})
-	const settings = useMutation(updateSessionSettingsMutationOptions())
+	const { timeline } = useSessionTimeline(session?.id ?? null, refetchInterval)
+
+	const wordChange = useMutation(changeWordMutationOptions())
+	const learningChange = useMutation(changeLearningMutationOptions())
 	const finishing = useMutation(finishSessionMutationOptions())
+
 	const [lastField, setLastField] = useState<ChangeField | null>(null)
 	const seen = useRef<string | null>(null)
 	const ended = useRef(false)
-	const now = useNow(focused, 5000)
 
 	useEffect(() => {
 		if (!running.isSuccess || ended.current) {
 			return
 		}
 
-		if (running.data && seen.current === null) {
-			seen.current = running.data.id
+		if (running.sessionId && seen.current === null) {
+			seen.current = running.sessionId
 		}
 
-		if (seen.current && running.data?.id !== seen.current) {
+		if (seen.current && running.sessionId !== seen.current) {
 			ended.current = true
 			onEnded(seen.current)
 		}
-	}, [running.data, running.isSuccess, onEnded])
+	}, [running.sessionId, running.isSuccess, onEnded])
 
+	const changing = wordChange.isPending || learningChange.isPending
 	const pendingApply =
-		session !== null && session.applied_settings_version < session.settings_version
+		session !== null && session.settings.applied_version < session.settings.version
 
 	return {
-		session,
-		loading: running.isPending,
+		detail: running.detail,
+		stationStatus: stationStatus.data ?? null,
+		loading: running.loading,
 		isError: running.isError,
-		sounds: [...(timeline.data?.sounds ?? [])].sort(
+		sounds: [...(timeline?.sounds ?? [])].sort(
 			(a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at),
 		),
-		disconnected: session !== null && isDisconnected(session.last_heartbeat_at, now),
-		applying: settings.isPending || pendingApply ? lastField : null,
-		changeFailed: settings.isError,
-		changing: settings.isPending,
+		disconnected: session !== null && isDisconnected(session.progress.last_heartbeat_at, now),
+		applying: changing || pendingApply ? lastField : null,
+		changeFailed: wordChange.isError || learningChange.isError,
+		changing,
 		finishing: finishing.isPending,
 		finishFailed: finishing.isError,
-		retry: () => void running.refetch(),
-		change: (input, onDone) => {
+		retry: running.retry,
+		changeWord: (wordId, onDone) => {
 			if (!session) {
 				return
 			}
 
-			setLastField(input.word_id ? "word" : "learning")
-			settings.mutate(
-				{ id: session.id, input, idempotencyKey: randomUUID() },
+			setLastField("word")
+			wordChange.mutate(
+				{ id: session.id, wordId, idempotencyKey: randomUUID() },
 				{ onSuccess: onDone },
 			)
+		},
+		changeLearning: (enabled) => {
+			if (!session) {
+				return
+			}
+
+			setLastField("learning")
+			learningChange.mutate({ id: session.id, enabled, idempotencyKey: randomUUID() })
 		},
 		finish: () => {
 			if (session) {

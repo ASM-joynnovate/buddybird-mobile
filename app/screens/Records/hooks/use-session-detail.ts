@@ -1,16 +1,20 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query"
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react"
 import type { FlatList } from "react-native"
 
-import type { EmergencyBrief } from "@/apis/emergencies"
-import type { Session, SessionEvent, Sound, Timeline } from "@/apis/sessions"
-import { sessionQueryOptions, timelineQueryOptions } from "@/hooks/apis/sessions"
+import { useSessionRecord } from "@/hooks/use-session-record"
+import type {
+	EmergencyBrief,
+	SessionRecord,
+	SessionTimeline,
+	TimelineEvent,
+	TimelineSound,
+} from "@/mocks/types"
 
 export type TimelineFilter = "all" | "sounds" | "emergencies" | "connection"
 
 export type TimelineItem =
-	| { key: string; kind: "event"; at: number; event: SessionEvent }
-	| { key: string; kind: "sound"; at: number; sound: Sound }
+	| { key: string; kind: "event"; at: number; event: TimelineEvent }
+	| { key: string; kind: "sound"; at: number; sound: TimelineSound }
 	| { key: string; kind: "emergency"; at: number; emergency: EmergencyBrief }
 
 export const timelineFilters: readonly TimelineFilter[] = [
@@ -20,10 +24,9 @@ export const timelineFilters: readonly TimelineFilter[] = [
 	"connection",
 ]
 
-const REFRESH_MS = 10_000
 const connectionKinds = new Set(["station_disconnected", "station_reconnected"])
 
-function eventItem(event: SessionEvent): TimelineItem {
+function eventItem(event: TimelineEvent): TimelineItem {
 	const at = Date.parse(event.occurred_at)
 
 	return event.kind === "emergency_detected" && event.emergency
@@ -31,7 +34,7 @@ function eventItem(event: SessionEvent): TimelineItem {
 		: { key: event.id, kind: "event", at, event }
 }
 
-function buildTimeline(timeline: Timeline): TimelineItem[] {
+function buildTimeline(timeline: SessionTimeline): TimelineItem[] {
 	return [
 		...timeline.events.map(eventItem),
 		...timeline.sounds.map((sound): TimelineItem => ({
@@ -65,8 +68,10 @@ function nearestIndex(items: readonly TimelineItem[], at: number): number {
 }
 
 export type SessionDetail = {
-	session: UseQueryResult<Session>
-	timeline: UseQueryResult<Timeline>
+	record: SessionRecord | undefined
+	timeline: SessionTimeline | undefined
+	isError: boolean
+	retry(): void
 	running: boolean
 	end: number
 	items: TimelineItem[]
@@ -81,24 +86,19 @@ export type SessionDetail = {
 }
 
 export function useSessionDetail(sessionId: string, soundId?: string): SessionDetail {
-	const session = useQuery({
-		...sessionQueryOptions(sessionId),
-		refetchInterval: (query) => (query.state.data?.status === "running" ? REFRESH_MS : false),
-	})
-	const running = session.data?.status === "running"
-	const timeline = useQuery({
-		...timelineQueryOptions(sessionId),
-		refetchInterval: running ? REFRESH_MS : false,
-	})
+	const { record, timeline, loadedAt, isError, retry } = useSessionRecord(sessionId)
+	const running = record?.session.status === "running"
+	const endedAt = record?.session.period.ended_at
+	const end = endedAt ? Date.parse(endedAt) : loadedAt
+
 	const [filter, setFilter] = useState<TimelineFilter>("all")
 	const [highlightedKey, setHighlightedKey] = useState<string | null>(soundId ?? null)
 	const [cursor, setCursor] = useState<number | null>(null)
 	const list = useRef<FlatList<TimelineItem>>(null)
-	const all = useMemo(() => (timeline.data ? buildTimeline(timeline.data) : []), [timeline.data])
-	const items = useMemo(() => all.filter((item) => matches(item, filter)), [all, filter])
 	const pendingKey = useRef<string | null>(soundId ?? null)
-	const endedAt = session.data?.ended_at
-	const end = endedAt ? Date.parse(endedAt) : session.dataUpdatedAt
+
+	const all = useMemo(() => (timeline ? buildTimeline(timeline) : []), [timeline])
+	const items = useMemo(() => all.filter((item) => matches(item, filter)), [all, filter])
 
 	function scrollToIndex(index: number) {
 		list.current?.scrollToIndex({ index, viewPosition: 0.3 })
@@ -119,7 +119,7 @@ export function useSessionDetail(sessionId: string, soundId?: string): SessionDe
 	useEffect(() => {
 		const key = pendingKey.current
 
-		if (!key || !timeline.data) {
+		if (!key || !timeline) {
 			return
 		}
 
@@ -130,7 +130,7 @@ export function useSessionDetail(sessionId: string, soundId?: string): SessionDe
 		if (index >= 0) {
 			setTimeout(() => list.current?.scrollToIndex({ index, viewPosition: 0.3 }), 300)
 		}
-	}, [items, timeline.data])
+	}, [items, timeline])
 
 	function scrollToKey(key: string) {
 		const index = items.findIndex((item) => item.key === key)
@@ -152,8 +152,10 @@ export function useSessionDetail(sessionId: string, soundId?: string): SessionDe
 	}
 
 	return {
-		session,
+		record,
 		timeline,
+		isError,
+		retry,
 		running,
 		end,
 		items,

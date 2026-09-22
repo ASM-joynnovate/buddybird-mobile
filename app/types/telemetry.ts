@@ -1,10 +1,10 @@
-type WordEvent = { session_id: string; word_id: string; word_name: string }
+type WordEvent = { session_id: string; word_id: string; wordName: string }
 
 type ProfileEvent = { parrot_name: string; parrot_species: string; parrot_age_months?: number }
 
 type Lifetime = {
 	word_id: string
-	word_name: string
+	wordName: string
 	lifetime_practice_count: number
 	lifetime_practice_duration_ms: number
 }
@@ -33,14 +33,14 @@ export type Events = {
 	recording_played: WordEvent & { play_count: number; playback_duration_ms: number }
 	word_added: {
 		word_id: string
-		word_name: string
+		wordName: string
 		registration_method: "text" | "voice_recording"
 		recording_duration_ms?: number
 		audio_size_bytes?: number
 	}
-	word_recording_started: { word_name: string }
+	word_recording_started: { wordName: string }
 	word_recording_finished: {
-		word_name: string
+		wordName: string
 		recording_duration_ms: number
 		retry_count: number
 	}

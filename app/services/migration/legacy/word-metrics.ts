@@ -20,7 +20,7 @@ export function applyLegacyMetrics(
 				const wordMetrics = requireRecord(value, `metrics ${id}`)
 				const incoming = {
 					word_id: requireId(wordMetrics.word_id),
-					word_name: requireText(wordMetrics.word_name, "word_name"),
+					wordName: requireText(wordMetrics.wordName, "wordName"),
 					lifetime_practice_count: requireNonnegativeNumber(
 						wordMetrics.lifetime_practice_count,
 						"lifetime_practice_count",
@@ -50,7 +50,7 @@ export function applyLegacyMetrics(
 				data.settings.wordMetrics[canonicalId] = {
 					...incoming,
 					word_id: canonicalId,
-					word_name: data.words[canonicalId]?.label ?? incoming.word_name,
+					wordName: data.words[canonicalId]?.label ?? incoming.wordName,
 					lifetime_practice_count:
 						(current?.lifetime_practice_count ?? 0) + incoming.lifetime_practice_count,
 					lifetime_practice_duration_ms:
@@ -84,7 +84,7 @@ export function mergeAliasedMetrics(data: AppData) {
 
 		data.settings.wordMetrics[canonicalId] = {
 			word_id: canonicalId,
-			word_name: data.words[canonicalId]?.label ?? target?.word_name ?? source.word_name,
+			wordName: data.words[canonicalId]?.label ?? target?.wordName ?? source.wordName,
 			lifetime_practice_count:
 				(target?.lifetime_practice_count ?? 0) + source.lifetime_practice_count,
 			lifetime_practice_duration_ms:

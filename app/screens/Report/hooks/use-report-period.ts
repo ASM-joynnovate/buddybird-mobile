@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { z } from "zod"
 
-import type { ReportPeriod } from "@/apis/reports"
+import type { ReportPeriod } from "@/mocks/types"
 import { localDate } from "@/utils/date"
 
 const paramsSchema = z.object({

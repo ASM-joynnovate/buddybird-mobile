@@ -3,10 +3,9 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { randomUUID } from "expo-crypto"
 import { useCallback, useState } from "react"
 
-import type { Consent } from "@/apis/consents"
-import { consentsQueryOptions, saveConsentsMutationOptions } from "@/hooks/apis/consents"
-import { useDeviceSetting } from "@/hooks/use-device-setting"
+import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
 import { latestConsents, takeAgreed } from "@/screens/Entry/consent-agreements"
+import type { Consent } from "@/types/apis/consents"
 
 export function useConsentChecks(onSaved?: () => void): {
 	consents: Consent[] | undefined
@@ -21,9 +20,8 @@ export function useConsentChecks(onSaved?: () => void): {
 	saveFailed: boolean
 	save(): void
 } {
-	const locale = useDeviceSetting("locale")
-	const query = useQuery(consentsQueryOptions(locale))
-	const mutation = useMutation(saveConsentsMutationOptions())
+	const query = useQuery(consentsQueryOptions())
+	const mutation = useMutation(saveConsentMutationOptions())
 	const [checked, setChecked] = useState<Record<string, boolean>>({})
 	const consents = query.data ? latestConsents(query.data) : undefined
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === "granted"
@@ -42,21 +40,26 @@ export function useConsentChecks(onSaved?: () => void): {
 		}, []),
 	)
 
+	async function saveDecisions(items: readonly Consent[]) {
+		for (const consent of items) {
+			await mutation.mutateAsync({
+				decision: {
+					consent_id: consent.id,
+					status: isChecked(consent) ? "granted" : "denied",
+				},
+				idempotencyKey: randomUUID(),
+			})
+		}
+
+		onSaved?.()
+	}
+
 	function save() {
 		if (!consents || mutation.isPending) {
 			return
 		}
 
-		mutation.mutate(
-			{
-				decisions: consents.map((consent) => ({
-					consent_id: consent.id,
-					status: isChecked(consent) ? "granted" : "denied",
-				})),
-				idempotencyKey: randomUUID(),
-			},
-			{ onSuccess: onSaved },
-		)
+		saveDecisions(consents).catch(() => undefined)
 	}
 
 	return {

@@ -2,13 +2,13 @@ import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import type { Word } from "@/apis/words"
 import { IconButton } from "@/components/ui/icon-button"
 import { ChoiceCard } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { colors, font } from "@/theme"
+import type { Word } from "@/types/apis/words"
 
 export function selectableWords(words: readonly Word[]): Word[] {
 	return words.filter((word) => word.recordings.length > 0)

@@ -3,12 +3,12 @@ import { type ReactNode, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, Image, type LayoutChangeEvent, StyleSheet, View } from "react-native"
 
-import type { Parrot } from "@/apis/parrots"
 import { PageDots } from "@/components/ui/badge"
 import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy, Title } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
+import type { Parrot } from "@/types/apis/parrots"
 
 const INFO_HEIGHT = 96
 const MONTHS_PER_YEAR = 12
@@ -104,9 +104,9 @@ function ParrotCard({
 			accessibilityLabel={t("home.parrot.edit", { name: parrot.name })}
 			onPress={() => onOpen(parrot.id)}
 		>
-			{parrot.photo_url ? (
+			{parrot.photo ? (
 				<Image
-					source={{ uri: parrot.photo_url }}
+					source={{ uri: parrot.photo.url }}
 					style={[styles.photo, { height: photoHeight }]}
 					accessibilityIgnoresInvertColors
 				/>

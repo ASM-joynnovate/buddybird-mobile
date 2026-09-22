@@ -8,7 +8,6 @@ export const apiKeys = {
 	settings: () => [...scope(), "users", "me", "settings"] as const,
 	consents: {
 		all: () => [...scope(), "users", "me", "consents"] as const,
-		list: (locale: string) => [...scope(), "users", "me", "consents", locale] as const,
 	},
 	devices: () => [...scope(), "devices"] as const,
 	parrots: {
@@ -27,7 +26,6 @@ export const apiKeys = {
 		detail: (id: string) => [...scope(), "sessions", id] as const,
 		events: (id: string) => [...scope(), "sessions", id, "events"] as const,
 		sounds: (id: string) => [...scope(), "sessions", id, "sounds"] as const,
-		timeline: (id: string) => [...scope(), "sessions", id, "timeline"] as const,
 	},
 	emergencies: {
 		all: () => [...scope(), "emergencies"] as const,
@@ -43,6 +41,18 @@ export const apiKeys = {
 		all: () => [...scope(), "notices"] as const,
 		list: () => [...scope(), "notices", "list"] as const,
 		detail: (id: string) => [...scope(), "notices", id] as const,
+	},
+	mocks: {
+		homeExtras: () => [...scope(), "mocks", "home"] as const,
+		stationStatus: (id: string) => [...scope(), "sessions", id, "mocks", "station"] as const,
+		activity: (id: string) => [...scope(), "sessions", id, "mocks", "activity"] as const,
+		plays: (id: string) => [...scope(), "sessions", id, "mocks", "plays"] as const,
+		eventExtras: (id: string) => [...scope(), "sessions", id, "mocks", "events"] as const,
+		soundFeedback: () => [...scope(), "mocks", "sound-feedback"] as const,
+		soundAnalysis: () => [...scope(), "mocks", "sound-analysis"] as const,
+		deviceNames: () => [...scope(), "devices", "mocks", "names"] as const,
+		recordingStatus: (id: string) => [...scope(), "words", id, "mocks", "recordings"] as const,
+		noticeNotifications: () => [...scope(), "notifications", "mocks", "notices"] as const,
 	},
 	mutation: (...parts: string[]) => ["api", ...parts] as const,
 }

@@ -3,13 +3,13 @@ import { randomUUID } from "expo-crypto"
 import { useEffect, useRef, useState } from "react"
 import { Share } from "react-native"
 
-import type { Emergency } from "@/apis/emergencies"
 import {
 	confirmEmergencyMutationOptions,
 	deleteEmergencyMutationOptions,
 	emergencyQueryOptions,
 	isDeletedRecord,
 } from "@/hooks/apis/emergencies"
+import type { Emergency } from "@/mocks/types"
 
 export type EmergencyRecord = {
 	query: UseQueryResult<Emergency>
