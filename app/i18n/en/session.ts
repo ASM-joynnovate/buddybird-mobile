@@ -1,10 +1,6 @@
 import type { SessionMessages } from "@/i18n/types/session"
 
 export const session: SessionMessages = {
-	notificationLearning: "Training · Cycle %{cycle}/%{total}",
-	notificationRest: "Resting · Cycle %{cycle}/%{total}",
-	notificationCare: "Stress care · Cycle %{cycle}/%{total}",
-	notificationPaused: "Paused",
 	remaining: "{{left}} left",
 	untilWake: "{{left}} until wake at {{time}}",
 	takeover: {

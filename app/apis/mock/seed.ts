@@ -154,10 +154,10 @@ export const iso = (at: number) => new Date(at).toISOString()
 const assetUri = (module: number) => Asset.fromModule(module).uri
 
 const clips = {
-	hello: assetUri(require("@assets/audio/ko-kr/default_An-nyeong.m4a") as number),
-	love: assetUri(require("@assets/audio/ko-kr/default_Sa-rang-hae.m4a") as number),
-	bye: assetUri(require("@assets/audio/ko-kr/default_Da-nyeo-wa.m4a") as number),
-	apple: assetUri(require("@assets/audio/ko-kr/default_Sa-gwa.m4a") as number),
+	hello: assetUri(require("@assets/audio/mock/default_An-nyeong.m4a") as number),
+	love: assetUri(require("@assets/audio/mock/default_Sa-rang-hae.m4a") as number),
+	bye: assetUri(require("@assets/audio/mock/default_Da-nyeo-wa.m4a") as number),
+	apple: assetUri(require("@assets/audio/mock/default_Sa-gwa.m4a") as number),
 }
 
 export const sampleImage = assetUri(require("@assets/images/buddy-bird.png") as number)

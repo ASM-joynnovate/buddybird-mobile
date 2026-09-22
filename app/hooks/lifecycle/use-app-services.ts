@@ -10,7 +10,6 @@ import { useDeviceSetting } from "@/hooks/use-device-setting"
 import { queryClient } from "@/lib/query-client"
 import { countFeedbackDay } from "@/services/feedback/policy"
 import { startPush } from "@/services/push/lifecycle"
-import { mergePushReceipts } from "@/services/push/receipts"
 import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
 import {
 	initializeTelemetry,
@@ -57,7 +56,6 @@ export function useAppServices() {
 		}
 
 		try {
-			mergePushReceipts()
 			recordVisit()
 		} catch (error) {
 			reportError(error, "app_settings")
@@ -75,7 +73,6 @@ export function useAppServices() {
 				track("app_foreground", {})
 
 				try {
-					mergePushReceipts()
 					recordVisit()
 
 					if (shouldCheckUpdate(readDeviceSetting("update").lastCheckedAt, false)) {

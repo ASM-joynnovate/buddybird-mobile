@@ -21,13 +21,6 @@ export type AppMessages = {
 		settingError: string
 		saveError: string
 	}
-	consent: {
-		title: string
-		body: string
-		decline: string
-		accept: string
-		error: string
-	}
 	feedback: {
 		thanks: string
 		thanksClose: string

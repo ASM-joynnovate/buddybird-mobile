@@ -29,13 +29,6 @@ export const app: AppMessages = {
 			"Could not read some device settings. Using defaults without changing the saved values.",
 		saveError: "Could not confirm the save. Please try again.",
 	},
-	consent: {
-		title: "Audio collection",
-		body: "BuddyBird collects the sounds recorded during training so we can build and improve speech coaching for parrots.\nEverything is stored anonymously, without any account information.\nRecordings are deleted automatically after 180 days.\n* Declining does not change how you use the app.",
-		decline: "Decline",
-		accept: "Agree",
-		error: "Couldn't save your choice. Please try again.",
-	},
 	feedback: {
 		thanks: "Your feedback came through. We will use it to make BuddyBird better.",
 		thanksClose: "Done",

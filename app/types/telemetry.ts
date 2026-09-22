@@ -23,21 +23,7 @@ export type Events = {
 	profile_created: ProfileEvent
 	profile_updated: Partial<ProfileEvent> & { fields_changed: string[] }
 	profile_deleted: { parrot_name: string; lifetime_session_count: number }
-	training_session_started: {
-		session_id: string
-		word_count: number
-		target_word_ids: string[]
-		target_word_names: string[]
-		profile_age_days: number
-		parrot_species: string
-		parrot_name: string
-	}
 	word_selected: WordEvent & { source: "list" | "recommendation" | "search" }
-	word_practice_started: WordEvent & {
-		attempt_number: number
-		cumulative_practice_count: number
-		cumulative_practice_duration_ms: number
-	}
 	word_recorded: WordEvent & {
 		attempt_number: number
 		recording_duration_ms: number
@@ -45,64 +31,9 @@ export type Events = {
 		recording_method: "voice" | "upload"
 	}
 	recording_played: WordEvent & { play_count: number; playback_duration_ms: number }
-	word_practice_completed: WordEvent & {
-		practice_duration_ms: number
-		recordings_count: number
-		replay_count: number
-	}
-	training_session_completed: {
-		session_id: string
-		total_duration_ms: number
-		words_practiced_count: number
-		words_recorded_count: number
-		words_skipped_count: number
-		total_recordings: number
-		avg_recording_duration_ms: number
-	}
-	training_session_abandoned: {
-		session_id: string
-		duration_ms: number
-		progress_percent: number
-		last_word_id: string | null
-		last_word_name: string | null
-	}
-	training_session_backgrounded: {
-		session_id: string
-		phase: "learning" | "rest" | "stress-care"
-		elapsed_seconds: number
-	}
-	follow_along_capture_created: {
-		client_capture_id: string
-		session_id: string
-		client_word_id: string
-		cycle: number
-		phase: "learning" | "rest"
-		audio_size_bytes: number
-		pending_count: number
-	}
-	capture_evicted_before_upload: {
-		client_capture_id: string
-		age_ms?: number
-		audio_size_bytes: number
-	}
-	session_perf_degraded: {
-		kind: "audio_delay" | "ui_lag"
-		value_ms: number
-		session_id: string
-		consent_status: "unknown" | "granted" | "denied"
-	}
-	word_library_opened: { total_words_count: number }
-	word_library_filter_changed: { from: string; to: string; visible_words_count: number }
-	word_library_preview_played: {
-		word_id: string
-		word_name: string
-		source_type: "preset" | "recording"
-		action: "play" | "stop"
-	}
 	word_added: {
 		word_id: string
 		word_name: string
-		category: string | null
 		registration_method: "text" | "voice_recording"
 		recording_duration_ms?: number
 		audio_size_bytes?: number

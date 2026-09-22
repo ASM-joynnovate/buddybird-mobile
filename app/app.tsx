@@ -10,7 +10,6 @@ import { AppNavigator } from "@/navigators/app-navigator"
 import { RootProviders } from "@/providers"
 import { AppProvider } from "@/providers/app-data"
 import { AuthProvider } from "@/providers/auth"
-import { SessionProvider } from "@/providers/session"
 import { LoginScreen } from "@/screens/Login/LoginScreen"
 
 export function App() {
@@ -26,9 +25,7 @@ export function App() {
 		<RootProviders>
 			{ready ? (
 				<AppProvider>
-					<SessionProvider>
-						<AppContent showDialogs={splashFinished} />
-					</SessionProvider>
+					<AppContent showDialogs={splashFinished} />
 				</AppProvider>
 			) : (
 				<StartupScreen failed={state === "failed"} onRetry={retry} />

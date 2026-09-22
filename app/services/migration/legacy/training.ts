@@ -1,22 +1,9 @@
 import { parseLegacySettings } from "@/services/migration/legacy/session-settings"
-import {
-	legacyPresetId,
-	parseLegacyWord,
-	withPresetAudioUri,
-} from "@/services/migration/legacy/words"
+import { isLegacyPreset, parseLegacyWord } from "@/services/migration/legacy/words"
 import { migrationGroup, type MigrationStep } from "@/services/migration/step"
-import { readProgress, readWordSnapshot } from "@/services/storage/codec"
-import { currentWord } from "@/services/words/selectors"
+import { readProgress } from "@/services/storage/codec"
 import type { AppData } from "@/types/app-data"
-import type { History } from "@/types/session"
-import {
-	type ObjectValue,
-	readOptionalText,
-	requireId,
-	requireNonnegativeNumber,
-	requireRecord,
-	requireText,
-} from "@/utils/validation"
+import { type ObjectValue, readOptionalText, requireId, requireRecord } from "@/utils/validation"
 
 export function applyLegacyTraining(
 	data: AppData,
@@ -31,12 +18,8 @@ export function applyLegacyTraining(
 		throw new Error("Unsupported training version")
 	}
 
-	let trainingWords: ObjectValue = {}
-
 	migrationGroup(data, "trainingWords", () => {
-		trainingWords = requireRecord(training.wordsById, "wordsById")
-
-		for (const [id, value] of Object.entries(trainingWords)) {
+		for (const [id, value] of Object.entries(requireRecord(training.wordsById, "wordsById"))) {
 			step(`trainingWords/${id}`, () => {
 				const trainingWord = requireRecord(value, `training word ${id}`)
 				const libraryId = readOptionalText(trainingWord.libraryEntryId, "libraryEntryId")
@@ -51,11 +34,13 @@ export function applyLegacyTraining(
 					requireId(libraryId)
 				}
 
-				const canonical =
-					legacyPresetId(trainingWord, id) ??
-					(libraryId ? (data.wordAliases[libraryId] ?? libraryId) : undefined)
+				if (isLegacyPreset(trainingWord, id)) {
+					return
+				}
 
-				if (!canonical || !currentWord(data, canonical)) {
+				const canonical = libraryId ? (data.wordAliases[libraryId] ?? libraryId) : undefined
+
+				if (!canonical || !data.words[canonical]) {
 					if (data.words[id]) {
 						throw new Error(`Ambiguous word identity: ${id}`)
 					}
@@ -66,47 +51,6 @@ export function applyLegacyTraining(
 				if (canonical) {
 					data.wordAliases[id] = canonical
 				}
-			})
-		}
-	})
-
-	migrationGroup(data, "history", () => {
-		for (const [id, value] of Object.entries(
-			requireRecord(training.sessionsById, "sessionsById"),
-		)) {
-			step(`history/${id}`, () => {
-				const record = requireRecord(value, `session ${id}`)
-
-				requireId(id)
-
-				if (record.id !== id) {
-					throw new Error(`Session key mismatch: ${id}`)
-				}
-
-				const session = parseLegacySettings(record)
-				const original = trainingWords[session.wordId]
-				const fallback = currentWord(data, session.libraryEntryId ?? session.wordId)
-				const history: History = {
-					...session,
-					id,
-					completedCycles: requireNonnegativeNumber(
-						record.completedCycles,
-						"completedCycles",
-					),
-					totalLearningSeconds: requireNonnegativeNumber(
-						record.totalLearningSeconds,
-						"totalLearningSeconds",
-					),
-					startedAt: requireText(record.startedAt, "startedAt"),
-					endedAt: readOptionalText(record.endedAt, "endedAt"),
-					word: readWordSnapshot(
-						original
-							? withPresetAudioUri(original, session.wordId)
-							: requireRecord(fallback, "historical word"),
-					),
-				}
-
-				data.history[id] ??= history
 			})
 		}
 	})

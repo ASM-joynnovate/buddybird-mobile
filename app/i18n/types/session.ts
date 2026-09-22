@@ -1,8 +1,4 @@
 export type SessionMessages = {
-	notificationLearning: string
-	notificationRest: string
-	notificationCare: string
-	notificationPaused: string
 	remaining: string
 	untilWake: string
 	takeover: {

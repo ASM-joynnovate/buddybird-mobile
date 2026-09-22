@@ -19,8 +19,7 @@
 		"resolveJsonModule": true,
 		"paths": {
 			"@/*": ["./app/*"],
-			"@assets/*": ["./assets/*"],
-			"@modules/*": ["./modules/*"]
+			"@assets/*": ["./assets/*"]
 		},
 		"typeRoots": ["./node_modules/@types", "./types"],
 		"types": ["node"]
@@ -30,6 +29,6 @@
 			"module": "commonjs"
 		}
 	},
-	"include": ["app/**/*.ts", "app/**/*.tsx", "modules/**/*.ts", "index.tsx", "app.config.ts"],
+	"include": ["app/**/*.ts", "app/**/*.tsx", "index.tsx", "app.config.ts"],
 	"exclude": ["node_modules"]
 }

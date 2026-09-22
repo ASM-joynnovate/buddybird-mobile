@@ -83,12 +83,6 @@ module.exports = {
       from: { pathNot: "^app/services/migration/import-legacy-data\\.ts$" },
       to: { path: "node_modules/@react-native-async-storage/" },
     },
-    {
-      name: "native-independent-of-app",
-      severity: "error",
-      from: { path: "^modules/" },
-      to: { path: "^app/" },
-    },
     { name: "no-unresolved-imports", severity: "error", from: {}, to: { couldNotResolve: true } },
   ],
   options: {

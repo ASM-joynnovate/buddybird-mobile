@@ -58,7 +58,6 @@ const config: ExpoConfig = {
 		],
 	},
 	plugins: [
-		"./plugins/withSessionAudioEngine",
 		"./plugins/withAndroidBuildMemory",
 		"@react-native-firebase/app",
 		"@react-native-firebase/auth",

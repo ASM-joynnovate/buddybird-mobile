@@ -5,7 +5,7 @@ const assetExtensions =
 	String.raw`\.(aac|aiff|avif|bmp|caf|db|gif|heic|html|jpeg|jpg|json|m4a|m4v|mov|mp3|mp4|mpeg|mpg|otf|pdf|png|psd|svg|ttf|wav|webm|webp|xml|yaml|yml|zip)$`
 const relativeImport = {
 	group: ["./*", "../*"],
-	message: "Use the project's @/, @assets/, or @modules/ import aliases.",
+	message: "Use the project's @/ or @assets/ import aliases.",
 }
 const touchables = ["PressableSurface", "ChoiceCard", "Button", "IconButton", "Chip"]
 

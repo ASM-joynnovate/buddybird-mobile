@@ -1,10 +1,6 @@
 import type { SessionMessages } from "@/i18n/types/session"
 
 export const session: SessionMessages = {
-	notificationLearning: "학습 중 · 사이클 %{cycle}/%{total}",
-	notificationRest: "쉬는 중 · 사이클 %{cycle}/%{total}",
-	notificationCare: "스트레스 케어 중 · 사이클 %{cycle}/%{total}",
-	notificationPaused: "일시정지됨",
 	remaining: "{{left}} 남음",
 	untilWake: "{{time}} 기상까지 {{left}}",
 	takeover: {
