@@ -5,14 +5,20 @@ import { StyleSheet, View } from "react-native"
 import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import type { CommonMessages } from "@/i18n/types/common"
 import { track } from "@/services/telemetry/client"
 import { colors, font, radius } from "@/theme"
 import type { MainTabParamList } from "@/types/navigation"
 
-const icons: Record<keyof MainTabParamList, IconName> = {
-	Learn: "learn",
-	Words: "book",
-	Profile: "profile",
+const tabs: Record<
+	keyof MainTabParamList,
+	{ icon: IconName; label: keyof CommonMessages["tabs"] }
+> = {
+	HomeTab: { icon: "home", label: "home" },
+	WordsTab: { icon: "words", label: "words" },
+	ReportTab: { icon: "report", label: "report" },
+	RecordsTab: { icon: "records", label: "records" },
+	ProfileTab: { icon: "profile", label: "profile" },
 }
 
 export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
@@ -22,8 +28,9 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 		<View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 30) }]}>
 			{state.routes.map((route, index) => {
 				const selected = state.index === index
-				const tabName = route.name.toLowerCase()
-				const tabLabel = t(`tabs.${tabName}`)
+				const tab = tabs[route.name as keyof MainTabParamList]
+				const tabName = tab.label
+				const tabLabel = t(`common.tabs.${tab.label}`)
 
 				function selectTab() {
 					const event = navigation.emit({
@@ -37,7 +44,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 					}
 
 					track("tab_switched", {
-						from: state.routes[state.index].name.toLowerCase(),
+						from: tabs[state.routes[state.index].name as keyof MainTabParamList].label,
 						to: tabName,
 					})
 					navigation.navigate(route.name, route.params)
@@ -58,7 +65,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 							onPress={selectTab}
 						>
 							<Icon
-								name={icons[route.name as keyof MainTabParamList]}
+								name={tab.icon}
 								color={selected ? colors.onAccent : colors.muted}
 								size={25}
 							/>

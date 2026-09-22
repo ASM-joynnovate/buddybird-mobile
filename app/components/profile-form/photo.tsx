@@ -4,7 +4,6 @@ import { Image, StyleSheet, View } from "react-native"
 import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { colors } from "@/theme"
 
@@ -27,7 +26,7 @@ export function ProfilePhoto({
 		<View style={styles.photoArea}>
 			<PressableSurface
 				testID="profile-photo"
-				accessibilityLabel={t("profile.photo")}
+				accessibilityLabel={t("parrot.photo")}
 				disabled={busy}
 				onPress={() => void choosePhoto()}
 				cornerRadius={55}
@@ -38,9 +37,7 @@ export function ProfilePhoto({
 				{photoUri ? (
 					<Image source={{ uri: resolveRecordingUri(photoUri) }} style={styles.photo} />
 				) : (
-					<Copy allowFontScaling={false} style={styles.parrot}>
-						🦜
-					</Copy>
+					<Icon name="photo" size={40} color={colors.muted} />
 				)}
 				<View style={styles.photoPlus}>
 					<Icon name={action} size={20} color={colors.onAccent} />
@@ -53,7 +50,7 @@ export function ProfilePhoto({
 
 const styles = StyleSheet.create({
 	photoArea: { alignItems: "center", marginBottom: 20, gap: 10 },
-	photoTouch: { width: "40%", maxWidth: 110, aspectRatio: 1 },
+	photoTouch: { width: 110, aspectRatio: 1 },
 	photoPreview: {
 		aspectRatio: 1,
 		borderRadius: 55,
@@ -62,7 +59,6 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	photo: { width: "100%", aspectRatio: 1, borderRadius: 55 },
-	parrot: { fontSize: 52 },
 	photoPlus: {
 		position: "absolute",
 		right: -2,

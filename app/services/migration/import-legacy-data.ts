@@ -5,7 +5,7 @@ import { preservePhoto, preserveRecording } from "@/services/media/files"
 import { inspect } from "@/services/media/inspect"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { importLegacyRecords } from "@/services/migration/import-legacy-records"
-import { readMigrationSource, type MigrationSource } from "@/services/migration/source"
+import { type MigrationSource, readMigrationSource } from "@/services/migration/source"
 import { readData, storage, updateData } from "@/services/storage/data-store"
 import {
 	deviceKeys,

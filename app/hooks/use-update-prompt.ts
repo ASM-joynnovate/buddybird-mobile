@@ -80,7 +80,7 @@ export function useUpdatePrompt() {
 			track("update_prompt_dismissed", { latest_version: decision.latestVersion })
 		} catch (error) {
 			reportError(error, "dismiss_update")
-			Alert.alert(t("update.error"))
+			Alert.alert(t("app.update.error"))
 		}
 	}
 

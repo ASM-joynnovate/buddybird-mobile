@@ -17,6 +17,7 @@ export const deviceKeys = {
 	analyticsConsent: "consent/analytics",
 	update: "update/prompt",
 	feedback: "feedback/prompt",
+	guides: "guide/seen",
 } as const
 
 export function defaultDeviceSettings(): DeviceSettings {
@@ -25,6 +26,7 @@ export function defaultDeviceSettings(): DeviceSettings {
 		analyticsConsent: "unknown",
 		update: { dismissedVersion: null, lastCheckedAt: null },
 		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
+		guides: { usage: false, placement: false, recording: false },
 	}
 }
 
@@ -46,7 +48,13 @@ export function decodeDeviceSetting<K extends keyof DeviceSettings>(
 
 	const record = requireRecord(value, key)
 
-	if (key === "update") {
+	if (key === "guides") {
+		for (const guide of ["usage", "placement", "recording"]) {
+			if (typeof record[guide] !== "boolean") {
+				throw new Error(`Invalid ${guide} guide flag`)
+			}
+		}
+	} else if (key === "update") {
 		readNullableText(record.dismissedVersion, "dismissedVersion")
 
 		if (record.lastCheckedAt !== null) {

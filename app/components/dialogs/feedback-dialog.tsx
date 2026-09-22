@@ -65,15 +65,15 @@ export function FeedbackDialog({
 			<Dialog
 				visible={visible}
 				onClose={close}
-				title={t("feedback.sent")}
+				title={t("app.feedback.sent")}
 				footer=<Button
 					testID="feedback-thanks-close"
-					label={t("feedback.thanksClose")}
+					label={t("app.feedback.thanksClose")}
 					onPress={close}
 					style={styles.thanksClose}
 				/>
 			>
-				<Copy style={styles.promptMessage}>{t("feedback.thanks")}</Copy>
+				<Copy style={styles.promptMessage}>{t("app.feedback.thanks")}</Copy>
 			</Dialog>
 		)
 	}
@@ -83,19 +83,19 @@ export function FeedbackDialog({
 			<Dialog
 				visible={visible}
 				onClose={prompt.onDismiss}
-				title={t("feedback.promptTitle")}
+				title={t("app.feedback.promptTitle")}
 				footer={
 					<View style={[ui.actions, styles.actions]}>
 						<Button
 							testID="feedback-prompt-later"
-							label={t("feedback.later")}
+							label={t("app.feedback.later")}
 							variant="secondary"
 							onPress={prompt.onDismiss}
 							style={ui.action}
 						/>
 						<Button
 							testID="feedback-prompt-write"
-							label={t("feedback.write")}
+							label={t("app.feedback.write")}
 							onPress={prompt.onWrite}
 							style={ui.action}
 						/>
@@ -103,7 +103,7 @@ export function FeedbackDialog({
 				}
 			>
 				<Image accessible={false} source={mascot} style={styles.promptMascot} />
-				<Copy style={styles.promptMessage}>{t("feedback.promptMessage")}</Copy>
+				<Copy style={styles.promptMessage}>{t("app.feedback.promptMessage")}</Copy>
 			</Dialog>
 		)
 	}
@@ -112,7 +112,7 @@ export function FeedbackDialog({
 		<Dialog
 			visible={visible}
 			onClose={close}
-			title={t("feedback.title")}
+			title={t("app.feedback.title")}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					<Button
@@ -124,7 +124,7 @@ export function FeedbackDialog({
 					/>
 					<Button
 						testID="feedback-send"
-						label={t(mutation.isError ? "feedback.retry" : "feedback.send")}
+						label={t(mutation.isError ? "app.feedback.retry" : "app.feedback.send")}
 						icon="send"
 						disabled={!message.trim()}
 						loading={mutation.isPending}
@@ -136,18 +136,18 @@ export function FeedbackDialog({
 		>
 			<TextField
 				testID="feedback-message"
-				accessibilityLabel={t("feedback.title")}
+				accessibilityLabel={t("app.feedback.title")}
 				value={message}
 				onChangeText={setMessage}
 				maxLength={1000}
 				multiline
 				editable={!mutation.isPending}
 				textAlignVertical="top"
-				placeholder={t("feedback.placeholder")}
+				placeholder={t("app.feedback.placeholder")}
 				style={styles.message}
 			/>
-			<Copy style={styles.privacy}>{t("feedback.privacy")}</Copy>
-			<InlineError message={mutation.isError ? t("feedback.error") : null} />
+			<Copy style={styles.privacy}>{t("app.feedback.privacy")}</Copy>
+			<InlineError message={mutation.isError ? t("app.feedback.error") : null} />
 		</Dialog>
 	)
 }

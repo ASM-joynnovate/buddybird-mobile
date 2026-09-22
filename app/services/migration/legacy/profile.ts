@@ -15,7 +15,7 @@ export function parseLegacyProfile(value: unknown): Profile {
 			: readNullableText(profileRecord.birthDate, "birthDate")
 
 	if (profileRecord.birthDate === undefined && profileRecord.ageMonths !== undefined) {
-		const date = new Date(requireText(profileRecord.createdAt, "profile.createdAt"))
+		const date = new Date(requireText(profileRecord.createdAt, "parrot.createdAt"))
 		const age = requireNonnegativeNumber(profileRecord.ageMonths, "ageMonths")
 
 		if (!Number.isInteger(age) || !Number.isFinite(date.getTime())) {
@@ -42,8 +42,8 @@ export function parseLegacyProfile(value: unknown): Profile {
 	}
 
 	return {
-		id: requireText(profileRecord.id, "profile.id"),
-		name: requireText(profileRecord.name, "profile.name"),
+		id: requireText(profileRecord.id, "parrot.id"),
+		name: requireText(profileRecord.name, "parrot.name"),
 		species,
 		birthDate,
 		photoUri: readOptionalText(profileRecord.photoUri, "photoUri"),

@@ -1,72 +1,97 @@
-import { useFocusEffect } from "@react-navigation/native"
-import { useCallback } from "react"
+import { type CompositeNavigationProp, useNavigation } from "@react-navigation/native"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
-import { View } from "react-native"
+import { StyleSheet, View } from "react-native"
 
-import { Chip } from "@/components/ui/chip"
-import { InlineError } from "@/components/ui/inline-error"
+import { Button } from "@/components/ui/button"
+import { ScreenHeader } from "@/components/ui/header"
+import { IconButton } from "@/components/ui/icon-button"
 import { Screen } from "@/components/ui/screen"
+import { ScreenError, Skeleton } from "@/components/ui/states"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { useProfile, useProfileStats } from "@/hooks/use-app-data"
-import { ProfileAchievements } from "@/screens/Profile/components/profile-achievements"
-import { ProfileActions } from "@/screens/Profile/components/profile-actions"
-import { ProfileCard } from "@/screens/Profile/components/profile-card"
-import { ProfileStatistics } from "@/screens/Profile/components/profile-statistics"
-import { useProfileLanguage } from "@/screens/Profile/hooks/use-profile-language"
-import { screen } from "@/services/telemetry/client"
+import { parrotsQueryOptions } from "@/hooks/apis/parrots"
+import { meQueryOptions } from "@/hooks/apis/users"
+import { AccountCard } from "@/screens/Profile/components/account-card"
+import { ParrotCard } from "@/screens/Profile/components/parrot-card"
+import type { ProfileStackParamList, RootStackParamList } from "@/types/navigation"
+
+type Navigation = CompositeNavigationProp<
+	NativeStackNavigationProp<ProfileStackParamList, "Profile">,
+	NativeStackNavigationProp<RootStackParamList>
+>
 
 export function ProfileScreen() {
 	const { t } = useTranslation()
-	const profile = useProfile()
-	const { locale, error, changeLanguage } = useProfileLanguage()
-	const stats = useProfileStats()
+	const navigation = useNavigation<Navigation>()
+	const me = useQuery(meQueryOptions())
+	const parrots = useQuery(parrotsQueryOptions())
 
-	useFocusEffect(
-		useCallback(() => {
-			screen("profile")
-		}, []),
-	)
+	function body() {
+		if (me.isError || parrots.isError) {
+			return (
+				<ScreenError
+					message={t("common.loadError")}
+					onRetry={() => {
+						void me.refetch()
+						void parrots.refetch()
+					}}
+				/>
+			)
+		}
+
+		if (!me.data || !parrots.data) {
+			return <Skeleton rows={3} height={96} />
+		}
+
+		return (
+			<>
+				<AccountCard user={me.data} onPress={() => navigation.navigate("AccountEditor")} />
+				<View style={ui.section}>
+					<Copy accessibilityRole="header" style={ui.sectionTitle}>
+						{t("profile.parrots")}
+					</Copy>
+					<View style={styles.parrots}>
+						{parrots.data.map((parrot) => (
+							<ParrotCard
+								key={parrot.id}
+								parrot={parrot}
+								onPress={() =>
+									navigation.navigate("ParrotEditor", { parrotId: parrot.id })
+								}
+							/>
+						))}
+					</View>
+					<Button
+						label={t("profile.addParrot")}
+						icon="plus"
+						variant="secondary"
+						onPress={() => navigation.navigate("ParrotEditor")}
+						style={styles.add}
+					/>
+				</View>
+			</>
+		)
+	}
 
 	return (
-		<Screen contentContainerStyle={ui.tabContent}>
-			{profile ? (
-				<>
-					<ProfileCard profile={profile} />
-					<InlineError
-						message={stats.incomplete ? t("storage.historyUnavailable") : null}
-					/>
-					<ProfileStatistics stats={stats} locale={locale} />
-					<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.section]}>
-						{t("profile.achievements")}
-					</Copy>
-					<ProfileAchievements stats={stats} locale={locale} />
-				</>
-			) : (
-				<InlineError message={t("storage.profileUnavailable")} />
-			)}
-
-			<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.section]}>
-				{t("profile.language")}
-			</Copy>
-			<View style={ui.wrap}>
-				<Chip
-					testID="language-ko"
-					label="한국어"
-					selected={locale === "ko"}
-					onPress={() => void changeLanguage("ko")}
+		<Screen>
+			<ScreenHeader
+				large
+				title={t("profile.title")}
+				right=<IconButton
+					icon="gear"
+					label={t("profile.settings")}
+					onPress={() => navigation.navigate("Settings")}
 				/>
-				<Chip
-					testID="language-en"
-					label="English"
-					selected={locale === "en"}
-					onPress={() => void changeLanguage("en")}
-				/>
-			</View>
-
-			<InlineError message={error} />
-
-			{profile ? <ProfileActions /> : null}
+			/>
+			{body()}
 		</Screen>
 	)
 }
+
+const styles = StyleSheet.create({
+	parrots: { gap: 12 },
+	add: { marginTop: 16 },
+})

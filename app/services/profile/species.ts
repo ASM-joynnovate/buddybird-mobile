@@ -4,4 +4,10 @@ export const speciesGroups = {
 	large: ["african-grey", "eclectus", "amazon", "cockatoo", "macaw"],
 } as const
 
-export const speciesIds: readonly string[] = Object.values(speciesGroups).flat()
+export type SpeciesId = (typeof speciesGroups)[keyof typeof speciesGroups][number]
+
+export const speciesIds: readonly SpeciesId[] = Object.values(speciesGroups).flat()
+
+export function isSpeciesId(value: string): value is SpeciesId {
+	return (speciesIds as readonly string[]).includes(value)
+}

@@ -117,10 +117,10 @@ export async function apiRequest<T>(
 
 export function apiErrorMessage(error: unknown, t: TFunction): string {
 	if (error instanceof ApiError) {
-		return t(`apiError.${error.code}`, { defaultValue: error.message })
+		return t(`app.apiError.${error.code}`, { defaultValue: error.message })
 	}
 
-	return t("apiError.CLIENT__NETWORK")
+	return t("app.apiError.CLIENT__NETWORK")
 }
 
 async function accessToken() {

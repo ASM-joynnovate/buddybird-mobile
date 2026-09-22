@@ -1,16 +1,16 @@
 import {
-	setUserProperties as firebaseProperties,
 	getAnalytics,
 	logEvent,
 	setAnalyticsCollectionEnabled,
 	setUserId,
+	setUserProperties as firebaseProperties,
 } from "@react-native-firebase/analytics"
 import {
-	setUserId as crashUser,
 	getCrashlytics,
 	recordError,
 	setAttributes,
 	setCrashlyticsCollectionEnabled,
+	setUserId as crashUser,
 } from "@react-native-firebase/crashlytics"
 import { randomUUID } from "expo-crypto"
 import {
@@ -28,12 +28,12 @@ import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-
 import { firebaseParameters, sendTelemetrySafely } from "@/services/telemetry/events"
 import {
 	clearOutbox,
-	readOutbox,
-	removeEvent,
-	saveEvent,
 	type Destination,
 	type PendingEvent,
 	type Properties,
+	readOutbox,
+	removeEvent,
+	saveEvent,
 } from "@/services/telemetry/outbox"
 import type { AnalyticsConsent } from "@/types/consent"
 import type { Events, TelemetryEvent, UserProperties } from "@/types/telemetry"

@@ -40,8 +40,8 @@ export function readProfile(value: unknown): Profile {
 	}
 
 	return {
-		id: requireText(record.id, "profile.id"),
-		name: requireText(record.name, "profile.name"),
+		id: requireText(record.id, "parrot.id"),
+		name: requireText(record.name, "parrot.name"),
 		species,
 		birthDate: readNullableText(record.birthDate, "birthDate"),
 		photoUri: readOptionalText(record.photoUri, "photoUri"),

@@ -11,4 +11,5 @@ export type DeviceSettings = {
 		dayCount: number
 		thresholdIndex: number
 	}
+	guides: { usage: boolean; placement: boolean; recording: boolean }
 }

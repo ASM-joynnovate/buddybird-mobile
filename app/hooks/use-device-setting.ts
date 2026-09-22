@@ -4,10 +4,10 @@ import { Alert } from "react-native"
 import { useMMKVString } from "react-native-mmkv"
 
 import {
-	parseDeviceSetting,
 	defaultDeviceSettings,
 	deviceKeys,
 	deviceStorage,
+	parseDeviceSetting,
 } from "@/services/storage/device-settings"
 import { reportError } from "@/services/telemetry/client"
 import type { DeviceSettings } from "@/types/device-settings"
@@ -32,7 +32,7 @@ export function useDeviceSetting<K extends keyof DeviceSettings>(key: K): Device
 	useEffect(() => {
 		if (result.error) {
 			reportError(result.error, `device_setting_${key}`)
-			Alert.alert(t("storage.settingError"))
+			Alert.alert(t("app.storage.settingError"))
 		}
 	}, [key, result.error, t])
 

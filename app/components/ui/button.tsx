@@ -24,6 +24,7 @@ export function Button({
 	...props
 }: ButtonProps) {
 	const inactive = disabled || loading
+	const depth = compact ? 4 : 7
 	let tone: "primary" | "neutral" | "blue" | "muted" = "primary"
 	let foregroundColor = colors.onAccent
 
@@ -60,9 +61,9 @@ export function Button({
 			}}
 			disabled={inactive}
 			tone={tone}
-			depth={inactive ? 0 : compact ? 4 : 7}
+			depth={inactive ? 0 : depth}
 			cornerRadius={radius.control}
-			style={style}
+			style={[inactive && { marginTop: depth }, style]}
 			contentStyle={[
 				styles.button,
 				{ borderWidth: variant === "secondary" ? 2 : 0 },

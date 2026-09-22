@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T00:00:00+09:00",
+  "generatedAt": "2026-09-21T00:00:00+09:00",
   "title": "Design System: BuddyBird",
   "extensions": {
     "colorMeta": {
@@ -428,12 +428,172 @@
           "#ddabff",
           "#f5e6ff"
         ]
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "#000000",
+        "derivedFrom": "shade(ink, 0)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-surface": {
+        "role": "neutral",
+        "displayName": "Night Surface",
+        "canonical": "#121212",
+        "derivedFrom": "shade(ink, 0.3)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-text": {
+        "role": "neutral",
+        "displayName": "Night Text",
+        "canonical": "#757575",
+        "derivedFrom": "shade(muted-gray, 0.98)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-faint": {
+        "role": "neutral",
+        "displayName": "Night Faint",
+        "canonical": "#5a5a5a",
+        "derivedFrom": "shade(muted-gray, 0.76)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-track": {
+        "role": "neutral",
+        "displayName": "Night Track",
+        "canonical": "#252525",
+        "derivedFrom": "shade(hairline-gray, 0.16)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-edge": {
+        "role": "neutral",
+        "displayName": "Night Edge",
+        "canonical": "#373737",
+        "derivedFrom": "shade(hairline-gray, 0.24)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "night-warn": {
+        "role": "neutral",
+        "displayName": "Night Warn",
+        "canonical": "#a33030",
+        "derivedFrom": "shade(alert-red, 0.64)",
+        "tonalRamp": [
+          "#3b1111",
+          "#661e1e",
+          "#922b2b",
+          "#bd3838",
+          "#cf5d5d",
+          "#dc8989",
+          "#eab8b8",
+          "#f9ebeb"
+        ]
+      },
+      "night-learning": {
+        "role": "neutral",
+        "displayName": "Night Learning",
+        "canonical": "#663c00",
+        "derivedFrom": "shade(sunrise-orange, 0.4)",
+        "tonalRamp": [
+          "#4c2d00",
+          "#854e00",
+          "#bd6f00",
+          "#f59000",
+          "#ffa92e",
+          "#ffc066",
+          "#ffd9a3",
+          "#fff4e5"
+        ]
+      },
+      "night-rest": {
+        "role": "neutral",
+        "displayName": "Night Rest",
+        "canonical": "#0b4662",
+        "derivedFrom": "shade(sky-blue, 0.4)",
+        "tonalRamp": [
+          "#083145",
+          "#0d5577",
+          "#1379aa",
+          "#199ddc",
+          "#43b4ea",
+          "#75c8f0",
+          "#acdef6",
+          "#e8f6fc"
+        ]
+      },
+      "night-sleeping": {
+        "role": "neutral",
+        "displayName": "Night Sleeping",
+        "canonical": "#464646",
+        "derivedFrom": "shade(disabled-gray, 0.4)",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "세션 완료 축하 제목. 세션 링 안의 단어 제목은 30px Black"
+        "purpose": "로그인 화면의 제품명, 리포트의 총 시간"
       },
       "headline": {
         "displayName": "Headline",
@@ -441,7 +601,7 @@
       },
       "title": {
         "displayName": "Title",
-        "purpose": "섹션 제목과 다이얼로그 제목"
+        "purpose": "섹션 제목, GroupedList 제목, 다이얼로그 제목, 단어 카드 이름"
       },
       "body": {
         "displayName": "Body",
@@ -449,11 +609,11 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "입력 필드 라벨과 말풍선 본문"
+        "purpose": "입력 필드 라벨, 말풍선 본문, 목록 행 제목, 빈 상태 문구"
       },
       "caption": {
         "displayName": "Caption",
-        "purpose": "통계 라벨, 탭 라벨, 단어 카드 라벨, 칩"
+        "purpose": "목록 행 caption, 통계 라벨, 탭 라벨. Tag와 부재중 띠와 밤 화면 라벨은 13px"
       },
       "button": {
         "displayName": "Button",
@@ -461,7 +621,7 @@
       },
       "timer": {
         "displayName": "Timer",
-        "purpose": "세션 카운트다운. 고정폭 숫자"
+        "purpose": "세션 경과 시간. 고정폭 숫자"
       },
       "wordmark": {
         "displayName": "Wordmark",
@@ -499,12 +659,7 @@
       {
         "name": "mascot-float",
         "value": "1000ms ease-in-out infinite alternate",
-        "purpose": "마스코트가 높이의 5%를 오르내리며 좌우 2도 기운다"
-      },
-      {
-        "name": "mascot-bounce",
-        "value": "800ms ease-in-out infinite alternate",
-        "purpose": "세션 링 안에서 높이의 8%를 오르내린다"
+        "purpose": "로그인, 권한 안내, 세션 요약 인사의 마스코트가 높이의 5%를 오르내리며 좌우 2도 기운다"
       },
       {
         "name": "splash-enter",
@@ -522,14 +677,24 @@
         "purpose": "재생 중 반복 파형"
       },
       {
-        "name": "ring-progress",
-        "value": "linear over remaining time",
-        "purpose": "세션 링이 남은 시간 동안 선형으로 줄어든다"
-      },
-      {
         "name": "dialog",
         "value": "fade",
         "purpose": "다이얼로그 등장과 퇴장"
+      },
+      {
+        "name": "long-press",
+        "value": "500ms",
+        "purpose": "PressableSurface의 onLongPress 판정 시간. 탭보다 먼저 판정한다"
+      },
+      {
+        "name": "confetti",
+        "value": "1800ms, 조각마다 0에서 510ms 지연",
+        "purpose": "보는 사람 휴대폰의 세션 요약에서 한 번만 떨어진다"
+      },
+      {
+        "name": "station-reveal",
+        "value": "누르면 보이고 일정 시간 뒤 숨김",
+        "purpose": "세션 진행 화면의 정보 표시"
       }
     ],
     "breakpoints": [
@@ -542,6 +707,28 @@
         "name": "content-max",
         "value": "480px",
         "purpose": "콘텐츠와 다이얼로그의 최대 폭"
+      }
+    ],
+    "contrastTargets": [
+      {
+        "pair": "night-text on night-ground",
+        "ratio": "4.56:1",
+        "purpose": "밤 화면 글자"
+      },
+      {
+        "pair": "night-faint on night-ground",
+        "ratio": "3.04:1",
+        "purpose": "밤 화면 라벨과 상태 아이콘"
+      },
+      {
+        "pair": "night-warn on night-ground",
+        "ratio": "3.0:1",
+        "purpose": "밤 화면 문제 상태 아이콘"
+      },
+      {
+        "pair": "night-learning, night-rest, night-sleeping on night-ground",
+        "ratio": "약 2.1에서 2.2:1",
+        "purpose": "지평선 링 진행 호. 구간 이름을 글자로 함께 보인다"
       }
     ]
   },
@@ -617,17 +804,43 @@
       "description": "마스코트의 말풍선. 카드와 같은 면에 45도 회전한 꼬리",
       "html": "<div class=\"ds-bubble\">안녕하세요! 저는 버디예요.<br>함께 앵무새에게 말을 가르쳐 봐요!</div>",
       "css": ".ds-bubble{position:relative;display:inline-block;max-width:300px;padding:14px 16px;background:#ffffff;border:2px solid #e5e5e5;border-radius:16px;box-shadow:0 2px 0 #e5e5e5;margin-bottom:12px;color:#3c3c3c;font-family:'Pretendard',sans-serif;font-weight:800;font-size:16px;line-height:22px}.ds-bubble::after{content:'';position:absolute;left:50%;bottom:-10px;width:16px;height:16px;background:#ffffff;border-right:2px solid #e5e5e5;border-bottom:2px solid #e5e5e5;transform:translateX(-8px) rotate(45deg)}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "누를 수 없는 상태 표시. 오렌지, 블루, 회색 톤. 엣지 판 없이 2px 테두리만",
+      "html": "<span class=\"ds-tag\">학습 중</span><span class=\"ds-tag ds-tag-blue\">휴식</span><span class=\"ds-tag ds-tag-muted\">분석 중</span>",
+      "css": ".ds-tag { display: inline-block; margin-right: 6px; padding: 2px 10px; border: 2px solid #ff9600; border-radius: 999px; background: #fff7eb; color: #e07f00; font-family: Pretendard, sans-serif; font-weight: 800; font-size: 13px; white-space: nowrap; } .ds-tag-blue { background: #DDF4FF; border-color: #1cb0f6; color: #1899d6; } .ds-tag-muted { background: #f7f7f7; border-color: #e5e5e5; color: #777777; }"
+    },
+    {
+      "name": "Grouped List",
+      "kind": "custom",
+      "refersTo": "grouped-list",
+      "description": "설정과 동의 목록. NavRow와 CheckRow, caption이 제목 위에 온다",
+      "html": "<div class=\"ds-group\"><div class=\"ds-group-title\">알림</div><div class=\"ds-list\"><button class=\"ds-row\"><span class=\"ds-row-labels\"><span class=\"ds-row-label\">알림 설정</span></span><span class=\"ds-row-value\">켜짐</span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#AFAFAF\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M9 5l7 7-7 7\"/></svg></button><button class=\"ds-row ds-row-divider\" role=\"checkbox\" aria-checked=\"true\"><span class=\"ds-row-labels\"><span class=\"ds-row-caption\">필수</span><span class=\"ds-row-label\">서비스 이용약관</span></span><span class=\"ds-check ds-check-on\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12l5 5 9-10\"/></svg></span></button></div></div>",
+      "css": ".ds-group { display: flex; flex-direction: column; gap: 10px; max-width: 420px; font-family: Pretendard, sans-serif; } .ds-group-title { font-weight: 900; font-size: 18px; line-height: 24px; color: #3c3c3c; } .ds-list { border: 2px solid #e5e5e5; border-radius: 18px; overflow: hidden; background: #fff; } .ds-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; } .ds-row:focus-visible { outline: 3px solid #ff9600; outline-offset: -3px; } .ds-row-divider { border-top: 2px solid #e5e5e5; } .ds-row-labels { flex: 1; display: flex; flex-direction: column; gap: 2px; } .ds-row-caption { font-weight: 800; font-size: 12px; color: #e07f00; } .ds-row-label { font-weight: 800; font-size: 16px; color: #3c3c3c; } .ds-row-value { font-weight: 700; font-size: 14px; color: #777777; } .ds-check { width: 28px; height: 28px; border-radius: 14px; border: 3px solid #e5e5e5; display: flex; align-items: center; justify-content: center; box-sizing: border-box; } .ds-check-on { background: #ff9600; border-color: #e07f00; }"
+    },
+    {
+      "name": "Horizon Ring",
+      "kind": "custom",
+      "refersTo": "night-learning",
+      "description": "새장 앞 세션 진행 화면의 반원 링. 검은 바탕, Night 토큰만 사용",
+      "html": "<div class=\"ds-night\"><div class=\"ds-horizon\"><svg width=\"280\" height=\"148\" viewBox=\"0 0 280 148\"><path d=\"M 8 140 A 132 132 0 0 1 272 140\" fill=\"none\" stroke=\"#252525\" stroke-width=\"16\" stroke-linecap=\"round\"/><path d=\"M 8 140 A 132 132 0 0 1 272 140\" fill=\"none\" stroke=\"#663c00\" stroke-width=\"16\" stroke-linecap=\"round\" stroke-dasharray=\"249 415\"/></svg><div class=\"ds-horizon-text\"><span class=\"ds-horizon-title\">학습</span><span class=\"ds-horizon-detail\">12:40</span></div></div></div>",
+      "css": ".ds-night { background: #000; padding: 24px; display: flex; justify-content: center; } .ds-horizon { position: relative; width: 280px; height: 148px; display: flex; align-items: flex-end; justify-content: center; } .ds-horizon svg { position: absolute; top: 0; left: 0; } .ds-horizon-text { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 12px; font-family: Pretendard, sans-serif; font-weight: 900; color: #757575; } .ds-horizon-title { font-size: 20px; } .ds-horizon-detail { font-size: 26px; font-variant-numeric: tabular-nums; }"
     }
   ],
   "narrative": {
     "northStar": "통통 튀는 장난감 버튼",
-    "overview": "버디버드의 화면은 유아용 장난감의 큼직한 버튼처럼 두껍고 단단하다.\n눌리는 모든 요소는 2px 테두리와 아래쪽에 깔린 더 진한 색의 엣지로 두께를 드러내고, 누르면 면이 실제로 엣지 위로 내려앉는다.\n그림자와 반투명 질감은 없다.\n깊이는 색과 형태로만 말한다.\n\n색은 밝은 흰 종이 위에 오렌지가 행동을 이끄는 구조다.\n브랜드 레드는 마스코트 버디의 깃털색이며 스플래시와 몇몇 정체성 순간에만 등장한다.\n블루와 퍼플은 단어 카테고리와 통계의 보조색이고, 옐로는 세션 완료 축하에만 쓴다.\n서체는 한글과 영문 모두 Pretendard이며 굵기가 Bold 아래로 내려가지 않는다.\n\n밀도는 한 손 조작을 전제로 넉넉하다.\n버튼 높이 58px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.\n마스코트 버디가 온보딩과 세션 화면에서 떠다니거나 통통 튀며 앱의 성격을 대신 말한다.",
+    "overview": "버디버드의 화면은 유아용 장난감의 큼직한 버튼처럼 두껍고 단단하다.\n눌리는 모든 요소는 2px 테두리와 아래쪽에 깔린 더 진한 색의 엣지로 두께를 드러내고, 누르면 면이 실제로 엣지 위로 내려앉는다.\n그림자와 반투명 질감은 없다.\n깊이는 색과 형태로만 말한다.\n\n색은 밝은 흰 종이 위에 오렌지가 행동을 이끄는 구조다.\n브랜드 레드는 마스코트 버디의 깃털색이며 스플래시와 몇몇 정체성 순간에만 등장한다.\n블루는 휴식 구간, 퍼플은 축하의 보조색이고, 옐로는 세션 완료 축하에만 쓴다.\n서체는 한글과 영문 모두 Pretendard이며 굵기가 Bold 아래로 내려가지 않는다.\n\n밀도는 한 손 조작을 전제로 넉넉하다.\n버튼 높이 58px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.\n주인공은 사용자의 앵무새다.\n마스코트 버디는 로그인, 권한 안내, 세션 요약 인사처럼 앱이 사용자에게 말을 거는 순간에만 나온다.\n\n새장 앞에 두는 기기의 화면과 새를 비추는 실시간 영상 화면만 예외다.\n세션 진행, 카메라 설치, 실시간 영상 화면은 가로 방향의 검은 바탕에 아주 어두운 글자와 선만 쓴다.\n같은 엣지 구조와 Pretendard를 유지하되 밝기를 낮춰 새를 자극하지 않는다.",
     "keyCharacteristics": [
       "엣지 기반 두께. 그림자 대신 아래쪽 색 엣지와 2px 테두리",
       "오렌지가 모든 주 행동을 담당",
       "브랜드 레드는 정체성 순간에만 등장",
       "한글과 영문 모두 Pretendard",
-      "continuous 코너와 알약형 칩",
+      "continuous 코너와 알약형 칩과 태그",
+      "새장 앞 화면은 검은 바탕의 밤 팔레트",
+      "폭을 채우지 않는 버튼은 오른손 엄지가 닿는 행 오른쪽 끝",
       "모든 동작은 시스템 Reduce Motion을 따름"
     ],
     "rules": [
@@ -647,6 +860,11 @@
         "section": "colors"
       },
       {
+        "name": "The Night Station Rule",
+        "body": "새장 앞 화면은 Night 토큰만 쓴다. 흰 면, 낮 팔레트의 밝은 색, 마스코트를 두지 않는다. 글자는 검은 바탕 대비 약 4.5:1, 라벨과 아이콘은 약 3:1로 맞추고 그보다 밝게 올리지 않는다.",
+        "section": "colors"
+      },
+      {
         "name": "The One Face Rule",
         "body": "UI 텍스트는 언어와 관계없이 Pretendard만 쓴다. 영문이라고 다른 서체로 바꾸지 않는다. 스플래시 워드마크의 Fredoka는 로고이므로 예외다.",
         "section": "typography"
@@ -657,31 +875,48 @@
         "section": "typography"
       },
       {
+        "name": "The Right Thumb Rule",
+        "body": "폭을 채우지 않는 버튼과 아이콘 버튼은 행의 오른쪽 끝에 둔다. 오른손 엄지가 닿는 자리다. 뒤로 버튼만 왼쪽에 남고, 폭을 채우는 주 버튼은 아래에 둔다.",
+        "section": "layout"
+      },
+      {
         "name": "The Edge Rule",
-        "body": "두께가 필요하면 엣지를 늘린다. shadowColor, elevation, 블러는 쓰지 않는다. 최근 로그인 태그에 남은 그림자 값은 확장하지 않는다.",
+        "body": "두께가 필요하면 엣지를 늘린다. `shadowColor`, `elevation`, 블러는 쓰지 않는다. 최근 로그인 태그에 남은 그림자 값은 확장하지 않는다.",
         "section": "elevation"
       },
       {
         "name": "The Sit Down Rule",
         "body": "눌리는 요소는 색을 바꾸지 않고 자리에 앉는다. 눌림 피드백은 위치 변화이며 투명도 변화가 아니다.",
         "section": "elevation"
+      },
+      {
+        "name": "The Flat Label Rule",
+        "body": "누를 수 없는 태그와 배지에는 엣지 판을 주지 않는다. 두께는 누를 수 있다는 신호다.",
+        "section": "elevation"
       }
     ],
     "dos": [
       "Do 눌리는 요소는 Surface 계열 컴포넌트로 만든다. 면색과 엣지색을 짝으로 주고 depth로 두께를 정한다",
       "Do 새 색 면을 추가하면 한 단계 진한 엣지색을 함께 정의한다",
-      "Do 단일 선택은 ChoiceCard, 다중 필터는 Chip을 쓴다",
-      "Do 모든 애니메이션에 useReducedMotion을 확인하고 정지 상태를 준비한다",
+      "Do 단일 선택은 ChoiceCard, 다중 필터는 Chip, 누를 수 없는 상태 표시는 Tag를 쓴다",
+      "Do 설정과 동의 목록은 GroupedList 안에 NavRow, SwitchRow, CheckRow로 쌓는다",
+      "Do 폭을 채우지 않는 버튼과 아이콘 버튼은 행 오른쪽 끝에 둔다",
+      "Do 세션 구간은 어디서나 학습 오렌지, 휴식 블루, 수면 회색으로 칠한다",
+      "Do 새장 앞 화면은 Night 토큰으로만 칠하고 구간 이름을 글자로 함께 보인다",
+      "Do 모든 애니메이션에 `useReducedMotion`을 확인하고 정지 상태를 준비한다",
       "Do 버튼 라벨은 언어와 관계없이 Pretendard ExtraBold를 쓴다. 영문은 대문자",
-      "Do 통계와 업적처럼 나란한 카드는 flex: 1과 minWidth: 0으로 어느 언어에서도 한 줄을 유지한다",
-      "Do 오류 메시지는 Parrot Red 인라인 텍스트로 필드 바로 아래에 둔다"
+      "Do 나란한 카드는 `flex: 1`과 `minWidth: 0`으로 어느 언어에서도 한 줄을 유지한다",
+      "Do 오류 메시지는 Parrot Red 인라인 텍스트로 필드나 행 바로 아래에 둔다"
     ],
     "donts": [
       "Don't 그라데이션을 배경이나 버튼에 쓰지 않는다. 면은 단색이다",
       "Don't 확산 그림자, 블러, 반투명 유리 질감을 쓰지 않는다. 두께는 엣지로만 표현한다",
       "Don't Parrot Red를 버튼, 탭, 카드 강조에 쓰지 않는다",
       "Don't 한 화면에서 오렌지 외의 색으로 주 행동 버튼을 만들지 않는다",
-      "Don't 눌림 피드백으로 투명도나 색 변화를 쓰지 않는다. 면이 내려앉는 것이 눌림이다"
+      "Don't 눌림 피드백으로 투명도나 색 변화를 쓰지 않는다. 면이 내려앉는 것이 눌림이다",
+      "Don't Tag와 배지에 엣지 판을 주지 않는다",
+      "Don't 새장 앞 화면에 흰 면, 밝은 오렌지, 마스코트를 두지 않는다",
+      "Don't 새장 앞 기기의 화면에 컨페티를 띄우지 않는다"
     ]
   }
 }

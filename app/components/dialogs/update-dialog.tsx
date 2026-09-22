@@ -54,13 +54,13 @@ export function UpdateDialog({
 		<Dialog
 			visible={visible}
 			onClose={dismiss}
-			title={t(forced ? "update.required" : "update.title")}
+			title={t(forced ? "app.update.required" : "app.update.title")}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					{!forced ? (
 						<Button
 							testID="update-later"
-							label={t("update.later")}
+							label={t("app.update.later")}
 							variant="secondary"
 							disabled={blocked}
 							onPress={onDismiss}
@@ -69,7 +69,7 @@ export function UpdateDialog({
 					) : null}
 					<Button
 						testID="update-open-store"
-						label={t("update.accept")}
+						label={t("app.update.accept")}
 						loading={blocked}
 						onPress={() => void accept()}
 						style={ui.action}
@@ -78,14 +78,16 @@ export function UpdateDialog({
 			}
 		>
 			<Copy style={styles.body}>
-				{t(forced ? "update.requiredBody" : "update.body", { version: latestVersion })}
+				{t(forced ? "app.update.requiredBody" : "app.update.body", {
+					version: latestVersion,
+				})}
 			</Copy>
 			{notes.map((note, index) => (
 				<Copy key={`${index}-${note}`} style={styles.note}>
 					{note}
 				</Copy>
 			))}
-			<InlineError message={error ? t("update.error") : null} />
+			<InlineError message={error ? t("app.update.error") : null} />
 		</Dialog>
 	)
 }

@@ -1,5 +1,5 @@
-import type { PropsWithChildren } from "react"
-import { ScrollView, type ScrollViewProps, StyleSheet } from "react-native"
+import type { PropsWithChildren, ReactNode } from "react"
+import { ScrollView, type ScrollViewProps, StyleSheet, View } from "react-native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { colors } from "@/theme"
@@ -10,14 +10,19 @@ export function Screen({
 	automaticallyAdjustKeyboardInsets = true,
 	style,
 	contentContainerStyle,
+	footer,
+	centered = false,
 	...props
-}: PropsWithChildren<ScrollViewProps & { scroll?: boolean }>) {
+}: PropsWithChildren<
+	ScrollViewProps & { scroll?: boolean; footer?: ReactNode; centered?: boolean }
+>) {
 	const insets = useSafeAreaInsets()
 
 	return (
 		<SafeAreaView edges={["top", "left", "right"]} style={[styles.screen, style]}>
 			{scroll ? (
 				<ScrollView
+					alwaysBounceVertical={false}
 					{...props}
 					automaticallyAdjustKeyboardInsets={automaticallyAdjustKeyboardInsets}
 					showsVerticalScrollIndicator={false}
@@ -25,7 +30,8 @@ export function Screen({
 					keyboardDismissMode="on-drag"
 					contentContainerStyle={[
 						styles.content,
-						{ paddingBottom: insets.bottom + 20 },
+						{ paddingBottom: footer ? 20 : insets.bottom + 20 },
+						centered && styles.centered,
 						contentContainerStyle,
 					]}
 				>
@@ -34,6 +40,9 @@ export function Screen({
 			) : (
 				children
 			)}
+			{footer ? (
+				<View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>
+			) : null}
 		</SafeAreaView>
 	)
 }
@@ -49,5 +58,14 @@ const styles = StyleSheet.create({
 		width: "100%",
 		maxWidth: 480,
 		alignSelf: "center",
+	},
+	centered: { justifyContent: "center" },
+	footer: {
+		width: "100%",
+		maxWidth: 480,
+		alignSelf: "center",
+		paddingHorizontal: 24,
+		paddingTop: 12,
+		gap: 8,
 	},
 })

@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { QueryClientProvider } from "@tanstack/react-query"
 import type { PropsWithChildren } from "react"
 import { StatusBar } from "react-native"
@@ -11,7 +12,9 @@ export function RootProviders({ children }: PropsWithChildren) {
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<SafeAreaProvider>
 				<StatusBar barStyle="dark-content" />
-				<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+				<QueryClientProvider client={queryClient}>
+					<BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+				</QueryClientProvider>
 			</SafeAreaProvider>
 		</GestureHandlerRootView>
 	)

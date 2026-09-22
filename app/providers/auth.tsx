@@ -11,6 +11,8 @@ import { ApiError, apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
 import { getSupabase } from "@/lib/supabase"
 import { clearRegistration, markRegistered, registeredUser } from "@/services/auth/registration"
+import { readDeviceSetting, saveDeviceSetting } from "@/services/storage/device-settings"
+import { reportError } from "@/services/telemetry/client"
 
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [state, setState] = useState<AuthState>({ status: "loading" })
@@ -67,10 +69,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setState({ status: "completing" })
 
 			try {
-				await runLogin({ signal: controller.signal })
+				const { is_new_user } = await runLogin({ signal: controller.signal })
 
 				if (active && !controller.signal.aborted) {
 					markRegistered(nextId)
+
+					try {
+						saveDeviceSetting("guides", {
+							...readDeviceSetting("guides"),
+							usage: !is_new_user,
+						})
+					} catch (error) {
+						reportError(error, "usage_guide_save")
+					}
+
 					setState({ status: "signedIn" })
 				}
 			} catch (error) {

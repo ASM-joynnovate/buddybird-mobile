@@ -12,10 +12,10 @@ export function StartupScreen({ failed, onRetry }: { failed: boolean; onRetry():
 			{failed ? (
 				<>
 					<Text allowFontScaling={false} style={styles.title}>
-						{t("startup.title")}
+						{t("app.startup.title")}
 					</Text>
 					<Text allowFontScaling={false} style={styles.message}>
-						{t("startup.message")}
+						{t("app.startup.message")}
 					</Text>
 					<PressableSurface
 						onPress={onRetry}
@@ -24,13 +24,13 @@ export function StartupScreen({ failed, onRetry }: { failed: boolean; onRetry():
 						contentStyle={styles.retry}
 					>
 						<Text allowFontScaling={false} style={styles.retryLabel}>
-							{t("startup.retry")}
+							{t("app.startup.retry")}
 						</Text>
 					</PressableSurface>
 				</>
 			) : (
 				<ActivityIndicator
-					accessibilityLabel={t("startup.loading")}
+					accessibilityLabel={t("app.startup.loading")}
 					color={colors.orange}
 				/>
 			)}

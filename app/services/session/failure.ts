@@ -1,6 +1,6 @@
 import {
-	failureCodes,
 	type FailureCode,
+	failureCodes,
 	type SessionFailure,
 } from "@modules/session-audio-engine/types"
 

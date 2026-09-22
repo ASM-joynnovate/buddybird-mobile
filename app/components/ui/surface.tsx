@@ -4,8 +4,8 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
 	ReduceMotion,
 	useAnimatedStyle,
-	useSharedValue,
 	useReducedMotion,
+	useSharedValue,
 	withTiming,
 } from "react-native-reanimated"
 import { scheduleOnRN } from "react-native-worklets"
@@ -83,13 +83,17 @@ export function Card({ contentStyle, ...props }: SurfaceProps) {
 	return <Surface depth={2} {...props} contentStyle={[styles.card, contentStyle]} />
 }
 
+export type PressPoint = { x: number; y: number }
+
 export type PressableSurfaceProps = SurfaceProps & {
-	onPress(): void
+	onPress(point: PressPoint): void
+	onLongPress?(): void
 	disabled?: boolean
 }
 
 export function PressableSurface({
 	onPress,
+	onLongPress,
 	disabled = false,
 	depth = 4,
 	contentStyle,
@@ -100,30 +104,49 @@ export function PressableSurface({
 }: PressableSurfaceProps) {
 	const reduced = useReducedMotion()
 	const pressed = useSharedValue(0)
-	const activate = useCallback(() => {
-		if (!disabled) {
-			onPress()
-		}
-	}, [disabled, onPress])
-	const gesture = useMemo(
-		() =>
-			Gesture.Tap()
-				.enabled(!disabled)
-				.maxDuration(10_000)
-				.maxDistance(10)
-				.onBegin(() => {
-					pressed.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }))
-				})
-				.onEnd((_event, success) => {
-					if (success) {
-						scheduleOnRN(activate)
-					}
-				})
-				.onFinalize(() => {
-					pressed.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }))
-				}),
-		[activate, disabled, pressed],
+	const activate = useCallback(
+		(x = 0, y = 0) => {
+			if (!disabled) {
+				onPress({ x, y })
+			}
+		},
+		[disabled, onPress],
 	)
+	const holdActivate = useCallback(() => {
+		if (!disabled) {
+			onLongPress?.()
+		}
+	}, [disabled, onLongPress])
+	const gesture = useMemo(() => {
+		const tap = Gesture.Tap()
+			.enabled(!disabled)
+			.maxDuration(10_000)
+			.maxDistance(10)
+			.onBegin(() => {
+				pressed.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }))
+			})
+			.onEnd((event, success) => {
+				if (success) {
+					scheduleOnRN(activate, event.x, event.y)
+				}
+			})
+			.onFinalize(() => {
+				pressed.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }))
+			})
+
+		if (!onLongPress) {
+			return tap
+		}
+
+		const hold = Gesture.LongPress()
+			.enabled(!disabled)
+			.minDuration(500)
+			.onStart(() => {
+				scheduleOnRN(holdActivate)
+			})
+
+		return Gesture.Exclusive(hold, tap)
+	}, [activate, disabled, holdActivate, onLongPress, pressed])
 	const faceAnimation = useAnimatedStyle(() => ({
 		transform: [{ translateY: reduced ? 0 : pressed.get() * Math.max(0, depth - 1) }],
 	}))
@@ -137,11 +160,17 @@ export function PressableSurface({
 				focusable={!disabled}
 				accessibilityRole={accessibilityRole}
 				accessibilityState={{ ...accessibilityState, disabled }}
-				accessibilityActions={[{ name: "activate" }]}
-				onAccessibilityTap={activate}
+				accessibilityActions={
+					onLongPress
+						? [{ name: "activate" }, { name: "longpress" }]
+						: [{ name: "activate" }]
+				}
+				onAccessibilityTap={() => activate()}
 				onAccessibilityAction={(event) => {
 					if (event.nativeEvent.actionName === "activate") {
 						activate()
+					} else if (event.nativeEvent.actionName === "longpress") {
+						holdActivate()
 					}
 				}}
 				depth={depth}
@@ -170,6 +199,6 @@ export function ChoiceCard({
 
 const styles = StyleSheet.create({
 	shell: { borderCurve: "continuous", minWidth: 0, maxWidth: "100%" },
-	face: { flexGrow: 1, minWidth: 0, borderWidth: 2, borderCurve: "continuous" },
+	face: { minWidth: 0, borderWidth: 2, borderCurve: "continuous" },
 	card: { padding: 16 },
 })

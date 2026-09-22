@@ -24,6 +24,41 @@ const symbols = {
 	send: ["paperplane.fill", "send"],
 	edit: ["pencil", "edit"],
 	close: ["xmark", "close"],
+	home: ["house.fill", "home"],
+	words: ["text.bubble.fill", "chat-bubble"],
+	report: ["chart.bar.fill", "bar-chart"],
+	records: ["calendar", "calendar-today"],
+	bell: ["bell.fill", "notifications"],
+	gear: ["gearshape.fill", "settings"],
+	moon: ["moon.fill", "bedtime"],
+	sun: ["sun.max.fill", "wb-sunny"],
+	battery: ["battery.75", "battery-5-bar"],
+	charging: ["battery.100.bolt", "battery-charging-full"],
+	wifi: ["wifi", "wifi"],
+	wifiOff: ["wifi.slash", "wifi-off"],
+	camera: ["video.fill", "videocam"],
+	cameraOff: ["video.slash.fill", "videocam-off"],
+	micOff: ["mic.slash.fill", "mic-off"],
+	plug: ["powerplug.fill", "power"],
+	warning: ["exclamationmark.triangle.fill", "warning"],
+	forward: ["chevron.right", "chevron-right"],
+	help: ["questionmark.circle", "help-outline"],
+	thumbUp: ["hand.thumbsup", "thumb-up-off-alt"],
+	thumbUpFill: ["hand.thumbsup.fill", "thumb-up"],
+	thumbDown: ["hand.thumbsdown", "thumb-down-off-alt"],
+	thumbDownFill: ["hand.thumbsdown.fill", "thumb-down"],
+	share: ["square.and.arrow.up", "share"],
+	download: ["arrow.down.to.line", "download"],
+	expand: ["arrow.up.left.and.arrow.down.right", "fullscreen"],
+	notice: ["megaphone.fill", "campaign"],
+	mimicry: ["waveform", "graphic-eq"],
+	device: ["iphone", "smartphone"],
+	photo: ["photo", "image"],
+	care: ["leaf.fill", "spa"],
+	rest: ["pause.circle.fill", "pause-circle-filled"],
+	logout: ["rectangle.portrait.and.arrow.right", "logout"],
+	link: ["link", "link"],
+	refresh: ["arrow.clockwise", "refresh"],
 } as const satisfies Record<
 	string,
 	readonly [SymbolViewProps["name"], ComponentProps<typeof MaterialIcons>["name"]]
@@ -35,16 +70,19 @@ export function Icon({
 	name,
 	size = 24,
 	color = colors.text,
+	weight,
 }: {
 	name: IconName
 	size?: number
 	color?: string
+	weight?: SymbolViewProps["weight"]
 }) {
 	return Platform.OS === "ios" ? (
 		<SymbolView
 			name={symbols[name][0]}
 			tintColor={color}
 			size={size}
+			weight={weight}
 			style={{ width: size, height: size }}
 			accessibilityElementsHidden
 		/>

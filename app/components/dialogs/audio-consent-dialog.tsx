@@ -41,12 +41,12 @@ export function AudioConsentDialog({
 		<Dialog
 			visible={visible}
 			onClose={() => {}}
-			title={t("consent.title")}
+			title={t("app.consent.title")}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					<Button
 						testID="audio-consent-decline"
-						label={t("consent.decline")}
+						label={t("app.consent.decline")}
 						variant="secondary"
 						disabled={busy}
 						onPress={() => void decide("denied")}
@@ -54,7 +54,7 @@ export function AudioConsentDialog({
 					/>
 					<Button
 						testID="audio-consent-accept"
-						label={t("consent.accept")}
+						label={t("app.consent.accept")}
 						loading={busy}
 						onPress={() => void decide("granted")}
 						style={ui.action}
@@ -62,8 +62,8 @@ export function AudioConsentDialog({
 				</View>
 			}
 		>
-			<Copy style={styles.body}>{t("consent.body")}</Copy>
-			<InlineError message={error ? t("consent.error") : null} />
+			<Copy style={styles.body}>{t("app.consent.body")}</Copy>
+			<InlineError message={error ? t("app.consent.error") : null} />
 		</Dialog>
 	)
 }

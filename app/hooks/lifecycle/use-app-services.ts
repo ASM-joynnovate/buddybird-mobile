@@ -61,7 +61,7 @@ export function useAppServices() {
 			recordVisit()
 		} catch (error) {
 			reportError(error, "app_settings")
-			Alert.alert(i18next.t("storage.saveError"))
+			Alert.alert(i18next.t("app.storage.saveError"))
 		}
 
 		let foregroundAt = Date.now()
@@ -87,7 +87,7 @@ export function useAppServices() {
 					}
 				} catch (error) {
 					reportError(error, "foreground")
-					Alert.alert(i18next.t("storage.saveError"))
+					Alert.alert(i18next.t("app.storage.saveError"))
 				}
 			} else if (next === "background" && previous !== "background") {
 				track("app_background", { session_duration_ms: Date.now() - foregroundAt })

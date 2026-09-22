@@ -65,7 +65,7 @@ export function useFeedbackPrompt(
 			}
 		} catch (error) {
 			reportError(error, "feedback_prompt")
-			Alert.alert(t("storage.saveError"))
+			Alert.alert(t("app.storage.saveError"))
 		} finally {
 			setOpen(false)
 		}

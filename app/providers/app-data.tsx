@@ -81,13 +81,13 @@ export function AppProvider({ children }: PropsWithChildren) {
 		<SafeAreaView edges={["top"]} style={styles.notice}>
 			<Copy accessibilityRole="alert" style={styles.message}>
 				{running
-					? t("storage.loading")
-					: t(data ? "storage.partial" : "storage.unavailable")}
+					? t("app.storage.loading")
+					: t(data ? "app.storage.partial" : "app.storage.unavailable")}
 			</Copy>
 			{running ? (
 				<ActivityIndicator
 					color={colors.orange}
-					accessibilityLabel={t("storage.loading")}
+					accessibilityLabel={t("app.storage.loading")}
 				/>
 			) : (
 				<Button testID="migration-retry" label={t("common.retry")} onPress={retry} />
@@ -116,7 +116,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 						/>
 					))}
 				</View>
-				{failure ? <Copy style={styles.message}>{t("storage.saveError")}</Copy> : null}
+				{failure ? <Copy style={styles.message}>{t("app.storage.saveError")}</Copy> : null}
 			</View>
 		)
 	}

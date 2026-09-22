@@ -1,7 +1,7 @@
 import {
 	MutationCache,
-	type MutationOptions,
 	MutationObserver,
+	type MutationOptions,
 	QueryCache,
 	QueryClient,
 } from "@tanstack/react-query"

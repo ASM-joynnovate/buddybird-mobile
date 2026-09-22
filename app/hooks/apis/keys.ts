@@ -6,7 +6,10 @@ export const apiKeys = {
 	all: scope,
 	me: () => [...scope(), "users", "me"] as const,
 	settings: () => [...scope(), "users", "me", "settings"] as const,
-	consents: () => [...scope(), "users", "me", "consents"] as const,
+	consents: {
+		all: () => [...scope(), "users", "me", "consents"] as const,
+		list: (locale: string) => [...scope(), "users", "me", "consents", locale] as const,
+	},
 	devices: () => [...scope(), "devices"] as const,
 	parrots: {
 		all: () => [...scope(), "parrots"] as const,
@@ -19,9 +22,22 @@ export const apiKeys = {
 	sessions: {
 		all: () => [...scope(), "sessions"] as const,
 		list: () => [...scope(), "sessions", "list"] as const,
+		range: (from: string, to: string) => [...scope(), "sessions", "list", from, to] as const,
+		running: () => [...scope(), "sessions", "running"] as const,
 		detail: (id: string) => [...scope(), "sessions", id] as const,
 		events: (id: string) => [...scope(), "sessions", id, "events"] as const,
 		sounds: (id: string) => [...scope(), "sessions", id, "sounds"] as const,
+		timeline: (id: string) => [...scope(), "sessions", id, "timeline"] as const,
+	},
+	emergencies: {
+		all: () => [...scope(), "emergencies"] as const,
+		detail: (id: string) => [...scope(), "emergencies", id] as const,
+	},
+	home: () => [...scope(), "home"] as const,
+	notifications: () => [...scope(), "notifications"] as const,
+	reports: {
+		all: () => [...scope(), "reports"] as const,
+		detail: (period: string, start: string) => [...scope(), "reports", period, start] as const,
 	},
 	notices: {
 		all: () => [...scope(), "notices"] as const,

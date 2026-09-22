@@ -1,6 +1,6 @@
 import {
-	getMessaging,
 	getIsHeadless as nativeIsHeadless,
+	getMessaging,
 	setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging"
 import { Platform } from "react-native"

@@ -16,7 +16,7 @@ const config: ExpoConfig = {
 	slug: "buddybird",
 	owner: "joynnovate0410",
 	version,
-	orientation: "portrait",
+	orientation: "default",
 	scheme: production ? "buddybird" : "buddybird-dev",
 	userInterfaceStyle: "automatic",
 	locales: { ko: "./app/i18n/native/ko.json", en: "./app/i18n/native/en.json" },
