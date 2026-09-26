@@ -21,4 +21,26 @@ export const report: ReportMessages = {
 	empty: "이 기간에는 학습 기록이 없어요",
 	emptyScene: "빈 리포트",
 	startSession: "세션 시작하기",
+	detail: {
+		plays: "재생",
+		mimicry: "따라 함",
+		times: "{{count}}번",
+		filters: {
+			all: "전체",
+			sounds: "발성",
+			connection: "연결",
+		},
+		empty: "이 조건에 맞는 기록이 없어요",
+		serverEnded: "서버가 종료",
+		events: {
+			session_started: "세션 시작",
+			learning_started: "학습 시작",
+			learning_finished: "학습 종료",
+			sleep_started: "취침 시각에 재생 중지",
+			sleep_finished: "기상 시각에 재생 다시 시작",
+			station_disconnected: "새장 앞 기기 연결 끊김",
+			station_reconnected: "새장 앞 기기 연결 복구",
+			session_finished: "세션 종료",
+		},
+	},
 }

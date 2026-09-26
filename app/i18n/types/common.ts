@@ -11,7 +11,6 @@ export type CommonMessages = {
 		home: string
 		words: string
 		report: string
-		records: string
 		profile: string
 	}
 	help: string
@@ -32,12 +31,6 @@ export type CommonMessages = {
 		stress_care: string
 		sleeping: string
 	}
-	emergencyKinds: {
-		audio_cry: string
-		video_escape: string
-		video_no_motion: string
-		video_seizure: string
-	}
 	sound: {
 		play: string
 		stop: string
@@ -56,13 +49,11 @@ export type CommonMessages = {
 		selectTime: string
 		now: string
 		sound: string
-		emergency: string
 		learning: string
 		rest: string
 		sleeping: string
 		mimicry: string
 		otherSound: string
-		emergencyLegend: string
 	}
 	permission: {
 		title: string

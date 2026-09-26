@@ -6,7 +6,6 @@ import { entry } from "@/i18n/ko/entry"
 import { home } from "@/i18n/ko/home"
 import { parrot } from "@/i18n/ko/parrot"
 import { profile } from "@/i18n/ko/profile"
-import { records } from "@/i18n/ko/records"
 import { report } from "@/i18n/ko/report"
 import { session } from "@/i18n/ko/session"
 import { settings } from "@/i18n/ko/settings"
@@ -24,7 +23,6 @@ export const ko: Messages = {
 	home,
 	words,
 	report,
-	records,
 	profile,
 	settings,
 }

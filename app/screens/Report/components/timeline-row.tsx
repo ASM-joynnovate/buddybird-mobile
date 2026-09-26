@@ -1,37 +1,20 @@
-import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Icon, type IconName } from "@/components/ui/icon"
-import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import type { EmergencyBrief, TimelineEvent } from "@/mocks/types"
+import type { TimelineEvent } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 
 const eventIcons: Record<TimelineEvent["kind"], IconName> = {
 	session_started: "play",
 	learning_started: "learn",
-	learning_toggled: "learn",
 	learning_finished: "learn",
-	word_changed: "words",
 	sleep_started: "moon",
 	sleep_finished: "sun",
 	station_disconnected: "wifiOff",
 	station_reconnected: "wifi",
-	emergency_detected: "warning",
 	session_finished: "stop",
-}
-
-function eventName(event: TimelineEvent, t: TFunction): string {
-	if (event.kind === "learning_toggled") {
-		return t(
-			event.learning_enabled
-				? "records.detail.events.learningOn"
-				: "records.detail.events.learningOff",
-		)
-	}
-
-	return t(`records.detail.events.${event.kind}`)
 }
 
 export function EventRow({
@@ -53,50 +36,15 @@ export function EventRow({
 			<Copy style={styles.time}>{timeLabel}</Copy>
 			<Icon name={eventIcons[event.kind]} size={18} color={colors.muted} />
 			<View style={styles.name}>
-				<Copy style={styles.nameText}>{eventName(event, t)}</Copy>
+				<Copy style={styles.nameText}>{t(`report.detail.events.${event.kind}`)}</Copy>
 				{event.word ? <Copy style={styles.word}>{event.word.name}</Copy> : null}
 				{showServer ? (
 					<View style={styles.tag}>
-						<Copy style={styles.tagText}>{t("records.detail.serverEnded")}</Copy>
+						<Copy style={styles.tagText}>{t("report.detail.serverEnded")}</Copy>
 					</View>
 				) : null}
 			</View>
 		</View>
-	)
-}
-
-export function EmergencyRow({
-	emergency,
-	timeLabel,
-	highlighted,
-	onPress,
-}: {
-	emergency: EmergencyBrief
-	timeLabel: string
-	highlighted: boolean
-	onPress(): void
-}) {
-	const { t } = useTranslation()
-	const kind = t(`common.emergencyKinds.${emergency.kind}`)
-
-	return (
-		<PressableSurface
-			depth={highlighted ? 4 : 2}
-			color={colors.error}
-			cornerRadius={radius.control}
-			accessibilityRole="button"
-			accessibilityLabel={`${timeLabel}, ${t("records.detail.events.emergency_detected")}, ${kind}`}
-			accessibilityHint={t("records.detail.openEmergency")}
-			onPress={onPress}
-			contentStyle={[styles.row, styles.alarm]}
-		>
-			<Copy style={styles.time}>{timeLabel}</Copy>
-			<Icon name="warning" size={18} color={colors.error} />
-			<View style={styles.name}>
-				<Copy style={[styles.nameText, styles.alarmText]}>{kind}</Copy>
-			</View>
-			<Icon name="forward" size={18} color={colors.error} />
-		</PressableSurface>
 	)
 }
 
@@ -117,7 +65,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.orange,
 		paddingHorizontal: 10,
 	},
-	alarm: { paddingHorizontal: 10, borderColor: colors.error },
 	time: {
 		minWidth: 72,
 		fontFamily: font.extraBold,
@@ -135,7 +82,6 @@ const styles = StyleSheet.create({
 		rowGap: 4,
 	},
 	nameText: { fontFamily: font.extraBold, fontSize: 14, color: colors.text },
-	alarmText: { color: colors.error },
 	word: { fontFamily: font.extraBold, fontSize: 14, color: colors.orangeDark },
 	tag: {
 		backgroundColor: colors.surface,

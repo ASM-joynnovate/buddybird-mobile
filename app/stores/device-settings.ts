@@ -40,7 +40,7 @@ function defaultDeviceSettings(): DeviceSettings {
 		analyticsConsent: "unknown",
 		update: { dismissedVersion: null },
 		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
-		guides: { usage: false, placement: false, recording: false },
+		guides: { usage: false, recording: false },
 	}
 }
 

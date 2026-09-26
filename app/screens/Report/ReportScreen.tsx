@@ -62,7 +62,7 @@ export function ReportScreen(): ReactElement {
 						player={player}
 						onPress={() =>
 							navigation.navigate("Main", {
-								screen: "RecordsTab",
+								screen: "ReportTab",
 								params: {
 									screen: "SessionDetail",
 									params: { sessionId: item.session_id, soundId: item.id },

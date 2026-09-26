@@ -10,7 +10,6 @@ import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
 import { ScreenHeader } from "@/components/ui/header"
-import { IconButton } from "@/components/ui/icon-button"
 import { GroupedList, SwitchRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
@@ -22,9 +21,7 @@ import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { SleepEditor } from "@/screens/Session/components/sleep-editor"
 import { StartDialogs } from "@/screens/Session/components/start-dialogs"
 import { selectableWords, WordPicker } from "@/screens/Session/components/word-picker"
-import { cameraGranted, useStartSession } from "@/screens/Session/hooks/use-start-session"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors } from "@/theme"
+import { useStartSession } from "@/screens/Session/hooks/use-start-session"
 import type { RootStackParamList, SessionDraft } from "@/types/navigation"
 
 export function SessionStartScreen() {
@@ -36,8 +33,6 @@ export function SessionStartScreen() {
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionStart">>()
 
 	const words = useQuery(wordsQueryOptions())
-
-	const guides = useDeviceSettingsStore((state) => state.guides)
 
 	const microphone = usePermission("microphone")
 
@@ -60,17 +55,7 @@ export function SessionStartScreen() {
 
 		player.stop()
 
-		void microphone.run(() => void proceed(draft))
-	}
-
-	async function proceed(draft: SessionDraft) {
-		if (!guides.placement) {
-			navigation.navigate("PlacementGuide", { source: "start", draft })
-		} else if (await cameraGranted()) {
-			navigation.navigate("CameraSetup", { draft })
-		} else {
-			starter.start(draft)
-		}
+		void microphone.run(() => starter.start(draft))
 	}
 
 	const settings = (
@@ -134,16 +119,7 @@ export function SessionStartScreen() {
 	return (
 		<Screen scroll={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
-				<ScreenHeader
-					title={t("session.start.title")}
-					onBack={() => navigation.goBack()}
-					right=<IconButton
-						icon="help"
-						label={t("session.start.placementHelp")}
-						color={colors.muted}
-						onPress={() => navigation.navigate("PlacementGuide", { source: "help" })}
-					/>
-				/>
+				<ScreenHeader title={t("session.start.title")} onBack={() => navigation.goBack()} />
 				<View style={styles.body}>{body}</View>
 				<Button
 					label={t("common.start")}

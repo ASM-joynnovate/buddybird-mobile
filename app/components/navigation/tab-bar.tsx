@@ -17,7 +17,6 @@ const tabs: Record<
 	HomeTab: { icon: "home", label: "home" },
 	WordsTab: { icon: "words", label: "words" },
 	ReportTab: { icon: "report", label: "report" },
-	RecordsTab: { icon: "records", label: "records" },
 	ProfileTab: { icon: "profile", label: "profile" },
 }
 

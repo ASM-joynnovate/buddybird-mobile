@@ -6,11 +6,8 @@ import { HomeScreen } from "@/screens/Home/HomeScreen"
 import { NotificationsScreen } from "@/screens/Home/NotificationsScreen"
 import { AccountEditorScreen } from "@/screens/Profile/AccountEditorScreen"
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen"
-import { EmergencyDetailScreen } from "@/screens/Records/EmergencyDetailScreen"
-import { RecordsScreen } from "@/screens/Records/RecordsScreen"
-import { SessionDetailScreen } from "@/screens/Records/SessionDetailScreen"
 import { ReportScreen } from "@/screens/Report/ReportScreen"
-import { SessionMonitorScreen } from "@/screens/Session/SessionMonitorScreen"
+import { SessionDetailScreen } from "@/screens/Report/SessionDetailScreen"
 import { WordEditorScreen } from "@/screens/Words/WordEditorScreen"
 import { WordListScreen } from "@/screens/Words/WordListScreen"
 import { colors } from "@/theme"
@@ -18,7 +15,6 @@ import type {
 	HomeStackParamList,
 	MainTabParamList,
 	ProfileStackParamList,
-	RecordsStackParamList,
 	ReportStackParamList,
 	WordsStackParamList,
 } from "@/types/navigation"
@@ -27,7 +23,6 @@ const Tabs = createBottomTabNavigator<MainTabParamList>()
 const HomeStack = createNativeStackNavigator<HomeStackParamList>()
 const WordsStack = createNativeStackNavigator<WordsStackParamList>()
 const ReportStack = createNativeStackNavigator<ReportStackParamList>()
-const RecordsStack = createNativeStackNavigator<RecordsStackParamList>()
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>()
 
 const stackOptions = {
@@ -40,7 +35,6 @@ function HomeTab() {
 		<HomeStack.Navigator screenOptions={stackOptions}>
 			<HomeStack.Screen name="Home" component={HomeScreen} />
 			<HomeStack.Screen name="Notifications" component={NotificationsScreen} />
-			<HomeStack.Screen name="SessionMonitor" component={SessionMonitorScreen} />
 		</HomeStack.Navigator>
 	)
 }
@@ -58,17 +52,8 @@ function ReportTab() {
 	return (
 		<ReportStack.Navigator screenOptions={stackOptions}>
 			<ReportStack.Screen name="Report" component={ReportScreen} />
+			<ReportStack.Screen name="SessionDetail" component={SessionDetailScreen} />
 		</ReportStack.Navigator>
-	)
-}
-
-function RecordsTab() {
-	return (
-		<RecordsStack.Navigator screenOptions={stackOptions}>
-			<RecordsStack.Screen name="Records" component={RecordsScreen} />
-			<RecordsStack.Screen name="SessionDetail" component={SessionDetailScreen} />
-			<RecordsStack.Screen name="EmergencyDetail" component={EmergencyDetailScreen} />
-		</RecordsStack.Navigator>
 	)
 }
 
@@ -93,7 +78,6 @@ export function MainTabs() {
 			<Tabs.Screen name="HomeTab" component={HomeTab} />
 			<Tabs.Screen name="WordsTab" component={WordsTab} />
 			<Tabs.Screen name="ReportTab" component={ReportTab} />
-			<Tabs.Screen name="RecordsTab" component={RecordsTab} />
 			<Tabs.Screen name="ProfileTab" component={ProfileTab} />
 		</Tabs.Navigator>
 	)

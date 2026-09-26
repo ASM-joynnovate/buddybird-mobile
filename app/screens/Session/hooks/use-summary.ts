@@ -2,14 +2,13 @@ import { useQuery } from "@tanstack/react-query"
 
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { useSessionRecord } from "@/hooks/use-session-record"
-import type { EmergencyBrief, SessionRecord, SessionTimeline, TimelineSound } from "@/mocks/types"
+import type { SessionRecord, SessionTimeline, TimelineSound } from "@/mocks/types"
 
 export type StripData = {
 	start: number
 	end: number
 	activity: { at: number; level: number }[]
 	sounds: { id: string; at: number; mimicked: boolean }[]
-	emergencies: { id: string; at: number }[]
 }
 
 export type SummaryData = {
@@ -17,7 +16,6 @@ export type SummaryData = {
 	timeline: SessionTimeline
 	parrotName: string | null
 	strip: StripData
-	emergencies: EmergencyBrief[]
 	best: TimelineSound | null
 	analyzing: boolean
 }
@@ -40,15 +38,11 @@ function summarize(
 	parrotName: string | null,
 ): SummaryData {
 	const { session } = record
-	const emergencies = timeline.events.flatMap((event) =>
-		event.kind === "emergency_detected" && event.emergency ? [event.emergency] : [],
-	)
 
 	return {
 		record,
 		timeline,
 		parrotName,
-		emergencies,
 		best: bestMimicry(timeline.sounds),
 		analyzing: timeline.sounds.some((sound) => sound.judgment === null),
 		strip: {
@@ -62,10 +56,6 @@ function summarize(
 				id: sound.id,
 				at: Date.parse(sound.captured_at),
 				mimicked: Boolean(sound.judgment?.word_id),
-			})),
-			emergencies: emergencies.map((item) => ({
-				id: item.id,
-				at: Date.parse(item.detected_at),
 			})),
 		},
 	}

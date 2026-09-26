@@ -12,7 +12,7 @@ export const deviceSettingsSchema = z.object({
 		dayCount: z.number().nonnegative(),
 		thresholdIndex: z.number().nonnegative(),
 	}),
-	guides: z.object({ usage: z.boolean(), placement: z.boolean(), recording: z.boolean() }),
+	guides: z.object({ usage: z.boolean(), recording: z.boolean() }),
 })
 
 export type DeviceSettings = z.infer<typeof deviceSettingsSchema>

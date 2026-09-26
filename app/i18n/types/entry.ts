@@ -45,7 +45,6 @@ export type EntryMessages = {
 		title: string
 		scene: string
 		microphone: string
-		camera: string
 		notifications: string
 		allow: string
 		later: string

@@ -2,7 +2,6 @@ import { Asset } from "expo-asset"
 import { randomUUID } from "expo-crypto"
 import { Platform } from "react-native"
 
-import type { EmergencyBrief, EmergencyKind } from "@/mocks/types"
 import { phaseSpans } from "@/services/session/phases"
 import type { NotificationKind } from "@/types/apis/notifications"
 import type { SessionEventKind } from "@/types/apis/sessions"
@@ -22,23 +21,11 @@ export type MockSound = {
 	feedback: "up" | "down" | null
 }
 
-export type MockEmergency = {
-	id: string
-	session_id: string
-	kind: EmergencyKind
-	detected_at: string
-	media: { type: "audio" | "video"; url: string } | null
-	is_confirmed: boolean
-	deleted: boolean
-}
-
 export type MockEvent = {
 	id: string
 	kind: SessionEventKind
 	occurred_at: string
 	word_id: string | null
-	learning_enabled: boolean | null
-	emergency: EmergencyBrief | null
 }
 
 export type MockSleepEvent = {
@@ -59,9 +46,6 @@ export type MockSession = {
 	settings_version: number
 	applied_settings_version: number
 	last_heartbeat_at: string | null
-	battery_level: number | null
-	is_charging: boolean | null
-	camera_available: boolean
 	events: MockEvent[]
 	sleep_events: MockSleepEvent[]
 	sounds: MockSound[]
@@ -170,7 +154,6 @@ export type Database = {
 	devices: MockDevice[]
 	currentDeviceId: string
 	sessions: MockSession[]
-	emergencies: MockEmergency[]
 	notices: MockNotice[]
 	notifications: MockNotification[]
 	noticeNotifications: MockNoticeNotification[]
@@ -309,8 +292,6 @@ export function event(
 		kind,
 		occurred_at: iso(at),
 		word_id: null,
-		learning_enabled: null,
-		emergency: null,
 		...extra,
 	}
 }
@@ -319,16 +300,7 @@ function createSleepEvent(kind: MockSleepEvent["kind"], at: number): MockSleepEv
 	return { id: randomUUID(), kind, occurred_at: iso(at) }
 }
 
-function emergencyBrief(item: MockEmergency): EmergencyBrief {
-	return {
-		id: item.id,
-		session_id: item.session_id,
-		kind: item.kind,
-		detected_at: item.detected_at,
-	}
-}
-
-function events(session: MockSession, emergencies: MockEmergency[], now: number): MockEvent[] {
+function events(session: MockSession, now: number): MockEvent[] {
 	const start = Date.parse(session.started_at)
 	const end = session.ended_at ? Date.parse(session.ended_at) : now
 	const list = [event("session_started", start)]
@@ -343,14 +315,6 @@ function events(session: MockSession, emergencies: MockEmergency[], now: number)
 		list.push(
 			event("station_disconnected", lost),
 			event("station_reconnected", lost + between(3, 25) * MINUTE),
-		)
-	}
-
-	for (const item of emergencies) {
-		list.push(
-			event("emergency_detected", Date.parse(item.detected_at), {
-				emergency: emergencyBrief(item),
-			}),
 		)
 	}
 
@@ -384,27 +348,6 @@ export function sleepEvents(
 	})
 }
 
-function emergency(
-	sessionId: string,
-	detectedAt: number,
-	kind: EmergencyKind,
-	confirmed: boolean,
-	now: number,
-): MockEmergency {
-	return {
-		id: randomUUID(),
-		session_id: sessionId,
-		kind,
-		detected_at: iso(detectedAt),
-		media: {
-			type: kind === "audio_cry" ? "audio" : "video",
-			url: kind === "audio_cry" ? clips.bye : sampleImage,
-		},
-		is_confirmed: confirmed,
-		deleted: now - detectedAt > 30 * DAY,
-	}
-}
-
 function buildSession(
 	options: {
 		start: number
@@ -413,25 +356,12 @@ function buildSession(
 		stationId: string
 		settings: MockSettings
 		endedBy: "user" | "server"
-		emergencyKinds: EmergencyKind[]
-		confirmed: boolean
 	},
 	now: number,
-) {
+): MockSession {
 	const id = randomUUID()
 	const running = options.end === null
 	const end = options.end ?? now
-	const emergencies = options.emergencyKinds.map((kind, index) =>
-		emergency(
-			id,
-			running && index === 0
-				? now - 25 * MINUTE
-				: between(options.start + HOUR, end - 10 * MINUTE),
-			kind,
-			options.confirmed,
-			now,
-		),
-	)
 	const record: MockSession = {
 		id,
 		status: running ? "running" : "finished",
@@ -444,9 +374,6 @@ function buildSession(
 		settings_version: 1,
 		applied_settings_version: 1,
 		last_heartbeat_at: iso(running ? now - 4000 : end),
-		battery_level: 0.82,
-		is_charging: true,
-		camera_available: true,
 		events: [],
 		sleep_events: [],
 		sounds: sounds(id, options.start, end, options.word, now),
@@ -454,12 +381,9 @@ function buildSession(
 	}
 
 	return {
-		record: {
-			...record,
-			events: events(record, emergencies, now),
-			sleep_events: sleepEvents(record, sleepWindowOf(options.settings), now),
-		},
-		emergencies,
+		...record,
+		events: events(record, now),
+		sleep_events: sleepEvents(record, sleepWindowOf(options.settings), now),
 	}
 }
 
@@ -604,7 +528,6 @@ export function seed(now: number): Database {
 		now,
 	)
 	const sessions: MockSession[] = []
-	const emergencies: MockEmergency[] = []
 	const today = startOfDay(now)
 
 	for (let daysAgo = 44; daysAgo >= 1; daysAgo--) {
@@ -614,26 +537,20 @@ export function seed(now: number): Database {
 
 		const start = today - daysAgo * DAY + between(8.3, 9.6) * HOUR
 		const long = daysAgo === 20
-		const kinds: EmergencyKind[] =
-			random() > 0.86
-				? [pick(["audio_cry", "audio_cry", "video_escape", "video_no_motion"] as const)]
-				: []
-		const made = buildSession(
-			{
-				start,
-				end: start + (long ? 52 * HOUR : between(6, 11) * HOUR),
-				word: random() > 0.12 ? pick(refs) : null,
-				stationId: station.id,
-				settings,
-				endedBy: random() > 0.92 ? "server" : "user",
-				emergencyKinds: kinds,
-				confirmed: true,
-			},
-			now,
-		)
 
-		sessions.push(made.record)
-		emergencies.push(...made.emergencies)
+		sessions.push(
+			buildSession(
+				{
+					start,
+					end: start + (long ? 52 * HOUR : between(6, 11) * HOUR),
+					word: random() > 0.12 ? pick(refs) : null,
+					stationId: station.id,
+					settings,
+					endedBy: random() > 0.92 ? "server" : "user",
+				},
+				now,
+			),
+		)
 
 		if (long) {
 			daysAgo -= 2
@@ -648,14 +565,11 @@ export function seed(now: number): Database {
 			stationId: station.id,
 			settings,
 			endedBy: "user",
-			emergencyKinds: ["audio_cry"],
-			confirmed: false,
 		},
 		now,
 	)
 
-	sessions.push(running.record)
-	emergencies.push(...running.emergencies)
+	sessions.push(running)
 
 	const notices: MockNotice[] = [
 		{
@@ -677,19 +591,10 @@ export function seed(now: number): Database {
 			is_read: true,
 		},
 	]
-	const alarm = running.emergencies[0]
-	const latest = [...running.record.sounds].reverse().find((item) => item.word_id)
+	const latest = [...running.sounds].reverse().find((item) => item.word_id)
 	const latestWord = words.find((item) => item.id === latest?.word_id)
-	const oldVideo = emergencies.find((item) => item.kind !== "audio_cry" && !item.deleted)
 	const reportDate = dateKey(today - DAY)
 	const notifications = [
-		notification(
-			"emergency",
-			"앵무새가 크게 울고 있어요",
-			"거실 공기계가 빠르게 반복되는 울음소리를 감지했어요. 기록을 확인해 보세요.",
-			Date.parse(alarm.detected_at),
-			{ session_id: alarm.session_id, emergency_event_id: alarm.id },
-		),
 		...(latest && latestWord
 			? [
 					notification(
@@ -722,22 +627,6 @@ export function seed(now: number): Database {
 			today - 4 * DAY + 13 * HOUR,
 			{ read_at: iso(today - 4 * DAY + 14 * HOUR) },
 		),
-		...(oldVideo
-			? [
-					notification(
-						"emergency",
-						"앵무새가 새장 밖으로 나온 것 같아요",
-						"영상에서 새장 탈출을 감지했어요.",
-						Date.parse(oldVideo.detected_at),
-						{
-							session_id: oldVideo.session_id,
-							emergency_event_id: oldVideo.id,
-							image: { url: sampleImage },
-							read_at: iso(Date.parse(oldVideo.detected_at) + HOUR),
-						},
-					),
-				]
-			: []),
 	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
 	const noticeNotifications: MockNoticeNotification[] = [
 		{
@@ -780,7 +669,6 @@ export function seed(now: number): Database {
 		devices: [current, station],
 		currentDeviceId: current.id,
 		sessions,
-		emergencies,
 		notices,
 		notifications,
 		noticeNotifications,

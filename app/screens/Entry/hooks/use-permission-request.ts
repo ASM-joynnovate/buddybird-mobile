@@ -8,7 +8,7 @@ import { type PermissionKind, requestPermission } from "@/services/device/permis
 import { reportError } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
-const ORDER: readonly PermissionKind[] = ["microphone", "camera", "notifications"]
+const ORDER: readonly PermissionKind[] = ["microphone", "notifications"]
 
 async function ask(kind: PermissionKind) {
 	try {

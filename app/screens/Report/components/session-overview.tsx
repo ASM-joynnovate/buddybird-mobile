@@ -33,18 +33,12 @@ export function SessionOverview({
 	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const start = Date.parse(record.session.period.started_at)
-	const word = record.session.settings.learning_enabled ? record.wordName : null
-	const emergencies = timeline.events.flatMap((event) =>
-		event.kind === "emergency_detected" && event.emergency
-			? [{ id: event.emergency.id, at: Date.parse(event.occurred_at) }]
-			: [],
-	)
 
 	return (
 		<Card contentStyle={styles.card}>
 			<View style={styles.top}>
-				<Copy numberOfLines={1} style={[styles.word, !word && styles.off]}>
-					{word ?? t("records.card.learningOff")}
+				<Copy numberOfLines={1} style={styles.word}>
+					{record.wordName}
 				</Copy>
 				<Copy style={styles.duration}>{formatDuration(end - start, locale)}</Copy>
 			</View>
@@ -62,35 +56,28 @@ export function SessionOverview({
 					at: Date.parse(sound.captured_at),
 					mimicked: Boolean(sound.judgment?.word_id),
 				}))}
-				emergencies={emergencies}
 				cursor={cursor}
 				onSelectSound={onSelectKey}
-				onSelectEmergency={onSelectKey}
 				onSelectTime={onSelectTime}
 			/>
 			<View style={styles.stats}>
 				<Stat
-					label={t("records.detail.plays")}
-					value={t("records.detail.times", { count: record.playCount })}
+					label={t("report.detail.plays")}
+					value={t("report.detail.times", { count: record.playCount })}
 				/>
 				<Stat
-					label={t("records.detail.mimicry")}
-					value={t("records.detail.times", { count: record.mimicryCount })}
-				/>
-				<Stat
-					label={t("records.detail.emergency")}
-					value={t("records.detail.cases", { count: record.emergencyCount })}
-					alert={record.emergencyCount > 0}
+					label={t("report.detail.mimicry")}
+					value={t("report.detail.times", { count: record.mimicryCount })}
 				/>
 			</View>
 		</Card>
 	)
 }
 
-function Stat({ label, value, alert = false }: { label: string; value: string; alert?: boolean }) {
+function Stat({ label, value }: { label: string; value: string }) {
 	return (
 		<Copy style={styles.statLabel}>
-			{label} <Copy style={[styles.statValue, alert && styles.alert]}>{value}</Copy>
+			{label} <Copy style={styles.statValue}>{value}</Copy>
 		</Copy>
 	)
 }
@@ -99,7 +86,6 @@ const styles = StyleSheet.create({
 	card: { padding: 16, gap: 12 },
 	top: { flexDirection: "row", alignItems: "baseline", gap: 12 },
 	word: { flex: 1, minWidth: 0, fontFamily: font.black, fontSize: 22, lineHeight: 28 },
-	off: { color: colors.muted },
 	duration: { fontFamily: font.black, fontSize: 16, color: colors.text },
 	stats: { flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 4 },
 	statLabel: { fontFamily: font.extraBold, fontSize: 13, color: colors.muted },
@@ -109,5 +95,4 @@ const styles = StyleSheet.create({
 		color: colors.text,
 		fontVariant: ["tabular-nums"],
 	},
-	alert: { color: colors.error },
 })

@@ -25,9 +25,6 @@ export const apiKeys = {
 		events: (id: string) => [...scope(), "sessions", id, "events"] as const,
 		sounds: (id: string) => [...scope(), "sessions", id, "sounds"] as const,
 	},
-	emergencies: {
-		detail: (id: string) => [...scope(), "emergencies", id] as const,
-	},
 	home: () => [...scope(), "home"] as const,
 	notifications: () => [...scope(), "notifications"] as const,
 	reports: {
@@ -40,8 +37,6 @@ export const apiKeys = {
 		detail: (id: string) => [...scope(), "notices", id] as const,
 	},
 	mocks: {
-		homeExtras: () => [...scope(), "mocks", "home"] as const,
-		stationStatus: (id: string) => [...scope(), "sessions", id, "mocks", "station"] as const,
 		activity: (id: string) => [...scope(), "sessions", id, "mocks", "activity"] as const,
 		plays: (id: string) => [...scope(), "sessions", id, "mocks", "plays"] as const,
 		eventExtras: (id: string) => [...scope(), "sessions", id, "mocks", "events"] as const,

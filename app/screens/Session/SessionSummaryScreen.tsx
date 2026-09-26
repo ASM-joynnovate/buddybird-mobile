@@ -10,14 +10,9 @@ import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { formatDuration, formatTime } from "@/i18n/format"
+import { formatDuration } from "@/i18n/format"
 import { Confetti } from "@/screens/Session/components/confetti"
-import {
-	BestMimicry,
-	EmergencyCard,
-	Greeting,
-	Stat,
-} from "@/screens/Session/components/summary-parts"
+import { BestMimicry, Greeting, Stat } from "@/screens/Session/components/summary-parts"
 import { type SummaryData, useSummary } from "@/screens/Session/hooks/use-summary"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
@@ -34,27 +29,12 @@ export function SessionSummaryScreen() {
 		navigation.reset({ index: 0, routes: [{ name: "Main" }] })
 	}
 
-	function openEmergency(emergencyId: string) {
-		navigation.reset({
-			index: 0,
-			routes: [
-				{
-					name: "Main",
-					params: {
-						screen: "RecordsTab",
-						params: { screen: "EmergencyDetail", params: { emergencyId } },
-					},
-				},
-			],
-		})
-	}
-
 	let body = <Skeleton rows={4} height={96} />
 
 	if (summary.isError) {
 		body = <ScreenError message={t("common.loadError")} onRetry={summary.retry} />
 	} else if (summary.data) {
-		body = <SummaryBody data={summary.data} wide={wide} onEmergency={openEmergency} />
+		body = <SummaryBody data={summary.data} wide={wide} />
 	}
 
 	return (
@@ -68,24 +48,15 @@ export function SessionSummaryScreen() {
 	)
 }
 
-function SummaryBody({
-	data,
-	wide,
-	onEmergency,
-}: {
-	data: SummaryData
-	wide: boolean
-	onEmergency(id: string): void
-}) {
+function SummaryBody({ data, wide }: { data: SummaryData; wide: boolean }) {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const player = useSoundPlayer()
 
-	const { record, strip, emergencies, best } = data
+	const { record, strip, best } = data
 	const duration = formatDuration(strip.end - strip.start, locale)
-	const first = emergencies[0]
 
 	function playSound(id: string) {
 		const url = data.timeline.sounds.find((sound) => sound.id === id)?.audio.url
@@ -105,9 +76,7 @@ function SummaryBody({
 				sleep={{ sleepAt: record.sleep.sleep_at, wakeAt: record.sleep.wake_at }}
 				activity={strip.activity}
 				sounds={strip.sounds}
-				emergencies={strip.emergencies}
 				onSelectSound={playSound}
-				onSelectEmergency={onEmergency}
 			/>
 		</Card>
 	)
@@ -138,16 +107,6 @@ function SummaryBody({
 						: t("session.summary.greetingNoName", { duration })
 				}
 			/>
-			{first ? (
-				<EmergencyCard
-					title={t("session.summary.emergency", {
-						kind: t(`common.emergencyKinds.${first.kind}`),
-						count: emergencies.length,
-					})}
-					time={formatTime(first.detected_at, locale)}
-					onPress={() => onEmergency(first.id)}
-				/>
-			) : null}
 			{wide ? (
 				<View style={styles.columns}>
 					<View style={styles.left}>{stripCard}</View>

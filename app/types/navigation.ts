@@ -13,7 +13,6 @@ export type RecordedSample = { key: string; uri: string; durationMs: number }
 export type HomeStackParamList = {
 	Home: undefined
 	Notifications: undefined
-	SessionMonitor: { connectLive?: boolean } | undefined
 }
 
 export type WordsStackParamList = {
@@ -23,12 +22,7 @@ export type WordsStackParamList = {
 
 export type ReportStackParamList = {
 	Report: { period?: ReportPeriodParam; date?: string } | undefined
-}
-
-export type RecordsStackParamList = {
-	Records: undefined
 	SessionDetail: { sessionId: string; soundId?: string }
-	EmergencyDetail: { emergencyId: string }
 }
 
 export type ProfileStackParamList = {
@@ -40,7 +34,6 @@ export type MainTabParamList = {
 	HomeTab: NavigatorScreenParams<HomeStackParamList> | undefined
 	WordsTab: NavigatorScreenParams<WordsStackParamList> | undefined
 	ReportTab: NavigatorScreenParams<ReportStackParamList> | undefined
-	RecordsTab: NavigatorScreenParams<RecordsStackParamList> | undefined
 	ProfileTab: NavigatorScreenParams<ProfileStackParamList> | undefined
 }
 
@@ -53,11 +46,8 @@ export type RootStackParamList = {
 	Main: NavigatorScreenParams<MainTabParamList> | undefined
 	NoticeDetail: { noticeId: string }
 	SessionStart: { replaceRunning?: boolean } | undefined
-	PlacementGuide: { source: "start"; draft: SessionDraft } | { source: "help" }
-	CameraSetup: { draft: SessionDraft }
 	SessionRun: { sessionId: string }
 	SessionSummary: { sessionId: string; role: "station" | "viewer" }
-	LiveVideo: undefined
 	RecordingGuide: { source: "add" | "help"; wordName: string }
 	Recorder: { wordName: string }
 	Settings: undefined

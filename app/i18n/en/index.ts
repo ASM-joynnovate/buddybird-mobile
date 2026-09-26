@@ -6,7 +6,6 @@ import { entry } from "@/i18n/en/entry"
 import { home } from "@/i18n/en/home"
 import { parrot } from "@/i18n/en/parrot"
 import { profile } from "@/i18n/en/profile"
-import { records } from "@/i18n/en/records"
 import { report } from "@/i18n/en/report"
 import { session } from "@/i18n/en/session"
 import { settings } from "@/i18n/en/settings"
@@ -24,7 +23,6 @@ export const en: Messages = {
 	home,
 	words,
 	report,
-	records,
 	profile,
 	settings,
 }

@@ -30,34 +30,6 @@ export const session: SessionMessages = {
 		empty: "No words to play yet. Record a word first.",
 		emptyScene: "Buddy waiting for a word to record",
 		addWord: "Add word",
-		placementHelp: "View the session guide again",
-	},
-	placement: {
-		start: {
-			title: "Once you press Start, your parrot keeps hearing words while you're away",
-			scene: "A parrot listening to words from the phone by the cage",
-		},
-		cycle: {
-			title: "Words play for 10 minutes, then 5 minutes of rest, then 5 minutes of calming sounds. This repeats every 20 minutes",
-			scene: "The 20-minute order of words, rest, and calming sounds",
-		},
-		mimicry: {
-			title: "When your parrot repeats a word, we save the sound so you can listen to it later",
-			scene: "A person listening on a phone to the sound the parrot repeated",
-		},
-		alert: {
-			title: "If your parrot keeps crying urgently, leaves the cage, or stays still for a long time, we'll alert you right away. During sleep hours, word playback stops and we only watch for these",
-			scene: "A phone alert about the parrot",
-		},
-		setup: {
-			title: "Stand the device sideways so every cage is visible and plug in the charger. The screen goes dark after you start, so keep the app open",
-			scene: "A phone standing sideways by the cage, plugged into a charger",
-		},
-	},
-	camera: {
-		preview: "Camera preview",
-		hint: "Adjust until every cage is visible",
-		start: "Start like this",
 	},
 	run: {
 		reveal: "Tap the screen to see session info",
@@ -84,7 +56,6 @@ export const session: SessionMessages = {
 	summary: {
 		greeting: "Welcome back! Buddy stayed with {{name}} for {{duration}}.",
 		greetingNoName: "Welcome back! Buddy stayed for {{duration}}.",
-		emergency: "{{kind}} detected {{count}} times",
 		stripTitle: "While you were away",
 		duration: "Session time",
 		plays: "Word plays",
@@ -93,25 +64,5 @@ export const session: SessionMessages = {
 		playBest: "Play the best mimicry",
 		bestCaption: "The closest mimicry",
 		home: "Home",
-	},
-	monitor: {
-		battery: "Battery {{percent}}%",
-		charging: "Charging, battery {{percent}}%",
-		disconnected: "Lost connection to the device by the cage",
-		unplugged: "The device by the cage is unplugged",
-		playLive: "Watch live video",
-		cameraOff: "The camera on the device by the cage is off",
-		still: "Still image",
-		fullscreen: "Full screen",
-		changeWord: "Change word",
-		applyWord: "Use this word",
-		changeError: "Couldn't apply the change. Check your connection and try again.",
-		elapsed: "Elapsed {{time}}",
-		sounds: "Recent sounds",
-		none: "No session is running",
-	},
-	live: {
-		notReady: "Live video will be available once the server is connected",
-		disconnected: "Lost connection to the device by the cage",
 	},
 }

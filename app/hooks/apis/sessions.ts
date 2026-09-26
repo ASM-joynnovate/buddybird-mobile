@@ -1,8 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import {
-	changeLearning,
-	changeWord,
 	fetchEvents,
 	fetchRunningSession,
 	fetchSession,
@@ -74,44 +72,6 @@ export const finishSessionMutationOptions = () =>
 				apiKeys.devices(),
 				apiKeys.reports.all(),
 			)
-		},
-	})
-
-export const changeWordMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("sessions", "word"),
-		mutationFn: ({
-			id,
-			wordId,
-			idempotencyKey,
-		}: {
-			id: string
-			wordId: string | null
-			idempotencyKey: string
-		}) => changeWord(id, wordId, idempotencyKey),
-		onSuccess: (session) => {
-			queryClient.setQueryData(apiKeys.sessions.running(), session)
-
-			return queryClient.invalidateQueries({ queryKey: apiKeys.home() })
-		},
-	})
-
-export const changeLearningMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("sessions", "learning"),
-		mutationFn: ({
-			id,
-			enabled,
-			idempotencyKey,
-		}: {
-			id: string
-			enabled: boolean
-			idempotencyKey: string
-		}) => changeLearning(id, enabled, idempotencyKey),
-		onSuccess: (session) => {
-			queryClient.setQueryData(apiKeys.sessions.running(), session)
-
-			return queryClient.invalidateQueries({ queryKey: apiKeys.home() })
 		},
 	})
 

@@ -13,7 +13,6 @@ export const common: CommonMessages = {
 		home: "Home",
 		words: "Words",
 		report: "Report",
-		records: "Records",
 		profile: "Profile",
 	},
 	help: "Help",
@@ -34,12 +33,6 @@ export const common: CommonMessages = {
 		stress_care: "Stress care",
 		sleeping: "Sleep time",
 	},
-	emergencyKinds: {
-		audio_cry: "Crying",
-		video_escape: "Out of cage",
-		video_no_motion: "No movement",
-		video_seizure: "Seizure",
-	},
 	sound: {
 		play: "Play sound detected at {{time}}",
 		stop: "Stop playback",
@@ -58,13 +51,11 @@ export const common: CommonMessages = {
 		selectTime: "Jump to the tapped time",
 		now: "Now",
 		sound: "Sound detected at {{time}}",
-		emergency: "Emergency detected at {{time}}",
 		learning: "Learning",
 		rest: "Rest and care",
 		sleeping: "Sleep",
 		mimicry: "Mimicked",
 		otherSound: "Other sound",
-		emergencyLegend: "Emergency",
 	},
 	permission: {
 		title: "{{name}} access needed",
@@ -79,7 +70,7 @@ export const common: CommonMessages = {
 		},
 		notifications: {
 			name: "Notification",
-			reason: "BuddyBird needs notifications to tell you about emergencies right away.",
+			reason: "BuddyBird needs notifications to send you learning updates.",
 		},
 		photos: {
 			name: "Photo",

@@ -13,7 +13,6 @@ export const common: CommonMessages = {
 		home: "홈",
 		words: "단어",
 		report: "리포트",
-		records: "기록",
 		profile: "프로필",
 	},
 	help: "도움말",
@@ -34,12 +33,6 @@ export const common: CommonMessages = {
 		stress_care: "스트레스 케어",
 		sleeping: "수면 시간",
 	},
-	emergencyKinds: {
-		audio_cry: "울음",
-		video_escape: "새장 탈출",
-		video_no_motion: "움직임 없음",
-		video_seizure: "발작과 경련",
-	},
 	sound: {
 		play: "{{time}}에 감지한 소리 재생",
 		stop: "재생 멈추기",
@@ -58,13 +51,11 @@ export const common: CommonMessages = {
 		selectTime: "누른 시각의 기록으로 이동",
 		now: "지금",
 		sound: "{{time}}에 감지한 소리",
-		emergency: "{{time}}에 감지한 응급 상황",
 		learning: "학습",
 		rest: "휴식과 케어",
 		sleeping: "수면",
 		mimicry: "따라 한 소리",
 		otherSound: "그 밖의 소리",
-		emergencyLegend: "응급 상황",
 	},
 	permission: {
 		title: "{{name}} 권한이 필요해요",
@@ -79,7 +70,7 @@ export const common: CommonMessages = {
 		},
 		notifications: {
 			name: "알림",
-			reason: "응급 상황과 기기 연결 끊김을 바로 알려 드리려면 알림이 필요해요.",
+			reason: "학습 소식을 알려 드리려면 알림이 필요해요.",
 		},
 		photos: {
 			name: "사진",

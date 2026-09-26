@@ -11,15 +11,15 @@ import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
-import { SessionOverview } from "@/screens/Records/components/session-overview"
-import { EmergencyRow, EventRow } from "@/screens/Records/components/timeline-row"
+import { SessionOverview } from "@/screens/Report/components/session-overview"
+import { EventRow } from "@/screens/Report/components/timeline-row"
 import {
 	timelineFilters,
 	type TimelineItem,
 	useSessionDetail,
-} from "@/screens/Records/hooks/use-session-detail"
+} from "@/screens/Report/hooks/use-session-detail"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import type { RecordsStackParamList } from "@/types/navigation"
+import type { ReportStackParamList } from "@/types/navigation"
 
 export function SessionDetailScreen() {
 	const { t } = useTranslation()
@@ -28,8 +28,8 @@ export function SessionDetailScreen() {
 
 	const insets = useSafeAreaInsets()
 
-	const navigation = useNavigation<NativeStackNavigationProp<RecordsStackParamList>>()
-	const { params } = useRoute<RouteProp<RecordsStackParamList, "SessionDetail">>()
+	const navigation = useNavigation<NativeStackNavigationProp<ReportStackParamList>>()
+	const { params } = useRoute<RouteProp<ReportStackParamList, "SessionDetail">>()
 
 	const player = useSoundPlayer()
 
@@ -54,19 +54,6 @@ export function SessionDetailScreen() {
 					timeLabel={timeLabel(item.at)}
 					player={player}
 					highlighted={highlighted}
-				/>
-			)
-		}
-
-		if (item.kind === "emergency") {
-			return (
-				<EmergencyRow
-					emergency={item.emergency}
-					timeLabel={timeLabel(item.at)}
-					highlighted={highlighted}
-					onPress={() =>
-						navigation.navigate("EmergencyDetail", { emergencyId: item.emergency.id })
-					}
 				/>
 			)
 		}
@@ -115,7 +102,7 @@ export function SessionDetailScreen() {
 							{timelineFilters.map((filter) => (
 								<Chip
 									key={filter}
-									label={t(`records.detail.filters.${filter}`)}
+									label={t(`report.detail.filters.${filter}`)}
 									selected={detail.filter === filter}
 									onPress={() => detail.setFilter(filter)}
 								/>
@@ -123,7 +110,7 @@ export function SessionDetailScreen() {
 						</View>
 					</View>
 				}
-				ListEmptyComponent=<EmptyState message={t("records.detail.empty")} />
+				ListEmptyComponent=<EmptyState message={t("report.detail.empty")} />
 			/>
 		)
 	}

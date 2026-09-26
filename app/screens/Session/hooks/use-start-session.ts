@@ -7,7 +7,6 @@ import {
 	startSessionMutationOptions,
 } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { readPermission } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
 import { ApiError } from "@/types/apis/common"
 import type { SessionDraft } from "@/types/navigation"
@@ -110,15 +109,5 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 
 			mutation.reset()
 		},
-	}
-}
-
-export async function cameraGranted(): Promise<boolean> {
-	try {
-		return (await readPermission("camera")).granted
-	} catch (error) {
-		reportError(error, "permission_camera")
-
-		return false
 	}
 }

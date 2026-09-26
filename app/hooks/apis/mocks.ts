@@ -5,14 +5,12 @@ import {
 	fetchActivity,
 	fetchDeviceNames,
 	fetchEventExtras,
-	fetchHomeExtras,
 	fetchNoticeNotifications,
 	fetchRecordingStatus,
 	fetchSessionPlays,
 	fetchSessionsInRange,
 	fetchSoundAnalysis,
 	fetchSoundFeedback,
-	fetchStationStatus,
 	renameDevice,
 	saveSoundFeedback,
 } from "@/apis/mocks"
@@ -23,15 +21,6 @@ export const sessionsInRangeQueryOptions = (from: Date, to: Date) =>
 	queryOptions({
 		queryKey: apiKeys.sessions.range(from.toISOString(), to.toISOString()),
 		queryFn: () => fetchSessionsInRange(from, to),
-	})
-
-export const homeExtrasQueryOptions = () =>
-	queryOptions({ queryKey: apiKeys.mocks.homeExtras(), queryFn: fetchHomeExtras })
-
-export const stationStatusQueryOptions = (sessionId: string) =>
-	queryOptions({
-		queryKey: apiKeys.mocks.stationStatus(sessionId),
-		queryFn: () => fetchStationStatus(sessionId),
 	})
 
 export const activityQueryOptions = (sessionId: string) =>

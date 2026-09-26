@@ -7,23 +7,13 @@ import { StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/states"
 import { SCREEN_REFRESH_MS } from "@/config"
 import { homeSummaryQueryOptions } from "@/hooks/apis/home"
-import { homeExtrasQueryOptions } from "@/hooks/apis/mocks"
-import { parrotsQueryOptions } from "@/hooks/apis/parrots"
-import { wordsQueryOptions } from "@/hooks/apis/words"
-import { useRunningSession } from "@/hooks/use-running-session"
-import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { BuddyHint, MimicryBubble } from "@/screens/Home/components/mimicry-bubble"
 import { NoticePopup } from "@/screens/Home/components/notice-popup"
-import { ParrotPager } from "@/screens/Home/components/parrot-pager"
-import { EmergencyLine, SessionLine } from "@/screens/Home/components/status-lines"
-import { HomeTopBar } from "@/screens/Home/components/top-bar"
 import { useNoticePopup } from "@/screens/Home/hooks/use-notice-popup"
 import { useStaleStationCleanup } from "@/screens/Home/hooks/use-stale-station-cleanup"
 import { TakeoverDialog } from "@/screens/Session/components/start-dialogs"
-import type { HomeSummary } from "@/types/apis/home"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
 
 type Navigation = CompositeNavigationProp<
@@ -56,20 +46,17 @@ export function HomeScreen() {
 		}
 	}
 
-	let body = <Skeleton rows={4} height={110} />
-
-	if (summary.isError) {
-		body = (
-			<ScreenError message={t("common.loadError")} onRetry={() => void summary.refetch()} />
-		)
-	} else if (summary.data) {
-		body = <HomeBody summary={summary.data} navigation={navigation} />
-	}
-
 	return (
 		<Screen scroll={false}>
 			<View style={styles.screen}>
-				<View style={styles.body}>{body}</View>
+				<View style={styles.body}>
+					{summary.isError ? (
+						<ScreenError
+							message={t("common.loadError")}
+							onRetry={() => void summary.refetch()}
+						/>
+					) : null}
+				</View>
 				<Button
 					label={t("common.start")}
 					icon="play"
@@ -96,79 +83,6 @@ export function HomeScreen() {
 				}}
 			/>
 		</Screen>
-	)
-}
-
-interface Props {
-	summary: HomeSummary
-	navigation: Navigation
-}
-
-function HomeBody({ summary, navigation }: Props) {
-	const refetchInterval = useIsFocused() ? SCREEN_REFRESH_MS : false
-
-	const parrots = useQuery(parrotsQueryOptions())
-	const words = useQuery(wordsQueryOptions())
-	const extras = useQuery({ ...homeExtrasQueryOptions(), refetchInterval })
-
-	const running = useRunningSession(refetchInterval)
-	const player = useSoundPlayer()
-
-	const emergency = extras.data?.unconfirmed_emergency ?? null
-	const mimicry = summary.latest_mimicry
-	const mimicryWord = words.data?.find((word) => word.id === mimicry?.judgment?.word_id)
-
-	return (
-		<View style={styles.body}>
-			<HomeTopBar
-				streak={extras.data?.streak_days ?? 0}
-				unread={summary.unread_notification_count}
-				onNotifications={() => navigation.navigate("Notifications")}
-				onSettings={() => navigation.navigate("Settings")}
-			/>
-			{running.detail ? (
-				<SessionLine
-					detail={running.detail}
-					onPress={() => navigation.navigate("SessionMonitor")}
-				/>
-			) : null}
-			{emergency ? (
-				<EmergencyLine
-					emergency={emergency}
-					onPress={() =>
-						navigation.navigate("Main", {
-							screen: "RecordsTab",
-							params: {
-								screen: "EmergencyDetail",
-								params: { emergencyId: emergency.id },
-							},
-						})
-					}
-				/>
-			) : null}
-			<ParrotPager
-				parrots={parrots.data ?? []}
-				onOpen={(parrotId) => navigation.navigate("ParrotEditor", { parrotId })}
-			/>
-			{mimicry ? (
-				<MimicryBubble
-					sound={mimicry}
-					wordName={mimicryWord?.name ?? ""}
-					player={player}
-					onOpen={() =>
-						navigation.navigate("Main", {
-							screen: "RecordsTab",
-							params: {
-								screen: "SessionDetail",
-								params: { sessionId: mimicry.session_id, soundId: mimicry.id },
-							},
-						})
-					}
-				/>
-			) : (
-				<BuddyHint />
-			)}
-		</View>
 	)
 }
 

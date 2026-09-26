@@ -15,9 +15,6 @@ import { ParrotEditorScreen } from "@/screens/Entry/ParrotEditorScreen"
 import { PermissionRequestScreen } from "@/screens/Entry/PermissionRequestScreen"
 import { UsageGuideScreen } from "@/screens/Entry/UsageGuideScreen"
 import { NoticeDetailScreen } from "@/screens/Home/NoticeDetailScreen"
-import { CameraSetupScreen } from "@/screens/Session/CameraSetupScreen"
-import { LiveVideoScreen } from "@/screens/Session/LiveVideoScreen"
-import { PlacementGuideScreen } from "@/screens/Session/PlacementGuideScreen"
 import { SessionRunScreen } from "@/screens/Session/SessionRunScreen"
 import { SessionStartScreen } from "@/screens/Session/SessionStartScreen"
 import { SessionSummaryScreen } from "@/screens/Session/SessionSummaryScreen"
@@ -95,12 +92,6 @@ export function AppNavigator() {
 							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
 							<Stack.Screen name="SessionStart" component={SessionStartScreen} />
-							<Stack.Screen name="PlacementGuide" component={PlacementGuideScreen} />
-							<Stack.Screen
-								name="CameraSetup"
-								component={CameraSetupScreen}
-								options={landscape}
-							/>
 							<Stack.Screen
 								name="SessionRun"
 								component={SessionRunScreen}
@@ -117,11 +108,6 @@ export function AppNavigator() {
 											? "landscape"
 											: "portrait",
 								})}
-							/>
-							<Stack.Screen
-								name="LiveVideo"
-								component={LiveVideoScreen}
-								options={landscape}
 							/>
 							<Stack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 							<Stack.Screen

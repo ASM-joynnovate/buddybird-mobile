@@ -30,37 +30,6 @@ export const reportSchema = z.object({
 	sounds: z.array(sessionSoundSchema),
 })
 
-export const emergencyKindSchema = z.enum([
-	"audio_cry",
-	"video_escape",
-	"video_no_motion",
-	"video_seizure",
-])
-
-export const emergencyBriefSchema = z.object({
-	id: uuid,
-	session_id: uuid,
-	kind: emergencyKindSchema,
-	detected_at: timestamp,
-})
-
-export const emergencySchema = emergencyBriefSchema.extend({
-	media: z.object({ type: z.enum(["audio", "video"]), url: z.string() }).nullable(),
-	is_confirmed: z.boolean(),
-	session_running: z.boolean(),
-})
-
-export const homeExtrasSchema = z.object({
-	streak_days: z.number().int().nonnegative(),
-	unconfirmed_emergency: emergencyBriefSchema.nullable(),
-})
-
-export const stationStatusSchema = z.object({
-	battery_level: z.number().min(0).max(1).nullable(),
-	is_charging: z.boolean().nullable(),
-	camera_available: z.boolean(),
-})
-
 export const soundFeedbackSchema = z.object({
 	sound_id: uuid,
 	feedback: z.enum(["up", "down"]).nullable(),
@@ -80,13 +49,6 @@ export const sessionPlaysSchema = z.object({
 })
 
 export const eventExtrasSchema = z.object({
-	event_details: z.array(
-		z.object({
-			event_id: uuid,
-			learning_enabled: z.boolean().nullable(),
-			emergency: emergencyBriefSchema.nullable(),
-		}),
-	),
 	sleep_events: z.array(
 		z.object({
 			id: uuid,
@@ -130,12 +92,7 @@ export const appUpdateSchema = z.object({
 
 export type ReportPeriod = z.infer<typeof reportPeriodSchema>
 export type Report = z.infer<typeof reportSchema>
-export type EmergencyKind = z.infer<typeof emergencyKindSchema>
-export type EmergencyBrief = z.infer<typeof emergencyBriefSchema>
-export type Emergency = z.infer<typeof emergencySchema>
 export type AppUpdate = z.infer<typeof appUpdateSchema>
-export type HomeExtras = z.infer<typeof homeExtrasSchema>
-export type StationStatus = z.infer<typeof stationStatusSchema>
 export type SoundFeedback = z.infer<typeof soundFeedbackSchema>
 export type SoundAnalysis = z.infer<typeof soundAnalysisSchema>
 export type Activity = z.infer<typeof activitySchema>
@@ -147,13 +104,16 @@ export type NoticeNotification = z.infer<typeof noticeNotificationSchema>
 export type NoticeNotifications = z.infer<typeof noticeNotificationsSchema>
 export type InboxNotification = AppNotification | NoticeNotification
 
+export type TimelineEventKind =
+	| Exclude<SessionEventKind, "learning_toggled" | "word_changed" | "emergency_detected">
+	| "sleep_started"
+	| "sleep_finished"
+
 export type TimelineEvent = {
 	id: string
-	kind: SessionEventKind | "sleep_started" | "sleep_finished"
+	kind: TimelineEventKind
 	occurred_at: string
 	word: { id: string; name: string } | null
-	learning_enabled: boolean | null
-	emergency: EmergencyBrief | null
 }
 
 export type TimelineSound = SessionSound & {
@@ -173,5 +133,4 @@ export type SessionRecord = {
 	sleep: SleepSettings
 	playCount: number
 	mimicryCount: number
-	emergencyCount: number
 }

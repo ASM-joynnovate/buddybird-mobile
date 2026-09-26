@@ -21,4 +21,26 @@ export const report: ReportMessages = {
 	empty: "No learning records in this period",
 	emptyScene: "an empty report",
 	startSession: "Start a session",
+	detail: {
+		plays: "Plays",
+		mimicry: "Mimicked",
+		times: "{{count}}",
+		filters: {
+			all: "All",
+			sounds: "Sounds",
+			connection: "Connection",
+		},
+		empty: "Nothing matches this filter",
+		serverEnded: "Ended by server",
+		events: {
+			session_started: "Session started",
+			learning_started: "Learning started",
+			learning_finished: "Learning ended",
+			sleep_started: "Paused at bedtime",
+			sleep_finished: "Resumed at wake time",
+			station_disconnected: "Cage device disconnected",
+			station_reconnected: "Cage device reconnected",
+			session_finished: "Session ended",
+		},
+	},
 }

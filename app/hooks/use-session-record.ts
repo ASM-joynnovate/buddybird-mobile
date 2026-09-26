@@ -39,9 +39,6 @@ export function useSessionRecord(sessionId: string): {
 					sleep: settings.data.sleep,
 					playCount: plays.data.play_count,
 					mimicryCount: timeline.sounds.filter((sound) => sound.judgment?.word_id).length,
-					emergencyCount: timeline.events.filter(
-						(event) => event.kind === "emergency_detected",
-					).length,
 				}
 			: undefined
 

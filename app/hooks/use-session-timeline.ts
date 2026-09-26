@@ -4,9 +4,19 @@ import { activityQueryOptions, eventExtrasQueryOptions } from "@/hooks/apis/mock
 import { sessionEventsQueryOptions, sessionSoundsQueryOptions } from "@/hooks/apis/sessions"
 import { wordsQueryOptions } from "@/hooks/apis/words"
 import { useSoundsWithAnalysis } from "@/hooks/use-sounds-with-analysis"
-import type { EventExtras, SessionTimeline, TimelineEvent } from "@/mocks/types"
-import type { SessionEvent } from "@/types/apis/sessions"
+import type { EventExtras, SessionTimeline, TimelineEvent, TimelineEventKind } from "@/mocks/types"
+import type { SessionEvent, SessionEventKind } from "@/types/apis/sessions"
 import type { Word } from "@/types/apis/words"
+
+const hiddenEventKinds: ReadonlySet<SessionEventKind> = new Set([
+	"learning_toggled",
+	"word_changed",
+	"emergency_detected",
+])
+
+function isTimelineEvent(event: SessionEvent): event is SessionEvent & { kind: TimelineEventKind } {
+	return !hiddenEventKinds.has(event.kind)
+}
 
 function findWordRef(words: readonly Word[], wordId: string | null | undefined) {
 	const word = words.find((item) => item.id === wordId)
@@ -19,23 +29,15 @@ function timelineEvents(
 	eventDetails: EventExtras,
 	words: readonly Word[],
 ): TimelineEvent[] {
-	const serverEvents = events.map((event): TimelineEvent => {
-		const detail = eventDetails.event_details.find((item) => item.event_id === event.id)
-
-		return {
-			id: event.id,
-			kind: event.kind,
-			occurred_at: event.occurred_at,
-			word: findWordRef(words, event.word?.id),
-			learning_enabled: detail?.learning_enabled ?? null,
-			emergency: detail?.emergency ?? null,
-		}
-	})
+	const serverEvents = events.filter(isTimelineEvent).map((event): TimelineEvent => ({
+		id: event.id,
+		kind: event.kind,
+		occurred_at: event.occurred_at,
+		word: findWordRef(words, event.word?.id),
+	}))
 	const sleepEvents = eventDetails.sleep_events.map((event): TimelineEvent => ({
 		...event,
 		word: null,
-		learning_enabled: null,
-		emergency: null,
 	}))
 
 	return [...serverEvents, ...sleepEvents].sort(

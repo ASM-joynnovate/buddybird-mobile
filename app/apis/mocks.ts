@@ -8,8 +8,6 @@ import {
 	deviceNameSchema,
 	type EventExtras,
 	eventExtrasSchema,
-	type HomeExtras,
-	homeExtrasSchema,
 	type NoticeNotifications,
 	noticeNotificationsSchema,
 	type RecordingStatus,
@@ -20,8 +18,6 @@ import {
 	sessionPlaysSchema,
 	type SoundFeedback,
 	soundFeedbackSchema,
-	type StationStatus,
-	stationStatusSchema,
 } from "@/mocks/types"
 import { type Session, sessionSchema } from "@/types/apis/sessions"
 import type { Upload } from "@/types/apis/uploads"
@@ -34,14 +30,6 @@ export async function fetchSessionsInRange(from: Date, to: Date): Promise<Sessio
 	return z
 		.array(sessionSchema)
 		.parse(await mockServer.sessions.range(from.getTime(), to.getTime()))
-}
-
-export async function fetchHomeExtras(): Promise<HomeExtras> {
-	return homeExtrasSchema.parse(await mockServer.home.extras())
-}
-
-export async function fetchStationStatus(sessionId: string): Promise<StationStatus> {
-	return stationStatusSchema.parse(await mockServer.sessions.stationStatus(sessionId))
 }
 
 export async function fetchActivity(sessionId: string): Promise<Activity[]> {

@@ -2,41 +2,26 @@ import { type RefObject, useEffect, useMemo, useRef, useState } from "react"
 import type { FlatList } from "react-native"
 
 import { useSessionRecord } from "@/hooks/use-session-record"
-import type {
-	EmergencyBrief,
-	SessionRecord,
-	SessionTimeline,
-	TimelineEvent,
-	TimelineSound,
-} from "@/mocks/types"
+import type { SessionRecord, SessionTimeline, TimelineEvent, TimelineSound } from "@/mocks/types"
 
-export type TimelineFilter = "all" | "sounds" | "emergencies" | "connection"
+export type TimelineFilter = "all" | "sounds" | "connection"
 
 export type TimelineItem =
 	| { key: string; kind: "event"; at: number; event: TimelineEvent }
 	| { key: string; kind: "sound"; at: number; sound: TimelineSound }
-	| { key: string; kind: "emergency"; at: number; emergency: EmergencyBrief }
 
-export const timelineFilters: readonly TimelineFilter[] = [
-	"all",
-	"sounds",
-	"emergencies",
-	"connection",
-]
+export const timelineFilters: readonly TimelineFilter[] = ["all", "sounds", "connection"]
 
 const connectionKinds = new Set(["station_disconnected", "station_reconnected"])
 
-function eventItem(event: TimelineEvent): TimelineItem {
-	const at = Date.parse(event.occurred_at)
-
-	return event.kind === "emergency_detected" && event.emergency
-		? { key: event.emergency.id, kind: "emergency", at, emergency: event.emergency }
-		: { key: event.id, kind: "event", at, event }
-}
-
 function buildTimeline(timeline: SessionTimeline): TimelineItem[] {
 	return [
-		...timeline.events.map(eventItem),
+		...timeline.events.map((event): TimelineItem => ({
+			key: event.id,
+			kind: "event",
+			at: Date.parse(event.occurred_at),
+			event,
+		})),
 		...timeline.sounds.map((sound): TimelineItem => ({
 			key: sound.id,
 			kind: "sound",
@@ -52,8 +37,6 @@ function matches(item: TimelineItem, filter: TimelineFilter): boolean {
 			return true
 		case "sounds":
 			return item.kind === "sound"
-		case "emergencies":
-			return item.kind === "emergency"
 		case "connection":
 			return item.kind === "event" && connectionKinds.has(item.event.kind)
 	}

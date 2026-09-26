@@ -14,9 +14,8 @@ import { Copy } from "@/components/ui/text"
 import { usePermissionRequest } from "@/screens/Entry/hooks/use-permission-request"
 import { colors, font } from "@/theme"
 
-const ROWS: readonly { kind: "microphone" | "camera" | "notifications"; icon: IconName }[] = [
+const ROWS: readonly { kind: "microphone" | "notifications"; icon: IconName }[] = [
 	{ kind: "microphone", icon: "mic" },
-	{ kind: "camera", icon: "camera" },
 	{ kind: "notifications", icon: "bell" },
 ]
 

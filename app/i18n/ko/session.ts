@@ -30,34 +30,6 @@ export const session: SessionMessages = {
 		empty: "들려줄 단어가 없어요. 단어를 녹음해 주세요.",
 		emptyScene: "녹음할 단어를 기다리는 버디",
 		addWord: "단어 추가",
-		placementHelp: "세션 가이드 다시 보기",
-	},
-	placement: {
-		start: {
-			title: "시작을 누르면 집을 비운 동안 앵무새에게 단어를 계속 들려줘요",
-			scene: "새장 앞 휴대폰에서 단어를 듣는 앵무새",
-		},
-		cycle: {
-			title: "단어를 10분 들려주고, 5분 쉬고, 5분은 편안한 소리를 들려줘요. 20분마다 이 순서를 반복해요",
-			scene: "20분 동안 이어지는 단어, 휴식, 편안한 소리 순서",
-		},
-		mimicry: {
-			title: "앵무새가 단어를 따라 하면 그 소리를 저장해 둬요. 나중에 직접 들어볼 수 있어요",
-			scene: "앵무새가 따라 한 소리를 휴대폰으로 듣는 사람",
-		},
-		alert: {
-			title: "앵무새가 다급하게 계속 울거나, 새장 밖으로 나오거나, 오랫동안 움직이지 않으면 바로 알려 드려요. 자는 시간에는 단어 재생을 멈추고 이런 상황만 지켜봐요",
-			scene: "앵무새에게 생긴 일을 알리는 휴대폰 알림",
-		},
-		setup: {
-			title: "새장이 모두 보이게 기기를 가로로 세우고 충전기를 연결해 주세요. 시작하면 화면이 어두워지니 앱은 닫지 말고 그대로 두세요",
-			scene: "새장 앞에 가로로 세워 충전기에 연결한 휴대폰",
-		},
-	},
-	camera: {
-		preview: "카메라 미리보기",
-		hint: "새장이 모두 보이도록 맞춰 주세요",
-		start: "이대로 시작",
 	},
 	run: {
 		reveal: "화면을 누르면 세션 정보가 보여요",
@@ -84,7 +56,6 @@ export const session: SessionMessages = {
 	summary: {
 		greeting: "다녀오셨어요! {{duration}} 동안 {{name}} 곁을 지켰어요.",
 		greetingNoName: "다녀오셨어요! {{duration}} 동안 곁을 지켰어요.",
-		emergency: "{{kind}} 감지 {{count}}건",
 		stripTitle: "자리를 비운 동안",
 		duration: "세션 시간",
 		plays: "단어 재생",
@@ -93,25 +64,5 @@ export const session: SessionMessages = {
 		playBest: "가장 잘 따라 한 소리 재생",
 		bestCaption: "가장 비슷하게 따라 한 소리",
 		home: "홈으로",
-	},
-	monitor: {
-		battery: "배터리 {{percent}}%",
-		charging: "충전 중, 배터리 {{percent}}%",
-		disconnected: "새장 앞 기기와 연결이 끊겼어요",
-		unplugged: "새장 앞 기기의 충전기가 빠졌어요",
-		playLive: "실시간 영상 보기",
-		cameraOff: "새장 앞 기기의 카메라가 꺼져 있어요",
-		still: "정지 화면",
-		fullscreen: "전체 화면으로 보기",
-		changeWord: "단어 변경",
-		applyWord: "이 단어로 변경",
-		changeError: "변경하지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
-		elapsed: "경과 {{time}}",
-		sounds: "최근 감지 소리",
-		none: "실행 중인 세션이 없어요",
-	},
-	live: {
-		notReady: "실시간 영상은 서버 연동 뒤에 볼 수 있어요",
-		disconnected: "새장 앞 기기와 연결이 끊겼어요",
 	},
 }

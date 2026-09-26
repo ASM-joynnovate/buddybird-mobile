@@ -15,7 +15,6 @@ import type { RootStackParamList } from "@/types/navigation"
 
 const ROWS: readonly { kind: PermissionKind; icon: IconName }[] = [
 	{ kind: "microphone", icon: "mic" },
-	{ kind: "camera", icon: "camera" },
 	{ kind: "notifications", icon: "bell" },
 	{ kind: "photos", icon: "photo" },
 ]

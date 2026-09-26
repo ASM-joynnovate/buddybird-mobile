@@ -3,10 +3,8 @@ import { StyleSheet, View } from "react-native"
 
 import { Mascot } from "@/components/mascot"
 import { AudioWaveform } from "@/components/ui/audio-waveform"
-import { Icon } from "@/components/ui/icon"
 import { IconButton } from "@/components/ui/icon-button"
 import { SpeechBubble } from "@/components/ui/speech-bubble"
-import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
@@ -21,33 +19,6 @@ export function Greeting({ message }: { message: string }) {
 				{message}
 			</SpeechBubble>
 		</View>
-	)
-}
-
-export function EmergencyCard({
-	title,
-	time,
-	onPress,
-}: {
-	title: string
-	time: string
-	onPress(): void
-}) {
-	return (
-		<PressableSurface
-			tone="danger"
-			depth={2}
-			onPress={onPress}
-			accessibilityLabel={`${title}, ${time}`}
-			contentStyle={styles.emergency}
-		>
-			<Icon name="warning" size={22} color={colors.onAccent} />
-			<View style={styles.grow}>
-				<Copy style={styles.emergencyTitle}>{title}</Copy>
-				<Copy style={styles.emergencyTime}>{time}</Copy>
-			</View>
-			<Icon name="forward" size={18} color={colors.onAccent} />
-		</PressableSurface>
 	)
 }
 
@@ -122,16 +93,7 @@ export function BestMimicry({
 const styles = StyleSheet.create({
 	greeting: { flexDirection: "row", alignItems: "center", gap: 14 },
 	bubble: { flex: 1, minWidth: 0 },
-	emergency: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
 	grow: { flex: 1, minWidth: 0, gap: 6 },
-	emergencyTitle: { fontFamily: font.black, fontSize: 16, color: colors.onAccent },
-	emergencyTime: { fontSize: 13, color: colors.onAccent },
 	stat: { flex: 1, minWidth: 0, gap: 2 },
 	statValue: {
 		fontFamily: font.black,

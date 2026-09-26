@@ -12,8 +12,6 @@ import { colors, font, phaseColors } from "@/theme"
 
 export type StripSound = { id: string; at: number; mimicked: boolean }
 
-export type StripEmergency = { id: string; at: number }
-
 type AbsenceStripProps = {
 	start: number
 	end: number
@@ -21,11 +19,9 @@ type AbsenceStripProps = {
 	sleep: SleepWindow
 	activity: readonly { at: number; level: number }[]
 	sounds: readonly StripSound[]
-	emergencies: readonly StripEmergency[]
 	cursor?: number | null
 	legend?: boolean
 	onSelectSound?(id: string): void
-	onSelectEmergency?(id: string): void
 	onSelectTime?(at: number): void
 }
 
@@ -78,11 +74,9 @@ export function AbsenceStrip({
 	sleep,
 	activity,
 	sounds,
-	emergencies,
 	cursor,
 	legend = true,
 	onSelectSound,
-	onSelectEmergency,
 	onSelectTime,
 }: AbsenceStripProps) {
 	const { t } = useTranslation()
@@ -111,10 +105,8 @@ export function AbsenceStrip({
 					sleep={sleep}
 					activity={activity}
 					sounds={sounds}
-					emergencies={emergencies}
 					cursor={cursor}
 					onSelectSound={onSelectSound}
-					onSelectEmergency={onSelectEmergency}
 					onSelectTime={onSelectTime}
 				/>
 			))}
@@ -132,10 +124,8 @@ function StripRow({
 	sleep,
 	activity,
 	sounds,
-	emergencies,
 	cursor,
 	onSelectSound,
-	onSelectEmergency,
 	onSelectTime,
 }: Omit<AbsenceStripProps, "start" | "end" | "legend"> & {
 	from: number
@@ -251,24 +241,6 @@ function StripRow({
 									}
 								/>
 							))}
-						{emergencies
-							.filter((item) => inRow(item.at))
-							.map((item) => (
-								<Marker
-									key={item.id}
-									left={x(item.at)}
-									color={colors.error}
-									large
-									label={t("common.strip.emergency", {
-										time: formatTime(item.at, locale),
-									})}
-									onPress={
-										onSelectEmergency
-											? () => onSelectEmergency(item.id)
-											: undefined
-									}
-								/>
-							))}
 					</>
 				) : null}
 			</View>
@@ -285,17 +257,15 @@ function StripRow({
 function Marker({
 	left,
 	color,
-	large = false,
 	label,
 	onPress,
 }: {
 	left: number
 	color: string
-	large?: boolean
 	label: string
 	onPress?(): void
 }) {
-	const dot = <View style={[styles.dot, large && styles.alarm, { backgroundColor: color }]} />
+	const dot = <View style={[styles.dot, { backgroundColor: color }]} />
 	const position = [styles.marker, { left: left - MARKER / 2 }]
 
 	if (!onPress) {
@@ -330,7 +300,6 @@ function Legend() {
 		{ label: t("common.strip.sleeping"), color: colors.disabled, round: false },
 		{ label: t("common.strip.mimicry"), color: colors.orange, round: true },
 		{ label: t("common.strip.otherSound"), color: colors.disabled, round: true },
-		{ label: t("common.strip.emergencyLegend"), color: colors.error, round: true },
 	]
 
 	return (
@@ -369,13 +338,6 @@ const styles = StyleSheet.create({
 	},
 	markerFace: { alignItems: "center", justifyContent: "center", borderWidth: 0 },
 	dot: { width: DOT, height: DOT, borderRadius: DOT / 2 },
-	alarm: {
-		width: DOT + 4,
-		height: DOT + 4,
-		borderRadius: (DOT + 4) / 2,
-		borderWidth: 2,
-		borderColor: colors.background,
-	},
 	ends: { flexDirection: "row", justifyContent: "space-between", marginTop: 2 },
 	end: { fontFamily: font.extraBold, fontSize: 13, color: colors.text },
 	legend: { flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 8 },

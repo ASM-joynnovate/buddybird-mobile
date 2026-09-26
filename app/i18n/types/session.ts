@@ -28,34 +28,6 @@ export type SessionMessages = {
 		empty: string
 		emptyScene: string
 		addWord: string
-		placementHelp: string
-	}
-	placement: {
-		start: {
-			title: string
-			scene: string
-		}
-		cycle: {
-			title: string
-			scene: string
-		}
-		mimicry: {
-			title: string
-			scene: string
-		}
-		alert: {
-			title: string
-			scene: string
-		}
-		setup: {
-			title: string
-			scene: string
-		}
-	}
-	camera: {
-		preview: string
-		hint: string
-		start: string
 	}
 	run: {
 		reveal: string
@@ -82,7 +54,6 @@ export type SessionMessages = {
 	summary: {
 		greeting: string
 		greetingNoName: string
-		emergency: string
 		stripTitle: string
 		duration: string
 		plays: string
@@ -91,25 +62,5 @@ export type SessionMessages = {
 		playBest: string
 		bestCaption: string
 		home: string
-	}
-	monitor: {
-		battery: string
-		charging: string
-		disconnected: string
-		unplugged: string
-		playLive: string
-		cameraOff: string
-		still: string
-		fullscreen: string
-		changeWord: string
-		applyWord: string
-		changeError: string
-		elapsed: string
-		sounds: string
-		none: string
-	}
-	live: {
-		notReady: string
-		disconnected: string
 	}
 }

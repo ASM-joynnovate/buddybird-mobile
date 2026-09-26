@@ -21,10 +21,9 @@ import {
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
 import { MAX_RECORDINGS } from "@/types/apis/words"
-import { DAY, HOUR } from "@/utils/units"
+import { HOUR } from "@/utils/units"
 
 const LATENCY_MS = 450
-const APPLY_DELAY_MS = 3000
 const PROCESSING_DELAY_MS = 2500
 const PAGE_SIZE = 20
 const UPLOAD_EXPIRES_SECONDS = 300
@@ -208,71 +207,6 @@ function parrotSounds() {
 	return allSounds()
 		.filter((sound) => sound.is_parrot_sound === true)
 		.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at))
-}
-
-function changeSessionSettings(
-	id: string,
-	change: Pick<MockSession, "word_id" | "learning_enabled">,
-	changeEvent: MockEvent,
-) {
-	const session = requireRunning(id)
-	const version = session.settings_version + 1
-
-	replaceSession(id, (current) => ({
-		...current,
-		...change,
-		settings_version: version,
-		events: [...current.events, changeEvent],
-	}))
-
-	if (isStationOnOtherDevice(session)) {
-		setTimeout(() => {
-			replaceSession(id, (current) => ({
-				...current,
-				applied_settings_version: Math.max(current.applied_settings_version, version),
-			}))
-		}, APPLY_DELAY_MS)
-	}
-
-	return sessionDto(find(db.sessions, id))
-}
-
-function dayStart(at: number) {
-	const date = new Date(at)
-
-	date.setHours(0, 0, 0, 0)
-
-	return date.getTime()
-}
-
-function previousDay(day: number) {
-	const date = new Date(day)
-
-	date.setDate(date.getDate() - 1)
-
-	return date.getTime()
-}
-
-function streakDays(now: number) {
-	const days = new Set<number>()
-
-	for (const session of db.sessions) {
-		const end = session.ended_at ? Date.parse(session.ended_at) : now
-
-		for (let day = dayStart(Date.parse(session.started_at)); day <= end; day += DAY) {
-			days.add(dayStart(day))
-		}
-	}
-
-	let cursor = days.has(dayStart(now)) ? dayStart(now) : previousDay(dayStart(now))
-	let count = 0
-
-	while (days.has(cursor)) {
-		count++
-		cursor = previousDay(cursor)
-	}
-
-	return count
 }
 
 function parseLocalDate(value: string) {
@@ -700,9 +634,6 @@ export const mockServer = {
 					settings_version: 1,
 					applied_settings_version: 0,
 					last_heartbeat_at: null,
-					battery_level: null,
-					is_charging: null,
-					camera_available: true,
 					events: [event("session_started", now)],
 					sleep_events: [],
 					sounds: [],
@@ -720,26 +651,6 @@ export const mockServer = {
 
 				return sessionDto(find(db.sessions, id))
 			}),
-		changeWord: (id: string, wordId: string | null) =>
-			respond(() => {
-				if (wordId) {
-					find(db.words, wordId)
-				}
-
-				return changeSessionSettings(
-					id,
-					{ word_id: wordId, learning_enabled: find(db.sessions, id).learning_enabled },
-					event("word_changed", Date.now(), { word_id: wordId }),
-				)
-			}),
-		changeLearning: (id: string, enabled: boolean) =>
-			respond(() =>
-				changeSessionSettings(
-					id,
-					{ word_id: find(db.sessions, id).word_id, learning_enabled: enabled },
-					event("learning_toggled", Date.now(), { learning_enabled: enabled }),
-				),
-			),
 		heartbeat: (id: string, input: { applied_settings_version: number }) =>
 			respond(() => {
 				requireRunning(id)
@@ -802,16 +713,6 @@ export const mockServer = {
 					}))
 				})
 			}),
-		stationStatus: (id: string) =>
-			respond(() => {
-				const session = find(db.sessions, id)
-
-				return {
-					battery_level: session.battery_level,
-					is_charging: session.is_charging,
-					camera_available: session.camera_available,
-				}
-			}),
 		activity: (id: string) => respond(() => find(db.sessions, id).activity),
 		plays: (id: string) =>
 			respond(() => {
@@ -824,11 +725,6 @@ export const mockServer = {
 				const session = find(db.sessions, id)
 
 				return {
-					event_details: session.events.map((item) => ({
-						event_id: item.id,
-						learning_enabled: item.learning_enabled,
-						emergency: item.emergency,
-					})),
 					sleep_events:
 						session.status === "running"
 							? sleepEvents(session, sleepWindowOf(db.settings), Date.now())
@@ -863,55 +759,6 @@ export const mockServer = {
 	parrotSounds: {
 		list: (pageNumber: number) =>
 			respond(() => toPage(parrotSounds().map(soundDto), pageNumber)),
-	},
-	emergencies: {
-		get: (id: string) =>
-			respond(() => {
-				const { deleted, ...emergency } = find(db.emergencies, id)
-
-				if (deleted) {
-					throw notFound()
-				}
-
-				return {
-					...emergency,
-					session_running: find(db.sessions, emergency.session_id).status === "running",
-				}
-			}),
-		confirm: (id: string) =>
-			respond(() => {
-				find(db.emergencies, id)
-				db.emergencies = db.emergencies.map((item) =>
-					item.id === id ? { ...item, is_confirmed: true } : item,
-				)
-			}),
-		remove: (id: string) =>
-			respond(() => {
-				find(db.emergencies, id)
-				db.emergencies = db.emergencies.map((item) =>
-					item.id === id ? { ...item, deleted: true } : item,
-				)
-			}),
-	},
-	home: {
-		extras: () =>
-			respond(() => {
-				const alarm = db.emergencies
-					.filter((item) => !item.is_confirmed && !item.deleted)
-					.sort((a, b) => Date.parse(b.detected_at) - Date.parse(a.detected_at))[0]
-
-				return {
-					streak_days: streakDays(Date.now()),
-					unconfirmed_emergency: alarm
-						? {
-								id: alarm.id,
-								session_id: alarm.session_id,
-								kind: alarm.kind,
-								detected_at: alarm.detected_at,
-							}
-						: null,
-				}
-			}),
 	},
 	notifications: {
 		list: (pageNumber: number) =>

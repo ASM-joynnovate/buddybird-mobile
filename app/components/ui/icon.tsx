@@ -27,7 +27,6 @@ const symbols = {
 	home: ["house.fill", "home"],
 	words: ["text.bubble.fill", "chat-bubble"],
 	report: ["chart.bar.fill", "bar-chart"],
-	records: ["calendar", "calendar-today"],
 	bell: ["bell.fill", "notifications"],
 	gear: ["gearshape.fill", "settings"],
 	moon: ["moon.fill", "bedtime"],

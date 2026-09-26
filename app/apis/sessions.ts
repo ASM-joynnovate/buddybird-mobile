@@ -43,22 +43,6 @@ export async function finishSession(id: string, _idempotencyKey: string): Promis
 	return sessionSchema.parse(await mockServer.sessions.finish(id))
 }
 
-export async function changeWord(
-	id: string,
-	wordId: string | null,
-	_idempotencyKey: string,
-): Promise<Session> {
-	return sessionSchema.parse(await mockServer.sessions.changeWord(id, wordId))
-}
-
-export async function changeLearning(
-	id: string,
-	enabled: boolean,
-	_idempotencyKey: string,
-): Promise<Session> {
-	return sessionSchema.parse(await mockServer.sessions.changeLearning(id, enabled))
-}
-
 export async function sendHeartbeat(
 	id: string,
 	input: HeartbeatRequest,
