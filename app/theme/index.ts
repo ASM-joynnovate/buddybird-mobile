@@ -1,28 +1,6 @@
-export const colors = {
-	brand: "#DB030F",
-	background: "#ffffff",
-	onAccent: "#ffffff",
-	text: "#3c3c3c",
-	muted: "#777777",
-	border: "#e5e5e5",
-	surface: "#f7f7f7",
-	orange: "#ff9600",
-	orangeDark: "#e07f00",
-	orangeSoft: "#FFE8CC",
-	orangeSelected: "#fff7eb",
-	blue: "#1cb0f6",
-	blueDark: "#1899d6",
-	blueSoft: "#DDF4FF",
-	purple: "#ce82ff",
-	purpleSoft: "#F2E1FF",
-	purpleDark: "#A85FD6",
-	yellow: "#FFC800",
-	yellowDark: "#E6A800",
-	scrim: "#00000066",
-	disabledBackground: "#EBEBEB",
-	error: "#FF4B4B",
-	disabled: "#AFAFAF",
-}
+import { colors } from "@/theme/colors"
+
+export * from "@/theme/colors"
 
 export const radius = {
 	card: 18,

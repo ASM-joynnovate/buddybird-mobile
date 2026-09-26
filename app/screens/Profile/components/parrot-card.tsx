@@ -5,14 +5,14 @@ import { Icon } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { isSpeciesId } from "@/services/profile/species"
-import { ageMonths } from "@/services/profile/statistics"
 import { colors, font } from "@/theme"
 import type { Parrot } from "@/types/apis/parrots"
-
-const MONTHS_PER_YEAR = 12
+import { ageMonths } from "@/utils/date"
+import { MONTHS_PER_YEAR } from "@/utils/units"
 
 export function ParrotCard({ parrot, onPress }: { parrot: Parrot; onPress(): void }) {
 	const { t } = useTranslation()
+
 	const months = ageMonths(parrot.birthdate)
 	const species = isSpeciesId(parrot.species)
 		? t(`parrot.speciesNames.${parrot.species}`)

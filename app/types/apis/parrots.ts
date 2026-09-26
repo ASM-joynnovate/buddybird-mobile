@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { localDate, uuid } from "@/types/apis/primitives"
 
+export const PARROT_NAME_LIMIT = 20
+
 export const parrotSchema = z.object({
 	id: uuid,
 	name: z.string(),

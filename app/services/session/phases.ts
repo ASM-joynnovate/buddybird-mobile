@@ -1,28 +1,22 @@
+import { CYCLE } from "@/config"
+import { DAY, MINUTES_PER_HOUR } from "@/utils/units"
+
 export type Phase = "learning" | "rest" | "stress_care" | "sleeping"
 
 export type PhaseSpan = { phase: Phase; start: number; end: number }
 
 export type SleepWindow = { sleepAt: string; wakeAt: string }
 
-const MINUTE = 60_000
-const DAY = 24 * 60 * MINUTE
-
-export const cycle: readonly { phase: Phase; ms: number }[] = [
-	{ phase: "learning", ms: 10 * MINUTE },
-	{ phase: "rest", ms: 5 * MINUTE },
-	{ phase: "stress_care", ms: 5 * MINUTE },
-]
-
 export function minutesOf(time: string): number {
 	const [hours, minutes] = time.split(":").map(Number)
 
-	return hours * 60 + minutes
+	return hours * MINUTES_PER_HOUR + minutes
 }
 
 function minuteOfDay(at: number) {
 	const date = new Date(at)
 
-	return date.getHours() * 60 + date.getMinutes()
+	return date.getHours() * MINUTES_PER_HOUR + date.getMinutes()
 }
 
 export function isSleeping(at: number, window: SleepWindow): boolean {
@@ -41,7 +35,7 @@ export function nextTimeOfDay(after: number, time: string): number {
 	const date = new Date(after)
 	const target = minutesOf(time)
 
-	date.setHours(Math.floor(target / 60), target % 60, 0, 0)
+	date.setHours(Math.floor(target / MINUTES_PER_HOUR), target % MINUTES_PER_HOUR, 0, 0)
 
 	if (date.getTime() <= after) {
 		date.setDate(date.getDate() + 1)
@@ -71,11 +65,11 @@ export function phaseSpans(start: number, end: number, window: SleepWindow): Pha
 		let index = 0
 
 		while (cursor < awakeEnd) {
-			const spanEnd = Math.min(cursor + cycle[index].ms, awakeEnd)
+			const spanEnd = Math.min(cursor + CYCLE[index].ms, awakeEnd)
 
-			spans.push({ phase: cycle[index].phase, start: cursor, end: spanEnd })
+			spans.push({ phase: CYCLE[index].phase, start: cursor, end: spanEnd })
 			cursor = spanEnd
-			index = (index + 1) % cycle.length
+			index = (index + 1) % CYCLE.length
 		}
 
 		at = awakeEnd
@@ -89,5 +83,5 @@ export function currentSpan(start: number, now: number, window: SleepWindow): Ph
 		(span) => span.start <= now && now < span.end,
 	)
 
-	return found ?? { phase: "learning", start: now, end: now + cycle[0].ms }
+	return found ?? { phase: "learning", start: now, end: now + CYCLE[0].ms }
 }

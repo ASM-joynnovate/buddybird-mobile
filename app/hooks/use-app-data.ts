@@ -11,13 +11,3 @@ export function useAppData() {
 
 	return data
 }
-
-export function useProfile() {
-	return useAppData().profile
-}
-
-export function useNeedsProfileOnboarding() {
-	const { profile, migration } = useAppData()
-
-	return !profile && migration.completed.includes("profile")
-}

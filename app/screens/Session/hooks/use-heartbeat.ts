@@ -1,14 +1,11 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
+import { HEARTBEAT_INTERVAL_MS } from "@/config"
 import { heartbeatMutationOptions } from "@/hooks/apis/sessions"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
 import type { SleepSettings } from "@/types/apis/settings"
-
-const HEARTBEAT_MS = 10_000
-const IDLE_MS = 5000
 
 type HeartbeatInput = {
 	sessionId: string
@@ -25,7 +22,8 @@ export function useHeartbeat({
 	sleep,
 	onEnded,
 }: HeartbeatInput): void {
-	const { mutate } = useMutation(heartbeatMutationOptions())
+	const { mutate } = useIdempotentMutation(heartbeatMutationOptions())
+
 	const latest = useRef({ appliedVersion, startedAt, sleep, onEnded })
 
 	useEffect(() => {
@@ -53,7 +51,6 @@ export function useHeartbeat({
 						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 						summaries: [],
 					},
-					idempotencyKey: randomUUID(),
 				},
 				{
 					onError: (error) => {
@@ -67,34 +64,8 @@ export function useHeartbeat({
 
 		beat()
 
-		const timer = setInterval(beat, HEARTBEAT_MS)
+		const timer = setInterval(beat, HEARTBEAT_INTERVAL_MS)
 
 		return () => clearInterval(timer)
 	}, [mutate, sessionId])
-}
-
-export function useIdleReveal(): { visible: boolean; reveal(): void } {
-	const [visible, setVisible] = useState(false)
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-	const reveal = useCallback(() => {
-		setVisible(true)
-
-		if (timer.current) {
-			clearTimeout(timer.current)
-		}
-
-		timer.current = setTimeout(() => setVisible(false), IDLE_MS)
-	}, [])
-
-	useEffect(
-		() => () => {
-			if (timer.current) {
-				clearTimeout(timer.current)
-			}
-		},
-		[],
-	)
-
-	return { visible, reveal }
 }

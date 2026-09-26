@@ -1,5 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
@@ -11,6 +10,7 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { Wheel, WheelRow } from "@/components/ui/wheel"
 import { settingsQueryOptions, updateSleepMutationOptions } from "@/hooks/apis/settings"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { formatClock } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
@@ -30,7 +30,7 @@ export function SleepEditor({ first, disabled }: { first?: boolean; disabled?: b
 	const settings = useQuery(settingsQueryOptions())
 	const data = settings.data
 
-	const saving = useMutation(updateSleepMutationOptions())
+	const saving = useIdempotentMutation(updateSleepMutationOptions())
 
 	const [open, setOpen] = useState(false)
 	const [field, setField] = useState<Field>("sleep_at")
@@ -47,10 +47,7 @@ export function SleepEditor({ first, disabled }: { first?: boolean; disabled?: b
 			return
 		}
 
-		saving.mutate({
-			sleep: { ...data.sleep, [field]: `${pad(hour)}:${pad(minute)}:00` },
-			idempotencyKey: randomUUID(),
-		})
+		saving.mutate({ sleep: { ...data.sleep, [field]: `${pad(hour)}:${pad(minute)}:00` } })
 	}
 
 	return (

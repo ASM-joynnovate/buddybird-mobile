@@ -1,8 +1,14 @@
 import type { TFunction } from "i18next"
 import type { z } from "zod"
 
-import { config } from "@/config"
-import { ApiError, envelopeSchema, errorBodySchema } from "@/types/apis/common"
+import { API_TIMEOUT_MS, env } from "@/config"
+import {
+	ApiError,
+	type ApiErrorCode,
+	apiErrorCodes,
+	envelopeSchema,
+	errorBodySchema,
+} from "@/types/apis/common"
 
 type ApiDependencies = {
 	deviceId: () => string
@@ -30,7 +36,7 @@ export type ApiOptions = {
 	timeoutMs?: number
 }
 
-const DEFAULT_TIMEOUT_MS = 30_000
+const SERVER_ERROR_STATUS = 500
 
 export async function apiRequest<T>(
 	path: string,
@@ -45,9 +51,10 @@ export async function apiRequest<T>(
 		headers: given,
 		idempotencyKey,
 		signal,
-		timeoutMs = DEFAULT_TIMEOUT_MS,
+		timeoutMs = API_TIMEOUT_MS,
 	} = options
-	const origin = config.apiBaseUrl
+
+	const origin = env.apiBaseUrl
 
 	if (!origin) {
 		throw new ApiError(0, "CLIENT__NETWORK", "API base URL is not configured")
@@ -92,7 +99,7 @@ export async function apiRequest<T>(
 			failure.success
 				? new ApiError(
 						response.status,
-						failure.data.error_code,
+						knownErrorCode(failure.data.error_code),
 						failure.data.message,
 						response.requestId,
 						parsed,
@@ -112,11 +119,15 @@ export async function apiRequest<T>(
 }
 
 export function apiErrorMessage(error: unknown, t: TFunction): string {
-	if (error instanceof ApiError) {
-		return t(`app.apiError.${error.code}`, { defaultValue: error.message })
+	if (!(error instanceof ApiError)) {
+		return t("apiError.CLIENT__NETWORK")
 	}
 
-	return t("app.apiError.CLIENT__NETWORK")
+	return error.code === "CLIENT__UNKNOWN_ERROR" ? error.message : t(`apiError.${error.code}`)
+}
+
+function knownErrorCode(code: string): ApiErrorCode {
+	return apiErrorCodes.find((known) => known === code) ?? "CLIENT__UNKNOWN_ERROR"
 }
 
 function queryString(query: Record<string, QueryValue> | undefined) {
@@ -212,7 +223,11 @@ function invalidResponse(response: Received, body: unknown) {
 }
 
 function report(error: ApiError) {
-	if (error.status >= 500 || error.code === "CLIENT__INVALID_RESPONSE") {
+	if (
+		error.status >= SERVER_ERROR_STATUS ||
+		error.code === "CLIENT__INVALID_RESPONSE" ||
+		error.code === "CLIENT__UNKNOWN_ERROR"
+	) {
 		dependencies?.report(error, `api:${error.requestId ?? "-"}`)
 	}
 

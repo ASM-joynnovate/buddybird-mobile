@@ -1,14 +1,14 @@
 import type { TFunction } from "i18next"
 import { useEffect, useState } from "react"
 
+import { STATION_DISCONNECT_MS } from "@/config"
 import { formatClock, formatTimer } from "@/i18n/format"
 import { currentSpan, type Phase } from "@/services/session/phases"
 import type { SleepSettings } from "@/types/apis/settings"
 import type { Locale } from "@/types/locale"
+import { SECOND } from "@/utils/units"
 
-const DISCONNECT_MS = 60_000
-
-export function useNow(enabled = true, intervalMs = 1000): number {
+export function useNow(enabled = true, intervalMs = SECOND): number {
 	const [now, setNow] = useState(Date.now)
 
 	useEffect(() => {
@@ -43,7 +43,7 @@ export function phaseStatus(startedAt: string, sleep: SleepSettings, now: number
 }
 
 export function isDisconnected(lastHeartbeatAt: string | null, now: number): boolean {
-	return lastHeartbeatAt === null || now - Date.parse(lastHeartbeatAt) > DISCONNECT_MS
+	return lastHeartbeatAt === null || now - Date.parse(lastHeartbeatAt) > STATION_DISCONNECT_MS
 }
 
 export function remainingText(

@@ -1,9 +1,9 @@
 import { useFocusEffect } from "@react-navigation/native"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useCallback, useState } from "react"
 
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { latestConsents } from "@/screens/Entry/consent-agreements"
 import { useConsentStore } from "@/stores/consent"
 import type { Consent } from "@/types/apis/consents"
@@ -23,7 +23,7 @@ export function useConsentChecks(onSaved?: () => void): {
 } {
 	const query = useQuery(consentsQueryOptions())
 
-	const mutation = useMutation(saveConsentMutationOptions())
+	const mutation = useIdempotentMutation(saveConsentMutationOptions())
 
 	const [checked, setChecked] = useState<Record<string, boolean>>({})
 
@@ -51,7 +51,6 @@ export function useConsentChecks(onSaved?: () => void): {
 					consent_id: consent.id,
 					status: isChecked(consent) ? "granted" : "denied",
 				},
-				idempotencyKey: randomUUID(),
 			})
 		}
 

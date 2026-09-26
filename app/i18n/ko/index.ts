@@ -1,3 +1,4 @@
+import { apiError } from "@/i18n/ko/api-error"
 import { app } from "@/i18n/ko/app"
 import { auth } from "@/i18n/ko/auth"
 import { common } from "@/i18n/ko/common"
@@ -14,6 +15,7 @@ import type { Messages } from "@/i18n/types"
 
 export const ko: Messages = {
 	app,
+	apiError,
 	auth,
 	common,
 	parrot,

@@ -9,10 +9,8 @@ import {
 	fetchWords,
 	renameWord,
 } from "@/apis/words"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { queryClient } from "@/lib/query-client"
-
-const refresh = () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() })
 
 export const wordsQueryOptions = () =>
 	queryOptions({ queryKey: apiKeys.words.all(), queryFn: fetchWords })
@@ -46,7 +44,7 @@ export const deleteWordMutationOptions = () =>
 		mutationKey: apiKeys.mutation("words", "delete"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteWord(id, idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.words.all()),
 	})
 
 export const addRecordingMutationOptions = () =>
@@ -76,7 +74,3 @@ export const deleteRecordingMutationOptions = () =>
 			idempotencyKey: string
 		}) => deleteWordRecording(wordId, recordingId, idempotencyKey),
 	})
-
-export function refreshWords(): Promise<void> {
-	return refresh()
-}

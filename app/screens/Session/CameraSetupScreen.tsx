@@ -8,16 +8,18 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { IconButton } from "@/components/ui/icon-button"
 import { Copy } from "@/components/ui/text"
-import { night } from "@/screens/Session/components/night"
 import { StartDialogs } from "@/screens/Session/components/start-dialogs"
 import { useStartSession } from "@/screens/Session/hooks/use-start-session"
 import { colors, font } from "@/theme"
+import { night } from "@/theme/night"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function CameraSetupScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "CameraSetup">>()
+
 	const starter = useStartSession((sessionId) => navigation.replace("SessionRun", { sessionId }))
 
 	return (

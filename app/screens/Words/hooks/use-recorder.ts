@@ -7,11 +7,12 @@ import {
 import { File } from "expo-file-system"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { RECORDING_MAX_SECONDS } from "@/config"
 import { reportError } from "@/services/telemetry/client"
+import { MAX_UPLOAD_BYTES } from "@/types/apis/uploads"
 import { meteringLevel } from "@/utils/audio-waveform"
+import { SECOND } from "@/utils/units"
 
-const MAX_SECONDS = 60
-const MAX_BYTES = 5 * 1024 * 1024
 const options = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true }
 
 export type Take = { uri: string; durationMs: number }
@@ -52,13 +53,14 @@ function inspect(uri: string, durationMs: number): RecorderProblem {
 		return "empty"
 	}
 
-	return file.size > MAX_BYTES ? "tooLarge" : null
+	return file.size > MAX_UPLOAD_BYTES ? "tooLarge" : null
 }
 
 export function useRecorder(): Recorder {
 	const [take, setTake] = useState<Take | null>(null)
 	const [problem, setProblem] = useState<RecorderProblem>(null)
 	const [busy, setBusy] = useState(false)
+
 	const elapsed = useRef(0)
 	const handled = useRef<string | null>(null)
 	const closing = useRef(false)
@@ -78,10 +80,11 @@ export function useRecorder(): Recorder {
 			if (found) {
 				deleteFile(uri)
 			} else {
-				setTake({ uri, durationMs: Math.min(MAX_SECONDS * 1000, durationMs) })
+				setTake({ uri, durationMs: Math.min(RECORDING_MAX_SECONDS * SECOND, durationMs) })
 			}
 		} catch (error) {
 			reportError(error, "recording_inspect")
+
 			setProblem("error")
 		}
 	}, [])
@@ -127,6 +130,7 @@ export function useRecorder(): Recorder {
 
 		if (take) {
 			deleteFile(take.uri)
+
 			setTake(null)
 		}
 
@@ -139,10 +143,13 @@ export function useRecorder(): Recorder {
 				allowsBackgroundRecording: false,
 			})
 			await recorder.prepareToRecordAsync(options)
+
 			handled.current = null
-			recorder.record({ forDuration: MAX_SECONDS })
+
+			recorder.record({ forDuration: RECORDING_MAX_SECONDS })
 		} catch (error) {
 			reportError(error, "recording_start")
+
 			setProblem("error")
 		} finally {
 			setBusy(false)
@@ -166,6 +173,7 @@ export function useRecorder(): Recorder {
 			}
 		} catch (error) {
 			reportError(error, "recording_stop")
+
 			setProblem("error")
 		} finally {
 			setBusy(false)

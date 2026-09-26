@@ -7,17 +7,6 @@ export const app: AppMessages = {
 		message: "원본 데이터는 보존되어 있어요. 다시 시도하면 이어서 준비할 수 있습니다.",
 		retry: "다시 시도",
 	},
-	apiError: {
-		AUTH__INVALID_TOKEN: "로그인이 만료되었어요. 다시 로그인해 주세요.",
-		AUTH__INVALID_PROVIDER_CREDENTIAL:
-			"소셜 로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.",
-		AUTH__PROVIDER_CREDENTIAL_REQUIRED: "소셜 로그인 정보가 필요해요. 다시 로그인해 주세요.",
-		AUTH__SERVICE_UNAVAILABLE:
-			"로그인 서비스를 잠시 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
-		CLIENT__NETWORK: "버디버드에 연결하지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.",
-		CLIENT__TIMEOUT: "응답이 너무 늦어요. 연결을 확인한 뒤 다시 시도해 주세요.",
-		CLIENT__INVALID_RESPONSE: "서버 응답을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
-	},
 	storage: {
 		loading: "기존 자료를 가져오고 있어요. 준비된 자료는 사용할 수 있어요.",
 		partial: "일부 자료를 가져오지 못했어요. 원본은 그대로 두었으며 다시 시도할 수 있어요.",

@@ -8,11 +8,9 @@ import {
 	updateParrot,
 	uploadParrotPhoto,
 } from "@/apis/parrots"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { queryClient } from "@/lib/query-client"
 import type { CreateParrotRequest } from "@/types/apis/parrots"
-
-const refresh = () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() })
 
 export const parrotsQueryOptions = () =>
 	queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: fetchParrots })
@@ -29,7 +27,7 @@ export const saveParrotMutationOptions = () =>
 			input: CreateParrotRequest
 			idempotencyKey: string
 		}) => (id ? updateParrot(id, input, idempotencyKey) : createParrot(input, idempotencyKey)),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	})
 
 export const deleteParrotMutationOptions = () =>
@@ -37,7 +35,7 @@ export const deleteParrotMutationOptions = () =>
 		mutationKey: apiKeys.mutation("parrots", "delete"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteParrot(id, idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	})
 
 export const uploadParrotPhotoMutationOptions = () =>
@@ -52,7 +50,7 @@ export const uploadParrotPhotoMutationOptions = () =>
 			uri: string
 			idempotencyKey: string
 		}) => uploadParrotPhoto(id, uri, idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	})
 
 export const deleteParrotPhotoMutationOptions = () =>
@@ -60,5 +58,5 @@ export const deleteParrotPhotoMutationOptions = () =>
 		mutationKey: apiKeys.mutation("parrots", "photo", "delete"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteParrotPhoto(id, idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	})

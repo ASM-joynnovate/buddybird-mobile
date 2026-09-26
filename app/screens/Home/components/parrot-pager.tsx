@@ -9,21 +9,20 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Copy, Title } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 import type { Parrot } from "@/types/apis/parrots"
+import { ageMonths } from "@/utils/date"
+import { MONTHS_PER_YEAR } from "@/utils/units"
 
 const INFO_HEIGHT = 96
-const MONTHS_PER_YEAR = 12
 
 function ageText(birthdate: string | null, t: TFunction): string | null {
-	if (!birthdate) {
+	const months = ageMonths(birthdate)
+
+	if (months === null) {
 		return null
 	}
 
-	const [year, month] = birthdate.split("-").map(Number)
-	const today = new Date()
-	const months = (today.getFullYear() - year) * MONTHS_PER_YEAR + today.getMonth() + 1 - month
-
 	if (months < MONTHS_PER_YEAR) {
-		return t("home.parrot.months", { count: Math.max(0, months) })
+		return t("home.parrot.months", { count: months })
 	}
 
 	return t("home.parrot.years", { count: Math.floor(months / MONTHS_PER_YEAR) })
@@ -37,6 +36,7 @@ export function ParrotPager({
 	onOpen(id: string): void
 }) {
 	const { t } = useTranslation()
+
 	const [size, setSize] = useState({ width: 0, height: 0 })
 	const [index, setIndex] = useState(0)
 

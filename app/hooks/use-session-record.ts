@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { SCREEN_REFRESH_MS } from "@/config"
 import { sessionPlaysQueryOptions } from "@/hooks/apis/mocks"
 import { sessionQueryOptions } from "@/hooks/apis/sessions"
 import { settingsQueryOptions } from "@/hooks/apis/settings"
 import { wordsQueryOptions } from "@/hooks/apis/words"
 import { useSessionTimeline } from "@/hooks/use-session-timeline"
 import type { SessionRecord, SessionTimeline } from "@/mocks/types"
-
-const REFRESH_MS = 10_000
 
 export function useSessionRecord(sessionId: string): {
 	record: SessionRecord | undefined
@@ -18,11 +17,14 @@ export function useSessionRecord(sessionId: string): {
 } {
 	const session = useQuery({
 		...sessionQueryOptions(sessionId),
-		refetchInterval: (query) => (query.state.data?.status === "running" ? REFRESH_MS : false),
+		refetchInterval: (query) =>
+			query.state.data?.status === "running" ? SCREEN_REFRESH_MS : false,
 	})
-	const refetchInterval = session.data?.status === "running" ? REFRESH_MS : false
+
+	const refetchInterval = session.data?.status === "running" ? SCREEN_REFRESH_MS : false
 
 	const { timeline, ...timelineState } = useSessionTimeline(sessionId, refetchInterval)
+
 	const plays = useQuery({ ...sessionPlaysQueryOptions(sessionId), refetchInterval })
 	const settings = useQuery(settingsQueryOptions())
 	const words = useQuery(wordsQueryOptions())

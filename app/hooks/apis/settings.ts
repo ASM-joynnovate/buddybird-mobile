@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import { fetchSettings, updateNotifications, updateSleep } from "@/apis/settings"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
 import type { NotificationSettings, Settings, SleepSettings } from "@/types/apis/settings"
@@ -23,13 +24,6 @@ function restoreCachedSettings(context: { previous: Settings | undefined } | und
 	}
 }
 
-const refreshSettingsAndSession = () =>
-	Promise.all([
-		queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
-		queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
-		queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-	])
-
 export const settingsQueryOptions = () =>
 	queryOptions({ queryKey: apiKeys.settings(), queryFn: fetchSettings })
 
@@ -40,7 +34,7 @@ export const updateSleepMutationOptions = () =>
 			updateSleep(sleep, idempotencyKey),
 		onMutate: ({ sleep }) => patchCachedSettings({ sleep }),
 		onError: (_error, _variables, context) => restoreCachedSettings(context),
-		onSettled: refreshSettingsAndSession,
+		onSettled: () => invalidate(apiKeys.settings(), apiKeys.sessions.running(), apiKeys.home()),
 	})
 
 export const updateNotificationsMutationOptions = () =>
@@ -55,5 +49,5 @@ export const updateNotificationsMutationOptions = () =>
 		}) => updateNotifications(notifications, idempotencyKey),
 		onMutate: ({ notifications }) => patchCachedSettings({ notifications }),
 		onError: (_error, _variables, context) => restoreCachedSettings(context),
-		onSettled: refreshSettingsAndSession,
+		onSettled: () => invalidate(apiKeys.settings(), apiKeys.sessions.running(), apiKeys.home()),
 	})

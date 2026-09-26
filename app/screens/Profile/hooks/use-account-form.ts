@@ -9,9 +9,7 @@ import {
 } from "@/hooks/apis/users"
 import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
 import { ApiError } from "@/types/apis/common"
-import type { User } from "@/types/apis/users"
-
-const NICKNAME = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u
+import { NICKNAME_PATTERN, type User } from "@/types/apis/users"
 
 export function useAccountForm(
 	user: User,
@@ -30,14 +28,16 @@ export function useAccountForm(
 	const mutation = useMutation(updateMeMutationOptions())
 	const photoUpload = useMutation(uploadPhotoMutationOptions())
 	const photoDelete = useMutation(deletePhotoMutationOptions())
-	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
-	const photoSaveFailed = photoUpload.isError || photoDelete.isError
 
 	const savedPhotoUrl = user.photo?.url ?? null
+
 	const photo = usePhotoPicker(savedPhotoUrl)
 
 	const [nickname, setNickname] = useState(user.nickname ?? "")
 	const [invalid, setInvalid] = useState(false)
+
+	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
+	const photoSaveFailed = photoUpload.isError || photoDelete.isError
 	const duplicate =
 		mutation.error instanceof ApiError && mutation.error.code === "USER__DUPLICATE_NICKNAME"
 	let nicknameError: string | null = null
@@ -51,7 +51,7 @@ export function useAccountForm(
 	function save() {
 		const trimmed = nickname.trim()
 
-		if (!NICKNAME.test(trimmed)) {
+		if (!NICKNAME_PATTERN.test(trimmed)) {
 			setInvalid(true)
 
 			return
@@ -81,6 +81,7 @@ export function useAccountForm(
 		setNickname: (value) => {
 			setNickname(value)
 			setInvalid(false)
+
 			mutation.reset()
 		},
 		nicknameError,

@@ -4,9 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import { type PermissionDialogState, usePermission } from "@/hooks/use-permission"
 import { reportError } from "@/services/telemetry/client"
-
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024
-const PHOTO_TYPES = ["image/jpeg", "image/png"]
+import { MAX_UPLOAD_BYTES, PHOTO_TYPES } from "@/types/apis/uploads"
 
 function photoType(asset: ImagePicker.ImagePickerAsset) {
 	if (asset.mimeType) {
@@ -30,7 +28,9 @@ export function usePhotoPicker(initial: string | null): {
 	dialog: PermissionDialogState
 } {
 	const { t } = useTranslation()
+
 	const permission = usePermission("photos")
+
 	const [photoUri, setPhotoUri] = useState(initial)
 	const [error, setError] = useState<string | null>(null)
 
@@ -50,7 +50,7 @@ export function usePhotoPicker(initial: string | null): {
 
 			if (!PHOTO_TYPES.includes(photoType(asset))) {
 				setError(t("entry.parrot.photoType"))
-			} else if ((asset.fileSize ?? 0) > MAX_PHOTO_BYTES) {
+			} else if ((asset.fileSize ?? 0) > MAX_UPLOAD_BYTES) {
 				setError(t("entry.parrot.photoSize"))
 			} else {
 				setPhotoUri(asset.uri)
@@ -58,6 +58,7 @@ export function usePhotoPicker(initial: string | null): {
 			}
 		} catch (cause) {
 			reportError(cause, "photo_picker")
+
 			setError(t("entry.parrot.photoError"))
 		}
 	}
@@ -67,6 +68,7 @@ export function usePhotoPicker(initial: string | null): {
 			await permission.run(() => void pick())
 		} catch (cause) {
 			reportError(cause, "photo_permission")
+
 			setError(t("entry.parrot.photoError"))
 		}
 	}

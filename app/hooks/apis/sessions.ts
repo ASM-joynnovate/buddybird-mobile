@@ -11,16 +11,10 @@ import {
 	sendHeartbeat,
 	startSession,
 } from "@/apis/sessions"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
 import type { HeartbeatRequest, SessionSound, StartSessionRequest } from "@/types/apis/sessions"
-
-const refreshSessions = () =>
-	Promise.all([
-		queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-		queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-		queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-	])
 
 async function fetchAllSounds(id: string): Promise<SessionSound[]> {
 	const sounds: SessionSound[] = []
@@ -61,7 +55,7 @@ export const startSessionMutationOptions = () =>
 		onSuccess: (session) => {
 			queryClient.setQueryData(apiKeys.sessions.running(), session)
 
-			return refreshSessions()
+			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices())
 		},
 	})
 
@@ -74,10 +68,12 @@ export const finishSessionMutationOptions = () =>
 			queryClient.setQueryData(apiKeys.sessions.running(), null)
 			queryClient.setQueryData(apiKeys.sessions.detail(session.id), session)
 
-			return Promise.all([
-				refreshSessions(),
-				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
-			])
+			return invalidate(
+				apiKeys.sessions.all(),
+				apiKeys.home(),
+				apiKeys.devices(),
+				apiKeys.reports.all(),
+			)
 		},
 	})
 

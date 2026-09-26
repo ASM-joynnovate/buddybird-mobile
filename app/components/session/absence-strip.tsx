@@ -6,16 +6,9 @@ import Svg, { Line, Polyline, Rect } from "react-native-svg"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatDateWithWeekday, formatTime } from "@/i18n/format"
-import { type Phase, phaseSpans, type SleepWindow } from "@/services/session/phases"
+import { phaseSpans, type SleepWindow } from "@/services/session/phases"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font } from "@/theme"
-
-export const phaseColors: Record<Phase, string> = {
-	learning: colors.orange,
-	rest: colors.blue,
-	stress_care: colors.blue,
-	sleeping: colors.disabled,
-}
+import { colors, font, phaseColors } from "@/theme"
 
 export type StripSound = { id: string; at: number; mimicked: boolean }
 

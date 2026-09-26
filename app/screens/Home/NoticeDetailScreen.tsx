@@ -1,6 +1,5 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
@@ -10,6 +9,7 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy, Title } from "@/components/ui/text"
 import { noticeQueryOptions, readNoticeMutationOptions } from "@/hooks/apis/notices"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { formatDate } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, radius } from "@/theme"
@@ -25,13 +25,13 @@ export function NoticeDetailScreen() {
 
 	const notice = useQuery(noticeQueryOptions(params.noticeId))
 
-	const { mutate } = useMutation(readNoticeMutationOptions())
+	const { mutate } = useIdempotentMutation(readNoticeMutationOptions())
 
 	const alreadyRead = notice.data?.is_read
 
 	useEffect(() => {
 		if (alreadyRead === false) {
-			mutate({ id: params.noticeId, idempotencyKey: randomUUID() })
+			mutate({ id: params.noticeId })
 		}
 	}, [alreadyRead, mutate, params.noticeId])
 

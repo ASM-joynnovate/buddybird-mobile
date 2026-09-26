@@ -10,19 +10,25 @@ import { Icon } from "@/components/ui/icon"
 import { IconButton } from "@/components/ui/icon-button"
 import { Copy } from "@/components/ui/text"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { night } from "@/screens/Session/components/night"
 import { isDisconnected, useNow } from "@/screens/Session/hooks/use-clock"
 import { colors, font } from "@/theme"
+import { night } from "@/theme/night"
+import { SECOND } from "@/utils/units"
 
 const CONNECT_MS = 1500
 
 export function LiveVideoScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation()
+
 	const running = useQuery(runningSessionQueryOptions())
-	const now = useNow(true, 5000)
+
+	const now = useNow(true, 5 * SECOND)
+
 	const [attempt, setAttempt] = useState(0)
 	const [connecting, setConnecting] = useState(true)
+
 	const session = running.data
 	const disconnected =
 		session !== undefined &&

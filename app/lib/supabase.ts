@@ -2,12 +2,12 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { CryptoDigestAlgorithm, digest, getRandomValues } from "expo-crypto"
 import * as SecureStore from "expo-secure-store"
 
-import { config } from "@/config"
+import { env } from "@/config"
 
 let client: SupabaseClient | undefined
 
 export function getSupabase() {
-	if (!config.supabaseUrl || !config.supabasePublishableKey) {
+	if (!env.supabaseUrl || !env.supabasePublishableKey) {
 		throw new Error("Supabase configuration missing")
 	}
 
@@ -29,7 +29,7 @@ export function getSupabase() {
 		})
 	}
 
-	client ??= createClient(config.supabaseUrl, config.supabasePublishableKey, {
+	client ??= createClient(env.supabaseUrl, env.supabasePublishableKey, {
 		auth: {
 			persistSession: true,
 			autoRefreshToken: true,

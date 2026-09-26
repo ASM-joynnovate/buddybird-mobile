@@ -1,8 +1,6 @@
 import { useNetInfo } from "@react-native-community/netinfo"
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useKeepAwake } from "expo-keep-awake"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -13,16 +11,18 @@ import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { usePermission } from "@/hooks/use-permission"
 import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
-import { night } from "@/screens/Session/components/night"
 import { RunStatus } from "@/screens/Session/components/run-status"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
-import { useHeartbeat, useIdleReveal } from "@/screens/Session/hooks/use-station"
+import { useHeartbeat } from "@/screens/Session/hooks/use-heartbeat"
+import { useIdleReveal } from "@/screens/Session/hooks/use-idle-reveal"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font, radius } from "@/theme"
+import { night } from "@/theme/night"
 import type { RootStackParamList } from "@/types/navigation"
 
 const RING_MAX = 460
@@ -37,7 +37,8 @@ export function SessionRunScreen() {
 	const { sessionId } = params
 
 	const running = useRunningSession()
-	const detail = running.detail?.session.id === sessionId ? running.detail : null
+
+	const finishing = useIdempotentMutation(finishSessionMutationOptions())
 
 	const microphone = usePermission("microphone")
 	const camera = usePermission("camera")
@@ -48,7 +49,7 @@ export function SessionRunScreen() {
 
 	const [ending, setEnding] = useState(false)
 
-	const finishing = useMutation(finishSessionMutationOptions())
+	const detail = running.detail?.session.id === sessionId ? running.detail : null
 
 	const showSummary = useCallback(
 		() => navigation.replace("SessionSummary", { sessionId, role: "station" }),
@@ -74,10 +75,7 @@ export function SessionRunScreen() {
 	}, [])
 
 	function finish() {
-		finishing.mutate(
-			{ id: sessionId, idempotencyKey: randomUUID() },
-			{ onSuccess: showSummary },
-		)
+		finishing.mutate({ id: sessionId }, { onSuccess: showSummary })
 	}
 
 	return (
@@ -110,6 +108,7 @@ export function SessionRunScreen() {
 				onConfirm={finish}
 				onClose={() => {
 					finishing.reset()
+
 					setEnding(false)
 				}}
 			/>

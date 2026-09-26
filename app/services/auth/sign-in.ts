@@ -2,7 +2,7 @@ import * as AppleAuthentication from "expo-apple-authentication"
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from "expo-crypto"
 import * as WebBrowser from "expo-web-browser"
 
-import { config } from "@/config"
+import { env } from "@/config"
 import { getSupabase } from "@/lib/supabase"
 import { setAppleCredential } from "@/services/auth/credential"
 import { useAccountStore } from "@/stores/account"
@@ -10,7 +10,7 @@ import { useAccountStore } from "@/stores/account"
 export async function signInWithOAuth(provider: "google" | "kakao") {
 	const supabase = getSupabase()
 
-	const redirectTo = `${config.production ? "buddybird" : "buddybird-dev"}://auth/callback`
+	const redirectTo = `${env.production ? "buddybird" : "buddybird-dev"}://auth/callback`
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider,
 		options: {

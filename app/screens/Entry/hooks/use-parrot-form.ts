@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -8,11 +6,11 @@ import {
 	saveParrotMutationOptions,
 	uploadParrotPhotoMutationOptions,
 } from "@/hooks/apis/parrots"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
 import { isSpeciesId } from "@/services/profile/species"
-import type { CreateParrotRequest, Parrot } from "@/types/apis/parrots"
+import { type CreateParrotRequest, PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
 
-const MAX_NAME = 20
 const MAX_AGE_YEARS = 100
 
 type Invalid = { name: boolean; species: boolean; birthday: boolean }
@@ -28,11 +26,13 @@ function pad(value: number) {
 function useBirthday(saved: string | null | undefined, clear: () => void) {
 	const now = new Date()
 	const initial = saved?.split("-").map(Number) ?? [now.getFullYear() - 1, now.getMonth() + 1, 1]
+
 	const [unknownBirthday, setUnknownBirthday] = useState(saved === null)
 	const [year, setYear] = useState(initial[0])
 	const [month, setMonth] = useState(initial[1])
 	const [day, setDay] = useState(initial[2])
 	const [answered, setAnswered] = useState(saved !== undefined)
+
 	const chosenDay = Math.min(day, daysIn(year, month))
 	const earliest = Math.min(now.getFullYear() - MAX_AGE_YEARS, initial[0])
 
@@ -95,13 +95,13 @@ export type ParrotForm = {
 export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): ParrotForm {
 	const { t } = useTranslation()
 
-	const mutation = useMutation(saveParrotMutationOptions())
-	const photoUpload = useMutation(uploadParrotPhotoMutationOptions())
-	const photoDelete = useMutation(deleteParrotPhotoMutationOptions())
-	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
-	const saveFailed = mutation.isError || photoUpload.isError || photoDelete.isError
+	const mutation = useIdempotentMutation(saveParrotMutationOptions())
+	const photoUpload = useIdempotentMutation(uploadParrotPhotoMutationOptions())
+	const photoDelete = useIdempotentMutation(deleteParrotPhotoMutationOptions())
 
 	const known = parrot ? isSpeciesId(parrot.species) : false
+	const savedPhotoUrl = parrot?.photo?.url ?? null
+
 	const [name, setName] = useState(parrot?.name ?? "")
 	const [species, setSpecies] = useState(known && parrot ? parrot.species : "")
 	const [invalid, setInvalid] = useState<Invalid>({
@@ -109,16 +109,19 @@ export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): 
 		species: false,
 		birthday: false,
 	})
+
 	const clear = (key: keyof Invalid) => setInvalid((current) => ({ ...current, [key]: false }))
 
-	const savedPhotoUrl = parrot?.photo?.url ?? null
 	const photo = usePhotoPicker(savedPhotoUrl)
 	const birthday = useBirthday(parrot ? parrot.birthdate : undefined, () => clear("birthday"))
+
+	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
+	const saveFailed = mutation.isError || photoUpload.isError || photoDelete.isError
 
 	function save() {
 		const trimmed = name.trim()
 		const next = {
-			name: trimmed.length < 1 || trimmed.length > MAX_NAME,
+			name: trimmed.length < 1 || trimmed.length > PARROT_NAME_LIMIT,
 			species: !isSpeciesId(species),
 			birthday: birthday.future,
 		}
@@ -133,20 +136,12 @@ export function useParrotForm(parrot: Parrot | undefined, onSaved: () => void): 
 	}
 
 	async function saveParrot(input: CreateParrotRequest) {
-		const saved = await mutation.mutateAsync({
-			id: parrot?.id ?? null,
-			input,
-			idempotencyKey: randomUUID(),
-		})
+		const saved = await mutation.mutateAsync({ id: parrot?.id ?? null, input })
 
 		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
-			await photoUpload.mutateAsync({
-				id: saved.id,
-				uri: photo.photoUri,
-				idempotencyKey: randomUUID(),
-			})
+			await photoUpload.mutateAsync({ id: saved.id, uri: photo.photoUri })
 		} else if (!photo.photoUri && savedPhotoUrl) {
-			await photoDelete.mutateAsync({ id: saved.id, idempotencyKey: randomUUID() })
+			await photoDelete.mutateAsync({ id: saved.id })
 		}
 
 		onSaved()

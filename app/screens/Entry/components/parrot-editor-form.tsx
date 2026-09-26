@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -18,8 +16,9 @@ import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { TextField } from "@/components/ui/text-field"
 import { deleteParrotMutationOptions } from "@/hooks/apis/parrots"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { useParrotForm } from "@/screens/Entry/hooks/use-parrot-form"
-import type { Parrot } from "@/types/apis/parrots"
+import { PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
 
 export function ParrotEditorForm({
 	parrot,
@@ -35,8 +34,11 @@ export function ParrotEditorForm({
 	onDone(): void
 }) {
 	const { t } = useTranslation()
+
+	const removal = useIdempotentMutation(deleteParrotMutationOptions())
+
 	const form = useParrotForm(parrot, onDone)
-	const removal = useMutation(deleteParrotMutationOptions())
+
 	const [confirming, setConfirming] = useState(false)
 
 	const deleteButton =
@@ -89,7 +91,7 @@ export function ParrotEditorForm({
 					value={form.name.value}
 					onChangeText={form.name.onChange}
 					editable={!form.busy}
-					maxLength={20}
+					maxLength={PARROT_NAME_LIMIT}
 					placeholder={t("parrot.nameHint")}
 					returnKeyType="done"
 				/>
@@ -114,14 +116,16 @@ export function ParrotEditorForm({
 					error={removal.isError ? t("entry.parrot.deleteError") : null}
 					onClose={() => {
 						removal.reset()
+
 						setConfirming(false)
 					}}
 					onConfirm={() =>
 						removal.mutate(
-							{ id: parrot.id, idempotencyKey: randomUUID() },
+							{ id: parrot.id },
 							{
 								onSuccess: () => {
 									setConfirming(false)
+
 									onDone()
 								},
 							},

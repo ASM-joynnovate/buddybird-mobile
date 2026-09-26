@@ -4,7 +4,6 @@ const scope = () => ["api", useAccountStore.getState().registeredUser] as const
 
 export const apiKeys = {
 	appUpdate: () => ["api", "app-update"] as const,
-	all: scope,
 	me: () => [...scope(), "users", "me"] as const,
 	settings: () => [...scope(), "users", "me", "settings"] as const,
 	consents: {
@@ -13,7 +12,6 @@ export const apiKeys = {
 	devices: () => [...scope(), "devices"] as const,
 	parrots: {
 		all: () => [...scope(), "parrots"] as const,
-		detail: (id: string) => [...scope(), "parrots", id] as const,
 	},
 	words: {
 		all: () => [...scope(), "words"] as const,
@@ -21,7 +19,6 @@ export const apiKeys = {
 	},
 	sessions: {
 		all: () => [...scope(), "sessions"] as const,
-		list: () => [...scope(), "sessions", "list"] as const,
 		range: (from: string, to: string) => [...scope(), "sessions", "list", from, to] as const,
 		running: () => [...scope(), "sessions", "running"] as const,
 		detail: (id: string) => [...scope(), "sessions", id] as const,
@@ -29,7 +26,6 @@ export const apiKeys = {
 		sounds: (id: string) => [...scope(), "sessions", id, "sounds"] as const,
 	},
 	emergencies: {
-		all: () => [...scope(), "emergencies"] as const,
 		detail: (id: string) => [...scope(), "emergencies", id] as const,
 	},
 	home: () => [...scope(), "home"] as const,

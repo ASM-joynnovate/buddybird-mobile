@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
@@ -11,6 +9,7 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { TextField } from "@/components/ui/text-field"
 import { feedbackMutationOptions } from "@/hooks/apis/feedback"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { validateFeedback } from "@/services/feedback/policy"
 import { track } from "@/services/telemetry/client"
 import { colors, font, mascot } from "@/theme"
@@ -25,8 +24,10 @@ interface Props {
 
 export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }: Props) {
 	const { t } = useTranslation()
+
+	const mutation = useIdempotentMutation(feedbackMutationOptions())
+
 	const [message, setMessage] = useState("")
-	const mutation = useMutation(feedbackMutationOptions())
 
 	function close() {
 		if (mutation.isPending) {
@@ -34,7 +35,9 @@ export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }
 		}
 
 		mutation.reset()
+
 		setMessage("")
+
 		onClose()
 	}
 
@@ -44,11 +47,13 @@ export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }
 		}
 
 		mutation.mutate(
-			{ input: { message: validateFeedback(message) }, idempotencyKey: randomUUID() },
+			{ input: { message: validateFeedback(message) } },
 			{
 				onSuccess: () => {
 					track("feedback_submitted", { source, message_length: message.trim().length })
+
 					setMessage("")
+
 					onSubmitted?.()
 				},
 			},

@@ -1,6 +1,3 @@
-// Input counts UTF-16 units; uploads count Unicode code points.
-export const WORD_NAME_LIMIT = 50
-
 export type SourceType = "preset" | "recording"
 
 export type Word = {

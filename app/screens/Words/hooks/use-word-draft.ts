@@ -1,24 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useEffect, useRef, useState } from "react"
 
+import { UPLOAD_POLL_INTERVAL_MS } from "@/config"
+import { invalidate } from "@/hooks/apis/invalidate"
+import { apiKeys } from "@/hooks/apis/keys"
 import { recordingStatusQueryOptions } from "@/hooks/apis/mocks"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import {
 	addRecordingMutationOptions,
 	createWordMutationOptions,
 	deleteRecordingMutationOptions,
-	refreshWords,
 	renameWordMutationOptions,
 	wordQueryOptions,
 } from "@/hooks/apis/words"
 import type { RecordingStatus } from "@/mocks/types"
 import type { Recording } from "@/types/apis/words"
 import type { RecordedSample } from "@/types/navigation"
-
-export const MAX_RECORDINGS = 5
-export const RECOMMENDED_RECORDINGS = 3
-export const NAME_MAX = 50
-const POLL_MS = 1000
 
 export type SaveStep = "saving" | "uploading" | "processing"
 
@@ -59,7 +56,23 @@ export function useWordDraft(
 	recorded: RecordedSample | undefined,
 ): WordDraft {
 	const queryClient = useQueryClient()
+
+	const create = useIdempotentMutation(createWordMutationOptions())
+	const rename = useIdempotentMutation(renameWordMutationOptions())
+	const upload = useMutation(addRecordingMutationOptions())
+	const remove = useIdempotentMutation(deleteRecordingMutationOptions())
+
 	const [createdId, setCreatedId] = useState<string | null>(null)
+	const [nameInput, setNameInput] = useState<string | null>(null)
+	const [locals, setLocals] = useState<readonly RecordedSample[]>([])
+	const [removedIds, setRemovedIds] = useState<readonly string[]>([])
+	const [step, setStep] = useState<SaveStep | null>(null)
+	const [saveFailed, setSaveFailed] = useState(false)
+	const [touched, setTouched] = useState(false)
+
+	const alive = useRef(true)
+	const consumed = useRef(new Set<string>())
+
 	const wordId = routeWordId ?? createdId
 
 	const word = useQuery({ ...wordQueryOptions(wordId ?? ""), enabled: Boolean(wordId) })
@@ -67,19 +80,6 @@ export function useWordDraft(
 		...recordingStatusQueryOptions(wordId ?? ""),
 		enabled: Boolean(wordId),
 	})
-
-	const [nameInput, setNameInput] = useState<string | null>(null)
-	const [locals, setLocals] = useState<readonly RecordedSample[]>([])
-	const [removedIds, setRemovedIds] = useState<readonly string[]>([])
-	const [step, setStep] = useState<SaveStep | null>(null)
-	const [saveFailed, setSaveFailed] = useState(false)
-	const [touched, setTouched] = useState(false)
-	const alive = useRef(true)
-	const consumed = useRef(new Set<string>())
-	const create = useMutation(createWordMutationOptions())
-	const rename = useMutation(renameWordMutationOptions())
-	const upload = useMutation(addRecordingMutationOptions())
-	const remove = useMutation(deleteRecordingMutationOptions())
 
 	useEffect(() => {
 		alive.current = true
@@ -95,6 +95,7 @@ export function useWordDraft(
 		}
 
 		consumed.current.add(recorded.key)
+
 		setLocals((current) => [...current, recorded])
 	}, [recorded])
 
@@ -133,7 +134,7 @@ export function useWordDraft(
 				return latest
 			}
 
-			await wait(POLL_MS)
+			await wait(UPLOAD_POLL_INTERVAL_MS)
 		}
 
 		return null
@@ -143,10 +144,7 @@ export function useWordDraft(
 		const trimmed = name.trim()
 
 		if (!wordId) {
-			const created = await create.mutateAsync({
-				name: trimmed,
-				idempotencyKey: randomUUID(),
-			})
+			const created = await create.mutateAsync({ name: trimmed })
 
 			setCreatedId(created.id)
 
@@ -154,7 +152,8 @@ export function useWordDraft(
 		}
 
 		if (trimmed !== word.data?.name) {
-			await rename.mutateAsync({ id: wordId, name: trimmed, idempotencyKey: randomUUID() })
+			await rename.mutateAsync({ id: wordId, name: trimmed })
+
 			setNameInput(trimmed)
 		}
 
@@ -172,6 +171,7 @@ export function useWordDraft(
 
 		try {
 			setStep("saving")
+
 			const id = await persistName()
 
 			setStep("uploading")
@@ -182,10 +182,12 @@ export function useWordDraft(
 					file: { uri: sample.uri, durationMs: sample.durationMs },
 					idempotencyKey: sample.key,
 				})
+
 				setLocals((current) => current.filter((item) => item.key !== sample.key))
 			}
 
 			setStep("processing")
+
 			const latest = await waitUntilReady(id)
 
 			if (!latest) {
@@ -199,10 +201,10 @@ export function useWordDraft(
 			)
 
 			for (const recordingId of pending) {
-				await remove.mutateAsync({ wordId: id, recordingId, idempotencyKey: randomUUID() })
+				await remove.mutateAsync({ wordId: id, recordingId })
 			}
 
-			await refreshWords()
+			await invalidate(apiKeys.words.all())
 
 			if (alive.current) {
 				onDone()
@@ -210,6 +212,7 @@ export function useWordDraft(
 		} catch {
 			if (alive.current) {
 				setSaveFailed(true)
+
 				void word.refetch()
 			}
 		} finally {

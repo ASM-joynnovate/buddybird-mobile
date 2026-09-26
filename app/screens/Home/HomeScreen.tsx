@@ -8,6 +8,7 @@ import { StyleSheet, View } from "react-native"
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
+import { SCREEN_REFRESH_MS } from "@/config"
 import { homeSummaryQueryOptions } from "@/hooks/apis/home"
 import { homeExtrasQueryOptions } from "@/hooks/apis/mocks"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
@@ -19,12 +20,11 @@ import { NoticePopup } from "@/screens/Home/components/notice-popup"
 import { ParrotPager } from "@/screens/Home/components/parrot-pager"
 import { EmergencyLine, SessionLine } from "@/screens/Home/components/status-lines"
 import { HomeTopBar } from "@/screens/Home/components/top-bar"
-import { useNoticePopup, useStaleStationCleanup } from "@/screens/Home/hooks/use-home-startup"
+import { useNoticePopup } from "@/screens/Home/hooks/use-notice-popup"
+import { useStaleStationCleanup } from "@/screens/Home/hooks/use-stale-station-cleanup"
 import { TakeoverDialog } from "@/screens/Session/components/start-dialogs"
 import type { HomeSummary } from "@/types/apis/home"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
-
-const REFRESH_MS = 10_000
 
 type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<HomeStackParamList, "Home">,
@@ -33,13 +33,17 @@ type Navigation = CompositeNavigationProp<
 
 export function HomeScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<Navigation>()
 	const focused = useIsFocused()
+
 	const summary = useQuery({
 		...homeSummaryQueryOptions(),
-		refetchInterval: focused ? REFRESH_MS : false,
+		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
 	})
+
 	const popup = useNoticePopup(summary.data?.unread_notices)
+
 	const [takeover, setTakeover] = useState(false)
 
 	useStaleStationCleanup()
@@ -77,6 +81,7 @@ export function HomeScreen() {
 				visible={takeover}
 				onConfirm={() => {
 					setTakeover(false)
+
 					navigation.navigate("SessionStart", { replaceRunning: true })
 				}}
 				onClose={() => setTakeover(false)}
@@ -86,6 +91,7 @@ export function HomeScreen() {
 				onClose={popup.close}
 				onDetail={(noticeId) => {
 					popup.close()
+
 					navigation.navigate("NoticeDetail", { noticeId })
 				}}
 			/>
@@ -99,13 +105,14 @@ interface Props {
 }
 
 function HomeBody({ summary, navigation }: Props) {
-	const refetchInterval = useIsFocused() ? REFRESH_MS : false
-	const player = useSoundPlayer()
+	const refetchInterval = useIsFocused() ? SCREEN_REFRESH_MS : false
 
 	const parrots = useQuery(parrotsQueryOptions())
 	const words = useQuery(wordsQueryOptions())
 	const extras = useQuery({ ...homeExtrasQueryOptions(), refetchInterval })
+
 	const running = useRunningSession(refetchInterval)
+	const player = useSoundPlayer()
 
 	const emergency = extras.data?.unconfirmed_emergency ?? null
 	const mimicry = summary.latest_mimicry

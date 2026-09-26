@@ -10,12 +10,9 @@ import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { formatDuration } from "@/i18n/format"
 import { RecordingRow } from "@/screens/Words/components/recording-row"
-import {
-	type DraftItem,
-	MAX_RECORDINGS,
-	RECOMMENDED_RECORDINGS,
-} from "@/screens/Words/hooks/use-word-draft"
+import type { DraftItem } from "@/screens/Words/hooks/use-word-draft"
 import { colors, font } from "@/theme"
+import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from "@/types/apis/words"
 import type { Locale } from "@/types/locale"
 
 export function RecordingsSection({

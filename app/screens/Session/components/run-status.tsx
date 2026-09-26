@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Icon, type IconName } from "@/components/ui/icon"
-import { night } from "@/screens/Session/components/night"
+import { night } from "@/theme/night"
 
 type Item = { key: string; icon: IconName; problem: boolean; label: string }
 
@@ -16,6 +16,7 @@ export function RunStatus({
 	camera: boolean | null
 }) {
 	const { t } = useTranslation()
+
 	const items: Item[] = [
 		{
 			key: "network",

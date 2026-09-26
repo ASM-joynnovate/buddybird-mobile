@@ -16,7 +16,6 @@ export const apiErrorCodes = [
 	"USER__SAVE_UNAVAILABLE",
 	"USER__DUPLICATE_NICKNAME",
 	"USER__INVALID_PROFILE_PHOTO",
-	"USER__PHOTO_SERVICE_UNAVAILABLE",
 	"DEVICE__NOT_REGISTERED",
 	"DEVICE__NOT_STATION",
 	"DEVICE__SAVE_UNAVAILABLE",
@@ -30,21 +29,25 @@ export const apiErrorCodes = [
 	"SESSION__NOT_RUNNING",
 	"SESSION__INVALID_SOUND",
 	"FEEDBACK__SAVE_UNAVAILABLE",
-	"NOTICE__SAVE_UNAVAILABLE",
-	"NOTICE__IMAGE_SERVICE_UNAVAILABLE",
-	"NOTICE__INVALID_PERIOD",
+	"CONSENT__SAVE_UNAVAILABLE",
+	"NOTIFICATION__READ_FAILED",
 ] as const
 
 export const clientErrorCodes = [
 	"CLIENT__NETWORK",
 	"CLIENT__TIMEOUT",
 	"CLIENT__INVALID_RESPONSE",
+	"CLIENT__UNKNOWN_ERROR",
 ] as const
+
+export type ApiErrorCode = (typeof apiErrorCodes)[number] | (typeof clientErrorCodes)[number]
+
+export const UNAUTHORIZED_STATUS = 401
 
 export class ApiError extends Error {
 	constructor(
 		readonly status: number,
-		readonly code: string,
+		readonly code: ApiErrorCode,
 		message: string,
 		readonly requestId: string | null = null,
 		readonly body: unknown = null,
@@ -59,8 +62,6 @@ export class ApiError extends Error {
 		)
 	}
 }
-
-export type ApiErrorCode = (typeof apiErrorCodes)[number] | (typeof clientErrorCodes)[number]
 
 export const envelopeSchema = z.object({
 	message: z.string(),

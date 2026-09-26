@@ -5,14 +5,8 @@ import {
 	markAllNotificationsRead,
 	markNotificationRead,
 } from "@/apis/notifications"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { queryClient } from "@/lib/query-client"
-
-const refresh = () =>
-	Promise.all([
-		queryClient.invalidateQueries({ queryKey: apiKeys.notifications() }),
-		queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-	])
 
 export const notificationsQueryOptions = () =>
 	infiniteQueryOptions({
@@ -27,7 +21,7 @@ export const readNotificationMutationOptions = () =>
 		mutationKey: apiKeys.mutation("notifications", "read"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			markNotificationRead(id, idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.notifications(), apiKeys.home()),
 	})
 
 export const readAllNotificationsMutationOptions = () =>
@@ -35,5 +29,5 @@ export const readAllNotificationsMutationOptions = () =>
 		mutationKey: apiKeys.mutation("notifications", "read-all"),
 		mutationFn: ({ idempotencyKey }: { idempotencyKey: string }) =>
 			markAllNotificationsRead(idempotencyKey),
-		onSuccess: refresh,
+		onSuccess: () => invalidate(apiKeys.notifications(), apiKeys.home()),
 	})

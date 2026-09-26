@@ -2,9 +2,9 @@ import { StyleSheet, View } from "react-native"
 import Svg, { Path } from "react-native-svg"
 
 import { Copy } from "@/components/ui/text"
-import { night, nightPhaseColor } from "@/screens/Session/components/night"
 import type { Phase } from "@/services/session/phases"
 import { font } from "@/theme"
+import { night, nightPhaseColor } from "@/theme/night"
 
 const STROKE = 16
 

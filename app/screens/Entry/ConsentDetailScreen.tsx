@@ -1,7 +1,6 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native"
 
@@ -12,6 +11,7 @@ import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { Copy } from "@/components/ui/text"
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { useConsentStore } from "@/stores/consent"
 import type { RootStackParamList } from "@/types/navigation"
 
@@ -23,7 +23,7 @@ export function ConsentDetailScreen() {
 
 	const query = useQuery(consentsQueryOptions())
 
-	const mutation = useMutation(saveConsentMutationOptions())
+	const mutation = useIdempotentMutation(saveConsentMutationOptions())
 
 	const consent = query.data?.find((item) => item.id === consentId)
 	const canAgree =
@@ -44,10 +44,7 @@ export function ConsentDetailScreen() {
 		}
 
 		mutation.mutate(
-			{
-				decision: { consent_id: consent.id, status: "granted" },
-				idempotencyKey: randomUUID(),
-			},
+			{ decision: { consent_id: consent.id, status: "granted" } },
 			{ onSuccess: () => navigation.goBack() },
 		)
 	}

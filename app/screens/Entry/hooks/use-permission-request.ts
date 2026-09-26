@@ -1,10 +1,9 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import * as Notifications from "expo-notifications"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { registerPushTokenMutationOptions } from "@/hooks/apis/devices"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { type PermissionKind, requestPermission } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
@@ -29,7 +28,7 @@ export function usePermissionRequest(): {
 } {
 	const { t } = useTranslation()
 
-	const register = useMutation(registerPushTokenMutationOptions())
+	const register = useIdempotentMutation(registerPushTokenMutationOptions())
 
 	const [busy, setBusy] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -48,7 +47,7 @@ export function usePermissionRequest(): {
 		try {
 			const { data } = await Notifications.getDevicePushTokenAsync()
 
-			await register.mutateAsync({ token: String(data), idempotencyKey: randomUUID() })
+			await register.mutateAsync({ token: String(data) })
 		} catch (cause) {
 			reportError(cause, "push_token_register")
 		}

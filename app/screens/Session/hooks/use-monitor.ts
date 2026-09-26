@@ -1,20 +1,20 @@
 import { useIsFocused } from "@react-navigation/native"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 
+import { SCREEN_REFRESH_MS } from "@/config"
 import { stationStatusQueryOptions } from "@/hooks/apis/mocks"
 import {
 	changeLearningMutationOptions,
 	changeWordMutationOptions,
 	finishSessionMutationOptions,
 } from "@/hooks/apis/sessions"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
 import { useSessionTimeline } from "@/hooks/use-session-timeline"
 import type { StationStatus, TimelineSound } from "@/mocks/types"
 import { isDisconnected, useNow } from "@/screens/Session/hooks/use-clock"
-
-const REFRESH_MS = 10_000
+import { SECOND } from "@/utils/units"
 
 type ChangeField = "word" | "learning"
 
@@ -39,11 +39,11 @@ export type MonitorState = {
 
 export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 	const focused = useIsFocused()
-	const refetchInterval = focused ? REFRESH_MS : false
-	const now = useNow(focused, 5000)
+	const refetchInterval = focused ? SCREEN_REFRESH_MS : false
 
 	const running = useRunningSession(refetchInterval)
 	const session = running.detail?.session ?? null
+
 	const stationStatus = useQuery({
 		...stationStatusQueryOptions(session?.id ?? ""),
 		enabled: session !== null,
@@ -51,11 +51,14 @@ export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 	})
 	const { timeline } = useSessionTimeline(session?.id ?? null, refetchInterval)
 
-	const wordChange = useMutation(changeWordMutationOptions())
-	const learningChange = useMutation(changeLearningMutationOptions())
-	const finishing = useMutation(finishSessionMutationOptions())
+	const wordChange = useIdempotentMutation(changeWordMutationOptions())
+	const learningChange = useIdempotentMutation(changeLearningMutationOptions())
+	const finishing = useIdempotentMutation(finishSessionMutationOptions())
+
+	const now = useNow(focused, 5 * SECOND)
 
 	const [lastField, setLastField] = useState<ChangeField | null>(null)
+
 	const seen = useRef<string | null>(null)
 	const ended = useRef(false)
 
@@ -70,6 +73,7 @@ export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 
 		if (seen.current && running.sessionId !== seen.current) {
 			ended.current = true
+
 			onEnded(seen.current)
 		}
 	}, [running.sessionId, running.isSuccess, onEnded])
@@ -99,10 +103,8 @@ export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 			}
 
 			setLastField("word")
-			wordChange.mutate(
-				{ id: session.id, wordId, idempotencyKey: randomUUID() },
-				{ onSuccess: onDone },
-			)
+
+			wordChange.mutate({ id: session.id, wordId }, { onSuccess: onDone })
 		},
 		changeLearning: (enabled) => {
 			if (!session) {
@@ -110,11 +112,12 @@ export function useMonitor(onEnded: (sessionId: string) => void): MonitorState {
 			}
 
 			setLastField("learning")
-			learningChange.mutate({ id: session.id, enabled, idempotencyKey: randomUUID() })
+
+			learningChange.mutate({ id: session.id, enabled })
 		},
 		finish: () => {
 			if (session) {
-				finishing.mutate({ id: session.id, idempotencyKey: randomUUID() })
+				finishing.mutate({ id: session.id })
 			}
 		},
 		resetFinish: () => finishing.reset(),

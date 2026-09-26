@@ -1,9 +1,7 @@
 import { randomUUID } from "expo-crypto"
 
 import {
-	DAY,
 	event,
-	HOUR,
 	iso,
 	learningMsBetween,
 	type MockConsent,
@@ -22,12 +20,13 @@ import {
 } from "@/mocks/seed"
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
+import { MAX_RECORDINGS } from "@/types/apis/words"
+import { DAY, HOUR } from "@/utils/units"
 
 const LATENCY_MS = 450
 const APPLY_DELAY_MS = 3000
 const PROCESSING_DELAY_MS = 2500
 const PAGE_SIZE = 20
-const MAX_RECORDINGS = 5
 const UPLOAD_EXPIRES_SECONDS = 300
 const TAKEN_NICKNAMES = ["버디", "buddy"]
 

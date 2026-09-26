@@ -6,7 +6,7 @@ import { Alert } from "react-native"
 import { appUpdateQueryOptions } from "@/hooks/apis/app-update"
 import { installedVersion, openStore } from "@/services/device/application"
 import { reportError, track } from "@/services/telemetry/client"
-import { evaluateUpdate, UPDATE_INTERVAL } from "@/services/updates/policy"
+import { evaluateUpdate } from "@/services/updates/policy"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
 export function useUpdatePrompt() {
@@ -14,13 +14,12 @@ export function useUpdatePrompt() {
 
 	const preferences = useDeviceSettingsStore((state) => state.update)
 
-	const [storeOpening, setStoreOpening] = useState(false)
+	const update = useQuery(appUpdateQueryOptions())
 
+	const [storeOpening, setStoreOpening] = useState(false)
 	const [acceptedUpdate, setAcceptedUpdate] = useState<string | null>(null)
 
 	const shownUpdate = useRef<string | null>(null)
-
-	const update = useQuery({ ...appUpdateQueryOptions(), staleTime: UPDATE_INTERVAL })
 
 	const decision = update.data
 		? evaluateUpdate(
@@ -72,6 +71,7 @@ export function useUpdatePrompt() {
 			}
 		} catch (error) {
 			reportError(error, "open_store")
+
 			throw error
 		} finally {
 			setStoreOpening(false)

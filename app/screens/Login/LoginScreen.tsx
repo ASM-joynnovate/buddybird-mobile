@@ -13,7 +13,7 @@ import { availableLoginProviders } from "@/services/auth/providers"
 import { signInWithApple, signInWithOAuth } from "@/services/auth/sign-in"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
-import { colors, font, radius } from "@/theme"
+import { colors, font, providerColors, radius } from "@/theme"
 import type { LoginProvider } from "@/types/account"
 
 export function LoginScreen() {
@@ -189,8 +189,6 @@ export function LoginScreen() {
 	)
 }
 
-const appleButtonBackground = "#000000"
-
 const styles = StyleSheet.create({
 	root: { flex: 1 },
 	screen: { gap: 36 },
@@ -200,7 +198,7 @@ const styles = StyleSheet.create({
 	appleButton: { width: "100%", height: 56 },
 	appleProgress: {
 		...StyleSheet.absoluteFill,
-		backgroundColor: appleButtonBackground,
+		backgroundColor: providerColors.apple.background,
 		borderRadius: radius.control,
 		borderCurve: "continuous",
 	},

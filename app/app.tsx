@@ -3,8 +3,8 @@ import { useCallback, useState } from "react"
 import { AppRuntime } from "@/components/app/app-runtime"
 import { AppSplash } from "@/components/app/app-splash"
 import { StartupScreen } from "@/components/app/startup-screen"
-import { useAppServices } from "@/hooks/lifecycle/use-app-services"
 import { useAppBootstrap } from "@/hooks/use-app-bootstrap"
+import { useAppServices } from "@/hooks/use-app-services"
 import { AppNavigator } from "@/navigators/app-navigator"
 import { RootProviders } from "@/providers"
 import { AppProvider } from "@/providers/app-data"
@@ -16,6 +16,7 @@ export function App() {
 	const { state, ready, settled, retry } = useAppBootstrap()
 
 	const [splashFinished, setSplashFinished] = useState(false)
+
 	const finishSplash = useCallback(() => setSplashFinished(true), [])
 
 	if (state === "headless") {

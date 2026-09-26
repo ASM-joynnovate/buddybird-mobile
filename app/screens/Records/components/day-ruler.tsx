@@ -7,6 +7,7 @@ import { formatDate, formatTime } from "@/i18n/format"
 import type { DayAlarm, DayBar } from "@/screens/Records/hooks/use-records-calendar"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
+import { DAY } from "@/utils/units"
 
 type DayRulerProps = {
 	from: number
@@ -16,7 +17,6 @@ type DayRulerProps = {
 	onSelect(id: string): void
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const HOURS = [0, 6, 12, 18, 24]
 const MIN_BAR = 1.5
 
@@ -25,7 +25,7 @@ export function DayRuler({ from, bars, alarms, highlightedId, onSelect }: DayRul
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
 
-	const percent = (at: number) => ((at - from) / DAY_MS) * 100
+	const percent = (at: number) => ((at - from) / DAY) * 100
 
 	return (
 		<View accessibilityLabel={t("records.ruler.label", { date: formatDate(from, locale) })}>

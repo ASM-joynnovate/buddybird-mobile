@@ -1,5 +1,4 @@
-import { useMutation, useQuery, type UseQueryResult } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery, type UseQueryResult } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Share } from "react-native"
 
@@ -9,6 +8,7 @@ import {
 	emergencyQueryOptions,
 	isDeletedRecord,
 } from "@/hooks/apis/emergencies"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { Emergency } from "@/mocks/types"
 
 export type EmergencyRecord = {
@@ -26,13 +26,16 @@ export type EmergencyRecord = {
 
 export function useEmergencyRecord(emergencyId: string): EmergencyRecord {
 	const query = useQuery(emergencyQueryOptions(emergencyId))
-	const confirm = useMutation(confirmEmergencyMutationOptions())
-	const remove = useMutation(deleteEmergencyMutationOptions())
+
+	const { mutate: saveConfirm } = useIdempotentMutation(confirmEmergencyMutationOptions())
+	const remove = useIdempotentMutation(deleteEmergencyMutationOptions())
+
 	const [deleteOpen, setDeleteOpen] = useState(false)
 	const [downloadFailed, setDownloadFailed] = useState(false)
+
 	const confirmed = useRef(false)
+
 	const unconfirmed = query.data?.is_confirmed === false
-	const { mutate: saveConfirm } = confirm
 
 	useEffect(() => {
 		if (!unconfirmed || confirmed.current) {
@@ -40,7 +43,8 @@ export function useEmergencyRecord(emergencyId: string): EmergencyRecord {
 		}
 
 		confirmed.current = true
-		saveConfirm({ id: emergencyId, idempotencyKey: randomUUID() })
+
+		saveConfirm({ id: emergencyId })
 	}, [emergencyId, saveConfirm, unconfirmed])
 
 	async function download() {
@@ -52,6 +56,7 @@ export function useEmergencyRecord(emergencyId: string): EmergencyRecord {
 
 		try {
 			setDownloadFailed(false)
+
 			await Share.share({ url, message: url })
 		} catch {
 			setDownloadFailed(true)
@@ -64,6 +69,7 @@ export function useEmergencyRecord(emergencyId: string): EmergencyRecord {
 		deleteOpen,
 		openDelete: () => {
 			remove.reset()
+
 			setDeleteOpen(true)
 		},
 		closeDelete: () => setDeleteOpen(false),
@@ -71,10 +77,11 @@ export function useEmergencyRecord(emergencyId: string): EmergencyRecord {
 		deleteFailed: remove.isError,
 		confirmDelete: (onDone) =>
 			remove.mutate(
-				{ id: emergencyId, idempotencyKey: randomUUID() },
+				{ id: emergencyId },
 				{
 					onSuccess: () => {
 						setDeleteOpen(false)
+
 						onDone()
 					},
 				},

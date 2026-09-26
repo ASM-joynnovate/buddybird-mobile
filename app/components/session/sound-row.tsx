@@ -1,5 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Share, StyleSheet, View } from "react-native"
@@ -10,6 +9,7 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import { soundFeedbackMutationOptions, soundFeedbackQueryOptions } from "@/hooks/apis/mocks"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import type { TimelineSound } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
@@ -36,7 +36,9 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 	const savedFeedback = useQuery(soundFeedbackQueryOptions()).data?.find(
 		(item) => item.sound_id === sound.id,
 	)?.feedback
-	const saving = useMutation(soundFeedbackMutationOptions())
+
+	const saving = useIdempotentMutation(soundFeedbackMutationOptions())
+
 	const [chosenFeedback, setChosenFeedback] = useState<"up" | "down" | null>(null)
 	const [shareFailed, setShareFailed] = useState(false)
 
@@ -52,8 +54,9 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 		const previous = chosenFeedback
 
 		setChosenFeedback(value)
+
 		saving.mutate(
-			{ soundId: sound.id, feedback: value, idempotencyKey: randomUUID() },
+			{ soundId: sound.id, feedback: value },
 			{ onError: () => setChosenFeedback(previous) },
 		)
 	}
@@ -65,6 +68,7 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 
 		try {
 			setShareFailed(false)
+
 			await Share.share({ url, message: url })
 		} catch {
 			setShareFailed(true)

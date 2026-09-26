@@ -11,9 +11,11 @@ import { PermissionsAndroid, Platform } from "react-native"
 import { updateData } from "@/services/storage/data-store"
 import type { PushAuthorization } from "@/types/push"
 
+const ANDROID_NOTIFICATION_PERMISSION_VERSION = 33
+
 export async function authorization(request: boolean): Promise<PushAuthorization> {
 	if (Platform.OS === "android") {
-		if (Number(Platform.Version) < 33) {
+		if (Number(Platform.Version) < ANDROID_NOTIFICATION_PERMISSION_VERSION) {
 			return "authorized"
 		}
 

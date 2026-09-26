@@ -1,11 +1,11 @@
 import { type CompositeNavigationProp, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { noticeNotificationsQueryOptions } from "@/hooks/apis/mocks"
 import { readNotificationMutationOptions } from "@/hooks/apis/notifications"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { InboxNotification } from "@/mocks/types"
 import { reportError } from "@/services/telemetry/client"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
@@ -17,9 +17,11 @@ type Navigation = CompositeNavigationProp<
 
 export function useOpenNotification(): (item: InboxNotification) => void {
 	const navigation = useNavigation<Navigation>()
+
 	const client = useQueryClient()
-	const { mutate } = useMutation(readNotificationMutationOptions())
 	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
+
+	const { mutate } = useIdempotentMutation(readNotificationMutationOptions())
 
 	function sessionIdOf(notificationId: string) {
 		return noticeNotifications.data?.notification_sessions.find(
@@ -75,7 +77,7 @@ export function useOpenNotification(): (item: InboxNotification) => void {
 
 	return (item) => {
 		if (!item.read_at) {
-			mutate({ id: item.id, idempotencyKey: randomUUID() })
+			mutate({ id: item.id })
 		}
 
 		route(item)

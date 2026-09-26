@@ -1,3 +1,4 @@
+import type { ApiErrorMessages } from "@/i18n/types/api-error"
 import type { AppMessages } from "@/i18n/types/app"
 import type { AuthMessages } from "@/i18n/types/auth"
 import type { CommonMessages } from "@/i18n/types/common"
@@ -13,6 +14,7 @@ import type { WordsMessages } from "@/i18n/types/words"
 
 export type Messages = {
 	app: AppMessages
+	apiError: ApiErrorMessages
 	auth: AuthMessages
 	common: CommonMessages
 	parrot: ParrotMessages

@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
 import {
@@ -7,6 +6,7 @@ import {
 	runningSessionQueryOptions,
 	startSessionMutationOptions,
 } from "@/hooks/apis/sessions"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { readPermission } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
 import { ApiError } from "@/types/apis/common"
@@ -24,14 +24,17 @@ export type StartSessionState = {
 
 export function useStartSession(onStarted: (sessionId: string) => void): StartSessionState {
 	const queryClient = useQueryClient()
-	const mutation = useMutation(startSessionMutationOptions())
-	const finishing = useMutation(finishSessionMutationOptions())
+
+	const mutation = useIdempotentMutation(startSessionMutationOptions())
+	const finishing = useIdempotentMutation(finishSessionMutationOptions())
+
 	const [pending, setPending] = useState<SessionDraft | null>(null)
 	const [takeoverOpen, setTakeoverOpen] = useState(false)
 
 	function start(draft: SessionDraft) {
 		if (draft.replaceRunning) {
 			setPending(draft)
+
 			finishRunningThenStart(draft).catch((error: unknown) =>
 				reportError(error, "session_takeover"),
 			)
@@ -45,22 +48,24 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 	function sendStartRequest(draft: SessionDraft) {
 		setPending(draft)
 		setTakeoverOpen(false)
+
 		mutation.mutate(
 			{
 				input: {
 					word_id: draft.learningEnabled ? draft.wordId : null,
 					learning_enabled: draft.learningEnabled,
 				},
-				idempotencyKey: randomUUID(),
 			},
 			{
 				onSuccess: (session) => {
 					setPending(null)
+
 					onStarted(session.id)
 				},
 				onError: (error) => {
 					if (error instanceof ApiError && error.code === "SESSION__ALREADY_RUNNING") {
 						mutation.reset()
+
 						setTakeoverOpen(true)
 					}
 				},
@@ -75,7 +80,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 		})
 
 		if (running) {
-			await finishing.mutateAsync({ id: running.id, idempotencyKey: randomUUID() })
+			await finishing.mutateAsync({ id: running.id })
 		}
 
 		sendStartRequest(draft)
@@ -89,6 +94,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 		confirmTakeover: () => {
 			if (pending) {
 				setTakeoverOpen(false)
+
 				finishRunningThenStart(pending).catch((error: unknown) =>
 					reportError(error, "session_takeover"),
 				)
@@ -101,6 +107,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 		},
 		dismiss: () => {
 			setTakeoverOpen(false)
+
 			mutation.reset()
 		},
 	}

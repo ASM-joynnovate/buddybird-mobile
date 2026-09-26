@@ -19,20 +19,24 @@ import {
 import { Platform } from "react-native"
 import * as Clarity from "react-native-clarity"
 
-import { config } from "@/config"
-import { ageMonths } from "@/services/profile/statistics"
+import { env } from "@/config"
 import { readData } from "@/services/storage/data-store"
-import { firebaseParameters, sendTelemetrySafely } from "@/services/telemetry/events"
+import {
+	EVENT_NAME_LIMIT,
+	firebaseParameters,
+	sendTelemetrySafely,
+} from "@/services/telemetry/events"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { AnalyticsConsent } from "@/types/consent"
 import type { Events, UserProperties } from "@/types/telemetry"
+import { ageMonths } from "@/utils/date"
+import { DAY } from "@/utils/units"
 
 type Properties = Record<string, string | null>
 
-const DAY_MS = 86_400_000
 const CLARITY_TEXT_LIMIT = 255
 
-const clarityEnabled = config.clarityProjectId.trim() !== ""
+const clarityEnabled = env.clarityProjectId.trim() !== ""
 
 let allowed: boolean | null = null
 let initialization: Promise<AnalyticsConsent> | undefined
@@ -50,7 +54,7 @@ function storedProperties(): Properties {
 	return Object.fromEntries(
 		Object.entries({
 			profile_age_days: profile
-				? Math.max(0, Math.floor((Date.now() - Date.parse(profile.createdAt)) / DAY_MS))
+				? Math.max(0, Math.floor((Date.now() - Date.parse(profile.createdAt)) / DAY))
 				: null,
 			parrot_name: profile?.name ?? null,
 			parrot_species: profile?.species ?? null,
@@ -124,7 +128,8 @@ function startClarity() {
 		})
 	})
 
-	Clarity.initialize(config.clarityProjectId)
+	Clarity.initialize(env.clarityProjectId)
+
 	clarityStarted = true
 }
 
@@ -208,7 +213,7 @@ export function track<K extends keyof Events>(name: K, payload: Events[K]) {
 	}
 
 	void sendTelemetrySafely(async () => {
-		await logEvent(getAnalytics(), name.slice(0, 40), firebaseParameters(payload))
+		await logEvent(getAnalytics(), name.slice(0, EVENT_NAME_LIMIT), firebaseParameters(payload))
 
 		if (!clarityStarted) {
 			return

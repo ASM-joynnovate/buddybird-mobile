@@ -1,6 +1,5 @@
 import { useNavigation } from "@react-navigation/native"
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 
@@ -14,6 +13,7 @@ import {
 	notificationsQueryOptions,
 	readAllNotificationsMutationOptions,
 } from "@/hooks/apis/notifications"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { InboxNotification } from "@/mocks/types"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
@@ -32,7 +32,7 @@ export function NotificationsScreen() {
 	const list = useInfiniteQuery(notificationsQueryOptions())
 	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
 
-	const readAll = useMutation(readAllNotificationsMutationOptions())
+	const readAll = useIdempotentMutation(readAllNotificationsMutationOptions())
 
 	const items: InboxNotification[] = [
 		...(list.data?.pages.flatMap((page) => page.data) ?? []),
@@ -66,7 +66,7 @@ export function NotificationsScreen() {
 					right=<TextButton
 						label={t("home.notification.readAll")}
 						disabled={!hasUnread || readAll.isPending}
-						onPress={() => readAll.mutate({ idempotencyKey: randomUUID() })}
+						onPress={() => readAll.mutate({})}
 					/>
 				/>
 				<InlineError

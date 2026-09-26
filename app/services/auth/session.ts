@@ -2,7 +2,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js"
 
 import { setUnauthorizedHandler } from "@/lib/query-client"
 import { getSupabase } from "@/lib/supabase"
-import { ApiError } from "@/types/apis/common"
+import { ApiError, UNAUTHORIZED_STATUS } from "@/types/apis/common"
 
 export type AuthTransition = "unchanged" | "signedOut" | "signedIn" | "completeLogin"
 
@@ -30,11 +30,11 @@ export async function accessToken(): Promise<string> {
 	}
 
 	if (error) {
-		throw new ApiError(401, "AUTH__INVALID_TOKEN", error.message)
+		throw new ApiError(UNAUTHORIZED_STATUS, "AUTH__INVALID_TOKEN", error.message)
 	}
 
 	if (!data.session) {
-		throw new ApiError(401, "AUTH__INVALID_TOKEN", "No active session")
+		throw new ApiError(UNAUTHORIZED_STATUS, "AUTH__INVALID_TOKEN", "No active session")
 	}
 
 	return data.session.access_token

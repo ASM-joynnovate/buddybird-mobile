@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { uuid } from "@/types/apis/primitives"
 
+export const NICKNAME_PATTERN = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u
+
 export const userSchema = z.object({
 	id: uuid,
 	email: z.string().nullable(),

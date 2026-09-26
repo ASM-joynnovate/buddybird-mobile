@@ -2,13 +2,12 @@ import { getLocales } from "expo-localization"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
+import { FEEDBACK_PROMPT_THRESHOLDS } from "@/config"
 import { mmkvStorage, recordRestoreError } from "@/lib/storage"
 import { persistKeys, storageIds } from "@/stores/keys"
 import { type DeviceSettings, deviceSettingsSchema, type Guide } from "@/types/device-settings"
 import { defaultLocale, type Locale, locales } from "@/types/locale"
 import { localDate } from "@/utils/date"
-
-const LAST_FEEDBACK_THRESHOLD_INDEX = 3
 
 type DeviceSettingsActions = {
 	setLocale: (locale: Locale) => void
@@ -88,7 +87,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 						dayCount: 0,
 						thresholdIndex: Math.min(
 							state.feedback.thresholdIndex + 1,
-							LAST_FEEDBACK_THRESHOLD_INDEX,
+							FEEDBACK_PROMPT_THRESHOLDS.length - 1,
 						),
 					},
 				}))

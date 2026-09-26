@@ -6,10 +6,7 @@ import type { EmergencyBrief, EmergencyKind } from "@/mocks/types"
 import { phaseSpans } from "@/services/session/phases"
 import type { NotificationKind } from "@/types/apis/notifications"
 import type { SessionEventKind } from "@/types/apis/sessions"
-
-export const MINUTE = 60_000
-export const HOUR = 60 * MINUTE
-export const DAY = 24 * HOUR
+import { DAY, HOUR, MINUTE } from "@/utils/units"
 
 export type Ref = { id: string; name: string }
 

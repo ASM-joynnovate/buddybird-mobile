@@ -7,19 +7,6 @@ export const app: AppMessages = {
 		message: "Your original data is preserved. Try again to continue preparing it.",
 		retry: "Try again",
 	},
-	apiError: {
-		AUTH__INVALID_TOKEN: "Your login has expired. Please log in again.",
-		AUTH__INVALID_PROVIDER_CREDENTIAL:
-			"Couldn't verify your social login. Please log in again.",
-		AUTH__PROVIDER_CREDENTIAL_REQUIRED:
-			"Your social login details are needed. Please log in again.",
-		AUTH__SERVICE_UNAVAILABLE:
-			"The login service is temporarily unavailable. Please try again shortly.",
-		CLIENT__NETWORK: "Couldn't connect to BuddyBird. Check your connection and try again.",
-		CLIENT__TIMEOUT:
-			"The server took too long to respond. Check your connection and try again.",
-		CLIENT__INVALID_RESPONSE: "Couldn't read the server response. Please try again shortly.",
-	},
 	storage: {
 		loading: "Importing your saved data. Data that is ready is available to use.",
 		partial: "Some data could not be imported. The originals are retained. You can try again.",

@@ -1,6 +1,6 @@
 import type { UpdateDecision, UpdatePolicy } from "@/types/update"
 
-export const UPDATE_INTERVAL = 6 * 60 * 60 * 1000
+const VERSION_PARTS = 3
 
 export function versionParts(value: string): number[] | null {
 	const match = /^[vV]?(\d+(?:\.\d+){0,2})(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(
@@ -13,7 +13,7 @@ export function versionParts(value: string): number[] | null {
 
 	const parts = match[1].split(".").map(Number)
 
-	return parts.every(Number.isSafeInteger) ? [...parts, 0, 0].slice(0, 3) : null
+	return parts.every(Number.isSafeInteger) ? [...parts, 0, 0].slice(0, VERSION_PARTS) : null
 }
 
 export function compareVersions(a: string, b: string): number | null {
@@ -24,7 +24,7 @@ export function compareVersions(a: string, b: string): number | null {
 		return null
 	}
 
-	for (let i = 0; i < 3; i++) {
+	for (let i = 0; i < VERSION_PARTS; i++) {
 		if (left[i] !== right[i]) {
 			return Math.sign(left[i] - right[i])
 		}
@@ -63,12 +63,4 @@ export function evaluateUpdate(
 		forced,
 		notes: policy.notes,
 	}
-}
-
-export function shouldCheckUpdate(
-	lastCheckedAt: number | null,
-	coldStart: boolean,
-	now = Date.now(),
-) {
-	return coldStart || lastCheckedAt === null || now - lastCheckedAt >= UPDATE_INTERVAL
 }

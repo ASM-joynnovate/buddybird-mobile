@@ -5,8 +5,10 @@ import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
 import { ApiError } from "@/types/apis/common"
 
+const NOT_FOUND_STATUS = 404
+
 export function isDeletedRecord(error: unknown): boolean {
-	return error instanceof ApiError && error.status === 404
+	return error instanceof ApiError && error.status === NOT_FOUND_STATUS
 }
 
 export const emergencyQueryOptions = (id: string) =>

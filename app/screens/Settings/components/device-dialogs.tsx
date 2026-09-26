@@ -1,5 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { View } from "react-native"
@@ -12,20 +10,20 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { TextField } from "@/components/ui/text-field"
 import { disconnectDeviceMutationOptions, renameDeviceMutationOptions } from "@/hooks/apis/mocks"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { MAX_DEVICE_NAME } from "@/mocks/types"
 import { deviceName } from "@/screens/Settings/components/device-card"
 import type { LinkedDevice } from "@/types/device"
 
 export function RenameDeviceDialog({ device, onClose }: { device: LinkedDevice; onClose(): void }) {
 	const { t } = useTranslation()
-	const mutation = useMutation(renameDeviceMutationOptions())
+
+	const mutation = useIdempotentMutation(renameDeviceMutationOptions())
+
 	const [name, setName] = useState(device.name ?? "")
 
 	function save() {
-		mutation.mutate(
-			{ id: device.id, name: name.trim() || null, idempotencyKey: randomUUID() },
-			{ onSuccess: onClose },
-		)
+		mutation.mutate({ id: device.id, name: name.trim() || null }, { onSuccess: onClose })
 	}
 
 	return (
@@ -77,7 +75,8 @@ export function DisconnectDeviceDialog({
 	onClose(): void
 }) {
 	const { t } = useTranslation()
-	const mutation = useMutation(disconnectDeviceMutationOptions())
+
+	const mutation = useIdempotentMutation(disconnectDeviceMutationOptions())
 
 	return (
 		<ConfirmDialog
@@ -89,12 +88,7 @@ export function DisconnectDeviceDialog({
 			busy={mutation.isPending}
 			error={mutation.isError ? t("settings.devices.disconnectError") : null}
 			onClose={onClose}
-			onConfirm={() =>
-				mutation.mutate(
-					{ id: device.id, idempotencyKey: randomUUID() },
-					{ onSuccess: onClose },
-				)
-			}
+			onConfirm={() => mutation.mutate({ id: device.id }, { onSuccess: onClose })}
 		>
 			{device.isRunningSession ? <Copy>{t("settings.devices.sessionEnds")}</Copy> : null}
 		</ConfirmDialog>

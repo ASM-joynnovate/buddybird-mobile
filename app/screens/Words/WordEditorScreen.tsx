@@ -1,7 +1,5 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useMutation } from "@tanstack/react-query"
-import { randomUUID } from "expo-crypto"
 import type { TFunction } from "i18next"
 import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -16,18 +14,15 @@ import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError, Skeleton } from "@/components/ui/states"
 import { TextField } from "@/components/ui/text-field"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions } from "@/hooks/apis/words"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { RecordingsSection } from "@/screens/Words/components/recordings-section"
-import {
-	type DraftItem,
-	NAME_MAX,
-	useWordDraft,
-	type WordDraft,
-} from "@/screens/Words/hooks/use-word-draft"
+import { type DraftItem, useWordDraft, type WordDraft } from "@/screens/Words/hooks/use-word-draft"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
+import { WORD_NAME_LIMIT } from "@/types/apis/words"
 import type { RootStackParamList, WordsStackParamList } from "@/types/navigation"
 
 type PendingDelete = { kind: "word" } | { kind: "recording"; item: DraftItem; name: string }
@@ -50,13 +45,13 @@ export function WordEditorScreen(): ReactElement {
 	const locale = useDeviceSettingsStore((state) => state.locale)
 	const guides = useDeviceSettingsStore((state) => state.guides)
 
+	const deleteWord = useIdempotentMutation(deleteWordMutationOptions())
+
 	const microphone = usePermission("microphone")
 
 	const player = useSoundPlayer()
 
 	const draft = useWordDraft(routeWordId, route.params?.recorded)
-
-	const deleteWord = useMutation(deleteWordMutationOptions())
 
 	const [pending, setPending] = useState<PendingDelete | null>(null)
 
@@ -78,13 +73,15 @@ export function WordEditorScreen(): ReactElement {
 	function confirmDelete() {
 		if (pending?.kind === "recording") {
 			draft.removeItem(pending.item)
+
 			setPending(null)
 		} else if (routeWordId) {
 			deleteWord.mutate(
-				{ id: routeWordId, idempotencyKey: randomUUID() },
+				{ id: routeWordId },
 				{
 					onSuccess: () => {
 						setPending(null)
+
 						navigation.goBack()
 					},
 				},
@@ -94,6 +91,7 @@ export function WordEditorScreen(): ReactElement {
 
 	function closeDialog() {
 		deleteWord.reset()
+
 		setPending(null)
 	}
 
@@ -112,7 +110,7 @@ export function WordEditorScreen(): ReactElement {
 					value={draft.name}
 					onChangeText={draft.setName}
 					editable={!busy}
-					maxLength={NAME_MAX}
+					maxLength={WORD_NAME_LIMIT}
 					error={draft.nameMissing ? t("words.editor.nameRequired") : null}
 				/>
 				<RecordingsSection
@@ -135,6 +133,7 @@ export function WordEditorScreen(): ReactElement {
 					loading={busy}
 					onPress={() => {
 						player.stop()
+
 						void draft.save(() => navigation.goBack())
 					}}
 					style={styles.save}

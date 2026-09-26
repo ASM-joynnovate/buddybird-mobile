@@ -2,13 +2,13 @@ import * as Application from "expo-application"
 import Constants from "expo-constants"
 import { Linking, Platform } from "react-native"
 
-import { config } from "@/config"
+import { env } from "@/config"
 
 export const installedVersion =
 	Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? "1.2.0"
 
 export async function openStore() {
-	const id = config.production ? "6783652711" : "6784253530"
+	const id = env.production ? "6783652711" : "6784253530"
 	const appId = Application.applicationId
 
 	if (Platform.OS !== "ios" && !appId) {

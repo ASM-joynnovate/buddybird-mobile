@@ -1,6 +1,4 @@
-import { phaseColors } from "@/components/session/absence-strip"
-import type { Phase } from "@/services/session/phases"
-import { colors } from "@/theme"
+import { colors, phaseColors } from "@/theme/colors"
 
 export function shade(hex: string, factor: number): string {
 	const value = Number.parseInt(hex.slice(1, 7), 16)
@@ -22,6 +20,6 @@ export const night = {
 	warn: shade(colors.error, 0.64),
 }
 
-export function nightPhaseColor(phase: Phase): string {
+export function nightPhaseColor(phase: keyof typeof phaseColors): string {
 	return shade(phaseColors[phase], 0.4)
 }
