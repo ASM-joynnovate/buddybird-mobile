@@ -60,7 +60,6 @@ export type SessionDetail = {
 	running: boolean
 	end: number
 	items: TimelineItem[]
-	showsSounds: boolean
 	filters: readonly TimelineFilter[]
 	filter: TimelineFilter
 	setFilter(filter: TimelineFilter): void
@@ -152,7 +151,6 @@ export function useSessionDetail(sessionId: string, soundId?: string): SessionDe
 		running,
 		end,
 		items,
-		showsSounds: !isAnonymous,
 		filters: isAnonymous ? anonymousFilters : timelineFilters,
 		filter,
 		setFilter,

@@ -8,16 +8,15 @@ import { Copy } from "@/components/ui/text"
 import { colors, radius } from "@/theme"
 import type { Notice } from "@/types/apis/notices"
 
-export function NoticePopup({
-	notice,
-	onClose,
-	onDetail,
-}: {
+interface Props {
 	notice: Notice | null
 	onClose(): void
 	onDetail(id: string): void
-}) {
+}
+
+export function NoticePopup({ notice, onClose, onDetail }: Props) {
 	const { t } = useTranslation()
+
 	const image = notice?.images[0]
 
 	return (

@@ -5,12 +5,6 @@ export const settings: SettingsMessages = {
 	saveError: "설정을 저장하지 못해 이전 값으로 되돌렸어요. 다시 시도해 주세요.",
 	care: {
 		title: "앵무새 케어",
-		sleep: "취침 시각",
-		wake: "기상 시각",
-		hour: "시",
-		minute: "분",
-		hourPicker: "{{label}}의 시 선택",
-		minutePicker: "{{label}}의 분 선택",
 	},
 	notifications: {
 		title: "알림",

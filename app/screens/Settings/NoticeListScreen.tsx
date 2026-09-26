@@ -4,10 +4,12 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import { DotBadge } from "@/components/ui/badge"
-import { ScreenHeader } from "@/components/ui/header"
+import { DotBadge } from "@/components/ui/dot-badge"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Screen } from "@/components/ui/screen"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { noticesQueryOptions } from "@/hooks/apis/notices"
@@ -16,6 +18,7 @@ import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { Notice } from "@/types/apis/notices"
 import type { RootStackParamList } from "@/types/navigation"
+import { joinLabel } from "@/utils/a11y"
 
 export function NoticeListScreen() {
 	const { t } = useTranslation()
@@ -31,13 +34,11 @@ export function NoticeListScreen() {
 
 		return (
 			<PressableSurface
-				accessibilityLabel={[
+				accessibilityLabel={joinLabel(
 					item.title,
 					date,
-					item.is_read ? null : t("settings.notices.unread"),
-				]
-					.filter(Boolean)
-					.join(", ")}
+					!item.is_read && t("settings.notices.unread"),
+				)}
 				depth={2}
 				onPress={() => navigation.navigate("NoticeDetail", { noticeId: item.id })}
 				contentStyle={styles.card}

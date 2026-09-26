@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatDateWithWeekday, formatDuration, formatTime } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { Report, ReportPeriod } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
@@ -27,16 +28,15 @@ function axisLabel(period: ReportPeriod, date: Date, locale: Locale, t: TFunctio
 	return (date.getDate() - 1) % 7 === 0 ? String(date.getDate()) : ""
 }
 
-export function TrendChart({
-	period,
-	trend,
-	locale,
-}: {
+interface Props {
 	period: ReportPeriod
 	trend: Bucket[]
-	locale: Locale
-}): ReactElement {
+}
+
+export function TrendChart({ period, trend }: Props): ReactElement {
 	const { t } = useTranslation()
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const [selected, setSelected] = useState<number | null>(null)
 

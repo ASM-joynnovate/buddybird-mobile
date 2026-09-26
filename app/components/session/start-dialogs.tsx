@@ -22,21 +22,24 @@ export function StartDialogs({ state }: Props) {
 		<>
 			<ConfirmDialog
 				visible={state.takeoverOpen}
-				title={t("session.takeover.title")}
-				message={t("session.takeover.message")}
-				confirmLabel={t("session.takeover.confirm")}
-				cancelLabel={t("common.cancel")}
-				busy={state.busy}
+				text={{
+					title: t("session.takeover.title"),
+					message: t("session.takeover.message"),
+					confirm: t("session.takeover.confirm"),
+				}}
+				state={{ busy: state.busy }}
 				onConfirm={state.confirmTakeover}
 				onClose={state.dismiss}
 			/>
 			<ConfirmDialog
 				visible={state.failed}
-				title={t("session.startError.title")}
-				message={t("session.startError.message")}
-				confirmLabel={t("common.retry")}
-				cancelLabel={t("common.close")}
-				busy={state.busy}
+				text={{
+					title: t("session.startError.title"),
+					message: t("session.startError.message"),
+					confirm: t("common.retry"),
+					cancel: t("common.close"),
+				}}
+				state={{ busy: state.busy }}
 				onConfirm={state.retry}
 				onClose={state.dismiss}
 			/>

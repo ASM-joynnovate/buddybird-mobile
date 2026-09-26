@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import { formatMoment } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { LinkedDevice } from "@/types/device"
-import type { Locale } from "@/types/locale"
 
 export function deviceName(device: LinkedDevice): string {
 	return device.name ?? device.model
@@ -16,13 +16,15 @@ export function deviceName(device: LinkedDevice): string {
 
 interface Props {
 	device: LinkedDevice
-	locale: Locale
 	onRename(): void
 	onDisconnect(): void
 }
 
-export function DeviceCard({ device, locale, onRename, onDisconnect }: Props) {
+export function DeviceCard({ device, onRename, onDisconnect }: Props) {
 	const { t } = useTranslation()
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const name = deviceName(device)
 
 	return (
@@ -51,16 +53,16 @@ export function DeviceCard({ device, locale, onRename, onDisconnect }: Props) {
 			<View style={styles.actions}>
 				<IconButton
 					icon="edit"
-					iconSize={20}
-					color={colors.muted}
+					variant="muted"
+					size="small"
 					label={t("settings.devices.rename", { name })}
 					onPress={onRename}
 				/>
 				{device.isThisDevice ? null : (
 					<IconButton
 						icon="close"
-						iconSize={20}
-						color={colors.muted}
+						variant="muted"
+						size="small"
 						label={t("settings.devices.disconnect", { name })}
 						onPress={onDisconnect}
 					/>

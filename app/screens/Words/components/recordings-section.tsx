@@ -8,35 +8,24 @@ import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
-import { formatDuration } from "@/i18n/format"
 import { RecordingRow } from "@/screens/Words/components/recording-row"
-import type { DraftItem } from "@/screens/Words/hooks/use-word-draft"
+import type { DraftItem, WordDraft } from "@/screens/Words/hooks/use-word-draft"
 import { colors, font } from "@/theme"
 import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from "@/types/apis/words"
-import type { Locale } from "@/types/locale"
 
-export function RecordingsSection({
-	items,
-	serverCount,
-	player,
-	locale,
-	missing,
-	disabled,
-	onDelete,
-	onAdd,
-	onHelp,
-}: {
-	items: DraftItem[]
-	serverCount: number
+interface Props {
+	draft: WordDraft
 	player: SoundPlayer
-	locale: Locale
-	missing: boolean
-	disabled: boolean
 	onDelete(item: DraftItem, name: string): void
 	onAdd(): void
 	onHelp(): void
-}): ReactElement {
+}
+
+export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Props): ReactElement {
 	const { t } = useTranslation()
+
+	const disabled = draft.step !== null
+	const items = draft.items
 
 	return (
 		<View style={ui.section}>
@@ -47,29 +36,27 @@ export function RecordingsSection({
 				<IconButton
 					icon="help"
 					label={t("words.editor.guide")}
-					color={colors.muted}
+					variant="muted"
 					onPress={onHelp}
 				/>
 			</View>
 			{items.map((item, index) => {
-				const name = t("words.editor.recordingName", { index: index + 1 })
+				const deletable = !disabled && !(item.kind === "server" && draft.serverCount <= 1)
 
 				return (
 					<RecordingRow
 						key={item.id}
-						first={index === 0}
-						name={name}
-						duration={formatDuration(item.durationMs, locale)}
-						unsaved={item.kind === "local"}
-						playing={player.playingId === item.id}
-						deletable={!disabled && !(item.kind === "server" && serverCount <= 1)}
-						onPlay={() => player.toggle(item.id, item.url)}
-						onDelete={() => onDelete(item, name)}
+						item={item}
+						player={player}
+						index={index}
+						onDelete={deletable ? (name) => onDelete(item, name) : undefined}
 					/>
 				)
 			})}
 			<InlineError message={player.failedId ? t("common.sound.playError") : null} />
-			<InlineError message={missing ? t("words.editor.recordingRequired") : null} />
+			<InlineError
+				message={draft.missingRecording ? t("words.editor.recordingRequired") : null}
+			/>
 			{items.length < MAX_RECORDINGS ? (
 				<Button
 					label={t("words.editor.addRecording")}

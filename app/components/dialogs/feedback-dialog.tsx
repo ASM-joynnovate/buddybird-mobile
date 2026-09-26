@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
@@ -8,68 +7,28 @@ import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { TextField } from "@/components/ui/text-field"
-import { feedbackMutationOptions } from "@/hooks/apis/feedback"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { validateFeedback } from "@/services/feedback/policy"
-import { track } from "@/services/telemetry/client"
+import type { FeedbackForm } from "@/hooks/use-feedback-form"
 import { colors, font, mascot } from "@/theme"
 
 interface Props {
 	visible: boolean
 	prompt?: { onDismiss(): void; onWrite(): void }
-	source: "profile" | "prompt"
-	onClose(): void
-	onSubmitted?(): void
+	form: FeedbackForm
 }
 
-export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }: Props) {
+export function FeedbackDialog({ visible, prompt, form }: Props) {
 	const { t } = useTranslation()
 
-	const mutation = useIdempotentMutation(feedbackMutationOptions())
-
-	const [message, setMessage] = useState("")
-
-	function close() {
-		if (mutation.isPending) {
-			return
-		}
-
-		mutation.reset()
-
-		setMessage("")
-
-		onClose()
-	}
-
-	function submit() {
-		if (mutation.isPending || !message.trim()) {
-			return
-		}
-
-		mutation.mutate(
-			{ input: { message: validateFeedback(message) } },
-			{
-				onSuccess: () => {
-					track("feedback_submitted", { source, message_length: message.trim().length })
-
-					setMessage("")
-
-					onSubmitted?.()
-				},
-			},
-		)
-	}
-
-	if (mutation.isSuccess) {
+	if (form.sent) {
 		return (
 			<Dialog
 				visible={visible}
-				onClose={close}
+				onClose={form.close}
 				title={t("app.feedback.sent")}
 				footer=<Button
 					testID="feedback-thanks-close"
 					label={t("app.feedback.thanksClose")}
-					onPress={close}
+					onPress={form.close}
 					style={styles.thanksClose}
 				/>
 			>
@@ -111,24 +70,24 @@ export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }
 	return (
 		<Dialog
 			visible={visible}
-			onClose={close}
+			onClose={form.close}
 			title={t("app.feedback.title")}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					<Button
 						label={t("common.cancel")}
 						variant="secondary"
-						disabled={mutation.isPending}
-						onPress={close}
+						disabled={form.busy}
+						onPress={form.close}
 						style={ui.action}
 					/>
 					<Button
 						testID="feedback-send"
-						label={t(mutation.isError ? "app.feedback.retry" : "app.feedback.send")}
+						label={t(form.failed ? "app.feedback.retry" : "app.feedback.send")}
 						icon="send"
-						disabled={!message.trim()}
-						loading={mutation.isPending}
-						onPress={submit}
+						disabled={!form.message.trim()}
+						loading={form.busy}
+						onPress={form.submit}
 						style={ui.action}
 					/>
 				</View>
@@ -137,17 +96,17 @@ export function FeedbackDialog({ visible, prompt, source, onClose, onSubmitted }
 			<TextField
 				testID="feedback-message"
 				accessibilityLabel={t("app.feedback.title")}
-				value={message}
-				onChangeText={setMessage}
+				value={form.message}
+				onChangeText={form.setMessage}
 				maxLength={1000}
 				multiline
-				editable={!mutation.isPending}
+				editable={!form.busy}
 				textAlignVertical="top"
 				placeholder={t("app.feedback.placeholder")}
 				style={styles.message}
 			/>
 			<Copy style={styles.privacy}>{t("app.feedback.privacy")}</Copy>
-			<InlineError message={mutation.isError ? t("app.feedback.error") : null} />
+			<InlineError message={form.failed ? t("app.feedback.error") : null} />
 		</Dialog>
 	)
 }

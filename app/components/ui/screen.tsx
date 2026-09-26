@@ -4,6 +4,12 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { colors } from "@/theme"
 
+interface Props extends ScrollViewProps {
+	scroll?: boolean
+	footer?: ReactNode
+	centered?: boolean
+}
+
 export function Screen({
 	children,
 	scroll = true,
@@ -13,9 +19,7 @@ export function Screen({
 	footer,
 	centered = false,
 	...props
-}: PropsWithChildren<
-	ScrollViewProps & { scroll?: boolean; footer?: ReactNode; centered?: boolean }
->) {
+}: PropsWithChildren<Props>) {
 	const insets = useSafeAreaInsets()
 
 	return (

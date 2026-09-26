@@ -118,7 +118,10 @@ export default defineConfig({
 		},
 		{
 			files: ["app/**/*.tsx"],
-			excludeFiles: ["app/components/ui/surface.tsx", "app/components/ui/text-field.tsx"],
+			excludeFiles: [
+				"app/components/ui/surface/pressable-surface.tsx",
+				"app/components/ui/text-field.tsx",
+			],
 			rules: {
 				"no-restricted-imports": [
 					"error",

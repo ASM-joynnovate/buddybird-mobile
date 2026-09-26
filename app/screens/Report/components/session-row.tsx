@@ -7,6 +7,7 @@ import { formatDateTime, formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { ReportSession } from "@/types/apis/reports"
+import { joinLabel } from "@/utils/a11y"
 
 interface Props {
 	session: ReportSession
@@ -25,7 +26,7 @@ export function SessionRow({ session, onPress }: Props): ReactElement {
 			depth={2}
 			onPress={onPress}
 			accessibilityRole="button"
-			accessibilityLabel={[word, startedAt, duration].filter(Boolean).join(", ")}
+			accessibilityLabel={joinLabel(word, startedAt, duration)}
 			contentStyle={styles.row}
 		>
 			<View style={styles.text}>

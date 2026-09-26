@@ -6,38 +6,35 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
-import { PageDots } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { TextButton } from "@/components/ui/header"
 import type { IconName } from "@/components/ui/icon"
 import { IconButton } from "@/components/ui/icon-button"
+import { PageDots } from "@/components/ui/page-dots"
 import { CheckRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
+import { TextButton } from "@/components/ui/text-button"
 
 export type GuideStep = { title: string; scene: string; icon: IconName }
 
-export function GuidePager({
-	steps,
-	onFinish,
-	onSkip,
-	onBack,
-	dontShowAgain,
-	finishLabel,
-}: {
+interface Props {
 	steps: readonly GuideStep[]
-	onFinish(): void
-	onSkip?(): void
-	onBack?(): void
+	actions: { finish(): void; skip?(): void; back?(): void }
 	dontShowAgain?: { value: boolean; onChange(value: boolean): void }
 	finishLabel?: string
-}) {
+}
+
+export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props) {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation()
+
 	const insets = useSafeAreaInsets()
+
 	const [index, setIndex] = useState(0)
+
 	const step = steps[index]
 	const last = index === steps.length - 1
-	const back = index > 0 ? () => setIndex(index - 1) : onBack
+	const back = index > 0 ? () => setIndex(index - 1) : actions.back
 
 	useEffect(() => {
 		navigation.setOptions({ gestureEnabled: index === 0 })
@@ -72,8 +69,8 @@ export function GuidePager({
 						label={t("common.step", { current: index + 1, total: steps.length })}
 					/>
 					<View style={styles.spacer} />
-					{onSkip ? (
-						<TextButton label={t("common.skip")} tone="muted" onPress={onSkip} />
+					{actions.skip ? (
+						<TextButton label={t("common.skip")} tone="muted" onPress={actions.skip} />
 					) : null}
 				</View>
 				<View style={styles.body}>
@@ -91,7 +88,7 @@ export function GuidePager({
 					) : null}
 					<Button
 						label={last ? (finishLabel ?? t("common.start")) : t("common.next")}
-						onPress={() => (last ? onFinish() : setIndex(index + 1))}
+						onPress={() => (last ? actions.finish() : setIndex(index + 1))}
 					/>
 				</View>
 			</View>

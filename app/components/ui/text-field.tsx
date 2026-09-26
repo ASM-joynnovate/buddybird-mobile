@@ -5,13 +5,12 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 
-export function TextField({
-	label,
-	error,
-	style,
-	accessibilityLabel,
-	...props
-}: TextInputProps & { label?: string; error?: string | null }) {
+interface Props extends TextInputProps {
+	label?: string
+	error?: string | null
+}
+
+export function TextField({ label, error, style, accessibilityLabel, ...props }: Props) {
 	return (
 		<View>
 			{label ? <Copy style={ui.label}>{label}</Copy> : null}

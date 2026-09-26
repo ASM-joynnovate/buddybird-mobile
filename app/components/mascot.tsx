@@ -13,15 +13,16 @@ import Animated, {
 
 import { mascot } from "@/theme"
 
-export function Mascot({
-	size = 120,
-	motion = "float",
-}: {
+interface Props {
 	size?: number
 	motion?: "float" | "bounce"
-}) {
+}
+
+export function Mascot({ size = 120, motion = "float" }: Props) {
 	const { t } = useTranslation()
+
 	const reduced = useReducedMotion()
+
 	const y = useSharedValue(0)
 	const rotation = useSharedValue(0)
 	const style = useAnimatedStyle(() => ({

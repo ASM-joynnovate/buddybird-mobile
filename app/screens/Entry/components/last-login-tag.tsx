@@ -4,7 +4,11 @@ import Animated, { FadeInDown } from "react-native-reanimated"
 import { Copy } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 
-export function LastLoginTag({ label }: { label: string }) {
+interface Props {
+	label: string
+}
+
+export function LastLoginTag({ label }: Props) {
 	return (
 		<Animated.View
 			entering={FadeInDown.delay(160).springify().damping(14)}

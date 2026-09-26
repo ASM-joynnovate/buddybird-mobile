@@ -1,44 +1,38 @@
 import { useTranslation } from "react-i18next"
-import { Image, StyleSheet, View } from "react-native"
+import { StyleSheet, View } from "react-native"
 
+import { Avatar } from "@/components/ui/avatar"
 import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { PressableSurface } from "@/components/ui/surface"
 import { resolveRecordingUri } from "@/services/media/uri"
 import { colors } from "@/theme"
 
-export function ProfilePhoto({
-	photoUri,
-	choosePhoto,
-	busy,
-	error,
-	action = "edit",
-}: {
+interface Props {
 	photoUri?: string
 	choosePhoto(): Promise<void>
 	busy: boolean
 	error?: string | null
 	action?: "plus" | "edit"
-}) {
+}
+
+export function ProfilePhoto({ photoUri, choosePhoto, busy, error, action = "edit" }: Props) {
 	const { t } = useTranslation()
 
 	return (
 		<View style={styles.photoArea}>
 			<PressableSurface
-				testID="profile-photo"
 				accessibilityLabel={t("parrot.photo")}
 				disabled={busy}
 				onPress={() => void choosePhoto()}
 				cornerRadius={55}
 				depth={0}
-				style={styles.photoTouch}
-				contentStyle={styles.photoPreview}
 			>
-				{photoUri ? (
-					<Image source={{ uri: resolveRecordingUri(photoUri) }} style={styles.photo} />
-				) : (
-					<Icon name="photo" size={40} color={colors.muted} />
-				)}
+				<Avatar
+					uri={photoUri ? resolveRecordingUri(photoUri) : null}
+					icon="photo"
+					size="xlarge"
+				/>
 				<View style={styles.photoPlus}>
 					<Icon name={action} size={20} color={colors.onAccent} />
 				</View>
@@ -50,15 +44,6 @@ export function ProfilePhoto({
 
 const styles = StyleSheet.create({
 	photoArea: { alignItems: "center", marginBottom: 20, gap: 10 },
-	photoTouch: { width: 110, aspectRatio: 1 },
-	photoPreview: {
-		aspectRatio: 1,
-		borderRadius: 55,
-		backgroundColor: colors.surface,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	photo: { width: "100%", aspectRatio: 1, borderRadius: 55 },
 	photoPlus: {
 		position: "absolute",
 		right: -2,

@@ -6,13 +6,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Title } from "@/components/ui/text"
 import { colors, radius } from "@/theme"
 
-export function Dialog({
-	visible,
-	onClose,
-	title,
-	children,
-	footer,
-}: PropsWithChildren<{ visible: boolean; onClose(): void; title: string; footer: ReactNode }>) {
+interface Props {
+	visible: boolean
+	onClose(): void
+	title: string
+	footer: ReactNode
+}
+
+export function Dialog({ visible, onClose, title, children, footer }: PropsWithChildren<Props>) {
 	const insets = useSafeAreaInsets()
 
 	return (

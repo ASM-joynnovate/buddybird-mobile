@@ -3,37 +3,36 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
+import { PlayButton } from "@/components/ui/play-button"
 import { Copy } from "@/components/ui/text"
+import type { SoundPlayer } from "@/hooks/use-sound-player"
+import { formatDuration } from "@/i18n/format"
+import type { DraftItem } from "@/screens/Words/hooks/use-word-draft"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 
-export function RecordingRow({
-	name,
-	duration,
-	unsaved,
-	playing,
-	deletable,
-	first,
-	onPlay,
-	onDelete,
-}: {
-	name: string
-	duration: string
-	unsaved: boolean
-	playing: boolean
-	deletable: boolean
-	first: boolean
-	onPlay(): void
-	onDelete(): void
-}): ReactElement {
+interface Props {
+	item: DraftItem
+	player: SoundPlayer
+	index: number
+	onDelete?(name: string): void
+}
+
+export function RecordingRow({ item, player, index, onDelete }: Props): ReactElement {
 	const { t } = useTranslation()
 
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
+	const name = t("words.editor.recordingName", { index: index + 1 })
+	const playing = player.playingId === item.id
+
 	return (
-		<View style={[styles.row, !first && styles.divider]}>
+		<View style={[styles.row, index > 0 && styles.divider]}>
 			<View style={styles.info}>
 				<Copy style={styles.name}>{name}</Copy>
 				<View style={styles.meta}>
-					<Copy style={styles.detail}>{duration}</Copy>
-					{unsaved ? (
+					<Copy style={styles.detail}>{formatDuration(item.durationMs, locale)}</Copy>
+					{item.kind === "local" ? (
 						<Copy style={styles.unsaved}>{t("words.editor.unsaved")}</Copy>
 					) : null}
 				</View>
@@ -41,19 +40,14 @@ export function RecordingRow({
 			<IconButton
 				icon="trash"
 				label={t("words.editor.deleteRecording", { name })}
-				color={colors.muted}
-				disabled={!deletable}
-				onPress={onDelete}
+				variant="muted"
+				disabled={!onDelete}
+				onPress={() => onDelete?.(name)}
 			/>
-			<IconButton
-				icon={playing ? "pause" : "play"}
+			<PlayButton
+				playing={playing}
 				label={t(playing ? "words.editor.stop" : "words.editor.play", { name })}
-				tone="primary"
-				round
-				color={colors.onAccent}
-				size={44}
-				iconSize={20}
-				onPress={onPlay}
+				onPress={() => player.toggle(item.id, item.url)}
 			/>
 		</View>
 	)

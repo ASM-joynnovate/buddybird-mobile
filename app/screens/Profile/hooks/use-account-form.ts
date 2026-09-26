@@ -7,7 +7,7 @@ import {
 	updateMeMutationOptions,
 	uploadPhotoMutationOptions,
 } from "@/hooks/apis/users"
-import { usePhotoPicker } from "@/screens/Entry/hooks/use-photo-picker"
+import { usePhotoPicker } from "@/hooks/use-photo-picker"
 import { ApiError } from "@/types/apis/common"
 import { NICKNAME_PATTERN, type User } from "@/types/apis/users"
 

@@ -4,9 +4,11 @@ import { StyleSheet, View } from "react-native"
 
 import { Illustration } from "@/components/illustration"
 import { Chip } from "@/components/ui/chip"
-import { ScreenHeader } from "@/components/ui/header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { IconButton } from "@/components/ui/icon-button"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { ui } from "@/components/ui/styles"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
@@ -14,6 +16,7 @@ import { formatDate, formatDateWithWeekday, formatDuration, formatMonth } from "
 import { TrendChart } from "@/screens/Report/components/trend-chart"
 import { WordBars } from "@/screens/Report/components/word-bars"
 import type { ReportPeriodState } from "@/screens/Report/hooks/use-report-period"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
 import type { Report, ReportPeriod } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
@@ -38,22 +41,18 @@ function periodLabel(state: ReportPeriodState, locale: Locale): string {
 	return `${formatDate(start, locale)} ~ ${formatDate(state.end, locale)}`
 }
 
-export function ReportHeader({
-	state,
-	report,
-	failed,
-	locale,
-	onRetry,
-	onStart,
-}: {
+interface Props {
 	state: ReportPeriodState
 	report: Report | undefined
 	failed: boolean
-	locale: Locale
 	onRetry(): void
 	onStart(): void
-}): ReactElement {
+}
+
+export function ReportHeader({ state, report, failed, onRetry, onStart }: Props): ReactElement {
 	const { t } = useTranslation()
+
+	const locale = useDeviceSettingsStore((settings) => settings.locale)
 
 	const recorded = report ? hasRecords(report) : false
 	const label = periodLabel(state, locale)
@@ -102,7 +101,6 @@ export function ReportHeader({
 							key={`${report.period}-${report.start}`}
 							period={report.period}
 							trend={report.trend}
-							locale={locale}
 						/>
 					</>
 				) : null}

@@ -1,6 +1,7 @@
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog"
 import { UpdateDialog } from "@/components/dialogs/update-dialog"
 import { useAccountServices } from "@/hooks/use-account-services"
+import { useFeedbackForm } from "@/hooks/use-feedback-form"
 import { useFeedbackPrompt } from "@/hooks/use-feedback-prompt"
 import { useUpdatePrompt } from "@/hooks/use-update-prompt"
 import { useFeedbackStore } from "@/stores/feedback"
@@ -20,14 +21,13 @@ export function AppRuntime() {
 	} = useUpdatePrompt()
 
 	const feedbackPrompt = useFeedbackPrompt(updatesSettled, updateVisible)
+	const feedbackForm = useFeedbackForm(feedback.source ?? "profile", feedback.close)
 
 	return (
 		<>
 			<UpdateDialog
 				visible={updateVisible}
-				latestVersion={decision?.latestVersion ?? ""}
-				notes={decision?.notes ?? []}
-				forced={decision?.forced ?? false}
+				decision={decision}
 				pending={storeOpening}
 				onAccept={acceptUpdate}
 				onDismiss={dismissUpdatePrompt}
@@ -35,8 +35,7 @@ export function AppRuntime() {
 			<FeedbackDialog
 				visible={(feedback.source !== null || feedbackPrompt.visible) && !updateVisible}
 				prompt={feedbackPrompt.visible ? feedbackPrompt : undefined}
-				source={feedback.source ?? "profile"}
-				onClose={feedback.close}
+				form={feedbackForm}
 			/>
 		</>
 	)

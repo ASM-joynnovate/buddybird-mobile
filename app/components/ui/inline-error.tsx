@@ -3,7 +3,11 @@ import { StyleSheet } from "react-native"
 import { Copy } from "@/components/ui/text"
 import { colors } from "@/theme"
 
-export function InlineError({ message }: { message?: string | null }) {
+interface Props {
+	message?: string | null
+}
+
+export function InlineError({ message }: Props) {
 	if (!message) {
 		return null
 	}

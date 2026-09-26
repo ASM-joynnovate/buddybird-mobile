@@ -4,10 +4,13 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 
 import { Illustration } from "@/components/illustration"
-import { ScreenHeader, TextButton } from "@/components/ui/header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
+import { TextButton } from "@/components/ui/text-button"
 import { noticeNotificationsQueryOptions } from "@/hooks/apis/mocks"
 import {
 	notificationsQueryOptions,
@@ -17,15 +20,12 @@ import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { InboxNotification } from "@/mocks/types"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 
 export function NotificationsScreen() {
 	const { t } = useTranslation()
 
 	const navigation = useNavigation()
-
-	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const open = useOpenNotification()
 
@@ -76,9 +76,7 @@ export function NotificationsScreen() {
 			<FlatList
 				data={items}
 				keyExtractor={(item) => item.id}
-				renderItem={({ item }) => (
-					<NotificationItem item={item} locale={locale} onOpen={open} />
-				)}
+				renderItem={({ item }) => <NotificationItem item={item} onOpen={open} />}
 				ListEmptyComponent={empty}
 				onEndReachedThreshold={0.4}
 				onEndReached={() => {

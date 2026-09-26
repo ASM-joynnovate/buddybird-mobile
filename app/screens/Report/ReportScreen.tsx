@@ -17,6 +17,7 @@ import { formatDateTime, formatTime } from "@/i18n/format"
 import { hasRecords, ReportHeader } from "@/screens/Report/components/report-header"
 import { SessionRow } from "@/screens/Report/components/session-row"
 import { useReportPeriod } from "@/screens/Report/hooks/use-report-period"
+import { useSoundFeedback } from "@/screens/Report/hooks/use-sound-feedback"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
@@ -32,6 +33,7 @@ export function ReportScreen(): ReactElement {
 	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const player = useSoundPlayer()
+	const feedback = useSoundFeedback()
 
 	const period = useReportPeriod(route.params)
 
@@ -70,7 +72,7 @@ export function ReportScreen(): ReactElement {
 				key={sound.id}
 				sound={sound}
 				timeLabel={formatSoundTime(sound.captured_at, locale)}
-				player={player}
+				controls={{ player, feedback }}
 				onPress={() => openSession(sound.session_id, sound.id)}
 			/>
 		))
@@ -81,7 +83,6 @@ export function ReportScreen(): ReactElement {
 			state={period}
 			report={report.data}
 			failed={report.isError}
-			locale={locale}
 			onRetry={() => void report.refetch()}
 			onStart={() => navigation.navigate("Main", { screen: "HomeTab" })}
 		/>

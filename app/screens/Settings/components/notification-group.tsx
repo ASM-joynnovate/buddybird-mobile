@@ -15,17 +15,14 @@ const ITEMS: readonly {
 	{ key: "station_disconnect", label: "stationDisconnect" },
 ]
 
-export function NotificationGroup({
-	settings,
-	permissionOff,
-	onOpenPermissions,
-	onChange,
-}: {
+interface Props {
 	settings: Settings
 	permissionOff: boolean
 	onOpenPermissions(): void
 	onChange(key: NotificationSetting, value: boolean): void
-}) {
+}
+
+export function NotificationGroup({ settings, permissionOff, onOpenPermissions, onChange }: Props) {
 	const { t } = useTranslation()
 
 	return (

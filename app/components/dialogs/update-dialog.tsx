@@ -7,29 +7,24 @@ import { Button } from "@/components/ui/button"
 import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
+import type { UpdateDecision } from "@/types/update"
 
-export function UpdateDialog({
-	visible,
-	latestVersion,
-	notes,
-	forced,
-	onAccept,
-	onDismiss,
-	pending = false,
-}: {
+interface Props {
 	visible: boolean
-	latestVersion: string
-	notes: string[]
-	forced: boolean
+	decision: UpdateDecision
+	pending: boolean
 	onAccept(): Promise<void> | void
 	onDismiss(): void
-	pending?: boolean
-}) {
+}
+
+export function UpdateDialog({ visible, decision, pending, onAccept, onDismiss }: Props) {
 	const { t } = useTranslation()
 
 	const [busy, setBusy] = useState(false)
 	const [error, setError] = useState(false)
+
 	const blocked = busy || pending
+	const forced = decision?.forced ?? false
 
 	async function accept() {
 		setBusy(true)
@@ -79,10 +74,10 @@ export function UpdateDialog({
 		>
 			<Copy style={styles.body}>
 				{t(forced ? "app.update.requiredBody" : "app.update.body", {
-					version: latestVersion,
+					version: decision?.latestVersion ?? "",
 				})}
 			</Copy>
-			{notes.map((note, index) => (
+			{(decision?.notes ?? []).map((note, index) => (
 				<Copy key={`${index}-${note}`} style={styles.note}>
 					{note}
 				</Copy>

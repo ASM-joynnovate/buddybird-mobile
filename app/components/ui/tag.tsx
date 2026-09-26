@@ -11,7 +11,12 @@ const tones = {
 
 export type TagTone = keyof typeof tones
 
-export function Tag({ label, tone = "muted" }: { label: string; tone?: TagTone }) {
+interface Props {
+	label: string
+	tone?: TagTone
+}
+
+export function Tag({ label, tone = "muted" }: Props) {
 	const palette = tones[tone]
 
 	return (

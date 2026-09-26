@@ -5,16 +5,18 @@
 
 ## 계층
 
-| 계층          | 위치                          | 역할                                                             |
-| ------------- | ----------------------------- | ---------------------------------------------------------------- |
-| 전송          | `app/lib/api.ts`              | base URL, 기본 헤더, 타임아웃, 봉투 검증, `ApiError` 변환        |
-| 엔드포인트    | `app/apis/<domain>.ts`        | 경로와 본문 조립, zod로 `data` 검증, 타입이 붙은 값 반환         |
-| 쿼리 키       | `app/hooks/apis/keys.ts`      | 계정 단위 계층형 키                                              |
-| 옵션          | `app/hooks/apis/<domain>.ts`  | `queryOptions`, `infiniteQueryOptions`, `mutationOptions` 팩토리 |
-| 화면과 서비스 | `app/screens`, `app/services` | `useQuery`, `useMutation`, `runMutation`으로 옵션을 실행         |
+| 계층          | 위치                          | 역할                                                                                 |
+| ------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| 전송          | `app/lib/api.ts`              | base URL, 기본 헤더, 타임아웃, 봉투 검증, `ApiError` 변환                            |
+| 엔드포인트    | `app/apis/<domain>.ts`        | 경로와 본문 조립, zod로 `data` 검증, 타입이 붙은 값 반환                             |
+| 쿼리 키       | `app/hooks/apis/keys.ts`      | 계정 단위 계층형 키                                                                  |
+| 옵션          | `app/hooks/apis/<domain>.ts`  | `queryOptions`, `infiniteQueryOptions`, `mutationOptions` 팩토리                     |
+| 화면과 서비스 | `app/screens`, `app/services` | 화면은 `useQuery`, `useMutation`으로 옵션을 실행하고 서비스는 엔드포인트 함수를 부름 |
 
 화면과 서비스는 `fetch`와 `apiRequest`를 직접 부르지 않습니다.
 서버 응답은 TanStack Query 캐시에만 두고 Zustand나 MMKV에 복사하지 않습니다.
+지금 엔드포인트 함수는 실서버 대신 `app/mocks/server.ts`를 부릅니다.
+실서버로 바꿀 때는 `app/apis/*.ts`의 함수 본문만 바꿉니다.
 
 ## 전송 계층이 처리하는 것
 
@@ -72,7 +74,7 @@ settings, consents, devices, parrots, words, sessions의 POST, PUT, PATCH, DELET
 TanStack Query가 재시도하는 동안 변수가 유지되므로 같은 키로 재전송됩니다.
 
 - 화면에서 바로 실행하는 mutation은 `mutate({ ...input, idempotencyKey: randomUUID() })`로 호출마다 새 키를 만듭니다.
-- 전송 대기 데이터는 MMKV에 저장한 `change_id`를 키로 씁니다. 내용이 바뀌면 새 `change_id`를 발급합니다.
+- v1 데이터 이전처럼 다시 시도해도 같은 요청이어야 하는 서비스는 원본 ID로 만든 고정 키를 씁니다.
 - 서버는 4xx 응답도 같은 키에 재생하므로, 입력을 고친 뒤에는 반드시 새 키로 보냅니다.
 
 PATCH 본문은 `undefined` 키를 제거한 뒤 보냅니다.
@@ -179,9 +181,6 @@ export const createParrotMutationOptions = () =>
 // 화면
 const { mutate } = useMutation(createParrotMutationOptions())
 mutate({ input, idempotencyKey: randomUUID() })
-
-// React 밖의 전송 서비스
-await runMutation(createParrotMutationOptions(), { input, idempotencyKey: change.changeId })
 ```
 
 ### multipart 업로드
@@ -210,8 +209,63 @@ export async function addWordRecording(
 }
 ```
 
+## 익명 계정과 로그인
+
+설치마다 익명 계정을 만들고, 로그인은 같은 계정에 소셜 계정을 연결합니다.
+
+- `AuthProvider`는 세션이 없으면 `signInAnonymously`로 익명 가입을 하고 `POST /auth/login`을 부릅니다.
+- 로그인 화면은 `linkAccount(provider)`로 지금 계정에 소셜 계정을 연결합니다. 연결되면 익명 계정이 그대로 로그인 계정이 됩니다.
+- 소셜 계정이 이미 다른 계정에 연결되어 있으면 `identity_already_exists`가 옵니다.
+- 첫 실행과 로그아웃 뒤의 로그인 화면은 묻지 않고 그 계정으로 로그인합니다.
+- 프로필이나 로그인 전용 기능에서 연 로그인 화면은 합치기 확인 창을 띄웁니다.
+- 로그아웃과 401 응답은 `signOutToAnonymous`로 새 익명 계정을 만듭니다. 익명 계정의 이전 데이터는 다시 찾을 수 없습니다.
+
+## 계정 합치기
+
+사용자가 합치기를 고르면 `switchAccount(provider, true)`가 지금 익명 계정의 access token을 `services/auth/credential.ts`의 모듈 변수에 보관합니다.
+소셜 계정으로 로그인한 뒤 `mergeAccount({ anonymous_access_token })`으로 익명 계정 데이터를 기존 계정에 합칩니다.
+보관한 토큰은 한 번 꺼내면 지우고 MMKV에 저장하지 않습니다.
+
+목 서버는 아래 규칙으로 합칩니다.
+
+- 앵무새와 알림은 모두 옮깁니다.
+- 단어는 이름과 첫 녹음이 같으면 기존 단어로 보고 나머지를 옮깁니다.
+- 기기는 `client_device_id`가 같으면 기존 기기로 봅니다.
+- 세션은 옮기고, 기존 계정에 진행 중인 세션이 있으면 익명 계정의 진행 중인 세션을 끝냅니다.
+- 닉네임과 사진은 기존 계정이 비어 있을 때만 익명 계정 값으로 채웁니다.
+- 동의는 기존 계정에서 답하지 않은 항목만 익명 계정 값으로 채웁니다.
+
+## 가짜 로그인
+
+`services/auth/client.ts`의 `authClient()`는 Supabase `auth`와 같은 메서드를 목 서버로 제공합니다.
+실서버로 바꿀 때는 이 파일에서 `getSupabase().auth`를 돌려줍니다.
+`openAuthSession`은 브라우저를 열지 않고 성공 콜백을 돌려줍니다.
+목 서버의 데모 계정에는 카카오와 애플이 연결되어 있어 이 둘로 로그인하면 합치기 흐름을 확인할 수 있습니다.
+구글은 어느 계정에도 연결되어 있지 않아서, 구글로 로그인하면 지금 익명 계정에 그대로 연결됩니다.
+
+## 리포트 계약
+
+리포트는 앱이 모양을 정하고 목 서버가 먼저 제공합니다.
+스키마는 `app/types/apis/reports.ts`에 있습니다.
+
+`GET /reports?period=day|week|month&start=YYYY-MM-DD`
+
+| 필드                   | 설명                                                                    |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `period`               | `day`, `week`, `month`                                                  |
+| `start`, `end`         | 기간의 첫날과 마지막 날                                                 |
+| `learning_duration_ms` | 기간 안 전체 학습 시간                                                  |
+| `trend`                | 날짜 또는 시간 구간별 `{ start, learning_duration_ms }`                 |
+| `words`                | 단어별 `{ word: { id, name }, learning_duration_ms }`                   |
+| `sessions`             | 기간 안 학습 `{ id, started_at, ended_at, word, learning_duration_ms }` |
+| `mimicry`              | 모사 `{ count, sounds }`, `sounds`는 세션 소리 형식                     |
+
+학습 시간은 학습 단계가 진행된 시간이며 수면 시간은 빼고 계산합니다.
+모사 횟수와 모사 소리 목록은 로그인한 사용자에게만 보이고, 로그인하지 않은 사용자에게는 그 자리에 로그인 안내를 보여 줍니다.
+
 ## 아직 없는 것
 
-- 오프라인 조회용 Query 캐시 보관. `@tanstack/react-query-persist-client`와 MMKV persister를 계정별로 붙일 때 추가합니다.
-- 기기 등록 호출. `client_device_id`는 `clientDeviceId()`가 만들지만 `PUT /devices`는 아직 부르지 않습니다.
+- 실서버 연결. 인증과 모든 엔드포인트가 목 서버로 동작합니다.
+- 오프라인 조회. 연결 끊김 띠와 잠깐 끊겼을 때 로그인이 풀리지 않는 처리만 둡니다.
+- 기기 등록 호출. `client_device_id`는 `useAccountStore`의 `ensureClientDeviceId()`가 만들지만 `PUT /devices`는 아직 부르지 않습니다.
 - 항목 ID와 버전 충돌 처리. 백엔드에 `client_generated_id`와 `version_id`가 추가된 뒤 설계합니다.

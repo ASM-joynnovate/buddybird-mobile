@@ -3,11 +3,14 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
+import { PlayButton } from "@/components/ui/play-button"
 import { PressableSurface } from "@/components/ui/surface"
+import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
-import { colors, font, radius } from "@/theme"
+import { colors, font } from "@/theme"
 import { MAX_RECORDINGS, type Word } from "@/types/apis/words"
+import { joinLabel } from "@/utils/a11y"
 
 interface Props {
 	word: Word
@@ -29,14 +32,12 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 			<PressableSurface
 				depth={2}
 				onPress={onPress}
-				accessibilityLabel={[
+				accessibilityLabel={joinLabel(
 					word.name,
 					t("words.list.samples", { count }),
-					learning ? t("words.list.learning") : null,
-					count === 0 ? t("words.list.needsRecording") : null,
-				]
-					.filter(Boolean)
-					.join(", ")}
+					learning && t("words.list.learning"),
+					count === 0 && t("words.list.needsRecording"),
+				)}
 				contentStyle={styles.card}
 			>
 				<Copy numberOfLines={1} style={styles.name}>
@@ -48,7 +49,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 							<View key={index} style={[styles.dot, index < count && styles.dotOn]} />
 						))}
 					</View>
-					{learning ? <Tag label={t("words.list.learning")} tone="orange" /> : null}
+					{learning ? <Tag label={t("words.list.learning")} tone="primary" /> : null}
 					{count === 0 ? (
 						<Tag label={t("words.list.needsRecording")} tone="muted" />
 					) : null}
@@ -58,34 +59,20 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 				<IconButton
 					icon="trash"
 					label={t("words.list.delete", { name: word.name })}
-					color={colors.muted}
-					size={44}
-					iconSize={20}
+					variant="muted"
+					size="small"
 					onPress={onDelete}
 				/>
 				{first ? (
-					<IconButton
-						icon={playing ? "pause" : "play"}
+					<PlayButton
+						playing={playing}
 						label={t(playing ? "words.list.stop" : "words.list.play", {
 							name: word.name,
 						})}
-						tone="primary"
-						round
-						color={colors.onAccent}
-						size={44}
-						iconSize={20}
 						onPress={() => player.toggle(word.id, first.url)}
 					/>
 				) : null}
 			</View>
-		</View>
-	)
-}
-
-function Tag({ label, tone }: { label: string; tone: "orange" | "muted" }) {
-	return (
-		<View style={[styles.tag, tone === "orange" ? styles.tagOrange : styles.tagMuted]}>
-			<Copy style={[styles.tagText, tone === "orange" && styles.tagTextOrange]}>{label}</Copy>
 		</View>
 	)
 }
@@ -106,14 +93,4 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		gap: 4,
 	},
-	tag: {
-		borderRadius: radius.pill,
-		borderWidth: 2,
-		paddingHorizontal: 10,
-		paddingVertical: 2,
-	},
-	tagOrange: { backgroundColor: colors.orangeSelected, borderColor: colors.orange },
-	tagMuted: { backgroundColor: colors.surface, borderColor: colors.border },
-	tagText: { fontFamily: font.extraBold, fontSize: 12.5, color: colors.muted },
-	tagTextOrange: { color: colors.orangeDark },
 })

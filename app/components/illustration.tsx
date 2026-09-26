@@ -5,17 +5,14 @@ import { Mascot } from "@/components/mascot"
 import { Icon, type IconName } from "@/components/ui/icon"
 import { colors, radius } from "@/theme"
 
-export function Illustration({
-	scene,
-	icon,
-	height = 220,
-	mascot = true,
-}: {
+interface Props {
 	scene: string
 	icon: IconName
 	height?: number
 	mascot?: boolean
-}) {
+}
+
+export function Illustration({ scene, icon, height = 220, mascot = true }: Props) {
 	const { t } = useTranslation()
 
 	return (

@@ -1,28 +1,34 @@
-import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Share, StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
+import { PlayButton } from "@/components/ui/play-button"
 import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
-import { soundFeedbackMutationOptions, soundFeedbackQueryOptions } from "@/hooks/apis/mocks"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import type { TimelineSound } from "@/mocks/types"
 import { colors, font, radius } from "@/theme"
 
+type Feedback = "up" | "down"
+
+export interface SoundFeedback {
+	feedbackOf(soundId: string): Feedback | null
+	failedId: string | null
+	choose(soundId: string, value: Feedback): void
+}
+
 interface Props {
 	sound: TimelineSound
 	timeLabel: string
-	player: SoundPlayer
+	controls: { player: SoundPlayer; feedback: SoundFeedback }
 	highlighted?: boolean
 	onPress?(): void
 }
 
-export function similarityLevel(score: number): 1 | 2 | 3 {
+function similarityLevel(score: number): 1 | 2 | 3 {
 	if (score < 0.6) {
 		return 1
 	}
@@ -30,36 +36,19 @@ export function similarityLevel(score: number): 1 | 2 | 3 {
 	return score < 0.8 ? 2 : 3
 }
 
-export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Props) {
+export function SoundRow({ sound, timeLabel, controls, highlighted, onPress }: Props) {
 	const { t } = useTranslation()
 
-	const savedFeedback = useQuery(soundFeedbackQueryOptions()).data?.find(
-		(item) => item.sound_id === sound.id,
-	)?.feedback
-
-	const saving = useIdempotentMutation(soundFeedbackMutationOptions())
-
-	const [chosenFeedback, setChosenFeedback] = useState<"up" | "down" | null>(null)
 	const [shareFailed, setShareFailed] = useState(false)
 
-	const feedback = chosenFeedback ?? savedFeedback ?? null
+	const { player } = controls
+	const feedback = controls.feedback.feedbackOf(sound.id)
 	const playing = player.playingId === sound.id
 	const heard = player.finishedIds.has(sound.id) || feedback !== null
 	const mimicked = Boolean(sound.judgment?.word_id)
 	const score = sound.analysis?.score
 	const level = mimicked && score != null ? similarityLevel(score) : 0
 	const url = sound.audio.url
-
-	function choose(value: "up" | "down") {
-		const previous = chosenFeedback
-
-		setChosenFeedback(value)
-
-		saving.mutate(
-			{ soundId: sound.id, feedback: value },
-			{ onError: () => setChosenFeedback(previous) },
-		)
-	}
 
 	async function share() {
 		if (!url) {
@@ -79,7 +68,7 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 
 	if (player.failedId === sound.id) {
 		message = t("common.sound.playError")
-	} else if (saving.isError) {
+	} else if (controls.feedback.failedId === sound.id) {
 		message = t("common.sound.feedbackError")
 	} else if (shareFailed) {
 		message = t("common.sound.shareError")
@@ -124,23 +113,21 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 						<IconButton
 							icon={feedback === "up" ? "thumbUpFill" : "thumbUp"}
 							label={t("common.sound.correct")}
-							color={feedback === "up" ? colors.orange : colors.muted}
-							size={44}
-							iconSize={20}
-							onPress={() => choose("up")}
+							variant={feedback === "up" ? "accent" : "muted"}
+							size="small"
+							onPress={() => controls.feedback.choose(sound.id, "up")}
 						/>
 						<IconButton
 							icon={feedback === "down" ? "thumbDownFill" : "thumbDown"}
 							label={t("common.sound.wrong")}
-							color={feedback === "down" ? colors.text : colors.muted}
-							size={44}
-							iconSize={20}
-							onPress={() => choose("down")}
+							variant={feedback === "down" ? "plain" : "muted"}
+							size="small"
+							onPress={() => controls.feedback.choose(sound.id, "down")}
 						/>
 					</View>
 				) : null}
-				<IconButton
-					icon={playing ? "pause" : "play"}
+				<PlayButton
+					playing={playing}
 					label={
 						url
 							? t(playing ? "common.sound.stop" : "common.sound.play", {
@@ -148,11 +135,6 @@ export function SoundRow({ sound, timeLabel, player, highlighted, onPress }: Pro
 								})
 							: t("common.sound.expired")
 					}
-					tone={url ? "primary" : "muted"}
-					round
-					size={44}
-					iconSize={18}
-					color={colors.onAccent}
 					disabled={!url}
 					onPress={() => {
 						if (url) {

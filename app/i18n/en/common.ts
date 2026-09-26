@@ -22,7 +22,6 @@ export const common: CommonMessages = {
 	start: "Start",
 	dontShowAgain: "Don't show again",
 	step: "Step {{current}} of {{total}}",
-	preparing: "Available once the server is ready",
 	offline: "You're offline. We'll reload once you're connected again.",
 	loadError: "We couldn't load this. Check your connection and try again.",
 	saveErrorKept: "We couldn't save. Your input is still here, so please try again.",
@@ -77,5 +76,11 @@ export const common: CommonMessages = {
 		title: "Delete {{name}}",
 		message: "This can't be undone.",
 		confirm: "Delete",
+	},
+	time: {
+		hour: "h",
+		minute: "m",
+		hourPicker: "Choose the hour for {{label}}",
+		minutePicker: "Choose the minute for {{label}}",
 	},
 }

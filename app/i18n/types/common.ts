@@ -20,7 +20,6 @@ export type CommonMessages = {
 	start: string
 	dontShowAgain: string
 	step: string
-	preparing: string
 	offline: string
 	loadError: string
 	saveErrorKept: string
@@ -75,5 +74,11 @@ export type CommonMessages = {
 		title: string
 		message: string
 		confirm: string
+	}
+	time: {
+		hour: string
+		minute: string
+		hourPicker: string
+		minutePicker: string
 	}
 }

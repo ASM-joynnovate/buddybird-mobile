@@ -10,10 +10,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { AudioWaveform } from "@/components/ui/audio-waveform"
 import { Button } from "@/components/ui/button"
-import { ScreenHeader } from "@/components/ui/header"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
+import { ScreenHeader } from "@/components/ui/screen-header"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { usePermission } from "@/hooks/use-permission"
@@ -102,11 +102,8 @@ export function RecorderScreen(): ReactElement {
 						<IconButton
 							icon={playing ? "pause" : "play"}
 							label={t(playing ? "words.recorder.stopPlay" : "words.recorder.play")}
-							tone="primary"
-							round
-							color={colors.onAccent}
-							size={64}
-							iconSize={28}
+							variant="primary"
+							size="large"
 							onPress={() => player.toggle(TAKE_ID, take.uri)}
 						/>
 					) : null}
@@ -138,11 +135,8 @@ export function RecorderScreen(): ReactElement {
 							label={t(
 								recorder.recording ? "words.recorder.stop" : "words.recorder.start",
 							)}
-							tone="primary"
-							round
-							color={colors.onAccent}
-							size={80}
-							iconSize={34}
+							variant="primary"
+							size="xlarge"
 							disabled={recorder.busy}
 							onPress={() => (recorder.recording ? void recorder.stop() : record())}
 						/>

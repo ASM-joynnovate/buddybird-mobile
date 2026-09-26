@@ -4,14 +4,20 @@ import { StyleSheet, View } from "react-native"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { ProfilePhoto } from "@/components/profile-form/photo"
 import { Button } from "@/components/ui/button"
-import { TextButton } from "@/components/ui/header"
 import { InlineError } from "@/components/ui/inline-error"
+import { TextButton } from "@/components/ui/text-button"
 import { TextField } from "@/components/ui/text-field"
 import { useAccountForm } from "@/screens/Profile/hooks/use-account-form"
 import type { User } from "@/types/apis/users"
 
-export function AccountForm({ user, onSaved }: { user: User; onSaved(): void }) {
+interface Props {
+	user: User
+	onSaved(): void
+}
+
+export function AccountForm({ user, onSaved }: Props) {
 	const { t } = useTranslation()
+
 	const form = useAccountForm(user, onSaved)
 
 	return (

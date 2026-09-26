@@ -1,21 +1,23 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { ScreenHeader } from "@/components/ui/header"
+import { SleepTimeEditor } from "@/components/session/sleep-time-editor"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList } from "@/components/ui/rows"
+import { GroupedList, PickerRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { noticesQueryOptions } from "@/hooks/apis/notices"
 import { usePermission } from "@/hooks/use-permission"
+import { formatClock } from "@/i18n/format"
 import { AccountActions } from "@/screens/Settings/components/account-actions"
+import { GeneralGroup } from "@/screens/Settings/components/general-group"
 import { NotificationGroup } from "@/screens/Settings/components/notification-group"
-import { GeneralGroup, SupportGroup } from "@/screens/Settings/components/settings-groups"
-import { SleepTimeRow } from "@/screens/Settings/components/sleep-time-row"
+import { SupportGroup } from "@/screens/Settings/components/support-group"
 import { useSettingsUpdate } from "@/screens/Settings/hooks/use-settings-update"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
@@ -39,11 +41,6 @@ export function SettingsScreen() {
 	const form = useSettingsUpdate()
 	const settings = form.settings
 
-	const [openWheel, setOpenWheel] = useState<"sleep_at" | "wake_at" | null>(null)
-
-	const toggleWheel = (key: "sleep_at" | "wake_at") =>
-		setOpenWheel((current) => (current === key ? null : key))
-
 	function preferences() {
 		if (form.loadFailed) {
 			return <ScreenError message={t("common.loadError")} onRetry={form.retry} />
@@ -56,29 +53,22 @@ export function SettingsScreen() {
 		return (
 			<>
 				<GroupedList title={t("settings.care.title")}>
-					<SleepTimeRow
-						first
-						icon="moon"
-						label={t("settings.care.sleep")}
-						value={settings.sleep.sleep_at}
-						locale={locale}
-						open={openWheel === "sleep_at"}
-						onToggle={() => toggleWheel("sleep_at")}
-						onChange={(value) =>
-							form.updateSleep({ ...settings.sleep, sleep_at: value })
-						}
-					/>
-					<SleepTimeRow
-						icon="sun"
-						label={t("settings.care.wake")}
-						value={settings.sleep.wake_at}
-						locale={locale}
-						open={openWheel === "wake_at"}
-						onToggle={() => toggleWheel("wake_at")}
-						onChange={(value) =>
-							form.updateSleep({ ...settings.sleep, wake_at: value })
-						}
-					/>
+					<PickerRow
+						row={{
+							first: true,
+							icon: "moon",
+							label: t("session.sleep.label"),
+							value: t("session.sleep.range", {
+								sleep: formatClock(settings.sleep.sleep_at, locale),
+								wake: formatClock(settings.sleep.wake_at, locale),
+							}),
+						}}
+						sheet={{ title: t("session.sleep.label") }}
+					>
+						{() => (
+							<SleepTimeEditor value={settings.sleep} onChange={form.updateSleep} />
+						)}
+					</PickerRow>
 				</GroupedList>
 				<NotificationGroup
 					settings={settings}

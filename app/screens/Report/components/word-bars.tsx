@@ -8,6 +8,7 @@ import { formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
 import type { Report } from "@/types/apis/reports"
+import { joinLabel } from "@/utils/a11y"
 
 interface Props {
 	words: Report["words"]
@@ -38,7 +39,7 @@ export function WordBars({ words }: Props): ReactElement | null {
 							key={item.word.id}
 							style={styles.row}
 							accessible
-							accessibilityLabel={`${item.word.name}, ${duration}`}
+							accessibilityLabel={joinLabel(item.word.name, duration)}
 						>
 							<Copy numberOfLines={1} style={styles.name}>
 								{item.word.name}

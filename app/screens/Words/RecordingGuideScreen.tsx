@@ -41,8 +41,7 @@ export function RecordingGuideScreen(): ReactElement {
 	return (
 		<GuidePager
 			steps={steps}
-			onFinish={leave}
-			onSkip={leave}
+			actions={{ finish: leave, skip: leave }}
 			finishLabel={t(params.source === "add" ? "words.guide.record" : "words.guide.done")}
 			dontShowAgain={{
 				value: guides.recording,

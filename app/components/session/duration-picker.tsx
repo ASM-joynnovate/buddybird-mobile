@@ -2,13 +2,11 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { CheckRow, GroupedList } from "@/components/ui/rows"
-import { Copy } from "@/components/ui/text"
-import { Wheel, WheelRow } from "@/components/ui/wheel"
+import { GroupedList, RadioRow } from "@/components/ui/rows"
+import { WheelPicker } from "@/components/ui/wheel-picker"
 import { DURATION_PRESETS, MAX_SESSION_MS } from "@/config"
 import { formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { font } from "@/theme"
 import { DAY, HOUR, MINUTE } from "@/utils/units"
 
 const DAYS = Array.from({ length: 8 }, (_, day) => day)
@@ -48,50 +46,52 @@ export function DurationPicker({ value, onChange }: Props) {
 		<View style={styles.picker}>
 			<GroupedList>
 				{DURATION_PRESETS.map((preset, index) => (
-					<CheckRow
+					<RadioRow
 						key={preset}
 						first={index === 0}
 						label={formatDuration(preset, locale)}
-						checked={!custom && value === preset}
-						onToggle={() => {
+						selected={!custom && value === preset}
+						onPress={() => {
 							setCustom(false)
 							onChange(!custom && value === preset ? null : preset)
 						}}
 					/>
 				))}
-				<CheckRow
+				<RadioRow
 					label={t("session.start.custom")}
-					checked={custom}
-					onToggle={() => setCustom(true)}
+					selected={custom}
+					onPress={() => setCustom(true)}
 				/>
 			</GroupedList>
 			{custom ? (
-				<WheelRow>
-					<Wheel
-						testID="duration-days"
-						label={t("session.start.days")}
-						value={days}
-						values={DAYS}
-						onChange={(next) => change(next, hours, minutes)}
-					/>
-					<Copy style={styles.unit}>{t("session.start.days")}</Copy>
-					<Wheel
-						testID="duration-hours"
-						label={t("session.start.hours")}
-						value={hours}
-						values={atMax ? [0] : HOURS}
-						onChange={(next) => change(days, next, minutes)}
-					/>
-					<Copy style={styles.unit}>{t("session.start.hours")}</Copy>
-					<Wheel
-						testID="duration-minutes"
-						label={t("session.start.minutes")}
-						value={minutes}
-						values={atMax ? [0] : MINUTE_STEPS}
-						onChange={(next) => change(days, hours, next)}
-					/>
-					<Copy style={styles.unit}>{t("session.start.minutes")}</Copy>
-				</WheelRow>
+				<WheelPicker
+					columns={[
+						{
+							key: "days",
+							label: t("session.start.days"),
+							value: days,
+							values: DAYS,
+							unit: t("session.start.days"),
+							onChange: (next) => change(next, hours, minutes),
+						},
+						{
+							key: "hours",
+							label: t("session.start.hours"),
+							value: hours,
+							values: atMax ? [0] : HOURS,
+							unit: t("session.start.hours"),
+							onChange: (next) => change(days, next, minutes),
+						},
+						{
+							key: "minutes",
+							label: t("session.start.minutes"),
+							value: minutes,
+							values: atMax ? [0] : MINUTE_STEPS,
+							unit: t("session.start.minutes"),
+							onChange: (next) => change(days, hours, next),
+						},
+					]}
+				/>
 			) : null}
 		</View>
 	)
@@ -99,5 +99,4 @@ export function DurationPicker({ value, onChange }: Props) {
 
 const styles = StyleSheet.create({
 	picker: { gap: 12 },
-	unit: { fontFamily: font.extraBold, fontSize: 15 },
 })

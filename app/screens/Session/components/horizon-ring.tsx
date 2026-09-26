@@ -5,22 +5,19 @@ import { Copy } from "@/components/ui/text"
 import type { Phase } from "@/services/session/phases"
 import { font } from "@/theme"
 import { night, nightPhaseColor } from "@/theme/night"
+import { joinLabel } from "@/utils/a11y"
 
 const STROKE = 16
 
-export function HorizonRing({
-	width,
-	phase,
-	fraction,
-	title,
-	detail,
-}: {
+interface Props {
 	width: number
 	phase: Phase
 	fraction: number
 	title: string
 	detail: string
-}) {
+}
+
+export function HorizonRing({ width, phase, fraction, title, detail }: Props) {
 	const radius = (width - STROKE) / 2
 	const baseline = radius + STROKE / 2
 	const arc = `M ${STROKE / 2} ${baseline} A ${radius} ${radius} 0 0 1 ${width - STROKE / 2} ${baseline}`
@@ -31,7 +28,7 @@ export function HorizonRing({
 		<View
 			style={[styles.ring, { width, height: baseline + STROKE / 2 }]}
 			accessible
-			accessibilityLabel={`${title}, ${detail}`}
+			accessibilityLabel={joinLabel(title, detail)}
 		>
 			<Svg width={width} height={baseline + STROKE / 2} style={styles.svg}>
 				<Path

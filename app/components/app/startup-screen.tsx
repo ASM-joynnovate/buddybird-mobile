@@ -4,7 +4,12 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import { PressableSurface } from "@/components/ui/surface"
 import { colors } from "@/theme"
 
-export function StartupScreen({ failed, onRetry }: { failed: boolean; onRetry(): void }) {
+interface Props {
+	failed: boolean
+	onRetry(): void
+}
+
+export function StartupScreen({ failed, onRetry }: Props) {
 	const { t } = useTranslation()
 
 	return (

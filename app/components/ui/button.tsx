@@ -5,7 +5,7 @@ import { PressableSurface, type PressableSurfaceProps } from "@/components/ui/su
 import { Copy } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 
-type ButtonProps = Omit<PressableSurfaceProps, "children" | "tone"> & {
+interface Props extends Omit<PressableSurfaceProps, "children" | "tone"> {
 	label: string
 	icon?: IconName
 	variant?: "primary" | "secondary" | "blue"
@@ -22,7 +22,7 @@ export function Button({
 	style,
 	disabled,
 	...props
-}: ButtonProps) {
+}: Props) {
 	const inactive = disabled || loading
 	const depth = compact ? 4 : 7
 	let tone: "primary" | "neutral" | "blue" | "muted" = "primary"

@@ -59,17 +59,14 @@ const symbols = {
 
 export type IconName = keyof typeof symbols
 
-export function Icon({
-	name,
-	size = 24,
-	color = colors.text,
-	weight,
-}: {
+interface Props {
 	name: IconName
 	size?: number
 	color?: string
 	weight?: SymbolViewProps["weight"]
-}) {
+}
+
+export function Icon({ name, size = 24, color = colors.text, weight }: Props) {
 	return Platform.OS === "ios" ? (
 		<SymbolView
 			name={symbols[name][0]}

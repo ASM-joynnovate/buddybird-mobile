@@ -1,36 +1,29 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import { ScreenHeader } from "@/components/ui/header"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useDevices } from "@/hooks/use-devices"
 import { DeviceCard } from "@/screens/Settings/components/device-card"
-import {
-	DisconnectDeviceDialog,
-	RenameDeviceDialog,
-} from "@/screens/Settings/components/device-dialogs"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import type { LinkedDevice } from "@/types/device"
+import { DisconnectDeviceDialog } from "@/screens/Settings/components/disconnect-device-dialog"
+import { RenameDeviceDialog } from "@/screens/Settings/components/rename-device-dialog"
+import { useDeviceActions } from "@/screens/Settings/hooks/use-device-actions"
 import type { RootStackParamList } from "@/types/navigation"
-
-type Action = { kind: "rename" | "disconnect"; device: LinkedDevice } | null
 
 export function DevicesScreen() {
 	const { t } = useTranslation()
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
-
 	const { devices, isError, retry } = useDevices()
 
-	const [action, setAction] = useState<Action>(null)
+	const actions = useDeviceActions()
 
-	const close = () => setAction(null)
+	const target = actions.target
 
 	function body() {
 		if (isError) {
@@ -49,9 +42,8 @@ export function DevicesScreen() {
 				renderItem={({ item }) => (
 					<DeviceCard
 						device={item}
-						locale={locale}
-						onRename={() => setAction({ kind: "rename", device: item })}
-						onDisconnect={() => setAction({ kind: "disconnect", device: item })}
+						onRename={() => actions.open("rename", item)}
+						onDisconnect={() => actions.open("disconnect", item)}
 					/>
 				)}
 			/>
@@ -67,11 +59,21 @@ export function DevicesScreen() {
 				/>
 				{body()}
 			</View>
-			{action?.kind === "rename" ? (
-				<RenameDeviceDialog device={action.device} onClose={close} />
+			{target?.kind === "rename" ? (
+				<RenameDeviceDialog
+					device={target.device}
+					state={actions.rename}
+					onSave={actions.rename.save}
+					onClose={actions.close}
+				/>
 			) : null}
-			{action?.kind === "disconnect" ? (
-				<DisconnectDeviceDialog device={action.device} onClose={close} />
+			{target?.kind === "disconnect" ? (
+				<DisconnectDeviceDialog
+					device={target.device}
+					state={actions.disconnect}
+					onConfirm={actions.disconnect.confirm}
+					onClose={actions.close}
+				/>
 			) : null}
 		</Screen>
 	)

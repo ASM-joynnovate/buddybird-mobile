@@ -8,11 +8,12 @@ import { StyleSheet, View } from "react-native"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { Button } from "@/components/ui/button"
-import { ScreenHeader } from "@/components/ui/header"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { TextField } from "@/components/ui/text-field"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions } from "@/hooks/apis/words"
@@ -21,7 +22,6 @@ import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { RecordingsSection } from "@/screens/Words/components/recordings-section"
 import { type DraftItem, useWordDraft, type WordDraft } from "@/screens/Words/hooks/use-word-draft"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors } from "@/theme"
 import { WORD_NAME_LIMIT } from "@/types/apis/words"
 import type { RootStackParamList, WordsStackParamList } from "@/types/navigation"
 
@@ -42,7 +42,6 @@ export function WordEditorScreen(): ReactElement {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const routeWordId = route.params?.wordId ?? null
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
 	const guides = useDeviceSettingsStore((state) => state.guides)
 
 	const deleteWord = useIdempotentMutation(deleteWordMutationOptions())
@@ -114,12 +113,8 @@ export function WordEditorScreen(): ReactElement {
 					error={draft.nameMissing ? t("words.editor.nameRequired") : null}
 				/>
 				<RecordingsSection
-					items={draft.items}
-					serverCount={draft.serverCount}
+					draft={draft}
 					player={player}
-					locale={locale}
-					missing={draft.missingRecording}
-					disabled={busy}
 					onDelete={(item, name) => setPending({ kind: "recording", item, name })}
 					onAdd={openRecorder}
 					onHelp={() =>
@@ -152,7 +147,7 @@ export function WordEditorScreen(): ReactElement {
 						<IconButton
 							icon="trash"
 							label={t("words.editor.delete")}
-							color={colors.muted}
+							variant="muted"
 							disabled={busy}
 							onPress={() => setPending({ kind: "word" })}
 						/>
@@ -162,14 +157,16 @@ export function WordEditorScreen(): ReactElement {
 			{body}
 			<ConfirmDialog
 				visible={pending !== null}
-				title={t("common.confirmDelete.title", {
-					name: pending?.kind === "recording" ? pending.name : wordName,
-				})}
-				message={t("common.confirmDelete.message")}
-				confirmLabel={t("common.confirmDelete.confirm")}
-				cancelLabel={t("common.cancel")}
-				busy={deleteWord.isPending}
-				error={deleteWord.isError ? t("words.editor.deleteError") : null}
+				text={{
+					title: t("common.confirmDelete.title", {
+						name: pending?.kind === "recording" ? pending.name : wordName,
+					}),
+					message: t("common.confirmDelete.message"),
+				}}
+				state={{
+					busy: deleteWord.isPending,
+					error: deleteWord.isError ? t("words.editor.deleteError") : null,
+				}}
 				onConfirm={confirmDelete}
 				onClose={closeDialog}
 			/>

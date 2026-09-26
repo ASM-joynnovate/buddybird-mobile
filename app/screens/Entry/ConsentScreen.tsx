@@ -4,21 +4,25 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { BuddySays } from "@/components/buddy-says"
+import { ConsentRow } from "@/components/consent-row"
 import { Button } from "@/components/ui/button"
 import { InlineError } from "@/components/ui/inline-error"
 import { CheckRow, GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/surface"
 import { useEntryRoute } from "@/hooks/use-entry-route"
-import { ConsentRow } from "@/screens/Entry/components/consent-row"
 import { useConsentChecks } from "@/screens/Entry/hooks/use-consent-checks"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function ConsentScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+
 	const { route, parrotId } = useEntryRoute()
+
 	const form = useConsentChecks(() => {
 		if (route !== "Consent") {
 			navigation.navigate("ParrotEditor", {
@@ -56,13 +60,14 @@ export function ConsentScreen() {
 							consent={consent}
 							checked={form.isChecked(consent)}
 							disabled={form.saving}
-							onToggle={() => form.toggle(consent)}
-							onOpen={() =>
-								navigation.navigate("ConsentDetail", {
-									consentId: consent.id,
-									source: "entry",
-								})
-							}
+							actions={{
+								toggle: () => form.toggle(consent),
+								open: () =>
+									navigation.navigate("ConsentDetail", {
+										consentId: consent.id,
+										source: "entry",
+									}),
+							}}
 						/>
 					))}
 				</GroupedList>

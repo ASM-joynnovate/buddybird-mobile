@@ -1,25 +1,25 @@
 import { type CompositeNavigationProp, useIsFocused, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { DurationPicker } from "@/components/session/duration-picker"
-import { SleepEditor } from "@/components/session/sleep-editor"
+import { SleepTimeEditor } from "@/components/session/sleep-time-editor"
 import { StartDialogs } from "@/components/session/start-dialogs"
 import { WordPicker } from "@/components/session/word-picker"
 import { Button } from "@/components/ui/button"
-import { TextButton } from "@/components/ui/header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList, NavRow } from "@/components/ui/rows"
+import { GroupedList, PickerRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
-import { Sheet } from "@/components/ui/sheet"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
+import { TextButton } from "@/components/ui/text-button"
 import { SCREEN_REFRESH_MS } from "@/config"
 import { homeSummaryQueryOptions } from "@/hooks/apis/home"
 import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
@@ -41,8 +41,6 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<HomeStackParamList, "Home">,
 	NativeStackNavigationProp<RootStackParamList>
 >
-
-type OpenSheet = "word" | "duration" | "sleep" | null
 
 export function HomeScreen() {
 	const { t } = useTranslation()
@@ -77,8 +75,6 @@ export function HomeScreen() {
 		}),
 	)
 
-	const [sheet, setSheet] = useState<OpenSheet>(null)
-
 	useStaleStationCleanup()
 
 	const running = summary.data?.running_session ?? null
@@ -97,6 +93,44 @@ export function HomeScreen() {
 		player.stop()
 
 		void microphone.run(() => starter.start(draft))
+	}
+
+	function wordSheet(close: () => void) {
+		if (session.loading) {
+			return <Skeleton rows={3} />
+		}
+
+		if (session.words.length === 0) {
+			return (
+				<EmptyState
+					message={t("session.start.empty")}
+					action={{
+						label: t("session.start.addWord"),
+						onPress: () => {
+							close()
+
+							navigation.navigate("Main", {
+								screen: "WordsTab",
+								params: { screen: "WordEditor" },
+							})
+						},
+					}}
+				/>
+			)
+		}
+
+		return (
+			<WordPicker
+				words={session.words}
+				selectedId={session.word?.id ?? null}
+				player={player}
+				onSelect={(id) => {
+					session.selectWord(id)
+
+					close()
+				}}
+			/>
+		)
 	}
 
 	return (
@@ -142,37 +176,58 @@ export function HomeScreen() {
 						</Card>
 					) : null}
 					<GroupedList>
-						<NavRow
-							first
-							icon="words"
-							label={t("session.start.word")}
-							value={session.word?.name ?? t("session.start.choose")}
-							onPress={() => setSheet("word")}
-						/>
-						<NavRow
-							icon="clock"
-							label={t("session.start.duration")}
-							value={
-								session.durationMs === null
-									? t("session.start.untilEnd")
-									: formatDuration(session.durationMs, locale)
-							}
-							onPress={() => setSheet("duration")}
-						/>
-						<NavRow
-							icon="moon"
-							label={t("session.sleep.label")}
-							value={
-								session.sleep
+						<PickerRow
+							row={{
+								first: true,
+								icon: "words",
+								label: t("session.start.word"),
+								value: session.word?.name ?? t("session.start.choose"),
+							}}
+							sheet={{ title: t("session.start.word"), list: true }}
+						>
+							{wordSheet}
+						</PickerRow>
+						<PickerRow
+							row={{
+								icon: "clock",
+								label: t("session.start.duration"),
+								value:
+									session.durationMs === null
+										? t("session.start.untilEnd")
+										: formatDuration(session.durationMs, locale),
+							}}
+							sheet={{ title: t("session.start.duration") }}
+						>
+							{() => (
+								<DurationPicker
+									value={session.durationMs}
+									onChange={session.setDurationMs}
+								/>
+							)}
+						</PickerRow>
+						<PickerRow
+							row={{
+								icon: "moon",
+								label: t("session.sleep.label"),
+								value: session.sleep
 									? t("session.sleep.range", {
 											sleep: formatClock(session.sleep.sleep_at, locale),
 											wake: formatClock(session.sleep.wake_at, locale),
 										})
-									: undefined
+									: undefined,
+								disabled: !session.sleep,
+							}}
+							sheet={{ title: t("session.sleep.label") }}
+						>
+							{() =>
+								session.sleep ? (
+									<SleepTimeEditor
+										value={session.sleep}
+										onChange={session.setSleep}
+									/>
+								) : null
 							}
-							disabled={!session.sleep}
-							onPress={() => setSheet("sleep")}
-						/>
+						</PickerRow>
 					</GroupedList>
 				</View>
 				<Button
@@ -183,58 +238,6 @@ export function HomeScreen() {
 					onPress={start}
 				/>
 			</View>
-			<Sheet
-				list
-				visible={sheet === "word"}
-				title={t("session.start.word")}
-				onClose={() => setSheet(null)}
-			>
-				{session.loading ? <Skeleton rows={3} /> : null}
-				{!session.loading && session.words.length === 0 ? (
-					<EmptyState
-						message={t("session.start.empty")}
-						action={{
-							label: t("session.start.addWord"),
-							onPress: () => {
-								setSheet(null)
-
-								navigation.navigate("Main", {
-									screen: "WordsTab",
-									params: { screen: "WordEditor" },
-								})
-							},
-						}}
-					/>
-				) : null}
-				{session.words.length > 0 ? (
-					<WordPicker
-						words={session.words}
-						selectedId={session.word?.id ?? null}
-						player={player}
-						onSelect={(id) => {
-							session.selectWord(id)
-
-							setSheet(null)
-						}}
-					/>
-				) : null}
-			</Sheet>
-			<Sheet
-				visible={sheet === "duration"}
-				title={t("session.start.duration")}
-				onClose={() => setSheet(null)}
-			>
-				<DurationPicker value={session.durationMs} onChange={session.setDurationMs} />
-			</Sheet>
-			<Sheet
-				visible={sheet === "sleep"}
-				title={t("session.sleep.label")}
-				onClose={() => setSheet(null)}
-			>
-				{session.sleep ? (
-					<SleepEditor value={session.sleep} onChange={session.setSleep} />
-				) : null}
-			</Sheet>
 			<StartDialogs state={starter} />
 			<PermissionDialog {...microphone.dialog} />
 			<NoticePopup

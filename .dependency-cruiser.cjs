@@ -25,28 +25,28 @@ module.exports = {
     layer(
       "providers",
       "^app/providers/",
-      "^app/(providers|config|types|utils|lib|apis|mocks|stores|services|hooks|i18n|context)/",
+      "^app/(providers|config|types|utils|lib|apis|mocks|stores|services|hooks|i18n)/",
     ),
     layer(
       "hooks",
       { path: "^app/hooks/", pathNot: "^app/hooks/apis/" },
-      "^app/(hooks|config|types|utils|lib|apis|mocks|stores|services|i18n|theme|context)/",
+      "^app/(hooks|config|types|utils|lib|apis|mocks|stores|services|i18n|theme)/",
     ),
     layer(
       "components",
       "^app/components/",
-      "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme|context)/",
+      "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme)/",
     ),
     {
       name: "components-ui",
       severity: "error",
       from: { path: "^app/components/ui/" },
-      to: { path: "^app/(apis|mocks|stores|services|hooks|providers|screens|navigators|context)/|^app/components/(?!ui/)" },
+      to: { path: "^app/(apis|mocks|stores|services|hooks|providers|screens|navigators)/|^app/components/(?!ui/)" },
     },
     layer(
       "screens",
       "^app/screens/",
-      "^app/(screens|components|config|types|utils|lib|mocks|stores|services|hooks|providers|i18n|theme|context)/",
+      "^app/(screens|components|config|types|utils|lib|mocks|stores|services|hooks|providers|i18n|theme)/",
     ),
     {
       name: "screens-independent-of-other-screens",
@@ -60,27 +60,18 @@ module.exports = {
       from: { path: "^app/screens/" },
       to: { path: "^app/apis/" },
     },
-    {
-      name: "v1-legacy-data-hidden-from-v2",
-      severity: "error",
-      from: { path: "^app/(screens|hooks/apis|components)/" },
-      to: {
-        path: "^app/(services/migration/|services/storage/(data-store|codec|empty-data|verified-write)\\.ts$|context/app-data\\.ts$|types/app-data\\.ts$|hooks/use-app-data\\.ts$)",
-      },
-    },
     layer("i18n", "^app/i18n/", "^app/(i18n|types)/"),
     layer("theme", "^app/theme/", "^app/(theme|types)/"),
-    layer("context", "^app/context/", "^app/(context|types)/"),
     {
       name: "mmkv-only-in-storage-adapters",
       severity: "error",
-      from: { pathNot: "^app/(lib/storage\\.ts|lib/query-persister\\.ts|services/storage/data-store\\.ts)$" },
+      from: { pathNot: "^app/lib/storage\\.ts$" },
       to: { path: "node_modules/react-native-mmkv/" },
     },
     {
       name: "async-storage-only-for-migration",
       severity: "error",
-      from: { pathNot: "^app/services/migration/import-legacy-data\\.ts$" },
+      from: { pathNot: "^app/services/migration/upload-legacy\\.ts$" },
       to: { path: "node_modules/@react-native-async-storage/" },
     },
     { name: "no-unresolved-imports", severity: "error", from: {}, to: { couldNotResolve: true } },

@@ -3,17 +3,18 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 
-import { ScreenHeader } from "@/components/ui/header"
+import { ConsentRow } from "@/components/consent-row"
 import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { ConsentRow } from "@/screens/Entry/components/consent-row"
-import { latestConsents } from "@/screens/Entry/consent-agreements"
 import type { Consent } from "@/types/apis/consents"
 import type { RootStackParamList } from "@/types/navigation"
+import { latestConsents } from "@/utils/latest-consents"
 
 export function ConsentSettingsScreen() {
 	const { t } = useTranslation()
@@ -58,13 +59,14 @@ export function ConsentSettingsScreen() {
 							consent={consent}
 							checked={consent.is_required || consent.status === "granted"}
 							disabled={consent.is_required || mutation.isPending}
-							onToggle={() => toggle(consent)}
-							onOpen={() =>
-								navigation.navigate("ConsentDetail", {
-									consentId: consent.id,
-									source: "settings",
-								})
-							}
+							actions={{
+								toggle: () => toggle(consent),
+								open: () =>
+									navigation.navigate("ConsentDetail", {
+										consentId: consent.id,
+										source: "settings",
+									}),
+							}}
 						/>
 					))}
 				</GroupedList>

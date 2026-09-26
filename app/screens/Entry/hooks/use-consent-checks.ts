@@ -4,9 +4,9 @@ import { useCallback, useState } from "react"
 
 import { consentsQueryOptions, saveConsentMutationOptions } from "@/hooks/apis/consents"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { latestConsents } from "@/screens/Entry/consent-agreements"
 import { useConsentStore } from "@/stores/consent"
 import type { Consent } from "@/types/apis/consents"
+import { latestConsents } from "@/utils/latest-consents"
 
 export function useConsentChecks(onSaved?: () => void): {
 	consents: Consent[] | undefined

@@ -5,12 +5,6 @@ export const settings: SettingsMessages = {
 	saveError: "We couldn't save, so we restored the previous value. Please try again.",
 	care: {
 		title: "Parrot care",
-		sleep: "Bedtime",
-		wake: "Wake-up time",
-		hour: "h",
-		minute: "m",
-		hourPicker: "Choose the hour for {{label}}",
-		minutePicker: "Choose the minute for {{label}}",
 	},
 	notifications: {
 		title: "Notifications",

@@ -6,9 +6,10 @@ import { ActivityIndicator, StyleSheet, View } from "react-native"
 
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Mascot } from "@/components/mascot"
-import { ScreenHeader, TextButton } from "@/components/ui/header"
 import { Screen } from "@/components/ui/screen"
+import { ScreenHeader } from "@/components/ui/screen-header"
 import { Copy, Title } from "@/components/ui/text"
+import { TextButton } from "@/components/ui/text-button"
 import { LastLoginTag } from "@/screens/Entry/components/last-login-tag"
 import { OAuthButton } from "@/screens/Entry/components/oauth-button"
 import { useLogin } from "@/screens/Entry/hooks/use-login"
@@ -155,10 +156,11 @@ export function LoginScreen() {
 			) : null}
 			<ConfirmDialog
 				visible={login.merging !== null}
-				title={t("auth.merge.title")}
-				message={t("auth.merge.message")}
-				confirmLabel={t("auth.merge.confirm")}
-				cancelLabel={t("common.cancel")}
+				text={{
+					title: t("auth.merge.title"),
+					message: t("auth.merge.message"),
+					confirm: t("auth.merge.confirm"),
+				}}
 				onConfirm={login.merge}
 				onClose={login.cancelMerge}
 			/>

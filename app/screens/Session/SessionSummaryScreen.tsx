@@ -6,14 +6,14 @@ import { StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
-import { ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Stat } from "@/components/ui/stat"
 import { Card } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
 import { sessionQueryOptions } from "@/hooks/apis/sessions"
 import { wordsQueryOptions } from "@/hooks/apis/words"
 import { formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function SessionSummaryScreen() {
@@ -61,12 +61,14 @@ export function SessionSummaryScreen() {
 
 		body = (
 			<Card contentStyle={styles.card}>
-				<SummaryLine label={t("session.summary.word")} value={word?.name ?? ""} />
-				<SummaryLine
+				<Stat size="large" label={t("session.summary.word")} value={word?.name ?? ""} />
+				<Stat
+					size="large"
 					label={t("session.summary.learning")}
 					value={formatDuration(params.learningMs, locale)}
 				/>
-				<SummaryLine
+				<Stat
+					size="large"
 					label={t("session.summary.total")}
 					value={formatDuration(total, locale)}
 				/>
@@ -82,30 +84,8 @@ export function SessionSummaryScreen() {
 	)
 }
 
-interface Props {
-	label: string
-	value: string
-}
-
-function SummaryLine({ label, value }: Props) {
-	return (
-		<View style={styles.line} accessible accessibilityLabel={`${label} ${value}`}>
-			<Copy style={styles.label}>{label}</Copy>
-			<Copy style={styles.value}>{value}</Copy>
-		</View>
-	)
-}
-
 const styles = StyleSheet.create({
 	content: { gap: 20 },
 	body: { flex: 1, justifyContent: "center" },
 	card: { padding: 20, gap: 16 },
-	line: {
-		flexDirection: "row",
-		alignItems: "baseline",
-		justifyContent: "space-between",
-		gap: 12,
-	},
-	label: { fontFamily: font.extraBold, fontSize: 15, color: colors.muted },
-	value: { flexShrink: 1, fontFamily: font.black, fontSize: 22, color: colors.text },
 })

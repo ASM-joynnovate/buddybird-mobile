@@ -7,11 +7,13 @@ import { FlatList, StyleSheet, View } from "react-native"
 
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Illustration } from "@/components/illustration"
-import { ScreenHeader } from "@/components/ui/header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions, wordsQueryOptions } from "@/hooks/apis/words"
@@ -84,12 +86,14 @@ export function WordListScreen(): ReactElement {
 			</View>
 			<ConfirmDialog
 				visible={deleting !== null}
-				title={t("common.confirmDelete.title", { name: deleting?.name ?? "" })}
-				message={t("common.confirmDelete.message")}
-				confirmLabel={t("common.confirmDelete.confirm")}
-				cancelLabel={t("common.cancel")}
-				busy={removing.isPending}
-				error={removing.isError ? t("words.editor.deleteError") : null}
+				text={{
+					title: t("common.confirmDelete.title", { name: deleting?.name ?? "" }),
+					message: t("common.confirmDelete.message"),
+				}}
+				state={{
+					busy: removing.isPending,
+					error: removing.isError ? t("words.editor.deleteError") : null,
+				}}
 				onConfirm={() => {
 					if (deleting) {
 						removing.mutate({ id: deleting.id }, { onSuccess: () => setDeleting(null) })

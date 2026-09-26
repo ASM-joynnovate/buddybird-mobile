@@ -1,45 +1,34 @@
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { BuddySays } from "@/components/buddy-says"
+import { DatePicker } from "@/components/date-picker"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
-import { BirthdayPicker } from "@/components/profile-form/birthday-picker"
 import { ProfilePhoto } from "@/components/profile-form/photo"
 import { SpeciesPicker } from "@/components/profile-form/species-picker"
 import { Button } from "@/components/ui/button"
-import { ScreenHeader } from "@/components/ui/header"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
+import { ScreenHeader } from "@/components/ui/screen-header"
 import { TextField } from "@/components/ui/text-field"
-import { deleteParrotMutationOptions } from "@/hooks/apis/parrots"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { useParrotForm } from "@/screens/Entry/hooks/use-parrot-form"
 import { PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
 
-export function ParrotEditorForm({
-	parrot,
-	canDelete,
-	intro,
-	onBack,
-	onDone,
-}: {
+interface Props {
 	parrot?: Parrot
 	canDelete: boolean
 	intro: boolean
 	onBack?(): void
 	onDone(): void
-}) {
+}
+
+export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: Props) {
 	const { t } = useTranslation()
 
-	const removal = useIdempotentMutation(deleteParrotMutationOptions())
-
 	const form = useParrotForm(parrot, onDone)
-
-	const [confirming, setConfirming] = useState(false)
 
 	const deleteButton =
 		parrot && canDelete ? (
@@ -47,7 +36,7 @@ export function ParrotEditorForm({
 				icon="trash"
 				label={t("entry.parrot.delete")}
 				disabled={form.busy}
-				onPress={() => setConfirming(true)}
+				onPress={form.removal.ask}
 			/>
 		) : undefined
 
@@ -98,39 +87,23 @@ export function ParrotEditorForm({
 				<View>
 					<GroupedList>
 						<SpeciesPicker first {...form.species} />
-						<BirthdayPicker {...form.birthday} />
+						<DatePicker value={form.birthday.value} onChange={form.birthday.onChange} />
 					</GroupedList>
 					<InlineError message={form.species.speciesError} />
-					<InlineError message={form.birthday.birthdayError} />
+					<InlineError message={form.birthday.error} />
 				</View>
 			</View>
 			<PermissionDialog {...form.photo.dialog} />
 			{parrot ? (
 				<ConfirmDialog
-					visible={confirming}
-					title={t("common.confirmDelete.title", { name: parrot.name })}
-					message={t("common.confirmDelete.message")}
-					confirmLabel={t("common.confirmDelete.confirm")}
-					cancelLabel={t("common.cancel")}
-					busy={removal.isPending}
-					error={removal.isError ? t("entry.parrot.deleteError") : null}
-					onClose={() => {
-						removal.reset()
-
-						setConfirming(false)
+					visible={form.removal.open}
+					text={{
+						title: t("common.confirmDelete.title", { name: parrot.name }),
+						message: t("common.confirmDelete.message"),
 					}}
-					onConfirm={() =>
-						removal.mutate(
-							{ id: parrot.id },
-							{
-								onSuccess: () => {
-									setConfirming(false)
-
-									onDone()
-								},
-							},
-						)
-					}
+					state={{ busy: form.removal.busy, error: form.removal.error }}
+					onClose={form.removal.close}
+					onConfirm={form.removal.confirm}
 				/>
 			) : null}
 		</Screen>

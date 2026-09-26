@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
-import { TextButton } from "@/components/ui/header"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
+import { TextButton } from "@/components/ui/text-button"
 import { apiErrorMessage } from "@/lib/api"
 import { signOutToAnonymous, withdrawAccount } from "@/services/auth/session"
 import { useAccountStore } from "@/stores/account"
@@ -79,23 +79,23 @@ export function AccountActions({ onSignIn }: Props) {
 			</View>
 			<ConfirmDialog
 				visible={open === "signOut"}
-				title={t("settings.signOutDialog.title")}
-				message={t("settings.signOutDialog.message")}
-				confirmLabel={t("settings.signOutDialog.confirm")}
-				cancelLabel={t("common.cancel")}
-				busy={pending}
-				error={error}
+				text={{
+					title: t("settings.signOutDialog.title"),
+					message: t("settings.signOutDialog.message"),
+					confirm: t("settings.signOutDialog.confirm"),
+				}}
+				state={{ busy: pending, error }}
 				onConfirm={() => void run(signOutToAnonymous, () => t("auth.signOutError"))}
 				onClose={() => show(null)}
 			/>
 			<ConfirmDialog
 				visible={open === "withdraw"}
-				title={t("settings.withdrawDialog.title")}
-				message={t("settings.withdrawDialog.message")}
-				confirmLabel={t("settings.withdrawDialog.confirm")}
-				cancelLabel={t("common.cancel")}
-				busy={pending}
-				error={error}
+				text={{
+					title: t("settings.withdrawDialog.title"),
+					message: t("settings.withdrawDialog.message"),
+					confirm: t("settings.withdrawDialog.confirm"),
+				}}
+				state={{ busy: pending, error }}
 				onConfirm={() => void run(withdrawAccount, (reason) => apiErrorMessage(reason, t))}
 				onClose={() => show(null)}
 			>

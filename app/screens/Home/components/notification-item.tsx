@@ -2,14 +2,15 @@ import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
-import { DotBadge } from "@/components/ui/badge"
+import { DotBadge } from "@/components/ui/dot-badge"
 import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatMoment } from "@/i18n/format"
 import type { InboxNotification } from "@/mocks/types"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
-import type { Locale } from "@/types/locale"
+import { joinLabel } from "@/utils/a11y"
 
 const icons: Record<InboxNotification["kind"], IconName> = {
 	emergency: "warning",
@@ -22,12 +23,14 @@ const icons: Record<InboxNotification["kind"], IconName> = {
 
 interface Props {
 	item: InboxNotification
-	locale: Locale
 	onOpen(item: InboxNotification): void
 }
 
-export const NotificationItem = memo(function NotificationItem({ item, locale, onOpen }: Props) {
+export const NotificationItem = memo(function NotificationItem({ item, onOpen }: Props) {
 	const { t } = useTranslation()
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
 	const unread = !item.read_at
 	const time = formatMoment(item.sent_at, locale)
 
@@ -38,14 +41,12 @@ export const NotificationItem = memo(function NotificationItem({ item, locale, o
 			cornerRadius={0}
 			style={styles.item}
 			contentStyle={styles.row}
-			accessibilityLabel={[
-				unread ? t("home.notification.unread") : null,
+			accessibilityLabel={joinLabel(
+				unread && t("home.notification.unread"),
 				item.title,
 				item.body,
 				time,
-			]
-				.filter(Boolean)
-				.join(", ")}
+			)}
 			onPress={() => onOpen(item)}
 		>
 			<View style={[styles.icon, item.kind === "emergency" && styles.alert]}>

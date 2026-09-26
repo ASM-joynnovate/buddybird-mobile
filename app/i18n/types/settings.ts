@@ -3,12 +3,6 @@ export type SettingsMessages = {
 	saveError: string
 	care: {
 		title: string
-		sleep: string
-		wake: string
-		hour: string
-		minute: string
-		hourPicker: string
-		minutePicker: string
 	}
 	notifications: {
 		title: string

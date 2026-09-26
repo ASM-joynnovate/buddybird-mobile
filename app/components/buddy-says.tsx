@@ -3,7 +3,11 @@ import { StyleSheet, View } from "react-native"
 import { Mascot } from "@/components/mascot"
 import { SpeechBubble } from "@/components/ui/speech-bubble"
 
-export function BuddySays({ message }: { message: string }) {
+interface Props {
+	message: string
+}
+
+export function BuddySays({ message }: Props) {
 	return (
 		<View style={styles.row}>
 			<Mascot size={72} />

@@ -6,14 +6,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { SoundRow } from "@/components/session/sound-row"
 import { Chip } from "@/components/ui/chip"
-import { ScreenHeader } from "@/components/ui/header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Screen } from "@/components/ui/screen"
-import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
+import { ScreenError } from "@/components/ui/screen-error"
+import { ScreenHeader } from "@/components/ui/screen-header"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
+import { EventRow } from "@/screens/Report/components/event-row"
 import { SessionOverview } from "@/screens/Report/components/session-overview"
-import { EventRow } from "@/screens/Report/components/timeline-row"
 import { type TimelineItem, useSessionDetail } from "@/screens/Report/hooks/use-session-detail"
+import { useSoundFeedback } from "@/screens/Report/hooks/use-sound-feedback"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { ReportStackParamList } from "@/types/navigation"
 
@@ -28,6 +31,7 @@ export function SessionDetailScreen() {
 	const { params } = useRoute<RouteProp<ReportStackParamList, "SessionDetail">>()
 
 	const player = useSoundPlayer()
+	const feedback = useSoundFeedback()
 
 	const detail = useSessionDetail(params.sessionId, params.soundId)
 	const record = detail.record
@@ -48,7 +52,7 @@ export function SessionDetailScreen() {
 				<SoundRow
 					sound={item.sound}
 					timeLabel={timeLabel(item.at)}
-					player={player}
+					controls={{ player, feedback }}
 					highlighted={highlighted}
 				/>
 			)
@@ -87,13 +91,12 @@ export function SessionDetailScreen() {
 					<View style={styles.header}>
 						<SessionOverview
 							record={record}
-							timeline={timeline}
-							end={detail.end}
-							running={detail.running}
-							cursor={detail.cursor}
-							showsMimicry={detail.showsSounds}
-							onSelectKey={detail.scrollToKey}
-							onSelectTime={detail.scrollToTime}
+							timeline={{ data: timeline, end: detail.end, running: detail.running }}
+							selection={{
+								cursor: detail.cursor,
+								selectKey: detail.scrollToKey,
+								selectTime: detail.scrollToTime,
+							}}
 						/>
 						<View style={styles.filters}>
 							{detail.filters.map((filter) => (

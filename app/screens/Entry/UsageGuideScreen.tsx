@@ -7,7 +7,9 @@ import type { RootStackParamList } from "@/types/navigation"
 
 export function UsageGuideScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+
 	const steps: GuideStep[] = [
 		{ title: t("entry.usage.words.title"), scene: t("entry.usage.words.scene"), icon: "mic" },
 		{ title: t("entry.usage.login.title"), scene: t("entry.usage.login.scene"), icon: "link" },
@@ -27,9 +29,11 @@ export function UsageGuideScreen() {
 	return (
 		<GuidePager
 			steps={steps}
-			onFinish={next}
-			onSkip={next}
-			onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+			actions={{
+				finish: next,
+				skip: next,
+				back: navigation.canGoBack() ? () => navigation.goBack() : undefined,
+			}}
 			finishLabel={t("common.next")}
 		/>
 	)

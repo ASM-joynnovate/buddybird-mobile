@@ -1,0 +1,65 @@
+import { useTranslation } from "react-i18next"
+import { StyleSheet, View } from "react-native"
+
+import { Chip } from "@/components/ui/chip"
+import { Icon } from "@/components/ui/icon"
+import { InlineError } from "@/components/ui/inline-error"
+import { GroupedList, NavRow } from "@/components/ui/rows"
+import { Copy } from "@/components/ui/text"
+import { useAppLanguage } from "@/screens/Settings/hooks/use-app-language"
+import { colors, font } from "@/theme"
+
+interface Props {
+	onOpenDevices(): void
+	onOpenPermissions(): void
+}
+
+export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
+	const { t } = useTranslation()
+
+	const language = useAppLanguage()
+
+	return (
+		<View>
+			<GroupedList title={t("settings.general.title")}>
+				<View style={styles.row}>
+					<Icon name="words" size={22} color={colors.muted} />
+					<Copy style={styles.label}>{t("settings.general.language")}</Copy>
+					<Chip
+						label={t("settings.general.korean")}
+						selected={language.locale === "ko-KR"}
+						onPress={() => void language.changeLanguage("ko-KR")}
+					/>
+					<Chip
+						label={t("settings.general.english")}
+						selected={language.locale === "en-US"}
+						onPress={() => void language.changeLanguage("en-US")}
+					/>
+				</View>
+				<NavRow
+					icon="device"
+					label={t("settings.general.devices")}
+					onPress={onOpenDevices}
+				/>
+				<NavRow
+					icon="lock"
+					label={t("settings.general.permissions")}
+					onPress={onOpenPermissions}
+				/>
+			</GroupedList>
+			<InlineError message={language.error} />
+		</View>
+	)
+}
+
+const styles = StyleSheet.create({
+	row: {
+		minHeight: 56,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 8,
+		paddingHorizontal: 16,
+		paddingVertical: 10,
+	},
+	label: { flex: 1, minWidth: 0, marginLeft: 4, fontFamily: font.extraBold, fontSize: 16 },
+})

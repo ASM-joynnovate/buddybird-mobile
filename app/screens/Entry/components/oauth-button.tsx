@@ -6,19 +6,15 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { font, providerColors, radius } from "@/theme"
 
-export function OAuthButton({
-	provider,
-	loading,
-	disabled,
-	hint,
-	onPress,
-}: {
+interface Props {
 	provider: "google" | "kakao"
 	loading: boolean
 	disabled: boolean
 	hint?: string
 	onPress(): void
-}) {
+}
+
+export function OAuthButton({ provider, loading, disabled, hint, onPress }: Props) {
 	const { t } = useTranslation()
 
 	const google = provider === "google"
