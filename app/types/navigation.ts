@@ -38,6 +38,7 @@ export type MainTabParamList = {
 }
 
 export type RootStackParamList = {
+	Login: { source?: "entry" } | undefined
 	Consent: undefined
 	ConsentDetail: { consentId: string; source: "entry" | "settings" }
 	ParrotEditor: { parrotId?: string; source?: "entry" } | undefined

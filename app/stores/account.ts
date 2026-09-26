@@ -7,8 +7,9 @@ import { persistKeys, storageIds } from "@/stores/keys"
 import { type Account, accountSchema, type LoginProvider } from "@/types/account"
 
 type AccountActions = {
-	markRegistered: (authUserId: string, serverUserId: string) => void
+	markRegistered: (authUserId: string, serverUserId: string, isAnonymous: boolean) => void
 	clearRegistration: () => void
+	markLoginScreenSeen: () => void
 	markProvider: (provider: LoginProvider) => void
 	ensureClientDeviceId: () => string
 }
@@ -18,6 +19,8 @@ export type AccountStore = Account & AccountActions
 const initialAccount: Account = {
 	registeredUser: null,
 	serverUserId: null,
+	isAnonymous: true,
+	loginScreenSeen: false,
 	provider: null,
 	lastLogin: null,
 	clientDeviceId: null,
@@ -28,17 +31,28 @@ export const useAccountStore = create<AccountStore>()(
 		(set, get) => ({
 			...initialAccount,
 
-			markRegistered: (authUserId, serverUserId) => {
+			markRegistered: (authUserId, serverUserId, isAnonymous) => {
 				set((state) => ({
 					...state,
 					registeredUser: authUserId,
 					serverUserId,
-					lastLogin: state.provider ?? state.lastLogin,
+					isAnonymous,
+					lastLogin: isAnonymous ? state.lastLogin : (state.provider ?? state.lastLogin),
 				}))
 			},
 
 			clearRegistration: () => {
-				set((state) => ({ ...state, registeredUser: null, serverUserId: null }))
+				set((state) => ({
+					...state,
+					registeredUser: null,
+					serverUserId: null,
+					isAnonymous: true,
+					loginScreenSeen: false,
+				}))
+			},
+
+			markLoginScreenSeen: () => {
+				set((state) => ({ ...state, loginScreenSeen: true }))
 			},
 
 			markProvider: (provider) => {
@@ -67,12 +81,16 @@ export const useAccountStore = create<AccountStore>()(
 			partialize: ({
 				registeredUser,
 				serverUserId,
+				isAnonymous,
+				loginScreenSeen,
 				provider,
 				lastLogin,
 				clientDeviceId,
 			}) => ({
 				registeredUser,
 				serverUserId,
+				isAnonymous,
+				loginScreenSeen,
 				provider,
 				lastLogin,
 				clientDeviceId,

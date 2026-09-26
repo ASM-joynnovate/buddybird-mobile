@@ -12,9 +12,15 @@ export type AuthMessages = {
 	completing: string
 	signInError: string
 	restoreError: string
-	configurationError: string
 	recent: string
 	recentHint: string
 	signOut: string
 	signOutError: string
+	signIn: string
+	signInRequired: string
+	merge: {
+		title: string
+		message: string
+		confirm: string
+	}
 }

@@ -17,6 +17,7 @@ import { NotificationGroup } from "@/screens/Settings/components/notification-gr
 import { GeneralGroup, SupportGroup } from "@/screens/Settings/components/settings-groups"
 import { SleepTimeRow } from "@/screens/Settings/components/sleep-time-row"
 import { useSettingsUpdate } from "@/screens/Settings/hooks/use-settings-update"
+import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { useFeedbackStore } from "@/stores/feedback"
 import type { RootStackParamList } from "@/types/navigation"
@@ -27,6 +28,7 @@ export function SettingsScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const feedback = useFeedbackStore()
 
@@ -97,10 +99,10 @@ export function SettingsScreen() {
 			<View style={styles.sections}>
 				{preferences()}
 				<GeneralGroup
-					onOpenDevices={() => navigation.navigate("Devices")}
+					onOpenDevices={() => navigation.navigate(isAnonymous ? "Login" : "Devices")}
 					onOpenPermissions={() => navigation.navigate("Permissions")}
 				/>
-				<AccountActions />
+				<AccountActions onSignIn={() => navigation.navigate("Login")} />
 				<SupportGroup
 					unreadNotice={Boolean(
 						notices.data?.pages.some((page) =>

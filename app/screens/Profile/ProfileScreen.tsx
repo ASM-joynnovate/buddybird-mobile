@@ -15,6 +15,7 @@ import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { meQueryOptions } from "@/hooks/apis/users"
 import { AccountCard } from "@/screens/Profile/components/account-card"
 import { ParrotCard } from "@/screens/Profile/components/parrot-card"
+import { useAccountStore } from "@/stores/account"
 import type { ProfileStackParamList, RootStackParamList } from "@/types/navigation"
 
 type Navigation = CompositeNavigationProp<
@@ -24,7 +25,11 @@ type Navigation = CompositeNavigationProp<
 
 export function ProfileScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<Navigation>()
+
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
+
 	const me = useQuery(meQueryOptions())
 	const parrots = useQuery(parrotsQueryOptions())
 
@@ -48,6 +53,14 @@ export function ProfileScreen() {
 		return (
 			<>
 				<AccountCard user={me.data} onPress={() => navigation.navigate("AccountEditor")} />
+				{isAnonymous ? (
+					<Button
+						label={t("auth.signIn")}
+						variant="secondary"
+						onPress={() => navigation.navigate("Login")}
+						style={styles.signIn}
+					/>
+				) : null}
 				<View style={ui.section}>
 					<Copy accessibilityRole="header" style={ui.sectionTitle}>
 						{t("profile.parrots")}
@@ -94,4 +107,5 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
 	parrots: { gap: 12 },
 	add: { marginTop: 16 },
+	signIn: { marginTop: 12 },
 })

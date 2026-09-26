@@ -1,12 +1,13 @@
 import * as Application from "expo-application"
 
-import { getSupabase } from "@/lib/supabase"
+import { authClient } from "@/services/auth/client"
 import { useAccountStore } from "@/stores/account"
 import type { LoginRequest } from "@/types/apis/auth"
 
 type LoginCredential = Pick<LoginRequest, "google" | "apple">
 
 let appleCredential: LoginCredential | undefined
+let mergeSourceToken: string | undefined
 
 export function setAppleCredential(authorizationCode: string) {
 	const clientId = Application.applicationId
@@ -24,6 +25,18 @@ export function takeCredential(): LoginCredential | undefined {
 	return credential
 }
 
+export function keepMergeSource(accessToken: string) {
+	mergeSourceToken = accessToken
+}
+
+export function takeMergeSource(): string | undefined {
+	const token = mergeSourceToken
+
+	mergeSourceToken = undefined
+
+	return token
+}
+
 export async function loginCredential(): Promise<LoginCredential> {
 	const { provider } = useAccountStore.getState()
 
@@ -35,7 +48,7 @@ export async function loginCredential(): Promise<LoginCredential> {
 		return {}
 	}
 
-	const { data, error } = await getSupabase().auth.getSession()
+	const { data, error } = await authClient().getSession()
 
 	if (error) {
 		throw error

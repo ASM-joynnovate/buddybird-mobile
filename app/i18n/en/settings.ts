@@ -54,8 +54,6 @@ export const settings: SettingsMessages = {
 		message: "Buddy will miss you. Do you really want to leave?",
 		line: "This can't be undone.",
 		confirm: "Delete account",
-		unavailable:
-			"Account deletion will be available once the server is ready. Please try later.",
 	},
 	notices: {
 		title: "Notices",

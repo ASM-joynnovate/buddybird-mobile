@@ -117,6 +117,8 @@ export type MockSettings = {
 	}
 }
 
+export type MockProvider = "google" | "kakao" | "apple"
+
 export type MockText = { "ko-KR": string; "en-US": string }
 
 export type MockLocale = keyof MockText
@@ -493,8 +495,8 @@ const consents = [
 	},
 ]
 
-export function seed(now: number): Database {
-	const settings: MockSettings = {
+function defaultSettings(): MockSettings {
+	return {
 		sleep: { sleep_at: "20:00:00", wake_at: "08:00:00" },
 		notifications: {
 			emergency: true,
@@ -504,11 +506,103 @@ export function seed(now: number): Database {
 			station_disconnect: true,
 		},
 	}
+}
+
+function presetWords(created: number): MockWord[] {
+	return [
+		word("안녕", [clips.hello], created),
+		word("사랑해", [clips.love], created),
+		word("다녀와", [clips.bye], created),
+	]
+}
+
+function currentDevice(now: number): MockDevice {
+	return createDevice(
+		null,
+		Platform.OS === "ios"
+			? { platform: "ios", os_version: "18.0", model: "iPhone 15", app_version: "1.2.0" }
+			: { platform: "android", os_version: "15", model: "Pixel 8", app_version: "1.2.0" },
+		now,
+	)
+}
+
+function createConsents(created: number): MockConsent[] {
+	return consents.map((item) => ({
+		...item,
+		id: randomUUID(),
+		version: 1,
+		published_at: iso(created),
+		status: null,
+	}))
+}
+
+function createNotices(now: number): Pick<Database, "notices" | "noticeNotifications"> {
+	const notices: MockNotice[] = [
+		{
+			id: randomUUID(),
+			title: "버디버드가 새로워졌어요",
+			body: "이제 집에 둔 기기로 세션을 실행하고, 들고 다니는 기기로 앵무새를 확인할 수 있어요.\n\n응급 상황을 감지하면 바로 알려 드리고, 앵무새가 따라 한 단어도 모아서 보여 드려요.",
+			starts_at: iso(now - 2 * DAY),
+			ends_at: null,
+			images: [{ id: randomUUID(), url: sampleImage }],
+			is_read: false,
+		},
+		{
+			id: randomUUID(),
+			title: "추석 연휴 고객센터 운영 안내",
+			body: "연휴 동안 문의 답변이 늦어질 수 있어요. 앱의 피드백 보내기로 남겨 주시면 순서대로 답변드릴게요.",
+			starts_at: iso(now - 9 * DAY),
+			ends_at: null,
+			images: [],
+			is_read: true,
+		},
+	]
+	const noticeNotifications: MockNoticeNotification[] = [
+		{
+			id: randomUUID(),
+			kind: "notice",
+			notice_id: notices[0].id,
+			title: notices[0].title,
+			body: "새로워진 버디버드를 소개해요.",
+			sent_at: notices[0].starts_at,
+			read_at: null,
+		},
+		{
+			id: randomUUID(),
+			kind: "notice",
+			notice_id: notices[1].id,
+			title: notices[1].title,
+			body: "연휴 기간의 운영 시간을 안내해요.",
+			sent_at: notices[1].starts_at,
+			read_at: iso(Date.parse(notices[1].starts_at) + HOUR),
+		},
+	]
+
+	return { notices, noticeNotifications }
+}
+
+export function newDatabase(now: number): Database {
+	const current = currentDevice(now)
+
+	return {
+		user: { id: randomUUID(), email: null, nickname: null, photo: null },
+		settings: defaultSettings(),
+		consents: createConsents(now),
+		parrots: [],
+		words: presetWords(now),
+		devices: [current],
+		currentDeviceId: current.id,
+		sessions: [],
+		...createNotices(now),
+		notifications: [],
+	}
+}
+
+export function seed(now: number): Database {
+	const settings = defaultSettings()
 	const created = now - 60 * DAY
 	const words = [
-		word("안녕", [clips.hello, clips.hello, clips.hello], created),
-		word("사랑해", [clips.love], created),
-		word("다녀와", [clips.bye, clips.bye], created),
+		...presetWords(created),
 		word("사과", [], created),
 		word("초코야", [clips.hello, clips.love, clips.bye, clips.apple, clips.hello], created),
 	]
@@ -520,13 +614,7 @@ export function seed(now: number): Database {
 		{ platform: "android", os_version: "14", model: "Galaxy S21", app_version: "1.2.0" },
 		now - 4000,
 	)
-	const current = createDevice(
-		null,
-		Platform.OS === "ios"
-			? { platform: "ios", os_version: "18.0", model: "iPhone 15", app_version: "1.2.0" }
-			: { platform: "android", os_version: "15", model: "Pixel 8", app_version: "1.2.0" },
-		now,
-	)
+	const current = currentDevice(now)
 	const sessions: MockSession[] = []
 	const today = startOfDay(now)
 
@@ -571,26 +659,6 @@ export function seed(now: number): Database {
 
 	sessions.push(running)
 
-	const notices: MockNotice[] = [
-		{
-			id: randomUUID(),
-			title: "버디버드가 새로워졌어요",
-			body: "이제 집에 둔 기기로 세션을 실행하고, 들고 다니는 기기로 앵무새를 확인할 수 있어요.\n\n응급 상황을 감지하면 바로 알려 드리고, 앵무새가 따라 한 단어도 모아서 보여 드려요.",
-			starts_at: iso(now - 2 * DAY),
-			ends_at: null,
-			images: [{ id: randomUUID(), url: sampleImage }],
-			is_read: false,
-		},
-		{
-			id: randomUUID(),
-			title: "추석 연휴 고객센터 운영 안내",
-			body: "연휴 동안 문의 답변이 늦어질 수 있어요. 앱의 피드백 보내기로 남겨 주시면 순서대로 답변드릴게요.",
-			starts_at: iso(now - 9 * DAY),
-			ends_at: null,
-			images: [],
-			is_read: true,
-		},
-	]
 	const latest = [...running.sounds].reverse().find((item) => item.word_id)
 	const latestWord = words.find((item) => item.id === latest?.word_id)
 	const reportDate = dateKey(today - DAY)
@@ -628,26 +696,6 @@ export function seed(now: number): Database {
 			{ read_at: iso(today - 4 * DAY + 14 * HOUR) },
 		),
 	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
-	const noticeNotifications: MockNoticeNotification[] = [
-		{
-			id: randomUUID(),
-			kind: "notice",
-			notice_id: notices[0].id,
-			title: notices[0].title,
-			body: "새로워진 버디버드를 소개해요.",
-			sent_at: notices[0].starts_at,
-			read_at: null,
-		},
-		{
-			id: randomUUID(),
-			kind: "notice",
-			notice_id: notices[1].id,
-			title: notices[1].title,
-			body: "연휴 기간의 운영 시간을 안내해요.",
-			sent_at: notices[1].starts_at,
-			read_at: iso(Date.parse(notices[1].starts_at) + HOUR),
-		},
-	]
 
 	return {
 		user: {
@@ -657,20 +705,13 @@ export function seed(now: number): Database {
 			photo: null,
 		},
 		settings,
-		consents: consents.map((item) => ({
-			...item,
-			id: randomUUID(),
-			version: 1,
-			published_at: iso(created),
-			status: null,
-		})),
+		consents: createConsents(created),
 		parrots: [],
 		words,
 		devices: [current, station],
 		currentDeviceId: current.id,
 		sessions,
-		notices,
+		...createNotices(now),
 		notifications,
-		noticeNotifications,
 	}
 }

@@ -3684,15 +3684,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-persist-client-core@npm:5.102.8":
-  version: 5.102.8
-  resolution: "@tanstack/query-persist-client-core@npm:5.102.8"
-  dependencies:
-    "@tanstack/query-core": "npm:5.102.8"
-  checksum: 10c0/9c1f51fa6e61ebfaec7be7b656a74a388cd5bc02c8089d537d01a8d1b1b4b2980b9916e5359f287131ca16d0ddf06a32427695712063d7f1b50ca893932a4fa8
-  languageName: node
-  linkType: hard
-
 "@tanstack/react-query@npm:5.102.8":
   version: 5.102.8
   resolution: "@tanstack/react-query@npm:5.102.8"
@@ -4614,7 +4605,6 @@ __metadata:
     "@react-navigation/native-stack": "npm:^7.2.0"
     "@supabase/supabase-js": "npm:2.116.0"
     "@tanstack/eslint-plugin-query": "npm:5.102.8"
-    "@tanstack/query-persist-client-core": "npm:5.102.8"
     "@tanstack/react-query": "npm:5.102.8"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:~19.2.10"

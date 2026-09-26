@@ -5,12 +5,8 @@ export const storageIds = {
 
 export const persistKeys = {
 	deviceSettings: { name: "device-settings", version: 1 },
-	account: { name: "account", version: 1 },
+	account: { name: "account", version: 2 },
 } as const
-
-export function queryCacheStorageId(accountId: string): string {
-	return `buddybird.query.${accountId}`
-}
 
 export const DATA_KEY = "buddybird.data"
 

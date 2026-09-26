@@ -2,19 +2,34 @@ import { useQuery } from "@tanstack/react-query"
 
 import { consentsQueryOptions } from "@/hooks/apis/consents"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
+import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
-export type EntryRoute = "loading" | "error" | "Consent" | "ParrotEditor" | "UsageGuide" | "Main"
+export type EntryRoute =
+	| "loading"
+	| "error"
+	| "Login"
+	| "Consent"
+	| "ParrotEditor"
+	| "UsageGuide"
+	| "Main"
 
 export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry(): void } {
 	const consents = useQuery(consentsQueryOptions())
 	const parrots = useQuery(parrotsQueryOptions())
 
+	const loginPending = useAccountStore(
+		(account) => account.isAnonymous && !account.loginScreenSeen,
+	)
 	const guides = useDeviceSettingsStore((state) => state.guides)
 
 	function retry() {
 		void consents.refetch()
 		void parrots.refetch()
+	}
+
+	if (loginPending) {
+		return { route: "Login", retry }
 	}
 
 	if (consents.isError || parrots.isError) {

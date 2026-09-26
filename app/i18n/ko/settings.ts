@@ -54,7 +54,6 @@ export const settings: SettingsMessages = {
 		message: "버디가 많이 아쉬워할 거예요. 정말 떠나시겠어요?",
 		line: "탈퇴하면 되돌릴 수 없어요.",
 		confirm: "탈퇴하기",
-		unavailable: "회원 탈퇴는 서버 준비가 끝나면 할 수 있어요. 나중에 다시 시도해 주세요.",
 	},
 	notices: {
 		title: "공지",

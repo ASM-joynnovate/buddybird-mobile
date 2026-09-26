@@ -7,10 +7,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { StartupScreen } from "@/components/app/startup-screen"
 import { OfflineBanner } from "@/components/offline-banner"
-import { useEntryRoute } from "@/hooks/use-entry-route"
+import { type EntryRoute, useEntryRoute } from "@/hooks/use-entry-route"
 import { MainTabs } from "@/navigators/main-tabs"
 import { ConsentDetailScreen } from "@/screens/Entry/ConsentDetailScreen"
 import { ConsentScreen } from "@/screens/Entry/ConsentScreen"
+import { LoginScreen } from "@/screens/Entry/LoginScreen"
 import { ParrotEditorScreen } from "@/screens/Entry/ParrotEditorScreen"
 import { PermissionRequestScreen } from "@/screens/Entry/PermissionRequestScreen"
 import { UsageGuideScreen } from "@/screens/Entry/UsageGuideScreen"
@@ -53,6 +54,21 @@ function entryState(
 	return { index: routes.length - 1, routes }
 }
 
+function initialStateOf(
+	route: Exclude<EntryRoute, "loading" | "error">,
+	parrotId?: string,
+): PartialState<NavigationState> | undefined {
+	if (route === "Main") {
+		return undefined
+	}
+
+	if (route === "Login") {
+		return { index: 0, routes: [{ name: "Login", params: { source: "entry" } }] }
+	}
+
+	return entryState(route, parrotId)
+}
+
 export function AppNavigator() {
 	const { route, parrotId, retry } = useEntryRoute()
 
@@ -62,10 +78,7 @@ export function AppNavigator() {
 
 	return (
 		<>
-			<NavigationContainer
-				key={route}
-				initialState={route === "Main" ? undefined : entryState(route, parrotId)}
-			>
+			<NavigationContainer key={route} initialState={initialStateOf(route, parrotId)}>
 				<Stack.Navigator
 					screenOptions={{
 						headerShown: false,
@@ -75,6 +88,7 @@ export function AppNavigator() {
 				>
 					{route === "Main" ? null : (
 						<Stack.Group>
+							<Stack.Screen name="Login" component={LoginScreen} />
 							<Stack.Screen name="Consent" component={ConsentScreen} />
 							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
@@ -88,6 +102,7 @@ export function AppNavigator() {
 					{route === "Main" ? (
 						<Stack.Group>
 							<Stack.Screen name="Main" component={MainTabs} />
+							<Stack.Screen name="Login" component={LoginScreen} />
 							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
 							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />

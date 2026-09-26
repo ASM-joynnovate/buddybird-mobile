@@ -1,6 +1,6 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
 
-import { DEFAULT_STALE_TIME_MS, QUERY_CACHE_MAX_AGE_MS } from "@/config"
+import { DEFAULT_STALE_TIME_MS } from "@/config"
 import { ApiError, UNAUTHORIZED_STATUS } from "@/types/apis/common"
 
 const MAX_RETRIES = 2
@@ -24,7 +24,6 @@ export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			staleTime: DEFAULT_STALE_TIME_MS,
-			gcTime: QUERY_CACHE_MAX_AGE_MS,
 			retry: retryPolicy,
 		},
 		mutations: { retry: retryPolicy, networkMode: "always" },

@@ -6,7 +6,6 @@ import { configureApi } from "@/lib/api"
 import { takeRestoreErrors } from "@/lib/storage"
 import { mockServer } from "@/mocks/server"
 import { accessToken, installUnauthorizedSignOut } from "@/services/auth/session"
-import { persistAccountQueries } from "@/services/lifecycle/query-client"
 import { getIsHeadless } from "@/services/push/background"
 import { reportError } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
@@ -42,8 +41,6 @@ export async function bootstrap() {
 	if (restoreErrors.length > 0) {
 		Alert.alert(i18next.t("app.storage.settingError"))
 	}
-
-	persistAccountQueries(useAccountStore.getState().registeredUser)
 
 	return "ready" as const
 }

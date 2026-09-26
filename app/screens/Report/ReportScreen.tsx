@@ -3,9 +3,10 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { FlatList, StyleSheet } from "react-native"
+import { FlatList, StyleSheet, View } from "react-native"
 
 import { SoundRow } from "@/components/session/sound-row"
+import { Button } from "@/components/ui/button"
 import { Screen } from "@/components/ui/screen"
 import { Copy } from "@/components/ui/text"
 import { reportQueryOptions } from "@/hooks/apis/reports"
@@ -14,6 +15,7 @@ import { useSoundsWithAnalysis } from "@/hooks/use-sounds-with-analysis"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { hasRecords, ReportHeader } from "@/screens/Report/components/report-header"
 import { useReportPeriod } from "@/screens/Report/hooks/use-report-period"
+import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
 import type { ReportStackParamList, RootStackParamList } from "@/types/navigation"
@@ -25,6 +27,7 @@ export function ReportScreen(): ReactElement {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const player = useSoundPlayer()
 
@@ -32,9 +35,27 @@ export function ReportScreen(): ReactElement {
 
 	const report = useQuery(reportQueryOptions(period.period, period.start))
 
-	const reportSounds = report.data && hasRecords(report.data) ? report.data.sounds : []
+	const recorded = report.data !== undefined && hasRecords(report.data)
+	const reportSounds = report.data && recorded && !isAnonymous ? report.data.sounds : []
 	const sounds = useSoundsWithAnalysis(reportSounds).soundsWithAnalysis ?? []
 	const formatSoundTime = period.period === "day" ? formatTime : formatDateTime
+
+	let emptySounds = null
+
+	if (recorded && isAnonymous) {
+		emptySounds = (
+			<View style={styles.locked}>
+				<Copy style={styles.none}>{t("auth.signInRequired")}</Copy>
+				<Button
+					label={t("auth.signIn")}
+					variant="secondary"
+					onPress={() => navigation.navigate("Login")}
+				/>
+			</View>
+		)
+	} else if (recorded) {
+		emptySounds = <Copy style={styles.none}>{t("report.noSounds")}</Copy>
+	}
 
 	const header = (
 		<ReportHeader
@@ -71,11 +92,7 @@ export function ReportScreen(): ReactElement {
 						}
 					/>
 				)}
-				ListEmptyComponent={
-					report.data && hasRecords(report.data) ? (
-						<Copy style={styles.none}>{t("report.noSounds")}</Copy>
-					) : null
-				}
+				ListEmptyComponent={emptySounds}
 			/>
 		</Screen>
 	)
@@ -91,4 +108,5 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 	},
 	none: { color: colors.muted },
+	locked: { gap: 12 },
 })

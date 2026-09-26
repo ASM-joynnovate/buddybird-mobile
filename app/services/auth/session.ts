@@ -1,29 +1,32 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js"
 
+import { withdraw } from "@/apis/auth"
 import { setUnauthorizedHandler } from "@/lib/query-client"
-import { getSupabase } from "@/lib/supabase"
+import { authClient } from "@/services/auth/client"
+import { reportError } from "@/services/telemetry/client"
 import { ApiError, UNAUTHORIZED_STATUS } from "@/types/apis/common"
 
-export type AuthTransition = "unchanged" | "signedOut" | "signedIn" | "completeLogin"
+export type AuthIdentity = { id: string; anonymous: boolean }
+
+export type AuthTransition = "signedOut" | "signedIn" | "linked" | "completeLogin"
 
 export function nextAuthState(
-	previousUserId: string | null | undefined,
-	nextUserId: string | null,
-	registeredUser: string | null,
+	registered: AuthIdentity | null,
+	next: AuthIdentity | null,
 ): AuthTransition {
-	if (nextUserId === previousUserId) {
-		return "unchanged"
-	}
-
-	if (nextUserId === null) {
+	if (next === null) {
 		return "signedOut"
 	}
 
-	return nextUserId === registeredUser ? "signedIn" : "completeLogin"
+	if (registered?.id !== next.id) {
+		return "completeLogin"
+	}
+
+	return registered.anonymous && !next.anonymous ? "linked" : "signedIn"
 }
 
 export async function accessToken(): Promise<string> {
-	const { data, error } = await getSupabase().auth.getSession()
+	const { data, error } = await authClient().getSession()
 
 	if (isAuthRetryableFetchError(error)) {
 		throw new ApiError(0, "CLIENT__NETWORK", error.message)
@@ -40,14 +43,27 @@ export async function accessToken(): Promise<string> {
 	return data.session.access_token
 }
 
-export async function signOut() {
-	const { error } = await getSupabase().auth.signOut({ scope: "local" })
+export async function signOutToAnonymous() {
+	const { error } = await authClient().signOut({ scope: "local" })
 
 	if (error) {
 		throw error
 	}
 }
 
+export async function withdrawAccount() {
+	await withdraw()
+	await signOutToAnonymous()
+}
+
+let unauthorizedSignOut: Promise<void> | undefined
+
 export function installUnauthorizedSignOut() {
-	setUnauthorizedHandler(() => void getSupabase().auth.signOut({ scope: "local" }))
+	setUnauthorizedHandler(() => {
+		unauthorizedSignOut ??= signOutToAnonymous()
+			.catch((error: unknown) => reportError(error, "unauthorized_sign_out"))
+			.finally(() => {
+				unauthorizedSignOut = undefined
+			})
+	})
 }

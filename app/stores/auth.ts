@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export type AuthStatus = "loading" | "completing" | "signedOut" | "signedIn" | "error"
+export type AuthStatus = "loading" | "signingUp" | "completing" | "signedIn" | "error"
 
 type AuthState = {
 	status: AuthStatus

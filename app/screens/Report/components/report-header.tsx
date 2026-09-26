@@ -15,6 +15,7 @@ import type { Report, ReportPeriod } from "@/mocks/types"
 import { TrendChart } from "@/screens/Report/components/trend-chart"
 import { WordBars } from "@/screens/Report/components/word-bars"
 import type { ReportPeriodState } from "@/screens/Report/hooks/use-report-period"
+import { useAccountStore } from "@/stores/account"
 import { colors, font } from "@/theme"
 import type { Locale } from "@/types/locale"
 
@@ -54,6 +55,9 @@ export function ReportHeader({
 	onStart(): void
 }): ReactElement {
 	const { t } = useTranslation()
+
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
+
 	const recorded = report ? hasRecords(report) : false
 	const label = periodLabel(state, locale)
 	const illustration = <Illustration scene={t("report.emptyScene")} icon="report" height={180} />
@@ -124,10 +128,14 @@ export function ReportHeader({
 						<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
 							{t("report.sounds")}
 						</Copy>
-						<Copy style={styles.mimicryLabel}>{t("report.mimicry")}</Copy>
-						<Copy style={styles.mimicryCount}>
-							{t("report.count", { count: report.mimicry_count })}
-						</Copy>
+						{isAnonymous ? null : (
+							<>
+								<Copy style={styles.mimicryLabel}>{t("report.mimicry")}</Copy>
+								<Copy style={styles.mimicryCount}>
+									{t("report.count", { count: report.mimicry_count })}
+								</Copy>
+							</>
+						)}
 					</View>
 				</>
 			) : null}

@@ -1,80 +1,32 @@
 import * as AppleAuthentication from "expo-apple-authentication"
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from "expo-crypto"
-import * as WebBrowser from "expo-web-browser"
 
 import { env } from "@/config"
-import { getSupabase } from "@/lib/supabase"
-import { setAppleCredential } from "@/services/auth/credential"
+import { authClient, openAuthSession } from "@/services/auth/client"
+import { keepMergeSource, setAppleCredential, takeMergeSource } from "@/services/auth/credential"
+import { accessToken } from "@/services/auth/session"
 import { useAccountStore } from "@/stores/account"
+import type { LoginProvider } from "@/types/account"
 
-export async function signInWithOAuth(provider: "google" | "kakao") {
-	const supabase = getSupabase()
+export type LinkResult = "linked" | "exists" | "cancelled"
 
-	const redirectTo = `${env.production ? "buddybird" : "buddybird-dev"}://auth/callback`
-	const { data, error } = await supabase.auth.signInWithOAuth({
-		provider,
-		options: {
-			redirectTo,
-			skipBrowserRedirect: true,
-			...(provider === "google"
-				? { queryParams: { access_type: "offline", prompt: "consent" } }
-				: {}),
-		},
-	})
+type OAuthProvider = Exclude<LoginProvider, "apple">
 
-	if (error) {
-		throw error
-	}
+function redirectTo() {
+	return `${env.production ? "buddybird" : "buddybird-dev"}://auth/callback`
+}
 
-	const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
-
-	if (result.type === "cancel" || result.type === "dismiss") {
-		return
-	}
-
-	if (result.type !== "success") {
-		throw new Error("Authentication browser unavailable")
-	}
-
-	const callback = new URL(result.url)
-	const expected = new URL(redirectTo)
-
-	if (
-		callback.protocol !== expected.protocol ||
-		callback.host !== expected.host ||
-		callback.pathname !== expected.pathname ||
-		callback.username ||
-		callback.password
-	) {
-		throw new Error("Invalid authentication callback")
-	}
-
-	const providerError =
-		callback.searchParams.get("error") ??
-		new URLSearchParams(callback.hash.slice(1)).get("error")
-
-	if (providerError === "access_denied") {
-		return
-	}
-
-	const code = callback.searchParams.get("code")
-
-	if (providerError || !code) {
-		throw new Error("Authentication code missing")
-	}
-
-	useAccountStore.getState().markProvider(provider)
-
-	const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-
-	if (exchangeError) {
-		throw exchangeError
+function oauthOptions(provider: OAuthProvider) {
+	return {
+		redirectTo: redirectTo(),
+		skipBrowserRedirect: true,
+		...(provider === "google"
+			? { queryParams: { access_type: "offline", prompt: "consent" } }
+			: {}),
 	}
 }
 
-export async function signInWithApple() {
-	const supabase = getSupabase()
-
+async function appleIdToken() {
 	const nonce = randomUUID()
 	const credential = await AppleAuthentication.signInAsync({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
@@ -89,15 +41,151 @@ export async function signInWithApple() {
 		setAppleCredential(credential.authorizationCode)
 	}
 
-	useAccountStore.getState().markProvider("apple")
+	return { provider: "apple" as const, token: credential.identityToken, nonce }
+}
 
-	const { error } = await supabase.auth.signInWithIdToken({
-		provider: "apple",
-		token: credential.identityToken,
-		nonce,
+async function browserCallback(url: string): Promise<URL | null> {
+	const redirect = redirectTo()
+	const result = await openAuthSession(url, redirect)
+
+	if (result.type === "cancel" || result.type === "dismiss") {
+		return null
+	}
+
+	if (result.type !== "success") {
+		throw new Error("Authentication browser unavailable")
+	}
+
+	const callback = new URL(result.url)
+	const expected = new URL(redirect)
+
+	if (
+		callback.protocol !== expected.protocol ||
+		callback.host !== expected.host ||
+		callback.pathname !== expected.pathname ||
+		callback.username ||
+		callback.password
+	) {
+		throw new Error("Invalid authentication callback")
+	}
+
+	return callback
+}
+
+function callbackParam(callback: URL, name: string) {
+	return callback.searchParams.get(name) ?? new URLSearchParams(callback.hash.slice(1)).get(name)
+}
+
+async function exchangeCallback(callback: URL, provider: OAuthProvider): Promise<boolean> {
+	const providerError = callbackParam(callback, "error")
+
+	if (providerError === "access_denied") {
+		return false
+	}
+
+	const code = callback.searchParams.get("code")
+
+	if (providerError || !code) {
+		throw new Error("Authentication code missing")
+	}
+
+	useAccountStore.getState().markProvider(provider)
+
+	const { error } = await authClient().exchangeCodeForSession(code)
+
+	if (error) {
+		throw error
+	}
+
+	return true
+}
+
+export async function signIn(provider: LoginProvider): Promise<boolean> {
+	if (provider === "apple") {
+		const credential = await appleIdToken()
+
+		useAccountStore.getState().markProvider(provider)
+
+		const { error } = await authClient().signInWithIdToken(credential)
+
+		if (error) {
+			throw error
+		}
+
+		return true
+	}
+
+	const { data, error } = await authClient().signInWithOAuth({
+		provider,
+		options: oauthOptions(provider),
 	})
 
 	if (error) {
+		throw error
+	}
+
+	const callback = await browserCallback(data.url)
+
+	return callback ? exchangeCallback(callback, provider) : false
+}
+
+export async function linkAccount(provider: LoginProvider): Promise<LinkResult> {
+	if (provider === "apple") {
+		const credential = await appleIdToken()
+
+		useAccountStore.getState().markProvider(provider)
+
+		const { error } = await authClient().linkIdentity(credential)
+
+		if (error?.code === "identity_already_exists") {
+			return "exists"
+		}
+
+		if (error) {
+			throw error
+		}
+
+		return "linked"
+	}
+
+	const { data, error } = await authClient().linkIdentity({
+		provider,
+		options: oauthOptions(provider),
+	})
+
+	if (error) {
+		throw error
+	}
+
+	const callback = await browserCallback(data.url)
+
+	if (!callback) {
+		return "cancelled"
+	}
+
+	if (callbackParam(callback, "error_code") === "identity_already_exists") {
+		return "exists"
+	}
+
+	return (await exchangeCallback(callback, provider)) ? "linked" : "cancelled"
+}
+
+export async function switchAccount(provider: LoginProvider, merge: boolean): Promise<boolean> {
+	if (merge) {
+		keepMergeSource(await accessToken())
+	}
+
+	try {
+		const signedIn = await signIn(provider)
+
+		if (!signedIn) {
+			takeMergeSource()
+		}
+
+		return signedIn
+	} catch (error) {
+		takeMergeSource()
+
 		throw error
 	}
 }

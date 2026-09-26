@@ -12,6 +12,9 @@ export const loginSchema = z.object({ user_id: uuid, is_new_user: z.boolean() })
 
 export const withdrawalSchema = z.object({ user_id: uuid })
 
+export const mergeRequestSchema = z.object({ anonymous_access_token: z.string().min(1) })
+
 export type LoginRequest = z.infer<typeof loginRequestSchema>
 export type Login = z.infer<typeof loginSchema>
 export type Withdrawal = z.infer<typeof withdrawalSchema>
+export type MergeRequest = z.infer<typeof mergeRequestSchema>

@@ -3,85 +3,103 @@ import { useMutation } from "@tanstack/react-query"
 import { type PropsWithChildren, useEffect } from "react"
 import { Alert, AppState } from "react-native"
 
-import { loginMutationOptions } from "@/hooks/apis/auth"
+import { loginMutationOptions, mergeMutationOptions } from "@/hooks/apis/auth"
 import i18next from "@/i18n"
 import { apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
-import { getSupabase } from "@/lib/supabase"
-import { loginCredential, takeCredential } from "@/services/auth/credential"
-import { nextAuthState, signOut } from "@/services/auth/session"
-import { persistAccountQueries } from "@/services/lifecycle/query-client"
+import { authClient } from "@/services/auth/client"
+import {
+	keepMergeSource,
+	loginCredential,
+	takeCredential,
+	takeMergeSource,
+} from "@/services/auth/credential"
+import { type AuthIdentity, nextAuthState, signOutToAnonymous } from "@/services/auth/session"
 import { reportError } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { ApiError } from "@/types/apis/common"
 
+function identityOf(session: Session | null): AuthIdentity | null {
+	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null
+}
+
+function sameIdentity(previous: AuthIdentity | null | undefined, next: AuthIdentity | null) {
+	return (
+		previous !== undefined &&
+		previous?.id === next?.id &&
+		previous?.anonymous === next?.anonymous
+	)
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
 	const attempt = useAuthStore((auth) => auth.attempt)
 
 	const { mutateAsync: runLogin } = useMutation(loginMutationOptions())
+	const { mutateAsync: runMerge } = useMutation(mergeMutationOptions())
 
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState()
-
-		let supabase: ReturnType<typeof getSupabase>
-
-		setStatus("loading")
-
-		try {
-			supabase = getSupabase()
-		} catch {
-			Alert.alert(i18next.t("auth.configurationError"))
-
-			setStatus("error")
-
-			return
-		}
+		const auth = authClient()
 
 		let active = true
-		let userId: string | null | undefined
+		let current: AuthIdentity | null | undefined
 		let request: AbortController | undefined
 		let receivedEvent = false
 
-		async function acceptSession(session: Session | null) {
-			const nextId = session?.user.id ?? null
-			const transition = nextAuthState(
-				userId,
-				nextId,
-				useAccountStore.getState().registeredUser,
-			)
+		setStatus("loading")
 
-			if (!active || transition === "unchanged") {
+		async function signUp() {
+			takeCredential()
+			takeMergeSource()
+			useAccountStore.getState().clearRegistration()
+			queryClient.clear()
+
+			setStatus("signingUp")
+
+			const { error } = await auth.signInAnonymously()
+
+			if (error && active) {
+				alertFailure(error)
+
+				setStatus("error")
+			}
+		}
+
+		async function mergePending() {
+			const token = takeMergeSource()
+
+			if (!token) {
 				return
 			}
 
-			userId = nextId
+			try {
+				await runMerge({ anonymous_access_token: token })
+				await queryClient.invalidateQueries()
+			} catch (error) {
+				keepMergeSource(token)
 
-			request?.abort()
-			void queryClient.cancelQueries()
-
-			if (transition === "signedOut" || nextId === null) {
-				takeCredential()
-				useAccountStore.getState().clearRegistration()
-
-				persistAccountQueries(null)
-
-				setStatus("signedOut")
-
-				return
+				Alert.alert(apiErrorMessage(error, i18next.t), undefined, [
+					{
+						text: i18next.t("common.cancel"),
+						style: "cancel",
+						onPress: () => void takeMergeSource(),
+					},
+					{ text: i18next.t("common.retry"), onPress: () => void mergePending() },
+				])
 			}
+		}
 
-			if (transition === "signedIn") {
-				setStatus("signedIn")
-
-				return
-			}
-
+		async function completeLogin(identity: AuthIdentity, linked: boolean) {
 			const controller = new AbortController()
 
 			request = controller
 			setStatus("completing")
+
+			if (!linked) {
+				queryClient.clear()
+			}
 
 			try {
 				const credential = await loginCredential()
@@ -94,40 +112,49 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					signal: controller.signal,
 				})
 
-				if (active && !controller.signal.aborted) {
-					useAccountStore.getState().markRegistered(nextId, user_id)
+				if (!active || controller.signal.aborted) {
+					return
+				}
 
-					persistAccountQueries(nextId)
+				useAccountStore.getState().markRegistered(identity.id, user_id, identity.anonymous)
 
+				if (!is_new_user) {
 					try {
-						useDeviceSettingsStore.getState().setGuideSeen("usage", !is_new_user)
+						useDeviceSettingsStore.getState().setGuideSeen("usage", true)
 					} catch (error) {
 						reportError(error, "usage_guide_save")
 					}
+				}
 
-					setStatus("signedIn")
+				setStatus("signedIn")
+
+				if (linked) {
+					void queryClient.invalidateQueries()
+				} else {
+					void mergePending()
 				}
 			} catch (error) {
 				if (!active || controller.signal.aborted) {
 					return
 				}
 
-				alertLoginFailure(error)
+				alertFailure(error)
 
 				if (
+					identity.anonymous ||
 					!(error instanceof ApiError) ||
 					error.retryable ||
 					error.code === "CLIENT__INVALID_RESPONSE"
 				) {
-					userId = undefined
+					current = undefined
 
-					setStatus("signedOut")
+					setStatus("error")
 
 					return
 				}
 
 				try {
-					await signOut()
+					await signOutToAnonymous()
 				} catch {
 					if (active && !controller.signal.aborted) {
 						Alert.alert(i18next.t("auth.signOutError"))
@@ -138,9 +165,42 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			}
 		}
 
+		async function acceptSession(session: Session | null) {
+			const next = identityOf(session)
+
+			if (!active || sameIdentity(current, next)) {
+				return
+			}
+
+			current = next
+
+			request?.abort()
+			void queryClient.cancelQueries()
+
+			const { registeredUser, isAnonymous } = useAccountStore.getState()
+			const transition = nextAuthState(
+				registeredUser ? { id: registeredUser, anonymous: isAnonymous } : null,
+				next,
+			)
+
+			if (transition === "signedOut" || next === null) {
+				await signUp()
+
+				return
+			}
+
+			if (transition === "signedIn") {
+				setStatus("signedIn")
+
+				return
+			}
+
+			await completeLogin(next, transition === "linked")
+		}
+
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((event, session) => {
+		} = auth.onAuthStateChange((event, session) => {
 			// getSession below reports restoration errors that INITIAL_SESSION masks as null.
 			if (event === "INITIAL_SESSION") {
 				return
@@ -152,7 +212,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			void acceptSession(session)
 		})
 
-		void supabase.auth
+		void auth
 			.getSession()
 			.then(({ data, error }) => {
 				if (!active || receivedEvent) {
@@ -182,9 +242,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		const refresh = (next: string) => {
 			if (next === "active") {
-				void supabase.auth.startAutoRefresh()
+				void auth.startAutoRefresh()
 			} else {
-				void supabase.auth.stopAutoRefresh()
+				void auth.stopAutoRefresh()
 			}
 		}
 
@@ -197,14 +257,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			request?.abort()
 			subscription.unsubscribe()
 			lifecycle.remove()
-			void supabase.auth.stopAutoRefresh()
+			void auth.stopAutoRefresh()
 		}
-	}, [attempt, runLogin])
+	}, [attempt, runLogin, runMerge])
 
 	return children
 }
 
-function alertLoginFailure(error: unknown) {
+function alertFailure(error: unknown) {
 	Alert.alert(
 		apiErrorMessage(error, i18next.t),
 		error instanceof ApiError ? error.code : undefined,

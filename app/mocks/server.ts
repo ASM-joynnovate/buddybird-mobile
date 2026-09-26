@@ -1,6 +1,7 @@
 import { randomUUID } from "expo-crypto"
 
 import {
+	type Database,
 	event,
 	iso,
 	learningMsBetween,
@@ -9,10 +10,13 @@ import {
 	type MockEvent,
 	type MockLocale,
 	type MockNotification,
+	type MockProvider,
 	type MockRecording,
 	type MockSession,
+	type MockSettings,
 	type MockSound,
 	type MockWord,
+	newDatabase,
 	plays,
 	seed,
 	sleepEvents,
@@ -28,11 +32,23 @@ const PROCESSING_DELAY_MS = 2500
 const PAGE_SIZE = 20
 const UPLOAD_EXPIRES_SECONDS = 300
 const TAKEN_NICKNAMES = ["버디", "buddy"]
+const DEMO_USER_ID = "8c1f4a52-3b7e-4d2a-9f60-1e5b7c9d2a41"
+const TOKEN_PREFIX = "mock."
 
 type SaveUploadedFile = (uri: string, durationMs: number) => void
 
-const db = seed(Date.now())
+type MockAuthUser = { id: string; is_anonymous: boolean; providers: MockProvider[] }
+
+const demo = seed(Date.now())
+const accounts = new Map<string, Database>([[DEMO_USER_ID, demo]])
 const pendingUploads = new Map<string, SaveUploadedFile>()
+
+let db = demo
+let authUsers: MockAuthUser[] = [
+	{ id: DEMO_USER_ID, is_anonymous: false, providers: ["kakao", "apple"] },
+]
+let authUserId: string | null = null
+let clientDeviceId: string | null = null
 
 function respond<T>(produce: () => T): Promise<T> {
 	return new Promise((resolve, reject) => {
@@ -173,20 +189,27 @@ function sessionDto(session: MockSession) {
 	}
 }
 
+function endSession(
+	session: MockSession,
+	endedBy: "user" | "server",
+	settings: MockSettings,
+	now: number,
+): MockSession {
+	const ended = { ...session, ended_at: iso(now) }
+
+	return {
+		...ended,
+		status: "finished",
+		ended_by: endedBy,
+		events: [...session.events, event("session_finished", now)],
+		sleep_events: sleepEvents(ended, sleepWindowOf(settings), now),
+	}
+}
+
 function finish(id: string, endedBy: "user" | "server") {
 	const now = Date.now()
 
-	replaceSession(id, (session) => {
-		const ended = { ...session, ended_at: iso(now) }
-
-		return {
-			...ended,
-			status: "finished",
-			ended_by: endedBy,
-			events: [...session.events, event("session_finished", now)],
-			sleep_events: sleepEvents(ended, sleepWindowOf(db.settings), now),
-		}
-	})
+	replaceSession(id, (session) => endSession(session, endedBy, db.settings, now))
 }
 
 function requireRunning(id: string) {
@@ -267,6 +290,116 @@ function newestStartFirst(a: MockSession, b: MockSession) {
 	return Date.parse(b.started_at) - Date.parse(a.started_at)
 }
 
+function authSession(user: MockAuthUser) {
+	return {
+		access_token: `${TOKEN_PREFIX}${user.id}`,
+		user_id: user.id,
+		is_anonymous: user.is_anonymous,
+		providers: user.providers,
+	}
+}
+
+function requireAuthUser() {
+	const user = authUsers.find((item) => item.id === authUserId)
+
+	if (!user) {
+		throw new ApiError(401, "AUTH__INVALID_TOKEN", "Invalid access token")
+	}
+
+	return user
+}
+
+function identityOwner(provider: MockProvider) {
+	return authUsers.find((user) => user.providers.includes(provider))
+}
+
+function createAuthUser(isAnonymous: boolean, providers: MockProvider[], id = randomUUID()) {
+	const user = { id, is_anonymous: isAnonymous, providers }
+
+	authUsers = [...authUsers, user]
+
+	return user
+}
+
+function registerClientDevice(account: Database) {
+	account.devices = account.devices.map((device) =>
+		device.id === account.currentDeviceId && clientDeviceId
+			? { ...device, client_device_id: clientDeviceId }
+			: device,
+	)
+}
+
+function createAccount(userId: string) {
+	const account = newDatabase(Date.now())
+
+	registerClientDevice(account)
+	accounts.set(userId, account)
+
+	return account
+}
+
+function activate(userId: string | null) {
+	const account = userId ? accounts.get(userId) : undefined
+
+	authUserId = userId
+
+	if (account) {
+		db = account
+	}
+}
+
+function mergeInto(target: Database, source: Database): Database {
+	const now = Date.now()
+	const targetRunning = target.sessions.some((session) => session.status === "running")
+	const sameWord = (word: MockWord) =>
+		target.words.find(
+			(item) =>
+				item.name === word.name && item.recordings[0]?.url === word.recordings[0]?.url,
+		)
+	const sameDevice = (device: MockDevice) =>
+		target.devices.find((item) => item.client_device_id === device.client_device_id)
+	const wordIds = new Map(source.words.map((word) => [word.id, sameWord(word)?.id ?? word.id]))
+	const deviceIds = new Map(
+		source.devices.map((device) => [device.id, sameDevice(device)?.id ?? device.id]),
+	)
+	const movedSessions = source.sessions.map((session) => {
+		const moved = {
+			...session,
+			word_id: session.word_id ? (wordIds.get(session.word_id) ?? null) : null,
+			station_device_id:
+				deviceIds.get(session.station_device_id) ?? session.station_device_id,
+		}
+
+		return targetRunning && moved.status === "running"
+			? endSession(moved, "server", source.settings, now)
+			: moved
+	})
+
+	return {
+		...target,
+		user: {
+			...target.user,
+			nickname: target.user.nickname ?? source.user.nickname,
+			photo: target.user.photo ?? source.user.photo,
+		},
+		consents: target.consents.map((consent) =>
+			consent.status === null
+				? {
+						...consent,
+						status:
+							source.consents.find((item) => item.kind === consent.kind)?.status ??
+							null,
+					}
+				: consent,
+		),
+		parrots: [...target.parrots, ...source.parrots],
+		words: [...target.words, ...source.words.filter((word) => !sameWord(word))],
+		devices: [...target.devices, ...source.devices.filter((device) => !sameDevice(device))],
+		sessions: [...target.sessions, ...movedSessions],
+		notifications: [...target.notifications, ...source.notifications],
+	}
+}
+
 const APP_UPDATE = {
 	latest_version: "1.2.0",
 	min_supported_version: "1.0.0",
@@ -287,14 +420,111 @@ export const mockServer = {
 	appUpdate: {
 		get: () => respond(() => APP_UPDATE),
 	},
-	configure: (clientDeviceId: string, locale: () => MockLocale) => {
+	configure: (deviceId: string, locale: () => MockLocale) => {
 		requestLocale = locale
+		clientDeviceId = deviceId
 
-		db.devices = db.devices.map((device) =>
-			device.id === db.currentDeviceId
-				? { ...device, client_device_id: clientDeviceId }
-				: device,
-		)
+		accounts.forEach(registerClientDevice)
+	},
+	auth: {
+		use: (userId: string | null) => activate(userId),
+		restore: (userId: string, isAnonymous: boolean) => {
+			const user =
+				authUsers.find((item) => item.id === userId) ??
+				createAuthUser(isAnonymous, [], userId)
+
+			if (!accounts.has(userId)) {
+				createAccount(userId)
+			}
+
+			activate(userId)
+
+			return authSession(user)
+		},
+		signUpAnonymous: () => respond(() => authSession(createAuthUser(true, []))),
+		signIn: (provider: MockProvider) =>
+			respond(() =>
+				authSession(identityOwner(provider) ?? createAuthUser(false, [provider])),
+			),
+		isLinkedElsewhere: (provider: MockProvider) =>
+			respond(() => {
+				const owner = identityOwner(provider)
+
+				return owner !== undefined && owner.id !== authUserId
+			}),
+		linkIdentity: (provider: MockProvider) =>
+			respond(() => {
+				const user = requireAuthUser()
+				const owner = identityOwner(provider)
+
+				if (owner && owner.id !== user.id) {
+					return null
+				}
+
+				const linked = {
+					...user,
+					is_anonymous: false,
+					providers: owner ? user.providers : [...user.providers, provider],
+				}
+
+				authUsers = authUsers.map((item) => (item.id === user.id ? linked : item))
+
+				return authSession(linked)
+			}),
+		login: () =>
+			respond(() => {
+				const user = requireAuthUser()
+				const existing = accounts.get(user.id)
+				const account = existing ?? createAccount(user.id)
+
+				activate(user.id)
+
+				return { user_id: account.user.id, is_new_user: existing === undefined }
+			}),
+		merge: (anonymousAccessToken: string) =>
+			respond(() => {
+				const user = requireAuthUser()
+				const sourceId = anonymousAccessToken.startsWith(TOKEN_PREFIX)
+					? anonymousAccessToken.slice(TOKEN_PREFIX.length)
+					: null
+				const source = authUsers.find((item) => item.id === sourceId)
+				const sourceAccount = source ? accounts.get(source.id) : undefined
+				const targetAccount = accounts.get(user.id)
+
+				if (
+					!source?.is_anonymous ||
+					!sourceAccount ||
+					!targetAccount ||
+					user.is_anonymous
+				) {
+					throw new ApiError(400, "AUTH__INVALID_MERGE_SOURCE", "Invalid merge source")
+				}
+
+				const merged = mergeInto(targetAccount, sourceAccount)
+
+				accounts.set(user.id, merged)
+				accounts.delete(source.id)
+				authUsers = authUsers.filter((item) => item.id !== source.id)
+				db = merged
+			}),
+		withdraw: () =>
+			respond(() => {
+				const user = requireAuthUser()
+				const account = accounts.get(user.id)
+
+				if (user.is_anonymous || !account) {
+					throw new ApiError(
+						400,
+						"COMMON__BAD_REQUEST",
+						"Anonymous users cannot withdraw",
+					)
+				}
+
+				accounts.delete(user.id)
+				authUsers = authUsers.filter((item) => item.id !== user.id)
+
+				return { user_id: account.user.id }
+			}),
 	},
 	uploads: {
 		put: (fileId: string, uri: string, durationMs = 0) =>

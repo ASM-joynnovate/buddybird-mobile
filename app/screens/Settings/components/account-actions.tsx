@@ -6,13 +6,21 @@ import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { TextButton } from "@/components/ui/header"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { signOut } from "@/services/auth/session"
+import { apiErrorMessage } from "@/lib/api"
+import { signOutToAnonymous, withdrawAccount } from "@/services/auth/session"
+import { useAccountStore } from "@/stores/account"
 import { colors } from "@/theme"
 
 type Open = "signOut" | "withdraw" | null
 
-export function AccountActions() {
+interface Props {
+	onSignIn(): void
+}
+
+export function AccountActions({ onSignIn }: Props) {
 	const { t } = useTranslation()
+
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const busy = useRef(false)
 
@@ -25,7 +33,7 @@ export function AccountActions() {
 		setOpen(next)
 	}
 
-	async function leave() {
+	async function run(action: () => Promise<void>, failure: (reason: unknown) => string) {
 		if (busy.current) {
 			return
 		}
@@ -36,9 +44,9 @@ export function AccountActions() {
 		setError(null)
 
 		try {
-			await signOut()
-		} catch {
-			setError(t("auth.signOutError"))
+			await action()
+		} catch (reason) {
+			setError(failure(reason))
 		} finally {
 			busy.current = false
 
@@ -52,16 +60,22 @@ export function AccountActions() {
 				{t("settings.account.title")}
 			</Copy>
 			<View style={styles.buttons}>
-				<TextButton
-					label={t("settings.account.signOut")}
-					tone="muted"
-					onPress={() => show("signOut")}
-				/>
-				<TextButton
-					label={t("settings.account.withdraw")}
-					tone="muted"
-					onPress={() => show("withdraw")}
-				/>
+				{isAnonymous ? (
+					<TextButton label={t("auth.signIn")} onPress={onSignIn} />
+				) : (
+					<>
+						<TextButton
+							label={t("settings.account.signOut")}
+							tone="muted"
+							onPress={() => show("signOut")}
+						/>
+						<TextButton
+							label={t("settings.account.withdraw")}
+							tone="muted"
+							onPress={() => show("withdraw")}
+						/>
+					</>
+				)}
 			</View>
 			<ConfirmDialog
 				visible={open === "signOut"}
@@ -71,7 +85,7 @@ export function AccountActions() {
 				cancelLabel={t("common.cancel")}
 				busy={pending}
 				error={error}
-				onConfirm={() => void leave()}
+				onConfirm={() => void run(signOutToAnonymous, () => t("auth.signOutError"))}
 				onClose={() => show(null)}
 			/>
 			<ConfirmDialog
@@ -80,8 +94,9 @@ export function AccountActions() {
 				message={t("settings.withdrawDialog.message")}
 				confirmLabel={t("settings.withdrawDialog.confirm")}
 				cancelLabel={t("common.cancel")}
+				busy={pending}
 				error={error}
-				onConfirm={() => setError(t("settings.withdrawDialog.unavailable"))}
+				onConfirm={() => void run(withdrawAccount, (reason) => apiErrorMessage(reason, t))}
 				onClose={() => show(null)}
 			>
 				<Copy style={styles.line}>{t("settings.withdrawDialog.line")}</Copy>

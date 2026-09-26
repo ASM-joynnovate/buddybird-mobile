@@ -52,7 +52,6 @@ export type SettingsMessages = {
 		message: string
 		line: string
 		confirm: string
-		unavailable: string
 	}
 	notices: {
 		title: string

@@ -19,6 +19,8 @@ export const apiError: ApiErrorMessages = {
 		"Your social login details are needed. Please log in again.",
 	AUTH__WITHDRAWAL_SAVE_UNAVAILABLE:
 		"Couldn't confirm your account deletion request. Please try again.",
+	AUTH__INVALID_MERGE_SOURCE:
+		"Couldn't merge this phone's records. The previous sign-in may have expired.",
 	USER__SAVE_UNAVAILABLE: "Couldn't save your account details. Please try again shortly.",
 	USER__DUPLICATE_NICKNAME: "Someone else is using this nickname. Please enter another one.",
 	USER__INVALID_PROFILE_PHOTO: "Only JPEG or PNG photos can be uploaded.",

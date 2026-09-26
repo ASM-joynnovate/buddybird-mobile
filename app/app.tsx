@@ -9,7 +9,7 @@ import { AppNavigator } from "@/navigators/app-navigator"
 import { RootProviders } from "@/providers"
 import { AppProvider } from "@/providers/app-data"
 import { AuthProvider } from "@/providers/auth"
-import { LoginScreen } from "@/screens/Login/LoginScreen"
+import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
 
 export function App() {
@@ -51,12 +51,14 @@ function AuthenticatedContent({ showDialogs }: { showDialogs: boolean }) {
 	const status = useAuthStore((auth) => auth.status)
 	const retry = useAuthStore((auth) => auth.retry)
 
-	if (status === "loading") {
-		return <StartupScreen failed={false} onRetry={retry} />
+	const registered = useAccountStore((account) => account.registeredUser !== null)
+
+	if (status === "error") {
+		return <StartupScreen failed onRetry={retry} />
 	}
 
-	if (status !== "signedIn") {
-		return <LoginScreen />
+	if (status !== "signedIn" && !(status === "completing" && registered)) {
+		return <StartupScreen failed={false} onRetry={retry} />
 	}
 
 	return (
