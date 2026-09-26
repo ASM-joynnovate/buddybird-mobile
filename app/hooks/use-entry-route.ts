@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { consentsQueryOptions } from "@/hooks/apis/consents"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
+import { hasLegacyUpload } from "@/services/migration/upload-legacy"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
@@ -10,6 +11,7 @@ export type EntryRoute =
 	| "error"
 	| "Login"
 	| "Consent"
+	| "LegacyUpload"
 	| "ParrotEditor"
 	| "UsageGuide"
 	| "Main"
@@ -22,6 +24,9 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry()
 		(account) => account.isAnonymous && !account.loginScreenSeen,
 	)
 	const guides = useDeviceSettingsStore((state) => state.guides)
+	const legacyUploadPending = useDeviceSettingsStore(
+		(state) => state.legacyMigration.upload !== "finished",
+	)
 
 	function retry() {
 		void consents.refetch()
@@ -42,6 +47,10 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry()
 
 	if (consents.data.some((consent) => consent.is_required && consent.status !== "granted")) {
 		return { route: "Consent", retry }
+	}
+
+	if (legacyUploadPending && hasLegacyUpload()) {
+		return { route: "LegacyUpload", retry }
 	}
 
 	if (parrots.data.length === 0) {

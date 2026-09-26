@@ -7,7 +7,6 @@ import { useAppBootstrap } from "@/hooks/use-app-bootstrap"
 import { useAppServices } from "@/hooks/use-app-services"
 import { AppNavigator } from "@/navigators/app-navigator"
 import { RootProviders } from "@/providers"
-import { AppProvider } from "@/providers/app-data"
 import { AuthProvider } from "@/providers/auth"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
@@ -26,9 +25,7 @@ export function App() {
 	return (
 		<RootProviders>
 			{ready ? (
-				<AppProvider>
-					<AppContent showDialogs={splashFinished} />
-				</AppProvider>
+				<AppContent showDialogs={splashFinished} />
 			) : (
 				<StartupScreen failed={state === "failed"} onRetry={retry} />
 			)}

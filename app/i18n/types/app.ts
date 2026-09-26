@@ -6,9 +6,6 @@ export type AppMessages = {
 		retry: string
 	}
 	storage: {
-		loading: string
-		partial: string
-		unavailable: string
 		settingError: string
 		saveError: string
 	}

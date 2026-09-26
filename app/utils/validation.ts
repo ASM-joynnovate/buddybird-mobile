@@ -1,13 +1,5 @@
 export type ObjectValue = Record<string, unknown>
 
-export function requireId(value: unknown): string {
-	if (typeof value !== "string" || !value || Object.hasOwn(Object.prototype, value)) {
-		throw new Error("Invalid record ID")
-	}
-
-	return value
-}
-
 export function requireRecord(value: unknown, field: string): ObjectValue {
 	if (typeof value !== "object" || value === null || Array.isArray(value)) {
 		throw new Error(`Invalid ${field}`)
@@ -46,14 +38,6 @@ export function requireChoice<T extends string>(
 	}
 
 	return value as T
-}
-
-export function requireList(value: unknown, field: string): unknown[] {
-	if (!Array.isArray(value)) {
-		throw new Error(`Invalid ${field}`)
-	}
-
-	return value
 }
 
 export function readOptionalText(value: unknown, field: string) {

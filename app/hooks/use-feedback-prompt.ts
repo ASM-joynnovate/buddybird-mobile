@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
+import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { useAppData } from "@/hooks/use-app-data"
 import { feedbackThreshold } from "@/services/feedback/policy"
 import { reportError, track } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
@@ -13,12 +13,11 @@ import { useFeedbackStore } from "@/stores/feedback"
 export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolean) {
 	const { t } = useTranslation()
 
-	const data = useAppData()
-
 	const preferences = useDeviceSettingsStore((state) => state.feedback)
 
 	const feedback = useFeedbackStore()
 
+	const parrots = useQuery(parrotsQueryOptions())
 	const running = useQuery(runningSessionQueryOptions())
 
 	const [open, setOpen] = useState(false)
@@ -28,7 +27,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 	const sessionActive = running.data != null
 	const threshold = feedbackThreshold(preferences)
 	const eligible =
-		!!data.profile &&
+		(parrots.data?.length ?? 0) > 0 &&
 		updatesSettled &&
 		!updateVisible &&
 		!sessionActive &&

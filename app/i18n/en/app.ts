@@ -8,10 +8,6 @@ export const app: AppMessages = {
 		retry: "Try again",
 	},
 	storage: {
-		loading: "Importing your saved data. Data that is ready is available to use.",
-		partial: "Some data could not be imported. The originals are retained. You can try again.",
-		unavailable:
-			"Could not read your saved data. The originals are unchanged. Please try again.",
 		settingError:
 			"Could not read some device settings. Using defaults without changing the saved values.",
 		saveError: "Could not confirm the save. Please try again.",

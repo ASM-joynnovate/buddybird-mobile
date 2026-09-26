@@ -1,24 +1,43 @@
-import { readStoredWord } from "@/services/storage/codec"
-import type { Word } from "@/types/word"
-import { requireRecord } from "@/utils/validation"
+import { reportError } from "@/services/telemetry/client"
+import { type ObjectValue, requireChoice, requireRecord, requireText } from "@/utils/validation"
 
-export function isLegacyPreset(value: unknown, id: string) {
-	return requireRecord(value, `word ${id}`).sourceType === "preset"
+export type LegacyWord = { id: string; name: string; audioUri: string }
+
+function parseLegacyWord(value: unknown, id: string): LegacyWord | null {
+	const record = requireRecord(value, `word ${id}`)
+	const sourceType = requireChoice(
+		record.sourceType,
+		["preset", "recording"] as const,
+		"sourceType",
+	)
+
+	if (sourceType === "preset" || record.archived === true) {
+		return null
+	}
+
+	return {
+		id,
+		name: requireText(record.label, "label"),
+		audioUri: requireText(record.audioUri, "audioUri"),
+	}
 }
 
-export function parseLegacyWord(value: unknown, id: string, archived = false): Word {
-	const wordRecord = requireRecord(value, `word ${id}`)
-
-	const tags: Record<string, string> = {
-		인사: "greeting",
-		음식: "food",
-		이름: "name",
-		기타: "etc",
+export function parseLegacyWords(library: ObjectValue): LegacyWord[] {
+	if (library.version !== 1) {
+		throw new Error("Unsupported word library version")
 	}
-	const tag =
-		archived && wordRecord.tag === undefined
-			? "etc"
-			: (tags[String(wordRecord.tag)] ?? wordRecord.tag)
 
-	return readStoredWord({ ...wordRecord, tag, ...(archived ? { archived: true } : {}) }, id)
+	return Object.entries(requireRecord(library.entriesById, "entriesById")).flatMap(
+		([id, value]) => {
+			try {
+				const word = parseLegacyWord(value, id)
+
+				return word ? [word] : []
+			} catch (error) {
+				reportError(error, "legacy_word")
+
+				return []
+			}
+		},
+	)
 }

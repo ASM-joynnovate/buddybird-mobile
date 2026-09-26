@@ -20,17 +20,16 @@ import { Platform } from "react-native"
 import * as Clarity from "react-native-clarity"
 
 import { env } from "@/config"
-import { readData } from "@/services/storage/data-store"
 import {
 	EVENT_NAME_LIMIT,
 	firebaseParameters,
 	sendTelemetrySafely,
 } from "@/services/telemetry/events"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
+import type { Parrot } from "@/types/apis/parrots"
 import type { AnalyticsConsent } from "@/types/consent"
 import type { Events, UserProperties } from "@/types/telemetry"
 import { ageMonths } from "@/utils/date"
-import { DAY } from "@/utils/units"
 
 type Properties = Record<string, string | null>
 
@@ -46,27 +45,6 @@ let replayPaused = false
 let properties: Properties = {}
 let userId: string | null = null
 let currentScreen: string | null = null
-
-function storedProperties(): Properties {
-	const data = readData()
-	const profile = data.profile
-
-	return Object.fromEntries(
-		Object.entries({
-			profile_age_days: profile
-				? Math.max(0, Math.floor((Date.now() - Date.parse(profile.createdAt)) / DAY))
-				: null,
-			parrot_name: profile?.name ?? null,
-			parrot_species: profile?.species ?? null,
-			parrot_age_months: profile ? ageMonths(profile.birthDate) : null,
-			total_words_registered: Object.values(data.words).filter(
-				(word) => !word.archived && word.sourceType === "recording",
-			).length,
-			total_training_sessions: Object.keys(data.history).length,
-			locale: useDeviceSettingsStore.getState().locale,
-		}).map(([key, value]) => [key, value === null ? null : String(value)]),
-	)
-}
 
 async function clarityTag(key: string, value: string) {
 	const text = value.slice(0, CLARITY_TEXT_LIMIT).trim()
@@ -199,12 +177,14 @@ export function setUserProperties(next: UserProperties) {
 	}
 }
 
-export function syncUserProperties() {
-	try {
-		setUserProperties(storedProperties())
-	} catch (error) {
-		reportError(error, "telemetry_properties")
-	}
+export function syncUserProperties(parrot: Parrot | null, wordCount: number) {
+	setUserProperties({
+		parrot_name: parrot?.name ?? null,
+		parrot_species: parrot?.species ?? null,
+		parrot_age_months: parrot ? ageMonths(parrot.birthdate) : null,
+		total_words_registered: wordCount,
+		locale: useDeviceSettingsStore.getState().locale,
+	})
 }
 
 export function track<K extends keyof Events>(name: K, payload: Events[K]) {

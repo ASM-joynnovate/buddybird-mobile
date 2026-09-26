@@ -5,7 +5,14 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import { FEEDBACK_PROMPT_THRESHOLDS } from "@/config"
 import { mmkvStorage, recordRestoreError } from "@/lib/storage"
 import { persistKeys, storageIds } from "@/stores/keys"
-import { type DeviceSettings, deviceSettingsSchema, type Guide } from "@/types/device-settings"
+import {
+	type DeviceSettings,
+	deviceSettingsSchema,
+	type Guide,
+	initialLegacyMigration,
+	type LegacyMigration,
+	type LegacySettings,
+} from "@/types/device-settings"
 import { defaultLocale, type Locale, locales } from "@/types/locale"
 import { localDate } from "@/utils/date"
 
@@ -16,6 +23,8 @@ type DeviceSettingsActions = {
 	countFeedbackDay: (date?: string) => void
 	consumeFeedbackPrompt: () => void
 	setGuideSeen: (guide: Guide, seen: boolean) => void
+	importLegacySettings: (settings: LegacySettings) => void
+	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void
 }
 
 export type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions
@@ -41,6 +50,7 @@ function defaultDeviceSettings(): DeviceSettings {
 		update: { dismissedVersion: null },
 		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
 		guides: { usage: false, recording: false },
+		legacyMigration: initialLegacyMigration,
 	}
 }
 
@@ -96,18 +106,38 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			setGuideSeen: (guide, seen) => {
 				set((state) => ({ ...state, guides: { ...state.guides, [guide]: seen } }))
 			},
+
+			importLegacySettings: (settings) => {
+				set((state) => ({
+					...state,
+					...settings,
+					legacyMigration: { ...state.legacyMigration, settingsImported: true },
+				}))
+			},
+
+			updateLegacyMigration: (update) => {
+				set((state) => ({ ...state, legacyMigration: update(state.legacyMigration) }))
+			},
 		}),
 		{
 			name: persistKeys.deviceSettings.name,
 			version: persistKeys.deviceSettings.version,
 			storage: createJSONStorage(() => mmkvStorage(storageIds.device)),
 
-			partialize: ({ locale, analyticsConsent, update, feedback, guides }) => ({
+			partialize: ({
 				locale,
 				analyticsConsent,
 				update,
 				feedback,
 				guides,
+				legacyMigration,
+			}) => ({
+				locale,
+				analyticsConsent,
+				update,
+				feedback,
+				guides,
+				legacyMigration,
 			}),
 
 			merge: (persisted, current) => {

@@ -1,10 +1,13 @@
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog"
 import { UpdateDialog } from "@/components/dialogs/update-dialog"
+import { useAccountServices } from "@/hooks/use-account-services"
 import { useFeedbackPrompt } from "@/hooks/use-feedback-prompt"
 import { useUpdatePrompt } from "@/hooks/use-update-prompt"
 import { useFeedbackStore } from "@/stores/feedback"
 
 export function AppRuntime() {
+	useAccountServices()
+
 	const feedback = useFeedbackStore()
 
 	const {

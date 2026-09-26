@@ -1,87 +1,20 @@
-import {
-	AuthorizationStatus,
-	getMessaging,
-	getToken,
-	hasPermission,
-	registerDeviceForRemoteMessages,
-	requestPermission,
-} from "@react-native-firebase/messaging"
-import { PermissionsAndroid, Platform } from "react-native"
+import { randomUUID } from "expo-crypto"
+import * as Notifications from "expo-notifications"
 
-import { updateData } from "@/services/storage/data-store"
-import type { PushAuthorization } from "@/types/push"
+import { registerPushToken } from "@/apis/devices"
 
-const ANDROID_NOTIFICATION_PERMISSION_VERSION = 33
-
-export async function authorization(request: boolean): Promise<PushAuthorization> {
-	if (Platform.OS === "android") {
-		if (Number(Platform.Version) < ANDROID_NOTIFICATION_PERMISSION_VERSION) {
-			return "authorized"
-		}
-
-		const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-
-		if (await PermissionsAndroid.check(permission)) {
-			return "authorized"
-		}
-
-		if (!request) {
-			return "denied"
-		}
-
-		return (await PermissionsAndroid.request(permission)) === PermissionsAndroid.RESULTS.GRANTED
-			? "authorized"
-			: "denied"
-	}
-
-	const messaging = getMessaging()
-	let status = await hasPermission(messaging)
-
-	if (request && status === AuthorizationStatus.NOT_DETERMINED) {
-		status = await requestPermission(messaging)
-	}
-
-	switch (status) {
-		case AuthorizationStatus.AUTHORIZED:
-			return "authorized"
-		case AuthorizationStatus.PROVISIONAL:
-			return "provisional"
-		case AuthorizationStatus.EPHEMERAL:
-			return "ephemeral"
-		case AuthorizationStatus.DENIED:
-			return "denied"
-		default:
-			return "not_determined"
-	}
+export async function sendPushToken(token: string): Promise<void> {
+	await registerPushToken(token, randomUUID())
 }
 
-export async function registerPush() {
-	const authorizationStatus = await authorization(true)
+export async function registerPush(): Promise<void> {
+	const permission = await Notifications.getPermissionsAsync()
 
-	updateData((data) => {
-		data.settings.push = {
-			token:
-				authorizationStatus === "denied" || authorizationStatus === "not_determined"
-					? null
-					: (data.settings.push?.token ?? null),
-			authorizationStatus,
-			updatedAt: new Date().toISOString(),
-		}
-	})
-
-	if (authorizationStatus !== "authorized" && authorizationStatus !== "provisional") {
+	if (!permission.granted) {
 		return
 	}
 
-	const messaging = getMessaging()
+	const { data } = await Notifications.getDevicePushTokenAsync()
 
-	if (Platform.OS === "ios" && !messaging.isDeviceRegisteredForRemoteMessages) {
-		await registerDeviceForRemoteMessages(messaging)
-	}
-
-	const token = await getToken(messaging)
-
-	updateData((data) => {
-		data.settings.push = { token, authorizationStatus, updatedAt: new Date().toISOString() }
-	})
+	await sendPushToken(String(data))
 }

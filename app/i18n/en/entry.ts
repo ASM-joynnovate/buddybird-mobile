@@ -52,4 +52,11 @@ export const entry: EntryMessages = {
 		later: "Later",
 		saveError: "We couldn't save your progress. Please tap the button again.",
 	},
+	legacy: {
+		uploading: "Moving the parrot and words on this phone",
+		error: "We couldn't move your parrot and words. Check your connection and try again.",
+		askTitle: "Add the parrot and words on this phone?",
+		add: "Add",
+		skip: "Skip",
+	},
 }

@@ -1,4 +1,3 @@
-import type { Profile } from "@/types/profile"
 import {
 	readNullableText,
 	readOptionalText,
@@ -7,7 +6,15 @@ import {
 	requireText,
 } from "@/utils/validation"
 
-export function parseLegacyProfile(value: unknown): Profile {
+export type LegacyProfile = {
+	id: string
+	name: string
+	species: string
+	birthDate: string | null
+	photoUri?: string
+}
+
+export function parseLegacyProfile(value: unknown): LegacyProfile {
 	const profileRecord = requireRecord(value, "profile")
 	let birthDate =
 		profileRecord.birthDate === undefined
@@ -47,7 +54,5 @@ export function parseLegacyProfile(value: unknown): Profile {
 		species,
 		birthDate,
 		photoUri: readOptionalText(profileRecord.photoUri, "photoUri"),
-		createdAt: requireText(profileRecord.createdAt, "createdAt"),
-		updatedAt: requireText(profileRecord.updatedAt, "updatedAt"),
 	}
 }

@@ -75,12 +75,10 @@ export type TelemetryEvent = {
 
 export type UserProperties = Partial<
 	Record<
-		| "profile_age_days"
 		| "parrot_name"
 		| "parrot_species"
 		| "parrot_age_months"
 		| "total_words_registered"
-		| "total_training_sessions"
 		| "total_recording_duration_sec"
 		| "locale",
 		string | number | null

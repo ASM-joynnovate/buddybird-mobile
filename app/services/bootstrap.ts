@@ -6,6 +6,7 @@ import { configureApi } from "@/lib/api"
 import { takeRestoreErrors } from "@/lib/storage"
 import { mockServer } from "@/mocks/server"
 import { accessToken, installUnauthorizedSignOut } from "@/services/auth/session"
+import { loadLegacy } from "@/services/migration/upload-legacy"
 import { getIsHeadless } from "@/services/push/background"
 import { reportError } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
@@ -36,6 +37,13 @@ export async function bootstrap() {
 
 	if (await getIsHeadless()) {
 		return "headless" as const
+	}
+
+	try {
+		await loadLegacy()
+		await initI18n(locale())
+	} catch (error) {
+		reportError(error, "legacy_load")
 	}
 
 	if (restoreErrors.length > 0) {

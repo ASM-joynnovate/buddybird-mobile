@@ -11,6 +11,7 @@ import { type EntryRoute, useEntryRoute } from "@/hooks/use-entry-route"
 import { MainTabs } from "@/navigators/main-tabs"
 import { ConsentDetailScreen } from "@/screens/Entry/ConsentDetailScreen"
 import { ConsentScreen } from "@/screens/Entry/ConsentScreen"
+import { LegacyUploadScreen } from "@/screens/Entry/LegacyUploadScreen"
 import { LoginScreen } from "@/screens/Entry/LoginScreen"
 import { ParrotEditorScreen } from "@/screens/Entry/ParrotEditorScreen"
 import { PermissionRequestScreen } from "@/screens/Entry/PermissionRequestScreen"
@@ -52,7 +53,7 @@ function entryState(
 }
 
 function initialStateOf(
-	route: Exclude<EntryRoute, "loading" | "error">,
+	route: Exclude<EntryRoute, "loading" | "error" | "LegacyUpload">,
 	parrotId?: string,
 ): PartialState<NavigationState> | undefined {
 	if (route === "Main") {
@@ -71,6 +72,10 @@ export function AppNavigator() {
 
 	if (route === "loading" || route === "error") {
 		return <StartupScreen failed={route === "error"} onRetry={retry} />
+	}
+
+	if (route === "LegacyUpload") {
+		return <LegacyUploadScreen />
 	}
 
 	return (

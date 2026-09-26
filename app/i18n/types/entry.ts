@@ -50,4 +50,11 @@ export type EntryMessages = {
 		later: string
 		saveError: string
 	}
+	legacy: {
+		uploading: string
+		error: string
+		askTitle: string
+		add: string
+		skip: string
+	}
 }
