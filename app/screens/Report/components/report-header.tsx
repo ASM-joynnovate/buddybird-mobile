@@ -11,18 +11,17 @@ import { ui } from "@/components/ui/styles"
 import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatDate, formatDateWithWeekday, formatDuration, formatMonth } from "@/i18n/format"
-import type { Report, ReportPeriod } from "@/mocks/types"
 import { TrendChart } from "@/screens/Report/components/trend-chart"
 import { WordBars } from "@/screens/Report/components/word-bars"
 import type { ReportPeriodState } from "@/screens/Report/hooks/use-report-period"
-import { useAccountStore } from "@/stores/account"
 import { colors, font } from "@/theme"
+import type { Report, ReportPeriod } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
 
 const periods: ReportPeriod[] = ["day", "week", "month"]
 
 export function hasRecords(report: Report): boolean {
-	return report.total_play_count > 0 || report.sounds.length > 0
+	return report.sessions.length > 0
 }
 
 function periodLabel(state: ReportPeriodState, locale: Locale): string {
@@ -55,8 +54,6 @@ export function ReportHeader({
 	onStart(): void
 }): ReactElement {
 	const { t } = useTranslation()
-
-	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const recorded = report ? hasRecords(report) : false
 	const label = periodLabel(state, locale)
@@ -95,13 +92,10 @@ export function ReportHeader({
 				{!report && !failed ? <Skeleton rows={1} height={220} /> : null}
 				{report && recorded ? (
 					<>
-						<Copy style={styles.label}>{t("report.playTime")}</Copy>
+						<Copy style={styles.label}>{t("report.learningTime")}</Copy>
 						<View style={styles.totals}>
 							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.total}>
-								{formatDuration(report.total_play_duration_ms, locale)}
-							</Copy>
-							<Copy style={styles.count}>
-								{t("report.playCount", { count: report.total_play_count })}
+								{formatDuration(report.learning_duration_ms, locale)}
 							</Copy>
 						</View>
 						<TrendChart
@@ -124,19 +118,9 @@ export function ReportHeader({
 			{report && recorded ? (
 				<>
 					<WordBars words={report.words} />
-					<View style={[ui.section, styles.mimicry]}>
-						<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
-							{t("report.sounds")}
-						</Copy>
-						{isAnonymous ? null : (
-							<>
-								<Copy style={styles.mimicryLabel}>{t("report.mimicry")}</Copy>
-								<Copy style={styles.mimicryCount}>
-									{t("report.count", { count: report.mimicry_count })}
-								</Copy>
-							</>
-						)}
-					</View>
+					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessions]}>
+						{t("report.sessions")}
+					</Copy>
 				</>
 			) : null}
 		</View>
@@ -149,9 +133,5 @@ const styles = StyleSheet.create({
 	label: { marginTop: 12, fontFamily: font.extraBold, fontSize: 13.5, color: colors.muted },
 	totals: { flexDirection: "row", alignItems: "baseline", gap: 12, marginBottom: 8 },
 	total: { flex: 1, fontFamily: font.black, fontSize: 34, lineHeight: 40 },
-	count: { fontFamily: font.extraBold, fontSize: 14, color: colors.muted },
-	mimicry: { flexDirection: "row", alignItems: "baseline", gap: 8 },
-	grow: { flex: 1 },
-	mimicryLabel: { fontFamily: font.extraBold, fontSize: 13.5, color: colors.muted },
-	mimicryCount: { fontFamily: font.black, fontSize: 22, color: colors.orangeDark },
+	sessions: { marginTop: 24, marginBottom: 0 },
 })

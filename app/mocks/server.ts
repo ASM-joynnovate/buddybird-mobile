@@ -1102,28 +1102,40 @@ export const mockServer = {
 		get: (period: "day" | "week" | "month", start: string) =>
 			respond(() => {
 				const { from, to } = reportRange(period, start)
-				const sessions = db.sessions.filter((session) => overlaps(session, from, to))
-				const counts = new Map<
-					string,
-					{ word: { id: string; name: string }; play_count: number }
-				>()
-				let totalCount = 0
-				let totalDuration = 0
-
-				for (const session of sessions) {
-					const played = playsBetween(session, from, to)
+				const now = Date.now()
+				const sessions = db.sessions
+					.filter((session) => overlaps(session, from, to))
+					.sort(newestStartFirst)
+				const learned = (session: MockSession, a: number, b: number) =>
+					learningMsBetween(session, sleepOf(session), a, b, now)
+				const rows = sessions.map((session) => {
 					const word = db.words.find((item) => item.id === session.word_id)
 
-					totalCount += played.play_count
-					totalDuration += played.play_duration_ms
-
-					if (word && played.play_count > 0) {
-						counts.set(word.id, {
-							word: { id: word.id, name: word.name },
-							play_count: (counts.get(word.id)?.play_count ?? 0) + played.play_count,
-						})
+					return {
+						id: session.id,
+						started_at: session.started_at,
+						ended_at: session.ended_at,
+						word: word ? { id: word.id, name: word.name } : null,
+						learning_duration_ms: learned(session, from, to),
 					}
-				}
+				})
+				const learnedWords = rows.flatMap((row) =>
+					row.word && row.learning_duration_ms > 0
+						? [{ word: row.word, learning_duration_ms: row.learning_duration_ms }]
+						: [],
+				)
+				const words = learnedWords
+					.filter(
+						(item, index) =>
+							learnedWords.findIndex((other) => other.word.id === item.word.id) ===
+							index,
+					)
+					.map((item) => ({
+						word: item.word,
+						learning_duration_ms: learnedWords
+							.filter((other) => other.word.id === item.word.id)
+							.reduce((sum, other) => sum + other.learning_duration_ms, 0),
+					}))
 
 				const sounds = sessions
 					.flatMap((session) => session.sounds)
@@ -1138,20 +1150,23 @@ export const mockServer = {
 					period,
 					start,
 					end: formatLocalDate(to - HOUR),
-					total_play_count: totalCount,
-					total_play_duration_ms: totalDuration,
-					mimicry_count: sounds.filter((sound) => sound.word_id).length,
+					learning_duration_ms: rows.reduce(
+						(sum, row) => sum + row.learning_duration_ms,
+						0,
+					),
 					trend: buckets(period, from, to).map((bucket) => ({
 						start: iso(bucket.start),
-						play_duration_ms: sessions.reduce(
-							(sum, session) =>
-								sum +
-								playsBetween(session, bucket.start, bucket.end).play_duration_ms,
+						learning_duration_ms: sessions.reduce(
+							(sum, session) => sum + learned(session, bucket.start, bucket.end),
 							0,
 						),
 					})),
-					words: [...counts.values()].sort((a, b) => b.play_count - a.play_count),
-					sounds: sounds.map(soundDto),
+					words: words.sort((a, b) => b.learning_duration_ms - a.learning_duration_ms),
+					sessions: rows,
+					mimicry: {
+						count: sounds.filter((sound) => sound.word_id).length,
+						sounds: sounds.map(soundDto),
+					},
 				}
 			}),
 	},

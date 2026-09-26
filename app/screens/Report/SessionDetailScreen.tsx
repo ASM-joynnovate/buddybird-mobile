@@ -13,11 +13,7 @@ import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { SessionOverview } from "@/screens/Report/components/session-overview"
 import { EventRow } from "@/screens/Report/components/timeline-row"
-import {
-	timelineFilters,
-	type TimelineItem,
-	useSessionDetail,
-} from "@/screens/Report/hooks/use-session-detail"
+import { type TimelineItem, useSessionDetail } from "@/screens/Report/hooks/use-session-detail"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { ReportStackParamList } from "@/types/navigation"
 
@@ -95,11 +91,12 @@ export function SessionDetailScreen() {
 							end={detail.end}
 							running={detail.running}
 							cursor={detail.cursor}
+							showsMimicry={detail.showsSounds}
 							onSelectKey={detail.scrollToKey}
 							onSelectTime={detail.scrollToTime}
 						/>
 						<View style={styles.filters}>
-							{timelineFilters.map((filter) => (
+							{detail.filters.map((filter) => (
 								<Chip
 									key={filter}
 									label={t(`report.detail.filters.${filter}`)}

@@ -6,8 +6,8 @@ import { StyleSheet, View } from "react-native"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatDateWithWeekday, formatDuration, formatTime } from "@/i18n/format"
-import type { Report, ReportPeriod } from "@/mocks/types"
 import { colors, font } from "@/theme"
+import type { Report, ReportPeriod } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
 
 const CHART_HEIGHT = 150
@@ -40,14 +40,14 @@ export function TrendChart({
 
 	const [selected, setSelected] = useState<number | null>(null)
 
-	const max = Math.max(1, ...trend.map((bucket) => bucket.play_duration_ms))
+	const max = Math.max(1, ...trend.map((bucket) => bucket.learning_duration_ms))
 	const describe = (bucket: Bucket) =>
 		t("report.bar", {
 			label:
 				period === "day"
 					? formatTime(bucket.start, locale)
 					: formatDateWithWeekday(bucket.start, locale),
-			duration: formatDuration(bucket.play_duration_ms, locale),
+			duration: formatDuration(bucket.learning_duration_ms, locale),
 		})
 	const picked = selected === null ? null : trend[selected]
 
@@ -75,10 +75,10 @@ export function TrendChart({
 								{
 									height: Math.max(
 										MIN_BAR,
-										(bucket.play_duration_ms / max) * CHART_HEIGHT,
+										(bucket.learning_duration_ms / max) * CHART_HEIGHT,
 									),
 								},
-								bucket.play_duration_ms === 0 && styles.empty,
+								bucket.learning_duration_ms === 0 && styles.empty,
 								selected === index && styles.selected,
 							]}
 						/>

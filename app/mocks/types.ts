@@ -1,34 +1,11 @@
 import { z } from "zod"
 
 import type { AppNotification } from "@/types/apis/notifications"
-import { localDate, timestamp, uuid } from "@/types/apis/primitives"
-import {
-	type Session,
-	type SessionEventKind,
-	type SessionSound,
-	sessionSoundSchema,
-} from "@/types/apis/sessions"
+import { timestamp, uuid } from "@/types/apis/primitives"
+import type { Session, SessionEventKind, SessionSound } from "@/types/apis/sessions"
 import type { SleepSettings } from "@/types/apis/settings"
 
 export const MAX_DEVICE_NAME = 30
-
-const wordRefSchema = z.object({ id: uuid, name: z.string() })
-
-export const reportPeriodSchema = z.enum(["day", "week", "month"])
-
-export const reportSchema = z.object({
-	period: reportPeriodSchema,
-	start: localDate,
-	end: localDate,
-	total_play_count: z.number().int().nonnegative(),
-	total_play_duration_ms: z.number().int().nonnegative(),
-	mimicry_count: z.number().int().nonnegative(),
-	trend: z.array(
-		z.object({ start: timestamp, play_duration_ms: z.number().int().nonnegative() }),
-	),
-	words: z.array(z.object({ word: wordRefSchema, play_count: z.number().int().nonnegative() })),
-	sounds: z.array(sessionSoundSchema),
-})
 
 export const soundFeedbackSchema = z.object({
 	sound_id: uuid,
@@ -90,8 +67,6 @@ export const appUpdateSchema = z.object({
 	release_notes: z.array(z.string()),
 })
 
-export type ReportPeriod = z.infer<typeof reportPeriodSchema>
-export type Report = z.infer<typeof reportSchema>
 export type AppUpdate = z.infer<typeof appUpdateSchema>
 export type SoundFeedback = z.infer<typeof soundFeedbackSchema>
 export type SoundAnalysis = z.infer<typeof soundAnalysisSchema>

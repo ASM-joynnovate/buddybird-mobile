@@ -1,0 +1,48 @@
+import type { ReactElement } from "react"
+import { StyleSheet, View } from "react-native"
+
+import { PressableSurface } from "@/components/ui/surface"
+import { Copy } from "@/components/ui/text"
+import { formatDateTime, formatDuration } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { colors, font } from "@/theme"
+import type { ReportSession } from "@/types/apis/reports"
+
+interface Props {
+	session: ReportSession
+	onPress(): void
+}
+
+export function SessionRow({ session, onPress }: Props): ReactElement {
+	const locale = useDeviceSettingsStore((state) => state.locale)
+
+	const startedAt = formatDateTime(session.started_at, locale)
+	const duration = formatDuration(session.learning_duration_ms, locale)
+	const word = session.word?.name ?? ""
+
+	return (
+		<PressableSurface
+			depth={2}
+			onPress={onPress}
+			accessibilityRole="button"
+			accessibilityLabel={[word, startedAt, duration].filter(Boolean).join(", ")}
+			contentStyle={styles.row}
+		>
+			<View style={styles.text}>
+				<Copy numberOfLines={1} style={styles.word}>
+					{word}
+				</Copy>
+				<Copy style={styles.time}>{startedAt}</Copy>
+			</View>
+			<Copy style={styles.duration}>{duration}</Copy>
+		</PressableSurface>
+	)
+}
+
+const styles = StyleSheet.create({
+	row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+	text: { flex: 1, minWidth: 0, gap: 4 },
+	word: { fontFamily: font.black, fontSize: 17 },
+	time: { fontSize: 13, color: colors.muted },
+	duration: { fontFamily: font.extraBold, fontSize: 15, fontVariant: ["tabular-nums"] },
+})

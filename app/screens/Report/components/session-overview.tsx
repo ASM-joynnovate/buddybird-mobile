@@ -15,6 +15,7 @@ interface Props {
 	end: number
 	running: boolean
 	cursor: number | null
+	showsMimicry: boolean
 	onSelectKey(key: string): void
 	onSelectTime(at: number): void
 }
@@ -25,6 +26,7 @@ export function SessionOverview({
 	end,
 	running,
 	cursor,
+	showsMimicry,
 	onSelectKey,
 	onSelectTime,
 }: Props) {
@@ -65,10 +67,12 @@ export function SessionOverview({
 					label={t("report.detail.plays")}
 					value={t("report.detail.times", { count: record.playCount })}
 				/>
-				<Stat
-					label={t("report.detail.mimicry")}
-					value={t("report.detail.times", { count: record.mimicryCount })}
-				/>
+				{showsMimicry ? (
+					<Stat
+						label={t("report.detail.mimicry")}
+						value={t("report.detail.times", { count: record.mimicryCount })}
+					/>
+				) : null}
 			</View>
 		</Card>
 	)

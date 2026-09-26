@@ -3,6 +3,7 @@ import type { FlatList } from "react-native"
 
 import { useSessionRecord } from "@/hooks/use-session-record"
 import type { SessionRecord, SessionTimeline, TimelineEvent, TimelineSound } from "@/mocks/types"
+import { useAccountStore } from "@/stores/account"
 
 export type TimelineFilter = "all" | "sounds" | "connection"
 
@@ -10,7 +11,8 @@ export type TimelineItem =
 	| { key: string; kind: "event"; at: number; event: TimelineEvent }
 	| { key: string; kind: "sound"; at: number; sound: TimelineSound }
 
-export const timelineFilters: readonly TimelineFilter[] = ["all", "sounds", "connection"]
+const timelineFilters: readonly TimelineFilter[] = ["all", "sounds", "connection"]
+const anonymousFilters: readonly TimelineFilter[] = ["all", "connection"]
 
 const connectionKinds = new Set(["station_disconnected", "station_reconnected"])
 
@@ -58,6 +60,8 @@ export type SessionDetail = {
 	running: boolean
 	end: number
 	items: TimelineItem[]
+	showsSounds: boolean
+	filters: readonly TimelineFilter[]
 	filter: TimelineFilter
 	setFilter(filter: TimelineFilter): void
 	highlightedKey: string | null
@@ -69,7 +73,13 @@ export type SessionDetail = {
 }
 
 export function useSessionDetail(sessionId: string, soundId?: string): SessionDetail {
-	const { record, timeline, loadedAt, isError, retry } = useSessionRecord(sessionId)
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
+
+	const { record, timeline: loaded, loadedAt, isError, retry } = useSessionRecord(sessionId)
+	const timeline = useMemo(
+		() => (loaded && isAnonymous ? { ...loaded, sounds: [] } : loaded),
+		[loaded, isAnonymous],
+	)
 	const running = record?.session.status === "running"
 	const endedAt = record?.session.period.ended_at
 	const end = endedAt ? Date.parse(endedAt) : loadedAt
@@ -142,6 +152,8 @@ export function useSessionDetail(sessionId: string, soundId?: string): SessionDe
 		running,
 		end,
 		items,
+		showsSounds: !isAnonymous,
+		filters: isAnonymous ? anonymousFilters : timelineFilters,
 		filter,
 		setFilter,
 		highlightedKey,

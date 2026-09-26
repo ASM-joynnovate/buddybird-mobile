@@ -11,6 +11,7 @@ export const words: WordsMessages = {
 		needsRecording: "Needs recording",
 		play: "Play {{name}} recording",
 		stop: "Stop {{name}}",
+		delete: "Delete {{name}}",
 	},
 	editor: {
 		addTitle: "Add word",

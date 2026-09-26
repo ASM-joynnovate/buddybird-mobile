@@ -1,10 +1,11 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
-import type { ReactElement } from "react"
+import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
+import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Illustration } from "@/components/illustration"
 import { ScreenHeader } from "@/components/ui/header"
 import { IconButton } from "@/components/ui/icon-button"
@@ -12,17 +13,27 @@ import { InlineError } from "@/components/ui/inline-error"
 import { Screen } from "@/components/ui/screen"
 import { EmptyState, ScreenError, Skeleton } from "@/components/ui/states"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { wordsQueryOptions } from "@/hooks/apis/words"
+import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
+import { deleteWordMutationOptions, wordsQueryOptions } from "@/hooks/apis/words"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { WordCard } from "@/screens/Words/components/word-card"
+import type { Word } from "@/types/apis/words"
 import type { WordsStackParamList } from "@/types/navigation"
 
 export function WordListScreen(): ReactElement {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>()
+
 	const words = useQuery(wordsQueryOptions())
 	const running = useQuery(runningSessionQueryOptions())
+
+	const removing = useIdempotentMutation(deleteWordMutationOptions())
+
 	const player = useSoundPlayer()
+
+	const [deleting, setDeleting] = useState<Word | null>(null)
+
 	const learningWordId = running.data?.settings.word_id ?? null
 	const addWord = () => navigation.navigate("WordEditor", {})
 
@@ -56,6 +67,7 @@ export function WordListScreen(): ReactElement {
 						learning={item.id === learningWordId}
 						player={player}
 						onPress={() => navigation.navigate("WordEditor", { wordId: item.id })}
+						onDelete={() => setDeleting(item)}
 					/>
 				)}
 				ListEmptyComponent={empty}
@@ -70,6 +82,25 @@ export function WordListScreen(): ReactElement {
 				<InlineError message={player.failedId ? t("common.sound.playError") : null} />
 				{body}
 			</View>
+			<ConfirmDialog
+				visible={deleting !== null}
+				title={t("common.confirmDelete.title", { name: deleting?.name ?? "" })}
+				message={t("common.confirmDelete.message")}
+				confirmLabel={t("common.confirmDelete.confirm")}
+				cancelLabel={t("common.cancel")}
+				busy={removing.isPending}
+				error={removing.isError ? t("words.editor.deleteError") : null}
+				onConfirm={() => {
+					if (deleting) {
+						removing.mutate({ id: deleting.id }, { onSuccess: () => setDeleting(null) })
+					}
+				}}
+				onClose={() => {
+					removing.reset()
+
+					setDeleting(null)
+				}}
+			/>
 		</Screen>
 	)
 }

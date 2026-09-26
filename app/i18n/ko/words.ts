@@ -11,6 +11,7 @@ export const words: WordsMessages = {
 		needsRecording: "녹음 필요",
 		play: "{{name}} 녹음 재생",
 		stop: "{{name}} 재생 멈추기",
+		delete: "{{name}} 삭제",
 	},
 	editor: {
 		addTitle: "단어 추가",

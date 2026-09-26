@@ -4,17 +4,25 @@ import { StyleSheet, View } from "react-native"
 
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import type { Report } from "@/mocks/types"
+import { formatDuration } from "@/i18n/format"
+import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
+import type { Report } from "@/types/apis/reports"
 
-export function WordBars({ words }: { words: Report["words"] }): ReactElement | null {
+interface Props {
+	words: Report["words"]
+}
+
+export function WordBars({ words }: Props): ReactElement | null {
 	const { t } = useTranslation()
+
+	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	if (words.length === 0) {
 		return null
 	}
 
-	const max = Math.max(1, ...words.map((item) => item.play_count))
+	const max = Math.max(1, ...words.map((item) => item.learning_duration_ms))
 
 	return (
 		<View style={ui.section}>
@@ -22,27 +30,31 @@ export function WordBars({ words }: { words: Report["words"] }): ReactElement | 
 				{t("report.words")}
 			</Copy>
 			<View style={styles.list}>
-				{words.map((item) => (
-					<View
-						key={item.word.id}
-						style={styles.row}
-						accessible
-						accessibilityLabel={`${item.word.name}, ${t("report.count", { count: item.play_count })}`}
-					>
-						<Copy numberOfLines={1} style={styles.name}>
-							{item.word.name}
-						</Copy>
-						<View style={styles.track}>
-							<View
-								style={[
-									styles.fill,
-									{ width: `${(item.play_count / max) * 100}%` },
-								]}
-							/>
+				{words.map((item) => {
+					const duration = formatDuration(item.learning_duration_ms, locale)
+
+					return (
+						<View
+							key={item.word.id}
+							style={styles.row}
+							accessible
+							accessibilityLabel={`${item.word.name}, ${duration}`}
+						>
+							<Copy numberOfLines={1} style={styles.name}>
+								{item.word.name}
+							</Copy>
+							<View style={styles.track}>
+								<View
+									style={[
+										styles.fill,
+										{ width: `${(item.learning_duration_ms / max) * 100}%` },
+									]}
+								/>
+							</View>
+							<Copy style={styles.value}>{duration}</Copy>
 						</View>
-						<Copy style={styles.value}>{item.play_count}</Copy>
-					</View>
-				))}
+					)
+				})}
 			</View>
 		</View>
 	)

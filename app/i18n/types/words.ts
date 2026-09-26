@@ -9,6 +9,7 @@ export type WordsMessages = {
 		needsRecording: string
 		play: string
 		stop: string
+		delete: string
 	}
 	editor: {
 		addTitle: string

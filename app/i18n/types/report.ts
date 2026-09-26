@@ -7,12 +7,11 @@ export type ReportMessages = {
 	}
 	previous: string
 	next: string
-	playTime: string
-	playCount: string
+	learningTime: string
 	bar: string
 	hour: string
 	words: string
-	count: string
+	sessions: string
 	sounds: string
 	mimicry: string
 	noSounds: string

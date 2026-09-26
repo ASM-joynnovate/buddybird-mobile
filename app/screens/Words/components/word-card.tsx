@@ -9,17 +9,15 @@ import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { colors, font, radius } from "@/theme"
 import { MAX_RECORDINGS, type Word } from "@/types/apis/words"
 
-export function WordCard({
-	word,
-	learning,
-	player,
-	onPress,
-}: {
+interface Props {
 	word: Word
 	learning: boolean
 	player: SoundPlayer
 	onPress(): void
-}): ReactElement {
+	onDelete(): void
+}
+
+export function WordCard({ word, learning, player, onPress, onDelete }: Props): ReactElement {
 	const { t } = useTranslation()
 
 	const first = word.recordings[0]
@@ -56,8 +54,16 @@ export function WordCard({
 					) : null}
 				</View>
 			</PressableSurface>
-			{first ? (
-				<View style={styles.play}>
+			<View style={styles.actions}>
+				<IconButton
+					icon="trash"
+					label={t("words.list.delete", { name: word.name })}
+					color={colors.muted}
+					size={44}
+					iconSize={20}
+					onPress={onDelete}
+				/>
+				{first ? (
 					<IconButton
 						icon={playing ? "pause" : "play"}
 						label={t(playing ? "words.list.stop" : "words.list.play", {
@@ -70,8 +76,8 @@ export function WordCard({
 						iconSize={20}
 						onPress={() => player.toggle(word.id, first.url)}
 					/>
-				</View>
-			) : null}
+				) : null}
+			</View>
 		</View>
 	)
 }
@@ -85,13 +91,21 @@ function Tag({ label, tone }: { label: string; tone: "orange" | "muted" }) {
 }
 
 const styles = StyleSheet.create({
-	card: { minHeight: 84, padding: 16, paddingRight: 76, gap: 10, justifyContent: "center" },
+	card: { minHeight: 84, padding: 16, paddingRight: 124, gap: 10, justifyContent: "center" },
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	meta: { flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" },
 	dots: { flexDirection: "row", gap: 4 },
 	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
 	dotOn: { backgroundColor: colors.orange },
-	play: { position: "absolute", right: 16, top: 0, bottom: 2, justifyContent: "center" },
+	actions: {
+		position: "absolute",
+		right: 16,
+		top: 0,
+		bottom: 2,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 4,
+	},
 	tag: {
 		borderRadius: radius.pill,
 		borderWidth: 2,
