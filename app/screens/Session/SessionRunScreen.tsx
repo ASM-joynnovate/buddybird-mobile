@@ -1,31 +1,32 @@
-import { useNetInfo } from "@react-native-community/netinfo"
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { useQuery } from "@tanstack/react-query"
 import { useKeepAwake } from "expo-keep-awake"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { BackHandler, StyleSheet, useWindowDimensions, View } from "react-native"
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
+import { finishSessionMutationOptions, runningSessionQueryOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { usePermission } from "@/hooks/use-permission"
-import { type RunningSessionDetail, useRunningSession } from "@/hooks/use-running-session"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
-import { RunStatus } from "@/screens/Session/components/run-status"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
 import { useHeartbeat } from "@/screens/Session/hooks/use-heartbeat"
 import { useIdleReveal } from "@/screens/Session/hooks/use-idle-reveal"
+import { learningMs } from "@/services/session/phases"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font, radius } from "@/theme"
 import { night } from "@/theme/night"
-import type { RootStackParamList } from "@/types/navigation"
+import type { RootStackParamList, SessionSleep } from "@/types/navigation"
+import { SECOND } from "@/utils/units"
 
 const RING_MAX = 460
+const FADE_MS = 2 * SECOND
 
 export function SessionRunScreen() {
 	useKeepAwake()
@@ -34,35 +35,47 @@ export function SessionRunScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionRun">>()
-	const { sessionId } = params
+	const { sessionId, sleep } = params
 
-	const running = useRunningSession()
+	const running = useQuery(runningSessionQueryOptions())
 
 	const finishing = useIdempotentMutation(finishSessionMutationOptions())
 
-	const microphone = usePermission("microphone")
-	const camera = usePermission("camera")
-
-	const network = useNetInfo()
-
 	const idle = useIdleReveal()
+
+	const opacity = useSharedValue(1)
+	const fade = useAnimatedStyle(() => ({ opacity: opacity.get() }))
 
 	const [ending, setEnding] = useState(false)
 
-	const detail = running.detail?.session.id === sessionId ? running.detail : null
+	const session = running.data?.id === sessionId ? running.data : null
+	const startedAt = session?.period.started_at ?? null
 
 	const showSummary = useCallback(
-		() => navigation.replace("SessionSummary", { sessionId, role: "station" }),
-		[navigation, sessionId],
+		() =>
+			navigation.replace("SessionSummary", {
+				sessionId,
+				learningMs: startedAt
+					? learningMs(Date.parse(startedAt), Date.now(), {
+							sleepAt: sleep.sleep_at,
+							wakeAt: sleep.wake_at,
+						})
+					: 0,
+			}),
+		[navigation, sessionId, startedAt, sleep],
 	)
 
 	useHeartbeat({
 		sessionId,
-		appliedVersion: detail?.session.settings.version ?? 1,
-		startedAt: detail?.session.period.started_at ?? null,
-		sleep: detail?.sleep ?? null,
+		appliedVersion: session?.settings.version ?? 1,
+		startedAt,
+		sleep,
 		onEnded: showSummary,
 	})
+
+	useEffect(() => {
+		opacity.set(withTiming(idle.visible ? 1 : 0, { duration: FADE_MS }))
+	}, [idle.visible, opacity])
 
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -89,15 +102,14 @@ export function SessionRunScreen() {
 			onPress={idle.reveal}
 			accessibilityLabel={t("session.run.reveal")}
 		>
-			{idle.visible && detail ? (
-				<RunInfo
-					detail={detail}
-					online={network.isConnected}
-					microphone={microphone.granted}
-					camera={camera.granted}
-					onEnd={() => setEnding(true)}
-				/>
-			) : null}
+			<Animated.View
+				style={[styles.fill, fade]}
+				pointerEvents={idle.visible ? "box-none" : "none"}
+			>
+				{startedAt ? (
+					<RunInfo startedAt={startedAt} sleep={sleep} onEnd={() => setEnding(true)} />
+				) : null}
+			</Animated.View>
 			<ConfirmDialog
 				visible={ending}
 				title={t("session.end.title")}
@@ -117,14 +129,12 @@ export function SessionRunScreen() {
 }
 
 interface Props {
-	detail: RunningSessionDetail
-	online: boolean | null
-	microphone: boolean | null
-	camera: boolean | null
+	startedAt: string
+	sleep: SessionSleep
 	onEnd(): void
 }
 
-function RunInfo({ detail, online, microphone, camera, onEnd }: Props) {
+function RunInfo({ startedAt, sleep, onEnd }: Props) {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
@@ -133,26 +143,14 @@ function RunInfo({ detail, online, microphone, camera, onEnd }: Props) {
 
 	const now = useNow()
 
-	const { session, sleep } = detail
-	const status = phaseStatus(session.period.started_at, sleep, now)
-	const word = session.settings.learning_enabled
-		? (detail.wordName ?? t("session.run.noWord"))
-		: t("session.run.learningOff")
+	const status = phaseStatus(startedAt, sleep, now)
 
 	return (
 		<SafeAreaView style={styles.info} edges={["top", "bottom", "left", "right"]}>
-			<View style={styles.top}>
-				<View style={styles.stack}>
-					<Copy style={styles.label}>{t("session.run.word")}</Copy>
-					<Copy style={styles.word} numberOfLines={1}>
-						{word}
-					</Copy>
-					<Copy style={[styles.label, styles.gap]}>{t("session.run.elapsed")}</Copy>
-					<Copy style={styles.timer}>
-						{formatTimer(now - Date.parse(session.period.started_at))}
-					</Copy>
-				</View>
-				<RunStatus online={online} microphone={microphone} camera={camera} />
+			<View style={styles.stack}>
+				<Copy style={styles.label}>{t("session.run.elapsed")}</Copy>
+				<Copy style={styles.timer}>{formatTimer(now - Date.parse(startedAt))}</Copy>
+				<Copy style={[styles.label, styles.gap]}>{t("session.run.keepOpen")}</Copy>
 			</View>
 			<View style={styles.bottom} pointerEvents="box-none">
 				<HorizonRing
@@ -183,11 +181,9 @@ const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: night.background },
 	fill: { flex: 1, borderWidth: 0 },
 	info: { flex: 1, justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 },
-	top: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-	stack: { gap: 2, flexShrink: 1 },
+	stack: { gap: 2 },
 	label: { fontFamily: font.extraBold, fontSize: 13, color: night.faint },
 	gap: { marginTop: 12 },
-	word: { fontFamily: font.black, fontSize: 36, lineHeight: 42, color: night.text },
 	timer: {
 		fontFamily: font.black,
 		fontSize: 22,

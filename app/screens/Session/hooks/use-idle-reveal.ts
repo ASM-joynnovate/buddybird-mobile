@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { STATION_SCREEN_IDLE_MS } from "@/config"
 
 export function useIdleReveal(): { visible: boolean; reveal(): void } {
-	const [visible, setVisible] = useState(false)
+	const [visible, setVisible] = useState(true)
 
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -17,14 +17,15 @@ export function useIdleReveal(): { visible: boolean; reveal(): void } {
 		timer.current = setTimeout(() => setVisible(false), STATION_SCREEN_IDLE_MS)
 	}, [])
 
-	useEffect(
-		() => () => {
+	useEffect(() => {
+		reveal()
+
+		return () => {
 			if (timer.current) {
 				clearTimeout(timer.current)
 			}
-		},
-		[],
-	)
+		}
+	}, [reveal])
 
 	return { visible, reveal }
 }

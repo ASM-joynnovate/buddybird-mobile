@@ -17,7 +17,6 @@ import { PermissionRequestScreen } from "@/screens/Entry/PermissionRequestScreen
 import { UsageGuideScreen } from "@/screens/Entry/UsageGuideScreen"
 import { NoticeDetailScreen } from "@/screens/Home/NoticeDetailScreen"
 import { SessionRunScreen } from "@/screens/Session/SessionRunScreen"
-import { SessionStartScreen } from "@/screens/Session/SessionStartScreen"
 import { SessionSummaryScreen } from "@/screens/Session/SessionSummaryScreen"
 import { ConsentSettingsScreen } from "@/screens/Settings/ConsentSettingsScreen"
 import { DevicesScreen } from "@/screens/Settings/DevicesScreen"
@@ -30,8 +29,6 @@ import { colors } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
-
-const landscape = { orientation: "landscape", animation: "fade" } as const
 
 const ENTRY_ORDER = ["Consent", "ParrotEditor", "UsageGuide"] as const
 
@@ -106,23 +103,15 @@ export function AppNavigator() {
 							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
 							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
-							<Stack.Screen name="SessionStart" component={SessionStartScreen} />
 							<Stack.Screen
 								name="SessionRun"
 								component={SessionRunScreen}
-								options={{ ...landscape, gestureEnabled: false }}
+								options={{ animation: "fade", gestureEnabled: false }}
 							/>
 							<Stack.Screen
 								name="SessionSummary"
 								component={SessionSummaryScreen}
-								options={({ route: summary }) => ({
-									animation: "fade",
-									gestureEnabled: false,
-									orientation:
-										summary.params.role === "station"
-											? "landscape"
-											: "portrait",
-								})}
+								options={{ animation: "fade", gestureEnabled: false }}
 							/>
 							<Stack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 							<Stack.Screen

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
+import type { StartDialogState } from "@/components/session/start-dialogs"
 import {
 	finishSessionMutationOptions,
 	runningSessionQueryOptions,
@@ -11,17 +12,11 @@ import { reportError } from "@/services/telemetry/client"
 import { ApiError } from "@/types/apis/common"
 import type { SessionDraft } from "@/types/navigation"
 
-export type StartSessionState = {
-	busy: boolean
-	takeoverOpen: boolean
-	failed: boolean
-	start(draft: SessionDraft): void
-	confirmTakeover(): void
-	retry(): void
-	dismiss(): void
-}
+export type StartSessionState = StartDialogState & { start(draft: SessionDraft): void }
 
-export function useStartSession(onStarted: (sessionId: string) => void): StartSessionState {
+export function useStartSession(
+	onStarted: (sessionId: string, draft: SessionDraft) => void,
+): StartSessionState {
 	const queryClient = useQueryClient()
 
 	const mutation = useIdempotentMutation(startSessionMutationOptions())
@@ -31,35 +26,16 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 	const [takeoverOpen, setTakeoverOpen] = useState(false)
 
 	function start(draft: SessionDraft) {
-		if (draft.replaceRunning) {
-			setPending(draft)
-
-			finishRunningThenStart(draft).catch((error: unknown) =>
-				reportError(error, "session_takeover"),
-			)
-
-			return
-		}
-
-		sendStartRequest(draft)
-	}
-
-	function sendStartRequest(draft: SessionDraft) {
 		setPending(draft)
 		setTakeoverOpen(false)
 
 		mutation.mutate(
-			{
-				input: {
-					word_id: draft.learningEnabled ? draft.wordId : null,
-					learning_enabled: draft.learningEnabled,
-				},
-			},
+			{ input: { word_id: draft.wordId, learning_enabled: true } },
 			{
 				onSuccess: (session) => {
 					setPending(null)
 
-					onStarted(session.id)
+					onStarted(session.id, draft)
 				},
 				onError: (error) => {
 					if (error instanceof ApiError && error.code === "SESSION__ALREADY_RUNNING") {
@@ -82,7 +58,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 			await finishing.mutateAsync({ id: running.id })
 		}
 
-		sendStartRequest(draft)
+		start(draft)
 	}
 
 	return {
@@ -101,6 +77,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 		},
 		retry: () => {
 			if (pending) {
+				finishing.reset()
 				start(pending)
 			}
 		},
@@ -108,6 +85,7 @@ export function useStartSession(onStarted: (sessionId: string) => void): StartSe
 			setTakeoverOpen(false)
 
 			mutation.reset()
+			finishing.reset()
 		},
 	}
 }

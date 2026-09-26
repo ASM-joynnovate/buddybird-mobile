@@ -62,10 +62,6 @@ export type CommonMessages = {
 			name: string
 			reason: string
 		}
-		camera: {
-			name: string
-			reason: string
-		}
 		notifications: {
 			name: string
 			reason: string

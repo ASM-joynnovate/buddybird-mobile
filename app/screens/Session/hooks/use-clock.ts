@@ -1,7 +1,6 @@
 import type { TFunction } from "i18next"
 import { useEffect, useState } from "react"
 
-import { STATION_DISCONNECT_MS } from "@/config"
 import { formatClock, formatTimer } from "@/i18n/format"
 import { currentSpan, type Phase } from "@/services/session/phases"
 import type { SleepSettings } from "@/types/apis/settings"
@@ -40,10 +39,6 @@ export function phaseStatus(startedAt: string, sleep: SleepSettings, now: number
 		remainingMs: span.end - now,
 		fraction: total > 0 ? (span.end - now) / total : 0,
 	}
-}
-
-export function isDisconnected(lastHeartbeatAt: string | null, now: number): boolean {
-	return lastHeartbeatAt === null || now - Date.parse(lastHeartbeatAt) > STATION_DISCONNECT_MS
 }
 
 export function remainingText(

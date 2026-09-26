@@ -2,10 +2,12 @@ import type { NavigatorScreenParams } from "@react-navigation/native"
 
 export type ReportPeriodParam = "day" | "week" | "month"
 
+export type SessionSleep = { sleep_at: string; wake_at: string }
+
 export type SessionDraft = {
-	wordId: string | null
-	learningEnabled: boolean
-	replaceRunning: boolean
+	wordId: string
+	durationMs: number | null
+	sleep: SessionSleep
 }
 
 export type RecordedSample = { key: string; uri: string; durationMs: number }
@@ -46,9 +48,8 @@ export type RootStackParamList = {
 	PermissionRequest: undefined
 	Main: NavigatorScreenParams<MainTabParamList> | undefined
 	NoticeDetail: { noticeId: string }
-	SessionStart: { replaceRunning?: boolean } | undefined
-	SessionRun: { sessionId: string }
-	SessionSummary: { sessionId: string; role: "station" | "viewer" }
+	SessionRun: { sessionId: string; wordId: string; endsAt: number | null; sleep: SessionSleep }
+	SessionSummary: { sessionId: string; learningMs: number }
 	RecordingGuide: { source: "add" | "help"; wordName: string }
 	Recorder: { wordName: string }
 	Settings: undefined

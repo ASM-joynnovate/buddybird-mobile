@@ -19,48 +19,37 @@ export type SessionMessages = {
 		range: string
 		sleep_at: string
 		wake_at: string
-		saveError: string
 	}
 	start: {
-		title: string
-		wordLabel: string
-		learning: string
+		word: string
+		choose: string
+		duration: string
+		untilEnd: string
+		custom: string
+		days: string
+		hours: string
+		minutes: string
 		empty: string
-		emptyScene: string
 		addWord: string
+		elsewhere: string
+		endElsewhere: string
 	}
 	run: {
 		reveal: string
-		online: string
-		offline: string
-		batteryUnknown: string
-		micOn: string
-		micOff: string
-		cameraOn: string
-		cameraOff: string
-		word: string
 		elapsed: string
-		noWord: string
-		learningOff: string
+		keepOpen: string
 	}
 	end: {
 		title: string
 		button: string
 		confirm: string
 		keep: string
-		viewerMessage: string
 		error: string
 	}
 	summary: {
-		greeting: string
-		greetingNoName: string
-		stripTitle: string
-		duration: string
-		plays: string
-		times: string
-		mimicked: string
-		playBest: string
-		bestCaption: string
-		home: string
+		word: string
+		learning: string
+		total: string
+		detail: string
 	}
 }

@@ -64,10 +64,6 @@ export const common: CommonMessages = {
 			name: "Microphone",
 			reason: "BuddyBird needs the microphone to record words and your parrot's sounds.",
 		},
-		camera: {
-			name: "Camera",
-			reason: "BuddyBird needs the camera to watch the cage and record emergencies.",
-		},
 		notifications: {
 			name: "Notification",
 			reason: "BuddyBird needs notifications to send you learning updates.",

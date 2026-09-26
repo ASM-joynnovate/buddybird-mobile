@@ -2,20 +2,18 @@ import { AudioModule } from "expo-audio"
 import * as ImagePicker from "expo-image-picker"
 import * as Notifications from "expo-notifications"
 
-export type PermissionKind = "microphone" | "camera" | "notifications" | "photos"
+export type PermissionKind = "microphone" | "notifications" | "photos"
 
 export type PermissionState = { granted: boolean; canAskAgain: boolean }
 
 const readers: Record<PermissionKind, () => Promise<PermissionState>> = {
 	microphone: () => AudioModule.getRecordingPermissionsAsync(),
-	camera: () => ImagePicker.getCameraPermissionsAsync(),
 	notifications: () => Notifications.getPermissionsAsync(),
 	photos: () => ImagePicker.getMediaLibraryPermissionsAsync(),
 }
 
 const requesters: Record<PermissionKind, () => Promise<PermissionState>> = {
 	microphone: () => AudioModule.requestRecordingPermissionsAsync(),
-	camera: () => ImagePicker.requestCameraPermissionsAsync(),
 	notifications: () => Notifications.requestPermissionsAsync(),
 	photos: () => ImagePicker.requestMediaLibraryPermissionsAsync(),
 }

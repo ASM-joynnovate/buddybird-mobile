@@ -64,7 +64,7 @@ export function ReportScreen(): ReactElement {
 			failed={report.isError}
 			locale={locale}
 			onRetry={() => void report.refetch()}
-			onStart={() => navigation.navigate("SessionStart")}
+			onStart={() => navigation.navigate("Main", { screen: "HomeTab" })}
 		/>
 	)
 

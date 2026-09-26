@@ -64,10 +64,6 @@ export const common: CommonMessages = {
 			name: "마이크",
 			reason: "단어를 녹음하고 앵무새가 낸 소리를 기록하려면 마이크가 필요해요.",
 		},
-		camera: {
-			name: "카메라",
-			reason: "새장을 비추고 응급 상황을 영상으로 남기려면 카메라가 필요해요.",
-		},
 		notifications: {
 			name: "알림",
 			reason: "학습 소식을 알려 드리려면 알림이 필요해요.",

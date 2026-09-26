@@ -1,6 +1,6 @@
-import type { ReactElement } from "react"
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet"
 import { useTranslation } from "react-i18next"
-import { FlatList, StyleSheet, View } from "react-native"
+import { StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
 import { ChoiceCard } from "@/components/ui/surface"
@@ -14,38 +14,24 @@ export function selectableWords(words: readonly Word[]): Word[] {
 	return words.filter((word) => word.recordings.length > 0)
 }
 
-type WordPickerProps = {
+interface Props {
 	words: readonly Word[]
 	selectedId: string | null
-	disabled?: boolean
 	player: SoundPlayer
 	onSelect(id: string): void
-	header?: ReactElement
-	footer?: ReactElement
 }
 
-export function WordPicker({
-	words,
-	selectedId,
-	disabled,
-	player,
-	onSelect,
-	header,
-	footer,
-}: WordPickerProps) {
+export function WordPicker({ words, selectedId, player, onSelect }: Props) {
 	return (
-		<FlatList
+		<BottomSheetFlatList
 			data={words}
 			keyExtractor={(word) => word.id}
-			ListHeaderComponent={header}
-			ListFooterComponent={footer}
 			contentContainerStyle={styles.list}
 			showsVerticalScrollIndicator={false}
 			renderItem={({ item }) => (
 				<WordChoice
 					word={item}
 					selected={item.id === selectedId}
-					disabled={disabled}
 					player={player}
 					onSelect={onSelect}
 				/>
@@ -57,31 +43,28 @@ export function WordPicker({
 function WordChoice({
 	word,
 	selected,
-	disabled,
 	player,
 	onSelect,
 }: {
 	word: Word
 	selected: boolean
-	disabled?: boolean
 	player: SoundPlayer
 	onSelect(id: string): void
 }) {
 	const { t } = useTranslation()
 	const sample = word.recordings[0]
 	const playing = player.playingId === word.id
-	const locked = disabled || !sample
 
 	return (
 		<ChoiceCard
-			selected={selected && !disabled}
-			disabled={locked}
+			selected={selected}
+			disabled={!sample}
 			onPress={() => onSelect(word.id)}
 			accessibilityLabel={word.name}
 			contentStyle={styles.card}
 		>
 			<View style={styles.label}>
-				<Copy numberOfLines={1} style={[styles.name, locked && styles.locked]}>
+				<Copy numberOfLines={1} style={[styles.name, !sample && styles.locked]}>
 					{word.name}
 				</Copy>
 				{sample ? null : <Tag label={t("session.words.needsRecording")} />}
@@ -97,7 +80,6 @@ function WordChoice({
 					size={44}
 					iconSize={18}
 					color={colors.onAccent}
-					disabled={disabled}
 					onPress={() => player.toggle(word.id, sample.url)}
 				/>
 			) : null}
@@ -106,7 +88,7 @@ function WordChoice({
 }
 
 const styles = StyleSheet.create({
-	list: { gap: 10, paddingBottom: 20 },
+	list: { gap: 10, paddingHorizontal: 24, paddingBottom: 20 },
 	card: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 72 },
 	label: { flex: 1, minWidth: 0, gap: 6 },
 	name: { fontFamily: font.black, fontSize: 18, color: colors.text },
