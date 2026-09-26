@@ -15,7 +15,7 @@ import type { SessionDraft } from "@/types/navigation"
 export type StartSessionState = StartDialogState & { start(draft: SessionDraft): void }
 
 export function useStartSession(
-	onStarted: (sessionId: string, draft: SessionDraft) => void,
+	onStarted: (sessionId: string, draft: SessionDraft, endsAt: number | null) => void,
 ): StartSessionState {
 	const queryClient = useQueryClient()
 
@@ -26,16 +26,25 @@ export function useStartSession(
 	const [takeoverOpen, setTakeoverOpen] = useState(false)
 
 	function start(draft: SessionDraft) {
+		const endsAt = draft.durationMs === null ? null : Date.now() + draft.durationMs
+
 		setPending(draft)
 		setTakeoverOpen(false)
 
 		mutation.mutate(
-			{ input: { word_id: draft.wordId, learning_enabled: true } },
+			{
+				input: {
+					word_id: draft.wordId,
+					learning_enabled: true,
+					ends_at: endsAt === null ? null : new Date(endsAt).toISOString(),
+					sleep: draft.sleep,
+				},
+			},
 			{
 				onSuccess: (session) => {
 					setPending(null)
 
-					onStarted(session.id, draft)
+					onStarted(session.id, draft, endsAt)
 				},
 				onError: (error) => {
 					if (error instanceof ApiError && error.code === "SESSION__ALREADY_RUNNING") {

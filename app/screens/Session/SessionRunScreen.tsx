@@ -1,6 +1,5 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useQuery } from "@tanstack/react-query"
 import { useKeepAwake } from "expo-keep-awake"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -11,14 +10,11 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { finishSessionMutationOptions, runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
 import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
-import { useHeartbeat } from "@/screens/Session/hooks/use-heartbeat"
 import { useIdleReveal } from "@/screens/Session/hooks/use-idle-reveal"
-import { learningMs } from "@/services/session/phases"
+import { useLearningSession } from "@/screens/Session/hooks/use-learning-session"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font, radius } from "@/theme"
 import { night } from "@/theme/night"
@@ -37,9 +33,12 @@ export function SessionRunScreen() {
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionRun">>()
 	const { sessionId, sleep } = params
 
-	const running = useQuery(runningSessionQueryOptions())
+	const showSummary = useCallback(
+		(learningMs: number) => navigation.replace("SessionSummary", { sessionId, learningMs }),
+		[navigation, sessionId],
+	)
 
-	const finishing = useIdempotentMutation(finishSessionMutationOptions())
+	const learning = useLearningSession(params, showSummary)
 
 	const idle = useIdleReveal()
 
@@ -48,30 +47,7 @@ export function SessionRunScreen() {
 
 	const [ending, setEnding] = useState(false)
 
-	const session = running.data?.id === sessionId ? running.data : null
-	const startedAt = session?.period.started_at ?? null
-
-	const showSummary = useCallback(
-		() =>
-			navigation.replace("SessionSummary", {
-				sessionId,
-				learningMs: startedAt
-					? learningMs(Date.parse(startedAt), Date.now(), {
-							sleepAt: sleep.sleep_at,
-							wakeAt: sleep.wake_at,
-						})
-					: 0,
-			}),
-		[navigation, sessionId, startedAt, sleep],
-	)
-
-	useHeartbeat({
-		sessionId,
-		appliedVersion: session?.settings.version ?? 1,
-		startedAt,
-		sleep,
-		onEnded: showSummary,
-	})
+	const startedAt = learning.startedAt
 
 	useEffect(() => {
 		opacity.set(withTiming(idle.visible ? 1 : 0, { duration: FADE_MS }))
@@ -86,10 +62,6 @@ export function SessionRunScreen() {
 
 		return () => subscription.remove()
 	}, [])
-
-	function finish() {
-		finishing.mutate({ id: sessionId }, { onSuccess: showSummary })
-	}
 
 	return (
 		<PressableSurface
@@ -107,7 +79,12 @@ export function SessionRunScreen() {
 				pointerEvents={idle.visible ? "box-none" : "none"}
 			>
 				{startedAt ? (
-					<RunInfo startedAt={startedAt} sleep={sleep} onEnd={() => setEnding(true)} />
+					<RunInfo
+						startedAt={startedAt}
+						sleep={sleep}
+						failed={learning.failed}
+						onEnd={() => setEnding(true)}
+					/>
 				) : null}
 			</Animated.View>
 			<ConfirmDialog
@@ -115,14 +92,10 @@ export function SessionRunScreen() {
 				title={t("session.end.title")}
 				confirmLabel={t("session.end.confirm")}
 				cancelLabel={t("session.end.keep")}
-				busy={finishing.isPending}
-				error={finishing.isError ? t("session.end.error") : null}
-				onConfirm={finish}
-				onClose={() => {
-					finishing.reset()
-
-					setEnding(false)
-				}}
+				busy={learning.ending}
+				error={learning.endFailed ? t("session.end.error") : null}
+				onConfirm={learning.end}
+				onClose={() => setEnding(false)}
 			/>
 		</PressableSurface>
 	)
@@ -131,10 +104,11 @@ export function SessionRunScreen() {
 interface Props {
 	startedAt: string
 	sleep: SessionSleep
+	failed: boolean
 	onEnd(): void
 }
 
-function RunInfo({ startedAt, sleep, onEnd }: Props) {
+function RunInfo({ startedAt, sleep, failed, onEnd }: Props) {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
@@ -151,6 +125,7 @@ function RunInfo({ startedAt, sleep, onEnd }: Props) {
 				<Copy style={styles.label}>{t("session.run.elapsed")}</Copy>
 				<Copy style={styles.timer}>{formatTimer(now - Date.parse(startedAt))}</Copy>
 				<Copy style={[styles.label, styles.gap]}>{t("session.run.keepOpen")}</Copy>
+				{failed ? <Copy style={styles.label}>{t("session.run.engineError")}</Copy> : null}
 			</View>
 			<View style={styles.bottom} pointerEvents="box-none">
 				<HorizonRing

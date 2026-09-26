@@ -15,11 +15,13 @@ import {
 	type MockSession,
 	type MockSettings,
 	type MockSound,
+	type MockSummary,
 	type MockWord,
 	newDatabase,
 	plays,
 	seed,
 	sleepEvents,
+	type SleepWindow,
 	sleepWindowOf,
 } from "@/mocks/seed"
 import { currentSpan } from "@/services/session/phases"
@@ -156,12 +158,35 @@ function isStationOnOtherDevice(session: MockSession) {
 	return session.station_device_id !== db.currentDeviceId
 }
 
+function sleepOf(session: MockSession) {
+	return sleepWindowOf({ ...db.settings, sleep: session.sleep ?? db.settings.sleep })
+}
+
+function mergeSummaries(saved: MockSummary[], received: MockSummary[]): MockSummary[] {
+	const sameKey = (a: MockSummary, b: MockSummary) =>
+		a.word_id === b.word_id && a.local_date === b.local_date
+	const kept = saved.filter((row) => !received.some((next) => sameKey(row, next)))
+	const merged = received.map((next) => {
+		const previous = saved.find((row) => sameKey(row, next))
+
+		return {
+			...next,
+			play_count: Math.max(next.play_count, previous?.play_count ?? 0),
+			play_duration_ms: Math.max(next.play_duration_ms, previous?.play_duration_ms ?? 0),
+			learning_duration_ms: Math.max(
+				next.learning_duration_ms ?? 0,
+				previous?.learning_duration_ms ?? 0,
+			),
+		}
+	})
+
+	return [...kept, ...merged]
+}
+
 function sessionDto(session: MockSession) {
 	const now = Date.now()
 	const running = session.status === "running"
-	const span = running
-		? currentSpan(Date.parse(session.started_at), now, sleepWindowOf(db.settings))
-		: null
+	const span = running ? currentSpan(Date.parse(session.started_at), now, sleepOf(session)) : null
 
 	return {
 		id: session.id,
@@ -192,7 +217,7 @@ function sessionDto(session: MockSession) {
 function endSession(
 	session: MockSession,
 	endedBy: "user" | "server",
-	settings: MockSettings,
+	window: SleepWindow,
 	now: number,
 ): MockSession {
 	const ended = { ...session, ended_at: iso(now) }
@@ -202,14 +227,14 @@ function endSession(
 		status: "finished",
 		ended_by: endedBy,
 		events: [...session.events, event("session_finished", now)],
-		sleep_events: sleepEvents(ended, sleepWindowOf(settings), now),
+		sleep_events: sleepEvents(ended, window, now),
 	}
 }
 
 function finish(id: string, endedBy: "user" | "server") {
 	const now = Date.now()
 
-	replaceSession(id, (session) => endSession(session, endedBy, db.settings, now))
+	replaceSession(id, (session) => endSession(session, endedBy, sleepOf(session), now))
 }
 
 function requireRunning(id: string) {
@@ -283,7 +308,7 @@ function overlaps(session: MockSession, from: number, to: number) {
 }
 
 function playsBetween(session: MockSession, from: number, to: number) {
-	return plays(learningMsBetween(session, sleepWindowOf(db.settings), from, to, Date.now()))
+	return plays(learningMsBetween(session, sleepOf(session), from, to, Date.now()))
 }
 
 function newestStartFirst(a: MockSession, b: MockSession) {
@@ -371,7 +396,7 @@ function mergeInto(target: Database, source: Database): Database {
 		}
 
 		return targetRunning && moved.status === "running"
-			? endSession(moved, "server", source.settings, now)
+			? endSession(moved, "server", sleepWindowOf(source.settings), now)
 			: moved
 	})
 
@@ -835,7 +860,12 @@ export const mockServer = {
 					.map(sessionDto),
 			),
 		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
-		start: (input: { word_id?: string | null; learning_enabled: boolean }) =>
+		start: (input: {
+			word_id?: string | null
+			learning_enabled: boolean
+			ends_at?: string | null
+			sleep?: MockSettings["sleep"]
+		}) =>
 			respond(() => {
 				if (runningRecord()) {
 					throw new ApiError(
@@ -864,6 +894,9 @@ export const mockServer = {
 					settings_version: 1,
 					applied_settings_version: 0,
 					last_heartbeat_at: null,
+					ends_at: input.ends_at ?? null,
+					sleep: input.sleep ?? null,
+					summaries: [],
 					events: [event("session_started", now)],
 					sleep_events: [],
 					sounds: [],
@@ -881,13 +914,17 @@ export const mockServer = {
 
 				return sessionDto(find(db.sessions, id))
 			}),
-		heartbeat: (id: string, input: { applied_settings_version: number }) =>
+		heartbeat: (
+			id: string,
+			input: { applied_settings_version: number; summaries: MockSummary[] },
+		) =>
 			respond(() => {
 				requireRunning(id)
 				replaceSession(id, (current) => ({
 					...current,
 					applied_settings_version: input.applied_settings_version,
 					last_heartbeat_at: iso(Date.now()),
+					summaries: mergeSummaries(current.summaries, input.summaries),
 				}))
 
 				const session = sessionDto(find(db.sessions, id))
@@ -957,7 +994,7 @@ export const mockServer = {
 				return {
 					sleep_events:
 						session.status === "running"
-							? sleepEvents(session, sleepWindowOf(db.settings), Date.now())
+							? sleepEvents(session, sleepOf(session), Date.now())
 							: session.sleep_events,
 				}
 			}),

@@ -68,11 +68,11 @@ export function HomeScreen() {
 
 	const player = useSoundPlayer()
 
-	const starter = useStartSession((sessionId, draft) =>
+	const starter = useStartSession((sessionId, draft, endsAt) =>
 		navigation.navigate("SessionRun", {
 			sessionId,
 			wordId: draft.wordId,
-			endsAt: draft.durationMs === null ? null : Date.now() + draft.durationMs,
+			endsAt,
 			sleep: draft.sleep,
 		}),
 	)

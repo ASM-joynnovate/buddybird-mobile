@@ -15,6 +15,15 @@ import { SECOND } from "@/utils/units"
 
 const options = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true }
 
+const PLAYBACK_MODE = {
+	allowsRecording: false,
+	playsInSilentMode: true,
+	interruptionMode: "doNotMix",
+	shouldPlayInBackground: false,
+	shouldRouteThroughEarpiece: false,
+	allowsBackgroundRecording: false,
+} as const
+
 export type Take = { uri: string; durationMs: number }
 export type RecorderProblem = "empty" | "tooLarge" | "format" | "error" | null
 
@@ -105,6 +114,10 @@ export function useRecorder(): Recorder {
 	useEffect(() => {
 		closing.current = false
 
+		void setAudioModeAsync(PLAYBACK_MODE).catch((error: unknown) =>
+			reportError(error, "recording_setup"),
+		)
+
 		return () => {
 			closing.current = true
 
@@ -114,7 +127,7 @@ export function useRecorder(): Recorder {
 					.catch((error: unknown) => reportError(error, "recording_cleanup"))
 			}
 
-			void setAudioModeAsync({ allowsRecording: false }).catch((error: unknown) =>
+			void setAudioModeAsync(PLAYBACK_MODE).catch((error: unknown) =>
 				reportError(error, "recording_cleanup"),
 			)
 		}
@@ -135,13 +148,7 @@ export function useRecorder(): Recorder {
 		}
 
 		try {
-			await setAudioModeAsync({
-				allowsRecording: true,
-				playsInSilentMode: true,
-				interruptionMode: "doNotMix",
-				shouldPlayInBackground: false,
-				allowsBackgroundRecording: false,
-			})
+			await setAudioModeAsync({ ...PLAYBACK_MODE, allowsRecording: true })
 			await recorder.prepareToRecordAsync(options)
 
 			handled.current = null

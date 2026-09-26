@@ -1,0 +1,310 @@
+import {
+	type AudioBuffer,
+	type AudioBufferSourceNode,
+	AudioContext,
+	AudioManager,
+	AudioRecorder,
+} from "react-native-audio-api"
+
+import { LEARNING_TICK_MS, VAD, WORD_REST_FACTOR } from "@/config"
+import { stressCareTracks } from "@/services/learning/tracks"
+import { createSpeechDetector, type SpeechSegment } from "@/services/learning/vad"
+import { saveWav } from "@/services/learning/wav"
+import {
+	currentSpan,
+	type Phase,
+	type PhaseSpan,
+	type SleepWindow,
+} from "@/services/session/phases"
+import type { HeartbeatSummary } from "@/types/apis/sessions"
+import { localDate } from "@/utils/date"
+
+export type CapturedSound = { uri: string; capturedAt: string }
+
+export type LearningEngineOptions = {
+	wordId: string
+	recordingUrls: readonly string[]
+	startedAt: number
+	sleep: SleepWindow
+	onSound(sound: CapturedSound): void
+	onError(error: unknown): void
+}
+
+export type LearningEngine = {
+	start(): Promise<void>
+	pause(): Promise<void>
+	resume(): Promise<void>
+	stop(): Promise<void>
+	summaries(): HeartbeatSummary[]
+	learningMs(): number
+}
+
+type Counter = "play_count" | "play_duration_ms" | "learning_duration_ms"
+
+export function createLearningEngine(options: LearningEngineOptions): LearningEngine {
+	const detector = createSpeechDetector(VAD)
+	const recorder = new AudioRecorder()
+
+	let context: AudioContext | null = null
+	let recordings: AudioBuffer[] = []
+	let careTracks: string[] = []
+	let timer: ReturnType<typeof setInterval> | null = null
+	let running = false
+	let stopped = false
+	let phase: Phase | null = null
+	let clip: AudioBufferSourceNode | null = null
+	let care: AudioBufferSourceNode | null = null
+	let nextClip = 0
+	let nextPlayAt = 0
+	let lastTick = 0
+	let totals: Record<string, HeartbeatSummary> = {}
+
+	function count(counter: Counter, amount: number, at: number) {
+		const date = localDate(new Date(at))
+		const current = totals[date] ?? {
+			word_id: options.wordId,
+			local_date: date,
+			play_count: 0,
+			play_duration_ms: 0,
+			learning_duration_ms: 0,
+		}
+
+		totals = {
+			...totals,
+			[date]: { ...current, [counter]: (current[counter] ?? 0) + Math.round(amount) },
+		}
+	}
+
+	function emit(segment: SpeechSegment | null) {
+		if (!segment) {
+			return
+		}
+
+		try {
+			options.onSound({
+				uri: saveWav(segment.samples, VAD.sampleRate),
+				capturedAt: new Date(Date.now() - segment.durationMs).toISOString(),
+			})
+		} catch (error) {
+			options.onError(error)
+		}
+	}
+
+	function stopClip() {
+		const playing = clip
+
+		clip = null
+		playing?.stop()
+	}
+
+	function stopCare() {
+		const playing = care
+
+		care = null
+		playing?.stop()
+	}
+
+	function playClip(now: number) {
+		const buffer = recordings[nextClip % recordings.length]
+
+		if (!context || !buffer) {
+			return
+		}
+
+		emit(detector.flush())
+
+		const source = context.createBufferSource()
+		const durationMs = buffer.duration * 1000
+
+		source.buffer = buffer
+		source.connect(context.destination)
+		source.onEnded = () => {
+			if (clip === source) {
+				clip = null
+				nextPlayAt = Date.now() + durationMs * WORD_REST_FACTOR
+			}
+		}
+		source.start()
+
+		clip = source
+		nextClip += 1
+		nextPlayAt = Number.POSITIVE_INFINITY
+
+		detector.suspend(now + durationMs + VAD.echoTailGuardMs)
+		count("play_count", 1, now)
+		count("play_duration_ms", durationMs, now)
+	}
+
+	async function playCare() {
+		const owner = context
+		const track = careTracks[Math.floor(Math.random() * careTracks.length)]
+
+		if (!owner || !track) {
+			return
+		}
+
+		const buffer = await owner.decodeAudioData(track)
+
+		if (context !== owner || phase !== "stress_care" || !running || care) {
+			return
+		}
+
+		const source = owner.createBufferSource()
+
+		source.buffer = buffer
+		source.loop = true
+		source.connect(owner.destination)
+		source.start()
+
+		care = source
+	}
+
+	function enter(span: PhaseSpan) {
+		emit(detector.flush())
+		stopClip()
+		stopCare()
+
+		phase = span.phase
+		nextPlayAt = 0
+
+		if (span.phase === "stress_care") {
+			detector.suspend(span.end + VAD.echoTailGuardMs)
+
+			playCare().catch(options.onError)
+		}
+	}
+
+	function tick() {
+		const now = Date.now()
+		const span = currentSpan(options.startedAt, now, options.sleep)
+
+		if (span.phase !== phase) {
+			enter(span)
+		}
+
+		if (phase === "learning") {
+			count("learning_duration_ms", now - lastTick, now)
+
+			if (!clip && now >= nextPlayAt) {
+				playClip(now)
+			}
+		}
+
+		lastTick = now
+	}
+
+	async function startRecorder() {
+		recorder.onAudioReady(
+			{
+				sampleRate: VAD.sampleRate,
+				bufferLength: (VAD.sampleRate * VAD.frameMs) / 1000,
+				channelCount: 1,
+			},
+			({ buffer }) => {
+				if (running) {
+					detector.push(buffer.getChannelData(0), Date.now()).forEach(emit)
+				}
+			},
+		)
+		recorder.onError((event) => options.onError(new Error(event.message)))
+
+		const result = await recorder.start()
+
+		if (result.status === "error") {
+			throw new Error(result.message)
+		}
+	}
+
+	async function begin() {
+		if (stopped) {
+			return
+		}
+
+		running = true
+		phase = null
+		lastTick = Date.now()
+
+		await startRecorder()
+
+		if (!recorder.isRecording()) {
+			await recorder.stop()
+			await startRecorder()
+		}
+
+		if (stopped || !running) {
+			await recorder.stop()
+
+			return
+		}
+
+		tick()
+
+		timer = setInterval(tick, LEARNING_TICK_MS)
+	}
+
+	async function halt() {
+		running = false
+
+		if (timer) {
+			clearInterval(timer)
+			timer = null
+		}
+
+		emit(detector.flush())
+		stopClip()
+		stopCare()
+
+		if (recorder.isRecording()) {
+			await recorder.stop()
+		}
+	}
+
+	return {
+		async start() {
+			AudioManager.setAudioSessionOptions({
+				iosCategory: "playAndRecord",
+				iosMode: "default",
+				iosOptions: ["defaultToSpeaker", "allowBluetoothHFP"],
+			})
+			await AudioManager.setAudioSessionActivity(true)
+
+			if (stopped) {
+				return
+			}
+
+			const created = new AudioContext()
+
+			context = created
+			recordings = await Promise.all(
+				options.recordingUrls.map((url) => created.decodeAudioData(url)),
+			)
+			careTracks = await stressCareTracks()
+
+			await begin()
+		},
+		async pause() {
+			await halt()
+			await context?.suspend()
+		},
+		async resume() {
+			await context?.resume()
+			await begin()
+		},
+		async stop() {
+			stopped = true
+
+			await halt()
+
+			recorder.clearOnAudioReady()
+			recorder.clearOnError()
+
+			await context?.close()
+			context = null
+
+			await AudioManager.setAudioSessionActivity(false)
+		},
+		summaries: () => Object.values(totals),
+		learningMs: () =>
+			Object.values(totals).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
+	}
+}

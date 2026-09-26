@@ -49,6 +49,17 @@ export type Events = {
 		lifetime_recording_count: number
 		last_practiced_at_days_ago: number
 	}
+	learning_started: { session_id: string; word_id: string; duration_ms?: number }
+	learning_completed: {
+		session_id: string
+		learning_duration_ms: number
+		total_duration_ms: number
+	}
+	learning_aborted: {
+		session_id: string
+		learning_duration_ms: number
+		reason: "user" | "server" | "error"
+	}
 	tab_switched: { from: string; to: string }
 	language_changed: { from: string; to: string }
 	feedback_prompt_shown: { threshold: number }

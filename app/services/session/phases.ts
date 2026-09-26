@@ -78,12 +78,6 @@ export function phaseSpans(start: number, end: number, window: SleepWindow): Pha
 	return spans
 }
 
-export function learningMs(start: number, end: number, window: SleepWindow): number {
-	return phaseSpans(start, end, window)
-		.filter((span) => span.phase === "learning")
-		.reduce((sum, span) => sum + span.end - span.start, 0)
-}
-
 export function currentSpan(start: number, now: number, window: SleepWindow): PhaseSpan {
 	const found = phaseSpans(start, now + DAY, window).find(
 		(span) => span.start <= now && now < span.end,

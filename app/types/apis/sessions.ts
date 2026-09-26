@@ -34,6 +34,8 @@ export const sessionSchema = z.object({
 export const startSessionRequestSchema = z.object({
 	word_id: uuid.nullable().optional(),
 	learning_enabled: z.boolean(),
+	ends_at: timestamp.nullable().optional(),
+	sleep: z.object({ sleep_at: z.string(), wake_at: z.string() }).optional(),
 })
 
 export const changeWordRequestSchema = z.object({ word_id: uuid.nullable() })
@@ -52,6 +54,7 @@ export const heartbeatRequestSchema = z.object({
 				local_date: localDate,
 				play_count: z.number().int().nonnegative(),
 				play_duration_ms: z.number().int().nonnegative(),
+				learning_duration_ms: z.number().int().nonnegative().optional(),
 			}),
 		)
 		.max(500),
@@ -110,6 +113,7 @@ export type StartSessionRequest = z.infer<typeof startSessionRequestSchema>
 export type ChangeWordRequest = z.infer<typeof changeWordRequestSchema>
 export type ChangeLearningRequest = z.infer<typeof changeLearningRequestSchema>
 export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>
+export type HeartbeatSummary = HeartbeatRequest["summaries"][number]
 export type Heartbeat = z.infer<typeof heartbeatSchema>
 export type SessionEventKind = z.infer<typeof sessionEventKindSchema>
 export type SessionEvent = z.infer<typeof sessionEventSchema>

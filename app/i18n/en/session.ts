@@ -40,6 +40,7 @@ export const session: SessionMessages = {
 		reveal: "Tap the screen to see session info",
 		elapsed: "Session time",
 		keepOpen: "Keep this app open until learning ends",
+		engineError: "Couldn't play the word. End this session and start again.",
 	},
 	end: {
 		title: "End session",

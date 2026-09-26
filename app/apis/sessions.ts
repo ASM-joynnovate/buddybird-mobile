@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { putUpload } from "@/apis/mocks"
+import { issueSoundUpload } from "@/apis/uploads"
 import { mockServer } from "@/mocks/server"
 import { type Page, pageMetaSchema } from "@/types/apis/common"
 import {
@@ -61,6 +63,15 @@ export async function addEvents(
 
 export async function fetchEvents(id: string): Promise<SessionEvent[]> {
 	return z.array(sessionEventSchema).parse(await mockServer.sessions.events(id))
+}
+
+export async function uploadSound(
+	sessionId: string,
+	uri: string,
+	capturedAt: string,
+	idempotencyKey: string,
+): Promise<void> {
+	await putUpload(await issueSoundUpload(sessionId, capturedAt, idempotencyKey), uri)
 }
 
 export async function fetchSounds(id: string, page: number): Promise<Page<SessionSound>> {

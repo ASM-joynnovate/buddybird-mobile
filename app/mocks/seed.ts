@@ -46,10 +46,21 @@ export type MockSession = {
 	settings_version: number
 	applied_settings_version: number
 	last_heartbeat_at: string | null
+	ends_at: string | null
+	sleep: MockSettings["sleep"] | null
+	summaries: MockSummary[]
 	events: MockEvent[]
 	sleep_events: MockSleepEvent[]
 	sounds: MockSound[]
 	activity: { at: string; level: number }[]
+}
+
+export type MockSummary = {
+	word_id: string
+	local_date: string
+	play_count: number
+	play_duration_ms: number
+	learning_duration_ms?: number
 }
 
 export type MockRecording = {
@@ -376,6 +387,9 @@ function buildSession(
 		settings_version: 1,
 		applied_settings_version: 1,
 		last_heartbeat_at: iso(running ? now - 4000 : end),
+		ends_at: null,
+		sleep: null,
+		summaries: [],
 		events: [],
 		sleep_events: [],
 		sounds: sounds(id, options.start, end, options.word, now),

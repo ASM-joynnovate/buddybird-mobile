@@ -5,6 +5,7 @@ import { heartbeatMutationOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
+import type { HeartbeatSummary } from "@/types/apis/sessions"
 import type { SleepSettings } from "@/types/apis/settings"
 
 type HeartbeatInput = {
@@ -12,6 +13,7 @@ type HeartbeatInput = {
 	appliedVersion: number
 	startedAt: string | null
 	sleep: SleepSettings | null
+	summaries(): HeartbeatSummary[]
 	onEnded(): void
 }
 
@@ -20,15 +22,16 @@ export function useHeartbeat({
 	appliedVersion,
 	startedAt,
 	sleep,
+	summaries,
 	onEnded,
 }: HeartbeatInput): void {
 	const { mutate } = useIdempotentMutation(heartbeatMutationOptions())
 
-	const latest = useRef({ appliedVersion, startedAt, sleep, onEnded })
+	const latest = useRef({ appliedVersion, startedAt, sleep, summaries, onEnded })
 
 	useEffect(() => {
-		latest.current = { appliedVersion, startedAt, sleep, onEnded }
-	}, [appliedVersion, startedAt, sleep, onEnded])
+		latest.current = { appliedVersion, startedAt, sleep, summaries, onEnded }
+	}, [appliedVersion, startedAt, sleep, summaries, onEnded])
 
 	useEffect(() => {
 		function beat() {
@@ -49,7 +52,7 @@ export function useHeartbeat({
 						phase_started_at: span ? new Date(span.start).toISOString() : null,
 						applied_settings_version: latest.current.appliedVersion,
 						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-						summaries: [],
+						summaries: latest.current.summaries(),
 					},
 				},
 				{

@@ -8,6 +8,7 @@ import {
 	finishSession,
 	sendHeartbeat,
 	startSession,
+	uploadSound,
 } from "@/apis/sessions"
 import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
@@ -73,6 +74,24 @@ export const finishSessionMutationOptions = () =>
 				apiKeys.reports.all(),
 			)
 		},
+	})
+
+export const uploadSoundMutationOptions = () =>
+	mutationOptions({
+		mutationKey: apiKeys.mutation("sessions", "sounds"),
+		mutationFn: ({
+			sessionId,
+			uri,
+			capturedAt,
+			idempotencyKey,
+		}: {
+			sessionId: string
+			uri: string
+			capturedAt: string
+			idempotencyKey: string
+		}) => uploadSound(sessionId, uri, capturedAt, idempotencyKey),
+		onSuccess: (_data, { sessionId }) =>
+			queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(sessionId) }),
 	})
 
 export const heartbeatMutationOptions = () =>

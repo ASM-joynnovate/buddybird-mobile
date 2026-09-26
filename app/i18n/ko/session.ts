@@ -40,6 +40,7 @@ export const session: SessionMessages = {
 		reveal: "화면을 누르면 세션 정보가 보여요",
 		elapsed: "세션 경과",
 		keepOpen: "학습이 끝날 때까지 앱을 닫지 마세요",
+		engineError: "소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.",
 	},
 	end: {
 		title: "세션 종료",

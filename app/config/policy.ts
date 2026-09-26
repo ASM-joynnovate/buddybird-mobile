@@ -11,6 +11,22 @@ export const STATION_SCREEN_IDLE_MS = 10 * SECOND
 export const DURATION_PRESETS = [40 * MINUTE, 80 * MINUTE, 4 * HOUR] as const
 export const MAX_SESSION_MS = 7 * DAY
 
+export const LEARNING_TICK_MS = SECOND
+export const WORD_REST_FACTOR = 3
+
+export const VAD = {
+	sampleRate: 16000,
+	frameMs: 100,
+	dbFloor: -60,
+	dbCeil: -10,
+	threshold: 0.35,
+	sustainMs: 300,
+	releaseMs: 500,
+	preRollMs: 500,
+	echoTailGuardMs: 200,
+	maxSegmentMs: 10000,
+} as const
+
 export const UPLOAD_POLL_INTERVAL_MS = SECOND
 export const RECORDING_MAX_SECONDS = 60
 

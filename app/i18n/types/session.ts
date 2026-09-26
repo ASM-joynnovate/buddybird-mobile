@@ -38,6 +38,7 @@ export type SessionMessages = {
 		reveal: string
 		elapsed: string
 		keepOpen: string
+		engineError: string
 	}
 	end: {
 		title: string
