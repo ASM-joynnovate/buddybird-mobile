@@ -7,18 +7,13 @@ export const phaseSchema = z.enum(["learning", "rest", "stress_care", "sleeping"
 
 const sessionStatusSchema = z.enum(["running", "finished"])
 
-const sessionSettingsSchema = z.object({
-	word_id: uuid.nullable(),
-	learning_enabled: z.boolean(),
-	version: z.number().int(),
-	applied_version: z.number().int(),
-})
+const sleepSchema = z.object({ sleep_at: z.string(), wake_at: z.string() })
 
 export const sessionSchema = z.object({
 	id: uuid,
 	status: sessionStatusSchema,
 	station: z.object({ device_id: uuid }),
-	settings: sessionSettingsSchema,
+	word_id: uuid.nullable(),
 	progress: z.object({
 		current_phase: phaseSchema.nullable(),
 		phase_started_at: timestamp.nullable(),
@@ -29,13 +24,15 @@ export const sessionSchema = z.object({
 		ended_at: timestamp.nullable(),
 		ended_by: z.enum(["user", "server"]).nullable(),
 	}),
+	ends_at: timestamp.nullable(),
+	sleep: sleepSchema,
+	judgment_status: z.enum(["pending", "done"]),
 })
 
 export const startSessionRequestSchema = z.object({
 	word_id: uuid.nullable().optional(),
-	learning_enabled: z.boolean(),
 	ends_at: timestamp.nullable().optional(),
-	sleep: z.object({ sleep_at: z.string(), wake_at: z.string() }).optional(),
+	sleep: sleepSchema.optional(),
 })
 
 export const changeWordRequestSchema = z.object({ word_id: uuid.nullable() })
@@ -45,7 +42,6 @@ export const changeLearningRequestSchema = z.object({ enabled: z.boolean() })
 export const heartbeatRequestSchema = z.object({
 	current_phase: phaseSchema.nullable(),
 	phase_started_at: timestamp.nullable(),
-	applied_settings_version: z.number().int().nonnegative(),
 	timezone: z.string().min(1).max(64),
 	summaries: z
 		.array(
@@ -61,7 +57,7 @@ export const heartbeatRequestSchema = z.object({
 })
 
 export const heartbeatSchema = z.object({
-	session: z.object({ status: sessionStatusSchema, settings: sessionSettingsSchema }),
+	session: z.object({ status: sessionStatusSchema }),
 	acknowledged: z.array(z.object({ word_id: uuid, local_date: localDate })),
 })
 

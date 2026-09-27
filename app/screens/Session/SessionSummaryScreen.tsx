@@ -53,20 +53,15 @@ export function SessionSummaryScreen() {
 			<ScreenError message={t("common.loadError")} onRetry={() => void session.refetch()} />
 		)
 	} else if (session.data) {
-		const { period, settings } = session.data
+		const { period, word_id: wordId } = session.data
 		const total = period.ended_at
 			? Date.parse(period.ended_at) - Date.parse(period.started_at)
 			: 0
-		const word = words.data?.find((item) => item.id === settings.word_id)
+		const word = words.data?.find((item) => item.id === wordId)
 
 		body = (
 			<Card contentStyle={styles.card}>
 				<Stat size="large" label={t("session.summary.word")} value={word?.name ?? ""} />
-				<Stat
-					size="large"
-					label={t("session.summary.learning")}
-					value={formatDuration(params.learningMs, locale)}
-				/>
 				<Stat
 					size="large"
 					label={t("session.summary.total")}

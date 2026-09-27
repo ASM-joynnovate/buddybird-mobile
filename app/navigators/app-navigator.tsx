@@ -170,12 +170,20 @@ export function AppNavigator() {
 							<Stack.Screen
 								name="SessionRun"
 								component={SessionRunScreen}
-								options={{ animation: "fade", gestureEnabled: false }}
+								options={{
+									animation: "fade",
+									gestureEnabled: false,
+									orientation: "default",
+								}}
 							/>
 							<Stack.Screen
 								name="SessionSummary"
 								component={SessionSummaryScreen}
-								options={{ animation: "fade", gestureEnabled: false }}
+								options={{
+									animation: "fade",
+									gestureEnabled: false,
+									orientation: "default",
+								}}
 							/>
 							<Stack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 							<Stack.Screen

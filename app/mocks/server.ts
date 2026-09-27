@@ -27,7 +27,7 @@ import {
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
 import { MAX_RECORDINGS } from "@/types/apis/words"
-import { HOUR } from "@/utils/units"
+import { HOUR, MINUTE } from "@/utils/units"
 
 const LATENCY_MS = 450
 const PROCESSING_DELAY_MS = 2500
@@ -57,6 +57,7 @@ function respond<T>(produce: () => T): Promise<T> {
 			let value: T
 
 			try {
+				finishEndedSessions()
 				value = produce()
 			} catch (error) {
 				reject(error)
@@ -191,12 +192,7 @@ function sessionDto(session: MockSession) {
 		id: session.id,
 		status: session.status,
 		station: { device_id: session.station_device_id },
-		settings: {
-			word_id: session.word_id,
-			learning_enabled: session.learning_enabled,
-			version: session.settings_version,
-			applied_version: session.applied_settings_version,
-		},
+		word_id: session.word_id,
 		progress: {
 			current_phase: span?.phase ?? null,
 			phase_started_at: span ? iso(span.start) : null,
@@ -210,6 +206,12 @@ function sessionDto(session: MockSession) {
 			ended_at: session.ended_at,
 			ended_by: session.ended_by,
 		},
+		ends_at: session.ends_at,
+		sleep: session.sleep ?? db.settings.sleep,
+		judgment_status:
+			running || (session.ended_at && now - Date.parse(session.ended_at) < MINUTE)
+				? "pending"
+				: "done",
 	}
 }
 
@@ -236,6 +238,15 @@ function finish(id: string, endedBy: "user" | "server") {
 	replaceSession(id, (session) => endSession(session, endedBy, sleepOf(session), now))
 }
 
+function finishEndedSessions() {
+	const now = Date.now()
+
+	db.sessions
+		.filter((session) => session.status === "running" && session.ends_at)
+		.filter((session) => Date.parse(session.ends_at ?? "") <= now)
+		.forEach((session) => finish(session.id, "server"))
+}
+
 function requireRunning(id: string) {
 	const session = find(db.sessions, id)
 
@@ -248,12 +259,6 @@ function requireRunning(id: string) {
 
 function allSounds() {
 	return db.sessions.flatMap((session) => session.sounds)
-}
-
-function parrotSounds() {
-	return allSounds()
-		.filter((sound) => sound.is_parrot_sound === true)
-		.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at))
 }
 
 function parseLocalDate(value: string) {
@@ -758,7 +763,6 @@ export const mockServer = {
 		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
 		start: (input: {
 			word_id?: string | null
-			learning_enabled: boolean
 			ends_at?: string | null
 			sleep?: MockSettings["sleep"]
 		}) =>
@@ -785,7 +789,7 @@ export const mockServer = {
 					ended_at: null,
 					ended_by: null,
 					word_id: wordId,
-					learning_enabled: input.learning_enabled,
+					learning_enabled: true,
 					station_device_id: db.currentDeviceId,
 					settings_version: 1,
 					applied_settings_version: 0,
@@ -810,25 +814,16 @@ export const mockServer = {
 
 				return sessionDto(find(db.sessions, id))
 			}),
-		heartbeat: (
-			id: string,
-			input: { applied_settings_version: number; summaries: MockSummary[] },
-		) =>
+		heartbeat: (id: string, input: { summaries: MockSummary[] }) =>
 			respond(() => {
 				requireRunning(id)
 				replaceSession(id, (current) => ({
 					...current,
-					applied_settings_version: input.applied_settings_version,
 					last_heartbeat_at: iso(Date.now()),
 					summaries: mergeSummaries(current.summaries, input.summaries),
 				}))
 
-				const session = sessionDto(find(db.sessions, id))
-
-				return {
-					session: { status: session.status, settings: session.settings },
-					acknowledged: [],
-				}
+				return { session: { status: find(db.sessions, id).status }, acknowledged: [] }
 			}),
 		addEvents: (
 			id: string,
@@ -918,10 +913,6 @@ export const mockServer = {
 					),
 				}))
 			}),
-	},
-	parrotSounds: {
-		list: (pageNumber: number) =>
-			respond(() => toPage(parrotSounds().map(soundDto), pageNumber)),
 	},
 	notifications: {
 		list: (pageNumber: number) =>

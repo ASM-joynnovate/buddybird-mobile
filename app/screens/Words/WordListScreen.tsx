@@ -36,7 +36,8 @@ export function WordListScreen(): ReactElement {
 
 	const [deleting, setDeleting] = useState<Word | null>(null)
 
-	const learningWordId = running.data?.settings.word_id ?? null
+	const learningWordId = running.data?.word_id ?? null
+
 	const addWord = () => navigation.navigate("WordEditor", {})
 
 	const addButton = <IconButton icon="plus" label={t("words.list.add")} onPress={addWord} />
@@ -50,6 +51,7 @@ export function WordListScreen(): ReactElement {
 			action={{ label: t("words.list.add"), onPress: addWord }}
 		/>
 	)
+
 	let body: ReactElement
 
 	if (words.isPending) {

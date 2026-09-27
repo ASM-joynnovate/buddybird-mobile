@@ -10,7 +10,6 @@ import type { SleepSettings } from "@/types/apis/settings"
 
 type HeartbeatInput = {
 	sessionId: string
-	appliedVersion: number
 	startedAt: string | null
 	sleep: SleepSettings | null
 	summaries(): HeartbeatSummary[]
@@ -19,7 +18,6 @@ type HeartbeatInput = {
 
 export function useHeartbeat({
 	sessionId,
-	appliedVersion,
 	startedAt,
 	sleep,
 	summaries,
@@ -27,11 +25,11 @@ export function useHeartbeat({
 }: HeartbeatInput): void {
 	const { mutate } = useIdempotentMutation(heartbeatMutationOptions())
 
-	const latest = useRef({ appliedVersion, startedAt, sleep, summaries, onEnded })
+	const latest = useRef({ startedAt, sleep, summaries, onEnded })
 
 	useEffect(() => {
-		latest.current = { appliedVersion, startedAt, sleep, summaries, onEnded }
-	}, [appliedVersion, startedAt, sleep, summaries, onEnded])
+		latest.current = { startedAt, sleep, summaries, onEnded }
+	}, [startedAt, sleep, summaries, onEnded])
 
 	useEffect(() => {
 		function beat() {
@@ -50,7 +48,6 @@ export function useHeartbeat({
 					input: {
 						current_phase: span?.phase ?? null,
 						phase_started_at: span ? new Date(span.start).toISOString() : null,
-						applied_settings_version: latest.current.appliedVersion,
 						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 						summaries: latest.current.summaries(),
 					},

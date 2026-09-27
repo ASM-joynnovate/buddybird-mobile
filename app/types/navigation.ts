@@ -49,7 +49,7 @@ export type RootStackParamList = {
 	Main: NavigatorScreenParams<MainTabParamList> | undefined
 	NoticeDetail: { noticeId: string }
 	SessionRun: { sessionId: string; wordId: string; endsAt: number | null; sleep: SessionSleep }
-	SessionSummary: { sessionId: string; learningMs: number }
+	SessionSummary: { sessionId: string }
 	RecordingGuide: { source: "add" | "help"; wordName: string }
 	Recorder: { wordName: string }
 	Settings: undefined

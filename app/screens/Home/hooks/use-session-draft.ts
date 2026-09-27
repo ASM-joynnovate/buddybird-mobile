@@ -20,6 +20,7 @@ export type SessionDraftState = {
 	selectWord(id: string): void
 	setDurationMs(durationMs: number | null): void
 	setSleep(sleep: SleepSettings): void
+	resetDraft(): void
 }
 
 export function useSessionDraft(): SessionDraftState {
@@ -49,5 +50,10 @@ export function useSessionDraft(): SessionDraftState {
 		selectWord: setWordId,
 		setDurationMs,
 		setSleep,
+		resetDraft: () => {
+			setWordId(null)
+			setDurationMs(null)
+			setSleep(null)
+		},
 	}
 }

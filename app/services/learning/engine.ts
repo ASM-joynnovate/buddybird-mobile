@@ -54,6 +54,8 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	let phase: Phase | null = null
 	let clip: AudioBufferSourceNode | null = null
 	let care: AudioBufferSourceNode | null = null
+	let chosenCare: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null
+	let careStartedAt = 0
 	let nextClip = 0
 	let nextPlayAt = 0
 	let lastTick = 0
@@ -94,6 +96,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		const playing = clip
 
 		clip = null
+
 		playing?.stop()
 	}
 
@@ -101,6 +104,16 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		const playing = care
 
 		care = null
+
+		if (playing && context && chosenCare) {
+			chosenCare = {
+				...chosenCare,
+				offset:
+					(chosenCare.offset + context.currentTime - careStartedAt) %
+					chosenCare.buffer.duration,
+			}
+		}
+
 		playing?.stop()
 	}
 
@@ -131,19 +144,31 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		nextPlayAt = Number.POSITIVE_INFINITY
 
 		detector.suspend(now + durationMs + VAD.echoTailGuardMs)
+
 		count("play_count", 1, now)
 		count("play_duration_ms", durationMs, now)
 	}
 
-	async function playCare() {
+	async function playCare(span: PhaseSpan) {
 		const owner = context
-		const track = careTracks[Math.floor(Math.random() * careTracks.length)]
 
-		if (!owner || !track) {
+		if (!owner) {
 			return
 		}
 
-		const buffer = await owner.decodeAudioData(track)
+		if (chosenCare?.spanStart !== span.start) {
+			const track = careTracks[Math.floor(Math.random() * careTracks.length)]
+
+			if (!track) {
+				return
+			}
+
+			chosenCare = {
+				spanStart: span.start,
+				buffer: await owner.decodeAudioData(track),
+				offset: 0,
+			}
+		}
 
 		if (context !== owner || phase !== "stress_care" || !running || care) {
 			return
@@ -151,16 +176,18 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 		const source = owner.createBufferSource()
 
-		source.buffer = buffer
+		source.buffer = chosenCare.buffer
 		source.loop = true
 		source.connect(owner.destination)
-		source.start()
+		source.start(0, chosenCare.offset)
 
 		care = source
+		careStartedAt = owner.currentTime
 	}
 
 	function enter(span: PhaseSpan) {
 		emit(detector.flush())
+
 		stopClip()
 		stopCare()
 
@@ -170,7 +197,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		if (span.phase === "stress_care") {
 			detector.suspend(span.end + VAD.echoTailGuardMs)
 
-			playCare().catch(options.onError)
+			playCare(span).catch(options.onError)
 		}
 	}
 
@@ -251,6 +278,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		}
 
 		emit(detector.flush())
+
 		stopClip()
 		stopCare()
 
@@ -264,7 +292,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			AudioManager.setAudioSessionOptions({
 				iosCategory: "playAndRecord",
 				iosMode: "default",
-				iosOptions: ["defaultToSpeaker", "allowBluetoothHFP"],
+				iosOptions: ["defaultToSpeaker"],
 			})
 			await AudioManager.setAudioSessionActivity(true)
 

@@ -34,8 +34,7 @@ export function useSessionRecord(sessionId: string): {
 			? {
 					session: session.data,
 					wordName:
-						words.data?.find((word) => word.id === session.data.settings.word_id)
-							?.name ?? null,
+						words.data?.find((word) => word.id === session.data.word_id)?.name ?? null,
 					sleep: settings.data.sleep,
 					playCount: plays.data.play_count,
 					mimicryCount: timeline.sounds.filter((sound) => sound.judgment?.word_id).length,

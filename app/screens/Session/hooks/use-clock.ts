@@ -1,10 +1,9 @@
 import type { TFunction } from "i18next"
 import { useEffect, useState } from "react"
 
-import { formatClock, formatTimer } from "@/i18n/format"
+import { formatTimer } from "@/i18n/format"
 import { currentSpan, type Phase } from "@/services/session/phases"
 import type { SleepSettings } from "@/types/apis/settings"
-import type { Locale } from "@/types/locale"
 import { SECOND } from "@/utils/units"
 
 export function useNow(enabled = true, intervalMs = SECOND): number {
@@ -25,31 +24,30 @@ export function useNow(enabled = true, intervalMs = SECOND): number {
 	return now
 }
 
-export type PhaseStatus = { phase: Phase; remainingMs: number; fraction: number }
+export type RunStatus = { phase: Phase; remainingMs: number | null; fraction: number | null }
 
-export function phaseStatus(startedAt: string, sleep: SleepSettings, now: number): PhaseStatus {
-	const span = currentSpan(Date.parse(startedAt), now, {
-		sleepAt: sleep.sleep_at,
-		wakeAt: sleep.wake_at,
-	})
-	const total = span.end - span.start
+export function runStatus(
+	startedAt: string,
+	endsAt: number | null,
+	sleep: SleepSettings,
+	now: number,
+): RunStatus {
+	const started = Date.parse(startedAt)
+	const span = currentSpan(started, now, { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at })
+
+	if (endsAt === null) {
+		return { phase: span.phase, remainingMs: null, fraction: null }
+	}
 
 	return {
 		phase: span.phase,
-		remainingMs: span.end - now,
-		fraction: total > 0 ? (span.end - now) / total : 0,
+		remainingMs: endsAt - now,
+		fraction: (now - started) / (endsAt - started),
 	}
 }
 
-export function remainingText(
-	status: PhaseStatus,
-	wakeAt: string,
-	t: TFunction,
-	locale: Locale,
-): string {
-	const left = formatTimer(status.remainingMs)
-
-	return status.phase === "sleeping"
-		? t("session.untilWake", { time: formatClock(wakeAt, locale), left })
-		: t("session.remaining", { left })
+export function remainingText(status: RunStatus, t: TFunction): string | null {
+	return status.remainingMs === null
+		? null
+		: t("session.remaining", { left: formatTimer(status.remainingMs) })
 }

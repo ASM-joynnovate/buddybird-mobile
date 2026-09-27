@@ -1,5 +1,6 @@
 import { durationText } from "@/i18n/duration"
 import type { Locale } from "@/types/locale"
+import { DAY } from "@/utils/units"
 
 type Moment = string | number | Date
 
@@ -64,6 +65,19 @@ export function formatDuration(ms: number, locale: Locale): string {
 	return minutes < 1
 		? durationText(Math.round(ms / 1000), locale)
 		: durationText(minutes * 60, locale)
+}
+
+export function formatDurationWithDays(ms: number, locale: Locale): string {
+	const days = Math.floor(ms / DAY)
+	const remainderMs = ms % DAY
+
+	if (days === 0) {
+		return formatDuration(ms, locale)
+	}
+
+	const dayText = `${days}${locale === "ko-KR" ? "일" : "d"}`
+
+	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`
 }
 
 export function formatTimer(ms: number): string {

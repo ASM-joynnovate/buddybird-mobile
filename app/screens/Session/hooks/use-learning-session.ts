@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { AppState } from "react-native"
 
@@ -8,10 +8,11 @@ import {
 	uploadSoundMutationOptions,
 } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { wordsQueryOptions } from "@/hooks/apis/words"
+import { wordQueryOptions } from "@/hooks/apis/words"
 import { useHeartbeat } from "@/screens/Session/hooks/use-heartbeat"
 import { createLearningEngine, type LearningEngine } from "@/services/learning/engine"
 import { reportError, track } from "@/services/telemetry/client"
+import { ApiError } from "@/types/apis/common"
 import type { RootStackParamList } from "@/types/navigation"
 
 type EndReason = "completed" | "user" | "server"
@@ -20,24 +21,23 @@ export type LearningSession = {
 	startedAt: string | null
 	failed: boolean
 	ending: boolean
-	endFailed: boolean
 	end(): void
 }
 
 export function useLearningSession(
 	{ sessionId, wordId, endsAt, sleep }: RootStackParamList["SessionRun"],
-	onFinished: (learningMs: number) => void,
+	onFinished: () => void,
 ): LearningSession {
-	const running = useQuery(runningSessionQueryOptions())
-	const words = useQuery(wordsQueryOptions())
+	const queryClient = useQueryClient()
 
-	const { mutateAsync: upload } = useMutation(uploadSoundMutationOptions())
-	const finishing = useIdempotentMutation(finishSessionMutationOptions())
+	const running = useQuery(runningSessionQueryOptions())
+
+	const { mutateAsync: upload } = useIdempotentMutation(uploadSoundMutationOptions())
+	const { mutateAsync: finish } = useIdempotentMutation(finishSessionMutationOptions())
 
 	const engine = useRef<LearningEngine | null>(null)
 	const uploads = useRef<Promise<unknown>[]>([])
 	const closing = useRef(false)
-	const learned = useRef<number | null>(null)
 	const finished = useRef(onFinished)
 
 	const [failed, setFailed] = useState(false)
@@ -45,11 +45,6 @@ export function useLearningSession(
 
 	const session = running.data?.id === sessionId ? running.data : null
 	const startedAt = session?.period.started_at ?? null
-	const recordingKey =
-		words.data
-			?.find((word) => word.id === wordId)
-			?.recordings.map((item) => item.url)
-			.join("|") ?? ""
 
 	useEffect(() => {
 		finished.current = onFinished
@@ -62,51 +57,47 @@ export function useLearningSession(
 			}
 
 			closing.current = true
+
 			setEnding(true)
 
+			const learningMs = engine.current?.learningMs() ?? 0
+
 			try {
-				learned.current ??= engine.current?.learningMs() ?? 0
-
-				const learningMs = learned.current
-
 				await engine.current?.stop()
 				engine.current = null
 
 				await Promise.allSettled(uploads.current)
 
 				if (reason !== "server") {
-					await finishing.mutateAsync({ id: sessionId })
+					await finish({ id: sessionId })
 				}
-
-				if (reason === "completed" || (reason === "user" && endsAt === null)) {
-					track("learning_completed", {
-						session_id: sessionId,
-						learning_duration_ms: learningMs,
-						total_duration_ms: startedAt ? Date.now() - Date.parse(startedAt) : 0,
-					})
-				} else {
-					track("learning_aborted", {
-						session_id: sessionId,
-						learning_duration_ms: learningMs,
-						reason,
-					})
-				}
-
-				finished.current(learningMs)
 			} catch (error) {
-				closing.current = false
-
-				reportError(error, "learning_end")
-			} finally {
-				setEnding(false)
+				if (!(error instanceof ApiError && error.code === "SESSION__NOT_RUNNING")) {
+					reportError(error, "learning_end")
+				}
 			}
+
+			if (reason === "completed" || (reason === "user" && endsAt === null)) {
+				track("learning_completed", {
+					session_id: sessionId,
+					learning_duration_ms: learningMs,
+					total_duration_ms: startedAt ? Date.now() - Date.parse(startedAt) : 0,
+				})
+			} else {
+				track("learning_aborted", {
+					session_id: sessionId,
+					learning_duration_ms: learningMs,
+					reason,
+				})
+			}
+
+			finished.current()
 		},
-		[endsAt, finishing, sessionId, startedAt],
+		[endsAt, finish, sessionId, startedAt],
 	)
 
 	useHeartbeat({
 		sessionId,
-		appliedVersion: session?.settings.version ?? 1,
 		startedAt,
 		sleep,
 		summaries: () => engine.current?.summaries() ?? [],
@@ -114,38 +105,38 @@ export function useLearningSession(
 	})
 
 	useEffect(() => {
-		const urls = recordingKey ? recordingKey.split("|") : []
-
-		if (!startedAt || urls.length === 0) {
+		if (!startedAt) {
 			return
 		}
 
-		const created = createLearningEngine({
-			wordId,
-			recordingUrls: urls,
-			startedAt: Date.parse(startedAt),
-			sleep: { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at },
-			onSound: (sound) => {
-				const pending: Promise<unknown> = upload({
-					sessionId,
-					uri: sound.uri,
-					capturedAt: sound.capturedAt,
-					idempotencyKey: sound.uri,
+		let queue = queryClient
+			.query({ ...wordQueryOptions(wordId), staleTime: 0 })
+			.then((word) => {
+				const created = createLearningEngine({
+					wordId,
+					recordingUrls: word.recordings.map((item) => item.url),
+					startedAt: Date.parse(startedAt),
+					sleep: { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at },
+					onSound: (sound) => {
+						const pending: Promise<unknown> = upload({
+							sessionId,
+							uri: sound.uri,
+							capturedAt: sound.capturedAt,
+						})
+							.catch((error: unknown) => reportError(error, "session_sound_upload"))
+							.finally(() => {
+								uploads.current = uploads.current.filter((item) => item !== pending)
+							})
+
+						uploads.current = [...uploads.current, pending]
+					},
+					onError: (error) => reportError(error, "learning_engine"),
 				})
-					.catch((error: unknown) => reportError(error, "session_sound_upload"))
-					.finally(() => {
-						uploads.current = uploads.current.filter((item) => item !== pending)
-					})
 
-				uploads.current = [...uploads.current, pending]
-			},
-			onError: (error) => reportError(error, "learning_engine"),
-		})
+				engine.current = created
 
-		engine.current = created
-
-		let queue = created
-			.start()
+				return created.start()
+			})
 			.then(() =>
 				track("learning_started", {
 					session_id: sessionId,
@@ -155,6 +146,7 @@ export function useLearningSession(
 			)
 			.catch((error: unknown) => {
 				reportError(error, "learning_start")
+
 				track("learning_aborted", {
 					session_id: sessionId,
 					learning_duration_ms: 0,
@@ -164,26 +156,28 @@ export function useLearningSession(
 				setFailed(true)
 			})
 
-		const run = (step: () => Promise<void>) => {
+		const run = (step: () => Promise<void> | undefined) => {
 			queue = queue
 				.then(step)
 				.catch((error: unknown) => reportError(error, "learning_engine"))
 		}
 
 		const lifecycle = AppState.addEventListener("change", (state) => {
-			run(() => (state === "active" ? created.resume() : created.pause()))
+			run(() => (state === "active" ? engine.current?.resume() : engine.current?.pause()))
 		})
 
 		return () => {
 			lifecycle.remove()
 
-			if (engine.current === created) {
+			run(() => {
+				const current = engine.current
+
 				engine.current = null
 
-				run(() => created.stop())
-			}
+				return current?.stop()
+			})
 		}
-	}, [endsAt, recordingKey, sessionId, sleep, startedAt, upload, wordId])
+	}, [endsAt, queryClient, sessionId, sleep, startedAt, upload, wordId])
 
 	useEffect(() => {
 		if (endsAt === null) {
@@ -199,7 +193,6 @@ export function useLearningSession(
 		startedAt,
 		failed,
 		ending,
-		endFailed: finishing.isError,
 		end: () => void close("user"),
 	}
 }

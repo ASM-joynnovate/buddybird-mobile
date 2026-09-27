@@ -35,7 +35,6 @@ export function useStartSession(
 			{
 				input: {
 					word_id: draft.wordId,
-					learning_enabled: true,
 					ends_at: endsAt === null ? null : new Date(endsAt).toISOString(),
 					sleep: draft.sleep,
 				},
@@ -87,6 +86,7 @@ export function useStartSession(
 		retry: () => {
 			if (pending) {
 				finishing.reset()
+
 				start(pending)
 			}
 		},

@@ -24,10 +24,11 @@ export function SessionRunScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const { params } = useRoute<RouteProp<RootStackParamList, "SessionRun">>()
-	const { sessionId, sleep } = params
+
+	const { sessionId, endsAt, sleep } = params
 
 	const showSummary = useCallback(
-		(learningMs: number) => navigation.replace("SessionSummary", { sessionId, learningMs }),
+		() => navigation.replace("SessionSummary", { sessionId }),
 		[navigation, sessionId],
 	)
 
@@ -40,10 +41,8 @@ export function SessionRunScreen() {
 
 	const [ending, setEnding] = useState(false)
 
-	const startedAt = learning.startedAt
-
 	useEffect(() => {
-		opacity.set(withTiming(idle.visible ? 1 : 0, { duration: FADE_MS }))
+		opacity.set(idle.visible ? 1 : withTiming(0, { duration: FADE_MS }))
 	}, [idle.visible, opacity])
 
 	useEffect(() => {
@@ -71,9 +70,10 @@ export function SessionRunScreen() {
 				style={[styles.fill, fade]}
 				pointerEvents={idle.visible ? "box-none" : "none"}
 			>
-				{startedAt ? (
+				{learning.startedAt ? (
 					<RunInfo
-						startedAt={startedAt}
+						startedAt={learning.startedAt}
+						endsAt={endsAt}
 						sleep={sleep}
 						failed={learning.failed}
 						onEnd={() => setEnding(true)}
@@ -87,10 +87,7 @@ export function SessionRunScreen() {
 					confirm: t("session.end.confirm"),
 					cancel: t("session.end.keep"),
 				}}
-				state={{
-					busy: learning.ending,
-					error: learning.endFailed ? t("session.end.error") : null,
-				}}
+				state={{ busy: learning.ending }}
 				onConfirm={learning.end}
 				onClose={() => setEnding(false)}
 			/>

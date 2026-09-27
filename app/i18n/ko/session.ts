@@ -2,7 +2,6 @@ import type { SessionMessages } from "@/i18n/types/session"
 
 export const session: SessionMessages = {
 	remaining: "{{left}} 남음",
-	untilWake: "{{time}} 기상까지 {{left}}",
 	takeover: {
 		title: "이 기기에서 시작할까요?",
 		message: "다른 기기에서 실행 중인 세션을 끝내고 이 기기에서 새로 시작해요.",
@@ -39,7 +38,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: "화면을 누르면 세션 정보가 보여요",
 		elapsed: "세션 경과",
-		keepOpen: "학습이 끝날 때까지 앱을 닫지 마세요",
+		keepOpen: "학습이 끝날 때까지 앱을 켜 두고 화면을 끄지 마세요",
 		engineError: "소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.",
 	},
 	end: {
@@ -51,7 +50,6 @@ export const session: SessionMessages = {
 	},
 	summary: {
 		word: "단어",
-		learning: "학습 시간",
 		total: "전체 시간",
 		detail: "이 학습 기록 보기",
 	},

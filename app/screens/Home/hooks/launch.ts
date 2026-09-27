@@ -1,1 +1,1 @@
-export const launch = { stationChecked: false, noticesShown: false }
+export const launch = { noticesShown: false }

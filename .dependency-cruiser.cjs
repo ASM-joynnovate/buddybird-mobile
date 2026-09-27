@@ -60,7 +60,7 @@ module.exports = {
       from: { path: "^app/screens/" },
       to: { path: "^app/apis/" },
     },
-    layer("i18n", "^app/i18n/", "^app/(i18n|types)/"),
+    layer("i18n", "^app/i18n/", "^app/((i18n|types)/|utils/units\\.ts$)"),
     layer("theme", "^app/theme/", "^app/(theme|types)/"),
     {
       name: "mmkv-only-in-storage-adapters",

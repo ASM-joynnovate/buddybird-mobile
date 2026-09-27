@@ -21,18 +21,18 @@ import { Card } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { TextButton } from "@/components/ui/text-button"
 import { SCREEN_REFRESH_MS } from "@/config"
+import { devicesQueryOptions } from "@/hooks/apis/devices"
 import { homeSummaryQueryOptions } from "@/hooks/apis/home"
 import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { useDevices } from "@/hooks/use-devices"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { formatClock, formatDuration } from "@/i18n/format"
+import { formatClock, formatDurationWithDays } from "@/i18n/format"
 import { NoticePopup } from "@/screens/Home/components/notice-popup"
 import { useNoticePopup } from "@/screens/Home/hooks/use-notice-popup"
 import { useSessionDraft } from "@/screens/Home/hooks/use-session-draft"
-import { useStaleStationCleanup } from "@/screens/Home/hooks/use-stale-station-cleanup"
 import { useStartSession } from "@/screens/Home/hooks/use-start-session"
+import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { font } from "@/theme"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
@@ -49,12 +49,13 @@ export function HomeScreen() {
 	const focused = useIsFocused()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
+	const clientDeviceId = useAccountStore((state) => state.clientDeviceId)
 
 	const summary = useQuery({
 		...homeSummaryQueryOptions(),
 		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
 	})
-	const { devices } = useDevices()
+	const devices = useQuery(devicesQueryOptions())
 
 	const finishing = useIdempotentMutation(finishSessionMutationOptions())
 
@@ -66,21 +67,20 @@ export function HomeScreen() {
 
 	const player = useSoundPlayer()
 
-	const starter = useStartSession((sessionId, draft, endsAt) =>
+	const starter = useStartSession((sessionId, draft, endsAt) => {
+		session.resetDraft()
+
 		navigation.navigate("SessionRun", {
 			sessionId,
 			wordId: draft.wordId,
 			endsAt,
 			sleep: draft.sleep,
-		}),
-	)
-
-	useStaleStationCleanup()
+		})
+	})
 
 	const running = summary.data?.running_session ?? null
-	const runningElsewhere =
-		running !== null &&
-		devices?.some((device) => device.isRunningSession && !device.isThisDevice)
+	const station = devices.data?.find((device) => device.id === running?.station.device_id)
+	const runningElsewhere = station !== undefined && station.client_device_id !== clientDeviceId
 	const unread = summary.data?.unread_notification_count ?? 0
 
 	function start() {
@@ -194,7 +194,7 @@ export function HomeScreen() {
 								value:
 									session.durationMs === null
 										? t("session.start.untilEnd")
-										: formatDuration(session.durationMs, locale),
+										: formatDurationWithDays(session.durationMs, locale),
 							}}
 							sheet={{ title: t("session.start.duration") }}
 						>

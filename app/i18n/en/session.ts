@@ -2,7 +2,6 @@ import type { SessionMessages } from "@/i18n/types/session"
 
 export const session: SessionMessages = {
 	remaining: "{{left}} left",
-	untilWake: "{{left}} until wake at {{time}}",
 	takeover: {
 		title: "Start on this device?",
 		message: "The session on your other device will end and a new one starts here.",
@@ -39,7 +38,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: "Tap the screen to see session info",
 		elapsed: "Session time",
-		keepOpen: "Keep this app open until learning ends",
+		keepOpen: "Keep the app open and the screen on until learning ends",
 		engineError: "Couldn't play the word. End this session and start again.",
 	},
 	end: {
@@ -51,7 +50,6 @@ export const session: SessionMessages = {
 	},
 	summary: {
 		word: "Word",
-		learning: "Learning time",
 		total: "Total time",
 		detail: "View this session",
 	},

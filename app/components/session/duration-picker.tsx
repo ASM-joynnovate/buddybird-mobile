@@ -45,15 +45,25 @@ export function DurationPicker({ value, onChange }: Props) {
 	return (
 		<View style={styles.picker}>
 			<GroupedList>
-				{DURATION_PRESETS.map((preset, index) => (
+				<RadioRow
+					first
+					label={t("session.start.untilEnd")}
+					selected={!custom && value === null}
+					onPress={() => {
+						setCustom(false)
+
+						onChange(null)
+					}}
+				/>
+				{DURATION_PRESETS.map((preset) => (
 					<RadioRow
 						key={preset}
-						first={index === 0}
 						label={formatDuration(preset, locale)}
 						selected={!custom && value === preset}
 						onPress={() => {
 							setCustom(false)
-							onChange(!custom && value === preset ? null : preset)
+
+							onChange(preset)
 						}}
 					/>
 				))}

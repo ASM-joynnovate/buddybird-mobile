@@ -1,6 +1,5 @@
 export type SessionMessages = {
 	remaining: string
-	untilWake: string
 	takeover: {
 		title: string
 		message: string
@@ -49,7 +48,6 @@ export type SessionMessages = {
 	}
 	summary: {
 		word: string
-		learning: string
 		total: string
 		detail: string
 	}

@@ -6,8 +6,7 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
-import { phaseStatus, remainingText, useNow } from "@/screens/Session/hooks/use-clock"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { remainingText, runStatus, useNow } from "@/screens/Session/hooks/use-clock"
 import { font, radius } from "@/theme"
 import { night } from "@/theme/night"
 import type { SessionSleep } from "@/types/navigation"
@@ -16,21 +15,20 @@ const RING_MAX = 460
 
 interface Props {
 	startedAt: string
+	endsAt: number | null
 	sleep: SessionSleep
 	failed: boolean
 	onEnd(): void
 }
 
-export function RunInfo({ startedAt, sleep, failed, onEnd }: Props) {
+export function RunInfo({ startedAt, endsAt, sleep, failed, onEnd }: Props) {
 	const { t } = useTranslation()
-
-	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const { width } = useWindowDimensions()
 
 	const now = useNow()
 
-	const status = phaseStatus(startedAt, sleep, now)
+	const status = runStatus(startedAt, endsAt, sleep, now)
 
 	return (
 		<SafeAreaView style={styles.info} edges={["top", "bottom", "left", "right"]}>
@@ -46,7 +44,7 @@ export function RunInfo({ startedAt, sleep, failed, onEnd }: Props) {
 					phase={status.phase}
 					fraction={status.fraction}
 					title={t(`common.phases.${status.phase}`)}
-					detail={remainingText(status, sleep.wake_at, t, locale)}
+					detail={remainingText(status, t)}
 				/>
 				<PressableSurface
 					depth={2}

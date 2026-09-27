@@ -12,9 +12,9 @@ const STROKE = 16
 interface Props {
 	width: number
 	phase: Phase
-	fraction: number
+	fraction: number | null
 	title: string
-	detail: string
+	detail: string | null
 }
 
 export function HorizonRing({ width, phase, fraction, title, detail }: Props) {
@@ -22,7 +22,7 @@ export function HorizonRing({ width, phase, fraction, title, detail }: Props) {
 	const baseline = radius + STROKE / 2
 	const arc = `M ${STROKE / 2} ${baseline} A ${radius} ${radius} 0 0 1 ${width - STROKE / 2} ${baseline}`
 	const length = Math.PI * radius
-	const shown = Math.max(0, Math.min(1, fraction)) * length
+	const shown = Math.max(0, Math.min(1, fraction ?? 0)) * length
 
 	return (
 		<View
@@ -38,18 +38,20 @@ export function HorizonRing({ width, phase, fraction, title, detail }: Props) {
 					strokeWidth={STROKE}
 					strokeLinecap="round"
 				/>
-				<Path
-					d={arc}
-					fill="none"
-					stroke={nightPhaseColor(phase)}
-					strokeWidth={STROKE}
-					strokeLinecap="round"
-					strokeDasharray={`${shown} ${length}`}
-				/>
+				{fraction === null ? null : (
+					<Path
+						d={arc}
+						fill="none"
+						stroke={nightPhaseColor(phase)}
+						strokeWidth={STROKE}
+						strokeLinecap="round"
+						strokeDasharray={`${shown} ${length}`}
+					/>
+				)}
 			</Svg>
 			<View style={styles.center}>
 				<Copy style={styles.title}>{title}</Copy>
-				<Copy style={styles.detail}>{detail}</Copy>
+				{detail === null ? null : <Copy style={styles.detail}>{detail}</Copy>}
 			</View>
 		</View>
 	)
