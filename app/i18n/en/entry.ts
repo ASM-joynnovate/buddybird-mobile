@@ -26,21 +26,21 @@ export const entry: EntryMessages = {
 		photoError: "We couldn't load the photo. Please choose it again.",
 	},
 	usage: {
-		words: {
+		record: {
 			title: "Record the words to teach your parrot in your own voice",
 			scene: "a person recording a word into a microphone with Buddy",
 		},
-		login: {
-			title: "Get a spare phone and sign in with the same account",
-			scene: "two phones signed in to the same account",
+		place: {
+			title: "Place your phone by the cage and press Start to play words to your parrot",
+			scene: "a phone standing by the cage",
 		},
-		station: {
-			title: "Place that phone by the cage and press Start to play words to your parrot",
-			scene: "a phone standing sideways by the cage",
+		keepOn: {
+			title: "Keep the app open and the screen on while learning",
+			scene: "a phone by the cage with its screen on",
 		},
-		viewer: {
-			title: "When you're out, watch your parrot and get alerts on your own phone",
-			scene: "a person checking the parrot on a phone while away",
+		report: {
+			title: "Check your learning time and records in Report",
+			scene: "a person viewing the learning report on a phone",
 		},
 	},
 	permissions: {

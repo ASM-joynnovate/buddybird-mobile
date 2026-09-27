@@ -23,6 +23,7 @@ type DeviceSettingsActions = {
 	countFeedbackDay: (date?: string) => void
 	consumeFeedbackPrompt: () => void
 	setGuideSeen: (guide: Guide, seen: boolean) => void
+	setOnboardingCompleted: (completed: boolean) => void
 	importLegacySettings: (settings: LegacySettings) => void
 	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void
 }
@@ -49,7 +50,8 @@ function defaultDeviceSettings(): DeviceSettings {
 		analyticsConsent: "unknown",
 		update: { dismissedVersion: null },
 		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
-		guides: { usage: false, recording: false },
+		guides: { recording: false },
+		onboardingCompleted: false,
 		legacyMigration: initialLegacyMigration,
 	}
 }
@@ -107,6 +109,10 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				set((state) => ({ ...state, guides: { ...state.guides, [guide]: seen } }))
 			},
 
+			setOnboardingCompleted: (onboardingCompleted) => {
+				set((state) => ({ ...state, onboardingCompleted }))
+			},
+
 			importLegacySettings: (settings) => {
 				set((state) => ({
 					...state,
@@ -130,6 +136,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				update,
 				feedback,
 				guides,
+				onboardingCompleted,
 				legacyMigration,
 			}) => ({
 				locale,
@@ -137,6 +144,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				update,
 				feedback,
 				guides,
+				onboardingCompleted,
 				legacyMigration,
 			}),
 

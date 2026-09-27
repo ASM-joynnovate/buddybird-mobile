@@ -373,58 +373,6 @@ function activate(userId: string | null) {
 	}
 }
 
-function mergeInto(target: Database, source: Database): Database {
-	const now = Date.now()
-	const targetRunning = target.sessions.some((session) => session.status === "running")
-	const sameWord = (word: MockWord) =>
-		target.words.find(
-			(item) =>
-				item.name === word.name && item.recordings[0]?.url === word.recordings[0]?.url,
-		)
-	const sameDevice = (device: MockDevice) =>
-		target.devices.find((item) => item.client_device_id === device.client_device_id)
-	const wordIds = new Map(source.words.map((word) => [word.id, sameWord(word)?.id ?? word.id]))
-	const deviceIds = new Map(
-		source.devices.map((device) => [device.id, sameDevice(device)?.id ?? device.id]),
-	)
-	const movedSessions = source.sessions.map((session) => {
-		const moved = {
-			...session,
-			word_id: session.word_id ? (wordIds.get(session.word_id) ?? null) : null,
-			station_device_id:
-				deviceIds.get(session.station_device_id) ?? session.station_device_id,
-		}
-
-		return targetRunning && moved.status === "running"
-			? endSession(moved, "server", sleepWindowOf(source.settings), now)
-			: moved
-	})
-
-	return {
-		...target,
-		user: {
-			...target.user,
-			nickname: target.user.nickname ?? source.user.nickname,
-			photo: target.user.photo ?? source.user.photo,
-		},
-		consents: target.consents.map((consent) =>
-			consent.status === null
-				? {
-						...consent,
-						status:
-							source.consents.find((item) => item.kind === consent.kind)?.status ??
-							null,
-					}
-				: consent,
-		),
-		parrots: [...target.parrots, ...source.parrots],
-		words: [...target.words, ...source.words.filter((word) => !sameWord(word))],
-		devices: [...target.devices, ...source.devices.filter((device) => !sameDevice(device))],
-		sessions: [...target.sessions, ...movedSessions],
-		notifications: [...target.notifications, ...source.notifications],
-	}
-}
-
 const APP_UPDATE = {
 	latest_version: "1.2.0",
 	min_supported_version: "1.0.0",
@@ -505,32 +453,6 @@ export const mockServer = {
 				activate(user.id)
 
 				return { user_id: account.user.id, is_new_user: existing === undefined }
-			}),
-		merge: (anonymousAccessToken: string) =>
-			respond(() => {
-				const user = requireAuthUser()
-				const sourceId = anonymousAccessToken.startsWith(TOKEN_PREFIX)
-					? anonymousAccessToken.slice(TOKEN_PREFIX.length)
-					: null
-				const source = authUsers.find((item) => item.id === sourceId)
-				const sourceAccount = source ? accounts.get(source.id) : undefined
-				const targetAccount = accounts.get(user.id)
-
-				if (
-					!source?.is_anonymous ||
-					!sourceAccount ||
-					!targetAccount ||
-					user.is_anonymous
-				) {
-					throw new ApiError(400, "AUTH__INVALID_MERGE_SOURCE", "Invalid merge source")
-				}
-
-				const merged = mergeInto(targetAccount, sourceAccount)
-
-				accounts.set(user.id, merged)
-				accounts.delete(source.id)
-				authUsers = authUsers.filter((item) => item.id !== source.id)
-				db = merged
 			}),
 		withdraw: () =>
 			respond(() => {

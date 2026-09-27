@@ -2,9 +2,8 @@ import * as AppleAuthentication from "expo-apple-authentication"
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from "expo-crypto"
 
 import { env } from "@/config"
-import { authClient, openAuthSession } from "@/services/auth/client"
-import { keepMergeSource, setAppleCredential, takeMergeSource } from "@/services/auth/credential"
-import { accessToken } from "@/services/auth/session"
+import { authClient, openAuthSession, requestAppleCredential } from "@/services/auth/client"
+import { setAppleCredential } from "@/services/auth/credential"
 import { useAccountStore } from "@/stores/account"
 import type { LoginProvider } from "@/types/account"
 
@@ -28,7 +27,7 @@ function oauthOptions(provider: OAuthProvider) {
 
 async function appleIdToken() {
 	const nonce = randomUUID()
-	const credential = await AppleAuthentication.signInAsync({
+	const credential = await requestAppleCredential({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
 		requestedScopes: [AppleAuthentication.AppleAuthenticationScope.EMAIL],
 	})
@@ -170,22 +169,6 @@ export async function linkAccount(provider: LoginProvider): Promise<LinkResult> 
 	return (await exchangeCallback(callback, provider)) ? "linked" : "cancelled"
 }
 
-export async function switchAccount(provider: LoginProvider, merge: boolean): Promise<boolean> {
-	if (merge) {
-		keepMergeSource(await accessToken())
-	}
-
-	try {
-		const signedIn = await signIn(provider)
-
-		if (!signedIn) {
-			takeMergeSource()
-		}
-
-		return signedIn
-	} catch (error) {
-		takeMergeSource()
-
-		throw error
-	}
+export async function switchAccount(provider: LoginProvider): Promise<boolean> {
+	return signIn(provider)
 }

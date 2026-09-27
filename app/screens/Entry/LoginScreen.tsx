@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 
-import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Mascot } from "@/components/mascot"
 import { Screen } from "@/components/ui/screen"
 import { ScreenHeader } from "@/components/ui/screen-header"
@@ -32,6 +31,7 @@ export function LoginScreen() {
 	const markLoginScreenSeen = useAccountStore((account) => account.markLoginScreenSeen)
 
 	const entry = params?.source === "entry"
+
 	const login = useLogin(entry, () => navigation.goBack())
 
 	const [providers, setProviders] = useState<LoginProvider[]>([])
@@ -154,16 +154,6 @@ export function LoginScreen() {
 					<Copy style={styles.progressText}>{progressLabel}</Copy>
 				</View>
 			) : null}
-			<ConfirmDialog
-				visible={login.merging !== null}
-				text={{
-					title: t("auth.merge.title"),
-					message: t("auth.merge.message"),
-					confirm: t("auth.merge.confirm"),
-				}}
-				onConfirm={login.merge}
-				onClose={login.cancelMerge}
-			/>
 		</View>
 	)
 }

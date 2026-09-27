@@ -30,7 +30,8 @@ export const deviceSettingsSchema = z.object({
 		dayCount: z.number().nonnegative(),
 		thresholdIndex: z.number().nonnegative(),
 	}),
-	guides: z.object({ usage: z.boolean(), recording: z.boolean() }),
+	guides: z.object({ recording: z.boolean() }),
+	onboardingCompleted: z.boolean(),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 })
 

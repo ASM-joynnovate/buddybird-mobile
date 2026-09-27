@@ -24,19 +24,19 @@ export type EntryMessages = {
 		photoError: string
 	}
 	usage: {
-		words: {
+		record: {
 			title: string
 			scene: string
 		}
-		login: {
+		place: {
 			title: string
 			scene: string
 		}
-		station: {
+		keepOn: {
 			title: string
 			scene: string
 		}
-		viewer: {
+		report: {
 			title: string
 			scene: string
 		}

@@ -9,10 +9,7 @@ export type LoginAttempt = { provider: LoginProvider; pending: boolean }
 
 export type LoginState = {
 	attempt: LoginAttempt | null
-	merging: LoginProvider | null
 	signIn(provider: LoginProvider): void
-	merge(): void
-	cancelMerge(): void
 }
 
 function isAppleCancel(provider: LoginProvider, failure: unknown) {
@@ -30,7 +27,6 @@ export function useLogin(entry: boolean, onDone: () => void): LoginState {
 	const busy = useRef(false)
 
 	const [attempt, setAttempt] = useState<LoginAttempt | null>(null)
-	const [merging, setMerging] = useState<LoginProvider | null>(null)
 
 	async function run(provider: LoginProvider, action: () => Promise<void>) {
 		if (busy.current) {
@@ -57,32 +53,15 @@ export function useLogin(entry: boolean, onDone: () => void): LoginState {
 	async function connect(provider: LoginProvider) {
 		const result = await linkAccount(provider)
 
-		if (result === "exists" && entry) {
-			await switchAccount(provider, false)
-		} else if (result === "exists") {
-			setMerging(provider)
+		if (result === "exists") {
+			await switchAccount(provider)
 		} else if (result === "linked" && !entry) {
-			onDone()
-		}
-	}
-
-	async function mergeInto(provider: LoginProvider) {
-		if (await switchAccount(provider, true)) {
 			onDone()
 		}
 	}
 
 	return {
 		attempt,
-		merging,
 		signIn: (provider) => void run(provider, () => connect(provider)),
-		merge: () => {
-			if (merging) {
-				setMerging(null)
-
-				void run(merging, () => mergeInto(merging))
-			}
-		},
-		cancelMerge: () => setMerging(null),
 	}
 }

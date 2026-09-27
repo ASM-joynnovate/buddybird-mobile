@@ -6,6 +6,10 @@ import {
 	type SignInWithOAuthCredentials,
 	type SupabaseClient,
 } from "@supabase/supabase-js"
+import type {
+	AppleAuthenticationCredential,
+	AppleAuthenticationSignInOptions,
+} from "expo-apple-authentication"
 import type { WebBrowserAuthSessionResult } from "expo-web-browser"
 
 import { mockServer } from "@/mocks/server"
@@ -181,4 +185,10 @@ export async function openAuthSession(
 	_redirectTo: string,
 ): Promise<WebBrowserAuthSessionResult> {
 	return { type: "success", url }
+}
+
+export async function requestAppleCredential(
+	_options: AppleAuthenticationSignInOptions,
+): Promise<Pick<AppleAuthenticationCredential, "identityToken" | "authorizationCode">> {
+	return { identityToken: "mock-apple-identity-token", authorizationCode: "mock-apple-code" }
 }

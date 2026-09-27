@@ -35,9 +35,9 @@ export function usePermissionRequest(): {
 
 	function finish() {
 		try {
-			useDeviceSettingsStore.getState().setGuideSeen("usage", true)
+			useDeviceSettingsStore.getState().setOnboardingCompleted(true)
 		} catch (cause) {
-			reportError(cause, "usage_guide_seen")
+			reportError(cause, "onboarding_completed_save")
 
 			setError(t("entry.permissions.saveError"))
 		}

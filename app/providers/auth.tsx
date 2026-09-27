@@ -3,19 +3,18 @@ import { useMutation } from "@tanstack/react-query"
 import { type PropsWithChildren, useEffect } from "react"
 import { Alert, AppState } from "react-native"
 
-import { loginMutationOptions, mergeMutationOptions } from "@/hooks/apis/auth"
+import { loginMutationOptions } from "@/hooks/apis/auth"
 import i18next from "@/i18n"
 import { apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
 import { authClient } from "@/services/auth/client"
+import { loginCredential, takeCredential } from "@/services/auth/credential"
 import {
-	keepMergeSource,
-	loginCredential,
-	takeCredential,
-	takeMergeSource,
-} from "@/services/auth/credential"
-import { type AuthIdentity, nextAuthState, signOutToAnonymous } from "@/services/auth/session"
-import { reportError } from "@/services/telemetry/client"
+	type AuthIdentity,
+	nextAuthState,
+	signOutToAnonymous,
+	signUpAnonymously,
+} from "@/services/auth/session"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
@@ -37,7 +36,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const attempt = useAuthStore((auth) => auth.attempt)
 
 	const { mutateAsync: runLogin } = useMutation(loginMutationOptions())
-	const { mutateAsync: runMerge } = useMutation(mergeMutationOptions())
 
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState()
@@ -52,13 +50,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		async function signUp() {
 			takeCredential()
-			takeMergeSource()
 			useAccountStore.getState().clearRegistration()
+			useDeviceSettingsStore.getState().setOnboardingCompleted(false)
 			queryClient.clear()
 
 			setStatus("signingUp")
 
-			const { error } = await auth.signInAnonymously()
+			const error = await signUpAnonymously()
 
 			if (error && active) {
 				alertFailure(error)
@@ -67,34 +65,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			}
 		}
 
-		async function mergePending() {
-			const token = takeMergeSource()
-
-			if (!token) {
-				return
-			}
-
-			try {
-				await runMerge({ anonymous_access_token: token })
-				await queryClient.invalidateQueries()
-			} catch (error) {
-				keepMergeSource(token)
-
-				Alert.alert(apiErrorMessage(error, i18next.t), undefined, [
-					{
-						text: i18next.t("common.cancel"),
-						style: "cancel",
-						onPress: () => void takeMergeSource(),
-					},
-					{ text: i18next.t("common.retry"), onPress: () => void mergePending() },
-				])
-			}
-		}
-
 		async function completeLogin(identity: AuthIdentity, linked: boolean) {
 			const controller = new AbortController()
 
 			request = controller
+
 			setStatus("completing")
 
 			if (!linked) {
@@ -103,7 +78,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			try {
 				const credential = await loginCredential()
-				const { user_id, is_new_user } = await runLogin({
+				const { user_id } = await runLogin({
 					request: {
 						...credential,
 						language:
@@ -118,20 +93,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 				useAccountStore.getState().markRegistered(identity.id, user_id, identity.anonymous)
 
-				if (!is_new_user) {
-					try {
-						useDeviceSettingsStore.getState().setGuideSeen("usage", true)
-					} catch (error) {
-						reportError(error, "usage_guide_save")
-					}
-				}
-
 				setStatus("signedIn")
 
 				if (linked) {
 					void queryClient.invalidateQueries()
-				} else {
-					void mergePending()
 				}
 			} catch (error) {
 				if (!active || controller.signal.aborted) {
@@ -259,7 +224,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			lifecycle.remove()
 			void auth.stopAutoRefresh()
 		}
-	}, [attempt, runLogin, runMerge])
+	}, [attempt, runLogin])
 
 	return children
 }

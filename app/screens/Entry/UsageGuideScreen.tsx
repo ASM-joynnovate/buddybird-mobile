@@ -11,17 +11,17 @@ export function UsageGuideScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
 	const steps: GuideStep[] = [
-		{ title: t("entry.usage.words.title"), scene: t("entry.usage.words.scene"), icon: "mic" },
-		{ title: t("entry.usage.login.title"), scene: t("entry.usage.login.scene"), icon: "link" },
+		{ title: t("entry.usage.record.title"), scene: t("entry.usage.record.scene"), icon: "mic" },
 		{
-			title: t("entry.usage.station.title"),
-			scene: t("entry.usage.station.scene"),
+			title: t("entry.usage.place.title"),
+			scene: t("entry.usage.place.scene"),
 			icon: "device",
 		},
+		{ title: t("entry.usage.keepOn.title"), scene: t("entry.usage.keepOn.scene"), icon: "sun" },
 		{
-			title: t("entry.usage.viewer.title"),
-			scene: t("entry.usage.viewer.scene"),
-			icon: "bell",
+			title: t("entry.usage.report.title"),
+			scene: t("entry.usage.report.scene"),
+			icon: "report",
 		},
 	]
 	const next = () => navigation.navigate("PermissionRequest")

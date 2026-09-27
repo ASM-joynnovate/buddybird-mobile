@@ -18,9 +18,4 @@ export type AuthMessages = {
 	signOutError: string
 	signIn: string
 	signInRequired: string
-	merge: {
-		title: string
-		message: string
-		confirm: string
-	}
 }

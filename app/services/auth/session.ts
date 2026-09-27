@@ -1,4 +1,4 @@
-import { isAuthRetryableFetchError } from "@supabase/supabase-js"
+import { type AuthError, isAuthRetryableFetchError } from "@supabase/supabase-js"
 
 import { withdraw } from "@/apis/auth"
 import { setUnauthorizedHandler } from "@/lib/query-client"
@@ -41,6 +41,12 @@ export async function accessToken(): Promise<string> {
 	}
 
 	return data.session.access_token
+}
+
+export async function signUpAnonymously(): Promise<AuthError | null> {
+	const { error } = await authClient().signInAnonymously()
+
+	return error
 }
 
 export async function signOutToAnonymous() {

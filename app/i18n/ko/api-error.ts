@@ -17,8 +17,6 @@ export const apiError: ApiErrorMessages = {
 	AUTH__PROVIDER_CREDENTIAL_REQUIRED: "소셜 로그인 정보가 필요해요. 다시 로그인해 주세요.",
 	AUTH__WITHDRAWAL_SAVE_UNAVAILABLE:
 		"탈퇴 요청이 접수됐는지 확인하지 못했어요. 다시 요청해 주세요.",
-	AUTH__INVALID_MERGE_SOURCE:
-		"이 휴대폰의 기록을 합칠 수 없어요. 합치기 전 로그인 정보가 만료됐을 수 있어요.",
 	USER__SAVE_UNAVAILABLE: "계정 정보를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.",
 	USER__DUPLICATE_NICKNAME: "다른 사용자가 쓰고 있는 닉네임이에요. 다른 닉네임을 입력해 주세요.",
 	USER__INVALID_PROFILE_PHOTO: "JPEG나 PNG 사진만 올릴 수 있어요.",

@@ -23,7 +23,7 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry()
 	const loginPending = useAccountStore(
 		(account) => account.isAnonymous && !account.loginScreenSeen,
 	)
-	const guides = useDeviceSettingsStore((state) => state.guides)
+	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted)
 	const legacyUploadPending = useDeviceSettingsStore(
 		(state) => state.legacyMigration.upload !== "finished",
 	)
@@ -57,5 +57,9 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry()
 		return { route: "ParrotEditor", retry }
 	}
 
-	return { route: guides.usage ? "Main" : "UsageGuide", parrotId: parrots.data[0]?.id, retry }
+	return {
+		route: onboardingCompleted ? "Main" : "UsageGuide",
+		parrotId: parrots.data[0]?.id,
+		retry,
+	}
 }
