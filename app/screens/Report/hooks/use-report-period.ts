@@ -59,7 +59,7 @@ function latestStart(period: ReportPeriod): string {
 
 function fromParams(params: unknown): Selection {
 	const parsed = paramsSchema.safeParse(params ?? {})
-	const period = (parsed.success && parsed.data.period) || "week"
+	const period = (parsed.success && parsed.data.period) || "day"
 	const date = parsed.success && parsed.data.date ? parseLocalDate(parsed.data.date) : new Date()
 	const start = localDate(periodStart(period, date))
 	const latest = latestStart(period)
@@ -70,14 +70,14 @@ function fromParams(params: unknown): Selection {
 export function useReportPeriod(params: unknown): ReportPeriodState {
 	const [selection, setSelection] = useState(() => fromParams(params))
 
+	const start = parseLocalDate(selection.start)
+	const next = shift(selection.period, start, 1)
+
 	useEffect(() => {
 		if (params) {
 			setSelection(fromParams(params))
 		}
 	}, [params])
-
-	const start = parseLocalDate(selection.start)
-	const next = shift(selection.period, start, 1)
 
 	return {
 		period: selection.period,

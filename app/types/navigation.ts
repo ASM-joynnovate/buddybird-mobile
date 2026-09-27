@@ -24,7 +24,7 @@ export type WordsStackParamList = {
 
 export type ReportStackParamList = {
 	Report: { period?: ReportPeriodParam; date?: string } | undefined
-	SessionDetail: { sessionId: string; soundId?: string }
+	SessionDetail: { sessionId: string }
 }
 
 export type ProfileStackParamList = {

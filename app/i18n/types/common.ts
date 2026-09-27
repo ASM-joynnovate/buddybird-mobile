@@ -33,26 +33,10 @@ export type CommonMessages = {
 	sound: {
 		play: string
 		stop: string
-		analyzing: string
-		similarity: string
 		expired: string
-		correct: string
-		wrong: string
-		feedbackError: string
 		playError: string
 		shareError: string
 		share: string
-	}
-	strip: {
-		label: string
-		selectTime: string
-		now: string
-		sound: string
-		learning: string
-		rest: string
-		sleeping: string
-		mimicry: string
-		otherSound: string
 	}
 	permission: {
 		title: string

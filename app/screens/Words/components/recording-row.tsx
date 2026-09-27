@@ -31,7 +31,9 @@ export function RecordingRow({ item, player, index, onDelete }: Props): ReactEle
 			<View style={styles.info}>
 				<Copy style={styles.name}>{name}</Copy>
 				<View style={styles.meta}>
-					<Copy style={styles.detail}>{formatDuration(item.durationMs, locale)}</Copy>
+					{item.durationMs === null ? null : (
+						<Copy style={styles.detail}>{formatDuration(item.durationMs, locale)}</Copy>
+					)}
 					{item.kind === "local" ? (
 						<Copy style={styles.unsaved}>{t("words.editor.unsaved")}</Copy>
 					) : null}

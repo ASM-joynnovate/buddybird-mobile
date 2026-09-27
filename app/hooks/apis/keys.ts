@@ -36,13 +36,8 @@ export const apiKeys = {
 		list: () => [...scope(), "notices", "list"] as const,
 		detail: (id: string) => [...scope(), "notices", id] as const,
 	},
-	mocks: {
-		activity: (id: string) => [...scope(), "sessions", id, "mocks", "activity"] as const,
-		plays: (id: string) => [...scope(), "sessions", id, "mocks", "plays"] as const,
-		eventExtras: (id: string) => [...scope(), "sessions", id, "mocks", "events"] as const,
-		soundFeedback: () => [...scope(), "mocks", "sound-feedback"] as const,
-		soundAnalysis: () => [...scope(), "mocks", "sound-analysis"] as const,
-		recordingStatus: (id: string) => [...scope(), "words", id, "mocks", "recordings"] as const,
+	recordings: {
+		duration: (id: string) => [...scope(), "recordings", id, "duration"] as const,
 	},
 	mutation: (...parts: string[]) => ["api", ...parts] as const,
 }

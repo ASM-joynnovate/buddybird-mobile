@@ -1,7 +1,9 @@
 import type { ReactElement } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
+import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import { formatDateTime, formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
@@ -11,10 +13,13 @@ import { joinLabel } from "@/utils/a11y"
 
 interface Props {
 	session: ReportSession
+	judging: boolean
 	onPress(): void
 }
 
-export function SessionRow({ session, onPress }: Props): ReactElement {
+export function SessionRow({ session, judging, onPress }: Props): ReactElement {
+	const { t } = useTranslation()
+
 	const locale = useDeviceSettingsStore((state) => state.locale)
 
 	const startedAt = formatDateTime(session.started_at, locale)
@@ -26,7 +31,12 @@ export function SessionRow({ session, onPress }: Props): ReactElement {
 			depth={2}
 			onPress={onPress}
 			accessibilityRole="button"
-			accessibilityLabel={joinLabel(word, startedAt, duration)}
+			accessibilityLabel={joinLabel(
+				word,
+				startedAt,
+				duration,
+				judging && t("report.judging"),
+			)}
 			contentStyle={styles.row}
 		>
 			<View style={styles.text}>
@@ -34,6 +44,7 @@ export function SessionRow({ session, onPress }: Props): ReactElement {
 					{word}
 				</Copy>
 				<Copy style={styles.time}>{startedAt}</Copy>
+				{judging ? <Tag label={t("report.judging")} /> : null}
 			</View>
 			<Copy style={styles.duration}>{duration}</Copy>
 		</PressableSurface>

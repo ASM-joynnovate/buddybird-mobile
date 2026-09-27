@@ -28,6 +28,7 @@ export const VAD = {
 } as const
 
 export const UPLOAD_POLL_INTERVAL_MS = SECOND
+export const UPLOAD_POLL_MAX_INTERVAL_MS = 10 * SECOND
 export const RECORDING_MAX_SECONDS = 60
 
 export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const

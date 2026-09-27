@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { localDate, timestamp, uuid } from "@/types/apis/primitives"
-import { sessionSoundSchema } from "@/types/apis/sessions"
+import { judgmentStatusSchema } from "@/types/apis/sessions"
 
 const wordRefSchema = z.object({ id: uuid, name: z.string() })
 
@@ -15,6 +15,7 @@ export const reportSessionSchema = z.object({
 	ended_at: timestamp.nullable(),
 	word: wordRefSchema.nullable(),
 	learning_duration_ms: durationSchema,
+	judgment_status: judgmentStatusSchema,
 })
 
 export const reportSchema = z.object({
@@ -25,10 +26,7 @@ export const reportSchema = z.object({
 	trend: z.array(z.object({ start: timestamp, learning_duration_ms: durationSchema })),
 	words: z.array(z.object({ word: wordRefSchema, learning_duration_ms: durationSchema })),
 	sessions: z.array(reportSessionSchema),
-	mimicry: z.object({
-		count: z.number().int().nonnegative(),
-		sounds: z.array(sessionSoundSchema),
-	}),
+	mimicry: z.object({ count: z.number().int().nonnegative() }),
 })
 
 export type ReportPeriod = z.infer<typeof reportPeriodSchema>

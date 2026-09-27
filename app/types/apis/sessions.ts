@@ -9,6 +9,8 @@ const sessionStatusSchema = z.enum(["running", "finished"])
 
 const sleepSchema = z.object({ sleep_at: z.string(), wake_at: z.string() })
 
+export const judgmentStatusSchema = z.enum(["pending", "done"])
+
 export const sessionSchema = z.object({
 	id: uuid,
 	status: sessionStatusSchema,
@@ -26,7 +28,7 @@ export const sessionSchema = z.object({
 	}),
 	ends_at: timestamp.nullable(),
 	sleep: sleepSchema,
-	judgment_status: z.enum(["pending", "done"]),
+	judgment_status: judgmentStatusSchema,
 })
 
 export const startSessionRequestSchema = z.object({

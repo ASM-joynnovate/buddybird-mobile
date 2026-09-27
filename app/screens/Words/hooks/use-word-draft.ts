@@ -1,10 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 
-import { UPLOAD_POLL_INTERVAL_MS } from "@/config"
+import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS } from "@/config"
 import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { recordingStatusQueryOptions } from "@/hooks/apis/mocks"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import {
 	addRecordingMutationOptions,
@@ -13,13 +12,19 @@ import {
 	renameWordMutationOptions,
 	wordQueryOptions,
 } from "@/hooks/apis/words"
-import type { RecordingStatus } from "@/mocks/types"
-import type { Recording } from "@/types/apis/words"
+import { measureRecordingDuration } from "@/services/media/recording-duration"
+import { reportError } from "@/services/telemetry/client"
+import type { Recording, Word } from "@/types/apis/words"
 import type { RecordedSample } from "@/types/navigation"
 
 export type SaveStep = "saving" | "uploading" | "processing"
 
-export type DraftItem = { kind: "server" | "local"; id: string; url: string; durationMs: number }
+export type DraftItem = {
+	kind: "server" | "local"
+	id: string
+	url: string
+	durationMs: number | null
+}
 
 export type WordDraft = {
 	wordId: string | null
@@ -44,11 +49,11 @@ function wait(ms: number): Promise<void> {
 	})
 }
 
-const serverItem = (recording: Recording, statuses: readonly RecordingStatus[]): DraftItem => ({
+const serverItem = (recording: Recording, durationMs: number | null): DraftItem => ({
 	kind: "server",
 	id: recording.id,
 	url: recording.url,
-	durationMs: statuses.find((item) => item.recording_id === recording.id)?.duration_ms ?? 0,
+	durationMs,
 })
 
 export function useWordDraft(
@@ -76,9 +81,17 @@ export function useWordDraft(
 	const wordId = routeWordId ?? createdId
 
 	const word = useQuery({ ...wordQueryOptions(wordId ?? ""), enabled: Boolean(wordId) })
-	const recordingStatuses = useQuery({
-		...recordingStatusQueryOptions(wordId ?? ""),
-		enabled: Boolean(wordId),
+	const durations = useQueries({
+		queries: (word.data?.recordings ?? []).map((recording) => ({
+			queryKey: apiKeys.recordings.duration(recording.id),
+			queryFn: () =>
+				measureRecordingDuration(recording.url).catch((error: unknown) => {
+					reportError(error, "recording_duration")
+
+					throw error
+				}),
+			staleTime: Infinity,
+		})),
 	})
 
 	useEffect(() => {
@@ -101,8 +114,8 @@ export function useWordDraft(
 
 	const name = nameInput ?? word.data?.name ?? ""
 	const servers = (word.data?.recordings ?? [])
-		.filter((recording) => !removedIds.includes(recording.id))
-		.map((recording) => serverItem(recording, recordingStatuses.data ?? []))
+		.map((recording, index) => serverItem(recording, durations[index]?.data ?? null))
+		.filter((item) => !removedIds.includes(item.id))
 	const items: DraftItem[] = [
 		...servers,
 		...locals.map((sample): DraftItem => ({
@@ -123,18 +136,19 @@ export function useWordDraft(
 		}
 	}
 
-	async function waitUntilReady(id: string): Promise<RecordingStatus[] | null> {
-		while (alive.current) {
-			const latest = await queryClient.query({
-				...recordingStatusQueryOptions(id),
-				staleTime: 0,
-			})
+	async function waitForRecordings(id: string, expectedCount: number): Promise<Word | null> {
+		let intervalMs = UPLOAD_POLL_INTERVAL_MS
 
-			if (latest.every((recording) => recording.status === "ready")) {
+		while (alive.current) {
+			const latest = await queryClient.query({ ...wordQueryOptions(id), staleTime: 0 })
+
+			if (latest.recordings.length >= expectedCount) {
 				return latest
 			}
 
-			await wait(UPLOAD_POLL_INTERVAL_MS)
+			await wait(intervalMs)
+
+			intervalMs = Math.min(intervalMs * 2, UPLOAD_POLL_MAX_INTERVAL_MS)
 		}
 
 		return null
@@ -169,6 +183,8 @@ export function useWordDraft(
 
 		setSaveFailed(false)
 
+		const expectedCount = (word.data?.recordings.length ?? 0) + locals.length
+
 		try {
 			setStep("saving")
 
@@ -188,7 +204,7 @@ export function useWordDraft(
 
 			setStep("processing")
 
-			const latest = await waitUntilReady(id)
+			const latest = await waitForRecordings(id, expectedCount)
 
 			if (!latest) {
 				return
@@ -197,7 +213,7 @@ export function useWordDraft(
 			setStep("saving")
 
 			const pending = removedIds.filter((recordingId) =>
-				latest.some((recording) => recording.recording_id === recordingId),
+				latest.recordings.some((recording) => recording.id === recordingId),
 			)
 
 			for (const recordingId of pending) {

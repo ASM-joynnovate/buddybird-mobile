@@ -5,112 +5,80 @@ import { FlatList, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { SoundRow } from "@/components/session/sound-row"
-import { Chip } from "@/components/ui/chip"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError } from "@/components/ui/screen-error"
 import { ScreenHeader } from "@/components/ui/screen-header"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Copy } from "@/components/ui/text"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
-import { EventRow } from "@/screens/Report/components/event-row"
-import { SessionOverview } from "@/screens/Report/components/session-overview"
-import { type TimelineItem, useSessionDetail } from "@/screens/Report/hooks/use-session-detail"
-import { useSoundFeedback } from "@/screens/Report/hooks/use-sound-feedback"
+import { useSessionMimicry } from "@/screens/Report/hooks/use-session-mimicry"
+import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import type { ReportStackParamList } from "@/types/navigation"
+import { colors } from "@/theme"
+import type { ReportStackParamList, RootStackParamList } from "@/types/navigation"
 
 export function SessionDetailScreen() {
 	const { t } = useTranslation()
 
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+	const { params } = useRoute<RouteProp<ReportStackParamList, "SessionDetail">>()
+
 	const locale = useDeviceSettingsStore((state) => state.locale)
+	const isAnonymous = useAccountStore((account) => account.isAnonymous)
 
 	const insets = useSafeAreaInsets()
 
-	const navigation = useNavigation<NativeStackNavigationProp<ReportStackParamList>>()
-	const { params } = useRoute<RouteProp<ReportStackParamList, "SessionDetail">>()
-
 	const player = useSoundPlayer()
-	const feedback = useSoundFeedback()
 
-	const detail = useSessionDetail(params.sessionId, params.soundId)
-	const record = detail.record
-	const timeline = detail.timeline
+	const mimicry = useSessionMimicry(params.sessionId)
 
-	const startedAt = record?.session.period.started_at
-	const multiDay =
-		startedAt !== undefined &&
-		new Date(startedAt).toDateString() !== new Date(detail.end).toDateString()
-	const timeLabel = (at: number | string) =>
-		multiDay ? formatDateTime(at, locale) : formatTime(at, locale)
+	const formatSoundTime = mimicry.multiDay ? formatDateTime : formatTime
 
-	function renderItem({ item }: { item: TimelineItem }) {
-		const highlighted = item.key === detail.highlightedKey
-
-		if (item.kind === "sound") {
+	function renderBody() {
+		if (isAnonymous) {
 			return (
-				<SoundRow
-					sound={item.sound}
-					timeLabel={timeLabel(item.at)}
-					controls={{ player, feedback }}
-					highlighted={highlighted}
-				/>
+				<View style={styles.locked}>
+					<Copy style={styles.none}>{t("auth.signInRequired")}</Copy>
+					<Button
+						label={t("auth.signIn")}
+						variant="secondary"
+						onPress={() => navigation.navigate("Login")}
+					/>
+				</View>
 			)
 		}
 
-		return (
-			<EventRow
-				event={item.event}
-				timeLabel={timeLabel(item.at)}
-				endedByServer={record?.session.period.ended_by === "server"}
-				highlighted={highlighted}
-			/>
-		)
-	}
-
-	function renderBody() {
-		if (detail.isError) {
-			return <ScreenError message={t("common.loadError")} onRetry={detail.retry} />
+		if (mimicry.loadFailed) {
+			return <ScreenError message={t("common.loadError")} onRetry={mimicry.refresh} />
 		}
 
-		if (!record || !timeline) {
+		if (mimicry.loading) {
 			return <Skeleton rows={4} />
 		}
 
 		return (
 			<FlatList
-				ref={detail.list}
-				data={detail.items}
-				keyExtractor={(item) => item.key}
-				renderItem={renderItem}
-				extraData={[detail.highlightedKey, player.playingId, player.finishedIds]}
+				data={mimicry.judging ? [] : mimicry.sounds}
+				keyExtractor={(item) => item.sound.id}
+				renderItem={({ item }) => (
+					<SoundRow
+						sound={item.sound}
+						wordName={item.wordName}
+						timeLabel={formatSoundTime(item.sound.captured_at, locale)}
+						player={player}
+					/>
+				)}
+				extraData={[player.playingId, player.failedId]}
+				refreshing={mimicry.refreshing}
+				onRefresh={mimicry.refresh}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
-				onScrollToIndexFailed={({ index }) => detail.retryScroll(index)}
-				ListHeaderComponent={
-					<View style={styles.header}>
-						<SessionOverview
-							record={record}
-							timeline={{ data: timeline, end: detail.end, running: detail.running }}
-							selection={{
-								cursor: detail.cursor,
-								selectKey: detail.scrollToKey,
-								selectTime: detail.scrollToTime,
-							}}
-						/>
-						<View style={styles.filters}>
-							{detail.filters.map((filter) => (
-								<Chip
-									key={filter}
-									label={t(`report.detail.filters.${filter}`)}
-									selected={detail.filter === filter}
-									onPress={() => detail.setFilter(filter)}
-								/>
-							))}
-						</View>
-					</View>
-				}
-				ListEmptyComponent=<EmptyState message={t("report.detail.empty")} />
+				ListEmptyComponent=<EmptyState
+					message={t(mimicry.judging ? "report.detail.judging" : "report.detail.none")}
+				/>
 			/>
 		)
 	}
@@ -118,10 +86,7 @@ export function SessionDetailScreen() {
 	return (
 		<Screen scroll={false}>
 			<View style={styles.content}>
-				<ScreenHeader
-					title={startedAt ? formatDateTime(startedAt, locale) : undefined}
-					onBack={() => navigation.goBack()}
-				/>
+				<ScreenHeader onBack={() => navigation.goBack()} />
 				{renderBody()}
 			</View>
 		</Screen>
@@ -137,6 +102,6 @@ const styles = StyleSheet.create({
 		maxWidth: 480,
 		alignSelf: "center",
 	},
-	header: { gap: 16, marginBottom: 12 },
-	filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+	none: { color: colors.muted },
+	locked: { gap: 12 },
 })

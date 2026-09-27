@@ -4,7 +4,6 @@ import {
 	type Database,
 	event,
 	iso,
-	learningMsBetween,
 	type MockConsent,
 	type MockDevice,
 	type MockEvent,
@@ -18,7 +17,6 @@ import {
 	type MockSummary,
 	type MockWord,
 	newDatabase,
-	plays,
 	seed,
 	sleepEvents,
 	type SleepWindow,
@@ -208,11 +206,15 @@ function sessionDto(session: MockSession) {
 		},
 		ends_at: session.ends_at,
 		sleep: session.sleep ?? db.settings.sleep,
-		judgment_status:
-			running || (session.ended_at && now - Date.parse(session.ended_at) < MINUTE)
-				? "pending"
-				: "done",
+		judgment_status: judgmentStatus(session, now),
 	}
+}
+
+function judgmentStatus(session: MockSession, now: number) {
+	return session.status === "running" ||
+		(session.ended_at && now - Date.parse(session.ended_at) < MINUTE)
+		? "pending"
+		: "done"
 }
 
 function endSession(
@@ -255,10 +257,6 @@ function requireRunning(id: string) {
 	}
 
 	return session
-}
-
-function allSounds() {
-	return db.sessions.flatMap((session) => session.sounds)
 }
 
 function parseLocalDate(value: string) {
@@ -309,10 +307,6 @@ function overlaps(session: MockSession, from: number, to: number) {
 	const end = session.ended_at ? Date.parse(session.ended_at) : Date.now()
 
 	return Date.parse(session.started_at) < to && end >= from
-}
-
-function playsBetween(session: MockSession, from: number, to: number) {
-	return plays(learningMsBetween(session, sleepOf(session), from, to, Date.now()))
 }
 
 function newestStartFirst(a: MockSession, b: MockSession) {
@@ -678,14 +672,6 @@ export const mockServer = {
 						: item,
 				)
 			}),
-		recordingStatus: (id: string) =>
-			respond(() =>
-				find(db.words, id).recordings.map((recording) => ({
-					recording_id: recording.id,
-					duration_ms: recording.duration_ms,
-					status: recording.status,
-				})),
-			),
 	},
 	devices: {
 		list: () => respond(() => db.devices.map(deviceDto)),
@@ -871,48 +857,6 @@ export const mockServer = {
 					}))
 				})
 			}),
-		activity: (id: string) => respond(() => find(db.sessions, id).activity),
-		plays: (id: string) =>
-			respond(() => {
-				const session = find(db.sessions, id)
-
-				return playsBetween(session, Date.parse(session.started_at), Date.now())
-			}),
-		eventExtras: (id: string) =>
-			respond(() => {
-				const session = find(db.sessions, id)
-
-				return {
-					sleep_events:
-						session.status === "running"
-							? sleepEvents(session, sleepOf(session), Date.now())
-							: session.sleep_events,
-				}
-			}),
-	},
-	sounds: {
-		feedback: () =>
-			respond(() =>
-				allSounds().map((sound) => ({ sound_id: sound.id, feedback: sound.feedback })),
-			),
-		analysis: () =>
-			respond(() =>
-				allSounds().map((sound) => ({
-					sound_id: sound.id,
-					is_parrot_sound: sound.is_parrot_sound,
-					score: sound.score,
-				})),
-			),
-		saveFeedback: (soundId: string, feedback: "up" | "down") =>
-			respond(() => {
-				find(allSounds(), soundId)
-				db.sessions = db.sessions.map((session) => ({
-					...session,
-					sounds: session.sounds.map((sound) =>
-						sound.id === soundId ? { ...sound, feedback } : sound,
-					),
-				}))
-			}),
 	},
 	notifications: {
 		list: (pageNumber: number) =>
@@ -979,7 +923,13 @@ export const mockServer = {
 					.filter((session) => overlaps(session, from, to))
 					.sort(newestStartFirst)
 				const learned = (session: MockSession, a: number, b: number) =>
-					learningMsBetween(session, sleepOf(session), a, b, now)
+					session.summaries
+						.filter((summary) => {
+							const at = parseLocalDate(summary.local_date)
+
+							return at >= a && at < b
+						})
+						.reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0)
 				const rows = sessions.map((session) => {
 					const word = db.words.find((item) => item.id === session.word_id)
 
@@ -989,6 +939,7 @@ export const mockServer = {
 						ended_at: session.ended_at,
 						word: word ? { id: word.id, name: word.name } : null,
 						learning_duration_ms: learned(session, from, to),
+						judgment_status: judgmentStatus(session, now),
 					}
 				})
 				const learnedWords = rows.flatMap((row) =>
@@ -1035,10 +986,7 @@ export const mockServer = {
 					})),
 					words: words.sort((a, b) => b.learning_duration_ms - a.learning_duration_ms),
 					sessions: rows,
-					mimicry: {
-						count: sounds.filter((sound) => sound.word_id).length,
-						sounds: sounds.map(soundDto),
-					},
+					mimicry: { count: sounds.filter((sound) => sound.word_id).length },
 				}
 			}),
 	},
