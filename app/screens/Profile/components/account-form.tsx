@@ -23,10 +23,8 @@ export function AccountForm({ user, onSaved }: Props) {
 	return (
 		<>
 			<ProfilePhoto
-				photoUri={form.photo.photoUri ?? undefined}
-				choosePhoto={form.photo.choose}
+				photo={form.photo}
 				busy={form.busy}
-				error={form.photo.error}
 				action={form.photo.photoUri ? "edit" : "plus"}
 			/>
 			{form.photo.photoUri ? (
@@ -59,7 +57,8 @@ export function AccountForm({ user, onSaved }: Props) {
 				onPress={form.save}
 				style={styles.save}
 			/>
-			<PermissionDialog {...form.photo.dialog} />
+			<PermissionDialog {...form.photo.libraryDialog} />
+			<PermissionDialog {...form.photo.cameraDialog} />
 		</>
 	)
 }

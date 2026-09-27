@@ -10,6 +10,11 @@ export const parrot: ParrotMessages = {
 	speciesQuestion: "What species is your parrot?",
 	birthdayQuestion: "When was your parrot born?",
 	photo: "Choose profile photo",
+	photoSheet: {
+		title: "Profile photo",
+		take: "Take photo",
+		choose: "Choose from album",
+	},
 	nameRequired: "Enter your bird’s name.",
 	speciesRequired: "Enter your bird’s species.",
 	birthdayInvalid: "Birth date can’t be in the future.",

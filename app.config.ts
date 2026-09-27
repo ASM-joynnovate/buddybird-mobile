@@ -36,7 +36,7 @@ const config: ExpoConfig = {
 			UIBackgroundModes: ["audio", "remote-notification"],
 			NSMicrophoneUsageDescription: "단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다.",
 			NSPhotoLibraryUsageDescription: "앵무새 프로필에 사용할 사진을 선택합니다.",
-			NSCameraUsageDescription: "앵무새 프로필 사진을 촬영합니다.",
+			NSCameraUsageDescription: "앵무새와 내 프로필 사진을 찍을 때 카메라를 사용합니다.",
 		},
 	},
 	android: {

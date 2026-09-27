@@ -66,10 +66,8 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 			) : null}
 			<View style={styles.intro}>
 				<ProfilePhoto
-					photoUri={form.photo.photoUri ?? undefined}
-					choosePhoto={form.photo.choose}
+					photo={form.photo}
 					busy={form.busy}
-					error={form.photo.error}
 					action={form.photo.photoUri ? "edit" : "plus"}
 				/>
 			</View>
@@ -93,7 +91,8 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 					<InlineError message={form.birthday.error} />
 				</View>
 			</View>
-			<PermissionDialog {...form.photo.dialog} />
+			<PermissionDialog {...form.photo.libraryDialog} />
+			<PermissionDialog {...form.photo.cameraDialog} />
 			{parrot ? (
 				<ConfirmDialog
 					visible={form.removal.open}

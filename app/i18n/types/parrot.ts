@@ -8,6 +8,11 @@ export type ParrotMessages = {
 	speciesQuestion: string
 	birthdayQuestion: string
 	photo: string
+	photoSheet: {
+		title: string
+		take: string
+		choose: string
+	}
 	nameRequired: string
 	speciesRequired: string
 	birthdayInvalid: string

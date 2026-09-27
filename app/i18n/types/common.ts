@@ -53,6 +53,10 @@ export type CommonMessages = {
 			name: string
 			reason: string
 		}
+		camera: {
+			name: string
+			reason: string
+		}
 	}
 	confirmDelete: {
 		title: string

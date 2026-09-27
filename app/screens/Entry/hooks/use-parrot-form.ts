@@ -10,7 +10,8 @@ import {
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { usePhotoPicker } from "@/hooks/use-photo-picker"
 import { isSpeciesId } from "@/services/profile/species"
-import { type CreateParrotRequest, PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
+import { PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
+import { saveWithPhoto } from "@/utils/save-with-photo"
 
 type Invalid = { name: boolean; species: boolean; birthday: boolean }
 
@@ -69,12 +70,12 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 	})
 	const [removing, setRemoving] = useState(false)
 
-	const clear = (key: keyof Invalid) => setInvalid((current) => ({ ...current, [key]: false }))
-
 	const photo = usePhotoPicker(savedPhotoUrl)
 
 	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
 	const saveFailed = mutation.isError || photoUpload.isError || photoDelete.isError
+
+	const clear = (key: keyof Invalid) => setInvalid((current) => ({ ...current, [key]: false }))
 
 	function save() {
 		const trimmed = name.trim()
@@ -90,19 +91,18 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 			return
 		}
 
-		saveParrot({ name: trimmed, species, birthdate: birthdate ?? null }).catch(() => undefined)
-	}
-
-	async function saveParrot(input: CreateParrotRequest) {
-		const saved = await mutation.mutateAsync({ id: parrot?.id ?? null, input })
-
-		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
-			await photoUpload.mutateAsync({ id: saved.id, uri: photo.photoUri })
-		} else if (!photo.photoUri && savedPhotoUrl) {
-			await photoDelete.mutateAsync({ id: saved.id })
-		}
-
-		onDone()
+		saveWithPhoto({
+			photoUri: photo.photoUri,
+			savedPhotoUrl,
+			saveInfo: () =>
+				mutation.mutateAsync({
+					id: parrot?.id ?? null,
+					input: { name: trimmed, species, birthdate: birthdate ?? null },
+				}),
+			uploadPhoto: (saved, uri) => photoUpload.mutateAsync({ id: saved.id, uri }),
+			deletePhoto: (saved) => photoDelete.mutateAsync({ id: saved.id }),
+			onDone,
+		}).catch(() => undefined)
 	}
 
 	function confirmRemoval() {

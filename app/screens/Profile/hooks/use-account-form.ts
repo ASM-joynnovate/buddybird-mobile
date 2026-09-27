@@ -10,6 +10,7 @@ import {
 import { usePhotoPicker } from "@/hooks/use-photo-picker"
 import { ApiError } from "@/types/apis/common"
 import { NICKNAME_PATTERN, type User } from "@/types/apis/users"
+import { saveWithPhoto } from "@/utils/save-with-photo"
 
 export function useAccountForm(
 	user: User,
@@ -61,19 +62,14 @@ export function useAccountForm(
 			return
 		}
 
-		saveAccount(trimmed).catch(() => undefined)
-	}
-
-	async function saveAccount(trimmed: string) {
-		await mutation.mutateAsync({ nickname: trimmed })
-
-		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
-			await photoUpload.mutateAsync(photo.photoUri)
-		} else if (!photo.photoUri && savedPhotoUrl) {
-			await photoDelete.mutateAsync()
-		}
-
-		onSaved()
+		saveWithPhoto({
+			photoUri: photo.photoUri,
+			savedPhotoUrl,
+			saveInfo: () => mutation.mutateAsync({ nickname: trimmed }),
+			uploadPhoto: (_saved, uri) => photoUpload.mutateAsync(uri),
+			deletePhoto: () => photoDelete.mutateAsync(),
+			onDone: onSaved,
+		}).catch(() => undefined)
 	}
 
 	return {

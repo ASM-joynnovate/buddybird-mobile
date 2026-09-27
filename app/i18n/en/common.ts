@@ -55,6 +55,10 @@ export const common: CommonMessages = {
 			name: "Photo",
 			reason: "BuddyBird needs photo access to choose a profile picture.",
 		},
+		camera: {
+			name: "Camera",
+			reason: "BuddyBird needs the camera to take a profile picture.",
+		},
 	},
 	confirmDelete: {
 		title: "Delete {{name}}",

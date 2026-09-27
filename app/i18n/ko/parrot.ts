@@ -10,6 +10,11 @@ export const parrot: ParrotMessages = {
 	speciesQuestion: "어떤 종인가요?",
 	birthdayQuestion: "언제 태어났나요?",
 	photo: "프로필 사진 선택",
+	photoSheet: {
+		title: "프로필 사진",
+		take: "사진 찍기",
+		choose: "앨범에서 고르기",
+	},
 	nameRequired: "반려조 이름을 입력해 주세요.",
 	speciesRequired: "반려조 종류를 선택하거나 직접 입력해 주세요.",
 	birthdayInvalid: "생년월일은 오늘 이후로 설정할 수 없어요.",

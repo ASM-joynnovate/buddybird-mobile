@@ -55,6 +55,10 @@ export const common: CommonMessages = {
 			name: "사진",
 			reason: "프로필 사진을 고르려면 사진 보관함에 접근해야 해요.",
 		},
+		camera: {
+			name: "카메라",
+			reason: "프로필 사진을 찍으려면 카메라가 필요해요.",
+		},
 	},
 	confirmDelete: {
 		title: "{{name}} 삭제",

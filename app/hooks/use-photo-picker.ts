@@ -6,6 +6,12 @@ import { type PermissionDialogState, usePermission } from "@/hooks/use-permissio
 import { reportError } from "@/services/telemetry/client"
 import { MAX_UPLOAD_BYTES, PHOTO_TYPES } from "@/types/apis/uploads"
 
+const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
+	mediaTypes: ["images"],
+	allowsEditing: true,
+	quality: 0.85,
+}
+
 function photoType(asset: ImagePicker.ImagePickerAsset) {
 	if (asset.mimeType) {
 		return asset.mimeType
@@ -23,24 +29,26 @@ function photoType(asset: ImagePicker.ImagePickerAsset) {
 export function usePhotoPicker(initial: string | null): {
 	photoUri: string | null
 	setPhotoUri(uri: string | null): void
+	take(): Promise<void>
 	choose(): Promise<void>
 	error: string | null
-	dialog: PermissionDialogState
+	libraryDialog: PermissionDialogState
+	cameraDialog: PermissionDialogState
 } {
 	const { t } = useTranslation()
 
-	const permission = usePermission("photos")
+	const libraryPermission = usePermission("photos")
+	const cameraPermission = usePermission("camera")
 
 	const [photoUri, setPhotoUri] = useState(initial)
 	const [error, setError] = useState<string | null>(null)
 
-	async function pick() {
+	async function pick(source: "camera" | "library") {
 		try {
-			const result = await ImagePicker.launchImageLibraryAsync({
-				mediaTypes: ["images"],
-				allowsEditing: true,
-				quality: 0.85,
-			})
+			const result =
+				source === "camera"
+					? await ImagePicker.launchCameraAsync(PHOTO_PICKER_OPTIONS)
+					: await ImagePicker.launchImageLibraryAsync(PHOTO_PICKER_OPTIONS)
 
 			if (result.canceled) {
 				return
@@ -63,9 +71,19 @@ export function usePhotoPicker(initial: string | null): {
 		}
 	}
 
+	async function take() {
+		try {
+			await cameraPermission.run(() => void pick("camera"))
+		} catch (cause) {
+			reportError(cause, "camera_permission")
+
+			setError(t("entry.parrot.photoError"))
+		}
+	}
+
 	async function choose() {
 		try {
-			await permission.run(() => void pick())
+			await libraryPermission.run(() => void pick("library"))
 		} catch (cause) {
 			reportError(cause, "photo_permission")
 
@@ -79,8 +97,10 @@ export function usePhotoPicker(initial: string | null): {
 			setPhotoUri(uri)
 			setError(null)
 		},
+		take,
 		choose,
 		error,
-		dialog: permission.dialog,
+		libraryDialog: libraryPermission.dialog,
+		cameraDialog: cameraPermission.dialog,
 	}
 }
