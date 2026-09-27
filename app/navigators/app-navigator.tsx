@@ -8,8 +8,10 @@ import {
 	NavigationContainer,
 	type NavigationState,
 	type PartialState,
+	useNavigationContainerRef,
 } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import { useRef } from "react"
 
 import { StartupScreen } from "@/components/app/startup-screen"
 import { OfflineBanner } from "@/components/offline-banner"
@@ -33,7 +35,7 @@ import { PermissionsScreen } from "@/screens/Settings/PermissionsScreen"
 import { SettingsScreen } from "@/screens/Settings/SettingsScreen"
 import { RecorderScreen } from "@/screens/Words/RecorderScreen"
 import { RecordingGuideScreen } from "@/screens/Words/RecordingGuideScreen"
-import { reportError } from "@/services/telemetry/client"
+import { reportError, screen, track } from "@/services/telemetry/client"
 import { colors } from "@/theme"
 import { pushDataSchema } from "@/types/apis/notifications"
 import type { RootStackParamList } from "@/types/navigation"
@@ -45,7 +47,7 @@ function linkPrefix() {
 	return `${env.production ? "buddybird" : "buddybird-dev"}://`
 }
 
-function pushUrl(data: unknown): string | null {
+function openPush(data: unknown): string | null {
 	const parsed = pushDataSchema.safeParse(data)
 
 	if (!parsed.success) {
@@ -53,6 +55,8 @@ function pushUrl(data: unknown): string | null {
 
 		return null
 	}
+
+	track("notification_opened", { kind: parsed.data.kind, from: "push" })
 
 	return `${linkPrefix()}${notificationPath(parsed.data).slice(1)}`
 }
@@ -68,7 +72,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 		try {
 			const message = await getInitialNotification(getMessaging())
 
-			return message ? pushUrl(message.data) : null
+			return message ? openPush(message.data) : null
 		} catch (error) {
 			reportError(error, "push_initial")
 
@@ -77,7 +81,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 	},
 	subscribe(listener) {
 		return onNotificationOpenedApp(getMessaging(), (message) => {
-			const url = pushUrl(message.data)
+			const url = openPush(message.data)
 
 			if (url) {
 				listener(url)
@@ -125,6 +129,19 @@ function initialStateOf(
 export function AppNavigator() {
 	const { route, parrotId, retry } = useEntryRoute()
 
+	const navigationRef = useNavigationContainerRef<RootStackParamList>()
+	const screenName = useRef<string | null>(null)
+
+	function recordScreen() {
+		const current = navigationRef.getCurrentRoute()?.name ?? null
+
+		if (current && current !== screenName.current) {
+			screen(current)
+		}
+
+		screenName.current = current
+	}
+
 	if (route === "loading" || route === "error") {
 		return <StartupScreen failed={route === "error"} onRetry={retry} />
 	}
@@ -137,8 +154,11 @@ export function AppNavigator() {
 		<>
 			<NavigationContainer
 				key={route}
+				ref={navigationRef}
 				initialState={initialStateOf(route, parrotId)}
 				linking={route === "Main" ? linking : undefined}
+				onReady={recordScreen}
+				onStateChange={recordScreen}
 			>
 				<Stack.Navigator
 					screenOptions={{

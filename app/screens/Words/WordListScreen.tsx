@@ -19,6 +19,7 @@ import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions, wordsQueryOptions } from "@/hooks/apis/words"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { WordCard } from "@/screens/Words/components/word-card"
+import { track } from "@/services/telemetry/client"
 import type { Word } from "@/types/apis/words"
 import type { WordsStackParamList } from "@/types/navigation"
 
@@ -98,7 +99,19 @@ export function WordListScreen(): ReactElement {
 				}}
 				onConfirm={() => {
 					if (deleting) {
-						removing.mutate({ id: deleting.id }, { onSuccess: () => setDeleting(null) })
+						removing.mutate(
+							{ id: deleting.id },
+							{
+								onSuccess: () => {
+									track("word_deleted", {
+										word_id: deleting.id,
+										recording_count: deleting.recordings.length,
+									})
+
+									setDeleting(null)
+								},
+							},
+						)
 					}
 				}}
 				onClose={() => {

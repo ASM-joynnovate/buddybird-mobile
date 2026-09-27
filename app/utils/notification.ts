@@ -9,10 +9,12 @@ type NotificationTarget = {
 
 export function notificationPath({ kind, report_date, sent_at }: NotificationTarget): string {
 	if (kind === "streak") {
-		return "/report"
+		return "/report?source=notification"
 	}
 
 	const date = kind === "mimicry" ? localDate(new Date(sent_at)) : report_date
 
-	return date ? `/report?period=day&date=${date}` : "/report?period=day"
+	return date
+		? `/report?period=day&date=${date}&source=notification`
+		: "/report?period=day&source=notification"
 }

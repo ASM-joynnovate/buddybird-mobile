@@ -75,6 +75,8 @@ export function HomeScreen() {
 			wordId: draft.wordId,
 			endsAt,
 			sleep: draft.sleep,
+			duration: draft.duration,
+			sleepChanged: draft.sleepChanged,
 		})
 	})
 
@@ -192,16 +194,16 @@ export function HomeScreen() {
 								icon: "clock",
 								label: t("session.start.duration"),
 								value:
-									session.durationMs === null
+									session.duration.ms === null
 										? t("session.start.untilEnd")
-										: formatDurationWithDays(session.durationMs, locale),
+										: formatDurationWithDays(session.duration.ms, locale),
 							}}
 							sheet={{ title: t("session.start.duration") }}
 						>
 							{() => (
 								<DurationPicker
-									value={session.durationMs}
-									onChange={session.setDurationMs}
+									value={session.duration}
+									onChange={session.setDuration}
 								/>
 							)}
 						</PickerRow>

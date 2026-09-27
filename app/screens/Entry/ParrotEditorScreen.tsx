@@ -1,6 +1,7 @@
-import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
+import { type RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Screen } from "@/components/ui/screen"
@@ -8,19 +9,33 @@ import { ScreenError } from "@/components/ui/screen-error"
 import { Skeleton } from "@/components/ui/skeleton"
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { ParrotEditorForm } from "@/screens/Entry/components/parrot-editor-form"
+import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function ParrotEditorScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 	const params = useRoute<RouteProp<RootStackParamList, "ParrotEditor">>().params
+
+	const parrots = useQuery(parrotsQueryOptions())
+
 	const parrotId = params?.parrotId
 	const entry = params?.source === "entry"
-	const parrots = useQuery(parrotsQueryOptions())
 	const canGoBack = navigation.canGoBack()
+
+	useFocusEffect(
+		useCallback(() => {
+			if (entry) {
+				viewOnboardingStep("parrot")
+			}
+		}, [entry]),
+	)
 
 	function done() {
 		if (entry) {
+			completeOnboardingStep("parrot")
+
 			if (parrotId) {
 				navigation.navigate("UsageGuide")
 			}

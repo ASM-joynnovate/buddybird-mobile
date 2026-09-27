@@ -8,7 +8,7 @@ import { File } from "expo-file-system"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RECORDING_MAX_SECONDS } from "@/config"
-import { reportError } from "@/services/telemetry/client"
+import { reportError, track } from "@/services/telemetry/client"
 import { MAX_UPLOAD_BYTES } from "@/types/apis/uploads"
 import { meteringLevel } from "@/utils/audio-waveform"
 import { SECOND } from "@/utils/units"
@@ -154,6 +154,8 @@ export function useRecorder(): Recorder {
 			handled.current = null
 
 			recorder.record({ forDuration: RECORDING_MAX_SECONDS })
+
+			track("recording_started", {})
 		} catch (error) {
 			reportError(error, "recording_start")
 

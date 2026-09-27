@@ -21,6 +21,7 @@ import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { RecordingsSection } from "@/screens/Words/components/recordings-section"
 import { type DraftItem, useWordDraft, type WordDraft } from "@/screens/Words/hooks/use-word-draft"
+import { track } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { WORD_NAME_LIMIT } from "@/types/apis/words"
 import type { RootStackParamList, WordsStackParamList } from "@/types/navigation"
@@ -79,6 +80,11 @@ export function WordEditorScreen(): ReactElement {
 				{ id: routeWordId },
 				{
 					onSuccess: () => {
+						track("word_deleted", {
+							word_id: routeWordId,
+							recording_count: draft.savedRecordingCount,
+						})
+
 						setPending(null)
 
 						navigation.goBack()

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
 import { linkAccount, switchAccount } from "@/services/auth/sign-in"
+import { completeOnboardingStep } from "@/services/telemetry/onboarding"
 import type { LoginProvider } from "@/types/account"
 
 export type LoginAttempt = { provider: LoginProvider; pending: boolean }
@@ -57,6 +58,10 @@ export function useLogin(entry: boolean, onDone: () => void): LoginState {
 			await switchAccount(provider)
 		} else if (result === "linked" && !entry) {
 			onDone()
+		}
+
+		if (entry && result !== "cancelled") {
+			completeOnboardingStep("login", { login_method: provider })
 		}
 	}
 

@@ -1,4 +1,5 @@
-import { useNavigation } from "@react-navigation/native"
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -12,6 +13,7 @@ import { ScreenHeader } from "@/components/ui/screen-header"
 import { Copy } from "@/components/ui/text"
 import { TextButton } from "@/components/ui/text-button"
 import { usePermissionRequest } from "@/screens/Entry/hooks/use-permission-request"
+import { viewOnboardingStep } from "@/services/telemetry/onboarding"
 import { colors, font } from "@/theme"
 
 const ROWS: readonly { kind: "microphone" | "notifications"; icon: IconName }[] = [
@@ -25,6 +27,12 @@ export function PermissionRequestScreen() {
 	const navigation = useNavigation()
 
 	const request = usePermissionRequest()
+
+	useFocusEffect(
+		useCallback(() => {
+			viewOnboardingStep("permissions")
+		}, []),
+	)
 
 	return (
 		<Screen

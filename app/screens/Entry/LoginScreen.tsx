@@ -1,6 +1,6 @@
-import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
+import { type RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
 import * as AppleAuthentication from "expo-apple-authentication"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 
@@ -13,6 +13,7 @@ import { LastLoginTag } from "@/screens/Entry/components/last-login-tag"
 import { OAuthButton } from "@/screens/Entry/components/oauth-button"
 import { useLogin } from "@/screens/Entry/hooks/use-login"
 import { availableLoginProviders } from "@/services/auth/providers"
+import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
 import { colors, font, providerColors, radius } from "@/theme"
@@ -55,6 +56,14 @@ export function LoginScreen() {
 		}
 	}, [])
 
+	useFocusEffect(
+		useCallback(() => {
+			if (entry) {
+				viewOnboardingStep("login")
+			}
+		}, [entry]),
+	)
+
 	const progressLabel = loadingProvider
 		? t(`auth.pending.${loadingProvider}`)
 		: completing
@@ -72,7 +81,11 @@ export function LoginScreen() {
 								label={t("common.skip")}
 								tone="muted"
 								disabled={disabled}
-								onPress={markLoginScreenSeen}
+								onPress={() => {
+									completeOnboardingStep("login", { login_method: "skip" })
+
+									markLoginScreenSeen()
+								}}
 							/>
 						) : undefined
 					}

@@ -8,6 +8,7 @@ import { PressableSurface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
+import { track } from "@/services/telemetry/client"
 import { colors, font, radius } from "@/theme"
 import type { SessionSound } from "@/types/apis/sessions"
 
@@ -34,7 +35,11 @@ export function SoundRow({ sound, wordName, timeLabel, player }: Props) {
 		try {
 			setShareFailed(false)
 
-			await Share.share({ url, message: url })
+			const result = await Share.share({ url, message: url })
+
+			if (result.action === Share.sharedAction) {
+				track("mimicry_shared", { session_id: sound.session_id })
+			}
 		} catch {
 			setShareFailed(true)
 		}
@@ -76,9 +81,15 @@ export function SoundRow({ sound, wordName, timeLabel, player }: Props) {
 					}
 					disabled={!url}
 					onPress={() => {
-						if (url) {
-							player.toggle(sound.id, url)
+						if (!url) {
+							return
 						}
+
+						if (!playing) {
+							track("mimicry_played", { session_id: sound.session_id })
+						}
+
+						player.toggle(sound.id, url)
 					}}
 				/>
 			</PressableSurface>

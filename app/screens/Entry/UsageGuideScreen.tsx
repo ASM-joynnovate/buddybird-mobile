@@ -1,8 +1,10 @@
-import { useNavigation } from "@react-navigation/native"
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 
 import { GuidePager, type GuideStep } from "@/components/guide-pager"
+import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function UsageGuideScreen() {
@@ -24,7 +26,18 @@ export function UsageGuideScreen() {
 			icon: "report",
 		},
 	]
-	const next = () => navigation.navigate("PermissionRequest")
+
+	useFocusEffect(
+		useCallback(() => {
+			viewOnboardingStep("usage_guide")
+		}, []),
+	)
+
+	function next() {
+		completeOnboardingStep("usage_guide")
+
+		navigation.navigate("PermissionRequest")
+	}
 
 	return (
 		<GuidePager

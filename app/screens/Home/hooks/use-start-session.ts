@@ -26,7 +26,7 @@ export function useStartSession(
 	const [takeoverOpen, setTakeoverOpen] = useState(false)
 
 	function start(draft: SessionDraft) {
-		const endsAt = draft.durationMs === null ? null : Date.now() + draft.durationMs
+		const endsAt = draft.duration.ms === null ? null : Date.now() + draft.duration.ms
 
 		setPending(draft)
 		setTakeoverOpen(false)

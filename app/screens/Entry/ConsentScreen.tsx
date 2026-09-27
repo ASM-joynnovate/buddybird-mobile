@@ -1,5 +1,6 @@
-import { useNavigation } from "@react-navigation/native"
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -14,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/surface"
 import { useEntryRoute } from "@/hooks/use-entry-route"
 import { useConsentChecks } from "@/screens/Entry/hooks/use-consent-checks"
+import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function ConsentScreen() {
@@ -24,6 +26,8 @@ export function ConsentScreen() {
 	const { route, parrotId } = useEntryRoute()
 
 	const form = useConsentChecks(() => {
+		completeOnboardingStep("consent")
+
 		if (route !== "Consent") {
 			navigation.navigate("ParrotEditor", {
 				parrotId: route === "UsageGuide" ? parrotId : undefined,
@@ -31,6 +35,12 @@ export function ConsentScreen() {
 			})
 		}
 	})
+
+	useFocusEffect(
+		useCallback(() => {
+			viewOnboardingStep("consent")
+		}, []),
+	)
 
 	function body() {
 		if (form.loadFailed) {

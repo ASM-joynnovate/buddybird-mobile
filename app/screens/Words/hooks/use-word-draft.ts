@@ -13,7 +13,7 @@ import {
 	wordQueryOptions,
 } from "@/hooks/apis/words"
 import { measureRecordingDuration } from "@/services/media/recording-duration"
-import { reportError } from "@/services/telemetry/client"
+import { reportError, track } from "@/services/telemetry/client"
 import type { Recording, Word } from "@/types/apis/words"
 import type { RecordedSample } from "@/types/navigation"
 
@@ -36,6 +36,7 @@ export type WordDraft = {
 	nameMissing: boolean
 	items: DraftItem[]
 	serverCount: number
+	savedRecordingCount: number
 	removeItem(item: DraftItem): void
 	step: SaveStep | null
 	saveFailed: boolean
@@ -119,6 +120,14 @@ export function useWordDraft(
 	}, [])
 
 	useEffect(() => {
+		if (routeWordId) {
+			track("word_edit_started", { word_id: routeWordId })
+		} else {
+			track("word_create_started", {})
+		}
+	}, [routeWordId])
+
+	useEffect(() => {
 		if (!recorded || consumed.current.has(recorded.key)) {
 			return
 		}
@@ -126,6 +135,8 @@ export function useWordDraft(
 		consumed.current.add(recorded.key)
 
 		setLocals((current) => [...current, recorded])
+
+		track("recording_finished", { duration_ms: recorded.durationMs })
 	}, [recorded])
 
 	function removeItem(item: DraftItem) {
@@ -184,6 +195,8 @@ export function useWordDraft(
 		setSaveFailed(false)
 
 		const expectedCount = (word.data?.recordings.length ?? 0) + locals.length
+		const addedCount = locals.length
+		const renamed = name.trim() !== word.data?.name
 
 		try {
 			setStep("saving")
@@ -222,6 +235,20 @@ export function useWordDraft(
 
 			await invalidate(apiKeys.words.all())
 
+			const recordingCount = latest.recordings.length - pending.length
+
+			if (routeWordId) {
+				track("word_updated", {
+					word_id: id,
+					recording_count: recordingCount,
+					added_count: addedCount,
+					removed_count: pending.length,
+					renamed,
+				})
+			} else {
+				track("word_created", { word_id: id, recording_count: recordingCount })
+			}
+
 			if (alive.current) {
 				onDone()
 			}
@@ -248,6 +275,7 @@ export function useWordDraft(
 		nameMissing,
 		items,
 		serverCount: servers.length,
+		savedRecordingCount: word.data?.recordings.length ?? 0,
 		removeItem,
 		step,
 		saveFailed,

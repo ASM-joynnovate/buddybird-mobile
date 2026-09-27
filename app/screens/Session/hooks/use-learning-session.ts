@@ -15,7 +15,7 @@ import { reportError, track } from "@/services/telemetry/client"
 import { ApiError } from "@/types/apis/common"
 import type { RootStackParamList } from "@/types/navigation"
 
-type EndReason = "completed" | "user" | "server"
+type EndReason = "time_reached" | "user" | "server"
 
 export type LearningSession = {
 	startedAt: string | null
@@ -25,7 +25,7 @@ export type LearningSession = {
 }
 
 export function useLearningSession(
-	{ sessionId, wordId, endsAt, sleep }: RootStackParamList["SessionRun"],
+	{ sessionId, wordId, endsAt, sleep, duration, sleepChanged }: RootStackParamList["SessionRun"],
 	onFinished: () => void,
 ): LearningSession {
 	const queryClient = useQueryClient()
@@ -37,6 +37,8 @@ export function useLearningSession(
 
 	const engine = useRef<LearningEngine | null>(null)
 	const uploads = useRef<Promise<unknown>[]>([])
+	const soundCount = useRef(0)
+	const pausedAt = useRef<number | null>(null)
 	const closing = useRef(false)
 	const finished = useRef(onFinished)
 
@@ -61,6 +63,8 @@ export function useLearningSession(
 			setEnding(true)
 
 			const learningMs = engine.current?.learningMs() ?? 0
+			const playCount =
+				engine.current?.summaries().reduce((sum, row) => sum + row.play_count, 0) ?? 0
 
 			try {
 				await engine.current?.stop()
@@ -77,23 +81,18 @@ export function useLearningSession(
 				}
 			}
 
-			if (reason === "completed" || (reason === "user" && endsAt === null)) {
-				track("learning_completed", {
-					session_id: sessionId,
-					learning_duration_ms: learningMs,
-					total_duration_ms: startedAt ? Date.now() - Date.parse(startedAt) : 0,
-				})
-			} else {
-				track("learning_aborted", {
-					session_id: sessionId,
-					learning_duration_ms: learningMs,
-					reason,
-				})
-			}
+			track("learning_finished", {
+				session_id: sessionId,
+				reason,
+				learning_duration_ms: learningMs,
+				total_duration_ms: startedAt ? Date.now() - Date.parse(startedAt) : 0,
+				play_count: playCount,
+				sound_count: soundCount.current,
+			})
 
 			finished.current()
 		},
-		[endsAt, finish, sessionId, startedAt],
+		[finish, sessionId, startedAt],
 	)
 
 	useHeartbeat({
@@ -111,13 +110,15 @@ export function useLearningSession(
 
 		let queue = queryClient
 			.query({ ...wordQueryOptions(wordId), staleTime: 0 })
-			.then((word) => {
+			.then(async (word) => {
 				const created = createLearningEngine({
 					wordId,
 					recordingUrls: word.recordings.map((item) => item.url),
 					startedAt: Date.parse(startedAt),
 					sleep: { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at },
 					onSound: (sound) => {
+						soundCount.current += 1
+
 						const pending: Promise<unknown> = upload({
 							sessionId,
 							uri: sound.uri,
@@ -135,22 +136,27 @@ export function useLearningSession(
 
 				engine.current = created
 
-				return created.start()
-			})
-			.then(() =>
+				await created.start()
+
 				track("learning_started", {
 					session_id: sessionId,
 					word_id: wordId,
-					...(endsAt === null ? {} : { duration_ms: endsAt - Date.parse(startedAt) }),
-				}),
-			)
+					recording_count: word.recordings.length,
+					...(duration.ms === null ? {} : { planned_duration_ms: duration.ms }),
+					custom_duration: duration.custom,
+					sleep_changed: sleepChanged,
+				})
+			})
 			.catch((error: unknown) => {
 				reportError(error, "learning_start")
 
-				track("learning_aborted", {
+				track("learning_finished", {
 					session_id: sessionId,
-					learning_duration_ms: 0,
 					reason: "error",
+					learning_duration_ms: 0,
+					total_duration_ms: Date.now() - Date.parse(startedAt),
+					play_count: 0,
+					sound_count: 0,
 				})
 
 				setFailed(true)
@@ -163,6 +169,19 @@ export function useLearningSession(
 		}
 
 		const lifecycle = AppState.addEventListener("change", (state) => {
+			if (state !== "active" && engine.current && pausedAt.current === null) {
+				pausedAt.current = Date.now()
+
+				track("learning_paused", { session_id: sessionId })
+			} else if (state === "active" && pausedAt.current !== null) {
+				track("learning_resumed", {
+					session_id: sessionId,
+					paused_ms: Date.now() - pausedAt.current,
+				})
+
+				pausedAt.current = null
+			}
+
 			run(() => (state === "active" ? engine.current?.resume() : engine.current?.pause()))
 		})
 
@@ -177,14 +196,14 @@ export function useLearningSession(
 				return current?.stop()
 			})
 		}
-	}, [endsAt, queryClient, sessionId, sleep, startedAt, upload, wordId])
+	}, [duration, queryClient, sessionId, sleep, sleepChanged, startedAt, upload, wordId])
 
 	useEffect(() => {
 		if (endsAt === null) {
 			return
 		}
 
-		const timer = setTimeout(() => void close("completed"), Math.max(0, endsAt - Date.now()))
+		const timer = setTimeout(() => void close("time_reached"), Math.max(0, endsAt - Date.now()))
 
 		return () => clearTimeout(timer)
 	}, [close, endsAt])

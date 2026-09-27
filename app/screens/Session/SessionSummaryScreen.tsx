@@ -37,7 +37,7 @@ export function SessionSummaryScreen() {
 						screen: "ReportTab",
 						params: {
 							screen: "SessionDetail",
-							params: { sessionId: params.sessionId },
+							params: { sessionId: params.sessionId, source: "summary" },
 							initial: false,
 						},
 					},

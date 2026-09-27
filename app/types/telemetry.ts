@@ -1,67 +1,72 @@
-type WordEvent = { session_id: string; word_id: string; wordName: string }
+import type { LoginProvider } from "@/types/account"
+import type { ReportPeriodParam } from "@/types/navigation"
 
-type ProfileEvent = { parrot_name: string; parrot_species: string; parrot_age_months?: number }
-
-type Lifetime = {
-	word_id: string
-	wordName: string
-	lifetime_practice_count: number
-	lifetime_practice_duration_ms: number
-}
+export type OnboardingStep =
+	| "login"
+	| "consent"
+	| "legacy_upload"
+	| "parrot"
+	| "usage_guide"
+	| "permissions"
 
 export type Events = {
-	app_open: { cold_start: boolean }
-	app_foreground: Record<string, never>
-	app_background: { session_duration_ms: number }
+	onboarding_step_viewed: { step: OnboardingStep }
+	onboarding_step_completed: {
+		step: OnboardingStep
+		duration_ms: number
+		login_method?: LoginProvider | "skip"
+		microphone_granted?: boolean
+		notifications_granted?: boolean
+	}
+	onboarding_completed: { total_duration_ms: number }
+	word_create_started: Record<string, never>
+	word_created: { word_id: string; recording_count: number }
+	word_edit_started: { word_id: string }
+	word_updated: {
+		word_id: string
+		recording_count: number
+		added_count: number
+		removed_count: number
+		renamed: boolean
+	}
+	recording_started: Record<string, never>
+	recording_finished: { duration_ms: number }
+	word_deleted: { word_id: string; recording_count: number }
+	learning_started: {
+		session_id: string
+		word_id: string
+		recording_count: number
+		planned_duration_ms?: number
+		custom_duration: boolean
+		sleep_changed: boolean
+	}
+	learning_paused: { session_id: string }
+	learning_resumed: { session_id: string; paused_ms: number }
+	learning_finished: {
+		session_id: string
+		reason: "time_reached" | "user" | "server" | "error"
+		learning_duration_ms: number
+		total_duration_ms: number
+		play_count: number
+		sound_count: number
+	}
+	report_viewed: {
+		period: ReportPeriodParam
+		periods_ago: number
+		source: "tab" | "notification"
+		session_count: number
+	}
+	session_detail_viewed: { session_id: string; source: "report" | "summary" }
+	mimicry_played: { session_id: string }
+	mimicry_shared: { session_id: string }
+	notification_opened: {
+		kind: "mimicry" | "daily_summary" | "streak"
+		from: "push" | "list"
+	}
+	language_changed: { from: string; to: string }
 	update_prompt_shown: { latest_version: string; is_forced: boolean }
 	update_prompt_accepted: { latest_version: string; is_forced: boolean }
 	update_prompt_dismissed: { latest_version: string }
-	onboarding_started: Record<string, never>
-	onboarding_step_completed: { step: "welcome" | "profile"; duration_ms: number }
-	onboarding_completed: { total_duration_ms: number }
-	onboarding_abandoned: { last_step: "welcome" | "profile"; last_step_duration_ms: number }
-	profile_created: ProfileEvent
-	profile_updated: Partial<ProfileEvent> & { fields_changed: string[] }
-	profile_deleted: { parrot_name: string; lifetime_session_count: number }
-	word_selected: WordEvent & { source: "list" | "recommendation" | "search" }
-	word_recorded: WordEvent & {
-		attempt_number: number
-		recording_duration_ms: number
-		audio_size_bytes: number
-		recording_method: "voice" | "upload"
-	}
-	recording_played: WordEvent & { play_count: number; playback_duration_ms: number }
-	word_added: {
-		word_id: string
-		wordName: string
-		registration_method: "text" | "voice_recording"
-		recording_duration_ms?: number
-		audio_size_bytes?: number
-	}
-	word_recording_started: { wordName: string }
-	word_recording_finished: {
-		wordName: string
-		recording_duration_ms: number
-		retry_count: number
-	}
-	word_removed: Lifetime
-	word_lifetime_metrics: Lifetime & {
-		lifetime_recording_count: number
-		last_practiced_at_days_ago: number
-	}
-	learning_started: { session_id: string; word_id: string; duration_ms?: number }
-	learning_completed: {
-		session_id: string
-		learning_duration_ms: number
-		total_duration_ms: number
-	}
-	learning_aborted: {
-		session_id: string
-		learning_duration_ms: number
-		reason: "user" | "server" | "error"
-	}
-	tab_switched: { from: string; to: string }
-	language_changed: { from: string; to: string }
 	feedback_prompt_shown: { threshold: number }
 	feedback_prompt_dismissed: { threshold: number }
 	feedback_submitted: { source: "prompt" | "profile"; message_length: number }
@@ -79,7 +84,6 @@ export type UserProperties = Partial<
 		| "parrot_species"
 		| "parrot_age_months"
 		| "total_words_registered"
-		| "total_recording_duration_sec"
 		| "locale",
 		string | number | null
 	>

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { z } from "zod"
 
 import type { ReportPeriod } from "@/types/apis/reports"
-import { localDate } from "@/utils/date"
+import { localDate, periodsBetween } from "@/utils/date"
 
 const paramsSchema = z.object({
 	period: z.enum(["day", "week", "month"]).optional(),
@@ -19,6 +19,7 @@ export type ReportPeriodState = {
 	start: string
 	end: Date
 	isLatest: boolean
+	periodsAgo: number
 	select(period: ReportPeriod): void
 	move(step: 1 | -1): void
 }
@@ -69,21 +70,29 @@ function fromParams(params: unknown): Selection {
 
 export function useReportPeriod(params: unknown): ReportPeriodState {
 	const [selection, setSelection] = useState(() => fromParams(params))
+	const [appliedParams, setAppliedParams] = useState(params)
 
-	const start = parseLocalDate(selection.start)
-	const next = shift(selection.period, start, 1)
+	if (params !== appliedParams) {
+		setAppliedParams(params)
 
-	useEffect(() => {
 		if (params) {
 			setSelection(fromParams(params))
 		}
-	}, [params])
+	}
+
+	const start = parseLocalDate(selection.start)
+	const next = shift(selection.period, start, 1)
 
 	return {
 		period: selection.period,
 		start: selection.start,
 		end: new Date(next.getFullYear(), next.getMonth(), next.getDate() - 1),
 		isLatest: selection.start >= latestStart(selection.period),
+		periodsAgo: periodsBetween(
+			selection.period,
+			selection.start,
+			latestStart(selection.period),
+		),
 		select: (period) => setSelection({ period, start: latestStart(period) }),
 		move: (step) => {
 			const target = localDate(shift(selection.period, start, step))

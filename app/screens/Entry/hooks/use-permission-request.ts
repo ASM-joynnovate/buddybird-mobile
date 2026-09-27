@@ -1,17 +1,30 @@
 import { useState } from "react"
 
-import { type PermissionKind, requestPermission } from "@/services/device/permissions"
+import {
+	type PermissionKind,
+	readPermission,
+	requestPermission,
+} from "@/services/device/permissions"
 import { sendPushToken } from "@/services/push/registration"
 import { reportError } from "@/services/telemetry/client"
+import { completeOnboarding, completeOnboardingStep } from "@/services/telemetry/onboarding"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-
-const ORDER: readonly PermissionKind[] = ["microphone", "notifications"]
 
 async function ask(kind: PermissionKind) {
 	try {
 		return (await requestPermission(kind)).granted
 	} catch (error) {
 		reportError(error, `permission_request_${kind}`)
+
+		return false
+	}
+}
+
+async function isGranted(kind: PermissionKind) {
+	try {
+		return (await readPermission(kind)).granted
+	} catch (error) {
+		reportError(error, `permission_read_${kind}`)
 
 		return false
 	}
@@ -24,7 +37,13 @@ export function usePermissionRequest(): {
 } {
 	const [busy, setBusy] = useState(false)
 
-	function finish() {
+	function finish(microphoneGranted: boolean, notificationsGranted: boolean) {
+		completeOnboardingStep("permissions", {
+			microphone_granted: microphoneGranted,
+			notifications_granted: notificationsGranted,
+		})
+		completeOnboarding()
+
 		try {
 			useDeviceSettingsStore.getState().setOnboardingCompleted(true)
 		} catch (cause) {
@@ -39,18 +58,21 @@ export function usePermissionRequest(): {
 
 		setBusy(true)
 
-		for (const kind of ORDER) {
-			const granted = await ask(kind)
+		const microphoneGranted = await ask("microphone")
+		const notificationsGranted = await ask("notifications")
 
-			if (kind === "notifications" && granted) {
-				void sendPushToken().catch((cause) => reportError(cause, "push_token_register"))
-			}
+		if (notificationsGranted) {
+			void sendPushToken().catch((cause) => reportError(cause, "push_token_register"))
 		}
 
 		setBusy(false)
 
-		finish()
+		finish(microphoneGranted, notificationsGranted)
 	}
 
-	return { busy, allow: () => void allow(), later: finish }
+	async function later() {
+		finish(await isGranted("microphone"), await isGranted("notifications"))
+	}
+
+	return { busy, allow: () => void allow(), later: () => void later() }
 }

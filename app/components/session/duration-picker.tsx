@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -7,6 +6,7 @@ import { WheelPicker } from "@/components/ui/wheel-picker"
 import { DURATION_PRESETS, MAX_SESSION_MS } from "@/config"
 import { formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
+import type { LearningDuration } from "@/types/navigation"
 import { DAY, HOUR, MINUTE } from "@/utils/units"
 
 const DAYS = Array.from({ length: 8 }, (_, day) => day)
@@ -14,8 +14,8 @@ const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
 const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5)
 
 interface Props {
-	value: number | null
-	onChange(value: number | null): void
+	value: LearningDuration
+	onChange(value: LearningDuration): void
 }
 
 export function DurationPicker({ value, onChange }: Props) {
@@ -23,11 +23,7 @@ export function DurationPicker({ value, onChange }: Props) {
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
 
-	const [custom, setCustom] = useState(
-		value !== null && !DURATION_PRESETS.some((preset) => preset === value),
-	)
-
-	const total = value ?? 0
+	const total = value.ms ?? 0
 	const days = Math.floor(total / DAY)
 	const hours = Math.floor((total % DAY) / HOUR)
 	const minutes = Math.floor((total % HOUR) / MINUTE)
@@ -39,7 +35,7 @@ export function DurationPicker({ value, onChange }: Props) {
 			MAX_SESSION_MS,
 		)
 
-		onChange(next > 0 ? next : null)
+		onChange({ ms: next > 0 ? next : null, custom: true })
 	}
 
 	return (
@@ -48,32 +44,24 @@ export function DurationPicker({ value, onChange }: Props) {
 				<RadioRow
 					first
 					label={t("session.start.untilEnd")}
-					selected={!custom && value === null}
-					onPress={() => {
-						setCustom(false)
-
-						onChange(null)
-					}}
+					selected={!value.custom && value.ms === null}
+					onPress={() => onChange({ ms: null, custom: false })}
 				/>
 				{DURATION_PRESETS.map((preset) => (
 					<RadioRow
 						key={preset}
 						label={formatDuration(preset, locale)}
-						selected={!custom && value === preset}
-						onPress={() => {
-							setCustom(false)
-
-							onChange(preset)
-						}}
+						selected={!value.custom && value.ms === preset}
+						onPress={() => onChange({ ms: preset, custom: false })}
 					/>
 				))}
 				<RadioRow
 					label={t("session.start.custom")}
-					selected={custom}
-					onPress={() => setCustom(true)}
+					selected={value.custom}
+					onPress={() => onChange({ ms: value.ms, custom: true })}
 				/>
 			</GroupedList>
-			{custom ? (
+			{value.custom ? (
 				<WheelPicker
 					columns={[
 						{

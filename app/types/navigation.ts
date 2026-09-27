@@ -4,10 +4,13 @@ export type ReportPeriodParam = "day" | "week" | "month"
 
 export type SessionSleep = { sleep_at: string; wake_at: string }
 
+export type LearningDuration = { ms: number | null; custom: boolean }
+
 export type SessionDraft = {
 	wordId: string
-	durationMs: number | null
+	duration: LearningDuration
 	sleep: SessionSleep
+	sleepChanged: boolean
 }
 
 export type RecordedSample = { key: string; uri: string; durationMs: number }
@@ -23,8 +26,8 @@ export type WordsStackParamList = {
 }
 
 export type ReportStackParamList = {
-	Report: { period?: ReportPeriodParam; date?: string } | undefined
-	SessionDetail: { sessionId: string }
+	Report: { period?: ReportPeriodParam; date?: string; source?: "notification" } | undefined
+	SessionDetail: { sessionId: string; source: "report" | "summary" }
 }
 
 export type ProfileStackParamList = {
@@ -48,7 +51,14 @@ export type RootStackParamList = {
 	PermissionRequest: undefined
 	Main: NavigatorScreenParams<MainTabParamList> | undefined
 	NoticeDetail: { noticeId: string }
-	SessionRun: { sessionId: string; wordId: string; endsAt: number | null; sleep: SessionSleep }
+	SessionRun: {
+		sessionId: string
+		wordId: string
+		endsAt: number | null
+		sleep: SessionSleep
+		duration: LearningDuration
+		sleepChanged: boolean
+	}
 	SessionSummary: { sessionId: string }
 	RecordingGuide: { source: "add" | "help"; wordName: string }
 	Recorder: { wordName: string }

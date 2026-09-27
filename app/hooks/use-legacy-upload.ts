@@ -10,11 +10,14 @@ import {
 	uploadLegacy,
 } from "@/services/migration/upload-legacy"
 import { reportError } from "@/services/telemetry/client"
+import { completeOnboardingStep } from "@/services/telemetry/onboarding"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
 async function runLegacyUpload() {
 	await uploadLegacy()
 	await invalidate(apiKeys.parrots.all(), apiKeys.words.all())
+
+	completeOnboardingStep("legacy_upload")
 
 	finishLegacyUpload()
 }
@@ -52,7 +55,11 @@ export function useLegacyUpload(): {
 		asking,
 		failed,
 		add: acceptLegacyUpload,
-		skip: finishLegacyUpload,
+		skip: () => {
+			completeOnboardingStep("legacy_upload")
+
+			finishLegacyUpload()
+		},
 		retry: () => {
 			setFailed(false)
 			setAttempt((count) => count + 1)

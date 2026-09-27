@@ -6,7 +6,6 @@ import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import type { CommonMessages } from "@/i18n/types/common"
-import { track } from "@/services/telemetry/client"
 import { colors, font, radius } from "@/theme"
 import type { MainTabParamList } from "@/types/navigation"
 
@@ -42,10 +41,6 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 						return
 					}
 
-					track("tab_switched", {
-						from: tabs[state.routes[state.index].name as keyof MainTabParamList].label,
-						to: tabName,
-					})
 					navigation.navigate(route.name, route.params)
 				}
 

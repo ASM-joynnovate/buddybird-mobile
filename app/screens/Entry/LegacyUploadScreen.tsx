@@ -1,4 +1,4 @@
-import type { ReactElement } from "react"
+import { type ReactElement, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 
@@ -8,12 +8,19 @@ import { Screen } from "@/components/ui/screen"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { useLegacyUpload } from "@/hooks/use-legacy-upload"
+import { screen } from "@/services/telemetry/client"
+import { viewOnboardingStep } from "@/services/telemetry/onboarding"
 import { colors } from "@/theme"
 
 export function LegacyUploadScreen(): ReactElement {
 	const { t } = useTranslation()
 
 	const upload = useLegacyUpload()
+
+	useEffect(() => {
+		screen("LegacyUpload")
+		viewOnboardingStep("legacy_upload")
+	}, [])
 
 	return (
 		<Screen scroll={false}>

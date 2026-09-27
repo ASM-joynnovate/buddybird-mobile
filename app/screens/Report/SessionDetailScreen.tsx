@@ -1,5 +1,6 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -15,6 +16,7 @@ import { Copy } from "@/components/ui/text"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { useSessionMimicry } from "@/screens/Report/hooks/use-session-mimicry"
+import { track } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors } from "@/theme"
@@ -36,6 +38,10 @@ export function SessionDetailScreen() {
 	const mimicry = useSessionMimicry(params.sessionId)
 
 	const formatSoundTime = mimicry.multiDay ? formatDateTime : formatTime
+
+	useEffect(() => {
+		track("session_detail_viewed", { session_id: params.sessionId, source: params.source })
+	}, [params.sessionId, params.source])
 
 	function renderBody() {
 		if (isAnonymous) {

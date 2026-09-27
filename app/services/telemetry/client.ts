@@ -216,16 +216,7 @@ export function track<K extends keyof Events>(name: K, payload: Events[K]) {
 	})
 }
 
-export function screen(
-	name:
-		| "onboarding_welcome"
-		| "onboarding_profile"
-		| "session_setup"
-		| "words"
-		| "profile"
-		| "session_active",
-	screenClass = name,
-) {
+export function screen(name: string, screenClass = name) {
 	currentScreen = name
 
 	track("screen_view", { screen_name: name, screen_class: screenClass })

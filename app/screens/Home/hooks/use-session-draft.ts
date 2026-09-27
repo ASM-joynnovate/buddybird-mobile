@@ -6,19 +6,21 @@ import { settingsQueryOptions } from "@/hooks/apis/settings"
 import { wordsQueryOptions } from "@/hooks/apis/words"
 import type { SleepSettings } from "@/types/apis/settings"
 import type { Word } from "@/types/apis/words"
-import type { SessionDraft } from "@/types/navigation"
+import type { LearningDuration, SessionDraft } from "@/types/navigation"
+
+const UNTIL_END: LearningDuration = { ms: null, custom: false }
 
 export type SessionDraftState = {
 	words: Word[]
 	word: Word | null
-	durationMs: number | null
+	duration: LearningDuration
 	sleep: SleepSettings | undefined
 	draft: SessionDraft | null
 	loading: boolean
 	isError: boolean
 	retry(): void
 	selectWord(id: string): void
-	setDurationMs(durationMs: number | null): void
+	setDuration(duration: LearningDuration): void
 	setSleep(sleep: SleepSettings): void
 	resetDraft(): void
 }
@@ -28,19 +30,23 @@ export function useSessionDraft(): SessionDraftState {
 	const settings = useQuery(settingsQueryOptions())
 
 	const [wordId, setWordId] = useState<string | null>(null)
-	const [durationMs, setDurationMs] = useState<number | null>(null)
+	const [duration, setDuration] = useState(UNTIL_END)
 	const [sleepOverride, setSleep] = useState<SleepSettings | null>(null)
 
 	const available = selectableWords(words.data ?? [])
 	const word = available.find((item) => item.id === wordId) ?? null
 	const sleep = sleepOverride ?? settings.data?.sleep
+	const sleepChanged =
+		sleepOverride !== null &&
+		(sleepOverride.sleep_at !== settings.data?.sleep.sleep_at ||
+			sleepOverride.wake_at !== settings.data?.sleep.wake_at)
 
 	return {
 		words: available,
 		word,
-		durationMs,
+		duration,
 		sleep,
-		draft: word && sleep ? { wordId: word.id, durationMs, sleep } : null,
+		draft: word && sleep ? { wordId: word.id, duration, sleep, sleepChanged } : null,
 		loading: words.isPending || settings.isPending,
 		isError: words.isError || settings.isError,
 		retry: () => {
@@ -48,11 +54,11 @@ export function useSessionDraft(): SessionDraftState {
 			void settings.refetch()
 		},
 		selectWord: setWordId,
-		setDurationMs,
+		setDuration,
 		setSleep,
 		resetDraft: () => {
 			setWordId(null)
-			setDurationMs(null)
+			setDuration(UNTIL_END)
 			setSleep(null)
 		},
 	}
