@@ -2,15 +2,10 @@ import type { AppMessages } from "@/i18n/types/app"
 
 export const app: AppMessages = {
 	startup: {
-		loading: "Preparing your saved data",
-		title: "Could not load your data",
-		message: "Your original data is preserved. Try again to continue preparing it.",
+		loading: "Getting the app ready",
+		title: "Couldn't start the app",
+		message: "Check your internet connection and try again.",
 		retry: "Try again",
-	},
-	storage: {
-		settingError:
-			"Could not read some device settings. Using defaults without changing the saved values.",
-		saveError: "Could not confirm the save. Please try again.",
 	},
 	feedback: {
 		thanks: "Your feedback came through. We will use it to make BuddyBird better.",

@@ -1,10 +1,7 @@
-import * as Notifications from "expo-notifications"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 
-import { registerPushTokenMutationOptions } from "@/hooks/apis/devices"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { type PermissionKind, requestPermission } from "@/services/device/permissions"
+import { sendPushToken } from "@/services/push/registration"
 import { reportError } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 
@@ -22,34 +19,16 @@ async function ask(kind: PermissionKind) {
 
 export function usePermissionRequest(): {
 	busy: boolean
-	error: string | null
 	allow(): void
 	later(): void
 } {
-	const { t } = useTranslation()
-
-	const register = useIdempotentMutation(registerPushTokenMutationOptions())
-
 	const [busy, setBusy] = useState(false)
-	const [error, setError] = useState<string | null>(null)
 
 	function finish() {
 		try {
 			useDeviceSettingsStore.getState().setOnboardingCompleted(true)
 		} catch (cause) {
 			reportError(cause, "onboarding_completed_save")
-
-			setError(t("entry.permissions.saveError"))
-		}
-	}
-
-	async function registerPush() {
-		try {
-			const { data } = await Notifications.getDevicePushTokenAsync()
-
-			await register.mutateAsync({ token: String(data) })
-		} catch (cause) {
-			reportError(cause, "push_token_register")
 		}
 	}
 
@@ -59,13 +38,12 @@ export function usePermissionRequest(): {
 		}
 
 		setBusy(true)
-		setError(null)
 
 		for (const kind of ORDER) {
 			const granted = await ask(kind)
 
 			if (kind === "notifications" && granted) {
-				void registerPush()
+				void sendPushToken().catch((cause) => reportError(cause, "push_token_register"))
 			}
 		}
 
@@ -74,5 +52,5 @@ export function usePermissionRequest(): {
 		finish()
 	}
 
-	return { busy, error, allow: () => void allow(), later: finish }
+	return { busy, allow: () => void allow(), later: finish }
 }

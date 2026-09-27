@@ -1,13 +1,18 @@
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog"
 import { UpdateDialog } from "@/components/dialogs/update-dialog"
-import { useAccountServices } from "@/hooks/use-account-services"
+import { useAnalyticsUser } from "@/hooks/use-analytics-user"
+import { useDeviceRegistration } from "@/hooks/use-device-registration"
 import { useFeedbackForm } from "@/hooks/use-feedback-form"
 import { useFeedbackPrompt } from "@/hooks/use-feedback-prompt"
+import { usePushRegistration } from "@/hooks/use-push-registration"
 import { useUpdatePrompt } from "@/hooks/use-update-prompt"
 import { useFeedbackStore } from "@/stores/feedback"
 
 export function AppRuntime() {
-	useAccountServices()
+	const deviceRegistered = useDeviceRegistration()
+
+	usePushRegistration(deviceRegistered)
+	useAnalyticsUser()
 
 	const feedback = useFeedbackStore()
 
@@ -21,6 +26,7 @@ export function AppRuntime() {
 	} = useUpdatePrompt()
 
 	const feedbackPrompt = useFeedbackPrompt(updatesSettled, updateVisible)
+
 	const feedbackForm = useFeedbackForm(feedback.source ?? "profile", feedback.close)
 
 	return (

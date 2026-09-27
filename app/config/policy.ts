@@ -32,6 +32,9 @@ export const RECORDING_MAX_SECONDS = 60
 
 export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const
 
+export const MAX_DEVICE_MODEL_LENGTH = 100
+export const MAX_DEVICE_OS_VERSION_LENGTH = 20
+
 export const CYCLE = [
 	{ phase: "learning", ms: 10 * MINUTE },
 	{ phase: "rest", ms: 5 * MINUTE },

@@ -5,10 +5,6 @@ export type AppMessages = {
 		message: string
 		retry: string
 	}
-	storage: {
-		settingError: string
-		saveError: string
-	}
 	feedback: {
 		thanks: string
 		thanksClose: string

@@ -76,7 +76,6 @@ export type MockWord = { id: string; name: string; recordings: MockRecording[] }
 export type MockDevice = {
 	id: string
 	client_device_id: string
-	name: string | null
 	timezone: string | null
 	last_seen_at: string | null
 	client: { platform: string; os_version: string; model: string; app_version: string }
@@ -440,15 +439,10 @@ function notification(
 	}
 }
 
-function createDevice(
-	name: string | null,
-	client: MockDevice["client"],
-	lastSeenAt: number,
-): MockDevice {
+function createDevice(client: MockDevice["client"], lastSeenAt: number): MockDevice {
 	return {
 		id: randomUUID(),
 		client_device_id: randomUUID(),
-		name,
 		timezone: "Asia/Seoul",
 		last_seen_at: iso(lastSeenAt),
 		client,
@@ -532,7 +526,6 @@ function presetWords(created: number): MockWord[] {
 
 function currentDevice(now: number): MockDevice {
 	return createDevice(
-		null,
 		Platform.OS === "ios"
 			? { platform: "ios", os_version: "18.0", model: "iPhone 15", app_version: "1.2.0" }
 			: { platform: "android", os_version: "15", model: "Pixel 8", app_version: "1.2.0" },
@@ -624,7 +617,6 @@ export function seed(now: number): Database {
 		.filter((item) => item.recordings.length > 0)
 		.map((item) => ({ id: item.id, name: item.name }))
 	const station = createDevice(
-		"거실 공기계",
 		{ platform: "android", os_version: "14", model: "Galaxy S21", app_version: "1.2.0" },
 		now - 4000,
 	)

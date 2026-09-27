@@ -1,9 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import {
-	disconnectDevice,
 	fetchActivity,
-	fetchDeviceNames,
 	fetchEventExtras,
 	fetchNoticeNotifications,
 	fetchRecordingStatus,
@@ -11,7 +9,6 @@ import {
 	fetchSessionsInRange,
 	fetchSoundAnalysis,
 	fetchSoundFeedback,
-	renameDevice,
 	saveSoundFeedback,
 } from "@/apis/mocks"
 import { apiKeys } from "@/hooks/apis/keys"
@@ -63,37 +60,6 @@ export const soundFeedbackMutationOptions = () =>
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: apiKeys.mocks.soundFeedback() }),
 				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
-			]),
-	})
-
-export const deviceNamesQueryOptions = () =>
-	queryOptions({ queryKey: apiKeys.mocks.deviceNames(), queryFn: fetchDeviceNames })
-
-export const renameDeviceMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("devices", "rename"),
-		mutationFn: ({
-			id,
-			name,
-			idempotencyKey,
-		}: {
-			id: string
-			name: string | null
-			idempotencyKey: string
-		}) => renameDevice(id, name, idempotencyKey),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-	})
-
-export const disconnectDeviceMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("devices", "disconnect"),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			disconnectDevice(id, idempotencyKey),
-		onSuccess: () =>
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
 			]),
 	})
 

@@ -20,7 +20,7 @@ export const registerDeviceRequestSchema = z.object({
 	client_device_id: uuid,
 	platform: z.string().min(1).max(10),
 	os_version: z.string().min(1).max(20),
-	model: z.string().min(1).max(30),
+	model: z.string().min(1).max(100),
 	app_version: z.string().min(1).max(12),
 	timezone: z.string().min(1).max(64).nullable().optional(),
 })

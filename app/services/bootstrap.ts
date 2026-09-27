@@ -1,7 +1,7 @@
+import NetInfo from "@react-native-community/netinfo"
 import * as SplashScreen from "expo-splash-screen"
-import { Alert } from "react-native"
 
-import i18next, { initI18n } from "@/i18n"
+import { initI18n } from "@/i18n"
 import { configureApi } from "@/lib/api"
 import { takeRestoreErrors } from "@/lib/storage"
 import { mockServer } from "@/mocks/server"
@@ -19,7 +19,7 @@ configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, report: repo
 
 installUnauthorizedSignOut()
 
-mockServer.configure(ensureClientDeviceId(), locale)
+mockServer.configure(locale)
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, "splash_screen"))
 
@@ -39,15 +39,14 @@ export async function bootstrap() {
 		return "headless" as const
 	}
 
-	try {
-		await loadLegacy()
-		await initI18n(locale())
-	} catch (error) {
-		reportError(error, "legacy_load")
+	if ((await NetInfo.fetch()).isConnected === false) {
+		return "failed" as const
 	}
 
-	if (restoreErrors.length > 0) {
-		Alert.alert(i18next.t("app.storage.settingError"))
+	try {
+		await loadLegacy()
+	} catch (error) {
+		reportError(error, "legacy_load")
 	}
 
 	return "ready" as const

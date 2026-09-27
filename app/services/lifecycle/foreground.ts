@@ -1,5 +1,4 @@
-import i18next from "i18next"
-import { Alert, AppState } from "react-native"
+import { AppState } from "react-native"
 
 import { initializeTelemetry, reportError, track } from "@/services/telemetry/client"
 import { installGlobalErrorReporting } from "@/services/telemetry/global-errors"
@@ -12,8 +11,6 @@ function recordFeedbackDay(scope: string) {
 		useDeviceSettingsStore.getState().countFeedbackDay()
 	} catch (error) {
 		reportError(error, scope)
-
-		Alert.alert(i18next.t("app.storage.saveError"))
 	}
 }
 

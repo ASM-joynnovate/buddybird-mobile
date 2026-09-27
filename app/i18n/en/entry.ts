@@ -50,7 +50,6 @@ export const entry: EntryMessages = {
 		notifications: "Learning alerts",
 		allow: "Allow",
 		later: "Later",
-		saveError: "We couldn't save your progress. Please tap the button again.",
 	},
 	legacy: {
 		uploading: "Moving the parrot and words on this phone",

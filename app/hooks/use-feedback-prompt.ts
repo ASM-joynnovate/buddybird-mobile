@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { Alert } from "react-native"
 
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
@@ -11,8 +9,6 @@ import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { useFeedbackStore } from "@/stores/feedback"
 
 export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolean) {
-	const { t } = useTranslation()
-
 	const preferences = useDeviceSettingsStore((state) => state.feedback)
 
 	const feedback = useFeedbackStore()
@@ -62,8 +58,6 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 			}
 		} catch (error) {
 			reportError(error, "feedback_prompt")
-
-			Alert.alert(t("app.storage.saveError"))
 		} finally {
 			setOpen(false)
 		}

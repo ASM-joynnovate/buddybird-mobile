@@ -42,7 +42,6 @@ export const apiKeys = {
 		eventExtras: (id: string) => [...scope(), "sessions", id, "mocks", "events"] as const,
 		soundFeedback: () => [...scope(), "mocks", "sound-feedback"] as const,
 		soundAnalysis: () => [...scope(), "mocks", "sound-analysis"] as const,
-		deviceNames: () => [...scope(), "devices", "mocks", "names"] as const,
 		recordingStatus: (id: string) => [...scope(), "words", id, "mocks", "recordings"] as const,
 		noticeNotifications: () => [...scope(), "notifications", "mocks", "notices"] as const,
 	},

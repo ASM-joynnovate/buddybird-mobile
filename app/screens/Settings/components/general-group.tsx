@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native"
 
 import { Chip } from "@/components/ui/chip"
 import { Icon } from "@/components/ui/icon"
-import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList, NavRow } from "@/components/ui/rows"
 import { Copy } from "@/components/ui/text"
 import { useAppLanguage } from "@/screens/Settings/hooks/use-app-language"
@@ -28,12 +27,12 @@ export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
 					<Chip
 						label={t("settings.general.korean")}
 						selected={language.locale === "ko-KR"}
-						onPress={() => void language.changeLanguage("ko-KR")}
+						onPress={() => language.changeLanguage("ko-KR")}
 					/>
 					<Chip
 						label={t("settings.general.english")}
 						selected={language.locale === "en-US"}
-						onPress={() => void language.changeLanguage("en-US")}
+						onPress={() => language.changeLanguage("en-US")}
 					/>
 				</View>
 				<NavRow
@@ -47,7 +46,6 @@ export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
 					onPress={onOpenPermissions}
 				/>
 			</GroupedList>
-			<InlineError message={language.error} />
 		</View>
 	)
 }

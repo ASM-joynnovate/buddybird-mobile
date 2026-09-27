@@ -19,7 +19,6 @@ export type SettingsMessages = {
 		language: string
 		korean: string
 		english: string
-		languageError: string
 		devices: string
 		permissions: string
 	}
@@ -61,15 +60,6 @@ export type SettingsMessages = {
 		current: string
 		running: string
 		lastSeen: string
-		rename: string
-		renameTitle: string
-		nameLabel: string
-		renameError: string
-		disconnect: string
-		disconnectMessage: string
-		sessionEnds: string
-		disconnectConfirm: string
-		disconnectError: string
 	}
 	permissions: {
 		title: string

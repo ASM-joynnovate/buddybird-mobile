@@ -1,14 +1,14 @@
-import * as Notifications from "expo-notifications"
+import { getMessaging, onTokenRefresh } from "@react-native-firebase/messaging"
 
-import { registerPush, sendPushToken } from "@/services/push/registration"
+import { sendPushToken } from "@/services/push/registration"
 import { reportError } from "@/services/telemetry/client"
 
-export function startPush() {
-	const subscription = Notifications.addPushTokenListener(({ data }) => {
-		void sendPushToken(String(data)).catch((error) => reportError(error, "push_token"))
+export function startPush(): () => void {
+	const unsubscribe = onTokenRefresh(getMessaging(), () => {
+		void sendPushToken().catch((error) => reportError(error, "push_token"))
 	})
 
-	void registerPush().catch((error) => reportError(error, "push_registration"))
+	void sendPushToken().catch((error) => reportError(error, "push_registration"))
 
-	return () => subscription.remove()
+	return unsubscribe
 }

@@ -6,7 +6,6 @@ import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
 import { Icon, type IconName } from "@/components/ui/icon"
-import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenHeader } from "@/components/ui/screen-header"
@@ -22,14 +21,15 @@ const ROWS: readonly { kind: "microphone" | "notifications"; icon: IconName }[] 
 
 export function PermissionRequestScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation()
+
 	const request = usePermissionRequest()
 
 	return (
 		<Screen
 			footer={
 				<>
-					<InlineError message={request.error} />
 					<View style={styles.later}>
 						<TextButton
 							label={t("entry.permissions.later")}

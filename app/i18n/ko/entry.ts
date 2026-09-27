@@ -50,7 +50,6 @@ export const entry: EntryMessages = {
 		notifications: "학습 소식 알림",
 		allow: "허용하기",
 		later: "나중에",
-		saveError: "진행 상태를 저장하지 못했어요. 버튼을 다시 눌러 주세요.",
 	},
 	legacy: {
 		uploading: "이 휴대폰의 앵무새와 단어를 옮기고 있어요",

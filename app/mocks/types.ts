@@ -5,8 +5,6 @@ import { timestamp, uuid } from "@/types/apis/primitives"
 import type { Session, SessionEventKind, SessionSound } from "@/types/apis/sessions"
 import type { SleepSettings } from "@/types/apis/settings"
 
-export const MAX_DEVICE_NAME = 30
-
 export const soundFeedbackSchema = z.object({
 	sound_id: uuid,
 	feedback: z.enum(["up", "down"]).nullable(),
@@ -33,11 +31,6 @@ export const eventExtrasSchema = z.object({
 			occurred_at: timestamp,
 		}),
 	),
-})
-
-export const deviceNameSchema = z.object({
-	device_id: uuid,
-	name: z.string().max(MAX_DEVICE_NAME).nullable(),
 })
 
 export const recordingStatusSchema = z.object({
@@ -73,7 +66,6 @@ export type SoundAnalysis = z.infer<typeof soundAnalysisSchema>
 export type Activity = z.infer<typeof activitySchema>
 export type SessionPlays = z.infer<typeof sessionPlaysSchema>
 export type EventExtras = z.infer<typeof eventExtrasSchema>
-export type DeviceName = z.infer<typeof deviceNameSchema>
 export type RecordingStatus = z.infer<typeof recordingStatusSchema>
 export type NoticeNotification = z.infer<typeof noticeNotificationSchema>
 export type NoticeNotifications = z.infer<typeof noticeNotificationsSchema>

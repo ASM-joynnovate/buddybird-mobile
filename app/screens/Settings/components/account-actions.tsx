@@ -7,7 +7,7 @@ import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import { TextButton } from "@/components/ui/text-button"
 import { apiErrorMessage } from "@/lib/api"
-import { signOutToAnonymous, withdrawAccount } from "@/services/auth/session"
+import { signOutAccount, withdrawAccount } from "@/services/auth/session"
 import { useAccountStore } from "@/stores/account"
 import { colors } from "@/theme"
 
@@ -85,7 +85,7 @@ export function AccountActions({ onSignIn }: Props) {
 					confirm: t("settings.signOutDialog.confirm"),
 				}}
 				state={{ busy: pending, error }}
-				onConfirm={() => void run(signOutToAnonymous, () => t("auth.signOutError"))}
+				onConfirm={() => void run(signOutAccount, () => t("auth.signOutError"))}
 				onClose={() => show(null)}
 			/>
 			<ConfirmDialog

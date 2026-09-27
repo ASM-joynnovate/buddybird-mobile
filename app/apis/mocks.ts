@@ -4,8 +4,6 @@ import { mockServer } from "@/mocks/server"
 import {
 	type Activity,
 	activitySchema,
-	type DeviceName,
-	deviceNameSchema,
 	type EventExtras,
 	eventExtrasSchema,
 	type NoticeNotifications,
@@ -58,22 +56,6 @@ export async function saveSoundFeedback(
 	_idempotencyKey: string,
 ): Promise<void> {
 	await mockServer.sounds.saveFeedback(soundId, feedback)
-}
-
-export async function fetchDeviceNames(): Promise<DeviceName[]> {
-	return z.array(deviceNameSchema).parse(await mockServer.devices.names())
-}
-
-export async function renameDevice(
-	id: string,
-	name: string | null,
-	_idempotencyKey: string,
-): Promise<void> {
-	await mockServer.devices.rename(id, name)
-}
-
-export async function disconnectDevice(id: string, _idempotencyKey: string): Promise<void> {
-	await mockServer.devices.disconnect(id)
 }
 
 export async function fetchRecordingStatus(wordId: string): Promise<RecordingStatus[]> {

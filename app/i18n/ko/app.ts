@@ -2,15 +2,10 @@ import type { AppMessages } from "@/i18n/types/app"
 
 export const app: AppMessages = {
 	startup: {
-		loading: "저장된 데이터를 준비하고 있어요",
-		title: "데이터를 불러오지 못했어요",
-		message: "원본 데이터는 보존되어 있어요. 다시 시도하면 이어서 준비할 수 있습니다.",
+		loading: "앱을 준비하고 있어요",
+		title: "앱을 시작하지 못했어요",
+		message: "인터넷 연결을 확인하고 다시 시도해 주세요.",
 		retry: "다시 시도",
-	},
-	storage: {
-		settingError:
-			"일부 기기 설정을 읽지 못했어요. 저장된 값은 그대로 두고 기본 설정으로 표시해요.",
-		saveError: "저장 상태를 확인하지 못했어요. 다시 시도해 주세요.",
 	},
 	feedback: {
 		thanks: "소중한 의견이 잘 전달됐어요. 더 나은 버디버드를 만드는 데 반영할게요.",

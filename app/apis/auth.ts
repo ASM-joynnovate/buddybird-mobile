@@ -5,6 +5,10 @@ export async function completeLogin(_request: LoginRequest, _signal: AbortSignal
 	return loginSchema.parse(await mockServer.auth.login())
 }
 
+export async function logout(): Promise<void> {
+	await mockServer.auth.logout()
+}
+
 export async function withdraw(): Promise<void> {
 	withdrawalSchema.parse(await mockServer.auth.withdraw())
 }

@@ -48,7 +48,6 @@ export type EntryMessages = {
 		notifications: string
 		allow: string
 		later: string
-		saveError: string
 	}
 	legacy: {
 		uploading: string

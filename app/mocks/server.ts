@@ -50,7 +50,6 @@ let authUsers: MockAuthUser[] = [
 	{ id: DEMO_USER_ID, is_anonymous: false, providers: ["kakao", "apple"] },
 ]
 let authUserId: string | null = null
-let clientDeviceId: string | null = null
 
 function respond<T>(produce: () => T): Promise<T> {
 	return new Promise((resolve, reject) => {
@@ -111,7 +110,7 @@ function issueUpload(saveUploadedFile: SaveUploadedFile) {
 	}
 }
 
-function deviceDto({ name: _name, ...device }: MockDevice) {
+function deviceDto(device: MockDevice) {
 	return device.id === db.currentDeviceId ? { ...device, last_seen_at: iso(Date.now()) } : device
 }
 
@@ -346,18 +345,9 @@ function createAuthUser(isAnonymous: boolean, providers: MockProvider[], id = ra
 	return user
 }
 
-function registerClientDevice(account: Database) {
-	account.devices = account.devices.map((device) =>
-		device.id === account.currentDeviceId && clientDeviceId
-			? { ...device, client_device_id: clientDeviceId }
-			: device,
-	)
-}
-
 function createAccount(userId: string) {
 	const account = newDatabase(Date.now())
 
-	registerClientDevice(account)
 	accounts.set(userId, account)
 
 	return account
@@ -393,11 +383,8 @@ export const mockServer = {
 	appUpdate: {
 		get: () => respond(() => APP_UPDATE),
 	},
-	configure: (deviceId: string, locale: () => MockLocale) => {
+	configure: (locale: () => MockLocale) => {
 		requestLocale = locale
-		clientDeviceId = deviceId
-
-		accounts.forEach(registerClientDevice)
 	},
 	auth: {
 		use: (userId: string | null) => activate(userId),
@@ -453,6 +440,16 @@ export const mockServer = {
 				activate(user.id)
 
 				return { user_id: account.user.id, is_new_user: existing === undefined }
+			}),
+		logout: () =>
+			respond(() => {
+				requireAuthUser()
+
+				db.devices = db.devices.map((device) =>
+					device.id === db.currentDeviceId
+						? { ...device, push_registered: false }
+						: device,
+				)
 			}),
 		withdraw: () =>
 			respond(() => {
@@ -744,29 +741,6 @@ export const mockServer = {
 		disconnectMe: () =>
 			respond(() => {
 				db.devices = db.devices.filter((device) => device.id !== db.currentDeviceId)
-			}),
-		names: () =>
-			respond(() =>
-				db.devices.map((device) => ({ device_id: device.id, name: device.name })),
-			),
-		rename: (id: string, name: string | null) =>
-			respond(() => {
-				find(db.devices, id)
-				db.devices = db.devices.map((device) =>
-					device.id === id ? { ...device, name: name?.trim() || null } : device,
-				)
-			}),
-		disconnect: (id: string) =>
-			respond(() => {
-				find(db.devices, id)
-
-				const running = runningRecord()
-
-				if (running?.station_device_id === id) {
-					finish(running.id, "server")
-				}
-
-				db.devices = db.devices.filter((device) => device.id !== id)
 			}),
 	},
 	sessions: {
