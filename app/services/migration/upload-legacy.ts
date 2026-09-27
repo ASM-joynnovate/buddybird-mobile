@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { randomUUID } from "expo-crypto"
 import { Paths } from "expo-file-system"
-import { decodeAudioData } from "react-native-audio-api"
 
 import { createParrot, uploadParrotPhoto } from "@/apis/parrots"
 import { addWordRecording, createWord } from "@/apis/words"
@@ -12,10 +12,7 @@ import { type LegacyProfile, parseLegacyProfile } from "@/services/migration/leg
 import { type LegacyWord, parseLegacyWords } from "@/services/migration/legacy/words"
 import { reportError } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { PARROT_NAME_LIMIT } from "@/types/apis/parrots"
-import { WORD_NAME_LIMIT } from "@/types/apis/words"
 import type { LegacyMigration, LegacySettings } from "@/types/device-settings"
-import { SECOND } from "@/utils/units"
 import { requireChoice, requireRecord } from "@/utils/validation"
 
 type ReadLegacy = (key: string) => string | undefined
@@ -199,35 +196,13 @@ async function existingFile(uri: string, scope: string): Promise<string | null> 
 	return null
 }
 
-async function readRecording(uri: string): Promise<{ uri: string; durationMs: number } | null> {
-	const file = await existingFile(uri, "legacy_recording")
-
-	if (!file) {
-		return null
-	}
-
-	try {
-		const buffer = await decodeAudioData(file)
-
-		return { uri: file, durationMs: Math.round(buffer.duration * SECOND) }
-	} catch (error) {
-		reportError(error, "legacy_recording_decode")
-
-		return null
-	}
-}
-
 async function uploadParrot(profile: LegacyProfile) {
 	const parrotId =
 		migration().parrotId ??
 		(
 			await createParrot(
-				{
-					name: profile.name.slice(0, PARROT_NAME_LIMIT),
-					species: profile.species,
-					birthdate: profile.birthDate,
-				},
-				`legacy-parrot-${profile.id}`,
+				{ name: profile.name, species: profile.species, birthdate: profile.birthDate },
+				randomUUID(),
 			)
 		).id
 
@@ -240,7 +215,7 @@ async function uploadParrot(profile: LegacyProfile) {
 	const photo = await existingFile(profile.photoUri, "legacy_photo")
 
 	if (photo) {
-		await uploadParrotPhoto(parrotId, photo, `legacy-photo-${profile.id}`)
+		await uploadParrotPhoto(parrotId, photo, randomUUID())
 	}
 
 	updateMigration((current) => ({ ...current, photoUploaded: true }))
@@ -257,7 +232,7 @@ async function uploadWord(word: LegacyWord) {
 		return
 	}
 
-	const recording = await readRecording(word.audioUri)
+	const recording = await existingFile(word.audioUri, "legacy_recording")
 
 	if (!recording) {
 		saveWord(word.id, { wordId: saved?.wordId ?? null, done: true })
@@ -265,13 +240,11 @@ async function uploadWord(word: LegacyWord) {
 		return
 	}
 
-	const wordId =
-		saved?.wordId ??
-		(await createWord(word.name.slice(0, WORD_NAME_LIMIT), `legacy-word-${word.id}`)).id
+	const wordId = saved?.wordId ?? (await createWord(word.name, randomUUID())).id
 
 	saveWord(word.id, { wordId, done: false })
 
-	await addWordRecording(wordId, recording, `legacy-recording-${word.id}`)
+	await addWordRecording(wordId, recording, randomUUID())
 
 	saveWord(word.id, { wordId, done: true })
 }

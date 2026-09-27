@@ -94,6 +94,22 @@ export function useWordDraft(
 		})),
 	})
 
+	const name = nameInput ?? word.data?.name ?? ""
+	const servers = (word.data?.recordings ?? [])
+		.map((recording, index) => serverItem(recording, durations[index]?.data ?? null))
+		.filter((item) => !removedIds.includes(item.id))
+	const items: DraftItem[] = [
+		...servers,
+		...locals.map((sample): DraftItem => ({
+			kind: "local",
+			id: sample.key,
+			url: sample.uri,
+			durationMs: sample.durationMs,
+		})),
+	]
+	const nameMissing = touched && !name.trim()
+	const missingRecording = touched && items.length === 0
+
 	useEffect(() => {
 		alive.current = true
 
@@ -111,22 +127,6 @@ export function useWordDraft(
 
 		setLocals((current) => [...current, recorded])
 	}, [recorded])
-
-	const name = nameInput ?? word.data?.name ?? ""
-	const servers = (word.data?.recordings ?? [])
-		.map((recording, index) => serverItem(recording, durations[index]?.data ?? null))
-		.filter((item) => !removedIds.includes(item.id))
-	const items: DraftItem[] = [
-		...servers,
-		...locals.map((sample): DraftItem => ({
-			kind: "local",
-			id: sample.key,
-			url: sample.uri,
-			durationMs: sample.durationMs,
-		})),
-	]
-	const nameMissing = touched && !name.trim()
-	const missingRecording = touched && items.length === 0
 
 	function removeItem(item: DraftItem) {
 		if (item.kind === "local") {
@@ -195,7 +195,7 @@ export function useWordDraft(
 			for (const sample of locals) {
 				await upload.mutateAsync({
 					wordId: id,
-					file: { uri: sample.uri, durationMs: sample.durationMs },
+					uri: sample.uri,
 					idempotencyKey: sample.key,
 				})
 

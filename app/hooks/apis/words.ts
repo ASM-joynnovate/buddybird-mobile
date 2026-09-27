@@ -52,13 +52,13 @@ export const addRecordingMutationOptions = () =>
 		mutationKey: apiKeys.mutation("words", "recordings", "add"),
 		mutationFn: ({
 			wordId,
-			file,
+			uri,
 			idempotencyKey,
 		}: {
 			wordId: string
-			file: { uri: string; durationMs: number }
+			uri: string
 			idempotencyKey: string
-		}) => addWordRecording(wordId, file, idempotencyKey),
+		}) => addWordRecording(wordId, uri, idempotencyKey),
 	})
 
 export const deleteRecordingMutationOptions = () =>

@@ -27,10 +27,10 @@ export async function deleteWord(id: string, _idempotencyKey: string): Promise<v
 
 export async function addWordRecording(
 	wordId: string,
-	file: { uri: string; durationMs: number },
+	uri: string,
 	idempotencyKey: string,
 ): Promise<void> {
-	await putUpload(await issueRecordingUpload(wordId, idempotencyKey), file.uri, file.durationMs)
+	await putUpload(await issueRecordingUpload(wordId, idempotencyKey), uri)
 }
 
 export async function deleteWordRecording(

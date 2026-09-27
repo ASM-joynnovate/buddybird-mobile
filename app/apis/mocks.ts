@@ -4,8 +4,8 @@ import { mockServer } from "@/mocks/server"
 import { type Session, sessionSchema } from "@/types/apis/sessions"
 import type { Upload } from "@/types/apis/uploads"
 
-export async function putUpload(upload: Upload, uri: string, durationMs?: number): Promise<void> {
-	await mockServer.uploads.put(upload.file_id, uri, durationMs)
+export async function putUpload(upload: Upload, uri: string): Promise<void> {
+	await mockServer.uploads.put(upload.file_id, uri)
 }
 
 export async function fetchSessionsInRange(from: Date, to: Date): Promise<Session[]> {

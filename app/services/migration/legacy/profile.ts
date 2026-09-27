@@ -7,7 +7,6 @@ import {
 } from "@/utils/validation"
 
 export type LegacyProfile = {
-	id: string
 	name: string
 	species: string
 	birthDate: string | null
@@ -49,7 +48,6 @@ export function parseLegacyProfile(value: unknown): LegacyProfile {
 	}
 
 	return {
-		id: requireText(profileRecord.id, "parrot.id"),
 		name: requireText(profileRecord.name, "parrot.name"),
 		species,
 		birthDate,

@@ -35,7 +35,7 @@ const TAKEN_NICKNAMES = ["버디", "buddy"]
 const DEMO_USER_ID = "8c1f4a52-3b7e-4d2a-9f60-1e5b7c9d2a41"
 const TOKEN_PREFIX = "mock."
 
-type SaveUploadedFile = (uri: string, durationMs: number) => void
+type SaveUploadedFile = (uri: string) => void
 
 type MockAuthUser = { id: string; is_anonymous: boolean; providers: MockProvider[] }
 
@@ -470,7 +470,7 @@ export const mockServer = {
 			}),
 	},
 	uploads: {
-		put: (fileId: string, uri: string, durationMs = 0) =>
+		put: (fileId: string, uri: string) =>
 			respond(() => {
 				const saveUploadedFile = pendingUploads.get(fileId)
 
@@ -479,7 +479,7 @@ export const mockServer = {
 				}
 
 				pendingUploads.delete(fileId)
-				saveUploadedFile(uri, durationMs)
+				saveUploadedFile(uri)
 			}),
 	},
 	users: {
@@ -625,11 +625,11 @@ export const mockServer = {
 					throw new ApiError(422, "WORD__RECORDING_LIMIT", "Recording limit reached")
 				}
 
-				return issueUpload((uri, durationMs) => {
+				return issueUpload((uri) => {
 					const recording = {
 						id: randomUUID(),
 						url: uri,
-						duration_ms: durationMs,
+						duration_ms: 0,
 						status: "processing" as const,
 						created_at: iso(Date.now()),
 					}
