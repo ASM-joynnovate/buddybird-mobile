@@ -1,8 +1,8 @@
+import { LockIcon, MessageSquareTextIcon, SmartphoneIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Chip } from "@/components/ui/chip"
-import { Icon } from "@/components/ui/icon"
 import { GroupedList, NavRow } from "@/components/ui/rows"
 import { Copy } from "@/components/ui/text"
 import { useAppLanguage } from "@/screens/Settings/hooks/use-app-language"
@@ -22,7 +22,7 @@ export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
 		<View>
 			<GroupedList title={t("settings.general.title")}>
 				<View style={styles.row}>
-					<Icon name="words" size={22} color={colors.muted} />
+					<MessageSquareTextIcon size={22} color={colors.muted} />
 					<Copy style={styles.label}>{t("settings.general.language")}</Copy>
 					<Chip
 						label={t("settings.general.korean")}
@@ -36,12 +36,12 @@ export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
 					/>
 				</View>
 				<NavRow
-					icon="device"
+					icon={SmartphoneIcon}
 					label={t("settings.general.devices")}
 					onPress={onOpenDevices}
 				/>
 				<NavRow
-					icon="lock"
+					icon={LockIcon}
 					label={t("settings.general.permissions")}
 					onPress={onOpenPermissions}
 				/>

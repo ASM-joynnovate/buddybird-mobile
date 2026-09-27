@@ -1,3 +1,4 @@
+import { TriangleAlertIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { GroupedList, NavRow, SwitchRow } from "@/components/ui/rows"
@@ -28,7 +29,7 @@ export function NotificationGroup({ settings, permissionOff, onOpenPermissions, 
 			{permissionOff ? (
 				<NavRow
 					first
-					icon="warning"
+					icon={TriangleAlertIcon}
 					label={t("settings.notifications.permissionLink")}
 					detail={t("settings.notifications.permissionOff")}
 					onPress={onOpenPermissions}

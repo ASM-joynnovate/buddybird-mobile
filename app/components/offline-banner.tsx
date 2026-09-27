@@ -1,15 +1,17 @@
 import { useNetInfo } from "@react-native-community/netinfo"
+import { WifiOffIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { colors, font, radius } from "@/theme"
 
 export function OfflineBanner() {
 	const { t } = useTranslation()
+
 	const insets = useSafeAreaInsets()
+
 	const { isConnected } = useNetInfo()
 
 	if (isConnected !== false) {
@@ -24,7 +26,7 @@ export function OfflineBanner() {
 			style={[styles.wrap, { top: insets.top + 4 }]}
 		>
 			<View style={styles.banner}>
-				<Icon name="wifiOff" size={18} color={colors.onAccent} />
+				<WifiOffIcon size={18} color={colors.onAccent} />
 				<Copy style={styles.text}>{t("common.offline")}</Copy>
 			</View>
 		</View>

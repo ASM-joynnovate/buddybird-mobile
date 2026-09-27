@@ -1,4 +1,5 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native"
+import { ChevronLeftIcon, type LucideIcon } from "lucide-react-native"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { BackHandler, StyleSheet, View } from "react-native"
@@ -7,14 +8,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
-import type { IconName } from "@/components/ui/icon"
 import { IconButton } from "@/components/ui/icon-button"
 import { PageDots } from "@/components/ui/page-dots"
 import { CheckRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { TextButton } from "@/components/ui/text-button"
 
-export type GuideStep = { title: string; scene: string; icon: IconName }
+export type GuideStep = { title: string; scene: string; icon: LucideIcon }
 
 interface Props {
 	steps: readonly GuideStep[]
@@ -61,7 +61,11 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
 				<View style={styles.top}>
 					{back ? (
-						<IconButton icon="back" label={t("common.back")} onPress={back} />
+						<IconButton
+							icon={ChevronLeftIcon}
+							label={t("common.back")}
+							onPress={back}
+						/>
 					) : null}
 					<PageDots
 						count={steps.length}

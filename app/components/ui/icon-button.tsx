@@ -1,6 +1,6 @@
+import type { LucideIcon } from "lucide-react-native"
 import { StyleSheet } from "react-native"
 
-import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { colors, radius } from "@/theme"
 
@@ -12,11 +12,11 @@ const variants = {
 } as const
 
 const icons = {
-	tiny: { size: 15, weight: "bold" },
-	small: { size: 20, weight: undefined },
-	medium: { size: 24, weight: undefined },
-	large: { size: 28, weight: undefined },
-	xlarge: { size: 34, weight: undefined },
+	tiny: { size: 15 },
+	small: { size: 20 },
+	medium: { size: 24 },
+	large: { size: 28 },
+	xlarge: { size: 34 },
 } as const
 
 type IconButtonVariant = keyof typeof variants
@@ -24,7 +24,7 @@ type IconButtonVariant = keyof typeof variants
 type IconButtonSize = keyof typeof icons
 
 interface Props {
-	icon: IconName
+	icon: LucideIcon
 	label: string
 	onPress(): void
 	disabled?: boolean
@@ -43,7 +43,7 @@ function boxStyle(size: IconButtonSize) {
 }
 
 export function IconButton({
-	icon,
+	icon: Icon,
 	label,
 	onPress,
 	disabled,
@@ -66,12 +66,7 @@ export function IconButton({
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}
 		>
-			<Icon
-				name={icon}
-				color={disabled ? colors.disabled : color}
-				size={icons[size].size}
-				weight={icons[size].weight}
-			/>
+			<Icon color={disabled ? colors.disabled : color} size={icons[size].size} />
 		</PressableSurface>
 	)
 }

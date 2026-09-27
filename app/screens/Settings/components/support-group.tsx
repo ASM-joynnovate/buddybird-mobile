@@ -1,3 +1,4 @@
+import { BookOpenIcon, MegaphoneIcon, SendIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -21,19 +22,19 @@ export function SupportGroup({ unreadNotice, onFeedback, onOpenNotices, onOpenCo
 			<GroupedList title={t("settings.support.title")}>
 				<NavRow
 					first
-					icon="send"
+					icon={SendIcon}
 					label={t("settings.support.feedback")}
 					onPress={onFeedback}
 				/>
 				<NavRow
-					icon="notice"
+					icon={MegaphoneIcon}
 					label={t("settings.support.notices")}
 					value={unreadNotice ? t("settings.support.unreadNotice") : undefined}
 					dot={unreadNotice}
 					onPress={onOpenNotices}
 				/>
 				<NavRow
-					icon="book"
+					icon={BookOpenIcon}
 					label={t("settings.support.consents")}
 					onPress={onOpenConsents}
 				/>

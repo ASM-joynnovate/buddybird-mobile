@@ -1,3 +1,4 @@
+import { TrashIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -57,7 +58,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 			</PressableSurface>
 			<View style={styles.actions}>
 				<IconButton
-					icon="trash"
+					icon={TrashIcon}
 					label={t("words.list.delete", { name: word.name })}
 					variant="muted"
 					size="small"

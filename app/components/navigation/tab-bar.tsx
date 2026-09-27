@@ -1,8 +1,14 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs"
+import {
+	ChartNoAxesColumnIcon,
+	HouseIcon,
+	type LucideIcon,
+	MessageSquareTextIcon,
+	UserIcon,
+} from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import type { CommonMessages } from "@/i18n/types/common"
@@ -11,12 +17,12 @@ import type { MainTabParamList } from "@/types/navigation"
 
 const tabs: Record<
 	keyof MainTabParamList,
-	{ icon: IconName; label: keyof CommonMessages["tabs"] }
+	{ icon: LucideIcon; label: keyof CommonMessages["tabs"] }
 > = {
-	HomeTab: { icon: "home", label: "home" },
-	WordsTab: { icon: "words", label: "words" },
-	ReportTab: { icon: "report", label: "report" },
-	ProfileTab: { icon: "profile", label: "profile" },
+	HomeTab: { icon: HouseIcon, label: "home" },
+	WordsTab: { icon: MessageSquareTextIcon, label: "words" },
+	ReportTab: { icon: ChartNoAxesColumnIcon, label: "report" },
+	ProfileTab: { icon: UserIcon, label: "profile" },
 }
 
 export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
@@ -27,6 +33,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 			{state.routes.map((route, index) => {
 				const selected = state.index === index
 				const tab = tabs[route.name as keyof MainTabParamList]
+				const TabIcon = tab.icon
 				const tabLabel = t(`common.tabs.${tab.label}`)
 
 				function selectTab() {
@@ -56,11 +63,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 							contentStyle={styles.tab}
 							onPress={selectTab}
 						>
-							<Icon
-								name={tab.icon}
-								color={selected ? colors.onAccent : colors.muted}
-								size={25}
-							/>
+							<TabIcon color={selected ? colors.onAccent : colors.muted} size={25} />
 							<Copy
 								numberOfLines={1}
 								adjustsFontSizeToFit

@@ -1,3 +1,4 @@
+import { SendIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
@@ -80,7 +81,7 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 					/>
 					<Button
 						label={t(form.failed ? "app.feedback.retry" : "app.feedback.send")}
-						icon="send"
+						icon={SendIcon}
 						disabled={!form.message.trim()}
 						loading={form.busy}
 						onPress={form.submit}

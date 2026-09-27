@@ -1,7 +1,7 @@
+import { CheckIcon, type LucideIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
-import { Icon, type IconName } from "@/components/ui/icon"
 import { NavRow } from "@/components/ui/rows"
 import { usePermission } from "@/hooks/use-permission"
 import type { PermissionKind } from "@/services/device/permissions"
@@ -10,7 +10,7 @@ import { colors } from "@/theme"
 
 interface Props {
 	kind: PermissionKind
-	icon: IconName
+	icon: LucideIcon
 	first: boolean
 }
 
@@ -36,9 +36,7 @@ export function PermissionRow({ kind, icon, first }: Props) {
 				value={status}
 				disabled={permission.granted !== false}
 				trailing={
-					permission.granted ? (
-						<Icon name="check" size={18} color={colors.orange} />
-					) : undefined
+					permission.granted ? <CheckIcon size={18} color={colors.orange} /> : undefined
 				}
 				onPress={() =>
 					void permission

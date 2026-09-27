@@ -1,11 +1,11 @@
+import type { LucideIcon } from "lucide-react-native"
 import { type ReactNode, useState } from "react"
 
-import type { IconName } from "@/components/ui/icon"
 import { NavRow } from "@/components/ui/rows/nav-row"
 import { Sheet } from "@/components/ui/sheet"
 
 interface Props {
-	row: { label: string; value?: string; icon?: IconName; first?: boolean; disabled?: boolean }
+	row: { label: string; value?: string; icon?: LucideIcon; first?: boolean; disabled?: boolean }
 	sheet: { title: string; list?: boolean; onOpened?(): void }
 	children(close: () => void): ReactNode
 }

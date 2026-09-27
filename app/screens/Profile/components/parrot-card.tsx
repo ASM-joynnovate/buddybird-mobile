@@ -1,3 +1,4 @@
+import { ImageIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { ProfileCard } from "@/components/ui/profile-card"
@@ -30,7 +31,7 @@ export function ParrotCard({ parrot, onPress }: Props) {
 
 	return (
 		<ProfileCard
-			avatar={{ uri: parrot.photo?.url, icon: "photo", size: "medium" }}
+			avatar={{ uri: parrot.photo?.url, icon: ImageIcon, size: "medium" }}
 			title={{ text: parrot.name }}
 			details={[species, age]}
 			label={joinLabel(t("profile.openParrot", { name: parrot.name }), species, age)}

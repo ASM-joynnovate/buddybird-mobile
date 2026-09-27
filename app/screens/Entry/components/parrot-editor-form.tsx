@@ -1,3 +1,4 @@
+import { TrashIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -33,7 +34,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 	const deleteButton =
 		parrot && canDelete ? (
 			<IconButton
-				icon="trash"
+				icon={TrashIcon}
 				label={t("entry.parrot.delete")}
 				disabled={form.busy}
 				onPress={form.removal.ask}

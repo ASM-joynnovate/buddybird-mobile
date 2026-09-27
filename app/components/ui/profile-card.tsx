@@ -1,13 +1,13 @@
+import { ChevronRightIcon, type LucideIcon } from "lucide-react-native"
 import { StyleSheet, View } from "react-native"
 
 import { Avatar } from "@/components/ui/avatar"
-import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 
 interface Props {
-	avatar: { uri?: string | null; icon: IconName; size: "medium" | "large" }
+	avatar: { uri?: string | null; icon: LucideIcon; size: "medium" | "large" }
 	title: { text: string; accent?: boolean }
 	details: readonly (string | null)[]
 	label: string
@@ -44,7 +44,7 @@ export function ProfileCard({ avatar, title, details, label, onPress }: Props) {
 					) : null,
 				)}
 			</View>
-			<Icon name="forward" size={18} color={colors.disabled} />
+			<ChevronRightIcon size={18} color={colors.disabled} />
 		</PressableSurface>
 	)
 }

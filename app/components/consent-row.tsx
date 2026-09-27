@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { IconButton } from "@/components/ui/icon-button"
@@ -25,7 +26,7 @@ export function ConsentRow({ consent, checked, first, disabled, actions }: Props
 			disabled={disabled}
 			onToggle={actions.toggle}
 			trailing=<IconButton
-				icon="forward"
+				icon={ChevronRightIcon}
 				variant="muted"
 				size="tiny"
 				label={t("entry.consent.viewFull", { title: consent.title })}

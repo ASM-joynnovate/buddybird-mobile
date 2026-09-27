@@ -1,8 +1,8 @@
+import { RotateCwIcon, TriangleAlertIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
-import { Icon } from "@/components/ui/icon"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 
@@ -16,12 +16,12 @@ export function ScreenError({ message, onRetry }: Props) {
 
 	return (
 		<View style={styles.center} accessibilityLiveRegion="polite">
-			<Icon name="warning" size={32} color={colors.muted} />
+			<TriangleAlertIcon size={32} color={colors.muted} />
 			<Copy style={styles.message}>{message}</Copy>
 			<Button
 				label={t("common.retry")}
 				variant="secondary"
-				icon="refresh"
+				icon={RotateCwIcon}
 				compact
 				onPress={onRetry}
 				style={styles.retry}

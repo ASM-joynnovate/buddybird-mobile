@@ -1,6 +1,7 @@
 import { type CompositeNavigationProp, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
+import { PlusIcon, SettingsIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -79,7 +80,7 @@ export function ProfileScreen() {
 					</View>
 					<Button
 						label={t("profile.addParrot")}
-						icon="plus"
+						icon={PlusIcon}
 						variant="secondary"
 						onPress={() => navigation.navigate("ParrotEditor")}
 						style={styles.add}
@@ -95,7 +96,7 @@ export function ProfileScreen() {
 				large
 				title={t("profile.title")}
 				right=<IconButton
-					icon="gear"
+					icon={SettingsIcon}
 					label={t("profile.settings")}
 					onPress={() => navigation.navigate("Settings")}
 				/>

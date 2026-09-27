@@ -1,15 +1,17 @@
+import { ImageIcon, PencilIcon, PlusIcon } from "lucide-react-native"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Avatar } from "@/components/ui/avatar"
-import { Icon } from "@/components/ui/icon"
 import { InlineError } from "@/components/ui/inline-error"
 import { GroupedList, NavRow } from "@/components/ui/rows"
 import { Sheet } from "@/components/ui/sheet"
 import { PressableSurface } from "@/components/ui/surface"
 import type { usePhotoPicker } from "@/hooks/use-photo-picker"
 import { colors } from "@/theme"
+
+const actionIcons = { plus: PlusIcon, edit: PencilIcon }
 
 interface Props {
 	photo: ReturnType<typeof usePhotoPicker>
@@ -22,6 +24,8 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 
 	const [sheetOpen, setSheetOpen] = useState(false)
 
+	const ActionIcon = actionIcons[action]
+
 	return (
 		<View style={styles.photoArea}>
 			<PressableSurface
@@ -31,9 +35,9 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 				cornerRadius={55}
 				depth={0}
 			>
-				<Avatar uri={photo.photoUri} icon="photo" size="xlarge" />
+				<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
 				<View style={styles.photoPlus}>
-					<Icon name={action} size={20} color={colors.onAccent} />
+					<ActionIcon size={20} color={colors.onAccent} />
 				</View>
 			</PressableSurface>
 			<InlineError message={photo.error} />

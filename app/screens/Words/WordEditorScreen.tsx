@@ -1,6 +1,7 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import type { TFunction } from "i18next"
+import { TrashIcon } from "lucide-react-native"
 import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -151,7 +152,7 @@ export function WordEditorScreen(): ReactElement {
 				right={
 					routeWordId ? (
 						<IconButton
-							icon="trash"
+							icon={TrashIcon}
 							label={t("words.editor.delete")}
 							variant="muted"
 							disabled={busy}

@@ -1,6 +1,14 @@
 import { type CompositeNavigationProp, useIsFocused, useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
+import {
+	BellIcon,
+	ClockIcon,
+	MessageSquareTextIcon,
+	MoonIcon,
+	PlayIcon,
+	SettingsIcon,
+} from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -140,12 +148,12 @@ export function HomeScreen() {
 			<View style={styles.screen}>
 				<View style={styles.top}>
 					<IconButton
-						icon="gear"
+						icon={SettingsIcon}
 						label={t("home.settings")}
 						onPress={() => navigation.navigate("Settings")}
 					/>
 					<IconButton
-						icon="bell"
+						icon={BellIcon}
 						label={
 							unread > 0
 								? t("home.notificationsUnread", { count: unread })
@@ -181,7 +189,7 @@ export function HomeScreen() {
 						<PickerRow
 							row={{
 								first: true,
-								icon: "words",
+								icon: MessageSquareTextIcon,
 								label: t("session.start.word"),
 								value: session.word?.name ?? t("session.start.choose"),
 							}}
@@ -191,7 +199,7 @@ export function HomeScreen() {
 						</PickerRow>
 						<PickerRow
 							row={{
-								icon: "clock",
+								icon: ClockIcon,
 								label: t("session.start.duration"),
 								value:
 									session.duration.ms === null
@@ -209,7 +217,7 @@ export function HomeScreen() {
 						</PickerRow>
 						<PickerRow
 							row={{
-								icon: "moon",
+								icon: MoonIcon,
 								label: t("session.sleep.label"),
 								value: session.sleep
 									? t("session.sleep.range", {
@@ -234,7 +242,7 @@ export function HomeScreen() {
 				</View>
 				<Button
 					label={t("common.start")}
-					icon="play"
+					icon={PlayIcon}
 					loading={starter.busy}
 					disabled={!session.draft}
 					onPress={start}

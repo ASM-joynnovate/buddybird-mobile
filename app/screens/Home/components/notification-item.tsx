@@ -1,9 +1,14 @@
+import {
+	AudioWaveformIcon,
+	ChartNoAxesColumnIcon,
+	FlameIcon,
+	type LucideIcon,
+} from "lucide-react-native"
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, View } from "react-native"
 
 import { DotBadge } from "@/components/ui/dot-badge"
-import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatMoment } from "@/i18n/format"
@@ -12,10 +17,10 @@ import { colors, font, radius } from "@/theme"
 import type { AppNotification, NotificationKind } from "@/types/apis/notifications"
 import { joinLabel } from "@/utils/a11y"
 
-const icons: Record<NotificationKind, IconName> = {
-	mimicry: "mimicry",
-	daily_summary: "report",
-	streak: "flame",
+const icons: Record<NotificationKind, LucideIcon> = {
+	mimicry: AudioWaveformIcon,
+	daily_summary: ChartNoAxesColumnIcon,
+	streak: FlameIcon,
 }
 
 interface Props {
@@ -30,6 +35,7 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 
 	const unread = !item.read_at
 	const time = formatMoment(item.sent_at, locale)
+	const KindIcon = icons[item.kind]
 
 	return (
 		<PressableSurface
@@ -47,7 +53,7 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 			onPress={() => onOpen(item)}
 		>
 			<View style={styles.icon}>
-				<Icon name={icons[item.kind]} size={20} color={colors.orangeDark} />
+				<KindIcon size={20} color={colors.orangeDark} />
 			</View>
 			<View style={styles.text}>
 				<View style={styles.titleRow}>

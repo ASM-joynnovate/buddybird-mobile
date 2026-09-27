@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native"
 import { useInfiniteQuery } from "@tanstack/react-query"
+import { BellIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 
@@ -44,7 +45,7 @@ export function NotificationsScreen() {
 				message={t("home.notification.empty")}
 				illustration=<Illustration
 					scene={t("home.notification.emptyScene")}
-					icon="bell"
+					icon={BellIcon}
 					height={180}
 				/>
 			/>

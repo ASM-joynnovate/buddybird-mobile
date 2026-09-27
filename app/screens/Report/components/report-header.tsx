@@ -1,3 +1,4 @@
+import { ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -56,7 +57,9 @@ export function ReportHeader({ state, report, failed, onRetry, onStart }: Props)
 
 	const recorded = report ? hasRecords(report) : false
 	const label = periodLabel(state, locale)
-	const illustration = <Illustration scene={t("report.emptyScene")} icon="report" height={180} />
+	const illustration = (
+		<Illustration scene={t("report.emptyScene")} icon={ChartNoAxesColumnIcon} height={180} />
+	)
 
 	return (
 		<View>
@@ -77,12 +80,12 @@ export function ReportHeader({ state, report, failed, onRetry, onStart }: Props)
 						{label}
 					</Copy>
 					<IconButton
-						icon="back"
+						icon={ChevronLeftIcon}
 						label={t("report.previous")}
 						onPress={() => state.move(-1)}
 					/>
 					<IconButton
-						icon="forward"
+						icon={ChevronRightIcon}
 						label={t("report.next")}
 						disabled={state.isLatest}
 						onPress={() => state.move(1)}

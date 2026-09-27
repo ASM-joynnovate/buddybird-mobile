@@ -1,18 +1,18 @@
+import type { LucideIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Mascot } from "@/components/mascot"
-import { Icon, type IconName } from "@/components/ui/icon"
 import { colors, radius } from "@/theme"
 
 interface Props {
 	scene: string
-	icon: IconName
+	icon: LucideIcon
 	height?: number
 	mascot?: boolean
 }
 
-export function Illustration({ scene, icon, height = 220, mascot = true }: Props) {
+export function Illustration({ scene, icon: Icon, height = 220, mascot = true }: Props) {
 	const { t } = useTranslation()
 
 	return (
@@ -24,7 +24,7 @@ export function Illustration({ scene, icon, height = 220, mascot = true }: Props
 		>
 			{mascot ? <Mascot size={Math.round(height * 0.55)} /> : null}
 			<View style={mascot ? styles.badge : styles.centered}>
-				<Icon name={icon} size={mascot ? 26 : 40} color={colors.orangeDark} />
+				<Icon size={mascot ? 26 : 40} color={colors.orangeDark} />
 			</View>
 		</View>
 	)

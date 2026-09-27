@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useInfiniteQuery } from "@tanstack/react-query"
+import { MoonIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -56,7 +57,7 @@ export function SettingsScreen() {
 					<PickerRow
 						row={{
 							first: true,
-							icon: "moon",
+							icon: MoonIcon,
 							label: t("session.sleep.label"),
 							value: t("session.sleep.range", {
 								sleep: formatClock(settings.sleep.sleep_at, locale),

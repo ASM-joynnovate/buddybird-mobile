@@ -1,6 +1,7 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
+import { ChartNoAxesColumnIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
@@ -74,7 +75,11 @@ export function SessionSummaryScreen() {
 	return (
 		<Screen contentContainerStyle={styles.content}>
 			<View style={styles.body}>{body}</View>
-			<Button label={t("session.summary.detail")} icon="report" onPress={openDetail} />
+			<Button
+				label={t("session.summary.detail")}
+				icon={ChartNoAxesColumnIcon}
+				onPress={openDetail}
+			/>
 		</Screen>
 	)
 }

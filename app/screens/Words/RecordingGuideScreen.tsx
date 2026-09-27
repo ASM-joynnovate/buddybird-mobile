@@ -1,5 +1,6 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { MessageSquareTextIcon, MicIcon, MoonIcon, SmartphoneIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -19,15 +20,19 @@ export function RecordingGuideScreen(): ReactElement {
 		{
 			title: t("words.guide.samples"),
 			scene: t("words.guide.samplesScene"),
-			icon: "mic",
+			icon: MicIcon,
 		},
-		{ title: t("words.guide.quiet"), scene: t("words.guide.quietScene"), icon: "moon" },
+		{ title: t("words.guide.quiet"), scene: t("words.guide.quietScene"), icon: MoonIcon },
 		{
 			title: t("words.guide.distance"),
 			scene: t("words.guide.distanceScene"),
-			icon: "device",
+			icon: SmartphoneIcon,
 		},
-		{ title: t("words.guide.clear"), scene: t("words.guide.clearScene"), icon: "words" },
+		{
+			title: t("words.guide.clear"),
+			scene: t("words.guide.clearScene"),
+			icon: MessageSquareTextIcon,
+		},
 	]
 
 	function leave() {

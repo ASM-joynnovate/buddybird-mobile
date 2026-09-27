@@ -1,3 +1,4 @@
+import { CircleQuestionMarkIcon, MicIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -34,7 +35,7 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 					{t("words.editor.recordings", { count: items.length })}
 				</Copy>
 				<IconButton
-					icon="help"
+					icon={CircleQuestionMarkIcon}
 					label={t("words.editor.guide")}
 					variant="muted"
 					onPress={onHelp}
@@ -60,7 +61,7 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 			{items.length < MAX_RECORDINGS ? (
 				<Button
 					label={t("words.editor.addRecording")}
-					icon="mic"
+					icon={MicIcon}
 					variant="secondary"
 					disabled={disabled}
 					onPress={onAdd}

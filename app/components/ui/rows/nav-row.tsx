@@ -1,7 +1,7 @@
+import { ChevronRightIcon } from "lucide-react-native"
 import type { ReactNode } from "react"
 import { StyleSheet, View } from "react-native"
 
-import { Icon } from "@/components/ui/icon"
 import { RowLabel, type RowProps } from "@/components/ui/rows/row-label"
 import { rowStyles } from "@/components/ui/rows/styles"
 import { PressableSurface } from "@/components/ui/surface"
@@ -32,7 +32,7 @@ export function NavRow({ value, dot, onPress, disabled, trailing, ...props }: Pr
 			<RowLabel {...props} />
 			{dot ? <View style={styles.dot} /> : null}
 			{value ? <Copy style={styles.value}>{value}</Copy> : null}
-			{trailing ?? <Icon name="forward" size={18} color={colors.disabled} />}
+			{trailing ?? <ChevronRightIcon size={18} color={colors.disabled} />}
 		</PressableSurface>
 	)
 }

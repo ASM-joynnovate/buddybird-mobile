@@ -1,4 +1,5 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native"
+import { BellIcon, LockIcon, type LucideIcon, MicIcon } from "lucide-react-native"
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -6,7 +7,6 @@ import { StyleSheet, View } from "react-native"
 import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
-import { Icon, type IconName } from "@/components/ui/icon"
 import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenHeader } from "@/components/ui/screen-header"
@@ -16,9 +16,9 @@ import { usePermissionRequest } from "@/screens/Entry/hooks/use-permission-reque
 import { viewOnboardingStep } from "@/services/telemetry/onboarding"
 import { colors, font } from "@/theme"
 
-const ROWS: readonly { kind: "microphone" | "notifications"; icon: IconName }[] = [
-	{ kind: "microphone", icon: "mic" },
-	{ kind: "notifications", icon: "bell" },
+const ROWS: readonly { kind: "microphone" | "notifications"; icon: LucideIcon }[] = [
+	{ kind: "microphone", icon: MicIcon },
+	{ kind: "notifications", icon: BellIcon },
 ]
 
 export function PermissionRequestScreen() {
@@ -59,15 +59,15 @@ export function PermissionRequestScreen() {
 				<BuddySays message={t("entry.permissions.title")} />
 				<Illustration
 					scene={t("entry.permissions.scene")}
-					icon="lock"
+					icon={LockIcon}
 					height={180}
 					mascot={false}
 				/>
 			</View>
 			<GroupedList>
-				{ROWS.map(({ kind, icon }, index) => (
+				{ROWS.map(({ kind, icon: Icon }, index) => (
 					<View key={kind} style={[styles.row, index > 0 && styles.divider]}>
-						<Icon name={icon} size={24} color={colors.orangeDark} />
+						<Icon size={24} color={colors.orangeDark} />
 						<View style={styles.labels}>
 							<Copy style={styles.name}>{t(`common.permission.${kind}.name`)}</Copy>
 							<Copy style={styles.purpose}>{t(`entry.permissions.${kind}`)}</Copy>

@@ -1,3 +1,5 @@
+import { PauseIcon, PlayIcon } from "lucide-react-native"
+
 import { IconButton } from "@/components/ui/icon-button"
 
 interface Props {
@@ -10,7 +12,7 @@ interface Props {
 export function PlayButton({ playing, label, onPress, disabled }: Props) {
 	return (
 		<IconButton
-			icon={playing ? "pause" : "play"}
+			icon={playing ? PauseIcon : PlayIcon}
 			label={label}
 			variant="primary"
 			size="small"

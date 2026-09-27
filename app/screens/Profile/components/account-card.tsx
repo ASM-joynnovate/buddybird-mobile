@@ -1,3 +1,4 @@
+import { UserIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { ProfileCard } from "@/components/ui/profile-card"
@@ -16,7 +17,7 @@ export function AccountCard({ user, onPress }: Props) {
 
 	return (
 		<ProfileCard
-			avatar={{ uri: user.photo?.url, icon: "profile", size: "large" }}
+			avatar={{ uri: user.photo?.url, icon: UserIcon, size: "large" }}
 			title={{ text: nickname, accent: !user.nickname }}
 			details={[user.email]}
 			label={joinLabel(t("profile.editAccount"), nickname, user.email)}

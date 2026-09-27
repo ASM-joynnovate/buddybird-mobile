@@ -2,6 +2,7 @@ import { type RouteProp, useNavigation, useRoute } from "@react-navigation/nativ
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { randomUUID } from "expo-crypto"
 import type { TFunction } from "i18next"
+import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -35,24 +36,33 @@ function statusText(recorder: Recorder, t: TFunction): string {
 
 export function RecorderScreen(): ReactElement {
 	const { t } = useTranslation()
+
 	const insets = useSafeAreaInsets()
+
 	const { params } = useRoute<RouteProp<RootStackParamList, "Recorder">>()
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+
 	const recorder = useRecorder()
+
 	const player = useSoundPlayer()
+
 	const microphone = usePermission("microphone")
+
 	const { take } = recorder
 	const playing = player.playingId === TAKE_ID
 	const shownMs = recorder.recording ? recorder.elapsedMs : (take?.durationMs ?? 0)
 
 	async function close() {
 		player.stop()
+
 		await recorder.discard()
+
 		navigation.goBack()
 	}
 
 	function record() {
 		player.stop()
+
 		void microphone.run(() => void recorder.start())
 	}
 
@@ -62,6 +72,7 @@ export function RecorderScreen(): ReactElement {
 		}
 
 		player.stop()
+
 		navigation.popTo("Main", {
 			screen: "WordsTab",
 			params: {
@@ -99,7 +110,7 @@ export function RecorderScreen(): ReactElement {
 					</Copy>
 					{take && !recorder.recording ? (
 						<IconButton
-							icon={playing ? "pause" : "play"}
+							icon={playing ? PauseIcon : PlayIcon}
 							label={t(playing ? "words.recorder.stopPlay" : "words.recorder.play")}
 							variant="primary"
 							size="large"
@@ -130,7 +141,7 @@ export function RecorderScreen(): ReactElement {
 				) : (
 					<View style={styles.control}>
 						<IconButton
-							icon={recorder.recording ? "stop" : "mic"}
+							icon={recorder.recording ? SquareIcon : MicIcon}
 							label={t(
 								recorder.recording ? "words.recorder.stop" : "words.recorder.start",
 							)}

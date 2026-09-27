@@ -1,9 +1,12 @@
+import { ChevronLeftIcon, XIcon } from "lucide-react-native"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
 import { Title } from "@/components/ui/text"
+
+const backIcons = { back: ChevronLeftIcon, close: XIcon }
 
 interface Props {
 	title?: string
@@ -21,7 +24,7 @@ export function ScreenHeader({ title, onBack, backIcon = "back", right, large = 
 			<View style={styles.header}>
 				{onBack ? (
 					<IconButton
-						icon={backIcon}
+						icon={backIcons[backIcon]}
 						label={t(backIcon === "close" ? "common.close" : "common.back")}
 						onPress={onBack}
 					/>

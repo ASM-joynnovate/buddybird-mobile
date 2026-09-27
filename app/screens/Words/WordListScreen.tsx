@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
+import { MessageSquareTextIcon, PlusIcon } from "lucide-react-native"
 import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
@@ -41,9 +42,13 @@ export function WordListScreen(): ReactElement {
 
 	const addWord = () => navigation.navigate("WordEditor", {})
 
-	const addButton = <IconButton icon="plus" label={t("words.list.add")} onPress={addWord} />
+	const addButton = <IconButton icon={PlusIcon} label={t("words.list.add")} onPress={addWord} />
 	const illustration = (
-		<Illustration scene={t("words.list.emptyScene")} icon="words" height={200} />
+		<Illustration
+			scene={t("words.list.emptyScene")}
+			icon={MessageSquareTextIcon}
+			height={200}
+		/>
 	)
 	const empty = (
 		<EmptyState

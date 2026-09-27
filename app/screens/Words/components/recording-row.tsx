@@ -1,3 +1,4 @@
+import { TrashIcon } from "lucide-react-native"
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
@@ -40,7 +41,7 @@ export function RecordingRow({ item, player, index, onDelete }: Props): ReactEle
 				</View>
 			</View>
 			<IconButton
-				icon="trash"
+				icon={TrashIcon}
 				label={t("words.editor.deleteRecording", { name })}
 				variant="muted"
 				disabled={!onDelete}
