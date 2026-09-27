@@ -1,7 +1,9 @@
 import { TriangleAlertIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
-import { GroupedList, NavRow, SwitchRow } from "@/components/ui/rows"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
+import { GroupedListSwitchItem } from "@/components/ui/grouped-list/switch-item"
 import type { SettingsMessages } from "@/i18n/types/settings"
 import type { NotificationSetting, Settings } from "@/types/apis/settings"
 
@@ -27,7 +29,7 @@ export function NotificationGroup({ settings, permissionOff, onOpenPermissions, 
 	return (
 		<GroupedList title={t("settings.notifications.title")}>
 			{permissionOff ? (
-				<NavRow
+				<GroupedListNavItem
 					first
 					icon={TriangleAlertIcon}
 					label={t("settings.notifications.permissionLink")}
@@ -36,7 +38,7 @@ export function NotificationGroup({ settings, permissionOff, onOpenPermissions, 
 				/>
 			) : null}
 			{ITEMS.map(({ key, label }, index) => (
-				<SwitchRow
+				<GroupedListSwitchItem
 					key={key}
 					first={!permissionOff && index === 0}
 					label={t(`settings.notifications.${label}`)}

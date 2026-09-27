@@ -4,7 +4,7 @@ import Svg, { Path } from "react-native-svg"
 
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { font, providerColors, radius } from "@/theme"
+import { font, providerColors } from "@/theme"
 
 interface Props {
 	provider: "google" | "kakao"
@@ -26,8 +26,8 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 			accessibilityState={{ busy: loading }}
 			disabled={disabled || loading}
 			onPress={onPress}
-			depth={0}
-			cornerRadius={radius.control}
+			depth="none"
+			cornerRadius="control"
 			backgroundColor={
 				google ? providerColors.google.background : providerColors.kakao.background
 			}

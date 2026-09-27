@@ -13,7 +13,7 @@ export function ChoiceCard({ selected, contentStyle, ...props }: Props) {
 	return (
 		<PressableSurface
 			{...props}
-			depth={selected ? 3 : 2}
+			depth={selected ? "medium" : "low"}
 			tone={selected ? "selected" : "neutral"}
 			accessibilityRole="radio"
 			accessibilityState={{ checked: selected, selected }}

@@ -1,8 +1,8 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import { fetchConsents, saveConsent } from "@/apis/consents"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { queryClient } from "@/lib/query-client"
 import type { SaveConsentRequest } from "@/types/apis/consents"
 
 export const consentsQueryOptions = () =>
@@ -18,5 +18,5 @@ export const saveConsentMutationOptions = () =>
 			decision: SaveConsentRequest
 			idempotencyKey: string
 		}) => saveConsent(decision, idempotencyKey),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.consents.all() }),
+		onSuccess: () => invalidate(apiKeys.consents.all()),
 	})

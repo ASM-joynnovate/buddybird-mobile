@@ -1,5 +1,5 @@
 import type { LoginProvider } from "@/types/account"
-import type { ReportPeriodParam } from "@/types/navigation"
+import type { ReportPeriod } from "@/types/report-period"
 
 export type OnboardingStep =
 	| "login"
@@ -51,7 +51,7 @@ export type Events = {
 		sound_count: number
 	}
 	report_viewed: {
-		period: ReportPeriodParam
+		period: ReportPeriod
 		periods_ago: number
 		source: "tab" | "notification"
 		session_count: number

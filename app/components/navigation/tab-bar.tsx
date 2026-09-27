@@ -12,7 +12,7 @@ import { StyleSheet, View } from "react-native"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import type { CommonMessages } from "@/i18n/types/common"
-import { colors, font, radius } from "@/theme"
+import { colors, font } from "@/theme"
 import type { MainTabParamList } from "@/types/navigation"
 
 const tabs: Record<
@@ -25,7 +25,9 @@ const tabs: Record<
 	ProfileTab: { icon: UserIcon, label: "profile" },
 }
 
-export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
+interface Props extends BottomTabBarProps {}
+
+export function TabBar({ state, navigation, insets }: Props) {
 	const { t } = useTranslation()
 
 	return (
@@ -57,8 +59,8 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}
 							tone={selected ? "primary" : "plain"}
-							depth={selected ? 3 : 0}
-							cornerRadius={radius.control}
+							depth={selected ? "medium" : "none"}
+							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
 							onPress={selectTab}

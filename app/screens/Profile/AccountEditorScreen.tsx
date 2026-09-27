@@ -13,7 +13,9 @@ import type { ProfileStackParamList } from "@/types/navigation"
 
 export function AccountEditorScreen() {
 	const { t } = useTranslation()
+
 	const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>()
+
 	const me = useQuery(meQueryOptions())
 
 	function body() {

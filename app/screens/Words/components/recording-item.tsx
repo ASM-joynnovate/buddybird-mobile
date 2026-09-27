@@ -19,7 +19,7 @@ interface Props {
 	onDelete?(name: string): void
 }
 
-export function RecordingRow({ item, player, index, onDelete }: Props): ReactElement {
+export function RecordingItem({ item, player, index, onDelete }: Props): ReactElement {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
@@ -49,7 +49,7 @@ export function RecordingRow({ item, player, index, onDelete }: Props): ReactEle
 			/>
 			<PlayButton
 				playing={playing}
-				label={t(playing ? "words.editor.stop" : "words.editor.play", { name })}
+				label={t(playing ? "common.sound.stopNamed" : "words.editor.play", { name })}
 				onPress={() => player.toggle(item.id, item.url)}
 			/>
 		</View>

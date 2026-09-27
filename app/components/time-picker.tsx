@@ -1,11 +1,8 @@
+import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
-import { WheelPicker } from "@/components/ui/wheel-picker"
-
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
-const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5)
-
-const pad = (value: number) => String(value).padStart(2, "0")
+import { HOURS, MINUTE_STEPS, WheelPicker } from "@/components/ui/wheel-picker"
+import { CLOCK_FORMAT } from "@/types/sleep-settings"
 
 interface Props {
 	value: string
@@ -16,10 +13,10 @@ interface Props {
 export function TimePicker({ value, label, onChange }: Props) {
 	const { t } = useTranslation()
 
-	const [hour, minute] = value.split(":").map(Number)
-	const minutes = MINUTE_STEPS.includes(minute)
+	const time = dayjs(value, CLOCK_FORMAT)
+	const minutes = MINUTE_STEPS.includes(time.minute())
 		? MINUTE_STEPS
-		: [...MINUTE_STEPS, minute].sort((a, b) => a - b)
+		: [...MINUTE_STEPS, time.minute()].sort((a, b) => a - b)
 
 	return (
 		<WheelPicker
@@ -27,18 +24,18 @@ export function TimePicker({ value, label, onChange }: Props) {
 				{
 					key: "hour",
 					label: t("common.time.hourPicker", { label }),
-					value: hour,
+					value: time.hour(),
 					values: HOURS,
 					unit: t("common.time.hour"),
-					onChange: (next) => onChange(`${pad(next)}:${pad(minute)}:00`),
+					onChange: (next) => onChange(time.hour(next).format(CLOCK_FORMAT)),
 				},
 				{
 					key: "minute",
 					label: t("common.time.minutePicker", { label }),
-					value: minute,
+					value: time.minute(),
 					values: minutes,
 					unit: t("common.time.minute"),
-					onChange: (next) => onChange(`${pad(hour)}:${pad(next)}:00`),
+					onChange: (next) => onChange(time.minute(next).format(CLOCK_FORMAT)),
 				},
 			]}
 		/>

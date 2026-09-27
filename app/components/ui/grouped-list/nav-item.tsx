@@ -2,14 +2,17 @@ import { ChevronRightIcon } from "lucide-react-native"
 import type { ReactNode } from "react"
 import { StyleSheet, View } from "react-native"
 
-import { RowLabel, type RowProps } from "@/components/ui/rows/row-label"
-import { rowStyles } from "@/components/ui/rows/styles"
+import {
+	GroupedListItemLabel,
+	type GroupedListItemProps,
+} from "@/components/ui/grouped-list/item-label"
+import { groupedListStyles } from "@/components/ui/grouped-list/styles"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 import { joinLabel } from "@/utils/a11y"
 
-interface Props extends RowProps {
+interface Props extends GroupedListItemProps {
 	value?: string
 	dot?: boolean
 	disabled?: boolean
@@ -17,19 +20,19 @@ interface Props extends RowProps {
 	onPress(): void
 }
 
-export function NavRow({ value, dot, onPress, disabled, trailing, ...props }: Props) {
+export function GroupedListNavItem({ value, dot, onPress, disabled, trailing, ...props }: Props) {
 	return (
 		<PressableSurface
 			accessibilityLabel={joinLabel(props.label, value)}
 			disabled={disabled}
 			onPress={onPress}
 			tone="plain"
-			depth={0}
-			cornerRadius={0}
-			style={!props.first && rowStyles.divider}
-			contentStyle={rowStyles.pressRow}
+			depth="none"
+			cornerRadius="none"
+			style={!props.first && groupedListStyles.divider}
+			contentStyle={groupedListStyles.pressRow}
 		>
-			<RowLabel {...props} />
+			<GroupedListItemLabel {...props} />
 			{dot ? <View style={styles.dot} /> : null}
 			{value ? <Copy style={styles.value}>{value}</Copy> : null}
 			{trailing ?? <ChevronRightIcon size={18} color={colors.disabled} />}

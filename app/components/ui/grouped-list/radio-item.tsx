@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native"
 
 import { CheckMark } from "@/components/ui/check-mark"
-import { rowStyles } from "@/components/ui/rows/styles"
+import { groupedListStyles } from "@/components/ui/grouped-list/styles"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors } from "@/theme"
@@ -13,7 +13,7 @@ interface Props {
 	onPress(): void
 }
 
-export function RadioRow({ label, selected, first, onPress }: Props) {
+export function GroupedListRadioItem({ label, selected, first, onPress }: Props) {
 	return (
 		<PressableSurface
 			accessibilityRole="radio"
@@ -21,12 +21,12 @@ export function RadioRow({ label, selected, first, onPress }: Props) {
 			accessibilityState={{ checked: selected }}
 			onPress={onPress}
 			tone="plain"
-			depth={0}
-			cornerRadius={0}
-			style={!first && rowStyles.divider}
-			contentStyle={rowStyles.pressRow}
+			depth="none"
+			cornerRadius="none"
+			style={!first && groupedListStyles.divider}
+			contentStyle={groupedListStyles.pressRow}
 		>
-			<Copy style={[rowStyles.label, styles.label, selected && styles.selected]}>
+			<Copy style={[groupedListStyles.label, styles.label, selected && styles.selected]}>
 				{label}
 			</Copy>
 			{selected ? <CheckMark color={colors.orangeDark} /> : null}

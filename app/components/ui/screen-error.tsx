@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
+import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
-import { colors, font } from "@/theme"
+import { colors } from "@/theme"
 
 interface Props {
 	message: string
@@ -15,9 +16,9 @@ export function ScreenError({ message, onRetry }: Props) {
 	const { t } = useTranslation()
 
 	return (
-		<View style={styles.center} accessibilityLiveRegion="polite">
+		<View style={ui.messageBox} accessibilityLiveRegion="polite">
 			<TriangleAlertIcon size={32} color={colors.muted} />
-			<Copy style={styles.message}>{message}</Copy>
+			<Copy style={ui.messageText}>{message}</Copy>
 			<Button
 				label={t("common.retry")}
 				variant="secondary"
@@ -31,13 +32,5 @@ export function ScreenError({ message, onRetry }: Props) {
 }
 
 const styles = StyleSheet.create({
-	center: { alignItems: "center", justifyContent: "center", gap: 14, paddingVertical: 32 },
-	message: {
-		fontFamily: font.extraBold,
-		fontSize: 16,
-		lineHeight: 22,
-		color: colors.text,
-		textAlign: "center",
-	},
 	retry: { alignSelf: "flex-end" },
 })

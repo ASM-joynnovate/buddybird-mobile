@@ -1,23 +1,23 @@
 import type { LucideIcon } from "lucide-react-native"
 import { type ReactNode, useState } from "react"
 
-import { NavRow } from "@/components/ui/rows/nav-row"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
 import { Sheet } from "@/components/ui/sheet"
 
 interface Props {
-	row: { label: string; value?: string; icon?: LucideIcon; first?: boolean; disabled?: boolean }
+	item: { label: string; value?: string; icon?: LucideIcon; first?: boolean; disabled?: boolean }
 	sheet: { title: string; list?: boolean; onOpened?(): void }
 	children(close: () => void): ReactNode
 }
 
-export function PickerRow({ row, sheet, children }: Props) {
+export function GroupedListPickerItem({ item, sheet, children }: Props) {
 	const [open, setOpen] = useState(false)
 
 	const close = () => setOpen(false)
 
 	return (
 		<>
-			<NavRow {...row} onPress={() => setOpen(true)} />
+			<GroupedListNavItem {...item} onPress={() => setOpen(true)} />
 			<Sheet
 				visible={open}
 				title={sheet.title}

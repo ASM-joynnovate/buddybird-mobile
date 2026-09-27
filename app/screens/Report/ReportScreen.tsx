@@ -12,11 +12,11 @@ import { Copy } from "@/components/ui/text"
 import { SCREEN_REFRESH_MS } from "@/config"
 import { reportQueryOptions } from "@/hooks/apis/reports"
 import { hasRecords, ReportHeader } from "@/screens/Report/components/report-header"
-import { SessionRow } from "@/screens/Report/components/session-row"
+import { SessionItem } from "@/screens/Report/components/session-item"
 import { useReportPeriod } from "@/screens/Report/hooks/use-report-period"
 import { track } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
-import { colors, font } from "@/theme"
+import { colors, contentMaxWidth, font } from "@/theme"
 import type { ReportStackParamList, RootStackParamList } from "@/types/navigation"
 
 export function ReportScreen(): ReactElement {
@@ -82,7 +82,7 @@ export function ReportScreen(): ReactElement {
 		<ReportHeader
 			state={period}
 			report={report.data}
-			failed={report.isError}
+			loadFailed={report.isError}
 			onRetry={() => void report.refetch()}
 			onStart={() => navigation.navigate("Main", { screen: "HomeTab" })}
 		/>
@@ -126,7 +126,7 @@ export function ReportScreen(): ReactElement {
 				ListHeaderComponent={header}
 				ListFooterComponent={footer}
 				renderItem={({ item }) => (
-					<SessionRow
+					<SessionItem
 						session={item}
 						judging={!isAnonymous && item.judgment_status === "pending"}
 						onPress={() => openSession(item.id)}
@@ -140,7 +140,7 @@ export function ReportScreen(): ReactElement {
 const styles = StyleSheet.create({
 	content: {
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,

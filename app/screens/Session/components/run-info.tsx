@@ -7,21 +7,21 @@ import { Copy } from "@/components/ui/text"
 import { formatTimer } from "@/i18n/format"
 import { HorizonRing } from "@/screens/Session/components/horizon-ring"
 import { remainingText, runStatus, useNow } from "@/screens/Session/hooks/use-clock"
-import { font, radius } from "@/theme"
+import { font } from "@/theme"
 import { night } from "@/theme/night"
-import type { SessionSleep } from "@/types/navigation"
+import type { SleepSettings } from "@/types/sleep-settings"
 
 const RING_MAX = 460
 
 interface Props {
 	startedAt: string
 	endsAt: number | null
-	sleep: SessionSleep
-	failed: boolean
+	sleep: SleepSettings
+	engineFailed: boolean
 	onEnd(): void
 }
 
-export function RunInfo({ startedAt, endsAt, sleep, failed, onEnd }: Props) {
+export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) {
 	const { t } = useTranslation()
 
 	const { width } = useWindowDimensions()
@@ -36,7 +36,9 @@ export function RunInfo({ startedAt, endsAt, sleep, failed, onEnd }: Props) {
 				<Copy style={styles.label}>{t("session.run.elapsed")}</Copy>
 				<Copy style={styles.timer}>{formatTimer(now - Date.parse(startedAt))}</Copy>
 				<Copy style={[styles.label, styles.gap]}>{t("session.run.keepOpen")}</Copy>
-				{failed ? <Copy style={styles.label}>{t("session.run.engineError")}</Copy> : null}
+				{engineFailed ? (
+					<Copy style={styles.label}>{t("session.run.engineError")}</Copy>
+				) : null}
 			</View>
 			<View style={styles.bottom} pointerEvents="box-none">
 				<HorizonRing
@@ -47,8 +49,8 @@ export function RunInfo({ startedAt, endsAt, sleep, failed, onEnd }: Props) {
 					detail={remainingText(status, t)}
 				/>
 				<PressableSurface
-					depth={2}
-					cornerRadius={radius.control}
+					depth="low"
+					cornerRadius="control"
 					color={night.edge}
 					backgroundColor={night.background}
 					style={styles.end}

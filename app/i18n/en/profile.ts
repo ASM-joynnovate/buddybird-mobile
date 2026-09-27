@@ -14,6 +14,5 @@ export const profile: ProfileMessages = {
 	nicknameHint: "2 to 20 characters",
 	nicknameInvalid:
 		"Use 2 to 20 characters: Korean, English letters, numbers, underscores, and spaces.",
-	nicknameTaken: "Someone else is using this nickname. Please enter another one.",
 	removePhoto: "Remove photo",
 }

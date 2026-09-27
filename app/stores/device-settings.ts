@@ -3,7 +3,7 @@ import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 import { FEEDBACK_PROMPT_THRESHOLDS } from "@/config"
-import { mmkvStorage, recordRestoreError } from "@/lib/storage"
+import { mmkvStorage, restoreOptions } from "@/lib/storage"
 import { persistKeys, storageIds } from "@/stores/keys"
 import {
 	type DeviceSettings,
@@ -58,7 +58,7 @@ function defaultDeviceSettings(): DeviceSettings {
 
 export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 	persist(
-		(set) => ({
+		(set, get) => ({
 			...defaultDeviceSettings(),
 
 			setLocale: (locale) => {
@@ -77,18 +77,18 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			},
 
 			countFeedbackDay: (date = localDate()) => {
-				set((state) =>
-					state.feedback.lastCountedDate === date
-						? state
-						: {
-								...state,
-								feedback: {
-									...state.feedback,
-									lastCountedDate: date,
-									dayCount: state.feedback.dayCount + 1,
-								},
-							},
-				)
+				if (get().feedback.lastCountedDate === date) {
+					return
+				}
+
+				set((state) => ({
+					...state,
+					feedback: {
+						...state.feedback,
+						lastCountedDate: date,
+						dayCount: state.feedback.dayCount + 1,
+					},
+				}))
 			},
 
 			consumeFeedbackPrompt: () => {
@@ -148,27 +148,10 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				legacyMigration,
 			}),
 
-			merge: (persisted, current) => {
-				if (persisted === undefined) {
-					return current
-				}
-
-				const parsed = deviceSettingsSchema.safeParse(persisted)
-
-				if (!parsed.success) {
-					recordRestoreError(parsed.error, persistKeys.deviceSettings.name)
-
-					return current
-				}
-
-				return { ...current, ...parsed.data }
-			},
-
-			onRehydrateStorage: () => (_state, error) => {
-				if (error) {
-					recordRestoreError(error, persistKeys.deviceSettings.name)
-				}
-			},
+			...restoreOptions<DeviceSettingsStore>({
+				schema: deviceSettingsSchema,
+				storeName: persistKeys.deviceSettings.name,
+			}),
 		},
 	),
 )

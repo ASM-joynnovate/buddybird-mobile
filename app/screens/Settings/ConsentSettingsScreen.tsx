@@ -3,9 +3,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 
-import { ConsentRow } from "@/components/consent-row"
+import { ConsentItem } from "@/components/consent-item"
+import { GroupedList } from "@/components/ui/grouped-list"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError } from "@/components/ui/screen-error"
 import { ScreenHeader } from "@/components/ui/screen-header"
@@ -53,7 +53,7 @@ export function ConsentSettingsScreen() {
 			<>
 				<GroupedList>
 					{latestConsents(query.data).map((consent, index) => (
-						<ConsentRow
+						<ConsentItem
 							key={consent.id}
 							first={index === 0}
 							consent={consent}

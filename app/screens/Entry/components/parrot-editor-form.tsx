@@ -9,9 +9,9 @@ import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { ProfilePhoto } from "@/components/profile-form/photo"
 import { SpeciesPicker } from "@/components/profile-form/species-picker"
 import { Button } from "@/components/ui/button"
+import { GroupedList } from "@/components/ui/grouped-list"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenHeader } from "@/components/ui/screen-header"
 import { TextField } from "@/components/ui/text-field"
@@ -92,8 +92,8 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 					<InlineError message={form.birthday.error} />
 				</View>
 			</View>
-			<PermissionDialog {...form.photo.libraryDialog} />
-			<PermissionDialog {...form.photo.cameraDialog} />
+			<PermissionDialog state={form.photo.libraryDialog} />
+			<PermissionDialog state={form.photo.cameraDialog} />
 			{parrot ? (
 				<ConfirmDialog
 					visible={form.removal.open}

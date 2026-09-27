@@ -1,5 +1,6 @@
 export const colors = {
 	brand: "#DB030F",
+	onBrand: "#F7F2EA",
 	background: "#ffffff",
 	onAccent: "#ffffff",
 	text: "#3c3c3c",
@@ -15,6 +16,8 @@ export const colors = {
 	disabledBackground: "#EBEBEB",
 	error: "#FF4B4B",
 	disabled: "#AFAFAF",
+	wheelSelection: "#ff96000f",
+	wheelText: "#3c3c3c59",
 }
 
 export const providerColors = {

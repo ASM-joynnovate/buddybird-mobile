@@ -4,6 +4,9 @@ import { Copy } from "@/components/ui/text"
 import { WHEEL_ITEM_HEIGHT, Wheel } from "@/components/ui/wheel-picker/wheel"
 import { colors, font } from "@/theme"
 
+export const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
+export const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5)
+
 interface WheelColumn {
 	key: string
 	label: string
@@ -47,7 +50,7 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 12,
 		borderColor: colors.orange,
-		backgroundColor: `${colors.orange}0f`,
+		backgroundColor: colors.wheelSelection,
 	},
 	column: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 4 },
 	unit: { fontFamily: font.extraBold, fontSize: 16, minWidth: 22 },

@@ -13,6 +13,5 @@ export const profile: ProfileMessages = {
 	nickname: "닉네임",
 	nicknameHint: "2자 이상 20자 이하",
 	nicknameInvalid: "닉네임은 2자 이상 20자 이하로, 한글, 영문, 숫자, 밑줄, 공백만 쓸 수 있어요.",
-	nicknameTaken: "다른 사용자가 쓰고 있는 닉네임이에요. 다른 닉네임을 입력해 주세요.",
 	removePhoto: "사진 삭제",
 }

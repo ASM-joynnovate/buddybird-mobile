@@ -3,7 +3,9 @@ import { StyleSheet } from "react-native"
 
 import { colors } from "@/theme"
 
-export function Backdrop(props: BottomSheetBackdropProps) {
+interface Props extends BottomSheetBackdropProps {}
+
+export function Backdrop(props: Props) {
 	return (
 		<BottomSheetBackdrop
 			{...props}

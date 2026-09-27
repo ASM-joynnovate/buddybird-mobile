@@ -86,8 +86,7 @@ export const uploadSoundMutationOptions = () =>
 			capturedAt: string
 			idempotencyKey: string
 		}) => uploadSound(sessionId, uri, capturedAt, idempotencyKey),
-		onSuccess: (_data, { sessionId }) =>
-			queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(sessionId) }),
+		onSuccess: (_data, { sessionId }) => invalidate(apiKeys.sessions.sounds(sessionId)),
 	})
 
 export const heartbeatMutationOptions = () =>
@@ -103,5 +102,5 @@ export const heartbeatMutationOptions = () =>
 			idempotencyKey: string
 		}) => sendHeartbeat(id, input, idempotencyKey),
 		retry: false,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
+		onSuccess: () => invalidate(apiKeys.sessions.running()),
 	})

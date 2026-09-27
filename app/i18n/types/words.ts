@@ -6,9 +6,7 @@ export type WordsMessages = {
 		emptyScene: string
 		samples: string
 		learning: string
-		needsRecording: string
 		play: string
-		stop: string
 		delete: string
 	}
 	editor: {
@@ -23,7 +21,6 @@ export type WordsMessages = {
 		recordingName: string
 		unsaved: string
 		play: string
-		stop: string
 		deleteRecording: string
 		addRecording: string
 		recommend: string
@@ -52,7 +49,6 @@ export type WordsMessages = {
 		start: string
 		stop: string
 		play: string
-		stopPlay: string
 		retake: string
 		add: string
 		ready: string

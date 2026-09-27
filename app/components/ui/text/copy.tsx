@@ -2,7 +2,9 @@ import { StyleSheet, Text, type TextProps } from "react-native"
 
 import { colors, font } from "@/theme"
 
-export function Copy({ style, ...props }: TextProps) {
+interface Props extends TextProps {}
+
+export function Copy({ style, ...props }: Props) {
 	return <Text {...props} allowFontScaling={false} style={[styles.copy, style]} />
 }
 

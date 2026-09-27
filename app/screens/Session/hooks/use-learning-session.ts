@@ -19,7 +19,7 @@ type EndReason = "time_reached" | "user" | "server"
 
 type LearningSession = {
 	startedAt: string | null
-	failed: boolean
+	engineFailed: boolean
 	ending: boolean
 	end(): void
 }
@@ -40,16 +40,16 @@ export function useLearningSession(
 	const soundCount = useRef(0)
 	const pausedAt = useRef<number | null>(null)
 	const closing = useRef(false)
-	const finished = useRef(onFinished)
+	const onFinishedRef = useRef(onFinished)
 
-	const [failed, setFailed] = useState(false)
+	const [engineFailed, setEngineFailed] = useState(false)
 	const [ending, setEnding] = useState(false)
 
-	const session = running.data?.id === sessionId ? running.data : null
-	const startedAt = session?.period.started_at ?? null
+	const runningSession = running.data?.id === sessionId ? running.data : null
+	const startedAt = runningSession?.period.started_at ?? null
 
 	useEffect(() => {
-		finished.current = onFinished
+		onFinishedRef.current = onFinished
 	}, [onFinished])
 
 	const close = useCallback(
@@ -90,7 +90,7 @@ export function useLearningSession(
 				sound_count: soundCount.current,
 			})
 
-			finished.current()
+			onFinishedRef.current()
 		},
 		[finish, sessionId, startedAt],
 	)
@@ -115,7 +115,7 @@ export function useLearningSession(
 					wordId,
 					recordingUrls: word.recordings.map((item) => item.url),
 					startedAt: Date.parse(startedAt),
-					sleep: { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at },
+					sleep,
 					onSound: (sound) => {
 						soundCount.current += 1
 
@@ -159,7 +159,7 @@ export function useLearningSession(
 					sound_count: 0,
 				})
 
-				setFailed(true)
+				setEngineFailed(true)
 			})
 
 		const run = (step: () => Promise<void> | undefined) => {
@@ -210,7 +210,7 @@ export function useLearningSession(
 
 	return {
 		startedAt,
-		failed,
+		engineFailed,
 		ending,
 		end: () => void close("user"),
 	}

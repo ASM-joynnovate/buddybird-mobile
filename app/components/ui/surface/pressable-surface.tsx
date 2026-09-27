@@ -10,6 +10,7 @@ import {
 import { scheduleOnRN } from "react-native-worklets"
 
 import { Surface, type SurfaceProps } from "@/components/ui/surface/surface"
+import { depths } from "@/theme"
 
 type PressPoint = { x: number; y: number }
 
@@ -25,7 +26,7 @@ export function PressableSurface({
 	onPress,
 	onLongPress,
 	disabled = false,
-	depth = 4,
+	depth = "high",
 	contentStyle,
 	accessibilityState,
 	accessibilityRole = "button",
@@ -81,8 +82,9 @@ export function PressableSurface({
 		return Gesture.Exclusive(hold, tap)
 	}, [activate, disabled, holdActivate, onLongPress, pressed])
 
+	const pressDistance = Math.max(0, depths[depth] - 1)
 	const faceAnimation = useAnimatedStyle(() => ({
-		transform: [{ translateY: reduced ? 0 : pressed.get() * Math.max(0, depth - 1) }],
+		transform: [{ translateY: reduced ? 0 : pressed.get() * pressDistance }],
 	}))
 
 	return (

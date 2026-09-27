@@ -15,7 +15,7 @@ import { Copy } from "@/components/ui/text"
 import { noticesQueryOptions } from "@/hooks/apis/notices"
 import { formatDate } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font } from "@/theme"
+import { colors, contentMaxWidth, font } from "@/theme"
 import type { Notice } from "@/types/apis/notices"
 import type { RootStackParamList } from "@/types/navigation"
 import { joinLabel } from "@/utils/a11y"
@@ -39,7 +39,7 @@ export function NoticeListScreen() {
 					date,
 					!item.is_read && t("settings.notices.unread"),
 				)}
-				depth={2}
+				depth="low"
 				onPress={() => navigation.navigate("NoticeDetail", { noticeId: item.id })}
 				contentStyle={styles.card}
 			>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 	frame: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 20,

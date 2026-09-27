@@ -9,7 +9,7 @@ import { Tag } from "@/components/ui/tag"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
 import { track } from "@/services/telemetry/client"
-import { colors, font, radius } from "@/theme"
+import { colors, font } from "@/theme"
 import type { SessionSound } from "@/types/apis/sessions"
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 	player: SoundPlayer
 }
 
-export function SoundRow({ sound, wordName, timeLabel, player }: Props) {
+export function SoundItem({ sound, wordName, timeLabel, player }: Props) {
 	const { t } = useTranslation()
 
 	const [shareFailed, setShareFailed] = useState(false)
@@ -62,8 +62,8 @@ export function SoundRow({ sound, wordName, timeLabel, player }: Props) {
 				onLongPress={url ? () => void share() : undefined}
 				disabled={!url}
 				tone="plain"
-				depth={0}
-				cornerRadius={radius.control}
+				depth="none"
+				cornerRadius="control"
 				contentStyle={styles.row}
 			>
 				<View style={styles.info}>

@@ -5,7 +5,6 @@ export const app: AppMessages = {
 		loading: "Getting the app ready",
 		title: "Couldn't start the app",
 		message: "Check your internet connection and try again.",
-		retry: "Try again",
 	},
 	feedback: {
 		thanks: "Your feedback came through. We will use it to make BuddyBird better.",

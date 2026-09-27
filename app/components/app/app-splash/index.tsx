@@ -95,6 +95,7 @@ export function AppSplash({ ready, onComplete }: Props) {
 		}
 
 		laidOut.current = true
+
 		void SplashScreen.hideAsync()
 			.catch((error) => reportError(error, "splash"))
 			.finally(() => setShown(true))
@@ -140,7 +141,7 @@ export function AppSplash({ ready, onComplete }: Props) {
 						textAnchor="middle"
 						fontFamily={font.splash}
 						fontSize={104}
-						fill="#F7F2EA"
+						fill={colors.onBrand}
 					>
 						BuddyBird
 					</SvgText>

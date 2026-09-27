@@ -1,8 +1,14 @@
 import { MMKV } from "react-native-mmkv"
-import type { StateStorage } from "zustand/middleware"
+import type { z } from "zod"
+import type { PersistOptions, StateStorage } from "zustand/middleware"
 
 interface RestoreError {
 	error: unknown
+	storeName: string
+}
+
+interface RestoreTarget<S> {
+	schema: z.ZodType<Partial<S>>
 	storeName: string
 }
 
@@ -18,8 +24,37 @@ export function mmkvStorage(id: string): StateStorage {
 	}
 }
 
-export function recordRestoreError(error: unknown, storeName: string) {
+function recordRestoreError(error: unknown, storeName: string) {
 	restoreErrors = [...restoreErrors, { error, storeName }]
+}
+
+export function restoreOptions<S>({
+	schema,
+	storeName,
+}: RestoreTarget<S>): Pick<PersistOptions<S>, "merge" | "onRehydrateStorage"> {
+	return {
+		merge: (persisted, current) => {
+			if (persisted === undefined) {
+				return current
+			}
+
+			const parsed = schema.safeParse(persisted)
+
+			if (!parsed.success) {
+				recordRestoreError(parsed.error, storeName)
+
+				return current
+			}
+
+			return { ...current, ...parsed.data }
+		},
+
+		onRehydrateStorage: () => (_state, error) => {
+			if (error) {
+				recordRestoreError(error, storeName)
+			}
+		},
+	}
 }
 
 export function takeRestoreErrors(): readonly RestoreError[] {

@@ -24,7 +24,7 @@ export const VAD = {
 	releaseMs: 500,
 	preRollMs: 500,
 	echoTailGuardMs: 200,
-	maxSegmentMs: 10000,
+	maxSegmentMs: 10 * SECOND,
 } as const
 
 export const UPLOAD_POLL_INTERVAL_MS = SECOND

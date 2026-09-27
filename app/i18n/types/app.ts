@@ -3,7 +3,6 @@ export type AppMessages = {
 		loading: string
 		title: string
 		message: string
-		retry: string
 	}
 	feedback: {
 		thanks: string

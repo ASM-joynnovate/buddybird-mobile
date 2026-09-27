@@ -1,12 +1,14 @@
+import dayjs from "dayjs"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Button } from "@/components/ui/button"
-import { CheckRow, GroupedList, PickerRow } from "@/components/ui/rows"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
+import { GroupedListPickerItem } from "@/components/ui/grouped-list/picker-item"
 import { WheelPicker } from "@/components/ui/wheel-picker"
-import { formatFullDate } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { localDate } from "@/utils/date"
 
 const MAX_AGE_YEARS = 100
 const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1)
@@ -14,26 +16,25 @@ const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1)
 type DateParts = { year: number; month: number; day: number }
 
 function daysIn(year: number, month: number) {
-	return new Date(year, month, 0).getDate()
-}
-
-function pad(value: number) {
-	return String(value).padStart(2, "0")
+	return dayjs()
+		.year(year)
+		.month(month - 1)
+		.daysInMonth()
 }
 
 function toText({ year, month, day }: DateParts) {
-	return `${year}-${pad(month)}-${pad(day)}`
+	return localDate(
+		dayjs()
+			.year(year)
+			.month(month - 1)
+			.date(day),
+	)
 }
 
 function parse(value: string | null | undefined): DateParts {
-	const now = new Date()
-	const [year, month, day] = value?.split("-").map(Number) ?? [
-		now.getFullYear() - 1,
-		now.getMonth() + 1,
-		1,
-	]
+	const date = value ? dayjs(value) : dayjs().subtract(1, "year").date(1)
 
-	return { year, month, day }
+	return { year: date.year(), month: date.month() + 1, day: date.date() }
 }
 
 interface Props {
@@ -44,12 +45,10 @@ interface Props {
 export function DatePicker({ value, onChange }: Props) {
 	const { t } = useTranslation()
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
-
 	const [date, setDate] = useState(() => parse(value))
 
 	const unknown = value === null
-	const thisYear = new Date().getFullYear()
+	const thisYear = dayjs().year()
 	const earliest = Math.min(thisYear - MAX_AGE_YEARS, date.year)
 	const years = Array.from({ length: thisYear - earliest + 1 }, (_, index) => earliest + index)
 	const days = Array.from({ length: daysIn(date.year, date.month) }, (_, index) => index + 1)
@@ -59,6 +58,7 @@ export function DatePicker({ value, onChange }: Props) {
 		const clamped = { ...merged, day: Math.min(merged.day, daysIn(merged.year, merged.month)) }
 
 		setDate(clamped)
+
 		onChange(toText(clamped))
 	}
 
@@ -67,14 +67,12 @@ export function DatePicker({ value, onChange }: Props) {
 			return t("parrot.choose")
 		}
 
-		return unknown
-			? t("common.unknown")
-			: formatFullDate(new Date(date.year, date.month - 1, date.day), locale)
+		return unknown ? t("common.unknown") : dayjs(toText(date)).format("LL")
 	}
 
 	return (
-		<PickerRow
-			row={{ label: t("parrot.birthday"), value: label() }}
+		<GroupedListPickerItem
+			item={{ label: t("parrot.birthday"), value: label() }}
 			sheet={{ title: t("parrot.birthdayQuestion") }}
 		>
 			{(close) => (
@@ -114,7 +112,7 @@ export function DatePicker({ value, onChange }: Props) {
 						/>
 					</View>
 					<GroupedList>
-						<CheckRow
+						<GroupedListCheckItem
 							first
 							label={t("parrot.birthdayUnknown")}
 							checked={unknown}
@@ -133,7 +131,7 @@ export function DatePicker({ value, onChange }: Props) {
 					/>
 				</>
 			)}
-		</PickerRow>
+		</GroupedListPickerItem>
 	)
 }
 

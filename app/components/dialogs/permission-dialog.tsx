@@ -9,21 +9,27 @@ import { Copy } from "@/components/ui/text"
 import type { PermissionDialogState } from "@/hooks/use-permission"
 import { reportError } from "@/services/telemetry/client"
 
-export function PermissionDialog({ visible, kind, onClose }: PermissionDialogState) {
+interface Props {
+	state: PermissionDialogState
+}
+
+export function PermissionDialog({ state }: Props) {
 	const { t } = useTranslation()
 
 	return (
 		<Dialog
-			visible={visible}
-			title={t("common.permission.title", { name: t(`common.permission.${kind}.name`) })}
-			onClose={onClose}
+			visible={state.visible}
+			title={t("common.permission.title", {
+				name: t(`common.permission.${state.kind}.name`),
+			})}
+			onClose={state.onClose}
 			footer={
 				<View style={ui.actions}>
 					<Button
 						label={t("common.close")}
 						variant="secondary"
 						compact
-						onPress={onClose}
+						onPress={state.onClose}
 						style={ui.action}
 					/>
 					<Button
@@ -41,7 +47,7 @@ export function PermissionDialog({ visible, kind, onClose }: PermissionDialogSta
 		>
 			<View style={styles.body}>
 				<Mascot size={88} />
-				<Copy style={styles.reason}>{t(`common.permission.${kind}.reason`)}</Copy>
+				<Copy style={styles.reason}>{t(`common.permission.${state.kind}.reason`)}</Copy>
 			</View>
 		</Dialog>
 	)

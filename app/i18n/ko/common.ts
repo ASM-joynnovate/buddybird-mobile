@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: "닫기",
 	select: "선택",
 	unknown: "모름",
+	needsRecording: "녹음 필요",
 	tabs: {
 		home: "홈",
 		words: "단어",
@@ -33,6 +34,7 @@ export const common: CommonMessages = {
 	sound: {
 		play: "{{time}}에 감지한 소리 재생",
 		stop: "재생 멈추기",
+		stopNamed: "{{name}} 재생 멈추기",
 		expired: "보관 기간이 지나 들을 수 없어요",
 		playError: "소리를 재생하지 못했어요. 재생 버튼을 다시 눌러 주세요.",
 		shareError: "소리를 공유하지 못했어요. 다시 시도해 주세요.",

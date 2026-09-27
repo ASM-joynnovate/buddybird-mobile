@@ -2,8 +2,9 @@ import type { TFunction } from "i18next"
 import { useEffect, useState } from "react"
 
 import { formatTimer } from "@/i18n/format"
-import { currentSpan, type Phase } from "@/services/session/phases"
-import type { SleepSettings } from "@/types/apis/settings"
+import { currentSpan } from "@/services/session/phases"
+import type { Phase } from "@/types/apis/sessions"
+import type { SleepSettings } from "@/types/sleep-settings"
 import { SECOND } from "@/utils/units"
 
 export function useNow(enabled = true, intervalMs = SECOND): number {
@@ -33,7 +34,7 @@ export function runStatus(
 	now: number,
 ): RunStatus {
 	const started = Date.parse(startedAt)
-	const span = currentSpan(started, now, { sleepAt: sleep.sleep_at, wakeAt: sleep.wake_at })
+	const span = currentSpan(started, now, sleep)
 
 	if (endsAt === null) {
 		return { phase: span.phase, remainingMs: null, fraction: null }

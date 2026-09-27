@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet } from "react-native"
 
 import { PressableSurface, type PressableSurfaceProps } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { colors, depths, font } from "@/theme"
 
 interface Props extends Omit<PressableSurfaceProps, "children" | "tone"> {
 	label: string
@@ -24,7 +24,7 @@ export function Button({
 	...props
 }: Props) {
 	const inactive = disabled || loading
-	const depth = compact ? 4 : 7
+	const depth = compact ? "high" : "xhigh"
 	let tone: "primary" | "neutral" | "muted" = "primary"
 	let foregroundColor = colors.onAccent
 
@@ -58,9 +58,9 @@ export function Button({
 			}}
 			disabled={inactive}
 			tone={tone}
-			depth={inactive ? 0 : depth}
-			cornerRadius={radius.control}
-			style={[inactive && { marginTop: depth }, style]}
+			depth={inactive ? "none" : depth}
+			cornerRadius="control"
+			style={[inactive && { marginTop: depths[depth] }, style]}
 			contentStyle={[
 				styles.button,
 				{ borderWidth: variant === "secondary" ? 2 : 0 },

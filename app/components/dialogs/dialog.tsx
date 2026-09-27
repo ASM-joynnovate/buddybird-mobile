@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Title } from "@/components/ui/text"
-import { colors, radius } from "@/theme"
+import { colors, contentMaxWidth, radius } from "@/theme"
 
 interface Props {
 	visible: boolean
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 	},
 	dialog: {
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		maxHeight: "100%",
 		borderRadius: radius.card,
 		paddingHorizontal: 20,

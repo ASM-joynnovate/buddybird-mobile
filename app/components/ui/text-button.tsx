@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { colors, font } from "@/theme"
 
 interface Props {
 	label: string
@@ -18,8 +18,8 @@ export function TextButton({ label, onPress, disabled, tone = "primary" }: Props
 			disabled={disabled}
 			onPress={onPress}
 			tone="plain"
-			depth={0}
-			cornerRadius={radius.control}
+			depth="none"
+			cornerRadius="control"
 			contentStyle={styles.textButton}
 		>
 			<Copy

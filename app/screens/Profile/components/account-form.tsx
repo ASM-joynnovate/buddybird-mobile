@@ -57,8 +57,8 @@ export function AccountForm({ user, onSaved }: Props) {
 				onPress={form.save}
 				style={styles.save}
 			/>
-			<PermissionDialog {...form.photo.libraryDialog} />
-			<PermissionDialog {...form.photo.cameraDialog} />
+			<PermissionDialog state={form.photo.libraryDialog} />
+			<PermissionDialog state={form.photo.cameraDialog} />
 		</>
 	)
 }

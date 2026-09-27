@@ -14,14 +14,17 @@ export type SoundPlayer = {
 export function useSoundPlayer(): SoundPlayer {
 	const player = useAudioPlayer(null, { updateInterval: 100 })
 	const status = useAudioPlayerStatus(player)
+
 	const [playingId, setPlayingId] = useState<string | null>(null)
 	const [failedId, setFailedId] = useState<string | null>(null)
 	const [finishedIds, setFinishedIds] = useState<ReadonlySet<string>>(new Set())
-	const request = useRef(0)
+
+	const playSequence = useRef(0)
 
 	const stop = useCallback(() => {
-		request.current++
+		playSequence.current++
 		player.pause()
+
 		setPlayingId(null)
 	}, [player])
 
@@ -34,11 +37,13 @@ export function useSoundPlayer(): SoundPlayer {
 
 		if (status.playbackState === "failed") {
 			setFailedId(playingId)
+
 			stop()
 		} else if (status.didJustFinish) {
 			const finished = playingId
 
 			setFinishedIds((current) => new Set([...current, finished]))
+
 			stop()
 		}
 	}, [playingId, status.didJustFinish, status.playbackState, stop])
@@ -51,26 +56,29 @@ export function useSoundPlayer(): SoundPlayer {
 				return
 			}
 
-			const token = ++request.current
+			const token = ++playSequence.current
 
 			player.pause()
+
 			setFailedId(null)
 
 			void setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false })
 				.then(async () => {
-					if (token !== request.current) {
+					if (token !== playSequence.current) {
 						return
 					}
 
 					player.replace({ uri: url })
 					await player.seekTo(0)
 					player.play()
+
 					setPlayingId(id)
 				})
 				.catch((error: unknown) => {
-					if (token === request.current) {
+					if (token === playSequence.current) {
 						setFailedId(id)
 						setPlayingId(null)
+
 						reportError(error, "sound_playback")
 					}
 				})

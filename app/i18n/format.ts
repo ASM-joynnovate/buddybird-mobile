@@ -1,53 +1,39 @@
+import dayjs from "dayjs"
+
 import { durationText } from "@/i18n/duration"
 import type { Locale } from "@/types/locale"
-import { DAY } from "@/utils/units"
+import { CLOCK_FORMAT } from "@/types/sleep-settings"
 
 type Moment = string | number | Date
 
-const toDate = (value: Moment) => (value instanceof Date ? value : new Date(value))
-
-export function formatTime(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })
+const dateFormats: Record<
+	Locale,
+	{ monthDay: string; monthDayWeekday: string; yearMonth: string }
+> = {
+	"ko-KR": { monthDay: "MMMM D일", monthDayWeekday: "MMMM D일 (ddd)", yearMonth: "YYYY년 MMMM" },
+	"en-US": { monthDay: "MMMM D", monthDayWeekday: "ddd, MMMM D", yearMonth: "MMMM YYYY" },
 }
 
 export function formatDate(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(locale, { month: "long", day: "numeric" })
+	return dayjs(value).format(dateFormats[locale].monthDay)
 }
 
 export function formatDateWithWeekday(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(locale, {
-		month: "long",
-		day: "numeric",
-		weekday: "short",
-	})
-}
-
-export function formatFullDate(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(locale, {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	})
+	return dayjs(value).format(dateFormats[locale].monthDayWeekday)
 }
 
 export function formatMonth(value: Moment, locale: Locale): string {
-	return toDate(value).toLocaleDateString(locale, { year: "numeric", month: "long" })
+	return dayjs(value).format(dateFormats[locale].yearMonth)
 }
 
 export function formatDateTime(value: Moment, locale: Locale): string {
-	return `${formatDate(value, locale)} ${formatTime(value, locale)}`
+	return `${formatDate(value, locale)} ${dayjs(value).format("LT")}`
 }
 
-function sameDay(a: Date, b: Date) {
-	return (
-		a.getFullYear() === b.getFullYear() &&
-		a.getMonth() === b.getMonth() &&
-		a.getDate() === b.getDate()
-	)
-}
+export function formatMoment(value: Moment, locale: Locale, now: Moment = new Date()): string {
+	const moment = dayjs(value)
 
-export function formatMoment(value: Moment, locale: Locale, now = new Date()): string {
-	return sameDay(toDate(value), now) ? formatTime(value, locale) : formatDateTime(value, locale)
+	return moment.isSame(now, "day") ? moment.format("LT") : formatDateTime(value, locale)
 }
 
 export function formatDuration(ms: number, locale: Locale): string {
@@ -59,8 +45,9 @@ export function formatDuration(ms: number, locale: Locale): string {
 }
 
 export function formatDurationWithDays(ms: number, locale: Locale): string {
-	const days = Math.floor(ms / DAY)
-	const remainderMs = ms % DAY
+	const duration = dayjs.duration(ms)
+	const days = Math.floor(duration.asDays())
+	const remainderMs = duration.subtract(days, "day").asMilliseconds()
 
 	if (days === 0) {
 		return formatDuration(ms, locale)
@@ -82,11 +69,6 @@ export function formatTimer(ms: number): string {
 	return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`
 }
 
-export function formatClock(time: string, locale: Locale): string {
-	const [hours, minutes] = time.split(":").map(Number)
-	const date = new Date()
-
-	date.setHours(hours, minutes, 0, 0)
-
-	return formatTime(date, locale)
+export function formatClock(time: string): string {
+	return dayjs(time, CLOCK_FORMAT).format("LT")
 }

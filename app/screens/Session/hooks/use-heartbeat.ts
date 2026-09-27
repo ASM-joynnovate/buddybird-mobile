@@ -6,7 +6,7 @@ import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
 import type { HeartbeatSummary } from "@/types/apis/sessions"
-import type { SleepSettings } from "@/types/apis/settings"
+import type { SleepSettings } from "@/types/sleep-settings"
 
 type HeartbeatInput = {
 	sessionId: string
@@ -36,10 +36,7 @@ export function useHeartbeat({
 			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latest.current
 			const span =
 				sessionStartedAt && sleepSettings
-					? currentSpan(Date.parse(sessionStartedAt), Date.now(), {
-							sleepAt: sleepSettings.sleep_at,
-							wakeAt: sleepSettings.wake_at,
-						})
+					? currentSpan(Date.parse(sessionStartedAt), Date.now(), sleepSettings)
 					: null
 
 			mutate(

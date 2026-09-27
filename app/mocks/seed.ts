@@ -203,10 +203,10 @@ function word(name: string, urls: string[], createdAt: number): MockWord {
 
 type Learning = Pick<MockSession, "started_at" | "ended_at" | "learning_enabled">
 
-export type SleepWindow = { sleepAt: string; wakeAt: string }
+export type SleepWindow = { sleep_at: string; wake_at: string }
 
 export function sleepWindowOf(settings: MockSettings): SleepWindow {
-	return { sleepAt: settings.sleep.sleep_at, wakeAt: settings.sleep.wake_at }
+	return settings.sleep
 }
 
 export function learningMsBetween(

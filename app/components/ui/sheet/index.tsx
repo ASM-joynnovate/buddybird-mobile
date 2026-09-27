@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Backdrop } from "@/components/ui/sheet/backdrop"
 import { Title } from "@/components/ui/text"
-import { colors } from "@/theme"
+import { colors, contentMaxWidth } from "@/theme"
 
 const SHEET_RADIUS = 28
 const LIST_SNAP_POINTS = ["70%"]
@@ -80,7 +80,7 @@ export function Sheet({
 }
 
 const styles = StyleSheet.create({
-	sheet: { width: "100%", maxWidth: 480, alignSelf: "center" },
+	sheet: { width: "100%", maxWidth: contentMaxWidth, alignSelf: "center" },
 	background: {
 		backgroundColor: colors.background,
 		borderTopLeftRadius: SHEET_RADIUS,

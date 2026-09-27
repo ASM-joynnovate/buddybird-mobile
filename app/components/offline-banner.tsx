@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { colors, contentMaxWidth, font, radius } from "@/theme"
 
 export function OfflineBanner() {
 	const { t } = useTranslation()
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 8,
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		paddingHorizontal: 14,
 		paddingVertical: 10,
 		borderRadius: radius.control,

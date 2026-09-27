@@ -4,9 +4,9 @@ import { useState } from "react"
 import { selectableWords } from "@/components/session/word-picker"
 import { settingsQueryOptions } from "@/hooks/apis/settings"
 import { wordsQueryOptions } from "@/hooks/apis/words"
-import type { SleepSettings } from "@/types/apis/settings"
 import type { Word } from "@/types/apis/words"
 import type { LearningDuration, SessionDraft } from "@/types/navigation"
+import type { SleepSettings } from "@/types/sleep-settings"
 
 const UNTIL_END: LearningDuration = { ms: null, custom: false }
 
@@ -21,7 +21,7 @@ type SessionDraftState = {
 	retry(): void
 	selectWord(id: string): void
 	setDuration(duration: LearningDuration): void
-	setSleep(sleep: SleepSettings): void
+	setEditedSleep(sleep: SleepSettings): void
 	resetDraft(): void
 }
 
@@ -31,15 +31,15 @@ export function useSessionDraft(): SessionDraftState {
 
 	const [wordId, setWordId] = useState<string | null>(null)
 	const [duration, setDuration] = useState(UNTIL_END)
-	const [sleepOverride, setSleep] = useState<SleepSettings | null>(null)
+	const [editedSleep, setEditedSleep] = useState<SleepSettings | null>(null)
 
 	const available = selectableWords(words.data ?? [])
 	const word = available.find((item) => item.id === wordId) ?? null
-	const sleep = sleepOverride ?? settings.data?.sleep
+	const sleep = editedSleep ?? settings.data?.sleep
 	const sleepChanged =
-		sleepOverride !== null &&
-		(sleepOverride.sleep_at !== settings.data?.sleep.sleep_at ||
-			sleepOverride.wake_at !== settings.data?.sleep.wake_at)
+		editedSleep !== null &&
+		(editedSleep.sleep_at !== settings.data?.sleep.sleep_at ||
+			editedSleep.wake_at !== settings.data?.sleep.wake_at)
 
 	return {
 		words: available,
@@ -55,11 +55,11 @@ export function useSessionDraft(): SessionDraftState {
 		},
 		selectWord: setWordId,
 		setDuration,
-		setSleep,
+		setEditedSleep,
 		resetDraft: () => {
 			setWordId(null)
 			setDuration(UNTIL_END)
-			setSleep(null)
+			setEditedSleep(null)
 		},
 	}
 }

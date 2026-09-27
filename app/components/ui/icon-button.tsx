@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react-native"
 import { StyleSheet } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
-import { colors, radius } from "@/theme"
+import { colors } from "@/theme"
 
 const variants = {
 	plain: { tone: "plain", color: colors.text },
@@ -61,8 +61,8 @@ export function IconButton({
 			disabled={disabled}
 			onPress={onPress}
 			tone={round && disabled ? "muted" : tone}
-			depth={round ? 4 : 0}
-			cornerRadius={round ? radius.pill : radius.control}
+			depth={round ? "high" : "none"}
+			cornerRadius={round ? "pill" : "control"}
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}
 		>

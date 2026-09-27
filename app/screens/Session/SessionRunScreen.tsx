@@ -39,7 +39,7 @@ export function SessionRunScreen() {
 	const opacity = useSharedValue(1)
 	const fade = useAnimatedStyle(() => ({ opacity: opacity.get() }))
 
-	const [ending, setEnding] = useState(false)
+	const [endDialogOpen, setEndDialogOpen] = useState(false)
 
 	useEffect(() => {
 		opacity.set(idle.visible ? 1 : withTiming(0, { duration: FADE_MS }))
@@ -47,7 +47,7 @@ export function SessionRunScreen() {
 
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-			setEnding(true)
+			setEndDialogOpen(true)
 
 			return true
 		})
@@ -58,8 +58,8 @@ export function SessionRunScreen() {
 	return (
 		<PressableSurface
 			tone="plain"
-			depth={0}
-			cornerRadius={0}
+			depth="none"
+			cornerRadius="none"
 			backgroundColor={night.background}
 			style={styles.screen}
 			contentStyle={styles.fill}
@@ -75,13 +75,13 @@ export function SessionRunScreen() {
 						startedAt={learning.startedAt}
 						endsAt={endsAt}
 						sleep={sleep}
-						failed={learning.failed}
-						onEnd={() => setEnding(true)}
+						engineFailed={learning.engineFailed}
+						onEnd={() => setEndDialogOpen(true)}
 					/>
 				) : null}
 			</Animated.View>
 			<ConfirmDialog
-				visible={ending}
+				visible={endDialogOpen}
 				text={{
 					title: t("session.end.title"),
 					confirm: t("session.end.confirm"),
@@ -89,7 +89,7 @@ export function SessionRunScreen() {
 				}}
 				state={{ busy: learning.ending }}
 				onConfirm={learning.end}
-				onClose={() => setEnding(false)}
+				onClose={() => setEndDialogOpen(false)}
 			/>
 		</PressableSurface>
 	)

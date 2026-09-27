@@ -143,7 +143,7 @@ export function AppNavigator() {
 	}
 
 	if (route === "loading" || route === "error") {
-		return <StartupScreen failed={route === "error"} onRetry={retry} />
+		return <StartupScreen startupFailed={route === "error"} onRetry={retry} />
 	}
 
 	if (route === "LegacyUpload") {

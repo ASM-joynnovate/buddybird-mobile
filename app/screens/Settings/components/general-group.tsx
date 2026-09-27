@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Chip } from "@/components/ui/chip"
-import { GroupedList, NavRow } from "@/components/ui/rows"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
 import { Copy } from "@/components/ui/text"
 import { useAppLanguage } from "@/screens/Settings/hooks/use-app-language"
 import { colors, font } from "@/theme"
@@ -35,12 +36,12 @@ export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
 						onPress={() => language.changeLanguage("en-US")}
 					/>
 				</View>
-				<NavRow
+				<GroupedListNavItem
 					icon={SmartphoneIcon}
 					label={t("settings.general.devices")}
 					onPress={onOpenDevices}
 				/>
-				<NavRow
+				<GroupedListNavItem
 					icon={LockIcon}
 					label={t("settings.general.permissions")}
 					onPress={onOpenPermissions}

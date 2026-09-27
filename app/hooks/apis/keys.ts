@@ -3,6 +3,7 @@ import { useAccountStore } from "@/stores/account"
 const scope = () => ["api", useAccountStore.getState().registeredUser] as const
 
 export const apiKeys = {
+	all: () => ["api"] as const,
 	appUpdate: () => ["api", "app-update"] as const,
 	me: () => [...scope(), "users", "me"] as const,
 	settings: () => [...scope(), "users", "me", "settings"] as const,

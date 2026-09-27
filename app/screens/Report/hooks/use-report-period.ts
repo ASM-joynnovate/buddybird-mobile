@@ -1,11 +1,12 @@
+import dayjs, { type Dayjs } from "dayjs"
 import { useState } from "react"
 import { z } from "zod"
 
-import type { ReportPeriod } from "@/types/apis/reports"
+import { type ReportPeriod, reportPeriodSchema } from "@/types/report-period"
 import { localDate, periodsBetween } from "@/utils/date"
 
 const paramsSchema = z.object({
-	period: z.enum(["day", "week", "month"]).optional(),
+	period: reportPeriodSchema.optional(),
 	date: z
 		.string()
 		.regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -17,51 +18,28 @@ type Selection = { period: ReportPeriod; start: string }
 export type ReportPeriodState = {
 	period: ReportPeriod
 	start: string
-	end: Date
 	isLatest: boolean
 	periodsAgo: number
 	select(period: ReportPeriod): void
 	move(step: 1 | -1): void
 }
 
-function parseLocalDate(value: string): Date {
-	const [year, month, day] = value.split("-").map(Number)
-
-	return new Date(year, month - 1, day)
-}
-
-function periodStart(period: ReportPeriod, date: Date): Date {
-	const year = date.getFullYear()
-	const month = date.getMonth()
-	const day = date.getDate()
-
+function periodStart(period: ReportPeriod, date: Dayjs): Dayjs {
 	if (period === "week") {
-		return new Date(year, month, day - ((date.getDay() + 6) % 7))
+		return date.subtract((date.day() + 6) % 7, "day").startOf("day")
 	}
 
-	return period === "month" ? new Date(year, month, 1) : new Date(year, month, day)
-}
-
-function shift(period: ReportPeriod, start: Date, step: number): Date {
-	const year = start.getFullYear()
-	const month = start.getMonth()
-	const day = start.getDate()
-
-	if (period === "month") {
-		return new Date(year, month + step, 1)
-	}
-
-	return new Date(year, month, day + (period === "week" ? 7 : 1) * step)
+	return date.startOf(period)
 }
 
 function latestStart(period: ReportPeriod): string {
-	return localDate(periodStart(period, new Date()))
+	return localDate(periodStart(period, dayjs()))
 }
 
 function fromParams(params: unknown): Selection {
 	const parsed = paramsSchema.safeParse(params ?? {})
 	const period = (parsed.success && parsed.data.period) || "day"
-	const date = parsed.success && parsed.data.date ? parseLocalDate(parsed.data.date) : new Date()
+	const date = parsed.success && parsed.data.date ? dayjs(parsed.data.date) : dayjs()
 	const start = localDate(periodStart(period, date))
 	const latest = latestStart(period)
 
@@ -80,13 +58,11 @@ export function useReportPeriod(params: unknown): ReportPeriodState {
 		}
 	}
 
-	const start = parseLocalDate(selection.start)
-	const next = shift(selection.period, start, 1)
+	const start = dayjs(selection.start)
 
 	return {
 		period: selection.period,
 		start: selection.start,
-		end: new Date(next.getFullYear(), next.getMonth(), next.getDate() - 1),
 		isLatest: selection.start >= latestStart(selection.period),
 		periodsAgo: periodsBetween(
 			selection.period,
@@ -95,7 +71,7 @@ export function useReportPeriod(params: unknown): ReportPeriodState {
 		),
 		select: (period) => setSelection({ period, start: latestStart(period) }),
 		move: (step) => {
-			const target = localDate(shift(selection.period, start, step))
+			const target = localDate(start.add(step, selection.period))
 
 			if (target <= latestStart(selection.period)) {
 				setSelection({ period: selection.period, start: target })

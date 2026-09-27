@@ -14,6 +14,7 @@ export type PermissionDialogState = { visible: boolean; kind: PermissionKind; on
 export function usePermission(kind: PermissionKind) {
 	const [state, setState] = useState<PermissionState | null>(null)
 	const [dialogOpen, setDialogOpen] = useState(false)
+
 	const pending = useRef<(() => void) | null>(null)
 
 	const refresh = useCallback(async () => {
@@ -39,6 +40,7 @@ export function usePermission(kind: PermissionKind) {
 					if (next.granted && action) {
 						pending.current = null
 						setDialogOpen(false)
+
 						action()
 					}
 				})

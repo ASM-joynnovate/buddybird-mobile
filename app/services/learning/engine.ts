@@ -10,14 +10,11 @@ import { LEARNING_TICK_MS, VAD, WORD_REST_FACTOR } from "@/config"
 import { stressCareTracks } from "@/services/learning/tracks"
 import { createSpeechDetector, type SpeechSegment } from "@/services/learning/vad"
 import { saveWav } from "@/services/learning/wav"
-import {
-	currentSpan,
-	type Phase,
-	type PhaseSpan,
-	type SleepWindow,
-} from "@/services/session/phases"
-import type { HeartbeatSummary } from "@/types/apis/sessions"
+import { currentSpan, type PhaseSpan } from "@/services/session/phases"
+import type { HeartbeatSummary, Phase } from "@/types/apis/sessions"
+import type { SleepSettings } from "@/types/sleep-settings"
 import { localDate } from "@/utils/date"
+import { SECOND } from "@/utils/units"
 
 type CapturedSound = { uri: string; capturedAt: string }
 
@@ -25,7 +22,7 @@ type LearningEngineOptions = {
 	wordId: string
 	recordingUrls: readonly string[]
 	startedAt: number
-	sleep: SleepWindow
+	sleep: SleepSettings
 	onSound(sound: CapturedSound): void
 	onError(error: unknown): void
 }
@@ -127,7 +124,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		emit(detector.flush())
 
 		const source = context.createBufferSource()
-		const durationMs = buffer.duration * 1000
+		const durationMs = buffer.duration * SECOND
 
 		source.buffer = buffer
 		source.connect(context.destination)
@@ -224,7 +221,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		recorder.onAudioReady(
 			{
 				sampleRate: VAD.sampleRate,
-				bufferLength: (VAD.sampleRate * VAD.frameMs) / 1000,
+				bufferLength: (VAD.sampleRate * VAD.frameMs) / SECOND,
 				channelCount: 1,
 			},
 			({ buffer }) => {

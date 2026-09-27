@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react"
 import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from "react-native"
 import Animated from "react-native-reanimated"
 
-import { colors, radius } from "@/theme"
+import { colors, depths, radius } from "@/theme"
 
 const tones = {
 	neutral: { face: colors.background, edge: colors.border },
@@ -16,8 +16,8 @@ type SurfaceTone = keyof typeof tones
 
 interface Props extends ViewProps {
 	tone?: SurfaceTone
-	depth?: number
-	cornerRadius?: number
+	depth?: keyof typeof depths
+	cornerRadius?: keyof typeof radius
 	contentStyle?: StyleProp<ViewStyle>
 	color?: string
 	backgroundColor?: string
@@ -28,8 +28,8 @@ export type SurfaceProps = PropsWithChildren<Props>
 export function Surface({
 	children,
 	tone = "neutral",
-	depth = 4,
-	cornerRadius = radius.card,
+	depth = "high",
+	cornerRadius = "card",
 	style,
 	contentStyle,
 	color,
@@ -37,18 +37,20 @@ export function Surface({
 	...props
 }: SurfaceProps) {
 	const palette = { face: backgroundColor ?? tones[tone].face, edge: color ?? tones[tone].edge }
+	const borderRadius = radius[cornerRadius]
+	const edgeHeight = depths[depth]
 
 	return (
 		<View
 			{...props}
 			collapsable={false}
-			style={[styles.shell, { borderRadius: cornerRadius, paddingBottom: depth }, style]}
+			style={[styles.shell, { borderRadius, paddingBottom: edgeHeight }, style]}
 		>
 			<View
 				pointerEvents="none"
 				style={[
 					StyleSheet.absoluteFill,
-					{ top: depth, backgroundColor: palette.edge, borderRadius: cornerRadius },
+					{ top: edgeHeight, backgroundColor: palette.edge, borderRadius },
 				]}
 			/>
 			<Animated.View
@@ -57,7 +59,7 @@ export function Surface({
 					{
 						backgroundColor: palette.face,
 						borderColor: palette.edge,
-						borderRadius: cornerRadius,
+						borderRadius,
 					},
 					contentStyle,
 				]}

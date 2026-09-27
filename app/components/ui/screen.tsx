@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactNode } from "react"
 import { ScrollView, type ScrollViewProps, StyleSheet, View } from "react-native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { colors } from "@/theme"
+import { colors, contentMaxWidth } from "@/theme"
 
 interface Props extends ScrollViewProps {
 	scroll?: boolean
@@ -57,12 +57,12 @@ const styles = StyleSheet.create({
 		paddingTop: 20,
 		paddingBottom: 30,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 	},
 	footer: {
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,

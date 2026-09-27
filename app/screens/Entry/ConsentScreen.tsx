@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { BuddySays } from "@/components/buddy-says"
-import { ConsentRow } from "@/components/consent-row"
+import { ConsentItem } from "@/components/consent-item"
 import { Button } from "@/components/ui/button"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
 import { InlineError } from "@/components/ui/inline-error"
-import { CheckRow, GroupedList } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError } from "@/components/ui/screen-error"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -54,7 +55,7 @@ export function ConsentScreen() {
 		return (
 			<>
 				<Card contentStyle={styles.allCard}>
-					<CheckRow
+					<GroupedListCheckItem
 						first
 						label={t("entry.consent.all")}
 						checked={form.allChecked}
@@ -64,7 +65,7 @@ export function ConsentScreen() {
 				</Card>
 				<GroupedList>
 					{form.consents.map((consent, index) => (
-						<ConsentRow
+						<ConsentItem
 							key={consent.id}
 							first={index === 0}
 							consent={consent}

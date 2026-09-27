@@ -1,12 +1,11 @@
 import { z } from "zod"
 
 import { localDate, timestamp, uuid } from "@/types/apis/primitives"
+import { sleepSettingsSchema } from "@/types/sleep-settings"
 
 const phaseSchema = z.enum(["learning", "rest", "stress_care", "sleeping"])
 
 const sessionStatusSchema = z.enum(["running", "finished"])
-
-const sleepSchema = z.object({ sleep_at: z.string(), wake_at: z.string() })
 
 export const judgmentStatusSchema = z.enum(["pending", "done"])
 
@@ -26,14 +25,14 @@ export const sessionSchema = z.object({
 		ended_by: z.enum(["user", "server"]).nullable(),
 	}),
 	ends_at: timestamp.nullable(),
-	sleep: sleepSchema,
+	sleep: sleepSettingsSchema,
 	judgment_status: judgmentStatusSchema,
 })
 
 const startSessionRequestSchema = z.object({
 	word_id: uuid.nullable().optional(),
 	ends_at: timestamp.nullable().optional(),
-	sleep: sleepSchema.optional(),
+	sleep: sleepSettingsSchema.optional(),
 })
 
 const heartbeatRequestSchema = z.object({

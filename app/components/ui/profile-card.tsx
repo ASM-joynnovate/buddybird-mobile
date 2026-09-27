@@ -20,7 +20,7 @@ export function ProfileCard({ avatar, title, details, label, onPress }: Props) {
 	return (
 		<PressableSurface
 			accessibilityLabel={label}
-			depth={large ? 4 : 2}
+			depth={large ? "high" : "low"}
 			onPress={onPress}
 			contentStyle={[styles.card, large ? styles.largeCard : styles.mediumCard]}
 		>

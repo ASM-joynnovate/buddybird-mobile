@@ -25,7 +25,7 @@ export function LegacyUploadScreen(): ReactElement {
 	return (
 		<Screen scroll={false}>
 			<View style={styles.content}>
-				{upload.failed ? (
+				{upload.uploadFailed ? (
 					<>
 						<Copy accessibilityRole="alert" style={styles.message}>
 							{t("entry.legacy.error")}

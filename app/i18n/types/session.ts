@@ -10,7 +10,6 @@ export type SessionMessages = {
 		message: string
 	}
 	words: {
-		needsRecording: string
 		preview: string
 	}
 	sleep: {

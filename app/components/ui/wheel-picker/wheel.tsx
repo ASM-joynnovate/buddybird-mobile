@@ -26,6 +26,7 @@ export function Wheel({ value, values, label, onChange }: Props) {
 	useEffect(() => {
 		if (!dragging.current) {
 			scroll.current?.scrollTo({ y: selectedIndex * WHEEL_ITEM_HEIGHT, animated: false })
+
 			setCenteredIndex(selectedIndex)
 		}
 	}, [selectedIndex])
@@ -44,6 +45,7 @@ export function Wheel({ value, values, label, onChange }: Props) {
 		const index = indexAt(event.nativeEvent.contentOffset.y)
 
 		setCenteredIndex(index)
+
 		onChange(values[index])
 	}
 
@@ -110,5 +112,5 @@ const styles = StyleSheet.create({
 	content: { paddingVertical: WHEEL_ITEM_HEIGHT * 2 },
 	item: { height: WHEEL_ITEM_HEIGHT, alignItems: "center", justifyContent: "center" },
 	selectedText: { fontFamily: font.black, fontSize: 22, color: colors.text },
-	text: { fontFamily: font.bold, fontSize: 18, color: `${colors.text}59` },
+	text: { fontFamily: font.bold, fontSize: 18, color: colors.wheelText },
 })

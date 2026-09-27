@@ -7,6 +7,7 @@ export type CommonMessages = {
 	close: string
 	select: string
 	unknown: string
+	needsRecording: string
 	tabs: {
 		home: string
 		words: string
@@ -31,6 +32,7 @@ export type CommonMessages = {
 	sound: {
 		play: string
 		stop: string
+		stopNamed: string
 		expired: string
 		playError: string
 		shareError: string

@@ -1,14 +1,14 @@
 import type { ReactNode } from "react"
 import { StyleSheet, View } from "react-native"
 
-import { CheckBox } from "@/components/ui/rows/check-box"
-import type { RowProps } from "@/components/ui/rows/row-label"
-import { rowStyles } from "@/components/ui/rows/styles"
+import { GroupedListCheckBox } from "@/components/ui/grouped-list/check-box"
+import type { GroupedListItemProps } from "@/components/ui/grouped-list/item-label"
+import { groupedListStyles } from "@/components/ui/grouped-list/styles"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { colors, font } from "@/theme"
 
-interface Props extends RowProps {
+interface Props extends GroupedListItemProps {
 	checked: boolean
 	disabled?: boolean
 	trailing?: ReactNode
@@ -17,7 +17,7 @@ interface Props extends RowProps {
 	onToggle(): void
 }
 
-export function CheckRow({
+export function GroupedListCheckItem({
 	checked,
 	onToggle,
 	disabled,
@@ -34,12 +34,12 @@ export function CheckRow({
 			disabled={disabled}
 			onPress={onToggle}
 			tone="plain"
-			depth={0}
-			cornerRadius={0}
-			style={!props.first && rowStyles.divider}
-			contentStyle={rowStyles.pressRow}
+			depth="none"
+			cornerRadius="none"
+			style={!props.first && groupedListStyles.divider}
+			contentStyle={groupedListStyles.pressRow}
 		>
-			<View style={rowStyles.labels}>
+			<View style={groupedListStyles.labels}>
 				{caption ? (
 					<Copy
 						style={[styles.caption, captionTone === "primary" && styles.captionPrimary]}
@@ -47,11 +47,11 @@ export function CheckRow({
 						{caption}
 					</Copy>
 				) : null}
-				<Copy style={rowStyles.label}>{props.label}</Copy>
-				{props.detail ? <Copy style={rowStyles.detail}>{props.detail}</Copy> : null}
+				<Copy style={groupedListStyles.label}>{props.label}</Copy>
+				{props.detail ? <Copy style={groupedListStyles.detail}>{props.detail}</Copy> : null}
 			</View>
 			{trailing}
-			<CheckBox checked={checked} disabled={disabled} onPress={onToggle} />
+			<GroupedListCheckBox checked={checked} disabled={disabled} onPress={onToggle} />
 		</PressableSurface>
 	)
 }

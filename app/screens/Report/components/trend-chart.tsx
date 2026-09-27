@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import type { TFunction } from "i18next"
 import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -5,11 +6,12 @@ import { StyleSheet, View } from "react-native"
 
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
-import { formatDateWithWeekday, formatDuration, formatTime } from "@/i18n/format"
+import { formatDateWithWeekday, formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
-import type { Report, ReportPeriod } from "@/types/apis/reports"
+import type { Report } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
+import type { ReportPeriod } from "@/types/report-period"
 
 const CHART_HEIGHT = 150
 const MIN_BAR = 3
@@ -45,7 +47,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 		t("report.bar", {
 			label:
 				period === "day"
-					? formatTime(bucket.start, locale)
+					? dayjs(bucket.start).format("LT")
 					: formatDateWithWeekday(bucket.start, locale),
 			duration: formatDuration(bucket.learning_duration_ms, locale),
 		})
@@ -61,8 +63,8 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 					<PressableSurface
 						key={bucket.start}
 						tone="plain"
-						depth={0}
-						cornerRadius={4}
+						depth="none"
+						cornerRadius="xsmall"
 						accessibilityLabel={describe(bucket)}
 						accessibilityState={{ selected: selected === index }}
 						onPress={() => setSelected(selected === index ? null : index)}

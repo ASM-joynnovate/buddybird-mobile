@@ -12,7 +12,6 @@ export const session: SessionMessages = {
 		message: "Check your internet connection and try again.",
 	},
 	words: {
-		needsRecording: "Needs recording",
 		preview: "Play the {{name}} recording",
 	},
 	sleep: {

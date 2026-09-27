@@ -1,3 +1,5 @@
+import { SECOND } from "@/utils/units"
+
 type VadSettings = {
 	sampleRate: number
 	frameMs: number
@@ -49,7 +51,7 @@ function isLoud(frame: Float32Array, settings: VadSettings): boolean {
 }
 
 export function createSpeechDetector(settings: VadSettings): SpeechDetector {
-	const samplesPerMs = settings.sampleRate / 1000
+	const samplesPerMs = settings.sampleRate / SECOND
 	const frameSamples = samplesPerMs * settings.frameMs
 	const preRollSamples = samplesPerMs * settings.preRollMs
 

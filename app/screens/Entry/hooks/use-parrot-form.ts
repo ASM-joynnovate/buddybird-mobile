@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -10,13 +11,14 @@ import {
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { usePhotoPicker } from "@/hooks/use-photo-picker"
 import { isSpeciesId } from "@/services/profile/species"
+import { reportError } from "@/services/telemetry/client"
 import { PARROT_NAME_LIMIT, type Parrot } from "@/types/apis/parrots"
 import { saveWithPhoto } from "@/utils/save-with-photo"
 
 type Invalid = { name: boolean; species: boolean; birthday: boolean }
 
 function isFuture(date: string | null | undefined): boolean {
-	return Boolean(date) && new Date(`${date}T00:00:00`).getTime() > Date.now()
+	return Boolean(date) && dayjs(date).isAfter(dayjs())
 }
 
 type SpeciesField = {
@@ -102,7 +104,7 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 			uploadPhoto: (saved, uri) => photoUpload.mutateAsync({ id: saved.id, uri }),
 			deletePhoto: (saved) => photoDelete.mutateAsync({ id: saved.id }),
 			onDone,
-		}).catch(() => undefined)
+		}).catch((error: unknown) => reportError(error, "parrot_save"))
 	}
 
 	function confirmRemoval() {

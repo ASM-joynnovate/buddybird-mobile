@@ -8,8 +8,10 @@ import {
 	uploadPhotoMutationOptions,
 } from "@/hooks/apis/users"
 import { usePhotoPicker } from "@/hooks/use-photo-picker"
-import { ApiError } from "@/types/apis/common"
+import { apiErrorMessage } from "@/lib/api"
+import { reportError } from "@/services/telemetry/client"
 import { NICKNAME_PATTERN, type User } from "@/types/apis/users"
+import { isDuplicateNickname } from "@/utils/duplicate-nickname"
 import { saveWithPhoto } from "@/utils/save-with-photo"
 
 export function useAccountForm(
@@ -39,14 +41,13 @@ export function useAccountForm(
 
 	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending
 	const photoSaveFailed = photoUpload.isError || photoDelete.isError
-	const duplicate =
-		mutation.error instanceof ApiError && mutation.error.code === "USER__DUPLICATE_NICKNAME"
+	const duplicate = isDuplicateNickname(mutation.error)
 	let nicknameError: string | null = null
 
 	if (invalid) {
 		nicknameError = t("profile.nicknameInvalid")
 	} else if (duplicate) {
-		nicknameError = t("profile.nicknameTaken")
+		nicknameError = apiErrorMessage(mutation.error, t)
 	}
 
 	function save() {
@@ -69,7 +70,11 @@ export function useAccountForm(
 			uploadPhoto: (_saved, uri) => photoUpload.mutateAsync(uri),
 			deletePhoto: () => photoDelete.mutateAsync(),
 			onDone: onSaved,
-		}).catch(() => undefined)
+		}).catch((error: unknown) => {
+			if (!isDuplicateNickname(error)) {
+				reportError(error, "account_save")
+			}
+		})
 	}
 
 	return {

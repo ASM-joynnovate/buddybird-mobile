@@ -1,11 +1,12 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import dayjs from "dayjs"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { SoundRow } from "@/components/session/sound-row"
+import { SoundItem } from "@/components/session/sound-item"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Screen } from "@/components/ui/screen"
@@ -14,12 +15,12 @@ import { ScreenHeader } from "@/components/ui/screen-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Copy } from "@/components/ui/text"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { formatDateTime, formatTime } from "@/i18n/format"
+import { formatDateTime } from "@/i18n/format"
 import { useSessionMimicry } from "@/screens/Report/hooks/use-session-mimicry"
 import { track } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors } from "@/theme"
+import { colors, contentMaxWidth } from "@/theme"
 import type { ReportStackParamList, RootStackParamList } from "@/types/navigation"
 
 export function SessionDetailScreen() {
@@ -36,8 +37,6 @@ export function SessionDetailScreen() {
 	const player = useSoundPlayer()
 
 	const mimicry = useSessionMimicry(params.sessionId)
-
-	const formatSoundTime = mimicry.multiDay ? formatDateTime : formatTime
 
 	useEffect(() => {
 		track("session_detail_viewed", { session_id: params.sessionId, source: params.source })
@@ -70,10 +69,14 @@ export function SessionDetailScreen() {
 				data={mimicry.judging ? [] : mimicry.sounds}
 				keyExtractor={(item) => item.sound.id}
 				renderItem={({ item }) => (
-					<SoundRow
+					<SoundItem
 						sound={item.sound}
 						wordName={item.wordName}
-						timeLabel={formatSoundTime(item.sound.captured_at, locale)}
+						timeLabel={
+							mimicry.multiDay
+								? formatDateTime(item.sound.captured_at, locale)
+								: dayjs(item.sound.captured_at).format("LT")
+						}
 						player={player}
 					/>
 				)}
@@ -105,7 +108,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 20,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 	},
 	none: { color: colors.muted },

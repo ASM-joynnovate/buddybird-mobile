@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { Avatar } from "@/components/ui/avatar"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList, NavRow } from "@/components/ui/rows"
 import { Sheet } from "@/components/ui/sheet"
 import { PressableSurface } from "@/components/ui/surface"
 import type { usePhotoPicker } from "@/hooks/use-photo-picker"
@@ -32,8 +33,8 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 				accessibilityLabel={t("parrot.photo")}
 				disabled={busy}
 				onPress={() => setSheetOpen(true)}
-				cornerRadius={55}
-				depth={0}
+				cornerRadius="pill"
+				depth="none"
 			>
 				<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
 				<View style={styles.photoPlus}>
@@ -47,7 +48,7 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 				onClose={() => setSheetOpen(false)}
 			>
 				<GroupedList>
-					<NavRow
+					<GroupedListNavItem
 						first
 						label={t("parrot.photoSheet.take")}
 						onPress={() => {
@@ -56,7 +57,7 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 							void photo.take()
 						}}
 					/>
-					<NavRow
+					<GroupedListNavItem
 						label={t("parrot.photoSheet.choose")}
 						onPress={() => {
 							setSheetOpen(false)

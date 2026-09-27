@@ -5,7 +5,7 @@ import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 export type StartDialogState = {
 	busy: boolean
 	takeoverOpen: boolean
-	failed: boolean
+	startFailed: boolean
 	confirmTakeover(): void
 	retry(): void
 	dismiss(): void
@@ -32,7 +32,7 @@ export function StartDialogs({ state }: Props) {
 				onClose={state.dismiss}
 			/>
 			<ConfirmDialog
-				visible={state.failed}
+				visible={state.startFailed}
 				text={{
 					title: t("session.startError.title"),
 					message: t("session.startError.message"),

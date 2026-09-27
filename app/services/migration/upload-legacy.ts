@@ -221,7 +221,7 @@ async function uploadParrot(profile: LegacyProfile) {
 	updateMigration((current) => ({ ...current, photoUploaded: true }))
 }
 
-function saveWord(id: string, progress: WordProgress) {
+function recordWordProgress(id: string, progress: WordProgress) {
 	updateMigration((current) => ({ ...current, words: { ...current.words, [id]: progress } }))
 }
 
@@ -235,18 +235,18 @@ async function uploadWord(word: LegacyWord) {
 	const recording = await existingFile(word.audioUri, "legacy_recording")
 
 	if (!recording) {
-		saveWord(word.id, { wordId: saved?.wordId ?? null, done: true })
+		recordWordProgress(word.id, { wordId: saved?.wordId ?? null, done: true })
 
 		return
 	}
 
 	const wordId = saved?.wordId ?? (await createWord(word.name, randomUUID())).id
 
-	saveWord(word.id, { wordId, done: false })
+	recordWordProgress(word.id, { wordId, done: false })
 
 	await addWordRecording(wordId, recording, randomUUID())
 
-	saveWord(word.id, { wordId, done: true })
+	recordWordProgress(word.id, { wordId, done: true })
 }
 
 export function uploadLegacy(): Promise<void> {

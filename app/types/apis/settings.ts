@@ -1,8 +1,6 @@
 import { z } from "zod"
 
-import { clock } from "@/types/apis/primitives"
-
-const sleepSchema = z.object({ sleep_at: clock, wake_at: clock })
+import { sleepSettingsSchema } from "@/types/sleep-settings"
 
 const notificationsSchema = z.object({
 	notice: z.boolean(),
@@ -11,11 +9,10 @@ const notificationsSchema = z.object({
 })
 
 export const settingsSchema = z.object({
-	sleep: sleepSchema,
+	sleep: sleepSettingsSchema,
 	notifications: notificationsSchema,
 })
 
 export type Settings = z.infer<typeof settingsSchema>
-export type SleepSettings = z.infer<typeof sleepSchema>
 export type NotificationSettings = z.infer<typeof notificationsSchema>
 export type NotificationSetting = keyof NotificationSettings

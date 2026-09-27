@@ -7,7 +7,7 @@ import { StyleSheet, View } from "react-native"
 import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
-import { GroupedList } from "@/components/ui/rows"
+import { GroupedList } from "@/components/ui/grouped-list"
 import { Screen } from "@/components/ui/screen"
 import { ScreenHeader } from "@/components/ui/screen-header"
 import { Copy } from "@/components/ui/text"
@@ -16,7 +16,7 @@ import { usePermissionRequest } from "@/screens/Entry/hooks/use-permission-reque
 import { viewOnboardingStep } from "@/services/telemetry/onboarding"
 import { colors, font } from "@/theme"
 
-const ROWS: readonly { kind: "microphone" | "notifications"; icon: LucideIcon }[] = [
+const PERMISSIONS: readonly { kind: "microphone" | "notifications"; icon: LucideIcon }[] = [
 	{ kind: "microphone", icon: MicIcon },
 	{ kind: "notifications", icon: BellIcon },
 ]
@@ -65,7 +65,7 @@ export function PermissionRequestScreen() {
 				/>
 			</View>
 			<GroupedList>
-				{ROWS.map(({ kind, icon: Icon }, index) => (
+				{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
 					<View key={kind} style={[styles.row, index > 0 && styles.divider]}>
 						<Icon size={24} color={colors.orangeDark} />
 						<View style={styles.labels}>

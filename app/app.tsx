@@ -22,7 +22,7 @@ export function App() {
 			{ready ? (
 				<AppContent showDialogs={splashFinished} />
 			) : (
-				<StartupScreen failed={state === "failed"} onRetry={retry} />
+				<StartupScreen startupFailed={state === "failed"} onRetry={retry} />
 			)}
 			{!splashFinished ? <AppSplash ready={settled} onComplete={finishSplash} /> : null}
 		</RootProviders>

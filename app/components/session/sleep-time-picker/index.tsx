@@ -1,0 +1,38 @@
+import { MoonIcon } from "lucide-react-native"
+import type { ReactElement } from "react"
+import { useTranslation } from "react-i18next"
+
+import { SleepTimeEditor } from "@/components/session/sleep-time-picker/sleep-time-editor"
+import { GroupedListPickerItem } from "@/components/ui/grouped-list/picker-item"
+import { formatClock } from "@/i18n/format"
+import type { SleepSettings } from "@/types/sleep-settings"
+
+interface Props {
+	value: SleepSettings | undefined
+	first?: boolean
+	onChange(value: SleepSettings): void
+}
+
+export function SleepTimePicker({ value, first, onChange }: Props): ReactElement {
+	const { t } = useTranslation()
+
+	return (
+		<GroupedListPickerItem
+			item={{
+				first,
+				icon: MoonIcon,
+				label: t("session.sleep.label"),
+				value: value
+					? t("session.sleep.range", {
+							sleep: formatClock(value.sleep_at),
+							wake: formatClock(value.wake_at),
+						})
+					: undefined,
+				disabled: !value,
+			}}
+			sheet={{ title: t("session.sleep.label") }}
+		>
+			{() => (value ? <SleepTimeEditor value={value} onChange={onChange} /> : null)}
+		</GroupedListPickerItem>
+	)
+}

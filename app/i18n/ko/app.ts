@@ -5,7 +5,6 @@ export const app: AppMessages = {
 		loading: "앱을 준비하고 있어요",
 		title: "앱을 시작하지 못했어요",
 		message: "인터넷 연결을 확인하고 다시 시도해 주세요.",
-		retry: "다시 시도",
 	},
 	feedback: {
 		thanks: "소중한 의견이 잘 전달됐어요. 더 나은 버디버드를 만드는 데 반영할게요.",

@@ -4,7 +4,7 @@ import { fetchSettings, updateNotifications, updateSleep } from "@/apis/settings
 import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
 import { queryClient } from "@/lib/query-client"
-import type { NotificationSettings, Settings, SleepSettings } from "@/types/apis/settings"
+import type { NotificationSettings, Settings } from "@/types/apis/settings"
 
 async function patchCachedSettings(patch: Partial<Settings>) {
 	await queryClient.cancelQueries({ queryKey: apiKeys.settings() })
@@ -30,8 +30,13 @@ export const settingsQueryOptions = () =>
 export const updateSleepMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation("users", "me", "settings", "sleep"),
-		mutationFn: ({ sleep, idempotencyKey }: { sleep: SleepSettings; idempotencyKey: string }) =>
-			updateSleep(sleep, idempotencyKey),
+		mutationFn: ({
+			sleep,
+			idempotencyKey,
+		}: {
+			sleep: Settings["sleep"]
+			idempotencyKey: string
+		}) => updateSleep(sleep, idempotencyKey),
 		onMutate: ({ sleep }) => patchCachedSettings({ sleep }),
 		onError: (_error, _variables, context) => restoreCachedSettings(context),
 		onSettled: () => invalidate(apiKeys.settings(), apiKeys.sessions.running(), apiKeys.home()),

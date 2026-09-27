@@ -5,7 +5,6 @@ import {
 	BellIcon,
 	ClockIcon,
 	MessageSquareTextIcon,
-	MoonIcon,
 	PlayIcon,
 	SettingsIcon,
 } from "lucide-react-native"
@@ -14,14 +13,15 @@ import { StyleSheet, View } from "react-native"
 
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
 import { DurationPicker } from "@/components/session/duration-picker"
-import { SleepTimeEditor } from "@/components/session/sleep-time-editor"
+import { SleepTimePicker } from "@/components/session/sleep-time-picker"
 import { StartDialogs } from "@/components/session/start-dialogs"
 import { WordPicker } from "@/components/session/word-picker"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListPickerItem } from "@/components/ui/grouped-list/picker-item"
 import { IconButton } from "@/components/ui/icon-button"
 import { InlineError } from "@/components/ui/inline-error"
-import { GroupedList, PickerRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { ScreenError } from "@/components/ui/screen-error"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -35,14 +35,14 @@ import { finishSessionMutationOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { formatClock, formatDurationWithDays } from "@/i18n/format"
+import { formatDurationWithDays } from "@/i18n/format"
 import { NoticePopup } from "@/screens/Home/components/notice-popup"
 import { useNoticePopup } from "@/screens/Home/hooks/use-notice-popup"
 import { useSessionDraft } from "@/screens/Home/hooks/use-session-draft"
 import { useStartSession } from "@/screens/Home/hooks/use-start-session"
 import { useAccountStore } from "@/stores/account"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { font } from "@/theme"
+import { contentMaxWidth, font } from "@/theme"
 import type { HomeStackParamList, RootStackParamList } from "@/types/navigation"
 
 type Navigation = CompositeNavigationProp<
@@ -67,7 +67,7 @@ export function HomeScreen() {
 
 	const finishing = useIdempotentMutation(finishSessionMutationOptions())
 
-	const session = useSessionDraft()
+	const setup = useSessionDraft()
 
 	const popup = useNoticePopup(summary.data?.unread_notices)
 
@@ -76,7 +76,7 @@ export function HomeScreen() {
 	const player = useSoundPlayer()
 
 	const starter = useStartSession((sessionId, draft, endsAt) => {
-		session.resetDraft()
+		setup.resetDraft()
 
 		navigation.navigate("SessionRun", {
 			sessionId,
@@ -94,7 +94,7 @@ export function HomeScreen() {
 	const unread = summary.data?.unread_notification_count ?? 0
 
 	function start() {
-		const draft = session.draft
+		const draft = setup.draft
 
 		if (!draft) {
 			return
@@ -106,11 +106,11 @@ export function HomeScreen() {
 	}
 
 	function wordSheet(close: () => void) {
-		if (session.loading) {
+		if (setup.loading) {
 			return <Skeleton rows={3} />
 		}
 
-		if (session.words.length === 0) {
+		if (setup.words.length === 0) {
 			return (
 				<EmptyState
 					message={t("session.start.empty")}
@@ -131,11 +131,11 @@ export function HomeScreen() {
 
 		return (
 			<WordPicker
-				words={session.words}
-				selectedId={session.word?.id ?? null}
+				words={setup.words}
+				selectedId={setup.word?.id ?? null}
 				player={player}
 				onSelect={(id) => {
-					session.selectWord(id)
+					setup.selectWord(id)
 
 					close()
 				}}
@@ -163,12 +163,12 @@ export function HomeScreen() {
 					/>
 				</View>
 				<View style={styles.body}>
-					{summary.isError || session.isError ? (
+					{summary.isError || setup.isError ? (
 						<ScreenError
 							message={t("common.loadError")}
 							onRetry={() => {
 								void summary.refetch()
-								session.retry()
+								setup.retry()
 							}}
 						/>
 					) : null}
@@ -186,70 +186,48 @@ export function HomeScreen() {
 						</Card>
 					) : null}
 					<GroupedList>
-						<PickerRow
-							row={{
+						<GroupedListPickerItem
+							item={{
 								first: true,
 								icon: MessageSquareTextIcon,
 								label: t("session.start.word"),
-								value: session.word?.name ?? t("session.start.choose"),
+								value: setup.word?.name ?? t("session.start.choose"),
 							}}
 							sheet={{ title: t("session.start.word"), list: true }}
 						>
 							{wordSheet}
-						</PickerRow>
-						<PickerRow
-							row={{
+						</GroupedListPickerItem>
+						<GroupedListPickerItem
+							item={{
 								icon: ClockIcon,
 								label: t("session.start.duration"),
 								value:
-									session.duration.ms === null
+									setup.duration.ms === null
 										? t("session.start.untilEnd")
-										: formatDurationWithDays(session.duration.ms, locale),
+										: formatDurationWithDays(setup.duration.ms, locale),
 							}}
 							sheet={{ title: t("session.start.duration") }}
 						>
 							{() => (
 								<DurationPicker
-									value={session.duration}
-									onChange={session.setDuration}
+									value={setup.duration}
+									onChange={setup.setDuration}
 								/>
 							)}
-						</PickerRow>
-						<PickerRow
-							row={{
-								icon: MoonIcon,
-								label: t("session.sleep.label"),
-								value: session.sleep
-									? t("session.sleep.range", {
-											sleep: formatClock(session.sleep.sleep_at, locale),
-											wake: formatClock(session.sleep.wake_at, locale),
-										})
-									: undefined,
-								disabled: !session.sleep,
-							}}
-							sheet={{ title: t("session.sleep.label") }}
-						>
-							{() =>
-								session.sleep ? (
-									<SleepTimeEditor
-										value={session.sleep}
-										onChange={session.setSleep}
-									/>
-								) : null
-							}
-						</PickerRow>
+						</GroupedListPickerItem>
+						<SleepTimePicker value={setup.sleep} onChange={setup.setEditedSleep} />
 					</GroupedList>
 				</View>
 				<Button
 					label={t("common.start")}
 					icon={PlayIcon}
 					loading={starter.busy}
-					disabled={!session.draft}
+					disabled={!setup.draft}
 					onPress={start}
 				/>
 			</View>
 			<StartDialogs state={starter} />
-			<PermissionDialog {...microphone.dialog} />
+			<PermissionDialog state={microphone.dialog} />
 			<NoticePopup
 				notice={focused ? popup.current : null}
 				onClose={popup.close}
@@ -267,7 +245,7 @@ const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 8,

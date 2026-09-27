@@ -34,7 +34,7 @@ export function WordChoice({ word, selected, player, onSelect }: Props) {
 				<Copy numberOfLines={1} style={[styles.name, !sample && styles.locked]}>
 					{word.name}
 				</Copy>
-				{sample ? null : <Tag label={t("session.words.needsRecording")} />}
+				{sample ? null : <Tag label={t("common.needsRecording")} />}
 			</View>
 			{sample ? (
 				<PlayButton

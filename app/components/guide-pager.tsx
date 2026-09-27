@@ -8,11 +8,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { BuddySays } from "@/components/buddy-says"
 import { Illustration } from "@/components/illustration"
 import { Button } from "@/components/ui/button"
+import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
 import { IconButton } from "@/components/ui/icon-button"
 import { PageDots } from "@/components/ui/page-dots"
-import { CheckRow } from "@/components/ui/rows"
 import { Screen } from "@/components/ui/screen"
 import { TextButton } from "@/components/ui/text-button"
+import { contentMaxWidth } from "@/theme"
 
 export type GuideStep = { title: string; scene: string; icon: LucideIcon }
 
@@ -83,7 +84,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 				</View>
 				<View style={styles.bottom}>
 					{dontShowAgain ? (
-						<CheckRow
+						<GroupedListCheckItem
 							first
 							label={t("common.dontShowAgain")}
 							checked={dontShowAgain.value}
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,

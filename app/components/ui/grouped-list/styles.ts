@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native"
 
 import { colors, font } from "@/theme"
 
-export const rowStyles = StyleSheet.create({
+export const groupedListStyles = StyleSheet.create({
 	row: {
 		minHeight: 56,
 		flexDirection: "row",

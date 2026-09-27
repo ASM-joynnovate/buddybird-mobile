@@ -12,4 +12,12 @@ export const ui = StyleSheet.create({
 	section: { marginTop: 20 },
 	sectionTitle: { fontSize: 18, lineHeight: 24, fontFamily: font.black, marginBottom: 10 },
 	subtitle: { color: colors.muted, marginTop: 6, marginBottom: 24 },
+	messageBox: { alignItems: "center", justifyContent: "center", gap: 14, paddingVertical: 32 },
+	messageText: {
+		fontFamily: font.extraBold,
+		fontSize: 16,
+		lineHeight: 22,
+		color: colors.text,
+		textAlign: "center",
+	},
 })

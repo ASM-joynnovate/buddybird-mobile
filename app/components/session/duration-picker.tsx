@@ -1,17 +1,16 @@
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { GroupedList, RadioRow } from "@/components/ui/rows"
-import { WheelPicker } from "@/components/ui/wheel-picker"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListRadioItem } from "@/components/ui/grouped-list/radio-item"
+import { HOURS, MINUTE_STEPS, WheelPicker } from "@/components/ui/wheel-picker"
 import { DURATION_PRESETS, MAX_SESSION_MS } from "@/config"
 import { formatDuration } from "@/i18n/format"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import type { LearningDuration } from "@/types/navigation"
 import { DAY, HOUR, MINUTE } from "@/utils/units"
 
-const DAYS = Array.from({ length: 8 }, (_, day) => day)
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
-const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5)
+const DAYS = Array.from({ length: MAX_SESSION_MS / DAY + 1 }, (_, day) => day)
 
 interface Props {
 	value: LearningDuration
@@ -41,21 +40,21 @@ export function DurationPicker({ value, onChange }: Props) {
 	return (
 		<View style={styles.picker}>
 			<GroupedList>
-				<RadioRow
+				<GroupedListRadioItem
 					first
 					label={t("session.start.untilEnd")}
 					selected={!value.custom && value.ms === null}
 					onPress={() => onChange({ ms: null, custom: false })}
 				/>
 				{DURATION_PRESETS.map((preset) => (
-					<RadioRow
+					<GroupedListRadioItem
 						key={preset}
 						label={formatDuration(preset, locale)}
 						selected={!value.custom && value.ms === preset}
 						onPress={() => onChange({ ms: preset, custom: false })}
 					/>
 				))}
-				<RadioRow
+				<GroupedListRadioItem
 					label={t("session.start.custom")}
 					selected={value.custom}
 					onPress={() => onChange({ ms: value.ms, custom: true })}

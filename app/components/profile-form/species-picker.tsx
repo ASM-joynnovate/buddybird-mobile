@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next"
 import { type SectionList, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { PickerRow, RadioRow } from "@/components/ui/rows"
+import { GroupedListPickerItem } from "@/components/ui/grouped-list/picker-item"
+import { GroupedListRadioItem } from "@/components/ui/grouped-list/radio-item"
 import { Copy } from "@/components/ui/text"
 import { isSpeciesId, speciesGroups, type SpeciesId, speciesIds } from "@/services/profile/species"
 import { colors, font } from "@/theme"
@@ -55,8 +56,8 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 	}
 
 	return (
-		<PickerRow
-			row={{
+		<GroupedListPickerItem
+			item={{
 				first,
 				label: t("parrot.species"),
 				value: isSpeciesId(species)
@@ -95,7 +96,7 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 						</View>
 					)}
 					renderItem={({ item, index }: { item: SpeciesId; index: number }) => (
-						<RadioRow
+						<GroupedListRadioItem
 							first={index === 0}
 							label={t(`parrot.speciesNames.${item}`)}
 							selected={species === item}
@@ -107,7 +108,7 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 					)}
 				/>
 			)}
-		</PickerRow>
+		</GroupedListPickerItem>
 	)
 }
 

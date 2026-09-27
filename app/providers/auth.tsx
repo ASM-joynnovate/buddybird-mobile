@@ -1,9 +1,11 @@
 import { isAuthRetryableFetchError, type Session } from "@supabase/supabase-js"
 import { useMutation } from "@tanstack/react-query"
-import { type PropsWithChildren, useEffect } from "react"
+import { type ReactNode, useEffect } from "react"
 import { Alert, AppState } from "react-native"
 
 import { loginMutationOptions } from "@/hooks/apis/auth"
+import { invalidate } from "@/hooks/apis/invalidate"
+import { apiKeys } from "@/hooks/apis/keys"
 import i18next from "@/i18n"
 import { apiErrorMessage } from "@/lib/api"
 import { queryClient } from "@/lib/query-client"
@@ -15,10 +17,15 @@ import {
 	signOutToAnonymous,
 	signUpAnonymously,
 } from "@/services/auth/session"
+import { reportError } from "@/services/telemetry/client"
 import { useAccountStore } from "@/stores/account"
 import { useAuthStore } from "@/stores/auth"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { ApiError } from "@/types/apis/common"
+
+interface Props {
+	children: ReactNode
+}
 
 function identityOf(session: Session | null): AuthIdentity | null {
 	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null
@@ -32,7 +39,7 @@ function sameIdentity(previous: AuthIdentity | null | undefined, next: AuthIdent
 	)
 }
 
-export function AuthProvider({ children }: PropsWithChildren) {
+export function AuthProvider({ children }: Props) {
 	const attempt = useAuthStore((auth) => auth.attempt)
 
 	const { mutateAsync: runLogin } = useMutation(loginMutationOptions())
@@ -43,7 +50,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		let active = true
 		let current: AuthIdentity | null | undefined
-		let request: AbortController | undefined
+		let loginAbort: AbortController | undefined
 		let receivedEvent = false
 
 		setStatus("loading")
@@ -68,7 +75,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		async function completeLogin(identity: AuthIdentity, linked: boolean) {
 			const controller = new AbortController()
 
-			request = controller
+			loginAbort = controller
 
 			setStatus("completing")
 
@@ -96,7 +103,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				setStatus("signedIn")
 
 				if (linked) {
-					void queryClient.invalidateQueries()
+					void invalidate(apiKeys.all())
 				}
 			} catch (error) {
 				if (!active || controller.signal.aborted) {
@@ -120,7 +127,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 				try {
 					await signOutToAnonymous()
-				} catch {
+				} catch (signOutError) {
+					reportError(signOutError, "login_sign_out")
+
 					if (active && !controller.signal.aborted) {
 						Alert.alert(i18next.t("auth.signOutError"))
 
@@ -139,7 +148,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			current = next
 
-			request?.abort()
+			loginAbort?.abort()
 			void queryClient.cancelQueries()
 
 			const { registeredUser, isAnonymous } = useAccountStore.getState()
@@ -197,7 +206,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					setStatus("error")
 				}
 			})
-			.catch(() => {
+			.catch((error: unknown) => {
+				reportError(error, "auth_restore")
+
 				if (active && !receivedEvent) {
 					Alert.alert(i18next.t("auth.restoreError"))
 
@@ -219,7 +230,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		return () => {
 			active = false
-			request?.abort()
+			loginAbort?.abort()
 			subscription.unsubscribe()
 			lifecycle.remove()
 			void auth.stopAutoRefresh()

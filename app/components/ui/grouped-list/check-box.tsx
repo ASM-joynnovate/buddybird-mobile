@@ -10,9 +10,9 @@ import Animated, {
 
 import { CheckMark } from "@/components/ui/check-mark"
 import { PressableSurface } from "@/components/ui/surface"
-import { colors } from "@/theme"
+import { colors, depths } from "@/theme"
 
-const CHECK_DEPTH = 3
+const CHECK_DEPTH = "medium"
 
 interface Props {
 	checked: boolean
@@ -20,7 +20,7 @@ interface Props {
 	onPress(): void
 }
 
-export function CheckBox({ checked, disabled, onPress }: Props) {
+export function GroupedListCheckBox({ checked, disabled, onPress }: Props) {
 	const reduced = useReducedMotion()
 
 	const pop = useSharedValue(1)
@@ -45,9 +45,9 @@ export function CheckBox({ checked, disabled, onPress }: Props) {
 				onPress={onPress}
 				disabled={disabled}
 				tone={tone}
-				depth={disabled ? 0 : CHECK_DEPTH}
-				cornerRadius={8}
-				style={[styles.box, disabled && { marginTop: CHECK_DEPTH }]}
+				depth={disabled ? "none" : CHECK_DEPTH}
+				cornerRadius="small"
+				style={[styles.box, disabled && { marginTop: depths[CHECK_DEPTH] }]}
 				contentStyle={styles.boxFace}
 			>
 				<Animated.View style={mark}>

@@ -15,6 +15,7 @@ import { useDeviceSettingsStore } from "@/stores/device-settings"
 
 async function runLegacyUpload() {
 	await uploadLegacy()
+
 	await invalidate(apiKeys.parrots.all(), apiKeys.words.all())
 
 	completeOnboardingStep("legacy_upload")
@@ -24,7 +25,7 @@ async function runLegacyUpload() {
 
 export function useLegacyUpload(): {
 	asking: boolean
-	failed: boolean
+	uploadFailed: boolean
 	add(): void
 	skip(): void
 	retry(): void
@@ -33,7 +34,7 @@ export function useLegacyUpload(): {
 
 	const upload = useDeviceSettingsStore((state) => state.legacyMigration.upload)
 
-	const [failed, setFailed] = useState(false)
+	const [uploadFailed, setUploadFailed] = useState(false)
 	const [attempt, setAttempt] = useState(0)
 
 	const asking = upload === "pending" && (parrots.data?.length ?? 0) > 0
@@ -47,13 +48,13 @@ export function useLegacyUpload(): {
 		void runLegacyUpload().catch((error) => {
 			reportError(error, "legacy_upload")
 
-			setFailed(true)
+			setUploadFailed(true)
 		})
 	}, [ready, attempt])
 
 	return {
 		asking,
-		failed,
+		uploadFailed,
 		add: acceptLegacyUpload,
 		skip: () => {
 			completeOnboardingStep("legacy_upload")
@@ -61,7 +62,7 @@ export function useLegacyUpload(): {
 			finishLegacyUpload()
 		},
 		retry: () => {
-			setFailed(false)
+			setUploadFailed(false)
 			setAttempt((count) => count + 1)
 		},
 	}

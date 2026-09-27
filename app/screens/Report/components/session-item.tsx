@@ -17,7 +17,7 @@ interface Props {
 	onPress(): void
 }
 
-export function SessionRow({ session, judging, onPress }: Props): ReactElement {
+export function SessionItem({ session, judging, onPress }: Props): ReactElement {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
@@ -28,7 +28,7 @@ export function SessionRow({ session, judging, onPress }: Props): ReactElement {
 
 	return (
 		<PressableSurface
-			depth={2}
+			depth="low"
 			onPress={onPress}
 			accessibilityRole="button"
 			accessibilityLabel={joinLabel(

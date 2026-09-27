@@ -15,11 +15,11 @@ export function AuthenticatedContent({ showDialogs }: Props) {
 	const registered = useAccountStore((account) => account.registeredUser !== null)
 
 	if (status === "error") {
-		return <StartupScreen failed onRetry={retry} />
+		return <StartupScreen startupFailed onRetry={retry} />
 	}
 
 	if (status !== "signedIn" && !(status === "completing" && registered)) {
-		return <StartupScreen failed={false} onRetry={retry} />
+		return <StartupScreen startupFailed={false} onRetry={retry} />
 	}
 
 	return (

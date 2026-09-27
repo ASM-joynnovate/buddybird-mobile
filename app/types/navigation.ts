@@ -1,15 +1,14 @@
 import type { NavigatorScreenParams } from "@react-navigation/native"
 
-export type ReportPeriodParam = "day" | "week" | "month"
-
-export type SessionSleep = { sleep_at: string; wake_at: string }
+import type { ReportPeriod } from "@/types/report-period"
+import type { SleepSettings } from "@/types/sleep-settings"
 
 export type LearningDuration = { ms: number | null; custom: boolean }
 
 export type SessionDraft = {
 	wordId: string
 	duration: LearningDuration
-	sleep: SessionSleep
+	sleep: SleepSettings
 	sleepChanged: boolean
 }
 
@@ -26,7 +25,7 @@ export type WordsStackParamList = {
 }
 
 export type ReportStackParamList = {
-	Report: { period?: ReportPeriodParam; date?: string; source?: "notification" } | undefined
+	Report: { period?: ReportPeriod; date?: string; source?: "notification" } | undefined
 	SessionDetail: { sessionId: string; source: "report" | "summary" }
 }
 
@@ -55,7 +54,7 @@ export type RootStackParamList = {
 		sessionId: string
 		wordId: string
 		endsAt: number | null
-		sleep: SessionSleep
+		sleep: SleepSettings
 		duration: LearningDuration
 		sleepChanged: boolean
 	}

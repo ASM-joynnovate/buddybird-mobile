@@ -1,56 +1,44 @@
-import { CYCLE } from "@/config"
-import { DAY, MINUTES_PER_HOUR } from "@/utils/units"
+import dayjs, { type Dayjs } from "dayjs"
 
-export type Phase = "learning" | "rest" | "stress_care" | "sleeping"
+import { CYCLE } from "@/config"
+import type { Phase } from "@/types/apis/sessions"
+import { CLOCK_FORMAT, type SleepSettings } from "@/types/sleep-settings"
+import { DAY, MINUTES_PER_HOUR } from "@/utils/units"
 
 export type PhaseSpan = { phase: Phase; start: number; end: number }
 
-export type SleepWindow = { sleepAt: string; wakeAt: string }
-
-function minutesOf(time: string): number {
-	const [hours, minutes] = time.split(":").map(Number)
-
-	return hours * MINUTES_PER_HOUR + minutes
+function minuteOfDay(moment: Dayjs): number {
+	return moment.hour() * MINUTES_PER_HOUR + moment.minute()
 }
 
-function minuteOfDay(at: number) {
-	const date = new Date(at)
+function isSleeping(at: number, sleep: SleepSettings): boolean {
+	const sleepMinute = minuteOfDay(dayjs(sleep.sleep_at, CLOCK_FORMAT))
+	const wakeMinute = minuteOfDay(dayjs(sleep.wake_at, CLOCK_FORMAT))
+	const minute = minuteOfDay(dayjs(at))
 
-	return date.getHours() * MINUTES_PER_HOUR + date.getMinutes()
-}
-
-function isSleeping(at: number, window: SleepWindow): boolean {
-	const sleep = minutesOf(window.sleepAt)
-	const wake = minutesOf(window.wakeAt)
-	const minute = minuteOfDay(at)
-
-	if (sleep === wake) {
+	if (sleepMinute === wakeMinute) {
 		return false
 	}
 
-	return sleep < wake ? minute >= sleep && minute < wake : minute >= sleep || minute < wake
+	return sleepMinute < wakeMinute
+		? minute >= sleepMinute && minute < wakeMinute
+		: minute >= sleepMinute || minute < wakeMinute
 }
 
 function nextTimeOfDay(after: number, time: string): number {
-	const date = new Date(after)
-	const target = minutesOf(time)
+	const clock = dayjs(time, CLOCK_FORMAT)
+	const target = dayjs(after).hour(clock.hour()).minute(clock.minute()).startOf("minute")
 
-	date.setHours(Math.floor(target / MINUTES_PER_HOUR), target % MINUTES_PER_HOUR, 0, 0)
-
-	if (date.getTime() <= after) {
-		date.setDate(date.getDate() + 1)
-	}
-
-	return date.getTime()
+	return (target.valueOf() <= after ? target.add(1, "day") : target).valueOf()
 }
 
-export function phaseSpans(start: number, end: number, window: SleepWindow): PhaseSpan[] {
+export function phaseSpans(start: number, end: number, sleep: SleepSettings): PhaseSpan[] {
 	const spans: PhaseSpan[] = []
 	let at = start
 
 	while (at < end) {
-		if (isSleeping(at, window)) {
-			const wake = Math.min(nextTimeOfDay(at, window.wakeAt), end)
+		if (isSleeping(at, sleep)) {
+			const wake = Math.min(nextTimeOfDay(at, sleep.wake_at), end)
 
 			spans.push({ phase: "sleeping", start: at, end: wake })
 			at = wake
@@ -58,9 +46,9 @@ export function phaseSpans(start: number, end: number, window: SleepWindow): Pha
 		}
 
 		const awakeEnd =
-			window.sleepAt === window.wakeAt
+			sleep.sleep_at === sleep.wake_at
 				? end
-				: Math.min(nextTimeOfDay(at, window.sleepAt), end)
+				: Math.min(nextTimeOfDay(at, sleep.sleep_at), end)
 		let cursor = at
 		let index = 0
 
@@ -78,8 +66,8 @@ export function phaseSpans(start: number, end: number, window: SleepWindow): Pha
 	return spans
 }
 
-export function currentSpan(start: number, now: number, window: SleepWindow): PhaseSpan {
-	const found = phaseSpans(start, now + DAY, window).find(
+export function currentSpan(start: number, now: number, sleep: SleepSettings): PhaseSpan {
+	const found = phaseSpans(start, now + DAY, sleep).find(
 		(span) => span.start <= now && now < span.end,
 	)
 

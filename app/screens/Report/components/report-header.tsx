@@ -19,44 +19,41 @@ import { WordBars } from "@/screens/Report/components/word-bars"
 import type { ReportPeriodState } from "@/screens/Report/hooks/use-report-period"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font } from "@/theme"
-import type { Report, ReportPeriod } from "@/types/apis/reports"
+import type { Report } from "@/types/apis/reports"
 import type { Locale } from "@/types/locale"
-
-const periods: ReportPeriod[] = ["day", "week", "month"]
+import { reportPeriodSchema } from "@/types/report-period"
 
 export function hasRecords(report: Report): boolean {
 	return report.sessions.length > 0
 }
 
-function periodLabel(state: ReportPeriodState, locale: Locale): string {
-	const start = new Date(`${state.start}T00:00:00`)
-
-	if (state.period === "day") {
-		return formatDateWithWeekday(start, locale)
+function periodLabel(report: Report, locale: Locale): string {
+	if (report.period === "day") {
+		return formatDateWithWeekday(report.start, locale)
 	}
 
-	if (state.period === "month") {
-		return formatMonth(start, locale)
+	if (report.period === "month") {
+		return formatMonth(report.start, locale)
 	}
 
-	return `${formatDate(start, locale)} ~ ${formatDate(state.end, locale)}`
+	return `${formatDate(report.start, locale)} ~ ${formatDate(report.end, locale)}`
 }
 
 interface Props {
 	state: ReportPeriodState
 	report: Report | undefined
-	failed: boolean
+	loadFailed: boolean
 	onRetry(): void
 	onStart(): void
 }
 
-export function ReportHeader({ state, report, failed, onRetry, onStart }: Props): ReactElement {
+export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Props): ReactElement {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((settings) => settings.locale)
 
 	const recorded = report ? hasRecords(report) : false
-	const label = periodLabel(state, locale)
+	const label = report ? periodLabel(report, locale) : ""
 	const illustration = (
 		<Illustration scene={t("report.emptyScene")} icon={ChartNoAxesColumnIcon} height={180} />
 	)
@@ -65,7 +62,7 @@ export function ReportHeader({ state, report, failed, onRetry, onStart }: Props)
 		<View>
 			<ScreenHeader title={t("report.title")} large />
 			<View style={ui.row}>
-				{periods.map((period) => (
+				{reportPeriodSchema.options.map((period) => (
 					<Chip
 						key={period}
 						label={t(`report.periods.${period}`)}
@@ -91,7 +88,7 @@ export function ReportHeader({ state, report, failed, onRetry, onStart }: Props)
 						onPress={() => state.move(1)}
 					/>
 				</View>
-				{!report && !failed ? <Skeleton rows={1} height={220} /> : null}
+				{!report && !loadFailed ? <Skeleton rows={1} height={220} /> : null}
 				{report && recorded ? (
 					<>
 						<Copy style={styles.label}>{t("report.learningTime")}</Copy>
@@ -108,7 +105,7 @@ export function ReportHeader({ state, report, failed, onRetry, onStart }: Props)
 					</>
 				) : null}
 			</Card>
-			{failed ? <ScreenError message={t("common.loadError")} onRetry={onRetry} /> : null}
+			{loadFailed ? <ScreenError message={t("common.loadError")} onRetry={onRetry} /> : null}
 			{report && !recorded ? (
 				<EmptyState
 					message={t("report.empty")}

@@ -21,7 +21,7 @@ import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
 import { formatTimer } from "@/i18n/format"
 import { type Recorder, useRecorder } from "@/screens/Words/hooks/use-recorder"
-import { colors, font } from "@/theme"
+import { colors, contentMaxWidth, font } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
 const TAKE_ID = "take"
@@ -111,7 +111,7 @@ export function RecorderScreen(): ReactElement {
 					{take && !recorder.recording ? (
 						<IconButton
 							icon={playing ? PauseIcon : PlayIcon}
-							label={t(playing ? "words.recorder.stopPlay" : "words.recorder.play")}
+							label={t(playing ? "common.sound.stop" : "words.recorder.play")}
 							variant="primary"
 							size="large"
 							onPress={() => player.toggle(TAKE_ID, take.uri)}
@@ -153,7 +153,7 @@ export function RecorderScreen(): ReactElement {
 					</View>
 				)}
 			</View>
-			<PermissionDialog {...microphone.dialog} />
+			<PermissionDialog state={microphone.dialog} />
 		</Screen>
 	)
 }
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,

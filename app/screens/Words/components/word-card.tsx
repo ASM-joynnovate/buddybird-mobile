@@ -31,13 +31,13 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 	return (
 		<View>
 			<PressableSurface
-				depth={2}
+				depth="low"
 				onPress={onPress}
 				accessibilityLabel={joinLabel(
 					word.name,
 					t("words.list.samples", { count }),
 					learning && t("words.list.learning"),
-					count === 0 && t("words.list.needsRecording"),
+					count === 0 && t("common.needsRecording"),
 				)}
 				contentStyle={styles.card}
 			>
@@ -51,9 +51,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 						))}
 					</View>
 					{learning ? <Tag label={t("words.list.learning")} tone="primary" /> : null}
-					{count === 0 ? (
-						<Tag label={t("words.list.needsRecording")} tone="muted" />
-					) : null}
+					{count === 0 ? <Tag label={t("common.needsRecording")} tone="muted" /> : null}
 				</View>
 			</PressableSurface>
 			<View style={styles.actions}>
@@ -67,7 +65,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 				{first ? (
 					<PlayButton
 						playing={playing}
-						label={t(playing ? "words.list.stop" : "words.list.play", {
+						label={t(playing ? "common.sound.stopNamed" : "words.list.play", {
 							name: word.name,
 						})}
 						onPress={() => player.toggle(word.id, first.url)}

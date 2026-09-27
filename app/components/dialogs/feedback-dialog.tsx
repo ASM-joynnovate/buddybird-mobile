@@ -80,7 +80,7 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 						style={ui.action}
 					/>
 					<Button
-						label={t(form.failed ? "app.feedback.retry" : "app.feedback.send")}
+						label={t(form.sendFailed ? "app.feedback.retry" : "app.feedback.send")}
 						icon={SendIcon}
 						disabled={!form.message.trim()}
 						loading={form.busy}
@@ -102,7 +102,7 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 				style={styles.message}
 			/>
 			<Copy style={styles.privacy}>{t("app.feedback.privacy")}</Copy>
-			<InlineError message={form.failed ? t("app.feedback.error") : null} />
+			<InlineError message={form.sendFailed ? t("app.feedback.error") : null} />
 		</Dialog>
 	)
 }

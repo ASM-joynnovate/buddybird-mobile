@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: "Close",
 	select: "Choose",
 	unknown: "Unknown",
+	needsRecording: "Needs recording",
 	tabs: {
 		home: "Home",
 		words: "Words",
@@ -33,6 +34,7 @@ export const common: CommonMessages = {
 	sound: {
 		play: "Play sound detected at {{time}}",
 		stop: "Stop playback",
+		stopNamed: "Stop {{name}}",
 		expired: "This sound is past its storage period",
 		playError: "We couldn't play the sound. Tap play again.",
 		shareError: "We couldn't share the sound. Please try again.",

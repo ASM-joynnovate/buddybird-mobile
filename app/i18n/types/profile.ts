@@ -11,6 +11,5 @@ export type ProfileMessages = {
 	nickname: string
 	nicknameHint: string
 	nicknameInvalid: string
-	nicknameTaken: string
 	removePhoto: string
 }

@@ -5,6 +5,5 @@ export const DAY = 86_400_000
 
 export const MINUTES_PER_HOUR = 60
 export const MONTHS_PER_YEAR = 12
-export const DAYS_PER_WEEK = 7
 
 export const MIB = 1_048_576

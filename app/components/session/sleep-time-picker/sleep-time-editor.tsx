@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native"
 import { TimePicker } from "@/components/time-picker"
 import { Chip } from "@/components/ui/chip"
 import { ui } from "@/components/ui/styles"
-import type { SleepSettings } from "@/types/apis/settings"
+import type { SleepSettings } from "@/types/sleep-settings"
 
 type Field = keyof SleepSettings
 

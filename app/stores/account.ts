@@ -2,7 +2,7 @@ import { randomUUID } from "expo-crypto"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
-import { mmkvStorage, recordRestoreError } from "@/lib/storage"
+import { mmkvStorage, restoreOptions } from "@/lib/storage"
 import { persistKeys, storageIds } from "@/stores/keys"
 import { type Account, accountSchema, type LoginProvider } from "@/types/account"
 
@@ -96,27 +96,10 @@ export const useAccountStore = create<AccountStore>()(
 				clientDeviceId,
 			}),
 
-			merge: (persisted, current) => {
-				if (persisted === undefined) {
-					return current
-				}
-
-				const parsed = accountSchema.safeParse(persisted)
-
-				if (!parsed.success) {
-					recordRestoreError(parsed.error, persistKeys.account.name)
-
-					return current
-				}
-
-				return { ...current, ...parsed.data }
-			},
-
-			onRehydrateStorage: () => (_state, error) => {
-				if (error) {
-					recordRestoreError(error, persistKeys.account.name)
-				}
-			},
+			...restoreOptions<AccountStore>({
+				schema: accountSchema,
+				storeName: persistKeys.account.name,
+			}),
 		},
 	),
 )

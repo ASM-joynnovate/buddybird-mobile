@@ -26,7 +26,7 @@ export function SpeechBubble({
 	style,
 }: PropsWithChildren<Props>) {
 	return (
-		<Card cornerRadius={16} style={style} contentStyle={styles.bubble}>
+		<Card cornerRadius="control" style={style} contentStyle={styles.bubble}>
 			<View
 				pointerEvents="none"
 				style={[styles.pointer, side === "left" ? styles.left : styles.bottom]}

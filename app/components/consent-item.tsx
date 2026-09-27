@@ -1,8 +1,8 @@
 import { ChevronRightIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
+import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
 import { IconButton } from "@/components/ui/icon-button"
-import { CheckRow } from "@/components/ui/rows"
 import type { Consent } from "@/types/apis/consents"
 
 interface Props {
@@ -13,11 +13,11 @@ interface Props {
 	actions: { toggle(): void; open(): void }
 }
 
-export function ConsentRow({ consent, checked, first, disabled, actions }: Props) {
+export function ConsentItem({ consent, checked, first, disabled, actions }: Props) {
 	const { t } = useTranslation()
 
 	return (
-		<CheckRow
+		<GroupedListCheckItem
 			first={first}
 			label={consent.title}
 			caption={t(consent.is_required ? "entry.consent.required" : "entry.consent.optional")}

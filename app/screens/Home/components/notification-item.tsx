@@ -40,8 +40,8 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 	return (
 		<PressableSurface
 			tone="plain"
-			depth={0}
-			cornerRadius={0}
+			depth="none"
+			cornerRadius="none"
 			style={styles.item}
 			contentStyle={styles.row}
 			accessibilityLabel={joinLabel(

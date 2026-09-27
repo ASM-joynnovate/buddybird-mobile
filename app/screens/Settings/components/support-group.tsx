@@ -2,7 +2,8 @@ import { BookOpenIcon, MegaphoneIcon, SendIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { GroupedList, NavRow } from "@/components/ui/rows"
+import { GroupedList } from "@/components/ui/grouped-list"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
 import { Copy } from "@/components/ui/text"
 import { installedVersion } from "@/services/device/application"
 import { colors } from "@/theme"
@@ -20,20 +21,20 @@ export function SupportGroup({ unreadNotice, onFeedback, onOpenNotices, onOpenCo
 	return (
 		<View>
 			<GroupedList title={t("settings.support.title")}>
-				<NavRow
+				<GroupedListNavItem
 					first
 					icon={SendIcon}
 					label={t("settings.support.feedback")}
 					onPress={onFeedback}
 				/>
-				<NavRow
+				<GroupedListNavItem
 					icon={MegaphoneIcon}
 					label={t("settings.support.notices")}
 					value={unreadNotice ? t("settings.support.unreadNotice") : undefined}
 					dot={unreadNotice}
 					onPress={onOpenNotices}
 				/>
-				<NavRow
+				<GroupedListNavItem
 					icon={BookOpenIcon}
 					label={t("settings.support.consents")}
 					onPress={onOpenConsents}

@@ -9,7 +9,7 @@ import { InlineError } from "@/components/ui/inline-error"
 import { ui } from "@/components/ui/styles"
 import { Copy } from "@/components/ui/text"
 import type { SoundPlayer } from "@/hooks/use-sound-player"
-import { RecordingRow } from "@/screens/Words/components/recording-row"
+import { RecordingItem } from "@/screens/Words/components/recording-item"
 import type { DraftItem, WordDraft } from "@/screens/Words/hooks/use-word-draft"
 import { colors, font } from "@/theme"
 import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from "@/types/apis/words"
@@ -45,7 +45,7 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 				const deletable = !disabled && !(item.kind === "server" && draft.serverCount <= 1)
 
 				return (
-					<RecordingRow
+					<RecordingItem
 						key={item.id}
 						item={item}
 						player={player}

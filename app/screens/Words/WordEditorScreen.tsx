@@ -20,6 +20,7 @@ import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions } from "@/hooks/apis/words"
 import { usePermission } from "@/hooks/use-permission"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
+import { DeleteWordDialog } from "@/screens/Words/components/delete-word-dialog"
 import { RecordingsSection } from "@/screens/Words/components/recordings-section"
 import { type DraftItem, useWordDraft, type WordDraft } from "@/screens/Words/hooks/use-word-draft"
 import { track } from "@/services/telemetry/client"
@@ -162,22 +163,25 @@ export function WordEditorScreen(): ReactElement {
 				}
 			/>
 			{body}
+			<DeleteWordDialog
+				visible={pending?.kind === "word"}
+				name={wordName}
+				deletion={deleteWord}
+				onConfirm={confirmDelete}
+				onClose={closeDialog}
+			/>
 			<ConfirmDialog
-				visible={pending !== null}
+				visible={pending?.kind === "recording"}
 				text={{
 					title: t("common.confirmDelete.title", {
-						name: pending?.kind === "recording" ? pending.name : wordName,
+						name: pending?.kind === "recording" ? pending.name : "",
 					}),
 					message: t("common.confirmDelete.message"),
-				}}
-				state={{
-					busy: deleteWord.isPending,
-					error: deleteWord.isError ? t("words.editor.deleteError") : null,
 				}}
 				onConfirm={confirmDelete}
 				onClose={closeDialog}
 			/>
-			<PermissionDialog {...microphone.dialog} />
+			<PermissionDialog state={microphone.dialog} />
 		</Screen>
 	)
 }

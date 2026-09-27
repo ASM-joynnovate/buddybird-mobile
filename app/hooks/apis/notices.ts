@@ -1,8 +1,8 @@
 import { infiniteQueryOptions, mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import { fetchNotice, fetchNotices, markNoticeRead } from "@/apis/notices"
+import { invalidate } from "@/hooks/apis/invalidate"
 import { apiKeys } from "@/hooks/apis/keys"
-import { queryClient } from "@/lib/query-client"
 
 export const noticesQueryOptions = () =>
 	infiniteQueryOptions({
@@ -20,9 +20,5 @@ export const readNoticeMutationOptions = () =>
 		mutationKey: apiKeys.mutation("notices", "read"),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			markNoticeRead(id, idempotencyKey),
-		onSuccess: () =>
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.notices.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-			]),
+		onSuccess: () => invalidate(apiKeys.notices.all(), apiKeys.home()),
 	})

@@ -2,7 +2,7 @@ import { CheckIcon, type LucideIcon } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 
 import { PermissionDialog } from "@/components/dialogs/permission-dialog"
-import { NavRow } from "@/components/ui/rows"
+import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
 import { usePermission } from "@/hooks/use-permission"
 import type { PermissionKind } from "@/services/device/permissions"
 import { reportError } from "@/services/telemetry/client"
@@ -14,7 +14,7 @@ interface Props {
 	first: boolean
 }
 
-export function PermissionRow({ kind, icon, first }: Props) {
+export function PermissionItem({ kind, icon, first }: Props) {
 	const { t } = useTranslation()
 
 	const permission = usePermission(kind)
@@ -29,7 +29,7 @@ export function PermissionRow({ kind, icon, first }: Props) {
 
 	return (
 		<>
-			<NavRow
+			<GroupedListNavItem
 				first={first}
 				icon={icon}
 				label={t(`common.permission.${kind}.name`)}
@@ -44,7 +44,7 @@ export function PermissionRow({ kind, icon, first }: Props) {
 						.catch((error: unknown) => reportError(error, `permission_${kind}`))
 				}
 			/>
-			<PermissionDialog {...permission.dialog} />
+			<PermissionDialog state={permission.dialog} />
 		</>
 	)
 }

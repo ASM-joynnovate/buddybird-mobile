@@ -6,7 +6,6 @@ import { type ReactElement, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, StyleSheet, View } from "react-native"
 
-import { ConfirmDialog } from "@/components/dialogs/confirm-dialog"
 import { Illustration } from "@/components/illustration"
 import { EmptyState } from "@/components/ui/empty-state"
 import { IconButton } from "@/components/ui/icon-button"
@@ -19,8 +18,10 @@ import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { deleteWordMutationOptions, wordsQueryOptions } from "@/hooks/apis/words"
 import { useSoundPlayer } from "@/hooks/use-sound-player"
+import { DeleteWordDialog } from "@/screens/Words/components/delete-word-dialog"
 import { WordCard } from "@/screens/Words/components/word-card"
 import { track } from "@/services/telemetry/client"
+import { contentMaxWidth } from "@/theme"
 import type { Word } from "@/types/apis/words"
 import type { WordsStackParamList } from "@/types/navigation"
 
@@ -92,16 +93,10 @@ export function WordListScreen(): ReactElement {
 				<InlineError message={player.failedId ? t("common.sound.playError") : null} />
 				{body}
 			</View>
-			<ConfirmDialog
+			<DeleteWordDialog
 				visible={deleting !== null}
-				text={{
-					title: t("common.confirmDelete.title", { name: deleting?.name ?? "" }),
-					message: t("common.confirmDelete.message"),
-				}}
-				state={{
-					busy: removing.isPending,
-					error: removing.isError ? t("words.editor.deleteError") : null,
-				}}
+				name={deleting?.name ?? ""}
+				deletion={removing}
 				onConfirm={() => {
 					if (deleting) {
 						removing.mutate(
@@ -133,7 +128,7 @@ const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,

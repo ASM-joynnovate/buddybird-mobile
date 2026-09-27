@@ -19,7 +19,7 @@ import {
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
-import { colors } from "@/theme"
+import { colors, contentMaxWidth } from "@/theme"
 
 export function NotificationsScreen() {
 	const { t } = useTranslation()
@@ -92,7 +92,7 @@ export function NotificationsScreen() {
 const styles = StyleSheet.create({
 	header: {
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 12,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
 	list: {
 		flexGrow: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingBottom: 32,

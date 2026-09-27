@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
 import { linkAccount, switchAccount } from "@/services/auth/sign-in"
+import { reportError } from "@/services/telemetry/client"
 import { completeOnboardingStep } from "@/services/telemetry/onboarding"
 import type { LoginProvider } from "@/types/account"
 
@@ -42,6 +43,8 @@ export function useLogin(entry: boolean, onDone: () => void): LoginState {
 			await action()
 		} catch (failure) {
 			if (!isAppleCancel(provider, failure)) {
+				reportError(failure, "sign_in")
+
 				Alert.alert(t("auth.signInError"))
 			}
 		} finally {

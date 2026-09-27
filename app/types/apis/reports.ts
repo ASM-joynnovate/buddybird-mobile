@@ -2,12 +2,11 @@ import { z } from "zod"
 
 import { localDate, timestamp, uuid } from "@/types/apis/primitives"
 import { judgmentStatusSchema } from "@/types/apis/sessions"
+import { reportPeriodSchema } from "@/types/report-period"
 
 const wordRefSchema = z.object({ id: uuid, name: z.string() })
 
 const durationSchema = z.number().int().nonnegative()
-
-export const reportPeriodSchema = z.enum(["day", "week", "month"])
 
 const reportSessionSchema = z.object({
 	id: uuid,
@@ -29,6 +28,5 @@ export const reportSchema = z.object({
 	mimicry: z.object({ count: z.number().int().nonnegative() }),
 })
 
-export type ReportPeriod = z.infer<typeof reportPeriodSchema>
 export type ReportSession = z.infer<typeof reportSessionSchema>
 export type Report = z.infer<typeof reportSchema>

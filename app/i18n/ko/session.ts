@@ -12,7 +12,6 @@ export const session: SessionMessages = {
 		message: "인터넷 연결을 확인하고 다시 시도해 주세요.",
 	},
 	words: {
-		needsRecording: "녹음 필요",
 		preview: "{{name}} 녹음 들어 보기",
 	},
 	sleep: {

@@ -72,7 +72,7 @@ export function useStartSession(
 	return {
 		busy: mutation.isPending || finishing.isPending,
 		takeoverOpen,
-		failed: mutation.isError || finishing.isError,
+		startFailed: mutation.isError || finishing.isError,
 		start,
 		confirmTakeover: () => {
 			if (pending) {

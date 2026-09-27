@@ -10,7 +10,7 @@ export interface FeedbackForm {
 	setMessage(message: string): void
 	busy: boolean
 	sent: boolean
-	failed: boolean
+	sendFailed: boolean
 	close(): void
 	submit(): void
 }
@@ -54,7 +54,7 @@ export function useFeedbackForm(source: "profile" | "prompt", onClose: () => voi
 		setMessage,
 		busy: mutation.isPending,
 		sent: mutation.isSuccess,
-		failed: mutation.isError,
+		sendFailed: mutation.isError,
 		close,
 		submit,
 	}

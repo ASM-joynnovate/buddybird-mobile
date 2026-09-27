@@ -9,6 +9,7 @@ import { ScreenHeader } from "@/components/ui/screen-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDevices } from "@/hooks/use-devices"
 import { DeviceCard } from "@/screens/Settings/components/device-card"
+import { contentMaxWidth } from "@/theme"
 import type { RootStackParamList } from "@/types/navigation"
 
 export function DevicesScreen() {
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
 	frame: {
 		flex: 1,
 		width: "100%",
-		maxWidth: 480,
+		maxWidth: contentMaxWidth,
 		alignSelf: "center",
 		paddingHorizontal: 24,
 		paddingTop: 20,
