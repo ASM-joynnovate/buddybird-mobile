@@ -21,7 +21,6 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 
 	return (
 		<PressableSurface
-			testID={`login-${provider}`}
 			accessibilityLabel={loading ? t(`auth.pending.${provider}`) : t(`auth.${provider}`)}
 			accessibilityHint={hint}
 			accessibilityState={{ busy: loading }}

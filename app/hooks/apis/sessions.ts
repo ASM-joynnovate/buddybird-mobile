@@ -1,7 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query"
 
 import {
-	fetchEvents,
 	fetchRunningSession,
 	fetchSession,
 	fetchSounds,
@@ -34,9 +33,6 @@ export const runningSessionQueryOptions = () =>
 
 export const sessionQueryOptions = (id: string) =>
 	queryOptions({ queryKey: apiKeys.sessions.detail(id), queryFn: () => fetchSession(id) })
-
-export const sessionEventsQueryOptions = (id: string) =>
-	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => fetchEvents(id) })
 
 export const sessionSoundsQueryOptions = (id: string) =>
 	queryOptions({ queryKey: apiKeys.sessions.sounds(id), queryFn: () => fetchAllSounds(id) })

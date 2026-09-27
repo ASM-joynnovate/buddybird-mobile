@@ -1,9 +1,8 @@
-import { type ReactNode, useState } from "react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
 import { IconButton } from "@/components/ui/icon-button"
-import { SpeechBubble } from "@/components/ui/speech-bubble"
 import { Title } from "@/components/ui/text"
 
 interface Props {
@@ -11,21 +10,11 @@ interface Props {
 	onBack?(): void
 	backIcon?: "back" | "close"
 	right?: ReactNode
-	help?: string
 	large?: boolean
 }
 
-export function ScreenHeader({
-	title,
-	onBack,
-	backIcon = "back",
-	right,
-	help,
-	large = false,
-}: Props) {
+export function ScreenHeader({ title, onBack, backIcon = "back", right, large = false }: Props) {
 	const { t } = useTranslation()
-
-	const [helpOpen, setHelpOpen] = useState(false)
 
 	return (
 		<View style={styles.wrap}>
@@ -42,33 +31,17 @@ export function ScreenHeader({
 				) : (
 					<View style={styles.spacer} />
 				)}
-				<View style={styles.right}>
-					{right}
-					{help ? (
-						<IconButton
-							icon="help"
-							label={t(helpOpen ? "common.helpClose" : "common.help")}
-							variant={helpOpen ? "accent" : "muted"}
-							onPress={() => setHelpOpen((open) => !open)}
-						/>
-					) : null}
-				</View>
+				<View style={styles.right}>{right}</View>
 			</View>
-			{help && helpOpen ? (
-				<SpeechBubble side="bottom" style={styles.bubble}>
-					{help}
-				</SpeechBubble>
-			) : null}
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
-	wrap: { gap: 12, marginBottom: 8 },
+	wrap: { marginBottom: 8 },
 	header: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 4 },
 	title: { flex: 1, minWidth: 0 },
 	compact: { fontSize: 20, lineHeight: 26 },
 	spacer: { flex: 1 },
 	right: { flexDirection: "row", alignItems: "center", gap: 2 },
-	bubble: { alignSelf: "flex-end", maxWidth: "90%" },
 })

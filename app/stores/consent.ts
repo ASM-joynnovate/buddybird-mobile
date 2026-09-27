@@ -9,7 +9,7 @@ type ConsentActions = {
 	takeAgreed: () => readonly string[]
 }
 
-export type ConsentStore = ConsentState & ConsentActions
+type ConsentStore = ConsentState & ConsentActions
 
 export const useConsentStore = create<ConsentStore>()((set, get) => ({
 	agreedIds: [],

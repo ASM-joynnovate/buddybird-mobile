@@ -1,7 +1,6 @@
 import { z } from "zod"
 
-import { putUpload } from "@/apis/mocks"
-import { issueParrotPhotoUpload } from "@/apis/uploads"
+import { issueParrotPhotoUpload, putUpload } from "@/apis/uploads"
 import { mockServer } from "@/mocks/server"
 import {
 	type CreateParrotRequest,

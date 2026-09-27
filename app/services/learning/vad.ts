@@ -1,4 +1,4 @@
-export type VadSettings = {
+type VadSettings = {
 	sampleRate: number
 	frameMs: number
 	dbFloor: number
@@ -17,7 +17,7 @@ export type SpeechSegment = {
 	speechEndMs: number
 }
 
-export type SpeechDetector = {
+type SpeechDetector = {
 	push(samples: Float32Array, now: number): SpeechSegment[]
 	suspend(untilMs: number): void
 	flush(): SpeechSegment | null

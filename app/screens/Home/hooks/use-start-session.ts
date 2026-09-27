@@ -12,7 +12,7 @@ import { reportError } from "@/services/telemetry/client"
 import { ApiError } from "@/types/apis/common"
 import type { SessionDraft } from "@/types/navigation"
 
-export type StartSessionState = StartDialogState & { start(draft: SessionDraft): void }
+type StartSessionState = StartDialogState & { start(draft: SessionDraft): void }
 
 export function useStartSession(
 	onStarted: (sessionId: string, draft: SessionDraft, endsAt: number | null) => void,

@@ -19,7 +19,7 @@ const icons = {
 	xlarge: { size: 34, weight: undefined },
 } as const
 
-export type IconButtonVariant = keyof typeof variants
+type IconButtonVariant = keyof typeof variants
 
 type IconButtonSize = keyof typeof icons
 

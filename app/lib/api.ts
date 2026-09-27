@@ -25,7 +25,7 @@ export function configureApi(next: ApiDependencies) {
 
 type QueryValue = string | number | boolean | undefined
 
-export type ApiOptions = {
+type ApiOptions = {
 	method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 	query?: Record<string, QueryValue>
 	json?: unknown

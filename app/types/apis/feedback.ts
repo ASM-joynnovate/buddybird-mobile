@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { timestamp, uuid } from "@/types/apis/primitives"
 
-export const createFeedbackRequestSchema = z.object({
+const createFeedbackRequestSchema = z.object({
 	message: z.string().trim().min(1).max(1000),
 })
 

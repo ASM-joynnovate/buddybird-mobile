@@ -33,7 +33,7 @@ export const apiErrorCodes = [
 	"NOTIFICATION__READ_FAILED",
 ] as const
 
-export const clientErrorCodes = [
+const clientErrorCodes = [
 	"CLIENT__NETWORK",
 	"CLIENT__TIMEOUT",
 	"CLIENT__INVALID_RESPONSE",
@@ -81,6 +81,6 @@ export const pageMetaSchema = z.object({
 	is_last: z.boolean(),
 })
 
-export type PageMeta = z.infer<typeof pageMetaSchema>
+type PageMeta = z.infer<typeof pageMetaSchema>
 
 export type Page<T> = { data: T[]; meta: PageMeta }

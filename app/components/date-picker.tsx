@@ -39,10 +39,9 @@ function parse(value: string | null | undefined): DateParts {
 interface Props {
 	value: string | null | undefined
 	onChange(value: string | null): void
-	first?: boolean
 }
 
-export function DatePicker({ value, onChange, first }: Props) {
+export function DatePicker({ value, onChange }: Props) {
 	const { t } = useTranslation()
 
 	const locale = useDeviceSettingsStore((state) => state.locale)
@@ -75,7 +74,7 @@ export function DatePicker({ value, onChange, first }: Props) {
 
 	return (
 		<PickerRow
-			row={{ first, label: t("parrot.birthday"), value: label() }}
+			row={{ label: t("parrot.birthday"), value: label() }}
 			sheet={{ title: t("parrot.birthdayQuestion") }}
 		>
 			{(close) => (

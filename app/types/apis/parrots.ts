@@ -12,13 +12,13 @@ export const parrotSchema = z.object({
 	photo: z.object({ url: z.string() }).nullable(),
 })
 
-export const createParrotRequestSchema = z.object({
+const createParrotRequestSchema = z.object({
 	name: z.string(),
 	species: z.string(),
 	birthdate: localDate.nullable().optional(),
 })
 
-export const updateParrotRequestSchema = z.object({
+const updateParrotRequestSchema = z.object({
 	name: z.string().optional(),
 	species: z.string().optional(),
 	birthdate: localDate.nullable().optional(),

@@ -8,7 +8,7 @@ import { ApiError, UNAUTHORIZED_STATUS } from "@/types/apis/common"
 
 export type AuthIdentity = { id: string; anonymous: boolean }
 
-export type AuthTransition = "signedOut" | "signedIn" | "linked" | "completeLogin"
+type AuthTransition = "signedOut" | "signedIn" | "linked" | "completeLogin"
 
 export function nextAuthState(
 	registered: AuthIdentity | null,

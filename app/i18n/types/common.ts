@@ -13,8 +13,6 @@ export type CommonMessages = {
 		report: string
 		profile: string
 	}
-	help: string
-	helpClose: string
 	skip: string
 	next: string
 	start: string

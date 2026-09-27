@@ -11,7 +11,7 @@ import { scheduleOnRN } from "react-native-worklets"
 
 import { Surface, type SurfaceProps } from "@/components/ui/surface/surface"
 
-export type PressPoint = { x: number; y: number }
+type PressPoint = { x: number; y: number }
 
 interface Props extends SurfaceProps {
 	onPress(point: PressPoint): void

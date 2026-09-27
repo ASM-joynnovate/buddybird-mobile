@@ -1,8 +1,6 @@
 import type { AuthMessages } from "@/i18n/types/auth"
 
 export const auth: AuthMessages = {
-	title: "Log in to BuddyBird",
-	description: "Log in to start learning with your parrot.",
 	google: "Continue with Google",
 	kakao: "Continue with Kakao",
 	apple: "Continue with Apple",
@@ -16,7 +14,6 @@ export const auth: AuthMessages = {
 	restoreError: "Couldn't restore your login. Please try again.",
 	recent: "Last used",
 	recentHint: "You last logged in this way",
-	signOut: "Log out on this device",
 	signOutError: "Couldn't log out. Check your connection and try again.",
 	signIn: "Log in",
 	signInRequired: "Log in to see the sounds your parrot mimicked",

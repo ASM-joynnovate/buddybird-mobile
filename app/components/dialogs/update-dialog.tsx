@@ -54,7 +54,6 @@ export function UpdateDialog({ visible, decision, pending, onAccept, onDismiss }
 				<View style={[ui.actions, styles.actions]}>
 					{!forced ? (
 						<Button
-							testID="update-later"
 							label={t("app.update.later")}
 							variant="secondary"
 							disabled={blocked}
@@ -63,7 +62,6 @@ export function UpdateDialog({ visible, decision, pending, onAccept, onDismiss }
 						/>
 					) : null}
 					<Button
-						testID="update-open-store"
 						label={t("app.update.accept")}
 						loading={blocked}
 						onPress={() => void accept()}

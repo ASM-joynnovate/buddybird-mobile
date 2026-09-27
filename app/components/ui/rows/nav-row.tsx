@@ -13,16 +13,14 @@ interface Props extends RowProps {
 	value?: string
 	dot?: boolean
 	disabled?: boolean
-	expanded?: boolean
 	trailing?: ReactNode
 	onPress(): void
 }
 
-export function NavRow({ value, dot, onPress, disabled, expanded, trailing, ...props }: Props) {
+export function NavRow({ value, dot, onPress, disabled, trailing, ...props }: Props) {
 	return (
 		<PressableSurface
 			accessibilityLabel={joinLabel(props.label, value)}
-			accessibilityState={{ expanded }}
 			disabled={disabled}
 			onPress={onPress}
 			tone="plain"

@@ -50,15 +50,6 @@ export function formatMoment(value: Moment, locale: Locale, now = new Date()): s
 	return sameDay(toDate(value), now) ? formatTime(value, locale) : formatDateTime(value, locale)
 }
 
-export function formatRange(start: Moment, end: Moment, locale: Locale): string {
-	const from = toDate(start)
-	const to = toDate(end)
-
-	return sameDay(from, to)
-		? `${formatTime(from, locale)} ~ ${formatTime(to, locale)}`
-		: `${formatDateTime(from, locale)} ~ ${formatDateTime(to, locale)}`
-}
-
 export function formatDuration(ms: number, locale: Locale): string {
 	const minutes = Math.max(0, Math.floor(ms / 60_000))
 

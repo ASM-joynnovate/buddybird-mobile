@@ -2,7 +2,7 @@ import type { UpdateDecision, UpdatePolicy } from "@/types/update"
 
 const VERSION_PARTS = 3
 
-export function versionParts(value: string): number[] | null {
+function versionParts(value: string): number[] | null {
 	const match = /^[vV]?(\d+(?:\.\d+){0,2})(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(
 		value.trim(),
 	)
@@ -16,7 +16,7 @@ export function versionParts(value: string): number[] | null {
 	return parts.every(Number.isSafeInteger) ? [...parts, 0, 0].slice(0, VERSION_PARTS) : null
 }
 
-export function compareVersions(a: string, b: string): number | null {
+function compareVersions(a: string, b: string): number | null {
 	const left = versionParts(a)
 	const right = versionParts(b)
 

@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { localDate, timestamp, uuid } from "@/types/apis/primitives"
 
-export const notificationKindSchema = z.enum(["mimicry", "daily_summary", "streak"])
+const notificationKindSchema = z.enum(["mimicry", "daily_summary", "streak"])
 
 export const notificationSchema = z.object({
 	id: uuid,
@@ -24,4 +24,3 @@ export const pushDataSchema = z.object({
 
 export type NotificationKind = z.infer<typeof notificationKindSchema>
 export type AppNotification = z.infer<typeof notificationSchema>
-export type PushData = z.infer<typeof pushDataSchema>

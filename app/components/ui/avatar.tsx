@@ -5,7 +5,7 @@ import { colors } from "@/theme"
 
 const iconSizes = { medium: 26, large: 34, xlarge: 40 } as const
 
-export type AvatarSize = keyof typeof iconSizes
+type AvatarSize = keyof typeof iconSizes
 
 interface Props {
 	uri?: string | null

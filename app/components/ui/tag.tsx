@@ -5,11 +5,10 @@ import { colors, font, radius } from "@/theme"
 
 const tones = {
 	primary: { face: colors.orangeSelected, edge: colors.orange, text: colors.orangeDark },
-	blue: { face: colors.blueSoft, edge: colors.blue, text: colors.blueDark },
 	muted: { face: colors.surface, edge: colors.border, text: colors.muted },
 } as const
 
-export type TagTone = keyof typeof tones
+type TagTone = keyof typeof tones
 
 interface Props {
 	label: string

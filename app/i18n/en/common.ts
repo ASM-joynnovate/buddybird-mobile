@@ -15,8 +15,6 @@ export const common: CommonMessages = {
 		report: "Report",
 		profile: "Profile",
 	},
-	help: "Help",
-	helpClose: "Close help",
 	skip: "Skip",
 	next: "Next",
 	start: "Start",

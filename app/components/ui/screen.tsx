@@ -7,7 +7,6 @@ import { colors } from "@/theme"
 interface Props extends ScrollViewProps {
 	scroll?: boolean
 	footer?: ReactNode
-	centered?: boolean
 }
 
 export function Screen({
@@ -17,7 +16,6 @@ export function Screen({
 	style,
 	contentContainerStyle,
 	footer,
-	centered = false,
 	...props
 }: PropsWithChildren<Props>) {
 	const insets = useSafeAreaInsets()
@@ -35,7 +33,6 @@ export function Screen({
 					contentContainerStyle={[
 						styles.content,
 						{ paddingBottom: footer ? 20 : insets.bottom + 20 },
-						centered && styles.centered,
 						contentContainerStyle,
 					]}
 				>
@@ -63,7 +60,6 @@ const styles = StyleSheet.create({
 		maxWidth: 480,
 		alignSelf: "center",
 	},
-	centered: { justifyContent: "center" },
 	footer: {
 		width: "100%",
 		maxWidth: 480,

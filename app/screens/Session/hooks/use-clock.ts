@@ -24,7 +24,7 @@ export function useNow(enabled = true, intervalMs = SECOND): number {
 	return now
 }
 
-export type RunStatus = { phase: Phase; remainingMs: number | null; fraction: number | null }
+type RunStatus = { phase: Phase; remainingMs: number | null; fraction: number | null }
 
 export function runStatus(
 	startedAt: string,

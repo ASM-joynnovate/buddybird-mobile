@@ -4,7 +4,6 @@ import { Platform } from "react-native"
 
 import { phaseSpans } from "@/services/session/phases"
 import type { NotificationKind } from "@/types/apis/notifications"
-import type { SessionEventKind } from "@/types/apis/sessions"
 import { DAY, HOUR, MINUTE } from "@/utils/units"
 
 export type Ref = { id: string; name: string }
@@ -23,7 +22,7 @@ export type MockSound = {
 
 export type MockEvent = {
 	id: string
-	kind: SessionEventKind
+	kind: string
 	occurred_at: string
 	word_id: string | null
 }
@@ -280,11 +279,7 @@ function activity(start: number, end: number) {
 	return points
 }
 
-export function event(
-	kind: SessionEventKind,
-	at: number,
-	extra: Partial<MockEvent> = {},
-): MockEvent {
+export function event(kind: string, at: number, extra: Partial<MockEvent> = {}): MockEvent {
 	return {
 		id: randomUUID(),
 		kind,

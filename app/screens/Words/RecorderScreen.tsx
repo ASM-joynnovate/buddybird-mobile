@@ -84,7 +84,6 @@ export function RecorderScreen(): ReactElement {
 				/>
 				<View style={styles.center}>
 					<AudioWaveform
-						testID="recorder-waveform"
 						color={colors.orange}
 						height={96}
 						barCount={36}

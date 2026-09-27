@@ -28,7 +28,7 @@ type DeviceSettingsActions = {
 	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void
 }
 
-export type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions
+type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions
 
 function deviceLocale(): Locale {
 	for (const { languageTag, languageCode } of getLocales()) {

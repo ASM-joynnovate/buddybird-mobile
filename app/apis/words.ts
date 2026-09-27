@@ -1,7 +1,6 @@
 import { z } from "zod"
 
-import { putUpload } from "@/apis/mocks"
-import { issueRecordingUpload } from "@/apis/uploads"
+import { issueRecordingUpload, putUpload } from "@/apis/uploads"
 import { mockServer } from "@/mocks/server"
 import { type Word, wordSchema } from "@/types/apis/words"
 

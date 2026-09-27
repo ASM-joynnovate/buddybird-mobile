@@ -19,9 +19,9 @@ import {
 import type { HeartbeatSummary } from "@/types/apis/sessions"
 import { localDate } from "@/utils/date"
 
-export type CapturedSound = { uri: string; capturedAt: string }
+type CapturedSound = { uri: string; capturedAt: string }
 
-export type LearningEngineOptions = {
+type LearningEngineOptions = {
 	wordId: string
 	recordingUrls: readonly string[]
 	startedAt: number

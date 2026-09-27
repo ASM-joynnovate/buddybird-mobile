@@ -7,7 +7,7 @@ import { setAppleCredential } from "@/services/auth/credential"
 import { useAccountStore } from "@/stores/account"
 import type { LoginProvider } from "@/types/account"
 
-export type LinkResult = "linked" | "exists" | "cancelled"
+type LinkResult = "linked" | "exists" | "cancelled"
 
 type OAuthProvider = Exclude<LoginProvider, "apple">
 
@@ -99,7 +99,7 @@ async function exchangeCallback(callback: URL, provider: OAuthProvider): Promise
 	return true
 }
 
-export async function signIn(provider: LoginProvider): Promise<boolean> {
+async function signIn(provider: LoginProvider): Promise<boolean> {
 	if (provider === "apple") {
 		const credential = await appleIdToken()
 

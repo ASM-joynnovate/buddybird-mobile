@@ -24,8 +24,8 @@ const PLAYBACK_MODE = {
 	allowsBackgroundRecording: false,
 } as const
 
-export type Take = { uri: string; durationMs: number }
-export type RecorderProblem = "empty" | "tooLarge" | "format" | "error" | null
+type Take = { uri: string; durationMs: number }
+type RecorderProblem = "empty" | "tooLarge" | "format" | "error" | null
 
 export type Recorder = {
 	recording: boolean

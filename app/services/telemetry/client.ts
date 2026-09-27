@@ -40,7 +40,6 @@ const clarityEnabled = env.clarityProjectId.trim() !== ""
 let allowed: boolean | null = null
 let initialization: Promise<AnalyticsConsent> | undefined
 let clarityStarted = false
-let replayPaused = false
 
 let properties: Properties = {}
 let userId: string | null = null
@@ -90,7 +89,7 @@ async function applyReplay() {
 		return
 	}
 
-	await (allowed === true && !replayPaused ? Clarity.resume() : Clarity.pause())
+	await (allowed === true ? Clarity.resume() : Clarity.pause())
 }
 
 function startClarity() {
@@ -220,12 +219,6 @@ export function screen(name: string, screenClass = name) {
 	currentScreen = name
 
 	track("screen_view", { screen_name: name, screen_class: screenClass })
-}
-
-export function setSessionReplayPaused(paused: boolean) {
-	replayPaused = paused
-
-	void sendTelemetrySafely(applyReplay)
 }
 
 export function reportError(error: unknown, scope: string, fatal?: boolean) {

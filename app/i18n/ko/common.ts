@@ -15,8 +15,6 @@ export const common: CommonMessages = {
 		report: "리포트",
 		profile: "프로필",
 	},
-	help: "도움말",
-	helpClose: "도움말 닫기",
 	skip: "건너뛰기",
 	next: "다음",
 	start: "시작",

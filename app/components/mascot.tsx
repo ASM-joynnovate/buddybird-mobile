@@ -12,13 +12,13 @@ import Animated, {
 } from "react-native-reanimated"
 
 import { mascot } from "@/theme"
+import { SECOND } from "@/utils/units"
 
 interface Props {
 	size?: number
-	motion?: "float" | "bounce"
 }
 
-export function Mascot({ size = 120, motion = "float" }: Props) {
+export function Mascot({ size = 120 }: Props) {
 	const { t } = useTranslation()
 
 	const reduced = useReducedMotion()
@@ -34,14 +34,11 @@ export function Mascot({ size = 120, motion = "float" }: Props) {
 			return
 		}
 
-		const duration = motion === "bounce" ? 800 : 1000
+		const duration = SECOND
 
 		y.set(
 			withRepeat(
-				withSequence(
-					withTiming(-size * (motion === "bounce" ? 0.08 : 0.05), { duration }),
-					withTiming(0, { duration }),
-				),
+				withSequence(withTiming(-size * 0.05, { duration }), withTiming(0, { duration })),
 				-1,
 			),
 		)
@@ -60,7 +57,7 @@ export function Mascot({ size = 120, motion = "float" }: Props) {
 			cancelAnimation(y)
 			cancelAnimation(rotation)
 		}
-	}, [motion, reduced, rotation, size, y])
+	}, [reduced, rotation, size, y])
 
 	return (
 		<Animated.View

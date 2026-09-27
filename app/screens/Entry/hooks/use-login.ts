@@ -6,9 +6,9 @@ import { linkAccount, switchAccount } from "@/services/auth/sign-in"
 import { completeOnboardingStep } from "@/services/telemetry/onboarding"
 import type { LoginProvider } from "@/types/account"
 
-export type LoginAttempt = { provider: LoginProvider; pending: boolean }
+type LoginAttempt = { provider: LoginProvider; pending: boolean }
 
-export type LoginState = {
+type LoginState = {
 	attempt: LoginAttempt | null
 	signIn(provider: LoginProvider): void
 }

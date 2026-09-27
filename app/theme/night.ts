@@ -1,6 +1,6 @@
 import { colors, phaseColors } from "@/theme/colors"
 
-export function shade(hex: string, factor: number): string {
+function shade(hex: string, factor: number): string {
 	const value = Number.parseInt(hex.slice(1, 7), 16)
 	const channel = (shift: number) =>
 		Math.round(((value >> shift) & 255) * factor)

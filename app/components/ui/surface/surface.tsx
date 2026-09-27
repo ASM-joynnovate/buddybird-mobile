@@ -7,15 +7,12 @@ import { colors, radius } from "@/theme"
 const tones = {
 	neutral: { face: colors.background, edge: colors.border },
 	primary: { face: colors.orange, edge: colors.orangeDark },
-	blue: { face: colors.blue, edge: colors.blueDark },
-	purple: { face: colors.purple, edge: colors.purpleDark },
 	selected: { face: colors.orangeSelected, edge: colors.orange },
 	plain: { face: "transparent", edge: "transparent" },
-	danger: { face: colors.error, edge: colors.error },
 	muted: { face: colors.disabledBackground, edge: colors.disabledBackground },
 } as const
 
-export type SurfaceTone = keyof typeof tones
+type SurfaceTone = keyof typeof tones
 
 interface Props extends ViewProps {
 	tone?: SurfaceTone

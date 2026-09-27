@@ -1,6 +1,4 @@
 export type AuthMessages = {
-	title: string
-	description: string
 	google: string
 	kakao: string
 	apple: string
@@ -14,7 +12,6 @@ export type AuthMessages = {
 	restoreError: string
 	recent: string
 	recentHint: string
-	signOut: string
 	signOutError: string
 	signIn: string
 	signInRequired: string

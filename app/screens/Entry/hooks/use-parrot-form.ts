@@ -26,7 +26,7 @@ type SpeciesField = {
 	speciesError: string | null
 }
 
-export type ParrotForm = {
+type ParrotForm = {
 	name: { value: string; onChange(value: string): void; error: string | null }
 	photo: ReturnType<typeof usePhotoPicker>
 	species: SpeciesField

@@ -3245,17 +3245,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/firestore@npm:23.8.8":
-  version: 23.8.8
-  resolution: "@react-native-firebase/firestore@npm:23.8.8"
-  dependencies:
-    react-native-url-polyfill: "npm:3.0.0"
-  peerDependencies:
-    "@react-native-firebase/app": 23.8.8
-  checksum: 10c0/f26cdb65652162c1790583e0b6256b0a6d936514e70b28cf611158716c4db61f8005008746a14edbe86105c0c15ba36afa6ad10cf5de242709a60ae26fa3ebf0
-  languageName: node
-  linkType: hard
-
 "@react-native-firebase/messaging@npm:23.8.8":
   version: 23.8.8
   resolution: "@react-native-firebase/messaging@npm:23.8.8"
@@ -3266,16 +3255,6 @@ __metadata:
     expo:
       optional: true
   checksum: 10c0/f6a7d8cfc292d1445ea93ea262b2a22cbf51970be71008c55f1a3d992eaaae45940f937a3cde52f32d069dbf4bf8dec2e2c5215e6b3bddb8ed41d9d43da6dcde
-  languageName: node
-  linkType: hard
-
-"@react-native-picker/picker@npm:2.11.4":
-  version: 2.11.4
-  resolution: "@react-native-picker/picker@npm:2.11.4"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10c0/3c9947c1a3022ffa35008cc479b718585b106ff70a5fb0f24c4117bf2eaaf5f60795cba20271af50a01d3a878d5dc06661ea1c1315664898524e291e7412a18f
   languageName: node
   linkType: hard
 
@@ -4468,7 +4447,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
+"base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 10c0/f23823513b63173a001030fae4f2dabe283b99a9d324ade3ad3d148e218134676f1ee8568c877cd79ec1c53158dcf2d2ba527a97c606618928ba99dd930102bf
@@ -4597,9 +4576,7 @@ __metadata:
     "@react-native-firebase/analytics": "npm:23.8.8"
     "@react-native-firebase/app": "npm:23.8.8"
     "@react-native-firebase/crashlytics": "npm:23.8.8"
-    "@react-native-firebase/firestore": "npm:23.8.8"
     "@react-native-firebase/messaging": "npm:23.8.8"
-    "@react-native-picker/picker": "npm:2.11.4"
     "@react-navigation/bottom-tabs": "npm:^7.2.0"
     "@react-navigation/native": "npm:^7.0.14"
     "@react-navigation/native-stack": "npm:^7.2.0"
@@ -4625,7 +4602,6 @@ __metadata:
     expo-font: "npm:~55.0.4"
     expo-image-picker: "npm:~55.0.10"
     expo-keep-awake: "npm:~55.0.8"
-    expo-linking: "npm:~55.0.7"
     expo-localization: "npm:~55.0.8"
     expo-notifications: "npm:~55.0.10"
     expo-secure-store: "npm:~55.0.8"
@@ -4665,16 +4641,6 @@ __metadata:
   version: 1.1.2
   resolution: "buffer-from@npm:1.1.2"
   checksum: 10c0/124fff9d66d691a86d3b062eff4663fe437a9d9ee4b47b1b9e97f5a5d14f6d5399345db80f796827be7c95e70a8e765dd404b7c3ff3b3324f98e9b0c8826cc34
-  languageName: node
-  linkType: hard
-
-"buffer@npm:^5.4.3":
-  version: 5.7.1
-  resolution: "buffer@npm:5.7.1"
-  dependencies:
-    base64-js: "npm:^1.3.1"
-    ieee754: "npm:^1.1.13"
-  checksum: 10c0/27cac81cff434ed2876058d72e7c4789d11ff1120ef32c9de48f59eab58179b66710c488987d295ae89a228f835fc66d088652dffeb8e3ba8659f80eb091d55e
   languageName: node
   linkType: hard
 
@@ -5975,19 +5941,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-linking@npm:~55.0.7":
-  version: 55.0.17
-  resolution: "expo-linking@npm:55.0.17"
-  dependencies:
-    expo-constants: "npm:~55.0.17"
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10c0/dd0f26b2d6c11c8453f947fd63f8b4ea2f0605f2bc8687933870911252e82b574380a2123e734fd7824e150f3ef88c7835bca161479d4c66462fa89efe8e2e24
-  languageName: node
-  linkType: hard
-
 "expo-localization@npm:~55.0.8":
   version: 55.0.19
   resolution: "expo-localization@npm:55.0.19"
@@ -6841,13 +6794,6 @@ __metadata:
   version: 7.1.1
   resolution: "idb@npm:7.1.1"
   checksum: 10c0/72418e4397638797ee2089f97b45fc29f937b830bc0eb4126f4a9889ecf10320ceacf3a177fe5d7ffaf6b4fe38b20bbd210151549bfdc881db8081eed41c870d
-  languageName: node
-  linkType: hard
-
-"ieee754@npm:^1.1.13":
-  version: 1.2.1
-  resolution: "ieee754@npm:1.2.1"
-  checksum: 10c0/b0782ef5e0935b9f12883a2e2aa37baa75da6e66ce6515c168697b42160807d9330de9a32ec1ed73149aea02e0d822e572bca6f1e22bdcbd2149e13b050b17bb
   languageName: node
   linkType: hard
 
@@ -8881,7 +8827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.1.1":
+"punycode@npm:^2.1.0":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
@@ -9091,17 +9037,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/6aa5ea4745c7d174909468b5d5cb75059856d907f0b039bf3650deb81c9afcbd356f2382d7a7424d4cc69597aea5a508484ee5dba91b9126e3b520bc10faefe9
-  languageName: node
-  linkType: hard
-
-"react-native-url-polyfill@npm:3.0.0":
-  version: 3.0.0
-  resolution: "react-native-url-polyfill@npm:3.0.0"
-  dependencies:
-    whatwg-url-without-unicode: "npm:8.0.0-3"
-  peerDependencies:
-    react-native: "*"
-  checksum: 10c0/a1e539c2a28dc48125ada8bf29f3536ee2c149e4a5e3d205858755783afafe7f871ce1de8b66cb1c4cc05e15e212c74c49e93ddde856cda63fcf660cf943522a
   languageName: node
   linkType: hard
 
@@ -10442,13 +10377,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webidl-conversions@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "webidl-conversions@npm:5.0.0"
-  checksum: 10c0/bf31df332ed11e1114bfcae7712d9ab2c37e7faa60ba32d8fdbee785937c0b012eee235c19d2b5d84f5072db84a160e8d08dd382da7f850feec26a4f46add8ff
-  languageName: node
-  linkType: hard
-
 "websocket-driver@npm:>=0.5.1":
   version: 0.7.5
   resolution: "websocket-driver@npm:0.7.5"
@@ -10478,17 +10406,6 @@ __metadata:
   version: 0.1.2
   resolution: "whatwg-url-minimum@npm:0.1.2"
   checksum: 10c0/5437bc4e1f49d89ff58b7565214db4640c4ad5d90de6c61207e0dc766dae9b9894a0ea7b7883b8576524601586705c5dc359681c388d76c18eddb51f50de558f
-  languageName: node
-  linkType: hard
-
-"whatwg-url-without-unicode@npm:8.0.0-3":
-  version: 8.0.0-3
-  resolution: "whatwg-url-without-unicode@npm:8.0.0-3"
-  dependencies:
-    buffer: "npm:^5.4.3"
-    punycode: "npm:^2.1.1"
-    webidl-conversions: "npm:^5.0.0"
-  checksum: 10c0/c27a637ab7d01981b2e2f576fde2113b9c42247500e093d2f5ba94b515d5c86dbcf70e5cad4b21b8813185f21fa1b4846f53c79fa87995293457e28c889cc0fd
   languageName: node
   linkType: hard
 

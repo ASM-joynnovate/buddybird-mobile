@@ -9,7 +9,7 @@ const durationSchema = z.number().int().nonnegative()
 
 export const reportPeriodSchema = z.enum(["day", "week", "month"])
 
-export const reportSessionSchema = z.object({
+const reportSessionSchema = z.object({
 	id: uuid,
 	started_at: timestamp,
 	ended_at: timestamp.nullable(),

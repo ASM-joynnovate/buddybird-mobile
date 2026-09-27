@@ -14,7 +14,7 @@ type AccountActions = {
 	ensureClientDeviceId: () => string
 }
 
-export type AccountStore = Account & AccountActions
+type AccountStore = Account & AccountActions
 
 const initialAccount: Account = {
 	registeredUser: null,

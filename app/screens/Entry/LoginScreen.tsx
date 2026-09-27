@@ -123,7 +123,6 @@ export function LoginScreen() {
 						<View style={styles.appleButton}>
 							{recent === "apple" ? <LastLoginTag label={t("auth.recent")} /> : null}
 							<AppleAuthentication.AppleAuthenticationButton
-								testID="login-apple"
 								buttonType={
 									AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
 								}

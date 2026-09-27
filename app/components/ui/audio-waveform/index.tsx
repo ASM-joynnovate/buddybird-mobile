@@ -15,7 +15,6 @@ interface Props {
 	fill?: boolean
 	level?: number | null
 	animated?: boolean
-	testID: string
 }
 
 export function AudioWaveform({
@@ -25,7 +24,6 @@ export function AudioWaveform({
 	fill = false,
 	level,
 	animated = false,
-	testID,
 }: Props) {
 	const reduced = useReducedMotion()
 
@@ -61,7 +59,6 @@ export function AudioWaveform({
 
 	return (
 		<View
-			testID={testID}
 			style={[styles.waveform, fill && styles.fill, { height }]}
 			accessibilityElementsHidden
 			importantForAccessibility="no-hide-descendants"

@@ -1,11 +1,10 @@
-import { Fragment } from "react"
 import { StyleSheet, View } from "react-native"
 
 import { Copy } from "@/components/ui/text"
 import { WHEEL_ITEM_HEIGHT, Wheel } from "@/components/ui/wheel-picker/wheel"
 import { colors, font } from "@/theme"
 
-export interface WheelColumn {
+interface WheelColumn {
 	key: string
 	label: string
 	value: number
@@ -16,28 +15,22 @@ export interface WheelColumn {
 
 interface Props {
 	columns: readonly WheelColumn[]
-	separator?: string
 }
 
-export function WheelPicker({ columns, separator }: Props) {
+export function WheelPicker({ columns }: Props) {
 	return (
 		<View style={styles.row}>
 			<View pointerEvents="none" style={styles.selection} />
-			{columns.map((column, index) => (
-				<Fragment key={column.key}>
-					{separator && index > 0 ? (
-						<Copy style={styles.separator}>{separator}</Copy>
-					) : null}
-					<View style={styles.column}>
-						<Wheel
-							label={column.label}
-							value={column.value}
-							values={column.values}
-							onChange={column.onChange}
-						/>
-						{column.unit ? <Copy style={styles.unit}>{column.unit}</Copy> : null}
-					</View>
-				</Fragment>
+			{columns.map((column) => (
+				<View key={column.key} style={styles.column}>
+					<Wheel
+						label={column.label}
+						value={column.value}
+						values={column.values}
+						onChange={column.onChange}
+					/>
+					{column.unit ? <Copy style={styles.unit}>{column.unit}</Copy> : null}
+				</View>
 			))}
 		</View>
 	)
@@ -58,5 +51,4 @@ const styles = StyleSheet.create({
 	},
 	column: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 4 },
 	unit: { fontFamily: font.extraBold, fontSize: 16, minWidth: 22 },
-	separator: { fontFamily: font.black, fontSize: 20 },
 })

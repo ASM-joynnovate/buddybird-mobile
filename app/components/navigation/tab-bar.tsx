@@ -27,7 +27,6 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 			{state.routes.map((route, index) => {
 				const selected = state.index === index
 				const tab = tabs[route.name as keyof MainTabParamList]
-				const tabName = tab.label
 				const tabLabel = t(`common.tabs.${tab.label}`)
 
 				function selectTab() {
@@ -47,7 +46,6 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 				return (
 					<View key={route.key} style={styles.tabCell}>
 						<PressableSurface
-							testID={`tab-${tabName}`}
 							accessibilityRole="tab"
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}

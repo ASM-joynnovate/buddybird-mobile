@@ -15,10 +15,6 @@ export const settingsSchema = z.object({
 	notifications: notificationsSchema,
 })
 
-export const updateSleepRequestSchema = sleepSchema
-
-export const updateNotificationsRequestSchema = notificationsSchema
-
 export type Settings = z.infer<typeof settingsSchema>
 export type SleepSettings = z.infer<typeof sleepSchema>
 export type NotificationSettings = z.infer<typeof notificationsSchema>

@@ -15,11 +15,10 @@ export const consentSchema = z.object({
 	status: consentStatusSchema.nullable(),
 })
 
-export const saveConsentRequestSchema = z.object({
+const saveConsentRequestSchema = z.object({
 	consent_id: uuid,
 	status: consentStatusSchema,
 })
 
 export type Consent = z.infer<typeof consentSchema>
-export type ConsentStatus = z.infer<typeof consentStatusSchema>
 export type SaveConsentRequest = z.infer<typeof saveConsentRequestSchema>

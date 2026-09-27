@@ -7,7 +7,7 @@ export type PhaseSpan = { phase: Phase; start: number; end: number }
 
 export type SleepWindow = { sleepAt: string; wakeAt: string }
 
-export function minutesOf(time: string): number {
+function minutesOf(time: string): number {
 	const [hours, minutes] = time.split(":").map(Number)
 
 	return hours * MINUTES_PER_HOUR + minutes
@@ -19,7 +19,7 @@ function minuteOfDay(at: number) {
 	return date.getHours() * MINUTES_PER_HOUR + date.getMinutes()
 }
 
-export function isSleeping(at: number, window: SleepWindow): boolean {
+function isSleeping(at: number, window: SleepWindow): boolean {
 	const sleep = minutesOf(window.sleepAt)
 	const wake = minutesOf(window.wakeAt)
 	const minute = minuteOfDay(at)
@@ -31,7 +31,7 @@ export function isSleeping(at: number, window: SleepWindow): boolean {
 	return sleep < wake ? minute >= sleep && minute < wake : minute >= sleep || minute < wake
 }
 
-export function nextTimeOfDay(after: number, time: string): number {
+function nextTimeOfDay(after: number, time: string): number {
 	const date = new Date(after)
 	const target = minutesOf(time)
 

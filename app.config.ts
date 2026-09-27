@@ -68,12 +68,9 @@ const config: ExpoConfig = {
 					useFrameworks: "static",
 					forceStaticLinking: [
 						"RNFBApp",
-						"RNFBAuth",
 						"RNFBAnalytics",
 						"RNFBCrashlytics",
-						"RNFBFirestore",
 						"RNFBMessaging",
-						"RNFBRemoteConfig",
 					],
 				},
 			},

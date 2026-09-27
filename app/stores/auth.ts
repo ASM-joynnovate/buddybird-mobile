@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export type AuthStatus = "loading" | "signingUp" | "completing" | "signedIn" | "error"
+type AuthStatus = "loading" | "signingUp" | "completing" | "signedIn" | "error"
 
 type AuthState = {
 	status: AuthStatus
@@ -12,7 +12,7 @@ type AuthActions = {
 	retry: () => void
 }
 
-export type AuthStore = AuthState & AuthActions
+type AuthStore = AuthState & AuthActions
 
 export const useAuthStore = create<AuthStore>()((set) => ({
 	status: "loading",

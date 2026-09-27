@@ -19,10 +19,8 @@ export const apiKeys = {
 	},
 	sessions: {
 		all: () => [...scope(), "sessions"] as const,
-		range: (from: string, to: string) => [...scope(), "sessions", "list", from, to] as const,
 		running: () => [...scope(), "sessions", "running"] as const,
 		detail: (id: string) => [...scope(), "sessions", id] as const,
-		events: (id: string) => [...scope(), "sessions", id, "events"] as const,
 		sounds: (id: string) => [...scope(), "sessions", id, "sounds"] as const,
 	},
 	home: () => [...scope(), "home"] as const,

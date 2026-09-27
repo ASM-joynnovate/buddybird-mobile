@@ -17,7 +17,7 @@ import type { RootStackParamList } from "@/types/navigation"
 
 type EndReason = "time_reached" | "user" | "server"
 
-export type LearningSession = {
+type LearningSession = {
 	startedAt: string | null
 	failed: boolean
 	ending: boolean

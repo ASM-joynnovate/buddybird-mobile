@@ -26,7 +26,6 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 				onClose={form.close}
 				title={t("app.feedback.sent")}
 				footer=<Button
-					testID="feedback-thanks-close"
 					label={t("app.feedback.thanksClose")}
 					onPress={form.close}
 					style={styles.thanksClose}
@@ -46,14 +45,12 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 				footer={
 					<View style={[ui.actions, styles.actions]}>
 						<Button
-							testID="feedback-prompt-later"
 							label={t("app.feedback.later")}
 							variant="secondary"
 							onPress={prompt.onDismiss}
 							style={ui.action}
 						/>
 						<Button
-							testID="feedback-prompt-write"
 							label={t("app.feedback.write")}
 							onPress={prompt.onWrite}
 							style={ui.action}
@@ -82,7 +79,6 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 						style={ui.action}
 					/>
 					<Button
-						testID="feedback-send"
 						label={t(form.failed ? "app.feedback.retry" : "app.feedback.send")}
 						icon="send"
 						disabled={!form.message.trim()}
@@ -94,7 +90,6 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 			}
 		>
 			<TextField
-				testID="feedback-message"
 				accessibilityLabel={t("app.feedback.title")}
 				value={form.message}
 				onChangeText={form.setMessage}

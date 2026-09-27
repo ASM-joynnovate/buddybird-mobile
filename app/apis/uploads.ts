@@ -26,3 +26,7 @@ export async function issueSoundUpload(
 ): Promise<Upload> {
 	return uploadSchema.parse(await mockServer.sessions.issueSoundUpload(sessionId, capturedAt))
 }
+
+export async function putUpload(upload: Upload, uri: string): Promise<void> {
+	await mockServer.uploads.put(upload.file_id, uri)
+}

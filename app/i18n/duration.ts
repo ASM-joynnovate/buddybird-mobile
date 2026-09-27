@@ -1,6 +1,6 @@
 import type { Locale } from "@/types/locale"
 
-export function durationParts(seconds: number, locale: Locale) {
+function durationParts(seconds: number, locale: Locale) {
 	const value = Math.max(0, Math.round(seconds))
 	const hours = Math.floor(value / 3600)
 	const minutes = Math.floor((value % 3600) / 60)

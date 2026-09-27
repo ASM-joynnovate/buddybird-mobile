@@ -10,7 +10,7 @@ import type { LearningDuration, SessionDraft } from "@/types/navigation"
 
 const UNTIL_END: LearningDuration = { ms: null, custom: false }
 
-export type SessionDraftState = {
+type SessionDraftState = {
 	words: Word[]
 	word: Word | null
 	duration: LearningDuration

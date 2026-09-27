@@ -11,7 +11,7 @@ export const userSchema = z.object({
 	photo: z.object({ url: z.string() }).nullable(),
 })
 
-export const updateUserRequestSchema = z.object({
+const updateUserRequestSchema = z.object({
 	nickname: z.string().nullable().optional(),
 })
 

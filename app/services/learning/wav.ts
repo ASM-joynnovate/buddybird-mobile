@@ -10,7 +10,7 @@ const BITS_PER_BYTE = 8
 const BYTES_PER_SAMPLE = Int16Array.BYTES_PER_ELEMENT
 const INT16_MAX = 32767
 
-export function encodeWav(samples: Float32Array, sampleRate: number): Uint8Array {
+function encodeWav(samples: Float32Array, sampleRate: number): Uint8Array {
 	const dataBytes = samples.length * BYTES_PER_SAMPLE
 	const bytes = new Uint8Array(HEADER_BYTES + dataBytes)
 	const view = new DataView(bytes.buffer)

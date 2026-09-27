@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export type FeedbackSource = "profile" | "prompt"
+type FeedbackSource = "profile" | "prompt"
 
 type FeedbackState = {
 	source: FeedbackSource | null
@@ -11,7 +11,7 @@ type FeedbackActions = {
 	close: () => void
 }
 
-export type FeedbackStore = FeedbackState & FeedbackActions
+type FeedbackStore = FeedbackState & FeedbackActions
 
 export const useFeedbackStore = create<FeedbackStore>()((set) => ({
 	source: null,

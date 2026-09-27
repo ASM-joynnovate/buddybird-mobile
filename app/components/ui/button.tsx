@@ -8,7 +8,7 @@ import { colors, font, radius } from "@/theme"
 interface Props extends Omit<PressableSurfaceProps, "children" | "tone"> {
 	label: string
 	icon?: IconName
-	variant?: "primary" | "secondary" | "blue"
+	variant?: "primary" | "secondary"
 	loading?: boolean
 	compact?: boolean
 }
@@ -25,15 +25,12 @@ export function Button({
 }: Props) {
 	const inactive = disabled || loading
 	const depth = compact ? 4 : 7
-	let tone: "primary" | "neutral" | "blue" | "muted" = "primary"
+	let tone: "primary" | "neutral" | "muted" = "primary"
 	let foregroundColor = colors.onAccent
 
 	if (variant === "secondary") {
 		tone = "neutral"
 		foregroundColor = colors.text
-	} else if (variant === "blue") {
-		tone = "blue"
-		foregroundColor = colors.background
 	}
 
 	if (inactive) {

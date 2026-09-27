@@ -17,7 +17,7 @@ import { reportError, track } from "@/services/telemetry/client"
 import type { Recording, Word } from "@/types/apis/words"
 import type { RecordedSample } from "@/types/navigation"
 
-export type SaveStep = "saving" | "uploading" | "processing"
+type SaveStep = "saving" | "uploading" | "processing"
 
 export type DraftItem = {
 	kind: "server" | "local"
