@@ -6,11 +6,9 @@ export type SettingsMessages = {
 	}
 	notifications: {
 		title: string
-		emergency: string
-		mimicry: string
-		dailySummary: string
-		streak: string
-		stationDisconnect: string
+		notice: string
+		report: string
+		marketing: string
 		permissionOff: string
 		permissionLink: string
 	}

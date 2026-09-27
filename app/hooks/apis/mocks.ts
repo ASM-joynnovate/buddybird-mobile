@@ -3,7 +3,6 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query"
 import {
 	fetchActivity,
 	fetchEventExtras,
-	fetchNoticeNotifications,
 	fetchRecordingStatus,
 	fetchSessionPlays,
 	fetchSessionsInRange,
@@ -67,10 +66,4 @@ export const recordingStatusQueryOptions = (wordId: string) =>
 	queryOptions({
 		queryKey: apiKeys.mocks.recordingStatus(wordId),
 		queryFn: () => fetchRecordingStatus(wordId),
-	})
-
-export const noticeNotificationsQueryOptions = () =>
-	queryOptions({
-		queryKey: apiKeys.mocks.noticeNotifications(),
-		queryFn: fetchNoticeNotifications,
 	})

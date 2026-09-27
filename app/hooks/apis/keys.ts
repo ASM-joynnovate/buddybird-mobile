@@ -43,7 +43,6 @@ export const apiKeys = {
 		soundFeedback: () => [...scope(), "mocks", "sound-feedback"] as const,
 		soundAnalysis: () => [...scope(), "mocks", "sound-analysis"] as const,
 		recordingStatus: (id: string) => [...scope(), "words", id, "mocks", "recordings"] as const,
-		noticeNotifications: () => [...scope(), "notifications", "mocks", "notices"] as const,
 	},
 	mutation: (...parts: string[]) => ["api", ...parts] as const,
 }

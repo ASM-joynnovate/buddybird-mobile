@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-import type { AppNotification } from "@/types/apis/notifications"
 import { timestamp, uuid } from "@/types/apis/primitives"
 import type { Session, SessionEventKind, SessionSound } from "@/types/apis/sessions"
 import type { SleepSettings } from "@/types/apis/settings"
@@ -39,21 +38,6 @@ export const recordingStatusSchema = z.object({
 	status: z.enum(["processing", "ready"]),
 })
 
-export const noticeNotificationSchema = z.object({
-	id: uuid,
-	kind: z.literal("notice"),
-	notice_id: uuid,
-	title: z.string(),
-	body: z.string(),
-	sent_at: timestamp,
-	read_at: timestamp.nullable(),
-})
-
-export const noticeNotificationsSchema = z.object({
-	notices: z.array(noticeNotificationSchema),
-	notification_sessions: z.array(z.object({ notification_id: uuid, session_id: uuid })),
-})
-
 export const appUpdateSchema = z.object({
 	latest_version: z.string(),
 	min_supported_version: z.string(),
@@ -67,9 +51,6 @@ export type Activity = z.infer<typeof activitySchema>
 export type SessionPlays = z.infer<typeof sessionPlaysSchema>
 export type EventExtras = z.infer<typeof eventExtrasSchema>
 export type RecordingStatus = z.infer<typeof recordingStatusSchema>
-export type NoticeNotification = z.infer<typeof noticeNotificationSchema>
-export type NoticeNotifications = z.infer<typeof noticeNotificationsSchema>
-export type InboxNotification = AppNotification | NoticeNotification
 
 export type TimelineEventKind =
 	| Exclude<SessionEventKind, "learning_toggled" | "word_changed" | "emergency_detected">

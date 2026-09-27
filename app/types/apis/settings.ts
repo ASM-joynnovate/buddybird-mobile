@@ -5,11 +5,9 @@ import { clock } from "@/types/apis/primitives"
 const sleepSchema = z.object({ sleep_at: clock, wake_at: clock })
 
 const notificationsSchema = z.object({
-	emergency: z.boolean(),
-	mimicry: z.boolean(),
-	daily_summary: z.boolean(),
-	streak: z.boolean(),
-	station_disconnect: z.boolean(),
+	notice: z.boolean(),
+	report: z.boolean(),
+	marketing: z.boolean(),
 })
 
 export const settingsSchema = z.object({

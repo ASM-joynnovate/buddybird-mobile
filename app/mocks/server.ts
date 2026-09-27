@@ -932,14 +932,11 @@ export const mockServer = {
 				const markRead = <T extends { id: string; read_at: string | null }>(item: T): T =>
 					item.id === id && !item.read_at ? { ...item, read_at: now } : item
 
-				if (
-					![...db.notifications, ...db.noticeNotifications].some((item) => item.id === id)
-				) {
+				if (!db.notifications.some((item) => item.id === id)) {
 					throw notFound()
 				}
 
 				db.notifications = db.notifications.map(markRead)
-				db.noticeNotifications = db.noticeNotifications.map(markRead)
 			}),
 		readAll: () =>
 			respond(() => {
@@ -948,19 +945,7 @@ export const mockServer = {
 				db.notifications = db.notifications.map((item) =>
 					item.read_at ? item : { ...item, read_at: now },
 				)
-				db.noticeNotifications = db.noticeNotifications.map((item) =>
-					item.read_at ? item : { ...item, read_at: now },
-				)
 			}),
-		notices: () =>
-			respond(() => ({
-				notices: db.noticeNotifications,
-				notification_sessions: db.notifications.flatMap((item) =>
-					item.session_id
-						? [{ notification_id: item.id, session_id: item.session_id }]
-						: [],
-				),
-			})),
 	},
 	notices: {
 		list: (pageNumber: number) =>

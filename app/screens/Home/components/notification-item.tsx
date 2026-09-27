@@ -7,23 +7,20 @@ import { Icon, type IconName } from "@/components/ui/icon"
 import { PressableSurface } from "@/components/ui/surface"
 import { Copy } from "@/components/ui/text"
 import { formatMoment } from "@/i18n/format"
-import type { InboxNotification } from "@/mocks/types"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { colors, font, radius } from "@/theme"
+import type { AppNotification, NotificationKind } from "@/types/apis/notifications"
 import { joinLabel } from "@/utils/a11y"
 
-const icons: Record<InboxNotification["kind"], IconName> = {
-	emergency: "warning",
+const icons: Record<NotificationKind, IconName> = {
 	mimicry: "mimicry",
-	station_disconnect: "wifiOff",
 	daily_summary: "report",
 	streak: "flame",
-	notice: "notice",
 }
 
 interface Props {
-	item: InboxNotification
-	onOpen(item: InboxNotification): void
+	item: AppNotification
+	onOpen(item: AppNotification): void
 }
 
 export const NotificationItem = memo(function NotificationItem({ item, onOpen }: Props) {
@@ -49,12 +46,8 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 			)}
 			onPress={() => onOpen(item)}
 		>
-			<View style={[styles.icon, item.kind === "emergency" && styles.alert]}>
-				<Icon
-					name={icons[item.kind]}
-					size={20}
-					color={item.kind === "emergency" ? colors.onAccent : colors.orangeDark}
-				/>
+			<View style={styles.icon}>
+				<Icon name={icons[item.kind]} size={20} color={colors.orangeDark} />
 			</View>
 			<View style={styles.text}>
 				<View style={styles.titleRow}>
@@ -68,7 +61,7 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 				</Copy>
 				<Copy style={styles.time}>{time}</Copy>
 			</View>
-			{item.kind !== "notice" && item.image ? (
+			{item.image ? (
 				<Image
 					source={{ uri: item.image.url }}
 					style={styles.image}
@@ -96,7 +89,6 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		backgroundColor: colors.orangeSelected,
 	},
-	alert: { backgroundColor: colors.error },
 	text: { flex: 1, minWidth: 0, gap: 3 },
 	titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
 	title: { flexShrink: 1, fontFamily: font.black, fontSize: 16, color: colors.text },

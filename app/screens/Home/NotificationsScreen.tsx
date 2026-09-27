@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 
@@ -11,13 +11,11 @@ import { ScreenError } from "@/components/ui/screen-error"
 import { ScreenHeader } from "@/components/ui/screen-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TextButton } from "@/components/ui/text-button"
-import { noticeNotificationsQueryOptions } from "@/hooks/apis/mocks"
 import {
 	notificationsQueryOptions,
 	readAllNotificationsMutationOptions,
 } from "@/hooks/apis/notifications"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import type { InboxNotification } from "@/mocks/types"
 import { NotificationItem } from "@/screens/Home/components/notification-item"
 import { useOpenNotification } from "@/screens/Home/hooks/use-open-notification"
 import { colors } from "@/theme"
@@ -30,14 +28,10 @@ export function NotificationsScreen() {
 	const open = useOpenNotification()
 
 	const list = useInfiniteQuery(notificationsQueryOptions())
-	const noticeNotifications = useQuery(noticeNotificationsQueryOptions())
 
 	const readAll = useIdempotentMutation(readAllNotificationsMutationOptions())
 
-	const items: InboxNotification[] = [
-		...(list.data?.pages.flatMap((page) => page.data) ?? []),
-		...(noticeNotifications.data?.notices ?? []),
-	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
+	const items = list.data?.pages.flatMap((page) => page.data) ?? []
 	const hasUnread = items.some((item) => !item.read_at)
 
 	let empty = <Skeleton rows={5} />

@@ -89,7 +89,6 @@ export type MockNotification = {
 	body: string
 	image: { url: string } | null
 	sound_id: string | null
-	emergency_event_id: string | null
 	report_date: string | null
 	sent_at: string
 	read_at: string | null
@@ -106,24 +105,12 @@ export type MockNotice = {
 	is_read: boolean
 }
 
-export type MockNoticeNotification = {
-	id: string
-	kind: "notice"
-	notice_id: string
-	title: string
-	body: string
-	sent_at: string
-	read_at: string | null
-}
-
 export type MockSettings = {
 	sleep: { sleep_at: string; wake_at: string }
 	notifications: {
-		emergency: boolean
-		mimicry: boolean
-		daily_summary: boolean
-		streak: boolean
-		station_disconnect: boolean
+		notice: boolean
+		report: boolean
+		marketing: boolean
 	}
 }
 
@@ -168,7 +155,6 @@ export type Database = {
 	sessions: MockSession[]
 	notices: MockNotice[]
 	notifications: MockNotification[]
-	noticeNotifications: MockNoticeNotification[]
 }
 
 export const iso = (at: number) => new Date(at).toISOString()
@@ -430,7 +416,6 @@ function notification(
 		body,
 		image: null,
 		sound_id: null,
-		emergency_event_id: null,
 		report_date: null,
 		sent_at: iso(sentAt),
 		read_at: null,
@@ -507,11 +492,9 @@ function defaultSettings(): MockSettings {
 	return {
 		sleep: { sleep_at: "20:00:00", wake_at: "08:00:00" },
 		notifications: {
-			emergency: true,
-			mimicry: true,
-			daily_summary: true,
-			streak: true,
-			station_disconnect: true,
+			notice: true,
+			report: true,
+			marketing: true,
 		},
 	}
 }
@@ -543,7 +526,7 @@ function createConsents(created: number): MockConsent[] {
 	}))
 }
 
-function createNotices(now: number): Pick<Database, "notices" | "noticeNotifications"> {
+function createNotices(now: number): Pick<Database, "notices"> {
 	const notices: MockNotice[] = [
 		{
 			id: randomUUID(),
@@ -564,28 +547,8 @@ function createNotices(now: number): Pick<Database, "notices" | "noticeNotificat
 			is_read: true,
 		},
 	]
-	const noticeNotifications: MockNoticeNotification[] = [
-		{
-			id: randomUUID(),
-			kind: "notice",
-			notice_id: notices[0].id,
-			title: notices[0].title,
-			body: "새로워진 버디버드를 소개해요.",
-			sent_at: notices[0].starts_at,
-			read_at: null,
-		},
-		{
-			id: randomUUID(),
-			kind: "notice",
-			notice_id: notices[1].id,
-			title: notices[1].title,
-			body: "연휴 기간의 운영 시간을 안내해요.",
-			sent_at: notices[1].starts_at,
-			read_at: iso(Date.parse(notices[1].starts_at) + HOUR),
-		},
-	]
 
-	return { notices, noticeNotifications }
+	return { notices }
 }
 
 export function newDatabase(now: number): Database {
@@ -693,13 +656,6 @@ export function seed(now: number): Database {
 			"앵무새와 꾸준히 연습하고 있어요. 리포트에서 추이를 확인해 보세요.",
 			today - DAY - 2 * HOUR,
 			{ report_date: reportDate, read_at: iso(today - DAY) },
-		),
-		notification(
-			"station_disconnect",
-			"거실 공기계 연결이 끊겼어요",
-			"기기의 전원과 인터넷 연결을 확인해 주세요.",
-			today - 4 * DAY + 13 * HOUR,
-			{ read_at: iso(today - 4 * DAY + 14 * HOUR) },
 		),
 	].sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at))
 

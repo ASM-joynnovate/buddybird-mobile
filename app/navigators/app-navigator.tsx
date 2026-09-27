@@ -1,4 +1,10 @@
 import {
+	getInitialNotification,
+	getMessaging,
+	onNotificationOpenedApp,
+} from "@react-native-firebase/messaging"
+import {
+	type LinkingOptions,
 	NavigationContainer,
 	type NavigationState,
 	type PartialState,
@@ -7,6 +13,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { StartupScreen } from "@/components/app/startup-screen"
 import { OfflineBanner } from "@/components/offline-banner"
+import { env } from "@/config"
 import { type EntryRoute, useEntryRoute } from "@/hooks/use-entry-route"
 import { MainTabs } from "@/navigators/main-tabs"
 import { ConsentDetailScreen } from "@/screens/Entry/ConsentDetailScreen"
@@ -26,10 +33,58 @@ import { PermissionsScreen } from "@/screens/Settings/PermissionsScreen"
 import { SettingsScreen } from "@/screens/Settings/SettingsScreen"
 import { RecorderScreen } from "@/screens/Words/RecorderScreen"
 import { RecordingGuideScreen } from "@/screens/Words/RecordingGuideScreen"
+import { reportError } from "@/services/telemetry/client"
 import { colors } from "@/theme"
+import { pushDataSchema } from "@/types/apis/notifications"
 import type { RootStackParamList } from "@/types/navigation"
+import { notificationPath } from "@/utils/notification"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
+
+function linkPrefix() {
+	return `${env.production ? "buddybird" : "buddybird-dev"}://`
+}
+
+function pushUrl(data: unknown): string | null {
+	const parsed = pushDataSchema.safeParse(data)
+
+	if (!parsed.success) {
+		reportError(parsed.error, "push_opened")
+
+		return null
+	}
+
+	return `${linkPrefix()}${notificationPath(parsed.data).slice(1)}`
+}
+
+const linking: LinkingOptions<RootStackParamList> = {
+	prefixes: [linkPrefix()],
+	config: {
+		screens: {
+			Main: { screens: { ReportTab: { screens: { Report: "report" } } } },
+		},
+	},
+	async getInitialURL() {
+		try {
+			const message = await getInitialNotification(getMessaging())
+
+			return message ? pushUrl(message.data) : null
+		} catch (error) {
+			reportError(error, "push_initial")
+
+			return null
+		}
+	},
+	subscribe(listener) {
+		return onNotificationOpenedApp(getMessaging(), (message) => {
+			const url = pushUrl(message.data)
+
+			if (url) {
+				listener(url)
+			}
+		})
+	},
+}
 
 const ENTRY_ORDER = ["Consent", "ParrotEditor", "UsageGuide"] as const
 
@@ -80,7 +135,11 @@ export function AppNavigator() {
 
 	return (
 		<>
-			<NavigationContainer key={route} initialState={initialStateOf(route, parrotId)}>
+			<NavigationContainer
+				key={route}
+				initialState={initialStateOf(route, parrotId)}
+				linking={route === "Main" ? linking : undefined}
+			>
 				<Stack.Navigator
 					screenOptions={{
 						headerShown: false,

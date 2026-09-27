@@ -6,8 +6,6 @@ import {
 	activitySchema,
 	type EventExtras,
 	eventExtrasSchema,
-	type NoticeNotifications,
-	noticeNotificationsSchema,
 	type RecordingStatus,
 	recordingStatusSchema,
 	type SessionPlays,
@@ -60,8 +58,4 @@ export async function saveSoundFeedback(
 
 export async function fetchRecordingStatus(wordId: string): Promise<RecordingStatus[]> {
 	return z.array(recordingStatusSchema).parse(await mockServer.words.recordingStatus(wordId))
-}
-
-export async function fetchNoticeNotifications(): Promise<NoticeNotifications> {
-	return noticeNotificationsSchema.parse(await mockServer.notifications.notices())
 }

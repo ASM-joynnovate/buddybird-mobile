@@ -8,11 +8,9 @@ const ITEMS: readonly {
 	key: NotificationSetting
 	label: keyof SettingsMessages["notifications"]
 }[] = [
-	{ key: "emergency", label: "emergency" },
-	{ key: "mimicry", label: "mimicry" },
-	{ key: "daily_summary", label: "dailySummary" },
-	{ key: "streak", label: "streak" },
-	{ key: "station_disconnect", label: "stationDisconnect" },
+	{ key: "notice", label: "notice" },
+	{ key: "report", label: "report" },
+	{ key: "marketing", label: "marketing" },
 ]
 
 interface Props {
