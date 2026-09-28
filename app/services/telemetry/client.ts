@@ -144,7 +144,7 @@ export function initializeTelemetry(requestATT = true): Promise<AnalyticsConsent
 	return initialization;
 }
 
-export function setTelemetryIdentity(next: string | null) {
+export function setTelemetryUserId(next: string | null) {
 	userId = next;
 
 	if (allowed === true) {
@@ -170,7 +170,6 @@ export function setUserProperties(next: UserProperties) {
 
 export function syncUserProperties(parrot: Parrot | null, wordCount: number) {
 	setUserProperties({
-		parrot_name: parrot?.name ?? null,
 		parrot_species: parrot?.species ?? null,
 		parrot_age_months: parrot ? ageMonths(parrot.birthdate) : null,
 		total_words_registered: wordCount,

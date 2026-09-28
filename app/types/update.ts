@@ -4,4 +4,4 @@ export type UpdatePolicy = {
 	notes: string[];
 };
 
-export type UpdateDecision = { latestVersion: string; forced: boolean; notes: string[] } | null;
+export type PromptedUpdate = { latestVersion: string; forced: boolean; notes: string[] } | null;

@@ -2,9 +2,12 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import type { UpdateDecision } from '@/types/update';
+import type { PromptedUpdate } from '@/types/update';
 
 import { useTranslation } from 'react-i18next';
+
+import { openAppStore } from '@/services/device/application';
+import { reportError, track } from '@/services/telemetry/client';
 
 import { Dialog } from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,45 +16,60 @@ import { ui } from '@/components/ui/styles';
 import { Copy } from '@/components/ui/text';
 
 interface Props {
+	promptedUpdate: PromptedUpdate;
 	visible: boolean;
-	decision: UpdateDecision;
-	pending: boolean;
-	onAccept(): Promise<void> | void;
-	onDismiss(): void;
+	onDismiss: () => void;
+	onStoreOpened: () => void;
 }
 
-export function UpdateDialog({ visible, decision, pending, onAccept, onDismiss }: Props) {
+export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened }: Props) {
 	const { t } = useTranslation();
 
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState(false);
+	const [appStoreOpening, setAppStoreOpening] = useState(false);
+	const [appStoreOpenFailed, setAppStoreOpenFailed] = useState(false);
 
-	const blocked = busy || pending;
-	const forced = decision?.forced ?? false;
+	const forced = promptedUpdate?.forced ?? false;
 
-	async function accept() {
-		setBusy(true);
-		setError(false);
+	/** 업데이트 수락 시 스토어 열기 */
+	const handleAcceptUpdate = async () => {
+		if (!promptedUpdate || appStoreOpening) {
+			return;
+		}
+
+		setAppStoreOpening(true);
+		setAppStoreOpenFailed(false);
 
 		try {
-			await onAccept();
-		} catch {
-			setError(true);
-		} finally {
-			setBusy(false);
-		}
-	}
+			track('update_prompt_accepted', {
+				latest_version: promptedUpdate.latestVersion,
+				is_forced: promptedUpdate.forced,
+			});
 
-	function dismiss() {
-		if (!forced && !blocked) {
+			await openAppStore();
+
+			if (!promptedUpdate.forced) {
+				onStoreOpened();
+			}
+		} catch (e) {
+			reportError(e, 'open_store');
+
+			setAppStoreOpenFailed(true);
+		} finally {
+			setAppStoreOpening(false);
+		}
+	};
+
+	/** 닫기 요청 시 선택 업데이트 안내 닫기 */
+	const handleClose = () => {
+		if (!forced && !appStoreOpening) {
 			onDismiss();
 		}
-	}
+	};
 
 	return (
 		<Dialog
 			visible={visible}
-			onClose={dismiss}
+			onClose={handleClose}
 			title={t(forced ? 'app.update.required' : 'app.update.title')}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
@@ -59,31 +77,34 @@ export function UpdateDialog({ visible, decision, pending, onAccept, onDismiss }
 						<Button
 							label={t('app.update.later')}
 							variant="secondary"
-							disabled={blocked}
+							disabled={appStoreOpening}
 							onPress={onDismiss}
 							style={ui.action}
 						/>
 					) : null}
 					<Button
 						label={t('app.update.accept')}
-						loading={blocked}
-						onPress={() => void accept()}
+						loading={appStoreOpening}
+						onPress={() => void handleAcceptUpdate()}
 						style={ui.action}
 					/>
 				</View>
 			}
 		>
+			{/*업데이트 안내와 변경 내용*/}
 			<Copy style={styles.body}>
 				{t(forced ? 'app.update.requiredBody' : 'app.update.body', {
-					version: decision?.latestVersion ?? '',
+					version: promptedUpdate?.latestVersion ?? '',
 				})}
 			</Copy>
-			{(decision?.notes ?? []).map((note, index) => (
+			{(promptedUpdate?.notes ?? []).map((note, index) => (
 				<Copy key={`${index}-${note}`} style={styles.note}>
 					{note}
 				</Copy>
 			))}
-			<InlineError message={error ? t('app.update.error') : null} />
+
+			{/*스토어 열기 실패 문구*/}
+			<InlineError message={appStoreOpenFailed ? t('app.update.openStoreError') : null} />
 		</Dialog>
 	);
 }

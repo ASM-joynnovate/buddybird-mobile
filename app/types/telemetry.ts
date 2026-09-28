@@ -69,8 +69,5 @@ export type Events = {
 };
 
 export type UserProperties = Partial<
-	Record<
-		'parrot_name' | 'parrot_species' | 'parrot_age_months' | 'total_words_registered' | 'locale',
-		string | number | null
-	>
+	Record<'parrot_species' | 'parrot_age_months' | 'total_words_registered' | 'locale', string | number | null>
 >;

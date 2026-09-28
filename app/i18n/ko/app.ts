@@ -28,6 +28,6 @@ export const app: AppMessages = {
 		requiredBody: '계속 사용하려면 {{version}} 버전으로 업데이트해 주세요.',
 		accept: '업데이트',
 		later: '닫기',
-		error: '스토어를 열지 못했어요. 다시 시도해 주세요.',
+		openStoreError: '스토어를 열지 못했어요. 다시 시도해 주세요.',
 	},
 };

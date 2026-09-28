@@ -12,7 +12,7 @@ function recordFeedbackDay(scope: string) {
 	}
 }
 
-export function startForegroundServices() {
+export function startAppServices() {
 	const removeErrors = installGlobalErrorReporting();
 
 	void initializeTelemetry().catch((error) => reportError(error, 'telemetry_start'));

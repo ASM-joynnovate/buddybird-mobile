@@ -1,4 +1,4 @@
-import type { UpdateDecision, UpdatePolicy } from '@/types/update';
+import type { PromptedUpdate, UpdatePolicy } from '@/types/update';
 
 const VERSION_PARTS = 3;
 
@@ -31,7 +31,7 @@ function compareVersions(a: string, b: string): number | null {
 	return 0;
 }
 
-export function evaluateUpdate(policy: UpdatePolicy, installed: string, dismissed: string | null): UpdateDecision {
+export function evaluateUpdate(policy: UpdatePolicy, installed: string, dismissed: string | null): PromptedUpdate {
 	if (!policy.latestVersion || compareVersions(installed, policy.latestVersion) === null) {
 		return null;
 	}

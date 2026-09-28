@@ -23,7 +23,7 @@ export function App() {
 		<RootProviders>
 			{/*앱 화면*/}
 			{ready ? (
-				<AppContent showDialogs={splashFinished} />
+				<AppContent splashFinished={splashFinished} />
 			) : state === 'failed' ? (
 				<StartupScreen onRetry={retry} />
 			) : (

@@ -25,7 +25,7 @@ module.exports = {
     layer(
       "providers",
       "^app/providers/",
-      "^app/(providers|config|types|utils|lib|apis|mocks|stores|services|hooks|i18n)/",
+      "^app/((providers|config|types|utils|lib|apis|mocks|stores|services|hooks|i18n)/|components/dialogs/)",
     ),
     layer(
       "hooks",

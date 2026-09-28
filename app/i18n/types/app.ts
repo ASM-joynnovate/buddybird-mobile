@@ -26,6 +26,6 @@ export type AppMessages = {
 		requiredBody: string;
 		accept: string;
 		later: string;
-		error: string;
+		openStoreError: string;
 	};
 };

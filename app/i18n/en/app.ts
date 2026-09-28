@@ -28,6 +28,6 @@ export const app: AppMessages = {
 		requiredBody: 'Update to {{version}} to keep using BuddyBird.',
 		accept: 'Update',
 		later: 'Close',
-		error: "Couldn't open the store. Please try again.",
+		openStoreError: "Couldn't open the store. Please try again.",
 	},
 };

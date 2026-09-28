@@ -1,6 +1,6 @@
 import { mockPutLocale } from '@/apis/mock';
 
-import { initI18n } from '@/i18n';
+import { changeI18nLocale } from '@/i18n';
 
 import { configureApi } from '@/lib/api';
 import { takeRestoreErrors } from '@/lib/storage';
@@ -28,7 +28,7 @@ mockPutLocale({ locale });
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
 
 // Register the translation instance before the first useTranslation hook renders.
-const i18nReady = initI18n(useDeviceSettingsStore.getState().locale);
+const i18nReady = changeI18nLocale(useDeviceSettingsStore.getState().locale);
 
 export async function bootstrap() {
 	await i18nReady;

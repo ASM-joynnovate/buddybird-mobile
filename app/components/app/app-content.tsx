@@ -1,19 +1,18 @@
-import { useAppServices } from '@/hooks/use-app-services';
-
 import { AuthProvider } from '@/providers/auth';
+import SystemProvider from '@/providers/system';
 
 import { AuthenticatedContent } from '@/components/app/authenticated-content';
 
 interface Props {
-	showDialogs: boolean;
+	splashFinished: boolean;
 }
 
-export function AppContent({ showDialogs }: Props) {
-	useAppServices();
-
+export function AppContent({ splashFinished }: Props) {
 	return (
-		<AuthProvider>
-			<AuthenticatedContent showDialogs={showDialogs} />
-		</AuthProvider>
+		<SystemProvider>
+			<AuthProvider>
+				<AuthenticatedContent splashFinished={splashFinished} />
+			</AuthProvider>
+		</SystemProvider>
 	);
 }

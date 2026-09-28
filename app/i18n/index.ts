@@ -19,7 +19,7 @@ dayjs.extend(localizedFormat);
 
 const dayjsLocales: Record<Locale, string> = { 'ko-KR': 'ko', 'en-US': 'en' };
 
-export async function initI18n(locale: Locale) {
+export async function changeI18nLocale(locale: Locale) {
 	dayjs.locale(dayjsLocales[locale]);
 
 	if (i18next.isInitialized) {
