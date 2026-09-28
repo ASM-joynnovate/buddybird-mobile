@@ -12,7 +12,7 @@ import { formatDateTime } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 
-import { track } from '@/services/telemetry/client';
+import { reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
@@ -61,7 +61,9 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 			if (result.action === Share.sharedAction) {
 				track('mimicry_shared', { session_id: sound.session_id });
 			}
-		} catch {
+		} catch (e) {
+			reportError(e, 'mimicry_share');
+
 			setShareFailed(true);
 		}
 	}

@@ -10,7 +10,7 @@ export function periodsBetween(period: ReportPeriod, from: string, to: string): 
 	return dayjs(to).diff(from, period);
 }
 
-export function ageMonths(birthdate: string | null, now = new Date()): number | null {
+export function ageMonths(birthdate: string | null, now = dayjs()): number | null {
 	if (!birthdate) {
 		return null;
 	}

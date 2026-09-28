@@ -17,6 +17,7 @@ import {
 	type SignInWithOAuthCredentials,
 	type SupabaseClient,
 } from '@supabase/supabase-js';
+import dayjs from 'dayjs';
 import type { AppleAuthenticationCredential, AppleAuthenticationSignInOptions } from 'expo-apple-authentication';
 import type { WebBrowserAuthSessionResult } from 'expo-web-browser';
 
@@ -43,7 +44,7 @@ type Listener = (event: AuthChangeEvent, session: Session | null) => void;
 
 const IDENTITY_CONFLICT_STATUS = 422;
 
-const listeners = new Set<Listener>();
+let listeners = new Set<Listener>();
 
 let current: Session | null | undefined;
 
@@ -59,7 +60,7 @@ function toSession(mock: MockSession): Session {
 			aud: 'authenticated',
 			app_metadata: { providers: mock.providers },
 			user_metadata: {},
-			created_at: new Date().toISOString(),
+			created_at: dayjs().toISOString(),
 		},
 	};
 }
@@ -117,14 +118,16 @@ const mockAuth = {
 	getSession: async () => ({ data: { session: currentSession() }, error: null }),
 
 	onAuthStateChange: (callback: Listener) => {
-		listeners.add(callback);
+		listeners = new Set([...listeners, callback]);
 
 		return {
 			data: {
 				subscription: {
 					id: String(listeners.size),
 					callback,
-					unsubscribe: () => listeners.delete(callback),
+					unsubscribe: () => {
+						listeners = new Set([...listeners].filter((listener) => listener !== callback));
+					},
 				},
 			},
 		};

@@ -2,6 +2,7 @@ import type { HeartbeatSummary, Phase } from '@/types/apis/sessions';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
+import dayjs from 'dayjs';
 import {
 	type AudioBuffer,
 	type AudioBufferSourceNode,
@@ -61,7 +62,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	let totals: Record<string, HeartbeatSummary> = {};
 
 	function count(counter: Counter, amount: number, at: number) {
-		const date = localDate(new Date(at));
+		const date = localDate(at);
 		const current = totals[date] ?? {
 			word_id: options.wordId,
 			local_date: date,
@@ -84,7 +85,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		try {
 			options.onSound({
 				uri: saveWav(segment.samples, VAD.sampleRate),
-				capturedAt: new Date(Date.now() - segment.durationMs).toISOString(),
+				capturedAt: dayjs().subtract(segment.durationMs, 'ms').toISOString(),
 			});
 		} catch (error) {
 			options.onError(error);
@@ -131,7 +132,9 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		source.onEnded = () => {
 			if (clip === source) {
 				clip = null;
-				nextPlayAt = Date.now() + durationMs * WORD_REST_FACTOR;
+				nextPlayAt = dayjs()
+					.add(durationMs * WORD_REST_FACTOR, 'ms')
+					.valueOf();
 			}
 		};
 		source.start();
@@ -199,7 +202,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	}
 
 	function tick() {
-		const now = Date.now();
+		const now = dayjs().valueOf();
 		const span = currentSpan(options.startedAt, now, options.sleep);
 
 		if (span.phase !== phase) {
@@ -226,7 +229,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			},
 			({ buffer }) => {
 				if (running) {
-					detector.push(buffer.getChannelData(0), Date.now()).forEach(emit);
+					detector.push(buffer.getChannelData(0), dayjs().valueOf()).forEach(emit);
 				}
 			},
 		);
@@ -246,7 +249,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 		running = true;
 		phase = null;
-		lastTick = Date.now();
+		lastTick = dayjs().valueOf();
 
 		await startRecorder();
 

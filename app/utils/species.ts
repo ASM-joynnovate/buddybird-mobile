@@ -6,8 +6,6 @@ export const speciesGroups = {
 
 export type SpeciesId = (typeof speciesGroups)[keyof typeof speciesGroups][number];
 
-export const speciesIds: readonly SpeciesId[] = Object.values(speciesGroups).flat();
-
 export function isSpeciesId(value: string): value is SpeciesId {
-	return (speciesIds as readonly string[]).includes(value);
+	return Object.values<readonly string[]>(speciesGroups).flat().includes(value);
 }

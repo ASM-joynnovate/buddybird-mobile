@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Report } from '@/types/apis/reports';
 
-import type { Locale } from '@/types/locale';
 import type { ReportPeriod } from '@/types/report-period';
 
 import type { TFunction } from 'i18next';
@@ -12,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { formatDateWithWeekday, formatDuration } from '@/i18n/format';
 
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
@@ -25,17 +24,18 @@ const MIN_BAR = 3;
 
 type Bucket = Report['trend'][number];
 
-function axisLabel(period: ReportPeriod, date: Date, locale: Locale, t: TFunction): string {
+/** 기간에 맞춘 막대 아래 축 글자 */
+const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 	if (period === 'week') {
-		return date.toLocaleDateString(locale, { weekday: 'short' });
+		return date.format('ddd');
 	}
 
 	if (period === 'day') {
-		return date.getHours() % 6 === 0 ? t('report.hour', { hour: date.getHours() }) : '';
+		return date.hour() % 6 === 0 ? t('report.hour', { hour: date.hour() }) : '';
 	}
 
-	return (date.getDate() - 1) % 7 === 0 ? String(date.getDate()) : '';
-}
+	return (date.date() - 1) % 7 === 0 ? String(date.date()) : '';
+};
 
 interface Props {
 	period: ReportPeriod;
@@ -59,10 +59,12 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 
 	return (
 		<View>
+			{/*고른 막대의 날짜와 학습 시간*/}
 			<Copy accessibilityLiveRegion="polite" style={styles.detail}>
 				{picked ? describe(picked) : ' '}
 			</Copy>
 
+			{/*학습 시간 막대*/}
 			<View style={[styles.bars, period === 'week' ? styles.wide : styles.narrow]}>
 				{trend.map((bucket, index) => (
 					<PressableSurface
@@ -89,6 +91,8 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 					</PressableSurface>
 				))}
 			</View>
+
+			{/*막대 아래 축 글자*/}
 			<View
 				style={[styles.axis, period === 'week' ? styles.wide : styles.narrow]}
 				accessibilityElementsHidden
@@ -97,7 +101,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 				{trend.map((bucket) => (
 					<View key={bucket.start} style={styles.column}>
 						<Copy numberOfLines={1} style={styles.axisText}>
-							{axisLabel(period, new Date(bucket.start), locale, t)}
+							{formatAxisLabel(period, dayjs(bucket.start), t)}
 						</Copy>
 					</View>
 				))}

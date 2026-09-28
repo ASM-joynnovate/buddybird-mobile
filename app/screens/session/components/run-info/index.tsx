@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SessionProgressArc } from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
-import { night } from '@/theme/night';
+import { sessionColors } from '@/theme/session-colors';
 import { runStatus } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
@@ -51,7 +51,7 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 			{/*경과 시간과 안내*/}
 			<View style={styles.stack}>
 				<Copy style={styles.label}>{t('session.run.elapsed')}</Copy>
-				<Copy style={styles.timer}>{formatTimer(now - Date.parse(startedAt))}</Copy>
+				<Copy style={styles.timer}>{formatTimer(dayjs(now).diff(startedAt))}</Copy>
 
 				<Copy style={[styles.label, styles.gap]}>{t('session.run.keepOpen')}</Copy>
 				{engineFailed ? <Copy style={styles.label}>{t('session.run.engineError')}</Copy> : null}
@@ -74,8 +74,8 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 				<PressableSurface
 					depth="low"
 					cornerRadius="control"
-					color={night.edge}
-					backgroundColor={night.background}
+					color={sessionColors.edge}
+					backgroundColor={sessionColors.background}
 					style={styles.end}
 					contentStyle={styles.endFace}
 					accessibilityLabel={t('session.end.title')}
@@ -91,16 +91,16 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 const styles = StyleSheet.create({
 	info: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12 },
 	stack: { gap: 2 },
-	label: { fontFamily: font.extraBold, fontSize: 13, color: night.faint },
+	label: { fontFamily: font.extraBold, fontSize: 13, color: sessionColors.faint },
 	gap: { marginTop: 12 },
 	timer: {
 		fontFamily: font.black,
 		fontSize: 22,
-		color: night.text,
+		color: sessionColors.text,
 		fontVariant: ['tabular-nums'],
 	},
 	bottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center' },
 	end: { position: 'absolute', right: 0, bottom: 16 },
 	endFace: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18 },
-	endText: { fontFamily: font.extraBold, fontSize: 15, color: night.text },
+	endText: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.text },
 });

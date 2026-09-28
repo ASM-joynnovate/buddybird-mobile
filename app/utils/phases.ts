@@ -74,7 +74,7 @@ export function currentSpan(start: number, now: number, sleep: SleepSettings): P
 type RunStatus = { phase: Phase; remainingMs: number | null; fraction: number | null };
 
 export function runStatus(startedAt: string, endsAt: number | null, sleep: SleepSettings, now: number): RunStatus {
-	const started = Date.parse(startedAt);
+	const started = dayjs(startedAt).valueOf();
 	const span = currentSpan(started, now, sleep);
 
 	if (endsAt === null) {

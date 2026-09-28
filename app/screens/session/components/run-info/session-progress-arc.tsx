@@ -5,7 +5,7 @@ import type { Phase } from '@/types/apis/sessions';
 import Svg, { Path } from 'react-native-svg';
 
 import { font } from '@/theme';
-import { night, nightPhaseColor } from '@/theme/night';
+import { sessionColors, sessionPhaseColors } from '@/theme/session-colors';
 import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
@@ -33,13 +33,14 @@ export function SessionProgressArc({ width, phase, fraction, title, detail }: Pr
 			accessible
 			accessibilityLabel={joinLabel(title, detail)}
 		>
+			{/*진행 고리*/}
 			<Svg width={width} height={baseline + STROKE / 2} style={styles.svg}>
-				<Path d={arc} fill="none" stroke={night.track} strokeWidth={STROKE} strokeLinecap="round" />
+				<Path d={arc} fill="none" stroke={sessionColors.track} strokeWidth={STROKE} strokeLinecap="round" />
 				{fraction === null ? null : (
 					<Path
 						d={arc}
 						fill="none"
-						stroke={nightPhaseColor(phase)}
+						stroke={sessionPhaseColors[phase]}
 						strokeWidth={STROKE}
 						strokeLinecap="round"
 						strokeDasharray={`${shown} ${length}`}
@@ -47,6 +48,7 @@ export function SessionProgressArc({ width, phase, fraction, title, detail }: Pr
 				)}
 			</Svg>
 
+			{/*단계 이름과 남은 시간*/}
 			<View style={styles.center}>
 				<Copy style={styles.title}>{title}</Copy>
 				{detail === null ? null : <Copy style={styles.detail}>{detail}</Copy>}
@@ -59,11 +61,11 @@ const styles = StyleSheet.create({
 	ring: { alignItems: 'center', justifyContent: 'flex-end' },
 	svg: { position: 'absolute', top: 0, left: 0 },
 	center: { alignItems: 'center', gap: 4, paddingBottom: 12 },
-	title: { fontFamily: font.black, fontSize: 20, color: night.text },
+	title: { fontFamily: font.black, fontSize: 20, color: sessionColors.text },
 	detail: {
 		fontFamily: font.black,
 		fontSize: 26,
-		color: night.text,
+		color: sessionColors.text,
 		fontVariant: ['tabular-nums'],
 	},
 });

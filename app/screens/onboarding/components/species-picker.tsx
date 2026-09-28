@@ -8,7 +8,7 @@ import { BottomSheetSectionList } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, font } from '@/theme';
-import { isSpeciesId, speciesGroups, type SpeciesId, speciesIds } from '@/utils/species';
+import { isSpeciesId, speciesGroups, type SpeciesId } from '@/utils/species';
 
 import { Copy } from '@/components/ui/copy';
 import { ItemPicker } from '@/components/ui/item/picker';
@@ -19,11 +19,6 @@ type Section = { key: SpeciesGroup; data: readonly SpeciesId[] };
 
 const MAX_SCROLL_RETRIES = 3;
 const SCROLL_DELAY_MS = 150;
-
-const sections: Section[] = (Object.keys(speciesGroups) as SpeciesGroup[]).map((key) => ({
-	key,
-	data: speciesGroups[key],
-}));
 
 interface Props {
 	species: string;
@@ -39,6 +34,11 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 
 	const list = useRef<SectionList<SpeciesId, Section>>(null);
 	const scrollRetries = useRef(0);
+
+	const sections: Section[] = Object.entries(speciesGroups).map(([group, data]) => ({
+		key: group as SpeciesGroup,
+		data,
+	}));
 
 	function showSelected() {
 		if (!isSpeciesId(species)) {
@@ -72,6 +72,7 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 				list: true,
 				onOpened: () => {
 					scrollRetries.current = 0;
+
 					setTimeout(showSelected, SCROLL_DELAY_MS);
 				},
 			}}
@@ -82,10 +83,11 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 					sections={sections}
 					keyExtractor={(id: SpeciesId) => id}
 					stickySectionHeadersEnabled
-					initialNumToRender={speciesIds.length}
+					initialNumToRender={sections.flatMap((section) => section.data).length}
 					onScrollToIndexFailed={() => {
 						if (scrollRetries.current < MAX_SCROLL_RETRIES) {
 							scrollRetries.current += 1;
+
 							requestAnimationFrame(showSelected);
 						}
 					}}
@@ -104,6 +106,7 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 							selected={species === item}
 							onPress={() => {
 								setSpecies(item);
+
 								close();
 							}}
 						/>

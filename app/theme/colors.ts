@@ -36,10 +36,3 @@ export const providerColors = {
 		background: '#000000',
 	},
 };
-
-export const phaseColors = {
-	learning: colors.orange,
-	rest: colors.blue,
-	stress_care: colors.blue,
-	sleeping: colors.disabled,
-};

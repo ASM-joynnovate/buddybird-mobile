@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Report } from '@/types/apis/reports';
 
-import type { Locale } from '@/types/locale';
 import type { RootStackParamList } from '@/types/navigation';
 import { reportPeriodSchema } from '@/types/report-period';
 
@@ -32,18 +31,6 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { ui } from '@/components/ui/styles';
 import { Card } from '@/components/ui/surface/card';
 
-function periodLabel(report: Report, locale: Locale): string {
-	if (report.period === 'day') {
-		return formatDateWithWeekday(report.start, locale);
-	}
-
-	if (report.period === 'month') {
-		return formatMonth(report.start, locale);
-	}
-
-	return `${formatDate(report.start, locale)} ~ ${formatDate(report.end, locale)}`;
-}
-
 interface Props {
 	report: Report;
 }
@@ -62,7 +49,12 @@ export function ReportHeader({ report }: Props): ReactElement {
 	const movePeriod = useReportStore((state) => state.movePeriod);
 
 	const recorded = report.sessions.length > 0;
-	const label = periodLabel(report, locale);
+	const periodLabel =
+		report.period === 'day'
+			? formatDateWithWeekday(report.start, locale)
+			: report.period === 'month'
+				? formatMonth(report.start, locale)
+				: `${formatDate(report.start, locale)} ~ ${formatDate(report.end, locale)}`;
 	const isLatest = start === null || start >= latestStart(period);
 	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
@@ -87,7 +79,7 @@ export function ReportHeader({ report }: Props): ReactElement {
 			<Card style={styles.card}>
 				<View style={ui.row}>
 					<Copy accessibilityRole="header" style={styles.period}>
-						{label}
+						{periodLabel}
 					</Copy>
 					<IconButton icon={ChevronLeftIcon} label={t('report.previous')} onPress={() => movePeriod(-1)} />
 					<IconButton

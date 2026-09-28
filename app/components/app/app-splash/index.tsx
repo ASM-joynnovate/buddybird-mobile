@@ -18,6 +18,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { reportError } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
+import { SECOND } from '@/utils/units';
 
 import { SplashEye } from '@/components/app/app-splash/splash-eye';
 
@@ -31,11 +32,6 @@ interface Props {
 export function AppSplash({ ready, onComplete }: Props) {
 	const reducedMotion = useReducedMotion();
 
-	const [shown, setShown] = useState(false);
-	const [blinked, setBlinked] = useState(reducedMotion);
-
-	const laidOut = useRef(false);
-
 	const eyes = useSharedValue(1);
 	const enter = useSharedValue(reducedMotion ? 1 : 0);
 	const opacity = useSharedValue(1);
@@ -45,6 +41,11 @@ export function AppSplash({ ready, onComplete }: Props) {
 	}));
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
+	const [shown, setShown] = useState(false);
+	const [blinked, setBlinked] = useState(reducedMotion);
+
+	const laidOut = useRef(false);
+
 	useEffect(() => {
 		if (!shown || reducedMotion) {
 			return;
@@ -53,7 +54,7 @@ export function AppSplash({ ready, onComplete }: Props) {
 		enter.set(withTiming(1, { duration: 760, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
 		eyes.set(
 			withDelay(
-				1000,
+				SECOND,
 				withSequence(
 					withTiming(0.07, { duration: 90, easing: Easing.in(Easing.quad) }),
 					withTiming(1, { duration: 130, easing: Easing.out(Easing.quad) }),
@@ -108,6 +109,7 @@ export function AppSplash({ ready, onComplete }: Props) {
 				importantForAccessibility="no-hide-descendants"
 				style={[StyleSheet.absoluteFill, enterStyle]}
 			>
+				{/*몸통 그림*/}
 				<Svg
 					style={StyleSheet.absoluteFill}
 					width="100%"
@@ -117,6 +119,8 @@ export function AppSplash({ ready, onComplete }: Props) {
 				>
 					<Path {...artwork.body} transform="translate(4 0)" />
 				</Svg>
+
+				{/*얼굴과 앱 이름*/}
 				<Svg width="100%" height="100%" viewBox="0 0 860 1851" preserveAspectRatio="xMidYMid meet">
 					<G transform="translate(4 0)">
 						<SplashEye offset={0} openness={eyes} />
@@ -125,6 +129,7 @@ export function AppSplash({ ready, onComplete }: Props) {
 							<Path key={index} {...part} />
 						))}
 					</G>
+
 					<SvgText
 						x={430}
 						y={1540}

@@ -4,6 +4,7 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 
 import { env } from '@/config';
+import { reportError } from '@/services/telemetry/client';
 
 export const installedVersion = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.2.0';
 
@@ -23,7 +24,9 @@ export async function openAppStore() {
 
 	try {
 		await Linking.openURL(native);
-	} catch {
+	} catch (e) {
+		reportError(e, 'open_store_app');
+
 		await Linking.openURL(web);
 	}
 }

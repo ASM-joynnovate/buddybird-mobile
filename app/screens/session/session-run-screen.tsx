@@ -24,7 +24,7 @@ import { RunInfo } from '@/screens/session/components/run-info';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
-import { night } from '@/theme/night';
+import { sessionColors } from '@/theme/session-colors';
 import { currentSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
@@ -302,7 +302,7 @@ export function SessionRunScreen() {
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			backgroundColor={night.background}
+			backgroundColor={sessionColors.background}
 			style={styles.screen}
 			contentStyle={styles.fill}
 			onPress={showInfo}
@@ -338,6 +338,6 @@ export function SessionRunScreen() {
 }
 
 const styles = StyleSheet.create({
-	screen: { flex: 1, backgroundColor: night.background },
+	screen: { flex: 1, backgroundColor: sessionColors.background },
 	fill: { flex: 1, borderWidth: 0 },
 });

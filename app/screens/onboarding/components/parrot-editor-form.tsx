@@ -21,7 +21,7 @@ import { randomUUID } from 'expo-crypto';
 import { TrashIcon } from 'lucide-react-native';
 
 import { PARROT_NAME_LIMIT } from '@/config';
-import { DatePicker } from '@/screens/onboarding/components/date-picker';
+import BirthdatePicker from '@/screens/onboarding/components/birthdate-picker';
 import { SpeciesPicker } from '@/screens/onboarding/components/species-picker';
 import { reportError } from '@/services/telemetry/client';
 import { isSpeciesId } from '@/utils/species';
@@ -263,7 +263,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 				<View>
 					<ItemGroup>
 						<SpeciesPicker first species={species} setSpecies={handleChangeSpecies} busy={saving} />
-						<DatePicker value={birthdate} onChange={handleChangeBirthdate} />
+						<BirthdatePicker value={birthdate} onChange={handleChangeBirthdate} />
 					</ItemGroup>
 					<InlineError message={speciesError} />
 					<InlineError message={birthdateError} />

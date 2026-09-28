@@ -1,5 +1,7 @@
 import type { DeviceSettings } from '@/types/device-settings';
 
+import dayjs from 'dayjs';
+
 import {
 	type ObjectValue,
 	readNullableText,
@@ -41,16 +43,16 @@ export function parseLegacyProfile(value: unknown): LegacyProfile {
 		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
 
 	if (profileRecord.birthDate === undefined && profileRecord.ageMonths !== undefined) {
-		const date = new Date(requireText(profileRecord.createdAt, 'parrot.createdAt'));
+		const date = dayjs(requireText(profileRecord.createdAt, 'parrot.createdAt'));
 		const age = requireNonnegativeNumber(profileRecord.ageMonths, 'ageMonths');
 
-		if (!Number.isInteger(age) || !Number.isFinite(date.getTime())) {
+		if (!Number.isInteger(age) || !date.isValid()) {
 			throw new Error('Invalid historical profile age');
 		}
 
-		const birth = new Date(date.getFullYear(), date.getMonth() - age, 1);
+		const birth = date.subtract(age, 'month');
 
-		birthDate = `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2, '0')}-01`;
+		birthDate = birth.startOf('month').format('YYYY-MM-DD');
 	}
 
 	let species = requireText(profileRecord.species, 'species');

@@ -3,9 +3,9 @@ import { CLOCK_FORMAT } from '@/types/sleep-settings';
 
 import { durationText } from '@/i18n/duration';
 
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
-type Moment = string | number | Date;
+type Moment = string | number | Dayjs;
 
 const dateFormats: Record<Locale, { monthDay: string; monthDayWeekday: string; yearMonth: string }> = {
 	'ko-KR': { monthDay: 'MMMM D일', monthDayWeekday: 'MMMM D일 (ddd)', yearMonth: 'YYYY년 MMMM' },
@@ -28,17 +28,20 @@ export function formatDateTime(value: Moment, locale: Locale): string {
 	return `${formatDate(value, locale)} ${dayjs(value).format('LT')}`;
 }
 
-export function formatMoment(value: Moment, locale: Locale, now: Moment = new Date()): string {
+export function formatMoment(value: Moment, locale: Locale, now: Moment = dayjs()): string {
 	const moment = dayjs(value);
 
 	return moment.isSame(now, 'day') ? moment.format('LT') : formatDateTime(value, locale);
 }
 
-export function formatDuration(ms: number, locale: Locale): string {
-	const minutes = Math.max(0, Math.floor(ms / 60_000));
+/** 1분 미만은 초를 반올림하고 1분 이상은 분 아래를 버린 시간 길이 문구 */
+export const formatDuration = (ms: number, locale: Locale) => {
+	const duration = dayjs.duration(Math.max(0, ms));
 
-	return minutes < 1 ? durationText(Math.round(ms / 1000), locale) : durationText(minutes * 60, locale);
-}
+	return duration.asMinutes() < 1
+		? durationText(dayjs.duration(Math.round(duration.asSeconds()), 'seconds'), locale)
+		: durationText(dayjs.duration(Math.floor(duration.asMinutes()), 'minutes'), locale);
+};
 
 export function formatDurationWithDays(ms: number, locale: Locale): string {
 	const duration = dayjs.duration(ms);
@@ -54,16 +57,13 @@ export function formatDurationWithDays(ms: number, locale: Locale): string {
 	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`;
 }
 
-export function formatTimer(ms: number): string {
-	const total = Math.max(0, Math.floor(ms / 1000));
-	const hours = Math.floor(total / 3600);
-	const minutes = Math.floor((total % 3600) / 60);
-	const seconds = total % 60;
+/** 시:분:초나 분:초 모양의 시계 문구 */
+export const formatTimer = (ms: number) => {
+	const duration = dayjs.duration(Math.max(0, ms));
+	const hours = Math.floor(duration.asHours());
 
-	const pad = (value: number) => String(value).padStart(2, '0');
-
-	return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
-}
+	return hours > 0 ? `${hours}:${duration.format('mm:ss')}` : duration.format('m:ss');
+};
 
 export function formatClock(time: string): string {
 	return dayjs(time, CLOCK_FORMAT).format('LT');
