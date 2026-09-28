@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useEffect } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -7,7 +7,7 @@ import type { ReportStackParamList } from '@/types/navigation';
 import { type RouteProp, useRoute } from '@react-navigation/native';
 
 import ReportContent from '@/screens/report/components/report-content';
-import { useReportPeriod } from '@/screens/report/hooks/use-report-period';
+import { useReportStore } from '@/stores/report';
 import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
@@ -18,7 +18,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 export function ReportScreen(): ReactElement {
 	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
 
-	const period = useReportPeriod(route.params);
+	const setPeriodFromParams = useReportStore((state) => state.setPeriodFromParams);
+
+	/** route params의 리포트 기간 반영 */
+	useEffect(() => {
+		if (route.params) {
+			setPeriodFromParams(route.params);
+		}
+	}, [route.params, setPeriodFromParams]);
 
 	return (
 		<Screen scroll={false}>
@@ -28,7 +35,7 @@ export function ReportScreen(): ReactElement {
 					fallbackComponent={ScreenError}
 					suspenseFallback=<Skeleton rows={1} height={220} />
 				>
-					<ReportContent reportPeriod={period} />
+					<ReportContent />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>

@@ -27,6 +27,8 @@ export function ConsentDetailScreen() {
 
 	const { isError: isSaveError, isPending, mutate } = useSaveConsent();
 
+	const addAgreedId = useConsentStore((state) => state.addAgreedId);
+
 	const consent = consentListData.find((item) => item.id === consentId);
 	const canAgree =
 		consent !== undefined && (source === 'entry' || (!consent.is_required && consent.status !== 'granted'));
@@ -37,7 +39,7 @@ export function ConsentDetailScreen() {
 		}
 
 		if (source === 'entry') {
-			useConsentStore.getState().markAgreed(consent.id);
+			addAgreedId(consent.id);
 
 			navigation.goBack();
 

@@ -3,24 +3,24 @@ import { create } from 'zustand';
 type FeedbackSource = 'profile' | 'prompt';
 
 type FeedbackState = {
-	source: FeedbackSource | null;
+	openedFrom: FeedbackSource | null;
 };
 
 type FeedbackActions = {
-	open: (source: FeedbackSource) => void;
-	close: () => void;
+	openFeedback: (openedFrom: FeedbackSource) => void;
+	closeFeedback: () => void;
 };
 
 type FeedbackStore = FeedbackState & FeedbackActions;
 
 export const useFeedbackStore = create<FeedbackStore>()((set) => ({
-	source: null,
+	openedFrom: null,
 
-	open: (source) => {
-		set((state) => ({ ...state, source }));
+	openFeedback: (openedFrom) => {
+		set((state) => ({ ...state, openedFrom }));
 	},
 
-	close: () => {
-		set((state) => ({ ...state, source: null }));
+	closeFeedback: () => {
+		set((state) => ({ ...state, openedFrom: null }));
 	},
 }));

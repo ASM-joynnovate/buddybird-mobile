@@ -5,7 +5,7 @@ import type { LinkedDevice } from '@/types/device';
 
 export function linkDevices(
 	devices: readonly Device[],
-	clientDeviceId: string,
+	clientDeviceId: string | null,
 	running: Session | null,
 ): LinkedDevice[] {
 	return devices.map((device) => ({

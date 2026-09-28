@@ -4,7 +4,7 @@ import type { Notice } from '@/types/apis/notices';
 
 import { useReadNotice } from '@/hooks/apis/notices';
 
-import { launch } from '@/screens/home/hooks/launch';
+import { useNoticeStore } from '@/stores/notice';
 
 export function useNoticePopup(notices: readonly Notice[] | undefined): {
 	current: Notice | null;
@@ -14,17 +14,20 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 
 	const { mutate } = useReadNotice();
 
+	const popupShown = useNoticeStore((state) => state.popupShown);
+	const setPopupShown = useNoticeStore((state) => state.setPopupShown);
+
 	const current = queue[0] ?? null;
 
 	useEffect(() => {
-		if (!notices || launch.noticesShown) {
+		if (!notices || popupShown) {
 			return;
 		}
 
-		launch.noticesShown = true;
+		setPopupShown(true);
 
 		setQueue(notices);
-	}, [notices]);
+	}, [notices, popupShown, setPopupShown]);
 
 	return {
 		current,

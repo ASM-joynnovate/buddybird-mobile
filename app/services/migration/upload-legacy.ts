@@ -23,7 +23,7 @@ type ReadLegacy = (key: string) => string | undefined;
 
 type LegacyUpload = { profile: LegacyProfile | null; words: LegacyWord[] };
 
-type WordProgress = LegacyMigration['words'][string];
+type WordProgress = LegacyMigration['wordProgress'][string];
 
 const PREFIXES = ['@buddybird/', '@pethub/'] as const;
 
@@ -95,8 +95,8 @@ function readSettings(read: ReadLegacy): LegacySettings {
 	return {
 		...(locale && { locale }),
 		...(analyticsConsent && { analyticsConsent }),
-		...(update && { update }),
-		...(feedback && { feedback }),
+		...(update && { updatePrompt: update }),
+		...(feedback && { feedbackPrompt: feedback }),
 	};
 }
 
@@ -118,7 +118,7 @@ function readUpload(read: ReadLegacy): LegacyUpload {
 export async function loadLegacy(): Promise<void> {
 	const current = migration();
 
-	if (current.settingsImported && current.upload === 'finished') {
+	if (current.settingsImported && current.uploadStatus === 'finished') {
 		return;
 	}
 
@@ -128,7 +128,7 @@ export async function loadLegacy(): Promise<void> {
 		useDeviceSettingsStore.getState().importLegacySettings(readSettings(read));
 	}
 
-	if (current.upload === 'finished') {
+	if (current.uploadStatus === 'finished') {
 		return;
 	}
 
@@ -148,13 +148,13 @@ export function hasLegacyUpload(): boolean {
 }
 
 export function acceptLegacyUpload() {
-	updateMigration((current) => ({ ...current, upload: 'started' }));
+	updateMigration((current) => ({ ...current, uploadStatus: 'started' }));
 }
 
 export function finishLegacyUpload() {
 	pending = null;
 
-	updateMigration((current) => ({ ...current, upload: 'finished' }));
+	updateMigration((current) => ({ ...current, uploadStatus: 'finished' }));
 }
 
 function isInsideApp(uri: string): boolean {
@@ -249,12 +249,12 @@ const uploadParrot = async (profile: LegacyProfile) => {
 };
 
 function recordWordProgress(id: string, progress: WordProgress) {
-	updateMigration((current) => ({ ...current, words: { ...current.words, [id]: progress } }));
+	updateMigration((current) => ({ ...current, wordProgress: { ...current.wordProgress, [id]: progress } }));
 }
 
 /** v1 단어와 녹음 올리기 */
 const uploadWord = async (word: LegacyWord) => {
-	const savedProgress = migration().words[word.id];
+	const savedProgress = migration().wordProgress[word.id];
 
 	if (savedProgress?.done) {
 		return;
@@ -284,7 +284,7 @@ const uploadWord = async (word: LegacyWord) => {
 
 	updateMigration((current) => ({
 		...current,
-		words: { ...current.words, [word.id]: { wordId, done: false } },
+		wordProgress: { ...current.wordProgress, [word.id]: { wordId, done: false } },
 		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
 	}));
 

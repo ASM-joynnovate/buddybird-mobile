@@ -6,7 +6,7 @@ export const SCREEN_REFRESH_MS = 10 * SECOND;
 export const DEFAULT_STALE_TIME_MS = 30 * SECOND;
 
 export const HEARTBEAT_INTERVAL_MS = 10 * SECOND;
-export const STATION_SCREEN_IDLE_MS = 10 * SECOND;
+export const SESSION_INFO_HIDE_MS = 10 * SECOND;
 
 export const DURATION_PRESETS = [40 * MINUTE, 80 * MINUTE, 4 * HOUR] as const;
 export const MAX_SESSION_MS = 7 * DAY;

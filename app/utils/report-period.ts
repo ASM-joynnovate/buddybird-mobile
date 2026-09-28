@@ -26,7 +26,7 @@ export function latestStart(period: ReportPeriod): string {
 	return localDate(periodStart(period, dayjs()));
 }
 
-export function fromParams(params: unknown): ReportPeriodSelection {
+export function periodSelectionFromParams(params: unknown): ReportPeriodSelection {
 	const parsed = paramsSchema.safeParse(params ?? {});
 	const period = (parsed.success && parsed.data.period) || 'day';
 	const date = parsed.success && parsed.data.date ? dayjs(parsed.data.date) : dayjs();

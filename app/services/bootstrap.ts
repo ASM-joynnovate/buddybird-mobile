@@ -6,6 +6,7 @@ import { configureApi } from '@/lib/api';
 import { takeRestoreErrors } from '@/lib/storage';
 
 import NetInfo from '@react-native-community/netinfo';
+import { randomUUID } from 'expo-crypto';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { accessToken, installUnauthorizedSignOut } from '@/services/auth/session';
@@ -15,10 +16,10 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-const { ensureClientDeviceId } = useAccountStore.getState();
+const deviceId = () => useAccountStore.getState().clientDeviceId ?? '';
 const locale = () => useDeviceSettingsStore.getState().locale;
 
-configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, reportError });
+configureApi({ deviceId, locale, accessToken, reportError });
 
 installUnauthorizedSignOut();
 
@@ -36,6 +37,12 @@ export async function bootstrap() {
 
 	for (const { error, storeName } of restoreErrors) {
 		reportError(error, `restore_${storeName}`);
+	}
+
+	const { clientDeviceId, setClientDeviceId } = useAccountStore.getState();
+
+	if (!clientDeviceId) {
+		setClientDeviceId(randomUUID());
 	}
 
 	if (await getIsHeadless()) {

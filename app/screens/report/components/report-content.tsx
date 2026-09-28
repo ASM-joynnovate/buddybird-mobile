@@ -16,35 +16,35 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SCREEN_REFRESH_MS } from '@/config';
 import { ReportHeader } from '@/screens/report/components/report-header';
 import { SessionItem } from '@/screens/report/components/session-item';
-import type { ReportPeriodState } from '@/screens/report/hooks/use-report-period';
 import { track } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
+import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
+import { periodsBetween } from '@/utils/date';
+import { latestStart, periodSelectionFromParams } from '@/utils/report-period';
 
 import { Button } from '@/components/ui/button';
 import { ui } from '@/components/ui/styles';
 import { Copy } from '@/components/ui/text';
 
-interface Props {
-	reportPeriod: ReportPeriodState;
-}
-
-/**
- * 리포트 본문 컴포넌트
- * @param reportPeriod 고른 리포트 기간과 기간 변경 함수
- */
-const ReportContent = ({ reportPeriod }: Props) => {
+/** 리포트 본문 컴포넌트 */
+const ReportContent = () => {
 	const { t } = useTranslation();
 
 	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const focused = useIsFocused();
 
-	const deferredPeriod = useDeferredValue(reportPeriod.period);
-	const deferredStart = useDeferredValue(reportPeriod.start);
-
 	const trackedPeriodRef = useRef<string | null>(null);
 	const trackedNotificationParamsRef = useRef<object | null>(null);
+
+	const period = useReportStore((state) => state.period);
+	const start = useReportStore((state) => state.start);
+
+	const selectedStart = start ?? latestStart(period);
+
+	const deferredPeriod = useDeferredValue(period);
+	const deferredStart = useDeferredValue(selectedStart);
 
 	const {
 		data: reportData,
@@ -61,7 +61,8 @@ const ReportContent = ({ reportPeriod }: Props) => {
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
 	const hasSessions = reportData.sessions.length > 0;
-	const isSelectedPeriodShown = deferredPeriod === reportPeriod.period && deferredStart === reportPeriod.start;
+	const isSelectedPeriodShown = deferredPeriod === period && deferredStart === selectedStart;
+	const periodsAgo = periodsBetween(period, selectedStart, latestStart(period));
 
 	/** 화면에 보이는 리포트 기간마다 report_viewed 한 번 전송 */
 	useEffect(() => {
@@ -79,24 +80,24 @@ const ReportContent = ({ reportPeriod }: Props) => {
 			return;
 		}
 
+		if (openedFromNotification) {
+			const notificationPeriod = periodSelectionFromParams(route.params);
+
+			if (notificationPeriod.period !== deferredPeriod || notificationPeriod.start !== deferredStart) {
+				return;
+			}
+		}
+
 		trackedPeriodRef.current = shownPeriodKey;
 		trackedNotificationParamsRef.current = route.params ?? null;
 
 		track('report_viewed', {
 			period: deferredPeriod,
-			periods_ago: reportPeriod.periodsAgo,
+			periods_ago: periodsAgo,
 			source: openedFromNotification ? 'notification' : 'tab',
 			session_count: reportData.sessions.length,
 		});
-	}, [
-		deferredPeriod,
-		deferredStart,
-		focused,
-		isSelectedPeriodShown,
-		reportData,
-		reportPeriod.periodsAgo,
-		route.params,
-	]);
+	}, [deferredPeriod, deferredStart, focused, isSelectedPeriodShown, periodsAgo, reportData, route.params]);
 
 	/** 세션 상세 화면 열기 */
 	const handleOpenSession = (sessionId: string) => {
@@ -107,11 +108,7 @@ const ReportContent = ({ reportPeriod }: Props) => {
 	};
 
 	const header = (
-		<ReportHeader
-			state={reportPeriod}
-			report={reportData}
-			onStart={() => navigation.navigate('Main', { screen: 'HomeTab' })}
-		/>
+		<ReportHeader report={reportData} onStart={() => navigation.navigate('Main', { screen: 'HomeTab' })} />
 	);
 
 	const mimicrySection = hasSessions ? (

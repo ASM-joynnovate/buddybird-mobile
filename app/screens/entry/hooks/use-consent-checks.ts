@@ -26,21 +26,26 @@ export function useConsentChecks(onSaved?: () => void): {
 
 	const { isError: isSaveError, isPending, mutateAsync } = useSaveConsent();
 
+	const agreedIds = useConsentStore((state) => state.agreedIds);
+	const clearAgreedIds = useConsentStore((state) => state.clearAgreedIds);
+
 	const consents = latestConsents(consentListData);
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === 'granted';
 	const allChecked = Boolean(consents.length) && consents.every(isChecked);
 
 	useFocusEffect(
 		useCallback(() => {
-			const agreed = useConsentStore.getState().takeAgreed();
-
-			if (agreed.length) {
-				setChecked((current) => ({
-					...current,
-					...Object.fromEntries(agreed.map((id) => [id, true])),
-				}));
+			if (agreedIds.length === 0) {
+				return;
 			}
-		}, []),
+
+			setChecked((prev) => ({
+				...prev,
+				...Object.fromEntries(agreedIds.map((id) => [id, true])),
+			}));
+
+			clearAgreedIds();
+		}, [agreedIds, clearAgreedIds]),
 	);
 
 	async function saveDecisions(items: readonly Consent[]) {

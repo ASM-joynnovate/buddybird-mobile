@@ -15,7 +15,7 @@ import { useAccountStore } from '@/stores/account';
 
 function thisDeviceInfo(): RegisterDeviceRequest {
 	return {
-		client_device_id: useAccountStore.getState().ensureClientDeviceId(),
+		client_device_id: useAccountStore.getState().clientDeviceId ?? '',
 		platform: Platform.OS,
 		os_version: (Device.osVersion ?? '').slice(0, MAX_DEVICE_OS_VERSION_LENGTH),
 		model: (Device.modelName ?? '').slice(0, MAX_DEVICE_MODEL_LENGTH),

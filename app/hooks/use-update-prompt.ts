@@ -29,7 +29,7 @@ export function useUpdatePrompt() {
 		isSuccess,
 	} = useQuery({ ...getAppUpdateOptions(), throwOnError: false });
 
-	const preferences = useDeviceSettingsStore((state) => state.update);
+	const preferences = useDeviceSettingsStore((state) => state.updatePrompt);
 
 	const decision = appUpdateData
 		? evaluateUpdate(

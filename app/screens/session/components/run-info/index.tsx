@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { SleepSettings } from '@/types/sleep-settings';
@@ -6,13 +8,14 @@ import { useTranslation } from 'react-i18next';
 
 import { formatTimer } from '@/i18n/format';
 
+import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HorizonRing } from '@/screens/session/components/run-info/horizon-ring';
-import { useNow } from '@/screens/session/hooks/use-now';
 import { font } from '@/theme';
 import { night } from '@/theme/night';
 import { runStatus } from '@/utils/phases';
+import { SECOND } from '@/utils/units';
 
 import { PressableSurface } from '@/components/ui/surface';
 import { Copy } from '@/components/ui/text';
@@ -32,18 +35,29 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 
 	const { width } = useWindowDimensions();
 
-	const now = useNow();
+	const [now, setNow] = useState(() => dayjs().valueOf());
 
 	const status = runStatus(startedAt, endsAt, sleep, now);
 
+	/** 1초마다 현재 시각 갱신 */
+	useEffect(() => {
+		const timer = setInterval(() => setNow(dayjs().valueOf()), SECOND);
+
+		return () => clearInterval(timer);
+	}, []);
+
 	return (
 		<SafeAreaView style={styles.info} edges={['top', 'bottom', 'left', 'right']}>
+			{/*경과 시간과 안내*/}
 			<View style={styles.stack}>
 				<Copy style={styles.label}>{t('session.run.elapsed')}</Copy>
 				<Copy style={styles.timer}>{formatTimer(now - Date.parse(startedAt))}</Copy>
+
 				<Copy style={[styles.label, styles.gap]}>{t('session.run.keepOpen')}</Copy>
 				{engineFailed ? <Copy style={styles.label}>{t('session.run.engineError')}</Copy> : null}
 			</View>
+
+			{/*진행 단계와 종료 버튼*/}
 			<View style={styles.bottom} pointerEvents="box-none">
 				<HorizonRing
 					width={Math.min(width * 0.55, RING_MAX)}
@@ -56,6 +70,7 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 							: t('session.remaining', { left: formatTimer(status.remainingMs) })
 					}
 				/>
+
 				<PressableSurface
 					depth="low"
 					cornerRadius="control"

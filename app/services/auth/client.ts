@@ -66,9 +66,9 @@ function toSession(mock: MockSession): Session {
 
 function currentSession() {
 	if (current === undefined) {
-		const { registeredUser, isAnonymous } = useAccountStore.getState();
+		const { authUserId, isAnonymous } = useAccountStore.getState();
 
-		current = registeredUser ? toSession(mockGetSession({ authUserId: registeredUser, isAnonymous })) : null;
+		current = authUserId ? toSession(mockGetSession({ authUserId, isAnonymous })) : null;
 	}
 
 	return current;

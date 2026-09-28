@@ -87,7 +87,7 @@ async function exchangeCallback(callback: URL, provider: OAuthProvider): Promise
 		throw new Error('Authentication code missing');
 	}
 
-	useAccountStore.getState().markProvider(provider);
+	useAccountStore.getState().setLoginProvider(provider);
 
 	const { error } = await authClient().exchangeCodeForSession(code);
 
@@ -102,7 +102,7 @@ async function signIn(provider: LoginProvider): Promise<boolean> {
 	if (provider === 'apple') {
 		const credential = await appleIdToken();
 
-		useAccountStore.getState().markProvider(provider);
+		useAccountStore.getState().setLoginProvider(provider);
 
 		const { error } = await authClient().signInWithIdToken(credential);
 
@@ -131,7 +131,7 @@ export async function linkAccount(provider: LoginProvider): Promise<LinkResult> 
 	if (provider === 'apple') {
 		const credential = await appleIdToken();
 
-		useAccountStore.getState().markProvider(provider);
+		useAccountStore.getState().setLoginProvider(provider);
 
 		const { error } = await authClient().linkIdentity(credential);
 

@@ -18,7 +18,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
 	const { data: runningSessionData } = useQuery({ ...getRunningSessionOptions(), throwOnError: false });
 
-	const preferences = useDeviceSettingsStore((state) => state.feedback);
+	const preferences = useDeviceSettingsStore((state) => state.feedbackPrompt);
 
 	const feedback = useFeedbackStore();
 
@@ -29,7 +29,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 		updatesSettled &&
 		!updateVisible &&
 		!sessionActive &&
-		!feedback.source &&
+		!feedback.openedFrom &&
 		preferences.dayCount >= threshold;
 
 	useEffect(() => {
@@ -54,7 +54,7 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 			useDeviceSettingsStore.getState().consumeFeedbackPrompt();
 
 			if (write) {
-				feedback.open('prompt');
+				feedback.openFeedback('prompt');
 			} else {
 				track('feedback_prompt_dismissed', { threshold });
 			}

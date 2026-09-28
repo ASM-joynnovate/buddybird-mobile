@@ -53,7 +53,7 @@ export function WordEditorScreen(): ReactElement {
 
 	const { isError, isPending, mutate, reset } = useDeleteWord();
 
-	const guides = useDeviceSettingsStore((state) => state.guides);
+	const guides = useDeviceSettingsStore((state) => state.seenGuides);
 
 	const microphone = usePermission('microphone');
 

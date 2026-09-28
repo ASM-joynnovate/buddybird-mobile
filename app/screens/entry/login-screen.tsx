@@ -31,21 +31,26 @@ export function LoginScreen() {
 	const navigation = useNavigation();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'Login'>>();
 
+	const [providers, setProviders] = useState<LoginProvider[]>([]);
+
 	const status = useAuthStore((auth) => auth.status);
 
-	const recent = useAccountStore((account) => account.lastLogin);
-	const markLoginScreenSeen = useAccountStore((account) => account.markLoginScreenSeen);
+	const recent = useAccountStore((account) => account.lastLoginProvider);
+	const setLoginScreenSeen = useAccountStore((account) => account.setLoginScreenSeen);
 
 	const entry = params?.source === 'entry';
 
 	const login = useLogin(entry, () => navigation.goBack());
 
-	const [providers, setProviders] = useState<LoginProvider[]>([]);
-
 	const completing = status === 'completing';
 	const disabled = login.attempt?.pending === true || completing;
 	const loadingProvider = disabled ? login.attempt?.provider : undefined;
 	const recentHint = t('auth.recentHint');
+	const progressLabel = loadingProvider
+		? t(`auth.pending.${loadingProvider}`)
+		: completing
+			? t('auth.completing')
+			: null;
 
 	useEffect(() => {
 		let active = true;
@@ -69,15 +74,10 @@ export function LoginScreen() {
 		}, [entry]),
 	);
 
-	const progressLabel = loadingProvider
-		? t(`auth.pending.${loadingProvider}`)
-		: completing
-			? t('auth.completing')
-			: null;
-
 	return (
 		<View style={styles.root}>
 			<Screen contentContainerStyle={styles.screen}>
+				{/*헤더*/}
 				<ScreenHeader
 					onBack={entry ? undefined : () => navigation.goBack()}
 					right={
@@ -89,16 +89,20 @@ export function LoginScreen() {
 								onPress={() => {
 									completeOnboardingStep('login', { login_method: 'skip' });
 
-									markLoginScreenSeen();
+									setLoginScreenSeen(true);
 								}}
 							/>
 						) : undefined
 					}
 				/>
+
+				{/*소개*/}
 				<View style={styles.intro}>
 					<Mascot size={150} />
 					<Title style={styles.product}>{t('entry.login.product')}</Title>
 				</View>
+
+				{/*로그인 버튼*/}
 				<View style={styles.actions}>
 					{providers.includes('google') ? (
 						<View>
@@ -112,6 +116,7 @@ export function LoginScreen() {
 							/>
 						</View>
 					) : null}
+
 					{providers.includes('kakao') ? (
 						<View>
 							{recent === 'kakao' ? <LastLoginTag label={t('auth.recent')} /> : null}
@@ -124,6 +129,7 @@ export function LoginScreen() {
 							/>
 						</View>
 					) : null}
+
 					{providers.includes('apple') ? (
 						<View style={styles.appleButton}>
 							{recent === 'apple' ? <LastLoginTag label={t('auth.recent')} /> : null}
@@ -155,6 +161,8 @@ export function LoginScreen() {
 					) : null}
 				</View>
 			</Screen>
+
+			{/*로그인 진행 표시*/}
 			{progressLabel ? (
 				<View style={styles.progress} accessibilityLiveRegion="polite" accessibilityViewIsModal>
 					<ActivityIndicator color={colors.orange} size="large" />

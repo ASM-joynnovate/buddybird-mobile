@@ -18,7 +18,7 @@ export function RecordingGuideScreen(): ReactElement {
 	const { params } = useRoute<RouteProp<RootStackParamList, 'RecordingGuide'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const guides = useDeviceSettingsStore((state) => state.guides);
+	const guides = useDeviceSettingsStore((state) => state.seenGuides);
 
 	const steps: GuideStep[] = [
 		{

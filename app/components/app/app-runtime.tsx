@@ -11,22 +11,23 @@ import { FeedbackDialog } from '@/components/dialogs/feedback-dialog';
 import { UpdateDialog } from '@/components/dialogs/update-dialog';
 
 export function AppRuntime() {
+	const feedback = useFeedbackStore();
+
 	const deviceRegistered = useDeviceRegistration();
 
 	usePushRegistration(deviceRegistered);
 	useAnalyticsUser();
-
-	const feedback = useFeedbackStore();
 
 	const { decision, updateVisible, updatesSettled, storeOpening, acceptUpdate, dismissUpdatePrompt } =
 		useUpdatePrompt();
 
 	const feedbackPrompt = useFeedbackPrompt(updatesSettled, updateVisible);
 
-	const feedbackForm = useFeedbackForm(feedback.source ?? 'profile', feedback.close);
+	const feedbackForm = useFeedbackForm(feedback.openedFrom ?? 'profile', feedback.closeFeedback);
 
 	return (
 		<>
+			{/*업데이트 안내 다이얼로그*/}
 			<UpdateDialog
 				visible={updateVisible}
 				decision={decision}
@@ -34,8 +35,10 @@ export function AppRuntime() {
 				onAccept={acceptUpdate}
 				onDismiss={dismissUpdatePrompt}
 			/>
+
+			{/*의견 다이얼로그*/}
 			<FeedbackDialog
-				visible={(feedback.source !== null || feedbackPrompt.visible) && !updateVisible}
+				visible={(feedback.openedFrom !== null || feedbackPrompt.visible) && !updateVisible}
 				prompt={feedbackPrompt.visible ? feedbackPrompt : undefined}
 				form={feedbackForm}
 			/>

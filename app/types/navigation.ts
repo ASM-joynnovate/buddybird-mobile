@@ -5,7 +5,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type LearningDuration = { ms: number | null; custom: boolean };
 
-export type SessionDraft = {
+export type SessionSetup = {
 	wordId: string;
 	duration: LearningDuration;
 	sleep: SleepSettings;

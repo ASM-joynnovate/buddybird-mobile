@@ -1,24 +1,37 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { BackHandler, StyleSheet } from 'react-native';
+import { AppState, BackHandler, StyleSheet } from 'react-native';
+
+import { ApiError } from '@/types/apis/common';
 
 import type { RootStackParamList } from '@/types/navigation';
 
+import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSessionSound } from '@/hooks/apis/sessions';
+import { getWordOptions } from '@/hooks/apis/words';
+
 import { useTranslation } from 'react-i18next';
+
+import { queryClient } from '@/lib/query-client';
 
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { HEARTBEAT_INTERVAL_MS } from '@/config';
 import { RunInfo } from '@/screens/session/components/run-info';
-import { useIdleReveal } from '@/screens/session/hooks/use-idle-reveal';
-import { useLearningSession } from '@/screens/session/hooks/use-learning-session';
+import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
+import { reportError, track } from '@/services/telemetry/client';
+import { useSessionStore } from '@/stores/session';
 import { night } from '@/theme/night';
+import { currentSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
 import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
 import { PressableSurface } from '@/components/ui/surface';
+
+type EndReason = 'time_reached' | 'user' | 'server';
 
 const FADE_MS = 2 * SECOND;
 
@@ -30,22 +43,96 @@ export function SessionRunScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionRun'>>();
 
-	const { sessionId, endsAt, sleep } = params;
-
-	const showSummary = useCallback(() => navigation.replace('SessionSummary', { sessionId }), [navigation, sessionId]);
-
-	const learning = useLearningSession(params, showSummary);
-
-	const idle = useIdleReveal();
-
 	const opacity = useSharedValue(1);
-	const fade = useAnimatedStyle(() => ({ opacity: opacity.get() }));
+	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 
+	const engineRef = useRef<LearningEngine | null>(null);
+	const uploadsRef = useRef<Promise<unknown>[]>([]);
+	const soundCountRef = useRef(0);
+	const pausedAtRef = useRef<number | null>(null);
+	const endingRef = useRef(false);
+
+	const { data: runningSessionData } = useGetRunningSession();
+
+	const { mutate: finishSession } = useFinishSession();
+	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
+	const { mutate: sendHeartbeat } = useSendHeartbeat();
+
+	const infoVisible = useSessionStore((state) => state.infoVisible);
+	const engineFailed = useSessionStore((state) => state.engineFailed);
+	const ending = useSessionStore((state) => state.ending);
+
+	const showInfo = useSessionStore((state) => state.showInfo);
+	const setEngineFailed = useSessionStore((state) => state.setEngineFailed);
+	const setEnding = useSessionStore((state) => state.setEnding);
+	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
+
+	const { sessionId, wordId, endsAt, sleep, duration, sleepChanged } = params;
+	const runningSession = runningSessionData?.id === sessionId ? runningSessionData : null;
+	const startedAt = runningSession?.period.started_at ?? null;
+
+	/** 엔진 정지, 업로드 대기, 종료 요청 뒤 완료 화면 이동 */
+	const endSession = useCallback(
+		async (reason: EndReason) => {
+			if (endingRef.current) {
+				return;
+			}
+
+			endingRef.current = true;
+
+			setEnding(true);
+
+			const learningMs = engineRef.current?.learningMs() ?? 0;
+			const playCount = engineRef.current?.summaries().reduce((sum, summary) => sum + summary.play_count, 0) ?? 0;
+
+			try {
+				await engineRef.current?.stop();
+				engineRef.current = null;
+
+				await Promise.allSettled(uploadsRef.current);
+			} catch (e) {
+				reportError(e, 'learning_end');
+			}
+
+			/** learning_finished 전송과 완료 화면 이동 */
+			const showSummary = () => {
+				track('learning_finished', {
+					session_id: sessionId,
+					reason,
+					learning_duration_ms: learningMs,
+					total_duration_ms: startedAt ? dayjs().diff(startedAt) : 0,
+					play_count: playCount,
+					sound_count: soundCountRef.current,
+				});
+
+				navigation.replace('SessionSummary', { sessionId });
+			};
+
+			if (reason === 'server') {
+				showSummary();
+
+				return;
+			}
+
+			finishSession({ id: sessionId }, { onSettled: showSummary });
+		},
+		[finishSession, navigation, sessionId, setEnding, startedAt],
+	);
+
+	const latestInputRef = useRef({ startedAt, sleep, endSession });
+
+	/** 세션 정보 표시와 화면을 나갈 때 세션 화면 값 초기화 */
 	useEffect(() => {
-		opacity.set(idle.visible ? 1 : withTiming(0, { duration: FADE_MS }));
-	}, [idle.visible, opacity]);
+		showInfo();
+
+		return () => resetSessionScreen();
+	}, [resetSessionScreen, showInfo]);
+
+	useEffect(() => {
+		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
+	}, [infoVisible, opacity]);
 
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -57,6 +144,159 @@ export function SessionRunScreen() {
 		return () => subscription.remove();
 	}, []);
 
+	/** 학습 엔진 시작과 앱 전환 시 엔진 일시 정지, 재개 */
+	useEffect(() => {
+		if (!startedAt) {
+			return;
+		}
+
+		let queue = queryClient
+			.query({ ...getWordOptions({ id: wordId }), staleTime: 0 })
+			.then(async (word) => {
+				const createdEngine = createLearningEngine({
+					wordId,
+					recordingUrls: word.recordings.map(({ url }) => url),
+					startedAt: dayjs(startedAt).valueOf(),
+					sleep,
+					onSound: (sound) => {
+						soundCountRef.current += 1;
+
+						const uploadPromise: Promise<unknown> = uploadSessionSound({
+							id: sessionId,
+							uri: sound.uri,
+							data: { captured_at: sound.capturedAt },
+						})
+							.catch((error: unknown) => reportError(error, 'session_sound_upload'))
+							.finally(() => {
+								uploadsRef.current = uploadsRef.current.filter((upload) => upload !== uploadPromise);
+							});
+
+						uploadsRef.current = [...uploadsRef.current, uploadPromise];
+					},
+					onError: (error) => reportError(error, 'learning_engine'),
+				});
+
+				engineRef.current = createdEngine;
+
+				await createdEngine.start();
+
+				track('learning_started', {
+					session_id: sessionId,
+					word_id: wordId,
+					recording_count: word.recordings.length,
+					...(duration.ms === null ? {} : { planned_duration_ms: duration.ms }),
+					custom_duration: duration.custom,
+					sleep_changed: sleepChanged,
+				});
+			})
+			.catch((error: unknown) => {
+				reportError(error, 'learning_start');
+
+				track('learning_finished', {
+					session_id: sessionId,
+					reason: 'error',
+					learning_duration_ms: 0,
+					total_duration_ms: dayjs().diff(startedAt),
+					play_count: 0,
+					sound_count: 0,
+				});
+
+				setEngineFailed(true);
+			});
+
+		/** 엔진 작업을 앞 작업이 끝난 뒤 순서대로 실행 */
+		const enqueue = (step: () => Promise<void> | undefined) => {
+			queue = queue.then(step).catch((error: unknown) => reportError(error, 'learning_engine'));
+		};
+
+		const appStateSubscription = AppState.addEventListener('change', (appState) => {
+			if (appState !== 'active' && engineRef.current && pausedAtRef.current === null) {
+				pausedAtRef.current = dayjs().valueOf();
+
+				track('learning_paused', { session_id: sessionId });
+			} else if (appState === 'active' && pausedAtRef.current !== null) {
+				track('learning_resumed', {
+					session_id: sessionId,
+					paused_ms: dayjs().diff(pausedAtRef.current),
+				});
+
+				pausedAtRef.current = null;
+			}
+
+			enqueue(() => (appState === 'active' ? engineRef.current?.resume() : engineRef.current?.pause()));
+		});
+
+		return () => {
+			appStateSubscription.remove();
+
+			enqueue(() => {
+				const engine = engineRef.current;
+
+				engineRef.current = null;
+
+				return engine?.stop();
+			});
+		};
+	}, [duration, sessionId, setEngineFailed, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
+
+	/** 하트비트가 읽는 최신 값 저장 */
+	useEffect(() => {
+		latestInputRef.current = { startedAt, sleep, endSession };
+	}, [endSession, sleep, startedAt]);
+
+	/** 하트비트 주기 전송 */
+	useEffect(() => {
+		/** 하트비트 한 번 전송 */
+		const beat = () => {
+			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
+			const span =
+				sessionStartedAt && sleepSettings
+					? currentSpan(dayjs(sessionStartedAt).valueOf(), dayjs().valueOf(), sleepSettings)
+					: null;
+
+			sendHeartbeat(
+				{
+					id: sessionId,
+					data: {
+						current_phase: span?.phase ?? null,
+						phase_started_at: span ? dayjs(span.start).toISOString() : null,
+						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+						summaries: engineRef.current?.summaries() ?? [],
+					},
+				},
+				{
+					onError: (error) => {
+						if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+							void latestInputRef.current.endSession('server');
+						}
+					},
+				},
+			);
+		};
+
+		beat();
+
+		const timer = setInterval(beat, HEARTBEAT_INTERVAL_MS);
+
+		return () => clearInterval(timer);
+	}, [sendHeartbeat, sessionId]);
+
+	/** 종료 시각이 되면 학습 종료 */
+	useEffect(() => {
+		if (endsAt === null) {
+			return;
+		}
+
+		const timer = setTimeout(() => void endSession('time_reached'), Math.max(0, endsAt - dayjs().valueOf()));
+
+		return () => clearTimeout(timer);
+	}, [endSession, endsAt]);
+
+	/** 종료 다이얼로그 확인 시 학습 종료 */
+	const handleEnd = () => {
+		void endSession('user');
+	};
+
 	return (
 		<PressableSurface
 			tone="plain"
@@ -65,20 +305,23 @@ export function SessionRunScreen() {
 			backgroundColor={night.background}
 			style={styles.screen}
 			contentStyle={styles.fill}
-			onPress={idle.reveal}
+			onPress={showInfo}
 			accessibilityLabel={t('session.run.reveal')}
 		>
-			<Animated.View style={[styles.fill, fade]} pointerEvents={idle.visible ? 'box-none' : 'none'}>
-				{learning.startedAt ? (
+			{/*학습 정보*/}
+			<Animated.View style={[styles.fill, fadeStyle]} pointerEvents={infoVisible ? 'box-none' : 'none'}>
+				{startedAt ? (
 					<RunInfo
-						startedAt={learning.startedAt}
+						startedAt={startedAt}
 						endsAt={endsAt}
 						sleep={sleep}
-						engineFailed={learning.engineFailed}
+						engineFailed={engineFailed}
 						onEnd={() => setEndDialogOpen(true)}
 					/>
 				) : null}
 			</Animated.View>
+
+			{/*종료 다이얼로그*/}
 			<ConfirmDialog
 				visible={endDialogOpen}
 				text={{
@@ -86,8 +329,8 @@ export function SessionRunScreen() {
 					confirm: t('session.end.confirm'),
 					cancel: t('session.end.keep'),
 				}}
-				state={{ busy: learning.ending }}
-				onConfirm={learning.end}
+				state={{ busy: ending }}
+				onConfirm={handleEnd}
 				onClose={() => setEndDialogOpen(false)}
 			/>
 		</PressableSurface>

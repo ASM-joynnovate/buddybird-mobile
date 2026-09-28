@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 import type { Parrot } from '@/types/apis/parrots';
 
-import type { AnalyticsConsent } from '@/types/consent';
+import type { AnalyticsConsent } from '@/types/analytics-consent';
 import type { Events, UserProperties } from '@/types/telemetry';
 
 import {

@@ -15,9 +15,10 @@ import { ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide
 
 import { TrendChart } from '@/screens/report/components/report-header/trend-chart';
 import { WordBars } from '@/screens/report/components/report-header/word-bars';
-import type { ReportPeriodState } from '@/screens/report/hooks/use-report-period';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
+import { latestStart } from '@/utils/report-period';
 
 import { Illustration } from '@/components/illustration';
 import { Chip } from '@/components/ui/chip';
@@ -41,18 +42,23 @@ function periodLabel(report: Report, locale: Locale): string {
 }
 
 interface Props {
-	state: ReportPeriodState;
 	report: Report;
 	onStart(): void;
 }
 
-export function ReportHeader({ state, report, onStart }: Props): ReactElement {
+export function ReportHeader({ report, onStart }: Props): ReactElement {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((settings) => settings.locale);
 
+	const period = useReportStore((state) => state.period);
+	const start = useReportStore((state) => state.start);
+	const selectPeriod = useReportStore((state) => state.selectPeriod);
+	const movePeriod = useReportStore((state) => state.movePeriod);
+
 	const recorded = report.sessions.length > 0;
 	const label = periodLabel(report, locale);
+	const isLatest = start === null || start >= latestStart(period);
 	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
 	return (
@@ -62,12 +68,12 @@ export function ReportHeader({ state, report, onStart }: Props): ReactElement {
 
 			{/*기간 칩*/}
 			<View style={ui.row}>
-				{reportPeriodSchema.options.map((period) => (
+				{reportPeriodSchema.options.map((periodOption) => (
 					<Chip
-						key={period}
-						label={t(`report.periods.${period}`)}
-						selected={state.period === period}
-						onPress={() => state.select(period)}
+						key={periodOption}
+						label={t(`report.periods.${periodOption}`)}
+						selected={period === periodOption}
+						onPress={() => selectPeriod(periodOption)}
 					/>
 				))}
 			</View>
@@ -78,12 +84,12 @@ export function ReportHeader({ state, report, onStart }: Props): ReactElement {
 					<Copy accessibilityRole="header" style={styles.period}>
 						{label}
 					</Copy>
-					<IconButton icon={ChevronLeftIcon} label={t('report.previous')} onPress={() => state.move(-1)} />
+					<IconButton icon={ChevronLeftIcon} label={t('report.previous')} onPress={() => movePeriod(-1)} />
 					<IconButton
 						icon={ChevronRightIcon}
 						label={t('report.next')}
-						disabled={state.isLatest}
-						onPress={() => state.move(1)}
+						disabled={isLatest}
+						onPress={() => movePeriod(1)}
 					/>
 				</View>
 

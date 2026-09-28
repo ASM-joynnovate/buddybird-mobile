@@ -60,7 +60,7 @@ export function SettingsScreen() {
 					unreadNotice={Boolean(
 						noticeListData?.pages.some((page) => page.data.some((notice) => !notice.is_read)),
 					)}
-					onFeedback={() => feedback.open('profile')}
+					onFeedback={() => feedback.openFeedback('profile')}
 					onOpenNotices={() => navigation.navigate('NoticeList')}
 					onOpenConsents={() => navigation.navigate('ConsentSettings')}
 				/>

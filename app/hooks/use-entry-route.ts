@@ -13,7 +13,7 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string } {
 
 	const loginPending = useAccountStore((account) => account.isAnonymous && !account.loginScreenSeen);
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
-	const legacyUploadPending = useDeviceSettingsStore((state) => state.legacyMigration.upload !== 'finished');
+	const legacyUploadPending = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus !== 'finished');
 
 	if (loginPending) {
 		return { route: 'Login' };

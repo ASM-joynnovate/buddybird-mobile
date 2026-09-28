@@ -12,11 +12,9 @@ export function useDevices(): {
 	const { data: deviceListData } = useGetDeviceList();
 	const { data: runningSessionData } = useGetRunningSession();
 
-	const linkedDevices = linkDevices(
-		deviceListData,
-		useAccountStore.getState().ensureClientDeviceId(),
-		runningSessionData,
-	);
+	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
+
+	const linkedDevices = linkDevices(deviceListData, clientDeviceId, runningSessionData);
 
 	return { linkedDevices };
 }

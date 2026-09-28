@@ -7,6 +7,8 @@ import type { HomeStackParamList, RootStackParamList } from '@/types/navigation'
 import { useGetDeviceList } from '@/hooks/apis/devices';
 import { getHomeSummaryOptions } from '@/hooks/apis/home';
 import { useFinishSession } from '@/hooks/apis/sessions';
+import { useGetSettings } from '@/hooks/apis/settings';
+import { useGetWordList } from '@/hooks/apis/words';
 import { usePermission } from '@/hooks/use-permission';
 import { useSoundPlayer } from '@/hooks/use-sound-player';
 
@@ -24,10 +26,10 @@ import { NoticePopup } from '@/screens/home/components/notice-popup';
 import { StartDialogs } from '@/screens/home/components/start-dialogs';
 import { WordPicker } from '@/screens/home/components/word-picker';
 import { useNoticePopup } from '@/screens/home/hooks/use-notice-popup';
-import { useSessionDraft } from '@/screens/home/hooks/use-session-draft';
 import { useStartSession } from '@/screens/home/hooks/use-start-session';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 
 import { PermissionDialog } from '@/components/dialogs/permission-dialog';
@@ -59,13 +61,22 @@ const HomeContent = () => {
 		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
 	});
 	const { data: deviceListData } = useGetDeviceList();
+	const { data: wordListData } = useGetWordList();
+	const { data: settingsData } = useGetSettings();
 
 	const { isError, isPending, mutate } = useFinishSession();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
 
-	const setup = useSessionDraft();
+	const selectedWordId = useSessionStore((state) => state.selectedWordId);
+	const duration = useSessionStore((state) => state.duration);
+	const editedSleep = useSessionStore((state) => state.editedSleep);
+	const setSelectedWordId = useSessionStore((state) => state.setSelectedWordId);
+	const setDuration = useSessionStore((state) => state.setDuration);
+	const setEditedSleep = useSessionStore((state) => state.setEditedSleep);
+	const resetSetup = useSessionStore((state) => state.resetSetup);
 
 	const popup = useNoticePopup(homeSummaryData.unread_notices);
 
@@ -73,16 +84,16 @@ const HomeContent = () => {
 
 	const player = useSoundPlayer();
 
-	const starter = useStartSession((sessionId, draft, endsAt) => {
-		setup.resetDraft();
+	const starter = useStartSession((sessionId, requestedSetup, endsAt) => {
+		resetSetup();
 
 		navigation.navigate('SessionRun', {
 			sessionId,
-			wordId: draft.wordId,
+			wordId: requestedSetup.wordId,
 			endsAt,
-			sleep: draft.sleep,
-			duration: draft.duration,
-			sleepChanged: draft.sleepChanged,
+			sleep: requestedSetup.sleep,
+			duration: requestedSetup.duration,
+			sleepChanged: requestedSetup.sleepChanged,
 		});
 	});
 
@@ -91,17 +102,23 @@ const HomeContent = () => {
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
 	const unreadCount = homeSummaryData.unread_notification_count;
 
+	const wordsWithRecordings = wordListData.filter((word) => word.recordings.length > 0);
+	const selectedWord = wordsWithRecordings.find((word) => word.id === selectedWordId) ?? null;
+	const sleep = editedSleep ?? settingsData.sleep;
+	const sleepChanged =
+		editedSleep !== null &&
+		(editedSleep.sleep_at !== settingsData.sleep.sleep_at || editedSleep.wake_at !== settingsData.sleep.wake_at);
+	const sessionSetup = selectedWord ? { wordId: selectedWord.id, duration, sleep, sleepChanged } : null;
+
 	/** 학습 시작 */
 	const handleStart = () => {
-		const draft = setup.draft;
-
-		if (!draft) {
+		if (!sessionSetup) {
 			return;
 		}
 
 		player.stop();
 
-		void microphonePermission.run(() => starter.start(draft));
+		void microphonePermission.run(() => starter.start(sessionSetup));
 	};
 
 	/** 공지 상세 열기 */
@@ -125,12 +142,12 @@ const HomeContent = () => {
 
 		/** 단어 선택 */
 		const handleSelectWord = (id: string) => {
-			setup.selectWord(id);
+			setSelectedWordId(id);
 
 			close();
 		};
 
-		if (setup.words.length === 0) {
+		if (wordsWithRecordings.length === 0) {
 			return (
 				<EmptyState
 					message={t('session.start.empty')}
@@ -141,8 +158,8 @@ const HomeContent = () => {
 
 		return (
 			<WordPicker
-				words={setup.words}
-				selectedId={setup.word?.id ?? null}
+				words={wordsWithRecordings}
+				selectedId={selectedWord?.id ?? null}
 				player={player}
 				onSelect={handleSelectWord}
 			/>
@@ -189,7 +206,7 @@ const HomeContent = () => {
 							first: true,
 							icon: MessageSquareTextIcon,
 							label: t('session.start.word'),
-							value: setup.word?.name ?? t('session.start.choose'),
+							value: selectedWord?.name ?? t('session.start.choose'),
 						}}
 						sheet={{ title: t('session.start.word'), list: true }}
 					>
@@ -200,15 +217,15 @@ const HomeContent = () => {
 							icon: ClockIcon,
 							label: t('session.start.duration'),
 							value:
-								setup.duration.ms === null
+								duration.ms === null
 									? t('session.start.untilEnd')
-									: formatDurationWithDays(setup.duration.ms, locale),
+									: formatDurationWithDays(duration.ms, locale),
 						}}
 						sheet={{ title: t('session.start.duration') }}
 					>
-						{() => <DurationPicker value={setup.duration} onChange={setup.setDuration} />}
+						{() => <DurationPicker value={duration} onChange={setDuration} />}
 					</GroupedListPickerItem>
-					<SleepTimePicker value={setup.sleep} onChange={setup.setEditedSleep} />
+					<SleepTimePicker value={sleep} onChange={setEditedSleep} />
 				</GroupedList>
 			</View>
 
@@ -217,7 +234,7 @@ const HomeContent = () => {
 				label={t('common.start')}
 				icon={PlayIcon}
 				loading={starter.busy}
-				disabled={!setup.draft}
+				disabled={!sessionSetup}
 				onPress={handleStart}
 			/>
 

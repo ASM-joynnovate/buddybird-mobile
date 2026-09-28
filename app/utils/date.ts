@@ -10,12 +10,12 @@ export function periodsBetween(period: ReportPeriod, from: string, to: string): 
 	return dayjs(to).diff(from, period);
 }
 
-export function ageMonths(birthDate: string | null, now = new Date()): number | null {
-	if (!birthDate) {
+export function ageMonths(birthdate: string | null, now = new Date()): number | null {
+	if (!birthdate) {
 		return null;
 	}
 
-	const birth = dayjs(birthDate);
+	const birth = dayjs(birthdate);
 
 	if (!birth.isValid()) {
 		return null;

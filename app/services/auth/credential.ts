@@ -26,13 +26,13 @@ export function takeCredential(): LoginCredential | undefined {
 }
 
 export async function loginCredential(): Promise<LoginCredential> {
-	const { provider } = useAccountStore.getState();
+	const { loginProvider } = useAccountStore.getState();
 
-	if (provider === 'apple') {
+	if (loginProvider === 'apple') {
 		return takeCredential() ?? {};
 	}
 
-	if (provider !== 'google') {
+	if (loginProvider !== 'google') {
 		return {};
 	}
 

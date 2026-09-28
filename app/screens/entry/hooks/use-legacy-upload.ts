@@ -31,7 +31,7 @@ export function useLegacyUpload(): {
 
 	const { data: parrotListData } = useGetParrotList();
 
-	const upload = useDeviceSettingsStore((state) => state.legacyMigration.upload);
+	const upload = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
 
 	const asking = upload === 'pending' && parrotListData.length > 0;
 	const ready = !asking;

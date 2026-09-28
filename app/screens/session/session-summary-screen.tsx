@@ -9,6 +9,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChartNoAxesColumnIcon } from 'lucide-react-native';
 
 import SummaryCard from '@/screens/session/components/summary-card';
+import { useReportStore } from '@/stores/report';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,11 @@ export function SessionSummaryScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionSummary'>>();
 
+	const resetPeriod = useReportStore((state) => state.resetPeriod);
+
 	function openDetail() {
+		resetPeriod();
+
 		navigation.reset({
 			index: 0,
 			routes: [

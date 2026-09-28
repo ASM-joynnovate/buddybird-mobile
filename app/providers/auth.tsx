@@ -22,6 +22,8 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useReportStore } from '@/stores/report';
+import { useSessionStore } from '@/stores/session';
 
 interface Props {
 	children: ReactNode;
@@ -38,7 +40,7 @@ function sameIdentity(previous: AuthIdentity | null | undefined, next: AuthIdent
 export function AuthProvider({ children }: Props) {
 	const { mutateAsync } = useLogin();
 
-	const attempt = useAuthStore((auth) => auth.attempt);
+	const retryCount = useAuthStore((auth) => auth.retryCount);
 
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState();
@@ -57,6 +59,9 @@ export function AuthProvider({ children }: Props) {
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 
 			queryClient.clear();
+
+			useSessionStore.getState().resetSetup();
+			useReportStore.getState().resetPeriod();
 
 			setStatus('signingUp');
 
@@ -78,6 +83,9 @@ export function AuthProvider({ children }: Props) {
 
 			if (!linked) {
 				queryClient.clear();
+
+				useSessionStore.getState().resetSetup();
+				useReportStore.getState().resetPeriod();
 			}
 
 			try {
@@ -94,7 +102,7 @@ export function AuthProvider({ children }: Props) {
 					return;
 				}
 
-				useAccountStore.getState().markRegistered(identity.id, user_id, identity.anonymous);
+				useAccountStore.getState().setRegistration(identity.id, user_id, identity.anonymous);
 
 				setStatus('signedIn');
 
@@ -147,11 +155,8 @@ export function AuthProvider({ children }: Props) {
 			loginAbort?.abort();
 			void queryClient.cancelQueries();
 
-			const { registeredUser, isAnonymous } = useAccountStore.getState();
-			const transition = nextAuthState(
-				registeredUser ? { id: registeredUser, anonymous: isAnonymous } : null,
-				next,
-			);
+			const { authUserId, isAnonymous } = useAccountStore.getState();
+			const transition = nextAuthState(authUserId ? { id: authUserId, anonymous: isAnonymous } : null, next);
 
 			if (transition === 'signedOut' || next === null) {
 				await signUp();
@@ -191,7 +196,7 @@ export function AuthProvider({ children }: Props) {
 
 				if (!error) {
 					void acceptSession(data.session);
-				} else if (isAuthRetryableFetchError(error) && useAccountStore.getState().registeredUser !== null) {
+				} else if (isAuthRetryableFetchError(error) && useAccountStore.getState().authUserId !== null) {
 					setStatus('signedIn');
 				} else {
 					Alert.alert(i18next.t('auth.restoreError'));
@@ -228,7 +233,7 @@ export function AuthProvider({ children }: Props) {
 			lifecycle.remove();
 			void auth.stopAutoRefresh();
 		};
-	}, [attempt, mutateAsync]);
+	}, [retryCount, mutateAsync]);
 
 	return children;
 }

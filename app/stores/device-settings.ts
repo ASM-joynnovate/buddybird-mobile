@@ -20,14 +20,14 @@ import { localDate } from '@/utils/date';
 
 type DeviceSettingsActions = {
 	setLocale: (locale: Locale) => void;
-	setAnalyticsConsent: (consent: DeviceSettings['analyticsConsent']) => void;
+	setAnalyticsConsent: (analyticsConsent: DeviceSettings['analyticsConsent']) => void;
 	dismissUpdate: (version: string) => void;
 	countFeedbackDay: (date?: string) => void;
 	consumeFeedbackPrompt: () => void;
 	setGuideSeen: (guide: Guide, seen: boolean) => void;
-	setOnboardingCompleted: (completed: boolean) => void;
+	setOnboardingCompleted: (onboardingCompleted: boolean) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
-	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void;
+	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
 };
 
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
@@ -50,9 +50,9 @@ function defaultDeviceSettings(): DeviceSettings {
 	return {
 		locale: deviceLocale(),
 		analyticsConsent: 'unknown',
-		update: { dismissedVersion: null },
-		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
-		guides: { recording: false },
+		updatePrompt: { dismissedVersion: null },
+		feedbackPrompt: { formatVersion: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
+		seenGuides: { recording: false },
 		onboardingCompleted: false,
 		legacyMigration: initialLegacyMigration,
 	};
@@ -74,21 +74,21 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			dismissUpdate: (version) => {
 				set((state) => ({
 					...state,
-					update: { ...state.update, dismissedVersion: version },
+					updatePrompt: { ...state.updatePrompt, dismissedVersion: version },
 				}));
 			},
 
 			countFeedbackDay: (date = localDate()) => {
-				if (get().feedback.lastCountedDate === date) {
+				if (get().feedbackPrompt.lastCountedDate === date) {
 					return;
 				}
 
 				set((state) => ({
 					...state,
-					feedback: {
-						...state.feedback,
+					feedbackPrompt: {
+						...state.feedbackPrompt,
 						lastCountedDate: date,
-						dayCount: state.feedback.dayCount + 1,
+						dayCount: state.feedbackPrompt.dayCount + 1,
 					},
 				}));
 			},
@@ -96,11 +96,11 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			consumeFeedbackPrompt: () => {
 				set((state) => ({
 					...state,
-					feedback: {
-						...state.feedback,
+					feedbackPrompt: {
+						...state.feedbackPrompt,
 						dayCount: 0,
 						thresholdIndex: Math.min(
-							state.feedback.thresholdIndex + 1,
+							state.feedbackPrompt.thresholdIndex + 1,
 							FEEDBACK_PROMPT_THRESHOLDS.length - 1,
 						),
 					},
@@ -108,7 +108,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			},
 
 			setGuideSeen: (guide, seen) => {
-				set((state) => ({ ...state, guides: { ...state.guides, [guide]: seen } }));
+				set((state) => ({ ...state, seenGuides: { ...state.seenGuides, [guide]: seen } }));
 			},
 
 			setOnboardingCompleted: (onboardingCompleted) => {
@@ -123,8 +123,8 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
-			updateLegacyMigration: (update) => {
-				set((state) => ({ ...state, legacyMigration: update(state.legacyMigration) }));
+			updateLegacyMigration: (updater) => {
+				set((state) => ({ ...state, legacyMigration: updater(state.legacyMigration) }));
 			},
 		}),
 		{
@@ -135,17 +135,17 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			partialize: ({
 				locale,
 				analyticsConsent,
-				update,
-				feedback,
-				guides,
+				updatePrompt,
+				feedbackPrompt,
+				seenGuides,
 				onboardingCompleted,
 				legacyMigration,
 			}) => ({
 				locale,
 				analyticsConsent,
-				update,
-				feedback,
-				guides,
+				updatePrompt,
+				feedbackPrompt,
+				seenGuides,
 				onboardingCompleted,
 				legacyMigration,
 			}),

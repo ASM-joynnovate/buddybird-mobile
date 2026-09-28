@@ -1,6 +1,6 @@
 import { useAccountStore } from '@/stores/account';
 
-const userKeyPrefix = () => ['api', useAccountStore.getState().registeredUser] as const;
+const userKeyPrefix = () => ['api', useAccountStore.getState().authUserId] as const;
 
 export const apiKeys = {
 	all: () => ['api'] as const,

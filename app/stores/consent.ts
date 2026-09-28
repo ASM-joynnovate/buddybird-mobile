@@ -5,24 +5,22 @@ type ConsentState = {
 };
 
 type ConsentActions = {
-	markAgreed: (id: string) => void;
-	takeAgreed: () => readonly string[];
+	addAgreedId: (id: string) => void;
+	clearAgreedIds: () => void;
 };
 
 type ConsentStore = ConsentState & ConsentActions;
 
-export const useConsentStore = create<ConsentStore>()((set, get) => ({
+export const useConsentStore = create<ConsentStore>()((set) => ({
 	agreedIds: [],
 
-	markAgreed: (id) => {
+	/** 동의한 약관 ID 추가 */
+	addAgreedId: (id) => {
 		set((state) => ({ ...state, agreedIds: [...state.agreedIds, id] }));
 	},
 
-	takeAgreed: () => {
-		const { agreedIds } = get();
-
+	/** 동의한 약관 ID 목록 비우기 */
+	clearAgreedIds: () => {
 		set((state) => ({ ...state, agreedIds: [] }));
-
-		return agreedIds;
 	},
 }));

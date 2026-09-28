@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { ApiError } from '@/types/apis/common';
 
-import type { SessionDraft } from '@/types/navigation';
+import type { SessionSetup } from '@/types/navigation';
 
 import {
 	getRunningSessionOptions,
@@ -15,36 +15,36 @@ import { queryClient } from '@/lib/query-client';
 import type { StartDialogState } from '@/screens/home/components/start-dialogs';
 import { reportError } from '@/services/telemetry/client';
 
-type StartSessionState = StartDialogState & { start(draft: SessionDraft): void };
+type StartSessionState = StartDialogState & { start(sessionSetup: SessionSetup): void };
 
 export function useStartSession(
-	onStarted: (sessionId: string, draft: SessionDraft, endsAt: number | null) => void,
+	onStarted: (sessionId: string, sessionSetup: SessionSetup, endsAt: number | null) => void,
 ): StartSessionState {
-	const [pending, setPending] = useState<SessionDraft | null>(null);
+	const [pending, setPending] = useState<SessionSetup | null>(null);
 	const [takeoverOpen, setTakeoverOpen] = useState(false);
 
 	const startSession = useStartSessionRequest();
 	const finishSession = useFinishSession();
 
-	function start(draft: SessionDraft) {
-		const endsAt = draft.duration.ms === null ? null : Date.now() + draft.duration.ms;
+	function start(sessionSetup: SessionSetup) {
+		const endsAt = sessionSetup.duration.ms === null ? null : Date.now() + sessionSetup.duration.ms;
 
-		setPending(draft);
+		setPending(sessionSetup);
 		setTakeoverOpen(false);
 
 		startSession.mutate(
 			{
 				data: {
-					word_id: draft.wordId,
+					word_id: sessionSetup.wordId,
 					ends_at: endsAt === null ? null : new Date(endsAt).toISOString(),
-					sleep: draft.sleep,
+					sleep: sessionSetup.sleep,
 				},
 			},
 			{
 				onSuccess: (session) => {
 					setPending(null);
 
-					onStarted(session.id, draft, endsAt);
+					onStarted(session.id, sessionSetup, endsAt);
 				},
 				onError: (error) => {
 					if (error instanceof ApiError && error.code === 'SESSION__ALREADY_RUNNING') {
@@ -57,16 +57,16 @@ export function useStartSession(
 		);
 	}
 
-	async function finishRunningThenStart(draft: SessionDraft) {
+	async function finishRunningThenStart(sessionSetup: SessionSetup) {
 		const running = await queryClient.query({
 			...getRunningSessionOptions(),
 			staleTime: 0,
 		});
 
 		if (running) {
-			finishSession.mutate({ id: running.id }, { onSuccess: () => start(draft) });
+			finishSession.mutate({ id: running.id }, { onSuccess: () => start(sessionSetup) });
 		} else {
-			start(draft);
+			start(sessionSetup);
 		}
 	}
 
