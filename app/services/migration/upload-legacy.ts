@@ -9,14 +9,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { randomUUID } from 'expo-crypto';
 import { Paths } from 'expo-file-system';
 
-import { inspect } from '@/services/media/inspect';
-import { resolveRecordingUri } from '@/services/media/uri';
-import { parseLegacyUpdate } from '@/services/migration/legacy/app-update';
-import { parseLegacyFeedback } from '@/services/migration/legacy/feedback';
-import { type LegacyProfile, parseLegacyProfile } from '@/services/migration/legacy/profile';
+import { readFileInfo, resolveFileUri } from '@/services/media/file';
 import { type LegacyWord, parseLegacyWords } from '@/services/migration/legacy/words';
 import { reportError } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { type LegacyProfile, parseLegacyFeedback, parseLegacyProfile, parseLegacyUpdate } from '@/utils/legacy';
 import { requireChoice, requireRecord } from '@/utils/validation';
 
 type ReadLegacy = (key: string) => string | undefined;
@@ -163,7 +160,7 @@ function isInsideApp(uri: string): boolean {
 
 async function existingFile(uri: string, scope: string): Promise<string | null> {
 	try {
-		const resolved = resolveRecordingUri(uri);
+		const resolved = resolveFileUri(uri);
 
 		if (!isInsideApp(resolved)) {
 			reportError(new Error('Legacy file is outside the app'), scope);
@@ -171,7 +168,7 @@ async function existingFile(uri: string, scope: string): Promise<string | null> 
 			return null;
 		}
 
-		const info = await inspect(uri);
+		const info = readFileInfo(uri);
 
 		if (info.exists && info.size > 0) {
 			return resolved;

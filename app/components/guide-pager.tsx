@@ -13,8 +13,8 @@ import { contentMaxWidth } from '@/theme';
 import { BuddySays } from '@/components/buddy-says';
 import { Illustration } from '@/components/illustration';
 import { Button } from '@/components/ui/button';
-import { GroupedListCheckItem } from '@/components/ui/grouped-list/check-item';
 import { IconButton } from '@/components/ui/icon-button';
+import { ItemCheckbox } from '@/components/ui/item/checkbox';
 import { PageDots } from '@/components/ui/page-dots';
 import { Screen } from '@/components/ui/screen';
 import { TextButton } from '@/components/ui/text-button';
@@ -23,7 +23,7 @@ export type GuideStep = { title: string; scene: string; icon: LucideIcon };
 
 interface Props {
 	steps: readonly GuideStep[];
-	actions: { finish(): void; skip?(): void; back?(): void };
+	actions: { onFinish: () => void; onSkip?: () => void; onBack?: () => void };
 	dontShowAgain?: { value: boolean; onChange(value: boolean): void };
 	finishLabel?: string;
 }
@@ -39,7 +39,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 
 	const step = steps[index];
 	const last = index === steps.length - 1;
-	const back = index > 0 ? () => setIndex(index - 1) : actions.back;
+	const back = index > 0 ? () => setIndex(index - 1) : actions.onBack;
 
 	useEffect(() => {
 		navigation.setOptions({ gestureEnabled: index === 0 });
@@ -64,6 +64,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 	return (
 		<Screen scroll={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
+				{/*뒤로 가기, 단계 표시, 건너뛰기*/}
 				<View style={styles.top}>
 					{back ? <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={back} /> : null}
 					<PageDots
@@ -72,15 +73,21 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 						label={t('common.step', { current: index + 1, total: steps.length })}
 					/>
 					<View style={styles.spacer} />
-					{actions.skip ? <TextButton label={t('common.skip')} tone="muted" onPress={actions.skip} /> : null}
+					{actions.onSkip ? (
+						<TextButton label={t('common.skip')} variant="muted" onPress={actions.onSkip} />
+					) : null}
 				</View>
+
+				{/*안내 말풍선과 그림*/}
 				<View style={styles.body}>
 					<BuddySays message={step.title} />
 					<Illustration scene={step.scene} icon={step.icon} height={260} mascot={false} />
 				</View>
+
+				{/*다시 보지 않기와 다음 버튼*/}
 				<View style={styles.bottom}>
 					{dontShowAgain ? (
-						<GroupedListCheckItem
+						<ItemCheckbox
 							first
 							label={t('common.dontShowAgain')}
 							checked={dontShowAgain.value}
@@ -89,7 +96,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 					) : null}
 					<Button
 						label={last ? (finishLabel ?? t('common.start')) : t('common.next')}
-						onPress={() => (last ? actions.finish() : setIndex(index + 1))}
+						onPress={() => (last ? actions.onFinish() : setIndex(index + 1))}
 					/>
 				</View>
 			</View>

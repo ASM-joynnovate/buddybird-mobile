@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { Surface, type SurfaceProps } from '@/components/ui/surface/surface';
+import { Surface, type SurfaceProps } from '@/components/ui/surface';
 
 interface Props extends SurfaceProps {}
 

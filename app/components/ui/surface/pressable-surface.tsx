@@ -6,7 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { depths } from '@/theme';
 
-import { Surface, type SurfaceProps } from '@/components/ui/surface/surface';
+import { Surface, type SurfaceProps } from '@/components/ui/surface';
 
 type PressPoint = { x: number; y: number };
 

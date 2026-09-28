@@ -1,7 +1,7 @@
 import { AuthProvider } from '@/providers/auth';
 import SystemProvider from '@/providers/system';
 
-import { AuthenticatedContent } from '@/components/app/authenticated-content';
+import { AuthStatusContent } from '@/components/app/auth-status-content';
 
 interface Props {
 	splashFinished: boolean;
@@ -11,7 +11,7 @@ export function AppContent({ splashFinished }: Props) {
 	return (
 		<SystemProvider>
 			<AuthProvider>
-				<AuthenticatedContent splashFinished={splashFinished} />
+				<AuthStatusContent splashFinished={splashFinished} />
 			</AuthProvider>
 		</SystemProvider>
 	);

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth, radius } from '@/theme';
 
-import { Title } from '@/components/ui/text';
+import { Title } from '@/components/ui/title';
 
 interface Props {
 	visible: boolean;
@@ -27,7 +27,10 @@ export function Dialog({ visible, onClose, title, children, footer }: PropsWithC
 					style={[styles.backdrop, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
 				>
 					<View accessibilityViewIsModal style={styles.dialog}>
+						{/*제목*/}
 						<Title style={styles.title}>{title}</Title>
+
+						{/*본문*/}
 						<ScrollView
 							style={styles.body}
 							keyboardShouldPersistTaps="handled"
@@ -35,6 +38,8 @@ export function Dialog({ visible, onClose, title, children, footer }: PropsWithC
 						>
 							{children}
 						</ScrollView>
+
+						{/*하단 버튼*/}
 						{footer}
 					</View>
 				</KeyboardAvoidingView>

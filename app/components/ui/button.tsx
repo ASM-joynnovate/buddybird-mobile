@@ -4,30 +4,39 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import { colors, depths, font } from '@/theme';
 
-import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/surface/pressable-surface';
 
-interface Props extends Omit<PressableSurfaceProps, 'children' | 'tone'> {
+interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
 	label: string;
 	icon?: LucideIcon;
 	variant?: 'primary' | 'secondary';
 	loading?: boolean;
-	compact?: boolean;
+	size?: 'small' | 'medium';
 }
 
-export function Button({ label, icon: Icon, variant = 'primary', loading, compact, style, disabled, ...props }: Props) {
+export function Button({
+	label,
+	icon: Icon,
+	variant = 'primary',
+	loading,
+	size = 'medium',
+	style,
+	disabled,
+	...props
+}: Props) {
 	const inactive = disabled || loading;
-	const depth = compact ? 'high' : 'xhigh';
-	let tone: 'primary' | 'neutral' | 'muted' = 'primary';
+	const depth = size === 'small' ? 'high' : 'xhigh';
+	let surfaceVariant: 'primary' | 'neutral' | 'muted' = 'primary';
 	let foregroundColor = colors.onAccent;
 
 	if (variant === 'secondary') {
-		tone = 'neutral';
+		surfaceVariant = 'neutral';
 		foregroundColor = colors.text;
 	}
 
 	if (inactive) {
-		tone = 'muted';
+		surfaceVariant = 'muted';
 		foregroundColor = colors.disabled;
 	}
 
@@ -36,7 +45,7 @@ export function Button({ label, icon: Icon, variant = 'primary', loading, compac
 	if (loading) {
 		leadingContent = <ActivityIndicator color={foregroundColor} />;
 	} else if (Icon) {
-		leadingContent = <Icon color={foregroundColor} size={compact ? 20 : 26} />;
+		leadingContent = <Icon color={foregroundColor} size={size === 'small' ? 20 : 26} />;
 	}
 
 	return (
@@ -50,14 +59,20 @@ export function Button({ label, icon: Icon, variant = 'primary', loading, compac
 				busy: Boolean(loading),
 			}}
 			disabled={inactive}
-			tone={tone}
+			variant={surfaceVariant}
 			depth={inactive ? 'none' : depth}
 			cornerRadius="control"
 			style={[inactive && { marginTop: depths[depth] }, style]}
-			contentStyle={[styles.button, { borderWidth: variant === 'secondary' ? 2 : 0 }, compact && styles.compact]}
+			contentStyle={[
+				styles.button,
+				{ borderWidth: variant === 'secondary' ? 2 : 0 },
+				size === 'small' && styles.compact,
+			]}
 		>
 			{leadingContent}
-			<Copy style={[styles.buttonText, { color: foregroundColor }, compact && styles.compactText]}>{label}</Copy>
+			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.compactText]}>
+				{label}
+			</Copy>
 		</PressableSurface>
 	);
 }

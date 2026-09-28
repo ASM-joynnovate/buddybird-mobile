@@ -16,11 +16,11 @@ import { colors, contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Copy } from '@/components/ui/text';
 
 export function SessionDetailScreen() {
 	const { t } = useTranslation();

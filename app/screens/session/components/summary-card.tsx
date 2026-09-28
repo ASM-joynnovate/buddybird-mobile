@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import { Stat } from '@/screens/session/components/stat';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-import { Card } from '@/components/ui/surface';
+import { Card } from '@/components/ui/surface/card';
 
 interface Props {
 	sessionId: string;

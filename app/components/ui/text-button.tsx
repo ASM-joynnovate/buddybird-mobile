@@ -2,28 +2,28 @@ import { StyleSheet } from 'react-native';
 
 import { colors, font } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
 	onPress(): void;
 	disabled?: boolean;
-	tone?: 'primary' | 'muted';
+	variant?: 'primary' | 'muted';
 }
 
-export function TextButton({ label, onPress, disabled, tone = 'primary' }: Props) {
+export function TextButton({ label, onPress, disabled, variant = 'primary' }: Props) {
 	return (
 		<PressableSurface
 			accessibilityLabel={label}
 			disabled={disabled}
 			onPress={onPress}
-			tone="plain"
+			variant="plain"
 			depth="none"
 			cornerRadius="control"
 			contentStyle={styles.textButton}
 		>
-			<Copy style={[styles.textButtonLabel, tone === 'muted' && styles.muted, disabled && styles.disabled]}>
+			<Copy style={[styles.textButtonLabel, variant === 'muted' && styles.muted, disabled && styles.disabled]}>
 				{label}
 			</Copy>
 		</PressableSurface>

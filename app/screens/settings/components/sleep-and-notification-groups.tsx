@@ -1,48 +1,45 @@
-import type { RootStackParamList } from '@/types/navigation';
-
-import { usePermission } from '@/hooks/use-permission';
+import { useGetSettings, useUpdateNotificationSettings, useUpdateSleepSettings } from '@/hooks/apis/settings';
 
 import { useTranslation } from 'react-i18next';
 
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
 import { NotificationGroup } from '@/screens/settings/components/notification-group';
-import { useSettingsUpdate } from '@/screens/settings/hooks/use-settings-update';
 
 import { SleepTimePicker } from '@/components/session/sleep-time-picker';
-import { GroupedList } from '@/components/ui/grouped-list';
 import { InlineError } from '@/components/ui/inline-error';
+import { ItemGroup } from '@/components/ui/item/group';
 
 /** 수면 시간과 알림 설정 그룹 컴포넌트 */
 const SleepAndNotificationGroups = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+	const { data: settingsData } = useGetSettings();
 
-	const form = useSettingsUpdate();
+	const updateSleepSettings = useUpdateSleepSettings();
+	const updateNotificationSettings = useUpdateNotificationSettings();
 
-	const notificationPermission = usePermission('notifications');
-
-	const settings = form.settings;
+	const saveFailed = updateSleepSettings.isError || updateNotificationSettings.isError;
 
 	return (
 		<>
 			{/*수면 시간*/}
-			<GroupedList title={t('settings.care.title')}>
-				<SleepTimePicker value={settings.sleep} first onChange={form.updateSleep} />
-			</GroupedList>
+			<ItemGroup title={t('settings.care.title')}>
+				<SleepTimePicker
+					value={settingsData.sleep}
+					first
+					onChange={(sleep) => updateSleepSettings.mutate({ data: sleep })}
+				/>
+			</ItemGroup>
 
 			{/*알림*/}
 			<NotificationGroup
-				settings={settings}
-				permissionOff={notificationPermission.granted === false}
-				onOpenPermissions={() => navigation.navigate('Permissions')}
-				onChange={(key, value) => form.updateNotifications({ ...settings.notifications, [key]: value })}
+				settings={settingsData}
+				onChange={(key, value) =>
+					updateNotificationSettings.mutate({ data: { ...settingsData.notifications, [key]: value } })
+				}
 			/>
 
 			{/*저장 실패 안내*/}
-			<InlineError message={form.saveFailed ? t('settings.saveError') : null} />
+			<InlineError message={saveFailed ? t('settings.saveError') : null} />
 		</>
 	);
 };

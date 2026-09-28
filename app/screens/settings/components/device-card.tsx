@@ -9,9 +9,9 @@ import { formatMoment } from '@/i18n/format';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
-import { Card } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/copy';
+import { Card } from '@/components/ui/surface/card';
 import { Tag } from '@/components/ui/tag';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	device: LinkedDevice;
@@ -35,10 +35,13 @@ export function DeviceCard({ device }: Props) {
 						})}
 					</Copy>
 				) : null}
+
 				{device.isThisDevice || device.isRunningSession ? (
 					<View style={styles.tags}>
 						{device.isThisDevice ? <Tag label={t('settings.devices.current')} /> : null}
-						{device.isRunningSession ? <Tag tone="primary" label={t('settings.devices.running')} /> : null}
+						{device.isRunningSession ? (
+							<Tag variant="primary" label={t('settings.devices.running')} />
+						) : null}
 					</View>
 				) : null}
 			</View>

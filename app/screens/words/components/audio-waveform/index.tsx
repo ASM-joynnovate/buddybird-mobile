@@ -5,10 +5,27 @@ import { StyleSheet, View } from 'react-native';
 import { useReducedMotion, useSharedValue } from 'react-native-reanimated';
 
 import { WaveBar } from '@/screens/words/components/audio-waveform/wave-bar';
-import { liveTargets, loopTargets } from '@/utils/audio-waveform';
 
 const LIVE_MS = 80;
 const LOOP_MS = 200;
+
+function centreWeight(index: number, barCount: number): number {
+	return 1 - Math.abs(index - barCount / 2) / (barCount / 2);
+}
+
+function liveTargets(effective: number, barCount: number): number[] {
+	return Array.from({ length: barCount }, (_, index) => {
+		const jitter = (Math.random() - 0.5) * 0.35 * effective;
+
+		return Math.max(0, Math.min(1, effective * centreWeight(index, barCount) + jitter));
+	});
+}
+
+function loopTargets(barCount: number): number[] {
+	return Array.from({ length: barCount }, (_, index) =>
+		Math.max(0.08, centreWeight(index, barCount) * 0.55 + (Math.random() - 0.5) * 0.3),
+	);
+}
 
 interface Props {
 	color: string;

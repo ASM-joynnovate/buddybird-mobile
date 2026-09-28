@@ -5,12 +5,15 @@ import { StyleSheet, View } from 'react-native';
 import type { Report } from '@/types/apis/reports';
 
 import type { Locale } from '@/types/locale';
+import type { RootStackParamList } from '@/types/navigation';
 import { reportPeriodSchema } from '@/types/report-period';
 
 import { useTranslation } from 'react-i18next';
 
 import { formatDate, formatDateWithWeekday, formatDuration, formatMonth } from '@/i18n/format';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
 
 import { TrendChart } from '@/screens/report/components/report-header/trend-chart';
@@ -22,12 +25,12 @@ import { latestStart } from '@/utils/report-period';
 
 import { Illustration } from '@/components/illustration';
 import { Chip } from '@/components/ui/chip';
+import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { ui } from '@/components/ui/styles';
-import { Card } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Card } from '@/components/ui/surface/card';
 
 function periodLabel(report: Report, locale: Locale): string {
 	if (report.period === 'day') {
@@ -43,16 +46,18 @@ function periodLabel(report: Report, locale: Locale): string {
 
 interface Props {
 	report: Report;
-	onStart(): void;
 }
 
-export function ReportHeader({ report, onStart }: Props): ReactElement {
+export function ReportHeader({ report }: Props): ReactElement {
 	const { t } = useTranslation();
+
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	const locale = useDeviceSettingsStore((settings) => settings.locale);
 
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
+
 	const selectPeriod = useReportStore((state) => state.selectPeriod);
 	const movePeriod = useReportStore((state) => state.movePeriod);
 
@@ -116,7 +121,10 @@ export function ReportHeader({ report, onStart }: Props): ReactElement {
 				<EmptyState
 					message={t('report.empty')}
 					illustration={illustration}
-					action={{ label: t('report.startSession'), onPress: onStart }}
+					action={{
+						label: t('report.startSession'),
+						onPress: () => navigation.navigate('Main', { screen: 'HomeTab' }),
+					}}
 				/>
 			) : null}
 

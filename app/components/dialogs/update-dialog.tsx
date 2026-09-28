@@ -11,9 +11,9 @@ import { reportError, track } from '@/services/telemetry/client';
 
 import { Dialog } from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	promptedUpdate: PromptedUpdate;

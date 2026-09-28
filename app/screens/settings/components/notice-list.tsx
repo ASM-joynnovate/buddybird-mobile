@@ -17,10 +17,10 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
+import { Copy } from '@/components/ui/copy';
 import { DotBadge } from '@/components/ui/dot-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 /** 공지 목록 컴포넌트 */
 const NoticeList = () => {

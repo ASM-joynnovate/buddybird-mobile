@@ -2,22 +2,22 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors, font, radius } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
-const tones = {
+const variants = {
 	primary: { face: colors.orangeSelected, edge: colors.orange, text: colors.orangeDark },
 	muted: { face: colors.surface, edge: colors.border, text: colors.muted },
 } as const;
 
-type TagTone = keyof typeof tones;
+type TagVariant = keyof typeof variants;
 
 interface Props {
 	label: string;
-	tone?: TagTone;
+	variant?: TagVariant;
 }
 
-export function Tag({ label, tone = 'muted' }: Props) {
-	const palette = tones[tone];
+export function Tag({ label, variant = 'muted' }: Props) {
+	const palette = variants[variant];
 
 	return (
 		<View style={[styles.tag, { backgroundColor: palette.face, borderColor: palette.edge }]}>

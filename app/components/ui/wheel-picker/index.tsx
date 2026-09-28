@@ -2,8 +2,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors, font } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
-import { WHEEL_ITEM_HEIGHT, Wheel } from '@/components/ui/wheel-picker/wheel';
+import { Copy } from '@/components/ui/copy';
+import { WHEEL_ITEM_HEIGHT, WheelPickerWheel } from '@/components/ui/wheel-picker/wheel';
 
 export const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 export const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5);
@@ -27,7 +27,7 @@ export function WheelPicker({ columns }: Props) {
 			<View pointerEvents="none" style={styles.selection} />
 			{columns.map((column) => (
 				<View key={column.key} style={styles.column}>
-					<Wheel
+					<WheelPickerWheel
 						label={column.label}
 						value={column.value}
 						values={column.values}

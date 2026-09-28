@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	message: string;

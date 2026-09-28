@@ -6,7 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { colors, font } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
 export const WHEEL_ITEM_HEIGHT = 40;
 
@@ -17,7 +17,7 @@ interface Props {
 	onChange(value: number): void;
 }
 
-export function Wheel({ value, values, label, onChange }: Props) {
+export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 	const scroll = useRef<ScrollView>(null);
 	const dragging = useRef(false);
 

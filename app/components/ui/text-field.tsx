@@ -2,9 +2,9 @@ import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
 import { colors, font } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props extends TextInputProps {
 	label?: string;

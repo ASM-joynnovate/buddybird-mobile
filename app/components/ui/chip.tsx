@@ -2,8 +2,8 @@ import { StyleSheet } from 'react-native';
 
 import { colors, font } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
@@ -18,7 +18,7 @@ export function Chip({ label, selected, onPress }: Props) {
 			accessibilityLabel={label}
 			accessibilityState={{ selected: Boolean(selected) }}
 			onPress={onPress}
-			tone={selected ? 'primary' : 'neutral'}
+			variant={selected ? 'primary' : 'neutral'}
 			depth="low"
 			hitSlop={6}
 			cornerRadius="pill"

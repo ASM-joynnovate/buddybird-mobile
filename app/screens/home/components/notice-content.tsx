@@ -11,7 +11,8 @@ import { formatDate } from '@/i18n/format';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, radius } from '@/theme';
 
-import { Copy, Title } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { Title } from '@/components/ui/title';
 
 interface Props {
 	noticeId: string;

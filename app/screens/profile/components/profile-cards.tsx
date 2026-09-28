@@ -16,8 +16,8 @@ import { ParrotCard } from '@/screens/profile/components/parrot-card';
 import { useAccountStore } from '@/stores/account';
 
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<ProfileStackParamList, 'Profile'>,

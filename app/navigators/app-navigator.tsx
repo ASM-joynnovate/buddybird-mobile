@@ -18,14 +18,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { env } from '@/config';
 import { MainTabs } from '@/navigators/main-tabs';
-import { ConsentDetailScreen } from '@/screens/entry/consent-detail-screen';
-import { ConsentScreen } from '@/screens/entry/consent-screen';
-import { LegacyUploadScreen } from '@/screens/entry/legacy-upload-screen';
-import { LoginScreen } from '@/screens/entry/login-screen';
-import { ParrotEditorScreen } from '@/screens/entry/parrot-editor-screen';
-import { PermissionRequestScreen } from '@/screens/entry/permission-request-screen';
-import { UsageGuideScreen } from '@/screens/entry/usage-guide-screen';
 import { NoticeDetailScreen } from '@/screens/home/notice-detail-screen';
+import { ConsentDetailScreen } from '@/screens/onboarding/consent-detail-screen';
+import { ConsentScreen } from '@/screens/onboarding/consent-screen';
+import { LegacyUploadScreen } from '@/screens/onboarding/legacy-upload-screen';
+import { LoginScreen } from '@/screens/onboarding/login-screen';
+import { ParrotEditorScreen } from '@/screens/onboarding/parrot-editor-screen';
+import { PermissionRequestScreen } from '@/screens/onboarding/permission-request-screen';
+import { UsageGuideScreen } from '@/screens/onboarding/usage-guide-screen';
 import { SessionRunScreen } from '@/screens/session/session-run-screen';
 import { SessionSummaryScreen } from '@/screens/session/session-summary-screen';
 import { ConsentSettingsScreen } from '@/screens/settings/consent-settings-screen';
@@ -90,16 +90,16 @@ const linking: LinkingOptions<RootStackParamList> = {
 	},
 };
 
-const ENTRY_ORDER = ['Consent', 'ParrotEditor', 'UsageGuide'] as const;
+const ONBOARDING_ORDER = ['Consent', 'ParrotEditor', 'UsageGuide'] as const;
 
-function entryState(route: (typeof ENTRY_ORDER)[number], parrotId?: string): PartialState<NavigationState> {
-	const routes = ENTRY_ORDER.slice(0, ENTRY_ORDER.indexOf(route) + 1).map((name) =>
+function entryState(route: (typeof ONBOARDING_ORDER)[number], parrotId?: string): PartialState<NavigationState> {
+	const routes = ONBOARDING_ORDER.slice(0, ONBOARDING_ORDER.indexOf(route) + 1).map((name) =>
 		name === 'ParrotEditor'
 			? {
 					name,
 					params: {
 						parrotId: route === 'UsageGuide' ? parrotId : undefined,
-						source: 'entry',
+						source: 'onboarding',
 					},
 				}
 			: { name },
@@ -117,7 +117,7 @@ function initialStateOf(
 	}
 
 	if (route === 'Login') {
-		return { index: 0, routes: [{ name: 'Login', params: { source: 'entry' } }] };
+		return { index: 0, routes: [{ name: 'Login', params: { source: 'onboarding' } }] };
 	}
 
 	return entryState(route, parrotId);

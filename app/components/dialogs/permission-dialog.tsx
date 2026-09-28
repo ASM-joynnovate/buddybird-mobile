@@ -9,8 +9,8 @@ import { reportError } from '@/services/telemetry/client';
 import { Dialog } from '@/components/dialogs/dialog';
 import { Mascot } from '@/components/mascot';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	state: PermissionDialogState;
@@ -31,13 +31,13 @@ export function PermissionDialog({ state }: Props) {
 					<Button
 						label={t('common.close')}
 						variant="secondary"
-						compact
+						size="small"
 						onPress={state.onClose}
 						style={ui.action}
 					/>
 					<Button
 						label={t('common.permission.openSettings')}
-						compact
+						size="small"
 						onPress={() =>
 							void Linking.openSettings().catch((error: unknown) =>
 								reportError(error, 'permission_settings'),

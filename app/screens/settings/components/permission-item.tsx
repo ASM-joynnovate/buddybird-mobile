@@ -9,7 +9,7 @@ import { reportError } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 
 import { PermissionDialog } from '@/components/dialogs/permission-dialog';
-import { GroupedListNavItem } from '@/components/ui/grouped-list/nav-item';
+import { Item } from '@/components/ui/item';
 
 interface Props {
 	kind: PermissionKind;
@@ -30,7 +30,8 @@ export function PermissionItem({ kind, icon, first }: Props) {
 
 	return (
 		<>
-			<GroupedListNavItem
+			{/*권한 항목*/}
+			<Item
 				first={first}
 				icon={icon}
 				label={t(`common.permission.${kind}.name`)}
@@ -43,6 +44,8 @@ export function PermissionItem({ kind, icon, first }: Props) {
 						.catch((error: unknown) => reportError(error, `permission_${kind}`))
 				}
 			/>
+
+			{/*권한 다이얼로그*/}
 			<PermissionDialog state={permission.dialog} />
 		</>
 	);

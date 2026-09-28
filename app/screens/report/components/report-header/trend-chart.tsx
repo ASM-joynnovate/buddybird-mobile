@@ -17,8 +17,8 @@ import dayjs from 'dayjs';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const CHART_HEIGHT = 150;
 const MIN_BAR = 3;
@@ -45,9 +45,9 @@ interface Props {
 export function TrendChart({ period, trend }: Props): ReactElement {
 	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const [selected, setSelected] = useState<number | null>(null);
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const max = Math.max(1, ...trend.map((bucket) => bucket.learning_duration_ms));
 	const describe = (bucket: Bucket) =>
@@ -62,11 +62,12 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 			<Copy accessibilityLiveRegion="polite" style={styles.detail}>
 				{picked ? describe(picked) : ' '}
 			</Copy>
+
 			<View style={[styles.bars, period === 'week' ? styles.wide : styles.narrow]}>
 				{trend.map((bucket, index) => (
 					<PressableSurface
 						key={bucket.start}
-						tone="plain"
+						variant="plain"
 						depth="none"
 						cornerRadius="xsmall"
 						accessibilityLabel={describe(bucket)}

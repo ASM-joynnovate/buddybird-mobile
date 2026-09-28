@@ -10,8 +10,8 @@ import { DURATION_PRESETS, MAX_SESSION_MS } from '@/config';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { DAY, HOUR, MINUTE } from '@/utils/units';
 
-import { GroupedList } from '@/components/ui/grouped-list';
-import { GroupedListRadioItem } from '@/components/ui/grouped-list/radio-item';
+import { ItemGroup } from '@/components/ui/item/group';
+import { ItemRadio } from '@/components/ui/item/radio';
 import { HOURS, MINUTE_STEPS, WheelPicker } from '@/components/ui/wheel-picker';
 
 const DAYS = Array.from({ length: MAX_SESSION_MS / DAY + 1 }, (_, day) => day);
@@ -40,27 +40,28 @@ export function DurationPicker({ value, onChange }: Props) {
 
 	return (
 		<View style={styles.picker}>
-			<GroupedList>
-				<GroupedListRadioItem
+			<ItemGroup>
+				<ItemRadio
 					first
 					label={t('session.start.untilEnd')}
 					selected={!value.custom && value.ms === null}
 					onPress={() => onChange({ ms: null, custom: false })}
 				/>
 				{DURATION_PRESETS.map((preset) => (
-					<GroupedListRadioItem
+					<ItemRadio
 						key={preset}
 						label={formatDuration(preset, locale)}
 						selected={!value.custom && value.ms === preset}
 						onPress={() => onChange({ ms: preset, custom: false })}
 					/>
 				))}
-				<GroupedListRadioItem
+				<ItemRadio
 					label={t('session.start.custom')}
 					selected={value.custom}
 					onPress={() => onChange({ ms: value.ms, custom: true })}
 				/>
-			</GroupedList>
+			</ItemGroup>
+
 			{value.custom ? (
 				<WheelPicker
 					columns={[

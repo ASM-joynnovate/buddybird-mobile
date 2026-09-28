@@ -5,8 +5,8 @@ import { ChevronRightIcon, type LucideIcon } from 'lucide-react-native';
 import { colors, font } from '@/theme';
 
 import { Avatar } from '@/components/ui/avatar';
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	avatar: { uri?: string | null; icon: LucideIcon; size: 'medium' | 'large' };

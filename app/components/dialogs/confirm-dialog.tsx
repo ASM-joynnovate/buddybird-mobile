@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	visible: boolean;
@@ -33,14 +33,14 @@ export function ConfirmDialog({ visible, text, state, onConfirm, onClose, childr
 					<Button
 						label={text.cancel ?? t('common.cancel')}
 						variant="secondary"
-						compact
+						size="small"
 						disabled={busy}
 						onPress={onClose}
 						style={ui.action}
 					/>
 					<Button
 						label={text.confirm ?? t('common.confirmDelete.confirm')}
-						compact
+						size="small"
 						loading={busy}
 						onPress={onConfirm}
 						style={ui.action}
@@ -48,8 +48,11 @@ export function ConfirmDialog({ visible, text, state, onConfirm, onClose, childr
 				</View>
 			}
 		>
+			{/*안내 문구*/}
 			{text.message ? <Copy>{text.message}</Copy> : null}
 			{children}
+
+			{/*실패 문구*/}
 			<InlineError message={state?.error} />
 		</Dialog>
 	);

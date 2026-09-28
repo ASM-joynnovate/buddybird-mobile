@@ -24,8 +24,8 @@ import { periodsBetween } from '@/utils/date';
 import { latestStart, periodSelectionFromParams } from '@/utils/report-period';
 
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 /** 리포트 본문 컴포넌트 */
 const ReportContent = () => {
@@ -64,6 +64,28 @@ const ReportContent = () => {
 	const isSelectedPeriodShown = deferredPeriod === period && deferredStart === selectedStart;
 	const periodsAgo = periodsBetween(period, selectedStart, latestStart(period));
 
+	const header = <ReportHeader report={reportData} />;
+
+	const mimicrySection = hasSessions ? (
+		<View style={ui.section}>
+			<View style={styles.mimicryTitleRow}>
+				<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
+					{t('report.sounds')}
+				</Copy>
+				{!isAnonymous && (
+					<Copy style={styles.mimicryCount}>{t('report.mimicry', { count: reportData.mimicry.count })}</Copy>
+				)}
+			</View>
+
+			{isAnonymous && (
+				<View style={styles.signInRequiredContainer}>
+					<Copy style={styles.signInRequiredText}>{t('auth.signInRequired')}</Copy>
+					<Button label={t('auth.signIn')} variant="secondary" onPress={() => navigation.navigate('Login')} />
+				</View>
+			)}
+		</View>
+	) : null;
+
 	/** 화면에 보이는 리포트 기간마다 report_viewed 한 번 전송 */
 	useEffect(() => {
 		if (!focused) {
@@ -99,38 +121,6 @@ const ReportContent = () => {
 		});
 	}, [deferredPeriod, deferredStart, focused, isSelectedPeriodShown, periodsAgo, reportData, route.params]);
 
-	/** 세션 상세 화면 열기 */
-	const handleOpenSession = (sessionId: string) => {
-		navigation.navigate('Main', {
-			screen: 'ReportTab',
-			params: { screen: 'SessionDetail', params: { sessionId, source: 'report' } },
-		});
-	};
-
-	const header = (
-		<ReportHeader report={reportData} onStart={() => navigation.navigate('Main', { screen: 'HomeTab' })} />
-	);
-
-	const mimicrySection = hasSessions ? (
-		<View style={ui.section}>
-			<View style={styles.mimicryTitleRow}>
-				<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
-					{t('report.sounds')}
-				</Copy>
-				{!isAnonymous && (
-					<Copy style={styles.mimicryCount}>{t('report.mimicry', { count: reportData.mimicry.count })}</Copy>
-				)}
-			</View>
-
-			{isAnonymous && (
-				<View style={styles.signInRequiredContainer}>
-					<Copy style={styles.signInRequiredText}>{t('auth.signInRequired')}</Copy>
-					<Button label={t('auth.signIn')} variant="secondary" onPress={() => navigation.navigate('Login')} />
-				</View>
-			)}
-		</View>
-	) : null;
-
 	return (
 		<FlatList
 			data={reportData.sessions}
@@ -141,13 +131,7 @@ const ReportContent = () => {
 			onRefresh={() => void refetch()}
 			ListHeaderComponent={header}
 			ListFooterComponent={mimicrySection}
-			renderItem={({ item: session }) => (
-				<SessionItem
-					session={session}
-					judging={!isAnonymous && session.judgment_status === 'pending'}
-					onPress={() => handleOpenSession(session.id)}
-				/>
-			)}
+			renderItem={({ item: session }) => <SessionItem session={session} />}
 		/>
 	);
 };

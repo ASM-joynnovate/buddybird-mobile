@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { BellIcon } from 'lucide-react-native';
 
 import { NotificationItem } from '@/screens/home/components/notification-item';
-import { useOpenNotification } from '@/screens/home/hooks/use-open-notification';
 import { colors } from '@/theme';
 
 import { Illustration } from '@/components/illustration';
@@ -18,8 +17,6 @@ const NotificationList = () => {
 	const { t } = useTranslation();
 
 	const { data: notificationListData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetNotificationList();
-
-	const open = useOpenNotification();
 
 	const notifications = notificationListData.pages.flatMap((notificationPage) => notificationPage.data);
 	const emptyContent = (
@@ -40,7 +37,7 @@ const NotificationList = () => {
 		<FlatList
 			data={notifications}
 			keyExtractor={(notification) => notification.id}
-			renderItem={({ item: notification }) => <NotificationItem item={notification} onOpen={open} />}
+			renderItem={({ item: notification }) => <NotificationItem item={notification} />}
 			ListEmptyComponent={emptyContent}
 			onEndReachedThreshold={0.4}
 			onEndReached={handleFetchNextPage}

@@ -11,7 +11,7 @@ export function ChoiceCard({ selected, contentStyle, ...props }: Props) {
 		<PressableSurface
 			{...props}
 			depth={selected ? 'medium' : 'low'}
-			tone={selected ? 'selected' : 'neutral'}
+			variant={selected ? 'selected' : 'neutral'}
 			accessibilityRole="radio"
 			accessibilityState={{ checked: selected, selected }}
 			contentStyle={[styles.card, contentStyle]}

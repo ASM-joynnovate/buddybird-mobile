@@ -6,7 +6,7 @@ import { colors } from '@/theme';
 
 interface Props extends BottomSheetBackdropProps {}
 
-export function Backdrop(props: Props) {
+export function SheetBackdrop(props: Props) {
 	return (
 		<BottomSheetBackdrop
 			{...props}

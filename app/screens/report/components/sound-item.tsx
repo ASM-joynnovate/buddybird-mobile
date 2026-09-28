@@ -8,29 +8,45 @@ import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatDateTime } from '@/i18n/format';
+
+import dayjs from 'dayjs';
+
 import { track } from '@/services/telemetry/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { PlayButton } from '@/components/ui/play-button';
-import { PressableSurface } from '@/components/ui/surface';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { Tag } from '@/components/ui/tag';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	sound: SessionSound;
 	wordName: string;
-	timeLabel: string;
+	multiDay: boolean;
 	player: SoundPlayer;
 }
 
-export function SoundItem({ sound, wordName, timeLabel, player }: Props) {
+export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 	const { t } = useTranslation();
 
 	const [shareFailed, setShareFailed] = useState(false);
 
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const playing = player.playingId === sound.id;
 	const url = sound.audio.url;
+	const timeLabel = multiDay ? formatDateTime(sound.captured_at, locale) : dayjs(sound.captured_at).format('LT');
+
+	let message: string | null = null;
+
+	if (player.failedId === sound.id) {
+		message = t('common.sound.playError');
+	} else if (shareFailed) {
+		message = t('common.sound.shareError');
+	}
 
 	async function share() {
 		if (!url) {
@@ -50,14 +66,6 @@ export function SoundItem({ sound, wordName, timeLabel, player }: Props) {
 		}
 	}
 
-	let message: string | null = null;
-
-	if (player.failedId === sound.id) {
-		message = t('common.sound.playError');
-	} else if (shareFailed) {
-		message = t('common.sound.shareError');
-	}
-
 	return (
 		<View>
 			<PressableSurface
@@ -66,15 +74,18 @@ export function SoundItem({ sound, wordName, timeLabel, player }: Props) {
 				onPress={() => {}}
 				onLongPress={url ? () => void share() : undefined}
 				disabled={!url}
-				tone="plain"
+				variant="plain"
 				depth="none"
 				cornerRadius="control"
 				contentStyle={styles.row}
 			>
+				{/*녹음 시각과 단어*/}
 				<View style={styles.info}>
 					<Copy style={styles.time}>{timeLabel}</Copy>
-					<Tag tone="primary" label={wordName} />
+					<Tag variant="primary" label={wordName} />
 				</View>
+
+				{/*재생 버튼*/}
 				<PlayButton
 					playing={playing}
 					label={
@@ -98,6 +109,7 @@ export function SoundItem({ sound, wordName, timeLabel, player }: Props) {
 					}}
 				/>
 			</PressableSurface>
+
 			<InlineError message={message} />
 		</View>
 	);

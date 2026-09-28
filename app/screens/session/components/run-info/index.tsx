@@ -11,14 +11,14 @@ import { formatTimer } from '@/i18n/format';
 import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HorizonRing } from '@/screens/session/components/run-info/horizon-ring';
+import { SessionProgressArc } from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
 import { night } from '@/theme/night';
 import { runStatus } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const RING_MAX = 460;
 
@@ -59,7 +59,7 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 
 			{/*진행 단계와 종료 버튼*/}
 			<View style={styles.bottom} pointerEvents="box-none">
-				<HorizonRing
+				<SessionProgressArc
 					width={Math.min(width * 0.55, RING_MAX)}
 					phase={status.phase}
 					fraction={status.fraction}

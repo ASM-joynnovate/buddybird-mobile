@@ -4,19 +4,24 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import type { AppNotification, NotificationKind } from '@/types/apis/notifications';
 
+import { useReadNotification } from '@/hooks/apis/notifications';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatMoment } from '@/i18n/format';
 
+import { useLinkTo } from '@react-navigation/native';
 import { AudioWaveformIcon, ChartNoAxesColumnIcon, FlameIcon, type LucideIcon } from 'lucide-react-native';
 
+import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
+import { notificationPath } from '@/utils/notification';
 
+import { Copy } from '@/components/ui/copy';
 import { DotBadge } from '@/components/ui/dot-badge';
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const icons: Record<NotificationKind, LucideIcon> = {
 	mimicry: AudioWaveformIcon,
@@ -26,11 +31,14 @@ const icons: Record<NotificationKind, LucideIcon> = {
 
 interface Props {
 	item: AppNotification;
-	onOpen(item: AppNotification): void;
 }
 
-export const NotificationItem = memo(function NotificationItem({ item, onOpen }: Props) {
+export const NotificationItem = memo(function NotificationItem({ item }: Props) {
 	const { t } = useTranslation();
+
+	const linkTo = useLinkTo();
+
+	const { mutate } = useReadNotification();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -38,19 +46,31 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 	const time = formatMoment(item.sent_at, locale);
 	const KindIcon = icons[item.kind];
 
+	/** 알림 읽음 표시와 알림 경로 열기 */
+	const handleOpen = () => {
+		if (unread) {
+			mutate({ id: item.id });
+		}
+
+		track('notification_opened', { kind: item.kind, from: 'list' });
+
+		linkTo(notificationPath(item));
+	};
+
 	return (
 		<PressableSurface
-			tone="plain"
+			variant="plain"
 			depth="none"
 			cornerRadius="none"
 			style={styles.item}
 			contentStyle={styles.row}
 			accessibilityLabel={joinLabel(unread && t('home.notification.unread'), item.title, item.body, time)}
-			onPress={() => onOpen(item)}
+			onPress={handleOpen}
 		>
 			<View style={styles.icon}>
 				<KindIcon size={20} color={colors.orangeDark} />
 			</View>
+
 			<View style={styles.text}>
 				<View style={styles.titleRow}>
 					<Copy numberOfLines={1} style={styles.title}>
@@ -63,6 +83,7 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 				</Copy>
 				<Copy style={styles.time}>{time}</Copy>
 			</View>
+
 			{item.image ? (
 				<Image source={{ uri: item.image.url }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : null}

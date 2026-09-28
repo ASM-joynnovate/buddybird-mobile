@@ -1,36 +1,92 @@
+import { useState } from 'react';
+
 import { Image, StyleSheet, View } from 'react-native';
 
-import type { FeedbackForm } from '@/hooks/use-feedback-form';
+import { ApiError } from '@/types/apis/common';
+
+import { useSendFeedback } from '@/hooks/apis/feedback';
 
 import { useTranslation } from 'react-i18next';
 
+import { randomUUID } from 'expo-crypto';
 import { SendIcon } from 'lucide-react-native';
 
+import { track } from '@/services/telemetry/client';
+import { useFeedbackStore } from '@/stores/feedback';
 import { colors, font, mascot } from '@/theme';
 
 import { Dialog } from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 
 interface Props {
 	visible: boolean;
 	prompt?: { onDismiss(): void; onWrite(): void };
-	form: FeedbackForm;
 }
 
-export function FeedbackDialog({ visible, prompt, form }: Props) {
+export function FeedbackDialog({ visible, prompt }: Props) {
 	const { t } = useTranslation();
 
-	if (form.sent) {
+	const [message, setMessage] = useState('');
+	const [idempotencyKey, setIdempotencyKey] = useState(() => randomUUID());
+
+	const { isError, isPending, isSuccess, mutate, reset } = useSendFeedback();
+
+	const openedFrom = useFeedbackStore((state) => state.openedFrom);
+
+	const closeFeedback = useFeedbackStore((state) => state.closeFeedback);
+
+	/** 입력 초기화와 새 멱등키 발급 뒤 의견 다이얼로그 닫기 */
+	const handleClose = () => {
+		if (isPending) {
+			return;
+		}
+
+		reset();
+
+		setMessage('');
+		setIdempotencyKey(randomUUID());
+
+		closeFeedback();
+	};
+
+	/** 의견 전송과 성공 또는 4xx 거부 시 새 멱등키 발급 */
+	const handleSubmit = () => {
+		if (isPending || !message.trim()) {
+			return;
+		}
+
+		mutate(
+			{ data: { message: message.trim() }, idempotencyKey },
+			{
+				onSuccess: () => {
+					track('feedback_submitted', {
+						source: openedFrom ?? 'profile',
+						message_length: message.trim().length,
+					});
+
+					setMessage('');
+					setIdempotencyKey(randomUUID());
+				},
+				onError: (error) => {
+					if (error instanceof ApiError && error.rejected) {
+						setIdempotencyKey(randomUUID());
+					}
+				},
+			},
+		);
+	};
+
+	if (isSuccess) {
 		return (
 			<Dialog
 				visible={visible}
-				onClose={form.close}
+				onClose={handleClose}
 				title={t('app.feedback.sent')}
-				footer=<Button label={t('app.feedback.thanksClose')} onPress={form.close} style={styles.thanksClose} />
+				footer=<Button label={t('app.feedback.thanksClose')} onPress={handleClose} style={styles.thanksClose} />
 			>
 				<Copy style={styles.promptMessage}>{t('app.feedback.thanks')}</Copy>
 			</Dialog>
@@ -69,41 +125,44 @@ export function FeedbackDialog({ visible, prompt, form }: Props) {
 	return (
 		<Dialog
 			visible={visible}
-			onClose={form.close}
+			onClose={handleClose}
 			title={t('app.feedback.title')}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					<Button
 						label={t('common.cancel')}
 						variant="secondary"
-						disabled={form.busy}
-						onPress={form.close}
+						disabled={isPending}
+						onPress={handleClose}
 						style={ui.action}
 					/>
 					<Button
-						label={t(form.sendFailed ? 'app.feedback.retry' : 'app.feedback.send')}
+						label={t(isError ? 'app.feedback.retry' : 'app.feedback.send')}
 						icon={SendIcon}
-						disabled={!form.message.trim()}
-						loading={form.busy}
-						onPress={form.submit}
+						disabled={!message.trim()}
+						loading={isPending}
+						onPress={handleSubmit}
 						style={ui.action}
 					/>
 				</View>
 			}
 		>
+			{/*의견 입력과 개인정보 안내*/}
 			<TextField
 				accessibilityLabel={t('app.feedback.title')}
-				value={form.message}
-				onChangeText={form.setMessage}
+				value={message}
+				onChangeText={setMessage}
 				maxLength={1000}
 				multiline
-				editable={!form.busy}
+				editable={!isPending}
 				textAlignVertical="top"
 				placeholder={t('app.feedback.placeholder')}
 				style={styles.message}
 			/>
 			<Copy style={styles.privacy}>{t('app.feedback.privacy')}</Copy>
-			<InlineError message={form.sendFailed ? t('app.feedback.error') : null} />
+
+			{/*전송 실패 문구*/}
+			<InlineError message={isError ? t('app.feedback.error') : null} />
 		</Dialog>
 	);
 }

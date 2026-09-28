@@ -1,55 +1,84 @@
 import { StyleSheet, View } from 'react-native';
 
+import type { Locale } from '@/types/locale';
+import type { RootStackParamList } from '@/types/navigation';
+
+import { invalidate } from '@/hooks/apis/invalidate';
+import { apiKeys } from '@/hooks/apis/keys';
+
 import { useTranslation } from 'react-i18next';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LockIcon, MessageSquareTextIcon, SmartphoneIcon } from 'lucide-react-native';
 
-import { useAppLanguage } from '@/screens/settings/hooks/use-app-language';
+import { reportError, setUserProperties, track } from '@/services/telemetry/client';
+import { useAccountStore } from '@/stores/account';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
 import { Chip } from '@/components/ui/chip';
-import { GroupedList } from '@/components/ui/grouped-list';
-import { GroupedListNavItem } from '@/components/ui/grouped-list/nav-item';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { Item } from '@/components/ui/item';
+import { ItemGroup } from '@/components/ui/item/group';
 
-interface Props {
-	onOpenDevices(): void;
-	onOpenPermissions(): void;
-}
-
-export function GeneralGroup({ onOpenDevices, onOpenPermissions }: Props) {
+export function GeneralGroup() {
 	const { t } = useTranslation();
 
-	const language = useAppLanguage();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
+	const setLocale = useDeviceSettingsStore((state) => state.setLocale);
+
+	/** 앱 언어 변경 */
+	const handleChangeLanguage = (nextLocale: Locale) => {
+		if (locale === nextLocale) {
+			return;
+		}
+
+		try {
+			setLocale(nextLocale);
+
+			void invalidate(apiKeys.all());
+
+			setUserProperties({ locale: nextLocale });
+			track('language_changed', { from: locale, to: nextLocale });
+		} catch (e) {
+			reportError(e, 'change_language');
+		}
+	};
 
 	return (
 		<View>
-			<GroupedList title={t('settings.general.title')}>
+			<ItemGroup title={t('settings.general.title')}>
 				<View style={styles.row}>
 					<MessageSquareTextIcon size={22} color={colors.muted} />
 					<Copy style={styles.label}>{t('settings.general.language')}</Copy>
 					<Chip
 						label={t('settings.general.korean')}
-						selected={language.locale === 'ko-KR'}
-						onPress={() => language.changeLanguage('ko-KR')}
+						selected={locale === 'ko-KR'}
+						onPress={() => handleChangeLanguage('ko-KR')}
 					/>
 					<Chip
 						label={t('settings.general.english')}
-						selected={language.locale === 'en-US'}
-						onPress={() => language.changeLanguage('en-US')}
+						selected={locale === 'en-US'}
+						onPress={() => handleChangeLanguage('en-US')}
 					/>
 				</View>
-				<GroupedListNavItem
+				<Item
 					icon={SmartphoneIcon}
 					label={t('settings.general.devices')}
-					onPress={onOpenDevices}
+					onPress={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}
 				/>
-				<GroupedListNavItem
+				<Item
 					icon={LockIcon}
 					label={t('settings.general.permissions')}
-					onPress={onOpenPermissions}
+					onPress={() => navigation.navigate('Permissions')}
 				/>
-			</GroupedList>
+			</ItemGroup>
 		</View>
 	);
 }

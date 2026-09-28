@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
 interface Props {
 	label: string;

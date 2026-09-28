@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth, font, radius } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
 export function OfflineBanner() {
 	const { t } = useTranslation();

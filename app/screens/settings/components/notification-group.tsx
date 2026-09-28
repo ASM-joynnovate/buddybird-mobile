@@ -1,14 +1,20 @@
 import type { NotificationSetting, Settings } from '@/types/apis/settings';
 
+import type { RootStackParamList } from '@/types/navigation';
+
+import { usePermission } from '@/hooks/use-permission';
+
 import { useTranslation } from 'react-i18next';
 
 import type { SettingsMessages } from '@/i18n/types/settings';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TriangleAlertIcon } from 'lucide-react-native';
 
-import { GroupedList } from '@/components/ui/grouped-list';
-import { GroupedListNavItem } from '@/components/ui/grouped-list/nav-item';
-import { GroupedListSwitchItem } from '@/components/ui/grouped-list/switch-item';
+import { Item } from '@/components/ui/item';
+import { ItemGroup } from '@/components/ui/item/group';
+import { ItemSwitch } from '@/components/ui/item/switch';
 
 const ITEMS: readonly {
 	key: NotificationSetting;
@@ -21,27 +27,31 @@ const ITEMS: readonly {
 
 interface Props {
 	settings: Settings;
-	permissionOff: boolean;
-	onOpenPermissions(): void;
 	onChange(key: NotificationSetting, value: boolean): void;
 }
 
-export function NotificationGroup({ settings, permissionOff, onOpenPermissions, onChange }: Props) {
+export function NotificationGroup({ settings, onChange }: Props) {
 	const { t } = useTranslation();
 
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const notificationPermission = usePermission('notifications');
+
+	const permissionOff = notificationPermission.granted === false;
+
 	return (
-		<GroupedList title={t('settings.notifications.title')}>
+		<ItemGroup title={t('settings.notifications.title')}>
 			{permissionOff ? (
-				<GroupedListNavItem
+				<Item
 					first
 					icon={TriangleAlertIcon}
 					label={t('settings.notifications.permissionLink')}
 					detail={t('settings.notifications.permissionOff')}
-					onPress={onOpenPermissions}
+					onPress={() => navigation.navigate('Permissions')}
 				/>
 			) : null}
 			{ITEMS.map(({ key, label }, index) => (
-				<GroupedListSwitchItem
+				<ItemSwitch
 					key={key}
 					first={!permissionOff && index === 0}
 					label={t(`settings.notifications.${label}`)}
@@ -49,6 +59,6 @@ export function NotificationGroup({ settings, permissionOff, onOpenPermissions, 
 					onChange={(value) => onChange(key, value)}
 				/>
 			))}
-		</GroupedList>
+		</ItemGroup>
 	);
 }

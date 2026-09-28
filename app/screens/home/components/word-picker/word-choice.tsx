@@ -8,10 +8,10 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, font } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { PlayButton } from '@/components/ui/play-button';
-import { ChoiceCard } from '@/components/ui/surface';
+import { ChoiceCard } from '@/components/ui/surface/choice-card';
 import { Tag } from '@/components/ui/tag';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	word: Word;
@@ -34,12 +34,15 @@ export function WordChoice({ word, selected, player, onSelect }: Props) {
 			accessibilityLabel={word.name}
 			contentStyle={styles.card}
 		>
+			{/*단어 이름과 태그*/}
 			<View style={styles.label}>
 				<Copy numberOfLines={1} style={[styles.name, !sample && styles.locked]}>
 					{word.name}
 				</Copy>
 				{sample ? null : <Tag label={t('common.needsRecording')} />}
 			</View>
+
+			{/*미리 듣기 버튼*/}
 			{sample ? (
 				<PlayButton
 					playing={playing}

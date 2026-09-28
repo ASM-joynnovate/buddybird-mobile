@@ -9,7 +9,7 @@ import { BellIcon, ImageIcon, type LucideIcon, MicIcon } from 'lucide-react-nati
 import { PermissionItem } from '@/screens/settings/components/permission-item';
 import type { PermissionKind } from '@/services/device/permissions';
 
-import { GroupedList } from '@/components/ui/grouped-list';
+import { ItemGroup } from '@/components/ui/item/group';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 
@@ -26,12 +26,15 @@ export function PermissionsScreen() {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader title={t('settings.permissions.title')} onBack={() => navigation.goBack()} />
-			<GroupedList>
+
+			{/*권한 목록*/}
+			<ItemGroup>
 				{PERMISSIONS.map(({ kind, icon }, index) => (
 					<PermissionItem key={kind} kind={kind} icon={icon} first={index === 0} />
 				))}
-			</GroupedList>
+			</ItemGroup>
 		</Screen>
 	);
 }

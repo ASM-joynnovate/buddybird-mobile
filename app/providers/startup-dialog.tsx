@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getAppUpdateOptions } from '@/hooks/apis/app-update';
 import { getParrotListOptions } from '@/hooks/apis/parrots';
 import { getRunningSessionOptions } from '@/hooks/apis/sessions';
-import { useFeedbackForm } from '@/hooks/use-feedback-form';
 
 import { installedVersion } from '@/services/device/application';
 import { reportError, track } from '@/services/telemetry/client';
@@ -53,9 +52,6 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
 
 	const openFeedback = useFeedbackStore((state) => state.openFeedback);
-	const closeFeedback = useFeedbackStore((state) => state.closeFeedback);
-
-	const feedbackForm = useFeedbackForm(openedFrom ?? 'profile', closeFeedback);
 
 	const promptedUpdate = appUpdateData
 		? evaluateUpdate(
@@ -167,7 +163,6 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 						? { onDismiss: () => answerFeedbackPrompt(false), onWrite: () => answerFeedbackPrompt(true) }
 						: undefined
 				}
-				form={feedbackForm}
 			/>
 		</>
 	);

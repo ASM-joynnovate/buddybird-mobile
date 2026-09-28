@@ -4,13 +4,13 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const variants = {
-	plain: { tone: 'plain', color: colors.text },
-	muted: { tone: 'plain', color: colors.muted },
-	accent: { tone: 'plain', color: colors.orange },
-	primary: { tone: 'primary', color: colors.onAccent },
+	plain: { surfaceVariant: 'plain', color: colors.text },
+	muted: { surfaceVariant: 'plain', color: colors.muted },
+	accent: { surfaceVariant: 'plain', color: colors.orange },
+	primary: { surfaceVariant: 'primary', color: colors.onAccent },
 } as const;
 
 const icons = {
@@ -45,7 +45,7 @@ function boxStyle(size: IconButtonSize) {
 }
 
 export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'plain', size = 'medium' }: Props) {
-	const { tone, color } = variants[variant];
+	const { surfaceVariant, color } = variants[variant];
 	const round = variant === 'primary';
 
 	return (
@@ -55,7 +55,7 @@ export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'pl
 			accessibilityState={{ disabled: Boolean(disabled) }}
 			disabled={disabled}
 			onPress={onPress}
-			tone={round && disabled ? 'muted' : tone}
+			variant={round && disabled ? 'muted' : surfaceVariant}
 			depth={round ? 'high' : 'none'}
 			cornerRadius={round ? 'pill' : 'control'}
 			style={[styles.shell, boxStyle(size)]}

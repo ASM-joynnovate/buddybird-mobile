@@ -12,8 +12,8 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	words: Report['words'];

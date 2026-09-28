@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 import { colors } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
 interface Props {
 	message?: string | null;

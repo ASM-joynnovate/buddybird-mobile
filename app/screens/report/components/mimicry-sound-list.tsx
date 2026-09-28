@@ -2,18 +2,16 @@ import { FlatList } from 'react-native';
 
 import type { Session } from '@/types/apis/sessions';
 
+import { useGetSessionSoundList } from '@/hooks/apis/sessions';
+import { useGetWordList } from '@/hooks/apis/words';
 import { useSoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
-
-import { formatDateTime } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SoundItem } from '@/screens/report/components/sound-item';
-import { useSessionMimicry } from '@/screens/report/hooks/use-session-mimicry';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -30,11 +28,29 @@ const MimicrySoundList = ({ session }: Props) => {
 
 	const insets = useSafeAreaInsets();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
-	const { mimicrySounds, multiDay, refreshing, refresh } = useSessionMimicry(session);
+	const {
+		data: sessionSoundListData,
+		isRefetching: isSessionSoundListRefetching,
+		refetch: refetchSessionSoundList,
+	} = useGetSessionSoundList({ id: session.id });
+	const { data: wordListData, refetch: refetchWordList } = useGetWordList();
 
 	const player = useSoundPlayer();
+
+	const period = session.period;
+	const multiDay = period.ended_at ? !dayjs(period.started_at).isSame(period.ended_at, 'day') : false;
+	const mimicrySounds = sessionSoundListData
+		.filter((sound) => sound.judgment?.word_id)
+		.map((sound) => ({
+			sound,
+			wordName: wordListData.find((word) => word.id === sound.judgment?.word_id)?.name ?? '',
+		}));
+
+	/** 소리 목록과 단어 목록 다시 조회 */
+	const handleRefresh = () => {
+		void refetchSessionSoundList();
+		void refetchWordList();
+	};
 
 	return (
 		<FlatList
@@ -44,17 +60,13 @@ const MimicrySoundList = ({ session }: Props) => {
 				<SoundItem
 					sound={mimicrySound.sound}
 					wordName={mimicrySound.wordName}
-					timeLabel={
-						multiDay
-							? formatDateTime(mimicrySound.sound.captured_at, locale)
-							: dayjs(mimicrySound.sound.captured_at).format('LT')
-					}
+					multiDay={multiDay}
 					player={player}
 				/>
 			)}
 			extraData={[player.playingId, player.failedId]}
-			refreshing={refreshing}
-			onRefresh={refresh}
+			refreshing={isSessionSoundListRefetching}
+			onRefresh={handleRefresh}
 			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
 			ListEmptyComponent=<EmptyState message={t('report.detail.none')} />

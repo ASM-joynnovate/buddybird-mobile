@@ -7,8 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth } from '@/theme';
 
-import { Backdrop } from '@/components/ui/sheet/backdrop';
-import { Title } from '@/components/ui/text';
+import { SheetBackdrop } from '@/components/ui/sheet/backdrop';
+import { Title } from '@/components/ui/title';
 
 const SHEET_RADIUS = 28;
 const LIST_SNAP_POINTS = ['70%'];
@@ -22,10 +22,10 @@ interface Props {
 }
 
 export function Sheet({ visible, title, onClose, list = false, onOpened, children }: PropsWithChildren<Props>) {
+	const insets = useSafeAreaInsets();
+
 	const ref = useRef<BottomSheetModal>(null);
 	const presented = useRef(false);
-
-	const insets = useSafeAreaInsets();
 
 	useEffect(() => {
 		if (visible) {
@@ -52,7 +52,7 @@ export function Sheet({ visible, title, onClose, list = false, onOpened, childre
 			enableContentPanningGesture={list}
 			enableDynamicSizing={!list}
 			snapPoints={list ? LIST_SNAP_POINTS : undefined}
-			backdropComponent={Backdrop}
+			backdropComponent={SheetBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
 			style={styles.sheet}

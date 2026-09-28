@@ -4,9 +4,9 @@ import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { colors, font } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { TypedText } from '@/components/ui/speech-bubble/typed-text';
-import { Card } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Card } from '@/components/ui/surface/card';
 
 const NUMBER_BEFORE_HANGUL = /(\d)(?=[가-힣])/g;
 const WORD_JOINER = '⁠';

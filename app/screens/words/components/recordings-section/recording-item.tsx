@@ -13,18 +13,24 @@ import { formatDuration } from '@/i18n/format';
 
 import { TrashIcon } from 'lucide-react-native';
 
-import type { DraftItem } from '@/screens/words/hooks/use-word-draft';
 import { measureRecordingDuration } from '@/services/media/recording-duration';
 import { reportError } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlayButton } from '@/components/ui/play-button';
-import { Copy } from '@/components/ui/text';
+
+export interface EditorRecording {
+	kind: 'server' | 'local';
+	id: string;
+	url: string;
+	durationMs: number | null;
+}
 
 interface Props {
-	item: DraftItem;
+	item: EditorRecording;
 	player: SoundPlayer;
 	index: number;
 	onDelete?(name: string): void;

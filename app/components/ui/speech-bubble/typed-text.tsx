@@ -6,7 +6,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 
 import { colors, font } from '@/theme';
 
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
 
 const TYPING_INTERVAL_MS = 20;
 

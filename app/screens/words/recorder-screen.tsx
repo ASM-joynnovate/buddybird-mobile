@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -14,32 +14,93 @@ import { formatTimer } from '@/i18n/format';
 
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { randomUUID } from 'expo-crypto';
 import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/config';
 import { AudioWaveform } from '@/screens/words/components/audio-waveform';
-import { type Recorder, useRecorder } from '@/screens/words/hooks/use-recorder';
+import { deleteFile, readFileInfo } from '@/services/media/file';
+import { reportError, track } from '@/services/telemetry/client';
 import { colors, contentMaxWidth, font } from '@/theme';
+import { SECOND } from '@/utils/units';
 
 import { PermissionDialog } from '@/components/dialogs/permission-dialog';
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
-const TAKE_ID = 'take';
+const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true };
 
-function statusText(recorder: Recorder, t: TFunction): string {
-	if (recorder.recording) {
+const PLAYBACK_MODE = {
+	allowsRecording: false,
+	playsInSilentMode: true,
+	interruptionMode: 'doNotMix',
+	shouldPlayInBackground: false,
+	shouldRouteThroughEarpiece: false,
+	allowsBackgroundRecording: false,
+} as const;
+
+const RECORDING_FILE_ID = 'recording-file';
+
+const DB_FLOOR = -60;
+const DB_CEIL = -10;
+const NOISE_FLOOR = 0.25;
+
+interface RecordingFile {
+	uri: string;
+	durationMs: number;
+}
+
+type RecordingFileError = 'empty' | 'tooLarge' | 'format' | 'error' | null;
+
+function meteringLevel(decibels?: number): number {
+	if (decibels === undefined || !Number.isFinite(decibels)) {
+		return 0;
+	}
+
+	const normalized = Math.max(0, Math.min(1, (decibels - DB_FLOOR) / (DB_CEIL - DB_FLOOR)));
+
+	return normalized < NOISE_FLOOR ? 0 : (normalized - NOISE_FLOOR) / (1 - NOISE_FLOOR);
+}
+
+/** 녹음 상태 문구 */
+const statusText = (isRecording: boolean, recordingFile: RecordingFile | null, t: TFunction) => {
+	if (isRecording) {
 		return t('words.recorder.recording');
 	}
 
-	return recorder.take ? t('words.recorder.recorded') : t('words.recorder.ready');
-}
+	return recordingFile ? t('words.recorder.recorded') : t('words.recorder.ready');
+};
+
+/** 녹음 파일 삭제, 실패하면 보고 */
+const deleteRecordingFile = (uri: string) => {
+	try {
+		deleteFile(uri);
+	} catch (e) {
+		reportError(e, 'recording_cleanup');
+	}
+};
+
+/** 녹음 파일의 형식, 빈 파일, 크기 초과 검사 */
+const getRecordingFileError = (uri: string, durationMs: number) => {
+	if (!uri.toLowerCase().endsWith('.m4a')) {
+		return 'format';
+	}
+
+	const fileInfo = readFileInfo(uri);
+
+	if (!fileInfo.exists || fileInfo.size === 0 || durationMs <= 0) {
+		return 'empty';
+	}
+
+	return fileInfo.size > MAX_UPLOAD_BYTES ? 'tooLarge' : null;
+};
 
 export function RecorderScreen(): ReactElement {
 	const { t } = useTranslation();
@@ -49,32 +110,174 @@ export function RecorderScreen(): ReactElement {
 	const { params } = useRoute<RouteProp<RootStackParamList, 'Recorder'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const recorder = useRecorder();
+	const [recordingFile, setRecordingFile] = useState<RecordingFile | null>(null);
+	const [recordingFileError, setRecordingFileError] = useState<RecordingFileError>(null);
+	const [busy, setBusy] = useState(false);
+
+	const elapsedRef = useRef(0);
+	const handledUriRef = useRef<string | null>(null);
+	const closingRef = useRef(false);
+
+	/** 끝난 녹음의 파일 검사 뒤 녹음 파일이나 오류 저장 */
+	const handleRecordingFinished = useCallback((uri: string, durationMs: number) => {
+		if (closingRef.current || handledUriRef.current === uri) {
+			return;
+		}
+
+		handledUriRef.current = uri;
+
+		try {
+			const fileError = getRecordingFileError(uri, durationMs);
+
+			setRecordingFileError(fileError);
+
+			if (fileError) {
+				deleteRecordingFile(uri);
+			} else {
+				setRecordingFile({ uri, durationMs: Math.min(RECORDING_MAX_SECONDS * SECOND, durationMs) });
+			}
+		} catch (e) {
+			reportError(e, 'recording_inspect');
+
+			setRecordingFileError('error');
+		}
+	}, []);
+
+	const recorder = useAudioRecorder(recordingOptions, (status) => {
+		if (status.hasError) {
+			setRecordingFileError('error');
+		} else if (status.isFinished && status.url) {
+			handleRecordingFinished(status.url, elapsedRef.current);
+		}
+	});
+	const recorderState = useAudioRecorderState(recorder, 80);
 
 	const player = useSoundPlayer();
 
-	const microphone = usePermission('microphone');
+	const microphonePermission = usePermission('microphone');
 
-	const { take } = recorder;
-	const playing = player.playingId === TAKE_ID;
-	const shownMs = recorder.recording ? recorder.elapsedMs : (take?.durationMs ?? 0);
+	const { isRecording } = recorderState;
+	const playing = player.playingId === RECORDING_FILE_ID;
+	const shownMs = isRecording ? recorderState.durationMillis : (recordingFile?.durationMs ?? 0);
 
-	async function close() {
+	/** 녹음 경과 시간을 ref에 저장 */
+	useEffect(() => {
+		elapsedRef.current = recorderState.durationMillis;
+	}, [recorderState.durationMillis]);
+
+	/** 재생 모드 설정, 화면을 나갈 때 녹음 정지와 재생 모드 복구 */
+	useEffect(() => {
+		closingRef.current = false;
+
+		void setAudioModeAsync(PLAYBACK_MODE).catch((error: unknown) => reportError(error, 'recording_setup'));
+
+		return () => {
+			closingRef.current = true;
+
+			if (recorder.getStatus().isRecording) {
+				void recorder.stop().catch((error: unknown) => reportError(error, 'recording_cleanup'));
+			}
+
+			void setAudioModeAsync(PLAYBACK_MODE).catch((error: unknown) => reportError(error, 'recording_cleanup'));
+		};
+	}, [recorder]);
+
+	/** 이전 녹음 파일 삭제 뒤 녹음 시작 */
+	const handleStartRecording = async () => {
+		if (busy) {
+			return;
+		}
+
+		setBusy(true);
+		setRecordingFileError(null);
+
+		if (recordingFile) {
+			deleteRecordingFile(recordingFile.uri);
+
+			setRecordingFile(null);
+		}
+
+		try {
+			await setAudioModeAsync({ ...PLAYBACK_MODE, allowsRecording: true });
+			await recorder.prepareToRecordAsync(recordingOptions);
+
+			handledUriRef.current = null;
+
+			recorder.record({ forDuration: RECORDING_MAX_SECONDS });
+
+			track('recording_started', {});
+		} catch (e) {
+			reportError(e, 'recording_start');
+
+			setRecordingFileError('error');
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	/** 녹음 정지 뒤 녹음 파일 검사 */
+	const handleStopRecording = async () => {
+		if (busy) {
+			return;
+		}
+
+		setBusy(true);
+
+		try {
+			const durationMs = recorder.getStatus().durationMillis;
+
+			await recorder.stop();
+
+			if (recorder.uri) {
+				handleRecordingFinished(recorder.uri, durationMs);
+			}
+		} catch (e) {
+			reportError(e, 'recording_stop');
+
+			setRecordingFileError('error');
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	/** 녹음 정지와 녹음 파일 삭제 */
+	const handleDiscardRecording = async () => {
+		closingRef.current = true;
+
+		try {
+			if (recorder.getStatus().isRecording) {
+				await recorder.stop();
+			}
+		} catch (e) {
+			reportError(e, 'recording_cleanup');
+		}
+
+		for (const uri of new Set([recordingFile?.uri, recorder.uri])) {
+			if (uri) {
+				deleteRecordingFile(uri);
+			}
+		}
+	};
+
+	/** 녹음 파일 삭제 뒤 화면 닫기 */
+	const handleClose = async () => {
 		player.stop();
 
-		await recorder.discard();
+		await handleDiscardRecording();
 
 		navigation.goBack();
-	}
+	};
 
-	function record() {
+	/** 마이크 권한 확인 뒤 녹음 시작 */
+	const handleRecord = () => {
 		player.stop();
 
-		void microphone.run(() => void recorder.start());
-	}
+		void microphonePermission.run(() => void handleStartRecording());
+	};
 
-	function add() {
-		if (!take) {
+	/** 녹음 파일을 단어 편집 화면에 추가 */
+	const handleAddRecording = () => {
+		if (!recordingFile) {
 			return;
 		}
 
@@ -85,80 +288,90 @@ export function RecorderScreen(): ReactElement {
 			params: {
 				screen: 'WordEditor',
 				params: {
-					recorded: { key: randomUUID(), uri: take.uri, durationMs: take.durationMs },
+					recorded: { key: randomUUID(), uri: recordingFile.uri, durationMs: recordingFile.durationMs },
 				},
 				merge: true,
 			},
 		});
-	}
+	};
 
 	return (
 		<Screen scroll={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
+				{/*헤더*/}
 				<ScreenHeader
 					title={params.wordName || t('words.recorder.newWord')}
-					onBack={() => void close()}
+					onBack={() => void handleClose()}
 					backIcon="close"
 				/>
+
+				{/*녹음 상태*/}
 				<View style={styles.center}>
 					<AudioWaveform
 						color={colors.orange}
 						height={96}
 						barCount={36}
 						fill
-						level={recorder.recording ? recorder.level : null}
+						level={isRecording ? meteringLevel(recorderState.metering) : null}
 						animated={playing}
 					/>
+
 					<Copy accessibilityRole="timer" style={styles.timer}>
 						{formatTimer(shownMs)}
 					</Copy>
 					<Copy accessibilityLiveRegion="polite" style={styles.status}>
-						{statusText(recorder, t)}
+						{statusText(isRecording, recordingFile, t)}
 					</Copy>
-					{take && !recorder.recording ? (
+
+					{recordingFile && !isRecording ? (
 						<IconButton
 							icon={playing ? PauseIcon : PlayIcon}
 							label={t(playing ? 'common.sound.stop' : 'words.recorder.play')}
 							variant="primary"
 							size="large"
-							onPress={() => player.toggle(TAKE_ID, take.uri)}
+							onPress={() => player.toggle(RECORDING_FILE_ID, recordingFile.uri)}
 						/>
 					) : null}
+
 					<InlineError
 						message={
-							recorder.problem
-								? t(`words.recorder.${recorder.problem}`)
+							recordingFileError
+								? t(`words.recorder.${recordingFileError}`)
 								: player.failedId
 									? t('common.sound.playError')
 									: null
 						}
 					/>
 				</View>
-				{take && !recorder.recording ? (
+
+				{/*녹음과 추가 버튼*/}
+				{recordingFile && !isRecording ? (
 					<View style={ui.actions}>
 						<Button
 							label={t('words.recorder.retake')}
 							variant="secondary"
-							disabled={recorder.busy}
-							onPress={record}
+							disabled={busy}
+							onPress={handleRecord}
 							style={ui.action}
 						/>
-						<Button label={t('words.recorder.add')} onPress={add} style={ui.action} />
+						<Button label={t('words.recorder.add')} onPress={handleAddRecording} style={ui.action} />
 					</View>
 				) : (
 					<View style={styles.control}>
 						<IconButton
-							icon={recorder.recording ? SquareIcon : MicIcon}
-							label={t(recorder.recording ? 'words.recorder.stop' : 'words.recorder.start')}
+							icon={isRecording ? SquareIcon : MicIcon}
+							label={t(isRecording ? 'words.recorder.stop' : 'words.recorder.start')}
 							variant="primary"
 							size="xlarge"
-							disabled={recorder.busy}
-							onPress={() => (recorder.recording ? void recorder.stop() : record())}
+							disabled={busy}
+							onPress={() => (isRecording ? void handleStopRecording() : handleRecord())}
 						/>
 					</View>
 				)}
 			</View>
-			<PermissionDialog state={microphone.dialog} />
+
+			{/*마이크 권한 다이얼로그*/}
+			<PermissionDialog state={microphonePermission.dialog} />
 		</Screen>
 	);
 }

@@ -7,8 +7,8 @@ import { RotateCwIcon, TriangleAlertIcon } from 'lucide-react-native';
 import { colors } from '@/theme';
 
 import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	onRetry: () => void;
@@ -26,7 +26,7 @@ export function ScreenError({ onRetry }: Props) {
 				label={t('common.retry')}
 				variant="secondary"
 				icon={RotateCwIcon}
-				compact
+				size="small"
 				onPress={onRetry}
 				style={styles.retry}
 			/>

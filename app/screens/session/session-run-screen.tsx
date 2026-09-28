@@ -29,7 +29,7 @@ import { currentSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
 import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
-import { PressableSurface } from '@/components/ui/surface';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 type EndReason = 'time_reached' | 'user' | 'server';
 
@@ -299,7 +299,7 @@ export function SessionRunScreen() {
 
 	return (
 		<PressableSurface
-			tone="plain"
+			variant="plain"
 			depth="none"
 			cornerRadius="none"
 			backgroundColor={night.background}

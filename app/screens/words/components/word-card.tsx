@@ -1,35 +1,42 @@
-import type { ReactElement } from 'react';
+import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
 import type { Word } from '@/types/apis/words';
 
+import type { WordsStackParamList } from '@/types/navigation';
+
 import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TrashIcon } from 'lucide-react-native';
 
 import { MAX_RECORDINGS } from '@/config';
+import { DeleteWordDialog } from '@/screens/words/components/delete-word-dialog';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
+import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlayButton } from '@/components/ui/play-button';
-import { PressableSurface } from '@/components/ui/surface';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { Tag } from '@/components/ui/tag';
-import { Copy } from '@/components/ui/text';
 
 interface Props {
 	word: Word;
 	learning: boolean;
 	player: SoundPlayer;
-	onPress(): void;
-	onDelete(): void;
 }
 
-export function WordCard({ word, learning, player, onPress, onDelete }: Props): ReactElement {
+export function WordCard({ word, learning, player }: Props) {
 	const { t } = useTranslation();
+
+	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
+
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	const first = word.recordings[0];
 	const playing = player.playingId === word.id;
@@ -40,7 +47,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 			{/*단어 카드*/}
 			<PressableSurface
 				depth="low"
-				onPress={onPress}
+				onPress={() => navigation.navigate('WordEditor', { wordId: word.id })}
 				accessibilityLabel={joinLabel(
 					word.name,
 					t('words.list.samples', { count }),
@@ -59,8 +66,8 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 							<View key={index} style={[styles.dot, index < count && styles.dotOn]} />
 						))}
 					</View>
-					{learning ? <Tag label={t('words.list.learning')} tone="primary" /> : null}
-					{count === 0 ? <Tag label={t('common.needsRecording')} tone="muted" /> : null}
+					{learning ? <Tag label={t('words.list.learning')} variant="primary" /> : null}
+					{count === 0 ? <Tag label={t('common.needsRecording')} variant="muted" /> : null}
 				</View>
 			</PressableSurface>
 
@@ -71,7 +78,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 					label={t('words.list.delete', { name: word.name })}
 					variant="muted"
 					size="small"
-					onPress={onDelete}
+					onPress={() => setDeleteDialogOpen(true)}
 				/>
 				{first ? (
 					<PlayButton
@@ -83,6 +90,14 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 					/>
 				) : null}
 			</View>
+
+			{/*삭제 확인 다이얼로그*/}
+			<DeleteWordDialog
+				visible={deleteDialogOpen}
+				word={word}
+				onClose={() => setDeleteDialogOpen(false)}
+				onDeleted={() => setDeleteDialogOpen(false)}
+			/>
 		</View>
 	);
 }

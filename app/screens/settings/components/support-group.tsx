@@ -1,43 +1,61 @@
 import { StyleSheet, View } from 'react-native';
 
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { getNoticeListOptions } from '@/hooks/apis/notices';
+
 import { useTranslation } from 'react-i18next';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BookOpenIcon, MegaphoneIcon, SendIcon } from 'lucide-react-native';
 
 import { installedVersion } from '@/services/device/application';
+import { useFeedbackStore } from '@/stores/feedback';
 import { colors } from '@/theme';
 
-import { GroupedList } from '@/components/ui/grouped-list';
-import { GroupedListNavItem } from '@/components/ui/grouped-list/nav-item';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { Item } from '@/components/ui/item';
+import { ItemGroup } from '@/components/ui/item/group';
 
-interface Props {
-	unreadNotice: boolean;
-	onFeedback(): void;
-	onOpenNotices(): void;
-	onOpenConsents(): void;
-}
-
-export function SupportGroup({ unreadNotice, onFeedback, onOpenNotices, onOpenConsents }: Props) {
+export function SupportGroup() {
 	const { t } = useTranslation();
+
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const { data: noticeListData } = useInfiniteQuery({ ...getNoticeListOptions(), throwOnError: false });
+
+	const openFeedback = useFeedbackStore((state) => state.openFeedback);
+
+	const hasUnreadNotice = Boolean(
+		noticeListData?.pages.some((noticePage) => noticePage.data.some((notice) => !notice.is_read)),
+	);
 
 	return (
 		<View>
-			<GroupedList title={t('settings.support.title')}>
-				<GroupedListNavItem first icon={SendIcon} label={t('settings.support.feedback')} onPress={onFeedback} />
-				<GroupedListNavItem
+			<ItemGroup title={t('settings.support.title')}>
+				<Item
+					first
+					icon={SendIcon}
+					label={t('settings.support.feedback')}
+					onPress={() => openFeedback('profile')}
+				/>
+				<Item
 					icon={MegaphoneIcon}
 					label={t('settings.support.notices')}
-					value={unreadNotice ? t('settings.support.unreadNotice') : undefined}
-					dot={unreadNotice}
-					onPress={onOpenNotices}
+					value={hasUnreadNotice ? t('settings.support.unreadNotice') : undefined}
+					dot={hasUnreadNotice}
+					onPress={() => navigation.navigate('NoticeList')}
 				/>
-				<GroupedListNavItem
+				<Item
 					icon={BookOpenIcon}
 					label={t('settings.support.consents')}
-					onPress={onOpenConsents}
+					onPress={() => navigation.navigate('ConsentSettings')}
 				/>
-			</GroupedList>
+			</ItemGroup>
+
 			<Copy style={styles.version}>{t('settings.support.version', { version: installedVersion })}</Copy>
 		</View>
 	);

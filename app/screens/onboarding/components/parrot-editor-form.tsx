@@ -1,0 +1,301 @@
+import { useState } from 'react';
+
+import { StyleSheet, View } from 'react-native';
+
+import { ApiError } from '@/types/apis/common';
+import type { Parrot } from '@/types/apis/parrots';
+
+import {
+	useCreateParrot,
+	useDeleteParrot,
+	useDeleteParrotPhoto,
+	useUpdateParrot,
+	useUploadParrotPhoto,
+} from '@/hooks/apis/parrots';
+import { usePhotoPicker } from '@/hooks/use-photo-picker';
+
+import { useTranslation } from 'react-i18next';
+
+import dayjs from 'dayjs';
+import { randomUUID } from 'expo-crypto';
+import { TrashIcon } from 'lucide-react-native';
+
+import { PARROT_NAME_LIMIT } from '@/config';
+import { DatePicker } from '@/screens/onboarding/components/date-picker';
+import { SpeciesPicker } from '@/screens/onboarding/components/species-picker';
+import { reportError } from '@/services/telemetry/client';
+import { isSpeciesId } from '@/utils/species';
+
+import { BuddySays } from '@/components/buddy-says';
+import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
+import { PermissionDialog } from '@/components/dialogs/permission-dialog';
+import { ProfilePhoto } from '@/components/profile-photo';
+import { Button } from '@/components/ui/button';
+import { IconButton } from '@/components/ui/icon-button';
+import { InlineError } from '@/components/ui/inline-error';
+import { ItemGroup } from '@/components/ui/item/group';
+import { Screen } from '@/components/ui/screen';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { TextField } from '@/components/ui/text-field';
+
+interface InvalidFields {
+	name: boolean;
+	species: boolean;
+	birthdate: boolean;
+}
+
+interface Props {
+	parrot?: Parrot;
+	canDelete: boolean;
+	intro: boolean;
+	onBack?(): void;
+	onDone(): void;
+}
+
+export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: Props) {
+	const { t } = useTranslation();
+
+	const [name, setName] = useState(parrot?.name ?? '');
+
+	const speciesKnown = parrot ? isSpeciesId(parrot.species) : false;
+
+	const [species, setSpecies] = useState(speciesKnown && parrot ? parrot.species : '');
+	const [birthdate, setBirthdate] = useState<string | null | undefined>(parrot?.birthdate);
+	const [invalidFields, setInvalidFields] = useState<InvalidFields>({
+		name: false,
+		species: false,
+		birthdate: false,
+	});
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [idempotencyKey, setIdempotencyKey] = useState(() => randomUUID());
+
+	const createParrot = useCreateParrot();
+	const updateParrot = useUpdateParrot();
+	const deleteParrot = useDeleteParrot();
+	const uploadParrotPhoto = useUploadParrotPhoto();
+	const deleteParrotPhoto = useDeleteParrotPhoto();
+
+	const savedPhotoUrl = parrot?.photo?.url ?? null;
+
+	const photo = usePhotoPicker(savedPhotoUrl);
+
+	const saving =
+		createParrot.isPending || updateParrot.isPending || uploadParrotPhoto.isPending || deleteParrotPhoto.isPending;
+	const saveError =
+		createParrot.isError || updateParrot.isError || uploadParrotPhoto.isError || deleteParrotPhoto.isError
+			? t('common.saveErrorKept')
+			: null;
+	const nameError = invalidFields.name ? t('parrot.nameRequired') : null;
+	const speciesError = invalidFields.species ? t('parrot.speciesRequired') : null;
+	const birthdateError = invalidFields.birthdate ? t('parrot.birthdayInvalid') : null;
+	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
+
+	const deleteButton =
+		parrot && canDelete ? (
+			<IconButton
+				icon={TrashIcon}
+				label={t('entry.parrot.delete')}
+				disabled={saving}
+				onPress={() => setDeleteDialogOpen(true)}
+			/>
+		) : undefined;
+
+	/** 입력 항목의 오류 표시 해제 */
+	const clearInvalidField = (field: keyof InvalidFields) => {
+		setInvalidFields((prev) => ({ ...prev, [field]: false }));
+	};
+
+	/** 바뀐 사진의 업로드나 삭제 뒤 저장 완료 */
+	const saveParrotPhoto = (savedParrot: Parrot) => {
+		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
+			uploadParrotPhoto.mutate(
+				{ id: savedParrot.id, uri: photo.photoUri },
+				{ onSuccess: onDone, onError: (error) => reportError(error, 'parrot_save') },
+			);
+		} else if (!photo.photoUri && savedPhotoUrl) {
+			deleteParrotPhoto.mutate(
+				{ id: savedParrot.id },
+				{ onSuccess: onDone, onError: (error) => reportError(error, 'parrot_save') },
+			);
+		} else {
+			onDone();
+		}
+	};
+
+	/** 이름 변경 */
+	const handleChangeName = (value: string) => {
+		setName(value);
+		clearInvalidField('name');
+	};
+
+	/** 종 변경 */
+	const handleChangeSpecies = (value: string) => {
+		setSpecies(value);
+		clearInvalidField('species');
+	};
+
+	/** 생일 변경 */
+	const handleChangeBirthdate = (value: string | null) => {
+		setBirthdate(value);
+		clearInvalidField('birthdate');
+	};
+
+	/** 입력 검사 뒤 앵무새 등록이나 수정 */
+	const handleSave = () => {
+		if (saving) {
+			return;
+		}
+
+		const trimmedName = name.trim();
+		const nextInvalidFields = {
+			name: trimmedName.length < 1 || trimmedName.length > PARROT_NAME_LIMIT,
+			species: !isSpeciesId(species),
+			birthdate: dayjs(birthdate).isAfter(dayjs()),
+		};
+
+		setInvalidFields(nextInvalidFields);
+
+		if (nextInvalidFields.name || nextInvalidFields.species || nextInvalidFields.birthdate) {
+			return;
+		}
+
+		const parrotInfo = { name: trimmedName, species, birthdate: birthdate ?? null };
+
+		if (parrot) {
+			updateParrot.mutate(
+				{ id: parrot.id, data: parrotInfo },
+				{ onSuccess: saveParrotPhoto, onError: (error) => reportError(error, 'parrot_save') },
+			);
+
+			return;
+		}
+
+		createParrot.mutate(
+			{ data: parrotInfo, idempotencyKey },
+			{
+				onSuccess: (savedParrot) => {
+					setIdempotencyKey(randomUUID());
+
+					saveParrotPhoto(savedParrot);
+				},
+				onError: (error) => {
+					reportError(error, 'parrot_save');
+
+					if (error instanceof ApiError && error.rejected) {
+						setIdempotencyKey(randomUUID());
+					}
+				},
+			},
+		);
+	};
+
+	/** 앵무새 삭제 */
+	const handleDeleteParrot = () => {
+		if (deleteParrot.isPending || !parrot) {
+			return;
+		}
+
+		deleteParrot.mutate(
+			{ id: parrot.id },
+			{
+				onSuccess: () => {
+					setDeleteDialogOpen(false);
+
+					onDone();
+				},
+			},
+		);
+	};
+
+	/** 삭제 확인 다이얼로그 닫기 */
+	const handleCloseDeleteDialog = () => {
+		deleteParrot.reset();
+
+		setDeleteDialogOpen(false);
+	};
+
+	return (
+		<Screen
+			footer={
+				<>
+					<InlineError message={saveError} />
+					<Button
+						label={t(parrot ? 'common.save' : 'entry.parrot.register')}
+						disabled={!requiredFilled}
+						loading={saving}
+						onPress={handleSave}
+					/>
+				</>
+			}
+		>
+			{/*헤더*/}
+			<ScreenHeader
+				title={t(parrot ? 'entry.parrot.editTitle' : 'entry.parrot.addTitle')}
+				onBack={onBack}
+				right={deleteButton}
+			/>
+
+			{/*안내 말풍선*/}
+			{intro ? (
+				<View style={styles.buddy}>
+					<BuddySays message={t('entry.parrot.intro')} />
+				</View>
+			) : null}
+
+			{/*사진*/}
+			<View style={styles.intro}>
+				<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
+			</View>
+
+			{/*이름, 종, 생일 입력*/}
+			<View style={styles.fields}>
+				<TextField
+					label={t('parrot.name')}
+					error={nameError}
+					value={name}
+					onChangeText={handleChangeName}
+					editable={!saving}
+					maxLength={PARROT_NAME_LIMIT}
+					placeholder={t('parrot.nameHint')}
+					returnKeyType="done"
+				/>
+
+				<View>
+					<ItemGroup>
+						<SpeciesPicker first species={species} setSpecies={handleChangeSpecies} busy={saving} />
+						<DatePicker value={birthdate} onChange={handleChangeBirthdate} />
+					</ItemGroup>
+					<InlineError message={speciesError} />
+					<InlineError message={birthdateError} />
+				</View>
+			</View>
+
+			{/*사진 권한 다이얼로그*/}
+			<PermissionDialog state={photo.libraryDialog} />
+			<PermissionDialog state={photo.cameraDialog} />
+
+			{/*삭제 확인 다이얼로그*/}
+			{parrot ? (
+				<ConfirmDialog
+					visible={deleteDialogOpen}
+					text={{
+						title: t('common.confirmDelete.title', { name: parrot.name }),
+						message: t('common.confirmDelete.message'),
+					}}
+					state={{
+						busy: deleteParrot.isPending,
+						error: deleteParrot.isError ? t('entry.parrot.deleteError') : null,
+					}}
+					onClose={handleCloseDeleteDialog}
+					onConfirm={handleDeleteParrot}
+				/>
+			) : null}
+		</Screen>
+	);
+}
+
+const styles = StyleSheet.create({
+	intro: { flexGrow: 1, justifyContent: 'center' },
+	buddy: { marginTop: 4 },
+	fields: { gap: 16 },
+});

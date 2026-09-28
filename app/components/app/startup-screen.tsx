@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	onRetry?: () => void;
@@ -24,7 +24,7 @@ export function StartupScreen({ onRetry }: Props) {
 						{t('app.startup.message')}
 					</Text>
 
-					<PressableSurface onPress={onRetry} tone="plain" depth="none" contentStyle={styles.retry}>
+					<PressableSurface onPress={onRetry} variant="plain" depth="none" contentStyle={styles.retry}>
 						<Text allowFontScaling={false} style={styles.retryLabel}>
 							{t('common.retry')}
 						</Text>

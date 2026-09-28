@@ -17,8 +17,8 @@ import {
 
 import { colors, font } from '@/theme';
 
-import { PressableSurface } from '@/components/ui/surface';
-import { Copy } from '@/components/ui/text';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; label: keyof CommonMessages['tabs'] }> = {
 	HomeTab: { icon: HouseIcon, label: 'home' },
@@ -60,7 +60,7 @@ export function TabBar({ state, navigation, insets }: Props) {
 							accessibilityRole="tab"
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}
-							tone={selected ? 'primary' : 'plain'}
+							variant={selected ? 'primary' : 'plain'}
 							depth={selected ? 'medium' : 'none'}
 							cornerRadius="control"
 							style={styles.tabTarget}

@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, XIcon } from 'lucide-react-native';
 
 import { IconButton } from '@/components/ui/icon-button';
-import { Title } from '@/components/ui/text';
+import { Title } from '@/components/ui/title';
 
 const backIcons = { back: ChevronLeftIcon, close: XIcon };
 
