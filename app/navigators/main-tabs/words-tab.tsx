@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { WordEditorScreen } from "@/screens/Words/WordEditorScreen"
-import { WordListScreen } from "@/screens/Words/WordListScreen"
+import { WordEditorScreen } from "@/screens/words/word-editor-screen"
+import { WordListScreen } from "@/screens/words/word-list-screen"
 import type { WordsStackParamList } from "@/types/navigation"
 
 const WordsStack = createNativeStackNavigator<WordsStackParamList>()

@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react"
 
 import { parrotsQueryOptions } from "@/hooks/apis/parrots"
 import { runningSessionQueryOptions } from "@/hooks/apis/sessions"
-import { feedbackThreshold } from "@/services/feedback/policy"
 import { reportError, track } from "@/services/telemetry/client"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
 import { useFeedbackStore } from "@/stores/feedback"
+import { feedbackThreshold } from "@/utils/feedback"
 
 export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolean) {
 	const preferences = useDeviceSettingsStore((state) => state.feedback)

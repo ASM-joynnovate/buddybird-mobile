@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { HomeScreen } from "@/screens/Home/HomeScreen"
-import { NotificationsScreen } from "@/screens/Home/NotificationsScreen"
+import { HomeScreen } from "@/screens/home/home-screen"
+import { NotificationsScreen } from "@/screens/home/notifications-screen"
 import type { HomeStackParamList } from "@/types/navigation"
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>()

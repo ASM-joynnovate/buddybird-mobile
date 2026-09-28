@@ -1,6 +1,5 @@
 import { type AuthError, isAuthRetryableFetchError } from "@supabase/supabase-js"
 
-import { logout, withdraw } from "@/apis/auth"
 import { setUnauthorizedHandler } from "@/lib/query-client"
 import { authClient } from "@/services/auth/client"
 import { reportError } from "@/services/telemetry/client"
@@ -55,16 +54,6 @@ export async function signOutToAnonymous() {
 	if (error) {
 		throw error
 	}
-}
-
-export async function signOutAccount() {
-	await logout()
-	await signOutToAnonymous()
-}
-
-export async function withdrawAccount() {
-	await withdraw()
-	await signOutToAnonymous()
 }
 
 let unauthorizedSignOut: Promise<void> | undefined

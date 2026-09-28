@@ -1,5 +1,6 @@
 import { randomUUID } from "expo-crypto"
 
+import { currentSpan } from "@/mocks/phases"
 import {
 	type Database,
 	event,
@@ -22,7 +23,6 @@ import {
 	type SleepWindow,
 	sleepWindowOf,
 } from "@/mocks/seed"
-import { currentSpan } from "@/services/session/phases"
 import { ApiError } from "@/types/apis/common"
 import { MAX_RECORDINGS } from "@/types/apis/words"
 import { HOUR, MINUTE } from "@/utils/units"

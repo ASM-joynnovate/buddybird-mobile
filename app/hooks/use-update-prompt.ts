@@ -6,8 +6,8 @@ import { Alert } from "react-native"
 import { appUpdateQueryOptions } from "@/hooks/apis/app-update"
 import { installedVersion, openStore } from "@/services/device/application"
 import { reportError, track } from "@/services/telemetry/client"
-import { evaluateUpdate } from "@/services/updates/policy"
 import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { evaluateUpdate } from "@/utils/update"
 
 export function useUpdatePrompt() {
 	const { t } = useTranslation()

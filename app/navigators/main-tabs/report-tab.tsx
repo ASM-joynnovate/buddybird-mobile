@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { ReportScreen } from "@/screens/Report/ReportScreen"
-import { SessionDetailScreen } from "@/screens/Report/SessionDetailScreen"
+import { ReportScreen } from "@/screens/report/report-screen"
+import { SessionDetailScreen } from "@/screens/report/session-detail-screen"
 import type { ReportStackParamList } from "@/types/navigation"
 
 const ReportStack = createNativeStackNavigator<ReportStackParamList>()

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 
-import { AppContent } from "@/app-content"
+import { AppContent } from "@/components/app/app-content"
 import { AppSplash } from "@/components/app/app-splash"
 import { StartupScreen } from "@/components/app/startup-screen"
 import { useAppBootstrap } from "@/hooks/use-app-bootstrap"

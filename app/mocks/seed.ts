@@ -2,7 +2,7 @@ import { Asset } from "expo-asset"
 import { randomUUID } from "expo-crypto"
 import { Platform } from "react-native"
 
-import { phaseSpans } from "@/services/session/phases"
+import { phaseSpans } from "@/mocks/phases"
 import type { NotificationKind } from "@/types/apis/notifications"
 import { DAY, HOUR, MINUTE } from "@/utils/units"
 

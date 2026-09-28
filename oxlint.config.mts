@@ -102,7 +102,17 @@ export default defineConfig({
 	},
 	overrides: [
 		{
-			files: ["app/services/**", "app/hooks/**", "app/apis/**", "app/lib/**"],
+			files: [
+				"app/services/**",
+				"app/screens/*/services/**",
+				"app/utils/phases.ts",
+				"app/utils/species.ts",
+				"app/utils/feedback.ts",
+				"app/utils/update.ts",
+				"app/hooks/**",
+				"app/apis/**",
+				"app/lib/**",
+			],
 			rules: {
 				"no-magic-numbers": ["error", { ignore: [0, 1, -1, 2, 100, 1000] }],
 			},

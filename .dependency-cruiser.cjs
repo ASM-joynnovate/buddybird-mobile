@@ -9,18 +9,18 @@ module.exports = {
   forbidden: [
     { name: "no-cycles", severity: "error", from: {}, to: { circular: true } },
     layer("config", "^app/config/", "^app/(config/|utils/units\\.ts$)"),
-    layer("types", { path: "^app/types/", pathNot: "^app/types/apis/" }, "^app/types/(?!apis/)"),
-    layer("types-apis", "^app/types/apis/", "^app/(types/|utils/units\\.ts$)"),
-    layer("utils", "^app/utils/", "^app/(utils|types)/"),
+    layer("types", { path: "^app/types/", pathNot: "^app/types/apis/" }, "^app/(types/(?!apis/)|config/)"),
+    layer("types-apis", "^app/types/apis/", "^app/(types/|config/|utils/units\\.ts$)"),
+    layer("utils", "^app/utils/", "^app/(utils|types|config)/"),
     layer("lib", "^app/lib/", "^app/(lib|config|types|utils)/"),
-    layer("apis", "^app/apis/", "^app/(apis/|lib/api\\.ts$|types/apis/|mocks/)"),
-    layer("mocks", "^app/mocks/", "^app/((mocks|types/apis|utils)/|services/session/phases\\.ts$)"),
+    layer("apis", "^app/apis/", "^app/(apis/|config/|lib/api\\.ts$|types/apis/|mocks/)"),
+    layer("mocks", "^app/mocks/", "^app/(mocks|types/apis|utils|config)/"),
     layer("stores", "^app/stores/", "^app/(stores/keys\\.ts$|config/|types/|utils/|lib/storage\\.ts$)"),
     layer("services", "^app/services/", "^app/(services|config|types|utils|lib|apis|mocks|stores|i18n)/"),
     layer(
       "hooks-apis",
       "^app/hooks/apis/",
-      "^app/(hooks/apis/|apis/|types/apis/|lib/query-client\\.ts$|stores/account\\.ts$)",
+      "^app/(hooks/apis/|apis/|config/|types/apis/|lib/query-client\\.ts$|stores/account\\.ts$)",
     ),
     layer(
       "providers",
@@ -34,8 +34,13 @@ module.exports = {
     ),
     layer(
       "components",
-      "^app/components/",
+      { path: "^app/components/", pathNot: "^app/components/app/" },
       "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme)/",
+    ),
+    layer(
+      "components-app",
+      "^app/components/app/",
+      "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme|navigators)/",
     ),
     {
       name: "components-ui",
@@ -60,8 +65,8 @@ module.exports = {
       from: { path: "^app/screens/" },
       to: { path: "^app/apis/" },
     },
-    layer("i18n", "^app/i18n/", "^app/((i18n|types)/|utils/units\\.ts$)"),
-    layer("theme", "^app/theme/", "^app/(theme|types)/"),
+    layer("i18n", "^app/i18n/", "^app/((i18n|types|config)/|utils/units\\.ts$)"),
+    layer("theme", "^app/theme/", "^app/(theme|types|config)/"),
     {
       name: "mmkv-only-in-storage-adapters",
       severity: "error",

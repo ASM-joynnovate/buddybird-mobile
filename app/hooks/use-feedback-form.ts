@@ -2,7 +2,6 @@ import { useState } from "react"
 
 import { feedbackMutationOptions } from "@/hooks/apis/feedback"
 import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { validateFeedback } from "@/services/feedback/policy"
 import { track } from "@/services/telemetry/client"
 
 export interface FeedbackForm {
@@ -38,7 +37,7 @@ export function useFeedbackForm(source: "profile" | "prompt", onClose: () => voi
 		}
 
 		mutation.mutate(
-			{ input: { message: validateFeedback(message) } },
+			{ input: { message: message.trim() } },
 			{
 				onSuccess: () => {
 					track("feedback_submitted", { source, message_length: message.trim().length })
