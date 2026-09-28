@@ -17,7 +17,8 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function SessionSummaryScreen() {
+/** 학습한 단어와 전체 학습 시간, 기록 보기 버튼을 보여 주고 버튼을 누르면 리포트 탭의 세션 상세 화면을 여는 화면 */
+const SessionSummaryScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -25,7 +26,8 @@ export function SessionSummaryScreen() {
 
 	const resetPeriod = useReportStore((state) => state.resetPeriod);
 
-	function openDetail() {
+	/** 리포트 기간 초기화와 리포트 탭의 세션 상세 화면 이동 */
+	const handleOpenDetail = () => {
 		resetPeriod();
 
 		navigation.reset({
@@ -44,27 +46,29 @@ export function SessionSummaryScreen() {
 				},
 			],
 		});
-	}
+	};
 
 	return (
 		<Screen contentContainerStyle={styles.content}>
-			{/*학습 요약*/}
+			{/*학습한 단어와 전체 학습 시간*/}
 			<View style={styles.body}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton rows={3} height={56} />
+					suspenseFallback=<Skeleton blockCount={3} height={56} />
 				>
 					<SummaryCard sessionId={params.sessionId} />
 				</ErrorHandlingWrapper>
 			</View>
 
 			{/*세션 상세 버튼*/}
-			<Button label={t('session.summary.viewDetail')} icon={ChartNoAxesColumnIcon} onPress={openDetail} />
+			<Button label={t('session.summary.viewDetail')} icon={ChartNoAxesColumnIcon} onPress={handleOpenDetail} />
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	content: { gap: 20 },
 	body: { flex: 1, justifyContent: 'center' },
 });
+
+export default SessionSummaryScreen;

@@ -1,4 +1,4 @@
-import { type ReactElement, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -15,7 +15,8 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function ReportScreen(): ReactElement {
+/** 고른 기간의 리포트와 학습 목록을 보여 주는 화면 */
+const ReportScreen = () => {
 	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
 
 	const setPeriodFromParams = useReportStore((state) => state.setPeriodFromParams);
@@ -33,14 +34,14 @@ export function ReportScreen(): ReactElement {
 				{/*리포트와 세션 목록*/}
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton rows={1} height={220} />
+					suspenseFallback=<Skeleton blockCount={1} height={220} />
 				>
 					<ReportContent />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	container: {
@@ -51,3 +52,5 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 	},
 });
+
+export default ReportScreen;

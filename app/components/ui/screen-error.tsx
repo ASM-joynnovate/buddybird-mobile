@@ -14,14 +14,16 @@ interface Props {
 	onRetry: () => void;
 }
 
-export function ScreenError({ onRetry }: Props) {
+export const ScreenError = ({ onRetry }: Props) => {
 	const { t } = useTranslation();
 
 	return (
 		<View style={ui.messageBox} accessibilityLiveRegion="polite">
+			{/*경고 아이콘과 불러오기 실패 문구*/}
 			<TriangleAlertIcon size={32} color={colors.muted} />
 			<Copy style={ui.messageText}>{t('common.loadError')}</Copy>
 
+			{/*다시 시도 버튼*/}
 			<Button
 				label={t('common.retry')}
 				variant="secondary"
@@ -32,7 +34,7 @@ export function ScreenError({ onRetry }: Props) {
 			/>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	retry: { alignSelf: 'flex-end' },

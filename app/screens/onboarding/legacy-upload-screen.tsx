@@ -1,4 +1,4 @@
-import { type ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
@@ -14,7 +14,7 @@ import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/servi
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
-import { Dialog } from '@/components/dialogs/dialog';
+import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
@@ -31,7 +31,8 @@ const uploadAndFinishLegacy = async () => {
 	finishLegacyUpload();
 };
 
-export function LegacyUploadScreen(): ReactElement {
+/** v1 데이터를 올리는 동안 진행 표시를, 실패하면 다시 시도와 건너뛰기 버튼을 보여 주고 이미 앵무새가 있으면 추가할지 묻는 화면 */
+const LegacyUploadScreen = () => {
 	const { t } = useTranslation();
 
 	const [uploadFailed, setUploadFailed] = useState(false);
@@ -44,6 +45,7 @@ export function LegacyUploadScreen(): ReactElement {
 	const askDialogOpen = uploadStatus === 'pending' && parrotListData.length > 0;
 	const canStartUpload = !askDialogOpen;
 
+	/** 화면을 열 때 screen_view와 onboarding_step_viewed 전송 */
 	useEffect(() => {
 		trackScreen('LegacyUpload');
 		trackOnboardingStepViewed('legacy_upload');
@@ -78,7 +80,7 @@ export function LegacyUploadScreen(): ReactElement {
 	return (
 		<Screen scrollable={false}>
 			{/*올리기 진행과 실패 안내*/}
-			<View style={styles.content}>
+			<View style={styles.container}>
 				{uploadFailed ? (
 					<>
 						<Copy accessibilityRole="alert" style={styles.message}>
@@ -116,9 +118,11 @@ export function LegacyUploadScreen(): ReactElement {
 			/>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	content: { flex: 1, justifyContent: 'center', gap: 16, padding: 24 },
+	container: { flex: 1, justifyContent: 'center', gap: 16, padding: 24 },
 	message: { textAlign: 'center' },
 });
+
+export default LegacyUploadScreen;

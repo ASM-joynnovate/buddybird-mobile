@@ -10,23 +10,29 @@ const BITS_PER_BYTE = 8;
 const BYTES_PER_SAMPLE = Int16Array.BYTES_PER_ELEMENT;
 const INT16_MAX = 32767;
 
-function encodeWav(samples: Float32Array, sampleRate: number): Uint8Array {
+/** 샘플을 16비트 모노 WAV 파일 바이트로 변환 */
+const encodeWav = (samples: Float32Array, sampleRate: number) => {
 	const dataBytes = samples.length * BYTES_PER_SAMPLE;
 	const bytes = new Uint8Array(HEADER_BYTES + dataBytes);
 	const view = new DataView(bytes.buffer);
 
 	let offset = 0;
 
+	/** 글자를 한 바이트씩 기록 */
 	const writeText = (value: string) => {
 		for (const character of value) {
 			view.setUint8(offset, character.charCodeAt(0));
 			offset += Uint8Array.BYTES_PER_ELEMENT;
 		}
 	};
+
+	/** 32비트 정수를 리틀 엔디언으로 기록 */
 	const writeUint32 = (value: number) => {
 		view.setUint32(offset, value, true);
 		offset += Uint32Array.BYTES_PER_ELEMENT;
 	};
+
+	/** 16비트 정수를 리틀 엔디언으로 기록 */
 	const writeUint16 = (value: number) => {
 		view.setUint16(offset, value, true);
 		offset += Uint16Array.BYTES_PER_ELEMENT;
@@ -52,9 +58,10 @@ function encodeWav(samples: Float32Array, sampleRate: number): Uint8Array {
 	}
 
 	return bytes;
-}
+};
 
-export function saveWav(samples: Float32Array, sampleRate: number): string {
+/** 샘플을 캐시 폴더에 WAV 파일로 저장하고 파일 주소 반환 */
+export const saveWav = (samples: Float32Array, sampleRate: number) => {
 	const directory = new Directory(Paths.cache, 'session-sounds');
 
 	directory.create({ idempotent: true, intermediates: true });
@@ -64,4 +71,4 @@ export function saveWav(samples: Float32Array, sampleRate: number): string {
 	file.write(encodeWav(samples, sampleRate));
 
 	return file.uri;
-}
+};

@@ -6,13 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 import { BellIcon } from 'lucide-react-native';
 
-import { NotificationItem } from '@/screens/home/components/notification-item';
+import NotificationItem from '@/screens/home/components/notification-item';
 import { colors } from '@/theme';
 
-import { Illustration } from '@/components/illustration';
+import Illustration from '@/components/illustration';
 import { EmptyState } from '@/components/ui/empty-state';
 
-/** 알림 목록 컴포넌트 */
+/** 받은 알림을 보여 주고 끝까지 내리면 다음 쪽을 불러오는 목록 컴포넌트 */
 const NotificationList = () => {
 	const { t } = useTranslation();
 

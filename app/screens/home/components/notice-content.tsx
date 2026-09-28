@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * 공지 내용 컴포넌트
+ * 공지 제목, 날짜, 내용, 이미지를 보여 주고 읽지 않은 공지를 읽음으로 표시하는 컴포넌트
  * @param noticeId 공지 ID
  */
 const NoticeContent = ({ noticeId }: Props) => {
@@ -42,11 +42,13 @@ const NoticeContent = ({ noticeId }: Props) => {
 
 	return (
 		<View style={styles.noticeContainer}>
+			{/*공지 제목과 날짜*/}
 			<View style={styles.heading}>
 				<Title>{noticeData.title}</Title>
 				<Copy style={styles.date}>{formatMonthDay(noticeData.starts_at, locale)}</Copy>
 			</View>
 
+			{/*공지 내용과 이미지*/}
 			{!!noticeData.body && <Copy style={styles.text}>{noticeData.body}</Copy>}
 			{noticeData.images.map((image, index) => (
 				<Image

@@ -8,10 +8,10 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 interface Props {
 	label: string;
 	selected?: boolean;
-	onPress(): void;
+	onPress: () => void;
 }
 
-export function Chip({ label, selected, onPress }: Props) {
+export const Chip = ({ label, selected, onPress }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="button"
@@ -30,7 +30,7 @@ export function Chip({ label, selected, onPress }: Props) {
 			</Copy>
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	shell: { flexShrink: 0 },

@@ -9,18 +9,21 @@ import { ui } from '@/components/ui/styles';
 interface Props {
 	message: string;
 	illustration?: ReactNode;
-	action?: { label: string; onPress(): void };
+	action?: { label: string; onPress: () => void };
 }
 
-export function EmptyState({ message, illustration, action }: Props) {
+export const EmptyState = ({ message, illustration, action }: Props) => {
 	return (
 		<View style={ui.messageBox}>
+			{/*그림과 안내 문구*/}
 			{illustration}
 			<Copy style={ui.messageText}>{message}</Copy>
-			{action ? <Button label={action.label} onPress={action.onPress} style={styles.action} /> : null}
+
+			{/*버튼*/}
+			{action && <Button label={action.label} onPress={action.onPress} style={styles.action} />}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	action: { alignSelf: 'stretch' },

@@ -8,7 +8,8 @@ import { reportError } from '@/services/telemetry/client';
 
 export const installedVersion = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.2.0';
 
-export async function openAppStore() {
+/** 스토어 앱에서 이 앱 페이지 열기, 열지 못하면 스토어 웹 페이지 열기 */
+export const openAppStore = async () => {
 	const appId = Application.applicationId;
 
 	if (Platform.OS !== 'ios' && !appId) {
@@ -29,4 +30,4 @@ export async function openAppStore() {
 
 		await Linking.openURL(storeWebUrl);
 	}
-}
+};

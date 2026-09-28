@@ -2,7 +2,7 @@ import type { NotificationSetting, Settings } from '@/types/apis/settings';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { usePermission } from '@/hooks/use-permission';
+import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
@@ -27,10 +27,15 @@ const NOTIFICATION_SETTINGS: readonly {
 
 interface Props {
 	settings: Settings;
-	onChange(setting: NotificationSetting, enabled: boolean): void;
+	onChange: (setting: NotificationSetting, enabled: boolean) => void;
 }
 
-export function NotificationGroup({ settings, onChange }: Props) {
+/**
+ * 알림 종류별 스위치를 보여 주고 알림 권한이 꺼져 있으면 권한 상태 화면을 여는 안내를 함께 보여 주는 컴포넌트
+ * @param settings 서버에 저장된 설정
+ * @param onChange 알림 스위치를 바꿀 때 실행할 함수
+ */
+const NotificationGroup = ({ settings, onChange }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -41,7 +46,8 @@ export function NotificationGroup({ settings, onChange }: Props) {
 
 	return (
 		<ItemGroup title={t('settings.notifications.title')}>
-			{permissionOff ? (
+			{/*알림 권한이 꺼졌을 때 권한 상태 화면을 여는 안내*/}
+			{permissionOff && (
 				<Item
 					first
 					icon={TriangleAlertIcon}
@@ -49,7 +55,9 @@ export function NotificationGroup({ settings, onChange }: Props) {
 					detail={t('settings.notifications.permissionOff')}
 					onPress={() => navigation.navigate('Permissions')}
 				/>
-			) : null}
+			)}
+
+			{/*공지, 리포트, 마케팅 알림 스위치*/}
 			{NOTIFICATION_SETTINGS.map(({ setting, labelKey }, index) => (
 				<ItemSwitch
 					key={setting}
@@ -61,4 +69,6 @@ export function NotificationGroup({ settings, onChange }: Props) {
 			))}
 		</ItemGroup>
 	);
-}
+};
+
+export default NotificationGroup;

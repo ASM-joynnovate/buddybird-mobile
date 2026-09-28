@@ -1,6 +1,7 @@
 export const FIREBASE_NAME_LIMIT = 40;
 
-export function firebaseParameters(eventParams: Record<string, unknown>) {
+/** 이벤트 속성을 Firebase의 이름과 값 길이 제한에 맞춰 변환, 보낼 수 없는 값은 제외 */
+export const firebaseParameters = (eventParams: Record<string, unknown>) => {
 	const firebaseParams: Record<string, string | number | boolean> = {};
 
 	for (const [key, value] of Object.entries(eventParams)) {
@@ -19,12 +20,13 @@ export function firebaseParameters(eventParams: Record<string, unknown>) {
 	}
 
 	return firebaseParams;
-}
+};
 
-export async function sendTelemetrySafely(send: () => void | Promise<unknown>): Promise<void> {
+/** 분석과 오류 보고 전송, 실패는 무시 */
+export const sendTelemetrySafely = async (send: () => void | Promise<unknown>) => {
 	try {
 		await send();
 	} catch {
-		// Analytics must not interrupt learning, storage, or app lifecycle handling.
+		// 전송 실패가 학습, 저장, 앱 상태 변경 흐름을 멈추지 않도록 무시
 	}
-}
+};

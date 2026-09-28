@@ -14,13 +14,13 @@ interface Props {
 	size: AvatarSize;
 }
 
-function sizeStyle(size: AvatarSize) {
+const sizeStyle = (size: AvatarSize) => {
 	return { medium: styles.medium, large: styles.large, xlarge: styles.xlarge }[size];
-}
+};
 
-export function Avatar({ uri, icon: Icon, size }: Props) {
+export const Avatar = ({ uri, icon: Icon, size }: Props) => {
 	return (
-		<View style={[styles.circle, sizeStyle(size)]}>
+		<View style={[styles.container, sizeStyle(size)]}>
 			{uri ? (
 				<Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : (
@@ -28,10 +28,10 @@ export function Avatar({ uri, icon: Icon, size }: Props) {
 			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	circle: {
+	container: {
 		overflow: 'hidden',
 		backgroundColor: colors.surface,
 		alignItems: 'center',

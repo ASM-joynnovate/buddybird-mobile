@@ -13,8 +13,8 @@ import { useFeedbackStore } from '@/stores/feedback';
 import { feedbackThreshold } from '@/utils/feedback';
 import { evaluateUpdate } from '@/utils/update';
 
-import { FeedbackDialog } from '@/components/dialogs/feedback-dialog';
-import { UpdateDialog } from '@/components/dialogs/update-dialog';
+import FeedbackDialog from '@/components/dialogs/feedback-dialog';
+import UpdateDialog from '@/components/dialogs/update-dialog';
 
 interface Props {
 	children: ReactNode;
@@ -45,12 +45,10 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 
 	const updatePrompt = useDeviceSettingsStore((state) => state.updatePrompt);
 	const feedbackPrompt = useDeviceSettingsStore((state) => state.feedbackPrompt);
-
 	const dismissUpdate = useDeviceSettingsStore((state) => state.dismissUpdate);
 	const consumeFeedbackPrompt = useDeviceSettingsStore((state) => state.consumeFeedbackPrompt);
 
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
-
 	const openFeedback = useFeedbackStore((state) => state.openFeedback);
 
 	const promptedUpdate = appUpdateData
@@ -147,7 +145,7 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 		<>
 			{children}
 
-			{/*업데이트 안내 다이얼로그*/}
+			{/*새 버전 안내와 업데이트 버튼*/}
 			<UpdateDialog
 				promptedUpdate={promptedUpdate}
 				visible={updateVisible}
@@ -155,7 +153,7 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 				onStoreOpened={() => setAcceptedVersion(promptedUpdate?.latestVersion ?? null)}
 			/>
 
-			{/*의견 다이얼로그*/}
+			{/*의견을 쓸지 묻는 안내와 의견 입력*/}
 			<FeedbackDialog
 				visible={(openedFrom !== null || promptOpen) && !updateVisible}
 				prompt={

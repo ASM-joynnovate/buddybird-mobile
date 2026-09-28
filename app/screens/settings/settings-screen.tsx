@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { AccountSection } from '@/screens/settings/components/account-section';
-import { GeneralGroup } from '@/screens/settings/components/general-group';
+import AccountSection from '@/screens/settings/components/account-section';
+import GeneralGroup from '@/screens/settings/components/general-group';
 import SleepAndNotificationGroups from '@/screens/settings/components/sleep-and-notification-groups';
-import { SupportGroup } from '@/screens/settings/components/support-group';
+import SupportGroup from '@/screens/settings/components/support-group';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
@@ -18,21 +18,22 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function SettingsScreen() {
+/** 설정 제목과 뒤로 가기 버튼, 앵무새 케어와 알림, 일반, 계정, 지원 설정을 보여 주는 화면 */
+const SettingsScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<Screen>
-			{/*헤더*/}
+			{/*설정 제목과 뒤로 가기 버튼*/}
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
 
-			{/*설정 그룹*/}
+			{/*앵무새 케어, 알림, 일반, 계정, 지원 설정*/}
 			<View style={styles.sections}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton rows={3} height={56} />
+					suspenseFallback=<Skeleton blockCount={3} height={56} />
 				>
 					<SleepAndNotificationGroups />
 				</ErrorHandlingWrapper>
@@ -45,8 +46,10 @@ export function SettingsScreen() {
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	sections: { gap: 28 },
 });
+
+export default SettingsScreen;

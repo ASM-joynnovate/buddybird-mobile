@@ -1,4 +1,4 @@
-import { type ReactElement, useState } from 'react';
+import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -42,7 +42,12 @@ interface Props {
 	trend: TrendBar[];
 }
 
-export function TrendChart({ period, trend }: Props): ReactElement {
+/**
+ * 기간 안의 학습 시간을 막대로 보여 주고 막대를 누르면 그 막대의 날짜와 학습 시간을 위에 보여 주는 컴포넌트
+ * @param period 고른 리포트 기간 종류
+ * @param trend 막대마다의 시작 시각과 학습 시간
+ */
+const TrendChart = ({ period, trend }: Props) => {
 	const { t } = useTranslation();
 
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -50,13 +55,15 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const maxDurationMs = Math.max(1, ...trend.map((trendBar) => trendBar.learning_duration_ms));
+	const selectedBar = selectedIndex === null ? null : trend[selectedIndex];
+
+	/** 막대의 시각이나 날짜와 학습 시간을 합친 문구 */
 	const describeBar = (trendBar: TrendBar) =>
 		t('report.chartBar', {
 			label:
 				period === 'day' ? dayjs(trendBar.start).format('LT') : formatMonthDayWeekday(trendBar.start, locale),
 			duration: formatDuration(trendBar.learning_duration_ms, locale),
 		});
-	const selectedBar = selectedIndex === null ? null : trend[selectedIndex];
 
 	return (
 		<View>
@@ -112,7 +119,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	detail: {
@@ -139,3 +146,5 @@ const styles = StyleSheet.create({
 		color: colors.muted,
 	},
 });
+
+export default TrendChart;

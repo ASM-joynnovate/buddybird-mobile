@@ -1,5 +1,3 @@
-import type { ReactElement } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
@@ -33,10 +31,17 @@ interface Props {
 	recording: EditorRecording;
 	player: SoundPlayer;
 	index: number;
-	onDelete?(name: string): void;
+	onDelete?: (name: string) => void;
 }
 
-export function RecordingItem({ recording, player, index, onDelete }: Props): ReactElement {
+/**
+ * 녹음 이름과 길이, 삭제 버튼, 재생 버튼을 보여 주고 재생 버튼을 누르면 녹음을 재생하거나 멈추는 컴포넌트
+ * @param recording 보여 줄 녹음
+ * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * @param index 녹음 목록 안의 순서
+ * @param onDelete 삭제 버튼을 누를 때 실행할 함수, 삭제할 수 없으면 없음
+ */
+const RecordingItem = ({ recording, player, index, onDelete }: Props) => {
 	const { t } = useTranslation();
 
 	// oxlint-disable-next-line @tanstack/query/exhaustive-deps
@@ -60,17 +65,13 @@ export function RecordingItem({ recording, player, index, onDelete }: Props): Re
 	const durationMs = recording.durationMs ?? recordingDurationData ?? null;
 
 	return (
-		<View style={[styles.row, index > 0 && styles.divider]}>
+		<View style={[styles.container, index > 0 && styles.divider]}>
 			{/*녹음 이름과 길이*/}
 			<View style={styles.textContainer}>
 				<Copy style={styles.name}>{name}</Copy>
 				<View style={styles.meta}>
-					{durationMs === null ? null : (
-						<Copy style={styles.duration}>{formatDuration(durationMs, locale)}</Copy>
-					)}
-					{recording.kind === 'local' ? (
-						<Copy style={styles.unsaved}>{t('words.editor.unsaved')}</Copy>
-					) : null}
+					{durationMs !== null && <Copy style={styles.duration}>{formatDuration(durationMs, locale)}</Copy>}
+					{recording.kind === 'local' && <Copy style={styles.unsaved}>{t('words.editor.unsaved')}</Copy>}
 				</View>
 			</View>
 
@@ -89,10 +90,10 @@ export function RecordingItem({ recording, player, index, onDelete }: Props): Re
 			/>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	row: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10 },
+	container: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10 },
 	divider: { borderTopWidth: 2, borderTopColor: colors.border },
 	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.extraBold, fontSize: 16 },
@@ -100,3 +101,5 @@ const styles = StyleSheet.create({
 	unsaved: { color: colors.orangeDark, fontFamily: font.extraBold, fontSize: 12.5 },
 	duration: { color: colors.muted, fontSize: 13.5, fontVariant: ['tabular-nums'] },
 });
+
+export default RecordingItem;

@@ -1,5 +1,3 @@
-import type { ReactElement } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import type { Report } from '@/types/apis/reports';
@@ -15,14 +13,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
 
-import { TrendChart } from '@/screens/report/components/report-header/trend-chart';
-import { WordBars } from '@/screens/report/components/report-header/word-bars';
+import TrendChart from '@/screens/report/components/report-header/trend-chart';
+import WordBars from '@/screens/report/components/report-header/word-bars';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
 import { latestStart } from '@/utils/report-period';
 
-import { Illustration } from '@/components/illustration';
+import Illustration from '@/components/illustration';
 import { Chip } from '@/components/ui/chip';
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -35,16 +33,19 @@ interface Props {
 	report: Report;
 }
 
-export function ReportHeader({ report }: Props): ReactElement {
+/**
+ * 리포트 기간 선택, 기간의 학습 시간과 막대 그래프, 단어별 학습 시간을 보여 주고 이전과 다음 버튼을 누르면 기간을 옮기는 컴포넌트
+ * @param report 고른 기간의 리포트
+ */
+const ReportHeader = ({ report }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const locale = useDeviceSettingsStore((settings) => settings.locale);
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
-
 	const selectPeriod = useReportStore((state) => state.selectPeriod);
 	const movePeriod = useReportStore((state) => state.movePeriod);
 
@@ -63,7 +64,7 @@ export function ReportHeader({ report }: Props): ReactElement {
 			{/*제목*/}
 			<ScreenHeader title={t('report.title')} large />
 
-			{/*기간 칩*/}
+			{/*오늘, 이번 주, 이번 달 선택 버튼*/}
 			<View style={ui.row}>
 				{reportPeriodSchema.options.map((periodOption) => (
 					<Chip
@@ -90,7 +91,7 @@ export function ReportHeader({ report }: Props): ReactElement {
 					/>
 				</View>
 
-				{hasSessions ? (
+				{hasSessions && (
 					<>
 						<Copy style={styles.label}>{t('report.learningTime')}</Copy>
 						<View style={styles.totalRow}>
@@ -105,11 +106,11 @@ export function ReportHeader({ report }: Props): ReactElement {
 							trend={report.trend}
 						/>
 					</>
-				) : null}
+				)}
 			</Card>
 
 			{/*빈 리포트 안내*/}
-			{!hasSessions ? (
+			{!hasSessions && (
 				<EmptyState
 					message={t('report.empty')}
 					illustration={illustration}
@@ -118,10 +119,10 @@ export function ReportHeader({ report }: Props): ReactElement {
 						onPress: () => navigation.navigate('Main', { screen: 'HomeTab' }),
 					}}
 				/>
-			) : null}
+			)}
 
 			{/*단어별 학습 시간과 세션 목록 제목*/}
-			{hasSessions ? (
+			{hasSessions && (
 				<>
 					<WordBars words={report.words} />
 
@@ -129,10 +130,10 @@ export function ReportHeader({ report }: Props): ReactElement {
 						{t('report.sessions')}
 					</Copy>
 				</>
-			) : null}
+			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	card: { marginTop: 16 },
@@ -142,3 +143,5 @@ const styles = StyleSheet.create({
 	total: { flex: 1, fontFamily: font.black, fontSize: 34, lineHeight: 40 },
 	sessionsTitle: { marginTop: 24, marginBottom: 0 },
 });
+
+export default ReportHeader;

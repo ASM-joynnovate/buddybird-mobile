@@ -2,17 +2,18 @@ import type { MainTabParamList } from '@/types/navigation';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { HomeTab } from '@/navigators/main-tabs/home-tab';
-import { ProfileTab } from '@/navigators/main-tabs/profile-tab';
-import { ReportTab } from '@/navigators/main-tabs/report-tab';
-import { WordsTab } from '@/navigators/main-tabs/words-tab';
+import HomeTab from '@/navigators/main-tabs/home-tab';
+import ProfileTab from '@/navigators/main-tabs/profile-tab';
+import ReportTab from '@/navigators/main-tabs/report-tab';
+import WordsTab from '@/navigators/main-tabs/words-tab';
 import { colors } from '@/theme';
 
-import { TabBar } from '@/components/navigation/tab-bar';
+import TabBar from '@/components/navigation/tab-bar';
 
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 
-export function MainTabs() {
+/** 아래 탭 버튼으로 홈, 단어, 리포트, 프로필 화면을 오가는 컴포넌트 */
+const MainTabs = () => {
 	return (
 		<Tabs.Navigator
 			screenOptions={{
@@ -27,4 +28,6 @@ export function MainTabs() {
 			<Tabs.Screen name="ProfileTab" component={ProfileTab} />
 		</Tabs.Navigator>
 	);
-}
+};
+
+export default MainTabs;

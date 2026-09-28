@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { ReactNode } from 'react';
 
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
@@ -11,20 +11,24 @@ import { Card } from '@/components/ui/surface/card';
 const NUMBER_BEFORE_HANGUL = /(\d)(?=[가-힣])/g;
 const WORD_JOINER = '⁠';
 
-function keepNumbersWithUnits(text: string) {
+const keepNumbersWithUnits = (text: string) => {
 	return text.replace(NUMBER_BEFORE_HANGUL, `$1${WORD_JOINER}`);
-}
+};
 
 interface Props {
 	pointerSide?: 'bottom' | 'left';
 	typing?: boolean;
 	style?: StyleProp<ViewStyle>;
+	children: ReactNode;
 }
 
-export function SpeechBubble({ children, pointerSide = 'bottom', typing = false, style }: PropsWithChildren<Props>) {
+export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, style }: Props) => {
 	return (
 		<Card cornerRadius="control" style={style} contentStyle={styles.bubble}>
+			{/*말풍선 꼬리*/}
 			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
+
+			{/*문구*/}
 			{typing && typeof children === 'string' ? (
 				<TypedText key={children} text={keepNumbersWithUnits(children)} />
 			) : (
@@ -34,7 +38,7 @@ export function SpeechBubble({ children, pointerSide = 'bottom', typing = false,
 			)}
 		</Card>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	bubble: {

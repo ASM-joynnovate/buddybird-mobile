@@ -18,7 +18,7 @@ interface Props {
 }
 
 /**
- * 세션 모사 판정 컴포넌트
+ * 판정이 끝나면 앵무새가 따라 한 소리 목록을, 판정 중이면 판정 중 안내를 보여 주고 아래로 당기면 다시 불러오는 컴포넌트
  * @param sessionId 세션 ID
  */
 const SessionMimicry = ({ sessionId }: Props) => {

@@ -2,13 +2,13 @@ import { useGetSettings, useUpdateNotificationSettings, useUpdateSleepSettings }
 
 import { useTranslation } from 'react-i18next';
 
-import { NotificationGroup } from '@/screens/settings/components/notification-group';
+import NotificationGroup from '@/screens/settings/components/notification-group';
 
-import { SleepTimePicker } from '@/components/session/sleep-time-picker';
+import SleepTimePicker from '@/components/session/sleep-time-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 수면 시간과 알림 설정 그룹 컴포넌트 */
+/** 앵무새 케어의 수면 시간 선택과 알림 스위치를 보여 주고 바꾸면 서버에 저장하는 컴포넌트 */
 const SleepAndNotificationGroups = () => {
 	const { t } = useTranslation();
 

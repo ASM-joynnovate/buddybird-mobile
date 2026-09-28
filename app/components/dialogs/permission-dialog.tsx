@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 
 import { reportError } from '@/services/telemetry/client';
 
-import { Dialog } from '@/components/dialogs/dialog';
-import { Mascot } from '@/components/mascot';
+import Dialog from '@/components/dialogs/dialog';
+import Mascot from '@/components/mascot';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
@@ -16,8 +16,17 @@ interface Props {
 	state: PermissionDialogState;
 }
 
-export function PermissionDialog({ state }: Props) {
+/**
+ * 권한이 필요한 이유와 설정 열기 버튼을 보여 주고 누르면 앱 설정 화면을 여는 다이얼로그 컴포넌트
+ * @param state 다이얼로그 표시 여부, 권한 종류, 닫을 때 실행할 함수
+ */
+const PermissionDialog = ({ state }: Props) => {
 	const { t } = useTranslation();
+
+	/** 앱 설정 화면 열기 */
+	const handleOpenSettings = () => {
+		void Linking.openSettings().catch((error: unknown) => reportError(error, 'permission_settings'));
+	};
 
 	return (
 		<Dialog
@@ -38,11 +47,7 @@ export function PermissionDialog({ state }: Props) {
 					<Button
 						label={t('common.permission.openSettings')}
 						size="small"
-						onPress={() =>
-							void Linking.openSettings().catch((error: unknown) =>
-								reportError(error, 'permission_settings'),
-							)
-						}
+						onPress={handleOpenSettings}
 						style={ui.action}
 					/>
 				</View>
@@ -54,9 +59,11 @@ export function PermissionDialog({ state }: Props) {
 			</View>
 		</Dialog>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	body: { alignItems: 'center', gap: 12 },
 	reason: { textAlign: 'center', lineHeight: 22 },
 });
+
+export default PermissionDialog;

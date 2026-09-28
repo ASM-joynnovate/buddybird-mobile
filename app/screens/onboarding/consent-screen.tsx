@@ -7,7 +7,7 @@ import type { Consent } from '@/types/apis/consents';
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useGetConsentList, useSaveConsent } from '@/hooks/apis/consents';
-import { useEntryRoute } from '@/hooks/use-entry-route';
+import useEntryRoute from '@/hooks/use-entry-route';
 
 import { useTranslation } from 'react-i18next';
 
@@ -18,8 +18,8 @@ import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/servi
 import { useConsentStore } from '@/stores/consent';
 import { latestConsents } from '@/utils/latest-consents';
 
-import { BuddySays } from '@/components/buddy-says';
-import { ConsentItem } from '@/components/consent-item';
+import BuddySays from '@/components/buddy-says';
+import ConsentItem from '@/components/consent-item';
 import { Button } from '@/components/ui/button';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemCheckbox } from '@/components/ui/item/checkbox';
@@ -27,7 +27,8 @@ import { ItemGroup } from '@/components/ui/item/group';
 import { Screen } from '@/components/ui/screen';
 import { Card } from '@/components/ui/surface/card';
 
-export function ConsentScreen() {
+/** 약관 동의 항목과 전체 동의 체크를 보여 주고 다음 버튼을 누르면 동의 여부를 저장한 뒤 다음 온보딩 단계로 넘어가는 화면 */
+const ConsentScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -39,17 +40,19 @@ export function ConsentScreen() {
 	const { isError, isPending, mutateAsync } = useSaveConsent();
 
 	const agreedIds = useConsentStore((state) => state.agreedIds);
-
 	const clearAgreedIds = useConsentStore((state) => state.clearAgreedIds);
 
 	const { entryRoute, parrotId } = useEntryRoute();
 
 	const consents = latestConsents(consentListData);
+
 	/** 동의 항목 체크 여부 */
 	const isChecked = (consent: Consent) => checkedById[consent.id] ?? consent.status === 'granted';
+
 	const allChecked = Boolean(consents.length) && consents.every(isChecked);
 	const requiredChecked = consents.every((consent) => !consent.is_required || isChecked(consent));
 
+	/** 화면에 들어올 때마다 onboarding_step_viewed 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('consent');
@@ -158,10 +161,12 @@ export function ConsentScreen() {
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	intro: { flexGrow: 1, paddingBottom: 28 },
 	content: { gap: 20 },
 	allCard: { padding: 0 },
 });
+
+export default ConsentScreen;

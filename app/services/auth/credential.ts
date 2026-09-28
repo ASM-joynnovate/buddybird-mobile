@@ -9,23 +9,26 @@ type LoginCredential = Pick<LoginRequest, 'google' | 'apple'>;
 
 let appleLoginCredential: LoginCredential | undefined;
 
-export function setAppleLoginCredential(authorizationCode: string) {
+/** Apple 인증 코드를 서버 로그인 요청에 함께 보낼 값으로 저장 */
+export const setAppleLoginCredential = (authorizationCode: string) => {
 	const clientId = Application.applicationId;
 
 	if (clientId) {
 		appleLoginCredential = { apple: { client_id: clientId, authorization_code: authorizationCode } };
 	}
-}
+};
 
-export function takeAppleLoginCredential(): LoginCredential | undefined {
+/** 저장한 Apple 로그인 값을 꺼내고 비우기 */
+export const takeAppleLoginCredential = () => {
 	const credential = appleLoginCredential;
 
 	appleLoginCredential = undefined;
 
 	return credential;
-}
+};
 
-export async function loginCredential(): Promise<LoginCredential> {
+/** 로그인 방식에 맞춰 서버 로그인 요청에 함께 보낼 Apple 인증 코드나 Google 갱신 토큰 */
+export const loginCredential = async () => {
 	const { loginProvider } = useAccountStore.getState();
 
 	if (loginProvider === 'apple') {
@@ -45,4 +48,4 @@ export async function loginCredential(): Promise<LoginCredential> {
 	const refreshToken = data.session?.provider_refresh_token;
 
 	return refreshToken ? { google: { refresh_token: refreshToken } } : {};
-}
+};

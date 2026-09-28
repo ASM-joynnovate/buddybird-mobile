@@ -4,15 +4,17 @@ import { initializeTelemetry, reportError } from '@/services/telemetry/client';
 import { installGlobalErrorReporting } from '@/services/telemetry/global-errors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-function countFeedbackDay(scope: string) {
+/** 의견 요청 팝업에 쓰는 접속일 세기, 실패하면 보고 */
+const countFeedbackDay = (scope: string) => {
 	try {
 		useDeviceSettingsStore.getState().countFeedbackDay();
-	} catch (error) {
-		reportError(error, scope);
+	} catch (e) {
+		reportError(e, scope);
 	}
-}
+};
 
-export function startAppServices() {
+/** 전역 오류 보고 등록, 앱을 시작할 때와 다시 열 때마다 분석 동의 확인과 접속일 세기 */
+export const startAppServices = () => {
 	const removeErrorReporting = installGlobalErrorReporting();
 
 	void initializeTelemetry().catch((error) => reportError(error, 'telemetry_start'));
@@ -35,4 +37,4 @@ export function startAppServices() {
 		removeErrorReporting();
 		appStateSubscription.remove();
 	};
-}
+};

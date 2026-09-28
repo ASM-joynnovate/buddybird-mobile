@@ -10,23 +10,30 @@ interface Props {
 	label: string;
 }
 
-export function LastLoginTag({ label }: Props) {
+/**
+ * 마지막으로 로그인한 방법의 버튼 오른쪽 위에 최근 로그인 표시를 띄우는 컴포넌트
+ * @param label 표시에 보여 줄 글자
+ */
+const LastLoginTag = ({ label }: Props) => {
 	return (
 		<Animated.View
 			entering={FadeInDown.delay(160).springify().damping(14)}
 			pointerEvents="none"
 			accessible={false}
 			importantForAccessibility="no-hide-descendants"
-			style={styles.tag}
+			style={styles.container}
 		>
+			{/*최근 로그인 글자*/}
 			<Copy style={styles.text}>{label}</Copy>
+
+			{/*버튼을 가리키는 꼬리*/}
 			<View style={styles.pointer} />
 		</Animated.View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	tag: {
+	container: {
 		position: 'absolute',
 		top: -13,
 		right: 14,
@@ -55,3 +62,5 @@ const styles = StyleSheet.create({
 		transform: [{ rotate: '45deg' }],
 	},
 });
+
+export default LastLoginTag;

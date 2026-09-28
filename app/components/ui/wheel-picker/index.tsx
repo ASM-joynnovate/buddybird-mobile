@@ -14,17 +14,20 @@ interface WheelColumn {
 	value: number;
 	values: readonly number[];
 	unit?: string;
-	onChange(value: number): void;
+	onChange: (value: number) => void;
 }
 
 interface Props {
 	columns: readonly WheelColumn[];
 }
 
-export function WheelPicker({ columns }: Props) {
+export const WheelPicker = ({ columns }: Props) => {
 	return (
-		<View style={styles.row}>
+		<View style={styles.container}>
+			{/*가운데 선택 표시*/}
 			<View pointerEvents="none" style={styles.selection} />
+
+			{/*위아래로 넘기는 숫자 목록과 단위*/}
 			{columns.map((column) => (
 				<View key={column.key} style={styles.column}>
 					<WheelPickerWheel
@@ -33,15 +36,15 @@ export function WheelPicker({ columns }: Props) {
 						values={column.values}
 						onChange={column.onChange}
 					/>
-					{column.unit ? <Copy style={styles.unit}>{column.unit}</Copy> : null}
+					{!!column.unit && <Copy style={styles.unit}>{column.unit}</Copy>}
 				</View>
 			))}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+	container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
 	selection: {
 		position: 'absolute',
 		top: WHEEL_ITEM_HEIGHT * 2,

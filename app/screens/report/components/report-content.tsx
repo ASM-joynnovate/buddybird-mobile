@@ -14,8 +14,8 @@ import { type RouteProp, useIsFocused, useNavigation, useRoute } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { SCREEN_REFRESH_MS } from '@/config';
-import { ReportHeader } from '@/screens/report/components/report-header';
-import { SessionItem } from '@/screens/report/components/session-item';
+import ReportHeader from '@/screens/report/components/report-header';
+import SessionItem from '@/screens/report/components/session-item';
 import { track } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useReportStore } from '@/stores/report';
@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-/** 리포트 본문 컴포넌트 */
+/** 리포트 요약, 학습 목록, 앵무새가 따라 한 횟수나 로그인 안내를 보여 주고 아래로 당기면 다시 불러오는 목록 컴포넌트 */
 const ReportContent = () => {
 	const { t } = useTranslation();
 

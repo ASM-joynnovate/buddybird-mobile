@@ -17,10 +17,17 @@ interface Props {
 	word: Word;
 	selected: boolean;
 	player: SoundPlayer;
-	onSelect(id: string): void;
+	onSelect: (id: string) => void;
 }
 
-export function WordChoice({ word, selected, player, onSelect }: Props) {
+/**
+ * 단어 이름, 첫 녹음 미리 듣기 버튼, 녹음이 없으면 녹음 필요 표시를 보여 주고 누르면 그 단어를 고르는 컴포넌트
+ * @param word 보여 줄 단어
+ * @param selected 고른 단어 여부
+ * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * @param onSelect 단어를 고를 때 실행할 함수
+ */
+const WordChoice = ({ word, selected, player, onSelect }: Props) => {
 	const { t } = useTranslation();
 
 	const firstRecording = word.recordings[0];
@@ -34,16 +41,16 @@ export function WordChoice({ word, selected, player, onSelect }: Props) {
 			accessibilityLabel={word.name}
 			contentStyle={styles.card}
 		>
-			{/*단어 이름과 태그*/}
+			{/*단어 이름과 녹음 필요 표시*/}
 			<View style={styles.textContainer}>
 				<Copy numberOfLines={1} style={[styles.name, !firstRecording && styles.nameDisabled]}>
 					{word.name}
 				</Copy>
-				{firstRecording ? null : <Tag label={t('common.needsRecording')} />}
+				{!firstRecording && <Tag label={t('common.needsRecording')} />}
 			</View>
 
 			{/*미리 듣기 버튼*/}
-			{firstRecording ? (
+			{firstRecording && (
 				<PlayButton
 					playing={playing}
 					label={t(playing ? 'common.sound.stop' : 'session.start.previewRecording', {
@@ -51,10 +58,10 @@ export function WordChoice({ word, selected, player, onSelect }: Props) {
 					})}
 					onPress={() => player.toggle(word.id, firstRecording.url)}
 				/>
-			) : null}
+			)}
 		</ChoiceCard>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	card: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72 },
@@ -62,3 +69,5 @@ const styles = StyleSheet.create({
 	name: { fontFamily: font.black, fontSize: 18, color: colors.text },
 	nameDisabled: { color: colors.subtle },
 });
+
+export default WordChoice;

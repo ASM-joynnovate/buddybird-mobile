@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -16,39 +16,44 @@ const LIST_SNAP_POINTS = ['70%'];
 interface Props {
 	visible: boolean;
 	title: string;
-	onClose(): void;
+	onClose: () => void;
 	listLayout?: boolean;
-	onOpened?(): void;
+	onOpened?: () => void;
+	children: ReactNode;
 }
 
-export function Sheet({ visible, title, onClose, listLayout = false, onOpened, children }: PropsWithChildren<Props>) {
+export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, children }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	const sheetRef = useRef<BottomSheetModal>(null);
-	const presented = useRef(false);
+	const presentedRef = useRef(false);
 
 	useEffect(() => {
 		if (visible) {
-			presented.current = true;
+			presentedRef.current = true;
 			sheetRef.current?.present();
-		} else if (presented.current) {
-			presented.current = false;
+		} else if (presentedRef.current) {
+			presentedRef.current = false;
 			sheetRef.current?.dismiss();
 		}
 	}, [visible]);
 
+	const handleDismiss = () => {
+		presentedRef.current = false;
+		onClose();
+	};
+
+	const handleSheetChange = (index: number) => {
+		if (index === 0) {
+			onOpened?.();
+		}
+	};
+
 	return (
 		<BottomSheetModal
 			ref={sheetRef}
-			onDismiss={() => {
-				presented.current = false;
-				onClose();
-			}}
-			onChange={(index) => {
-				if (index === 0) {
-					onOpened?.();
-				}
-			}}
+			onDismiss={handleDismiss}
+			onChange={handleSheetChange}
 			enableContentPanningGesture={listLayout}
 			enableDynamicSizing={!listLayout}
 			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
@@ -73,7 +78,7 @@ export function Sheet({ visible, title, onClose, listLayout = false, onOpened, c
 			)}
 		</BottomSheetModal>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	sheet: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },

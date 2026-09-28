@@ -4,14 +4,19 @@ import { type MutateOptions, type UseMutationOptions, useMutation } from '@tanst
 
 import { randomUUID } from 'expo-crypto';
 
-type IdempotentVariables = { idempotencyKey: string };
+interface IdempotentVariables {
+	idempotencyKey: string;
+}
 
-export function useIdempotentMutation<TData, TError, TVariables extends IdempotentVariables, TContext>(
+/** 요청마다 새 멱등키를 넣어 보내는 useMutation */
+export const useIdempotentMutation = <TData, TError, TVariables extends IdempotentVariables, TContext>(
 	options: UseMutationOptions<TData, TError, TVariables, TContext>,
-) {
+) => {
 	const mutation = useMutation(options);
+
 	const { mutate, mutateAsync } = mutation;
 
+	/** 새 멱등키를 넣은 mutate */
 	const mutateWithKey = useCallback(
 		(
 			variables: Omit<TVariables, 'idempotencyKey'>,
@@ -20,6 +25,7 @@ export function useIdempotentMutation<TData, TError, TVariables extends Idempote
 		[mutate],
 	);
 
+	/** 새 멱등키를 넣은 mutateAsync */
 	const mutateAsyncWithKey = useCallback(
 		(
 			variables: Omit<TVariables, 'idempotencyKey'>,
@@ -29,4 +35,4 @@ export function useIdempotentMutation<TData, TError, TVariables extends Idempote
 	);
 
 	return { ...mutation, mutate: mutateWithKey, mutateAsync: mutateAsyncWithKey };
-}
+};

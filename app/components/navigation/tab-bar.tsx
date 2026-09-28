@@ -29,18 +29,25 @@ const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; labelKey: keyof C
 
 interface Props extends BottomTabBarProps {}
 
-export function TabBar({ state, navigation, insets }: Props) {
+/**
+ * 홈, 단어, 리포트, 프로필 탭 버튼을 화면 아래쪽에 보여 주고 누르면 그 탭으로 이동하는 컴포넌트
+ * @param state 탭 목록과 지금 고른 탭 위치
+ * @param navigation 탭 누름 이벤트를 보내고 탭을 이동하는 React Navigation 객체
+ * @param insets 기기 화면 가장자리의 안전 영역 여백
+ */
+const TabBar = ({ state, navigation, insets }: Props) => {
 	const { t } = useTranslation();
 
 	return (
-		<View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 30) }]}>
+		<View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 30) }]}>
 			{state.routes.map((route, index) => {
 				const selected = state.index === index;
 				const tab = tabs[route.name as keyof MainTabParamList];
 				const TabIcon = tab.icon;
 				const tabLabel = t(`common.tabs.${tab.labelKey}`);
 
-				function selectTab() {
+				/** 탭 누름 이벤트를 보내고 막히지 않았으면 고른 탭으로 이동 */
+				const handleSelectTab = () => {
 					const event = navigation.emit({
 						type: 'tabPress',
 						target: route.key,
@@ -52,7 +59,7 @@ export function TabBar({ state, navigation, insets }: Props) {
 					}
 
 					navigation.navigate(route.name, route.params);
-				}
+				};
 
 				return (
 					<View key={route.key} style={styles.tabCell}>
@@ -65,7 +72,7 @@ export function TabBar({ state, navigation, insets }: Props) {
 							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
-							onPress={selectTab}
+							onPress={handleSelectTab}
 						>
 							<TabIcon color={selected ? colors.onFilled : colors.muted} size={25} />
 							<Copy
@@ -81,10 +88,10 @@ export function TabBar({ state, navigation, insets }: Props) {
 			})}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	tabBar: {
+	container: {
 		flexDirection: 'row',
 		justifyContent: 'space-around',
 		alignItems: 'center',
@@ -112,3 +119,5 @@ const styles = StyleSheet.create({
 		alignSelf: 'stretch',
 	},
 });
+
+export default TabBar;

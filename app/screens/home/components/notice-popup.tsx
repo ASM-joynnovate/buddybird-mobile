@@ -16,7 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNoticeStore } from '@/stores/notice';
 import { colors, radius } from '@/theme';
 
-import { Dialog } from '@/components/dialogs/dialog';
+import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
@@ -25,7 +25,11 @@ interface Props {
 	notices: Notice[];
 }
 
-export function NoticePopup({ notices }: Props) {
+/**
+ * 앱을 켠 뒤 처음 한 번 읽지 않은 공지를 하나씩 보여 주고, 닫기나 자세히를 누르면 읽음으로 표시한 뒤 다음 공지를 보여 주거나 공지 상세 화면을 여는 컴포넌트
+ * @param notices 읽지 않은 공지 목록
+ */
+const NoticePopup = ({ notices }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -36,13 +40,12 @@ export function NoticePopup({ notices }: Props) {
 	const { mutate } = useReadNotice();
 
 	const popupShown = useNoticeStore((state) => state.popupShown);
-
 	const setPopupShown = useNoticeStore((state) => state.setPopupShown);
 
 	const currentNotice = queue[0] ?? null;
 	const image = currentNotice?.images[0];
 
-	/** 앱 실행마다 한 번 공지 팝업 대기열 채우기 */
+	/** 앱을 켠 뒤 처음 한 번 차례로 보여 줄 공지 채우기 */
 	useEffect(() => {
 		if (popupShown) {
 			return;
@@ -98,18 +101,21 @@ export function NoticePopup({ notices }: Props) {
 				</View>
 			}
 		>
-			{image ? (
+			{/*공지 이미지*/}
+			{image && (
 				<Image
 					source={{ uri: image.url }}
 					style={styles.image}
 					resizeMode="cover"
 					accessibilityIgnoresInvertColors
 				/>
-			) : null}
-			{currentNotice?.body ? <Copy numberOfLines={4}>{currentNotice.body}</Copy> : null}
+			)}
+
+			{/*공지 내용*/}
+			{!!currentNotice?.body && <Copy numberOfLines={4}>{currentNotice.body}</Copy>}
 		</Dialog>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	image: {
@@ -119,3 +125,5 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 	},
 });
+
+export default NoticePopup;

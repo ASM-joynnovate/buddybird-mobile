@@ -1,10 +1,8 @@
-import type { ReactElement } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import type { WordsStackParamList } from '@/types/navigation';
 
-import { useSoundPlayer } from '@/hooks/use-sound-player';
+import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,38 +21,39 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function WordListScreen(): ReactElement {
+/** 등록한 단어 카드와 단어 추가 버튼을 보여 주고 추가 버튼을 누르면 단어 편집 화면을 여는 화면 */
+const WordListScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
 
 	const player = useSoundPlayer();
 
-	const addWord = () => navigation.navigate('WordEditor', {});
-
-	const addButton = <IconButton icon={PlusIcon} label={t('words.list.add')} onPress={addWord} />;
+	const addButton = (
+		<IconButton icon={PlusIcon} label={t('words.list.add')} onPress={() => navigation.navigate('WordEditor', {})} />
+	);
 
 	return (
 		<Screen scrollable={false}>
-			<View style={styles.screen}>
-				{/*헤더*/}
+			<View style={styles.container}>
+				{/*단어 목록 제목과 단어 추가 버튼*/}
 				<ScreenHeader title={t('words.list.title')} large trailing={addButton} />
 
-				{/*단어 목록*/}
+				{/*재생 실패 안내와 단어 목록*/}
 				<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton rows={4} height={84} />
+					suspenseFallback=<Skeleton blockCount={4} height={84} />
 				>
 					<WordList player={player} />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	screen: {
+	container: {
 		flex: 1,
 		width: '100%',
 		maxWidth: contentMaxWidth,
@@ -63,3 +62,5 @@ const styles = StyleSheet.create({
 		paddingTop: 12,
 	},
 });
+
+export default WordListScreen;

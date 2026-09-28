@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon, ImageIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 
-import { PermissionItem } from '@/screens/settings/components/permission-item';
+import PermissionItem from '@/screens/settings/components/permission-item';
 import type { PermissionKind } from '@/services/device/permissions';
 
 import { ItemGroup } from '@/components/ui/item/group';
@@ -19,14 +19,15 @@ const PERMISSIONS: readonly { kind: PermissionKind; icon: LucideIcon }[] = [
 	{ kind: 'photos', icon: ImageIcon },
 ];
 
-export function PermissionsScreen() {
+/** 권한 상태 제목과 뒤로 가기 버튼, 마이크와 알림과 사진 권한의 허용 상태를 보여 주는 화면 */
+const PermissionsScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<Screen>
-			{/*헤더*/}
+			{/*권한 상태 제목과 뒤로 가기 버튼*/}
 			<ScreenHeader title={t('settings.permissions.title')} onBack={() => navigation.goBack()} />
 
 			{/*권한 목록*/}
@@ -37,4 +38,6 @@ export function PermissionsScreen() {
 			</ItemGroup>
 		</Screen>
 	);
-}
+};
+
+export default PermissionsScreen;

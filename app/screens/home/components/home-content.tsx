@@ -13,8 +13,8 @@ import { getHomeSummaryOptions } from '@/hooks/apis/home';
 import { getRunningSessionOptions, useFinishSession, useStartSession } from '@/hooks/apis/sessions';
 import { useGetSettings } from '@/hooks/apis/settings';
 import { useGetWordList } from '@/hooks/apis/words';
-import { usePermission } from '@/hooks/use-permission';
-import { useSoundPlayer } from '@/hooks/use-sound-player';
+import usePermission from '@/hooks/use-permission';
+import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -28,18 +28,18 @@ import dayjs from 'dayjs';
 import { BellIcon, ClockIcon, MessageSquareTextIcon, PlayIcon, SettingsIcon } from 'lucide-react-native';
 
 import { SCREEN_REFRESH_MS } from '@/config';
-import { DurationPicker } from '@/screens/home/components/duration-picker';
-import { NoticePopup } from '@/screens/home/components/notice-popup';
-import { WordPicker } from '@/screens/home/components/word-picker';
+import DurationPicker from '@/screens/home/components/duration-picker';
+import NoticePopup from '@/screens/home/components/notice-popup';
+import WordPicker from '@/screens/home/components/word-picker';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 
-import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
-import { PermissionDialog } from '@/components/dialogs/permission-dialog';
-import { SleepTimePicker } from '@/components/session/sleep-time-picker';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
+import SleepTimePicker from '@/components/session/sleep-time-picker';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -55,7 +55,7 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<RootStackParamList>
 >;
 
-/** 홈 본문 컴포넌트 */
+/** 설정과 알림 버튼, 학습할 단어와 학습 시간과 수면 시간 선택, 학습 시작 버튼을 보여 주고 시작 버튼을 누르면 학습을 시작하는 컴포넌트 */
 const HomeContent = () => {
 	const { t } = useTranslation();
 
@@ -83,7 +83,6 @@ const HomeContent = () => {
 	const selectedWordId = useSessionStore((state) => state.selectedWordId);
 	const duration = useSessionStore((state) => state.duration);
 	const editedSleep = useSessionStore((state) => state.editedSleep);
-
 	const setSelectedWordId = useSessionStore((state) => state.setSelectedWordId);
 	const setDuration = useSessionStore((state) => state.setDuration);
 	const setEditedSleep = useSessionStore((state) => state.setEditedSleep);
@@ -206,7 +205,7 @@ const HomeContent = () => {
 		finishSession.reset();
 	};
 
-	/** 단어 선택 시트 내용 */
+	/** 녹음이 있는 단어 목록이나 단어가 없을 때 단어 추가 안내 */
 	const renderWordSheet = (close: () => void) => {
 		/** 단어 추가 화면 열기 */
 		const handleAddWord = () => {
@@ -342,7 +341,7 @@ const HomeContent = () => {
 			/>
 			<PermissionDialog state={microphonePermission.dialog} />
 
-			{/*공지 팝업*/}
+			{/*읽지 않은 공지 다이얼로그*/}
 			<NoticePopup notices={homeSummaryData.unread_notices} />
 		</>
 	);

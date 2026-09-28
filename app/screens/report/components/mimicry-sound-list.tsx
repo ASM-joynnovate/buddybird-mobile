@@ -4,14 +4,14 @@ import type { Session } from '@/types/apis/sessions';
 
 import { useGetSessionSoundList } from '@/hooks/apis/sessions';
 import { useGetWordList } from '@/hooks/apis/words';
-import { useSoundPlayer } from '@/hooks/use-sound-player';
+import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SoundItem } from '@/screens/report/components/sound-item';
+import SoundItem from '@/screens/report/components/sound-item';
 
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * 모사 녹음 목록 컴포넌트
+ * 앵무새가 따라 한 소리를 녹음 시각, 단어, 재생 버튼과 함께 보여 주고 아래로 당기면 다시 불러오는 목록 컴포넌트
  * @param session 판정이 끝난 세션
  */
 const MimicrySoundList = ({ session }: Props) => {

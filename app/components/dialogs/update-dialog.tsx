@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { openAppStore } from '@/services/device/application';
 import { reportError, track } from '@/services/telemetry/client';
 
-import { Dialog } from '@/components/dialogs/dialog';
+import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
@@ -22,7 +22,14 @@ interface Props {
 	onStoreOpened: () => void;
 }
 
-export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened }: Props) {
+/**
+ * 새 버전 안내, 변경 내용, 업데이트 버튼을 보여 주고 업데이트 버튼을 누르면 앱 스토어를 여는 다이얼로그 컴포넌트
+ * @param promptedUpdate 안내할 최신 버전, 강제 업데이트 여부, 변경 내용
+ * @param visible 다이얼로그 표시 여부
+ * @param onDismiss 닫기 버튼을 누를 때 실행할 함수
+ * @param onStoreOpened 선택 업데이트에서 스토어를 연 뒤 실행할 함수
+ */
+const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Props) => {
 	const { t } = useTranslation();
 
 	const [appStoreOpening, setAppStoreOpening] = useState(false);
@@ -73,7 +80,7 @@ export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened
 			title={t(forced ? 'app.update.forcedTitle' : 'app.update.title')}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
-					{!forced ? (
+					{!forced && (
 						<Button
 							label={t('common.close')}
 							variant="secondary"
@@ -81,7 +88,7 @@ export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened
 							onPress={onDismiss}
 							style={ui.action}
 						/>
-					) : null}
+					)}
 					<Button
 						label={t('app.update.accept')}
 						loading={appStoreOpening}
@@ -107,10 +114,12 @@ export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened
 			<InlineError message={appStoreOpenFailed ? t('app.update.openStoreError') : null} />
 		</Dialog>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	body: { fontSize: 17, lineHeight: 27 },
 	actions: { marginTop: 0 },
 	note: { marginTop: 12, lineHeight: 24 },
 });
+
+export default UpdateDialog;

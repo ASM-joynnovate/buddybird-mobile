@@ -15,7 +15,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TrashIcon } from 'lucide-react-native';
 
 import { MAX_RECORDINGS } from '@/config';
-import { DeleteWordDialog } from '@/screens/words/components/delete-word-dialog';
+import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
@@ -31,7 +31,13 @@ interface Props {
 	player: SoundPlayer;
 }
 
-export function WordCard({ word, learning, player }: Props) {
+/**
+ * 단어 이름과 녹음 개수, 삭제와 재생 버튼을 보여 주고 카드를 누르면 단어 편집 화면을 여는 컴포넌트
+ * @param word 보여 줄 단어
+ * @param learning 이 단어로 학습 중인지 여부
+ * @param player 단어의 첫 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ */
+const WordCard = ({ word, learning, player }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
@@ -44,7 +50,7 @@ export function WordCard({ word, learning, player }: Props) {
 
 	return (
 		<View>
-			{/*단어 카드*/}
+			{/*단어 이름, 녹음 개수, 학습 중과 녹음 필요 표시*/}
 			<PressableSurface
 				depth="low"
 				onPress={() => navigation.navigate('WordEditor', { wordId: word.id })}
@@ -66,8 +72,8 @@ export function WordCard({ word, learning, player }: Props) {
 							<View key={index} style={[styles.dot, index < recordingCount && styles.dotFilled]} />
 						))}
 					</View>
-					{learning ? <Tag label={t('words.list.learning')} variant="primary" /> : null}
-					{recordingCount === 0 ? <Tag label={t('common.needsRecording')} variant="muted" /> : null}
+					{learning && <Tag label={t('words.list.learning')} variant="primary" />}
+					{recordingCount === 0 && <Tag label={t('common.needsRecording')} variant="muted" />}
 				</View>
 			</PressableSurface>
 
@@ -80,7 +86,7 @@ export function WordCard({ word, learning, player }: Props) {
 					size="small"
 					onPress={() => setDeleteDialogOpen(true)}
 				/>
-				{firstRecording ? (
+				{firstRecording && (
 					<PlayButton
 						playing={playing}
 						label={t(playing ? 'common.sound.stopNamed' : 'words.list.play', {
@@ -88,7 +94,7 @@ export function WordCard({ word, learning, player }: Props) {
 						})}
 						onPress={() => player.toggle(word.id, firstRecording.url)}
 					/>
-				) : null}
+				)}
 			</View>
 
 			{/*삭제 확인 다이얼로그*/}
@@ -100,7 +106,7 @@ export function WordCard({ word, learning, player }: Props) {
 			/>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	card: { minHeight: 84, padding: 16, paddingRight: 124, gap: 10, justifyContent: 'center' },
@@ -119,3 +125,5 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 });
+
+export default WordCard;

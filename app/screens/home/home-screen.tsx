@@ -8,21 +8,22 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function HomeScreen() {
+/** 설정과 알림 버튼, 학습 설정, 시작 버튼을 보여 주는 화면 */
+const HomeScreen = () => {
 	return (
 		<Screen scrollable={false}>
-			{/*홈 본문*/}
-			<View style={styles.screen}>
-				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={3} />>
+			{/*설정과 알림 버튼, 학습 설정, 시작 버튼*/}
+			<View style={styles.container}>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={3} />>
 					<HomeContent />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	screen: {
+	container: {
 		flex: 1,
 		width: '100%',
 		maxWidth: contentMaxWidth,
@@ -33,3 +34,5 @@ const styles = StyleSheet.create({
 		gap: 16,
 	},
 });
+
+export default HomeScreen;

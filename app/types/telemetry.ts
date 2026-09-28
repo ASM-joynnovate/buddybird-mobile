@@ -3,7 +3,7 @@ import type { ReportPeriod } from '@/types/report-period';
 
 export type OnboardingStep = 'login' | 'consent' | 'legacy_upload' | 'parrot' | 'usage_guide' | 'permissions';
 
-export type AnalyticsEvents = {
+export interface AnalyticsEvents {
 	onboarding_step_viewed: { step: OnboardingStep };
 	onboarding_step_completed: {
 		step: OnboardingStep;
@@ -66,7 +66,7 @@ export type AnalyticsEvents = {
 	feedback_submitted: { source: 'prompt' | 'profile'; message_length: number };
 	app_error: { error_code: string; screen_name: string | null };
 	screen_view: { screen_name: string; screen_class: string };
-};
+}
 
 export type UserProperties = Partial<
 	Record<'parrot_species' | 'parrot_age_months' | 'total_words_registered' | 'locale', string | number | null>

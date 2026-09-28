@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDeleteUserPhoto, useGetMe, useUpdateMe, useUploadUserPhoto } from '@/hooks/apis/users';
-import { usePhotoPicker } from '@/hooks/use-photo-picker';
+import usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
 
@@ -13,18 +13,22 @@ import { NICKNAME_PATTERN } from '@/config';
 import { reportError } from '@/services/telemetry/client';
 import { isDuplicateNickname } from '@/utils/duplicate-nickname';
 
-import { PermissionDialog } from '@/components/dialogs/permission-dialog';
-import { ProfilePhoto } from '@/components/profile-photo';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
+import ProfilePhoto from '@/components/profile-photo';
 import { Button } from '@/components/ui/button';
 import { InlineError } from '@/components/ui/inline-error';
 import { TextButton } from '@/components/ui/text-button';
 import { TextField } from '@/components/ui/text-field';
 
 interface Props {
-	onSaved(): void;
+	onSaved: () => void;
 }
 
-export function AccountForm({ onSaved }: Props) {
+/**
+ * 사진, 닉네임 입력, 저장 버튼을 보여 주고 저장을 누르면 닉네임과 바뀐 사진을 저장하는 컴포넌트
+ * @param onSaved 저장을 마쳤을 때 실행할 함수
+ */
+const AccountForm = ({ onSaved }: Props) => {
 	const { t } = useTranslation();
 
 	const { data: meData } = useGetMe();
@@ -109,7 +113,7 @@ export function AccountForm({ onSaved }: Props) {
 		<>
 			{/*사진*/}
 			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
-			{photo.photoUri ? (
+			{!!photo.photoUri && (
 				<View style={styles.removePhotoContainer}>
 					<TextButton
 						label={t('profile.removePhoto')}
@@ -118,7 +122,7 @@ export function AccountForm({ onSaved }: Props) {
 						onPress={() => photo.setPhotoUri(null)}
 					/>
 				</View>
-			) : null}
+			)}
 
 			{/*닉네임 입력*/}
 			<TextField
@@ -144,10 +148,12 @@ export function AccountForm({ onSaved }: Props) {
 			<PermissionDialog state={photo.cameraDialog} />
 		</>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	removePhotoContainer: { alignItems: 'flex-end', marginTop: -12, marginBottom: 8 },
 	spacer: { flexGrow: 1, minHeight: 24 },
 	save: { marginTop: 12 },
 });
+
+export default AccountForm;

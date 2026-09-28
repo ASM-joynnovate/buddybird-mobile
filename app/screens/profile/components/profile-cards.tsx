@@ -11,8 +11,8 @@ import { type CompositeNavigationProp, useNavigation } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PlusIcon } from 'lucide-react-native';
 
-import { AccountCard } from '@/screens/profile/components/account-card';
-import { ParrotCard } from '@/screens/profile/components/parrot-card';
+import AccountCard from '@/screens/profile/components/account-card';
+import ParrotCard from '@/screens/profile/components/parrot-card';
 import { useAccountStore } from '@/stores/account';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<RootStackParamList>
 >;
 
-/** 계정과 앵무새 카드 컴포넌트 */
+/** 내 계정, 익명이면 로그인 버튼, 앵무새 목록과 앵무새 추가 버튼을 보여 주고 누르면 계정 수정, 로그인, 앵무새 편집 화면을 여는 컴포넌트 */
 const ProfileCards = () => {
 	const { t } = useTranslation();
 
@@ -37,7 +37,7 @@ const ProfileCards = () => {
 
 	return (
 		<>
-			{/*계정 카드*/}
+			{/*내 사진, 닉네임, 이메일*/}
 			<AccountCard user={meData} onPress={() => navigation.navigate('AccountEditor')} />
 
 			{/*로그인 버튼*/}

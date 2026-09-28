@@ -11,20 +11,22 @@ import {
 	type UnknownRecord,
 } from '@/utils/validation';
 
-export type LegacyProfile = {
+export interface LegacyProfile {
 	name: string;
 	species: string;
 	birthDate: string | null;
 	photoUri?: string;
-};
+}
 
-export function parseLegacyAppUpdate(appUpdate: UnknownRecord): DeviceSettings['updatePrompt'] {
+/** v1 업데이트 안내 값에서 읽은 닫은 버전 */
+export const parseLegacyAppUpdate = (appUpdate: UnknownRecord) => {
 	return {
 		dismissedVersion: readNullableText(appUpdate.dismissedVersion, 'dismissedVersion'),
 	};
-}
+};
 
-export function parseLegacyFeedbackPrompt(feedbackPrompt: UnknownRecord): DeviceSettings['feedbackPrompt'] {
+/** v1 의견 요청 값을 지금 형식으로 변환 */
+export const parseLegacyFeedbackPrompt = (feedbackPrompt: UnknownRecord): DeviceSettings['feedbackPrompt'] => {
 	if (feedbackPrompt.version !== 1) {
 		throw new Error('Unsupported feedback version');
 	}
@@ -35,9 +37,10 @@ export function parseLegacyFeedbackPrompt(feedbackPrompt: UnknownRecord): Device
 		dayCount: requireNonnegativeNumber(feedbackPrompt.dayCount, 'dayCount'),
 		thresholdIndex: requireNonnegativeNumber(feedbackPrompt.thresholdIndex, 'thresholdIndex'),
 	};
-}
+};
 
-export function parseLegacyProfile(value: unknown): LegacyProfile {
+/** v1 앵무새 프로필을 검사해 이름, 종, 생일, 사진 주소로 변환 */
+export const parseLegacyProfile = (value: unknown) => {
 	const profileRecord = requireRecord(value, 'profile');
 	let birthDate =
 		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
@@ -71,4 +74,4 @@ export function parseLegacyProfile(value: unknown): LegacyProfile {
 		birthDate,
 		photoUri: readOptionalText(profileRecord.photoUri, 'photoUri'),
 	};
-}
+};

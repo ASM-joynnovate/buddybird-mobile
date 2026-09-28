@@ -14,14 +14,19 @@ import { ItemGroup } from '@/components/ui/item/group';
 import { ItemRadio } from '@/components/ui/item/radio';
 import { HOURS, MINUTE_STEPS, WheelPicker } from '@/components/ui/wheel-picker';
 
-const DAYS = Array.from({ length: MAX_SESSION_MS / DAY + 1 }, (_, day) => day);
+const DAYS = Array.from({ length: 8 }, (_, day) => day);
 
 interface Props {
 	value: LearningDuration;
-	onChange(value: LearningDuration): void;
+	onChange: (value: LearningDuration) => void;
 }
 
-export function DurationPicker({ value, onChange }: Props) {
+/**
+ * 끝낼 때까지, 정해 둔 학습 시간, 직접 설정 항목과 직접 설정일 때 일, 시간, 분 선택을 보여 주고 고른 학습 시간을 넘기는 컴포넌트
+ * @param value 고른 학습 시간
+ * @param onChange 학습 시간을 고를 때 실행할 함수
+ */
+const DurationPicker = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -32,14 +37,16 @@ export function DurationPicker({ value, onChange }: Props) {
 	const minutes = Math.floor((totalMs % HOUR) / MINUTE);
 	const atMax = totalMs >= MAX_SESSION_MS;
 
-	function change(nextDays: number, nextHours: number, nextMinutes: number) {
+	/** 고른 일, 시간, 분의 직접 설정 학습 시간 넘기기 */
+	const change = (nextDays: number, nextHours: number, nextMinutes: number) => {
 		const nextMs = Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS);
 
 		onChange({ ms: nextMs > 0 ? nextMs : null, custom: true });
-	}
+	};
 
 	return (
-		<View style={styles.picker}>
+		<View style={styles.container}>
+			{/*끝낼 때까지, 정해 둔 학습 시간, 직접 설정 항목*/}
 			<ItemGroup>
 				<ItemRadio
 					first
@@ -62,7 +69,8 @@ export function DurationPicker({ value, onChange }: Props) {
 				/>
 			</ItemGroup>
 
-			{value.custom ? (
+			{/*직접 설정일 때 일, 시간, 분 선택*/}
+			{value.custom && (
 				<WheelPicker
 					columns={[
 						{
@@ -91,11 +99,13 @@ export function DurationPicker({ value, onChange }: Props) {
 						},
 					]}
 				/>
-			) : null}
+			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	picker: { gap: 12 },
+	container: { gap: 12 },
 });
+
+export default DurationPicker;

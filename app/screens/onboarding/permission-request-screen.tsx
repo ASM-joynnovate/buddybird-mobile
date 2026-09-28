@@ -18,8 +18,8 @@ import {
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
-import { BuddySays } from '@/components/buddy-says';
-import { Illustration } from '@/components/illustration';
+import BuddySays from '@/components/buddy-says';
+import Illustration from '@/components/illustration';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ItemGroup } from '@/components/ui/item/group';
@@ -54,7 +54,8 @@ const isGranted = async (kind: PermissionKind) => {
 	}
 };
 
-export function PermissionRequestScreen() {
+/** 마이크와 알림 권한의 쓰임을 보여 주고 허용하기를 누르면 권한을 요청한 뒤, 나중에를 누르면 바로 온보딩을 마치는 화면 */
+const PermissionRequestScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
@@ -63,6 +64,7 @@ export function PermissionRequestScreen() {
 
 	const setOnboardingCompleted = useDeviceSettingsStore((state) => state.setOnboardingCompleted);
 
+	/** 화면에 들어올 때마다 onboarding_step_viewed 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('permissions');
@@ -129,7 +131,7 @@ export function PermissionRequestScreen() {
 				</>
 			}
 		>
-			{/*헤더*/}
+			{/*뒤로 가기 버튼*/}
 			<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
 
 			{/*안내 말풍선과 그림*/}
@@ -157,7 +159,7 @@ export function PermissionRequestScreen() {
 			</ItemGroup>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	intro: { flexGrow: 1, gap: 24, paddingBottom: 28 },
@@ -175,3 +177,5 @@ const styles = StyleSheet.create({
 	purpose: { fontSize: 13, color: colors.muted },
 	later: { alignItems: 'flex-end' },
 });
+
+export default PermissionRequestScreen;

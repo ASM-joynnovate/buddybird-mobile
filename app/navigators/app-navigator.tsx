@@ -4,50 +4,46 @@ import { pushDataSchema } from '@/types/apis/notifications';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { type EntryRoute, useEntryRoute } from '@/hooks/use-entry-route';
+import useEntryRoute, { type EntryRoute } from '@/hooks/use-entry-route';
 
 import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@react-native-firebase/messaging';
-import {
-	type LinkingOptions,
-	NavigationContainer,
-	type NavigationState,
-	type PartialState,
-	useNavigationContainerRef,
-} from '@react-navigation/native';
+import { type LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { env } from '@/config';
-import { MainTabs } from '@/navigators/main-tabs';
-import { NoticeDetailScreen } from '@/screens/home/notice-detail-screen';
-import { ConsentDetailScreen } from '@/screens/onboarding/consent-detail-screen';
-import { ConsentScreen } from '@/screens/onboarding/consent-screen';
-import { LegacyUploadScreen } from '@/screens/onboarding/legacy-upload-screen';
-import { LoginScreen } from '@/screens/onboarding/login-screen';
-import { ParrotEditorScreen } from '@/screens/onboarding/parrot-editor-screen';
-import { PermissionRequestScreen } from '@/screens/onboarding/permission-request-screen';
-import { UsageGuideScreen } from '@/screens/onboarding/usage-guide-screen';
-import { SessionRunScreen } from '@/screens/session/session-run-screen';
-import { SessionSummaryScreen } from '@/screens/session/session-summary-screen';
-import { ConsentSettingsScreen } from '@/screens/settings/consent-settings-screen';
-import { DevicesScreen } from '@/screens/settings/devices-screen';
-import { NoticeListScreen } from '@/screens/settings/notice-list-screen';
-import { PermissionsScreen } from '@/screens/settings/permissions-screen';
-import { SettingsScreen } from '@/screens/settings/settings-screen';
-import { RecorderScreen } from '@/screens/words/recorder-screen';
-import { RecordingGuideScreen } from '@/screens/words/recording-guide-screen';
+import MainTabs from '@/navigators/main-tabs';
+import NoticeDetailScreen from '@/screens/home/notice-detail-screen';
+import ConsentDetailScreen from '@/screens/onboarding/consent-detail-screen';
+import ConsentScreen from '@/screens/onboarding/consent-screen';
+import LegacyUploadScreen from '@/screens/onboarding/legacy-upload-screen';
+import LoginScreen from '@/screens/onboarding/login-screen';
+import ParrotEditorScreen from '@/screens/onboarding/parrot-editor-screen';
+import PermissionRequestScreen from '@/screens/onboarding/permission-request-screen';
+import UsageGuideScreen from '@/screens/onboarding/usage-guide-screen';
+import SessionRunScreen from '@/screens/session/session-run-screen';
+import SessionSummaryScreen from '@/screens/session/session-summary-screen';
+import ConsentSettingsScreen from '@/screens/settings/consent-settings-screen';
+import DevicesScreen from '@/screens/settings/devices-screen';
+import NoticeListScreen from '@/screens/settings/notice-list-screen';
+import PermissionsScreen from '@/screens/settings/permissions-screen';
+import SettingsScreen from '@/screens/settings/settings-screen';
+import RecorderScreen from '@/screens/words/recorder-screen';
+import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
 import { reportError, track, trackScreen } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 import { notificationPath } from '@/utils/notification';
 
-import { OfflineBanner } from '@/components/offline-banner';
+import OfflineBanner from '@/components/offline-banner';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
-function linkPrefix() {
+/** 운영과 개발 환경에 맞는 앱 링크 주소 앞부분 */
+const linkPrefix = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
-}
+};
 
-function resolvePushUrl(pushData: unknown): string | null {
+/** 푸시 알림 데이터로 열 화면의 앱 링크 주소 만들기와 알림 열기 이벤트 전송 */
+const resolvePushUrl = (pushData: unknown) => {
 	const parsed = pushDataSchema.safeParse(pushData);
 
 	if (!parsed.success) {
@@ -59,7 +55,7 @@ function resolvePushUrl(pushData: unknown): string | null {
 	track('notification_opened', { kind: parsed.data.kind, from: 'push' });
 
 	return `${linkPrefix()}${notificationPath(parsed.data).slice(1)}`;
-}
+};
 
 const linking: LinkingOptions<RootStackParamList> = {
 	prefixes: [linkPrefix()],
@@ -68,18 +64,18 @@ const linking: LinkingOptions<RootStackParamList> = {
 			Main: { screens: { ReportTab: { screens: { Report: 'report' } } } },
 		},
 	},
-	async getInitialURL() {
+	getInitialURL: async () => {
 		try {
 			const message = await getInitialNotification(getMessaging());
 
 			return message ? resolvePushUrl(message.data) : null;
-		} catch (error) {
-			reportError(error, 'push_initial');
+		} catch (e) {
+			reportError(e, 'push_initial');
 
 			return null;
 		}
 	},
-	subscribe(listener) {
+	subscribe: (listener) => {
 		return onNotificationOpenedApp(getMessaging(), (message) => {
 			const url = resolvePushUrl(message.data);
 
@@ -92,7 +88,8 @@ const linking: LinkingOptions<RootStackParamList> = {
 
 const ONBOARDING_ORDER = ['Consent', 'ParrotEditor', 'UsageGuide'] as const;
 
-function entryState(route: (typeof ONBOARDING_ORDER)[number], parrotId?: string): PartialState<NavigationState> {
+/** 동의 화면부터 지금 온보딩 화면까지 쌓은 첫 화면 상태 */
+const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string) => {
 	const routes = ONBOARDING_ORDER.slice(0, ONBOARDING_ORDER.indexOf(route) + 1).map((name) =>
 		name === 'ParrotEditor'
 			? {
@@ -106,12 +103,10 @@ function entryState(route: (typeof ONBOARDING_ORDER)[number], parrotId?: string)
 	);
 
 	return { index: routes.length - 1, routes };
-}
+};
 
-function initialStateOf(
-	route: Exclude<EntryRoute, 'LegacyUpload'>,
-	parrotId?: string,
-): PartialState<NavigationState> | undefined {
+/** 로그인이나 온보딩에서 시작할 때 쌓아 둘 첫 화면 상태, 메인 화면이면 없음 */
+const initialStateOf = (route: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: string) => {
 	if (route === 'Main') {
 		return undefined;
 	}
@@ -121,24 +116,26 @@ function initialStateOf(
 	}
 
 	return entryState(route, parrotId);
-}
+};
 
-export function AppNavigator() {
+/** 첫 화면에 따라 v1 데이터 올리기, 로그인과 온보딩, 메인 화면 중 하나를 보여 주고 화면이 바뀔 때마다 화면 조회를 기록하는 컴포넌트 */
+const AppNavigator = () => {
 	const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
-	const screenName = useRef<string | null>(null);
+	const screenNameRef = useRef<string | null>(null);
 
 	const { entryRoute, parrotId } = useEntryRoute();
 
-	function handleTrackScreen() {
+	/** 지금 화면이 바뀌었으면 화면 조회 이벤트 전송 */
+	const handleTrackScreen = () => {
 		const currentScreenName = navigationRef.getCurrentRoute()?.name ?? null;
 
-		if (currentScreenName && currentScreenName !== screenName.current) {
+		if (currentScreenName && currentScreenName !== screenNameRef.current) {
 			trackScreen(currentScreenName);
 		}
 
-		screenName.current = currentScreenName;
-	}
+		screenNameRef.current = currentScreenName;
+	};
 
 	if (entryRoute === 'LegacyUpload') {
 		return <LegacyUploadScreen />;
@@ -146,7 +143,7 @@ export function AppNavigator() {
 
 	return (
 		<>
-			{/*앱 화면*/}
+			{/*로그인과 온보딩 화면, 또는 아래 탭 화면과 그 위에 여는 화면*/}
 			<NavigationContainer
 				key={entryRoute}
 				ref={navigationRef}
@@ -163,7 +160,7 @@ export function AppNavigator() {
 					}}
 				>
 					{/*로그인과 온보딩 화면*/}
-					{entryRoute === 'Main' ? null : (
+					{entryRoute !== 'Main' && (
 						<RootStack.Group>
 							<RootStack.Screen name="Login" component={LoginScreen} />
 							<RootStack.Screen name="Consent" component={ConsentScreen} />
@@ -174,8 +171,8 @@ export function AppNavigator() {
 						</RootStack.Group>
 					)}
 
-					{/*메인 화면*/}
-					{entryRoute === 'Main' ? (
+					{/*아래 탭 화면과 그 위에 여는 로그인, 앵무새 편집, 공지, 학습, 녹음, 설정 화면*/}
+					{entryRoute === 'Main' && (
 						<RootStack.Group>
 							<RootStack.Screen name="Main" component={MainTabs} />
 							<RootStack.Screen name="Login" component={LoginScreen} />
@@ -215,12 +212,14 @@ export function AppNavigator() {
 							<RootStack.Screen name="Devices" component={DevicesScreen} />
 							<RootStack.Screen name="Permissions" component={PermissionsScreen} />
 						</RootStack.Group>
-					) : null}
+					)}
 				</RootStack.Navigator>
 			</NavigationContainer>
 
-			{/*오프라인 배너*/}
+			{/*인터넷 연결이 끊기면 위쪽에 뜨는 안내*/}
 			<OfflineBanner />
 		</>
 	);
-}
+};
+
+export default AppNavigator;

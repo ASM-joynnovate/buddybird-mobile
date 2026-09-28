@@ -15,7 +15,7 @@ import { track } from '@/services/telemetry/client';
 import { useFeedbackStore } from '@/stores/feedback';
 import { colors, font, mascotImage } from '@/theme';
 
-import { Dialog } from '@/components/dialogs/dialog';
+import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
@@ -24,10 +24,16 @@ import { TextField } from '@/components/ui/text-field';
 
 interface Props {
 	visible: boolean;
-	prompt?: { onDismiss(): void; onWrite(): void };
+	prompt?: { onDismiss: () => void; onWrite: () => void };
 }
 
-export function FeedbackDialog({ visible, prompt }: Props) {
+/**
+ * 의견 입력란을 보여 주고 보내기 버튼을 누르면 의견을 전송한 뒤 감사 문구를 보여 주는 다이얼로그 컴포넌트
+ * 의견 요청으로 열리면 닫기 버튼과 쓰기 버튼이 있는 요청 안내를 보여 줌
+ * @param visible 다이얼로그 표시 여부
+ * @param prompt 의견 요청 안내의 닫기 버튼과 쓰기 버튼을 누를 때 실행할 함수
+ */
+const FeedbackDialog = ({ visible, prompt }: Props) => {
 	const { t } = useTranslation();
 
 	const [message, setMessage] = useState('');
@@ -36,7 +42,6 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 	const { isError, isPending, isSuccess, mutate, reset } = useSendFeedback();
 
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
-
 	const closeFeedback = useFeedbackStore((state) => state.closeFeedback);
 
 	/** 입력 초기화와 새 멱등키 발급 뒤 의견 다이얼로그 닫기 */
@@ -165,7 +170,7 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 			<InlineError message={isError ? t('app.feedback.sendError') : null} />
 		</Dialog>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	thanksClose: { marginTop: 0 },
@@ -175,3 +180,5 @@ const styles = StyleSheet.create({
 	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
 	privacy: { fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 12 },
 });
+
+export default FeedbackDialog;

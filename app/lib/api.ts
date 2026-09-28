@@ -1,4 +1,4 @@
-import { ApiError, type ApiErrorCode, apiErrorCodes, envelopeSchema, errorBodySchema } from '@/types/apis/common';
+import { ApiError, apiErrorCodes, envelopeSchema, errorBodySchema } from '@/types/apis/common';
 
 import type { TFunction } from 'i18next';
 
@@ -6,22 +6,23 @@ import type { z } from 'zod';
 
 import { API_TIMEOUT_MS, env } from '@/config';
 
-type ApiDependencies = {
+interface ApiDependencies {
 	deviceId: () => string;
 	locale: () => string;
 	accessToken: () => Promise<string>;
 	reportError: (error: unknown, scope: string) => void;
-};
+}
 
 let dependencies: ApiDependencies | undefined;
 
-export function configureApi(next: ApiDependencies) {
+/** 서버 요청에 쓸 기기 ID, 언어, 액세스 토큰과 오류 보고 함수 등록 */
+export const configureApi = (next: ApiDependencies) => {
 	dependencies = next;
-}
+};
 
 type SearchParamValue = string | number | boolean | undefined;
 
-type ApiOptions = {
+interface ApiOptions {
 	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 	searchParams?: Record<string, SearchParamValue>;
 	json?: unknown;
@@ -30,15 +31,12 @@ type ApiOptions = {
 	idempotencyKey?: string;
 	signal?: AbortSignal;
 	timeoutMs?: number;
-};
+}
 
 const SERVER_ERROR_STATUS = 500;
 
-export async function apiRequest<T>(
-	path: string,
-	schema: z.ZodType<T>,
-	options: ApiOptions = {},
-): Promise<{ data: T; meta: unknown }> {
+/** 서버에 요청을 보내고 스키마로 검사한 응답의 data와 meta 반환 */
+export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options: ApiOptions = {}) => {
 	const {
 		method = 'GET',
 		searchParams,
@@ -112,21 +110,24 @@ export async function apiRequest<T>(
 	}
 
 	return { data: parsedData.data, meta: envelope.data.meta };
-}
+};
 
-export function apiErrorMessage(error: unknown, t: TFunction): string {
+/** 오류 코드에 맞는 사용자 문구, ApiError가 아니면 네트워크 연결 문구 */
+export const apiErrorMessage = (error: unknown, t: TFunction) => {
 	if (!(error instanceof ApiError)) {
 		return t('apiError.CLIENT__NETWORK');
 	}
 
 	return error.code === 'CLIENT__UNKNOWN_ERROR' ? error.message : t(`apiError.${error.code}`);
-}
+};
 
-function knownErrorCode(code: string): ApiErrorCode {
+/** 서버 오류 코드 가운데 앱이 아는 코드, 모르는 코드면 CLIENT__UNKNOWN_ERROR */
+const knownErrorCode = (code: string) => {
 	return apiErrorCodes.find((known) => known === code) ?? 'CLIENT__UNKNOWN_ERROR';
-}
+};
 
-function queryString(searchParams: Record<string, SearchParamValue> | undefined) {
+/** 값이 있는 항목만 담은 URL 쿼리 문자열 */
+const queryString = (searchParams: Record<string, SearchParamValue> | undefined) => {
 	const params = new URLSearchParams();
 
 	for (const [name, value] of Object.entries(searchParams ?? {})) {
@@ -138,22 +139,30 @@ function queryString(searchParams: Record<string, SearchParamValue> | undefined)
 	const encoded = params.toString();
 
 	return encoded ? `?${encoded}` : '';
-}
+};
 
-type SendOptions = {
+interface SendOptions {
 	method: string;
 	headers: Headers;
 	body: BodyInit | undefined;
 	signal: AbortSignal | undefined;
 	timeoutMs: number;
-};
+}
 
-type RawResponse = { ok: boolean; status: number; requestId: string | null; text: string };
+interface RawResponse {
+	ok: boolean;
+	status: number;
+	requestId: string | null;
+	text: string;
+}
 
-async function send(url: string, options: SendOptions): Promise<RawResponse> {
+/** 시간 제한을 두고 fetch로 요청을 보낸 뒤 응답 상태, 요청 ID, 응답 문자열 반환 */
+const send = async (url: string, options: SendOptions) => {
 	const { signal, timeoutMs, ...init } = options;
 	const controller = new AbortController();
 	let timedOut = false;
+
+	/** 호출한 쪽의 취소를 fetch 요청에 전달 */
 	const cancel = () => controller.abort(signal?.reason);
 
 	if (signal?.aborted) {
@@ -176,35 +185,37 @@ async function send(url: string, options: SendOptions): Promise<RawResponse> {
 			requestId: response.headers.get('X-Request-ID'),
 			text: await response.text(),
 		};
-	} catch (error) {
+	} catch (e) {
 		if (timedOut) {
 			throw new ApiError(0, 'CLIENT__TIMEOUT', 'Request timed out');
 		}
 
 		if (signal?.aborted) {
-			throw error;
+			throw e;
 		}
 
-		throw new ApiError(0, 'CLIENT__NETWORK', error instanceof Error ? error.message : 'Network request failed');
+		throw new ApiError(0, 'CLIENT__NETWORK', e instanceof Error ? e.message : 'Network request failed');
 	} finally {
 		clearTimeout(timer);
 		signal?.removeEventListener('abort', cancel);
 	}
-}
+};
 
-function parseBody(text: string): unknown {
+/** 응답 문자열의 JSON 해석, 비었으면 null, JSON이 아니면 undefined */
+const parseBody = (text: string) => {
 	if (!text) {
 		return null;
 	}
 
 	try {
-		return JSON.parse(text);
+		return JSON.parse(text) as unknown;
 	} catch {
 		return undefined;
 	}
-}
+};
 
-function invalidResponseError(response: RawResponse, body: unknown) {
+/** 서버 응답 형식이 맞지 않을 때의 CLIENT__INVALID_RESPONSE 오류 */
+const invalidResponseError = (response: RawResponse, body: unknown) => {
 	return new ApiError(
 		response.status,
 		'CLIENT__INVALID_RESPONSE',
@@ -212,9 +223,10 @@ function invalidResponseError(response: RawResponse, body: unknown) {
 		response.requestId,
 		body,
 	);
-}
+};
 
-function reportServerError(error: ApiError) {
+/** 5xx 응답, 응답 형식 오류, 모르는 오류 코드 보고 */
+const reportServerError = (error: ApiError) => {
 	if (
 		error.status >= SERVER_ERROR_STATUS ||
 		error.code === 'CLIENT__INVALID_RESPONSE' ||
@@ -224,4 +236,4 @@ function reportServerError(error: ApiError) {
 	}
 
 	return error;
-}
+};

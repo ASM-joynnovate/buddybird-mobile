@@ -1,4 +1,4 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { ScrollView, type ScrollViewProps, StyleSheet, View } from 'react-native';
 
@@ -9,9 +9,10 @@ import { colors, contentMaxWidth } from '@/theme';
 interface Props extends ScrollViewProps {
 	scrollable?: boolean;
 	footer?: ReactNode;
+	children: ReactNode;
 }
 
-export function Screen({
+export const Screen = ({
 	children,
 	scrollable = true,
 	automaticallyAdjustKeyboardInsets = true,
@@ -19,11 +20,12 @@ export function Screen({
 	contentContainerStyle,
 	footer,
 	...props
-}: PropsWithChildren<Props>) {
+}: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
 		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, style]}>
+			{/*내용*/}
 			{scrollable ? (
 				<ScrollView
 					alwaysBounceVertical={false}
@@ -43,10 +45,12 @@ export function Screen({
 			) : (
 				children
 			)}
-			{footer ? <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View> : null}
+
+			{/*아래에 고정된 내용*/}
+			{!!footer && <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>}
 		</SafeAreaView>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: colors.background },

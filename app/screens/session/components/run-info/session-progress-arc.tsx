@@ -20,7 +20,15 @@ interface Props {
 	detail: string | null;
 }
 
-export function SessionProgressArc({ width, phase, progressRatio, title, detail }: Props) {
+/**
+ * 진행한 만큼 채워지는 반원과 그 안의 단계 이름, 남은 시간을 보여 주는 컴포넌트
+ * @param width 반원의 가로 폭
+ * @param phase 지금 단계, 채우는 색을 정함
+ * @param progressRatio 학습 시간 가운데 지난 비율, 종료 시각이 없으면 null
+ * @param title 단계 이름
+ * @param detail 남은 시간 문구, 종료 시각이 없으면 null
+ */
+const SessionProgressArc = ({ width, phase, progressRatio, title, detail }: Props) => {
 	const radius = (width - STROKE_WIDTH) / 2;
 	const baseline = radius + STROKE_WIDTH / 2;
 	const arc = `M ${STROKE_WIDTH / 2} ${baseline} A ${radius} ${radius} 0 0 1 ${width - STROKE_WIDTH / 2} ${baseline}`;
@@ -29,11 +37,11 @@ export function SessionProgressArc({ width, phase, progressRatio, title, detail 
 
 	return (
 		<View
-			style={[styles.ring, { width, height: baseline + STROKE_WIDTH / 2 }]}
+			style={[styles.container, { width, height: baseline + STROKE_WIDTH / 2 }]}
 			accessible
 			accessibilityLabel={joinLabel(title, detail)}
 		>
-			{/*진행 고리*/}
+			{/*진행한 만큼 채워지는 반원*/}
 			<Svg width={width} height={baseline + STROKE_WIDTH / 2} style={styles.svg}>
 				<Path
 					d={arc}
@@ -42,7 +50,7 @@ export function SessionProgressArc({ width, phase, progressRatio, title, detail 
 					strokeWidth={STROKE_WIDTH}
 					strokeLinecap="round"
 				/>
-				{progressRatio === null ? null : (
+				{progressRatio !== null && (
 					<Path
 						d={arc}
 						fill="none"
@@ -57,14 +65,14 @@ export function SessionProgressArc({ width, phase, progressRatio, title, detail 
 			{/*단계 이름과 남은 시간*/}
 			<View style={styles.center}>
 				<Copy style={styles.title}>{title}</Copy>
-				{detail === null ? null : <Copy style={styles.detail}>{detail}</Copy>}
+				{detail !== null && <Copy style={styles.detail}>{detail}</Copy>}
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	ring: { alignItems: 'center', justifyContent: 'flex-end' },
+	container: { alignItems: 'center', justifyContent: 'flex-end' },
 	svg: { position: 'absolute', top: 0, left: 0 },
 	center: { alignItems: 'center', gap: 4, paddingBottom: 12 },
 	title: { fontFamily: font.black, fontSize: 20, color: sessionColors.text },
@@ -75,3 +83,5 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 });
+
+export default SessionProgressArc;

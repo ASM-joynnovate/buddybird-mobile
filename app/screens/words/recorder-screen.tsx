@@ -1,11 +1,11 @@
-import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { usePermission } from '@/hooks/use-permission';
-import { useSoundPlayer } from '@/hooks/use-sound-player';
+import usePermission from '@/hooks/use-permission';
+import useSoundPlayer from '@/hooks/use-sound-player';
 
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -20,13 +20,13 @@ import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/config';
-import { AudioWaveform } from '@/screens/words/components/audio-waveform';
+import AudioWaveform from '@/screens/words/components/audio-waveform';
 import { deleteFile, readFileInfo } from '@/services/media/file';
 import { reportError, track } from '@/services/telemetry/client';
 import { colors, contentMaxWidth, font } from '@/theme';
 import { SECOND } from '@/utils/units';
 
-import { PermissionDialog } from '@/components/dialogs/permission-dialog';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
@@ -59,7 +59,8 @@ interface RecordingFile {
 
 type RecordingFileError = 'empty' | 'tooLarge' | 'invalidFormat' | 'recordError' | null;
 
-function meteringLevel(decibels?: number): number {
+/** 녹음 데시벨을 0에서 1 사이의 소리 크기로 바꾼 값, 작은 소리는 0 */
+const meteringLevel = (decibels?: number) => {
 	if (decibels === undefined || !Number.isFinite(decibels)) {
 		return 0;
 	}
@@ -67,7 +68,7 @@ function meteringLevel(decibels?: number): number {
 	const normalized = Math.max(0, Math.min(1, (decibels - DB_FLOOR) / (DB_CEIL - DB_FLOOR)));
 
 	return normalized < NOISE_FLOOR ? 0 : (normalized - NOISE_FLOOR) / (1 - NOISE_FLOOR);
-}
+};
 
 /** 녹음 상태 문구 */
 const statusText = (isRecording: boolean, recordingFile: RecordingFile | null, t: TFunction) => {
@@ -102,7 +103,8 @@ const getRecordingFileError = (uri: string, durationMs: number) => {
 	return fileInfo.size > MAX_UPLOAD_BYTES ? 'tooLarge' : null;
 };
 
-export function RecorderScreen(): ReactElement {
+/** 녹음 파형과 녹음 시간, 녹음 버튼을 보여 주고 녹음을 마친 뒤 추가를 누르면 녹음을 단어 편집 화면에 넘기는 화면 */
+const RecorderScreen = () => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -119,7 +121,7 @@ export function RecorderScreen(): ReactElement {
 	const closingRef = useRef(false);
 
 	/** 끝난 녹음의 파일 검사 뒤 녹음 파일이나 오류 저장 */
-	const handleRecordingFinished = useCallback((uri: string, durationMs: number) => {
+	const handleRecordingFinished = (uri: string, durationMs: number) => {
 		if (closingRef.current || handledUriRef.current === uri) {
 			return;
 		}
@@ -141,7 +143,7 @@ export function RecorderScreen(): ReactElement {
 
 			setRecordingFileError('recordError');
 		}
-	}, []);
+	};
 
 	const recorder = useAudioRecorder(recordingOptions, (status) => {
 		if (status.hasError) {
@@ -275,6 +277,17 @@ export function RecorderScreen(): ReactElement {
 		void microphonePermission.run(() => void handleStartRecording());
 	};
 
+	/** 녹음 중이면 녹음 정지, 아니면 마이크 권한 확인 뒤 녹음 시작 */
+	const handleToggleRecording = () => {
+		if (isRecording) {
+			void handleStopRecording();
+
+			return;
+		}
+
+		handleRecord();
+	};
+
 	/** 녹음 파일을 단어 편집 화면에 추가 */
 	const handleAddRecording = () => {
 		if (!recordingFile) {
@@ -297,8 +310,8 @@ export function RecorderScreen(): ReactElement {
 
 	return (
 		<Screen scrollable={false}>
-			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
-				{/*헤더*/}
+			<View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
+				{/*단어 이름 제목과 닫기 버튼*/}
 				<ScreenHeader
 					title={params.wordName || t('words.recorder.newWord')}
 					onBack={() => void handleClose()}
@@ -323,7 +336,7 @@ export function RecorderScreen(): ReactElement {
 						{statusText(isRecording, recordingFile, t)}
 					</Copy>
 
-					{recordingFile && !isRecording ? (
+					{recordingFile && !isRecording && (
 						<IconButton
 							icon={playing ? PauseIcon : PlayIcon}
 							label={t(playing ? 'common.sound.stop' : 'words.recorder.play')}
@@ -331,7 +344,7 @@ export function RecorderScreen(): ReactElement {
 							size="large"
 							onPress={() => player.toggle(RECORDING_FILE_ID, recordingFile.uri)}
 						/>
-					) : null}
+					)}
 
 					<InlineError
 						message={
@@ -364,7 +377,7 @@ export function RecorderScreen(): ReactElement {
 							variant="primary"
 							size="xlarge"
 							disabled={busy}
-							onPress={() => (isRecording ? void handleStopRecording() : handleRecord())}
+							onPress={handleToggleRecording}
 						/>
 					</View>
 				)}
@@ -374,10 +387,10 @@ export function RecorderScreen(): ReactElement {
 			<PermissionDialog state={microphonePermission.dialog} />
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	screen: {
+	container: {
 		flex: 1,
 		width: '100%',
 		maxWidth: contentMaxWidth,
@@ -395,3 +408,5 @@ const styles = StyleSheet.create({
 	status: { color: colors.muted, textAlign: 'center' },
 	control: { alignItems: 'center' },
 });
+
+export default RecorderScreen;

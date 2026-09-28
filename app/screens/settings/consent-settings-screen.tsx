@@ -13,20 +13,26 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function ConsentSettingsScreen() {
+/** 약관 동의 제목과 뒤로 가기 버튼, 약관별 동의 여부를 보여 주는 화면 */
+const ConsentSettingsScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<Screen>
-			{/*헤더*/}
+			{/*약관 동의 제목과 뒤로 가기 버튼*/}
 			<ScreenHeader title={t('settings.consents.title')} onBack={() => navigation.goBack()} />
 
-			{/*동의 항목*/}
-			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={4} height={56} />>
+			{/*약관별 동의 여부와 저장 실패 안내*/}
+			<ErrorHandlingWrapper
+				fallbackComponent={ScreenError}
+				suspenseFallback=<Skeleton blockCount={4} height={56} />
+			>
 				<ConsentList />
 			</ErrorHandlingWrapper>
 		</Screen>
 	);
-}
+};
+
+export default ConsentSettingsScreen;

@@ -11,11 +11,20 @@ interface Props {
 	size?: 'small' | 'large';
 }
 
-export function Stat({ label, value, size = 'small' }: Props) {
+/**
+ * 항목 이름과 값을 한 줄로 보여 주는 컴포넌트
+ * @param label 항목 이름
+ * @param value 항목 값
+ * @param size 글자 크기, large면 이름과 값을 줄 양 끝에 둠
+ */
+const Stat = ({ label, value, size = 'small' }: Props) => {
 	if (size === 'large') {
 		return (
-			<View style={styles.line} accessible accessibilityLabel={joinLabel(label, value)}>
+			<View style={styles.container} accessible accessibilityLabel={joinLabel(label, value)}>
+				{/*왼쪽 끝의 항목 이름*/}
 				<Copy style={styles.largeLabel}>{label}</Copy>
+
+				{/*오른쪽 끝의 항목 값*/}
 				<Copy style={styles.largeValue}>{value}</Copy>
 			</View>
 		);
@@ -26,10 +35,10 @@ export function Stat({ label, value, size = 'small' }: Props) {
 			{label} <Copy style={styles.smallValue}>{value}</Copy>
 		</Copy>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	line: {
+	container: {
 		flexDirection: 'row',
 		alignItems: 'baseline',
 		justifyContent: 'space-between',
@@ -45,3 +54,5 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 });
+
+export default Stat;

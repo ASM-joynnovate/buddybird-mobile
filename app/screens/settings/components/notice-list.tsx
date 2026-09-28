@@ -22,7 +22,7 @@ import { DotBadge } from '@/components/ui/dot-badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-/** 공지 목록 컴포넌트 */
+/** 공지 제목, 게시 날짜, 읽지 않음 표시를 보여 주고 누르면 공지 상세 화면을 열며 끝까지 내리면 다음 쪽을 불러오는 목록 컴포넌트 */
 const NoticeList = () => {
 	const { t } = useTranslation();
 
@@ -32,7 +32,7 @@ const NoticeList = () => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	/** 공지 항목 */
+	/** 공지 하나의 제목, 게시 날짜, 읽지 않음 표시 그리기 */
 	const renderItem = ({ item: notice }: { item: Notice }) => {
 		const dateText = formatMonthDay(notice.starts_at, locale);
 
@@ -43,6 +43,7 @@ const NoticeList = () => {
 				onPress={() => navigation.navigate('NoticeDetail', { noticeId: notice.id })}
 				contentStyle={styles.card}
 			>
+				{/*공지 제목과 게시 날짜*/}
 				<View style={styles.textContainer}>
 					<Copy style={styles.title} numberOfLines={2}>
 						{notice.title}
@@ -50,6 +51,7 @@ const NoticeList = () => {
 					<Copy style={styles.date}>{dateText}</Copy>
 				</View>
 
+				{/*읽지 않음 표시*/}
 				{!notice.is_read && <DotBadge />}
 			</PressableSurface>
 		);

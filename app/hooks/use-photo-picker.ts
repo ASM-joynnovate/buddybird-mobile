@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { type PermissionDialogState, usePermission } from '@/hooks/use-permission';
+import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +15,8 @@ const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
 	quality: 0.85,
 };
 
-function photoMimeType(asset: ImagePicker.ImagePickerAsset) {
+/** 사진의 MIME 형식, 없으면 파일 확장자로 찾은 형식 */
+const photoMimeType = (asset: ImagePicker.ImagePickerAsset) => {
 	if (asset.mimeType) {
 		return asset.mimeType;
 	}
@@ -23,17 +24,10 @@ function photoMimeType(asset: ImagePicker.ImagePickerAsset) {
 	const extension = asset.uri.split('.').pop()?.toLowerCase();
 
 	return extension === 'png' ? 'image/png' : extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' : '';
-}
+};
 
-export function usePhotoPicker(initialPhotoUri: string | null): {
-	photoUri: string | null;
-	setPhotoUri(uri: string | null): void;
-	take(): Promise<void>;
-	choose(): Promise<void>;
-	errorMessage: string | null;
-	libraryDialog: PermissionDialogState;
-	cameraDialog: PermissionDialogState;
-} {
+/** 카메라나 앨범에서 고른 사진의 형식과 크기를 확인해 사진 주소와 오류 문구를 돌려주는 훅 */
+const usePhotoPicker = (initialPhotoUri: string | null) => {
 	const { t } = useTranslation();
 
 	const [photoUri, setPhotoUri] = useState(initialPhotoUri);
@@ -42,7 +36,8 @@ export function usePhotoPicker(initialPhotoUri: string | null): {
 	const libraryPermission = usePermission('photos');
 	const cameraPermission = usePermission('camera');
 
-	async function pick(source: 'camera' | 'library') {
+	/** 카메라나 앨범에서 사진을 고르고 형식과 크기 확인 */
+	const pick = async (source: 'camera' | 'library') => {
 		try {
 			const pickerResult =
 				source === 'camera'
@@ -63,36 +58,38 @@ export function usePhotoPicker(initialPhotoUri: string | null): {
 				setPhotoUri(asset.uri);
 				setErrorMessage(null);
 			}
-		} catch (cause) {
-			reportError(cause, 'photo_picker');
+		} catch (e) {
+			reportError(e, 'photo_picker');
 
 			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
-	}
+	};
 
-	async function take() {
+	/** 카메라 권한 확인 뒤 사진 찍기 */
+	const take = async () => {
 		try {
 			await cameraPermission.run(() => void pick('camera'));
-		} catch (cause) {
-			reportError(cause, 'camera_permission');
+		} catch (e) {
+			reportError(e, 'camera_permission');
 
 			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
-	}
+	};
 
-	async function choose() {
+	/** 사진 권한 확인 뒤 앨범에서 사진 고르기 */
+	const choose = async () => {
 		try {
 			await libraryPermission.run(() => void pick('library'));
-		} catch (cause) {
-			reportError(cause, 'photo_permission');
+		} catch (e) {
+			reportError(e, 'photo_permission');
 
 			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
-	}
+	};
 
 	return {
 		photoUri,
-		setPhotoUri: (uri) => {
+		setPhotoUri: (uri: string | null) => {
 			setPhotoUri(uri);
 			setErrorMessage(null);
 		},
@@ -102,4 +99,6 @@ export function usePhotoPicker(initialPhotoUri: string | null): {
 		libraryDialog: libraryPermission.dialog,
 		cameraDialog: cameraPermission.dialog,
 	};
-}
+};
+
+export default usePhotoPicker;

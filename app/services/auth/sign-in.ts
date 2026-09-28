@@ -8,23 +8,24 @@ import { authClient, openAuthSession, requestAppleCredential } from '@/services/
 import { setAppleLoginCredential } from '@/services/auth/credential';
 import { useAccountStore } from '@/stores/account';
 
-type LinkResult = 'linked' | 'identityExists' | 'cancelled';
-
 type OAuthProvider = Exclude<LoginProvider, 'apple'>;
 
-function authRedirectUrl() {
+/** 로그인 브라우저가 앱으로 돌아올 주소 */
+const authRedirectUrl = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
-}
+};
 
-function oauthOptions(provider: OAuthProvider) {
+/** 로그인 브라우저 요청 옵션, Google은 갱신 토큰을 받도록 동의 화면 요청 */
+const oauthOptions = (provider: OAuthProvider) => {
 	return {
 		redirectTo: authRedirectUrl(),
 		skipBrowserRedirect: true,
 		...(provider === 'google' ? { queryParams: { access_type: 'offline', prompt: 'consent' } } : {}),
 	};
-}
+};
 
-async function requestAppleIdToken() {
+/** Apple 로그인으로 ID 토큰을 받고 인증 코드는 서버 로그인 요청에 보내도록 저장 */
+const requestAppleIdToken = async () => {
 	const nonce = randomUUID();
 	const credential = await requestAppleCredential({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
@@ -40,9 +41,10 @@ async function requestAppleIdToken() {
 	}
 
 	return { provider: 'apple' as const, token: credential.identityToken, nonce };
-}
+};
 
-async function openAuthBrowser(url: string): Promise<URL | null> {
+/** 로그인 브라우저를 열어 돌아온 주소, 취소하면 null, 앱 주소가 아니면 오류 */
+const openAuthBrowser = async (url: string) => {
 	const redirectUrl = authRedirectUrl();
 	const authSessionResult = await openAuthSession(url, redirectUrl);
 
@@ -68,13 +70,15 @@ async function openAuthBrowser(url: string): Promise<URL | null> {
 	}
 
 	return callbackUrl;
-}
+};
 
-function callbackParam(callbackUrl: URL, name: string) {
+/** 돌아온 주소의 searchParams나 hash에서 이름으로 찾은 값 */
+const callbackParam = (callbackUrl: URL, name: string) => {
 	return callbackUrl.searchParams.get(name) ?? new URLSearchParams(callbackUrl.hash.slice(1)).get(name);
-}
+};
 
-async function exchangeCallback(callbackUrl: URL, provider: OAuthProvider): Promise<boolean> {
+/** 돌아온 주소의 인증 코드를 세션으로 교환, 사용자가 거부하면 false */
+const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 	const providerError = callbackParam(callbackUrl, 'error');
 
 	if (providerError === 'access_denied') {
@@ -96,9 +100,10 @@ async function exchangeCallback(callbackUrl: URL, provider: OAuthProvider): Prom
 	}
 
 	return true;
-}
+};
 
-export async function signIn(provider: LoginProvider): Promise<boolean> {
+/** 고른 방식으로 로그인, 사용자가 취소하면 false */
+export const signIn = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();
 
@@ -125,9 +130,10 @@ export async function signIn(provider: LoginProvider): Promise<boolean> {
 	const callbackUrl = await openAuthBrowser(data.url);
 
 	return callbackUrl ? exchangeCallback(callbackUrl, provider) : false;
-}
+};
 
-export async function linkAccount(provider: LoginProvider): Promise<LinkResult> {
+/** 지금 계정에 고른 로그인 방식 연결, 다른 계정에 이미 연결된 방식이면 identityExists, 취소하면 cancelled */
+export const linkAccount = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();
 
@@ -166,4 +172,4 @@ export async function linkAccount(provider: LoginProvider): Promise<LinkResult> 
 	}
 
 	return (await exchangeCallback(callbackUrl, provider)) ? 'linked' : 'cancelled';
-}
+};

@@ -15,9 +15,9 @@ interface State {
 }
 
 /**
- * 조회 오류 경계
+ * 안쪽 조회가 실패하면 오류 화면을 보여 주고 다시 시도하면 조회 오류를 초기화한 뒤 안쪽 내용을 다시 보여 주는 컴포넌트
  * @param FallbackComponent 오류 화면 컴포넌트
- * @param onReset 다시 시도할 때 실행할 조회 오류 초기화
+ * @param onReset 다시 시도할 때 조회 오류를 초기화하는 함수
  * @param children 감싸는 내용
  */
 class QueryErrorBoundary extends Component<Props, State> {

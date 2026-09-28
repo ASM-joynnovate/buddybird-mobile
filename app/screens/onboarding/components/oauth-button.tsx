@@ -14,10 +14,18 @@ interface Props {
 	loading: boolean;
 	disabled: boolean;
 	hint?: string;
-	onPress(): void;
+	onPress: () => void;
 }
 
-export function OAuthButton({ provider, loading, disabled, hint, onPress }: Props) {
+/**
+ * Google이나 카카오 로고와 계속하기 글자를 보여 주고 누르면 그 계정으로 로그인을 시작하는 버튼 컴포넌트
+ * @param provider 로그인 방법
+ * @param loading 이 버튼으로 로그인하는 중인지 여부
+ * @param disabled 버튼 비활성화 여부
+ * @param hint 스크린 리더가 읽을 도움말
+ * @param onPress 버튼을 누를 때 실행할 함수
+ */
+const OAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
 	const { t } = useTranslation();
 
 	const isGoogle = provider === 'google';
@@ -35,8 +43,9 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 			edgeColor={isGoogle ? loginProviderColors.google.border : loginProviderColors.kakao.background}
 			contentStyle={styles.button}
 		>
+			{/*Google이나 카카오 로고*/}
 			{isGoogle ? (
-				// Google's branding configurator supplies these paths.
+				// Google 브랜드 가이드가 제공한 로고 경로
 				<Svg width={20} height={20} viewBox="0 0 48 48" accessible={false} opacity={loading ? 0 : 1}>
 					<Path
 						fill={loginProviderColors.google.logo.red}
@@ -63,20 +72,24 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 					/>
 				</Svg>
 			)}
+
+			{/*계속하기 글자*/}
 			<Copy style={[styles.label, isGoogle ? styles.googleLabel : styles.kakaoLabel, loading && styles.hidden]}>
 				{t(`auth.continue.${provider}`)}
 			</Copy>
-			{loading ? (
+
+			{/*로그인 중 표시*/}
+			{loading && (
 				<ActivityIndicator
 					color={isGoogle ? loginProviderColors.google.text : loginProviderColors.kakao.icon}
 					style={StyleSheet.absoluteFill}
 					pointerEvents="none"
 					accessible={false}
 				/>
-			) : null}
+			)}
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	button: {
@@ -100,3 +113,5 @@ const styles = StyleSheet.create({
 	kakaoLabel: { color: loginProviderColors.kakao.text },
 	hidden: { opacity: 0 },
 });
+
+export default OAuthButton;

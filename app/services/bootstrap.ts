@@ -16,7 +16,10 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
+/** 서버 요청의 X-Device-Id 헤더에 넣을 이 기기의 ID */
 const deviceId = () => useAccountStore.getState().clientDeviceId ?? '';
+
+/** 서버 요청의 Accept-Language 헤더와 mock 서버가 사용하는 앱 언어 */
 const locale = () => useDeviceSettingsStore.getState().locale;
 
 configureApi({ deviceId, locale, accessToken, reportError });
@@ -27,10 +30,11 @@ mockPutLocale({ locale });
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
 
-// Register the translation instance before the first useTranslation hook renders.
+// 첫 화면이 useTranslation을 호출하기 전에 i18next 초기화 시작
 const i18nReady = changeI18nLocale(useDeviceSettingsStore.getState().locale);
 
-export async function bootstrap() {
+/** 번역 준비, 저장값 복원 오류 보고, 기기 ID 생성, v1 데이터 읽기를 마친 뒤 앱 시작 상태 반환 */
+export const bootstrap = async () => {
 	await i18nReady;
 
 	const restoreErrors = takeRestoreErrors();
@@ -55,9 +59,9 @@ export async function bootstrap() {
 
 	try {
 		await loadLegacy();
-	} catch (error) {
-		reportError(error, 'legacy_load');
+	} catch (e) {
+		reportError(e, 'legacy_load');
 	}
 
 	return 'ready' as const;
-}
+};

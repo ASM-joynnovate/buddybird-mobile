@@ -6,7 +6,7 @@ import type { Session } from '@/types/apis/sessions';
 import { useGetDeviceList } from '@/hooks/apis/devices';
 import { useGetRunningSession } from '@/hooks/apis/sessions';
 
-import { DeviceCard } from '@/screens/settings/components/device-card';
+import DeviceCard from '@/screens/settings/components/device-card';
 import { useAccountStore } from '@/stores/account';
 
 /** 이 기기와 학습 중인 기기를 표시한 기기 목록 */
@@ -20,7 +20,7 @@ const toLinkedDevices = (devices: readonly Device[], clientDeviceId: string | nu
 	}));
 };
 
-/** 기기 목록 컴포넌트 */
+/** 연결된 기기를 이 기기와 세션 실행 중 표시와 함께 보여 주는 목록 컴포넌트 */
 const DeviceList = () => {
 	const { data: deviceListData } = useGetDeviceList();
 	const { data: runningSessionData } = useGetRunningSession();

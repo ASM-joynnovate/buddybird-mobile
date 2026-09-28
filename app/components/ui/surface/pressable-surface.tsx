@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
+import type { AccessibilityActionEvent } from 'react-native';
+
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { ReduceMotion, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -8,17 +10,20 @@ import { depths } from '@/theme';
 
 import { Surface, type SurfaceProps } from '@/components/ui/surface';
 
-type PressPoint = { x: number; y: number };
+interface PressPoint {
+	x: number;
+	y: number;
+}
 
 interface Props extends SurfaceProps {
-	onPress(point: PressPoint): void;
-	onLongPress?(): void;
+	onPress: (point: PressPoint) => void;
+	onLongPress?: () => void;
 	disabled?: boolean;
 }
 
 export type PressableSurfaceProps = Props;
 
-export function PressableSurface({
+export const PressableSurface = ({
 	onPress,
 	onLongPress,
 	disabled = false,
@@ -28,10 +33,15 @@ export function PressableSurface({
 	accessibilityRole = 'button',
 	style,
 	...props
-}: Props) {
+}: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const pressProgress = useSharedValue(0);
+
+	const pressDistance = Math.max(0, depths[depth] - 1);
+	const faceStyle = useAnimatedStyle(() => ({
+		transform: [{ translateY: reducedMotion ? 0 : pressProgress.get() * pressDistance }],
+	}));
 
 	const activate = useCallback(
 		(x = 0, y = 0) => {
@@ -78,10 +88,13 @@ export function PressableSurface({
 		return Gesture.Exclusive(longPress, tap);
 	}, [activate, disabled, holdActivate, onLongPress, pressProgress]);
 
-	const pressDistance = Math.max(0, depths[depth] - 1);
-	const faceStyle = useAnimatedStyle(() => ({
-		transform: [{ translateY: reducedMotion ? 0 : pressProgress.get() * pressDistance }],
-	}));
+	const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
+		if (event.nativeEvent.actionName === 'activate') {
+			activate();
+		} else if (event.nativeEvent.actionName === 'longpress') {
+			holdActivate();
+		}
+	};
 
 	return (
 		<GestureDetector gesture={gesture}>
@@ -96,16 +109,10 @@ export function PressableSurface({
 					onLongPress ? [{ name: 'activate' }, { name: 'longpress' }] : [{ name: 'activate' }]
 				}
 				onAccessibilityTap={() => activate()}
-				onAccessibilityAction={(event) => {
-					if (event.nativeEvent.actionName === 'activate') {
-						activate();
-					} else if (event.nativeEvent.actionName === 'longpress') {
-						holdActivate();
-					}
-				}}
+				onAccessibilityAction={handleAccessibilityAction}
 				depth={depth}
 				contentStyle={[contentStyle, faceStyle]}
 			/>
 		</GestureDetector>
 	);
-}
+};

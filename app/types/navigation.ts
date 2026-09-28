@@ -3,16 +3,23 @@ import type { SleepSettings } from '@/types/sleep-settings';
 
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
-export type LearningDuration = { ms: number | null; custom: boolean };
+export interface LearningDuration {
+	ms: number | null;
+	custom: boolean;
+}
 
-export type SessionSetup = {
+export interface SessionSetup {
 	wordId: string;
 	duration: LearningDuration;
 	sleep: SleepSettings;
 	sleepChanged: boolean;
-};
+}
 
-export type NewRecording = { key: string; uri: string; durationMs: number };
+export interface NewRecording {
+	key: string;
+	uri: string;
+	durationMs: number;
+}
 
 export type HomeStackParamList = {
 	Home: undefined;

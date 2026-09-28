@@ -17,7 +17,11 @@ interface Props {
 	device: LinkedDevice;
 }
 
-export function DeviceCard({ device }: Props) {
+/**
+ * 기기 모델명, 마지막 접속 시각, 이 기기와 세션 실행 중 표시를 보여 주는 컴포넌트
+ * @param device 연결된 기기
+ */
+const DeviceCard = ({ device }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -28,26 +32,26 @@ export function DeviceCard({ device }: Props) {
 				<Copy style={styles.name} numberOfLines={1}>
 					{device.model}
 				</Copy>
-				{device.lastSeenAt ? (
+				{!!device.lastSeenAt && (
 					<Copy style={styles.detail}>
 						{t('settings.devices.lastSeen', {
 							time: formatTimeOrDateTime(device.lastSeenAt, locale),
 						})}
 					</Copy>
-				) : null}
+				)}
 
-				{device.isThisDevice || device.isRunningSession ? (
+				{(device.isThisDevice || device.isRunningSession) && (
 					<View style={styles.tags}>
-						{device.isThisDevice ? <Tag label={t('settings.devices.thisDevice')} /> : null}
-						{device.isRunningSession ? (
+						{device.isThisDevice && <Tag label={t('settings.devices.thisDevice')} />}
+						{device.isRunningSession && (
 							<Tag variant="primary" label={t('settings.devices.runningSession')} />
-						) : null}
+						)}
 					</View>
-				) : null}
+				)}
 			</View>
 		</Card>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	card: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
@@ -56,3 +60,5 @@ const styles = StyleSheet.create({
 	detail: { fontSize: 13, color: colors.muted },
 	tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
 });
+
+export default DeviceCard;

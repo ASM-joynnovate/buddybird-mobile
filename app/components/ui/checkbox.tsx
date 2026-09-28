@@ -20,14 +20,21 @@ const CHECK_DEPTH = 'medium';
 interface Props {
 	checked: boolean;
 	disabled?: boolean;
-	onPress(): void;
+	onPress: () => void;
 }
 
-export function Checkbox({ checked, disabled, onPress }: Props) {
+export const Checkbox = ({ checked, disabled, onPress }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const markScale = useSharedValue(1);
+
 	const markStyle = useAnimatedStyle(() => ({ transform: [{ scale: markScale.get() }] }));
+
+	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = checked ? 'primary' : 'neutral';
+
+	if (disabled) {
+		surfaceVariant = 'disabled';
+	}
 
 	useEffect(() => {
 		if (checked && !reducedMotion) {
@@ -35,12 +42,6 @@ export function Checkbox({ checked, disabled, onPress }: Props) {
 			markScale.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }));
 		}
 	}, [checked, reducedMotion, markScale]);
-
-	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = checked ? 'primary' : 'neutral';
-
-	if (disabled) {
-		surfaceVariant = 'disabled';
-	}
 
 	return (
 		<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -59,7 +60,7 @@ export function Checkbox({ checked, disabled, onPress }: Props) {
 			</PressableSurface>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	box: { width: 26 },

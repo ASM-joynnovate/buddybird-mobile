@@ -32,7 +32,8 @@ type DeviceSettingsActions = {
 
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
 
-function deviceLocale(): Locale {
+/** 기기 언어 설정 순서대로 찾은 앱 언어, 맞는 언어가 없으면 기본 언어 */
+const deviceLocale = () => {
 	for (const { languageTag, languageCode } of getLocales()) {
 		const exact = locales.find((locale) => locale === languageTag);
 		const sameLanguage = locales.find((locale) => locale.startsWith(`${languageCode}-`));
@@ -44,9 +45,10 @@ function deviceLocale(): Locale {
 	}
 
 	return defaultLocale;
-}
+};
 
-function defaultDeviceSettings(): DeviceSettings {
+/** 기기 설정 처음 값 */
+const defaultDeviceSettings = (): DeviceSettings => {
 	return {
 		locale: deviceLocale(),
 		analyticsConsent: 'unknown',
@@ -56,21 +58,24 @@ function defaultDeviceSettings(): DeviceSettings {
 		onboardingCompleted: false,
 		legacyMigration: initialLegacyMigration,
 	};
-}
+};
 
 export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 	persist(
 		(set, get) => ({
 			...defaultDeviceSettings(),
 
+			/** 앱 언어 저장 */
 			setLocale: (locale) => {
 				set((state) => ({ ...state, locale }));
 			},
 
+			/** 분석 동의 상태 저장 */
 			setAnalyticsConsent: (analyticsConsent) => {
 				set((state) => ({ ...state, analyticsConsent }));
 			},
 
+			/** 닫은 업데이트 안내의 버전 저장 */
 			dismissUpdate: (version) => {
 				set((state) => ({
 					...state,
@@ -78,6 +83,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
+			/** 의견 요청 접속일 수 1 증가, 같은 날에는 한 번만 */
 			countFeedbackDay: (date = localDate()) => {
 				if (get().feedbackPrompt.lastCountedDate === date) {
 					return;
@@ -93,6 +99,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
+			/** 접속일 수를 0으로 되돌리고 다음 의견 요청 기준으로 이동 */
 			consumeFeedbackPrompt: () => {
 				set((state) => ({
 					...state,
@@ -107,14 +114,17 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
+			/** 안내 화면 확인 여부 저장 */
 			setGuideSeen: (guide, seen) => {
 				set((state) => ({ ...state, seenGuides: { ...state.seenGuides, [guide]: seen } }));
 			},
 
+			/** 온보딩 완료 여부 저장 */
 			setOnboardingCompleted: (onboardingCompleted) => {
 				set((state) => ({ ...state, onboardingCompleted }));
 			},
 
+			/** v1 앱 설정 반영과 설정 가져오기 완료 표시 */
 			importLegacySettings: (settings) => {
 				set((state) => ({
 					...state,
@@ -123,6 +133,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
+			/** v1 데이터 올리기 진행 상태 갱신 */
 			updateLegacyMigration: (updater) => {
 				set((state) => ({ ...state, legacyMigration: updater(state.legacyMigration) }));
 			},

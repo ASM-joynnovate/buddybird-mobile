@@ -9,7 +9,7 @@ import { formatDuration } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 
-import { Stat } from '@/screens/session/components/stat';
+import Stat from '@/screens/session/components/stat';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { Card } from '@/components/ui/surface/card';
@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * 학습 요약 카드 컴포넌트
+ * 학습한 단어와 전체 학습 시간을 보여 주는 카드 컴포넌트
  * @param sessionId 세션 ID
  */
 const SummaryCard = ({ sessionId }: Props) => {
@@ -36,7 +36,10 @@ const SummaryCard = ({ sessionId }: Props) => {
 
 	return (
 		<Card contentStyle={styles.card}>
+			{/*학습한 단어*/}
 			<Stat size="large" label={t('session.summary.word')} value={word?.name ?? ''} />
+
+			{/*전체 학습 시간*/}
 			<Stat size="large" label={t('session.summary.totalTime')} value={formatDuration(totalMs, locale)} />
 		</Card>
 	);

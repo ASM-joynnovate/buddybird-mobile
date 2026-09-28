@@ -16,28 +16,29 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function NoticeListScreen() {
+/** 공지 화면 제목과 뒤로 가기 버튼, 게시 중인 공지를 보여 주는 화면 */
+const NoticeListScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<Screen scrollable={false}>
-			<View style={styles.frame}>
-				{/*헤더*/}
+			<View style={styles.container}>
+				{/*공지 화면 제목과 뒤로 가기 버튼*/}
 				<ScreenHeader title={t('settings.notices.title')} onBack={() => navigation.goBack()} />
 
-				{/*공지 목록*/}
-				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={3} />>
+				{/*게시 중인 공지*/}
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={3} />>
 					<NoticeList />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	frame: {
+	container: {
 		flex: 1,
 		width: '100%',
 		maxWidth: contentMaxWidth,
@@ -46,3 +47,5 @@ const styles = StyleSheet.create({
 		paddingTop: 20,
 	},
 });
+
+export default NoticeListScreen;

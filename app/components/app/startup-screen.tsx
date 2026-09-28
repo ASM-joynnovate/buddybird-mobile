@@ -10,7 +10,11 @@ interface Props {
 	onRetry?: () => void;
 }
 
-export function StartupScreen({ onRetry }: Props) {
+/**
+ * 앱 시작 준비 중에는 불러오는 중 표시를, 실패하면 실패 안내와 다시 시도 버튼을 보여 주는 화면
+ * @param onRetry 다시 시도 버튼을 누를 때 실행할 함수, 없으면 불러오는 중 표시
+ */
+const StartupScreen = ({ onRetry }: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -35,7 +39,7 @@ export function StartupScreen({ onRetry }: Props) {
 			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	retry: { minHeight: 44, padding: 12, alignItems: 'center' },
@@ -44,3 +48,5 @@ const styles = StyleSheet.create({
 	title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 12 },
 	message: { fontSize: 16, color: colors.text, marginBottom: 20 },
 });
+
+export default StartupScreen;

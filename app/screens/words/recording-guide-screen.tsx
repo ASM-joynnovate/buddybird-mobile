@@ -1,5 +1,3 @@
-import type { ReactElement } from 'react';
-
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useTranslation } from 'react-i18next';
@@ -10,15 +8,17 @@ import { MessageSquareTextIcon, MicIcon, MoonIcon, SmartphoneIcon } from 'lucide
 
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-import { GuidePager, type GuideStep } from '@/components/guide-pager';
+import GuidePager, { type GuideStep } from '@/components/guide-pager';
 
-export function RecordingGuideScreen(): ReactElement {
+/** 녹음 방법 안내와 다시 보지 않기 선택을 보여 주고 안내를 마치면 녹음 화면을 열거나 이전 화면으로 돌아가는 화면 */
+const RecordingGuideScreen = () => {
 	const { t } = useTranslation();
 
 	const { params } = useRoute<RouteProp<RootStackParamList, 'RecordingGuide'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	const seenGuides = useDeviceSettingsStore((state) => state.seenGuides);
+	const setGuideSeen = useDeviceSettingsStore((state) => state.setGuideSeen);
 
 	const steps: GuideStep[] = [
 		{
@@ -39,23 +39,26 @@ export function RecordingGuideScreen(): ReactElement {
 		},
 	];
 
-	function leave() {
+	/** 녹음 추가로 열었으면 녹음 화면 열기, 아니면 이전 화면으로 돌아가기 */
+	const handleLeave = () => {
 		if (params.source === 'add') {
 			navigation.replace('Recorder', { wordName: params.wordName });
 		} else {
 			navigation.goBack();
 		}
-	}
+	};
 
 	return (
 		<GuidePager
 			steps={steps}
-			actions={{ onFinish: leave, onSkip: leave }}
+			actions={{ onFinish: handleLeave, onSkip: handleLeave }}
 			finishLabel={t(params.source === 'add' ? 'words.guide.record' : 'common.done')}
 			dontShowAgain={{
 				value: seenGuides.recording,
-				onChange: (seen) => useDeviceSettingsStore.getState().setGuideSeen('recording', seen),
+				onChange: (seen) => setGuideSeen('recording', seen),
 			}}
 		/>
 	);
-}
+};
+
+export default RecordingGuideScreen;

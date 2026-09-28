@@ -6,7 +6,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import { colors, radius } from '@/theme';
 
-import { Mascot } from '@/components/mascot';
+import Mascot from '@/components/mascot';
 
 interface Props {
 	scene: string;
@@ -15,7 +15,14 @@ interface Props {
 	showMascot?: boolean;
 }
 
-export function Illustration({ scene, icon: Icon, height = 220, showMascot = true }: Props) {
+/**
+ * 연한 주황 바탕에 마스코트와 장면 아이콘을 보여 주는 그림 컴포넌트
+ * @param scene 접근성 라벨에 넣을 장면 이름
+ * @param icon 장면을 나타내는 아이콘
+ * @param height 그림 높이
+ * @param showMascot 마스코트 표시 여부, 거짓이면 아이콘만 가운데에 크게 표시
+ */
+const Illustration = ({ scene, icon: Icon, height = 220, showMascot = true }: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -23,18 +30,21 @@ export function Illustration({ scene, icon: Icon, height = 220, showMascot = tru
 			accessible
 			accessibilityRole="image"
 			accessibilityLabel={t('common.illustration', { scene })}
-			style={[styles.panel, { height }]}
+			style={[styles.container, { height }]}
 		>
-			{showMascot ? <Mascot size={Math.round(height * 0.55)} /> : null}
+			{/*가운데 마스코트*/}
+			{showMascot && <Mascot size={Math.round(height * 0.55)} />}
+
+			{/*원 안의 장면 아이콘*/}
 			<View style={showMascot ? styles.badge : styles.centered}>
 				<Icon size={showMascot ? 26 : 40} color={colors.orangeDark} />
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	panel: {
+	container: {
 		alignSelf: 'stretch',
 		borderRadius: radius.illustration,
 		borderCurve: 'continuous',
@@ -66,3 +76,5 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 });
+
+export default Illustration;

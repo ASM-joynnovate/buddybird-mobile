@@ -3,7 +3,7 @@ import { postWord, postWordRecording } from '@/apis/words';
 
 import { ApiError } from '@/types/apis/common';
 
-import type { LegacyMigration, LegacySettings } from '@/types/device-settings';
+import type { LegacyMigration } from '@/types/device-settings';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { randomUUID } from 'expo-crypto';
@@ -23,7 +23,10 @@ import { requireChoice, requireRecord } from '@/utils/validation';
 
 type LegacyValueReader = (key: string) => string | undefined;
 
-type LegacyUpload = { profile: LegacyProfile | null; words: LegacyWord[] };
+interface LegacyUpload {
+	profile: LegacyProfile | null;
+	words: LegacyWord[];
+}
 
 type WordProgress = LegacyMigration['wordProgress'][string];
 
@@ -32,43 +35,47 @@ const LEGACY_KEY_PREFIXES = ['@buddybird/', '@pethub/'] as const;
 let pendingUpload: LegacyUpload | null = null;
 let uploadPromise: Promise<void> | undefined;
 
-function getLegacyMigration(): LegacyMigration {
+/** 기기 설정 스토어에 저장한 v1 올리기 진행 상태 */
+const getLegacyMigration = () => {
 	return useDeviceSettingsStore.getState().legacyMigration;
-}
+};
 
-function setLegacyMigration(updater: (migration: LegacyMigration) => LegacyMigration) {
+/** v1 올리기 진행 상태 갱신 */
+const setLegacyMigration = (updater: (migration: LegacyMigration) => LegacyMigration) => {
 	useDeviceSettingsStore.getState().updateLegacyMigration(updater);
-}
+};
 
-function tryParseLegacy<T>(scope: string, parse: () => T): T | undefined {
+/** v1 값 읽기, 실패하면 보고하고 undefined */
+const tryParseLegacy = <T>(scope: string, parse: () => T) => {
 	try {
 		return parse();
-	} catch (error) {
-		reportError(error, `legacy_${scope}`);
+	} catch (e) {
+		reportError(e, `legacy_${scope}`);
 
 		return undefined;
 	}
-}
+};
 
-async function readLegacyValues(): Promise<LegacyValueReader> {
+/** AsyncStorage의 v1 값을 모두 읽고 키 이름으로 값을 찾는 함수 반환 */
+const readLegacyValues = async () => {
 	const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
 		LEGACY_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
 	);
 	const values = new Map(await AsyncStorage.multiGet(keys));
 
-	return (key) =>
-		LEGACY_KEY_PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find(
-			(value): value is string => typeof value === 'string',
-		);
-}
+	return (key: string) =>
+		LEGACY_KEY_PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find((value) => typeof value === 'string');
+};
 
-function readJson(read: LegacyValueReader, key: string): unknown {
+/** v1 값을 JSON으로 읽은 값, 없으면 undefined */
+const readJson = (read: LegacyValueReader, key: string) => {
 	const raw = read(key);
 
-	return raw === undefined ? undefined : JSON.parse(raw);
-}
+	return raw === undefined ? undefined : (JSON.parse(raw) as unknown);
+};
 
-function readSettings(read: LegacyValueReader): LegacySettings {
+/** v1의 언어, 분석 동의, 업데이트 안내, 의견 요청 설정 가운데 읽은 값 */
+const readSettings = (read: LegacyValueReader) => {
 	const locale = tryParseLegacy('locale', () => {
 		const raw = read('locale');
 
@@ -102,9 +109,10 @@ function readSettings(read: LegacyValueReader): LegacySettings {
 		...(appUpdate && { updatePrompt: appUpdate }),
 		...(feedbackPrompt && { feedbackPrompt }),
 	};
-}
+};
 
-function readUpload(read: LegacyValueReader): LegacyUpload {
+/** 서버에 올릴 v1 앵무새 프로필과 단어 목록 */
+const readUpload = (read: LegacyValueReader) => {
 	const profile = tryParseLegacy('profile', () => {
 		const value = readJson(read, 'parrot-profile');
 
@@ -117,9 +125,10 @@ function readUpload(read: LegacyValueReader): LegacyUpload {
 	});
 
 	return { profile: profile ?? null, words: words ?? [] };
-}
+};
 
-export async function loadLegacy(): Promise<void> {
+/** v1 설정을 가져오고 올릴 v1 데이터 준비, 올릴 데이터가 없으면 올리기 완료로 저장 */
+export const loadLegacy = async () => {
 	const migration = getLegacyMigration();
 
 	if (migration.settingsImported && migration.uploadStatus === 'finished') {
@@ -145,27 +154,32 @@ export async function loadLegacy(): Promise<void> {
 	}
 
 	pendingUpload = legacyUpload;
-}
+};
 
-export function hasLegacyUpload(): boolean {
+/** 올릴 v1 데이터가 있는지 여부 */
+export const hasLegacyUpload = () => {
 	return pendingUpload !== null;
-}
+};
 
-export function acceptLegacyUpload() {
+/** v1 데이터 올리기를 시작한 것으로 저장 */
+export const acceptLegacyUpload = () => {
 	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'started' }));
-}
+};
 
-export function finishLegacyUpload() {
+/** 올릴 v1 데이터를 비우고 올리기 완료로 저장 */
+export const finishLegacyUpload = () => {
 	pendingUpload = null;
 
 	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'finished' }));
-}
+};
 
-function isInsideApp(uri: string): boolean {
+/** 주소가 앱의 문서 폴더나 캐시 폴더 안인지 여부 */
+const isInsideApp = (uri: string) => {
 	return [Paths.document.uri, Paths.cache.uri].some((root) => uri.startsWith(root)) && !uri.split('/').includes('..');
-}
+};
 
-async function existingFileUri(uri: string, scope: string): Promise<string | null> {
+/** 앱 안에 있고 비어 있지 않은 v1 파일의 주소, 없으면 보고하고 null */
+const existingFileUri = async (uri: string, scope: string) => {
 	try {
 		const resolved = resolveFileUri(uri);
 
@@ -182,12 +196,12 @@ async function existingFileUri(uri: string, scope: string): Promise<string | nul
 		}
 
 		reportError(new Error('Legacy file is missing'), scope);
-	} catch (error) {
-		reportError(error, scope);
+	} catch (e) {
+		reportError(e, scope);
 	}
 
 	return null;
-}
+};
 
 /** 이름이 같은 키를 뺀 멱등키 목록 */
 const withoutIdempotencyKey = (idempotencyKeys: LegacyMigration['idempotencyKeys'], idempotencyKeyName: string) =>
@@ -252,12 +266,13 @@ const uploadParrot = async (profile: LegacyProfile) => {
 	setLegacyMigration((migration) => ({ ...migration, photoUploaded: true }));
 };
 
-function recordWordProgress(legacyWordId: string, progress: WordProgress) {
+/** v1 단어 하나의 올리기 진행 상태 저장 */
+const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
 	setLegacyMigration((migration) => ({
 		...migration,
 		wordProgress: { ...migration.wordProgress, [legacyWordId]: progress },
 	}));
-}
+};
 
 /** v1 단어와 녹음 올리기 */
 const uploadWord = async (word: LegacyWord) => {
@@ -300,7 +315,8 @@ const uploadWord = async (word: LegacyWord) => {
 	recordWordProgress(word.id, { wordId, done: true });
 };
 
-export function uploadLegacy(): Promise<void> {
+/** v1 앵무새와 단어를 차례로 올리기, 올리는 중에 다시 부르면 진행 중인 올리기를 기다림 */
+export const uploadLegacy = () => {
 	uploadPromise ??= (async () => {
 		const legacyUpload = pendingUpload;
 
@@ -322,4 +338,4 @@ export function uploadLegacy(): Promise<void> {
 	});
 
 	return uploadPromise;
-}
+};

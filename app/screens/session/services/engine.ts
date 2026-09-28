@@ -19,29 +19,33 @@ import { localDate } from '@/utils/date';
 import { currentSpan, type PhaseSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
-type CapturedSound = { uri: string; capturedAt: string };
+interface CapturedSound {
+	uri: string;
+	capturedAt: string;
+}
 
-type LearningEngineOptions = {
+interface LearningEngineOptions {
 	wordId: string;
 	recordingUrls: readonly string[];
 	startedAt: number;
 	sleep: SleepSettings;
-	onSound(sound: CapturedSound): void;
-	onError(error: unknown): void;
-};
+	onSound: (sound: CapturedSound) => void;
+	onError: (error: unknown) => void;
+}
 
-export type LearningEngine = {
-	start(): Promise<void>;
-	pause(): Promise<void>;
-	resume(): Promise<void>;
-	stop(): Promise<void>;
-	summaries(): HeartbeatSummary[];
-	learningMs(): number;
-};
+export interface LearningEngine {
+	start: () => Promise<void>;
+	pause: () => Promise<void>;
+	resume: () => Promise<void>;
+	stop: () => Promise<void>;
+	summaries: () => HeartbeatSummary[];
+	learningMs: () => number;
+}
 
 type SummaryField = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
 
-export function createLearningEngine(options: LearningEngineOptions): LearningEngine {
+/** 단계에 맞춰 단어 녹음과 스트레스 케어 음원을 재생하고 들린 소리를 녹음하는 학습 엔진 생성 */
+export const createLearningEngine = (options: LearningEngineOptions) => {
 	const detector = createSoundDetector(VAD);
 	const recorder = new AudioRecorder();
 
@@ -61,7 +65,8 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	let lastTick = 0;
 	let summariesByDate: Record<string, HeartbeatSummary> = {};
 
-	function addToSummary(field: SummaryField, amount: number, at: number) {
+	/** 시각이 속한 날짜의 하트비트 요약에서 field 값 늘리기 */
+	const addToSummary = (field: SummaryField, amount: number, at: number) => {
 		const date = localDate(at);
 		const summary = summariesByDate[date] ?? {
 			word_id: options.wordId,
@@ -75,9 +80,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			...summariesByDate,
 			[date]: { ...summary, [field]: (summary[field] ?? 0) + Math.round(amount) },
 		};
-	}
+	};
 
-	function emitSound(segment: SoundSegment | null) {
+	/** 소리 구간을 WAV 파일로 저장해 onSound로 전달, 실패하면 onError로 전달 */
+	const emitSound = (segment: SoundSegment | null) => {
 		if (!segment) {
 			return;
 		}
@@ -87,20 +93,22 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 				uri: saveWav(segment.samples, VAD.sampleRate),
 				capturedAt: dayjs().subtract(segment.durationMs, 'ms').toISOString(),
 			});
-		} catch (error) {
-			options.onError(error);
+		} catch (e) {
+			options.onError(e);
 		}
-	}
+	};
 
-	function stopClip() {
+	/** 재생 중인 단어 녹음 정지 */
+	const stopClip = () => {
 		const playingSource = clip;
 
 		clip = null;
 
 		playingSource?.stop();
-	}
+	};
 
-	function stopCare() {
+	/** 스트레스 케어 음원 정지와 다음에 이어 재생할 위치 저장 */
+	const stopCare = () => {
 		const playingSource = careSource;
 
 		careSource = null;
@@ -114,9 +122,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		}
 
 		playingSource?.stop();
-	}
+	};
 
-	function playClip(now: number) {
+	/** 다음 단어 녹음 재생과 재생 횟수, 재생 시간 기록 */
+	const playClip = (now: number) => {
 		const buffer = recordings[nextClipIndex % recordings.length];
 
 		if (!context || !buffer) {
@@ -148,9 +157,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 		addToSummary('play_count', 1, now);
 		addToSummary('play_duration_ms', durationMs, now);
-	}
+	};
 
-	async function playCare(span: PhaseSpan) {
+	/** 스트레스 케어 구간의 음원을 골라 멈춘 위치부터 반복 재생 */
+	const playCare = async (span: PhaseSpan) => {
 		const contextAtStart = context;
 
 		if (!contextAtStart) {
@@ -184,9 +194,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 		careSource = source;
 		careStartedAt = contextAtStart.currentTime;
-	}
+	};
 
-	function enterPhase(span: PhaseSpan) {
+	/** 단계가 바뀔 때 모으던 소리 전달, 재생 정지, 스트레스 케어 단계면 음원 재생 */
+	const enterPhase = (span: PhaseSpan) => {
 		emitSound(detector.flush());
 
 		stopClip();
@@ -200,9 +211,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 			playCare(span).catch(options.onError);
 		}
-	}
+	};
 
-	function tick() {
+	/** 주기마다 단계 확인, 학습 시간 기록, 다음 단어 녹음 재생 */
+	const tick = () => {
 		const now = dayjs().valueOf();
 		const span = currentSpan(options.startedAt, now, options.sleep);
 
@@ -219,9 +231,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		}
 
 		lastTick = now;
-	}
+	};
 
-	async function startRecorder() {
+	/** 마이크 녹음 시작과 들어온 샘플의 소리 구간 전달 */
+	const startRecorder = async () => {
 		recorder.onAudioReady(
 			{
 				sampleRate: VAD.sampleRate,
@@ -241,9 +254,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		if (result.status === 'error') {
 			throw new Error(result.message);
 		}
-	}
+	};
 
-	async function startRunning() {
+	/** 녹음 시작과 단계 확인 타이머 시작 */
+	const startRunning = async () => {
 		if (stopped) {
 			return;
 		}
@@ -268,9 +282,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		tick();
 
 		timer = setInterval(tick, LEARNING_TICK_MS);
-	}
+	};
 
-	async function stopRunning() {
+	/** 단계 확인 타이머 정지, 모으던 소리 전달, 재생과 녹음 정지 */
+	const stopRunning = async () => {
 		running = false;
 
 		if (timer) {
@@ -286,10 +301,10 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		if (recorder.isRecording()) {
 			await recorder.stop();
 		}
-	}
+	};
 
 	return {
-		async start() {
+		start: async () => {
 			AudioManager.setAudioSessionOptions({
 				iosCategory: 'playAndRecord',
 				iosMode: 'default',
@@ -309,15 +324,15 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 			await startRunning();
 		},
-		async pause() {
+		pause: async () => {
 			await stopRunning();
 			await context?.suspend();
 		},
-		async resume() {
+		resume: async () => {
 			await context?.resume();
 			await startRunning();
 		},
-		async stop() {
+		stop: async () => {
 			stopped = true;
 
 			await stopRunning();
@@ -331,6 +346,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			await AudioManager.setAudioSessionActivity(false);
 		},
 		summaries: () => Object.values(summariesByDate),
-		learningMs: () => Object.values(summariesByDate).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
+		learningMs: () =>
+			Object.values(summariesByDate).reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0),
 	};
-}
+};

@@ -15,14 +15,15 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function ProfileScreen() {
+/** 프로필 제목, 설정 버튼, 내 계정과 앵무새 목록을 보여 주는 화면 */
+const ProfileScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<Screen>
-			{/*헤더*/}
+			{/*프로필 제목과 설정 버튼*/}
 			<ScreenHeader
 				large
 				title={t('profile.title')}
@@ -34,9 +35,14 @@ export function ProfileScreen() {
 			/>
 
 			{/*계정과 앵무새*/}
-			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={3} height={96} />>
+			<ErrorHandlingWrapper
+				fallbackComponent={ScreenError}
+				suspenseFallback=<Skeleton blockCount={3} height={96} />
+			>
 				<ProfileCards />
 			</ErrorHandlingWrapper>
 		</Screen>
 	);
-}
+};
+
+export default ProfileScreen;

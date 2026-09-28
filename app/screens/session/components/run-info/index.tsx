@@ -11,7 +11,7 @@ import { formatTimer } from '@/i18n/format';
 import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SessionProgressArc } from '@/screens/session/components/run-info/session-progress-arc';
+import SessionProgressArc from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { runStatus } from '@/utils/phases';
@@ -27,10 +27,18 @@ interface Props {
 	endsAt: number | null;
 	sleep: SleepSettings;
 	engineFailed: boolean;
-	onEnd(): void;
+	onEnd: () => void;
 }
 
-export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) {
+/**
+ * 세션 경과 시간, 앱을 켜 두라는 안내, 진행 단계와 남은 시간, 종료 버튼을 보여 주고 종료 버튼을 누르면 onEnd를 실행하는 컴포넌트
+ * @param startedAt 세션 시작 시각
+ * @param endsAt 학습 종료 시각의 밀리초 값, 정하지 않았으면 null
+ * @param sleep 수면 시간 설정
+ * @param engineFailed 학습 엔진 시작 실패 여부
+ * @param onEnd 종료 버튼을 누를 때 실행할 함수
+ */
+const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 	const { t } = useTranslation();
 
 	const { width } = useWindowDimensions();
@@ -54,7 +62,7 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 				<Copy style={styles.timer}>{formatTimer(dayjs(now).diff(startedAt))}</Copy>
 
 				<Copy style={[styles.label, styles.keepOpen]}>{t('session.run.keepOpen')}</Copy>
-				{engineFailed ? <Copy style={styles.label}>{t('session.run.engineError')}</Copy> : null}
+				{engineFailed && <Copy style={styles.label}>{t('session.run.engineError')}</Copy>}
 			</View>
 
 			{/*진행 단계와 종료 버튼*/}
@@ -86,7 +94,7 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 			</View>
 		</SafeAreaView>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	info: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12 },
@@ -104,3 +112,5 @@ const styles = StyleSheet.create({
 	endFace: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18 },
 	endText: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.text },
 });
+
+export default RunInfo;

@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next';
 
 import { latestConsents } from '@/utils/latest-consents';
 
-import { ConsentItem } from '@/components/consent-item';
+import ConsentItem from '@/components/consent-item';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 동의 항목 목록 컴포넌트 */
+/** 약관마다 동의 여부를 보여 주고 누르면 동의 여부를 바꿔 저장하는 컴포넌트 */
 const ConsentList = () => {
 	const { t } = useTranslation();
 
@@ -34,7 +34,7 @@ const ConsentList = () => {
 
 	return (
 		<>
-			{/*동의 항목 목록*/}
+			{/*약관별 동의 여부*/}
 			<ItemGroup>
 				{latestConsents(consentListData).map((consent, index) => (
 					<ConsentItem

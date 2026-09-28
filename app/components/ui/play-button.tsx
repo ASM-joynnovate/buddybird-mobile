@@ -5,11 +5,11 @@ import { IconButton } from '@/components/ui/icon-button';
 interface Props {
 	playing: boolean;
 	label: string;
-	onPress(): void;
+	onPress: () => void;
 	disabled?: boolean;
 }
 
-export function PlayButton({ playing, label, onPress, disabled }: Props) {
+export const PlayButton = ({ playing, label, onPress, disabled }: Props) => {
 	return (
 		<IconButton
 			icon={playing ? PauseIcon : PlayIcon}
@@ -20,4 +20,4 @@ export function PlayButton({ playing, label, onPress, disabled }: Props) {
 			onPress={onPress}
 		/>
 	);
-}
+};

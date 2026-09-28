@@ -20,32 +20,39 @@ import { reportError } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
 import { SECOND } from '@/utils/units';
 
-import { SplashEye } from '@/components/app/app-splash/splash-eye';
+import SplashEye from '@/components/app/app-splash/splash-eye';
 
 import artwork from '@assets/images/splash-artwork.json';
 
 interface Props {
 	bootstrapSettled: boolean;
-	onComplete(): void;
+	onComplete: () => void;
 }
 
-export function AppSplash({ bootstrapSettled, onComplete }: Props) {
+/**
+ * 눈을 깜빡이는 얼굴 그림과 앱 이름을 보여 주고 시작 준비가 끝나면 서서히 사라지는 스플래시 컴포넌트
+ * @param bootstrapSettled 앱 시작 준비가 끝났는지 여부
+ * @param onComplete 스플래시가 사라진 뒤 실행할 함수
+ */
+const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const eyeOpenness = useSharedValue(1);
 	const enterProgress = useSharedValue(reducedMotion ? 1 : 0);
 	const exitOpacity = useSharedValue(1);
+
+	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
+	const [blinked, setBlinked] = useState(reducedMotion);
+
+	const laidOutRef = useRef(false);
+
 	const enterStyle = useAnimatedStyle(() => ({
 		opacity: enterProgress.get(),
 		transform: [{ scale: 1.035 - 0.035 * enterProgress.get() }],
 	}));
 	const exitStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.get() }));
 
-	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
-	const [blinked, setBlinked] = useState(reducedMotion);
-
-	const laidOut = useRef(false);
-
+	/** 기본 스플래시가 사라지면 등장 애니메이션과 눈 두 번 깜빡임 실행 */
 	useEffect(() => {
 		if (!nativeSplashHidden || reducedMotion) {
 			return;
@@ -74,6 +81,7 @@ export function AppSplash({ bootstrapSettled, onComplete }: Props) {
 		};
 	}, [enterProgress, eyeOpenness, reducedMotion, nativeSplashHidden]);
 
+	/** 시작 준비와 눈 깜빡임이 끝나면 스플래시를 서서히 숨긴 뒤 종료 함수 실행 */
 	useEffect(() => {
 		if (!bootstrapSettled || !nativeSplashHidden || !blinked) {
 			return;
@@ -90,20 +98,26 @@ export function AppSplash({ bootstrapSettled, onComplete }: Props) {
 		return () => cancelAnimation(exitOpacity);
 	}, [blinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
 
-	function reveal() {
-		if (laidOut.current) {
+	/** 첫 배치 때 한 번만 기본 스플래시 숨기기 */
+	const handleReveal = () => {
+		if (laidOutRef.current) {
 			return;
 		}
 
-		laidOut.current = true;
+		laidOutRef.current = true;
 
 		void SplashScreen.hideAsync()
 			.catch((error) => reportError(error, 'splash'))
 			.finally(() => setNativeSplashHidden(true));
-	}
+	};
 
 	return (
-		<Animated.View accessible accessibilityLabel="BuddyBird" onLayout={reveal} style={[styles.screen, exitStyle]}>
+		<Animated.View
+			accessible
+			accessibilityLabel="BuddyBird"
+			onLayout={handleReveal}
+			style={[styles.container, exitStyle]}
+		>
 			<Animated.View
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
@@ -144,8 +158,10 @@ export function AppSplash({ bootstrapSettled, onComplete }: Props) {
 			</Animated.View>
 		</Animated.View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	screen: { ...StyleSheet.absoluteFill, backgroundColor: colors.brand },
+	container: { ...StyleSheet.absoluteFill, backgroundColor: colors.brand },
 });
+
+export default AppSplash;

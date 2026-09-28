@@ -8,7 +8,7 @@ interface Props {
 	message?: string | null;
 }
 
-export function InlineError({ message }: Props) {
+export const InlineError = ({ message }: Props) => {
 	if (!message) {
 		return null;
 	}
@@ -18,7 +18,7 @@ export function InlineError({ message }: Props) {
 			{message}
 		</Copy>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	error: { color: colors.brand, fontSize: 15, lineHeight: 21, marginTop: 10 },

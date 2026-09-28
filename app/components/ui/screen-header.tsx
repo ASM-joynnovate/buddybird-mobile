@@ -13,25 +13,25 @@ const backIcons = { back: ChevronLeftIcon, close: XIcon };
 
 interface Props {
 	title?: string;
-	onBack?(): void;
+	onBack?: () => void;
 	backIcon?: 'back' | 'close';
 	trailing?: ReactNode;
 	large?: boolean;
 }
 
-export function ScreenHeader({ title, onBack, backIcon = 'back', trailing, large = false }: Props) {
+export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large = false }: Props) => {
 	const { t } = useTranslation();
 
 	return (
 		<View style={styles.container}>
 			<View style={styles.header}>
-				{onBack ? (
+				{onBack && (
 					<IconButton
 						icon={backIcons[backIcon]}
 						label={t(backIcon === 'close' ? 'common.close' : 'common.back')}
 						onPress={onBack}
 					/>
-				) : null}
+				)}
 				{title ? (
 					<Title style={[styles.title, !large && styles.compact]}>{title}</Title>
 				) : (
@@ -41,7 +41,7 @@ export function ScreenHeader({ title, onBack, backIcon = 'back', trailing, large
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	container: { marginBottom: 8 },

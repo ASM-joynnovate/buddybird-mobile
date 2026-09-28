@@ -6,7 +6,7 @@ interface Props extends PressableSurfaceProps {
 	selected: boolean;
 }
 
-export function ChoiceCard({ selected, contentStyle, ...props }: Props) {
+export const ChoiceCard = ({ selected, contentStyle, ...props }: Props) => {
 	return (
 		<PressableSurface
 			{...props}
@@ -17,7 +17,7 @@ export function ChoiceCard({ selected, contentStyle, ...props }: Props) {
 			contentStyle={[styles.card, contentStyle]}
 		/>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	card: { padding: 16 },

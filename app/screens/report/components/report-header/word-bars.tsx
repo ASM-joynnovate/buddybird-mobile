@@ -1,5 +1,3 @@
-import type { ReactElement } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import type { Report } from '@/types/apis/reports';
@@ -19,7 +17,11 @@ interface Props {
 	words: Report['words'];
 }
 
-export function WordBars({ words }: Props): ReactElement | null {
+/**
+ * 단어마다 이름, 학습 시간 막대, 학습 시간을 보여 주는 컴포넌트
+ * @param words 단어별 학습 시간
+ */
+const WordBars = ({ words }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -32,9 +34,12 @@ export function WordBars({ words }: Props): ReactElement | null {
 
 	return (
 		<View style={ui.section}>
+			{/*단어별 학습 시간 제목*/}
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
 				{t('report.learningTimeByWord')}
 			</Copy>
+
+			{/*단어 이름, 학습 시간 막대, 학습 시간*/}
 			<View style={styles.list}>
 				{words.map((wordDuration) => {
 					const durationLabel = formatDuration(wordDuration.learning_duration_ms, locale);
@@ -64,7 +69,7 @@ export function WordBars({ words }: Props): ReactElement | null {
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	list: { gap: 10 },
@@ -85,3 +90,5 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 });
+
+export default WordBars;

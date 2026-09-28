@@ -12,7 +12,7 @@ import {
 	useUpdateParrot,
 	useUploadParrotPhoto,
 } from '@/hooks/apis/parrots';
-import { usePhotoPicker } from '@/hooks/use-photo-picker';
+import usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
 
@@ -22,14 +22,14 @@ import { TrashIcon } from 'lucide-react-native';
 
 import { PARROT_NAME_LIMIT } from '@/config';
 import BirthdatePicker from '@/screens/onboarding/components/birthdate-picker';
-import { SpeciesPicker } from '@/screens/onboarding/components/species-picker';
+import SpeciesPicker from '@/screens/onboarding/components/species-picker';
 import { reportError } from '@/services/telemetry/client';
 import { isSpeciesId } from '@/utils/species';
 
-import { BuddySays } from '@/components/buddy-says';
-import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
-import { PermissionDialog } from '@/components/dialogs/permission-dialog';
-import { ProfilePhoto } from '@/components/profile-photo';
+import BuddySays from '@/components/buddy-says';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
+import ProfilePhoto from '@/components/profile-photo';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
@@ -48,11 +48,19 @@ interface Props {
 	parrot?: Parrot;
 	canDelete: boolean;
 	intro: boolean;
-	onBack?(): void;
-	onDone(): void;
+	onBack?: () => void;
+	onDone: () => void;
 }
 
-export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: Props) {
+/**
+ * 앵무새 사진, 이름, 종, 생일 입력을 보여 주고 저장 버튼을 누르면 앵무새를 등록하거나 수정하며 휴지통 버튼을 누르면 삭제를 확인하는 컴포넌트
+ * @param parrot 수정할 앵무새, 새로 등록하면 undefined
+ * @param canDelete 앵무새 삭제 가능 여부
+ * @param intro 안내 말풍선 표시 여부
+ * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
+ * @param onDone 저장이나 삭제를 마칠 때 실행할 함수
+ */
+const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) => {
 	const { t } = useTranslation();
 
 	const [name, setName] = useState(parrot?.name ?? '');
@@ -228,7 +236,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 				</>
 			}
 		>
-			{/*헤더*/}
+			{/*등록이나 수정 제목, 뒤로 가기 버튼, 휴지통 버튼*/}
 			<ScreenHeader
 				title={t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}
 				onBack={onBack}
@@ -236,11 +244,11 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 			/>
 
 			{/*안내 말풍선*/}
-			{intro ? (
+			{intro && (
 				<View style={styles.introContainer}>
 					<BuddySays message={t('parrot.intro')} />
 				</View>
-			) : null}
+			)}
 
 			{/*사진*/}
 			<View style={styles.photoContainer}>
@@ -275,7 +283,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 			<PermissionDialog state={photo.cameraDialog} />
 
 			{/*삭제 확인 다이얼로그*/}
-			{parrot ? (
+			{parrot && (
 				<ConfirmDialog
 					visible={deleteDialogOpen}
 					text={{
@@ -289,13 +297,15 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 					onClose={handleCloseDeleteDialog}
 					onConfirm={handleDeleteParrot}
 				/>
-			) : null}
+			)}
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	photoContainer: { flexGrow: 1, justifyContent: 'center' },
 	introContainer: { marginTop: 4 },
 	fields: { gap: 16 },
 });
+
+export default ParrotEditorForm;

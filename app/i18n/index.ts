@@ -19,7 +19,8 @@ dayjs.extend(localizedFormat);
 
 const dayjsLocales: Record<Locale, string> = { 'ko-KR': 'ko', 'en-US': 'en' };
 
-export async function changeI18nLocale(locale: Locale) {
+/** dayjs와 i18next의 언어 변경, i18next를 초기화하기 전이면 그 언어로 초기화 */
+export const changeI18nLocale = async (locale: Locale) => {
 	dayjs.locale(dayjsLocales[locale]);
 
 	if (i18next.isInitialized) {
@@ -36,6 +37,6 @@ export async function changeI18nLocale(locale: Locale) {
 			initImmediate: false,
 		});
 	}
-}
+};
 
 export default i18next;

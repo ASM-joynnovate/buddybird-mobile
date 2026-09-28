@@ -15,7 +15,7 @@ interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
 	size?: 'small' | 'medium';
 }
 
-export function Button({
+export const Button = ({
 	label,
 	icon: Icon,
 	variant = 'primary',
@@ -24,7 +24,7 @@ export function Button({
 	style,
 	disabled,
 	...props
-}: Props) {
+}: Props) => {
 	const inactive = disabled || loading;
 	const depth = size === 'small' ? 'high' : 'xhigh';
 	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = 'primary';
@@ -69,13 +69,16 @@ export function Button({
 				size === 'small' && styles.compact,
 			]}
 		>
+			{/*진행 표시나 아이콘*/}
 			{leadingContent}
+
+			{/*버튼 문구*/}
 			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.compactText]}>
 				{label}
 			</Copy>
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	button: {

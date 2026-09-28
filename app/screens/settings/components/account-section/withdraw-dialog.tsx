@@ -10,20 +10,26 @@ import { signOutLocally } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 
-import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Copy } from '@/components/ui/copy';
 
 interface Props {
 	visible: boolean;
-	onClose(): void;
+	onClose: () => void;
 }
 
-export function WithdrawDialog({ visible, onClose }: Props) {
+/**
+ * 회원 탈퇴를 경고하고 확인을 누르면 탈퇴한 뒤 이 기기에서 로그아웃하는 다이얼로그 컴포넌트
+ * @param visible 다이얼로그 표시 여부
+ * @param onClose 다이얼로그를 닫을 때 실행할 함수
+ */
+const WithdrawDialog = ({ visible, onClose }: Props) => {
 	const { t } = useTranslation();
 
 	const { isPending, error, mutate, reset } = useWithdraw();
 
-	function handleWithdraw() {
+	/** 회원 탈퇴 요청과 성공 시 이 기기에서 로그아웃 */
+	const handleWithdraw = () => {
 		if (isPending) {
 			return;
 		}
@@ -31,13 +37,14 @@ export function WithdrawDialog({ visible, onClose }: Props) {
 		mutate(undefined, {
 			onSuccess: () => void signOutLocally().catch((e: unknown) => reportError(e, 'withdraw')),
 		});
-	}
+	};
 
-	function handleClose() {
+	/** 탈퇴 실패 안내 초기화와 다이얼로그 닫기 */
+	const handleClose = () => {
 		reset();
 
 		onClose();
-	}
+	};
 
 	return (
 		<ConfirmDialog
@@ -54,8 +61,10 @@ export function WithdrawDialog({ visible, onClose }: Props) {
 			<Copy style={styles.warning}>{t('settings.withdrawDialog.warning')}</Copy>
 		</ConfirmDialog>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	warning: { color: colors.muted },
 });
+
+export default WithdrawDialog;

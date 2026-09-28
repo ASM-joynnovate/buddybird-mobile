@@ -3,16 +3,19 @@ import type { WordsStackParamList } from '@/types/navigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { stackOptions } from '@/navigators/main-tabs/stack-options';
-import { WordEditorScreen } from '@/screens/words/word-editor-screen';
-import { WordListScreen } from '@/screens/words/word-list-screen';
+import WordEditorScreen from '@/screens/words/word-editor-screen';
+import WordListScreen from '@/screens/words/word-list-screen';
 
 const WordsStack = createNativeStackNavigator<WordsStackParamList>();
 
-export function WordsTab() {
+/** 단어 탭 안에서 단어 목록 화면과 단어 편집 화면을 오가는 컴포넌트 */
+const WordsTab = () => {
 	return (
 		<WordsStack.Navigator screenOptions={stackOptions}>
 			<WordsStack.Screen name="WordList" component={WordListScreen} />
 			<WordsStack.Screen name="WordEditor" component={WordEditorScreen} />
 		</WordsStack.Navigator>
 	);
-}
+};
+
+export default WordsTab;

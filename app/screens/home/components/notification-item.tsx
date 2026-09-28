@@ -33,7 +33,11 @@ interface Props {
 	notification: AppNotification;
 }
 
-export const NotificationItem = memo(function NotificationItem({ notification }: Props) {
+/**
+ * 알림 종류 아이콘, 제목, 내용, 보낸 시각, 이미지를 보여 주고 누르면 읽음으로 표시한 뒤 알림 경로를 여는 컴포넌트
+ * @param notification 보여 줄 알림
+ */
+const NotificationItem = memo(({ notification }: Props) => {
 	const { t } = useTranslation();
 
 	const linkTo = useLinkTo();
@@ -72,16 +76,18 @@ export const NotificationItem = memo(function NotificationItem({ notification }:
 			)}
 			onPress={handleOpen}
 		>
+			{/*알림 종류 아이콘*/}
 			<View style={styles.icon}>
 				<KindIcon size={20} color={colors.orangeDark} />
 			</View>
 
+			{/*알림 제목, 읽지 않음 표시, 내용, 보낸 시각*/}
 			<View style={styles.textContainer}>
 				<View style={styles.titleRow}>
 					<Copy numberOfLines={1} style={styles.title}>
 						{notification.title}
 					</Copy>
-					{unread ? <DotBadge /> : null}
+					{unread && <DotBadge />}
 				</View>
 				<Copy numberOfLines={2} style={styles.body}>
 					{notification.body}
@@ -89,9 +95,10 @@ export const NotificationItem = memo(function NotificationItem({ notification }:
 				<Copy style={styles.time}>{sentAtLabel}</Copy>
 			</View>
 
-			{notification.image ? (
+			{/*알림 이미지*/}
+			{notification.image && (
 				<Image source={{ uri: notification.image.url }} style={styles.image} accessibilityIgnoresInvertColors />
-			) : null}
+			)}
 		</PressableSurface>
 	);
 });
@@ -125,3 +132,5 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 	},
 });
+
+export default NotificationItem;

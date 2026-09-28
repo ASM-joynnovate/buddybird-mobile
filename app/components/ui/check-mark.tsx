@@ -10,7 +10,7 @@ interface Props {
 	size?: keyof typeof sizes;
 }
 
-export function CheckMark({ color, size = 'medium' }: Props) {
+export const CheckMark = ({ color, size = 'medium' }: Props) => {
 	const { side, strokeWidth } = sizes[size];
 
 	return (
@@ -25,4 +25,4 @@ export function CheckMark({ color, size = 'medium' }: Props) {
 			/>
 		</Svg>
 	);
-}
+};

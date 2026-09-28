@@ -4,7 +4,10 @@ import * as Notifications from 'expo-notifications';
 
 export type PermissionKind = 'microphone' | 'notifications' | 'photos' | 'camera';
 
-export type PermissionState = { granted: boolean; canAskAgain: boolean };
+export interface PermissionState {
+	granted: boolean;
+	canAskAgain: boolean;
+}
 
 const readers: Record<PermissionKind, () => Promise<PermissionState>> = {
 	microphone: () => AudioModule.getRecordingPermissionsAsync(),
@@ -20,14 +23,16 @@ const requesters: Record<PermissionKind, () => Promise<PermissionState>> = {
 	camera: () => ImagePicker.requestCameraPermissionsAsync(),
 };
 
-export async function readPermission(kind: PermissionKind): Promise<PermissionState> {
+/** 권한의 허용 여부와 다시 물을 수 있는지 여부 */
+export const readPermission = async (kind: PermissionKind) => {
 	const { granted, canAskAgain } = await readers[kind]();
 
 	return { granted, canAskAgain };
-}
+};
 
-export async function requestPermission(kind: PermissionKind): Promise<PermissionState> {
+/** 권한을 요청한 뒤의 허용 여부와 다시 물을 수 있는지 여부 */
+export const requestPermission = async (kind: PermissionKind) => {
 	const { granted, canAskAgain } = await requesters[kind]();
 
 	return { granted, canAskAgain };
-}
+};

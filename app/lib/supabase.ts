@@ -6,18 +6,19 @@ import { env } from '@/config';
 
 let client: SupabaseClient | undefined;
 
-export function getSupabase() {
+/** 처음 호출할 때 한 번만 만드는 Supabase 클라이언트 */
+export const getSupabase = () => {
 	if (!env.supabaseUrl || !env.supabasePublishableKey) {
 		throw new Error('Supabase configuration missing');
 	}
 
-	// Hermes needs these WebCrypto methods for the SDK's random verifier and S256 PKCE.
+	// Supabase PKCE 로그인의 난수와 SHA-256 해시에 필요한 WebCrypto 함수를 Hermes에 추가
 	if (!globalThis.crypto) {
 		Object.defineProperty(globalThis, 'crypto', {
 			value: {
 				getRandomValues,
 				subtle: {
-					digest(algorithm: string, data: BufferSource) {
+					digest: (algorithm: string, data: BufferSource) => {
 						if (algorithm !== CryptoDigestAlgorithm.SHA256) {
 							throw new Error('Unsupported digest algorithm');
 						}
@@ -44,4 +45,4 @@ export function getSupabase() {
 	});
 
 	return client;
-}
+};

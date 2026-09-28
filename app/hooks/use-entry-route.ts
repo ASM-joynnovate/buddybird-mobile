@@ -7,13 +7,19 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'UsageGuide' | 'Main';
 
-export function useEntryRoute(): { entryRoute: EntryRoute; parrotId?: string } {
+/** 로그인, 필수 동의, v1 올리기, 앵무새 등록, 사용 안내 완료 여부로 첫 화면을 정하는 훅 */
+const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
 	const { data: consentListData } = useGetConsentList();
 	const { data: parrotListData } = useGetParrotList();
 
-	const needsLoginScreen = useAccountStore((account) => account.isAnonymous && !account.loginScreenSeen);
+	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const loginScreenSeen = useAccountStore((state) => state.loginScreenSeen);
+
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
-	const legacyUploadUnfinished = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus !== 'finished');
+	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
+
+	const needsLoginScreen = isAnonymous && !loginScreenSeen;
+	const legacyUploadUnfinished = uploadStatus !== 'finished';
 
 	if (needsLoginScreen) {
 		return { entryRoute: 'Login' };
@@ -35,4 +41,6 @@ export function useEntryRoute(): { entryRoute: EntryRoute; parrotId?: string } {
 		entryRoute: onboardingCompleted ? 'Main' : 'UsageGuide',
 		parrotId: parrotListData[0]?.id,
 	};
-}
+};
+
+export default useEntryRoute;

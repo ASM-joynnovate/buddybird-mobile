@@ -10,8 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { type RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
-import { LastLoginTag } from '@/screens/onboarding/components/last-login-tag';
-import { OAuthButton } from '@/screens/onboarding/components/oauth-button';
+import LastLoginTag from '@/screens/onboarding/components/last-login-tag';
+import OAuthButton from '@/screens/onboarding/components/oauth-button';
 import { availableLoginProviders } from '@/services/auth/providers';
 import { linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
@@ -20,7 +20,7 @@ import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
 import { colors, font, loginProviderColors, radius } from '@/theme';
 
-import { Mascot } from '@/components/mascot';
+import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -39,7 +39,8 @@ const isAppleLoginCanceled = (provider: LoginProvider, e: unknown) =>
 	'code' in e &&
 	(e.code === 'ERR_REQUEST_CANCELED' || e.code === 'ERR_REQUEST_UNKNOWN');
 
-export function LoginScreen() {
+/** 마스코트와 이 기기에서 쓸 수 있는 로그인 버튼을 보여 주고 누르면 그 계정을 연결하거나 그 계정으로 로그인하는 화면 */
+const LoginScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
@@ -50,10 +51,10 @@ export function LoginScreen() {
 
 	const signingInRef = useRef(false);
 
-	const authStatus = useAuthStore((auth) => auth.status);
+	const authStatus = useAuthStore((state) => state.status);
 
-	const lastLoginProvider = useAccountStore((account) => account.lastLoginProvider);
-	const setLoginScreenSeen = useAccountStore((account) => account.setLoginScreenSeen);
+	const lastLoginProvider = useAccountStore((state) => state.lastLoginProvider);
+	const setLoginScreenSeen = useAccountStore((state) => state.setLoginScreenSeen);
 
 	const fromOnboarding = params?.source === 'onboarding';
 	const completing = authStatus === 'completing';
@@ -66,6 +67,7 @@ export function LoginScreen() {
 			? t('auth.completing')
 			: null;
 
+	/** 화면을 열 때 이 기기에서 쓸 수 있는 로그인 방법 불러오기 */
 	useEffect(() => {
 		let active = true;
 
@@ -80,6 +82,7 @@ export function LoginScreen() {
 		};
 	}, []);
 
+	/** 온보딩에서 화면에 들어올 때마다 onboarding_step_viewed 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			if (fromOnboarding) {
@@ -123,10 +126,17 @@ export function LoginScreen() {
 		}
 	};
 
+	/** 로그인 단계 건너뛰기 전송과 로그인 화면 본 것으로 저장 */
+	const handleSkip = () => {
+		trackOnboardingStepCompleted('login', { login_method: 'skip' });
+
+		setLoginScreenSeen(true);
+	};
+
 	return (
-		<View style={styles.root}>
+		<View style={styles.container}>
 			<Screen contentContainerStyle={styles.screen}>
-				{/*헤더*/}
+				{/*뒤로 가기 버튼이나 건너뛰기 버튼*/}
 				<ScreenHeader
 					onBack={fromOnboarding ? undefined : () => navigation.goBack()}
 					trailing={
@@ -135,17 +145,13 @@ export function LoginScreen() {
 								label={t('common.skip')}
 								variant="muted"
 								disabled={disabled}
-								onPress={() => {
-									trackOnboardingStepCompleted('login', { login_method: 'skip' });
-
-									setLoginScreenSeen(true);
-								}}
+								onPress={handleSkip}
 							/>
 						) : undefined
 					}
 				/>
 
-				{/*소개*/}
+				{/*마스코트와 앱 이름*/}
 				<View style={styles.intro}>
 					<Mascot size={150} />
 					<Title style={styles.product}>{t('onboarding.login.product')}</Title>
@@ -153,9 +159,9 @@ export function LoginScreen() {
 
 				{/*로그인 버튼*/}
 				<View style={styles.actions}>
-					{providers.includes('google') ? (
+					{providers.includes('google') && (
 						<View>
-							{lastLoginProvider === 'google' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
+							{lastLoginProvider === 'google' && <LastLoginTag label={t('auth.lastLogin')} />}
 							<OAuthButton
 								provider="google"
 								loading={loadingProvider === 'google'}
@@ -164,11 +170,11 @@ export function LoginScreen() {
 								onPress={() => void handleSignIn('google')}
 							/>
 						</View>
-					) : null}
+					)}
 
-					{providers.includes('kakao') ? (
+					{providers.includes('kakao') && (
 						<View>
-							{lastLoginProvider === 'kakao' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
+							{lastLoginProvider === 'kakao' && <LastLoginTag label={t('auth.lastLogin')} />}
 							<OAuthButton
 								provider="kakao"
 								loading={loadingProvider === 'kakao'}
@@ -177,11 +183,11 @@ export function LoginScreen() {
 								onPress={() => void handleSignIn('kakao')}
 							/>
 						</View>
-					) : null}
+					)}
 
-					{providers.includes('apple') ? (
+					{providers.includes('apple') && (
 						<View style={styles.appleButton}>
-							{lastLoginProvider === 'apple' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
+							{lastLoginProvider === 'apple' && <LastLoginTag label={t('auth.lastLogin')} />}
 							<AppleAuthentication.AppleAuthenticationButton
 								buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
 								buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
@@ -198,32 +204,32 @@ export function LoginScreen() {
 								pointerEvents={disabled ? 'none' : 'auto'}
 								onPress={() => void handleSignIn('apple')}
 							/>
-							{loadingProvider === 'apple' ? (
+							{loadingProvider === 'apple' && (
 								<ActivityIndicator
 									color={colors.onFilled}
 									style={styles.appleProgress}
 									pointerEvents="none"
 									accessible={false}
 								/>
-							) : null}
+							)}
 						</View>
-					) : null}
+					)}
 				</View>
 			</Screen>
 
 			{/*로그인 진행 표시*/}
-			{progressLabel ? (
+			{!!progressLabel && (
 				<View style={styles.progress} accessibilityLiveRegion="polite" accessibilityViewIsModal>
 					<ActivityIndicator color={colors.orange} size="large" />
 					<Copy style={styles.progressText}>{progressLabel}</Copy>
 				</View>
-			) : null}
+			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	root: { flex: 1 },
+	container: { flex: 1 },
 	screen: { gap: 36 },
 	intro: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 20 },
 	product: { fontSize: 34, lineHeight: 40, textAlign: 'center' },
@@ -244,3 +250,5 @@ const styles = StyleSheet.create({
 	},
 	progressText: { fontFamily: font.extraBold, fontSize: 16, textAlign: 'center' },
 });
+
+export default LoginScreen;

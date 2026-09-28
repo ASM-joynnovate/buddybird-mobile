@@ -85,4 +85,7 @@ export const pageMetaSchema = z.object({
 
 type PageMeta = z.infer<typeof pageMetaSchema>;
 
-export type Page<T> = { data: T[]; meta: PageMeta };
+export interface Page<T> {
+	data: T[];
+	meta: PageMeta;
+}

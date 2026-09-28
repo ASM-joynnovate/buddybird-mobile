@@ -18,8 +18,8 @@ import {
 	useDeleteWordRecording,
 	useRenameWord,
 } from '@/hooks/apis/words';
-import { usePermission } from '@/hooks/use-permission';
-import { useSoundPlayer } from '@/hooks/use-sound-player';
+import usePermission from '@/hooks/use-permission';
+import useSoundPlayer from '@/hooks/use-sound-player';
 
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -32,14 +32,14 @@ import { randomUUID } from 'expo-crypto';
 import { TrashIcon } from 'lucide-react-native';
 
 import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS, WORD_NAME_LIMIT } from '@/config';
-import { DeleteWordDialog } from '@/screens/words/components/delete-word-dialog';
-import { RecordingsSection } from '@/screens/words/components/recordings-section';
+import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
+import RecordingsSection from '@/screens/words/components/recordings-section';
 import type { EditorRecording } from '@/screens/words/components/recordings-section/recording-item';
 import { reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
-import { PermissionDialog } from '@/components/dialogs/permission-dialog';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
@@ -76,7 +76,8 @@ const saveLabel = (saveStep: SaveStep | null, saveFailed: boolean, t: TFunction)
 	return saveFailed ? t('common.retry') : t('common.save');
 };
 
-export function WordEditorScreen(): ReactElement {
+/** 단어 이름 입력과 녹음 목록을 보여 주고 저장을 누르면 단어 이름과 녹음을 서버에 저장한 뒤 이전 화면으로 돌아가는 화면 */
+const WordEditorScreen = () => {
 	const { t } = useTranslation();
 
 	const route = useRoute<RouteProp<WordsStackParamList, 'WordEditor'>>();
@@ -97,6 +98,7 @@ export function WordEditorScreen(): ReactElement {
 
 	const routeWordId = route.params?.wordId ?? null;
 	const wordId = routeWordId ?? createdWordId;
+
 	const {
 		data: wordData,
 		isPending,
@@ -349,7 +351,7 @@ export function WordEditorScreen(): ReactElement {
 	let body: ReactElement;
 
 	if (loading) {
-		body = <Skeleton rows={3} />;
+		body = <Skeleton blockCount={3} />;
 	} else if (loadFailed) {
 		body = <ScreenError onRetry={() => void refetch()} />;
 	} else {
@@ -379,7 +381,7 @@ export function WordEditorScreen(): ReactElement {
 					}
 				/>
 
-				{/*저장*/}
+				{/*저장 실패 안내와 저장 버튼*/}
 				<View style={styles.spacer} />
 				<InlineError message={saveFailed ? t('words.editor.saveError') : null} />
 				<Button
@@ -394,7 +396,7 @@ export function WordEditorScreen(): ReactElement {
 
 	return (
 		<Screen>
-			{/*헤더*/}
+			{/*단어 추가나 수정 제목, 뒤로 가기와 단어 삭제 버튼*/}
 			<ScreenHeader
 				title={t(routeWordId ? 'words.editor.editTitle' : 'words.editor.addTitle')}
 				onBack={() => navigation.goBack()}
@@ -411,7 +413,7 @@ export function WordEditorScreen(): ReactElement {
 				}
 			/>
 
-			{/*단어 편집*/}
+			{/*단어 이름 입력, 녹음 목록, 저장 버튼*/}
 			{body}
 
 			{/*삭제 확인 다이얼로그*/}
@@ -439,9 +441,11 @@ export function WordEditorScreen(): ReactElement {
 			<PermissionDialog state={microphonePermission.dialog} />
 		</Screen>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	spacer: { flex: 1, minHeight: 24 },
 	save: { marginTop: 12 },
 });
+
+export default WordEditorScreen;

@@ -32,6 +32,7 @@ export const useAccountStore = create<AccountStore>()(
 		(set) => ({
 			...initialAccount,
 
+			/** 로그인한 사용자 정보 저장, 익명이 아니면 마지막 로그인 방식도 갱신 */
 			setRegistration: (authUserId, serverUserId, isAnonymous) => {
 				set((state) => ({
 					...state,
@@ -44,6 +45,7 @@ export const useAccountStore = create<AccountStore>()(
 				}));
 			},
 
+			/** 로그인한 사용자 정보와 로그인 화면 확인 여부 초기화 */
 			clearRegistration: () => {
 				set((state) => ({
 					...state,
@@ -54,10 +56,12 @@ export const useAccountStore = create<AccountStore>()(
 				}));
 			},
 
+			/** 로그인 화면 확인 여부 저장 */
 			setLoginScreenSeen: (loginScreenSeen) => {
 				set((state) => ({ ...state, loginScreenSeen }));
 			},
 
+			/** 로그인 방식 저장 */
 			setLoginProvider: (loginProvider) => {
 				set((state) => ({ ...state, loginProvider }));
 			},

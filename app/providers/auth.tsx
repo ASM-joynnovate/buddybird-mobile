@@ -29,21 +29,28 @@ interface Props {
 	children: ReactNode;
 }
 
-function identityOf(session: Session | null): AuthIdentity | null {
+/** 세션 사용자의 ID와 익명 여부, 세션이 없으면 null */
+const identityOf = (session: Session | null) => {
 	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null;
-}
+};
 
-function sameIdentity(previous: AuthIdentity | null | undefined, nextIdentity: AuthIdentity | null) {
+/** 앞서 받은 사용자와 새 사용자의 ID와 익명 여부가 같은지 확인 */
+const sameIdentity = (previous: AuthIdentity | null | undefined, nextIdentity: AuthIdentity | null) => {
 	return (
 		previous !== undefined && previous?.id === nextIdentity?.id && previous?.anonymous === nextIdentity?.anonymous
 	);
-}
+};
 
-export function AuthProvider({ children }: Props) {
+/**
+ * 로그인한 사용자가 바뀔 때마다 익명 가입이나 서버 로그인을 하고 인증 상태를 갱신하는 provider
+ * @param children 감싸는 내용
+ */
+const AuthProvider = ({ children }: Props) => {
 	const { mutateAsync } = useLogin();
 
-	const retryCount = useAuthStore((auth) => auth.retryCount);
+	const retryCount = useAuthStore((state) => state.retryCount);
 
+	/** 처음 그릴 때와 인증을 다시 시도할 때 저장된 세션 복원, 로그인 상태 변경 구독, 토큰 자동 갱신 시작 */
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState();
 		const auth = authClient();
@@ -55,7 +62,8 @@ export function AuthProvider({ children }: Props) {
 
 		setStatus('loading');
 
-		async function restartAsAnonymous() {
+		/** 로그인 정보, 캐시, 학습 설정, 리포트 기간을 비운 뒤 익명으로 다시 가입 */
+		const restartAsAnonymous = async () => {
 			takeAppleLoginCredential();
 			useAccountStore.getState().clearRegistration();
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
@@ -74,9 +82,10 @@ export function AuthProvider({ children }: Props) {
 
 				setStatus('error');
 			}
-		}
+		};
 
-		async function completeLogin(identity: AuthIdentity, linked: boolean) {
+		/** 서버 로그인과 서버 사용자 ID 저장, 실패하면 오류 상태로 바꾸거나 로그아웃 */
+		const completeLogin = async (identity: AuthIdentity, linked: boolean) => {
 			const controller = new AbortController();
 
 			loginAbort = controller;
@@ -111,18 +120,18 @@ export function AuthProvider({ children }: Props) {
 				if (linked) {
 					void invalidate(apiKeys.all());
 				}
-			} catch (error) {
+			} catch (e) {
 				if (!active || controller.signal.aborted) {
 					return;
 				}
 
-				alertFailure(error);
+				alertFailure(e);
 
 				if (
 					identity.anonymous ||
-					!(error instanceof ApiError) ||
-					error.retryable ||
-					error.code === 'CLIENT__INVALID_RESPONSE'
+					!(e instanceof ApiError) ||
+					e.retryable ||
+					e.code === 'CLIENT__INVALID_RESPONSE'
 				) {
 					currentIdentity = undefined;
 
@@ -143,9 +152,10 @@ export function AuthProvider({ children }: Props) {
 					}
 				}
 			}
-		}
+		};
 
-		async function acceptSession(session: Session | null) {
+		/** 새 세션의 사용자 변화에 따라 익명 재가입, 로그인 상태 반영, 서버 로그인 중 하나 실행 */
+		const acceptSession = async (session: Session | null) => {
 			const nextIdentity = identityOf(session);
 
 			if (!active || sameIdentity(currentIdentity, nextIdentity)) {
@@ -176,19 +186,19 @@ export function AuthProvider({ children }: Props) {
 			}
 
 			await completeLogin(nextIdentity, transition === 'linked');
-		}
+		};
 
 		const {
 			data: { subscription },
 		} = auth.onAuthStateChange((event, session) => {
-			// getSession below reports restoration errors that INITIAL_SESSION masks as null.
+			// INITIAL_SESSION은 세션 복원 실패를 null로 가리므로 아래 getSession 결과로 처리
 			if (event === 'INITIAL_SESSION') {
 				return;
 			}
 
 			receivedEvent = true;
 
-			// The callback stays synchronous so SDK calls never hold its auth lock.
+			// 콜백 안에서 SDK 호출을 기다리면 인증 잠금이 풀리지 않으므로 콜백은 동기로 유지
 			void acceptSession(session);
 		});
 
@@ -219,6 +229,7 @@ export function AuthProvider({ children }: Props) {
 				}
 			});
 
+		/** 앱이 앞에 있을 때만 토큰 자동 갱신 */
 		const toggleAutoRefresh = (appState: string) => {
 			if (appState === 'active') {
 				void auth.startAutoRefresh();
@@ -241,8 +252,11 @@ export function AuthProvider({ children }: Props) {
 	}, [retryCount, mutateAsync]);
 
 	return children;
-}
+};
 
-function alertFailure(error: unknown) {
+/** 실패 문구와 서버 오류 코드를 경고창으로 표시 */
+const alertFailure = (error: unknown) => {
 	Alert.alert(apiErrorMessage(error, i18next.t), error instanceof ApiError ? error.code : undefined);
-}
+};
+
+export default AuthProvider;

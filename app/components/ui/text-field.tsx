@@ -11,10 +11,11 @@ interface Props extends TextInputProps {
 	errorMessage?: string | null;
 }
 
-export function TextField({ label, errorMessage, style, accessibilityLabel, ...props }: Props) {
+export const TextField = ({ label, errorMessage, style, accessibilityLabel, ...props }: Props) => {
 	return (
 		<View>
-			{label ? <Copy style={ui.label}>{label}</Copy> : null}
+			{/*이름과 입력 칸*/}
+			{!!label && <Copy style={ui.label}>{label}</Copy>}
 			<TextInput
 				{...props}
 				accessibilityLabel={accessibilityLabel ?? label}
@@ -22,10 +23,12 @@ export function TextField({ label, errorMessage, style, accessibilityLabel, ...p
 				placeholderTextColor={colors.muted}
 				style={[styles.input, errorMessage && { borderColor: colors.error }, style]}
 			/>
+
+			{/*오류 문구*/}
 			<InlineError message={errorMessage} />
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	input: {

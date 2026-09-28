@@ -7,12 +7,12 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
-	onPress(): void;
+	onPress: () => void;
 	disabled?: boolean;
 	variant?: 'primary' | 'muted';
 }
 
-export function TextButton({ label, onPress, disabled, variant = 'primary' }: Props) {
+export const TextButton = ({ label, onPress, disabled, variant = 'primary' }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityLabel={label}
@@ -28,7 +28,7 @@ export function TextButton({ label, onPress, disabled, variant = 'primary' }: Pr
 			</Copy>
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	textButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 0 },

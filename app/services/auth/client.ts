@@ -18,8 +18,7 @@ import {
 	type SupabaseClient,
 } from '@supabase/supabase-js';
 import dayjs from 'dayjs';
-import type { AppleAuthenticationCredential, AppleAuthenticationSignInOptions } from 'expo-apple-authentication';
-import type { WebBrowserAuthSessionResult } from 'expo-web-browser';
+import type { AppleAuthenticationSignInOptions } from 'expo-apple-authentication';
 
 import { useAccountStore } from '@/stores/account';
 import { HOUR, SECOND } from '@/utils/units';
@@ -48,7 +47,8 @@ let listeners = new Set<Listener>();
 
 let activeSession: Session | null | undefined;
 
-function toSession(mock: MockSession): Session {
+/** mock 세션 응답을 Supabase 세션 모양으로 변환 */
+const toSession = (mock: MockSession): Session => {
 	return {
 		access_token: mock.access_token,
 		refresh_token: mock.access_token,
@@ -63,9 +63,10 @@ function toSession(mock: MockSession): Session {
 			created_at: dayjs().toISOString(),
 		},
 	};
-}
+};
 
-function getActiveSession() {
+/** 지금 세션 반환, 처음 읽을 때는 계정 스토어의 사용자로 mock 세션 생성 */
+const getActiveSession = () => {
 	if (activeSession === undefined) {
 		const { authUserId, isAnonymous } = useAccountStore.getState();
 
@@ -73,9 +74,10 @@ function getActiveSession() {
 	}
 
 	return activeSession;
-}
+};
 
-function changeSession(event: AuthChangeEvent, session: Session | null) {
+/** 세션을 바꾸고 mock 서버와 onAuthStateChange 콜백에 알림 */
+const changeSession = (event: AuthChangeEvent, session: Session | null) => {
 	activeSession = session;
 
 	mockPutSessionUser({ authUserId: session?.user.id ?? null });
@@ -83,17 +85,19 @@ function changeSession(event: AuthChangeEvent, session: Session | null) {
 	for (const listener of listeners) {
 		listener(event, session);
 	}
-}
+};
 
-async function signInWith(provider: string) {
+/** 고른 로그인 방식으로 mock 서버에 로그인하고 받은 세션으로 변경 */
+const signInWith = async (provider: string) => {
 	const session = toSession(await mockPostSignIn({ provider: loginProviderSchema.parse(provider) }));
 
 	changeSession('SIGNED_IN', session);
 
 	return { data: { user: session.user, session }, error: null };
-}
+};
 
-async function linkWith(provider: string) {
+/** 지금 계정에 로그인 방식 연결, 다른 사용자에 이미 연결된 방식이면 identity_already_exists 오류 */
+const linkWith = async (provider: string) => {
 	const linkedSession = await mockPostLinkIdentity({ provider: loginProviderSchema.parse(provider) });
 
 	if (!linkedSession) {
@@ -112,7 +116,7 @@ async function linkWith(provider: string) {
 	changeSession('USER_UPDATED', session);
 
 	return { data: { user: session.user, session }, error: null };
-}
+};
 
 const mockAuth = {
 	getSession: async () => ({ data: { session: getActiveSession() }, error: null }),
@@ -179,16 +183,17 @@ const mockAuth = {
 	stopAutoRefresh: async () => {},
 };
 
-export function authClient(): AuthClient {
+/** Supabase 인증 클라이언트 대신 사용하는 mock 인증 */
+export const authClient = () => {
 	return mockAuth as unknown as AuthClient;
-}
+};
 
-export async function openAuthSession(url: string, _redirectTo: string): Promise<WebBrowserAuthSessionResult> {
+/** 로그인 브라우저를 열지 않고 받은 주소를 성공 결과로 반환하는 mock */
+export const openAuthSession = async (url: string, _redirectTo: string) => {
 	return { type: 'success', url };
-}
+};
 
-export async function requestAppleCredential(
-	_options: AppleAuthenticationSignInOptions,
-): Promise<Pick<AppleAuthenticationCredential, 'identityToken' | 'authorizationCode'>> {
+/** Apple 로그인 없이 고정된 mock ID 토큰과 인증 코드 반환 */
+export const requestAppleCredential = async (_options: AppleAuthenticationSignInOptions) => {
 	return { identityToken: 'mock-apple-identity-token', authorizationCode: 'mock-apple-code' };
-}
+};

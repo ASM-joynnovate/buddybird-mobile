@@ -20,7 +20,8 @@ import { Copy } from '@/components/ui/copy';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 
-export function SupportGroup() {
+/** 피드백 보내기, 공지, 약관 동의 항목과 앱 버전을 보여 주고 누르면 피드백 다이얼로그나 해당 화면을 여는 컴포넌트 */
+const SupportGroup = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -35,6 +36,7 @@ export function SupportGroup() {
 
 	return (
 		<View>
+			{/*피드백 보내기, 공지, 약관 동의 항목*/}
 			<ItemGroup title={t('settings.support.title')}>
 				<Item
 					first
@@ -56,11 +58,14 @@ export function SupportGroup() {
 				/>
 			</ItemGroup>
 
+			{/*앱 버전*/}
 			<Copy style={styles.version}>{t('settings.support.version', { version: installedVersion })}</Copy>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	version: { marginTop: 12, fontSize: 13, color: colors.muted, textAlign: 'right' },
 });
+
+export default SupportGroup;

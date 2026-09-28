@@ -1,7 +1,6 @@
 import type { z } from 'zod';
 
 import { MMKV } from 'react-native-mmkv';
-import type { PersistOptions, StateStorage } from 'zustand/middleware';
 
 interface RestoreError {
 	error: unknown;
@@ -15,26 +14,26 @@ interface RestoreTarget<S> {
 
 let restoreErrors: readonly RestoreError[] = [];
 
-export function mmkvStorage(id: string): StateStorage {
+/** zustand persist에 넘길 MMKV 저장소 */
+export const mmkvStorage = (id: string) => {
 	const storage = new MMKV({ id });
 
 	return {
-		getItem: (name) => storage.getString(name) ?? null,
-		setItem: (name, value) => storage.set(name, value),
-		removeItem: (name) => storage.delete(name),
+		getItem: (name: string) => storage.getString(name) ?? null,
+		setItem: (name: string, value: string) => storage.set(name, value),
+		removeItem: (name: string) => storage.delete(name),
 	};
-}
+};
 
-function recordRestoreError(error: unknown, storeName: string) {
+/** 저장값 복원 실패 기록 */
+const recordRestoreError = (error: unknown, storeName: string) => {
 	restoreErrors = [...restoreErrors, { error, storeName }];
-}
+};
 
-export function restoreOptions<S>({
-	schema,
-	storeName,
-}: RestoreTarget<S>): Pick<PersistOptions<S>, 'merge' | 'onRehydrateStorage'> {
+/** 저장값을 스키마로 검사해 복원하고 복원 실패를 기록하는 persist 옵션 */
+export const restoreOptions = <S>({ schema, storeName }: RestoreTarget<S>) => {
 	return {
-		merge: (persisted, currentState) => {
+		merge: (persisted: unknown, currentState: S) => {
 			if (persisted === undefined) {
 				return currentState;
 			}
@@ -50,18 +49,19 @@ export function restoreOptions<S>({
 			return { ...currentState, ...parsed.data };
 		},
 
-		onRehydrateStorage: () => (_state, error) => {
+		onRehydrateStorage: () => (_state: S | undefined, error: unknown) => {
 			if (error) {
 				recordRestoreError(error, storeName);
 			}
 		},
 	};
-}
+};
 
-export function takeRestoreErrors(): readonly RestoreError[] {
+/** 모아 둔 복원 실패 목록을 돌려주고 비우기 */
+export const takeRestoreErrors = () => {
 	const errors = restoreErrors;
 
 	restoreErrors = [];
 
 	return errors;
-}
+};

@@ -9,10 +9,16 @@ import { HOURS, MINUTE_STEPS, WheelPicker } from '@/components/ui/wheel-picker';
 interface Props {
 	value: string;
 	label: string;
-	onChange(value: string): void;
+	onChange: (value: string) => void;
 }
 
-export function TimePicker({ value, label, onChange }: Props) {
+/**
+ * 시와 분을 고르는 휠 두 개를 보여 주고 휠을 돌리면 바뀐 시각으로 변경 함수를 실행하는 컴포넌트
+ * @param value 고른 시각
+ * @param label 휠 접근성 라벨에 넣을 시각 이름
+ * @param onChange 시각을 바꿀 때 실행할 함수
+ */
+const TimePicker = ({ value, label, onChange }: Props) => {
 	const { t } = useTranslation();
 
 	const time = dayjs(value, CLOCK_FORMAT);
@@ -42,4 +48,6 @@ export function TimePicker({ value, label, onChange }: Props) {
 			]}
 		/>
 	);
-}
+};
+
+export default TimePicker;

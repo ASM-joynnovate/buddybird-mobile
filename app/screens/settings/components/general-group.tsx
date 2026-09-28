@@ -22,7 +22,8 @@ import { Copy } from '@/components/ui/copy';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 
-export function GeneralGroup() {
+/** 앱 언어 선택, 연결된 기기와 권한 상태 항목을 보여 주고 누르면 앱 언어를 바꾸거나 해당 화면을 여는 컴포넌트 */
+const GeneralGroup = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -30,7 +31,6 @@ export function GeneralGroup() {
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const setLocale = useDeviceSettingsStore((state) => state.setLocale);
 
 	/** 앱 언어 변경 */
@@ -81,7 +81,7 @@ export function GeneralGroup() {
 			</ItemGroup>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	row: {
@@ -94,3 +94,5 @@ const styles = StyleSheet.create({
 	},
 	label: { flex: 1, minWidth: 0, marginLeft: 4, fontFamily: font.extraBold, fontSize: 16 },
 });
+
+export default GeneralGroup;

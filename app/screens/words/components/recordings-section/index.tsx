@@ -11,7 +11,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CircleQuestionMarkIcon, MicIcon } from 'lucide-react-native';
 
 import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from '@/config';
-import { type EditorRecording, RecordingItem } from '@/screens/words/components/recordings-section/recording-item';
+import RecordingItem, { type EditorRecording } from '@/screens/words/components/recordings-section/recording-item';
 import { colors, font } from '@/theme';
 
 import { Button } from '@/components/ui/button';
@@ -26,11 +26,21 @@ interface Props {
 	saving: boolean;
 	wordName: string;
 	player: SoundPlayer;
-	onAdd(): void;
+	onAdd: () => void;
 	onDelete: (recording: EditorRecording, name: string) => void;
 }
 
-export function RecordingsSection({ recordings, recordingMissing, saving, wordName, player, onAdd, onDelete }: Props) {
+/**
+ * 녹음 개수, 녹음 목록, 녹음 추가 버튼을 보여 주고 도움말 버튼을 누르면 녹음 안내 화면을 여는 컴포넌트
+ * @param recordings 편집 중인 단어의 녹음 목록
+ * @param recordingMissing 녹음 없이 저장을 눌렀는지 여부
+ * @param saving 단어 저장 중 여부
+ * @param wordName 녹음 안내 화면에 넘길 단어 이름
+ * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * @param onAdd 녹음 추가 버튼을 누를 때 실행할 함수
+ * @param onDelete 녹음 삭제 버튼을 누를 때 실행할 함수
+ */
+const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, player, onAdd, onDelete }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -72,7 +82,7 @@ export function RecordingsSection({ recordings, recordingMissing, saving, wordNa
 			<InlineError message={recordingMissing ? t('words.editor.recordingRequired') : null} />
 
 			{/*녹음 추가 버튼과 권장 개수 안내*/}
-			{recordings.length < MAX_RECORDINGS ? (
+			{recordings.length < MAX_RECORDINGS && (
 				<Button
 					label={t('words.editor.addRecording')}
 					icon={MicIcon}
@@ -81,13 +91,13 @@ export function RecordingsSection({ recordings, recordingMissing, saving, wordNa
 					onPress={onAdd}
 					style={styles.add}
 				/>
-			) : null}
-			{recordings.length < RECOMMENDED_RECORDINGS ? (
+			)}
+			{recordings.length < RECOMMENDED_RECORDINGS && (
 				<Copy style={styles.hint}>{t('words.editor.recordingsHint')}</Copy>
-			) : null}
+			)}
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	header: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
@@ -95,3 +105,5 @@ const styles = StyleSheet.create({
 	add: { marginTop: 12 },
 	hint: { color: colors.muted, marginTop: 10 },
 });
+
+export default RecordingsSection;

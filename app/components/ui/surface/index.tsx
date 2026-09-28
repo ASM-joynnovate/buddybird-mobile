@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { ReactNode } from 'react';
 
 import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 
@@ -23,11 +23,12 @@ interface Props extends ViewProps {
 	contentStyle?: StyleProp<ViewStyle>;
 	edgeColor?: string;
 	faceColor?: string;
+	children: ReactNode;
 }
 
-export type SurfaceProps = PropsWithChildren<Props>;
+export type SurfaceProps = Props;
 
-export function Surface({
+export const Surface = ({
 	children,
 	variant = 'neutral',
 	depth = 'high',
@@ -37,17 +38,24 @@ export function Surface({
 	edgeColor,
 	faceColor,
 	...props
-}: SurfaceProps) {
+}: Props) => {
 	const palette = { face: faceColor ?? variants[variant].face, edge: edgeColor ?? variants[variant].edge };
 	const borderRadius = radius[cornerRadius];
 	const edgeHeight = depths[depth];
 
 	return (
-		<View {...props} collapsable={false} style={[styles.shell, { borderRadius, paddingBottom: edgeHeight }, style]}>
+		<View
+			{...props}
+			collapsable={false}
+			style={[styles.container, { borderRadius, paddingBottom: edgeHeight }, style]}
+		>
+			{/*아래로 드러나는 두께*/}
 			<View
 				pointerEvents="none"
 				style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
 			/>
+
+			{/*윗면과 내용*/}
 			<Animated.View
 				style={[
 					styles.face,
@@ -63,9 +71,9 @@ export function Surface({
 			</Animated.View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	shell: { borderCurve: 'continuous', minWidth: 0, maxWidth: '100%' },
+	container: { borderCurve: 'continuous', minWidth: 0, maxWidth: '100%' },
 	face: { minWidth: 0, borderWidth: 2, borderCurve: 'continuous' },
 });

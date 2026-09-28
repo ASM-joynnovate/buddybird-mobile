@@ -14,7 +14,7 @@ interface Props {
 	text: string;
 }
 
-export function TypedText({ text }: Props) {
+export const TypedText = ({ text }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const [typedCount, setTypedCount] = useState(0);
@@ -35,6 +35,7 @@ export function TypedText({ text }: Props) {
 
 	return (
 		<View>
+			{/*크기를 잡아 두는 보이지 않는 전체 문구*/}
 			<Copy
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
@@ -43,6 +44,8 @@ export function TypedText({ text }: Props) {
 			>
 				{text}
 			</Copy>
+
+			{/*한 글자씩 나타나는 문구*/}
 			<Copy
 				accessibilityLabel={text}
 				lineBreakStrategyIOS="hangul-word"
@@ -50,11 +53,11 @@ export function TypedText({ text }: Props) {
 				style={[styles.text, styles.typed]}
 			>
 				{characters.slice(0, shownCount).join('')}
-				{typingDone ? null : <Text style={styles.caret}>▍</Text>}
+				{!typingDone && <Text style={styles.caret}>▍</Text>}
 			</Copy>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	text: { fontFamily: font.extraBold, fontSize: 16, lineHeight: 22, textAlign: 'left' },

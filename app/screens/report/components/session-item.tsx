@@ -1,5 +1,3 @@
-import type { ReactElement } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import type { ReportSession } from '@/types/apis/reports';
@@ -26,7 +24,11 @@ interface Props {
 	session: ReportSession;
 }
 
-export function SessionItem({ session }: Props): ReactElement {
+/**
+ * 세션의 단어, 시작 시각, 판정 중 표시, 학습 시간을 보여 주고 누르면 세션 상세 화면을 여는 컴포넌트
+ * @param session 리포트 기간의 세션
+ */
+const SessionItem = ({ session }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -56,18 +58,20 @@ export function SessionItem({ session }: Props): ReactElement {
 			accessibilityLabel={joinLabel(wordName, startedAtLabel, durationLabel, judging && t('report.judging'))}
 			contentStyle={styles.row}
 		>
+			{/*단어, 시작 시각, 판정 중 표시*/}
 			<View style={styles.textContainer}>
 				<Copy numberOfLines={1} style={styles.word}>
 					{wordName}
 				</Copy>
 				<Copy style={styles.time}>{startedAtLabel}</Copy>
-				{judging ? <Tag label={t('report.judging')} /> : null}
+				{judging && <Tag label={t('report.judging')} />}
 			</View>
 
+			{/*학습 시간*/}
 			<Copy style={styles.duration}>{durationLabel}</Copy>
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
@@ -76,3 +80,5 @@ const styles = StyleSheet.create({
 	time: { fontSize: 13, color: colors.muted },
 	duration: { fontFamily: font.extraBold, fontSize: 15, fontVariant: ['tabular-nums'] },
 });
+
+export default SessionItem;

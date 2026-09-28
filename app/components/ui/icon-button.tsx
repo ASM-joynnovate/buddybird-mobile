@@ -22,13 +22,13 @@ type IconButtonSize = keyof typeof iconSizes;
 interface Props {
 	icon: LucideIcon;
 	label: string;
-	onPress(): void;
+	onPress: () => void;
 	disabled?: boolean;
 	variant?: IconButtonVariant;
 	size?: IconButtonSize;
 }
 
-function boxStyle(size: IconButtonSize) {
+const boxStyle = (size: IconButtonSize) => {
 	return {
 		tiny: boxes.tiny,
 		small: boxes.small,
@@ -36,9 +36,9 @@ function boxStyle(size: IconButtonSize) {
 		large: boxes.large,
 		xlarge: boxes.xlarge,
 	}[size];
-}
+};
 
-export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'plain', size = 'medium' }: Props) {
+export const IconButton = ({ icon: Icon, label, onPress, disabled, variant = 'plain', size = 'medium' }: Props) => {
 	const { surfaceVariant, color } = variants[variant];
 	const isPrimary = variant === 'primary';
 
@@ -58,7 +58,7 @@ export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'pl
 			<Icon color={disabled ? colors.subtle : color} size={iconSizes[size]} />
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	shell: { flexShrink: 0 },

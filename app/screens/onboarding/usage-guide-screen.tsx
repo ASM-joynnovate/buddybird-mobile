@@ -10,9 +10,10 @@ import { ChartNoAxesColumnIcon, MicIcon, SmartphoneIcon, SunIcon } from 'lucide-
 
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 
-import { GuidePager, type GuideStep } from '@/components/guide-pager';
+import GuidePager, { type GuideStep } from '@/components/guide-pager';
 
-export function UsageGuideScreen() {
+/** 단어 녹음, 휴대폰 두는 곳, 화면 켜 두기, 리포트 안내를 한 장씩 보여 주고 마지막 장이나 건너뛰기에서 권한 요청 화면으로 이동하는 화면 */
+const UsageGuideScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -40,27 +41,31 @@ export function UsageGuideScreen() {
 		},
 	];
 
+	/** 화면에 들어올 때마다 onboarding_step_viewed 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('usage_guide');
 		}, []),
 	);
 
-	function next() {
+	/** 사용 안내 단계 완료 전송과 권한 요청 화면 이동 */
+	const handleNext = () => {
 		trackOnboardingStepCompleted('usage_guide');
 
 		navigation.navigate('PermissionRequest');
-	}
+	};
 
 	return (
 		<GuidePager
 			steps={steps}
 			actions={{
-				onFinish: next,
-				onSkip: next,
+				onFinish: handleNext,
+				onSkip: handleNext,
 				onBack: navigation.canGoBack() ? () => navigation.goBack() : undefined,
 			}}
 			finishLabel={t('common.next')}
 		/>
 	);
-}
+};
+
+export default UsageGuideScreen;

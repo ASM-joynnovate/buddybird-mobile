@@ -20,7 +20,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { HEARTBEAT_INTERVAL_MS } from '@/config';
-import { RunInfo } from '@/screens/session/components/run-info';
+import RunInfo from '@/screens/session/components/run-info';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
@@ -28,14 +28,15 @@ import { sessionColors } from '@/theme/session-colors';
 import { currentSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
-import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 type EndReason = 'time_reached' | 'user' | 'server';
 
 const FADE_MS = 2 * SECOND;
 
-export function SessionRunScreen() {
+/** 세션 경과 시간, 진행 단계와 남은 시간, 종료 버튼을 보여 주고 화면을 누르면 숨긴 세션 정보를 다시 보여 주는 화면 */
+const SessionRunScreen = () => {
 	useKeepAwake();
 
 	const { t } = useTranslation();
@@ -44,7 +45,6 @@ export function SessionRunScreen() {
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionRun'>>();
 
 	const opacity = useSharedValue(1);
-	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 
@@ -63,7 +63,6 @@ export function SessionRunScreen() {
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
 	const ending = useSessionStore((state) => state.ending);
-
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const setEngineFailed = useSessionStore((state) => state.setEngineFailed);
 	const setEnding = useSessionStore((state) => state.setEnding);
@@ -72,6 +71,7 @@ export function SessionRunScreen() {
 	const { sessionId, wordId, endsAt, sleep, duration, sleepChanged } = params;
 	const runningSession = runningSessionData?.id === sessionId ? runningSessionData : null;
 	const startedAt = runningSession?.period.started_at ?? null;
+	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
 	/** 엔진 정지, 업로드 대기, 종료 요청 뒤 완료 화면 이동 */
 	const endSession = useCallback(
@@ -130,10 +130,12 @@ export function SessionRunScreen() {
 		return () => resetSessionScreen();
 	}, [resetSessionScreen, showInfo]);
 
+	/** infoVisible이 바뀔 때 세션 정보를 바로 보이거나 천천히 흐리게 숨김 */
 	useEffect(() => {
 		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
 	}, [infoVisible, opacity]);
 
+	/** 안드로이드 뒤로 가기 버튼을 누르면 화면을 닫지 않고 종료 다이얼로그 열기 */
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
 			setEndDialogOpen(true);
@@ -308,9 +310,9 @@ export function SessionRunScreen() {
 			onPress={showInfo}
 			accessibilityLabel={t('session.run.reveal')}
 		>
-			{/*학습 정보*/}
+			{/*경과 시간, 진행 단계, 종료 버튼*/}
 			<Animated.View style={[styles.fill, fadeStyle]} pointerEvents={infoVisible ? 'box-none' : 'none'}>
-				{startedAt ? (
+				{!!startedAt && (
 					<RunInfo
 						startedAt={startedAt}
 						endsAt={endsAt}
@@ -318,7 +320,7 @@ export function SessionRunScreen() {
 						engineFailed={engineFailed}
 						onEnd={() => setEndDialogOpen(true)}
 					/>
-				) : null}
+				)}
 			</Animated.View>
 
 			{/*종료 다이얼로그*/}
@@ -335,9 +337,11 @@ export function SessionRunScreen() {
 			/>
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: sessionColors.background },
 	fill: { flex: 1, borderWidth: 0 },
 });
+
+export default SessionRunScreen;

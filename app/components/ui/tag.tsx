@@ -16,20 +16,20 @@ interface Props {
 	variant?: TagVariant;
 }
 
-export function Tag({ label, variant = 'muted' }: Props) {
+export const Tag = ({ label, variant = 'muted' }: Props) => {
 	const palette = variants[variant];
 
 	return (
-		<View style={[styles.tag, { backgroundColor: palette.background, borderColor: palette.border }]}>
+		<View style={[styles.container, { backgroundColor: palette.background, borderColor: palette.border }]}>
 			<Copy numberOfLines={1} style={[styles.text, { color: palette.text }]}>
 				{label}
 			</Copy>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	tag: {
+	container: {
 		alignSelf: 'flex-start',
 		flexShrink: 1,
 		borderWidth: 2,

@@ -1,5 +1,6 @@
 import { useAccountStore } from '@/stores/account';
 
+/** 로그인한 사용자 ID를 담은 쿼리 키 앞부분 */
 const userKeyPrefix = () => ['api', useAccountStore.getState().authUserId] as const;
 
 export const apiKeys = {

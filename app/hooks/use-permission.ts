@@ -10,14 +10,29 @@ import {
 } from '@/services/device/permissions';
 import { reportError } from '@/services/telemetry/client';
 
-export type PermissionDialogState = { visible: boolean; kind: PermissionKind; onClose(): void };
+export interface PermissionDialogState {
+	visible: boolean;
+	kind: PermissionKind;
+	onClose: () => void;
+}
 
-export function usePermission(kind: PermissionKind) {
+/** 권한 상태를 확인하고 권한이 있을 때만 동작을 실행하며 설정 안내 다이얼로그 상태를 돌려주는 훅 */
+const usePermission = (kind: PermissionKind) => {
 	const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
 	const pendingActionRef = useRef<(() => void) | null>(null);
 
+	const dialog: PermissionDialogState = {
+		visible: dialogOpen,
+		kind,
+		onClose: () => {
+			pendingActionRef.current = null;
+			setDialogOpen(false);
+		},
+	};
+
+	/** 권한 상태를 읽어 저장 */
 	const refresh = useCallback(async () => {
 		const permission = await readPermission(kind);
 
@@ -26,6 +41,7 @@ export function usePermission(kind: PermissionKind) {
 		return permission;
 	}, [kind]);
 
+	/** 권한 종류가 바뀌거나 앱으로 돌아올 때 권한 상태를 다시 읽고 허용되면 미뤄 둔 동작 실행 */
 	useEffect(() => {
 		void refresh().catch((error: unknown) => reportError(error, `permission_${kind}`));
 
@@ -51,42 +67,33 @@ export function usePermission(kind: PermissionKind) {
 		return () => subscription.remove();
 	}, [kind, refresh]);
 
-	const run = useCallback(
-		async (action: () => void) => {
-			const permission = await readPermission(kind);
+	/** 권한이 있으면 동작 실행, 물을 수 있으면 권한 요청, 아니면 설정 안내 다이얼로그 열기 */
+	const run = async (action: () => void) => {
+		const permission = await readPermission(kind);
 
-			if (permission.granted) {
+		if (permission.granted) {
+			action();
+
+			return;
+		}
+
+		if (permission.canAskAgain) {
+			const requestedPermission = await requestPermission(kind);
+
+			setPermissionState(requestedPermission);
+
+			if (requestedPermission.granted) {
 				action();
-
-				return;
 			}
 
-			if (permission.canAskAgain) {
-				const requestedPermission = await requestPermission(kind);
+			return;
+		}
 
-				setPermissionState(requestedPermission);
-
-				if (requestedPermission.granted) {
-					action();
-				}
-
-				return;
-			}
-
-			pendingActionRef.current = action;
-			setDialogOpen(true);
-		},
-		[kind],
-	);
-
-	const dialog: PermissionDialogState = {
-		visible: dialogOpen,
-		kind,
-		onClose: () => {
-			pendingActionRef.current = null;
-			setDialogOpen(false);
-		},
+		pendingActionRef.current = action;
+		setDialogOpen(true);
 	};
 
 	return { granted: permissionState?.granted ?? null, refresh, run, dialog };
-}
+};
+
+export default usePermission;

@@ -1,4 +1,4 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -11,12 +11,21 @@ import { Title } from '@/components/ui/title';
 
 interface Props {
 	visible: boolean;
-	onClose(): void;
+	onClose: () => void;
 	title: string;
+	children?: ReactNode;
 	footer: ReactNode;
 }
 
-export function Dialog({ visible, onClose, title, children, footer }: PropsWithChildren<Props>) {
+/**
+ * 화면 가운데에 제목, 스크롤할 수 있는 내용, 하단 버튼을 띄우는 다이얼로그 컴포넌트
+ * @param visible 다이얼로그 표시 여부
+ * @param onClose 뒤로 가기 버튼으로 닫을 때 실행할 함수
+ * @param title 다이얼로그 제목
+ * @param children 제목 아래에 보여 줄 내용
+ * @param footer 아래쪽에 보여 줄 버튼
+ */
+const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
@@ -30,7 +39,7 @@ export function Dialog({ visible, onClose, title, children, footer }: PropsWithC
 						{/*제목*/}
 						<Title style={styles.title}>{title}</Title>
 
-						{/*본문*/}
+						{/*스크롤할 수 있는 내용*/}
 						<ScrollView
 							style={styles.body}
 							keyboardShouldPersistTaps="handled"
@@ -46,7 +55,7 @@ export function Dialog({ visible, onClose, title, children, footer }: PropsWithC
 			</GestureHandlerRootView>
 		</Modal>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	backdrop: {
@@ -70,3 +79,5 @@ const styles = StyleSheet.create({
 	content: { gap: 12 },
 	title: { fontSize: 18, lineHeight: 24 },
 });
+
+export default Dialog;

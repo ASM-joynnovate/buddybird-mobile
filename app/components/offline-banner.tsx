@@ -10,7 +10,8 @@ import { colors, contentMaxWidth, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
-export function OfflineBanner() {
+/** 인터넷 연결이 끊기면 화면 위쪽에 연결 끊김 안내를 보여 주는 컴포넌트 */
+const OfflineBanner = () => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -34,7 +35,7 @@ export function OfflineBanner() {
 			</View>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	container: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
@@ -51,3 +52,5 @@ const styles = StyleSheet.create({
 	},
 	text: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13.5, color: colors.onFilled },
 });
+
+export default OfflineBanner;

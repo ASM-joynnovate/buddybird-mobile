@@ -12,7 +12,7 @@ import { startPushTokenSync } from '@/services/push/token-sync';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 
-/** 이 기기의 등록 요청 본문 */
+/** 기기 등록 때 서버에 보내는 이 기기의 ID, 플랫폼, OS 버전, 모델명, 앱 버전, 시간대 */
 const thisDeviceInfo = () => ({
 	client_device_id: useAccountStore.getState().clientDeviceId ?? '',
 	platform: Platform.OS,

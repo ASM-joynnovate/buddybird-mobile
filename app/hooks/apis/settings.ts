@@ -12,7 +12,8 @@ import { queryClient } from '@/lib/query-client';
 
 import { reportError } from '@/services/telemetry/client';
 
-async function patchCachedSettings(patch: Partial<Settings>) {
+/** 캐시의 설정을 먼저 변경하고 되돌릴 때 쓸 이전 설정 반환 */
+const patchCachedSettings = async (patch: Partial<Settings>) => {
 	await queryClient.cancelQueries({ queryKey: apiKeys.settings() });
 
 	const previousSettings = queryClient.getQueryData<Settings>(apiKeys.settings());
@@ -22,13 +23,14 @@ async function patchCachedSettings(patch: Partial<Settings>) {
 	}
 
 	return { previousSettings };
-}
+};
 
-function restoreCachedSettings(context: { previousSettings: Settings | undefined } | undefined) {
+/** 저장에 실패하면 캐시의 설정을 이전 설정으로 복원 */
+const restoreCachedSettings = (context: { previousSettings: Settings | undefined } | undefined) => {
 	if (context?.previousSettings) {
 		queryClient.setQueryData(apiKeys.settings(), context.previousSettings);
 	}
-}
+};
 
 /** 설정 조회 옵션 */
 export const getSettingsOptions = () => queryOptions({ queryKey: apiKeys.settings(), queryFn: getSettings });

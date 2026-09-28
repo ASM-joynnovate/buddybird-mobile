@@ -29,7 +29,14 @@ interface Props {
 	player: SoundPlayer;
 }
 
-export function SoundItem({ sound, wordName, multiDay, player }: Props) {
+/**
+ * 앵무새가 따라 한 소리의 녹음 시각, 단어, 재생 버튼을 보여 주고 재생 버튼을 누르면 재생하거나 멈추며 길게 누르면 공유하는 컴포넌트
+ * @param sound 앵무새가 따라 한 소리
+ * @param wordName 소리가 판정된 단어 이름
+ * @param multiDay 여러 날에 걸친 세션 여부
+ * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ */
+const SoundItem = ({ sound, wordName, multiDay, player }: Props) => {
 	const { t } = useTranslation();
 
 	const [shareFailed, setShareFailed] = useState(false);
@@ -48,7 +55,8 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 		errorMessage = t('report.detail.shareError');
 	}
 
-	async function share() {
+	/** 소리 주소 공유와 공유 완료 시 mimicry_shared 전송 */
+	const share = async () => {
 		if (!url) {
 			return;
 		}
@@ -66,10 +74,24 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 
 			setShareFailed(true);
 		}
-	}
+	};
+
+	/** 소리 재생이나 멈춤과 재생 시작 시 mimicry_played 전송 */
+	const handlePlay = () => {
+		if (!url) {
+			return;
+		}
+
+		if (!playing) {
+			track('mimicry_played', { session_id: sound.session_id });
+		}
+
+		player.toggle(sound.id, url);
+	};
 
 	return (
 		<View>
+			{/*길게 누르면 공유하는 녹음 시각, 단어, 재생 버튼*/}
 			<PressableSurface
 				accessibilityLabel={timeLabel}
 				accessibilityHint={url ? t('report.detail.shareHint') : undefined}
@@ -98,24 +120,15 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 							: t('report.detail.soundExpired')
 					}
 					disabled={!url}
-					onPress={() => {
-						if (!url) {
-							return;
-						}
-
-						if (!playing) {
-							track('mimicry_played', { session_id: sound.session_id });
-						}
-
-						player.toggle(sound.id, url);
-					}}
+					onPress={handlePlay}
 				/>
 			</PressableSurface>
 
+			{/*재생이나 공유 실패 안내*/}
 			<InlineError message={errorMessage} />
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	row: {
@@ -135,3 +148,5 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 });
+
+export default SoundItem;

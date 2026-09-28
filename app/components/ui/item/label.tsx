@@ -17,14 +17,17 @@ export interface ItemBaseProps extends Props {
 	first?: boolean;
 }
 
-export function ItemLabel({ label, icon: Icon, detail }: Props) {
+export const ItemLabel = ({ label, icon: Icon, detail }: Props) => {
 	return (
 		<>
-			{Icon ? <Icon size={22} color={colors.muted} /> : null}
+			{/*아이콘*/}
+			{Icon && <Icon size={22} color={colors.muted} />}
+
+			{/*이름과 설명*/}
 			<View style={itemStyles.labels}>
 				<Copy style={itemStyles.label}>{label}</Copy>
-				{detail ? <Copy style={itemStyles.detail}>{detail}</Copy> : null}
+				{!!detail && <Copy style={itemStyles.detail}>{detail}</Copy>}
 			</View>
 		</>
 	);
-}
+};

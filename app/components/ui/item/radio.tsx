@@ -11,10 +11,10 @@ interface Props {
 	label: string;
 	selected: boolean;
 	first?: boolean;
-	onPress(): void;
+	onPress: () => void;
 }
 
-export function ItemRadio({ label, selected, first, onPress }: Props) {
+export const ItemRadio = ({ label, selected, first, onPress }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="radio"
@@ -27,11 +27,14 @@ export function ItemRadio({ label, selected, first, onPress }: Props) {
 			style={!first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
+			{/*이름*/}
 			<Copy style={[itemStyles.label, styles.label, selected && styles.labelSelected]}>{label}</Copy>
-			{selected ? <CheckMark color={colors.orangeDark} /> : null}
+
+			{/*고른 항목의 체크 표시*/}
+			{selected && <CheckMark color={colors.orangeDark} />}
 		</PressableSurface>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	label: { flex: 1 },

@@ -21,17 +21,23 @@ interface Props {
 	size?: number;
 }
 
-export function Mascot({ size = 120 }: Props) {
+/**
+ * 위아래로 떠다니며 좌우로 기우는 마스코트 그림을 보여 주는 컴포넌트
+ * @param size 그림의 가로세로 크기
+ */
+const Mascot = ({ size = 120 }: Props) => {
 	const { t } = useTranslation();
 
 	const reducedMotion = useReducedMotion();
 
 	const y = useSharedValue(0);
 	const rotation = useSharedValue(0);
+
 	const floatStyle = useAnimatedStyle(() => ({
 		transform: [{ translateY: y.get() }, { rotate: `${rotation.get()}deg` }],
 	}));
 
+	/** 움직임 줄이기 설정이 꺼져 있으면 떠다니고 기우는 애니메이션 반복 */
 	useEffect(() => {
 		if (reducedMotion) {
 			return;
@@ -58,7 +64,7 @@ export function Mascot({ size = 120 }: Props) {
 			accessible
 			accessibilityRole="image"
 			accessibilityLabel={t('common.mascot')}
-			style={[styles.frame, { width: size }, floatStyle]}
+			style={[styles.container, { width: size }, floatStyle]}
 		>
 			<Image
 				source={mascotImage}
@@ -68,9 +74,11 @@ export function Mascot({ size = 120 }: Props) {
 			/>
 		</Animated.View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
-	frame: { maxWidth: '100%', aspectRatio: 1, flexShrink: 0 },
+	container: { maxWidth: '100%', aspectRatio: 1, flexShrink: 0 },
 	image: { width: '100%', height: '100%' },
 });
+
+export default Mascot;

@@ -21,9 +21,9 @@ interface Props {
 }
 
 /**
- * 생일 선택 컴포넌트
+ * 고른 생일을 보여 주고 누르면 연, 월, 일 선택과 생일 모름 체크가 있는 시트를 여는 컴포넌트
  * @param value 고른 생일, 모름은 null, 고르기 전은 undefined
- * @param onChange 생일 변경 시 실행할 함수
+ * @param onChange 생일을 바꿀 때 실행할 함수
  */
 const BirthdatePicker = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();

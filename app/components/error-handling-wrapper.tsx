@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * 조회 실패와 불러오는 중 표시
+ * 안쪽 내용을 불러오는 동안 불러오는 중 표시를, 조회가 실패하면 오류 화면을 보여 주는 컴포넌트
  * @param children 조회하는 내용
  * @param fallbackComponent 조회 실패 시 표시할 컴포넌트
  * @param suspenseFallback 불러오는 중 표시할 내용
