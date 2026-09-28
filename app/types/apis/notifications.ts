@@ -1,25 +1,25 @@
-import { localDate, timestamp, uuid } from '@/types/apis/primitives';
+import { localDateSchema, timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
 const notificationKindSchema = z.enum(['mimicry', 'daily_summary', 'streak']);
 
 export const notificationSchema = z.object({
-	id: uuid,
+	id: uuidSchema,
 	kind: notificationKindSchema,
 	title: z.string(),
 	body: z.string(),
 	image: z.object({ url: z.string() }).nullable(),
-	sound_id: uuid.nullable(),
-	report_date: localDate.nullable(),
-	sent_at: timestamp,
-	read_at: timestamp.nullable(),
+	sound_id: uuidSchema.nullable(),
+	report_date: localDateSchema.nullable(),
+	sent_at: timestampSchema,
+	read_at: timestampSchema.nullable(),
 });
 
 export const pushDataSchema = z.object({
 	kind: notificationKindSchema,
-	report_date: localDate.optional(),
-	sent_at: timestamp,
+	report_date: localDateSchema.optional(),
+	sent_at: timestampSchema,
 });
 
 export type NotificationKind = z.infer<typeof notificationKindSchema>;

@@ -26,11 +26,11 @@ export function useConsentChecks(onSaved?: () => void): {
 	saveFailed: boolean;
 	save(): void;
 } {
+	const [checked, setChecked] = useState<Record<string, boolean>>({});
+
 	const query = useQuery(consentsQueryOptions());
 
 	const mutation = useIdempotentMutation(saveConsentMutationOptions());
-
-	const [checked, setChecked] = useState<Record<string, boolean>>({});
 
 	const consents = query.data ? latestConsents(query.data) : undefined;
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === 'granted';
@@ -52,7 +52,7 @@ export function useConsentChecks(onSaved?: () => void): {
 	async function saveDecisions(items: readonly Consent[]) {
 		for (const consent of items) {
 			await mutation.mutateAsync({
-				decision: {
+				data: {
 					consent_id: consent.id,
 					status: isChecked(consent) ? 'granted' : 'denied',
 				},

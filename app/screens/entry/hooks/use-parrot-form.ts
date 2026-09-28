@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { PARROT_NAME_LIMIT, type Parrot } from '@/types/apis/parrots';
+import type { Parrot } from '@/types/apis/parrots';
 
 import {
 	deleteParrotMutationOptions,
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
 
+import { PARROT_NAME_LIMIT } from '@/config';
 import { reportError } from '@/services/telemetry/client';
 import { saveWithPhoto } from '@/utils/save-with-photo';
 import { isSpeciesId } from '@/utils/species';
@@ -58,11 +59,6 @@ type ParrotForm = {
 export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): ParrotForm {
 	const { t } = useTranslation();
 
-	const mutation = useIdempotentMutation(saveParrotMutationOptions());
-	const photoUpload = useIdempotentMutation(uploadParrotPhotoMutationOptions());
-	const photoDelete = useIdempotentMutation(deleteParrotPhotoMutationOptions());
-	const removal = useIdempotentMutation(deleteParrotMutationOptions());
-
 	const known = parrot ? isSpeciesId(parrot.species) : false;
 	const savedPhotoUrl = parrot?.photo?.url ?? null;
 
@@ -75,6 +71,11 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 		birthday: false,
 	});
 	const [removing, setRemoving] = useState(false);
+
+	const mutation = useIdempotentMutation(saveParrotMutationOptions());
+	const photoUpload = useIdempotentMutation(uploadParrotPhotoMutationOptions());
+	const photoDelete = useIdempotentMutation(deleteParrotPhotoMutationOptions());
+	const removal = useIdempotentMutation(deleteParrotMutationOptions());
 
 	const photo = usePhotoPicker(savedPhotoUrl);
 

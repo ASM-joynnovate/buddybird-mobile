@@ -8,7 +8,7 @@ import { appUpdateQueryOptions } from '@/hooks/apis/app-update';
 
 import { useTranslation } from 'react-i18next';
 
-import { installedVersion, openStore } from '@/services/device/application';
+import { installedVersion, openAppStore } from '@/services/device/application';
 import { reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { evaluateUpdate } from '@/utils/update';
@@ -16,14 +16,14 @@ import { evaluateUpdate } from '@/utils/update';
 export function useUpdatePrompt() {
 	const { t } = useTranslation();
 
-	const preferences = useDeviceSettingsStore((state) => state.update);
-
-	const update = useQuery(appUpdateQueryOptions());
-
 	const [storeOpening, setStoreOpening] = useState(false);
 	const [acceptedUpdate, setAcceptedUpdate] = useState<string | null>(null);
 
 	const shownUpdate = useRef<string | null>(null);
+
+	const update = useQuery(appUpdateQueryOptions());
+
+	const preferences = useDeviceSettingsStore((state) => state.update);
 
 	const decision = update.data
 		? evaluateUpdate(
@@ -66,7 +66,7 @@ export function useUpdatePrompt() {
 				is_forced: decision.forced,
 			});
 
-			await openStore();
+			await openAppStore();
 
 			if (!decision.forced) {
 				setAcceptedUpdate(decision.latestVersion);

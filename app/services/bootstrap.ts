@@ -1,3 +1,5 @@
+import { mockPutLocale } from '@/apis/mock';
+
 import { initI18n } from '@/i18n';
 
 import { configureApi } from '@/lib/api';
@@ -6,7 +8,6 @@ import { takeRestoreErrors } from '@/lib/storage';
 import NetInfo from '@react-native-community/netinfo';
 import * as SplashScreen from 'expo-splash-screen';
 
-import { mockServer } from '@/mocks/server';
 import { accessToken, installUnauthorizedSignOut } from '@/services/auth/session';
 import { loadLegacy } from '@/services/migration/upload-legacy';
 import { getIsHeadless } from '@/services/push/background';
@@ -17,11 +18,11 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 const { ensureClientDeviceId } = useAccountStore.getState();
 const locale = () => useDeviceSettingsStore.getState().locale;
 
-configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, report: reportError });
+configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, reportError });
 
 installUnauthorizedSignOut();
 
-mockServer.configure(locale);
+mockPutLocale({ locale });
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
 

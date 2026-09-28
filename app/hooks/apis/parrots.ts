@@ -1,12 +1,12 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 
 import {
-	createParrot,
 	deleteParrot,
 	deleteParrotPhoto,
-	fetchParrots,
-	updateParrot,
-	uploadParrotPhoto,
+	getParrotList,
+	patchParrot,
+	postParrot,
+	putParrotPhoto,
 } from '@/apis/parrots';
 
 import type { CreateParrotRequest } from '@/types/apis/parrots';
@@ -14,7 +14,7 @@ import type { CreateParrotRequest } from '@/types/apis/parrots';
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 
-export const parrotsQueryOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: fetchParrots });
+export const parrotsQueryOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: getParrotList });
 
 export const saveParrotMutationOptions = () =>
 	mutationOptions({
@@ -27,7 +27,7 @@ export const saveParrotMutationOptions = () =>
 			id: string | null;
 			input: CreateParrotRequest;
 			idempotencyKey: string;
-		}) => (id ? updateParrot(id, input, idempotencyKey) : createParrot(input, idempotencyKey)),
+		}) => (id ? patchParrot({ id, data: input, idempotencyKey }) : postParrot({ data: input, idempotencyKey })),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
 
@@ -35,7 +35,7 @@ export const deleteParrotMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('parrots', 'delete'),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			deleteParrot(id, idempotencyKey),
+			deleteParrot({ id, idempotencyKey }),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
 
@@ -43,7 +43,7 @@ export const uploadParrotPhotoMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
 		mutationFn: ({ id, uri, idempotencyKey }: { id: string; uri: string; idempotencyKey: string }) =>
-			uploadParrotPhoto(id, uri, idempotencyKey),
+			putParrotPhoto({ id, uri, idempotencyKey }),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
 
@@ -51,6 +51,6 @@ export const deleteParrotPhotoMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'delete'),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			deleteParrotPhoto(id, idempotencyKey),
+			deleteParrotPhoto({ id, idempotencyKey }),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});

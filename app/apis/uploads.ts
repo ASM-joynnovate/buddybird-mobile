@@ -2,26 +2,42 @@ import { type Upload, uploadSchema } from '@/types/apis/uploads';
 
 import { mockServer } from '@/mocks/server';
 
-export async function issuePhotoUpload(): Promise<Upload> {
+export const putUserPhotoUpload = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<Upload> => {
 	return uploadSchema.parse(await mockServer.users.issuePhotoUpload());
-}
+};
 
-export async function issueParrotPhotoUpload(parrotId: string, _idempotencyKey: string): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.parrots.issuePhotoUpload(parrotId));
-}
+export const putParrotPhotoUpload = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<Upload> => {
+	return uploadSchema.parse(await mockServer.parrots.issuePhotoUpload(id));
+};
 
-export async function issueRecordingUpload(wordId: string, _idempotencyKey: string): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.words.issueRecordingUpload(wordId));
-}
+export const postWordRecordingUpload = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<Upload> => {
+	return uploadSchema.parse(await mockServer.words.issueRecordingUpload(id));
+};
 
-export async function issueSoundUpload(
-	sessionId: string,
-	capturedAt: string,
-	_idempotencyKey: string,
-): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.sessions.issueSoundUpload(sessionId, capturedAt));
-}
+export const postSessionSoundUpload = async ({
+	id,
+	data,
+	idempotencyKey,
+}: {
+	id: string;
+	data: { captured_at: string };
+	idempotencyKey: string;
+}): Promise<Upload> => {
+	return uploadSchema.parse(await mockServer.sessions.issueSoundUpload(id, data.captured_at));
+};
 
-export async function putUpload(upload: Upload, uri: string): Promise<void> {
+export const putUploadFile = async ({ upload, uri }: { upload: Upload; uri: string }): Promise<void> => {
 	await mockServer.uploads.put(upload.file_id, uri);
-}
+};

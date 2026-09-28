@@ -1,6 +1,6 @@
 import { mutationOptions } from '@tanstack/react-query';
 
-import { completeLogin, logout, withdraw } from '@/apis/auth';
+import { postLogin, postLogout, withdrawal } from '@/apis/auth';
 
 import type { LoginRequest } from '@/types/apis/auth';
 
@@ -10,7 +10,7 @@ export const loginMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('auth', 'login'),
 		mutationFn: ({ request, signal }: { request: LoginRequest; signal: AbortSignal }) =>
-			completeLogin(request, signal),
+			postLogin({ data: request, signal }),
 		retry: false,
 		meta: { skipUnauthorizedSignOut: true },
 	});
@@ -18,11 +18,11 @@ export const loginMutationOptions = () =>
 export const logoutMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('auth', 'logout'),
-		mutationFn: () => logout(),
+		mutationFn: () => postLogout(),
 	});
 
 export const withdrawMutationOptions = () =>
 	mutationOptions({
 		mutationKey: apiKeys.mutation('auth', 'withdraw'),
-		mutationFn: () => withdraw(),
+		mutationFn: () => withdrawal(),
 	});

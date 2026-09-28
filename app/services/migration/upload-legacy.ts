@@ -1,5 +1,5 @@
-import { createParrot, uploadParrotPhoto } from '@/apis/parrots';
-import { addWordRecording, createWord } from '@/apis/words';
+import { postParrot, putParrotPhoto } from '@/apis/parrots';
+import { postWord, postWordRecording } from '@/apis/words';
 
 import type { LegacyMigration, LegacySettings } from '@/types/device-settings';
 
@@ -187,10 +187,10 @@ async function uploadParrot(profile: LegacyProfile) {
 	const parrotId =
 		migration().parrotId ??
 		(
-			await createParrot(
-				{ name: profile.name, species: profile.species, birthdate: profile.birthDate },
-				randomUUID(),
-			)
+			await postParrot({
+				data: { name: profile.name, species: profile.species, birthdate: profile.birthDate },
+				idempotencyKey: randomUUID(),
+			})
 		).id;
 
 	updateMigration((current) => ({ ...current, parrotId }));
@@ -202,7 +202,7 @@ async function uploadParrot(profile: LegacyProfile) {
 	const photo = await existingFile(profile.photoUri, 'legacy_photo');
 
 	if (photo) {
-		await uploadParrotPhoto(parrotId, photo, randomUUID());
+		await putParrotPhoto({ id: parrotId, uri: photo, idempotencyKey: randomUUID() });
 	}
 
 	updateMigration((current) => ({ ...current, photoUploaded: true }));
@@ -227,11 +227,11 @@ async function uploadWord(word: LegacyWord) {
 		return;
 	}
 
-	const wordId = saved?.wordId ?? (await createWord(word.name, randomUUID())).id;
+	const wordId = saved?.wordId ?? (await postWord({ data: { name: word.name }, idempotencyKey: randomUUID() })).id;
 
 	recordWordProgress(word.id, { wordId, done: false });
 
-	await addWordRecording(wordId, recording, randomUUID());
+	await postWordRecording({ id: wordId, uri: recording, idempotencyKey: randomUUID() });
 
 	recordWordProgress(word.id, { wordId, done: true });
 }

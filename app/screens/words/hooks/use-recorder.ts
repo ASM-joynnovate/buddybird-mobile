@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { MAX_UPLOAD_BYTES } from '@/types/apis/uploads';
-
 import { RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { File } from 'expo-file-system';
 
-import { RECORDING_MAX_SECONDS } from '@/config';
+import { MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/config';
 import { reportError, track } from '@/services/telemetry/client';
 import { meteringLevel } from '@/utils/audio-waveform';
 import { SECOND } from '@/utils/units';

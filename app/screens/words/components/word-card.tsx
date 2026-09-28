@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { MAX_RECORDINGS, type Word } from '@/types/apis/words';
+import type { Word } from '@/types/apis/words';
 
 import type { SoundPlayer } from '@/hooks/use-sound-player';
 
@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { TrashIcon } from 'lucide-react-native';
 
+import { MAX_RECORDINGS } from '@/config';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
@@ -36,6 +37,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 
 	return (
 		<View>
+			{/*단어 카드*/}
 			<PressableSurface
 				depth="low"
 				onPress={onPress}
@@ -50,6 +52,7 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 				<Copy numberOfLines={1} style={styles.name}>
 					{word.name}
 				</Copy>
+
 				<View style={styles.meta}>
 					<View style={styles.dots}>
 						{Array.from({ length: MAX_RECORDINGS }, (_, index) => (
@@ -60,6 +63,8 @@ export function WordCard({ word, learning, player, onPress, onDelete }: Props): 
 					{count === 0 ? <Tag label={t('common.needsRecording')} tone="muted" /> : null}
 				</View>
 			</PressableSurface>
+
+			{/*삭제와 재생 버튼*/}
 			<View style={styles.actions}>
 				<IconButton
 					icon={TrashIcon}

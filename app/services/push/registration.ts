@@ -1,4 +1,4 @@
-import { registerPushToken } from '@/apis/devices';
+import { putPushToken } from '@/apis/devices';
 
 import { getMessaging, getToken } from '@react-native-firebase/messaging';
 import { randomUUID } from 'expo-crypto';
@@ -13,5 +13,5 @@ export async function sendPushToken(): Promise<void> {
 
 	const token = await getToken(getMessaging());
 
-	await registerPushToken(token, randomUUID());
+	await putPushToken({ data: { token }, idempotencyKey: randomUUID() });
 }

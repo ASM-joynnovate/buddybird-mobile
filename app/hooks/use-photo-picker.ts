@@ -1,13 +1,12 @@
 import { useState } from 'react';
 
-import { MAX_UPLOAD_BYTES, PHOTO_TYPES } from '@/types/apis/uploads';
-
 import { type PermissionDialogState, usePermission } from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
 import * as ImagePicker from 'expo-image-picker';
 
+import { MAX_UPLOAD_BYTES, PHOTO_MIME_TYPES } from '@/config';
 import { reportError } from '@/services/telemetry/client';
 
 const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
@@ -37,11 +36,11 @@ export function usePhotoPicker(initial: string | null): {
 } {
 	const { t } = useTranslation();
 
-	const libraryPermission = usePermission('photos');
-	const cameraPermission = usePermission('camera');
-
 	const [photoUri, setPhotoUri] = useState(initial);
 	const [error, setError] = useState<string | null>(null);
+
+	const libraryPermission = usePermission('photos');
+	const cameraPermission = usePermission('camera');
 
 	async function pick(source: 'camera' | 'library') {
 		try {
@@ -56,7 +55,7 @@ export function usePhotoPicker(initial: string | null): {
 
 			const asset = result.assets[0];
 
-			if (!PHOTO_TYPES.includes(photoType(asset))) {
+			if (!PHOTO_MIME_TYPES.includes(photoType(asset))) {
 				setError(t('entry.parrot.photoType'));
 			} else if ((asset.fileSize ?? 0) > MAX_UPLOAD_BYTES) {
 				setError(t('entry.parrot.photoSize'));

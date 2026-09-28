@@ -4,10 +4,16 @@ import { z } from 'zod';
 
 import { mockServer } from '@/mocks/server';
 
-export async function fetchConsents(): Promise<Consent[]> {
+export const getConsentList = async (): Promise<Consent[]> => {
 	return z.array(consentSchema).parse(await mockServer.consents.list());
-}
+};
 
-export async function saveConsent(decision: SaveConsentRequest, _idempotencyKey: string): Promise<void> {
-	await mockServer.consents.save(decision);
-}
+export const postConsent = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: SaveConsentRequest;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await mockServer.consents.save(data);
+};

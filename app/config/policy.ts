@@ -1,4 +1,4 @@
-import { DAY, HOUR, MINUTE, SECOND } from '@/utils/units';
+import { DAY, HOUR, MIB, MINUTE, SECOND } from '@/utils/units';
 
 export const API_TIMEOUT_MS = 30 * SECOND;
 
@@ -30,6 +30,16 @@ export const VAD = {
 export const UPLOAD_POLL_INTERVAL_MS = SECOND;
 export const UPLOAD_POLL_MAX_INTERVAL_MS = 10 * SECOND;
 export const RECORDING_MAX_SECONDS = 60;
+
+export const MAX_UPLOAD_BYTES = 5 * MIB;
+export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png'];
+
+export const MAX_RECORDINGS = 5;
+export const RECOMMENDED_RECORDINGS = 3;
+
+export const NICKNAME_PATTERN = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u;
+export const PARROT_NAME_LIMIT = 20;
+export const WORD_NAME_LIMIT = 50;
 
 export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const;
 

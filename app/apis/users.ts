@@ -1,21 +1,21 @@
-import { issuePhotoUpload, putUpload } from '@/apis/uploads';
+import { putUploadFile, putUserPhotoUpload } from '@/apis/uploads';
 
 import { type UpdateUserRequest, type User, userSchema } from '@/types/apis/users';
 
 import { mockServer } from '@/mocks/server';
 
-export async function fetchMe(): Promise<User> {
+export const getMe = async (): Promise<User> => {
 	return userSchema.parse(await mockServer.users.me());
-}
+};
 
-export async function updateMe(input: UpdateUserRequest): Promise<void> {
-	await mockServer.users.update(input);
-}
+export const patchMe = async ({ data }: { data: UpdateUserRequest }): Promise<void> => {
+	await mockServer.users.update(data);
+};
 
-export async function uploadPhoto(uri: string): Promise<void> {
-	await putUpload(await issuePhotoUpload(), uri);
-}
+export const putUserPhoto = async ({ uri, idempotencyKey }: { uri: string; idempotencyKey: string }): Promise<void> => {
+	await putUploadFile({ upload: await putUserPhotoUpload({ idempotencyKey }), uri });
+};
 
-export async function deletePhoto(): Promise<void> {
+export const deleteUserPhoto = async (): Promise<void> => {
 	await mockServer.users.deletePhoto();
-}
+};

@@ -2,8 +2,6 @@ import { type ReactElement, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { WORD_NAME_LIMIT } from '@/types/apis/words';
-
 import type { RootStackParamList, WordsStackParamList } from '@/types/navigation';
 
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -18,6 +16,7 @@ import { type RouteProp, useNavigation, useRoute } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TrashIcon } from 'lucide-react-native';
 
+import { WORD_NAME_LIMIT } from '@/config';
 import { DeleteWordDialog } from '@/screens/words/components/delete-word-dialog';
 import { RecordingsSection } from '@/screens/words/components/recordings-section';
 import { type DraftItem, useWordDraft, type WordDraft } from '@/screens/words/hooks/use-word-draft';
@@ -52,17 +51,17 @@ export function WordEditorScreen(): ReactElement {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const routeWordId = route.params?.wordId ?? null;
 
-	const guides = useDeviceSettingsStore((state) => state.guides);
+	const [pending, setPending] = useState<PendingDelete | null>(null);
 
 	const deleteWord = useIdempotentMutation(deleteWordMutationOptions());
+
+	const guides = useDeviceSettingsStore((state) => state.guides);
 
 	const microphone = usePermission('microphone');
 
 	const player = useSoundPlayer();
 
 	const draft = useWordDraft(routeWordId, route.params?.recorded);
-
-	const [pending, setPending] = useState<PendingDelete | null>(null);
 
 	const busy = draft.step !== null;
 	const wordName = draft.name.trim();
@@ -118,6 +117,7 @@ export function WordEditorScreen(): ReactElement {
 	} else {
 		body = (
 			<>
+				{/*단어 이름*/}
 				<TextField
 					label={t('words.editor.name')}
 					placeholder={t('words.editor.nameHint')}
@@ -127,6 +127,8 @@ export function WordEditorScreen(): ReactElement {
 					maxLength={WORD_NAME_LIMIT}
 					error={draft.nameMissing ? t('words.editor.nameRequired') : null}
 				/>
+
+				{/*녹음 목록*/}
 				<RecordingsSection
 					draft={draft}
 					player={player}
@@ -134,6 +136,8 @@ export function WordEditorScreen(): ReactElement {
 					onAdd={openRecorder}
 					onHelp={() => navigation.navigate('RecordingGuide', { source: 'help', wordName })}
 				/>
+
+				{/*저장*/}
 				<View style={styles.spacer} />
 				<InlineError message={draft.saveFailed ? t('words.editor.saveError') : null} />
 				<Button
@@ -152,6 +156,7 @@ export function WordEditorScreen(): ReactElement {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader
 				title={t(routeWordId ? 'words.editor.editTitle' : 'words.editor.addTitle')}
 				onBack={() => navigation.goBack()}
@@ -167,7 +172,11 @@ export function WordEditorScreen(): ReactElement {
 					) : null
 				}
 			/>
+
+			{/*단어 편집*/}
 			{body}
+
+			{/*삭제 확인 다이얼로그*/}
 			<DeleteWordDialog
 				visible={pending?.kind === 'word'}
 				name={wordName}
@@ -186,6 +195,8 @@ export function WordEditorScreen(): ReactElement {
 				onConfirm={confirmDelete}
 				onClose={closeDialog}
 			/>
+
+			{/*마이크 권한 다이얼로그*/}
 			<PermissionDialog state={microphone.dialog} />
 		</Screen>
 	);

@@ -45,7 +45,7 @@ import { OfflineBanner } from '@/components/offline-banner';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function linkPrefix() {
-	return `${env.production ? 'buddybird' : 'buddybird-dev'}://`;
+	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
 }
 
 function openPush(data: unknown): string | null {
@@ -125,10 +125,11 @@ function initialStateOf(
 }
 
 export function AppNavigator() {
-	const { route, parrotId, retry } = useEntryRoute();
-
 	const navigationRef = useNavigationContainerRef<RootStackParamList>();
+
 	const screenName = useRef<string | null>(null);
+
+	const { route, parrotId, retry } = useEntryRoute();
 
 	function recordScreen() {
 		const current = navigationRef.getCurrentRoute()?.name ?? null;
@@ -150,6 +151,7 @@ export function AppNavigator() {
 
 	return (
 		<>
+			{/*앱 화면*/}
 			<NavigationContainer
 				key={route}
 				ref={navigationRef}
@@ -165,6 +167,7 @@ export function AppNavigator() {
 						contentStyle: { backgroundColor: colors.background },
 					}}
 				>
+					{/*로그인과 온보딩 화면*/}
 					{route === 'Main' ? null : (
 						<Stack.Group>
 							<Stack.Screen name="Login" component={LoginScreen} />
@@ -175,6 +178,8 @@ export function AppNavigator() {
 							<Stack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
 						</Stack.Group>
 					)}
+
+					{/*메인 화면*/}
 					{route === 'Main' ? (
 						<Stack.Group>
 							<Stack.Screen name="Main" component={MainTabs} />
@@ -182,6 +187,7 @@ export function AppNavigator() {
 							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
 							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
+
 							<Stack.Screen
 								name="SessionRun"
 								component={SessionRunScreen}
@@ -200,12 +206,14 @@ export function AppNavigator() {
 									orientation: 'default',
 								}}
 							/>
+
 							<Stack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 							<Stack.Screen
 								name="Recorder"
 								component={RecorderScreen}
 								options={{ presentation: 'fullScreenModal' }}
 							/>
+
 							<Stack.Screen name="Settings" component={SettingsScreen} />
 							<Stack.Screen name="NoticeList" component={NoticeListScreen} />
 							<Stack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
@@ -215,6 +223,8 @@ export function AppNavigator() {
 					) : null}
 				</Stack.Navigator>
 			</NavigationContainer>
+
+			{/*오프라인 배너*/}
 			<OfflineBanner />
 		</>
 	);

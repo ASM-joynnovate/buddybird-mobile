@@ -10,7 +10,7 @@ type ApiDependencies = {
 	deviceId: () => string;
 	locale: () => string;
 	accessToken: () => Promise<string>;
-	report: (error: unknown, context: string) => void;
+	reportError: (error: unknown, scope: string) => void;
 };
 
 let dependencies: ApiDependencies | undefined;
@@ -19,11 +19,11 @@ export function configureApi(next: ApiDependencies) {
 	dependencies = next;
 }
 
-type QueryValue = string | number | boolean | undefined;
+type SearchParamValue = string | number | boolean | undefined;
 
 type ApiOptions = {
 	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-	query?: Record<string, QueryValue>;
+	searchParams?: Record<string, SearchParamValue>;
 	json?: unknown;
 	body?: FormData;
 	headers?: Record<string, string>;
@@ -41,18 +41,18 @@ export async function apiRequest<T>(
 ): Promise<{ data: T; meta: unknown }> {
 	const {
 		method = 'GET',
-		query,
+		searchParams,
 		json,
 		body,
-		headers: given,
+		headers: customHeaders,
 		idempotencyKey,
 		signal,
 		timeoutMs = API_TIMEOUT_MS,
 	} = options;
 
-	const origin = env.apiBaseUrl;
+	const baseUrl = env.apiBaseUrl;
 
-	if (!origin) {
+	if (!baseUrl) {
 		throw new ApiError(0, 'CLIENT__NETWORK', 'API base URL is not configured');
 	}
 
@@ -75,11 +75,11 @@ export async function apiRequest<T>(
 		headers.set('Content-Type', 'application/json');
 	}
 
-	for (const [name, value] of Object.entries(given ?? {})) {
+	for (const [name, value] of Object.entries(customHeaders ?? {})) {
 		headers.set(name, value);
 	}
 
-	const response = await send(`${origin}${path}${queryString(query)}`, {
+	const response = await send(`${baseUrl}${path}${queryString(searchParams)}`, {
 		method,
 		headers,
 		body: json === undefined ? body : JSON.stringify(json),
@@ -89,29 +89,29 @@ export async function apiRequest<T>(
 	const parsed = parseBody(response.text);
 
 	if (!response.ok) {
-		const failure = errorBodySchema.safeParse(parsed);
+		const errorBody = errorBodySchema.safeParse(parsed);
 
-		throw report(
-			failure.success
+		throw reportServerError(
+			errorBody.success
 				? new ApiError(
 						response.status,
-						knownErrorCode(failure.data.error_code),
-						failure.data.message,
+						knownErrorCode(errorBody.data.error_code),
+						errorBody.data.message,
 						response.requestId,
 						parsed,
 					)
-				: invalidResponse(response, parsed),
+				: invalidResponseError(response, parsed),
 		);
 	}
 
 	const envelope = envelopeSchema.safeParse(parsed ?? { message: '', data: null, meta: null });
-	const data = envelope.success ? schema.safeParse(envelope.data.data) : envelope;
+	const parsedData = envelope.success ? schema.safeParse(envelope.data.data) : envelope;
 
-	if (!envelope.success || !data.success) {
-		throw report(invalidResponse(response, parsed));
+	if (!envelope.success || !parsedData.success) {
+		throw reportServerError(invalidResponseError(response, parsed));
 	}
 
-	return { data: data.data, meta: envelope.data.meta };
+	return { data: parsedData.data, meta: envelope.data.meta };
 }
 
 export function apiErrorMessage(error: unknown, t: TFunction): string {
@@ -126,10 +126,10 @@ function knownErrorCode(code: string): ApiErrorCode {
 	return apiErrorCodes.find((known) => known === code) ?? 'CLIENT__UNKNOWN_ERROR';
 }
 
-function queryString(query: Record<string, QueryValue> | undefined) {
+function queryString(searchParams: Record<string, SearchParamValue> | undefined) {
 	const params = new URLSearchParams();
 
-	for (const [name, value] of Object.entries(query ?? {})) {
+	for (const [name, value] of Object.entries(searchParams ?? {})) {
 		if (value !== undefined) {
 			params.set(name, String(value));
 		}
@@ -148,9 +148,9 @@ type SendOptions = {
 	timeoutMs: number;
 };
 
-type Received = { ok: boolean; status: number; requestId: string | null; text: string };
+type RawResponse = { ok: boolean; status: number; requestId: string | null; text: string };
 
-async function send(url: string, options: SendOptions): Promise<Received> {
+async function send(url: string, options: SendOptions): Promise<RawResponse> {
 	const { signal, timeoutMs, ...init } = options;
 	const controller = new AbortController();
 	let timedOut = false;
@@ -204,7 +204,7 @@ function parseBody(text: string): unknown {
 	}
 }
 
-function invalidResponse(response: Received, body: unknown) {
+function invalidResponseError(response: RawResponse, body: unknown) {
 	return new ApiError(
 		response.status,
 		'CLIENT__INVALID_RESPONSE',
@@ -214,13 +214,13 @@ function invalidResponse(response: Received, body: unknown) {
 	);
 }
 
-function report(error: ApiError) {
+function reportServerError(error: ApiError) {
 	if (
 		error.status >= SERVER_ERROR_STATUS ||
 		error.code === 'CLIENT__INVALID_RESPONSE' ||
 		error.code === 'CLIENT__UNKNOWN_ERROR'
 	) {
-		dependencies?.report(error, `api:${error.requestId ?? '-'}`);
+		dependencies?.reportError(error, `api:${error.requestId ?? '-'}`);
 	}
 
 	return error;

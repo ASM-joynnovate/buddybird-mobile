@@ -4,14 +4,26 @@ import { z } from 'zod';
 
 import { mockServer } from '@/mocks/server';
 
-export async function fetchDevices(): Promise<Device[]> {
+export const getDeviceList = async (): Promise<Device[]> => {
 	return z.array(deviceSchema).parse(await mockServer.devices.list());
-}
+};
 
-export async function registerDevice(input: RegisterDeviceRequest, _idempotencyKey: string): Promise<Device> {
-	return deviceSchema.parse(await mockServer.devices.register(input));
-}
+export const putDevice = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: RegisterDeviceRequest;
+	idempotencyKey: string;
+}): Promise<Device> => {
+	return deviceSchema.parse(await mockServer.devices.register(data));
+};
 
-export async function registerPushToken(token: string, _idempotencyKey: string): Promise<Device> {
-	return deviceSchema.parse(await mockServer.devices.updatePushToken(token));
-}
+export const putPushToken = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: { token: string };
+	idempotencyKey: string;
+}): Promise<Device> => {
+	return deviceSchema.parse(await mockServer.devices.updatePushToken(data.token));
+};

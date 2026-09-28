@@ -2,14 +2,13 @@ import type { ReactElement } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from '@/types/apis/words';
-
 import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
 import { CircleQuestionMarkIcon, MicIcon } from 'lucide-react-native';
 
+import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from '@/config';
 import { RecordingItem } from '@/screens/words/components/recordings-section/recording-item';
 import type { DraftItem, WordDraft } from '@/screens/words/hooks/use-word-draft';
 import { colors, font } from '@/theme';
@@ -36,6 +35,7 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 
 	return (
 		<View style={ui.section}>
+			{/*제목과 도움말 버튼*/}
 			<View style={styles.header}>
 				<Copy accessibilityRole="header" style={styles.title}>
 					{t('words.editor.recordings', { count: items.length })}
@@ -47,6 +47,8 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 					onPress={onHelp}
 				/>
 			</View>
+
+			{/*녹음 목록*/}
 			{items.map((item, index) => {
 				const deletable = !disabled && !(item.kind === 'server' && draft.serverCount <= 1);
 
@@ -60,8 +62,12 @@ export function RecordingsSection({ draft, player, onDelete, onAdd, onHelp }: Pr
 					/>
 				);
 			})}
+
+			{/*오류 안내*/}
 			<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 			<InlineError message={draft.missingRecording ? t('words.editor.recordingRequired') : null} />
+
+			{/*녹음 추가 버튼과 권장 개수 안내*/}
 			{items.length < MAX_RECORDINGS ? (
 				<Button
 					label={t('words.editor.addRecording')}

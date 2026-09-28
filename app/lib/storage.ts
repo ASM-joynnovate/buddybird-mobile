@@ -34,9 +34,9 @@ export function restoreOptions<S>({
 	storeName,
 }: RestoreTarget<S>): Pick<PersistOptions<S>, 'merge' | 'onRehydrateStorage'> {
 	return {
-		merge: (persisted, current) => {
+		merge: (persisted, currentState) => {
 			if (persisted === undefined) {
-				return current;
+				return currentState;
 			}
 
 			const parsed = schema.safeParse(persisted);
@@ -44,10 +44,10 @@ export function restoreOptions<S>({
 			if (!parsed.success) {
 				recordRestoreError(parsed.error, storeName);
 
-				return current;
+				return currentState;
 			}
 
-			return { ...current, ...parsed.data };
+			return { ...currentState, ...parsed.data };
 		},
 
 		onRehydrateStorage: () => (_state, error) => {

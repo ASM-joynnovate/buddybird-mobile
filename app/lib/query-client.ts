@@ -12,8 +12,8 @@ export function setUnauthorizedHandler(handler: () => void) {
 	onUnauthorized = handler;
 }
 
-const retryPolicy = (count: number, error: unknown) =>
-	count < MAX_RETRIES && error instanceof ApiError && error.retryable;
+const retryPolicy = (failureCount: number, error: unknown) =>
+	failureCount < MAX_RETRIES && error instanceof ApiError && error.retryable;
 
 function handleUnauthorized(error: unknown) {
 	if (error instanceof ApiError && error.status === UNAUTHORIZED_STATUS) {

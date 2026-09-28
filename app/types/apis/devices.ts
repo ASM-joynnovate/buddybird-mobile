@@ -1,12 +1,12 @@
-import { timestamp, uuid } from '@/types/apis/primitives';
+import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
 export const deviceSchema = z.object({
-	id: uuid,
-	client_device_id: uuid,
+	id: uuidSchema,
+	client_device_id: uuidSchema,
 	timezone: z.string().nullable(),
-	last_seen_at: timestamp.nullable(),
+	last_seen_at: timestampSchema.nullable(),
 	client: z.object({
 		platform: z.string(),
 		os_version: z.string(),
@@ -17,7 +17,7 @@ export const deviceSchema = z.object({
 });
 
 const registerDeviceRequestSchema = z.object({
-	client_device_id: uuid,
+	client_device_id: uuidSchema,
 	platform: z.string().min(1).max(10),
 	os_version: z.string().min(1).max(20),
 	model: z.string().min(1).max(100),

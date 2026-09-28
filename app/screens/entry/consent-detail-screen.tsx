@@ -50,7 +50,7 @@ export function ConsentDetailScreen() {
 		}
 
 		mutation.mutate(
-			{ decision: { consent_id: consent.id, status: 'granted' } },
+			{ data: { consent_id: consent.id, status: 'granted' } },
 			{ onSuccess: () => navigation.goBack() },
 		);
 	}
@@ -78,7 +78,10 @@ export function ConsentDetailScreen() {
 				) : undefined
 			}
 		>
+			{/*헤더*/}
 			<ScreenHeader title={consent?.title} onBack={() => navigation.goBack()} />
+
+			{/*약관 본문*/}
 			{body()}
 		</Screen>
 	);

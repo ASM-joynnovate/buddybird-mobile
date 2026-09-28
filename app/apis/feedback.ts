@@ -2,6 +2,12 @@ import { type CreateFeedbackRequest, type Feedback, feedbackSchema } from '@/typ
 
 import { mockServer } from '@/mocks/server';
 
-export async function submitFeedback(input: CreateFeedbackRequest, _idempotencyKey: string): Promise<Feedback> {
-	return feedbackSchema.parse(await mockServer.feedback.create(input.message));
-}
+export const postFeedback = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: CreateFeedbackRequest;
+	idempotencyKey: string;
+}): Promise<Feedback> => {
+	return feedbackSchema.parse(await mockServer.feedback.create(data.message));
+};

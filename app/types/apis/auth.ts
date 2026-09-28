@@ -1,4 +1,4 @@
-import { uuid } from '@/types/apis/primitives';
+import { uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
@@ -8,9 +8,9 @@ const loginRequestSchema = z.object({
 	language: z.enum(['ko', 'en']),
 });
 
-export const loginSchema = z.object({ user_id: uuid, is_new_user: z.boolean() });
+export const loginResultSchema = z.object({ user_id: uuidSchema, is_new_user: z.boolean() });
 
-export const withdrawalSchema = z.object({ user_id: uuid });
+export const withdrawalSchema = z.object({ user_id: uuidSchema });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
-export type Login = z.infer<typeof loginSchema>;
+export type LoginResult = z.infer<typeof loginResultSchema>;

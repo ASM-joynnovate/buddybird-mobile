@@ -1,11 +1,9 @@
-import { uuid } from '@/types/apis/primitives';
+import { uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
-export const NICKNAME_PATTERN = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u;
-
 export const userSchema = z.object({
-	id: uuid,
+	id: uuidSchema,
 	email: z.string().nullable(),
 	nickname: z.string().nullable(),
 	photo: z.object({ url: z.string() }).nullable(),

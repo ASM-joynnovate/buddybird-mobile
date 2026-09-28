@@ -13,7 +13,7 @@ type LinkResult = 'linked' | 'exists' | 'cancelled';
 type OAuthProvider = Exclude<LoginProvider, 'apple'>;
 
 function redirectTo() {
-	return `${env.production ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
+	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
 }
 
 function oauthOptions(provider: OAuthProvider) {

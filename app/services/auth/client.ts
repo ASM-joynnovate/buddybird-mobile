@@ -1,3 +1,12 @@
+import {
+	mockGetIdentityLinked,
+	mockGetSession,
+	mockPostLinkIdentity,
+	mockPostSignIn,
+	mockPostSignUp,
+	mockPutSessionUser,
+} from '@/apis/auth';
+
 import { loginProviderSchema } from '@/types/account';
 
 import {
@@ -11,7 +20,6 @@ import {
 import type { AppleAuthenticationCredential, AppleAuthenticationSignInOptions } from 'expo-apple-authentication';
 import type { WebBrowserAuthSessionResult } from 'expo-web-browser';
 
-import { mockServer } from '@/mocks/server';
 import { useAccountStore } from '@/stores/account';
 import { HOUR, SECOND } from '@/utils/units';
 
@@ -29,7 +37,7 @@ type AuthClient = Pick<
 	| 'stopAutoRefresh'
 >;
 
-type MockSession = ReturnType<typeof mockServer.auth.restore>;
+type MockSession = ReturnType<typeof mockGetSession>;
 
 type Listener = (event: AuthChangeEvent, session: Session | null) => void;
 
@@ -60,7 +68,7 @@ function currentSession() {
 	if (current === undefined) {
 		const { registeredUser, isAnonymous } = useAccountStore.getState();
 
-		current = registeredUser ? toSession(mockServer.auth.restore(registeredUser, isAnonymous)) : null;
+		current = registeredUser ? toSession(mockGetSession({ authUserId: registeredUser, isAnonymous })) : null;
 	}
 
 	return current;
@@ -69,7 +77,7 @@ function currentSession() {
 function change(event: AuthChangeEvent, session: Session | null) {
 	current = session;
 
-	mockServer.auth.use(session?.user.id ?? null);
+	mockPutSessionUser({ authUserId: session?.user.id ?? null });
 
 	for (const listener of listeners) {
 		listener(event, session);
@@ -77,7 +85,7 @@ function change(event: AuthChangeEvent, session: Session | null) {
 }
 
 async function signInWith(provider: string) {
-	const session = toSession(await mockServer.auth.signIn(loginProviderSchema.parse(provider)));
+	const session = toSession(await mockPostSignIn({ provider: loginProviderSchema.parse(provider) }));
 
 	change('SIGNED_IN', session);
 
@@ -85,7 +93,7 @@ async function signInWith(provider: string) {
 }
 
 async function linkWith(provider: string) {
-	const linked = await mockServer.auth.linkIdentity(loginProviderSchema.parse(provider));
+	const linked = await mockPostLinkIdentity({ provider: loginProviderSchema.parse(provider) });
 
 	if (!linked) {
 		return {
@@ -123,7 +131,7 @@ const mockAuth = {
 	},
 
 	signInAnonymously: async () => {
-		const session = toSession(await mockServer.auth.signUpAnonymous());
+		const session = toSession(await mockPostSignUp());
 
 		change('SIGNED_IN', session);
 
@@ -143,7 +151,7 @@ const mockAuth = {
 		}
 
 		const { provider, options } = credentials;
-		const conflict = await mockServer.auth.isLinkedElsewhere(loginProviderSchema.parse(provider));
+		const conflict = await mockGetIdentityLinked({ provider: loginProviderSchema.parse(provider) });
 		const query = conflict ? 'error=server_error&error_code=identity_already_exists' : `code=link.${provider}`;
 
 		return { data: { provider, url: `${options?.redirectTo ?? ''}?${query}` }, error: null };

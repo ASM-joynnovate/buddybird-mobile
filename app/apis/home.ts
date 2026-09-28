@@ -1,19 +1,19 @@
-import { fetchNotices } from '@/apis/notices';
-import { fetchNotifications } from '@/apis/notifications';
-import { fetchRunningSession } from '@/apis/sessions';
+import { getNoticeList } from '@/apis/notices';
+import { getNotificationList } from '@/apis/notifications';
+import { getRunningSession } from '@/apis/sessions';
 
 import type { HomeSummary } from '@/types/apis/home';
 
-export async function fetchHomeSummary(): Promise<HomeSummary> {
-	const [runningSession, notifications, notices] = await Promise.all([
-		fetchRunningSession(),
-		fetchNotifications(1),
-		fetchNotices(1),
+export const getHomeSummary = async (): Promise<HomeSummary> => {
+	const [runningSession, notificationPage, noticePage] = await Promise.all([
+		getRunningSession(),
+		getNotificationList({ page: 1 }),
+		getNoticeList({ page: 1 }),
 	]);
 
 	return {
 		running_session: runningSession,
-		unread_notification_count: notifications.data.filter((item) => !item.read_at).length,
-		unread_notices: notices.data.filter((notice) => !notice.is_read),
+		unread_notification_count: notificationPage.data.filter((notification) => !notification.read_at).length,
+		unread_notices: noticePage.data.filter((notice) => !notice.is_read),
 	};
-}
+};

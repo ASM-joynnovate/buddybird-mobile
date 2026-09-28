@@ -1,22 +1,22 @@
-import { timestamp, uuid } from '@/types/apis/primitives';
+import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
 const consentStatusSchema = z.enum(['granted', 'denied']);
 
 export const consentSchema = z.object({
-	id: uuid,
+	id: uuidSchema,
 	kind: z.string(),
 	version: z.number().int().positive(),
 	title: z.string(),
 	body: z.string(),
 	is_required: z.boolean(),
-	published_at: timestamp,
+	published_at: timestampSchema,
 	status: consentStatusSchema.nullable(),
 });
 
 const saveConsentRequestSchema = z.object({
-	consent_id: uuid,
+	consent_id: uuidSchema,
 	status: consentStatusSchema,
 });
 

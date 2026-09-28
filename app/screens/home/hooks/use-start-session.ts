@@ -23,11 +23,11 @@ export function useStartSession(
 ): StartSessionState {
 	const queryClient = useQueryClient();
 
-	const mutation = useIdempotentMutation(startSessionMutationOptions());
-	const finishing = useIdempotentMutation(finishSessionMutationOptions());
-
 	const [pending, setPending] = useState<SessionDraft | null>(null);
 	const [takeoverOpen, setTakeoverOpen] = useState(false);
+
+	const mutation = useIdempotentMutation(startSessionMutationOptions());
+	const finishing = useIdempotentMutation(finishSessionMutationOptions());
 
 	function start(draft: SessionDraft) {
 		const endsAt = draft.duration.ms === null ? null : Date.now() + draft.duration.ms;
@@ -37,7 +37,7 @@ export function useStartSession(
 
 		mutation.mutate(
 			{
-				input: {
+				data: {
 					word_id: draft.wordId,
 					ends_at: endsAt === null ? null : new Date(endsAt).toISOString(),
 					sleep: draft.sleep,

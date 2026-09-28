@@ -37,7 +37,7 @@ export function ConsentSettingsScreen() {
 		}
 
 		mutation.mutate({
-			decision: {
+			data: {
 				consent_id: consent.id,
 				status: consent.status === 'granted' ? 'denied' : 'granted',
 			},
@@ -55,6 +55,7 @@ export function ConsentSettingsScreen() {
 
 		return (
 			<>
+				{/*동의 항목 목록*/}
 				<GroupedList>
 					{latestConsents(query.data).map((consent, index) => (
 						<ConsentItem
@@ -74,6 +75,8 @@ export function ConsentSettingsScreen() {
 						/>
 					))}
 				</GroupedList>
+
+				{/*저장 실패 안내*/}
 				<InlineError message={mutation.isError ? t('settings.consents.saveError') : null} />
 			</>
 		);
@@ -81,7 +84,10 @@ export function ConsentSettingsScreen() {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader title={t('settings.consents.title')} onBack={() => navigation.goBack()} />
+
+			{/*동의 항목*/}
 			{body()}
 		</Screen>
 	);

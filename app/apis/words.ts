@@ -1,4 +1,4 @@
-import { issueRecordingUpload, putUpload } from '@/apis/uploads';
+import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
 
 import { type Word, wordSchema } from '@/types/apis/words';
 
@@ -6,30 +6,60 @@ import { z } from 'zod';
 
 import { mockServer } from '@/mocks/server';
 
-export async function fetchWords(): Promise<Word[]> {
+export const getWordList = async (): Promise<Word[]> => {
 	return z.array(wordSchema).parse(await mockServer.words.list());
-}
+};
 
-export async function fetchWord(id: string): Promise<Word> {
+export const getWord = async ({ id }: { id: string }): Promise<Word> => {
 	return wordSchema.parse(await mockServer.words.get(id));
-}
+};
 
-export async function createWord(name: string, _idempotencyKey: string): Promise<Word> {
-	return wordSchema.parse(await mockServer.words.create(name));
-}
+export const postWord = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: { name: string };
+	idempotencyKey: string;
+}): Promise<Word> => {
+	return wordSchema.parse(await mockServer.words.create(data.name));
+};
 
-export async function renameWord(id: string, name: string, _idempotencyKey: string): Promise<Word> {
-	return wordSchema.parse(await mockServer.words.update(id, name));
-}
+export const patchWord = async ({
+	id,
+	data,
+	idempotencyKey,
+}: {
+	id: string;
+	data: { name: string };
+	idempotencyKey: string;
+}): Promise<Word> => {
+	return wordSchema.parse(await mockServer.words.update(id, data.name));
+};
 
-export async function deleteWord(id: string, _idempotencyKey: string): Promise<void> {
+export const deleteWord = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
 	await mockServer.words.remove(id);
-}
+};
 
-export async function addWordRecording(wordId: string, uri: string, idempotencyKey: string): Promise<void> {
-	await putUpload(await issueRecordingUpload(wordId, idempotencyKey), uri);
-}
+export const postWordRecording = async ({
+	id,
+	uri,
+	idempotencyKey,
+}: {
+	id: string;
+	uri: string;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await putUploadFile({ upload: await postWordRecordingUpload({ id, idempotencyKey }), uri });
+};
 
-export async function deleteWordRecording(wordId: string, recordingId: string, _idempotencyKey: string): Promise<void> {
-	await mockServer.words.removeRecording(wordId, recordingId);
-}
+export const deleteWordRecording = async ({
+	id,
+	recordingId,
+	idempotencyKey,
+}: {
+	id: string;
+	recordingId: string;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await mockServer.words.removeRecording(id, recordingId);
+};

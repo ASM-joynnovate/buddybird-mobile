@@ -20,9 +20,9 @@ type HeartbeatInput = {
 };
 
 export function useHeartbeat({ sessionId, startedAt, sleep, summaries, onEnded }: HeartbeatInput): void {
-	const { mutate } = useIdempotentMutation(heartbeatMutationOptions());
-
 	const latest = useRef({ startedAt, sleep, summaries, onEnded });
+
+	const { mutate } = useIdempotentMutation(heartbeatMutationOptions());
 
 	useEffect(() => {
 		latest.current = { startedAt, sleep, summaries, onEnded };
@@ -39,7 +39,7 @@ export function useHeartbeat({ sessionId, startedAt, sleep, summaries, onEnded }
 			mutate(
 				{
 					id: sessionId,
-					input: {
+					data: {
 						current_phase: span?.phase ?? null,
 						phase_started_at: span ? new Date(span.start).toISOString() : null,
 						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

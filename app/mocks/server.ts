@@ -1,8 +1,8 @@
 import { ApiError } from '@/types/apis/common';
-import { MAX_RECORDINGS } from '@/types/apis/words';
 
 import { randomUUID } from 'expo-crypto';
 
+import { MAX_RECORDINGS } from '@/config';
 import { currentSpan } from '@/mocks/phases';
 import {
 	type Database,

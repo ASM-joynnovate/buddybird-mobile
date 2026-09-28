@@ -1,42 +1,42 @@
 import { useAccountStore } from '@/stores/account';
 
-const scope = () => ['api', useAccountStore.getState().registeredUser] as const;
+const userKeyPrefix = () => ['api', useAccountStore.getState().registeredUser] as const;
 
 export const apiKeys = {
 	all: () => ['api'] as const,
 	appUpdate: () => ['api', 'app-update'] as const,
-	me: () => [...scope(), 'users', 'me'] as const,
-	settings: () => [...scope(), 'users', 'me', 'settings'] as const,
+	me: () => [...userKeyPrefix(), 'users', 'me'] as const,
+	settings: () => [...userKeyPrefix(), 'users', 'me', 'settings'] as const,
 	consents: {
-		all: () => [...scope(), 'users', 'me', 'consents'] as const,
+		all: () => [...userKeyPrefix(), 'users', 'me', 'consents'] as const,
 	},
-	devices: () => [...scope(), 'devices'] as const,
+	devices: () => [...userKeyPrefix(), 'devices'] as const,
 	parrots: {
-		all: () => [...scope(), 'parrots'] as const,
+		all: () => [...userKeyPrefix(), 'parrots'] as const,
 	},
 	words: {
-		all: () => [...scope(), 'words'] as const,
-		detail: (id: string) => [...scope(), 'words', id] as const,
+		all: () => [...userKeyPrefix(), 'words'] as const,
+		detail: (id: string) => [...userKeyPrefix(), 'words', id] as const,
 	},
 	sessions: {
-		all: () => [...scope(), 'sessions'] as const,
-		running: () => [...scope(), 'sessions', 'running'] as const,
-		detail: (id: string) => [...scope(), 'sessions', id] as const,
-		sounds: (id: string) => [...scope(), 'sessions', id, 'sounds'] as const,
+		all: () => [...userKeyPrefix(), 'sessions'] as const,
+		running: () => [...userKeyPrefix(), 'sessions', 'running'] as const,
+		detail: (id: string) => [...userKeyPrefix(), 'sessions', id] as const,
+		sounds: (id: string) => [...userKeyPrefix(), 'sessions', id, 'sounds'] as const,
 	},
-	home: () => [...scope(), 'home'] as const,
-	notifications: () => [...scope(), 'notifications'] as const,
+	home: () => [...userKeyPrefix(), 'home'] as const,
+	notifications: () => [...userKeyPrefix(), 'notifications'] as const,
 	reports: {
-		all: () => [...scope(), 'reports'] as const,
-		detail: (period: string, start: string) => [...scope(), 'reports', period, start] as const,
+		all: () => [...userKeyPrefix(), 'reports'] as const,
+		detail: (period: string, start: string) => [...userKeyPrefix(), 'reports', period, start] as const,
 	},
 	notices: {
-		all: () => [...scope(), 'notices'] as const,
-		list: () => [...scope(), 'notices', 'list'] as const,
-		detail: (id: string) => [...scope(), 'notices', id] as const,
+		all: () => [...userKeyPrefix(), 'notices'] as const,
+		list: () => [...userKeyPrefix(), 'notices', 'list'] as const,
+		detail: (id: string) => [...userKeyPrefix(), 'notices', id] as const,
 	},
 	recordings: {
-		duration: (id: string) => [...scope(), 'recordings', id, 'duration'] as const,
+		duration: (id: string) => [...userKeyPrefix(), 'recordings', id, 'duration'] as const,
 	},
 	mutation: (...parts: string[]) => ['api', ...parts] as const,
 };

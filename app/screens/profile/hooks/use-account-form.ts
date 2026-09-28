@@ -2,8 +2,9 @@ import { useState } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
 
-import { NICKNAME_PATTERN, type User } from '@/types/apis/users';
+import type { User } from '@/types/apis/users';
 
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 import { deletePhotoMutationOptions, updateMeMutationOptions, uploadPhotoMutationOptions } from '@/hooks/apis/users';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 
@@ -11,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
 
+import { NICKNAME_PATTERN } from '@/config';
 import { reportError } from '@/services/telemetry/client';
 import { isDuplicateNickname } from '@/utils/duplicate-nickname';
 import { saveWithPhoto } from '@/utils/save-with-photo';
@@ -29,16 +31,16 @@ export function useAccountForm(
 } {
 	const { t } = useTranslation();
 
+	const [nickname, setNickname] = useState(user.nickname ?? '');
+	const [invalid, setInvalid] = useState(false);
+
 	const mutation = useMutation(updateMeMutationOptions());
-	const photoUpload = useMutation(uploadPhotoMutationOptions());
+	const photoUpload = useIdempotentMutation(uploadPhotoMutationOptions());
 	const photoDelete = useMutation(deletePhotoMutationOptions());
 
 	const savedPhotoUrl = user.photo?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
-
-	const [nickname, setNickname] = useState(user.nickname ?? '');
-	const [invalid, setInvalid] = useState(false);
 
 	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending;
 	const photoSaveFailed = photoUpload.isError || photoDelete.isError;
@@ -68,7 +70,7 @@ export function useAccountForm(
 			photoUri: photo.photoUri,
 			savedPhotoUrl,
 			saveInfo: () => mutation.mutateAsync({ nickname: trimmed }),
-			uploadPhoto: (_saved, uri) => photoUpload.mutateAsync(uri),
+			uploadPhoto: (_saved, uri) => photoUpload.mutateAsync({ uri }),
 			deletePhoto: () => photoDelete.mutateAsync(),
 			onDone: onSaved,
 		}).catch((error: unknown) => {
