@@ -2,8 +2,8 @@ import type { PromptedUpdate, UpdatePolicy } from '@/types/update';
 
 const VERSION_PARTS = 3;
 
-function versionParts(value: string): number[] | null {
-	const match = /^[vV]?(\d+(?:\.\d+){0,2})(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(value.trim());
+function versionParts(version: string): number[] | null {
+	const match = /^[vV]?(\d+(?:\.\d+){0,2})(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(version.trim());
 
 	if (!match) {
 		return null;
@@ -31,22 +31,27 @@ function compareVersions(a: string, b: string): number | null {
 	return 0;
 }
 
-export function evaluateUpdate(policy: UpdatePolicy, installed: string, dismissed: string | null): PromptedUpdate {
-	if (!policy.latestVersion || compareVersions(installed, policy.latestVersion) === null) {
+export function evaluateUpdate(
+	policy: UpdatePolicy,
+	installedVersion: string,
+	dismissedVersion: string | null,
+): PromptedUpdate {
+	if (!policy.latestVersion || compareVersions(installedVersion, policy.latestVersion) === null) {
 		return null;
 	}
 
-	const minimum = policy.minimumVersion ? compareVersions(installed, policy.minimumVersion) : 0;
+	const comparedToMinimum = policy.minimumVersion ? compareVersions(installedVersion, policy.minimumVersion) : 0;
 
-	if (minimum === null) {
+	if (comparedToMinimum === null) {
 		return null;
 	}
 
-	const forced = minimum < 0;
+	const forced = comparedToMinimum < 0;
 
 	if (
 		!forced &&
-		((compareVersions(installed, policy.latestVersion) ?? 0) >= 0 || dismissed === policy.latestVersion)
+		((compareVersions(installedVersion, policy.latestVersion) ?? 0) >= 0 ||
+			dismissedVersion === policy.latestVersion)
 	) {
 		return null;
 	}

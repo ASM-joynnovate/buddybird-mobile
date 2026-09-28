@@ -34,5 +34,5 @@ const styles = StyleSheet.create({
 	textButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 0 },
 	textButtonLabel: { fontFamily: font.extraBold, fontSize: 15, color: colors.orangeDark },
 	muted: { color: colors.muted },
-	disabled: { color: colors.disabled },
+	disabled: { color: colors.subtle },
 });

@@ -8,7 +8,7 @@ import { type RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { ParrotEditorForm } from '@/screens/onboarding/components/parrot-editor-form';
-import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -22,19 +22,19 @@ export function ParrotEditorScreen() {
 	const parrotId = params?.parrotId;
 	const fromOnboarding = params?.source === 'onboarding';
 	const canGoBack = navigation.canGoBack();
-	const parrot = parrotId ? parrotListData.find((item) => item.id === parrotId) : undefined;
+	const parrot = parrotId ? parrotListData.find(({ id }) => id === parrotId) : undefined;
 
 	useFocusEffect(
 		useCallback(() => {
 			if (fromOnboarding) {
-				viewOnboardingStep('parrot');
+				trackOnboardingStepViewed('parrot');
 			}
 		}, [fromOnboarding]),
 	);
 
 	function done() {
 		if (fromOnboarding) {
-			completeOnboardingStep('parrot');
+			trackOnboardingStepCompleted('parrot');
 
 			if (parrotId) {
 				navigation.navigate('UsageGuide');

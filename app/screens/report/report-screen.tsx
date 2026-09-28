@@ -28,7 +28,7 @@ export function ReportScreen(): ReactElement {
 	}, [route.params, setPeriodFromParams]);
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={styles.container}>
 				{/*리포트와 세션 목록*/}
 				<ErrorHandlingWrapper

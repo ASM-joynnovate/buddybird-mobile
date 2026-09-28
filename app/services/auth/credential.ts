@@ -7,20 +7,20 @@ import { useAccountStore } from '@/stores/account';
 
 type LoginCredential = Pick<LoginRequest, 'google' | 'apple'>;
 
-let appleCredential: LoginCredential | undefined;
+let appleLoginCredential: LoginCredential | undefined;
 
-export function setAppleCredential(authorizationCode: string) {
+export function setAppleLoginCredential(authorizationCode: string) {
 	const clientId = Application.applicationId;
 
 	if (clientId) {
-		appleCredential = { apple: { client_id: clientId, authorization_code: authorizationCode } };
+		appleLoginCredential = { apple: { client_id: clientId, authorization_code: authorizationCode } };
 	}
 }
 
-export function takeCredential(): LoginCredential | undefined {
-	const credential = appleCredential;
+export function takeAppleLoginCredential(): LoginCredential | undefined {
+	const credential = appleLoginCredential;
 
-	appleCredential = undefined;
+	appleLoginCredential = undefined;
 
 	return credential;
 }
@@ -29,7 +29,7 @@ export async function loginCredential(): Promise<LoginCredential> {
 	const { loginProvider } = useAccountStore.getState();
 
 	if (loginProvider === 'apple') {
-		return takeCredential() ?? {};
+		return takeAppleLoginCredential() ?? {};
 	}
 
 	if (loginProvider !== 'google') {

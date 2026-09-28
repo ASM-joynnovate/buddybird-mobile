@@ -22,7 +22,7 @@ export function AccountSection() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const [openDialog, setOpenDialog] = useState<'signOut' | 'withdraw' | null>(null);
+	const [openedDialog, setOpenedDialog] = useState<'signOut' | 'withdraw' | null>(null);
 
 	const isAnonymous = useAccountStore((account) => account.isAnonymous);
 
@@ -40,20 +40,20 @@ export function AccountSection() {
 						<TextButton
 							label={t('settings.account.signOut')}
 							variant="muted"
-							onPress={() => setOpenDialog('signOut')}
+							onPress={() => setOpenedDialog('signOut')}
 						/>
 						<TextButton
 							label={t('settings.account.withdraw')}
 							variant="muted"
-							onPress={() => setOpenDialog('withdraw')}
+							onPress={() => setOpenedDialog('withdraw')}
 						/>
 					</>
 				)}
 			</View>
 
 			{/*로그아웃과 탈퇴 다이얼로그*/}
-			<SignOutDialog visible={openDialog === 'signOut'} onClose={() => setOpenDialog(null)} />
-			<WithdrawDialog visible={openDialog === 'withdraw'} onClose={() => setOpenDialog(null)} />
+			<SignOutDialog visible={openedDialog === 'signOut'} onClose={() => setOpenedDialog(null)} />
+			<WithdrawDialog visible={openedDialog === 'withdraw'} onClose={() => setOpenedDialog(null)} />
 		</View>
 	);
 }

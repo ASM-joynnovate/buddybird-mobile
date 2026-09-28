@@ -18,7 +18,7 @@ export type CommonMessages = {
 	next: string;
 	start: string;
 	dontShowAgain: string;
-	step: string;
+	stepProgress: string;
 	offline: string;
 	loadError: string;
 	saveErrorKept: string;
@@ -30,13 +30,9 @@ export type CommonMessages = {
 		sleeping: string;
 	};
 	sound: {
-		play: string;
 		stop: string;
 		stopNamed: string;
-		expired: string;
 		playError: string;
-		shareError: string;
-		share: string;
 	};
 	permission: {
 		title: string;
@@ -68,5 +64,22 @@ export type CommonMessages = {
 		minute: string;
 		hourPicker: string;
 		minutePicker: string;
+	};
+	done: string;
+	add: string;
+	consent: {
+		required: string;
+		optional: string;
+		viewFull: string;
+		agree: string;
+	};
+	profilePhoto: {
+		select: string;
+		title: string;
+		take: string;
+		choose: string;
+		typeError: string;
+		sizeError: string;
+		loadError: string;
 	};
 };

@@ -21,8 +21,8 @@ const NotificationList = () => {
 	const notifications = notificationListData.pages.flatMap((notificationPage) => notificationPage.data);
 	const emptyContent = (
 		<EmptyState
-			message={t('home.notification.empty')}
-			illustration=<Illustration scene={t('home.notification.emptyScene')} icon={BellIcon} height={180} />
+			message={t('home.notificationList.empty')}
+			illustration=<Illustration scene={t('home.notificationList.emptyScene')} icon={BellIcon} height={180} />
 		/>
 	);
 
@@ -37,7 +37,7 @@ const NotificationList = () => {
 		<FlatList
 			data={notifications}
 			keyExtractor={(notification) => notification.id}
-			renderItem={({ item: notification }) => <NotificationItem item={notification} />}
+			renderItem={({ item: notification }) => <NotificationItem notification={notification} />}
 			ListEmptyComponent={emptyContent}
 			onEndReachedThreshold={0.4}
 			onEndReached={handleFetchNextPage}

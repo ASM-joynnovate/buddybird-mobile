@@ -4,27 +4,27 @@ import { StyleSheet } from 'react-native';
 
 import Animated, { type SharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-const MIN_RATIO = 0.1;
+const MIN_HEIGHT_RATIO = 0.1;
 
 interface Props {
 	index: number;
-	targets: SharedValue<number[]>;
+	heightRatios: SharedValue<number[]>;
 	duration: SharedValue<number>;
 	color: string;
 	height: number;
 	fill: boolean;
 }
 
-export const WaveBar = memo(function WaveBar({ index, targets, duration, color, height, fill }: Props) {
-	const animation = useAnimatedStyle(() => ({
-		height: withTiming(height * (MIN_RATIO + (1 - MIN_RATIO) * targets.get()[index]), {
+export const WaveBar = memo(function WaveBar({ index, heightRatios, duration, color, height, fill }: Props) {
+	const heightStyle = useAnimatedStyle(() => ({
+		height: withTiming(height * (MIN_HEIGHT_RATIO + (1 - MIN_HEIGHT_RATIO) * heightRatios.get()[index]), {
 			duration: duration.get(),
 		}),
 	}));
 
 	return (
 		<Animated.View
-			style={[styles.bar, fill ? styles.fillBar : styles.fixedBar, { backgroundColor: color }, animation]}
+			style={[styles.bar, fill ? styles.fillBar : styles.fixedBar, { backgroundColor: color }, heightStyle]}
 		/>
 	);
 });

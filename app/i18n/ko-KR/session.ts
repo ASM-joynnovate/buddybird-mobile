@@ -1,7 +1,6 @@
 import type { SessionMessages } from '@/i18n/types/session';
 
 export const session: SessionMessages = {
-	remaining: '{{left}} 남음',
 	takeover: {
 		title: '이 기기에서 시작할까요?',
 		message: '다른 기기에서 실행 중인 세션을 끝내고 이 기기에서 새로 시작해요.',
@@ -10,9 +9,6 @@ export const session: SessionMessages = {
 	startError: {
 		title: '세션을 시작하지 못했어요',
 		message: '인터넷 연결을 확인하고 다시 시도해 주세요.',
-	},
-	words: {
-		preview: '{{name}} 녹음 들어 보기',
 	},
 	sleep: {
 		label: '수면 시간',
@@ -33,23 +29,24 @@ export const session: SessionMessages = {
 		addWord: '단어 추가',
 		elsewhere: '다른 기기에서 학습 중이에요',
 		endElsewhere: '그 학습 끝내기',
+		previewRecording: '{{name}} 녹음 들어 보기',
+		endElsewhereError: '세션을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
 	run: {
 		reveal: '화면을 누르면 세션 정보가 보여요',
 		elapsed: '세션 경과',
 		keepOpen: '학습이 끝날 때까지 앱을 켜 두고 화면을 끄지 마세요',
 		engineError: '소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.',
+		remaining: '{{time}} 남음',
 	},
 	end: {
 		title: '세션 종료',
 		button: '종료',
-		confirm: '종료',
 		keep: '계속',
-		error: '세션을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
 	summary: {
 		word: '단어',
-		total: '전체 시간',
-		detail: '이 학습 기록 보기',
+		totalTime: '전체 시간',
+		viewDetail: '이 학습 기록 보기',
 	},
 };

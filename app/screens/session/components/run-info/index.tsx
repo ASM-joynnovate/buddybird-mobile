@@ -20,7 +20,7 @@ import { SECOND } from '@/utils/units';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const RING_MAX = 460;
+const ARC_MAX_WIDTH = 460;
 
 interface Props {
 	startedAt: string;
@@ -53,29 +53,29 @@ export function RunInfo({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props
 				<Copy style={styles.label}>{t('session.run.elapsed')}</Copy>
 				<Copy style={styles.timer}>{formatTimer(dayjs(now).diff(startedAt))}</Copy>
 
-				<Copy style={[styles.label, styles.gap]}>{t('session.run.keepOpen')}</Copy>
+				<Copy style={[styles.label, styles.keepOpen]}>{t('session.run.keepOpen')}</Copy>
 				{engineFailed ? <Copy style={styles.label}>{t('session.run.engineError')}</Copy> : null}
 			</View>
 
 			{/*진행 단계와 종료 버튼*/}
 			<View style={styles.bottom} pointerEvents="box-none">
 				<SessionProgressArc
-					width={Math.min(width * 0.55, RING_MAX)}
+					width={Math.min(width * 0.55, ARC_MAX_WIDTH)}
 					phase={status.phase}
-					fraction={status.fraction}
+					progressRatio={status.progressRatio}
 					title={t(`common.phases.${status.phase}`)}
 					detail={
 						status.remainingMs === null
 							? null
-							: t('session.remaining', { left: formatTimer(status.remainingMs) })
+							: t('session.run.remaining', { time: formatTimer(status.remainingMs) })
 					}
 				/>
 
 				<PressableSurface
 					depth="low"
 					cornerRadius="control"
-					color={sessionColors.edge}
-					backgroundColor={sessionColors.background}
+					edgeColor={sessionColors.edge}
+					faceColor={sessionColors.background}
 					style={styles.end}
 					contentStyle={styles.endFace}
 					accessibilityLabel={t('session.end.title')}
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	info: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12 },
 	stack: { gap: 2 },
 	label: { fontFamily: font.extraBold, fontSize: 13, color: sessionColors.faint },
-	gap: { marginTop: 12 },
+	keepOpen: { marginTop: 12 },
 	timer: {
 		fontFamily: font.black,
 		fontSize: 22,

@@ -23,11 +23,11 @@ const SCROLL_DELAY_MS = 150;
 interface Props {
 	species: string;
 	setSpecies(value: string): void;
-	busy: boolean;
+	disabled: boolean;
 	first?: boolean;
 }
 
-export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
+export function SpeciesPicker({ species, setSpecies, disabled, first }: Props) {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -40,7 +40,7 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 		data,
 	}));
 
-	function showSelected() {
+	function scrollToSelected() {
 		if (!isSpeciesId(species)) {
 			return;
 		}
@@ -65,15 +65,15 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 				first,
 				label: t('parrot.species'),
 				value: isSpeciesId(species) ? t(`parrot.speciesNames.${species}`) : t('parrot.choose'),
-				disabled: busy,
+				disabled,
 			}}
 			sheet={{
 				title: t('parrot.speciesQuestion'),
-				list: true,
+				listLayout: true,
 				onOpened: () => {
 					scrollRetries.current = 0;
 
-					setTimeout(showSelected, SCROLL_DELAY_MS);
+					setTimeout(scrollToSelected, SCROLL_DELAY_MS);
 				},
 			}}
 		>
@@ -81,14 +81,14 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 				<BottomSheetSectionList
 					ref={list}
 					sections={sections}
-					keyExtractor={(id: SpeciesId) => id}
+					keyExtractor={(speciesId: SpeciesId) => speciesId}
 					stickySectionHeadersEnabled
 					initialNumToRender={sections.flatMap((section) => section.data).length}
 					onScrollToIndexFailed={() => {
 						if (scrollRetries.current < MAX_SCROLL_RETRIES) {
 							scrollRetries.current += 1;
 
-							requestAnimationFrame(showSelected);
+							requestAnimationFrame(scrollToSelected);
 						}
 					}}
 					contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
@@ -99,13 +99,13 @@ export function SpeciesPicker({ species, setSpecies, busy, first }: Props) {
 							</Copy>
 						</View>
 					)}
-					renderItem={({ item, index }: { item: SpeciesId; index: number }) => (
+					renderItem={({ item: speciesId, index }: { item: SpeciesId; index: number }) => (
 						<ItemRadio
 							first={index === 0}
-							label={t(`parrot.speciesNames.${item}`)}
-							selected={species === item}
+							label={t(`parrot.speciesNames.${speciesId}`)}
+							selected={species === speciesId}
 							onPress={() => {
-								setSpecies(item);
+								setSpecies(speciesId);
 
 								close();
 							}}

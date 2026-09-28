@@ -46,7 +46,7 @@ const IDENTITY_CONFLICT_STATUS = 422;
 
 let listeners = new Set<Listener>();
 
-let current: Session | null | undefined;
+let activeSession: Session | null | undefined;
 
 function toSession(mock: MockSession): Session {
 	return {
@@ -65,18 +65,18 @@ function toSession(mock: MockSession): Session {
 	};
 }
 
-function currentSession() {
-	if (current === undefined) {
+function getActiveSession() {
+	if (activeSession === undefined) {
 		const { authUserId, isAnonymous } = useAccountStore.getState();
 
-		current = authUserId ? toSession(mockGetSession({ authUserId, isAnonymous })) : null;
+		activeSession = authUserId ? toSession(mockGetSession({ authUserId, isAnonymous })) : null;
 	}
 
-	return current;
+	return activeSession;
 }
 
-function change(event: AuthChangeEvent, session: Session | null) {
-	current = session;
+function changeSession(event: AuthChangeEvent, session: Session | null) {
+	activeSession = session;
 
 	mockPutSessionUser({ authUserId: session?.user.id ?? null });
 
@@ -88,15 +88,15 @@ function change(event: AuthChangeEvent, session: Session | null) {
 async function signInWith(provider: string) {
 	const session = toSession(await mockPostSignIn({ provider: loginProviderSchema.parse(provider) }));
 
-	change('SIGNED_IN', session);
+	changeSession('SIGNED_IN', session);
 
 	return { data: { user: session.user, session }, error: null };
 }
 
 async function linkWith(provider: string) {
-	const linked = await mockPostLinkIdentity({ provider: loginProviderSchema.parse(provider) });
+	const linkedSession = await mockPostLinkIdentity({ provider: loginProviderSchema.parse(provider) });
 
-	if (!linked) {
+	if (!linkedSession) {
 		return {
 			data: { user: null, session: null },
 			error: new AuthApiError(
@@ -107,15 +107,15 @@ async function linkWith(provider: string) {
 		};
 	}
 
-	const session = toSession(linked);
+	const session = toSession(linkedSession);
 
-	change('USER_UPDATED', session);
+	changeSession('USER_UPDATED', session);
 
 	return { data: { user: session.user, session }, error: null };
 }
 
 const mockAuth = {
-	getSession: async () => ({ data: { session: currentSession() }, error: null }),
+	getSession: async () => ({ data: { session: getActiveSession() }, error: null }),
 
 	onAuthStateChange: (callback: Listener) => {
 		listeners = new Set([...listeners, callback]);
@@ -136,7 +136,7 @@ const mockAuth = {
 	signInAnonymously: async () => {
 		const session = toSession(await mockPostSignUp());
 
-		change('SIGNED_IN', session);
+		changeSession('SIGNED_IN', session);
 
 		return { data: { user: session.user, session }, error: null };
 	},
@@ -155,9 +155,11 @@ const mockAuth = {
 
 		const { provider, options } = credentials;
 		const conflict = await mockGetIdentityLinked({ provider: loginProviderSchema.parse(provider) });
-		const query = conflict ? 'error=server_error&error_code=identity_already_exists' : `code=link.${provider}`;
+		const callbackQuery = conflict
+			? 'error=server_error&error_code=identity_already_exists'
+			: `code=link.${provider}`;
 
-		return { data: { provider, url: `${options?.redirectTo ?? ''}?${query}` }, error: null };
+		return { data: { provider, url: `${options?.redirectTo ?? ''}?${callbackQuery}` }, error: null };
 	},
 
 	exchangeCodeForSession: async (code: string) => {
@@ -167,7 +169,7 @@ const mockAuth = {
 	},
 
 	signOut: async () => {
-		change('SIGNED_OUT', null);
+		changeSession('SIGNED_OUT', null);
 
 		return { error: null };
 	},

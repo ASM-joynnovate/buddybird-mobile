@@ -3,12 +3,12 @@ import type { DeviceSettings } from '@/types/device-settings';
 import dayjs from 'dayjs';
 
 import {
-	type ObjectValue,
 	readNullableText,
 	readOptionalText,
 	requireNonnegativeNumber,
 	requireRecord,
 	requireText,
+	type UnknownRecord,
 } from '@/utils/validation';
 
 export type LegacyProfile = {
@@ -18,22 +18,22 @@ export type LegacyProfile = {
 	photoUri?: string;
 };
 
-export function parseLegacyUpdate(update: ObjectValue): DeviceSettings['updatePrompt'] {
+export function parseLegacyAppUpdate(appUpdate: UnknownRecord): DeviceSettings['updatePrompt'] {
 	return {
-		dismissedVersion: readNullableText(update.dismissedVersion, 'dismissedVersion'),
+		dismissedVersion: readNullableText(appUpdate.dismissedVersion, 'dismissedVersion'),
 	};
 }
 
-export function parseLegacyFeedback(feedback: ObjectValue): DeviceSettings['feedbackPrompt'] {
-	if (feedback.version !== 1) {
+export function parseLegacyFeedbackPrompt(feedbackPrompt: UnknownRecord): DeviceSettings['feedbackPrompt'] {
+	if (feedbackPrompt.version !== 1) {
 		throw new Error('Unsupported feedback version');
 	}
 
 	return {
 		formatVersion: 1,
-		lastCountedDate: readNullableText(feedback.lastCountedDate, 'lastCountedDate'),
-		dayCount: requireNonnegativeNumber(feedback.dayCount, 'dayCount'),
-		thresholdIndex: requireNonnegativeNumber(feedback.thresholdIndex, 'thresholdIndex'),
+		lastCountedDate: readNullableText(feedbackPrompt.lastCountedDate, 'lastCountedDate'),
+		dayCount: requireNonnegativeNumber(feedbackPrompt.dayCount, 'dayCount'),
+		thresholdIndex: requireNonnegativeNumber(feedbackPrompt.thresholdIndex, 'thresholdIndex'),
 	};
 }
 
@@ -43,16 +43,16 @@ export function parseLegacyProfile(value: unknown): LegacyProfile {
 		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
 
 	if (profileRecord.birthDate === undefined && profileRecord.ageMonths !== undefined) {
-		const date = dayjs(requireText(profileRecord.createdAt, 'parrot.createdAt'));
-		const age = requireNonnegativeNumber(profileRecord.ageMonths, 'ageMonths');
+		const createdAt = dayjs(requireText(profileRecord.createdAt, 'parrot.createdAt'));
+		const ageMonths = requireNonnegativeNumber(profileRecord.ageMonths, 'ageMonths');
 
-		if (!Number.isInteger(age) || !date.isValid()) {
+		if (!Number.isInteger(ageMonths) || !createdAt.isValid()) {
 			throw new Error('Invalid historical profile age');
 		}
 
-		const birth = date.subtract(age, 'month');
+		const birthMonth = createdAt.subtract(ageMonths, 'month');
 
-		birthDate = birth.startOf('month').format('YYYY-MM-DD');
+		birthDate = birthMonth.startOf('month').format('YYYY-MM-DD');
 	}
 
 	let species = requireText(profileRecord.species, 'species');

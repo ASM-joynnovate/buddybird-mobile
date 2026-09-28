@@ -11,7 +11,7 @@ export function BuddySays({ message }: Props) {
 	return (
 		<View style={styles.row}>
 			<Mascot size={72} />
-			<SpeechBubble side="left" typing style={styles.bubble}>
+			<SpeechBubble pointerSide="left" typing style={styles.bubble}>
 				{message}
 			</SpeechBubble>
 		</View>

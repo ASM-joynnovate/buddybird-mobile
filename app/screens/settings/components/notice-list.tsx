@@ -8,7 +8,7 @@ import { useGetNoticeList } from '@/hooks/apis/notices';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDate } from '@/i18n/format';
+import { formatMonthDay } from '@/i18n/format';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,7 +34,7 @@ const NoticeList = () => {
 
 	/** 공지 항목 */
 	const renderItem = ({ item: notice }: { item: Notice }) => {
-		const dateText = formatDate(notice.starts_at, locale);
+		const dateText = formatMonthDay(notice.starts_at, locale);
 
 		return (
 			<PressableSurface

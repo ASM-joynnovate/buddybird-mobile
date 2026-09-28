@@ -9,9 +9,9 @@ import { colors, depths, radius } from '@/theme';
 const variants = {
 	neutral: { face: colors.background, edge: colors.border },
 	primary: { face: colors.orange, edge: colors.orangeDark },
-	selected: { face: colors.orangeSelected, edge: colors.orange },
+	selected: { face: colors.orangePale, edge: colors.orange },
 	plain: { face: 'transparent', edge: 'transparent' },
-	muted: { face: colors.disabledBackground, edge: colors.disabledBackground },
+	disabled: { face: colors.disabledBackground, edge: colors.disabledBackground },
 } as const;
 
 type SurfaceVariant = keyof typeof variants;
@@ -21,8 +21,8 @@ interface Props extends ViewProps {
 	depth?: keyof typeof depths;
 	cornerRadius?: keyof typeof radius;
 	contentStyle?: StyleProp<ViewStyle>;
-	color?: string;
-	backgroundColor?: string;
+	edgeColor?: string;
+	faceColor?: string;
 }
 
 export type SurfaceProps = PropsWithChildren<Props>;
@@ -34,11 +34,11 @@ export function Surface({
 	cornerRadius = 'card',
 	style,
 	contentStyle,
-	color,
-	backgroundColor,
+	edgeColor,
+	faceColor,
 	...props
 }: SurfaceProps) {
-	const palette = { face: backgroundColor ?? variants[variant].face, edge: color ?? variants[variant].edge };
+	const palette = { face: faceColor ?? variants[variant].face, edge: edgeColor ?? variants[variant].edge };
 	const borderRadius = radius[cornerRadius];
 	const edgeHeight = depths[depth];
 

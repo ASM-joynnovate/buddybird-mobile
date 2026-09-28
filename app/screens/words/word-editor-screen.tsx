@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/types/apis/common';
 import type { Recording } from '@/types/apis/words';
 
-import type { RecordedSample, RootStackParamList, WordsStackParamList } from '@/types/navigation';
+import type { NewRecording, RootStackParamList, WordsStackParamList } from '@/types/navigation';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
@@ -73,7 +73,7 @@ const saveLabel = (saveStep: SaveStep | null, saveFailed: boolean, t: TFunction)
 		return t(`words.editor.${saveStep}`);
 	}
 
-	return saveFailed ? t('common.retry') : t('words.editor.save');
+	return saveFailed ? t('common.retry') : t('common.save');
 };
 
 export function WordEditorScreen(): ReactElement {
@@ -84,7 +84,7 @@ export function WordEditorScreen(): ReactElement {
 
 	const [createdWordId, setCreatedWordId] = useState<string | null>(null);
 	const [nameInput, setNameInput] = useState<string | null>(null);
-	const [newRecordings, setNewRecordings] = useState<readonly RecordedSample[]>([]);
+	const [newRecordings, setNewRecordings] = useState<readonly NewRecording[]>([]);
 	const [removedRecordingIds, setRemovedRecordingIds] = useState<readonly string[]>([]);
 	const [saveStep, setSaveStep] = useState<SaveStep | null>(null);
 	const [saveFailed, setSaveFailed] = useState(false);
@@ -155,7 +155,7 @@ export function WordEditorScreen(): ReactElement {
 
 	/** 녹음 화면에서 받은 새 녹음 추가 */
 	useEffect(() => {
-		const newRecording = route.params?.recorded;
+		const newRecording = route.params?.newRecording;
 
 		if (!newRecording || addedRecordingKeysRef.current.has(newRecording.key)) {
 			return;
@@ -166,7 +166,7 @@ export function WordEditorScreen(): ReactElement {
 		setNewRecordings((prev) => [...prev, newRecording]);
 
 		track('recording_finished', { duration_ms: newRecording.durationMs });
-	}, [route.params?.recorded]);
+	}, [route.params?.newRecording]);
 
 	/** 녹음 목록에서 녹음 제거 */
 	const removeRecording = (recording: EditorRecording) => {
@@ -363,7 +363,7 @@ export function WordEditorScreen(): ReactElement {
 					onChangeText={setNameInput}
 					editable={!saving}
 					maxLength={WORD_NAME_LIMIT}
-					error={nameMissing ? t('words.editor.nameRequired') : null}
+					errorMessage={nameMissing ? t('words.editor.nameRequired') : null}
 				/>
 
 				{/*녹음 목록*/}
@@ -398,7 +398,7 @@ export function WordEditorScreen(): ReactElement {
 			<ScreenHeader
 				title={t(routeWordId ? 'words.editor.editTitle' : 'words.editor.addTitle')}
 				onBack={() => navigation.goBack()}
-				right={
+				trailing={
 					routeWordId ? (
 						<IconButton
 							icon={TrashIcon}

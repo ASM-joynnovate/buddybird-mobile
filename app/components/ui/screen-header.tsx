@@ -15,15 +15,15 @@ interface Props {
 	title?: string;
 	onBack?(): void;
 	backIcon?: 'back' | 'close';
-	right?: ReactNode;
+	trailing?: ReactNode;
 	large?: boolean;
 }
 
-export function ScreenHeader({ title, onBack, backIcon = 'back', right, large = false }: Props) {
+export function ScreenHeader({ title, onBack, backIcon = 'back', trailing, large = false }: Props) {
 	const { t } = useTranslation();
 
 	return (
-		<View style={styles.wrap}>
+		<View style={styles.container}>
 			<View style={styles.header}>
 				{onBack ? (
 					<IconButton
@@ -37,14 +37,14 @@ export function ScreenHeader({ title, onBack, backIcon = 'back', right, large = 
 				) : (
 					<View style={styles.spacer} />
 				)}
-				<View style={styles.right}>{right}</View>
+				<View style={styles.right}>{trailing}</View>
 			</View>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	wrap: { marginBottom: 8 },
+	container: { marginBottom: 8 },
 	header: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	title: { flex: 1, minWidth: 0 },
 	compact: { fontSize: 20, lineHeight: 26 },

@@ -8,7 +8,7 @@ import { useReadNotification } from '@/hooks/apis/notifications';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatMoment } from '@/i18n/format';
+import { formatTimeOrDateTime } from '@/i18n/format';
 
 import { useLinkTo } from '@react-navigation/native';
 import { AudioWaveformIcon, ChartNoAxesColumnIcon, FlameIcon, type LucideIcon } from 'lucide-react-native';
@@ -30,10 +30,10 @@ const icons: Record<NotificationKind, LucideIcon> = {
 };
 
 interface Props {
-	item: AppNotification;
+	notification: AppNotification;
 }
 
-export const NotificationItem = memo(function NotificationItem({ item }: Props) {
+export const NotificationItem = memo(function NotificationItem({ notification }: Props) {
 	const { t } = useTranslation();
 
 	const linkTo = useLinkTo();
@@ -42,19 +42,19 @@ export const NotificationItem = memo(function NotificationItem({ item }: Props) 
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const unread = !item.read_at;
-	const time = formatMoment(item.sent_at, locale);
-	const KindIcon = icons[item.kind];
+	const unread = !notification.read_at;
+	const sentAtLabel = formatTimeOrDateTime(notification.sent_at, locale);
+	const KindIcon = icons[notification.kind];
 
 	/** 알림 읽음 표시와 알림 경로 열기 */
 	const handleOpen = () => {
 		if (unread) {
-			mutate({ id: item.id });
+			mutate({ id: notification.id });
 		}
 
-		track('notification_opened', { kind: item.kind, from: 'list' });
+		track('notification_opened', { kind: notification.kind, from: 'list' });
 
-		linkTo(notificationPath(item));
+		linkTo(notificationPath(notification));
 	};
 
 	return (
@@ -64,28 +64,33 @@ export const NotificationItem = memo(function NotificationItem({ item }: Props) 
 			cornerRadius="none"
 			style={styles.item}
 			contentStyle={styles.row}
-			accessibilityLabel={joinLabel(unread && t('home.notification.unread'), item.title, item.body, time)}
+			accessibilityLabel={joinLabel(
+				unread && t('home.notificationList.unread'),
+				notification.title,
+				notification.body,
+				sentAtLabel,
+			)}
 			onPress={handleOpen}
 		>
 			<View style={styles.icon}>
 				<KindIcon size={20} color={colors.orangeDark} />
 			</View>
 
-			<View style={styles.text}>
+			<View style={styles.textContainer}>
 				<View style={styles.titleRow}>
 					<Copy numberOfLines={1} style={styles.title}>
-						{item.title}
+						{notification.title}
 					</Copy>
 					{unread ? <DotBadge /> : null}
 				</View>
 				<Copy numberOfLines={2} style={styles.body}>
-					{item.body}
+					{notification.body}
 				</Copy>
-				<Copy style={styles.time}>{time}</Copy>
+				<Copy style={styles.time}>{sentAtLabel}</Copy>
 			</View>
 
-			{item.image ? (
-				<Image source={{ uri: item.image.url }} style={styles.image} accessibilityIgnoresInvertColors />
+			{notification.image ? (
+				<Image source={{ uri: notification.image.url }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : null}
 		</PressableSurface>
 	);
@@ -106,9 +111,9 @@ const styles = StyleSheet.create({
 		borderRadius: radius.control,
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: colors.orangeSelected,
+		backgroundColor: colors.orangePale,
 	},
-	text: { flex: 1, minWidth: 0, gap: 3 },
+	textContainer: { flex: 1, minWidth: 0, gap: 3 },
 	titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 	title: { flexShrink: 1, fontFamily: font.black, fontSize: 16, color: colors.text },
 	body: { fontSize: 14, color: colors.text },

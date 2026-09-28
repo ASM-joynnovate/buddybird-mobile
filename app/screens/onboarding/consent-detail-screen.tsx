@@ -29,7 +29,7 @@ export function ConsentDetailScreen() {
 
 	const addAgreedId = useConsentStore((state) => state.addAgreedId);
 
-	const consent = consentListData.find((item) => item.id === consentId);
+	const consent = consentListData.find(({ id }) => id === consentId);
 	const canAgree =
 		consent !== undefined && (source === 'onboarding' || (!consent.is_required && consent.status !== 'granted'));
 
@@ -55,7 +55,7 @@ export function ConsentDetailScreen() {
 				canAgree ? (
 					<>
 						<InlineError message={isSaveError ? t('settings.consents.saveError') : null} />
-						<Button label={t('entry.consentDetail.agree')} loading={isPending} onPress={agree} />
+						<Button label={t('common.consent.agree')} loading={isPending} onPress={agree} />
 					</>
 				) : undefined
 			}

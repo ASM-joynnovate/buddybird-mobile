@@ -2,7 +2,7 @@ export const colors = {
 	brand: '#DB030F',
 	onBrand: '#F7F2EA',
 	background: '#ffffff',
-	onAccent: '#ffffff',
+	onFilled: '#ffffff',
 	text: '#3c3c3c',
 	muted: '#777777',
 	border: '#e5e5e5',
@@ -10,17 +10,17 @@ export const colors = {
 	orange: '#ff9600',
 	orangeDark: '#e07f00',
 	orangeSoft: '#FFE8CC',
-	orangeSelected: '#fff7eb',
+	orangePale: '#fff7eb',
 	blue: '#1cb0f6',
-	scrim: '#00000066',
+	backdrop: '#00000066',
 	disabledBackground: '#EBEBEB',
 	error: '#FF4B4B',
-	disabled: '#AFAFAF',
+	subtle: '#AFAFAF',
 	wheelSelection: '#ff96000f',
 	wheelText: '#3c3c3c59',
 };
 
-export const providerColors = {
+export const loginProviderColors = {
 	google: {
 		background: '#FFFFFF',
 		border: '#747775',

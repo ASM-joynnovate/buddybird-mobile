@@ -13,15 +13,22 @@ import { ui } from '@/components/ui/styles';
 interface Props {
 	visible: boolean;
 	text: { title: string; message?: string; confirm?: string; cancel?: string };
-	state?: { busy?: boolean; error?: string | null };
+	confirmStatus?: { busy?: boolean; errorMessage?: string | null };
 	onConfirm(): void;
 	onClose(): void;
 }
 
-export function ConfirmDialog({ visible, text, state, onConfirm, onClose, children }: PropsWithChildren<Props>) {
+export function ConfirmDialog({
+	visible,
+	text,
+	confirmStatus,
+	onConfirm,
+	onClose,
+	children,
+}: PropsWithChildren<Props>) {
 	const { t } = useTranslation();
 
-	const busy = state?.busy ?? false;
+	const busy = confirmStatus?.busy ?? false;
 
 	return (
 		<Dialog
@@ -53,7 +60,7 @@ export function ConfirmDialog({ visible, text, state, onConfirm, onClose, childr
 			{children}
 
 			{/*실패 문구*/}
-			<InlineError message={state?.error} />
+			<InlineError message={confirmStatus?.errorMessage} />
 		</Dialog>
 	);
 }

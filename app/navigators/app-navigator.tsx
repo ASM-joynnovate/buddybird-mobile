@@ -35,20 +35,20 @@ import { PermissionsScreen } from '@/screens/settings/permissions-screen';
 import { SettingsScreen } from '@/screens/settings/settings-screen';
 import { RecorderScreen } from '@/screens/words/recorder-screen';
 import { RecordingGuideScreen } from '@/screens/words/recording-guide-screen';
-import { reportError, screen, track } from '@/services/telemetry/client';
+import { reportError, track, trackScreen } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 import { notificationPath } from '@/utils/notification';
 
 import { OfflineBanner } from '@/components/offline-banner';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 function linkPrefix() {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
 }
 
-function openPush(data: unknown): string | null {
-	const parsed = pushDataSchema.safeParse(data);
+function resolvePushUrl(pushData: unknown): string | null {
+	const parsed = pushDataSchema.safeParse(pushData);
 
 	if (!parsed.success) {
 		reportError(parsed.error, 'push_opened');
@@ -72,7 +72,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 		try {
 			const message = await getInitialNotification(getMessaging());
 
-			return message ? openPush(message.data) : null;
+			return message ? resolvePushUrl(message.data) : null;
 		} catch (error) {
 			reportError(error, 'push_initial');
 
@@ -81,7 +81,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 	},
 	subscribe(listener) {
 		return onNotificationOpenedApp(getMessaging(), (message) => {
-			const url = openPush(message.data);
+			const url = resolvePushUrl(message.data);
 
 			if (url) {
 				listener(url);
@@ -128,19 +128,19 @@ export function AppNavigator() {
 
 	const screenName = useRef<string | null>(null);
 
-	const { route, parrotId } = useEntryRoute();
+	const { entryRoute, parrotId } = useEntryRoute();
 
-	function recordScreen() {
-		const current = navigationRef.getCurrentRoute()?.name ?? null;
+	function handleTrackScreen() {
+		const currentScreenName = navigationRef.getCurrentRoute()?.name ?? null;
 
-		if (current && current !== screenName.current) {
-			screen(current);
+		if (currentScreenName && currentScreenName !== screenName.current) {
+			trackScreen(currentScreenName);
 		}
 
-		screenName.current = current;
+		screenName.current = currentScreenName;
 	}
 
-	if (route === 'LegacyUpload') {
+	if (entryRoute === 'LegacyUpload') {
 		return <LegacyUploadScreen />;
 	}
 
@@ -148,14 +148,14 @@ export function AppNavigator() {
 		<>
 			{/*앱 화면*/}
 			<NavigationContainer
-				key={route}
+				key={entryRoute}
 				ref={navigationRef}
-				initialState={initialStateOf(route, parrotId)}
-				linking={route === 'Main' ? linking : undefined}
-				onReady={recordScreen}
-				onStateChange={recordScreen}
+				initialState={initialStateOf(entryRoute, parrotId)}
+				linking={entryRoute === 'Main' ? linking : undefined}
+				onReady={handleTrackScreen}
+				onStateChange={handleTrackScreen}
 			>
-				<Stack.Navigator
+				<RootStack.Navigator
 					screenOptions={{
 						headerShown: false,
 						orientation: 'portrait',
@@ -163,27 +163,27 @@ export function AppNavigator() {
 					}}
 				>
 					{/*로그인과 온보딩 화면*/}
-					{route === 'Main' ? null : (
-						<Stack.Group>
-							<Stack.Screen name="Login" component={LoginScreen} />
-							<Stack.Screen name="Consent" component={ConsentScreen} />
-							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
-							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
-							<Stack.Screen name="UsageGuide" component={UsageGuideScreen} />
-							<Stack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
-						</Stack.Group>
+					{entryRoute === 'Main' ? null : (
+						<RootStack.Group>
+							<RootStack.Screen name="Login" component={LoginScreen} />
+							<RootStack.Screen name="Consent" component={ConsentScreen} />
+							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
+							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
+							<RootStack.Screen name="UsageGuide" component={UsageGuideScreen} />
+							<RootStack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
+						</RootStack.Group>
 					)}
 
 					{/*메인 화면*/}
-					{route === 'Main' ? (
-						<Stack.Group>
-							<Stack.Screen name="Main" component={MainTabs} />
-							<Stack.Screen name="Login" component={LoginScreen} />
-							<Stack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
-							<Stack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
-							<Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
+					{entryRoute === 'Main' ? (
+						<RootStack.Group>
+							<RootStack.Screen name="Main" component={MainTabs} />
+							<RootStack.Screen name="Login" component={LoginScreen} />
+							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
+							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
+							<RootStack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
 
-							<Stack.Screen
+							<RootStack.Screen
 								name="SessionRun"
 								component={SessionRunScreen}
 								options={{
@@ -192,7 +192,7 @@ export function AppNavigator() {
 									orientation: 'default',
 								}}
 							/>
-							<Stack.Screen
+							<RootStack.Screen
 								name="SessionSummary"
 								component={SessionSummaryScreen}
 								options={{
@@ -202,21 +202,21 @@ export function AppNavigator() {
 								}}
 							/>
 
-							<Stack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
-							<Stack.Screen
+							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
+							<RootStack.Screen
 								name="Recorder"
 								component={RecorderScreen}
 								options={{ presentation: 'fullScreenModal' }}
 							/>
 
-							<Stack.Screen name="Settings" component={SettingsScreen} />
-							<Stack.Screen name="NoticeList" component={NoticeListScreen} />
-							<Stack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
-							<Stack.Screen name="Devices" component={DevicesScreen} />
-							<Stack.Screen name="Permissions" component={PermissionsScreen} />
-						</Stack.Group>
+							<RootStack.Screen name="Settings" component={SettingsScreen} />
+							<RootStack.Screen name="NoticeList" component={NoticeListScreen} />
+							<RootStack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
+							<RootStack.Screen name="Devices" component={DevicesScreen} />
+							<RootStack.Screen name="Permissions" component={PermissionsScreen} />
+						</RootStack.Group>
 					) : null}
-				</Stack.Navigator>
+				</RootStack.Navigator>
 			</NavigationContainer>
 
 			{/*오프라인 배너*/}

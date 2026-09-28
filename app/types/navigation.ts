@@ -12,7 +12,7 @@ export type SessionSetup = {
 	sleepChanged: boolean;
 };
 
-export type RecordedSample = { key: string; uri: string; durationMs: number };
+export type NewRecording = { key: string; uri: string; durationMs: number };
 
 export type HomeStackParamList = {
 	Home: undefined;
@@ -21,7 +21,7 @@ export type HomeStackParamList = {
 
 export type WordsStackParamList = {
 	WordList: undefined;
-	WordEditor: { wordId?: string; recorded?: RecordedSample } | undefined;
+	WordEditor: { wordId?: string; newRecording?: NewRecording } | undefined;
 };
 
 export type ReportStackParamList = {

@@ -23,33 +23,33 @@ interface Props {
 export function WordChoice({ word, selected, player, onSelect }: Props) {
 	const { t } = useTranslation();
 
-	const sample = word.recordings[0];
+	const firstRecording = word.recordings[0];
 	const playing = player.playingId === word.id;
 
 	return (
 		<ChoiceCard
 			selected={selected}
-			disabled={!sample}
+			disabled={!firstRecording}
 			onPress={() => onSelect(word.id)}
 			accessibilityLabel={word.name}
 			contentStyle={styles.card}
 		>
 			{/*단어 이름과 태그*/}
-			<View style={styles.label}>
-				<Copy numberOfLines={1} style={[styles.name, !sample && styles.locked]}>
+			<View style={styles.textContainer}>
+				<Copy numberOfLines={1} style={[styles.name, !firstRecording && styles.nameDisabled]}>
 					{word.name}
 				</Copy>
-				{sample ? null : <Tag label={t('common.needsRecording')} />}
+				{firstRecording ? null : <Tag label={t('common.needsRecording')} />}
 			</View>
 
 			{/*미리 듣기 버튼*/}
-			{sample ? (
+			{firstRecording ? (
 				<PlayButton
 					playing={playing}
-					label={t(playing ? 'common.sound.stop' : 'session.words.preview', {
+					label={t(playing ? 'common.sound.stop' : 'session.start.previewRecording', {
 						name: word.name,
 					})}
-					onPress={() => player.toggle(word.id, sample.url)}
+					onPress={() => player.toggle(word.id, firstRecording.url)}
 				/>
 			) : null}
 		</ChoiceCard>
@@ -58,7 +58,7 @@ export function WordChoice({ word, selected, player, onSelect }: Props) {
 
 const styles = StyleSheet.create({
 	card: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72 },
-	label: { flex: 1, minWidth: 0, gap: 6 },
+	textContainer: { flex: 1, minWidth: 0, gap: 6 },
 	name: { fontFamily: font.black, fontSize: 18, color: colors.text },
-	locked: { color: colors.disabled },
+	nameDisabled: { color: colors.subtle },
 });

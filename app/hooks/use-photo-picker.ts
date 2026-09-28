@@ -15,7 +15,7 @@ const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
 	quality: 0.85,
 };
 
-function photoType(asset: ImagePicker.ImagePickerAsset) {
+function photoMimeType(asset: ImagePicker.ImagePickerAsset) {
 	if (asset.mimeType) {
 		return asset.mimeType;
 	}
@@ -25,48 +25,48 @@ function photoType(asset: ImagePicker.ImagePickerAsset) {
 	return extension === 'png' ? 'image/png' : extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' : '';
 }
 
-export function usePhotoPicker(initial: string | null): {
+export function usePhotoPicker(initialPhotoUri: string | null): {
 	photoUri: string | null;
 	setPhotoUri(uri: string | null): void;
 	take(): Promise<void>;
 	choose(): Promise<void>;
-	error: string | null;
+	errorMessage: string | null;
 	libraryDialog: PermissionDialogState;
 	cameraDialog: PermissionDialogState;
 } {
 	const { t } = useTranslation();
 
-	const [photoUri, setPhotoUri] = useState(initial);
-	const [error, setError] = useState<string | null>(null);
+	const [photoUri, setPhotoUri] = useState(initialPhotoUri);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const libraryPermission = usePermission('photos');
 	const cameraPermission = usePermission('camera');
 
 	async function pick(source: 'camera' | 'library') {
 		try {
-			const result =
+			const pickerResult =
 				source === 'camera'
 					? await ImagePicker.launchCameraAsync(PHOTO_PICKER_OPTIONS)
 					: await ImagePicker.launchImageLibraryAsync(PHOTO_PICKER_OPTIONS);
 
-			if (result.canceled) {
+			if (pickerResult.canceled) {
 				return;
 			}
 
-			const asset = result.assets[0];
+			const asset = pickerResult.assets[0];
 
-			if (!PHOTO_MIME_TYPES.includes(photoType(asset))) {
-				setError(t('entry.parrot.photoType'));
+			if (!PHOTO_MIME_TYPES.includes(photoMimeType(asset))) {
+				setErrorMessage(t('common.profilePhoto.typeError'));
 			} else if ((asset.fileSize ?? 0) > MAX_UPLOAD_BYTES) {
-				setError(t('entry.parrot.photoSize'));
+				setErrorMessage(t('common.profilePhoto.sizeError'));
 			} else {
 				setPhotoUri(asset.uri);
-				setError(null);
+				setErrorMessage(null);
 			}
 		} catch (cause) {
 			reportError(cause, 'photo_picker');
 
-			setError(t('entry.parrot.photoError'));
+			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
 	}
 
@@ -76,7 +76,7 @@ export function usePhotoPicker(initial: string | null): {
 		} catch (cause) {
 			reportError(cause, 'camera_permission');
 
-			setError(t('entry.parrot.photoError'));
+			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
 	}
 
@@ -86,7 +86,7 @@ export function usePhotoPicker(initial: string | null): {
 		} catch (cause) {
 			reportError(cause, 'photo_permission');
 
-			setError(t('entry.parrot.photoError'));
+			setErrorMessage(t('common.profilePhoto.loadError'));
 		}
 	}
 
@@ -94,11 +94,11 @@ export function usePhotoPicker(initial: string | null): {
 		photoUri,
 		setPhotoUri: (uri) => {
 			setPhotoUri(uri);
-			setError(null);
+			setErrorMessage(null);
 		},
 		take,
 		choose,
-		error,
+		errorMessage,
 		libraryDialog: libraryPermission.dialog,
 		cameraDialog: cameraPermission.dialog,
 	};

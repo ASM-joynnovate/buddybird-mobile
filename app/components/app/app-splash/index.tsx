@@ -25,34 +25,34 @@ import { SplashEye } from '@/components/app/app-splash/splash-eye';
 import artwork from '@assets/images/splash-artwork.json';
 
 interface Props {
-	ready: boolean;
+	bootstrapSettled: boolean;
 	onComplete(): void;
 }
 
-export function AppSplash({ ready, onComplete }: Props) {
+export function AppSplash({ bootstrapSettled, onComplete }: Props) {
 	const reducedMotion = useReducedMotion();
 
-	const eyes = useSharedValue(1);
-	const enter = useSharedValue(reducedMotion ? 1 : 0);
-	const opacity = useSharedValue(1);
+	const eyeOpenness = useSharedValue(1);
+	const enterProgress = useSharedValue(reducedMotion ? 1 : 0);
+	const exitOpacity = useSharedValue(1);
 	const enterStyle = useAnimatedStyle(() => ({
-		opacity: enter.get(),
-		transform: [{ scale: 1.035 - 0.035 * enter.get() }],
+		opacity: enterProgress.get(),
+		transform: [{ scale: 1.035 - 0.035 * enterProgress.get() }],
 	}));
-	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
+	const exitStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.get() }));
 
-	const [shown, setShown] = useState(false);
+	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 	const [blinked, setBlinked] = useState(reducedMotion);
 
 	const laidOut = useRef(false);
 
 	useEffect(() => {
-		if (!shown || reducedMotion) {
+		if (!nativeSplashHidden || reducedMotion) {
 			return;
 		}
 
-		enter.set(withTiming(1, { duration: 760, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
-		eyes.set(
+		enterProgress.set(withTiming(1, { duration: 760, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
+		eyeOpenness.set(
 			withDelay(
 				SECOND,
 				withSequence(
@@ -69,17 +69,17 @@ export function AppSplash({ ready, onComplete }: Props) {
 		);
 
 		return () => {
-			cancelAnimation(enter);
-			cancelAnimation(eyes);
+			cancelAnimation(enterProgress);
+			cancelAnimation(eyeOpenness);
 		};
-	}, [enter, eyes, reducedMotion, shown]);
+	}, [enterProgress, eyeOpenness, reducedMotion, nativeSplashHidden]);
 
 	useEffect(() => {
-		if (!ready || !shown || !blinked) {
+		if (!bootstrapSettled || !nativeSplashHidden || !blinked) {
 			return;
 		}
 
-		opacity.set(
+		exitOpacity.set(
 			withTiming(0, { duration: reducedMotion ? 0 : 200 }, (finished) => {
 				if (finished) {
 					scheduleOnRN(onComplete);
@@ -87,8 +87,8 @@ export function AppSplash({ ready, onComplete }: Props) {
 			}),
 		);
 
-		return () => cancelAnimation(opacity);
-	}, [blinked, onComplete, opacity, ready, reducedMotion, shown]);
+		return () => cancelAnimation(exitOpacity);
+	}, [blinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
 
 	function reveal() {
 		if (laidOut.current) {
@@ -99,11 +99,11 @@ export function AppSplash({ ready, onComplete }: Props) {
 
 		void SplashScreen.hideAsync()
 			.catch((error) => reportError(error, 'splash'))
-			.finally(() => setShown(true));
+			.finally(() => setNativeSplashHidden(true));
 	}
 
 	return (
-		<Animated.View accessible accessibilityLabel="BuddyBird" onLayout={reveal} style={[styles.screen, fadeStyle]}>
+		<Animated.View accessible accessibilityLabel="BuddyBird" onLayout={reveal} style={[styles.screen, exitStyle]}>
 			<Animated.View
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
@@ -123,8 +123,8 @@ export function AppSplash({ ready, onComplete }: Props) {
 				{/*얼굴과 앱 이름*/}
 				<Svg width="100%" height="100%" viewBox="0 0 860 1851" preserveAspectRatio="xMidYMid meet">
 					<G transform="translate(4 0)">
-						<SplashEye offset={0} openness={eyes} />
-						<SplashEye offset={507} openness={eyes} />
+						<SplashEye offsetX={0} openness={eyeOpenness} />
+						<SplashEye offsetX={507} openness={eyeOpenness} />
 						{artwork.face.map((part, index) => (
 							<Path key={index} {...part} />
 						))}

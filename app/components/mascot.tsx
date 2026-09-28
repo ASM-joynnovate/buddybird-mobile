@@ -14,7 +14,7 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import { mascot } from '@/theme';
+import { mascotImage } from '@/theme';
 import { SECOND } from '@/utils/units';
 
 interface Props {
@@ -24,16 +24,16 @@ interface Props {
 export function Mascot({ size = 120 }: Props) {
 	const { t } = useTranslation();
 
-	const reduced = useReducedMotion();
+	const reducedMotion = useReducedMotion();
 
 	const y = useSharedValue(0);
 	const rotation = useSharedValue(0);
-	const style = useAnimatedStyle(() => ({
+	const floatStyle = useAnimatedStyle(() => ({
 		transform: [{ translateY: y.get() }, { rotate: `${rotation.get()}deg` }],
 	}));
 
 	useEffect(() => {
-		if (reduced) {
+		if (reducedMotion) {
 			return;
 		}
 
@@ -51,17 +51,17 @@ export function Mascot({ size = 120 }: Props) {
 			cancelAnimation(y);
 			cancelAnimation(rotation);
 		};
-	}, [reduced, rotation, size, y]);
+	}, [reducedMotion, rotation, size, y]);
 
 	return (
 		<Animated.View
 			accessible
 			accessibilityRole="image"
 			accessibilityLabel={t('common.mascot')}
-			style={[styles.frame, { width: size }, style]}
+			style={[styles.frame, { width: size }, floatStyle]}
 		>
 			<Image
-				source={mascot}
+				source={mascotImage}
 				resizeMode="contain"
 				style={[StyleSheet.absoluteFill, styles.image]}
 				accessibilityIgnoresInvertColors

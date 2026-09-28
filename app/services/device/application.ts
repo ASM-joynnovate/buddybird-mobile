@@ -15,18 +15,18 @@ export async function openAppStore() {
 		throw new Error('Missing installed application ID');
 	}
 
-	const native =
+	const storeAppUrl =
 		Platform.OS === 'ios' ? `itms-apps://apps.apple.com/app/id${env.appStoreId}` : `market://details?id=${appId}`;
-	const web =
+	const storeWebUrl =
 		Platform.OS === 'ios'
 			? `https://apps.apple.com/app/id${env.appStoreId}`
 			: `https://play.google.com/store/apps/details?id=${appId}`;
 
 	try {
-		await Linking.openURL(native);
+		await Linking.openURL(storeAppUrl);
 	} catch (e) {
 		reportError(e, 'open_store_app');
 
-		await Linking.openURL(web);
+		await Linking.openURL(storeWebUrl);
 	}
 }

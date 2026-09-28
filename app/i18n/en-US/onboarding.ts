@@ -1,29 +1,12 @@
-import type { EntryMessages } from '@/i18n/types/entry';
+import type { OnboardingMessages } from '@/i18n/types/onboarding';
 
-export const entry: EntryMessages = {
+export const onboarding: OnboardingMessages = {
 	login: {
 		product: 'BuddyBird',
 	},
 	consent: {
 		intro: 'Please agree to use the BuddyBird app!',
 		all: 'Agree to all',
-		required: 'Required',
-		optional: 'Optional',
-		viewFull: 'Read {{title}}',
-	},
-	consentDetail: {
-		agree: 'Agree',
-	},
-	parrot: {
-		intro: 'Tell me about your parrot!',
-		addTitle: 'Add parrot',
-		editTitle: 'Edit parrot',
-		register: 'Add',
-		delete: 'Delete parrot',
-		deleteError: "We couldn't delete the parrot. Please try again.",
-		photoType: 'Only JPEG or PNG photos work. Please choose another photo.',
-		photoSize: 'Photos must be 5MB or smaller. Please choose another photo.',
-		photoError: "We couldn't load the photo. Please choose it again.",
 	},
 	usage: {
 		record: {
@@ -44,18 +27,18 @@ export const entry: EntryMessages = {
 		},
 	},
 	permissions: {
-		title: 'Permissions BuddyBird needs',
+		intro: 'Permissions BuddyBird needs',
 		scene: 'Buddy explaining permissions',
-		microphone: "Record words and your parrot's sounds",
-		notifications: 'Learning alerts',
+		purpose: {
+			microphone: "Record words and your parrot's sounds",
+			notifications: 'Learning alerts',
+		},
 		allow: 'Allow',
 		later: 'Later',
 	},
 	legacy: {
 		uploading: 'Moving the parrot and words on this phone',
-		error: "We couldn't move your parrot and words. Check your connection and try again.",
+		uploadError: "We couldn't move your parrot and words. Check your connection and try again.",
 		askTitle: 'Add the parrot and words on this phone?',
-		add: 'Add',
-		skip: 'Skip',
 	},
 };

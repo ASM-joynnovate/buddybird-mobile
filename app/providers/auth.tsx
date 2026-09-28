@@ -16,8 +16,8 @@ import { queryClient } from '@/lib/query-client';
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
 
 import { authClient } from '@/services/auth/client';
-import { loginCredential, takeCredential } from '@/services/auth/credential';
-import { type AuthIdentity, nextAuthState, signOutToAnonymous, signUpAnonymously } from '@/services/auth/session';
+import { loginCredential, takeAppleLoginCredential } from '@/services/auth/credential';
+import { type AuthIdentity, getAuthTransition, signOutLocally, signUpAnonymously } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
@@ -33,8 +33,10 @@ function identityOf(session: Session | null): AuthIdentity | null {
 	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null;
 }
 
-function sameIdentity(previous: AuthIdentity | null | undefined, next: AuthIdentity | null) {
-	return previous !== undefined && previous?.id === next?.id && previous?.anonymous === next?.anonymous;
+function sameIdentity(previous: AuthIdentity | null | undefined, nextIdentity: AuthIdentity | null) {
+	return (
+		previous !== undefined && previous?.id === nextIdentity?.id && previous?.anonymous === nextIdentity?.anonymous
+	);
 }
 
 export function AuthProvider({ children }: Props) {
@@ -47,14 +49,14 @@ export function AuthProvider({ children }: Props) {
 		const auth = authClient();
 
 		let active = true;
-		let current: AuthIdentity | null | undefined;
+		let currentIdentity: AuthIdentity | null | undefined;
 		let loginAbort: AbortController | undefined;
 		let receivedEvent = false;
 
 		setStatus('loading');
 
-		async function signUp() {
-			takeCredential();
+		async function restartAsAnonymous() {
+			takeAppleLoginCredential();
 			useAccountStore.getState().clearRegistration();
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 
@@ -122,7 +124,7 @@ export function AuthProvider({ children }: Props) {
 					error.retryable ||
 					error.code === 'CLIENT__INVALID_RESPONSE'
 				) {
-					current = undefined;
+					currentIdentity = undefined;
 
 					setStatus('error');
 
@@ -130,7 +132,7 @@ export function AuthProvider({ children }: Props) {
 				}
 
 				try {
-					await signOutToAnonymous();
+					await signOutLocally();
 				} catch (signOutError) {
 					reportError(signOutError, 'login_sign_out');
 
@@ -144,22 +146,25 @@ export function AuthProvider({ children }: Props) {
 		}
 
 		async function acceptSession(session: Session | null) {
-			const next = identityOf(session);
+			const nextIdentity = identityOf(session);
 
-			if (!active || sameIdentity(current, next)) {
+			if (!active || sameIdentity(currentIdentity, nextIdentity)) {
 				return;
 			}
 
-			current = next;
+			currentIdentity = nextIdentity;
 
 			loginAbort?.abort();
 			void queryClient.cancelQueries();
 
 			const { authUserId, isAnonymous } = useAccountStore.getState();
-			const transition = nextAuthState(authUserId ? { id: authUserId, anonymous: isAnonymous } : null, next);
+			const transition = getAuthTransition(
+				authUserId ? { id: authUserId, anonymous: isAnonymous } : null,
+				nextIdentity,
+			);
 
-			if (transition === 'signedOut' || next === null) {
-				await signUp();
+			if (transition === 'signedOut' || nextIdentity === null) {
+				await restartAsAnonymous();
 
 				return;
 			}
@@ -170,7 +175,7 @@ export function AuthProvider({ children }: Props) {
 				return;
 			}
 
-			await completeLogin(next, transition === 'linked');
+			await completeLogin(nextIdentity, transition === 'linked');
 		}
 
 		const {
@@ -214,23 +219,23 @@ export function AuthProvider({ children }: Props) {
 				}
 			});
 
-		const refresh = (next: string) => {
-			if (next === 'active') {
+		const toggleAutoRefresh = (appState: string) => {
+			if (appState === 'active') {
 				void auth.startAutoRefresh();
 			} else {
 				void auth.stopAutoRefresh();
 			}
 		};
 
-		refresh(AppState.currentState);
+		toggleAutoRefresh(AppState.currentState);
 
-		const lifecycle = AppState.addEventListener('change', refresh);
+		const appStateSubscription = AppState.addEventListener('change', toggleAutoRefresh);
 
 		return () => {
 			active = false;
 			loginAbort?.abort();
 			subscription.unsubscribe();
-			lifecycle.remove();
+			appStateSubscription.remove();
 			void auth.stopAutoRefresh();
 		};
 	}, [retryCount, mutateAsync]);

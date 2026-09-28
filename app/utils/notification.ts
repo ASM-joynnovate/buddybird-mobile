@@ -2,13 +2,13 @@ import type { NotificationKind } from '@/types/apis/notifications';
 
 import { localDate } from '@/utils/date';
 
-type NotificationTarget = {
+type OpenedNotification = {
 	kind: NotificationKind;
 	report_date?: string | null;
 	sent_at: string;
 };
 
-export function notificationPath({ kind, report_date, sent_at }: NotificationTarget): string {
+export function notificationPath({ kind, report_date, sent_at }: OpenedNotification): string {
 	if (kind === 'streak') {
 		return '/report?source=notification';
 	}

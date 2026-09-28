@@ -274,7 +274,7 @@ const HomeContent = () => {
 							disabled={finishSession.isPending}
 							onPress={() => finishSession.mutate({ id: runningSession.id })}
 						/>
-						<InlineError message={finishSession.isError ? t('session.end.error') : null} />
+						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
 					</Card>
 				)}
 
@@ -286,7 +286,7 @@ const HomeContent = () => {
 							label: t('session.start.word'),
 							value: selectedWord?.name ?? t('session.start.choose'),
 						}}
-						sheet={{ title: t('session.start.word'), list: true }}
+						sheet={{ title: t('session.start.word'), listLayout: true }}
 					>
 						{renderWordSheet}
 					</ItemPicker>
@@ -324,7 +324,7 @@ const HomeContent = () => {
 					message: t('session.takeover.message'),
 					confirm: t('session.takeover.confirm'),
 				}}
-				state={{ busy: starting }}
+				confirmStatus={{ busy: starting }}
 				onConfirm={handleConfirmTakeover}
 				onClose={handleCloseStartDialog}
 			/>
@@ -336,7 +336,7 @@ const HomeContent = () => {
 					confirm: t('common.retry'),
 					cancel: t('common.close'),
 				}}
-				state={{ busy: starting }}
+				confirmStatus={{ busy: starting }}
 				onConfirm={handleRetryStart}
 				onClose={handleCloseStartDialog}
 			/>

@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 3 },
 		elevation: 3,
 	},
-	text: { fontFamily: font.extraBold, fontSize: 12, lineHeight: 16, color: colors.onAccent },
+	text: { fontFamily: font.extraBold, fontSize: 12, lineHeight: 16, color: colors.onFilled },
 	pointer: {
 		position: 'absolute',
 		bottom: -4,

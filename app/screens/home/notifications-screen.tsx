@@ -25,19 +25,19 @@ export function NotificationsScreen() {
 	const { isError, isPending, mutate } = useReadAllNotifications();
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={styles.container}>
 				{/*헤더와 모두 읽음 실패 안내*/}
 				<ScreenHeader
-					title={t('home.notification.title')}
+					title={t('home.notificationList.title')}
 					onBack={() => navigation.goBack()}
-					right=<TextButton
-						label={t('home.notification.readAll')}
+					trailing=<TextButton
+						label={t('home.notificationList.readAll')}
 						disabled={isPending}
 						onPress={() => mutate({})}
 					/>
 				/>
-				<InlineError message={isError ? t('home.notification.readAllError') : null} />
+				<InlineError message={isError ? t('home.notificationList.readAllError') : null} />
 
 				{/*알림 목록*/}
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={5} />>

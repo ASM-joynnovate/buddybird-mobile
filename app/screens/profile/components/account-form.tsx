@@ -110,7 +110,7 @@ export function AccountForm({ onSaved }: Props) {
 			{/*사진*/}
 			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
 			{photo.photoUri ? (
-				<View style={styles.remove}>
+				<View style={styles.removePhotoContainer}>
 					<TextButton
 						label={t('profile.removePhoto')}
 						variant="muted"
@@ -123,7 +123,7 @@ export function AccountForm({ onSaved }: Props) {
 			{/*닉네임 입력*/}
 			<TextField
 				label={t('profile.nickname')}
-				error={nicknameError}
+				errorMessage={nicknameError}
 				value={nickname}
 				onChangeText={handleChangeNickname}
 				editable={!saving}
@@ -147,7 +147,7 @@ export function AccountForm({ onSaved }: Props) {
 }
 
 const styles = StyleSheet.create({
-	remove: { alignItems: 'flex-end', marginTop: -12, marginBottom: 8 },
+	removePhotoContainer: { alignItems: 'flex-end', marginTop: -12, marginBottom: 8 },
 	spacer: { flexGrow: 1, minHeight: 24 },
 	save: { marginTop: 12 },
 });

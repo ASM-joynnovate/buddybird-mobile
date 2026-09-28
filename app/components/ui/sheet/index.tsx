@@ -17,29 +17,29 @@ interface Props {
 	visible: boolean;
 	title: string;
 	onClose(): void;
-	list?: boolean;
+	listLayout?: boolean;
 	onOpened?(): void;
 }
 
-export function Sheet({ visible, title, onClose, list = false, onOpened, children }: PropsWithChildren<Props>) {
+export function Sheet({ visible, title, onClose, listLayout = false, onOpened, children }: PropsWithChildren<Props>) {
 	const insets = useSafeAreaInsets();
 
-	const ref = useRef<BottomSheetModal>(null);
+	const sheetRef = useRef<BottomSheetModal>(null);
 	const presented = useRef(false);
 
 	useEffect(() => {
 		if (visible) {
 			presented.current = true;
-			ref.current?.present();
+			sheetRef.current?.present();
 		} else if (presented.current) {
 			presented.current = false;
-			ref.current?.dismiss();
+			sheetRef.current?.dismiss();
 		}
 	}, [visible]);
 
 	return (
 		<BottomSheetModal
-			ref={ref}
+			ref={sheetRef}
 			onDismiss={() => {
 				presented.current = false;
 				onClose();
@@ -49,15 +49,15 @@ export function Sheet({ visible, title, onClose, list = false, onOpened, childre
 					onOpened?.();
 				}
 			}}
-			enableContentPanningGesture={list}
-			enableDynamicSizing={!list}
-			snapPoints={list ? LIST_SNAP_POINTS : undefined}
+			enableContentPanningGesture={listLayout}
+			enableDynamicSizing={!listLayout}
+			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
 			backdropComponent={SheetBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
 			style={styles.sheet}
 		>
-			{list ? (
+			{listLayout ? (
 				<View accessibilityViewIsModal style={styles.list}>
 					<Title style={[styles.title, styles.listTitle]}>{title}</Title>
 					{children}

@@ -52,9 +52,9 @@ export function DeleteWordDialog({ visible, word, onClose, onDeleted }: Props) {
 				title: t('common.confirmDelete.title', { name: word.name }),
 				message: t('common.confirmDelete.message'),
 			}}
-			state={{
+			confirmStatus={{
 				busy: isPending,
-				error: isError ? t('words.editor.deleteError') : null,
+				errorMessage: isError ? t('words.deleteError') : null,
 			}}
 			onConfirm={handleDeleteWord}
 			onClose={handleClose}

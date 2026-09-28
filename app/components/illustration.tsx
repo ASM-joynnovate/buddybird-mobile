@@ -12,10 +12,10 @@ interface Props {
 	scene: string;
 	icon: LucideIcon;
 	height?: number;
-	mascot?: boolean;
+	showMascot?: boolean;
 }
 
-export function Illustration({ scene, icon: Icon, height = 220, mascot = true }: Props) {
+export function Illustration({ scene, icon: Icon, height = 220, showMascot = true }: Props) {
 	const { t } = useTranslation();
 
 	return (
@@ -25,9 +25,9 @@ export function Illustration({ scene, icon: Icon, height = 220, mascot = true }:
 			accessibilityLabel={t('common.illustration', { scene })}
 			style={[styles.panel, { height }]}
 		>
-			{mascot ? <Mascot size={Math.round(height * 0.55)} /> : null}
-			<View style={mascot ? styles.badge : styles.centered}>
-				<Icon size={mascot ? 26 : 40} color={colors.orangeDark} />
+			{showMascot ? <Mascot size={Math.round(height * 0.55)} /> : null}
+			<View style={showMascot ? styles.badge : styles.centered}>
+				<Icon size={showMascot ? 26 : 40} color={colors.orangeDark} />
 			</View>
 		</View>
 	);
@@ -36,9 +36,9 @@ export function Illustration({ scene, icon: Icon, height = 220, mascot = true }:
 const styles = StyleSheet.create({
 	panel: {
 		alignSelf: 'stretch',
-		borderRadius: radius.hero,
+		borderRadius: radius.illustration,
 		borderCurve: 'continuous',
-		backgroundColor: colors.orangeSelected,
+		backgroundColor: colors.orangePale,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},

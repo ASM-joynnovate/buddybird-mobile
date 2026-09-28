@@ -70,12 +70,12 @@ export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened
 		<Dialog
 			visible={visible}
 			onClose={handleClose}
-			title={t(forced ? 'app.update.required' : 'app.update.title')}
+			title={t(forced ? 'app.update.forcedTitle' : 'app.update.title')}
 			footer={
 				<View style={[ui.actions, styles.actions]}>
 					{!forced ? (
 						<Button
-							label={t('app.update.later')}
+							label={t('common.close')}
 							variant="secondary"
 							disabled={appStoreOpening}
 							onPress={onDismiss}
@@ -93,7 +93,7 @@ export function UpdateDialog({ promptedUpdate, visible, onDismiss, onStoreOpened
 		>
 			{/*업데이트 안내와 변경 내용*/}
 			<Copy style={styles.body}>
-				{t(forced ? 'app.update.requiredBody' : 'app.update.body', {
+				{t(forced ? 'app.update.forcedMessage' : 'app.update.message', {
 					version: promptedUpdate?.latestVersion ?? '',
 				})}
 			</Copy>

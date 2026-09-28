@@ -11,9 +11,9 @@ import {
 	AudioRecorder,
 } from 'react-native-audio-api';
 
-import { LEARNING_TICK_MS, VAD, WORD_REST_FACTOR } from '@/config';
-import { stressCareTracks } from '@/screens/session/services/tracks';
-import { createSpeechDetector, type SpeechSegment } from '@/screens/session/services/vad';
+import { LEARNING_TICK_MS, VAD, WORD_REPLAY_DELAY_FACTOR } from '@/config';
+import { loadStressCareTracks } from '@/screens/session/services/tracks';
+import { createSoundDetector, type SoundSegment } from '@/screens/session/services/vad';
 import { saveWav } from '@/screens/session/services/wav';
 import { localDate } from '@/utils/date';
 import { currentSpan, type PhaseSpan } from '@/utils/phases';
@@ -39,10 +39,10 @@ export type LearningEngine = {
 	learningMs(): number;
 };
 
-type Counter = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
+type SummaryField = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
 
 export function createLearningEngine(options: LearningEngineOptions): LearningEngine {
-	const detector = createSpeechDetector(VAD);
+	const detector = createSoundDetector(VAD);
 	const recorder = new AudioRecorder();
 
 	let context: AudioContext | null = null;
@@ -53,17 +53,17 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	let stopped = false;
 	let phase: Phase | null = null;
 	let clip: AudioBufferSourceNode | null = null;
-	let care: AudioBufferSourceNode | null = null;
-	let chosenCare: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null;
+	let careSource: AudioBufferSourceNode | null = null;
+	let chosenCareTrack: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null;
 	let careStartedAt = 0;
-	let nextClip = 0;
+	let nextClipIndex = 0;
 	let nextPlayAt = 0;
 	let lastTick = 0;
-	let totals: Record<string, HeartbeatSummary> = {};
+	let summariesByDate: Record<string, HeartbeatSummary> = {};
 
-	function count(counter: Counter, amount: number, at: number) {
+	function addToSummary(field: SummaryField, amount: number, at: number) {
 		const date = localDate(at);
-		const current = totals[date] ?? {
+		const summary = summariesByDate[date] ?? {
 			word_id: options.wordId,
 			local_date: date,
 			play_count: 0,
@@ -71,13 +71,13 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			learning_duration_ms: 0,
 		};
 
-		totals = {
-			...totals,
-			[date]: { ...current, [counter]: (current[counter] ?? 0) + Math.round(amount) },
+		summariesByDate = {
+			...summariesByDate,
+			[date]: { ...summary, [field]: (summary[field] ?? 0) + Math.round(amount) },
 		};
 	}
 
-	function emit(segment: SpeechSegment | null) {
+	function emitSound(segment: SoundSegment | null) {
 		if (!segment) {
 			return;
 		}
@@ -93,36 +93,37 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 	}
 
 	function stopClip() {
-		const playing = clip;
+		const playingSource = clip;
 
 		clip = null;
 
-		playing?.stop();
+		playingSource?.stop();
 	}
 
 	function stopCare() {
-		const playing = care;
+		const playingSource = careSource;
 
-		care = null;
+		careSource = null;
 
-		if (playing && context && chosenCare) {
-			chosenCare = {
-				...chosenCare,
-				offset: (chosenCare.offset + context.currentTime - careStartedAt) % chosenCare.buffer.duration,
+		if (playingSource && context && chosenCareTrack) {
+			chosenCareTrack = {
+				...chosenCareTrack,
+				offset:
+					(chosenCareTrack.offset + context.currentTime - careStartedAt) % chosenCareTrack.buffer.duration,
 			};
 		}
 
-		playing?.stop();
+		playingSource?.stop();
 	}
 
 	function playClip(now: number) {
-		const buffer = recordings[nextClip % recordings.length];
+		const buffer = recordings[nextClipIndex % recordings.length];
 
 		if (!context || !buffer) {
 			return;
 		}
 
-		emit(detector.flush());
+		emitSound(detector.flush());
 
 		const source = context.createBufferSource();
 		const durationMs = buffer.duration * SECOND;
@@ -133,60 +134,60 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			if (clip === source) {
 				clip = null;
 				nextPlayAt = dayjs()
-					.add(durationMs * WORD_REST_FACTOR, 'ms')
+					.add(durationMs * WORD_REPLAY_DELAY_FACTOR, 'ms')
 					.valueOf();
 			}
 		};
 		source.start();
 
 		clip = source;
-		nextClip += 1;
+		nextClipIndex += 1;
 		nextPlayAt = Number.POSITIVE_INFINITY;
 
-		detector.suspend(now + durationMs + VAD.echoTailGuardMs);
+		detector.suspend(now + durationMs + VAD.ignoreAfterPlaybackMs);
 
-		count('play_count', 1, now);
-		count('play_duration_ms', durationMs, now);
+		addToSummary('play_count', 1, now);
+		addToSummary('play_duration_ms', durationMs, now);
 	}
 
 	async function playCare(span: PhaseSpan) {
-		const owner = context;
+		const contextAtStart = context;
 
-		if (!owner) {
+		if (!contextAtStart) {
 			return;
 		}
 
-		if (chosenCare?.spanStart !== span.start) {
+		if (chosenCareTrack?.spanStart !== span.start) {
 			const track = careTracks[Math.floor(Math.random() * careTracks.length)];
 
 			if (!track) {
 				return;
 			}
 
-			chosenCare = {
+			chosenCareTrack = {
 				spanStart: span.start,
-				buffer: await owner.decodeAudioData(track),
+				buffer: await contextAtStart.decodeAudioData(track),
 				offset: 0,
 			};
 		}
 
-		if (context !== owner || phase !== 'stress_care' || !running || care) {
+		if (context !== contextAtStart || phase !== 'stress_care' || !running || careSource) {
 			return;
 		}
 
-		const source = owner.createBufferSource();
+		const source = contextAtStart.createBufferSource();
 
-		source.buffer = chosenCare.buffer;
+		source.buffer = chosenCareTrack.buffer;
 		source.loop = true;
-		source.connect(owner.destination);
-		source.start(0, chosenCare.offset);
+		source.connect(contextAtStart.destination);
+		source.start(0, chosenCareTrack.offset);
 
-		care = source;
-		careStartedAt = owner.currentTime;
+		careSource = source;
+		careStartedAt = contextAtStart.currentTime;
 	}
 
-	function enter(span: PhaseSpan) {
-		emit(detector.flush());
+	function enterPhase(span: PhaseSpan) {
+		emitSound(detector.flush());
 
 		stopClip();
 		stopCare();
@@ -195,7 +196,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		nextPlayAt = 0;
 
 		if (span.phase === 'stress_care') {
-			detector.suspend(span.end + VAD.echoTailGuardMs);
+			detector.suspend(span.end + VAD.ignoreAfterPlaybackMs);
 
 			playCare(span).catch(options.onError);
 		}
@@ -206,11 +207,11 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		const span = currentSpan(options.startedAt, now, options.sleep);
 
 		if (span.phase !== phase) {
-			enter(span);
+			enterPhase(span);
 		}
 
 		if (phase === 'learning') {
-			count('learning_duration_ms', now - lastTick, now);
+			addToSummary('learning_duration_ms', now - lastTick, now);
 
 			if (!clip && now >= nextPlayAt) {
 				playClip(now);
@@ -229,7 +230,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			},
 			({ buffer }) => {
 				if (running) {
-					detector.push(buffer.getChannelData(0), dayjs().valueOf()).forEach(emit);
+					detector.push(buffer.getChannelData(0), dayjs().valueOf()).forEach(emitSound);
 				}
 			},
 		);
@@ -242,7 +243,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		}
 	}
 
-	async function begin() {
+	async function startRunning() {
 		if (stopped) {
 			return;
 		}
@@ -269,7 +270,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 		timer = setInterval(tick, LEARNING_TICK_MS);
 	}
 
-	async function halt() {
+	async function stopRunning() {
 		running = false;
 
 		if (timer) {
@@ -277,7 +278,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			timer = null;
 		}
 
-		emit(detector.flush());
+		emitSound(detector.flush());
 
 		stopClip();
 		stopCare();
@@ -300,26 +301,26 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 				return;
 			}
 
-			const created = new AudioContext();
+			const createdContext = new AudioContext();
 
-			context = created;
-			recordings = await Promise.all(options.recordingUrls.map((url) => created.decodeAudioData(url)));
-			careTracks = await stressCareTracks();
+			context = createdContext;
+			recordings = await Promise.all(options.recordingUrls.map((url) => createdContext.decodeAudioData(url)));
+			careTracks = await loadStressCareTracks();
 
-			await begin();
+			await startRunning();
 		},
 		async pause() {
-			await halt();
+			await stopRunning();
 			await context?.suspend();
 		},
 		async resume() {
 			await context?.resume();
-			await begin();
+			await startRunning();
 		},
 		async stop() {
 			stopped = true;
 
-			await halt();
+			await stopRunning();
 
 			recorder.clearOnAudioReady();
 			recorder.clearOnError();
@@ -329,7 +330,7 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 
 			await AudioManager.setAudioSessionActivity(false);
 		},
-		summaries: () => Object.values(totals),
-		learningMs: () => Object.values(totals).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
+		summaries: () => Object.values(summariesByDate),
+		learningMs: () => Object.values(summariesByDate).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
 	};
 }

@@ -1,31 +1,30 @@
 export type AppMessages = {
 	startup: {
 		loading: string;
+	};
+	startupError: {
 		title: string;
 		message: string;
 	};
 	feedback: {
-		thanks: string;
-		thanksClose: string;
+		sentMessage: string;
 		retry: string;
 		promptTitle: string;
 		promptMessage: string;
-		later: string;
 		write: string;
 		title: string;
 		placeholder: string;
 		privacy: string;
 		send: string;
-		sent: string;
-		error: string;
+		sentTitle: string;
+		sendError: string;
 	};
 	update: {
 		title: string;
-		required: string;
-		body: string;
-		requiredBody: string;
+		forcedTitle: string;
+		message: string;
+		forcedMessage: string;
 		accept: string;
-		later: string;
 		openStoreError: string;
 	};
 };

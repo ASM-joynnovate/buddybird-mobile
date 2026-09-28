@@ -10,9 +10,9 @@ import { TimePicker } from '@/components/time-picker';
 import { Chip } from '@/components/ui/chip';
 import { ui } from '@/components/ui/styles';
 
-type Field = keyof SleepSettings;
+type SleepTimeField = keyof SleepSettings;
 
-const FIELDS: readonly Field[] = ['sleep_at', 'wake_at'];
+const SLEEP_TIME_FIELDS: readonly SleepTimeField[] = ['sleep_at', 'wake_at'];
 
 interface Props {
 	value: SleepSettings;
@@ -22,25 +22,25 @@ interface Props {
 export function SleepTimeEditor({ value, onChange }: Props) {
 	const { t } = useTranslation();
 
-	const [field, setField] = useState<Field>('sleep_at');
+	const [selectedField, setSelectedField] = useState<SleepTimeField>('sleep_at');
 
 	return (
 		<View style={styles.editor}>
 			<View style={ui.row}>
-				{FIELDS.map((item) => (
+				{SLEEP_TIME_FIELDS.map((field) => (
 					<Chip
-						key={item}
-						label={t(`session.sleep.${item}`)}
-						selected={field === item}
-						onPress={() => setField(item)}
+						key={field}
+						label={t(`session.sleep.${field}`)}
+						selected={selectedField === field}
+						onPress={() => setSelectedField(field)}
 					/>
 				))}
 			</View>
 			<TimePicker
-				key={field}
-				value={value[field]}
-				label={t(`session.sleep.${field}`)}
-				onChange={(time) => onChange({ ...value, [field]: time })}
+				key={selectedField}
+				value={value[selectedField]}
+				label={t(`session.sleep.${selectedField}`)}
+				onChange={(time) => onChange({ ...value, [selectedField]: time })}
 			/>
 		</View>
 	);

@@ -57,7 +57,7 @@ interface RecordingFile {
 	durationMs: number;
 }
 
-type RecordingFileError = 'empty' | 'tooLarge' | 'format' | 'error' | null;
+type RecordingFileError = 'empty' | 'tooLarge' | 'invalidFormat' | 'recordError' | null;
 
 function meteringLevel(decibels?: number): number {
 	if (decibels === undefined || !Number.isFinite(decibels)) {
@@ -90,7 +90,7 @@ const deleteRecordingFile = (uri: string) => {
 /** 녹음 파일의 형식, 빈 파일, 크기 초과 검사 */
 const getRecordingFileError = (uri: string, durationMs: number) => {
 	if (!uri.toLowerCase().endsWith('.m4a')) {
-		return 'format';
+		return 'invalidFormat';
 	}
 
 	const fileInfo = readFileInfo(uri);
@@ -139,13 +139,13 @@ export function RecorderScreen(): ReactElement {
 		} catch (e) {
 			reportError(e, 'recording_inspect');
 
-			setRecordingFileError('error');
+			setRecordingFileError('recordError');
 		}
 	}, []);
 
 	const recorder = useAudioRecorder(recordingOptions, (status) => {
 		if (status.hasError) {
-			setRecordingFileError('error');
+			setRecordingFileError('recordError');
 		} else if (status.isFinished && status.url) {
 			handleRecordingFinished(status.url, elapsedRef.current);
 		}
@@ -209,7 +209,7 @@ export function RecorderScreen(): ReactElement {
 		} catch (e) {
 			reportError(e, 'recording_start');
 
-			setRecordingFileError('error');
+			setRecordingFileError('recordError');
 		} finally {
 			setBusy(false);
 		}
@@ -234,7 +234,7 @@ export function RecorderScreen(): ReactElement {
 		} catch (e) {
 			reportError(e, 'recording_stop');
 
-			setRecordingFileError('error');
+			setRecordingFileError('recordError');
 		} finally {
 			setBusy(false);
 		}
@@ -288,7 +288,7 @@ export function RecorderScreen(): ReactElement {
 			params: {
 				screen: 'WordEditor',
 				params: {
-					recorded: { key: randomUUID(), uri: recordingFile.uri, durationMs: recordingFile.durationMs },
+					newRecording: { key: randomUUID(), uri: recordingFile.uri, durationMs: recordingFile.durationMs },
 				},
 				merge: true,
 			},
@@ -296,7 +296,7 @@ export function RecorderScreen(): ReactElement {
 	};
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
 				{/*헤더*/}
 				<ScreenHeader
@@ -311,9 +311,9 @@ export function RecorderScreen(): ReactElement {
 						color={colors.orange}
 						height={96}
 						barCount={36}
-						fill
+						fullWidth
 						level={isRecording ? meteringLevel(recorderState.metering) : null}
-						animated={playing}
+						looping={playing}
 					/>
 
 					<Copy accessibilityRole="timer" style={styles.timer}>
@@ -348,13 +348,13 @@ export function RecorderScreen(): ReactElement {
 				{recordingFile && !isRecording ? (
 					<View style={ui.actions}>
 						<Button
-							label={t('words.recorder.retake')}
+							label={t('words.recorder.recordAgain')}
 							variant="secondary"
 							disabled={busy}
 							onPress={handleRecord}
 							style={ui.action}
 						/>
-						<Button label={t('words.recorder.add')} onPress={handleAddRecording} style={ui.action} />
+						<Button label={t('common.add')} onPress={handleAddRecording} style={ui.action} />
 					</View>
 				) : (
 					<View style={styles.control}>

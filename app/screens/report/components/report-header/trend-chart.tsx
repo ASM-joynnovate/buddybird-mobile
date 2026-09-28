@@ -9,7 +9,7 @@ import type { ReportPeriod } from '@/types/report-period';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
-import { formatDateWithWeekday, formatDuration } from '@/i18n/format';
+import { formatDuration, formatMonthDayWeekday } from '@/i18n/format';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
@@ -20,9 +20,9 @@ import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const CHART_HEIGHT = 150;
-const MIN_BAR = 3;
+const MIN_BAR_HEIGHT = 3;
 
-type Bucket = Report['trend'][number];
+type TrendBar = Report['trend'][number];
 
 /** 기간에 맞춘 막대 아래 축 글자 */
 const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
@@ -31,7 +31,7 @@ const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 	}
 
 	if (period === 'day') {
-		return date.hour() % 6 === 0 ? t('report.hour', { hour: date.hour() }) : '';
+		return date.hour() % 6 === 0 ? t('report.chartHour', { hour: date.hour() }) : '';
 	}
 
 	return (date.date() - 1) % 7 === 0 ? String(date.date()) : '';
@@ -39,53 +39,57 @@ const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 
 interface Props {
 	period: ReportPeriod;
-	trend: Bucket[];
+	trend: TrendBar[];
 }
 
 export function TrendChart({ period, trend }: Props): ReactElement {
 	const { t } = useTranslation();
 
-	const [selected, setSelected] = useState<number | null>(null);
+	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const max = Math.max(1, ...trend.map((bucket) => bucket.learning_duration_ms));
-	const describe = (bucket: Bucket) =>
-		t('report.bar', {
-			label: period === 'day' ? dayjs(bucket.start).format('LT') : formatDateWithWeekday(bucket.start, locale),
-			duration: formatDuration(bucket.learning_duration_ms, locale),
+	const maxDurationMs = Math.max(1, ...trend.map((trendBar) => trendBar.learning_duration_ms));
+	const describeBar = (trendBar: TrendBar) =>
+		t('report.chartBar', {
+			label:
+				period === 'day' ? dayjs(trendBar.start).format('LT') : formatMonthDayWeekday(trendBar.start, locale),
+			duration: formatDuration(trendBar.learning_duration_ms, locale),
 		});
-	const picked = selected === null ? null : trend[selected];
+	const selectedBar = selectedIndex === null ? null : trend[selectedIndex];
 
 	return (
 		<View>
 			{/*고른 막대의 날짜와 학습 시간*/}
 			<Copy accessibilityLiveRegion="polite" style={styles.detail}>
-				{picked ? describe(picked) : ' '}
+				{selectedBar ? describeBar(selectedBar) : ' '}
 			</Copy>
 
 			{/*학습 시간 막대*/}
-			<View style={[styles.bars, period === 'week' ? styles.wide : styles.narrow]}>
-				{trend.map((bucket, index) => (
+			<View style={[styles.bars, period === 'week' ? styles.wideGap : styles.narrowGap]}>
+				{trend.map((trendBar, index) => (
 					<PressableSurface
-						key={bucket.start}
+						key={trendBar.start}
 						variant="plain"
 						depth="none"
 						cornerRadius="xsmall"
-						accessibilityLabel={describe(bucket)}
-						accessibilityState={{ selected: selected === index }}
-						onPress={() => setSelected(selected === index ? null : index)}
+						accessibilityLabel={describeBar(trendBar)}
+						accessibilityState={{ selected: selectedIndex === index }}
+						onPress={() => setSelectedIndex(selectedIndex === index ? null : index)}
 						style={styles.column}
-						contentStyle={styles.columnFace}
+						contentStyle={styles.columnContent}
 					>
 						<View
 							style={[
 								styles.bar,
 								{
-									height: Math.max(MIN_BAR, (bucket.learning_duration_ms / max) * CHART_HEIGHT),
+									height: Math.max(
+										MIN_BAR_HEIGHT,
+										(trendBar.learning_duration_ms / maxDurationMs) * CHART_HEIGHT,
+									),
 								},
-								bucket.learning_duration_ms === 0 && styles.empty,
-								selected === index && styles.selected,
+								trendBar.learning_duration_ms === 0 && styles.empty,
+								selectedIndex === index && styles.selected,
 							]}
 						/>
 					</PressableSurface>
@@ -94,14 +98,14 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 
 			{/*막대 아래 축 글자*/}
 			<View
-				style={[styles.axis, period === 'week' ? styles.wide : styles.narrow]}
+				style={[styles.axis, period === 'week' ? styles.wideGap : styles.narrowGap]}
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
 			>
-				{trend.map((bucket) => (
-					<View key={bucket.start} style={styles.column}>
+				{trend.map((trendBar) => (
+					<View key={trendBar.start} style={styles.column}>
 						<Copy numberOfLines={1} style={styles.axisText}>
-							{formatAxisLabel(period, dayjs(bucket.start), t)}
+							{formatAxisLabel(period, dayjs(trendBar.start), t)}
 						</Copy>
 					</View>
 				))}
@@ -119,10 +123,10 @@ const styles = StyleSheet.create({
 		marginBottom: 6,
 	},
 	bars: { height: CHART_HEIGHT, flexDirection: 'row', alignItems: 'stretch' },
-	wide: { gap: 8 },
-	narrow: { gap: 2 },
+	wideGap: { gap: 8 },
+	narrowGap: { gap: 2 },
 	column: { flex: 1, minWidth: 0, justifyContent: 'flex-end', alignItems: 'center' },
-	columnFace: { flexGrow: 1, borderWidth: 0, justifyContent: 'flex-end', alignSelf: 'stretch' },
+	columnContent: { flexGrow: 1, borderWidth: 0, justifyContent: 'flex-end', alignSelf: 'stretch' },
 	bar: { alignSelf: 'stretch', borderRadius: 4, backgroundColor: colors.orange },
 	empty: { backgroundColor: colors.border },
 	selected: { backgroundColor: colors.orangeDark },

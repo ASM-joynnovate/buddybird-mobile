@@ -19,5 +19,5 @@ export function SheetBackdrop(props: Props) {
 }
 
 const styles = StyleSheet.create({
-	backdrop: { backgroundColor: colors.scrim },
+	backdrop: { backgroundColor: colors.backdrop },
 });

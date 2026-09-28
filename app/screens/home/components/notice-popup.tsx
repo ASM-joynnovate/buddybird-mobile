@@ -89,7 +89,12 @@ export function NoticePopup({ notices }: Props) {
 						onPress={handleClose}
 						style={ui.action}
 					/>
-					<Button label={t('home.notice.detail')} size="small" onPress={handleOpenDetail} style={ui.action} />
+					<Button
+						label={t('home.notice.viewDetail')}
+						size="small"
+						onPress={handleOpenDetail}
+						style={ui.action}
+					/>
 				</View>
 			}
 		>

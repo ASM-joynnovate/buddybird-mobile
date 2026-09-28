@@ -24,22 +24,22 @@ interface Props {
 }
 
 export function Checkbox({ checked, disabled, onPress }: Props) {
-	const reduced = useReducedMotion();
+	const reducedMotion = useReducedMotion();
 
-	const pop = useSharedValue(1);
-	const mark = useAnimatedStyle(() => ({ transform: [{ scale: pop.get() }] }));
+	const markScale = useSharedValue(1);
+	const markStyle = useAnimatedStyle(() => ({ transform: [{ scale: markScale.get() }] }));
 
 	useEffect(() => {
-		if (checked && !reduced) {
-			pop.set(0.7);
-			pop.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }));
+		if (checked && !reducedMotion) {
+			markScale.set(0.7);
+			markScale.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }));
 		}
-	}, [checked, reduced, pop]);
+	}, [checked, reducedMotion, markScale]);
 
-	let surfaceVariant: 'primary' | 'neutral' | 'muted' = checked ? 'primary' : 'neutral';
+	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = checked ? 'primary' : 'neutral';
 
 	if (disabled) {
-		surfaceVariant = 'muted';
+		surfaceVariant = 'disabled';
 	}
 
 	return (
@@ -53,8 +53,8 @@ export function Checkbox({ checked, disabled, onPress }: Props) {
 				style={[styles.box, disabled && { marginTop: depths[CHECK_DEPTH] }]}
 				contentStyle={styles.boxFace}
 			>
-				<Animated.View style={mark}>
-					<CheckMark size="small" color={checked && !disabled ? colors.onAccent : colors.disabled} />
+				<Animated.View style={markStyle}>
+					<CheckMark size="small" color={checked && !disabled ? colors.onFilled : colors.subtle} />
 				</Animated.View>
 			</PressableSurface>
 		</View>

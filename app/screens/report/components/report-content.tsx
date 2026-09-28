@@ -70,16 +70,18 @@ const ReportContent = () => {
 		<View style={ui.section}>
 			<View style={styles.mimicryTitleRow}>
 				<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
-					{t('report.sounds')}
+					{t('report.mimicryTitle')}
 				</Copy>
 				{!isAnonymous && (
-					<Copy style={styles.mimicryCount}>{t('report.mimicry', { count: reportData.mimicry.count })}</Copy>
+					<Copy style={styles.mimicryCount}>
+						{t('report.mimicryCount', { count: reportData.mimicry.count })}
+					</Copy>
 				)}
 			</View>
 
 			{isAnonymous && (
 				<View style={styles.signInRequiredContainer}>
-					<Copy style={styles.signInRequiredText}>{t('auth.signInRequired')}</Copy>
+					<Copy style={styles.signInRequiredText}>{t('report.signInRequired')}</Copy>
 					<Button label={t('auth.signIn')} variant="secondary" onPress={() => navigation.navigate('Login')} />
 				</View>
 			)}

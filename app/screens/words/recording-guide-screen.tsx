@@ -18,12 +18,12 @@ export function RecordingGuideScreen(): ReactElement {
 	const { params } = useRoute<RouteProp<RootStackParamList, 'RecordingGuide'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const guides = useDeviceSettingsStore((state) => state.seenGuides);
+	const seenGuides = useDeviceSettingsStore((state) => state.seenGuides);
 
 	const steps: GuideStep[] = [
 		{
-			title: t('words.guide.samples'),
-			scene: t('words.guide.samplesScene'),
+			title: t('words.guide.manyRecordings'),
+			scene: t('words.guide.manyRecordingsScene'),
 			icon: MicIcon,
 		},
 		{ title: t('words.guide.quiet'), scene: t('words.guide.quietScene'), icon: MoonIcon },
@@ -33,8 +33,8 @@ export function RecordingGuideScreen(): ReactElement {
 			icon: SmartphoneIcon,
 		},
 		{
-			title: t('words.guide.clear'),
-			scene: t('words.guide.clearScene'),
+			title: t('words.guide.speakClearly'),
+			scene: t('words.guide.speakClearlyScene'),
 			icon: MessageSquareTextIcon,
 		},
 	];
@@ -51,10 +51,10 @@ export function RecordingGuideScreen(): ReactElement {
 		<GuidePager
 			steps={steps}
 			actions={{ onFinish: leave, onSkip: leave }}
-			finishLabel={t(params.source === 'add' ? 'words.guide.record' : 'words.guide.done')}
+			finishLabel={t(params.source === 'add' ? 'words.guide.record' : 'common.done')}
 			dontShowAgain={{
-				value: guides.recording,
-				onChange: (recording) => useDeviceSettingsStore.getState().setGuideSeen('recording', recording),
+				value: seenGuides.recording,
+				onChange: (seen) => useDeviceSettingsStore.getState().setGuideSeen('recording', seen),
 			}}
 		/>
 	);

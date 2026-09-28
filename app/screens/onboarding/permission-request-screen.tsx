@@ -10,7 +10,11 @@ import { BellIcon, LockIcon, type LucideIcon, MicIcon } from 'lucide-react-nativ
 import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
 import { sendPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
-import { completeOnboarding, completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import {
+	trackOnboardingCompleted,
+	trackOnboardingStepCompleted,
+	trackOnboardingStepViewed,
+} from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
@@ -61,17 +65,17 @@ export function PermissionRequestScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
-			viewOnboardingStep('permissions');
+			trackOnboardingStepViewed('permissions');
 		}, []),
 	);
 
 	/** 권한 단계와 온보딩 완료 전송, 온보딩 완료 저장 */
 	const finishOnboarding = (microphoneGranted: boolean, notificationsGranted: boolean) => {
-		completeOnboardingStep('permissions', {
+		trackOnboardingStepCompleted('permissions', {
 			microphone_granted: microphoneGranted,
 			notifications_granted: notificationsGranted,
 		});
-		completeOnboarding();
+		trackOnboardingCompleted();
 
 		try {
 			setOnboardingCompleted(true);
@@ -111,13 +115,17 @@ export function PermissionRequestScreen() {
 				<>
 					<View style={styles.later}>
 						<TextButton
-							label={t('entry.permissions.later')}
+							label={t('onboarding.permissions.later')}
 							variant="muted"
 							disabled={busy}
 							onPress={() => void handleLater()}
 						/>
 					</View>
-					<Button label={t('entry.permissions.allow')} loading={busy} onPress={() => void handleAllow()} />
+					<Button
+						label={t('onboarding.permissions.allow')}
+						loading={busy}
+						onPress={() => void handleAllow()}
+					/>
 				</>
 			}
 		>
@@ -126,8 +134,13 @@ export function PermissionRequestScreen() {
 
 			{/*안내 말풍선과 그림*/}
 			<View style={styles.intro}>
-				<BuddySays message={t('entry.permissions.title')} />
-				<Illustration scene={t('entry.permissions.scene')} icon={LockIcon} height={180} mascot={false} />
+				<BuddySays message={t('onboarding.permissions.intro')} />
+				<Illustration
+					scene={t('onboarding.permissions.scene')}
+					icon={LockIcon}
+					height={180}
+					showMascot={false}
+				/>
 			</View>
 
 			{/*권한 목록*/}
@@ -135,9 +148,9 @@ export function PermissionRequestScreen() {
 				{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
 					<View key={kind} style={[styles.row, index > 0 && styles.divider]}>
 						<Icon size={24} color={colors.orangeDark} />
-						<View style={styles.labels}>
+						<View style={styles.textContainer}>
 							<Copy style={styles.name}>{t(`common.permission.${kind}.name`)}</Copy>
-							<Copy style={styles.purpose}>{t(`entry.permissions.${kind}`)}</Copy>
+							<Copy style={styles.purpose}>{t(`onboarding.permissions.purpose.${kind}`)}</Copy>
 						</View>
 					</View>
 				))}
@@ -157,7 +170,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 12,
 	},
 	divider: { borderTopWidth: 2, borderTopColor: colors.border },
-	labels: { flex: 1, minWidth: 0, gap: 2 },
+	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.extraBold, fontSize: 16 },
 	purpose: { fontSize: 13, color: colors.muted },
 	later: { alignItems: 'flex-end' },

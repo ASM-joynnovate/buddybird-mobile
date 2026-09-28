@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
 
 import { bootstrap } from '@/services/bootstrap';
-import { connectQueryLifecycle } from '@/services/lifecycle/query-client';
+import { connectQueryLifecycle } from '@/services/lifecycle/query-lifecycle';
 import { reportError } from '@/services/telemetry/client';
 
 export function useAppBootstrap() {
-	const [state, setState] = useState<'loading' | 'ready' | 'failed' | 'headless'>('loading');
+	const [bootstrapStatus, setBootstrapStatus] = useState<'loading' | 'ready' | 'failed' | 'headless'>('loading');
 
-	const [attempt, setAttempt] = useState(0);
+	const [retryCount, setRetryCount] = useState(0);
 
 	useEffect(connectQueryLifecycle, []);
 
@@ -19,34 +19,34 @@ export function useAppBootstrap() {
 	}, []);
 
 	useEffect(() => {
-		let mounted = true;
+		let active = true;
 
 		void bootstrap()
-			.then((next) => {
-				if (mounted) {
-					setState(next);
+			.then((status) => {
+				if (active) {
+					setBootstrapStatus(status);
 				}
 			})
 			.catch((error) => {
 				reportError(error, 'bootstrap');
 
-				if (mounted) {
-					setState('failed');
+				if (active) {
+					setBootstrapStatus('failed');
 				}
 			});
 
 		return () => {
-			mounted = false;
+			active = false;
 		};
-	}, [attempt]);
+	}, [retryCount]);
 
 	function retry() {
-		setState('loading');
-		setAttempt((value) => value + 1);
+		setBootstrapStatus('loading');
+		setRetryCount((prev) => prev + 1);
 	}
 
-	const settled = state !== 'loading';
-	const ready = state === 'ready' && settled;
+	const settled = bootstrapStatus !== 'loading';
+	const ready = bootstrapStatus === 'ready' && settled;
 
-	return { state, ready, settled, retry };
+	return { bootstrapStatus, ready, settled, retry };
 }

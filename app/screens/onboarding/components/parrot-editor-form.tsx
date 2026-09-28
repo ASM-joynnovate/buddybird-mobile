@@ -87,14 +87,14 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 			: null;
 	const nameError = invalidFields.name ? t('parrot.nameRequired') : null;
 	const speciesError = invalidFields.species ? t('parrot.speciesRequired') : null;
-	const birthdateError = invalidFields.birthdate ? t('parrot.birthdayInvalid') : null;
+	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
 	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
 
 	const deleteButton =
 		parrot && canDelete ? (
 			<IconButton
 				icon={TrashIcon}
-				label={t('entry.parrot.delete')}
+				label={t('parrot.delete')}
 				disabled={saving}
 				onPress={() => setDeleteDialogOpen(true)}
 			/>
@@ -220,7 +220,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 				<>
 					<InlineError message={saveError} />
 					<Button
-						label={t(parrot ? 'common.save' : 'entry.parrot.register')}
+						label={t(parrot ? 'common.save' : 'parrot.register')}
 						disabled={!requiredFilled}
 						loading={saving}
 						onPress={handleSave}
@@ -230,20 +230,20 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 		>
 			{/*헤더*/}
 			<ScreenHeader
-				title={t(parrot ? 'entry.parrot.editTitle' : 'entry.parrot.addTitle')}
+				title={t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}
 				onBack={onBack}
-				right={deleteButton}
+				trailing={deleteButton}
 			/>
 
 			{/*안내 말풍선*/}
 			{intro ? (
-				<View style={styles.buddy}>
-					<BuddySays message={t('entry.parrot.intro')} />
+				<View style={styles.introContainer}>
+					<BuddySays message={t('parrot.intro')} />
 				</View>
 			) : null}
 
 			{/*사진*/}
-			<View style={styles.intro}>
+			<View style={styles.photoContainer}>
 				<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
 			</View>
 
@@ -251,7 +251,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 			<View style={styles.fields}>
 				<TextField
 					label={t('parrot.name')}
-					error={nameError}
+					errorMessage={nameError}
 					value={name}
 					onChangeText={handleChangeName}
 					editable={!saving}
@@ -262,7 +262,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 
 				<View>
 					<ItemGroup>
-						<SpeciesPicker first species={species} setSpecies={handleChangeSpecies} busy={saving} />
+						<SpeciesPicker first species={species} setSpecies={handleChangeSpecies} disabled={saving} />
 						<BirthdatePicker value={birthdate} onChange={handleChangeBirthdate} />
 					</ItemGroup>
 					<InlineError message={speciesError} />
@@ -282,9 +282,9 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 						title: t('common.confirmDelete.title', { name: parrot.name }),
 						message: t('common.confirmDelete.message'),
 					}}
-					state={{
+					confirmStatus={{
 						busy: deleteParrot.isPending,
-						error: deleteParrot.isError ? t('entry.parrot.deleteError') : null,
+						errorMessage: deleteParrot.isError ? t('parrot.deleteError') : null,
 					}}
 					onClose={handleCloseDeleteDialog}
 					onConfirm={handleDeleteParrot}
@@ -295,7 +295,7 @@ export function ParrotEditorForm({ parrot, canDelete, intro, onBack, onDone }: P
 }
 
 const styles = StyleSheet.create({
-	intro: { flexGrow: 1, justifyContent: 'center' },
-	buddy: { marginTop: 4 },
+	photoContainer: { flexGrow: 1, justifyContent: 'center' },
+	introContainer: { marginTop: 4 },
 	fields: { gap: 16 },
 });

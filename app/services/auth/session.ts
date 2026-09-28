@@ -9,18 +9,21 @@ import { reportError } from '@/services/telemetry/client';
 
 export type AuthIdentity = { id: string; anonymous: boolean };
 
-type AuthTransition = 'signedOut' | 'signedIn' | 'linked' | 'completeLogin';
+type AuthTransition = 'signedOut' | 'signedIn' | 'linked' | 'userChanged';
 
-export function nextAuthState(registered: AuthIdentity | null, next: AuthIdentity | null): AuthTransition {
-	if (next === null) {
+export function getAuthTransition(
+	registeredIdentity: AuthIdentity | null,
+	nextIdentity: AuthIdentity | null,
+): AuthTransition {
+	if (nextIdentity === null) {
 		return 'signedOut';
 	}
 
-	if (registered?.id !== next.id) {
-		return 'completeLogin';
+	if (registeredIdentity?.id !== nextIdentity.id) {
+		return 'userChanged';
 	}
 
-	return registered.anonymous && !next.anonymous ? 'linked' : 'signedIn';
+	return registeredIdentity.anonymous && !nextIdentity.anonymous ? 'linked' : 'signedIn';
 }
 
 export async function accessToken(): Promise<string> {
@@ -47,7 +50,7 @@ export async function signUpAnonymously(): Promise<AuthError | null> {
 	return error;
 }
 
-export async function signOutToAnonymous() {
+export async function signOutLocally() {
 	const { error } = await authClient().signOut({ scope: 'local' });
 
 	if (error) {
@@ -59,7 +62,7 @@ let unauthorizedSignOut: Promise<void> | undefined;
 
 export function installUnauthorizedSignOut() {
 	setUnauthorizedHandler(() => {
-		unauthorizedSignOut ??= signOutToAnonymous()
+		unauthorizedSignOut ??= signOutLocally()
 			.catch((error: unknown) => reportError(error, 'unauthorized_sign_out'))
 			.finally(() => {
 				unauthorizedSignOut = undefined;

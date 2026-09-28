@@ -43,7 +43,7 @@ export const settings: SettingsMessages = {
 	withdrawDialog: {
 		title: '회원 탈퇴',
 		message: '버디가 많이 아쉬워할 거예요. 정말 떠나시겠어요?',
-		line: '탈퇴하면 되돌릴 수 없어요.',
+		warning: '탈퇴하면 되돌릴 수 없어요.',
 		confirm: '탈퇴하기',
 	},
 	notices: {
@@ -57,8 +57,8 @@ export const settings: SettingsMessages = {
 	},
 	devices: {
 		title: '연결된 기기',
-		current: '이 기기',
-		running: '세션 실행 중',
+		thisDevice: '이 기기',
+		runningSession: '세션 실행 중',
 		lastSeen: '마지막 접속 {{time}}',
 	},
 	permissions: {

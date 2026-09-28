@@ -41,7 +41,7 @@ export type SettingsMessages = {
 	withdrawDialog: {
 		title: string;
 		message: string;
-		line: string;
+		warning: string;
 		confirm: string;
 	};
 	notices: {
@@ -55,8 +55,8 @@ export type SettingsMessages = {
 	};
 	devices: {
 		title: string;
-		current: string;
-		running: string;
+		thisDevice: string;
+		runningSession: string;
 		lastSeen: string;
 	};
 	permissions: {

@@ -10,20 +10,14 @@ const variants = {
 	plain: { surfaceVariant: 'plain', color: colors.text },
 	muted: { surfaceVariant: 'plain', color: colors.muted },
 	accent: { surfaceVariant: 'plain', color: colors.orange },
-	primary: { surfaceVariant: 'primary', color: colors.onAccent },
+	primary: { surfaceVariant: 'primary', color: colors.onFilled },
 } as const;
 
-const icons = {
-	tiny: { size: 15 },
-	small: { size: 20 },
-	medium: { size: 24 },
-	large: { size: 28 },
-	xlarge: { size: 34 },
-} as const;
+const iconSizes = { tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;
 
 type IconButtonVariant = keyof typeof variants;
 
-type IconButtonSize = keyof typeof icons;
+type IconButtonSize = keyof typeof iconSizes;
 
 interface Props {
 	icon: LucideIcon;
@@ -46,7 +40,7 @@ function boxStyle(size: IconButtonSize) {
 
 export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'plain', size = 'medium' }: Props) {
 	const { surfaceVariant, color } = variants[variant];
-	const round = variant === 'primary';
+	const isPrimary = variant === 'primary';
 
 	return (
 		<PressableSurface
@@ -55,13 +49,13 @@ export function IconButton({ icon: Icon, label, onPress, disabled, variant = 'pl
 			accessibilityState={{ disabled: Boolean(disabled) }}
 			disabled={disabled}
 			onPress={onPress}
-			variant={round && disabled ? 'muted' : surfaceVariant}
-			depth={round ? 'high' : 'none'}
-			cornerRadius={round ? 'pill' : 'control'}
+			variant={isPrimary && disabled ? 'disabled' : surfaceVariant}
+			depth={isPrimary ? 'high' : 'none'}
+			cornerRadius={isPrimary ? 'pill' : 'control'}
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}
 		>
-			<Icon color={disabled ? colors.disabled : color} size={icons[size].size} />
+			<Icon color={disabled ? colors.subtle : color} size={iconSizes[size]} />
 		</PressableSurface>
 	);
 }

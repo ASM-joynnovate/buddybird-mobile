@@ -4,7 +4,7 @@ import { initializeTelemetry, reportError } from '@/services/telemetry/client';
 import { installGlobalErrorReporting } from '@/services/telemetry/global-errors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-function recordFeedbackDay(scope: string) {
+function countFeedbackDay(scope: string) {
 	try {
 		useDeviceSettingsStore.getState().countFeedbackDay();
 	} catch (error) {
@@ -13,26 +13,26 @@ function recordFeedbackDay(scope: string) {
 }
 
 export function startAppServices() {
-	const removeErrors = installGlobalErrorReporting();
+	const removeErrorReporting = installGlobalErrorReporting();
 
 	void initializeTelemetry().catch((error) => reportError(error, 'telemetry_start'));
 
-	recordFeedbackDay('app_settings');
+	countFeedbackDay('app_settings');
 
-	let previous = AppState.currentState;
+	let previousAppState = AppState.currentState;
 
-	const lifecycle = AppState.addEventListener('change', (next) => {
-		if (next === 'active' && previous !== 'active') {
+	const appStateSubscription = AppState.addEventListener('change', (appState) => {
+		if (appState === 'active' && previousAppState !== 'active') {
 			void initializeTelemetry(false).catch((error) => reportError(error, 'telemetry_foreground'));
 
-			recordFeedbackDay('foreground');
+			countFeedbackDay('foreground');
 		}
 
-		previous = next;
+		previousAppState = appState;
 	});
 
 	return () => {
-		removeErrors();
-		lifecycle.remove();
+		removeErrorReporting();
+		appStateSubscription.remove();
 	};
 }

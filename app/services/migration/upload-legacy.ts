@@ -13,31 +13,36 @@ import { readFileInfo, resolveFileUri } from '@/services/media/file';
 import { type LegacyWord, parseLegacyWords } from '@/services/migration/legacy/words';
 import { reportError } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { type LegacyProfile, parseLegacyFeedback, parseLegacyProfile, parseLegacyUpdate } from '@/utils/legacy';
+import {
+	type LegacyProfile,
+	parseLegacyAppUpdate,
+	parseLegacyFeedbackPrompt,
+	parseLegacyProfile,
+} from '@/utils/legacy';
 import { requireChoice, requireRecord } from '@/utils/validation';
 
-type ReadLegacy = (key: string) => string | undefined;
+type LegacyValueReader = (key: string) => string | undefined;
 
 type LegacyUpload = { profile: LegacyProfile | null; words: LegacyWord[] };
 
 type WordProgress = LegacyMigration['wordProgress'][string];
 
-const PREFIXES = ['@buddybird/', '@pethub/'] as const;
+const LEGACY_KEY_PREFIXES = ['@buddybird/', '@pethub/'] as const;
 
-let pending: LegacyUpload | null = null;
-let uploading: Promise<void> | undefined;
+let pendingUpload: LegacyUpload | null = null;
+let uploadPromise: Promise<void> | undefined;
 
-function migration(): LegacyMigration {
+function getLegacyMigration(): LegacyMigration {
 	return useDeviceSettingsStore.getState().legacyMigration;
 }
 
-function updateMigration(update: (current: LegacyMigration) => LegacyMigration) {
-	useDeviceSettingsStore.getState().updateLegacyMigration(update);
+function setLegacyMigration(updater: (migration: LegacyMigration) => LegacyMigration) {
+	useDeviceSettingsStore.getState().updateLegacyMigration(updater);
 }
 
-function attempt<T>(scope: string, read: () => T): T | undefined {
+function tryParseLegacy<T>(scope: string, parse: () => T): T | undefined {
 	try {
-		return read();
+		return parse();
 	} catch (error) {
 		reportError(error, `legacy_${scope}`);
 
@@ -45,24 +50,26 @@ function attempt<T>(scope: string, read: () => T): T | undefined {
 	}
 }
 
-async function readLegacyValues(): Promise<ReadLegacy> {
-	const keys = (await AsyncStorage.getAllKeys()).filter((key) => PREFIXES.some((prefix) => key.startsWith(prefix)));
+async function readLegacyValues(): Promise<LegacyValueReader> {
+	const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
+		LEGACY_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
+	);
 	const values = new Map(await AsyncStorage.multiGet(keys));
 
 	return (key) =>
-		PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find(
+		LEGACY_KEY_PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find(
 			(value): value is string => typeof value === 'string',
 		);
 }
 
-function readJson(read: ReadLegacy, key: string): unknown {
+function readJson(read: LegacyValueReader, key: string): unknown {
 	const raw = read(key);
 
 	return raw === undefined ? undefined : JSON.parse(raw);
 }
 
-function readSettings(read: ReadLegacy): LegacySettings {
-	const locale = attempt('locale', () => {
+function readSettings(read: LegacyValueReader): LegacySettings {
+	const locale = tryParseLegacy('locale', () => {
 		const raw = read('locale');
 
 		if (raw === undefined) {
@@ -71,39 +78,39 @@ function readSettings(read: ReadLegacy): LegacySettings {
 
 		return requireChoice(raw, ['ko', 'en'] as const, 'locale') === 'ko' ? ('ko-KR' as const) : ('en-US' as const);
 	});
-	const analyticsConsent = attempt('analytics_consent', () => {
+	const analyticsConsent = tryParseLegacy('analytics_consent', () => {
 		const raw = read('analytics-consent');
 
 		return raw === undefined
 			? undefined
 			: requireChoice(raw, ['unknown', 'granted', 'denied', 'not_applicable'] as const, 'analytics consent');
 	});
-	const update = attempt('app_update', () => {
+	const appUpdate = tryParseLegacy('app_update', () => {
 		const value = readJson(read, 'app-update');
 
-		return value === undefined ? undefined : parseLegacyUpdate(requireRecord(value, 'app-update'));
+		return value === undefined ? undefined : parseLegacyAppUpdate(requireRecord(value, 'app-update'));
 	});
-	const feedback = attempt('feedback', () => {
+	const feedbackPrompt = tryParseLegacy('feedback', () => {
 		const value = readJson(read, 'feedback-prompt');
 
-		return value === undefined ? undefined : parseLegacyFeedback(requireRecord(value, 'feedback-prompt'));
+		return value === undefined ? undefined : parseLegacyFeedbackPrompt(requireRecord(value, 'feedback-prompt'));
 	});
 
 	return {
 		...(locale && { locale }),
 		...(analyticsConsent && { analyticsConsent }),
-		...(update && { updatePrompt: update }),
-		...(feedback && { feedbackPrompt: feedback }),
+		...(appUpdate && { updatePrompt: appUpdate }),
+		...(feedbackPrompt && { feedbackPrompt }),
 	};
 }
 
-function readUpload(read: ReadLegacy): LegacyUpload {
-	const profile = attempt('profile', () => {
+function readUpload(read: LegacyValueReader): LegacyUpload {
+	const profile = tryParseLegacy('profile', () => {
 		const value = readJson(read, 'parrot-profile');
 
 		return value == null ? null : parseLegacyProfile(value);
 	});
-	const words = attempt('words', () => {
+	const words = tryParseLegacy('words', () => {
 		const value = readJson(read, 'wordLibrary');
 
 		return value == null ? [] : parseLegacyWords(requireRecord(value, 'wordLibrary'));
@@ -113,52 +120,52 @@ function readUpload(read: ReadLegacy): LegacyUpload {
 }
 
 export async function loadLegacy(): Promise<void> {
-	const current = migration();
+	const migration = getLegacyMigration();
 
-	if (current.settingsImported && current.uploadStatus === 'finished') {
+	if (migration.settingsImported && migration.uploadStatus === 'finished') {
 		return;
 	}
 
 	const read = await readLegacyValues();
 
-	if (!current.settingsImported) {
+	if (!migration.settingsImported) {
 		useDeviceSettingsStore.getState().importLegacySettings(readSettings(read));
 	}
 
-	if (current.uploadStatus === 'finished') {
+	if (migration.uploadStatus === 'finished') {
 		return;
 	}
 
-	const upload = readUpload(read);
+	const legacyUpload = readUpload(read);
 
-	if (upload.profile === null && upload.words.length === 0) {
+	if (legacyUpload.profile === null && legacyUpload.words.length === 0) {
 		finishLegacyUpload();
 
 		return;
 	}
 
-	pending = upload;
+	pendingUpload = legacyUpload;
 }
 
 export function hasLegacyUpload(): boolean {
-	return pending !== null;
+	return pendingUpload !== null;
 }
 
 export function acceptLegacyUpload() {
-	updateMigration((current) => ({ ...current, uploadStatus: 'started' }));
+	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'started' }));
 }
 
 export function finishLegacyUpload() {
-	pending = null;
+	pendingUpload = null;
 
-	updateMigration((current) => ({ ...current, uploadStatus: 'finished' }));
+	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'finished' }));
 }
 
 function isInsideApp(uri: string): boolean {
 	return [Paths.document.uri, Paths.cache.uri].some((root) => uri.startsWith(root)) && !uri.split('/').includes('..');
 }
 
-async function existingFile(uri: string, scope: string): Promise<string | null> {
+async function existingFileUri(uri: string, scope: string): Promise<string | null> {
 	try {
 		const resolved = resolveFileUri(uri);
 
@@ -168,9 +175,9 @@ async function existingFile(uri: string, scope: string): Promise<string | null> 
 			return null;
 		}
 
-		const info = readFileInfo(uri);
+		const fileInfo = readFileInfo(uri);
 
-		if (info.exists && info.size > 0) {
+		if (fileInfo.exists && fileInfo.size > 0) {
 			return resolved;
 		}
 
@@ -188,11 +195,11 @@ const withoutIdempotencyKey = (idempotencyKeys: LegacyMigration['idempotencyKeys
 
 /** 저장된 멱등키 반환, 없으면 새 키를 저장한 뒤 반환 */
 const ensureIdempotencyKey = (idempotencyKeyName: string) => {
-	const idempotencyKey = migration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
+	const idempotencyKey = getLegacyMigration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
 
-	updateMigration((current) => ({
-		...current,
-		idempotencyKeys: { ...current.idempotencyKeys, [idempotencyKeyName]: idempotencyKey },
+	setLegacyMigration((migration) => ({
+		...migration,
+		idempotencyKeys: { ...migration.idempotencyKeys, [idempotencyKeyName]: idempotencyKey },
 	}));
 
 	return idempotencyKey;
@@ -204,9 +211,9 @@ const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string
 		return;
 	}
 
-	updateMigration((current) => ({
-		...current,
-		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+	setLegacyMigration((migration) => ({
+		...migration,
+		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
 	}));
 };
 
@@ -214,7 +221,7 @@ const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string
 const uploadParrot = async (profile: LegacyProfile) => {
 	const idempotencyKeyName = 'parrot';
 	const parrotId =
-		migration().parrotId ??
+		getLegacyMigration().parrotId ??
 		(
 			await postParrot({
 				data: { name: profile.name, species: profile.species, birthdate: profile.birthDate },
@@ -226,38 +233,41 @@ const uploadParrot = async (profile: LegacyProfile) => {
 			})
 		).id;
 
-	updateMigration((current) => ({
-		...current,
+	setLegacyMigration((migration) => ({
+		...migration,
 		parrotId,
-		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
 	}));
 
-	if (!profile.photoUri || migration().photoUploaded) {
+	if (!profile.photoUri || getLegacyMigration().photoUploaded) {
 		return;
 	}
 
-	const photoUri = await existingFile(profile.photoUri, 'legacy_photo');
+	const photoUri = await existingFileUri(profile.photoUri, 'legacy_photo');
 
 	if (photoUri) {
 		await putParrotPhoto({ id: parrotId, uri: photoUri, idempotencyKey: randomUUID() });
 	}
 
-	updateMigration((current) => ({ ...current, photoUploaded: true }));
+	setLegacyMigration((migration) => ({ ...migration, photoUploaded: true }));
 };
 
-function recordWordProgress(id: string, progress: WordProgress) {
-	updateMigration((current) => ({ ...current, wordProgress: { ...current.wordProgress, [id]: progress } }));
+function recordWordProgress(legacyWordId: string, progress: WordProgress) {
+	setLegacyMigration((migration) => ({
+		...migration,
+		wordProgress: { ...migration.wordProgress, [legacyWordId]: progress },
+	}));
 }
 
 /** v1 단어와 녹음 올리기 */
 const uploadWord = async (word: LegacyWord) => {
-	const savedProgress = migration().wordProgress[word.id];
+	const savedProgress = getLegacyMigration().wordProgress[word.id];
 
 	if (savedProgress?.done) {
 		return;
 	}
 
-	const recordingUri = await existingFile(word.audioUri, 'legacy_recording');
+	const recordingUri = await existingFileUri(word.audioUri, 'legacy_recording');
 
 	if (!recordingUri) {
 		recordWordProgress(word.id, { wordId: savedProgress?.wordId ?? null, done: true });
@@ -279,10 +289,10 @@ const uploadWord = async (word: LegacyWord) => {
 			})
 		).id;
 
-	updateMigration((current) => ({
-		...current,
-		wordProgress: { ...current.wordProgress, [word.id]: { wordId, done: false } },
-		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+	setLegacyMigration((migration) => ({
+		...migration,
+		wordProgress: { ...migration.wordProgress, [word.id]: { wordId, done: false } },
+		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
 	}));
 
 	await postWordRecording({ id: wordId, uri: recordingUri, idempotencyKey: randomUUID() });
@@ -291,25 +301,25 @@ const uploadWord = async (word: LegacyWord) => {
 };
 
 export function uploadLegacy(): Promise<void> {
-	uploading ??= (async () => {
-		const upload = pending;
+	uploadPromise ??= (async () => {
+		const legacyUpload = pendingUpload;
 
-		if (!upload) {
+		if (!legacyUpload) {
 			return;
 		}
 
 		acceptLegacyUpload();
 
-		if (upload.profile) {
-			await uploadParrot(upload.profile);
+		if (legacyUpload.profile) {
+			await uploadParrot(legacyUpload.profile);
 		}
 
-		for (const word of upload.words) {
+		for (const word of legacyUpload.words) {
 			await uploadWord(word);
 		}
 	})().finally(() => {
-		uploading = undefined;
+		uploadPromise = undefined;
 	});
 
-	return uploading;
+	return uploadPromise;
 }

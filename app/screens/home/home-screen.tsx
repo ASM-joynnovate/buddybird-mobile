@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function HomeScreen() {
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			{/*홈 본문*/}
 			<View style={styles.screen}>
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton rows={3} />>

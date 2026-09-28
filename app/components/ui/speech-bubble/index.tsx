@@ -16,15 +16,15 @@ function keepNumbersWithUnits(text: string) {
 }
 
 interface Props {
-	side?: 'bottom' | 'left';
+	pointerSide?: 'bottom' | 'left';
 	typing?: boolean;
 	style?: StyleProp<ViewStyle>;
 }
 
-export function SpeechBubble({ children, side = 'bottom', typing = false, style }: PropsWithChildren<Props>) {
+export function SpeechBubble({ children, pointerSide = 'bottom', typing = false, style }: PropsWithChildren<Props>) {
 	return (
 		<Card cornerRadius="control" style={style} contentStyle={styles.bubble}>
-			<View pointerEvents="none" style={[styles.pointer, side === 'left' ? styles.left : styles.bottom]} />
+			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
 			{typing && typeof children === 'string' ? (
 				<TypedText key={children} text={keepNumbersWithUnits(children)} />
 			) : (

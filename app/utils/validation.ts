@@ -1,11 +1,11 @@
-export type ObjectValue = Record<string, unknown>;
+export type UnknownRecord = Record<string, unknown>;
 
-export function requireRecord(value: unknown, field: string): ObjectValue {
+export function requireRecord(value: unknown, field: string): UnknownRecord {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
 		throw new Error(`Invalid ${field}`);
 	}
 
-	return value as ObjectValue;
+	return value as UnknownRecord;
 }
 
 export function requireText(value: unknown, field: string): string {

@@ -13,33 +13,33 @@ import { reportError } from '@/services/telemetry/client';
 export type PermissionDialogState = { visible: boolean; kind: PermissionKind; onClose(): void };
 
 export function usePermission(kind: PermissionKind) {
-	const [state, setState] = useState<PermissionState | null>(null);
+	const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
-	const pending = useRef<(() => void) | null>(null);
+	const pendingActionRef = useRef<(() => void) | null>(null);
 
 	const refresh = useCallback(async () => {
-		const next = await readPermission(kind);
+		const permission = await readPermission(kind);
 
-		setState(next);
+		setPermissionState(permission);
 
-		return next;
+		return permission;
 	}, [kind]);
 
 	useEffect(() => {
 		void refresh().catch((error: unknown) => reportError(error, `permission_${kind}`));
 
-		const subscription = AppState.addEventListener('change', (status) => {
-			if (status !== 'active') {
+		const subscription = AppState.addEventListener('change', (appState) => {
+			if (appState !== 'active') {
 				return;
 			}
 
 			void refresh()
-				.then((next) => {
-					const action = pending.current;
+				.then((permission) => {
+					const action = pendingActionRef.current;
 
-					if (next.granted && action) {
-						pending.current = null;
+					if (permission.granted && action) {
+						pendingActionRef.current = null;
 						setDialogOpen(false);
 
 						action();
@@ -53,27 +53,27 @@ export function usePermission(kind: PermissionKind) {
 
 	const run = useCallback(
 		async (action: () => void) => {
-			const current = await readPermission(kind);
+			const permission = await readPermission(kind);
 
-			if (current.granted) {
+			if (permission.granted) {
 				action();
 
 				return;
 			}
 
-			if (current.canAskAgain) {
-				const next = await requestPermission(kind);
+			if (permission.canAskAgain) {
+				const requestedPermission = await requestPermission(kind);
 
-				setState(next);
+				setPermissionState(requestedPermission);
 
-				if (next.granted) {
+				if (requestedPermission.granted) {
 					action();
 				}
 
 				return;
 			}
 
-			pending.current = action;
+			pendingActionRef.current = action;
 			setDialogOpen(true);
 		},
 		[kind],
@@ -83,10 +83,10 @@ export function usePermission(kind: PermissionKind) {
 		visible: dialogOpen,
 		kind,
 		onClose: () => {
-			pending.current = null;
+			pendingActionRef.current = null;
 			setDialogOpen(false);
 		},
 	};
 
-	return { granted: state?.granted ?? null, refresh, run, dialog };
+	return { granted: permissionState?.granted ?? null, refresh, run, dialog };
 }

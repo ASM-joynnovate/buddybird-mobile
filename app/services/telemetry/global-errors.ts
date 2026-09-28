@@ -2,7 +2,7 @@ import { reportError } from '@/services/telemetry/client';
 
 export function installGlobalErrorReporting() {
 	type Handler = (error: Error, fatal?: boolean) => void;
-	const errors = (
+	const errorUtils = (
 		globalThis as typeof globalThis & {
 			ErrorUtils?: {
 				getGlobalHandler: () => Handler;
@@ -10,47 +10,47 @@ export function installGlobalErrorReporting() {
 			};
 		}
 	).ErrorUtils;
-	const previous = errors?.getGlobalHandler();
-	const handler: Handler = (error, fatal) => {
+	const previousHandler = errorUtils?.getGlobalHandler();
+	const globalErrorHandler: Handler = (error, fatal) => {
 		reportError(error, 'uncaught', fatal);
-		previous?.(error, fatal);
+		previousHandler?.(error, fatal);
 	};
 
-	errors?.setGlobalHandler(handler);
+	errorUtils?.setGlobalHandler(globalErrorHandler);
 	// Preserve React Native's own reporting after recording rejection context.
 	// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-member-access -- Native rejection hooks have no public typed entry.
-	const rejection = require('react-native/Libraries/promiseRejectionTrackingOptions').default as {
+	const rejectionTrackingOptions = require('react-native/Libraries/promiseRejectionTrackingOptions').default as {
 		onUnhandled: (id: number, error: unknown) => void;
 	};
-	const previousRejection = rejection.onUnhandled;
+	const previousOnUnhandled = rejectionTrackingOptions.onUnhandled;
 
-	rejection.onUnhandled = (id, error) => {
+	rejectionTrackingOptions.onUnhandled = (id, error) => {
 		reportError(error, 'unhandled_rejection', false);
-		previousRejection(id, error);
+		previousOnUnhandled(id, error);
 	};
 
 	const hermes = (
 		globalThis as typeof globalThis & {
-			HermesInternal?: { enablePromiseRejectionTracker?: (options: typeof rejection) => void };
+			HermesInternal?: { enablePromiseRejectionTracker?: (options: typeof rejectionTrackingOptions) => void };
 		}
 	).HermesInternal;
-	const enableTracking = () => {
+	const enableRejectionTracking = () => {
 		if (hermes?.enablePromiseRejectionTracker) {
-			hermes.enablePromiseRejectionTracker(rejection);
+			hermes.enablePromiseRejectionTracker(rejectionTrackingOptions);
 		} else {
 			// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-member-access -- Match React Native's fallback promise tracker.
-			require('promise/setimmediate/rejection-tracking').enable(rejection);
+			require('promise/setimmediate/rejection-tracking').enable(rejectionTrackingOptions);
 		}
 	};
 
-	enableTracking();
+	enableRejectionTracking();
 
 	return () => {
-		if (previous && errors?.getGlobalHandler() === handler) {
-			errors.setGlobalHandler(previous);
+		if (previousHandler && errorUtils?.getGlobalHandler() === globalErrorHandler) {
+			errorUtils.setGlobalHandler(previousHandler);
 		}
 
-		rejection.onUnhandled = previousRejection;
-		enableTracking();
+		rejectionTrackingOptions.onUnhandled = previousOnUnhandled;
+		enableRejectionTracking();
 	};
 }

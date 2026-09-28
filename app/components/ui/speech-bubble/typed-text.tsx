@@ -15,23 +15,23 @@ interface Props {
 }
 
 export function TypedText({ text }: Props) {
-	const reduced = useReducedMotion();
+	const reducedMotion = useReducedMotion();
 
-	const [count, setCount] = useState(0);
+	const [typedCount, setTypedCount] = useState(0);
 
 	const characters = Array.from(text);
-	const shown = reduced ? characters.length : count;
-	const done = shown >= characters.length;
+	const shownCount = reducedMotion ? characters.length : typedCount;
+	const typingDone = shownCount >= characters.length;
 
 	useEffect(() => {
-		if (done) {
+		if (typingDone) {
 			return;
 		}
 
-		const timer = setTimeout(() => setCount((current) => current + 1), TYPING_INTERVAL_MS);
+		const timer = setTimeout(() => setTypedCount((prev) => prev + 1), TYPING_INTERVAL_MS);
 
 		return () => clearTimeout(timer);
-	}, [count, done]);
+	}, [typedCount, typingDone]);
 
 	return (
 		<View>
@@ -46,11 +46,11 @@ export function TypedText({ text }: Props) {
 			<Copy
 				accessibilityLabel={text}
 				lineBreakStrategyIOS="hangul-word"
-				onPress={done ? undefined : () => setCount(characters.length)}
+				onPress={typingDone ? undefined : () => setTypedCount(characters.length)}
 				style={[styles.text, styles.typed]}
 			>
-				{characters.slice(0, shown).join('')}
-				{done ? null : <Text style={styles.caret}>▍</Text>}
+				{characters.slice(0, shownCount).join('')}
+				{typingDone ? null : <Text style={styles.caret}>▍</Text>}
 			</Copy>
 		</View>
 	);

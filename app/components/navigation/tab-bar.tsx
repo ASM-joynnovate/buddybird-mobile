@@ -20,11 +20,11 @@ import { colors, font } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; label: keyof CommonMessages['tabs'] }> = {
-	HomeTab: { icon: HouseIcon, label: 'home' },
-	WordsTab: { icon: MessageSquareTextIcon, label: 'words' },
-	ReportTab: { icon: ChartNoAxesColumnIcon, label: 'report' },
-	ProfileTab: { icon: UserIcon, label: 'profile' },
+const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; labelKey: keyof CommonMessages['tabs'] }> = {
+	HomeTab: { icon: HouseIcon, labelKey: 'home' },
+	WordsTab: { icon: MessageSquareTextIcon, labelKey: 'words' },
+	ReportTab: { icon: ChartNoAxesColumnIcon, labelKey: 'report' },
+	ProfileTab: { icon: UserIcon, labelKey: 'profile' },
 };
 
 interface Props extends BottomTabBarProps {}
@@ -38,7 +38,7 @@ export function TabBar({ state, navigation, insets }: Props) {
 				const selected = state.index === index;
 				const tab = tabs[route.name as keyof MainTabParamList];
 				const TabIcon = tab.icon;
-				const tabLabel = t(`common.tabs.${tab.label}`);
+				const tabLabel = t(`common.tabs.${tab.labelKey}`);
 
 				function selectTab() {
 					const event = navigation.emit({
@@ -67,11 +67,11 @@ export function TabBar({ state, navigation, insets }: Props) {
 							contentStyle={styles.tab}
 							onPress={selectTab}
 						>
-							<TabIcon color={selected ? colors.onAccent : colors.muted} size={25} />
+							<TabIcon color={selected ? colors.onFilled : colors.muted} size={25} />
 							<Copy
 								numberOfLines={1}
 								adjustsFontSizeToFit
-								style={[styles.tabLabel, selected && { color: colors.onAccent }]}
+								style={[styles.tabLabel, selected && { color: colors.onFilled }]}
 							>
 								{tabLabel}
 							</Copy>

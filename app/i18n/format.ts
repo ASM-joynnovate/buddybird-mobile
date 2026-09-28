@@ -5,33 +5,33 @@ import { durationText } from '@/i18n/duration';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
-type Moment = string | number | Dayjs;
+type DateInput = string | number | Dayjs;
 
 const dateFormats: Record<Locale, { monthDay: string; monthDayWeekday: string; yearMonth: string }> = {
 	'ko-KR': { monthDay: 'MMMM D일', monthDayWeekday: 'MMMM D일 (ddd)', yearMonth: 'YYYY년 MMMM' },
 	'en-US': { monthDay: 'MMMM D', monthDayWeekday: 'ddd, MMMM D', yearMonth: 'MMMM YYYY' },
 };
 
-export function formatDate(value: Moment, locale: Locale): string {
+export function formatMonthDay(value: DateInput, locale: Locale): string {
 	return dayjs(value).format(dateFormats[locale].monthDay);
 }
 
-export function formatDateWithWeekday(value: Moment, locale: Locale): string {
+export function formatMonthDayWeekday(value: DateInput, locale: Locale): string {
 	return dayjs(value).format(dateFormats[locale].monthDayWeekday);
 }
 
-export function formatMonth(value: Moment, locale: Locale): string {
+export function formatYearMonth(value: DateInput, locale: Locale): string {
 	return dayjs(value).format(dateFormats[locale].yearMonth);
 }
 
-export function formatDateTime(value: Moment, locale: Locale): string {
-	return `${formatDate(value, locale)} ${dayjs(value).format('LT')}`;
+export function formatMonthDayTime(value: DateInput, locale: Locale): string {
+	return `${formatMonthDay(value, locale)} ${dayjs(value).format('LT')}`;
 }
 
-export function formatMoment(value: Moment, locale: Locale, now: Moment = dayjs()): string {
-	const moment = dayjs(value);
+export function formatTimeOrDateTime(value: DateInput, locale: Locale, now: DateInput = dayjs()): string {
+	const date = dayjs(value);
 
-	return moment.isSame(now, 'day') ? moment.format('LT') : formatDateTime(value, locale);
+	return date.isSame(now, 'day') ? date.format('LT') : formatMonthDayTime(value, locale);
 }
 
 /** 1분 미만은 초를 반올림하고 1분 이상은 분 아래를 버린 시간 길이 문구 */

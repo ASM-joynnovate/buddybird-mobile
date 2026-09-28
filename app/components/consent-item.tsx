@@ -29,7 +29,7 @@ export function ConsentItem({ consent, checked, first, disabled, source, onToggl
 		<ItemCheckbox
 			first={first}
 			label={consent.title}
-			caption={t(consent.is_required ? 'entry.consent.required' : 'entry.consent.optional')}
+			caption={t(consent.is_required ? 'common.consent.required' : 'common.consent.optional')}
 			captionVariant={consent.is_required ? 'primary' : 'muted'}
 			checked={checked}
 			disabled={disabled}
@@ -38,7 +38,7 @@ export function ConsentItem({ consent, checked, first, disabled, source, onToggl
 				icon={ChevronRightIcon}
 				variant="muted"
 				size="tiny"
-				label={t('entry.consent.viewFull', { title: consent.title })}
+				label={t('common.consent.viewFull', { title: consent.title })}
 				onPress={() => navigation.navigate('ConsentDetail', { consentId: consent.id, source })}
 			/>
 		/>

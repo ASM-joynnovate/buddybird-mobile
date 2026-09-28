@@ -3,7 +3,7 @@ import { File, Paths } from 'expo-file-system';
 
 import { SECOND } from '@/utils/units';
 
-export async function measureRecordingDuration(url: string): Promise<number> {
+export async function measureAudioDuration(url: string): Promise<number> {
 	const file = await File.downloadFileAsync(url, Paths.cache, { idempotent: true });
 	const player = createAudioPlayer(file.uri);
 

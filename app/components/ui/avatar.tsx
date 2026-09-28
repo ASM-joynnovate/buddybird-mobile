@@ -24,7 +24,7 @@ export function Avatar({ uri, icon: Icon, size }: Props) {
 			{uri ? (
 				<Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : (
-				<Icon size={iconSizes[size]} color={colors.disabled} />
+				<Icon size={iconSizes[size]} color={colors.subtle} />
 			)}
 		</View>
 	);

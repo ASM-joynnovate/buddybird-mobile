@@ -46,7 +46,7 @@ export function RecordingsSection({ recordings, recordingMissing, saving, wordNa
 				</Copy>
 				<IconButton
 					icon={CircleQuestionMarkIcon}
-					label={t('words.editor.guide')}
+					label={t('words.editor.openGuide')}
 					variant="muted"
 					onPress={() => navigation.navigate('RecordingGuide', { source: 'help', wordName })}
 				/>
@@ -59,7 +59,7 @@ export function RecordingsSection({ recordings, recordingMissing, saving, wordNa
 				return (
 					<RecordingItem
 						key={recording.id}
-						item={recording}
+						recording={recording}
 						player={player}
 						index={index}
 						onDelete={deletable ? (name) => onDelete(recording, name) : undefined}
@@ -83,7 +83,7 @@ export function RecordingsSection({ recordings, recordingMissing, saving, wordNa
 				/>
 			) : null}
 			{recordings.length < RECOMMENDED_RECORDINGS ? (
-				<Copy style={styles.hint}>{t('words.editor.recommend')}</Copy>
+				<Copy style={styles.hint}>{t('words.editor.recordingsHint')}</Copy>
 			) : null}
 		</View>
 	);

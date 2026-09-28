@@ -8,11 +8,11 @@ export const DEFAULT_STALE_TIME_MS = 30 * SECOND;
 export const HEARTBEAT_INTERVAL_MS = 10 * SECOND;
 export const SESSION_INFO_HIDE_MS = 10 * SECOND;
 
-export const DURATION_PRESETS = [40 * MINUTE, 80 * MINUTE, 4 * HOUR] as const;
+export const SESSION_DURATION_PRESETS = [40 * MINUTE, 80 * MINUTE, 4 * HOUR] as const;
 export const MAX_SESSION_MS = 7 * DAY;
 
 export const LEARNING_TICK_MS = SECOND;
-export const WORD_REST_FACTOR = 3;
+export const WORD_REPLAY_DELAY_FACTOR = 3;
 
 export const VAD = {
 	sampleRate: 16000,
@@ -20,10 +20,10 @@ export const VAD = {
 	dbFloor: -60,
 	dbCeil: -10,
 	threshold: 0.35,
-	sustainMs: 300,
-	releaseMs: 500,
-	preRollMs: 500,
-	echoTailGuardMs: 200,
+	minSoundMs: 300,
+	minSilenceMs: 500,
+	padBeforeMs: 500,
+	ignoreAfterPlaybackMs: 200,
 	maxSegmentMs: 10 * SECOND,
 } as const;
 
@@ -46,8 +46,8 @@ export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const;
 export const MAX_DEVICE_MODEL_LENGTH = 100;
 export const MAX_DEVICE_OS_VERSION_LENGTH = 20;
 
-export const CYCLE = [
-	{ phase: 'learning', ms: 10 * MINUTE },
-	{ phase: 'rest', ms: 5 * MINUTE },
-	{ phase: 'stress_care', ms: 5 * MINUTE },
+export const PHASE_CYCLE = [
+	{ phase: 'learning', durationMs: 10 * MINUTE },
+	{ phase: 'rest', durationMs: 5 * MINUTE },
+	{ phase: 'stress_care', durationMs: 5 * MINUTE },
 ] as const;

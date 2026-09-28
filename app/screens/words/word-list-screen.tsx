@@ -35,10 +35,10 @@ export function WordListScreen(): ReactElement {
 	const addButton = <IconButton icon={PlusIcon} label={t('words.list.add')} onPress={addWord} />;
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={styles.screen}>
 				{/*헤더*/}
-				<ScreenHeader title={t('words.list.title')} large right={addButton} />
+				<ScreenHeader title={t('words.list.title')} large trailing={addButton} />
 
 				{/*단어 목록*/}
 				<InlineError message={player.failedId ? t('common.sound.playError') : null} />

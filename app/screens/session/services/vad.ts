@@ -6,27 +6,27 @@ type VadSettings = {
 	dbFloor: number;
 	dbCeil: number;
 	threshold: number;
-	sustainMs: number;
-	releaseMs: number;
-	preRollMs: number;
+	minSoundMs: number;
+	minSilenceMs: number;
+	padBeforeMs: number;
 	maxSegmentMs: number;
 };
 
-export type SpeechSegment = {
+export type SoundSegment = {
 	samples: Float32Array;
 	durationMs: number;
-	speechStartMs: number;
-	speechEndMs: number;
+	soundStartMs: number;
+	soundEndMs: number;
 };
 
-type SpeechDetector = {
-	push(samples: Float32Array, now: number): SpeechSegment[];
+type SoundDetector = {
+	push(samples: Float32Array, now: number): SoundSegment[];
 	suspend(untilMs: number): void;
-	flush(): SpeechSegment | null;
+	flush(): SoundSegment | null;
 };
 
-const DB_PER_DECADE = 20;
-const SILENCE_RMS = 1e-9;
+const AMPLITUDE_DB_FACTOR = 20;
+const MIN_RMS = 1e-9;
 const EMPTY: Float32Array = new Float32Array(0);
 
 function concat(first: Float32Array, second: Float32Array): Float32Array {
@@ -44,36 +44,36 @@ function tail(samples: Float32Array, length: number): Float32Array {
 
 function isLoud(frame: Float32Array, settings: VadSettings): boolean {
 	const power = frame.reduce((sum, sample) => sum + sample * sample, 0) / frame.length;
-	const decibels = DB_PER_DECADE * Math.log10(Math.max(Math.sqrt(power), SILENCE_RMS));
+	const decibels = AMPLITUDE_DB_FACTOR * Math.log10(Math.max(Math.sqrt(power), MIN_RMS));
 	const level = (decibels - settings.dbFloor) / (settings.dbCeil - settings.dbFloor);
 
 	return Math.min(1, Math.max(0, level)) > settings.threshold;
 }
 
-export function createSpeechDetector(settings: VadSettings): SpeechDetector {
+export function createSoundDetector(settings: VadSettings): SoundDetector {
 	const samplesPerMs = settings.sampleRate / SECOND;
 	const frameSamples = samplesPerMs * settings.frameMs;
-	const preRollSamples = samplesPerMs * settings.preRollMs;
+	const padBeforeSampleCount = samplesPerMs * settings.padBeforeMs;
 
-	let pending = EMPTY;
-	let preRoll = EMPTY;
-	let onset = EMPTY;
+	let leftoverSamples = EMPTY;
+	let padBeforeSamples = EMPTY;
+	let loudCandidate = EMPTY;
 	let segment = EMPTY;
-	let speechStartMs = 0;
+	let soundStartMs = 0;
 	let quietTailMs = 0;
 	let suspendedUntil = 0;
 
 	const msOf = (samples: Float32Array) => samples.length / samplesPerMs;
 
 	function reset() {
-		preRoll = EMPTY;
-		onset = EMPTY;
+		padBeforeSamples = EMPTY;
+		loudCandidate = EMPTY;
 		segment = EMPTY;
-		speechStartMs = 0;
+		soundStartMs = 0;
 		quietTailMs = 0;
 	}
 
-	function flush(): SpeechSegment | null {
+	function flush(): SoundSegment | null {
 		if (segment.length === 0) {
 			reset();
 
@@ -81,41 +81,41 @@ export function createSpeechDetector(settings: VadSettings): SpeechDetector {
 		}
 
 		const durationMs = msOf(segment);
-		const startMs = Math.min(speechStartMs, durationMs);
-		const found = {
+		const startMs = Math.min(soundStartMs, durationMs);
+		const completedSegment = {
 			samples: segment,
 			durationMs,
-			speechStartMs: startMs,
-			speechEndMs: Math.max(startMs, durationMs - quietTailMs),
+			soundStartMs: startMs,
+			soundEndMs: Math.max(startMs, durationMs - quietTailMs),
 		};
 
 		reset();
 
-		return found;
+		return completedSegment;
 	}
 
-	function consume(frame: Float32Array): SpeechSegment | null {
+	function consume(frame: Float32Array): SoundSegment | null {
 		const loud = isLoud(frame, settings);
 
 		if (segment.length > 0) {
 			segment = concat(segment, frame);
 			quietTailMs = loud ? 0 : quietTailMs + settings.frameMs;
 		} else if (loud) {
-			onset = concat(onset, frame);
+			loudCandidate = concat(loudCandidate, frame);
 
-			if (msOf(onset) >= settings.sustainMs) {
-				segment = tail(concat(preRoll, onset), preRollSamples);
-				speechStartMs = Math.max(0, msOf(segment) - settings.sustainMs);
-				preRoll = EMPTY;
-				onset = EMPTY;
+			if (msOf(loudCandidate) >= settings.minSoundMs) {
+				segment = tail(concat(padBeforeSamples, loudCandidate), padBeforeSampleCount);
+				soundStartMs = Math.max(0, msOf(segment) - settings.minSoundMs);
+				padBeforeSamples = EMPTY;
+				loudCandidate = EMPTY;
 			}
 		} else {
-			preRoll = tail(concat(concat(preRoll, onset), frame), preRollSamples);
-			onset = EMPTY;
+			padBeforeSamples = tail(concat(concat(padBeforeSamples, loudCandidate), frame), padBeforeSampleCount);
+			loudCandidate = EMPTY;
 		}
 
 		const complete =
-			segment.length > 0 && (msOf(segment) >= settings.maxSegmentMs || quietTailMs >= settings.releaseMs);
+			segment.length > 0 && (msOf(segment) >= settings.maxSegmentMs || quietTailMs >= settings.minSilenceMs);
 
 		return complete ? flush() : null;
 	}
@@ -123,31 +123,31 @@ export function createSpeechDetector(settings: VadSettings): SpeechDetector {
 	return {
 		push(samples, now) {
 			if (now < suspendedUntil) {
-				pending = EMPTY;
+				leftoverSamples = EMPTY;
 				reset();
 
 				return [];
 			}
 
-			const found: SpeechSegment[] = [];
+			const completedSegments: SoundSegment[] = [];
 
-			pending = concat(pending, samples);
+			leftoverSamples = concat(leftoverSamples, samples);
 
-			while (pending.length >= frameSamples) {
-				const segmentFound = consume(pending.slice(0, frameSamples));
+			while (leftoverSamples.length >= frameSamples) {
+				const completedSegment = consume(leftoverSamples.slice(0, frameSamples));
 
-				pending = pending.slice(frameSamples);
+				leftoverSamples = leftoverSamples.slice(frameSamples);
 
-				if (segmentFound) {
-					found.push(segmentFound);
+				if (completedSegment) {
+					completedSegments.push(completedSegment);
 				}
 			}
 
-			return found;
+			return completedSegments;
 		},
 		suspend(untilMs) {
 			suspendedUntil = Math.max(suspendedUntil, untilMs);
-			pending = EMPTY;
+			leftoverSamples = EMPTY;
 			reset();
 		},
 		flush,

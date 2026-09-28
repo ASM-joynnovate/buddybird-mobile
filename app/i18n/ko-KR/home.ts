@@ -5,10 +5,10 @@ export const home: HomeMessages = {
 	notificationsUnread: '알림, 안 읽은 알림 {{count}}개',
 	settings: '설정',
 	notice: {
-		detail: '자세히',
+		viewDetail: '자세히',
 		image: '첨부 이미지 {{index}}',
 	},
-	notification: {
+	notificationList: {
 		title: '알림',
 		readAll: '모두 읽음',
 		readAllError: '모두 읽음으로 표시하지 못했어요. 다시 눌러 주세요.',

@@ -1,21 +1,24 @@
-export const EVENT_NAME_LIMIT = 40;
+export const FIREBASE_NAME_LIMIT = 40;
 
-export function firebaseParameters(input: Record<string, unknown>) {
-	const result: Record<string, string | number | boolean> = {};
+export function firebaseParameters(eventParams: Record<string, unknown>) {
+	const firebaseParams: Record<string, string | number | boolean> = {};
 
-	for (const [key, value] of Object.entries(input)) {
+	for (const [key, value] of Object.entries(eventParams)) {
 		if (value == null || (typeof value === 'number' && !Number.isFinite(value))) {
 			continue;
 		}
 
 		if (typeof value === 'string' || Array.isArray(value)) {
-			result[key.slice(0, EVENT_NAME_LIMIT)] = (Array.isArray(value) ? value.join(',') : value).slice(0, 100);
+			firebaseParams[key.slice(0, FIREBASE_NAME_LIMIT)] = (Array.isArray(value) ? value.join(',') : value).slice(
+				0,
+				100,
+			);
 		} else if (typeof value === 'number' || typeof value === 'boolean') {
-			result[key.slice(0, EVENT_NAME_LIMIT)] = value;
+			firebaseParams[key.slice(0, FIREBASE_NAME_LIMIT)] = value;
 		}
 	}
 
-	return result;
+	return firebaseParams;
 }
 
 export async function sendTelemetrySafely(send: () => void | Promise<unknown>): Promise<void> {

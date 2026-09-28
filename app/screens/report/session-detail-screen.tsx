@@ -35,15 +35,15 @@ export function SessionDetailScreen() {
 	}, [params.sessionId, params.source]);
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={styles.content}>
 				{/*헤더*/}
 				<ScreenHeader onBack={() => navigation.goBack()} />
 
 				{/*모사 녹음*/}
 				{isAnonymous ? (
-					<View style={styles.locked}>
-						<Copy style={styles.none}>{t('auth.signInRequired')}</Copy>
+					<View style={styles.signInRequiredContainer}>
+						<Copy style={styles.signInRequiredText}>{t('report.signInRequired')}</Copy>
 						<Button
 							label={t('auth.signIn')}
 							variant="secondary"
@@ -69,6 +69,6 @@ const styles = StyleSheet.create({
 		maxWidth: contentMaxWidth,
 		alignSelf: 'center',
 	},
-	none: { color: colors.muted },
-	locked: { gap: 12 },
+	signInRequiredText: { color: colors.muted },
+	signInRequiredContainer: { gap: 12 },
 });

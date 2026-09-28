@@ -9,11 +9,11 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 
 export async function availableLoginProviders(): Promise<LoginProvider[]> {
-	const locale = getLocales()[0];
-	const korean = locale?.regionCode === 'KR' || locale?.languageCode === 'ko';
-	const kakao = korean || useAccountStore.getState().lastLoginProvider === 'kakao';
+	const preferredLocale = getLocales()[0];
+	const isKoreanLocale = preferredLocale?.regionCode === 'KR' || preferredLocale?.languageCode === 'ko';
+	const showKakao = isKoreanLocale || useAccountStore.getState().lastLoginProvider === 'kakao';
 
-	const apple =
+	const showApple =
 		Platform.OS === 'ios' &&
 		(await AppleAuthentication.isAvailableAsync().catch((error: unknown) => {
 			reportError(error, 'apple_login_available');
@@ -21,5 +21,5 @@ export async function availableLoginProviders(): Promise<LoginProvider[]> {
 			return false;
 		}));
 
-	return ['google', ...(kakao ? (['kakao'] as const) : []), ...(apple ? (['apple'] as const) : [])];
+	return ['google', ...(showKakao ? (['kakao'] as const) : []), ...(showApple ? (['apple'] as const) : [])];
 }

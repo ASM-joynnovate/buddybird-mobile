@@ -7,7 +7,7 @@ export const profile: ProfileMessages = {
 	editAccount: 'Edit account',
 	parrots: 'Parrots',
 	addParrot: 'Add parrot',
-	openParrot: 'Edit {{name}}',
+	editParrot: 'Edit {{name}}',
 	ageMonths: '{{count}} months old',
 	ageYears: '{{count}} years old',
 	nickname: 'Nickname',

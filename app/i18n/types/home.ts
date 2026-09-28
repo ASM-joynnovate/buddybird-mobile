@@ -3,10 +3,10 @@ export type HomeMessages = {
 	notificationsUnread: string;
 	settings: string;
 	notice: {
-		detail: string;
+		viewDetail: string;
 		image: string;
 	};
-	notification: {
+	notificationList: {
 		title: string;
 		readAll: string;
 		readAllError: string;

@@ -5,26 +5,26 @@ import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from 'expo-crypt
 
 import { env } from '@/config';
 import { authClient, openAuthSession, requestAppleCredential } from '@/services/auth/client';
-import { setAppleCredential } from '@/services/auth/credential';
+import { setAppleLoginCredential } from '@/services/auth/credential';
 import { useAccountStore } from '@/stores/account';
 
-type LinkResult = 'linked' | 'exists' | 'cancelled';
+type LinkResult = 'linked' | 'identityExists' | 'cancelled';
 
 type OAuthProvider = Exclude<LoginProvider, 'apple'>;
 
-function redirectTo() {
+function authRedirectUrl() {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
 }
 
 function oauthOptions(provider: OAuthProvider) {
 	return {
-		redirectTo: redirectTo(),
+		redirectTo: authRedirectUrl(),
 		skipBrowserRedirect: true,
 		...(provider === 'google' ? { queryParams: { access_type: 'offline', prompt: 'consent' } } : {}),
 	};
 }
 
-async function appleIdToken() {
+async function requestAppleIdToken() {
 	const nonce = randomUUID();
 	const credential = await requestAppleCredential({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
@@ -36,52 +36,52 @@ async function appleIdToken() {
 	}
 
 	if (credential.authorizationCode) {
-		setAppleCredential(credential.authorizationCode);
+		setAppleLoginCredential(credential.authorizationCode);
 	}
 
 	return { provider: 'apple' as const, token: credential.identityToken, nonce };
 }
 
-async function browserCallback(url: string): Promise<URL | null> {
-	const redirect = redirectTo();
-	const result = await openAuthSession(url, redirect);
+async function openAuthBrowser(url: string): Promise<URL | null> {
+	const redirectUrl = authRedirectUrl();
+	const authSessionResult = await openAuthSession(url, redirectUrl);
 
-	if (result.type === 'cancel' || result.type === 'dismiss') {
+	if (authSessionResult.type === 'cancel' || authSessionResult.type === 'dismiss') {
 		return null;
 	}
 
-	if (result.type !== 'success') {
+	if (authSessionResult.type !== 'success') {
 		throw new Error('Authentication browser unavailable');
 	}
 
-	const callback = new URL(result.url);
-	const expected = new URL(redirect);
+	const callbackUrl = new URL(authSessionResult.url);
+	const expected = new URL(redirectUrl);
 
 	if (
-		callback.protocol !== expected.protocol ||
-		callback.host !== expected.host ||
-		callback.pathname !== expected.pathname ||
-		callback.username ||
-		callback.password
+		callbackUrl.protocol !== expected.protocol ||
+		callbackUrl.host !== expected.host ||
+		callbackUrl.pathname !== expected.pathname ||
+		callbackUrl.username ||
+		callbackUrl.password
 	) {
 		throw new Error('Invalid authentication callback');
 	}
 
-	return callback;
+	return callbackUrl;
 }
 
-function callbackParam(callback: URL, name: string) {
-	return callback.searchParams.get(name) ?? new URLSearchParams(callback.hash.slice(1)).get(name);
+function callbackParam(callbackUrl: URL, name: string) {
+	return callbackUrl.searchParams.get(name) ?? new URLSearchParams(callbackUrl.hash.slice(1)).get(name);
 }
 
-async function exchangeCallback(callback: URL, provider: OAuthProvider): Promise<boolean> {
-	const providerError = callbackParam(callback, 'error');
+async function exchangeCallback(callbackUrl: URL, provider: OAuthProvider): Promise<boolean> {
+	const providerError = callbackParam(callbackUrl, 'error');
 
 	if (providerError === 'access_denied') {
 		return false;
 	}
 
-	const code = callback.searchParams.get('code');
+	const code = callbackUrl.searchParams.get('code');
 
 	if (providerError || !code) {
 		throw new Error('Authentication code missing');
@@ -98,13 +98,13 @@ async function exchangeCallback(callback: URL, provider: OAuthProvider): Promise
 	return true;
 }
 
-async function signIn(provider: LoginProvider): Promise<boolean> {
+export async function signIn(provider: LoginProvider): Promise<boolean> {
 	if (provider === 'apple') {
-		const credential = await appleIdToken();
+		const idTokenCredentials = await requestAppleIdToken();
 
 		useAccountStore.getState().setLoginProvider(provider);
 
-		const { error } = await authClient().signInWithIdToken(credential);
+		const { error } = await authClient().signInWithIdToken(idTokenCredentials);
 
 		if (error) {
 			throw error;
@@ -122,21 +122,21 @@ async function signIn(provider: LoginProvider): Promise<boolean> {
 		throw error;
 	}
 
-	const callback = await browserCallback(data.url);
+	const callbackUrl = await openAuthBrowser(data.url);
 
-	return callback ? exchangeCallback(callback, provider) : false;
+	return callbackUrl ? exchangeCallback(callbackUrl, provider) : false;
 }
 
 export async function linkAccount(provider: LoginProvider): Promise<LinkResult> {
 	if (provider === 'apple') {
-		const credential = await appleIdToken();
+		const idTokenCredentials = await requestAppleIdToken();
 
 		useAccountStore.getState().setLoginProvider(provider);
 
-		const { error } = await authClient().linkIdentity(credential);
+		const { error } = await authClient().linkIdentity(idTokenCredentials);
 
 		if (error?.code === 'identity_already_exists') {
-			return 'exists';
+			return 'identityExists';
 		}
 
 		if (error) {
@@ -155,19 +155,15 @@ export async function linkAccount(provider: LoginProvider): Promise<LinkResult> 
 		throw error;
 	}
 
-	const callback = await browserCallback(data.url);
+	const callbackUrl = await openAuthBrowser(data.url);
 
-	if (!callback) {
+	if (!callbackUrl) {
 		return 'cancelled';
 	}
 
-	if (callbackParam(callback, 'error_code') === 'identity_already_exists') {
-		return 'exists';
+	if (callbackParam(callbackUrl, 'error_code') === 'identity_already_exists') {
+		return 'identityExists';
 	}
 
-	return (await exchangeCallback(callback, provider)) ? 'linked' : 'cancelled';
-}
-
-export async function switchAccount(provider: LoginProvider): Promise<boolean> {
-	return signIn(provider);
+	return (await exchangeCallback(callbackUrl, provider)) ? 'linked' : 'cancelled';
 }

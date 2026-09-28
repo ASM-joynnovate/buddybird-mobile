@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function WheelPickerWheel({ value, values, label, onChange }: Props) {
-	const scroll = useRef<ScrollView>(null);
+	const scrollRef = useRef<ScrollView>(null);
 	const dragging = useRef(false);
 
 	const selectedIndex = Math.max(0, values.indexOf(value));
@@ -28,7 +28,7 @@ export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 
 	useEffect(() => {
 		if (!dragging.current) {
-			scroll.current?.scrollTo({ y: selectedIndex * WHEEL_ITEM_HEIGHT, animated: false });
+			scrollRef.current?.scrollTo({ y: selectedIndex * WHEEL_ITEM_HEIGHT, animated: false });
 
 			setCenteredIndex(selectedIndex);
 		}
@@ -54,7 +54,7 @@ export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 
 	return (
 		<ScrollView
-			ref={scroll}
+			ref={scrollRef}
 			accessible
 			accessibilityLabel={label}
 			accessibilityRole="adjustable"
@@ -66,7 +66,7 @@ export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 			accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
 			onAccessibilityAction={({ nativeEvent: { actionName } }) => {
 				if (actionName === 'increment' || actionName === 'decrement') {
-					const next =
+					const nextValue =
 						values[
 							Math.max(
 								0,
@@ -74,7 +74,7 @@ export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 							)
 						];
 
-					onChange(next);
+					onChange(nextValue);
 				}
 			}}
 			style={styles.wheel}
@@ -96,9 +96,9 @@ export function WheelPickerWheel({ value, values, label, onChange }: Props) {
 			}}
 			onMomentumScrollEnd={finishScroll}
 		>
-			{values.map((item, index) => (
-				<View key={item} style={styles.item}>
-					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>{item}</Copy>
+			{values.map((itemValue, index) => (
+				<View key={itemValue} style={styles.item}>
+					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>{itemValue}</Copy>
 				</View>
 			))}
 		</ScrollView>

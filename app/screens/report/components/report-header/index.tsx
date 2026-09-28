@@ -9,7 +9,7 @@ import { reportPeriodSchema } from '@/types/report-period';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDate, formatDateWithWeekday, formatDuration, formatMonth } from '@/i18n/format';
+import { formatDuration, formatMonthDay, formatMonthDayWeekday, formatYearMonth } from '@/i18n/format';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -48,13 +48,13 @@ export function ReportHeader({ report }: Props): ReactElement {
 	const selectPeriod = useReportStore((state) => state.selectPeriod);
 	const movePeriod = useReportStore((state) => state.movePeriod);
 
-	const recorded = report.sessions.length > 0;
+	const hasSessions = report.sessions.length > 0;
 	const periodLabel =
 		report.period === 'day'
-			? formatDateWithWeekday(report.start, locale)
+			? formatMonthDayWeekday(report.start, locale)
 			: report.period === 'month'
-				? formatMonth(report.start, locale)
-				: `${formatDate(report.start, locale)} ~ ${formatDate(report.end, locale)}`;
+				? formatYearMonth(report.start, locale)
+				: `${formatMonthDay(report.start, locale)} ~ ${formatMonthDay(report.end, locale)}`;
 	const isLatest = start === null || start >= latestStart(period);
 	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
@@ -90,10 +90,10 @@ export function ReportHeader({ report }: Props): ReactElement {
 					/>
 				</View>
 
-				{recorded ? (
+				{hasSessions ? (
 					<>
 						<Copy style={styles.label}>{t('report.learningTime')}</Copy>
-						<View style={styles.totals}>
+						<View style={styles.totalRow}>
 							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.total}>
 								{formatDuration(report.learning_duration_ms, locale)}
 							</Copy>
@@ -109,7 +109,7 @@ export function ReportHeader({ report }: Props): ReactElement {
 			</Card>
 
 			{/*빈 리포트 안내*/}
-			{!recorded ? (
+			{!hasSessions ? (
 				<EmptyState
 					message={t('report.empty')}
 					illustration={illustration}
@@ -121,11 +121,11 @@ export function ReportHeader({ report }: Props): ReactElement {
 			) : null}
 
 			{/*단어별 학습 시간과 세션 목록 제목*/}
-			{recorded ? (
+			{hasSessions ? (
 				<>
 					<WordBars words={report.words} />
 
-					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessions]}>
+					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessionsTitle]}>
 						{t('report.sessions')}
 					</Copy>
 				</>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
 	card: { marginTop: 16 },
 	period: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 16 },
 	label: { marginTop: 12, fontFamily: font.extraBold, fontSize: 13.5, color: colors.muted },
-	totals: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 8 },
+	totalRow: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 8 },
 	total: { flex: 1, fontFamily: font.black, fontSize: 34, lineHeight: 40 },
-	sessions: { marginTop: 24, marginBottom: 0 },
+	sessionsTitle: { marginTop: 24, marginBottom: 0 },
 });

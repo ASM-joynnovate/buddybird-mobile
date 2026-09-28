@@ -5,8 +5,8 @@ import { colors, font, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 
 const variants = {
-	primary: { face: colors.orangeSelected, edge: colors.orange, text: colors.orangeDark },
-	muted: { face: colors.surface, edge: colors.border, text: colors.muted },
+	primary: { background: colors.orangePale, border: colors.orange, text: colors.orangeDark },
+	muted: { background: colors.surface, border: colors.border, text: colors.muted },
 } as const;
 
 type TagVariant = keyof typeof variants;
@@ -20,7 +20,7 @@ export function Tag({ label, variant = 'muted' }: Props) {
 	const palette = variants[variant];
 
 	return (
-		<View style={[styles.tag, { backgroundColor: palette.face, borderColor: palette.edge }]}>
+		<View style={[styles.tag, { backgroundColor: palette.background, borderColor: palette.border }]}>
 			<Copy numberOfLines={1} style={[styles.text, { color: palette.text }]}>
 				{label}
 			</Copy>

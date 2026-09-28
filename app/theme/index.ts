@@ -6,7 +6,7 @@ export const radius = {
 	small: 8,
 	card: 18,
 	control: 16,
-	hero: 20,
+	illustration: 20,
 	pill: 999,
 };
 
@@ -28,4 +28,4 @@ export const font = {
 	splash: 'Fredoka-SemiBold',
 };
 
-export const mascot = require('@assets/images/buddy-bird.png');
+export const mascotImage = require('@assets/images/buddy-bird.png');

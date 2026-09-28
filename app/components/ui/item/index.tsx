@@ -14,13 +14,13 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props extends ItemBaseProps {
 	value?: string;
-	dot?: boolean;
+	showDot?: boolean;
 	disabled?: boolean;
 	trailing?: ReactNode;
 	onPress(): void;
 }
 
-export function Item({ value, dot, onPress, disabled, trailing, ...props }: Props) {
+export function Item({ value, showDot, onPress, disabled, trailing, ...props }: Props) {
 	return (
 		<PressableSurface
 			accessibilityLabel={joinLabel(props.label, value)}
@@ -33,9 +33,9 @@ export function Item({ value, dot, onPress, disabled, trailing, ...props }: Prop
 			contentStyle={itemStyles.pressRow}
 		>
 			<ItemLabel {...props} />
-			{dot ? <View style={styles.dot} /> : null}
+			{showDot ? <View style={styles.dot} /> : null}
 			{value ? <Copy style={styles.value}>{value}</Copy> : null}
-			{trailing ?? <ChevronRightIcon size={18} color={colors.disabled} />}
+			{trailing ?? <ChevronRightIcon size={18} color={colors.subtle} />}
 		</PressableSurface>
 	);
 }

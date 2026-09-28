@@ -29,7 +29,7 @@ export function TimePicker({ value, label, onChange }: Props) {
 					value: time.hour(),
 					values: HOURS,
 					unit: t('common.time.hour'),
-					onChange: (next) => onChange(time.hour(next).format(CLOCK_FORMAT)),
+					onChange: (hour) => onChange(time.hour(hour).format(CLOCK_FORMAT)),
 				},
 				{
 					key: 'minute',
@@ -37,7 +37,7 @@ export function TimePicker({ value, label, onChange }: Props) {
 					value: time.minute(),
 					values: minutes,
 					unit: t('common.time.minute'),
-					onChange: (next) => onChange(time.minute(next).format(CLOCK_FORMAT)),
+					onChange: (minute) => onChange(time.minute(minute).format(CLOCK_FORMAT)),
 				},
 			]}
 		/>

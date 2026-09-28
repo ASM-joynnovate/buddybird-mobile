@@ -3,7 +3,7 @@ import type { ReportPeriod } from '@/types/report-period';
 
 export type OnboardingStep = 'login' | 'consent' | 'legacy_upload' | 'parrot' | 'usage_guide' | 'permissions';
 
-export type Events = {
+export type AnalyticsEvents = {
 	onboarding_step_viewed: { step: OnboardingStep };
 	onboarding_step_completed: {
 		step: OnboardingStep;

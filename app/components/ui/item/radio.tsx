@@ -27,7 +27,7 @@ export function ItemRadio({ label, selected, first, onPress }: Props) {
 			style={!first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
-			<Copy style={[itemStyles.label, styles.label, selected && styles.selected]}>{label}</Copy>
+			<Copy style={[itemStyles.label, styles.label, selected && styles.labelSelected]}>{label}</Copy>
 			{selected ? <CheckMark color={colors.orangeDark} /> : null}
 		</PressableSurface>
 	);
@@ -35,5 +35,5 @@ export function ItemRadio({ label, selected, first, onPress }: Props) {
 
 const styles = StyleSheet.create({
 	label: { flex: 1 },
-	selected: { color: colors.orangeDark },
+	labelSelected: { color: colors.orangeDark },
 });

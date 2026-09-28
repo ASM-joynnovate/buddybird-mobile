@@ -302,7 +302,7 @@ export function SessionRunScreen() {
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			backgroundColor={sessionColors.background}
+			faceColor={sessionColors.background}
 			style={styles.screen}
 			contentStyle={styles.fill}
 			onPress={showInfo}
@@ -326,10 +326,10 @@ export function SessionRunScreen() {
 				visible={endDialogOpen}
 				text={{
 					title: t('session.end.title'),
-					confirm: t('session.end.confirm'),
+					confirm: t('session.end.button'),
 					cancel: t('session.end.keep'),
 				}}
-				state={{ busy: ending }}
+				confirmStatus={{ busy: ending }}
 				onConfirm={handleEnd}
 				onClose={() => setEndDialogOpen(false)}
 			/>

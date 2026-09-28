@@ -3,8 +3,8 @@ import type { Locale } from '@/types/locale';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { en } from '@/i18n/en';
-import { ko } from '@/i18n/ko';
+import { en } from '@/i18n/en-US';
+import { ko } from '@/i18n/ko-KR';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';

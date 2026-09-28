@@ -14,12 +14,12 @@ interface Props {
 
 export function AuthStatusContent({ splashFinished }: Props) {
 	const status = useAuthStore((auth) => auth.status);
-	const retry = useAuthStore((auth) => auth.retry);
+	const retryAuth = useAuthStore((auth) => auth.retry);
 
 	const registered = useAccountStore((account) => account.authUserId !== null);
 
 	if (status !== 'signedIn' && !(status === 'completing' && registered)) {
-		return status === 'error' ? <StartupScreen onRetry={retry} /> : <StartupScreen />;
+		return status === 'error' ? <StartupScreen onRetry={retryAuth} /> : <StartupScreen />;
 	}
 
 	return (

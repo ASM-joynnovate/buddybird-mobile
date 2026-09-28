@@ -27,8 +27,8 @@ export function Button({
 }: Props) {
 	const inactive = disabled || loading;
 	const depth = size === 'small' ? 'high' : 'xhigh';
-	let surfaceVariant: 'primary' | 'neutral' | 'muted' = 'primary';
-	let foregroundColor = colors.onAccent;
+	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = 'primary';
+	let foregroundColor = colors.onFilled;
 
 	if (variant === 'secondary') {
 		surfaceVariant = 'neutral';
@@ -36,8 +36,8 @@ export function Button({
 	}
 
 	if (inactive) {
-		surfaceVariant = 'muted';
-		foregroundColor = colors.disabled;
+		surfaceVariant = 'disabled';
+		foregroundColor = colors.subtle;
 	}
 
 	let leadingContent = null;

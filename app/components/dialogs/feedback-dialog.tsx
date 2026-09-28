@@ -13,7 +13,7 @@ import { SendIcon } from 'lucide-react-native';
 
 import { track } from '@/services/telemetry/client';
 import { useFeedbackStore } from '@/stores/feedback';
-import { colors, font, mascot } from '@/theme';
+import { colors, font, mascotImage } from '@/theme';
 
 import { Dialog } from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
@@ -85,10 +85,10 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 			<Dialog
 				visible={visible}
 				onClose={handleClose}
-				title={t('app.feedback.sent')}
-				footer=<Button label={t('app.feedback.thanksClose')} onPress={handleClose} style={styles.thanksClose} />
+				title={t('app.feedback.sentTitle')}
+				footer=<Button label={t('common.done')} onPress={handleClose} style={styles.thanksClose} />
 			>
-				<Copy style={styles.promptMessage}>{t('app.feedback.thanks')}</Copy>
+				<Copy style={styles.centeredMessage}>{t('app.feedback.sentMessage')}</Copy>
 			</Dialog>
 		);
 	}
@@ -102,7 +102,7 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 				footer={
 					<View style={[ui.actions, styles.actions]}>
 						<Button
-							label={t('app.feedback.later')}
+							label={t('common.close')}
 							variant="secondary"
 							onPress={prompt.onDismiss}
 							style={ui.action}
@@ -113,11 +113,11 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 			>
 				<Image
 					accessible={false}
-					source={mascot}
+					source={mascotImage}
 					style={styles.promptMascot}
 					accessibilityIgnoresInvertColors
 				/>
-				<Copy style={styles.promptMessage}>{t('app.feedback.promptMessage')}</Copy>
+				<Copy style={styles.centeredMessage}>{t('app.feedback.promptMessage')}</Copy>
 			</Dialog>
 		);
 	}
@@ -162,7 +162,7 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 			<Copy style={styles.privacy}>{t('app.feedback.privacy')}</Copy>
 
 			{/*전송 실패 문구*/}
-			<InlineError message={isError ? t('app.feedback.error') : null} />
+			<InlineError message={isError ? t('app.feedback.sendError') : null} />
 		</Dialog>
 	);
 }
@@ -170,7 +170,7 @@ export function FeedbackDialog({ visible, prompt }: Props) {
 const styles = StyleSheet.create({
 	thanksClose: { marginTop: 0 },
 	promptMascot: { width: 96, height: 96, resizeMode: 'contain', alignSelf: 'center' },
-	promptMessage: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 16 },
+	centeredMessage: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 16 },
 	actions: { marginTop: 0 },
 	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
 	privacy: { fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 12 },

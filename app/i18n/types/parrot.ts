@@ -2,20 +2,14 @@ export type ParrotMessages = {
 	name: string;
 	nameHint: string;
 	species: string;
-	birthday: string;
-	birthdayUnknown: string;
+	birthdate: string;
+	birthdateUnknown: string;
 	choose: string;
 	speciesQuestion: string;
-	birthdayQuestion: string;
-	photo: string;
-	photoSheet: {
-		title: string;
-		take: string;
-		choose: string;
-	};
+	birthdateQuestion: string;
 	nameRequired: string;
 	speciesRequired: string;
-	birthdayInvalid: string;
+	birthdateInFuture: string;
 	yearPicker: string;
 	monthPicker: string;
 	dayPicker: string;
@@ -44,4 +38,10 @@ export type ParrotMessages = {
 		cockatoo: string;
 		macaw: string;
 	};
+	intro: string;
+	addTitle: string;
+	editTitle: string;
+	register: string;
+	delete: string;
+	deleteError: string;
 };

@@ -29,9 +29,9 @@ export function PressableSurface({
 	style,
 	...props
 }: Props) {
-	const reduced = useReducedMotion();
+	const reducedMotion = useReducedMotion();
 
-	const pressed = useSharedValue(0);
+	const pressProgress = useSharedValue(0);
 
 	const activate = useCallback(
 		(x = 0, y = 0) => {
@@ -53,7 +53,7 @@ export function PressableSurface({
 			.maxDuration(10_000)
 			.maxDistance(10)
 			.onBegin(() => {
-				pressed.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));
+				pressProgress.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));
 			})
 			.onEnd((event, success) => {
 				if (success) {
@@ -61,26 +61,26 @@ export function PressableSurface({
 				}
 			})
 			.onFinalize(() => {
-				pressed.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }));
+				pressProgress.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }));
 			});
 
 		if (!onLongPress) {
 			return tap;
 		}
 
-		const hold = Gesture.LongPress()
+		const longPress = Gesture.LongPress()
 			.enabled(!disabled)
 			.minDuration(500)
 			.onStart(() => {
 				scheduleOnRN(holdActivate);
 			});
 
-		return Gesture.Exclusive(hold, tap);
-	}, [activate, disabled, holdActivate, onLongPress, pressed]);
+		return Gesture.Exclusive(longPress, tap);
+	}, [activate, disabled, holdActivate, onLongPress, pressProgress]);
 
 	const pressDistance = Math.max(0, depths[depth] - 1);
-	const faceAnimation = useAnimatedStyle(() => ({
-		transform: [{ translateY: reduced ? 0 : pressed.get() * pressDistance }],
+	const faceStyle = useAnimatedStyle(() => ({
+		transform: [{ translateY: reducedMotion ? 0 : pressProgress.get() * pressDistance }],
 	}));
 
 	return (
@@ -104,7 +104,7 @@ export function PressableSurface({
 					}
 				}}
 				depth={depth}
-				contentStyle={[contentStyle, faceAnimation]}
+				contentStyle={[contentStyle, faceStyle]}
 			/>
 		</GestureDetector>
 	);

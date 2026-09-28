@@ -9,8 +9,8 @@ import { useGetParrotList } from '@/hooks/apis/parrots';
 import { useTranslation } from 'react-i18next';
 
 import { acceptLegacyUpload, finishLegacyUpload, uploadLegacy } from '@/services/migration/upload-legacy';
-import { reportError, screen } from '@/services/telemetry/client';
-import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import { reportError, trackScreen } from '@/services/telemetry/client';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
@@ -26,7 +26,7 @@ const uploadAndFinishLegacy = async () => {
 
 	await invalidate(apiKeys.parrots.all(), apiKeys.words.all());
 
-	completeOnboardingStep('legacy_upload');
+	trackOnboardingStepCompleted('legacy_upload');
 
 	finishLegacyUpload();
 };
@@ -45,8 +45,8 @@ export function LegacyUploadScreen(): ReactElement {
 	const canStartUpload = !askDialogOpen;
 
 	useEffect(() => {
-		screen('LegacyUpload');
-		viewOnboardingStep('legacy_upload');
+		trackScreen('LegacyUpload');
+		trackOnboardingStepViewed('legacy_upload');
 	}, []);
 
 	/** 올리기를 시작할 수 있을 때 v1 데이터 올리기와 실패 표시 */
@@ -64,7 +64,7 @@ export function LegacyUploadScreen(): ReactElement {
 
 	/** 올리기 단계 완료 전송과 올리기 건너뛰기 */
 	const handleSkip = () => {
-		completeOnboardingStep('legacy_upload');
+		trackOnboardingStepCompleted('legacy_upload');
 
 		finishLegacyUpload();
 	};
@@ -76,22 +76,22 @@ export function LegacyUploadScreen(): ReactElement {
 	};
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			{/*올리기 진행과 실패 안내*/}
 			<View style={styles.content}>
 				{uploadFailed ? (
 					<>
 						<Copy accessibilityRole="alert" style={styles.message}>
-							{t('entry.legacy.error')}
+							{t('onboarding.legacy.uploadError')}
 						</Copy>
 
 						<Button label={t('common.retry')} onPress={handleRetry} />
-						<Button label={t('entry.legacy.skip')} variant="secondary" onPress={handleSkip} />
+						<Button label={t('common.skip')} variant="secondary" onPress={handleSkip} />
 					</>
 				) : (
 					<>
 						<ActivityIndicator color={colors.orange} />
-						<Copy style={styles.message}>{t('entry.legacy.uploading')}</Copy>
+						<Copy style={styles.message}>{t('onboarding.legacy.uploading')}</Copy>
 					</>
 				)}
 			</View>
@@ -99,23 +99,18 @@ export function LegacyUploadScreen(): ReactElement {
 			{/*v1 데이터 추가 확인 다이얼로그*/}
 			<Dialog
 				visible={askDialogOpen}
-				title={t('entry.legacy.askTitle')}
+				title={t('onboarding.legacy.askTitle')}
 				onClose={() => {}}
 				footer={
 					<View style={ui.actions}>
 						<Button
-							label={t('entry.legacy.skip')}
+							label={t('common.skip')}
 							variant="secondary"
 							size="small"
 							onPress={handleSkip}
 							style={ui.action}
 						/>
-						<Button
-							label={t('entry.legacy.add')}
-							size="small"
-							onPress={acceptLegacyUpload}
-							style={ui.action}
-						/>
+						<Button label={t('common.add')} size="small" onPress={acceptLegacyUpload} style={ui.action} />
 					</View>
 				}
 			/>

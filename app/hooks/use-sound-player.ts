@@ -41,9 +41,9 @@ export function useSoundPlayer(): SoundPlayer {
 
 			stop();
 		} else if (status.didJustFinish) {
-			const finished = playingId;
+			const finishedId = playingId;
 
-			setFinishedIds((current) => new Set([...current, finished]));
+			setFinishedIds((prev) => new Set([...prev, finishedId]));
 
 			stop();
 		}

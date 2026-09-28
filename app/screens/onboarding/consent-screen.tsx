@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useConsentStore } from '@/stores/consent';
 import { latestConsents } from '@/utils/latest-consents';
 
@@ -42,7 +42,7 @@ export function ConsentScreen() {
 
 	const clearAgreedIds = useConsentStore((state) => state.clearAgreedIds);
 
-	const { route, parrotId } = useEntryRoute();
+	const { entryRoute, parrotId } = useEntryRoute();
 
 	const consents = latestConsents(consentListData);
 	/** 동의 항목 체크 여부 */
@@ -52,7 +52,7 @@ export function ConsentScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
-			viewOnboardingStep('consent');
+			trackOnboardingStepViewed('consent');
 		}, []),
 	);
 
@@ -101,11 +101,11 @@ export function ConsentScreen() {
 			return;
 		}
 
-		completeOnboardingStep('consent');
+		trackOnboardingStepCompleted('consent');
 
-		if (route !== 'Consent') {
+		if (entryRoute !== 'Consent') {
 			navigation.navigate('ParrotEditor', {
-				parrotId: route === 'UsageGuide' ? parrotId : undefined,
+				parrotId: entryRoute === 'UsageGuide' ? parrotId : undefined,
 				source: 'onboarding',
 			});
 		}
@@ -127,7 +127,7 @@ export function ConsentScreen() {
 		>
 			{/*안내 말풍선*/}
 			<View style={styles.intro}>
-				<BuddySays message={t('entry.consent.intro')} />
+				<BuddySays message={t('onboarding.consent.intro')} />
 			</View>
 
 			{/*동의 항목*/}
@@ -135,7 +135,7 @@ export function ConsentScreen() {
 				<Card contentStyle={styles.allCard}>
 					<ItemCheckbox
 						first
-						label={t('entry.consent.all')}
+						label={t('onboarding.consent.all')}
 						checked={allChecked}
 						disabled={isPending}
 						onToggle={handleToggleAll}

@@ -69,7 +69,7 @@ const MimicrySoundList = ({ session }: Props) => {
 			onRefresh={handleRefresh}
 			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
-			ListEmptyComponent=<EmptyState message={t('report.detail.none')} />
+			ListEmptyComponent=<EmptyState message={t('report.detail.empty')} />
 		/>
 	);
 };

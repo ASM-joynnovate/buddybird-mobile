@@ -7,13 +7,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, contentMaxWidth } from '@/theme';
 
 interface Props extends ScrollViewProps {
-	scroll?: boolean;
+	scrollable?: boolean;
 	footer?: ReactNode;
 }
 
 export function Screen({
 	children,
-	scroll = true,
+	scrollable = true,
 	automaticallyAdjustKeyboardInsets = true,
 	style,
 	contentContainerStyle,
@@ -24,7 +24,7 @@ export function Screen({
 
 	return (
 		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, style]}>
-			{scroll ? (
+			{scrollable ? (
 				<ScrollView
 					alwaysBounceVertical={false}
 					{...props}

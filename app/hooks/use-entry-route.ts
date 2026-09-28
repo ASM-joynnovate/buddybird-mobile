@@ -7,32 +7,32 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'UsageGuide' | 'Main';
 
-export function useEntryRoute(): { route: EntryRoute; parrotId?: string } {
+export function useEntryRoute(): { entryRoute: EntryRoute; parrotId?: string } {
 	const { data: consentListData } = useGetConsentList();
 	const { data: parrotListData } = useGetParrotList();
 
-	const loginPending = useAccountStore((account) => account.isAnonymous && !account.loginScreenSeen);
+	const needsLoginScreen = useAccountStore((account) => account.isAnonymous && !account.loginScreenSeen);
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
-	const legacyUploadPending = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus !== 'finished');
+	const legacyUploadUnfinished = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus !== 'finished');
 
-	if (loginPending) {
-		return { route: 'Login' };
+	if (needsLoginScreen) {
+		return { entryRoute: 'Login' };
 	}
 
 	if (consentListData.some((consent) => consent.is_required && consent.status !== 'granted')) {
-		return { route: 'Consent' };
+		return { entryRoute: 'Consent' };
 	}
 
-	if (legacyUploadPending && hasLegacyUpload()) {
-		return { route: 'LegacyUpload' };
+	if (legacyUploadUnfinished && hasLegacyUpload()) {
+		return { entryRoute: 'LegacyUpload' };
 	}
 
 	if (parrotListData.length === 0) {
-		return { route: 'ParrotEditor' };
+		return { entryRoute: 'ParrotEditor' };
 	}
 
 	return {
-		route: onboardingCompleted ? 'Main' : 'UsageGuide',
+		entryRoute: onboardingCompleted ? 'Main' : 'UsageGuide',
 		parrotId: parrotListData[0]?.id,
 	};
 }

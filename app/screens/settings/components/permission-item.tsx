@@ -22,10 +22,10 @@ export function PermissionItem({ kind, icon, first }: Props) {
 
 	const permission = usePermission(kind);
 
-	let status = t('settings.permissions.checking');
+	let statusText = t('settings.permissions.checking');
 
 	if (permission.granted !== null) {
-		status = t(permission.granted ? 'settings.permissions.granted' : 'settings.permissions.denied');
+		statusText = t(permission.granted ? 'settings.permissions.granted' : 'settings.permissions.denied');
 	}
 
 	return (
@@ -35,7 +35,7 @@ export function PermissionItem({ kind, icon, first }: Props) {
 				first={first}
 				icon={icon}
 				label={t(`common.permission.${kind}.name`)}
-				value={status}
+				value={statusText}
 				disabled={permission.granted !== false}
 				trailing={permission.granted ? <CheckIcon size={18} color={colors.orange} /> : undefined}
 				onPress={() =>

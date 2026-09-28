@@ -7,7 +7,7 @@ export const profile: ProfileMessages = {
 	editAccount: '계정 수정',
 	parrots: '앵무새',
 	addParrot: '앵무새 추가',
-	openParrot: '{{name}} 정보 수정',
+	editParrot: '{{name}} 정보 수정',
 	ageMonths: '{{count}}개월',
 	ageYears: '{{count}}살',
 	nickname: '닉네임',

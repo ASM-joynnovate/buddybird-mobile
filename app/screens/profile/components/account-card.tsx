@@ -15,14 +15,14 @@ interface Props {
 export function AccountCard({ user, onPress }: Props) {
 	const { t } = useTranslation();
 
-	const nickname = user.nickname ?? t('profile.nicknameMissing');
+	const titleText = user.nickname ?? t('profile.nicknameMissing');
 
 	return (
 		<ProfileCard
 			avatar={{ uri: user.photo?.url, icon: UserIcon, size: 'large' }}
-			title={{ text: nickname, accent: !user.nickname }}
+			title={{ text: titleText, accent: !user.nickname }}
 			details={[user.email]}
-			label={joinLabel(t('profile.editAccount'), nickname, user.email)}
+			label={joinLabel(t('profile.editAccount'), titleText, user.email)}
 			onPress={onPress}
 		/>
 	);

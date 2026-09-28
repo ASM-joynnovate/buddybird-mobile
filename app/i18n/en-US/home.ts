@@ -5,10 +5,10 @@ export const home: HomeMessages = {
 	notificationsUnread: 'Notifications, {{count}} unread',
 	settings: 'Settings',
 	notice: {
-		detail: 'Details',
+		viewDetail: 'Details',
 		image: 'Attached image {{index}}',
 	},
-	notification: {
+	notificationList: {
 		title: 'Notifications',
 		readAll: 'Mark all read',
 		readAllError: "Couldn't mark all as read. Tap again.",

@@ -38,7 +38,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 	const [index, setIndex] = useState(0);
 
 	const step = steps[index];
-	const last = index === steps.length - 1;
+	const isLastStep = index === steps.length - 1;
 	const back = index > 0 ? () => setIndex(index - 1) : actions.onBack;
 
 	useEffect(() => {
@@ -62,15 +62,15 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 	);
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
 				{/*뒤로 가기, 단계 표시, 건너뛰기*/}
 				<View style={styles.top}>
 					{back ? <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={back} /> : null}
 					<PageDots
 						count={steps.length}
-						index={index}
-						label={t('common.step', { current: index + 1, total: steps.length })}
+						currentIndex={index}
+						label={t('common.stepProgress', { current: index + 1, total: steps.length })}
 					/>
 					<View style={styles.spacer} />
 					{actions.onSkip ? (
@@ -81,7 +81,7 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 				{/*안내 말풍선과 그림*/}
 				<View style={styles.body}>
 					<BuddySays message={step.title} />
-					<Illustration scene={step.scene} icon={step.icon} height={260} mascot={false} />
+					<Illustration scene={step.scene} icon={step.icon} height={260} showMascot={false} />
 				</View>
 
 				{/*다시 보지 않기와 다음 버튼*/}
@@ -95,8 +95,8 @@ export function GuidePager({ steps, actions, dontShowAgain, finishLabel }: Props
 						/>
 					) : null}
 					<Button
-						label={last ? (finishLabel ?? t('common.start')) : t('common.next')}
-						onPress={() => (last ? actions.onFinish() : setIndex(index + 1))}
+						label={isLastStep ? (finishLabel ?? t('common.start')) : t('common.next')}
+						onPress={() => (isLastStep ? actions.onFinish() : setIndex(index + 1))}
 					/>
 				</View>
 			</View>

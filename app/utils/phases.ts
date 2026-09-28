@@ -4,13 +4,13 @@ import { CLOCK_FORMAT, type SleepSettings } from '@/types/sleep-settings';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
-import { CYCLE } from '@/config/policy';
+import { PHASE_CYCLE } from '@/config/policy';
 import { DAY, MINUTES_PER_HOUR } from '@/utils/units';
 
 export type PhaseSpan = { phase: Phase; start: number; end: number };
 
-function minuteOfDay(moment: Dayjs): number {
-	return moment.hour() * MINUTES_PER_HOUR + moment.minute();
+function minuteOfDay(time: Dayjs): number {
+	return time.hour() * MINUTES_PER_HOUR + time.minute();
 }
 
 function isSleeping(at: number, sleep: SleepSettings): boolean {
@@ -52,11 +52,11 @@ function phaseSpans(start: number, end: number, sleep: SleepSettings): PhaseSpan
 		let index = 0;
 
 		while (cursor < awakeEnd) {
-			const spanEnd = Math.min(cursor + CYCLE[index].ms, awakeEnd);
+			const spanEnd = Math.min(cursor + PHASE_CYCLE[index].durationMs, awakeEnd);
 
-			spans.push({ phase: CYCLE[index].phase, start: cursor, end: spanEnd });
+			spans.push({ phase: PHASE_CYCLE[index].phase, start: cursor, end: spanEnd });
 			cursor = spanEnd;
-			index = (index + 1) % CYCLE.length;
+			index = (index + 1) % PHASE_CYCLE.length;
 		}
 
 		at = awakeEnd;
@@ -68,22 +68,22 @@ function phaseSpans(start: number, end: number, sleep: SleepSettings): PhaseSpan
 export function currentSpan(start: number, now: number, sleep: SleepSettings): PhaseSpan {
 	const found = phaseSpans(start, now + DAY, sleep).find((span) => span.start <= now && now < span.end);
 
-	return found ?? { phase: 'learning', start: now, end: now + CYCLE[0].ms };
+	return found ?? { phase: 'learning', start: now, end: now + PHASE_CYCLE[0].durationMs };
 }
 
-type RunStatus = { phase: Phase; remainingMs: number | null; fraction: number | null };
+type RunStatus = { phase: Phase; remainingMs: number | null; progressRatio: number | null };
 
 export function runStatus(startedAt: string, endsAt: number | null, sleep: SleepSettings, now: number): RunStatus {
 	const started = dayjs(startedAt).valueOf();
 	const span = currentSpan(started, now, sleep);
 
 	if (endsAt === null) {
-		return { phase: span.phase, remainingMs: null, fraction: null };
+		return { phase: span.phase, remainingMs: null, progressRatio: null };
 	}
 
 	return {
 		phase: span.phase,
 		remainingMs: endsAt - now,
-		fraction: (now - started) / (endsAt - started),
+		progressRatio: (now - started) / (endsAt - started),
 	};
 }

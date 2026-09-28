@@ -1,7 +1,6 @@
 import type { SessionMessages } from '@/i18n/types/session';
 
 export const session: SessionMessages = {
-	remaining: '{{left}} left',
 	takeover: {
 		title: 'Start on this device?',
 		message: 'The session on your other device will end and a new one starts here.',
@@ -10,9 +9,6 @@ export const session: SessionMessages = {
 	startError: {
 		title: "Couldn't start the session",
 		message: 'Check your internet connection and try again.',
-	},
-	words: {
-		preview: 'Play the {{name}} recording',
 	},
 	sleep: {
 		label: 'Sleep time',
@@ -33,23 +29,24 @@ export const session: SessionMessages = {
 		addWord: 'Add word',
 		elsewhere: 'Learning is running on another device',
 		endElsewhere: 'End that session',
+		previewRecording: 'Play the {{name}} recording',
+		endElsewhereError: "Couldn't end the session. Check your internet connection and try again.",
 	},
 	run: {
 		reveal: 'Tap the screen to see session info',
 		elapsed: 'Session time',
 		keepOpen: 'Keep the app open and the screen on until learning ends',
 		engineError: "Couldn't play the word. End this session and start again.",
+		remaining: '{{time}} left',
 	},
 	end: {
 		title: 'End session',
 		button: 'End',
-		confirm: 'End',
 		keep: 'Keep going',
-		error: "Couldn't end the session. Check your internet connection and try again.",
 	},
 	summary: {
 		word: 'Word',
-		total: 'Total time',
-		detail: 'View this session',
+		totalTime: 'Total time',
+		viewDetail: 'View this session',
 	},
 };

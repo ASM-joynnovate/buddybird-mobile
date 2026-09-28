@@ -4,19 +4,19 @@ import { colors } from '@/theme';
 
 interface Props {
 	count: number;
-	index: number;
+	currentIndex: number;
 	label: string;
 }
 
-export function PageDots({ count, index, label }: Props) {
+export function PageDots({ count, currentIndex, label }: Props) {
 	if (count < 2) {
 		return null;
 	}
 
 	return (
 		<View style={styles.dots} accessible accessibilityLabel={label}>
-			{Array.from({ length: count }, (_, item) => (
-				<View key={item} style={[styles.page, item === index && styles.pageOn]} />
+			{Array.from({ length: count }, (_, dotIndex) => (
+				<View key={dotIndex} style={[styles.dot, dotIndex === currentIndex && styles.dotCurrent]} />
 			))}
 		</View>
 	);
@@ -24,6 +24,6 @@ export function PageDots({ count, index, label }: Props) {
 
 const styles = StyleSheet.create({
 	dots: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center' },
-	page: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors.border },
-	pageOn: { width: 18, backgroundColor: colors.orange },
+	dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors.border },
+	dotCurrent: { width: 18, backgroundColor: colors.orange },
 });

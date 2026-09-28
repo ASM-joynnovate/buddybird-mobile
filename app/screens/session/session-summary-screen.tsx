@@ -59,7 +59,7 @@ export function SessionSummaryScreen() {
 			</View>
 
 			{/*세션 상세 버튼*/}
-			<Button label={t('session.summary.detail')} icon={ChartNoAxesColumnIcon} onPress={openDetail} />
+			<Button label={t('session.summary.viewDetail')} icon={ChartNoAxesColumnIcon} onPress={openDetail} />
 		</Screen>
 	);
 }

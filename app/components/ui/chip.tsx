@@ -42,5 +42,5 @@ const styles = StyleSheet.create({
 		paddingVertical: 4,
 	},
 	chipText: { fontSize: 13.5, color: colors.muted, fontFamily: font.extraBold },
-	selectedText: { color: colors.onAccent },
+	selectedText: { color: colors.onFilled },
 });

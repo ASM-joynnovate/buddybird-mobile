@@ -16,18 +16,18 @@ import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 import { ItemSwitch } from '@/components/ui/item/switch';
 
-const ITEMS: readonly {
-	key: NotificationSetting;
-	label: keyof SettingsMessages['notifications'];
+const NOTIFICATION_SETTINGS: readonly {
+	setting: NotificationSetting;
+	labelKey: keyof SettingsMessages['notifications'];
 }[] = [
-	{ key: 'notice', label: 'notice' },
-	{ key: 'report', label: 'report' },
-	{ key: 'marketing', label: 'marketing' },
+	{ setting: 'notice', labelKey: 'notice' },
+	{ setting: 'report', labelKey: 'report' },
+	{ setting: 'marketing', labelKey: 'marketing' },
 ];
 
 interface Props {
 	settings: Settings;
-	onChange(key: NotificationSetting, value: boolean): void;
+	onChange(setting: NotificationSetting, enabled: boolean): void;
 }
 
 export function NotificationGroup({ settings, onChange }: Props) {
@@ -50,13 +50,13 @@ export function NotificationGroup({ settings, onChange }: Props) {
 					onPress={() => navigation.navigate('Permissions')}
 				/>
 			) : null}
-			{ITEMS.map(({ key, label }, index) => (
+			{NOTIFICATION_SETTINGS.map(({ setting, labelKey }, index) => (
 				<ItemSwitch
-					key={key}
+					key={setting}
 					first={!permissionOff && index === 0}
-					label={t(`settings.notifications.${label}`)}
-					value={settings.notifications[key]}
-					onChange={(value) => onChange(key, value)}
+					label={t(`settings.notifications.${labelKey}`)}
+					value={settings.notifications[setting]}
+					onChange={(enabled) => onChange(setting, enabled)}
 				/>
 			))}
 		</ItemGroup>

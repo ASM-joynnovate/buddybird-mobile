@@ -37,7 +37,7 @@ const SummaryCard = ({ sessionId }: Props) => {
 	return (
 		<Card contentStyle={styles.card}>
 			<Stat size="large" label={t('session.summary.word')} value={word?.name ?? ''} />
-			<Stat size="large" label={t('session.summary.total')} value={formatDuration(totalMs, locale)} />
+			<Stat size="large" label={t('session.summary.totalTime')} value={formatDuration(totalMs, locale)} />
 		</Card>
 	);
 };

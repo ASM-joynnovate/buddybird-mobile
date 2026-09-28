@@ -56,8 +56,8 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 
 	return (
 		<ItemPicker
-			item={{ label: t('parrot.birthday'), value: birthdateText }}
-			sheet={{ title: t('parrot.birthdayQuestion') }}
+			item={{ label: t('parrot.birthdate'), value: birthdateText }}
+			sheet={{ title: t('parrot.birthdateQuestion') }}
 		>
 			{(close) => (
 				<>
@@ -98,7 +98,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 					<ItemGroup>
 						<ItemCheckbox
 							first
-							label={t('parrot.birthdayUnknown')}
+							label={t('parrot.birthdateUnknown')}
 							checked={birthdateUnknown}
 							onToggle={() => onChange(birthdateUnknown ? date.format('YYYY-MM-DD') : null)}
 						/>

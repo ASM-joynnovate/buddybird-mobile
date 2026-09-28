@@ -26,7 +26,7 @@ export function ProfileScreen() {
 			<ScreenHeader
 				large
 				title={t('profile.title')}
-				right=<IconButton
+				trailing=<IconButton
 					icon={SettingsIcon}
 					label={t('profile.settings')}
 					onPress={() => navigation.navigate('Settings')}

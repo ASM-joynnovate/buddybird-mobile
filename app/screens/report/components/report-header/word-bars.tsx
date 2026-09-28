@@ -28,31 +28,36 @@ export function WordBars({ words }: Props): ReactElement | null {
 		return null;
 	}
 
-	const max = Math.max(1, ...words.map((item) => item.learning_duration_ms));
+	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.learning_duration_ms));
 
 	return (
 		<View style={ui.section}>
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
-				{t('report.words')}
+				{t('report.learningTimeByWord')}
 			</Copy>
 			<View style={styles.list}>
-				{words.map((item) => {
-					const duration = formatDuration(item.learning_duration_ms, locale);
+				{words.map((wordDuration) => {
+					const durationLabel = formatDuration(wordDuration.learning_duration_ms, locale);
 
 					return (
 						<View
-							key={item.word.id}
+							key={wordDuration.word.id}
 							style={styles.row}
 							accessible
-							accessibilityLabel={joinLabel(item.word.name, duration)}
+							accessibilityLabel={joinLabel(wordDuration.word.name, durationLabel)}
 						>
 							<Copy numberOfLines={1} style={styles.name}>
-								{item.word.name}
+								{wordDuration.word.name}
 							</Copy>
 							<View style={styles.track}>
-								<View style={[styles.fill, { width: `${(item.learning_duration_ms / max) * 100}%` }]} />
+								<View
+									style={[
+										styles.fill,
+										{ width: `${(wordDuration.learning_duration_ms / maxDurationMs) * 100}%` },
+									]}
+								/>
 							</View>
-							<Copy style={styles.value}>{duration}</Copy>
+							<Copy style={styles.duration}>{durationLabel}</Copy>
 						</View>
 					);
 				})}
@@ -73,7 +78,7 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	fill: { height: '100%', borderRadius: radius.pill, backgroundColor: colors.orange },
-	value: {
+	duration: {
 		minWidth: 40,
 		textAlign: 'right',
 		fontFamily: font.extraBold,

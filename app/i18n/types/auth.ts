@@ -1,8 +1,10 @@
 export type AuthMessages = {
-	google: string;
-	kakao: string;
-	apple: string;
-	pending: {
+	continue: {
+		google: string;
+		kakao: string;
+		apple: string;
+	};
+	signingIn: {
 		google: string;
 		kakao: string;
 		apple: string;
@@ -10,9 +12,8 @@ export type AuthMessages = {
 	completing: string;
 	signInError: string;
 	restoreError: string;
-	recent: string;
-	recentHint: string;
+	lastLogin: string;
+	lastLoginHint: string;
 	signOutError: string;
 	signIn: string;
-	signInRequired: string;
 };

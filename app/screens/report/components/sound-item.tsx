@@ -8,7 +8,7 @@ import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDateTime } from '@/i18n/format';
+import { formatMonthDayTime } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 
@@ -38,14 +38,14 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 
 	const playing = player.playingId === sound.id;
 	const url = sound.audio.url;
-	const timeLabel = multiDay ? formatDateTime(sound.captured_at, locale) : dayjs(sound.captured_at).format('LT');
+	const timeLabel = multiDay ? formatMonthDayTime(sound.captured_at, locale) : dayjs(sound.captured_at).format('LT');
 
-	let message: string | null = null;
+	let errorMessage: string | null = null;
 
 	if (player.failedId === sound.id) {
-		message = t('common.sound.playError');
+		errorMessage = t('common.sound.playError');
 	} else if (shareFailed) {
-		message = t('common.sound.shareError');
+		errorMessage = t('report.detail.shareError');
 	}
 
 	async function share() {
@@ -56,9 +56,9 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 		try {
 			setShareFailed(false);
 
-			const result = await Share.share({ url, message: url });
+			const shareResult = await Share.share({ url, message: url });
 
-			if (result.action === Share.sharedAction) {
+			if (shareResult.action === Share.sharedAction) {
 				track('mimicry_shared', { session_id: sound.session_id });
 			}
 		} catch (e) {
@@ -72,7 +72,7 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 		<View>
 			<PressableSurface
 				accessibilityLabel={timeLabel}
-				accessibilityHint={url ? t('common.sound.share') : undefined}
+				accessibilityHint={url ? t('report.detail.shareHint') : undefined}
 				onPress={() => {}}
 				onLongPress={url ? () => void share() : undefined}
 				disabled={!url}
@@ -82,7 +82,7 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 				contentStyle={styles.row}
 			>
 				{/*녹음 시각과 단어*/}
-				<View style={styles.info}>
+				<View style={styles.textContainer}>
 					<Copy style={styles.time}>{timeLabel}</Copy>
 					<Tag variant="primary" label={wordName} />
 				</View>
@@ -92,10 +92,10 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 					playing={playing}
 					label={
 						url
-							? t(playing ? 'common.sound.stop' : 'common.sound.play', {
+							? t(playing ? 'common.sound.stop' : 'report.detail.playSound', {
 									time: timeLabel,
 								})
-							: t('common.sound.expired')
+							: t('report.detail.soundExpired')
 					}
 					disabled={!url}
 					onPress={() => {
@@ -112,7 +112,7 @@ export function SoundItem({ sound, wordName, multiDay, player }: Props) {
 				/>
 			</PressableSurface>
 
-			<InlineError message={message} />
+			<InlineError message={errorMessage} />
 		</View>
 	);
 }
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 4,
 		borderWidth: 0,
 	},
-	info: { flex: 1, minWidth: 0, gap: 6 },
+	textContainer: { flex: 1, minWidth: 0, gap: 6 },
 	time: {
 		fontFamily: font.extraBold,
 		fontSize: 14,

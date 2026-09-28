@@ -26,10 +26,10 @@ export function OfflineBanner() {
 			pointerEvents="none"
 			accessibilityRole="alert"
 			accessibilityLiveRegion="polite"
-			style={[styles.wrap, { top: insets.top + 4 }]}
+			style={[styles.container, { top: insets.top + 4 }]}
 		>
 			<View style={styles.banner}>
-				<WifiOffIcon size={18} color={colors.onAccent} />
+				<WifiOffIcon size={18} color={colors.onFilled} />
 				<Copy style={styles.text}>{t('common.offline')}</Copy>
 			</View>
 		</View>
@@ -37,7 +37,7 @@ export function OfflineBanner() {
 }
 
 const styles = StyleSheet.create({
-	wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
+	container: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
 	banner: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -49,5 +49,5 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.text,
 	},
-	text: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13.5, color: colors.onAccent },
+	text: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13.5, color: colors.onFilled },
 });

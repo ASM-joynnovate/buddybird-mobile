@@ -43,7 +43,7 @@ export const settings: SettingsMessages = {
 	withdrawDialog: {
 		title: 'Delete account',
 		message: 'Buddy will miss you. Do you really want to leave?',
-		line: "This can't be undone.",
+		warning: "This can't be undone.",
 		confirm: 'Delete account',
 	},
 	notices: {
@@ -57,8 +57,8 @@ export const settings: SettingsMessages = {
 	},
 	devices: {
 		title: 'Connected devices',
-		current: 'This device',
-		running: 'Session running',
+		thisDevice: 'This device',
+		runningSession: 'Session running',
 		lastSeen: 'Last seen {{time}}',
 	},
 	permissions: {

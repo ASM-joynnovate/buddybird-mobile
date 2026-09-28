@@ -2,7 +2,7 @@ import { useLogout } from '@/hooks/apis/auth';
 
 import { useTranslation } from 'react-i18next';
 
-import { signOutToAnonymous } from '@/services/auth/session';
+import { signOutLocally } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
 
 import { ConfirmDialog } from '@/components/dialogs/confirm-dialog';
@@ -23,7 +23,7 @@ export function SignOutDialog({ visible, onClose }: Props) {
 		}
 
 		mutate(undefined, {
-			onSuccess: () => void signOutToAnonymous().catch((error: unknown) => reportError(error, 'sign_out')),
+			onSuccess: () => void signOutLocally().catch((error: unknown) => reportError(error, 'sign_out')),
 		});
 	}
 
@@ -41,7 +41,7 @@ export function SignOutDialog({ visible, onClose }: Props) {
 				message: t('settings.signOutDialog.message'),
 				confirm: t('settings.signOutDialog.confirm'),
 			}}
-			state={{ busy: isPending, error: isError ? t('auth.signOutError') : null }}
+			confirmStatus={{ busy: isPending, errorMessage: isError ? t('auth.signOutError') : null }}
 			onConfirm={handleSignOut}
 			onClose={handleClose}
 		/>

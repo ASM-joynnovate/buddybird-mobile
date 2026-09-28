@@ -22,8 +22,8 @@ export function WordPicker({ words, selectedId, player, onSelect }: Props) {
 			keyExtractor={(word) => word.id}
 			contentContainerStyle={styles.list}
 			showsVerticalScrollIndicator={false}
-			renderItem={({ item }) => (
-				<WordChoice word={item} selected={item.id === selectedId} player={player} onSelect={onSelect} />
+			renderItem={({ item: word }) => (
+				<WordChoice word={word} selected={word.id === selectedId} player={player} onSelect={onSelect} />
 			)}
 		/>
 	);

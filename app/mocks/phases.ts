@@ -2,7 +2,7 @@ import type { Phase } from '@/types/apis/sessions';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
-import { CYCLE } from '@/config/policy';
+import { PHASE_CYCLE } from '@/config/policy';
 import { DAY, MINUTES_PER_HOUR } from '@/utils/units';
 
 type Sleep = { sleep_at: string; wake_at: string };
@@ -54,11 +54,11 @@ export function phaseSpans(start: number, end: number, sleep: Sleep): PhaseSpan[
 		let index = 0;
 
 		while (cursor < awakeEnd) {
-			const spanEnd = Math.min(cursor + CYCLE[index].ms, awakeEnd);
+			const spanEnd = Math.min(cursor + PHASE_CYCLE[index].durationMs, awakeEnd);
 
-			spans.push({ phase: CYCLE[index].phase, start: cursor, end: spanEnd });
+			spans.push({ phase: PHASE_CYCLE[index].phase, start: cursor, end: spanEnd });
 			cursor = spanEnd;
-			index = (index + 1) % CYCLE.length;
+			index = (index + 1) % PHASE_CYCLE.length;
 		}
 
 		at = awakeEnd;
@@ -70,5 +70,5 @@ export function phaseSpans(start: number, end: number, sleep: Sleep): PhaseSpan[
 export function currentSpan(start: number, now: number, sleep: Sleep): PhaseSpan {
 	const found = phaseSpans(start, now + DAY, sleep).find((span) => span.start <= now && now < span.end);
 
-	return found ?? { phase: 'learning', start: now, end: now + CYCLE[0].ms };
+	return found ?? { phase: 'learning', start: now, end: now + PHASE_CYCLE[0].durationMs };
 }

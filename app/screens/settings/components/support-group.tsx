@@ -46,7 +46,7 @@ export function SupportGroup() {
 					icon={MegaphoneIcon}
 					label={t('settings.support.notices')}
 					value={hasUnreadNotice ? t('settings.support.unreadNotice') : undefined}
-					dot={hasUnreadNotice}
+					showDot={hasUnreadNotice}
 					onPress={() => navigation.navigate('NoticeList')}
 				/>
 				<Item

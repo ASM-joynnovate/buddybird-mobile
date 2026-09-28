@@ -14,14 +14,14 @@ export function StartupScreen({ onRetry }: Props) {
 	const { t } = useTranslation();
 
 	return (
-		<View style={styles.startup}>
+		<View style={styles.container}>
 			{onRetry ? (
 				<>
 					<Text allowFontScaling={false} style={styles.title}>
-						{t('app.startup.title')}
+						{t('app.startupError.title')}
 					</Text>
 					<Text allowFontScaling={false} style={styles.message}>
-						{t('app.startup.message')}
+						{t('app.startupError.message')}
 					</Text>
 
 					<PressableSurface onPress={onRetry} variant="plain" depth="none" contentStyle={styles.retry}>
@@ -40,7 +40,7 @@ export function StartupScreen({ onRetry }: Props) {
 const styles = StyleSheet.create({
 	retry: { minHeight: 44, padding: 12, alignItems: 'center' },
 	retryLabel: { fontSize: 18, color: colors.orange },
-	startup: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: colors.background },
+	container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: colors.background },
 	title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 12 },
 	message: { fontSize: 16, color: colors.text, marginBottom: 20 },
 });

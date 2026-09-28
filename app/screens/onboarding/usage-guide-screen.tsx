@@ -8,7 +8,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChartNoAxesColumnIcon, MicIcon, SmartphoneIcon, SunIcon } from 'lucide-react-native';
 
-import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 
 import { GuidePager, type GuideStep } from '@/components/guide-pager';
 
@@ -19,35 +19,35 @@ export function UsageGuideScreen() {
 
 	const steps: GuideStep[] = [
 		{
-			title: t('entry.usage.record.title'),
-			scene: t('entry.usage.record.scene'),
+			title: t('onboarding.usage.record.title'),
+			scene: t('onboarding.usage.record.scene'),
 			icon: MicIcon,
 		},
 		{
-			title: t('entry.usage.place.title'),
-			scene: t('entry.usage.place.scene'),
+			title: t('onboarding.usage.place.title'),
+			scene: t('onboarding.usage.place.scene'),
 			icon: SmartphoneIcon,
 		},
 		{
-			title: t('entry.usage.keepOn.title'),
-			scene: t('entry.usage.keepOn.scene'),
+			title: t('onboarding.usage.keepOn.title'),
+			scene: t('onboarding.usage.keepOn.scene'),
 			icon: SunIcon,
 		},
 		{
-			title: t('entry.usage.report.title'),
-			scene: t('entry.usage.report.scene'),
+			title: t('onboarding.usage.report.title'),
+			scene: t('onboarding.usage.report.scene'),
 			icon: ChartNoAxesColumnIcon,
 		},
 	];
 
 	useFocusEffect(
 		useCallback(() => {
-			viewOnboardingStep('usage_guide');
+			trackOnboardingStepViewed('usage_guide');
 		}, []),
 	);
 
 	function next() {
-		completeOnboardingStep('usage_guide');
+		trackOnboardingStepCompleted('usage_guide');
 
 		navigation.navigate('PermissionRequest');
 	}

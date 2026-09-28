@@ -1,8 +1,8 @@
 import Svg, { Polyline } from 'react-native-svg';
 
 const sizes = {
-	small: { side: 14, stroke: 3 },
-	medium: { side: 16, stroke: 3.2 },
+	small: { side: 14, strokeWidth: 3 },
+	medium: { side: 16, strokeWidth: 3.2 },
 } as const;
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function CheckMark({ color, size = 'medium' }: Props) {
-	const { side, stroke } = sizes[size];
+	const { side, strokeWidth } = sizes[size];
 
 	return (
 		<Svg width={side} height={side} viewBox="0 0 14 14">
@@ -19,7 +19,7 @@ export function CheckMark({ color, size = 'medium' }: Props) {
 				points="2.5,7.5 5.8,10.5 11.5,3.8"
 				fill="none"
 				stroke={color}
-				strokeWidth={stroke}
+				strokeWidth={strokeWidth}
 				strokeLinecap="round"
 				strokeLinejoin="round"
 			/>

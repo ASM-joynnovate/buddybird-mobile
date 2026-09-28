@@ -17,21 +17,21 @@ interface Props {
 }
 
 export function ProfileCard({ avatar, title, details, label, onPress }: Props) {
-	const large = avatar.size === 'large';
+	const isLarge = avatar.size === 'large';
 
 	return (
 		<PressableSurface
 			accessibilityLabel={label}
-			depth={large ? 'high' : 'low'}
+			depth={isLarge ? 'high' : 'low'}
 			onPress={onPress}
-			contentStyle={[styles.card, large ? styles.largeCard : styles.mediumCard]}
+			contentStyle={[styles.card, isLarge ? styles.largeCard : styles.mediumCard]}
 		>
 			<Avatar uri={avatar.uri} icon={avatar.icon} size={avatar.size} />
-			<View style={[styles.lines, large && styles.largeLines]}>
+			<View style={[styles.textContainer, isLarge && styles.textContainerLarge]}>
 				<Copy
-					accessibilityRole={large ? 'header' : undefined}
-					numberOfLines={large ? undefined : 1}
-					style={[large ? styles.largeTitle : styles.mediumTitle, title.accent && styles.accent]}
+					accessibilityRole={isLarge ? 'header' : undefined}
+					numberOfLines={isLarge ? undefined : 1}
+					style={[isLarge ? styles.largeTitle : styles.mediumTitle, title.accent && styles.accent]}
 				>
 					{title.text}
 				</Copy>
@@ -43,7 +43,7 @@ export function ProfileCard({ avatar, title, details, label, onPress }: Props) {
 					) : null,
 				)}
 			</View>
-			<ChevronRightIcon size={18} color={colors.disabled} />
+			<ChevronRightIcon size={18} color={colors.subtle} />
 		</PressableSurface>
 	);
 }
@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
 	card: { flexDirection: 'row', alignItems: 'center' },
 	mediumCard: { gap: 14, padding: 16 },
 	largeCard: { gap: 16, padding: 20 },
-	lines: { flex: 1, minWidth: 0, gap: 2 },
-	largeLines: { gap: 4 },
+	textContainer: { flex: 1, minWidth: 0, gap: 2 },
+	textContainerLarge: { gap: 4 },
 	mediumTitle: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	largeTitle: { fontFamily: font.black, fontSize: 22, lineHeight: 28 },
 	accent: { color: colors.orangeDark, fontSize: 18, lineHeight: 24 },

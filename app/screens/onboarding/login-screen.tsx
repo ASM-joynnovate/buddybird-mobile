@@ -13,12 +13,12 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { LastLoginTag } from '@/screens/onboarding/components/last-login-tag';
 import { OAuthButton } from '@/screens/onboarding/components/oauth-button';
 import { availableLoginProviders } from '@/services/auth/providers';
-import { linkAccount, switchAccount } from '@/services/auth/sign-in';
+import { linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
-import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
-import { colors, font, providerColors, radius } from '@/theme';
+import { colors, font, loginProviderColors, radius } from '@/theme';
 
 import { Mascot } from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
@@ -50,18 +50,18 @@ export function LoginScreen() {
 
 	const signingInRef = useRef(false);
 
-	const status = useAuthStore((auth) => auth.status);
+	const authStatus = useAuthStore((auth) => auth.status);
 
-	const recent = useAccountStore((account) => account.lastLoginProvider);
+	const lastLoginProvider = useAccountStore((account) => account.lastLoginProvider);
 	const setLoginScreenSeen = useAccountStore((account) => account.setLoginScreenSeen);
 
 	const fromOnboarding = params?.source === 'onboarding';
-	const completing = status === 'completing';
+	const completing = authStatus === 'completing';
 	const disabled = loginAttempt?.pending === true || completing;
 	const loadingProvider = disabled ? loginAttempt?.provider : undefined;
-	const recentHint = t('auth.recentHint');
+	const lastLoginHint = t('auth.lastLoginHint');
 	const progressLabel = loadingProvider
-		? t(`auth.pending.${loadingProvider}`)
+		? t(`auth.signingIn.${loadingProvider}`)
 		: completing
 			? t('auth.completing')
 			: null;
@@ -69,9 +69,9 @@ export function LoginScreen() {
 	useEffect(() => {
 		let active = true;
 
-		void availableLoginProviders().then((list) => {
+		void availableLoginProviders().then((loadedProviders) => {
 			if (active) {
-				setProviders(list);
+				setProviders(loadedProviders);
 			}
 		});
 
@@ -83,7 +83,7 @@ export function LoginScreen() {
 	useFocusEffect(
 		useCallback(() => {
 			if (fromOnboarding) {
-				viewOnboardingStep('login');
+				trackOnboardingStepViewed('login');
 			}
 		}, [fromOnboarding]),
 	);
@@ -101,14 +101,14 @@ export function LoginScreen() {
 		try {
 			const linkResult = await linkAccount(provider);
 
-			if (linkResult === 'exists') {
-				await switchAccount(provider);
+			if (linkResult === 'identityExists') {
+				await signIn(provider);
 			} else if (linkResult === 'linked' && !fromOnboarding) {
 				navigation.goBack();
 			}
 
 			if (fromOnboarding && linkResult !== 'cancelled') {
-				completeOnboardingStep('login', { login_method: provider });
+				trackOnboardingStepCompleted('login', { login_method: provider });
 			}
 		} catch (e) {
 			if (!isAppleLoginCanceled(provider, e)) {
@@ -129,14 +129,14 @@ export function LoginScreen() {
 				{/*헤더*/}
 				<ScreenHeader
 					onBack={fromOnboarding ? undefined : () => navigation.goBack()}
-					right={
+					trailing={
 						fromOnboarding ? (
 							<TextButton
 								label={t('common.skip')}
 								variant="muted"
 								disabled={disabled}
 								onPress={() => {
-									completeOnboardingStep('login', { login_method: 'skip' });
+									trackOnboardingStepCompleted('login', { login_method: 'skip' });
 
 									setLoginScreenSeen(true);
 								}}
@@ -148,19 +148,19 @@ export function LoginScreen() {
 				{/*소개*/}
 				<View style={styles.intro}>
 					<Mascot size={150} />
-					<Title style={styles.product}>{t('entry.login.product')}</Title>
+					<Title style={styles.product}>{t('onboarding.login.product')}</Title>
 				</View>
 
 				{/*로그인 버튼*/}
 				<View style={styles.actions}>
 					{providers.includes('google') ? (
 						<View>
-							{recent === 'google' ? <LastLoginTag label={t('auth.recent')} /> : null}
+							{lastLoginProvider === 'google' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
 							<OAuthButton
 								provider="google"
 								loading={loadingProvider === 'google'}
 								disabled={disabled}
-								hint={recent === 'google' ? recentHint : undefined}
+								hint={lastLoginProvider === 'google' ? lastLoginHint : undefined}
 								onPress={() => void handleSignIn('google')}
 							/>
 						</View>
@@ -168,12 +168,12 @@ export function LoginScreen() {
 
 					{providers.includes('kakao') ? (
 						<View>
-							{recent === 'kakao' ? <LastLoginTag label={t('auth.recent')} /> : null}
+							{lastLoginProvider === 'kakao' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
 							<OAuthButton
 								provider="kakao"
 								loading={loadingProvider === 'kakao'}
 								disabled={disabled}
-								hint={recent === 'kakao' ? recentHint : undefined}
+								hint={lastLoginProvider === 'kakao' ? lastLoginHint : undefined}
 								onPress={() => void handleSignIn('kakao')}
 							/>
 						</View>
@@ -181,16 +181,16 @@ export function LoginScreen() {
 
 					{providers.includes('apple') ? (
 						<View style={styles.appleButton}>
-							{recent === 'apple' ? <LastLoginTag label={t('auth.recent')} /> : null}
+							{lastLoginProvider === 'apple' ? <LastLoginTag label={t('auth.lastLogin')} /> : null}
 							<AppleAuthentication.AppleAuthenticationButton
 								buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
 								buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
 								cornerRadius={radius.control}
 								style={styles.appleButton}
 								accessibilityLabel={t(
-									loadingProvider === 'apple' ? 'auth.pending.apple' : 'auth.apple',
+									loadingProvider === 'apple' ? 'auth.signingIn.apple' : 'auth.continue.apple',
 								)}
-								accessibilityHint={recent === 'apple' ? recentHint : undefined}
+								accessibilityHint={lastLoginProvider === 'apple' ? lastLoginHint : undefined}
 								accessibilityState={{
 									disabled,
 									busy: loadingProvider === 'apple',
@@ -200,7 +200,7 @@ export function LoginScreen() {
 							/>
 							{loadingProvider === 'apple' ? (
 								<ActivityIndicator
-									color={colors.onAccent}
+									color={colors.onFilled}
 									style={styles.appleProgress}
 									pointerEvents="none"
 									accessible={false}
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
 	appleButton: { width: '100%', height: 56 },
 	appleProgress: {
 		...StyleSheet.absoluteFill,
-		backgroundColor: providerColors.apple.background,
+		backgroundColor: loginProviderColors.apple.background,
 		borderRadius: radius.control,
 		borderCurve: 'continuous',
 	},

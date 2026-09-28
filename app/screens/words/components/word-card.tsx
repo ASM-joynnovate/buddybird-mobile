@@ -38,9 +38,9 @@ export function WordCard({ word, learning, player }: Props) {
 
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-	const first = word.recordings[0];
+	const firstRecording = word.recordings[0];
 	const playing = player.playingId === word.id;
-	const count = word.recordings.length;
+	const recordingCount = word.recordings.length;
 
 	return (
 		<View>
@@ -50,9 +50,9 @@ export function WordCard({ word, learning, player }: Props) {
 				onPress={() => navigation.navigate('WordEditor', { wordId: word.id })}
 				accessibilityLabel={joinLabel(
 					word.name,
-					t('words.list.samples', { count }),
+					t('words.list.recordingCount', { count: recordingCount }),
 					learning && t('words.list.learning'),
-					count === 0 && t('common.needsRecording'),
+					recordingCount === 0 && t('common.needsRecording'),
 				)}
 				contentStyle={styles.card}
 			>
@@ -63,11 +63,11 @@ export function WordCard({ word, learning, player }: Props) {
 				<View style={styles.meta}>
 					<View style={styles.dots}>
 						{Array.from({ length: MAX_RECORDINGS }, (_, index) => (
-							<View key={index} style={[styles.dot, index < count && styles.dotOn]} />
+							<View key={index} style={[styles.dot, index < recordingCount && styles.dotFilled]} />
 						))}
 					</View>
 					{learning ? <Tag label={t('words.list.learning')} variant="primary" /> : null}
-					{count === 0 ? <Tag label={t('common.needsRecording')} variant="muted" /> : null}
+					{recordingCount === 0 ? <Tag label={t('common.needsRecording')} variant="muted" /> : null}
 				</View>
 			</PressableSurface>
 
@@ -80,13 +80,13 @@ export function WordCard({ word, learning, player }: Props) {
 					size="small"
 					onPress={() => setDeleteDialogOpen(true)}
 				/>
-				{first ? (
+				{firstRecording ? (
 					<PlayButton
 						playing={playing}
 						label={t(playing ? 'common.sound.stopNamed' : 'words.list.play', {
 							name: word.name,
 						})}
-						onPress={() => player.toggle(word.id, first.url)}
+						onPress={() => player.toggle(word.id, firstRecording.url)}
 					/>
 				) : null}
 			</View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 	meta: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
 	dots: { flexDirection: 'row', gap: 4 },
 	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
-	dotOn: { backgroundColor: colors.orange },
+	dotFilled: { backgroundColor: colors.orange },
 	actions: {
 		position: 'absolute',
 		right: 16,

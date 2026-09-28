@@ -22,7 +22,7 @@ export function DevicesScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
-		<Screen scroll={false}>
+		<Screen scrollable={false}>
 			<View style={styles.frame}>
 				{/*헤더*/}
 				<ScreenHeader title={t('settings.devices.title')} onBack={() => navigation.goBack()} />

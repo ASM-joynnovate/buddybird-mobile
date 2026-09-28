@@ -35,23 +35,23 @@ export function ProfilePhoto({ photo, busy, action = 'edit' }: Props) {
 	return (
 		<View style={styles.photoArea}>
 			<PressableSurface
-				accessibilityLabel={t('parrot.photo')}
+				accessibilityLabel={t('common.profilePhoto.select')}
 				disabled={busy}
 				onPress={() => setSheetOpen(true)}
 				cornerRadius="pill"
 				depth="none"
 			>
 				<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
-				<View style={styles.photoPlus}>
-					<ActionIcon size={20} color={colors.onAccent} />
+				<View style={styles.photoBadge}>
+					<ActionIcon size={20} color={colors.onFilled} />
 				</View>
 			</PressableSurface>
-			<InlineError message={photo.error} />
-			<Sheet visible={sheetOpen} title={t('parrot.photoSheet.title')} onClose={() => setSheetOpen(false)}>
+			<InlineError message={photo.errorMessage} />
+			<Sheet visible={sheetOpen} title={t('common.profilePhoto.title')} onClose={() => setSheetOpen(false)}>
 				<ItemGroup>
 					<Item
 						first
-						label={t('parrot.photoSheet.take')}
+						label={t('common.profilePhoto.take')}
 						onPress={() => {
 							setSheetOpen(false);
 
@@ -59,7 +59,7 @@ export function ProfilePhoto({ photo, busy, action = 'edit' }: Props) {
 						}}
 					/>
 					<Item
-						label={t('parrot.photoSheet.choose')}
+						label={t('common.profilePhoto.choose')}
 						onPress={() => {
 							setSheetOpen(false);
 
@@ -74,7 +74,7 @@ export function ProfilePhoto({ photo, busy, action = 'edit' }: Props) {
 
 const styles = StyleSheet.create({
 	photoArea: { alignItems: 'center', marginBottom: 20, gap: 10 },
-	photoPlus: {
+	photoBadge: {
 		position: 'absolute',
 		right: -2,
 		bottom: -2,

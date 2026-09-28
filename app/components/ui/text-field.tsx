@@ -8,10 +8,10 @@ import { ui } from '@/components/ui/styles';
 
 interface Props extends TextInputProps {
 	label?: string;
-	error?: string | null;
+	errorMessage?: string | null;
 }
 
-export function TextField({ label, error, style, accessibilityLabel, ...props }: Props) {
+export function TextField({ label, errorMessage, style, accessibilityLabel, ...props }: Props) {
 	return (
 		<View>
 			{label ? <Copy style={ui.label}>{label}</Copy> : null}
@@ -20,9 +20,9 @@ export function TextField({ label, error, style, accessibilityLabel, ...props }:
 				accessibilityLabel={accessibilityLabel ?? label}
 				allowFontScaling={false}
 				placeholderTextColor={colors.muted}
-				style={[styles.input, error && { borderColor: colors.error }, style]}
+				style={[styles.input, errorMessage && { borderColor: colors.error }, style]}
 			/>
-			<InlineError message={error} />
+			<InlineError message={errorMessage} />
 		</View>
 	);
 }

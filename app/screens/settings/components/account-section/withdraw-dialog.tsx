@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
 
-import { signOutToAnonymous } from '@/services/auth/session';
+import { signOutLocally } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 
@@ -29,7 +29,7 @@ export function WithdrawDialog({ visible, onClose }: Props) {
 		}
 
 		mutate(undefined, {
-			onSuccess: () => void signOutToAnonymous().catch((e: unknown) => reportError(e, 'withdraw')),
+			onSuccess: () => void signOutLocally().catch((e: unknown) => reportError(e, 'withdraw')),
 		});
 	}
 
@@ -47,15 +47,15 @@ export function WithdrawDialog({ visible, onClose }: Props) {
 				message: t('settings.withdrawDialog.message'),
 				confirm: t('settings.withdrawDialog.confirm'),
 			}}
-			state={{ busy: isPending, error: error ? apiErrorMessage(error, t) : null }}
+			confirmStatus={{ busy: isPending, errorMessage: error ? apiErrorMessage(error, t) : null }}
 			onConfirm={handleWithdraw}
 			onClose={handleClose}
 		>
-			<Copy style={styles.line}>{t('settings.withdrawDialog.line')}</Copy>
+			<Copy style={styles.warning}>{t('settings.withdrawDialog.warning')}</Copy>
 		</ConfirmDialog>
 	);
 }
 
 const styles = StyleSheet.create({
-	line: { color: colors.muted },
+	warning: { color: colors.muted },
 });

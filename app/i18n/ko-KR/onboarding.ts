@@ -1,29 +1,12 @@
-import type { EntryMessages } from '@/i18n/types/entry';
+import type { OnboardingMessages } from '@/i18n/types/onboarding';
 
-export const entry: EntryMessages = {
+export const onboarding: OnboardingMessages = {
 	login: {
 		product: '버디버드',
 	},
 	consent: {
 		intro: '버디버드 앱 사용을 위해 동의해주세요!',
 		all: '모두 동의',
-		required: '필수',
-		optional: '선택',
-		viewFull: '{{title}} 전문 보기',
-	},
-	consentDetail: {
-		agree: '동의',
-	},
-	parrot: {
-		intro: '우리 앵무새를 소개해 주세요!',
-		addTitle: '앵무새 등록',
-		editTitle: '앵무새 수정',
-		register: '등록',
-		delete: '앵무새 삭제',
-		deleteError: '앵무새를 삭제하지 못했어요. 다시 시도해 주세요.',
-		photoType: 'JPEG 또는 PNG 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
-		photoSize: '5MB 이하 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
-		photoError: '사진을 불러오지 못했어요. 다시 골라 주세요.',
 	},
 	usage: {
 		record: {
@@ -44,18 +27,18 @@ export const entry: EntryMessages = {
 		},
 	},
 	permissions: {
-		title: '버디버드에 필요한 권한이에요',
+		intro: '버디버드에 필요한 권한이에요',
 		scene: '권한을 설명하는 버디',
-		microphone: '단어 녹음과 앵무새 소리 기록',
-		notifications: '학습 소식 알림',
+		purpose: {
+			microphone: '단어 녹음과 앵무새 소리 기록',
+			notifications: '학습 소식 알림',
+		},
 		allow: '허용하기',
 		later: '나중에',
 	},
 	legacy: {
 		uploading: '이 휴대폰의 앵무새와 단어를 옮기고 있어요',
-		error: '앵무새와 단어를 옮기지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
+		uploadError: '앵무새와 단어를 옮기지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
 		askTitle: '이 휴대폰의 앵무새와 단어를 추가할까요?',
-		add: '추가',
-		skip: '건너뛰기',
 	},
 };

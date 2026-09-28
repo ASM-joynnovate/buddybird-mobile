@@ -17,34 +17,34 @@ function encodeWav(samples: Float32Array, sampleRate: number): Uint8Array {
 
 	let offset = 0;
 
-	const text = (value: string) => {
+	const writeText = (value: string) => {
 		for (const character of value) {
 			view.setUint8(offset, character.charCodeAt(0));
 			offset += Uint8Array.BYTES_PER_ELEMENT;
 		}
 	};
-	const uint32 = (value: number) => {
+	const writeUint32 = (value: number) => {
 		view.setUint32(offset, value, true);
 		offset += Uint32Array.BYTES_PER_ELEMENT;
 	};
-	const uint16 = (value: number) => {
+	const writeUint16 = (value: number) => {
 		view.setUint16(offset, value, true);
 		offset += Uint16Array.BYTES_PER_ELEMENT;
 	};
 
-	text('RIFF');
-	uint32(HEADER_BYTES - RIFF_PREAMBLE_BYTES + dataBytes);
-	text('WAVE');
-	text('fmt ');
-	uint32(FMT_CHUNK_BYTES);
-	uint16(PCM_FORMAT);
-	uint16(CHANNELS);
-	uint32(sampleRate);
-	uint32(sampleRate * CHANNELS * BYTES_PER_SAMPLE);
-	uint16(CHANNELS * BYTES_PER_SAMPLE);
-	uint16(BYTES_PER_SAMPLE * BITS_PER_BYTE);
-	text('data');
-	uint32(dataBytes);
+	writeText('RIFF');
+	writeUint32(HEADER_BYTES - RIFF_PREAMBLE_BYTES + dataBytes);
+	writeText('WAVE');
+	writeText('fmt ');
+	writeUint32(FMT_CHUNK_BYTES);
+	writeUint16(PCM_FORMAT);
+	writeUint16(CHANNELS);
+	writeUint32(sampleRate);
+	writeUint32(sampleRate * CHANNELS * BYTES_PER_SAMPLE);
+	writeUint16(CHANNELS * BYTES_PER_SAMPLE);
+	writeUint16(BYTES_PER_SAMPLE * BITS_PER_BYTE);
+	writeText('data');
+	writeUint32(dataBytes);
 
 	for (const sample of samples) {
 		view.setInt16(offset, Math.round(Math.max(-1, Math.min(1, sample)) * INT16_MAX), true);

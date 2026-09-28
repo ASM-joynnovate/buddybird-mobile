@@ -6,7 +6,7 @@ import { useGetNotice, useReadNotice } from '@/hooks/apis/notices';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDate } from '@/i18n/format';
+import { formatMonthDay } from '@/i18n/format';
 
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, radius } from '@/theme';
@@ -44,7 +44,7 @@ const NoticeContent = ({ noticeId }: Props) => {
 		<View style={styles.noticeContainer}>
 			<View style={styles.heading}>
 				<Title>{noticeData.title}</Title>
-				<Copy style={styles.date}>{formatDate(noticeData.starts_at, locale)}</Copy>
+				<Copy style={styles.date}>{formatMonthDay(noticeData.starts_at, locale)}</Copy>
 			</View>
 
 			{!!noticeData.body && <Copy style={styles.text}>{noticeData.body}</Copy>}

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
 
-import { DURATION_PRESETS, MAX_SESSION_MS } from '@/config';
+import { MAX_SESSION_MS, SESSION_DURATION_PRESETS } from '@/config';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { DAY, HOUR, MINUTE } from '@/utils/units';
 
@@ -26,16 +26,16 @@ export function DurationPicker({ value, onChange }: Props) {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const total = value.ms ?? 0;
-	const days = Math.floor(total / DAY);
-	const hours = Math.floor((total % DAY) / HOUR);
-	const minutes = Math.floor((total % HOUR) / MINUTE);
-	const atMax = total >= MAX_SESSION_MS;
+	const totalMs = value.ms ?? 0;
+	const days = Math.floor(totalMs / DAY);
+	const hours = Math.floor((totalMs % DAY) / HOUR);
+	const minutes = Math.floor((totalMs % HOUR) / MINUTE);
+	const atMax = totalMs >= MAX_SESSION_MS;
 
 	function change(nextDays: number, nextHours: number, nextMinutes: number) {
-		const next = Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS);
+		const nextMs = Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS);
 
-		onChange({ ms: next > 0 ? next : null, custom: true });
+		onChange({ ms: nextMs > 0 ? nextMs : null, custom: true });
 	}
 
 	return (
@@ -47,7 +47,7 @@ export function DurationPicker({ value, onChange }: Props) {
 					selected={!value.custom && value.ms === null}
 					onPress={() => onChange({ ms: null, custom: false })}
 				/>
-				{DURATION_PRESETS.map((preset) => (
+				{SESSION_DURATION_PRESETS.map((preset) => (
 					<ItemRadio
 						key={preset}
 						label={formatDuration(preset, locale)}
@@ -71,7 +71,7 @@ export function DurationPicker({ value, onChange }: Props) {
 							value: days,
 							values: DAYS,
 							unit: t('session.start.days'),
-							onChange: (next) => change(next, hours, minutes),
+							onChange: (nextDays) => change(nextDays, hours, minutes),
 						},
 						{
 							key: 'hours',
@@ -79,7 +79,7 @@ export function DurationPicker({ value, onChange }: Props) {
 							value: hours,
 							values: atMax ? [0] : HOURS,
 							unit: t('session.start.hours'),
-							onChange: (next) => change(days, next, minutes),
+							onChange: (nextHours) => change(days, nextHours, minutes),
 						},
 						{
 							key: 'minutes',
@@ -87,7 +87,7 @@ export function DurationPicker({ value, onChange }: Props) {
 							value: minutes,
 							values: atMax ? [0] : MINUTE_STEPS,
 							unit: t('session.start.minutes'),
-							onChange: (next) => change(days, hours, next),
+							onChange: (nextMinutes) => change(days, hours, nextMinutes),
 						},
 					]}
 				/>
