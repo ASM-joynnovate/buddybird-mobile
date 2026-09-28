@@ -16,7 +16,7 @@ module.exports = {
     layer("apis", "^app/apis/", "^app/(apis/|config/|lib/api\\.ts$|types/apis/|mocks/)"),
     layer("mocks", "^app/mocks/", "^app/(mocks|types/apis|utils|config)/"),
     layer("stores", "^app/stores/", "^app/(stores/keys\\.ts$|config/|types/|utils/|lib/storage\\.ts$)"),
-    layer("services", "^app/services/", "^app/(services|config|types|utils|lib|apis|mocks|stores|i18n)/"),
+    layer("services", "^app/services/", "^app/(services|config|types|utils|lib|apis|stores|i18n)/"),
     layer(
       "hooks-apis",
       "^app/hooks/apis/",
@@ -25,22 +25,22 @@ module.exports = {
     layer(
       "providers",
       "^app/providers/",
-      "^app/((providers|config|types|utils|lib|apis|mocks|stores|services|hooks|i18n)/|components/dialogs/)",
+      "^app/((providers|config|types|utils|lib|apis|stores|services|hooks|i18n)/|components/dialogs/|components/error-handling-wrapper\\.tsx$)",
     ),
     layer(
       "hooks",
       { path: "^app/hooks/", pathNot: "^app/hooks/apis/" },
-      "^app/(hooks|config|types|utils|lib|apis|mocks|stores|services|i18n|theme)/",
+      "^app/(hooks|config|types|utils|lib|apis|stores|services|i18n|theme)/",
     ),
     layer(
       "components",
       { path: "^app/components/", pathNot: "^app/components/app/" },
-      "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme)/",
+      "^app/(components|config|types|utils|lib|apis|stores|services|hooks|providers|i18n|theme)/",
     ),
     layer(
       "components-app",
       "^app/components/app/",
-      "^app/(components|config|types|utils|lib|apis|mocks|stores|services|hooks|providers|i18n|theme|navigators)/",
+      "^app/(components|config|types|utils|lib|apis|stores|services|hooks|providers|i18n|theme|navigators)/",
     ),
     {
       name: "components-ui",
@@ -51,7 +51,7 @@ module.exports = {
     layer(
       "screens",
       "^app/screens/",
-      "^app/(screens|components|config|types|utils|lib|mocks|stores|services|hooks|providers|i18n|theme)/",
+      "^app/(screens|components|config|types|utils|lib|stores|services|hooks|providers|i18n|theme)/",
     ),
     {
       name: "screens-independent-of-other-screens",
@@ -65,7 +65,13 @@ module.exports = {
       from: { path: "^app/screens/" },
       to: { path: "^app/apis/" },
     },
-    layer("i18n", "^app/i18n/", "^app/((i18n|types|config)/|utils/units\\.ts$)"),
+    {
+      name: "mocks-only-in-apis",
+      severity: "error",
+      from: { path: "^app/", pathNot: "^app/(apis|mocks)/" },
+      to: { path: "^app/mocks/" },
+    },
+    layer("i18n", "^app/i18n/", "^app/(i18n|types|config)/"),
     layer("theme", "^app/theme/", "^app/(theme|types|config)/"),
     {
       name: "mmkv-only-in-storage-adapters",
