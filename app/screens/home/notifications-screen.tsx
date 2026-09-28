@@ -2,8 +2,7 @@ import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { notificationsQueryOptions, readAllNotificationsMutationOptions } from '@/hooks/apis/notifications';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getNotificationListOptions, useReadAllNotifications } from '@/hooks/apis/notifications';
 
 import { useTranslation } from 'react-i18next';
 
@@ -28,20 +27,27 @@ export function NotificationsScreen() {
 
 	const navigation = useNavigation();
 
+	const {
+		data: notificationListData,
+		isError: isNotificationListError,
+		refetch,
+		hasNextPage,
+		isFetchingNextPage,
+		fetchNextPage,
+	} = useInfiniteQuery(getNotificationListOptions());
+
+	const { isError, isPending, mutate } = useReadAllNotifications();
+
 	const open = useOpenNotification();
 
-	const list = useInfiniteQuery(notificationsQueryOptions());
-
-	const readAll = useIdempotentMutation(readAllNotificationsMutationOptions());
-
-	const items = list.data?.pages.flatMap((page) => page.data) ?? [];
+	const items = notificationListData?.pages.flatMap((page) => page.data) ?? [];
 	const hasUnread = items.some((item) => !item.read_at);
 
 	let empty = <Skeleton rows={5} />;
 
-	if (list.isError) {
-		empty = <ScreenError message={t('common.loadError')} onRetry={() => void list.refetch()} />;
-	} else if (list.data) {
+	if (isNotificationListError) {
+		empty = <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
+	} else if (notificationListData) {
 		empty = (
 			<EmptyState
 				message={t('home.notification.empty')}
@@ -52,18 +58,21 @@ export function NotificationsScreen() {
 
 	return (
 		<Screen scroll={false}>
+			{/*헤더와 모두 읽음 실패 안내*/}
 			<View style={styles.header}>
 				<ScreenHeader
 					title={t('home.notification.title')}
 					onBack={() => navigation.goBack()}
 					right=<TextButton
 						label={t('home.notification.readAll')}
-						disabled={!hasUnread || readAll.isPending}
-						onPress={() => readAll.mutate({})}
+						disabled={!hasUnread || isPending}
+						onPress={() => mutate({})}
 					/>
 				/>
-				<InlineError message={readAll.isError ? t('home.notification.readAllError') : null} />
+				<InlineError message={isError ? t('home.notification.readAllError') : null} />
 			</View>
+
+			{/*알림 목록*/}
 			<FlatList
 				data={items}
 				keyExtractor={(item) => item.id}
@@ -71,11 +80,11 @@ export function NotificationsScreen() {
 				ListEmptyComponent={empty}
 				onEndReachedThreshold={0.4}
 				onEndReached={() => {
-					if (list.hasNextPage && !list.isFetchingNextPage) {
-						void list.fetchNextPage();
+					if (hasNextPage && !isFetchingNextPage) {
+						void fetchNextPage();
 					}
 				}}
-				ListFooterComponent={list.isFetchingNextPage ? <ActivityIndicator color={colors.orange} /> : null}
+				ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={colors.orange} /> : null}
 				contentContainerStyle={styles.list}
 				showsVerticalScrollIndicator={false}
 			/>

@@ -8,9 +8,8 @@ import type { Word } from '@/types/apis/words';
 
 import type { WordsStackParamList } from '@/types/navigation';
 
-import { runningSessionQueryOptions } from '@/hooks/apis/sessions';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-import { deleteWordMutationOptions, wordsQueryOptions } from '@/hooks/apis/words';
+import { getRunningSessionOptions } from '@/hooks/apis/sessions';
+import { getWordListOptions, useDeleteWord } from '@/hooks/apis/words';
 import { useSoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
@@ -38,16 +37,21 @@ export function WordListScreen(): ReactElement {
 
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
 
-	const words = useQuery(wordsQueryOptions());
-	const running = useQuery(runningSessionQueryOptions());
+	const [deleting, setDeleting] = useState<Word | null>(null);
 
-	const removing = useIdempotentMutation(deleteWordMutationOptions());
+	const {
+		data: wordListData,
+		isPending: isWordListPending,
+		isError: isWordListError,
+		refetch,
+	} = useQuery(getWordListOptions());
+	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
+
+	const { isError, isPending, mutate, reset } = useDeleteWord();
 
 	const player = useSoundPlayer();
 
-	const [deleting, setDeleting] = useState<Word | null>(null);
-
-	const learningWordId = running.data?.word_id ?? null;
+	const learningWordId = runningSessionData?.word_id ?? null;
 
 	const addWord = () => navigation.navigate('WordEditor', {});
 
@@ -63,14 +67,14 @@ export function WordListScreen(): ReactElement {
 
 	let body: ReactElement;
 
-	if (words.isPending) {
+	if (isWordListPending) {
 		body = <Skeleton rows={4} height={84} />;
-	} else if (words.isError) {
-		body = <ScreenError message={t('common.loadError')} onRetry={() => void words.refetch()} />;
+	} else if (isWordListError) {
+		body = <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
 	} else {
 		body = (
 			<FlatList
-				data={words.data}
+				data={wordListData}
 				keyExtractor={(word) => word.id}
 				contentContainerStyle={styles.list}
 				showsVerticalScrollIndicator={false}
@@ -91,17 +95,22 @@ export function WordListScreen(): ReactElement {
 	return (
 		<Screen scroll={false}>
 			<View style={styles.screen}>
+				{/*헤더*/}
 				<ScreenHeader title={t('words.list.title')} large right={addButton} />
+
+				{/*단어 목록*/}
 				<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 				{body}
 			</View>
+
+			{/*삭제 확인 다이얼로그*/}
 			<DeleteWordDialog
 				visible={deleting !== null}
 				name={deleting?.name ?? ''}
-				deletion={removing}
+				deletion={{ isPending, isError }}
 				onConfirm={() => {
 					if (deleting) {
-						removing.mutate(
+						mutate(
 							{ id: deleting.id },
 							{
 								onSuccess: () => {
@@ -117,7 +126,7 @@ export function WordListScreen(): ReactElement {
 					}
 				}}
 				onClose={() => {
-					removing.reset();
+					reset();
 
 					setDeleting(null);
 				}}

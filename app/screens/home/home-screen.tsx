@@ -4,10 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { HomeStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { devicesQueryOptions } from '@/hooks/apis/devices';
-import { homeSummaryQueryOptions } from '@/hooks/apis/home';
-import { finishSessionMutationOptions } from '@/hooks/apis/sessions';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getDeviceListOptions } from '@/hooks/apis/devices';
+import { getHomeSummaryOptions } from '@/hooks/apis/home';
+import { useFinishSession } from '@/hooks/apis/sessions';
 import { usePermission } from '@/hooks/use-permission';
 import { useSoundPlayer } from '@/hooks/use-sound-player';
 
@@ -57,20 +56,24 @@ export function HomeScreen() {
 	const navigation = useNavigation<Navigation>();
 	const focused = useIsFocused();
 
+	const {
+		data: homeSummaryData,
+		isError: isHomeSummaryError,
+		refetch,
+	} = useQuery({
+		...getHomeSummaryOptions(),
+		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
+	});
+	const { data: deviceListData } = useQuery(getDeviceListOptions());
+
+	const { isError, isPending, mutate } = useFinishSession();
+
 	const locale = useDeviceSettingsStore((state) => state.locale);
 	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
 
-	const summary = useQuery({
-		...homeSummaryQueryOptions(),
-		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
-	});
-	const devices = useQuery(devicesQueryOptions());
-
-	const finishing = useIdempotentMutation(finishSessionMutationOptions());
-
 	const setup = useSessionDraft();
 
-	const popup = useNoticePopup(summary.data?.unread_notices);
+	const popup = useNoticePopup(homeSummaryData?.unread_notices);
 
 	const microphone = usePermission('microphone');
 
@@ -89,10 +92,10 @@ export function HomeScreen() {
 		});
 	});
 
-	const running = summary.data?.running_session ?? null;
-	const station = devices.data?.find((device) => device.id === running?.station.device_id);
+	const running = homeSummaryData?.running_session ?? null;
+	const station = deviceListData?.find((device) => device.id === running?.station.device_id);
 	const runningElsewhere = station !== undefined && station.client_device_id !== clientDeviceId;
-	const unread = summary.data?.unread_notification_count ?? 0;
+	const unread = homeSummaryData?.unread_notification_count ?? 0;
 
 	function start() {
 		const draft = setup.draft;
@@ -147,6 +150,7 @@ export function HomeScreen() {
 	return (
 		<Screen scroll={false}>
 			<View style={styles.screen}>
+				{/*설정과 알림 버튼*/}
 				<View style={styles.top}>
 					<IconButton
 						icon={SettingsIcon}
@@ -159,27 +163,31 @@ export function HomeScreen() {
 						onPress={() => navigation.navigate('Notifications')}
 					/>
 				</View>
+
+				{/*학습 설정*/}
 				<View style={styles.body}>
-					{summary.isError || setup.isError ? (
+					{isHomeSummaryError || setup.isError ? (
 						<ScreenError
 							message={t('common.loadError')}
 							onRetry={() => {
-								void summary.refetch();
+								void refetch();
 								setup.retry();
 							}}
 						/>
 					) : null}
+
 					{running && runningElsewhere ? (
 						<Card contentStyle={styles.elsewhere}>
 							<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
 							<TextButton
 								label={t('session.start.endElsewhere')}
-								disabled={finishing.isPending}
-								onPress={() => finishing.mutate({ id: running.id })}
+								disabled={isPending}
+								onPress={() => mutate({ id: running.id })}
 							/>
-							<InlineError message={finishing.isError ? t('session.end.error') : null} />
+							<InlineError message={isError ? t('session.end.error') : null} />
 						</Card>
 					) : null}
+
 					<GroupedList>
 						<GroupedListPickerItem
 							item={{
@@ -208,6 +216,8 @@ export function HomeScreen() {
 						<SleepTimePicker value={setup.sleep} onChange={setup.setEditedSleep} />
 					</GroupedList>
 				</View>
+
+				{/*시작 버튼*/}
 				<Button
 					label={t('common.start')}
 					icon={PlayIcon}
@@ -216,8 +226,12 @@ export function HomeScreen() {
 					onPress={start}
 				/>
 			</View>
+
+			{/*학습 시작 다이얼로그*/}
 			<StartDialogs state={starter} />
 			<PermissionDialog state={microphone.dialog} />
+
+			{/*공지 팝업*/}
 			<NoticePopup
 				notice={focused ? popup.current : null}
 				onClose={popup.close}

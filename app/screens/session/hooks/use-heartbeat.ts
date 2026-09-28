@@ -5,8 +5,7 @@ import type { HeartbeatSummary } from '@/types/apis/sessions';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
-import { heartbeatMutationOptions } from '@/hooks/apis/sessions';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { useSendHeartbeat } from '@/hooks/apis/sessions';
 
 import { HEARTBEAT_INTERVAL_MS } from '@/config';
 import { currentSpan } from '@/utils/phases';
@@ -22,7 +21,7 @@ type HeartbeatInput = {
 export function useHeartbeat({ sessionId, startedAt, sleep, summaries, onEnded }: HeartbeatInput): void {
 	const latest = useRef({ startedAt, sleep, summaries, onEnded });
 
-	const { mutate } = useIdempotentMutation(heartbeatMutationOptions());
+	const { mutate } = useSendHeartbeat();
 
 	useEffect(() => {
 		latest.current = { startedAt, sleep, summaries, onEnded };

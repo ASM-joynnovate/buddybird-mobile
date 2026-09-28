@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
 	deleteParrot,
@@ -9,48 +9,61 @@ import {
 	putParrotPhoto,
 } from '@/apis/parrots';
 
-import type { CreateParrotRequest } from '@/types/apis/parrots';
-
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-export const parrotsQueryOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: getParrotList });
+import { reportError } from '@/services/telemetry/client';
 
-export const saveParrotMutationOptions = () =>
-	mutationOptions({
+/** 앵무새 목록 조회 옵션 */
+export const getParrotListOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: getParrotList });
+/** 앵무새 목록 조회 훅 */
+export const useGetParrotList = () => {
+	return useSuspenseQuery(getParrotListOptions());
+};
+
+/** 앵무새 등록 훅 */
+export const useCreateParrot = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('parrots', 'save'),
-		mutationFn: ({
-			id,
-			input,
-			idempotencyKey,
-		}: {
-			id: string | null;
-			input: CreateParrotRequest;
-			idempotencyKey: string;
-		}) => (id ? patchParrot({ id, data: input, idempotencyKey }) : postParrot({ data: input, idempotencyKey })),
+		mutationFn: postParrot,
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
+};
 
-export const deleteParrotMutationOptions = () =>
-	mutationOptions({
+/** 앵무새 수정 훅 */
+export const useUpdateParrot = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('parrots', 'save'),
+		mutationFn: patchParrot,
+		onSuccess: () => invalidate(apiKeys.parrots.all()),
+	});
+};
+
+/** 앵무새 삭제 훅 */
+export const useDeleteParrot = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'delete'),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			deleteParrot({ id, idempotencyKey }),
+		mutationFn: deleteParrot,
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
+		onError: (error) => reportError(error, 'parrot_delete'),
 	});
+};
 
-export const uploadParrotPhotoMutationOptions = () =>
-	mutationOptions({
+/** 앵무새 사진 업로드 훅 */
+export const useUploadParrotPhoto = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
-		mutationFn: ({ id, uri, idempotencyKey }: { id: string; uri: string; idempotencyKey: string }) =>
-			putParrotPhoto({ id, uri, idempotencyKey }),
+		mutationFn: putParrotPhoto,
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
+};
 
-export const deleteParrotPhotoMutationOptions = () =>
-	mutationOptions({
+/** 앵무새 사진 삭제 훅 */
+export const useDeleteParrotPhoto = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'delete'),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			deleteParrotPhoto({ id, idempotencyKey }),
+		mutationFn: deleteParrotPhoto,
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
+};

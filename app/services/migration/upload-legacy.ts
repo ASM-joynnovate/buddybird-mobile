@@ -1,6 +1,8 @@
 import { postParrot, putParrotPhoto } from '@/apis/parrots';
 import { postWord, postWordRecording } from '@/apis/words';
 
+import { ApiError } from '@/types/apis/common';
+
 import type { LegacyMigration, LegacySettings } from '@/types/device-settings';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -183,58 +185,113 @@ async function existingFile(uri: string, scope: string): Promise<string | null> 
 	return null;
 }
 
-async function uploadParrot(profile: LegacyProfile) {
+/** 이름이 같은 키를 뺀 멱등키 목록 */
+const withoutIdempotencyKey = (idempotencyKeys: LegacyMigration['idempotencyKeys'], idempotencyKeyName: string) =>
+	Object.fromEntries(Object.entries(idempotencyKeys).filter(([savedKeyName]) => savedKeyName !== idempotencyKeyName));
+
+/** 저장된 멱등키 반환, 없으면 새 키를 저장한 뒤 반환 */
+const ensureIdempotencyKey = (idempotencyKeyName: string) => {
+	const idempotencyKey = migration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
+
+	updateMigration((current) => ({
+		...current,
+		idempotencyKeys: { ...current.idempotencyKeys, [idempotencyKeyName]: idempotencyKey },
+	}));
+
+	return idempotencyKey;
+};
+
+/** 서버가 거부한 요청의 멱등키 삭제 */
+const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string) => {
+	if (!(error instanceof ApiError) || !error.rejected) {
+		return;
+	}
+
+	updateMigration((current) => ({
+		...current,
+		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+	}));
+};
+
+/** v1 앵무새와 사진 올리기 */
+const uploadParrot = async (profile: LegacyProfile) => {
+	const idempotencyKeyName = 'parrot';
 	const parrotId =
 		migration().parrotId ??
 		(
 			await postParrot({
 				data: { name: profile.name, species: profile.species, birthdate: profile.birthDate },
-				idempotencyKey: randomUUID(),
+				idempotencyKey: ensureIdempotencyKey(idempotencyKeyName),
+			}).catch((error: unknown) => {
+				removeRejectedIdempotencyKey(error, idempotencyKeyName);
+
+				throw error;
 			})
 		).id;
 
-	updateMigration((current) => ({ ...current, parrotId }));
+	updateMigration((current) => ({
+		...current,
+		parrotId,
+		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+	}));
 
 	if (!profile.photoUri || migration().photoUploaded) {
 		return;
 	}
 
-	const photo = await existingFile(profile.photoUri, 'legacy_photo');
+	const photoUri = await existingFile(profile.photoUri, 'legacy_photo');
 
-	if (photo) {
-		await putParrotPhoto({ id: parrotId, uri: photo, idempotencyKey: randomUUID() });
+	if (photoUri) {
+		await putParrotPhoto({ id: parrotId, uri: photoUri, idempotencyKey: randomUUID() });
 	}
 
 	updateMigration((current) => ({ ...current, photoUploaded: true }));
-}
+};
 
 function recordWordProgress(id: string, progress: WordProgress) {
 	updateMigration((current) => ({ ...current, words: { ...current.words, [id]: progress } }));
 }
 
-async function uploadWord(word: LegacyWord) {
-	const saved = migration().words[word.id];
+/** v1 단어와 녹음 올리기 */
+const uploadWord = async (word: LegacyWord) => {
+	const savedProgress = migration().words[word.id];
 
-	if (saved?.done) {
+	if (savedProgress?.done) {
 		return;
 	}
 
-	const recording = await existingFile(word.audioUri, 'legacy_recording');
+	const recordingUri = await existingFile(word.audioUri, 'legacy_recording');
 
-	if (!recording) {
-		recordWordProgress(word.id, { wordId: saved?.wordId ?? null, done: true });
+	if (!recordingUri) {
+		recordWordProgress(word.id, { wordId: savedProgress?.wordId ?? null, done: true });
 
 		return;
 	}
 
-	const wordId = saved?.wordId ?? (await postWord({ data: { name: word.name }, idempotencyKey: randomUUID() })).id;
+	const idempotencyKeyName = `word:${word.id}`;
+	const wordId =
+		savedProgress?.wordId ??
+		(
+			await postWord({
+				data: { name: word.name },
+				idempotencyKey: ensureIdempotencyKey(idempotencyKeyName),
+			}).catch((error: unknown) => {
+				removeRejectedIdempotencyKey(error, idempotencyKeyName);
 
-	recordWordProgress(word.id, { wordId, done: false });
+				throw error;
+			})
+		).id;
 
-	await postWordRecording({ id: wordId, uri: recording, idempotencyKey: randomUUID() });
+	updateMigration((current) => ({
+		...current,
+		words: { ...current.words, [word.id]: { wordId, done: false } },
+		idempotencyKeys: withoutIdempotencyKey(current.idempotencyKeys, idempotencyKeyName),
+	}));
+
+	await postWordRecording({ id: wordId, uri: recordingUri, idempotencyKey: randomUUID() });
 
 	recordWordProgress(word.id, { wordId, done: true });
-}
+};
 
 export function uploadLegacy(): Promise<void> {
 	uploading ??= (async () => {

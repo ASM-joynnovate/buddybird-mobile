@@ -1,8 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { useMutation } from '@tanstack/react-query';
-
-import { withdrawMutationOptions } from '@/hooks/apis/auth';
+import { useWithdraw } from '@/hooks/apis/auth';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,18 +21,16 @@ interface Props {
 export function WithdrawDialog({ visible, onClose }: Props) {
 	const { t } = useTranslation();
 
-	const { isPending, error, mutate, reset } = useMutation({
-		...withdrawMutationOptions(),
-		onSuccess: () => signOutToAnonymous(),
-		onError: (cause) => reportError(cause, 'withdraw'),
-	});
+	const { isPending, error, mutate, reset } = useWithdraw();
 
 	function handleWithdraw() {
 		if (isPending) {
 			return;
 		}
 
-		mutate();
+		mutate(undefined, {
+			onSuccess: () => void signOutToAnonymous().catch((e: unknown) => reportError(e, 'withdraw')),
+		});
 	}
 
 	function handleClose() {

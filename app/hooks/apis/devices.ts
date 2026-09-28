@@ -1,16 +1,21 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getDeviceList, putDevice } from '@/apis/devices';
 
-import type { RegisterDeviceRequest } from '@/types/apis/devices';
-
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-export const devicesQueryOptions = () => queryOptions({ queryKey: apiKeys.devices(), queryFn: getDeviceList });
+/** 기기 목록 조회 옵션 */
+export const getDeviceListOptions = () => queryOptions({ queryKey: apiKeys.devices(), queryFn: getDeviceList });
+/** 기기 목록 조회 훅 */
+export const useGetDeviceList = () => {
+	return useSuspenseQuery(getDeviceListOptions());
+};
 
-export const registerDeviceMutationOptions = () =>
-	mutationOptions({
+/** 기기 등록 훅 */
+export const useRegisterDevice = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('devices', 'register'),
-		mutationFn: ({ device, idempotencyKey }: { device: RegisterDeviceRequest; idempotencyKey: string }) =>
-			putDevice({ data: device, idempotencyKey }),
+		mutationFn: putDevice,
 	});
+};

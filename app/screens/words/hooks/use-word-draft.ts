@@ -1,21 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 
+import { ApiError } from '@/types/apis/common';
 import type { Recording, Word } from '@/types/apis/words';
 
 import type { RecordedSample } from '@/types/navigation';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 import {
-	addRecordingMutationOptions,
-	createWordMutationOptions,
-	deleteRecordingMutationOptions,
-	renameWordMutationOptions,
-	wordQueryOptions,
+	getWordOptions,
+	useAddWordRecording,
+	useCreateWord,
+	useDeleteWordRecording,
+	useRenameWord,
 } from '@/hooks/apis/words';
+
+import { queryClient } from '@/lib/query-client';
+
+import { randomUUID } from 'expo-crypto';
 
 import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS } from '@/config';
 import { measureRecordingDuration } from '@/services/media/recording-duration';
@@ -62,13 +66,6 @@ const serverItem = (recording: Recording, durationMs: number | null): DraftItem 
 });
 
 export function useWordDraft(routeWordId: string | null, recorded: RecordedSample | undefined): WordDraft {
-	const queryClient = useQueryClient();
-
-	const create = useIdempotentMutation(createWordMutationOptions());
-	const rename = useIdempotentMutation(renameWordMutationOptions());
-	const upload = useMutation(addRecordingMutationOptions());
-	const remove = useIdempotentMutation(deleteRecordingMutationOptions());
-
 	const [createdId, setCreatedId] = useState<string | null>(null);
 	const [nameInput, setNameInput] = useState<string | null>(null);
 	const [locals, setLocals] = useState<readonly RecordedSample[]>([]);
@@ -76,15 +73,20 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 	const [step, setStep] = useState<SaveStep | null>(null);
 	const [saveFailed, setSaveFailed] = useState(false);
 	const [touched, setTouched] = useState(false);
+	const [createWordKey, setCreateWordKey] = useState(() => randomUUID());
 
 	const alive = useRef(true);
 	const consumed = useRef(new Set<string>());
 
 	const wordId = routeWordId ?? createdId;
-
-	const word = useQuery({ ...wordQueryOptions(wordId ?? ''), enabled: Boolean(wordId) });
+	const {
+		data: wordData,
+		isPending,
+		isError,
+		refetch,
+	} = useQuery({ ...getWordOptions({ id: wordId ?? '' }), enabled: Boolean(wordId) });
 	const durations = useQueries({
-		queries: (word.data?.recordings ?? []).map((recording) => ({
+		queries: (wordData?.recordings ?? []).map((recording) => ({
 			queryKey: apiKeys.recordings.duration(recording.id),
 			queryFn: () =>
 				measureRecordingDuration(recording.url).catch((error: unknown) => {
@@ -96,8 +98,13 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 		})),
 	});
 
-	const name = nameInput ?? word.data?.name ?? '';
-	const servers = (word.data?.recordings ?? [])
+	const createWord = useCreateWord();
+	const renameWord = useRenameWord();
+	const addWordRecording = useAddWordRecording();
+	const deleteWordRecording = useDeleteWordRecording();
+
+	const name = nameInput ?? wordData?.name ?? '';
+	const servers = (wordData?.recordings ?? [])
 		.map((recording, index) => serverItem(recording, durations[index]?.data ?? null))
 		.filter((item) => !removedIds.includes(item.id));
 	const items: DraftItem[] = [
@@ -152,7 +159,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 		let intervalMs = UPLOAD_POLL_INTERVAL_MS;
 
 		while (alive.current) {
-			const latest = await queryClient.query({ ...wordQueryOptions(id), staleTime: 0 });
+			const latest = await queryClient.query({ ...getWordOptions({ id }), staleTime: 0 });
 
 			if (latest.recordings.length >= expectedCount) {
 				return latest;
@@ -170,15 +177,25 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 		const trimmed = name.trim();
 
 		if (!wordId) {
-			const created = await create.mutateAsync({ name: trimmed });
+			const created = await createWord.mutateAsync(
+				{ data: { name: trimmed }, idempotencyKey: createWordKey },
+				{
+					onSuccess: () => setCreateWordKey(randomUUID()),
+					onError: (error) => {
+						if (error instanceof ApiError && error.rejected) {
+							setCreateWordKey(randomUUID());
+						}
+					},
+				},
+			);
 
 			setCreatedId(created.id);
 
 			return created.id;
 		}
 
-		if (trimmed !== word.data?.name) {
-			await rename.mutateAsync({ id: wordId, name: trimmed });
+		if (trimmed !== wordData?.name) {
+			await renameWord.mutateAsync({ id: wordId, data: { name: trimmed } });
 
 			setNameInput(trimmed);
 		}
@@ -195,9 +212,9 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 
 		setSaveFailed(false);
 
-		const expectedCount = (word.data?.recordings.length ?? 0) + locals.length;
+		const expectedCount = (wordData?.recordings.length ?? 0) + locals.length;
 		const addedCount = locals.length;
-		const renamed = name.trim() !== word.data?.name;
+		const renamed = name.trim() !== wordData?.name;
 
 		try {
 			setStep('saving');
@@ -207,11 +224,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 			setStep('uploading');
 
 			for (const sample of locals) {
-				await upload.mutateAsync({
-					wordId: id,
-					uri: sample.uri,
-					idempotencyKey: sample.key,
-				});
+				await addWordRecording.mutateAsync({ id, uri: sample.uri });
 
 				setLocals((current) => current.filter((item) => item.key !== sample.key));
 			}
@@ -231,7 +244,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 			);
 
 			for (const recordingId of pending) {
-				await remove.mutateAsync({ wordId: id, recordingId });
+				await deleteWordRecording.mutateAsync({ id, recordingId });
 			}
 
 			await invalidate(apiKeys.words.all());
@@ -257,7 +270,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 			if (alive.current) {
 				setSaveFailed(true);
 
-				void word.refetch();
+				void refetch();
 			}
 		} finally {
 			if (alive.current) {
@@ -268,15 +281,15 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 
 	return {
 		wordId,
-		loading: Boolean(routeWordId) && word.isPending,
-		loadFailed: Boolean(routeWordId) && word.isError,
-		reload: () => void word.refetch(),
+		loading: Boolean(routeWordId) && isPending,
+		loadFailed: Boolean(routeWordId) && isError,
+		reload: () => void refetch(),
 		name,
 		setName: setNameInput,
 		nameMissing,
 		items,
 		serverCount: servers.length,
-		savedRecordingCount: word.data?.recordings.length ?? 0,
+		savedRecordingCount: wordData?.recordings.length ?? 0,
 		removeItem,
 		step,
 		saveFailed,

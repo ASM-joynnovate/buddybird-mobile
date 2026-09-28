@@ -4,12 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { Consent } from '@/types/apis/consents';
 
-import { consentsQueryOptions, saveConsentMutationOptions } from '@/hooks/apis/consents';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getConsentListOptions, useSaveConsent } from '@/hooks/apis/consents';
 
 import { useFocusEffect } from '@react-navigation/native';
 
-import { reportError } from '@/services/telemetry/client';
 import { useConsentStore } from '@/stores/consent';
 import { latestConsents } from '@/utils/latest-consents';
 
@@ -28,11 +26,11 @@ export function useConsentChecks(onSaved?: () => void): {
 } {
 	const [checked, setChecked] = useState<Record<string, boolean>>({});
 
-	const query = useQuery(consentsQueryOptions());
+	const { data: consentListData, isError, refetch } = useQuery(getConsentListOptions());
 
-	const mutation = useIdempotentMutation(saveConsentMutationOptions());
+	const { isError: isSaveError, isPending, mutateAsync } = useSaveConsent();
 
-	const consents = query.data ? latestConsents(query.data) : undefined;
+	const consents = consentListData ? latestConsents(consentListData) : undefined;
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === 'granted';
 	const allChecked = Boolean(consents?.length) && (consents ?? []).every(isChecked);
 
@@ -51,36 +49,37 @@ export function useConsentChecks(onSaved?: () => void): {
 
 	async function saveDecisions(items: readonly Consent[]) {
 		for (const consent of items) {
-			await mutation.mutateAsync({
+			await mutateAsync({
 				data: {
 					consent_id: consent.id,
 					status: isChecked(consent) ? 'granted' : 'denied',
 				},
 			});
 		}
-
-		onSaved?.();
 	}
 
 	function save() {
-		if (!consents || mutation.isPending) {
+		if (!consents || isPending) {
 			return;
 		}
 
-		saveDecisions(consents).catch((error: unknown) => reportError(error, 'consent_save'));
+		saveDecisions(consents).then(
+			() => onSaved?.(),
+			() => null,
+		);
 	}
 
 	return {
 		consents,
-		loadFailed: query.isError,
-		retry: () => void query.refetch(),
+		loadFailed: isError,
+		retry: () => void refetch(),
 		isChecked,
 		toggle: (consent) => setChecked((current) => ({ ...current, [consent.id]: !isChecked(consent) })),
 		allChecked,
 		toggleAll: () => setChecked(Object.fromEntries((consents ?? []).map((consent) => [consent.id, !allChecked]))),
 		ready: (consents ?? []).every((consent) => !consent.is_required || isChecked(consent)),
-		saving: mutation.isPending,
-		saveFailed: mutation.isError,
+		saving: isPending,
+		saveFailed: isSaveError,
 		save,
 	};
 }

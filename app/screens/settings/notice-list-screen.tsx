@@ -6,7 +6,7 @@ import type { Notice } from '@/types/apis/notices';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { noticesQueryOptions } from '@/hooks/apis/notices';
+import { getNoticeListOptions } from '@/hooks/apis/notices';
 
 import { useTranslation } from 'react-i18next';
 
@@ -33,9 +33,15 @@ export function NoticeListScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
+	const {
+		data: noticeListData,
+		fetchNextPage,
+		hasNextPage,
+		isError,
+		refetch,
+	} = useInfiniteQuery(getNoticeListOptions());
 
-	const notices = useInfiniteQuery(noticesQueryOptions());
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	function renderItem({ item }: { item: Notice }) {
 		const date = formatDate(item.starts_at, locale);
@@ -53,28 +59,29 @@ export function NoticeListScreen() {
 					</Copy>
 					<Copy style={styles.date}>{date}</Copy>
 				</View>
+
 				{item.is_read ? null : <DotBadge />}
 			</PressableSurface>
 		);
 	}
 
 	function body() {
-		if (notices.isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={() => void notices.refetch()} />;
+		if (isError) {
+			return <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
 		}
 
-		if (!notices.data) {
+		if (!noticeListData) {
 			return <Skeleton rows={3} />;
 		}
 
 		return (
 			<FlatList
-				data={notices.data.pages.flatMap((page) => page.data)}
+				data={noticeListData.pages.flatMap((page) => page.data)}
 				keyExtractor={(item) => item.id}
 				renderItem={renderItem}
 				onEndReached={() => {
-					if (notices.hasNextPage) {
-						void notices.fetchNextPage();
+					if (hasNextPage) {
+						void fetchNextPage();
 					}
 				}}
 				contentContainerStyle={styles.list}
@@ -86,7 +93,10 @@ export function NoticeListScreen() {
 	return (
 		<Screen scroll={false}>
 			<View style={styles.frame}>
+				{/*헤더*/}
 				<ScreenHeader title={t('settings.notices.title')} onBack={() => navigation.goBack()} />
+
+				{/*공지 목록*/}
 				{body()}
 			</View>
 		</Screen>

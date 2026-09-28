@@ -1,7 +1,6 @@
 import type { AppNotification } from '@/types/apis/notifications';
 
-import { readNotificationMutationOptions } from '@/hooks/apis/notifications';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { useReadNotification } from '@/hooks/apis/notifications';
 
 import { useLinkTo } from '@react-navigation/native';
 
@@ -11,7 +10,7 @@ import { notificationPath } from '@/utils/notification';
 export function useOpenNotification(): (item: AppNotification) => void {
 	const linkTo = useLinkTo();
 
-	const { mutate } = useIdempotentMutation(readNotificationMutationOptions());
+	const { mutate } = useReadNotification();
 
 	return (item) => {
 		if (!item.read_at) {

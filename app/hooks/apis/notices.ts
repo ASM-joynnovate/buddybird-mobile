@@ -1,25 +1,40 @@
-import { infiniteQueryOptions, mutationOptions, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getNotice, getNoticeList, postNoticeRead } from '@/apis/notices';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-export const noticesQueryOptions = () =>
+import { reportError } from '@/services/telemetry/client';
+
+/** 공지 목록 조회 옵션 */
+export const getNoticeListOptions = () =>
 	infiniteQueryOptions({
 		queryKey: apiKeys.notices.list(),
 		queryFn: ({ pageParam }) => getNoticeList({ page: pageParam }),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => (lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1),
 	});
+/** 공지 목록 조회 훅 */
+export const useGetNoticeList = () => {
+	return useSuspenseInfiniteQuery(getNoticeListOptions());
+};
 
-export const noticeQueryOptions = (id: string) =>
+/** 공지 조회 옵션 */
+export const getNoticeOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.notices.detail(id), queryFn: () => getNotice({ id }) });
+/** 공지 조회 훅 */
+export const useGetNotice = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getNoticeOptions({ id }));
+};
 
-export const readNoticeMutationOptions = () =>
-	mutationOptions({
+/** 공지 읽음 표시 훅 */
+export const useReadNotice = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notices', 'read'),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			postNoticeRead({ id, idempotencyKey }),
+		mutationFn: postNoticeRead,
 		onSuccess: () => invalidate(apiKeys.notices.all(), apiKeys.home()),
+		onError: (error) => reportError(error, 'notice_read'),
 	});
+};

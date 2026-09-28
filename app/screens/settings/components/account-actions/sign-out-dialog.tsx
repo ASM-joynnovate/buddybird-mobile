@@ -1,6 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
-
-import { logoutMutationOptions } from '@/hooks/apis/auth';
+import { useLogout } from '@/hooks/apis/auth';
 
 import { useTranslation } from 'react-i18next';
 
@@ -17,18 +15,16 @@ interface Props {
 export function SignOutDialog({ visible, onClose }: Props) {
 	const { t } = useTranslation();
 
-	const { isPending, isError, mutate, reset } = useMutation({
-		...logoutMutationOptions(),
-		onSuccess: () => signOutToAnonymous(),
-		onError: (error) => reportError(error, 'sign_out'),
-	});
+	const { isPending, isError, mutate, reset } = useLogout();
 
 	function handleSignOut() {
 		if (isPending) {
 			return;
 		}
 
-		mutate();
+		mutate(undefined, {
+			onSuccess: () => void signOutToAnonymous().catch((error: unknown) => reportError(error, 'sign_out')),
+		});
 	}
 
 	function handleClose() {

@@ -59,6 +59,10 @@ export class ApiError extends Error {
 	get retryable() {
 		return this.status === 0 || this.status === 408 || this.status === 429 || this.status === 503;
 	}
+
+	get rejected() {
+		return this.status >= 400 && this.status < 500 && !this.retryable;
+	}
 }
 
 export const envelopeSchema = z.object({

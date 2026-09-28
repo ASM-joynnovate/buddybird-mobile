@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { parrotsQueryOptions } from '@/hooks/apis/parrots';
-import { runningSessionQueryOptions } from '@/hooks/apis/sessions';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { getRunningSessionOptions } from '@/hooks/apis/sessions';
 
 import { reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -11,21 +11,21 @@ import { useFeedbackStore } from '@/stores/feedback';
 import { feedbackThreshold } from '@/utils/feedback';
 
 export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolean) {
-	const preferences = useDeviceSettingsStore((state) => state.feedback);
-
-	const feedback = useFeedbackStore();
-
-	const parrots = useQuery(parrotsQueryOptions());
-	const running = useQuery(runningSessionQueryOptions());
-
 	const [open, setOpen] = useState(false);
 
 	const feedbackPromptOpen = useRef(false);
 
-	const sessionActive = running.data != null;
+	const { data: parrotListData } = useQuery(getParrotListOptions());
+	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
+
+	const preferences = useDeviceSettingsStore((state) => state.feedback);
+
+	const feedback = useFeedbackStore();
+
+	const sessionActive = runningSessionData != null;
 	const threshold = feedbackThreshold(preferences);
 	const eligible =
-		(parrots.data?.length ?? 0) > 0 &&
+		(parrotListData?.length ?? 0) > 0 &&
 		updatesSettled &&
 		!updateVisible &&
 		!sessionActive &&

@@ -2,19 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AppState } from 'react-native';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { ApiError } from '@/types/apis/common';
+import { useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import {
-	finishSessionMutationOptions,
-	runningSessionQueryOptions,
-	uploadSoundMutationOptions,
-} from '@/hooks/apis/sessions';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-import { wordQueryOptions } from '@/hooks/apis/words';
+import { getRunningSessionOptions, useFinishSession, useUploadSessionSound } from '@/hooks/apis/sessions';
+import { getWordOptions } from '@/hooks/apis/words';
+
+import { queryClient } from '@/lib/query-client';
 
 import { useHeartbeat } from '@/screens/session/hooks/use-heartbeat';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
@@ -33,13 +28,6 @@ export function useLearningSession(
 	{ sessionId, wordId, endsAt, sleep, duration, sleepChanged }: RootStackParamList['SessionRun'],
 	onFinished: () => void,
 ): LearningSession {
-	const queryClient = useQueryClient();
-
-	const running = useQuery(runningSessionQueryOptions());
-
-	const { mutateAsync: upload } = useIdempotentMutation(uploadSoundMutationOptions());
-	const { mutateAsync: finish } = useIdempotentMutation(finishSessionMutationOptions());
-
 	const engine = useRef<LearningEngine | null>(null);
 	const uploads = useRef<Promise<unknown>[]>([]);
 	const soundCount = useRef(0);
@@ -50,12 +38,13 @@ export function useLearningSession(
 	const [engineFailed, setEngineFailed] = useState(false);
 	const [ending, setEnding] = useState(false);
 
-	const runningSession = running.data?.id === sessionId ? running.data : null;
-	const startedAt = runningSession?.period.started_at ?? null;
+	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
 
-	useEffect(() => {
-		onFinishedRef.current = onFinished;
-	}, [onFinished]);
+	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
+	const { mutateAsync: finishSession } = useFinishSession();
+
+	const runningSession = runningSessionData?.id === sessionId ? runningSessionData : null;
+	const startedAt = runningSession?.period.started_at ?? null;
 
 	const close = useCallback(
 		async (reason: EndReason) => {
@@ -75,14 +64,12 @@ export function useLearningSession(
 				engine.current = null;
 
 				await Promise.allSettled(uploads.current);
-
-				if (reason !== 'server') {
-					await finish({ id: sessionId });
-				}
 			} catch (error) {
-				if (!(error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING')) {
-					reportError(error, 'learning_end');
-				}
+				reportError(error, 'learning_end');
+			}
+
+			if (reason !== 'server') {
+				await finishSession({ id: sessionId }).catch(() => null);
 			}
 
 			track('learning_finished', {
@@ -96,7 +83,7 @@ export function useLearningSession(
 
 			onFinishedRef.current();
 		},
-		[finish, sessionId, startedAt],
+		[finishSession, sessionId, startedAt],
 	);
 
 	useHeartbeat({
@@ -108,12 +95,16 @@ export function useLearningSession(
 	});
 
 	useEffect(() => {
+		onFinishedRef.current = onFinished;
+	}, [onFinished]);
+
+	useEffect(() => {
 		if (!startedAt) {
 			return;
 		}
 
 		let queue = queryClient
-			.query({ ...wordQueryOptions(wordId), staleTime: 0 })
+			.query({ ...getWordOptions({ id: wordId }), staleTime: 0 })
 			.then(async (word) => {
 				const created = createLearningEngine({
 					wordId,
@@ -123,10 +114,10 @@ export function useLearningSession(
 					onSound: (sound) => {
 						soundCount.current += 1;
 
-						const pending: Promise<unknown> = upload({
-							sessionId,
+						const pending: Promise<unknown> = uploadSessionSound({
+							id: sessionId,
 							uri: sound.uri,
-							capturedAt: sound.capturedAt,
+							data: { captured_at: sound.capturedAt },
 						})
 							.catch((error: unknown) => reportError(error, 'session_sound_upload'))
 							.finally(() => {
@@ -198,7 +189,7 @@ export function useLearningSession(
 				return current?.stop();
 			});
 		};
-	}, [duration, queryClient, sessionId, sleep, sleepChanged, startedAt, upload, wordId]);
+	}, [duration, sessionId, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
 
 	useEffect(() => {
 		if (endsAt === null) {

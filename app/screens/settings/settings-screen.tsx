@@ -4,7 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { noticesQueryOptions } from '@/hooks/apis/notices';
+import { getNoticeListOptions } from '@/hooks/apis/notices';
 import { usePermission } from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
@@ -33,13 +33,13 @@ export function SettingsScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+	const { data: noticeListData } = useInfiniteQuery(getNoticeListOptions());
+
 	const isAnonymous = useAccountStore((account) => account.isAnonymous);
 
 	const feedback = useFeedbackStore();
 
 	const notificationPermission = usePermission('notifications');
-
-	const notices = useInfiniteQuery(noticesQueryOptions());
 
 	const form = useSettingsUpdate();
 
@@ -59,12 +59,14 @@ export function SettingsScreen() {
 				<GroupedList title={t('settings.care.title')}>
 					<SleepTimePicker value={settings.sleep} first onChange={form.updateSleep} />
 				</GroupedList>
+
 				<NotificationGroup
 					settings={settings}
 					permissionOff={notificationPermission.granted === false}
 					onOpenPermissions={() => navigation.navigate('Permissions')}
 					onChange={(key, value) => form.updateNotifications({ ...settings.notifications, [key]: value })}
 				/>
+
 				<InlineError message={form.saveFailed ? t('settings.saveError') : null} />
 			</>
 		);
@@ -72,17 +74,23 @@ export function SettingsScreen() {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
+
+			{/*설정 그룹*/}
 			<View style={styles.sections}>
 				{preferences()}
+
 				<GeneralGroup
 					onOpenDevices={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}
 					onOpenPermissions={() => navigation.navigate('Permissions')}
 				/>
+
 				<AccountActions onSignIn={() => navigation.navigate('Login')} />
+
 				<SupportGroup
 					unreadNotice={Boolean(
-						notices.data?.pages.some((page) => page.data.some((notice) => !notice.is_read)),
+						noticeListData?.pages.some((page) => page.data.some((notice) => !notice.is_read)),
 					)}
 					onFeedback={() => feedback.open('profile')}
 					onOpenNotices={() => navigation.navigate('NoticeList')}

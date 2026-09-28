@@ -4,8 +4,7 @@ import type { Consent } from '@/types/apis/consents';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { consentsQueryOptions, saveConsentMutationOptions } from '@/hooks/apis/consents';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getConsentListOptions, useSaveConsent } from '@/hooks/apis/consents';
 
 import { useTranslation } from 'react-i18next';
 
@@ -27,16 +26,16 @@ export function ConsentSettingsScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const query = useQuery(consentsQueryOptions());
+	const { data: consentListData, isError, refetch } = useQuery(getConsentListOptions());
 
-	const mutation = useIdempotentMutation(saveConsentMutationOptions());
+	const { isError: saveFailed, isPending, mutate } = useSaveConsent();
 
 	function toggle(consent: Consent) {
-		if (mutation.isPending) {
+		if (isPending) {
 			return;
 		}
 
-		mutation.mutate({
+		mutate({
 			data: {
 				consent_id: consent.id,
 				status: consent.status === 'granted' ? 'denied' : 'granted',
@@ -45,11 +44,11 @@ export function ConsentSettingsScreen() {
 	}
 
 	function body() {
-		if (query.isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={() => void query.refetch()} />;
+		if (isError) {
+			return <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
 		}
 
-		if (!query.data) {
+		if (!consentListData) {
 			return <Skeleton rows={4} height={56} />;
 		}
 
@@ -57,13 +56,13 @@ export function ConsentSettingsScreen() {
 			<>
 				{/*동의 항목 목록*/}
 				<GroupedList>
-					{latestConsents(query.data).map((consent, index) => (
+					{latestConsents(consentListData).map((consent, index) => (
 						<ConsentItem
 							key={consent.id}
 							first={index === 0}
 							consent={consent}
 							checked={consent.is_required || consent.status === 'granted'}
-							disabled={consent.is_required || mutation.isPending}
+							disabled={consent.is_required || isPending}
 							actions={{
 								toggle: () => toggle(consent),
 								open: () =>
@@ -77,7 +76,7 @@ export function ConsentSettingsScreen() {
 				</GroupedList>
 
 				{/*저장 실패 안내*/}
-				<InlineError message={mutation.isError ? t('settings.consents.saveError') : null} />
+				<InlineError message={saveFailed ? t('settings.consents.saveError') : null} />
 			</>
 		);
 	}

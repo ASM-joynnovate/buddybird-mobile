@@ -1,19 +1,21 @@
 import { useState } from 'react';
 
+import { ApiError } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
 
 import {
-	deleteParrotMutationOptions,
-	deleteParrotPhotoMutationOptions,
-	saveParrotMutationOptions,
-	uploadParrotPhotoMutationOptions,
+	useCreateParrot,
+	useDeleteParrot,
+	useDeleteParrotPhoto,
+	useUpdateParrot,
+	useUploadParrotPhoto,
 } from '@/hooks/apis/parrots';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
+import { randomUUID } from 'expo-crypto';
 
 import { PARROT_NAME_LIMIT } from '@/config';
 import { reportError } from '@/services/telemetry/client';
@@ -60,7 +62,6 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 	const { t } = useTranslation();
 
 	const known = parrot ? isSpeciesId(parrot.species) : false;
-	const savedPhotoUrl = parrot?.photo?.url ?? null;
 
 	const [name, setName] = useState(parrot?.name ?? '');
 	const [species, setSpecies] = useState(known && parrot ? parrot.species : '');
@@ -71,16 +72,22 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 		birthday: false,
 	});
 	const [removing, setRemoving] = useState(false);
+	const [idempotencyKey, setIdempotencyKey] = useState(() => randomUUID());
 
-	const mutation = useIdempotentMutation(saveParrotMutationOptions());
-	const photoUpload = useIdempotentMutation(uploadParrotPhotoMutationOptions());
-	const photoDelete = useIdempotentMutation(deleteParrotPhotoMutationOptions());
-	const removal = useIdempotentMutation(deleteParrotMutationOptions());
+	const createParrot = useCreateParrot();
+	const updateParrot = useUpdateParrot();
+	const deleteParrot = useDeleteParrot();
+	const uploadParrotPhoto = useUploadParrotPhoto();
+	const deleteParrotPhoto = useDeleteParrotPhoto();
+
+	const savedPhotoUrl = parrot?.photo?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
 
-	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending;
-	const saveFailed = mutation.isError || photoUpload.isError || photoDelete.isError;
+	const busy =
+		createParrot.isPending || updateParrot.isPending || uploadParrotPhoto.isPending || deleteParrotPhoto.isPending;
+	const saveFailed =
+		createParrot.isError || updateParrot.isError || uploadParrotPhoto.isError || deleteParrotPhoto.isError;
 
 	const clear = (key: keyof Invalid) => setInvalid((current) => ({ ...current, [key]: false }));
 
@@ -98,16 +105,27 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 			return;
 		}
 
+		const parrotInfo = { name: trimmed, species, birthdate: birthdate ?? null };
+
 		saveWithPhoto({
 			photoUri: photo.photoUri,
 			savedPhotoUrl,
 			saveInfo: () =>
-				mutation.mutateAsync({
-					id: parrot?.id ?? null,
-					input: { name: trimmed, species, birthdate: birthdate ?? null },
-				}),
-			uploadPhoto: (saved, uri) => photoUpload.mutateAsync({ id: saved.id, uri }),
-			deletePhoto: (saved) => photoDelete.mutateAsync({ id: saved.id }),
+				parrot
+					? updateParrot.mutateAsync({ id: parrot.id, data: parrotInfo })
+					: createParrot.mutateAsync(
+							{ data: parrotInfo, idempotencyKey },
+							{
+								onSuccess: () => setIdempotencyKey(randomUUID()),
+								onError: (error) => {
+									if (error instanceof ApiError && error.rejected) {
+										setIdempotencyKey(randomUUID());
+									}
+								},
+							},
+						),
+			uploadPhoto: (saved, uri) => uploadParrotPhoto.mutateAsync({ id: saved.id, uri }),
+			deletePhoto: (saved) => deleteParrotPhoto.mutateAsync({ id: saved.id }),
 			onDone,
 		}).catch((error: unknown) => reportError(error, 'parrot_save'));
 	}
@@ -117,7 +135,7 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 			return;
 		}
 
-		removal.mutate(
+		deleteParrot.mutate(
 			{ id: parrot.id },
 			{
 				onSuccess: () => {
@@ -158,11 +176,11 @@ export function useParrotForm(parrot: Parrot | undefined, onDone: () => void): P
 		},
 		removal: {
 			open: removing,
-			busy: removal.isPending,
-			error: removal.isError ? t('entry.parrot.deleteError') : null,
+			busy: deleteParrot.isPending,
+			error: deleteParrot.isError ? t('entry.parrot.deleteError') : null,
 			ask: () => setRemoving(true),
 			close: () => {
-				removal.reset();
+				deleteParrot.reset();
 
 				setRemoving(false);
 			},

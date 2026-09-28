@@ -1,15 +1,17 @@
-import { mutationOptions } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { postFeedback } from '@/apis/feedback';
 
-import type { CreateFeedbackRequest } from '@/types/apis/feedback';
-
 import { apiKeys } from '@/hooks/apis/keys';
 
-export const feedbackMutationOptions = () =>
-	mutationOptions({
+import { reportError } from '@/services/telemetry/client';
+
+/** 의견 전송 훅 */
+export const useSendFeedback = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('feedback', 'create'),
-		mutationFn: ({ input, idempotencyKey }: { input: CreateFeedbackRequest; idempotencyKey: string }) =>
-			postFeedback({ data: input, idempotencyKey }),
+		mutationFn: postFeedback,
 		retry: false,
+		onError: (error) => reportError(error, 'feedback_send'),
 	});
+};

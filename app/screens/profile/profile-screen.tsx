@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ProfileStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { parrotsQueryOptions } from '@/hooks/apis/parrots';
-import { meQueryOptions } from '@/hooks/apis/users';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { getMeOptions } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
@@ -36,31 +36,38 @@ export function ProfileScreen() {
 
 	const navigation = useNavigation<Navigation>();
 
+	const { data: meData, isError: isMeError, refetch: refetchMe } = useQuery(getMeOptions());
+	const {
+		data: parrotListData,
+		isError: isParrotListError,
+		refetch: refetchParrotList,
+	} = useQuery(getParrotListOptions());
+
 	const isAnonymous = useAccountStore((account) => account.isAnonymous);
 
-	const me = useQuery(meQueryOptions());
-	const parrots = useQuery(parrotsQueryOptions());
-
 	function body() {
-		if (me.isError || parrots.isError) {
+		if (isMeError || isParrotListError) {
 			return (
 				<ScreenError
 					message={t('common.loadError')}
 					onRetry={() => {
-						void me.refetch();
-						void parrots.refetch();
+						void refetchMe();
+						void refetchParrotList();
 					}}
 				/>
 			);
 		}
 
-		if (!me.data || !parrots.data) {
+		if (!meData || !parrotListData) {
 			return <Skeleton rows={3} height={96} />;
 		}
 
 		return (
 			<>
-				<AccountCard user={me.data} onPress={() => navigation.navigate('AccountEditor')} />
+				{/*계정 카드*/}
+				<AccountCard user={meData} onPress={() => navigation.navigate('AccountEditor')} />
+
+				{/*로그인 버튼*/}
 				{isAnonymous ? (
 					<Button
 						label={t('auth.signIn')}
@@ -69,12 +76,14 @@ export function ProfileScreen() {
 						style={styles.signIn}
 					/>
 				) : null}
+
+				{/*앵무새 목록*/}
 				<View style={ui.section}>
 					<Copy accessibilityRole="header" style={ui.sectionTitle}>
 						{t('profile.parrots')}
 					</Copy>
 					<View style={styles.parrots}>
-						{parrots.data.map((parrot) => (
+						{parrotListData.map((parrot) => (
 							<ParrotCard
 								key={parrot.id}
 								parrot={parrot}
@@ -82,6 +91,7 @@ export function ProfileScreen() {
 							/>
 						))}
 					</View>
+
 					<Button
 						label={t('profile.addParrot')}
 						icon={PlusIcon}
@@ -96,6 +106,7 @@ export function ProfileScreen() {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader
 				large
 				title={t('profile.title')}
@@ -105,6 +116,8 @@ export function ProfileScreen() {
 					onPress={() => navigation.navigate('Settings')}
 				/>
 			/>
+
+			{/*계정과 앵무새*/}
 			{body()}
 		</Screen>
 	);

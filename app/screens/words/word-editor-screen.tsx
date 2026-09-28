@@ -4,8 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { RootStackParamList, WordsStackParamList } from '@/types/navigation';
 
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-import { deleteWordMutationOptions } from '@/hooks/apis/words';
+import { useDeleteWord } from '@/hooks/apis/words';
 import { usePermission } from '@/hooks/use-permission';
 import { useSoundPlayer } from '@/hooks/use-sound-player';
 
@@ -49,11 +48,10 @@ export function WordEditorScreen(): ReactElement {
 
 	const route = useRoute<RouteProp<WordsStackParamList, 'WordEditor'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const routeWordId = route.params?.wordId ?? null;
 
 	const [pending, setPending] = useState<PendingDelete | null>(null);
 
-	const deleteWord = useIdempotentMutation(deleteWordMutationOptions());
+	const { isError, isPending, mutate, reset } = useDeleteWord();
 
 	const guides = useDeviceSettingsStore((state) => state.guides);
 
@@ -61,6 +59,7 @@ export function WordEditorScreen(): ReactElement {
 
 	const player = useSoundPlayer();
 
+	const routeWordId = route.params?.wordId ?? null;
 	const draft = useWordDraft(routeWordId, route.params?.recorded);
 
 	const busy = draft.step !== null;
@@ -84,7 +83,7 @@ export function WordEditorScreen(): ReactElement {
 
 			setPending(null);
 		} else if (routeWordId) {
-			deleteWord.mutate(
+			mutate(
 				{ id: routeWordId },
 				{
 					onSuccess: () => {
@@ -103,7 +102,7 @@ export function WordEditorScreen(): ReactElement {
 	}
 
 	function closeDialog() {
-		deleteWord.reset();
+		reset();
 
 		setPending(null);
 	}
@@ -180,7 +179,7 @@ export function WordEditorScreen(): ReactElement {
 			<DeleteWordDialog
 				visible={pending?.kind === 'word'}
 				name={wordName}
-				deletion={deleteWord}
+				deletion={{ isPending, isError }}
 				onConfirm={confirmDelete}
 				onClose={closeDialog}
 			/>

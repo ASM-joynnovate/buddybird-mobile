@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { Notice } from '@/types/apis/notices';
 
-import { readNoticeMutationOptions } from '@/hooks/apis/notices';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { useReadNotice } from '@/hooks/apis/notices';
 
 import { launch } from '@/screens/home/hooks/launch';
 
@@ -11,9 +10,11 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 	current: Notice | null;
 	close(): void;
 } {
-	const { mutate } = useIdempotentMutation(readNoticeMutationOptions());
-
 	const [queue, setQueue] = useState<readonly Notice[]>([]);
+
+	const { mutate } = useReadNotice();
+
+	const current = queue[0] ?? null;
 
 	useEffect(() => {
 		if (!notices || launch.noticesShown) {
@@ -24,8 +25,6 @@ export function useNoticePopup(notices: readonly Notice[] | undefined): {
 
 		setQueue(notices);
 	}, [notices]);
-
-	const current = queue[0] ?? null;
 
 	return {
 		current,

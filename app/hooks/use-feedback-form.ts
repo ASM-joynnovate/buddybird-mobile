@@ -1,7 +1,10 @@
 import { useState } from 'react';
 
-import { feedbackMutationOptions } from '@/hooks/apis/feedback';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { ApiError } from '@/types/apis/common';
+
+import { useSendFeedback } from '@/hooks/apis/feedback';
+
+import { randomUUID } from 'expo-crypto';
 
 import { track } from '@/services/telemetry/client';
 
@@ -16,34 +19,42 @@ export interface FeedbackForm {
 }
 
 export function useFeedbackForm(source: 'profile' | 'prompt', onClose: () => void): FeedbackForm {
-	const mutation = useIdempotentMutation(feedbackMutationOptions());
-
 	const [message, setMessage] = useState('');
+	const [idempotencyKey, setIdempotencyKey] = useState(() => randomUUID());
+
+	const { isError, isPending, isSuccess, mutate, reset } = useSendFeedback();
 
 	function close() {
-		if (mutation.isPending) {
+		if (isPending) {
 			return;
 		}
 
-		mutation.reset();
+		reset();
 
 		setMessage('');
+		setIdempotencyKey(randomUUID());
 
 		onClose();
 	}
 
 	function submit() {
-		if (mutation.isPending || !message.trim()) {
+		if (isPending || !message.trim()) {
 			return;
 		}
 
-		mutation.mutate(
-			{ input: { message: message.trim() } },
+		mutate(
+			{ data: { message: message.trim() }, idempotencyKey },
 			{
 				onSuccess: () => {
 					track('feedback_submitted', { source, message_length: message.trim().length });
 
 					setMessage('');
+					setIdempotencyKey(randomUUID());
+				},
+				onError: (error) => {
+					if (error instanceof ApiError && error.rejected) {
+						setIdempotencyKey(randomUUID());
+					}
 				},
 			},
 		);
@@ -52,9 +63,9 @@ export function useFeedbackForm(source: 'profile' | 'prompt', onClose: () => voi
 	return {
 		message,
 		setMessage,
-		busy: mutation.isPending,
-		sent: mutation.isSuccess,
-		sendFailed: mutation.isError,
+		busy: isPending,
+		sent: isSuccess,
+		sendFailed: isError,
 		close,
 		submit,
 	};

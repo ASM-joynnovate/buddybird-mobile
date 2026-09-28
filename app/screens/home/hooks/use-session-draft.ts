@@ -7,8 +7,8 @@ import type { Word } from '@/types/apis/words';
 import type { LearningDuration, SessionDraft } from '@/types/navigation';
 import type { SleepSettings } from '@/types/sleep-settings';
 
-import { settingsQueryOptions } from '@/hooks/apis/settings';
-import { wordsQueryOptions } from '@/hooks/apis/words';
+import { getSettingsOptions } from '@/hooks/apis/settings';
+import { getWordListOptions } from '@/hooks/apis/words';
 
 const UNTIL_END: LearningDuration = { ms: null, custom: false };
 
@@ -28,20 +28,29 @@ type SessionDraftState = {
 };
 
 export function useSessionDraft(): SessionDraftState {
-	const words = useQuery(wordsQueryOptions());
-	const settings = useQuery(settingsQueryOptions());
-
 	const [wordId, setWordId] = useState<string | null>(null);
 	const [duration, setDuration] = useState(UNTIL_END);
 	const [editedSleep, setEditedSleep] = useState<SleepSettings | null>(null);
 
-	const available = (words.data ?? []).filter((item) => item.recordings.length > 0);
+	const {
+		data: wordListData,
+		isPending: isWordListPending,
+		isError: isWordListError,
+		refetch: refetchWordList,
+	} = useQuery(getWordListOptions());
+	const {
+		data: settingsData,
+		isPending: isSettingsPending,
+		isError: isSettingsError,
+		refetch: refetchSettings,
+	} = useQuery(getSettingsOptions());
+
+	const available = (wordListData ?? []).filter((item) => item.recordings.length > 0);
 	const word = available.find((item) => item.id === wordId) ?? null;
-	const sleep = editedSleep ?? settings.data?.sleep;
+	const sleep = editedSleep ?? settingsData?.sleep;
 	const sleepChanged =
 		editedSleep !== null &&
-		(editedSleep.sleep_at !== settings.data?.sleep.sleep_at ||
-			editedSleep.wake_at !== settings.data?.sleep.wake_at);
+		(editedSleep.sleep_at !== settingsData?.sleep.sleep_at || editedSleep.wake_at !== settingsData?.sleep.wake_at);
 
 	return {
 		words: available,
@@ -49,11 +58,11 @@ export function useSessionDraft(): SessionDraftState {
 		duration,
 		sleep,
 		draft: word && sleep ? { wordId: word.id, duration, sleep, sleepChanged } : null,
-		loading: words.isPending || settings.isPending,
-		isError: words.isError || settings.isError,
+		loading: isWordListPending || isSettingsPending,
+		isError: isWordListError || isSettingsError,
 		retry: () => {
-			void words.refetch();
-			void settings.refetch();
+			void refetchWordList();
+			void refetchSettings();
 		},
 		selectWord: setWordId,
 		setDuration,

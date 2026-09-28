@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { sessionQueryOptions } from '@/hooks/apis/sessions';
-import { wordsQueryOptions } from '@/hooks/apis/words';
+import { getSessionOptions } from '@/hooks/apis/sessions';
+import { getWordListOptions } from '@/hooks/apis/words';
 
 import { useTranslation } from 'react-i18next';
 
@@ -30,10 +30,10 @@ export function SessionSummaryScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionSummary'>>();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
+	const { data: sessionData, isError, refetch } = useQuery(getSessionOptions({ id: params.sessionId }));
+	const { data: wordListData } = useQuery(getWordListOptions());
 
-	const session = useQuery(sessionQueryOptions(params.sessionId));
-	const words = useQuery(wordsQueryOptions());
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	function openDetail() {
 		navigation.reset({
@@ -56,12 +56,12 @@ export function SessionSummaryScreen() {
 
 	let body = <Skeleton rows={3} height={56} />;
 
-	if (session.isError) {
-		body = <ScreenError message={t('common.loadError')} onRetry={() => void session.refetch()} />;
-	} else if (session.data) {
-		const { period, word_id: wordId } = session.data;
+	if (isError) {
+		body = <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
+	} else if (sessionData) {
+		const { period, word_id: wordId } = sessionData;
 		const total = period.ended_at ? Date.parse(period.ended_at) - Date.parse(period.started_at) : 0;
-		const word = words.data?.find((item) => item.id === wordId);
+		const word = wordListData?.find((item) => item.id === wordId);
 
 		body = (
 			<Card contentStyle={styles.card}>
@@ -73,7 +73,10 @@ export function SessionSummaryScreen() {
 
 	return (
 		<Screen contentContainerStyle={styles.content}>
+			{/*학습 요약*/}
 			<View style={styles.body}>{body}</View>
+
+			{/*세션 상세 버튼*/}
 			<Button label={t('session.summary.detail')} icon={ChartNoAxesColumnIcon} onPress={openDetail} />
 		</Screen>
 	);

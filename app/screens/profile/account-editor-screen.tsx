@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ProfileStackParamList } from '@/types/navigation';
 
-import { meQueryOptions } from '@/hooks/apis/users';
+import { getMeOptions } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,23 +21,26 @@ export function AccountEditorScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
 
-	const me = useQuery(meQueryOptions());
+	const { data: meData, isError, refetch } = useQuery(getMeOptions());
 
 	function body() {
-		if (me.isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={() => void me.refetch()} />;
+		if (isError) {
+			return <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
 		}
 
-		if (!me.data) {
+		if (!meData) {
 			return <Skeleton rows={2} />;
 		}
 
-		return <AccountForm user={me.data} onSaved={() => navigation.goBack()} />;
+		return <AccountForm user={meData} onSaved={() => navigation.goBack()} />;
 	}
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader title={t('profile.editAccount')} onBack={() => navigation.goBack()} />
+
+			{/*계정 편집 폼*/}
 			{body()}
 		</Screen>
 	);

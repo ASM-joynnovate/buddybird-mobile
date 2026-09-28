@@ -1,28 +1,35 @@
-import { mutationOptions } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { postLogin, postLogout, withdrawal } from '@/apis/auth';
 
-import type { LoginRequest } from '@/types/apis/auth';
-
 import { apiKeys } from '@/hooks/apis/keys';
 
-export const loginMutationOptions = () =>
-	mutationOptions({
+import { reportError } from '@/services/telemetry/client';
+
+/** 로그인 훅 */
+export const useLogin = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'login'),
-		mutationFn: ({ request, signal }: { request: LoginRequest; signal: AbortSignal }) =>
-			postLogin({ data: request, signal }),
+		mutationFn: postLogin,
 		retry: false,
 		meta: { skipUnauthorizedSignOut: true },
 	});
+};
 
-export const logoutMutationOptions = () =>
-	mutationOptions({
+/** 로그아웃 훅 */
+export const useLogout = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'logout'),
-		mutationFn: () => postLogout(),
+		mutationFn: postLogout,
+		onError: (error) => reportError(error, 'sign_out'),
 	});
+};
 
-export const withdrawMutationOptions = () =>
-	mutationOptions({
+/** 탈퇴 훅 */
+export const useWithdraw = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'withdraw'),
-		mutationFn: () => withdrawal(),
+		mutationFn: withdrawal,
+		onError: (error) => reportError(error, 'withdraw'),
 	});
+};

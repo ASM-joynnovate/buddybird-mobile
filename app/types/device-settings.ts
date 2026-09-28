@@ -8,6 +8,7 @@ const legacyMigrationSchema = z.object({
 	parrotId: z.string().nullable(),
 	photoUploaded: z.boolean(),
 	words: z.record(z.string(), z.object({ wordId: z.string().nullable(), done: z.boolean() })),
+	idempotencyKeys: z.record(z.string(), z.string()).default({}),
 });
 
 export type LegacyMigration = z.infer<typeof legacyMigrationSchema>;
@@ -18,6 +19,7 @@ export const initialLegacyMigration: LegacyMigration = {
 	parrotId: null,
 	photoUploaded: false,
 	words: {},
+	idempotencyKeys: {},
 };
 
 export const deviceSettingsSchema = z.object({

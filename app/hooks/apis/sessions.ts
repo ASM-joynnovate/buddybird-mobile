@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
 	getAllSessionSounds,
@@ -10,69 +10,103 @@ import {
 	postSessionSound,
 } from '@/apis/sessions';
 
-import type { HeartbeatRequest, StartSessionRequest } from '@/types/apis/sessions';
+import { ApiError } from '@/types/apis/common';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { queryClient } from '@/lib/query-client';
 
-export const runningSessionQueryOptions = () =>
+import { reportError } from '@/services/telemetry/client';
+
+/** 진행 중 세션 조회 옵션 */
+export const getRunningSessionOptions = () =>
 	queryOptions({ queryKey: apiKeys.sessions.running(), queryFn: getRunningSession });
+/** 진행 중 세션 조회 훅 */
+export const useGetRunningSession = () => {
+	return useSuspenseQuery(getRunningSessionOptions());
+};
 
-export const sessionQueryOptions = (id: string) =>
+/** 세션 조회 옵션 */
+export const getSessionOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.detail(id), queryFn: () => getSession({ id }) });
+/** 세션 조회 훅 */
+export const useGetSession = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getSessionOptions({ id }));
+};
 
-export const sessionSoundsQueryOptions = (id: string) =>
+/** 세션 소리 목록 조회 옵션 */
+export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.sounds(id), queryFn: () => getAllSessionSounds({ id }) });
+/** 세션 소리 목록 조회 훅 */
+export const useGetSessionSoundList = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getSessionSoundListOptions({ id }));
+};
 
-export const startSessionMutationOptions = () =>
-	mutationOptions({
+/** 세션 시작 훅 */
+export const useStartSession = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'start'),
-		mutationFn: ({ data, idempotencyKey }: { data: StartSessionRequest; idempotencyKey: string }) =>
-			postSession({ data, idempotencyKey }),
+		mutationFn: postSession,
 		onSuccess: (session) => {
 			queryClient.setQueryData(apiKeys.sessions.running(), session);
 
 			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices());
 		},
-	});
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === 'SESSION__ALREADY_RUNNING') {
+				return;
+			}
 
-export const finishSessionMutationOptions = () =>
-	mutationOptions({
+			reportError(error, 'session_start');
+		},
+	});
+};
+
+/** 세션 종료 훅 */
+export const useFinishSession = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'finish'),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			postSessionFinish({ id, idempotencyKey }),
+		mutationFn: postSessionFinish,
 		onSuccess: (session) => {
 			queryClient.setQueryData(apiKeys.sessions.running(), null);
 			queryClient.setQueryData(apiKeys.sessions.detail(session.id), session);
 
 			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices(), apiKeys.reports.all());
 		},
-	});
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+				return;
+			}
 
-export const uploadSoundMutationOptions = () =>
-	mutationOptions({
+			reportError(error, 'session_finish');
+		},
+	});
+};
+
+/** 세션 소리 업로드 훅 */
+export const useUploadSessionSound = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
-		mutationFn: ({
-			sessionId,
-			uri,
-			capturedAt,
-			idempotencyKey,
-		}: {
-			sessionId: string;
-			uri: string;
-			capturedAt: string;
-			idempotencyKey: string;
-		}) => postSessionSound({ id: sessionId, uri, data: { captured_at: capturedAt }, idempotencyKey }),
-		onSuccess: (_data, { sessionId }) => invalidate(apiKeys.sessions.sounds(sessionId)),
+		mutationFn: postSessionSound,
+		onSuccess: (_data, { id }) => invalidate(apiKeys.sessions.sounds(id)),
 	});
+};
 
-export const heartbeatMutationOptions = () =>
-	mutationOptions({
+/** 하트비트 전송 훅 */
+export const useSendHeartbeat = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'heartbeat'),
-		mutationFn: ({ id, data, idempotencyKey }: { id: string; data: HeartbeatRequest; idempotencyKey: string }) =>
-			postSessionHeartbeat({ id, data, idempotencyKey }),
+		mutationFn: postSessionHeartbeat,
 		retry: false,
 		onSuccess: () => invalidate(apiKeys.sessions.running()),
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+				return;
+			}
+
+			reportError(error, 'session_heartbeat');
+		},
 	});
+};

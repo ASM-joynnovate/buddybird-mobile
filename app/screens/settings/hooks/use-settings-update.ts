@@ -4,12 +4,7 @@ import type { NotificationSettings, Settings } from '@/types/apis/settings';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
-import {
-	settingsQueryOptions,
-	updateNotificationsMutationOptions,
-	updateSleepMutationOptions,
-} from '@/hooks/apis/settings';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getSettingsOptions, useUpdateNotificationSettings, useUpdateSleepSettings } from '@/hooks/apis/settings';
 
 export function useSettingsUpdate(): {
 	settings: Settings | undefined;
@@ -19,17 +14,17 @@ export function useSettingsUpdate(): {
 	updateNotifications(notifications: NotificationSettings): void;
 	saveFailed: boolean;
 } {
-	const query = useQuery(settingsQueryOptions());
+	const { data: settingsData, isError, refetch } = useQuery(getSettingsOptions());
 
-	const sleepMutation = useIdempotentMutation(updateSleepMutationOptions());
-	const notificationsMutation = useIdempotentMutation(updateNotificationsMutationOptions());
+	const updateSleepSettings = useUpdateSleepSettings();
+	const updateNotificationSettings = useUpdateNotificationSettings();
 
 	return {
-		settings: query.data,
-		loadFailed: query.isError,
-		retry: () => void query.refetch(),
-		updateSleep: (sleep) => sleepMutation.mutate({ sleep }),
-		updateNotifications: (notifications) => notificationsMutation.mutate({ notifications }),
-		saveFailed: sleepMutation.isError || notificationsMutation.isError,
+		settings: settingsData,
+		loadFailed: isError,
+		retry: () => void refetch(),
+		updateSleep: (sleep) => updateSleepSettings.mutate({ data: sleep }),
+		updateNotifications: (notifications) => updateNotificationSettings.mutate({ data: notifications }),
+		saveFailed: updateSleepSettings.isError || updateNotificationSettings.isError,
 	};
 }

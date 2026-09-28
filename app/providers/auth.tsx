@@ -2,11 +2,9 @@ import { type ReactNode, useEffect } from 'react';
 
 import { Alert, AppState } from 'react-native';
 
-import { useMutation } from '@tanstack/react-query';
-
 import { ApiError } from '@/types/apis/common';
 
-import { loginMutationOptions } from '@/hooks/apis/auth';
+import { useLogin } from '@/hooks/apis/auth';
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 
@@ -38,9 +36,9 @@ function sameIdentity(previous: AuthIdentity | null | undefined, next: AuthIdent
 }
 
 export function AuthProvider({ children }: Props) {
-	const attempt = useAuthStore((auth) => auth.attempt);
+	const { mutateAsync } = useLogin();
 
-	const { mutateAsync: runLogin } = useMutation(loginMutationOptions());
+	const attempt = useAuthStore((auth) => auth.attempt);
 
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState();
@@ -57,6 +55,7 @@ export function AuthProvider({ children }: Props) {
 			takeCredential();
 			useAccountStore.getState().clearRegistration();
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
+
 			queryClient.clear();
 
 			setStatus('signingUp');
@@ -83,8 +82,8 @@ export function AuthProvider({ children }: Props) {
 
 			try {
 				const credential = await loginCredential();
-				const { user_id } = await runLogin({
-					request: {
+				const { user_id } = await mutateAsync({
+					data: {
 						...credential,
 						language: useDeviceSettingsStore.getState().locale === 'ko-KR' ? 'ko' : 'en',
 					},
@@ -229,7 +228,7 @@ export function AuthProvider({ children }: Props) {
 			lifecycle.remove();
 			void auth.stopAutoRefresh();
 		};
-	}, [attempt, runLogin]);
+	}, [attempt, mutateAsync]);
 
 	return children;
 }

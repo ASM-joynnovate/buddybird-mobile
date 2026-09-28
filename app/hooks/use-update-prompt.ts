@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { appUpdateQueryOptions } from '@/hooks/apis/app-update';
+import { getAppUpdateOptions } from '@/hooks/apis/app-update';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,16 +21,16 @@ export function useUpdatePrompt() {
 
 	const shownUpdate = useRef<string | null>(null);
 
-	const update = useQuery(appUpdateQueryOptions());
+	const { data: appUpdateData, fetchStatus, isError, isFetching, isSuccess } = useQuery(getAppUpdateOptions());
 
 	const preferences = useDeviceSettingsStore((state) => state.update);
 
-	const decision = update.data
+	const decision = appUpdateData
 		? evaluateUpdate(
 				{
-					latestVersion: update.data.latest_version,
-					minimumVersion: update.data.min_supported_version,
-					notes: update.data.release_notes,
+					latestVersion: appUpdateData.latest_version,
+					minimumVersion: appUpdateData.min_supported_version,
+					notes: appUpdateData.release_notes,
 				},
 				installedVersion,
 				preferences.dismissedVersion,
@@ -39,8 +39,7 @@ export function useUpdatePrompt() {
 
 	const updateVisible = !!decision && (decision.forced || acceptedUpdate !== decision.latestVersion);
 
-	const updatesSettled =
-		!update.isFetching && (update.isSuccess || update.isError || update.fetchStatus === 'paused');
+	const updatesSettled = !isFetching && (isSuccess || isError || fetchStatus === 'paused');
 
 	useEffect(() => {
 		if (updateVisible && decision && shownUpdate.current !== decision.latestVersion) {

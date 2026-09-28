@@ -4,8 +4,7 @@ import { Platform } from 'react-native';
 
 import type { RegisterDeviceRequest } from '@/types/apis/devices';
 
-import { registerDeviceMutationOptions } from '@/hooks/apis/devices';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { useRegisterDevice } from '@/hooks/apis/devices';
 
 import * as Device from 'expo-device';
 
@@ -26,17 +25,17 @@ function thisDeviceInfo(): RegisterDeviceRequest {
 }
 
 export function useDeviceRegistration(): boolean {
-	const serverUserId = useAccountStore((account) => account.serverUserId);
+	const { isSuccess, mutate } = useRegisterDevice();
 
-	const { mutate: register, isSuccess: registered } = useIdempotentMutation(registerDeviceMutationOptions());
+	const serverUserId = useAccountStore((account) => account.serverUserId);
 
 	useEffect(() => {
 		if (!serverUserId) {
 			return;
 		}
 
-		register({ device: thisDeviceInfo() }, { onError: (error) => reportError(error, 'device_register') });
-	}, [serverUserId, register]);
+		mutate({ data: thisDeviceInfo() }, { onError: (error) => reportError(error, 'device_register') });
+	}, [serverUserId, mutate]);
 
-	return registered;
+	return isSuccess;
 }

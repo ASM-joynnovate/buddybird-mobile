@@ -20,7 +20,7 @@ module.exports = {
     layer(
       "hooks-apis",
       "^app/hooks/apis/",
-      "^app/(hooks/apis/|apis/|config/|types/apis/|lib/query-client\\.ts$|stores/account\\.ts$)",
+      "^app/(hooks/apis/|apis/|config/|types/apis/|lib/query-client\\.ts$|stores/account\\.ts$|services/telemetry/client\\.ts$)",
     ),
     layer(
       "providers",

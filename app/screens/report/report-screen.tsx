@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { reportQueryOptions } from '@/hooks/apis/reports';
+import { getReportOptions } from '@/hooks/apis/reports';
 
 import { useTranslation } from 'react-i18next';
 
@@ -33,22 +33,27 @@ export function ReportScreen(): ReactElement {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const focused = useIsFocused();
 
-	const isAnonymous = useAccountStore((account) => account.isAnonymous);
+	const viewedPeriod = useRef<string | null>(null);
+	const recordedNotificationParams = useRef<object | null>(null);
 
 	const period = useReportPeriod(route.params);
 
-	const report = useQuery({
-		...reportQueryOptions(period.period, period.start),
+	const {
+		data: reportData,
+		isError,
+		isRefetching,
+		refetch,
+	} = useQuery({
+		...getReportOptions({ period: period.period, start: period.start }),
 		refetchInterval: (query) =>
 			focused && query.state.data?.sessions.some((session) => session.judgment_status === 'pending')
 				? SCREEN_REFRESH_MS
 				: false,
 	});
 
-	const viewedPeriod = useRef<string | null>(null);
-	const recordedNotificationParams = useRef<object | null>(null);
+	const isAnonymous = useAccountStore((account) => account.isAnonymous);
 
-	const recorded = report.data !== undefined && report.data.sessions.length > 0;
+	const recorded = reportData !== undefined && reportData.sessions.length > 0;
 
 	useEffect(() => {
 		if (!focused) {
@@ -61,7 +66,7 @@ export function ReportScreen(): ReactElement {
 		const openedFromNotification =
 			route.params?.source === 'notification' && recordedNotificationParams.current !== route.params;
 
-		if (!report.data || (viewedPeriod.current === shownPeriod && !openedFromNotification)) {
+		if (!reportData || (viewedPeriod.current === shownPeriod && !openedFromNotification)) {
 			return;
 		}
 
@@ -72,9 +77,9 @@ export function ReportScreen(): ReactElement {
 			period: period.period,
 			periods_ago: period.periodsAgo,
 			source: openedFromNotification ? 'notification' : 'tab',
-			session_count: report.data.sessions.length,
+			session_count: reportData.sessions.length,
 		});
-	}, [focused, period.period, period.periodsAgo, period.start, report.data, route.params]);
+	}, [focused, period.period, period.periodsAgo, period.start, reportData, route.params]);
 
 	function openSession(sessionId: string) {
 		navigation.navigate('Main', {
@@ -86,15 +91,15 @@ export function ReportScreen(): ReactElement {
 	const header = (
 		<ReportHeader
 			state={period}
-			report={report.data}
-			loadFailed={report.isError}
-			onRetry={() => void report.refetch()}
+			report={reportData}
+			loadFailed={isError}
+			onRetry={() => void refetch()}
 			onStart={() => navigation.navigate('Main', { screen: 'HomeTab' })}
 		/>
 	);
 
 	const footer =
-		report.data && recorded ? (
+		reportData && recorded ? (
 			<View style={ui.section}>
 				<View style={styles.mimicryTitle}>
 					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
@@ -102,10 +107,11 @@ export function ReportScreen(): ReactElement {
 					</Copy>
 					{isAnonymous ? null : (
 						<Copy style={styles.mimicryCount}>
-							{t('report.mimicry', { count: report.data.mimicry.count })}
+							{t('report.mimicry', { count: reportData.mimicry.count })}
 						</Copy>
 					)}
 				</View>
+
 				{isAnonymous ? (
 					<View style={styles.locked}>
 						<Copy style={styles.none}>{t('auth.signInRequired')}</Copy>
@@ -121,13 +127,14 @@ export function ReportScreen(): ReactElement {
 
 	return (
 		<Screen scroll={false}>
+			{/*리포트와 세션 목록*/}
 			<FlatList
-				data={recorded ? report.data?.sessions : []}
+				data={recorded ? reportData?.sessions : []}
 				keyExtractor={(session) => session.id}
 				contentContainerStyle={styles.content}
 				showsVerticalScrollIndicator={false}
-				refreshing={report.isRefetching}
-				onRefresh={() => void report.refetch()}
+				refreshing={isRefetching}
+				onRefresh={() => void refetch()}
 				ListHeaderComponent={header}
 				ListFooterComponent={footer}
 				renderItem={({ item }) => (

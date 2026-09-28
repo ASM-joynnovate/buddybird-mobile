@@ -1,11 +1,8 @@
 import { useState } from 'react';
 
-import { useMutation } from '@tanstack/react-query';
-
 import type { User } from '@/types/apis/users';
 
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-import { deletePhotoMutationOptions, updateMeMutationOptions, uploadPhotoMutationOptions } from '@/hooks/apis/users';
+import { useDeleteUserPhoto, useUpdateMe, useUploadUserPhoto } from '@/hooks/apis/users';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
@@ -34,23 +31,23 @@ export function useAccountForm(
 	const [nickname, setNickname] = useState(user.nickname ?? '');
 	const [invalid, setInvalid] = useState(false);
 
-	const mutation = useMutation(updateMeMutationOptions());
-	const photoUpload = useIdempotentMutation(uploadPhotoMutationOptions());
-	const photoDelete = useMutation(deletePhotoMutationOptions());
+	const updateMe = useUpdateMe();
+	const uploadUserPhoto = useUploadUserPhoto();
+	const deleteUserPhoto = useDeleteUserPhoto();
 
 	const savedPhotoUrl = user.photo?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
 
-	const busy = mutation.isPending || photoUpload.isPending || photoDelete.isPending;
-	const photoSaveFailed = photoUpload.isError || photoDelete.isError;
-	const duplicate = isDuplicateNickname(mutation.error);
+	const busy = updateMe.isPending || uploadUserPhoto.isPending || deleteUserPhoto.isPending;
+	const photoSaveFailed = uploadUserPhoto.isError || deleteUserPhoto.isError;
+	const duplicate = isDuplicateNickname(updateMe.error);
 	let nicknameError: string | null = null;
 
 	if (invalid) {
 		nicknameError = t('profile.nicknameInvalid');
 	} else if (duplicate) {
-		nicknameError = apiErrorMessage(mutation.error, t);
+		nicknameError = apiErrorMessage(updateMe.error, t);
 	}
 
 	function save() {
@@ -69,9 +66,9 @@ export function useAccountForm(
 		saveWithPhoto({
 			photoUri: photo.photoUri,
 			savedPhotoUrl,
-			saveInfo: () => mutation.mutateAsync({ nickname: trimmed }),
-			uploadPhoto: (_saved, uri) => photoUpload.mutateAsync({ uri }),
-			deletePhoto: () => photoDelete.mutateAsync(),
+			saveInfo: () => updateMe.mutateAsync({ data: { nickname: trimmed } }),
+			uploadPhoto: (_saved, uri) => uploadUserPhoto.mutateAsync({ uri }),
+			deletePhoto: () => deleteUserPhoto.mutateAsync(),
 			onDone: onSaved,
 		}).catch((error: unknown) => {
 			if (!isDuplicateNickname(error)) {
@@ -86,12 +83,12 @@ export function useAccountForm(
 			setNickname(value);
 			setInvalid(false);
 
-			mutation.reset();
+			updateMe.reset();
 		},
 		nicknameError,
 		photo,
 		busy,
-		error: (mutation.isError && !duplicate) || photoSaveFailed ? t('common.saveErrorKept') : null,
+		error: (updateMe.isError && !duplicate) || photoSaveFailed ? t('common.saveErrorKept') : null,
 		save,
 	};
 }

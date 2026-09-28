@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { consentsQueryOptions } from '@/hooks/apis/consents';
-import { parrotsQueryOptions } from '@/hooks/apis/parrots';
+import { getConsentListOptions } from '@/hooks/apis/consents';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
 
 import { hasLegacyUpload } from '@/services/migration/upload-legacy';
 import { useAccountStore } from '@/stores/account';
@@ -18,31 +18,39 @@ export type EntryRoute =
 	| 'Main';
 
 export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry(): void } {
-	const consents = useQuery(consentsQueryOptions());
-	const parrots = useQuery(parrotsQueryOptions());
+	const {
+		data: consentListData,
+		isError: consentListFailed,
+		refetch: refetchConsentList,
+	} = useQuery(getConsentListOptions());
+	const {
+		data: parrotListData,
+		isError: parrotListFailed,
+		refetch: refetchParrotList,
+	} = useQuery(getParrotListOptions());
 
 	const loginPending = useAccountStore((account) => account.isAnonymous && !account.loginScreenSeen);
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
 	const legacyUploadPending = useDeviceSettingsStore((state) => state.legacyMigration.upload !== 'finished');
 
 	function retry() {
-		void consents.refetch();
-		void parrots.refetch();
+		void refetchConsentList();
+		void refetchParrotList();
 	}
 
 	if (loginPending) {
 		return { route: 'Login', retry };
 	}
 
-	if (consents.isError || parrots.isError) {
+	if (consentListFailed || parrotListFailed) {
 		return { route: 'error', retry };
 	}
 
-	if (!consents.data || !parrots.data) {
+	if (!consentListData || !parrotListData) {
 		return { route: 'loading', retry };
 	}
 
-	if (consents.data.some((consent) => consent.is_required && consent.status !== 'granted')) {
+	if (consentListData.some((consent) => consent.is_required && consent.status !== 'granted')) {
 		return { route: 'Consent', retry };
 	}
 
@@ -50,13 +58,13 @@ export function useEntryRoute(): { route: EntryRoute; parrotId?: string; retry()
 		return { route: 'LegacyUpload', retry };
 	}
 
-	if (parrots.data.length === 0) {
+	if (parrotListData.length === 0) {
 		return { route: 'ParrotEditor', retry };
 	}
 
 	return {
 		route: onboardingCompleted ? 'Main' : 'UsageGuide',
-		parrotId: parrots.data[0]?.id,
+		parrotId: parrotListData[0]?.id,
 		retry,
 	};
 }

@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
 	deleteWord,
@@ -12,51 +12,63 @@ import {
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-export const wordsQueryOptions = () => queryOptions({ queryKey: apiKeys.words.all(), queryFn: getWordList });
+import { reportError } from '@/services/telemetry/client';
 
-export const wordQueryOptions = (id: string) =>
+/** 단어 목록 조회 옵션 */
+export const getWordListOptions = () => queryOptions({ queryKey: apiKeys.words.all(), queryFn: getWordList });
+/** 단어 목록 조회 훅 */
+export const useGetWordList = () => {
+	return useSuspenseQuery(getWordListOptions());
+};
+
+/** 단어 조회 옵션 */
+export const getWordOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.words.detail(id), queryFn: () => getWord({ id }) });
+/** 단어 조회 훅 */
+export const useGetWord = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getWordOptions({ id }));
+};
 
-export const createWordMutationOptions = () =>
-	mutationOptions({
+/** 단어 만들기 훅 */
+export const useCreateWord = () => {
+	return useMutation({
 		mutationKey: apiKeys.mutation('words', 'create'),
-		mutationFn: ({ name, idempotencyKey }: { name: string; idempotencyKey: string }) =>
-			postWord({ data: { name }, idempotencyKey }),
+		mutationFn: postWord,
 	});
+};
 
-export const renameWordMutationOptions = () =>
-	mutationOptions({
+/** 단어 이름 변경 훅 */
+export const useRenameWord = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'rename'),
-		mutationFn: ({ id, name, idempotencyKey }: { id: string; name: string; idempotencyKey: string }) =>
-			patchWord({ id, data: { name }, idempotencyKey }),
+		mutationFn: patchWord,
 	});
+};
 
-export const deleteWordMutationOptions = () =>
-	mutationOptions({
+/** 단어 삭제 훅 */
+export const useDeleteWord = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'delete'),
-		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
-			deleteWord({ id, idempotencyKey }),
+		mutationFn: deleteWord,
 		onSuccess: () => invalidate(apiKeys.words.all()),
+		onError: (error) => reportError(error, 'word_delete'),
 	});
+};
 
-export const addRecordingMutationOptions = () =>
-	mutationOptions({
+/** 단어 녹음 추가 훅 */
+export const useAddWordRecording = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'add'),
-		mutationFn: ({ wordId, uri, idempotencyKey }: { wordId: string; uri: string; idempotencyKey: string }) =>
-			postWordRecording({ id: wordId, uri, idempotencyKey }),
+		mutationFn: postWordRecording,
 	});
+};
 
-export const deleteRecordingMutationOptions = () =>
-	mutationOptions({
+/** 단어 녹음 삭제 훅 */
+export const useDeleteWordRecording = () => {
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'delete'),
-		mutationFn: ({
-			wordId,
-			recordingId,
-			idempotencyKey,
-		}: {
-			wordId: string;
-			recordingId: string;
-			idempotencyKey: string;
-		}) => deleteWordRecording({ id: wordId, recordingId, idempotencyKey }),
+		mutationFn: deleteWordRecording,
 	});
+};

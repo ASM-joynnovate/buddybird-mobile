@@ -2,22 +2,22 @@ import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { parrotsQueryOptions } from '@/hooks/apis/parrots';
-import { wordsQueryOptions } from '@/hooks/apis/words';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { getWordListOptions } from '@/hooks/apis/words';
 
 import { setTelemetryIdentity, syncUserProperties } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 export function useAnalyticsUser(): void {
-	const parrots = useQuery(parrotsQueryOptions());
-	const words = useQuery(wordsQueryOptions());
+	const { data: parrotListData } = useQuery(getParrotListOptions());
+	const { data: wordListData } = useQuery(getWordListOptions());
 
 	const serverUserId = useAccountStore((account) => account.serverUserId);
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const parrot = parrots.data?.[0] ?? null;
-	const wordCount = words.data?.length;
+	const parrot = parrotListData?.[0] ?? null;
+	const wordCount = wordListData?.length;
 
 	useEffect(() => setTelemetryIdentity(serverUserId), [serverUserId]);
 

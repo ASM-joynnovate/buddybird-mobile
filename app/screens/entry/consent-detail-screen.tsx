@@ -4,8 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { consentsQueryOptions, saveConsentMutationOptions } from '@/hooks/apis/consents';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getConsentListOptions, useSaveConsent } from '@/hooks/apis/consents';
 
 import { useTranslation } from 'react-i18next';
 
@@ -28,11 +27,11 @@ export function ConsentDetailScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { consentId, source } = useRoute<RouteProp<RootStackParamList, 'ConsentDetail'>>().params;
 
-	const query = useQuery(consentsQueryOptions());
+	const { data: consentListData, isError, refetch } = useQuery(getConsentListOptions());
 
-	const mutation = useIdempotentMutation(saveConsentMutationOptions());
+	const { isError: isSaveError, isPending, mutate } = useSaveConsent();
 
-	const consent = query.data?.find((item) => item.id === consentId);
+	const consent = consentListData?.find((item) => item.id === consentId);
 	const canAgree =
 		consent !== undefined && (source === 'entry' || (!consent.is_required && consent.status !== 'granted'));
 
@@ -49,15 +48,12 @@ export function ConsentDetailScreen() {
 			return;
 		}
 
-		mutation.mutate(
-			{ data: { consent_id: consent.id, status: 'granted' } },
-			{ onSuccess: () => navigation.goBack() },
-		);
+		mutate({ data: { consent_id: consent.id, status: 'granted' } }, { onSuccess: () => navigation.goBack() });
 	}
 
 	function body() {
-		if (query.isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={() => void query.refetch()} />;
+		if (isError) {
+			return <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
 		}
 
 		if (!consent) {
@@ -72,8 +68,8 @@ export function ConsentDetailScreen() {
 			footer={
 				canAgree ? (
 					<>
-						<InlineError message={mutation.isError ? t('settings.consents.saveError') : null} />
-						<Button label={t('entry.consentDetail.agree')} loading={mutation.isPending} onPress={agree} />
+						<InlineError message={isSaveError ? t('settings.consents.saveError') : null} />
+						<Button label={t('entry.consentDetail.agree')} loading={isPending} onPress={agree} />
 					</>
 				) : undefined
 			}

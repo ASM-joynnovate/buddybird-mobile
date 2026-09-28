@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { parrotsQueryOptions } from '@/hooks/apis/parrots';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
 
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +24,7 @@ export function ParrotEditorScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const params = useRoute<RouteProp<RootStackParamList, 'ParrotEditor'>>().params;
 
-	const parrots = useQuery(parrotsQueryOptions());
+	const { data: parrotListData, isError, refetch } = useQuery(getParrotListOptions());
 
 	const parrotId = params?.parrotId;
 	const entry = params?.source === 'entry';
@@ -54,11 +54,11 @@ export function ParrotEditorScreen() {
 		}
 	}
 
-	if (parrotId && !parrots.data) {
+	if (parrotId && !parrotListData) {
 		return (
 			<Screen>
-				{parrots.isError ? (
-					<ScreenError message={t('common.loadError')} onRetry={() => void parrots.refetch()} />
+				{isError ? (
+					<ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />
 				) : (
 					<Skeleton rows={4} />
 				)}
@@ -66,7 +66,7 @@ export function ParrotEditorScreen() {
 		);
 	}
 
-	const parrot = parrotId ? parrots.data?.find((item) => item.id === parrotId) : undefined;
+	const parrot = parrotId ? parrotListData?.find((item) => item.id === parrotId) : undefined;
 
 	if (parrotId && !parrot) {
 		return <Screen />;
@@ -76,7 +76,7 @@ export function ParrotEditorScreen() {
 		<ParrotEditorForm
 			key={parrot?.id ?? 'new'}
 			parrot={parrot}
-			canDelete={(parrots.data?.length ?? 0) > 1}
+			canDelete={(parrotListData?.length ?? 0) > 1}
 			intro={entry || !parrot}
 			onBack={canGoBack ? () => navigation.goBack() : undefined}
 			onDone={done}

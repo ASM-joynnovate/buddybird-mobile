@@ -6,8 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { noticeQueryOptions, readNoticeMutationOptions } from '@/hooks/apis/notices';
-import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+import { getNoticeOptions, useReadNotice } from '@/hooks/apis/notices';
 
 import { useTranslation } from 'react-i18next';
 
@@ -30,13 +29,13 @@ export function NoticeDetailScreen() {
 	const navigation = useNavigation();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'NoticeDetail'>>();
 
+	const { data: noticeData, isError, refetch } = useQuery(getNoticeOptions({ id: params.noticeId }));
+
+	const { mutate } = useReadNotice();
+
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const notice = useQuery(noticeQueryOptions(params.noticeId));
-
-	const { mutate } = useIdempotentMutation(readNoticeMutationOptions());
-
-	const alreadyRead = notice.data?.is_read;
+	const alreadyRead = noticeData?.is_read;
 
 	useEffect(() => {
 		if (alreadyRead === false) {
@@ -46,17 +45,18 @@ export function NoticeDetailScreen() {
 
 	let body = <Skeleton rows={3} />;
 
-	if (notice.isError) {
-		body = <ScreenError message={t('common.loadError')} onRetry={() => void notice.refetch()} />;
-	} else if (notice.data) {
+	if (isError) {
+		body = <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
+	} else if (noticeData) {
 		body = (
 			<View style={styles.body}>
 				<View style={styles.heading}>
-					<Title>{notice.data.title}</Title>
-					<Copy style={styles.date}>{formatDate(notice.data.starts_at, locale)}</Copy>
+					<Title>{noticeData.title}</Title>
+					<Copy style={styles.date}>{formatDate(noticeData.starts_at, locale)}</Copy>
 				</View>
-				{notice.data.body ? <Copy style={styles.text}>{notice.data.body}</Copy> : null}
-				{notice.data.images.map((image, index) => (
+
+				{noticeData.body ? <Copy style={styles.text}>{noticeData.body}</Copy> : null}
+				{noticeData.images.map((image, index) => (
 					<Image
 						key={`${image.url}-${index}`}
 						source={{ uri: image.url }}
@@ -72,7 +72,10 @@ export function NoticeDetailScreen() {
 
 	return (
 		<Screen>
+			{/*헤더*/}
 			<ScreenHeader onBack={() => navigation.goBack()} />
+
+			{/*공지 내용*/}
 			{body}
 		</Screen>
 	);
