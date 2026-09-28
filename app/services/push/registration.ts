@@ -1,17 +1,17 @@
-import { getMessaging, getToken } from "@react-native-firebase/messaging"
-import { randomUUID } from "expo-crypto"
-import * as Notifications from "expo-notifications"
+import { registerPushToken } from '@/apis/devices';
 
-import { registerPushToken } from "@/apis/devices"
+import { getMessaging, getToken } from '@react-native-firebase/messaging';
+import { randomUUID } from 'expo-crypto';
+import * as Notifications from 'expo-notifications';
 
 export async function sendPushToken(): Promise<void> {
-	const permission = await Notifications.getPermissionsAsync()
+	const permission = await Notifications.getPermissionsAsync();
 
 	if (!permission.granted) {
-		return
+		return;
 	}
 
-	const token = await getToken(getMessaging())
+	const token = await getToken(getMessaging());
 
-	await registerPushToken(token, randomUUID())
+	await registerPushToken(token, randomUUID());
 }

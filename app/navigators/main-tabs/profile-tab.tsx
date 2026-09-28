@@ -1,11 +1,12 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import type { ProfileStackParamList } from '@/types/navigation';
 
-import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { AccountEditorScreen } from "@/screens/profile/account-editor-screen"
-import { ProfileScreen } from "@/screens/profile/profile-screen"
-import type { ProfileStackParamList } from "@/types/navigation"
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const ProfileStack = createNativeStackNavigator<ProfileStackParamList>()
+import { stackOptions } from '@/navigators/main-tabs/stack-options';
+import { AccountEditorScreen } from '@/screens/profile/account-editor-screen';
+import { ProfileScreen } from '@/screens/profile/profile-screen';
+
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 export function ProfileTab() {
 	return (
@@ -13,5 +14,5 @@ export function ProfileTab() {
 			<ProfileStack.Screen name="Profile" component={ProfileScreen} />
 			<ProfileStack.Screen name="AccountEditor" component={AccountEditorScreen} />
 		</ProfileStack.Navigator>
-	)
+	);
 }

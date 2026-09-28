@@ -1,38 +1,40 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from 'react';
 
-import { readNoticeMutationOptions } from "@/hooks/apis/notices"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { launch } from "@/screens/home/hooks/launch"
-import type { Notice } from "@/types/apis/notices"
+import type { Notice } from '@/types/apis/notices';
+
+import { readNoticeMutationOptions } from '@/hooks/apis/notices';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+
+import { launch } from '@/screens/home/hooks/launch';
 
 export function useNoticePopup(notices: readonly Notice[] | undefined): {
-	current: Notice | null
-	close(): void
+	current: Notice | null;
+	close(): void;
 } {
-	const { mutate } = useIdempotentMutation(readNoticeMutationOptions())
+	const { mutate } = useIdempotentMutation(readNoticeMutationOptions());
 
-	const [queue, setQueue] = useState<readonly Notice[]>([])
+	const [queue, setQueue] = useState<readonly Notice[]>([]);
 
 	useEffect(() => {
 		if (!notices || launch.noticesShown) {
-			return
+			return;
 		}
 
-		launch.noticesShown = true
+		launch.noticesShown = true;
 
-		setQueue(notices)
-	}, [notices])
+		setQueue(notices);
+	}, [notices]);
 
-	const current = queue[0] ?? null
+	const current = queue[0] ?? null;
 
 	return {
 		current,
 		close: () => {
 			if (current) {
-				mutate({ id: current.id })
+				mutate({ id: current.id });
 
-				setQueue((items) => items.slice(1))
+				setQueue((items) => items.slice(1));
 			}
 		},
-	}
+	};
 }

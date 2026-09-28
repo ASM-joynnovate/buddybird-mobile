@@ -1,49 +1,42 @@
-import type { LucideIcon } from "lucide-react-native"
-import { ActivityIndicator, StyleSheet } from "react-native"
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
-import { PressableSurface, type PressableSurfaceProps } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { colors, depths, font } from "@/theme"
+import type { LucideIcon } from 'lucide-react-native';
 
-interface Props extends Omit<PressableSurfaceProps, "children" | "tone"> {
-	label: string
-	icon?: LucideIcon
-	variant?: "primary" | "secondary"
-	loading?: boolean
-	compact?: boolean
+import { colors, depths, font } from '@/theme';
+
+import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
+
+interface Props extends Omit<PressableSurfaceProps, 'children' | 'tone'> {
+	label: string;
+	icon?: LucideIcon;
+	variant?: 'primary' | 'secondary';
+	loading?: boolean;
+	compact?: boolean;
 }
 
-export function Button({
-	label,
-	icon: Icon,
-	variant = "primary",
-	loading,
-	compact,
-	style,
-	disabled,
-	...props
-}: Props) {
-	const inactive = disabled || loading
-	const depth = compact ? "high" : "xhigh"
-	let tone: "primary" | "neutral" | "muted" = "primary"
-	let foregroundColor = colors.onAccent
+export function Button({ label, icon: Icon, variant = 'primary', loading, compact, style, disabled, ...props }: Props) {
+	const inactive = disabled || loading;
+	const depth = compact ? 'high' : 'xhigh';
+	let tone: 'primary' | 'neutral' | 'muted' = 'primary';
+	let foregroundColor = colors.onAccent;
 
-	if (variant === "secondary") {
-		tone = "neutral"
-		foregroundColor = colors.text
+	if (variant === 'secondary') {
+		tone = 'neutral';
+		foregroundColor = colors.text;
 	}
 
 	if (inactive) {
-		tone = "muted"
-		foregroundColor = colors.disabled
+		tone = 'muted';
+		foregroundColor = colors.disabled;
 	}
 
-	let leadingContent = null
+	let leadingContent = null;
 
 	if (loading) {
-		leadingContent = <ActivityIndicator color={foregroundColor} />
+		leadingContent = <ActivityIndicator color={foregroundColor} />;
 	} else if (Icon) {
-		leadingContent = <Icon color={foregroundColor} size={compact ? 20 : 26} />
+		leadingContent = <Icon color={foregroundColor} size={compact ? 20 : 26} />;
 	}
 
 	return (
@@ -58,35 +51,23 @@ export function Button({
 			}}
 			disabled={inactive}
 			tone={tone}
-			depth={inactive ? "none" : depth}
+			depth={inactive ? 'none' : depth}
 			cornerRadius="control"
 			style={[inactive && { marginTop: depths[depth] }, style]}
-			contentStyle={[
-				styles.button,
-				{ borderWidth: variant === "secondary" ? 2 : 0 },
-				compact && styles.compact,
-			]}
+			contentStyle={[styles.button, { borderWidth: variant === 'secondary' ? 2 : 0 }, compact && styles.compact]}
 		>
 			{leadingContent}
-			<Copy
-				style={[
-					styles.buttonText,
-					{ color: foregroundColor },
-					compact && styles.compactText,
-				]}
-			>
-				{label}
-			</Copy>
+			<Copy style={[styles.buttonText, { color: foregroundColor }, compact && styles.compactText]}>{label}</Copy>
 		</PressableSurface>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	button: {
 		minHeight: 58,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		gap: 8,
 		paddingHorizontal: 22,
 		paddingVertical: 10,
@@ -95,8 +76,8 @@ const styles = StyleSheet.create({
 		fontFamily: font.extraBold,
 		fontSize: 16,
 		letterSpacing: 0.32,
-		textTransform: "uppercase",
-		textAlign: "center",
+		textTransform: 'uppercase',
+		textAlign: 'center',
 		flexShrink: 1,
 		minWidth: 0,
 	},
@@ -106,4 +87,4 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 	},
 	compactText: { fontSize: 16 },
-})
+});

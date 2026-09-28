@@ -1,2 +1,2 @@
-export * from "@/config/env"
-export * from "@/config/policy"
+export * from '@/config/env';
+export * from '@/config/policy';

@@ -1,7 +1,7 @@
 export type LinkedDevice = {
-	id: string
-	model: string
-	lastSeenAt: string | null
-	isThisDevice: boolean
-	isRunningSession: boolean
-}
+	id: string;
+	model: string;
+	lastSeenAt: string | null;
+	isThisDevice: boolean;
+	isRunningSession: boolean;
+};

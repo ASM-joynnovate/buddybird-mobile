@@ -1,68 +1,68 @@
 export type SettingsMessages = {
-	title: string
-	saveError: string
+	title: string;
+	saveError: string;
 	care: {
-		title: string
-	}
+		title: string;
+	};
 	notifications: {
-		title: string
-		notice: string
-		report: string
-		marketing: string
-		permissionOff: string
-		permissionLink: string
-	}
+		title: string;
+		notice: string;
+		report: string;
+		marketing: string;
+		permissionOff: string;
+		permissionLink: string;
+	};
 	general: {
-		title: string
-		language: string
-		korean: string
-		english: string
-		devices: string
-		permissions: string
-	}
+		title: string;
+		language: string;
+		korean: string;
+		english: string;
+		devices: string;
+		permissions: string;
+	};
 	account: {
-		title: string
-		signOut: string
-		withdraw: string
-	}
+		title: string;
+		signOut: string;
+		withdraw: string;
+	};
 	support: {
-		title: string
-		feedback: string
-		notices: string
-		unreadNotice: string
-		consents: string
-		version: string
-	}
+		title: string;
+		feedback: string;
+		notices: string;
+		unreadNotice: string;
+		consents: string;
+		version: string;
+	};
 	signOutDialog: {
-		title: string
-		message: string
-		confirm: string
-	}
+		title: string;
+		message: string;
+		confirm: string;
+	};
 	withdrawDialog: {
-		title: string
-		message: string
-		line: string
-		confirm: string
-	}
+		title: string;
+		message: string;
+		line: string;
+		confirm: string;
+	};
 	notices: {
-		title: string
-		empty: string
-		unread: string
-	}
+		title: string;
+		empty: string;
+		unread: string;
+	};
 	consents: {
-		title: string
-		saveError: string
-	}
+		title: string;
+		saveError: string;
+	};
 	devices: {
-		title: string
-		current: string
-		running: string
-		lastSeen: string
-	}
+		title: string;
+		current: string;
+		running: string;
+		lastSeen: string;
+	};
 	permissions: {
-		title: string
-		granted: string
-		denied: string
-		checking: string
-	}
-}
+		title: string;
+		granted: string;
+		denied: string;
+		checking: string;
+	};
+};

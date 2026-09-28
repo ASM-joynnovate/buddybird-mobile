@@ -1,23 +1,24 @@
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, View } from 'react-native';
 
-import { Copy } from "@/components/ui/text"
-import { WHEEL_ITEM_HEIGHT, Wheel } from "@/components/ui/wheel-picker/wheel"
-import { colors, font } from "@/theme"
+import { colors, font } from '@/theme';
 
-export const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
-export const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5)
+import { Copy } from '@/components/ui/text';
+import { WHEEL_ITEM_HEIGHT, Wheel } from '@/components/ui/wheel-picker/wheel';
+
+export const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+export const MINUTE_STEPS = Array.from({ length: 12 }, (_, index) => index * 5);
 
 interface WheelColumn {
-	key: string
-	label: string
-	value: number
-	values: readonly number[]
-	unit?: string
-	onChange(value: number): void
+	key: string;
+	label: string;
+	value: number;
+	values: readonly number[];
+	unit?: string;
+	onChange(value: number): void;
 }
 
 interface Props {
-	columns: readonly WheelColumn[]
+	columns: readonly WheelColumn[];
 }
 
 export function WheelPicker({ columns }: Props) {
@@ -36,13 +37,13 @@ export function WheelPicker({ columns }: Props) {
 				</View>
 			))}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
+	row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
 	selection: {
-		position: "absolute",
+		position: 'absolute',
 		top: WHEEL_ITEM_HEIGHT * 2,
 		height: WHEEL_ITEM_HEIGHT,
 		left: 0,
@@ -52,6 +53,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.orange,
 		backgroundColor: colors.wheelSelection,
 	},
-	column: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 4 },
+	column: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	unit: { fontFamily: font.extraBold, fontSize: 16, minWidth: 22 },
-})
+});

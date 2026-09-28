@@ -1,90 +1,91 @@
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { reportError } from "@/services/telemetry/client"
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+
+import { reportError } from '@/services/telemetry/client';
 
 export type SoundPlayer = {
-	playingId: string | null
-	finishedIds: ReadonlySet<string>
-	failedId: string | null
-	toggle(id: string, url: string): void
-	stop(): void
-}
+	playingId: string | null;
+	finishedIds: ReadonlySet<string>;
+	failedId: string | null;
+	toggle(id: string, url: string): void;
+	stop(): void;
+};
 
 export function useSoundPlayer(): SoundPlayer {
-	const player = useAudioPlayer(null, { updateInterval: 100 })
-	const status = useAudioPlayerStatus(player)
+	const player = useAudioPlayer(null, { updateInterval: 100 });
+	const status = useAudioPlayerStatus(player);
 
-	const [playingId, setPlayingId] = useState<string | null>(null)
-	const [failedId, setFailedId] = useState<string | null>(null)
-	const [finishedIds, setFinishedIds] = useState<ReadonlySet<string>>(new Set())
+	const [playingId, setPlayingId] = useState<string | null>(null);
+	const [failedId, setFailedId] = useState<string | null>(null);
+	const [finishedIds, setFinishedIds] = useState<ReadonlySet<string>>(new Set());
 
-	const playSequence = useRef(0)
+	const playSequence = useRef(0);
 
 	const stop = useCallback(() => {
-		playSequence.current++
-		player.pause()
+		playSequence.current++;
+		player.pause();
 
-		setPlayingId(null)
-	}, [player])
+		setPlayingId(null);
+	}, [player]);
 
-	useLayoutEffect(() => stop, [stop])
+	useLayoutEffect(() => stop, [stop]);
 
 	useEffect(() => {
 		if (!playingId) {
-			return
+			return;
 		}
 
-		if (status.playbackState === "failed") {
-			setFailedId(playingId)
+		if (status.playbackState === 'failed') {
+			setFailedId(playingId);
 
-			stop()
+			stop();
 		} else if (status.didJustFinish) {
-			const finished = playingId
+			const finished = playingId;
 
-			setFinishedIds((current) => new Set([...current, finished]))
+			setFinishedIds((current) => new Set([...current, finished]));
 
-			stop()
+			stop();
 		}
-	}, [playingId, status.didJustFinish, status.playbackState, stop])
+	}, [playingId, status.didJustFinish, status.playbackState, stop]);
 
 	const toggle = useCallback(
 		(id: string, url: string) => {
 			if (playingId === id) {
-				stop()
+				stop();
 
-				return
+				return;
 			}
 
-			const token = ++playSequence.current
+			const token = ++playSequence.current;
 
-			player.pause()
+			player.pause();
 
-			setFailedId(null)
+			setFailedId(null);
 
 			void setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false })
 				.then(async () => {
 					if (token !== playSequence.current) {
-						return
+						return;
 					}
 
-					player.replace({ uri: url })
-					await player.seekTo(0)
-					player.play()
+					player.replace({ uri: url });
+					await player.seekTo(0);
+					player.play();
 
-					setPlayingId(id)
+					setPlayingId(id);
 				})
 				.catch((error: unknown) => {
 					if (token === playSequence.current) {
-						setFailedId(id)
-						setPlayingId(null)
+						setFailedId(id);
+						setPlayingId(null);
 
-						reportError(error, "sound_playback")
+						reportError(error, 'sound_playback');
 					}
-				})
+				});
 		},
 		[player, playingId, stop],
-	)
+	);
 
-	return { playingId, finishedIds, failedId, toggle, stop }
+	return { playingId, finishedIds, failedId, toggle, stop };
 }

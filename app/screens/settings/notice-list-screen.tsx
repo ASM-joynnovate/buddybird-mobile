@@ -1,46 +1,50 @@
-import { useNavigation } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useInfiniteQuery } from "@tanstack/react-query"
-import { useTranslation } from "react-i18next"
-import { FlatList, StyleSheet, View } from "react-native"
+import { FlatList, StyleSheet, View } from 'react-native';
 
-import { DotBadge } from "@/components/ui/dot-badge"
-import { EmptyState } from "@/components/ui/empty-state"
-import { Screen } from "@/components/ui/screen"
-import { ScreenError } from "@/components/ui/screen-error"
-import { ScreenHeader } from "@/components/ui/screen-header"
-import { Skeleton } from "@/components/ui/skeleton"
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { noticesQueryOptions } from "@/hooks/apis/notices"
-import { formatDate } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, contentMaxWidth, font } from "@/theme"
-import type { Notice } from "@/types/apis/notices"
-import type { RootStackParamList } from "@/types/navigation"
-import { joinLabel } from "@/utils/a11y"
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+import type { Notice } from '@/types/apis/notices';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { noticesQueryOptions } from '@/hooks/apis/notices';
+
+import { useTranslation } from 'react-i18next';
+
+import { formatDate } from '@/i18n/format';
+
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, contentMaxWidth, font } from '@/theme';
+import { joinLabel } from '@/utils/a11y';
+
+import { DotBadge } from '@/components/ui/dot-badge';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Screen } from '@/components/ui/screen';
+import { ScreenError } from '@/components/ui/screen-error';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
 
 export function NoticeListScreen() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const notices = useInfiniteQuery(noticesQueryOptions())
+	const notices = useInfiniteQuery(noticesQueryOptions());
 
 	function renderItem({ item }: { item: Notice }) {
-		const date = formatDate(item.starts_at, locale)
+		const date = formatDate(item.starts_at, locale);
 
 		return (
 			<PressableSurface
-				accessibilityLabel={joinLabel(
-					item.title,
-					date,
-					!item.is_read && t("settings.notices.unread"),
-				)}
+				accessibilityLabel={joinLabel(item.title, date, !item.is_read && t('settings.notices.unread'))}
 				depth="low"
-				onPress={() => navigation.navigate("NoticeDetail", { noticeId: item.id })}
+				onPress={() => navigation.navigate('NoticeDetail', { noticeId: item.id })}
 				contentStyle={styles.card}
 			>
 				<View style={styles.lines}>
@@ -51,21 +55,16 @@ export function NoticeListScreen() {
 				</View>
 				{item.is_read ? null : <DotBadge />}
 			</PressableSurface>
-		)
+		);
 	}
 
 	function body() {
 		if (notices.isError) {
-			return (
-				<ScreenError
-					message={t("common.loadError")}
-					onRetry={() => void notices.refetch()}
-				/>
-			)
+			return <ScreenError message={t('common.loadError')} onRetry={() => void notices.refetch()} />;
 		}
 
 		if (!notices.data) {
-			return <Skeleton rows={3} />
+			return <Skeleton rows={3} />;
 		}
 
 		return (
@@ -75,40 +74,37 @@ export function NoticeListScreen() {
 				renderItem={renderItem}
 				onEndReached={() => {
 					if (notices.hasNextPage) {
-						void notices.fetchNextPage()
+						void notices.fetchNextPage();
 					}
 				}}
 				contentContainerStyle={styles.list}
-				ListEmptyComponent=<EmptyState message={t("settings.notices.empty")} />
+				ListEmptyComponent=<EmptyState message={t('settings.notices.empty')} />
 			/>
-		)
+		);
 	}
 
 	return (
 		<Screen scroll={false}>
 			<View style={styles.frame}>
-				<ScreenHeader
-					title={t("settings.notices.title")}
-					onBack={() => navigation.goBack()}
-				/>
+				<ScreenHeader title={t('settings.notices.title')} onBack={() => navigation.goBack()} />
 				{body()}
 			</View>
 		</Screen>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	frame: {
 		flex: 1,
-		width: "100%",
+		width: '100%',
 		maxWidth: contentMaxWidth,
-		alignSelf: "center",
+		alignSelf: 'center',
 		paddingHorizontal: 24,
 		paddingTop: 20,
 	},
 	list: { gap: 12, paddingBottom: 32 },
-	card: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+	card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
 	lines: { flex: 1, minWidth: 0, gap: 4 },
 	title: { fontFamily: font.extraBold, fontSize: 16 },
 	date: { fontSize: 13, color: colors.muted },
-})
+});

@@ -1,55 +1,57 @@
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs"
+import { StyleSheet, View } from 'react-native';
+
+import type { MainTabParamList } from '@/types/navigation';
+
+import { useTranslation } from 'react-i18next';
+
+import type { CommonMessages } from '@/i18n/types/common';
+
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import {
 	ChartNoAxesColumnIcon,
 	HouseIcon,
 	type LucideIcon,
 	MessageSquareTextIcon,
 	UserIcon,
-} from "lucide-react-native"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+} from 'lucide-react-native';
 
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import type { CommonMessages } from "@/i18n/types/common"
-import { colors, font } from "@/theme"
-import type { MainTabParamList } from "@/types/navigation"
+import { colors, font } from '@/theme';
 
-const tabs: Record<
-	keyof MainTabParamList,
-	{ icon: LucideIcon; label: keyof CommonMessages["tabs"] }
-> = {
-	HomeTab: { icon: HouseIcon, label: "home" },
-	WordsTab: { icon: MessageSquareTextIcon, label: "words" },
-	ReportTab: { icon: ChartNoAxesColumnIcon, label: "report" },
-	ProfileTab: { icon: UserIcon, label: "profile" },
-}
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
+
+const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; label: keyof CommonMessages['tabs'] }> = {
+	HomeTab: { icon: HouseIcon, label: 'home' },
+	WordsTab: { icon: MessageSquareTextIcon, label: 'words' },
+	ReportTab: { icon: ChartNoAxesColumnIcon, label: 'report' },
+	ProfileTab: { icon: UserIcon, label: 'profile' },
+};
 
 interface Props extends BottomTabBarProps {}
 
 export function TabBar({ state, navigation, insets }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
 	return (
 		<View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 30) }]}>
 			{state.routes.map((route, index) => {
-				const selected = state.index === index
-				const tab = tabs[route.name as keyof MainTabParamList]
-				const TabIcon = tab.icon
-				const tabLabel = t(`common.tabs.${tab.label}`)
+				const selected = state.index === index;
+				const tab = tabs[route.name as keyof MainTabParamList];
+				const TabIcon = tab.icon;
+				const tabLabel = t(`common.tabs.${tab.label}`);
 
 				function selectTab() {
 					const event = navigation.emit({
-						type: "tabPress",
+						type: 'tabPress',
 						target: route.key,
 						canPreventDefault: true,
-					})
+					});
 
 					if (selected || event.defaultPrevented) {
-						return
+						return;
 					}
 
-					navigation.navigate(route.name, route.params)
+					navigation.navigate(route.name, route.params);
 				}
 
 				return (
@@ -58,8 +60,8 @@ export function TabBar({ state, navigation, insets }: Props) {
 							accessibilityRole="tab"
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}
-							tone={selected ? "primary" : "plain"}
-							depth={selected ? "medium" : "none"}
+							tone={selected ? 'primary' : 'plain'}
+							depth={selected ? 'medium' : 'none'}
 							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
@@ -75,17 +77,17 @@ export function TabBar({ state, navigation, insets }: Props) {
 							</Copy>
 						</PressableSurface>
 					</View>
-				)
+				);
 			})}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	tabBar: {
-		flexDirection: "row",
-		justifyContent: "space-around",
-		alignItems: "center",
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		alignItems: 'center',
 		borderTopWidth: 2,
 		borderColor: colors.border,
 		backgroundColor: colors.background,
@@ -94,19 +96,19 @@ const styles = StyleSheet.create({
 		gap: 6,
 	},
 	tabCell: { flex: 1, minWidth: 0, maxWidth: 68 },
-	tabTarget: { width: "100%", aspectRatio: 1 },
+	tabTarget: { width: '100%', aspectRatio: 1 },
 	tab: {
 		paddingHorizontal: 8,
 		paddingVertical: 8,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		gap: 4,
 	},
 	tabLabel: {
 		fontFamily: font.extraBold,
 		fontSize: 11,
 		color: colors.muted,
-		textAlign: "center",
-		alignSelf: "stretch",
+		textAlign: 'center',
+		alignSelf: 'stretch',
 	},
-})
+});

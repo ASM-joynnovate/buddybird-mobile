@@ -1,95 +1,102 @@
-import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { randomUUID } from "expo-crypto"
-import type { TFunction } from "i18next"
-import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from "lucide-react-native"
-import type { ReactElement } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import type { ReactElement } from 'react';
 
-import { PermissionDialog } from "@/components/dialogs/permission-dialog"
-import { Button } from "@/components/ui/button"
-import { IconButton } from "@/components/ui/icon-button"
-import { InlineError } from "@/components/ui/inline-error"
-import { Screen } from "@/components/ui/screen"
-import { ScreenHeader } from "@/components/ui/screen-header"
-import { ui } from "@/components/ui/styles"
-import { Copy } from "@/components/ui/text"
-import { usePermission } from "@/hooks/use-permission"
-import { useSoundPlayer } from "@/hooks/use-sound-player"
-import { formatTimer } from "@/i18n/format"
-import { AudioWaveform } from "@/screens/words/components/audio-waveform"
-import { type Recorder, useRecorder } from "@/screens/words/hooks/use-recorder"
-import { colors, contentMaxWidth, font } from "@/theme"
-import type { RootStackParamList } from "@/types/navigation"
+import { StyleSheet, View } from 'react-native';
 
-const TAKE_ID = "take"
+import type { RootStackParamList } from '@/types/navigation';
+
+import { usePermission } from '@/hooks/use-permission';
+import { useSoundPlayer } from '@/hooks/use-sound-player';
+
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
+
+import { formatTimer } from '@/i18n/format';
+
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { randomUUID } from 'expo-crypto';
+import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { AudioWaveform } from '@/screens/words/components/audio-waveform';
+import { type Recorder, useRecorder } from '@/screens/words/hooks/use-recorder';
+import { colors, contentMaxWidth, font } from '@/theme';
+
+import { PermissionDialog } from '@/components/dialogs/permission-dialog';
+import { Button } from '@/components/ui/button';
+import { IconButton } from '@/components/ui/icon-button';
+import { InlineError } from '@/components/ui/inline-error';
+import { Screen } from '@/components/ui/screen';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { ui } from '@/components/ui/styles';
+import { Copy } from '@/components/ui/text';
+
+const TAKE_ID = 'take';
 
 function statusText(recorder: Recorder, t: TFunction): string {
 	if (recorder.recording) {
-		return t("words.recorder.recording")
+		return t('words.recorder.recording');
 	}
 
-	return recorder.take ? t("words.recorder.recorded") : t("words.recorder.ready")
+	return recorder.take ? t('words.recorder.recorded') : t('words.recorder.ready');
 }
 
 export function RecorderScreen(): ReactElement {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const insets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets();
 
-	const { params } = useRoute<RouteProp<RootStackParamList, "Recorder">>()
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+	const { params } = useRoute<RouteProp<RootStackParamList, 'Recorder'>>();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const recorder = useRecorder()
+	const recorder = useRecorder();
 
-	const player = useSoundPlayer()
+	const player = useSoundPlayer();
 
-	const microphone = usePermission("microphone")
+	const microphone = usePermission('microphone');
 
-	const { take } = recorder
-	const playing = player.playingId === TAKE_ID
-	const shownMs = recorder.recording ? recorder.elapsedMs : (take?.durationMs ?? 0)
+	const { take } = recorder;
+	const playing = player.playingId === TAKE_ID;
+	const shownMs = recorder.recording ? recorder.elapsedMs : (take?.durationMs ?? 0);
 
 	async function close() {
-		player.stop()
+		player.stop();
 
-		await recorder.discard()
+		await recorder.discard();
 
-		navigation.goBack()
+		navigation.goBack();
 	}
 
 	function record() {
-		player.stop()
+		player.stop();
 
-		void microphone.run(() => void recorder.start())
+		void microphone.run(() => void recorder.start());
 	}
 
 	function add() {
 		if (!take) {
-			return
+			return;
 		}
 
-		player.stop()
+		player.stop();
 
-		navigation.popTo("Main", {
-			screen: "WordsTab",
+		navigation.popTo('Main', {
+			screen: 'WordsTab',
 			params: {
-				screen: "WordEditor",
+				screen: 'WordEditor',
 				params: {
 					recorded: { key: randomUUID(), uri: take.uri, durationMs: take.durationMs },
 				},
 				merge: true,
 			},
-		})
+		});
 	}
 
 	return (
 		<Screen scroll={false}>
 			<View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
 				<ScreenHeader
-					title={params.wordName || t("words.recorder.newWord")}
+					title={params.wordName || t('words.recorder.newWord')}
 					onBack={() => void close()}
 					backIcon="close"
 				/>
@@ -111,7 +118,7 @@ export function RecorderScreen(): ReactElement {
 					{take && !recorder.recording ? (
 						<IconButton
 							icon={playing ? PauseIcon : PlayIcon}
-							label={t(playing ? "common.sound.stop" : "words.recorder.play")}
+							label={t(playing ? 'common.sound.stop' : 'words.recorder.play')}
 							variant="primary"
 							size="large"
 							onPress={() => player.toggle(TAKE_ID, take.uri)}
@@ -122,7 +129,7 @@ export function RecorderScreen(): ReactElement {
 							recorder.problem
 								? t(`words.recorder.${recorder.problem}`)
 								: player.failedId
-									? t("common.sound.playError")
+									? t('common.sound.playError')
 									: null
 						}
 					/>
@@ -130,21 +137,19 @@ export function RecorderScreen(): ReactElement {
 				{take && !recorder.recording ? (
 					<View style={ui.actions}>
 						<Button
-							label={t("words.recorder.retake")}
+							label={t('words.recorder.retake')}
 							variant="secondary"
 							disabled={recorder.busy}
 							onPress={record}
 							style={ui.action}
 						/>
-						<Button label={t("words.recorder.add")} onPress={add} style={ui.action} />
+						<Button label={t('words.recorder.add')} onPress={add} style={ui.action} />
 					</View>
 				) : (
 					<View style={styles.control}>
 						<IconButton
 							icon={recorder.recording ? SquareIcon : MicIcon}
-							label={t(
-								recorder.recording ? "words.recorder.stop" : "words.recorder.start",
-							)}
+							label={t(recorder.recording ? 'words.recorder.stop' : 'words.recorder.start')}
 							variant="primary"
 							size="xlarge"
 							disabled={recorder.busy}
@@ -155,25 +160,25 @@ export function RecorderScreen(): ReactElement {
 			</View>
 			<PermissionDialog state={microphone.dialog} />
 		</Screen>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
-		width: "100%",
+		width: '100%',
 		maxWidth: contentMaxWidth,
-		alignSelf: "center",
+		alignSelf: 'center',
 		paddingHorizontal: 24,
 		paddingTop: 12,
 	},
-	center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
+	center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
 	timer: {
 		fontFamily: font.black,
 		fontSize: 40,
 		lineHeight: 48,
-		fontVariant: ["tabular-nums"],
+		fontVariant: ['tabular-nums'],
 	},
-	status: { color: colors.muted, textAlign: "center" },
-	control: { alignItems: "center" },
-})
+	status: { color: colors.muted, textAlign: 'center' },
+	control: { alignItems: 'center' },
+});

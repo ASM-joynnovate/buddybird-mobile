@@ -1,22 +1,17 @@
-import { mockServer } from "@/mocks/server"
-import { type Upload, uploadSchema } from "@/types/apis/uploads"
+import { type Upload, uploadSchema } from '@/types/apis/uploads';
+
+import { mockServer } from '@/mocks/server';
 
 export async function issuePhotoUpload(): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.users.issuePhotoUpload())
+	return uploadSchema.parse(await mockServer.users.issuePhotoUpload());
 }
 
-export async function issueParrotPhotoUpload(
-	parrotId: string,
-	_idempotencyKey: string,
-): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.parrots.issuePhotoUpload(parrotId))
+export async function issueParrotPhotoUpload(parrotId: string, _idempotencyKey: string): Promise<Upload> {
+	return uploadSchema.parse(await mockServer.parrots.issuePhotoUpload(parrotId));
 }
 
-export async function issueRecordingUpload(
-	wordId: string,
-	_idempotencyKey: string,
-): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.words.issueRecordingUpload(wordId))
+export async function issueRecordingUpload(wordId: string, _idempotencyKey: string): Promise<Upload> {
+	return uploadSchema.parse(await mockServer.words.issueRecordingUpload(wordId));
 }
 
 export async function issueSoundUpload(
@@ -24,9 +19,9 @@ export async function issueSoundUpload(
 	capturedAt: string,
 	_idempotencyKey: string,
 ): Promise<Upload> {
-	return uploadSchema.parse(await mockServer.sessions.issueSoundUpload(sessionId, capturedAt))
+	return uploadSchema.parse(await mockServer.sessions.issueSoundUpload(sessionId, capturedAt));
 }
 
 export async function putUpload(upload: Upload, uri: string): Promise<void> {
-	await mockServer.uploads.put(upload.file_id, uri)
+	await mockServer.uploads.put(upload.file_id, uri);
 }

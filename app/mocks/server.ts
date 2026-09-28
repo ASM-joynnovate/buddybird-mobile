@@ -1,6 +1,9 @@
-import { randomUUID } from "expo-crypto"
+import { ApiError } from '@/types/apis/common';
+import { MAX_RECORDINGS } from '@/types/apis/words';
 
-import { currentSpan } from "@/mocks/phases"
+import { randomUUID } from 'expo-crypto';
+
+import { currentSpan } from '@/mocks/phases';
 import {
 	type Database,
 	event,
@@ -22,68 +25,64 @@ import {
 	sleepEvents,
 	type SleepWindow,
 	sleepWindowOf,
-} from "@/mocks/seed"
-import { ApiError } from "@/types/apis/common"
-import { MAX_RECORDINGS } from "@/types/apis/words"
-import { HOUR, MINUTE } from "@/utils/units"
+} from '@/mocks/seed';
+import { HOUR, MINUTE } from '@/utils/units';
 
-const LATENCY_MS = 450
-const PROCESSING_DELAY_MS = 2500
-const PAGE_SIZE = 20
-const UPLOAD_EXPIRES_SECONDS = 300
-const TAKEN_NICKNAMES = ["버디", "buddy"]
-const DEMO_USER_ID = "8c1f4a52-3b7e-4d2a-9f60-1e5b7c9d2a41"
-const TOKEN_PREFIX = "mock."
+const LATENCY_MS = 450;
+const PROCESSING_DELAY_MS = 2500;
+const PAGE_SIZE = 20;
+const UPLOAD_EXPIRES_SECONDS = 300;
+const TAKEN_NICKNAMES = ['버디', 'buddy'];
+const DEMO_USER_ID = '8c1f4a52-3b7e-4d2a-9f60-1e5b7c9d2a41';
+const TOKEN_PREFIX = 'mock.';
 
-type SaveUploadedFile = (uri: string) => void
+type SaveUploadedFile = (uri: string) => void;
 
-type MockAuthUser = { id: string; is_anonymous: boolean; providers: MockProvider[] }
+type MockAuthUser = { id: string; is_anonymous: boolean; providers: MockProvider[] };
 
-const demo = seed(Date.now())
-const accounts = new Map<string, Database>([[DEMO_USER_ID, demo]])
-const pendingUploads = new Map<string, SaveUploadedFile>()
+const demo = seed(Date.now());
+const accounts = new Map<string, Database>([[DEMO_USER_ID, demo]]);
+const pendingUploads = new Map<string, SaveUploadedFile>();
 
-let db = demo
-let authUsers: MockAuthUser[] = [
-	{ id: DEMO_USER_ID, is_anonymous: false, providers: ["kakao", "apple"] },
-]
-let authUserId: string | null = null
+let db = demo;
+let authUsers: MockAuthUser[] = [{ id: DEMO_USER_ID, is_anonymous: false, providers: ['kakao', 'apple'] }];
+let authUserId: string | null = null;
 
 function respond<T>(produce: () => T): Promise<T> {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			let value: T
+			let value: T;
 
 			try {
-				finishEndedSessions()
-				value = produce()
+				finishEndedSessions();
+				value = produce();
 			} catch (error) {
-				reject(error)
+				reject(error);
 
-				return
+				return;
 			}
 
-			resolve(value === undefined ? value : (JSON.parse(JSON.stringify(value)) as T))
-		}, LATENCY_MS)
-	})
+			resolve(value === undefined ? value : (JSON.parse(JSON.stringify(value)) as T));
+		}, LATENCY_MS);
+	});
 }
 
 function notFound() {
-	return new ApiError(404, "COMMON__RESOURCE_NOT_FOUND", "Resource not found")
+	return new ApiError(404, 'COMMON__RESOURCE_NOT_FOUND', 'Resource not found');
 }
 
 function find<T extends { id: string }>(items: T[], id: string): T {
-	const found = items.find((item) => item.id === id)
+	const found = items.find((item) => item.id === id);
 
 	if (!found) {
-		throw notFound()
+		throw notFound();
 	}
 
-	return found
+	return found;
 }
 
 function toPage<T>(items: T[], pageNumber: number) {
-	const total = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+	const total = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
 
 	return {
 		data: items.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE),
@@ -93,32 +92,32 @@ function toPage<T>(items: T[], pageNumber: number) {
 			is_first: pageNumber === 1,
 			is_last: pageNumber >= total,
 		},
-	}
+	};
 }
 
 function issueUpload(saveUploadedFile: SaveUploadedFile) {
-	const fileId = randomUUID()
+	const fileId = randomUUID();
 
-	pendingUploads.set(fileId, saveUploadedFile)
+	pendingUploads.set(fileId, saveUploadedFile);
 
 	return {
 		file_id: fileId,
 		url: `mock://uploads/${fileId}`,
 		headers: {},
 		expires_in: UPLOAD_EXPIRES_SECONDS,
-	}
+	};
 }
 
 function deviceDto(device: MockDevice) {
-	return device.id === db.currentDeviceId ? { ...device, last_seen_at: iso(Date.now()) } : device
+	return device.id === db.currentDeviceId ? { ...device, last_seen_at: iso(Date.now()) } : device;
 }
 
 function recordingDto({ duration_ms: _duration, status: _status, ...recording }: MockRecording) {
-	return recording
+	return recording;
 }
 
 function wordDto(word: MockWord) {
-	return { ...word, recordings: word.recordings.map(recordingDto) }
+	return { ...word, recordings: word.recordings.map(recordingDto) };
 }
 
 function eventDto(item: MockEvent) {
@@ -127,7 +126,7 @@ function eventDto(item: MockEvent) {
 		kind: item.kind,
 		occurred_at: item.occurred_at,
 		word: item.word_id ? { id: item.word_id } : null,
-	}
+	};
 }
 
 function soundDto(sound: MockSound) {
@@ -137,54 +136,50 @@ function soundDto(sound: MockSound) {
 		captured_at: sound.captured_at,
 		audio: { url: sound.audio_url },
 		judgment: sound.analyzed ? { word_id: sound.word_id } : null,
-	}
+	};
 }
 
 function notificationDto({ session_id: _session, ...item }: MockNotification) {
-	return item
+	return item;
 }
 
 function runningRecord() {
-	return db.sessions.find((session) => session.status === "running") ?? null
+	return db.sessions.find((session) => session.status === 'running') ?? null;
 }
 
 function replaceSession(id: string, change: (session: MockSession) => MockSession) {
-	db.sessions = db.sessions.map((session) => (session.id === id ? change(session) : session))
+	db.sessions = db.sessions.map((session) => (session.id === id ? change(session) : session));
 }
 
 function isStationOnOtherDevice(session: MockSession) {
-	return session.station_device_id !== db.currentDeviceId
+	return session.station_device_id !== db.currentDeviceId;
 }
 
 function sleepOf(session: MockSession) {
-	return sleepWindowOf({ ...db.settings, sleep: session.sleep ?? db.settings.sleep })
+	return sleepWindowOf({ ...db.settings, sleep: session.sleep ?? db.settings.sleep });
 }
 
 function mergeSummaries(saved: MockSummary[], received: MockSummary[]): MockSummary[] {
-	const sameKey = (a: MockSummary, b: MockSummary) =>
-		a.word_id === b.word_id && a.local_date === b.local_date
-	const kept = saved.filter((row) => !received.some((next) => sameKey(row, next)))
+	const sameKey = (a: MockSummary, b: MockSummary) => a.word_id === b.word_id && a.local_date === b.local_date;
+	const kept = saved.filter((row) => !received.some((next) => sameKey(row, next)));
 	const merged = received.map((next) => {
-		const previous = saved.find((row) => sameKey(row, next))
+		const previous = saved.find((row) => sameKey(row, next));
 
 		return {
 			...next,
 			play_count: Math.max(next.play_count, previous?.play_count ?? 0),
 			play_duration_ms: Math.max(next.play_duration_ms, previous?.play_duration_ms ?? 0),
-			learning_duration_ms: Math.max(
-				next.learning_duration_ms ?? 0,
-				previous?.learning_duration_ms ?? 0,
-			),
-		}
-	})
+			learning_duration_ms: Math.max(next.learning_duration_ms ?? 0, previous?.learning_duration_ms ?? 0),
+		};
+	});
 
-	return [...kept, ...merged]
+	return [...kept, ...merged];
 }
 
 function sessionDto(session: MockSession) {
-	const now = Date.now()
-	const running = session.status === "running"
-	const span = running ? currentSpan(Date.parse(session.started_at), now, sleepOf(session)) : null
+	const now = Date.now();
+	const running = session.status === 'running';
+	const span = running ? currentSpan(Date.parse(session.started_at), now, sleepOf(session)) : null;
 
 	return {
 		id: session.id,
@@ -194,10 +189,7 @@ function sessionDto(session: MockSession) {
 		progress: {
 			current_phase: span?.phase ?? null,
 			phase_started_at: span ? iso(span.start) : null,
-			last_heartbeat_at:
-				running && isStationOnOtherDevice(session)
-					? iso(now - 4000)
-					: session.last_heartbeat_at,
+			last_heartbeat_at: running && isStationOnOtherDevice(session) ? iso(now - 4000) : session.last_heartbeat_at,
 		},
 		period: {
 			started_at: session.started_at,
@@ -207,110 +199,104 @@ function sessionDto(session: MockSession) {
 		ends_at: session.ends_at,
 		sleep: session.sleep ?? db.settings.sleep,
 		judgment_status: judgmentStatus(session, now),
-	}
+	};
 }
 
 function judgmentStatus(session: MockSession, now: number) {
-	return session.status === "running" ||
-		(session.ended_at && now - Date.parse(session.ended_at) < MINUTE)
-		? "pending"
-		: "done"
+	return session.status === 'running' || (session.ended_at && now - Date.parse(session.ended_at) < MINUTE)
+		? 'pending'
+		: 'done';
 }
 
-function endSession(
-	session: MockSession,
-	endedBy: "user" | "server",
-	window: SleepWindow,
-	now: number,
-): MockSession {
-	const ended = { ...session, ended_at: iso(now) }
+function endSession(session: MockSession, endedBy: 'user' | 'server', window: SleepWindow, now: number): MockSession {
+	const ended = { ...session, ended_at: iso(now) };
 
 	return {
 		...ended,
-		status: "finished",
+		status: 'finished',
 		ended_by: endedBy,
-		events: [...session.events, event("session_finished", now)],
+		events: [...session.events, event('session_finished', now)],
 		sleep_events: sleepEvents(ended, window, now),
-	}
+	};
 }
 
-function finish(id: string, endedBy: "user" | "server") {
-	const now = Date.now()
+function finish(id: string, endedBy: 'user' | 'server') {
+	const now = Date.now();
 
-	replaceSession(id, (session) => endSession(session, endedBy, sleepOf(session), now))
+	replaceSession(id, (session) => endSession(session, endedBy, sleepOf(session), now));
 }
 
 function finishEndedSessions() {
-	const now = Date.now()
+	const now = Date.now();
 
 	db.sessions
-		.filter((session) => session.status === "running" && session.ends_at)
-		.filter((session) => Date.parse(session.ends_at ?? "") <= now)
-		.forEach((session) => finish(session.id, "server"))
+		.filter((session) => session.status === 'running' && session.ends_at)
+		.filter((session) => Date.parse(session.ends_at ?? '') <= now)
+		.forEach((session) => finish(session.id, 'server'));
 }
 
 function requireRunning(id: string) {
-	const session = find(db.sessions, id)
+	const session = find(db.sessions, id);
 
-	if (session.status !== "running") {
-		throw new ApiError(409, "SESSION__NOT_RUNNING", "Session is not running")
+	if (session.status !== 'running') {
+		throw new ApiError(409, 'SESSION__NOT_RUNNING', 'Session is not running');
 	}
 
-	return session
+	return session;
 }
 
 function parseLocalDate(value: string) {
-	const [year, month, day] = value.split("-").map(Number)
+	const [year, month, day] = value.split('-').map(Number);
 
-	return new Date(year, month - 1, day).getTime()
+	return new Date(year, month - 1, day).getTime();
 }
 
 function formatLocalDate(at: number) {
-	const date = new Date(at)
+	const date = new Date(at);
 
-	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function reportRange(period: "day" | "week" | "month", start: string) {
-	const from = parseLocalDate(start)
-	const date = new Date(from)
+function reportRange(period: 'day' | 'week' | 'month', start: string) {
+	const from = parseLocalDate(start);
+	const date = new Date(from);
 
-	if (period === "day") {
-		date.setDate(date.getDate() + 1)
-	} else if (period === "week") {
-		date.setDate(date.getDate() + 7)
+	if (period === 'day') {
+		date.setDate(date.getDate() + 1);
+	} else if (period === 'week') {
+		date.setDate(date.getDate() + 7);
 	} else {
-		date.setMonth(date.getMonth() + 1)
+		date.setMonth(date.getMonth() + 1);
 	}
 
-	return { from, to: date.getTime() }
+	return { from, to: date.getTime() };
 }
 
-function buckets(period: "day" | "week" | "month", from: number, to: number) {
-	const starts: number[] = []
-	const date = new Date(from)
+function buckets(period: 'day' | 'week' | 'month', from: number, to: number) {
+	const starts: number[] = [];
+	const date = new Date(from);
 
 	while (date.getTime() < to) {
-		starts.push(date.getTime())
+		starts.push(date.getTime());
 
-		if (period === "day") {
-			date.setHours(date.getHours() + 1)
+		if (period === 'day') {
+			date.setHours(date.getHours() + 1);
 		} else {
-			date.setDate(date.getDate() + 1)
+			date.setDate(date.getDate() + 1);
 		}
 	}
 
-	return starts.map((start, index) => ({ start, end: starts[index + 1] ?? to }))
+	return starts.map((start, index) => ({ start, end: starts[index + 1] ?? to }));
 }
 
 function overlaps(session: MockSession, from: number, to: number) {
-	const end = session.ended_at ? Date.parse(session.ended_at) : Date.now()
+	const end = session.ended_at ? Date.parse(session.ended_at) : Date.now();
 
-	return Date.parse(session.started_at) < to && end >= from
+	return Date.parse(session.started_at) < to && end >= from;
 }
 
 function newestStartFirst(a: MockSession, b: MockSession) {
-	return Date.parse(b.started_at) - Date.parse(a.started_at)
+	return Date.parse(b.started_at) - Date.parse(a.started_at);
 }
 
 function authSession(user: MockAuthUser) {
@@ -319,63 +305,63 @@ function authSession(user: MockAuthUser) {
 		user_id: user.id,
 		is_anonymous: user.is_anonymous,
 		providers: user.providers,
-	}
+	};
 }
 
 function requireAuthUser() {
-	const user = authUsers.find((item) => item.id === authUserId)
+	const user = authUsers.find((item) => item.id === authUserId);
 
 	if (!user) {
-		throw new ApiError(401, "AUTH__INVALID_TOKEN", "Invalid access token")
+		throw new ApiError(401, 'AUTH__INVALID_TOKEN', 'Invalid access token');
 	}
 
-	return user
+	return user;
 }
 
 function identityOwner(provider: MockProvider) {
-	return authUsers.find((user) => user.providers.includes(provider))
+	return authUsers.find((user) => user.providers.includes(provider));
 }
 
 function createAuthUser(isAnonymous: boolean, providers: MockProvider[], id = randomUUID()) {
-	const user = { id, is_anonymous: isAnonymous, providers }
+	const user = { id, is_anonymous: isAnonymous, providers };
 
-	authUsers = [...authUsers, user]
+	authUsers = [...authUsers, user];
 
-	return user
+	return user;
 }
 
 function createAccount(userId: string) {
-	const account = newDatabase(Date.now())
+	const account = newDatabase(Date.now());
 
-	accounts.set(userId, account)
+	accounts.set(userId, account);
 
-	return account
+	return account;
 }
 
 function activate(userId: string | null) {
-	const account = userId ? accounts.get(userId) : undefined
+	const account = userId ? accounts.get(userId) : undefined;
 
-	authUserId = userId
+	authUserId = userId;
 
 	if (account) {
-		db = account
+		db = account;
 	}
 }
 
 const APP_UPDATE = {
-	latest_version: "1.2.0",
-	min_supported_version: "1.0.0",
+	latest_version: '1.2.0',
+	min_supported_version: '1.0.0',
 	release_notes: [],
-}
+};
 
-let requestLocale: () => MockLocale = () => "en-US"
+let requestLocale: () => MockLocale = () => 'en-US';
 
 function consentDto(consent: MockConsent) {
 	return {
 		...consent,
 		title: consent.title[requestLocale()],
 		body: consent.body[requestLocale()],
-	}
+	};
 }
 
 export const mockServer = {
@@ -383,158 +369,143 @@ export const mockServer = {
 		get: () => respond(() => APP_UPDATE),
 	},
 	configure: (locale: () => MockLocale) => {
-		requestLocale = locale
+		requestLocale = locale;
 	},
 	auth: {
 		use: (userId: string | null) => activate(userId),
 		restore: (userId: string, isAnonymous: boolean) => {
-			const user =
-				authUsers.find((item) => item.id === userId) ??
-				createAuthUser(isAnonymous, [], userId)
+			const user = authUsers.find((item) => item.id === userId) ?? createAuthUser(isAnonymous, [], userId);
 
 			if (!accounts.has(userId)) {
-				createAccount(userId)
+				createAccount(userId);
 			}
 
-			activate(userId)
+			activate(userId);
 
-			return authSession(user)
+			return authSession(user);
 		},
 		signUpAnonymous: () => respond(() => authSession(createAuthUser(true, []))),
 		signIn: (provider: MockProvider) =>
-			respond(() =>
-				authSession(identityOwner(provider) ?? createAuthUser(false, [provider])),
-			),
+			respond(() => authSession(identityOwner(provider) ?? createAuthUser(false, [provider]))),
 		isLinkedElsewhere: (provider: MockProvider) =>
 			respond(() => {
-				const owner = identityOwner(provider)
+				const owner = identityOwner(provider);
 
-				return owner !== undefined && owner.id !== authUserId
+				return owner !== undefined && owner.id !== authUserId;
 			}),
 		linkIdentity: (provider: MockProvider) =>
 			respond(() => {
-				const user = requireAuthUser()
-				const owner = identityOwner(provider)
+				const user = requireAuthUser();
+				const owner = identityOwner(provider);
 
 				if (owner && owner.id !== user.id) {
-					return null
+					return null;
 				}
 
 				const linked = {
 					...user,
 					is_anonymous: false,
 					providers: owner ? user.providers : [...user.providers, provider],
-				}
+				};
 
-				authUsers = authUsers.map((item) => (item.id === user.id ? linked : item))
+				authUsers = authUsers.map((item) => (item.id === user.id ? linked : item));
 
-				return authSession(linked)
+				return authSession(linked);
 			}),
 		login: () =>
 			respond(() => {
-				const user = requireAuthUser()
-				const existing = accounts.get(user.id)
-				const account = existing ?? createAccount(user.id)
+				const user = requireAuthUser();
+				const existing = accounts.get(user.id);
+				const account = existing ?? createAccount(user.id);
 
-				activate(user.id)
+				activate(user.id);
 
-				return { user_id: account.user.id, is_new_user: existing === undefined }
+				return { user_id: account.user.id, is_new_user: existing === undefined };
 			}),
 		logout: () =>
 			respond(() => {
-				requireAuthUser()
+				requireAuthUser();
 
 				db.devices = db.devices.map((device) =>
-					device.id === db.currentDeviceId
-						? { ...device, push_registered: false }
-						: device,
-				)
+					device.id === db.currentDeviceId ? { ...device, push_registered: false } : device,
+				);
 			}),
 		withdraw: () =>
 			respond(() => {
-				const user = requireAuthUser()
-				const account = accounts.get(user.id)
+				const user = requireAuthUser();
+				const account = accounts.get(user.id);
 
 				if (user.is_anonymous || !account) {
-					throw new ApiError(
-						400,
-						"COMMON__BAD_REQUEST",
-						"Anonymous users cannot withdraw",
-					)
+					throw new ApiError(400, 'COMMON__BAD_REQUEST', 'Anonymous users cannot withdraw');
 				}
 
-				accounts.delete(user.id)
-				authUsers = authUsers.filter((item) => item.id !== user.id)
+				accounts.delete(user.id);
+				authUsers = authUsers.filter((item) => item.id !== user.id);
 
-				return { user_id: account.user.id }
+				return { user_id: account.user.id };
 			}),
 	},
 	uploads: {
 		put: (fileId: string, uri: string) =>
 			respond(() => {
-				const saveUploadedFile = pendingUploads.get(fileId)
+				const saveUploadedFile = pendingUploads.get(fileId);
 
 				if (!saveUploadedFile) {
-					throw notFound()
+					throw notFound();
 				}
 
-				pendingUploads.delete(fileId)
-				saveUploadedFile(uri)
+				pendingUploads.delete(fileId);
+				saveUploadedFile(uri);
 			}),
 	},
 	users: {
 		me: () => respond(() => db.user),
 		update: (input: { nickname?: string | null }) =>
 			respond(() => {
-				if (
-					input.nickname &&
-					TAKEN_NICKNAMES.includes(input.nickname.trim().toLowerCase())
-				) {
-					throw new ApiError(409, "USER__DUPLICATE_NICKNAME", "Nickname already in use")
+				if (input.nickname && TAKEN_NICKNAMES.includes(input.nickname.trim().toLowerCase())) {
+					throw new ApiError(409, 'USER__DUPLICATE_NICKNAME', 'Nickname already in use');
 				}
 
 				db.user = {
 					...db.user,
-					...(input.nickname === undefined
-						? {}
-						: { nickname: input.nickname?.trim() ?? null }),
-				}
+					...(input.nickname === undefined ? {} : { nickname: input.nickname?.trim() ?? null }),
+				};
 			}),
 		issuePhotoUpload: () =>
 			respond(() =>
 				issueUpload((uri) => {
-					db.user = { ...db.user, photo: { url: uri } }
+					db.user = { ...db.user, photo: { url: uri } };
 				}),
 			),
 		deletePhoto: () =>
 			respond(() => {
-				db.user = { ...db.user, photo: null }
+				db.user = { ...db.user, photo: null };
 			}),
 	},
 	settings: {
 		get: () => respond(() => db.settings),
 		updateSleep: (sleep: { sleep_at: string; wake_at: string }) =>
 			respond(() => {
-				db.settings = { ...db.settings, sleep }
+				db.settings = { ...db.settings, sleep };
 
-				return db.settings
+				return db.settings;
 			}),
 		updateNotifications: (notifications: typeof db.settings.notifications) =>
 			respond(() => {
-				db.settings = { ...db.settings, notifications }
+				db.settings = { ...db.settings, notifications };
 
-				return db.settings
+				return db.settings;
 			}),
 	},
 	consents: {
 		list: () => respond(() => db.consents.map(consentDto)),
-		save: (decision: { consent_id: string; status: "granted" | "denied" }) =>
+		save: (decision: { consent_id: string; status: 'granted' | 'denied' }) =>
 			respond(() => {
-				const consent = find(db.consents, decision.consent_id)
+				const consent = find(db.consents, decision.consent_id);
 
 				db.consents = db.consents.map((item) =>
 					item.id === consent.id ? { ...item, status: decision.status } : item,
-				)
+				);
 
 				return {
 					consent_id: consent.id,
@@ -542,7 +513,7 @@ export const mockServer = {
 					version: consent.version,
 					status: decision.status,
 					decided_at: iso(Date.now()),
-				}
+				};
 			}),
 	},
 	parrots: {
@@ -555,44 +526,37 @@ export const mockServer = {
 					species: input.species.trim(),
 					birthdate: input.birthdate ?? null,
 					photo: null,
-				}
+				};
 
-				db.parrots = [...db.parrots, parrot]
+				db.parrots = [...db.parrots, parrot];
 
-				return parrot
+				return parrot;
 			}),
-		update: (
-			id: string,
-			input: { name?: string; species?: string; birthdate?: string | null },
-		) =>
+		update: (id: string, input: { name?: string; species?: string; birthdate?: string | null }) =>
 			respond(() => {
-				const parrot = { ...find(db.parrots, id), ...input }
+				const parrot = { ...find(db.parrots, id), ...input };
 
-				db.parrots = db.parrots.map((item) => (item.id === id ? parrot : item))
+				db.parrots = db.parrots.map((item) => (item.id === id ? parrot : item));
 
-				return parrot
+				return parrot;
 			}),
 		remove: (id: string) =>
 			respond(() => {
-				find(db.parrots, id)
-				db.parrots = db.parrots.filter((item) => item.id !== id)
+				find(db.parrots, id);
+				db.parrots = db.parrots.filter((item) => item.id !== id);
 			}),
 		issuePhotoUpload: (id: string) =>
 			respond(() => {
-				find(db.parrots, id)
+				find(db.parrots, id);
 
 				return issueUpload((uri) => {
-					db.parrots = db.parrots.map((item) =>
-						item.id === id ? { ...item, photo: { url: uri } } : item,
-					)
-				})
+					db.parrots = db.parrots.map((item) => (item.id === id ? { ...item, photo: { url: uri } } : item));
+				});
 			}),
 		deletePhoto: (id: string) =>
 			respond(() => {
-				find(db.parrots, id)
-				db.parrots = db.parrots.map((item) =>
-					item.id === id ? { ...item, photo: null } : item,
-				)
+				find(db.parrots, id);
+				db.parrots = db.parrots.map((item) => (item.id === id ? { ...item, photo: null } : item));
 			}),
 	},
 	words: {
@@ -600,29 +564,29 @@ export const mockServer = {
 		get: (id: string) => respond(() => wordDto(find(db.words, id))),
 		create: (name: string) =>
 			respond(() => {
-				const word = { id: randomUUID(), name: name.trim(), recordings: [] }
+				const word = { id: randomUUID(), name: name.trim(), recordings: [] };
 
-				db.words = [...db.words, word]
+				db.words = [...db.words, word];
 
-				return wordDto(word)
+				return wordDto(word);
 			}),
 		update: (id: string, name: string) =>
 			respond(() => {
-				const word = { ...find(db.words, id), name: name.trim() }
+				const word = { ...find(db.words, id), name: name.trim() };
 
-				db.words = db.words.map((item) => (item.id === id ? word : item))
+				db.words = db.words.map((item) => (item.id === id ? word : item));
 
-				return wordDto(word)
+				return wordDto(word);
 			}),
 		remove: (id: string) =>
 			respond(() => {
-				find(db.words, id)
-				db.words = db.words.filter((item) => item.id !== id)
+				find(db.words, id);
+				db.words = db.words.filter((item) => item.id !== id);
 			}),
 		issueRecordingUpload: (id: string) =>
 			respond(() => {
 				if (find(db.words, id).recordings.length >= MAX_RECORDINGS) {
-					throw new ApiError(422, "WORD__RECORDING_LIMIT", "Recording limit reached")
+					throw new ApiError(422, 'WORD__RECORDING_LIMIT', 'Recording limit reached');
 				}
 
 				return issueUpload((uri) => {
@@ -630,115 +594,99 @@ export const mockServer = {
 						id: randomUUID(),
 						url: uri,
 						duration_ms: 0,
-						status: "processing" as const,
+						status: 'processing' as const,
 						created_at: iso(Date.now()),
-					}
+					};
 
 					db.words = db.words.map((item) =>
-						item.id === id
-							? { ...item, recordings: [...item.recordings, recording] }
-							: item,
-					)
+						item.id === id ? { ...item, recordings: [...item.recordings, recording] } : item,
+					);
 					setTimeout(() => {
 						db.words = db.words.map((item) => ({
 							...item,
 							recordings: item.recordings.map((entry) =>
-								entry.id === recording.id
-									? { ...entry, status: "ready" as const }
-									: entry,
+								entry.id === recording.id ? { ...entry, status: 'ready' as const } : entry,
 							),
-						}))
-					}, PROCESSING_DELAY_MS)
-				})
+						}));
+					}, PROCESSING_DELAY_MS);
+				});
 			}),
 		removeRecording: (id: string, recordingId: string) =>
 			respond(() => {
-				const word = find(db.words, id)
+				const word = find(db.words, id);
 
-				find(word.recordings, recordingId)
+				find(word.recordings, recordingId);
 
 				if (word.recordings.length <= 1) {
-					throw new ApiError(422, "WORD__RECORDING_REQUIRED", "At least one recording")
+					throw new ApiError(422, 'WORD__RECORDING_REQUIRED', 'At least one recording');
 				}
 
 				db.words = db.words.map((item) =>
 					item.id === id
 						? {
 								...item,
-								recordings: item.recordings.filter(
-									(entry) => entry.id !== recordingId,
-								),
+								recordings: item.recordings.filter((entry) => entry.id !== recordingId),
 							}
 						: item,
-				)
+				);
 			}),
 	},
 	devices: {
 		list: () => respond(() => db.devices.map(deviceDto)),
 		register: (input: {
-			client_device_id: string
-			platform: string
-			os_version: string
-			model: string
-			app_version: string
-			timezone?: string | null
+			client_device_id: string;
+			platform: string;
+			os_version: string;
+			model: string;
+			app_version: string;
+			timezone?: string | null;
 		}) =>
 			respond(() => {
-				const currentDevice = find(db.devices, db.currentDeviceId)
-				const { client_device_id, timezone, ...client } = input
+				const currentDevice = find(db.devices, db.currentDeviceId);
+				const { client_device_id, timezone, ...client } = input;
 				const registered = {
 					...currentDevice,
 					client_device_id,
 					timezone: timezone ?? null,
 					client,
-				}
+				};
 
-				db.devices = db.devices.map((item) =>
-					item.id === currentDevice.id ? registered : item,
-				)
+				db.devices = db.devices.map((item) => (item.id === currentDevice.id ? registered : item));
 
-				return deviceDto(registered)
+				return deviceDto(registered);
 			}),
-		updateMe: (input: {
-			app_version?: string
-			os_version?: string
-			timezone?: string | null
-		}) =>
+		updateMe: (input: { app_version?: string; os_version?: string; timezone?: string | null }) =>
 			respond(() => {
-				const currentDevice = find(db.devices, db.currentDeviceId)
-				const { timezone, ...client } = input
+				const currentDevice = find(db.devices, db.currentDeviceId);
+				const { timezone, ...client } = input;
 				const updated = {
 					...currentDevice,
 					timezone: timezone === undefined ? currentDevice.timezone : timezone,
 					client: { ...currentDevice.client, ...client },
-				}
+				};
 
-				db.devices = db.devices.map((item) =>
-					item.id === currentDevice.id ? updated : item,
-				)
+				db.devices = db.devices.map((item) => (item.id === currentDevice.id ? updated : item));
 
-				return deviceDto(updated)
+				return deviceDto(updated);
 			}),
 		updatePushToken: (_token: string) =>
 			respond(() => {
-				const currentDevice = find(db.devices, db.currentDeviceId)
+				const currentDevice = find(db.devices, db.currentDeviceId);
 
 				db.devices = db.devices.map((item) =>
 					item.id === currentDevice.id ? { ...item, push_registered: true } : item,
-				)
+				);
 
-				return deviceDto({ ...currentDevice, push_registered: true })
+				return deviceDto({ ...currentDevice, push_registered: true });
 			}),
 		disconnectMe: () =>
 			respond(() => {
-				db.devices = db.devices.filter((device) => device.id !== db.currentDeviceId)
+				db.devices = db.devices.filter((device) => device.id !== db.currentDeviceId);
 			}),
 	},
 	sessions: {
 		list: (pageNumber: number) =>
-			respond(() =>
-				toPage([...db.sessions].sort(newestStartFirst).map(sessionDto), pageNumber),
-			),
+			respond(() => toPage([...db.sessions].sort(newestStartFirst).map(sessionDto), pageNumber)),
 		range: (from: number, to: number) =>
 			respond(() =>
 				db.sessions
@@ -747,30 +695,22 @@ export const mockServer = {
 					.map(sessionDto),
 			),
 		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
-		start: (input: {
-			word_id?: string | null
-			ends_at?: string | null
-			sleep?: MockSettings["sleep"]
-		}) =>
+		start: (input: { word_id?: string | null; ends_at?: string | null; sleep?: MockSettings['sleep'] }) =>
 			respond(() => {
 				if (runningRecord()) {
-					throw new ApiError(
-						409,
-						"SESSION__ALREADY_RUNNING",
-						"Another session is running",
-					)
+					throw new ApiError(409, 'SESSION__ALREADY_RUNNING', 'Another session is running');
 				}
 
-				const now = Date.now()
-				const wordId = input.word_id ?? null
+				const now = Date.now();
+				const wordId = input.word_id ?? null;
 
 				if (wordId) {
-					find(db.words, wordId)
+					find(db.words, wordId);
 				}
 
 				const session: MockSession = {
 					id: randomUUID(),
-					status: "running",
+					status: 'running',
 					started_at: iso(now),
 					ended_at: null,
 					ended_by: null,
@@ -783,42 +723,42 @@ export const mockServer = {
 					ends_at: input.ends_at ?? null,
 					sleep: input.sleep ?? null,
 					summaries: [],
-					events: [event("session_started", now)],
+					events: [event('session_started', now)],
 					sleep_events: [],
 					sounds: [],
 					activity: [],
-				}
+				};
 
-				db.sessions = [...db.sessions, session]
+				db.sessions = [...db.sessions, session];
 
-				return sessionDto(session)
+				return sessionDto(session);
 			}),
 		finish: (id: string) =>
 			respond(() => {
-				requireRunning(id)
-				finish(id, "user")
+				requireRunning(id);
+				finish(id, 'user');
 
-				return sessionDto(find(db.sessions, id))
+				return sessionDto(find(db.sessions, id));
 			}),
 		heartbeat: (id: string, input: { summaries: MockSummary[] }) =>
 			respond(() => {
-				requireRunning(id)
+				requireRunning(id);
 				replaceSession(id, (current) => ({
 					...current,
 					last_heartbeat_at: iso(Date.now()),
 					summaries: mergeSummaries(current.summaries, input.summaries),
-				}))
+				}));
 
-				return { session: { status: find(db.sessions, id).status }, acknowledged: [] }
+				return { session: { status: find(db.sessions, id).status }, acknowledged: [] };
 			}),
 		addEvents: (
 			id: string,
 			input: {
-				events: { kind: MockEvent["kind"]; occurred_at: string; word_id?: string | null }[]
+				events: { kind: MockEvent['kind']; occurred_at: string; word_id?: string | null }[];
 			},
 		) =>
 			respond(() => {
-				requireRunning(id)
+				requireRunning(id);
 				replaceSession(id, (current) => ({
 					...current,
 					events: [
@@ -829,14 +769,14 @@ export const mockServer = {
 							}),
 						),
 					],
-				}))
+				}));
 			}),
 		events: (id: string) => respond(() => find(db.sessions, id).events.map(eventDto)),
 		sounds: (id: string, pageNumber: number) =>
 			respond(() => toPage(find(db.sessions, id).sounds.map(soundDto), pageNumber)),
 		issueSoundUpload: (id: string, capturedAt: string) =>
 			respond(() => {
-				requireRunning(id)
+				requireRunning(id);
 
 				return issueUpload((uri) => {
 					const sound: MockSound = {
@@ -849,58 +789,51 @@ export const mockServer = {
 						is_parrot_sound: null,
 						score: null,
 						feedback: null,
-					}
+					};
 
 					replaceSession(id, (session) => ({
 						...session,
 						sounds: [...session.sounds, sound],
-					}))
-				})
+					}));
+				});
 			}),
 	},
 	notifications: {
-		list: (pageNumber: number) =>
-			respond(() => toPage(db.notifications.map(notificationDto), pageNumber)),
+		list: (pageNumber: number) => respond(() => toPage(db.notifications.map(notificationDto), pageNumber)),
 		read: (id: string) =>
 			respond(() => {
-				const now = iso(Date.now())
+				const now = iso(Date.now());
 				const markRead = <T extends { id: string; read_at: string | null }>(item: T): T =>
-					item.id === id && !item.read_at ? { ...item, read_at: now } : item
+					item.id === id && !item.read_at ? { ...item, read_at: now } : item;
 
 				if (!db.notifications.some((item) => item.id === id)) {
-					throw notFound()
+					throw notFound();
 				}
 
-				db.notifications = db.notifications.map(markRead)
+				db.notifications = db.notifications.map(markRead);
 			}),
 		readAll: () =>
 			respond(() => {
-				const now = iso(Date.now())
+				const now = iso(Date.now());
 
-				db.notifications = db.notifications.map((item) =>
-					item.read_at ? item : { ...item, read_at: now },
-				)
+				db.notifications = db.notifications.map((item) => (item.read_at ? item : { ...item, read_at: now }));
 			}),
 	},
 	notices: {
 		list: (pageNumber: number) =>
 			respond(() =>
 				toPage(
-					[...db.notices].sort(
-						(a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at),
-					),
+					[...db.notices].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)),
 					pageNumber,
 				),
 			),
 		get: (id: string) => respond(() => find(db.notices, id)),
 		read: (id: string) =>
 			respond(() => {
-				find(db.notices, id)
-				db.notices = db.notices.map((notice) =>
-					notice.id === id ? { ...notice, is_read: true } : notice,
-				)
+				find(db.notices, id);
+				db.notices = db.notices.map((notice) => (notice.id === id ? { ...notice, is_read: true } : notice));
 
-				return find(db.notices, id)
+				return find(db.notices, id);
 			}),
 	},
 	feedback: {
@@ -915,23 +848,21 @@ export const mockServer = {
 			})),
 	},
 	reports: {
-		get: (period: "day" | "week" | "month", start: string) =>
+		get: (period: 'day' | 'week' | 'month', start: string) =>
 			respond(() => {
-				const { from, to } = reportRange(period, start)
-				const now = Date.now()
-				const sessions = db.sessions
-					.filter((session) => overlaps(session, from, to))
-					.sort(newestStartFirst)
+				const { from, to } = reportRange(period, start);
+				const now = Date.now();
+				const sessions = db.sessions.filter((session) => overlaps(session, from, to)).sort(newestStartFirst);
 				const learned = (session: MockSession, a: number, b: number) =>
 					session.summaries
 						.filter((summary) => {
-							const at = parseLocalDate(summary.local_date)
+							const at = parseLocalDate(summary.local_date);
 
-							return at >= a && at < b
+							return at >= a && at < b;
 						})
-						.reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0)
+						.reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0);
 				const rows = sessions.map((session) => {
-					const word = db.words.find((item) => item.id === session.word_id)
+					const word = db.words.find((item) => item.id === session.word_id);
 
 					return {
 						id: session.id,
@@ -940,43 +871,38 @@ export const mockServer = {
 						word: word ? { id: word.id, name: word.name } : null,
 						learning_duration_ms: learned(session, from, to),
 						judgment_status: judgmentStatus(session, now),
-					}
-				})
+					};
+				});
 				const learnedWords = rows.flatMap((row) =>
 					row.word && row.learning_duration_ms > 0
 						? [{ word: row.word, learning_duration_ms: row.learning_duration_ms }]
 						: [],
-				)
+				);
 				const words = learnedWords
 					.filter(
-						(item, index) =>
-							learnedWords.findIndex((other) => other.word.id === item.word.id) ===
-							index,
+						(item, index) => learnedWords.findIndex((other) => other.word.id === item.word.id) === index,
 					)
 					.map((item) => ({
 						word: item.word,
 						learning_duration_ms: learnedWords
 							.filter((other) => other.word.id === item.word.id)
 							.reduce((sum, other) => sum + other.learning_duration_ms, 0),
-					}))
+					}));
 
 				const sounds = sessions
 					.flatMap((session) => session.sounds)
 					.filter((sound) => {
-						const at = Date.parse(sound.captured_at)
+						const at = Date.parse(sound.captured_at);
 
-						return sound.is_parrot_sound === true && at >= from && at < to
+						return sound.is_parrot_sound === true && at >= from && at < to;
 					})
-					.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at))
+					.sort((a, b) => Date.parse(b.captured_at) - Date.parse(a.captured_at));
 
 				return {
 					period,
 					start,
 					end: formatLocalDate(to - HOUR),
-					learning_duration_ms: rows.reduce(
-						(sum, row) => sum + row.learning_duration_ms,
-						0,
-					),
+					learning_duration_ms: rows.reduce((sum, row) => sum + row.learning_duration_ms, 0),
 					trend: buckets(period, from, to).map((bucket) => ({
 						start: iso(bucket.start),
 						learning_duration_ms: sessions.reduce(
@@ -987,7 +913,7 @@ export const mockServer = {
 					words: words.sort((a, b) => b.learning_duration_ms - a.learning_duration_ms),
 					sessions: rows,
 					mimicry: { count: sounds.filter((sound) => sound.word_id).length },
-				}
+				};
 			}),
 	},
-}
+};

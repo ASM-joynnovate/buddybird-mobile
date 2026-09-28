@@ -1,56 +1,52 @@
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet"
-import { type PropsWithChildren, useEffect, useRef } from "react"
-import { StyleSheet, View } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { type PropsWithChildren, useEffect, useRef } from 'react';
 
-import { Backdrop } from "@/components/ui/sheet/backdrop"
-import { Title } from "@/components/ui/text"
-import { colors, contentMaxWidth } from "@/theme"
+import { StyleSheet, View } from 'react-native';
 
-const SHEET_RADIUS = 28
-const LIST_SNAP_POINTS = ["70%"]
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { colors, contentMaxWidth } from '@/theme';
+
+import { Backdrop } from '@/components/ui/sheet/backdrop';
+import { Title } from '@/components/ui/text';
+
+const SHEET_RADIUS = 28;
+const LIST_SNAP_POINTS = ['70%'];
 
 interface Props {
-	visible: boolean
-	title: string
-	onClose(): void
-	list?: boolean
-	onOpened?(): void
+	visible: boolean;
+	title: string;
+	onClose(): void;
+	list?: boolean;
+	onOpened?(): void;
 }
 
-export function Sheet({
-	visible,
-	title,
-	onClose,
-	list = false,
-	onOpened,
-	children,
-}: PropsWithChildren<Props>) {
-	const ref = useRef<BottomSheetModal>(null)
-	const presented = useRef(false)
+export function Sheet({ visible, title, onClose, list = false, onOpened, children }: PropsWithChildren<Props>) {
+	const ref = useRef<BottomSheetModal>(null);
+	const presented = useRef(false);
 
-	const insets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets();
 
 	useEffect(() => {
 		if (visible) {
-			presented.current = true
-			ref.current?.present()
+			presented.current = true;
+			ref.current?.present();
 		} else if (presented.current) {
-			presented.current = false
-			ref.current?.dismiss()
+			presented.current = false;
+			ref.current?.dismiss();
 		}
-	}, [visible])
+	}, [visible]);
 
 	return (
 		<BottomSheetModal
 			ref={ref}
 			onDismiss={() => {
-				presented.current = false
-				onClose()
+				presented.current = false;
+				onClose();
 			}}
 			onChange={(index) => {
 				if (index === 0) {
-					onOpened?.()
+					onOpened?.();
 				}
 			}}
 			enableContentPanningGesture={list}
@@ -76,20 +72,20 @@ export function Sheet({
 				</BottomSheetView>
 			)}
 		</BottomSheetModal>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	sheet: { width: "100%", maxWidth: contentMaxWidth, alignSelf: "center" },
+	sheet: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	background: {
 		backgroundColor: colors.background,
 		borderTopLeftRadius: SHEET_RADIUS,
 		borderTopRightRadius: SHEET_RADIUS,
-		borderCurve: "continuous",
+		borderCurve: 'continuous',
 	},
 	handle: { width: 40, height: 5, backgroundColor: colors.border },
 	content: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
 	title: { fontSize: 18, lineHeight: 24 },
 	list: { flex: 1 },
 	listTitle: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
-})
+});

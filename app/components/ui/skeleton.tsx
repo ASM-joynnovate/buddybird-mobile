@@ -1,10 +1,10 @@
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, View } from 'react-native';
 
-import { colors, radius } from "@/theme"
+import { colors, radius } from '@/theme';
 
 interface Props {
-	rows?: number
-	height?: number
+	rows?: number;
+	height?: number;
 }
 
 export function Skeleton({ rows = 3, height = 72 }: Props) {
@@ -14,10 +14,10 @@ export function Skeleton({ rows = 3, height = 72 }: Props) {
 				<View key={index} style={[styles.block, { height }]} />
 			))}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	skeleton: { gap: 10 },
 	block: { borderRadius: radius.card, backgroundColor: colors.surface },
-})
+});

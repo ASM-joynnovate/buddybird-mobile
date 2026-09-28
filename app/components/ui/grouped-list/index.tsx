@@ -1,11 +1,13 @@
-import type { PropsWithChildren } from "react"
-import { StyleSheet, View } from "react-native"
+import type { PropsWithChildren } from 'react';
 
-import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { StyleSheet, View } from 'react-native';
+
+import { colors, font, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	title?: string
+	title?: string;
 }
 
 export function GroupedList({ children, title }: PropsWithChildren<Props>) {
@@ -18,7 +20,7 @@ export function GroupedList({ children, title }: PropsWithChildren<Props>) {
 			) : null}
 			<View style={styles.list}>{children}</View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -28,8 +30,8 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderColor: colors.border,
 		borderRadius: radius.card,
-		borderCurve: "continuous",
-		overflow: "hidden",
+		borderCurve: 'continuous',
+		overflow: 'hidden',
 		backgroundColor: colors.background,
 	},
-})
+});

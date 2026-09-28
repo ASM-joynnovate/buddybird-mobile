@@ -1,16 +1,17 @@
-import { StyleSheet } from "react-native"
+import { StyleSheet } from 'react-native';
 
-import { CheckMark } from "@/components/ui/check-mark"
-import { groupedListStyles } from "@/components/ui/grouped-list/styles"
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { colors } from "@/theme"
+import { colors } from '@/theme';
+
+import { CheckMark } from '@/components/ui/check-mark';
+import { groupedListStyles } from '@/components/ui/grouped-list/styles';
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	label: string
-	selected: boolean
-	first?: boolean
-	onPress(): void
+	label: string;
+	selected: boolean;
+	first?: boolean;
+	onPress(): void;
 }
 
 export function GroupedListRadioItem({ label, selected, first, onPress }: Props) {
@@ -26,15 +27,13 @@ export function GroupedListRadioItem({ label, selected, first, onPress }: Props)
 			style={!first && groupedListStyles.divider}
 			contentStyle={groupedListStyles.pressRow}
 		>
-			<Copy style={[groupedListStyles.label, styles.label, selected && styles.selected]}>
-				{label}
-			</Copy>
+			<Copy style={[groupedListStyles.label, styles.label, selected && styles.selected]}>{label}</Copy>
 			{selected ? <CheckMark color={colors.orangeDark} /> : null}
 		</PressableSurface>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	label: { flex: 1 },
 	selected: { color: colors.orangeDark },
-})
+});

@@ -1,7 +1,8 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions } from '@tanstack/react-query';
 
-import { fetchAppUpdate } from "@/apis/app-update"
-import { apiKeys } from "@/hooks/apis/keys"
+import { fetchAppUpdate } from '@/apis/app-update';
+
+import { apiKeys } from '@/hooks/apis/keys';
 
 export const appUpdateQueryOptions = () =>
 	queryOptions({
@@ -10,4 +11,4 @@ export const appUpdateQueryOptions = () =>
 		retry: false,
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
-	})
+	});

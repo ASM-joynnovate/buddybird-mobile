@@ -1,25 +1,29 @@
-import dayjs from "dayjs"
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { useState } from 'react';
 
-import { Button } from "@/components/ui/button"
-import { GroupedList } from "@/components/ui/grouped-list"
-import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
-import { GroupedListPickerItem } from "@/components/ui/grouped-list/picker-item"
-import { WheelPicker } from "@/components/ui/wheel-picker"
-import { localDate } from "@/utils/date"
+import { StyleSheet, View } from 'react-native';
 
-const MAX_AGE_YEARS = 100
-const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1)
+import { useTranslation } from 'react-i18next';
 
-type DateParts = { year: number; month: number; day: number }
+import dayjs from 'dayjs';
+
+import { localDate } from '@/utils/date';
+
+import { Button } from '@/components/ui/button';
+import { GroupedList } from '@/components/ui/grouped-list';
+import { GroupedListCheckItem } from '@/components/ui/grouped-list/check-item';
+import { GroupedListPickerItem } from '@/components/ui/grouped-list/picker-item';
+import { WheelPicker } from '@/components/ui/wheel-picker';
+
+const MAX_AGE_YEARS = 100;
+const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
+
+type DateParts = { year: number; month: number; day: number };
 
 function daysIn(year: number, month: number) {
 	return dayjs()
 		.year(year)
 		.month(month - 1)
-		.daysInMonth()
+		.daysInMonth();
 }
 
 function toText({ year, month, day }: DateParts) {
@@ -28,84 +32,84 @@ function toText({ year, month, day }: DateParts) {
 			.year(year)
 			.month(month - 1)
 			.date(day),
-	)
+	);
 }
 
 function parse(value: string | null | undefined): DateParts {
-	const date = value ? dayjs(value) : dayjs().subtract(1, "year").date(1)
+	const date = value ? dayjs(value) : dayjs().subtract(1, 'year').date(1);
 
-	return { year: date.year(), month: date.month() + 1, day: date.date() }
+	return { year: date.year(), month: date.month() + 1, day: date.date() };
 }
 
 interface Props {
-	value: string | null | undefined
-	onChange(value: string | null): void
+	value: string | null | undefined;
+	onChange(value: string | null): void;
 }
 
 export function DatePicker({ value, onChange }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const [date, setDate] = useState(() => parse(value))
+	const [date, setDate] = useState(() => parse(value));
 
-	const unknown = value === null
-	const thisYear = dayjs().year()
-	const earliest = Math.min(thisYear - MAX_AGE_YEARS, date.year)
-	const years = Array.from({ length: thisYear - earliest + 1 }, (_, index) => earliest + index)
-	const days = Array.from({ length: daysIn(date.year, date.month) }, (_, index) => index + 1)
+	const unknown = value === null;
+	const thisYear = dayjs().year();
+	const earliest = Math.min(thisYear - MAX_AGE_YEARS, date.year);
+	const years = Array.from({ length: thisYear - earliest + 1 }, (_, index) => earliest + index);
+	const days = Array.from({ length: daysIn(date.year, date.month) }, (_, index) => index + 1);
 
 	function change(next: Partial<DateParts>) {
-		const merged = { ...date, ...next }
-		const clamped = { ...merged, day: Math.min(merged.day, daysIn(merged.year, merged.month)) }
+		const merged = { ...date, ...next };
+		const clamped = { ...merged, day: Math.min(merged.day, daysIn(merged.year, merged.month)) };
 
-		setDate(clamped)
+		setDate(clamped);
 
-		onChange(toText(clamped))
+		onChange(toText(clamped));
 	}
 
 	function label() {
 		if (value === undefined) {
-			return t("parrot.choose")
+			return t('parrot.choose');
 		}
 
-		return unknown ? t("common.unknown") : dayjs(toText(date)).format("LL")
+		return unknown ? t('common.unknown') : dayjs(toText(date)).format('LL');
 	}
 
 	return (
 		<GroupedListPickerItem
-			item={{ label: t("parrot.birthday"), value: label() }}
-			sheet={{ title: t("parrot.birthdayQuestion") }}
+			item={{ label: t('parrot.birthday'), value: label() }}
+			sheet={{ title: t('parrot.birthdayQuestion') }}
 		>
 			{(close) => (
 				<>
 					<View
 						style={unknown && styles.dimmed}
-						pointerEvents={unknown ? "none" : "auto"}
+						pointerEvents={unknown ? 'none' : 'auto'}
 						accessibilityElementsHidden={unknown}
 					>
 						<WheelPicker
 							columns={[
 								{
-									key: "year",
-									label: t("parrot.yearPicker"),
+									key: 'year',
+									label: t('parrot.yearPicker'),
 									value: date.year,
 									values: years,
-									unit: t("parrot.year"),
+									unit: t('parrot.year'),
 									onChange: (year) => change({ year }),
 								},
 								{
-									key: "month",
-									label: t("parrot.monthPicker"),
+									key: 'month',
+									label: t('parrot.monthPicker'),
 									value: date.month,
 									values: MONTHS,
-									unit: t("parrot.month"),
+									unit: t('parrot.month'),
 									onChange: (month) => change({ month }),
 								},
 								{
-									key: "day",
-									label: t("parrot.dayPicker"),
+									key: 'day',
+									label: t('parrot.dayPicker'),
 									value: date.day,
 									values: days,
-									unit: t("parrot.day"),
+									unit: t('parrot.day'),
 									onChange: (day) => change({ day }),
 								},
 							]}
@@ -114,27 +118,27 @@ export function DatePicker({ value, onChange }: Props) {
 					<GroupedList>
 						<GroupedListCheckItem
 							first
-							label={t("parrot.birthdayUnknown")}
+							label={t('parrot.birthdayUnknown')}
 							checked={unknown}
 							onToggle={() => onChange(unknown ? toText(date) : null)}
 						/>
 					</GroupedList>
 					<Button
-						label={t("common.select")}
+						label={t('common.select')}
 						onPress={() => {
 							if (value === undefined) {
-								onChange(toText(date))
+								onChange(toText(date));
 							}
 
-							close()
+							close();
 						}}
 					/>
 				</>
 			)}
 		</GroupedListPickerItem>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	dimmed: { opacity: 0.35 },
-})
+});

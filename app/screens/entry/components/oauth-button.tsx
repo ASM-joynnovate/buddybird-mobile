@@ -1,23 +1,26 @@
-import { useTranslation } from "react-i18next"
-import { ActivityIndicator, StyleSheet } from "react-native"
-import Svg, { Path } from "react-native-svg"
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { font, providerColors } from "@/theme"
+import { useTranslation } from 'react-i18next';
+
+import Svg, { Path } from 'react-native-svg';
+
+import { font, providerColors } from '@/theme';
+
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	provider: "google" | "kakao"
-	loading: boolean
-	disabled: boolean
-	hint?: string
-	onPress(): void
+	provider: 'google' | 'kakao';
+	loading: boolean;
+	disabled: boolean;
+	hint?: string;
+	onPress(): void;
 }
 
 export function OAuthButton({ provider, loading, disabled, hint, onPress }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const google = provider === "google"
+	const google = provider === 'google';
 
 	return (
 		<PressableSurface
@@ -28,21 +31,13 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 			onPress={onPress}
 			depth="none"
 			cornerRadius="control"
-			backgroundColor={
-				google ? providerColors.google.background : providerColors.kakao.background
-			}
+			backgroundColor={google ? providerColors.google.background : providerColors.kakao.background}
 			color={google ? providerColors.google.border : providerColors.kakao.background}
 			contentStyle={styles.button}
 		>
 			{google ? (
 				// Google's branding configurator supplies these paths.
-				<Svg
-					width={20}
-					height={20}
-					viewBox="0 0 48 48"
-					accessible={false}
-					opacity={loading ? 0 : 1}
-				>
+				<Svg width={20} height={20} viewBox="0 0 48 48" accessible={false} opacity={loading ? 0 : 1}>
 					<Path
 						fill={providerColors.google.logo.red}
 						d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -61,26 +56,14 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 					/>
 				</Svg>
 			) : (
-				<Svg
-					width={20}
-					height={20}
-					viewBox="0 0 18 18"
-					accessible={false}
-					opacity={loading ? 0 : 1}
-				>
+				<Svg width={20} height={20} viewBox="0 0 18 18" accessible={false} opacity={loading ? 0 : 1}>
 					<Path
 						fill={providerColors.kakao.icon}
 						d="M9 1C4.029 1 0 4.129 0 7.987c0 2.399 1.558 4.516 3.932 5.774l-1 3.665c-.09.323.28.58.563.393L7.87 14.87c.37.041.747.063 1.13.063 4.971 0 9-3.129 9-6.987C18 4.129 13.971 1 9 1Z"
 					/>
 				</Svg>
 			)}
-			<Copy
-				style={[
-					styles.label,
-					google ? styles.googleLabel : styles.kakaoLabel,
-					loading && styles.hidden,
-				]}
-			>
+			<Copy style={[styles.label, google ? styles.googleLabel : styles.kakaoLabel, loading && styles.hidden]}>
 				{t(`auth.${provider}`)}
 			</Copy>
 			{loading ? (
@@ -92,16 +75,16 @@ export function OAuthButton({ provider, loading, disabled, hint, onPress }: Prop
 				/>
 			) : null}
 		</PressableSurface>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	button: {
 		minHeight: 56,
 		borderWidth: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		gap: 12,
 		paddingHorizontal: 16,
 		paddingVertical: 16,
@@ -111,9 +94,9 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 22,
 		flexShrink: 1,
-		textAlign: "center",
+		textAlign: 'center',
 	},
 	googleLabel: { color: providerColors.google.text },
 	kakaoLabel: { color: providerColors.kakao.text },
 	hidden: { opacity: 0 },
-})
+});

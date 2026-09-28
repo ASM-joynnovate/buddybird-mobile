@@ -1,45 +1,53 @@
-import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native"
-import { useQuery } from "@tanstack/react-query"
-import { useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { Image, StyleSheet, View } from "react-native"
+import { useEffect } from 'react';
 
-import { Screen } from "@/components/ui/screen"
-import { ScreenError } from "@/components/ui/screen-error"
-import { ScreenHeader } from "@/components/ui/screen-header"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Copy, Title } from "@/components/ui/text"
-import { noticeQueryOptions, readNoticeMutationOptions } from "@/hooks/apis/notices"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import { formatDate } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, radius } from "@/theme"
-import type { RootStackParamList } from "@/types/navigation"
+import { Image, StyleSheet, View } from 'react-native';
+
+import { useQuery } from '@tanstack/react-query';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { noticeQueryOptions, readNoticeMutationOptions } from '@/hooks/apis/notices';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
+
+import { useTranslation } from 'react-i18next';
+
+import { formatDate } from '@/i18n/format';
+
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, radius } from '@/theme';
+
+import { Screen } from '@/components/ui/screen';
+import { ScreenError } from '@/components/ui/screen-error';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Copy, Title } from '@/components/ui/text';
 
 export function NoticeDetailScreen() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const navigation = useNavigation()
-	const { params } = useRoute<RouteProp<RootStackParamList, "NoticeDetail">>()
+	const navigation = useNavigation();
+	const { params } = useRoute<RouteProp<RootStackParamList, 'NoticeDetail'>>();
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const notice = useQuery(noticeQueryOptions(params.noticeId))
+	const notice = useQuery(noticeQueryOptions(params.noticeId));
 
-	const { mutate } = useIdempotentMutation(readNoticeMutationOptions())
+	const { mutate } = useIdempotentMutation(readNoticeMutationOptions());
 
-	const alreadyRead = notice.data?.is_read
+	const alreadyRead = notice.data?.is_read;
 
 	useEffect(() => {
 		if (alreadyRead === false) {
-			mutate({ id: params.noticeId })
+			mutate({ id: params.noticeId });
 		}
-	}, [alreadyRead, mutate, params.noticeId])
+	}, [alreadyRead, mutate, params.noticeId]);
 
-	let body = <Skeleton rows={3} />
+	let body = <Skeleton rows={3} />;
 
 	if (notice.isError) {
-		body = <ScreenError message={t("common.loadError")} onRetry={() => void notice.refetch()} />
+		body = <ScreenError message={t('common.loadError')} onRetry={() => void notice.refetch()} />;
 	} else if (notice.data) {
 		body = (
 			<View style={styles.body}>
@@ -55,11 +63,11 @@ export function NoticeDetailScreen() {
 						style={styles.image}
 						resizeMode="contain"
 						accessibilityIgnoresInvertColors
-						accessibilityLabel={t("home.notice.image", { index: index + 1 })}
+						accessibilityLabel={t('home.notice.image', { index: index + 1 })}
 					/>
 				))}
 			</View>
-		)
+		);
 	}
 
 	return (
@@ -67,7 +75,7 @@ export function NoticeDetailScreen() {
 			<ScreenHeader onBack={() => navigation.goBack()} />
 			{body}
 		</Screen>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -76,9 +84,9 @@ const styles = StyleSheet.create({
 	date: { fontSize: 13, color: colors.muted },
 	text: { lineHeight: 24 },
 	image: {
-		width: "100%",
+		width: '100%',
 		aspectRatio: 4 / 3,
 		borderRadius: radius.card,
 		backgroundColor: colors.surface,
 	},
-})
+});

@@ -1,178 +1,170 @@
+import { Platform } from 'react-native';
+
+import type { Parrot } from '@/types/apis/parrots';
+
+import type { AnalyticsConsent } from '@/types/consent';
+import type { Events, UserProperties } from '@/types/telemetry';
+
 import {
 	getAnalytics,
 	logEvent,
 	setAnalyticsCollectionEnabled,
 	setUserId,
 	setUserProperties as firebaseProperties,
-} from "@react-native-firebase/analytics"
+} from '@react-native-firebase/analytics';
 import {
 	getCrashlytics,
 	recordError,
 	setAttributes,
 	setCrashlyticsCollectionEnabled,
 	setUserId as crashUser,
-} from "@react-native-firebase/crashlytics"
-import {
-	getTrackingPermissionsAsync,
-	requestTrackingPermissionsAsync,
-} from "expo-tracking-transparency"
-import { Platform } from "react-native"
-import * as Clarity from "react-native-clarity"
+} from '@react-native-firebase/crashlytics';
+import { getTrackingPermissionsAsync, requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import * as Clarity from 'react-native-clarity';
 
-import { env } from "@/config"
-import {
-	EVENT_NAME_LIMIT,
-	firebaseParameters,
-	sendTelemetrySafely,
-} from "@/services/telemetry/events"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import type { Parrot } from "@/types/apis/parrots"
-import type { AnalyticsConsent } from "@/types/consent"
-import type { Events, UserProperties } from "@/types/telemetry"
-import { ageMonths } from "@/utils/date"
+import { env } from '@/config';
+import { EVENT_NAME_LIMIT, firebaseParameters, sendTelemetrySafely } from '@/services/telemetry/events';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { ageMonths } from '@/utils/date';
 
-type Properties = Record<string, string | null>
+type Properties = Record<string, string | null>;
 
-const CLARITY_TEXT_LIMIT = 255
+const CLARITY_TEXT_LIMIT = 255;
 
-const clarityEnabled = env.clarityProjectId.trim() !== ""
+const clarityEnabled = env.clarityProjectId.trim() !== '';
 
-let allowed: boolean | null = null
-let initialization: Promise<AnalyticsConsent> | undefined
-let clarityStarted = false
+let allowed: boolean | null = null;
+let initialization: Promise<AnalyticsConsent> | undefined;
+let clarityStarted = false;
 
-let properties: Properties = {}
-let userId: string | null = null
-let currentScreen: string | null = null
+let properties: Properties = {};
+let userId: string | null = null;
+let currentScreen: string | null = null;
 
 async function clarityTag(key: string, value: string) {
-	const text = value.slice(0, CLARITY_TEXT_LIMIT).trim()
+	const text = value.slice(0, CLARITY_TEXT_LIMIT).trim();
 
 	if (text) {
-		await Clarity.setCustomTag(key.slice(0, CLARITY_TEXT_LIMIT), text)
+		await Clarity.setCustomTag(key.slice(0, CLARITY_TEXT_LIMIT), text);
 	}
 }
 
 async function applyProperties() {
-	await firebaseProperties(getAnalytics(), properties)
+	await firebaseProperties(getAnalytics(), properties);
 
 	await setAttributes(
 		getCrashlytics(),
-		Object.fromEntries(
-			Object.entries(properties).filter(
-				(entry): entry is [string, string] => entry[1] !== null,
-			),
-		),
-	)
+		Object.fromEntries(Object.entries(properties).filter((entry): entry is [string, string] => entry[1] !== null)),
+	);
 
 	if (clarityStarted) {
 		for (const [key, value] of Object.entries(properties)) {
 			if (value !== null) {
-				await clarityTag(key, value)
+				await clarityTag(key, value);
 			}
 		}
 	}
 }
 
 async function applyUserId() {
-	await setUserId(getAnalytics(), userId)
+	await setUserId(getAnalytics(), userId);
 
-	await crashUser(getCrashlytics(), userId ?? "")
+	await crashUser(getCrashlytics(), userId ?? '');
 
 	if (clarityStarted && userId !== null) {
-		await Clarity.setCustomUserId(userId)
+		await Clarity.setCustomUserId(userId);
 	}
 }
 
 async function applyReplay() {
 	if (!clarityStarted) {
-		return
+		return;
 	}
 
-	await (allowed === true ? Clarity.resume() : Clarity.pause())
+	await (allowed === true ? Clarity.resume() : Clarity.pause());
 }
 
 function startClarity() {
 	if (!clarityEnabled || clarityStarted) {
-		return
+		return;
 	}
 
 	Clarity.setOnSessionStartedCallback(() => {
 		void sendTelemetrySafely(async () => {
-			await applyProperties()
-			await applyUserId()
-			await applyReplay()
-		})
-	})
+			await applyProperties();
+			await applyUserId();
+			await applyReplay();
+		});
+	});
 
-	Clarity.initialize(env.clarityProjectId)
+	Clarity.initialize(env.clarityProjectId);
 
-	clarityStarted = true
+	clarityStarted = true;
 }
 
 async function requestConsent(requestATT: boolean): Promise<AnalyticsConsent> {
-	if (Platform.OS !== "ios") {
-		return "not_applicable"
+	if (Platform.OS !== 'ios') {
+		return 'not_applicable';
 	}
 
-	let permission = await getTrackingPermissionsAsync()
+	let permission = await getTrackingPermissionsAsync();
 
-	if (requestATT && permission.status === "undetermined") {
-		permission = await requestTrackingPermissionsAsync()
+	if (requestATT && permission.status === 'undetermined') {
+		permission = await requestTrackingPermissionsAsync();
 	}
 
-	return permission.status === "granted" ? "granted" : "denied"
+	return permission.status === 'granted' ? 'granted' : 'denied';
 }
 
 export function initializeTelemetry(requestATT = true): Promise<AnalyticsConsent> {
 	initialization ??= (async () => {
-		const consent = await requestConsent(requestATT)
+		const consent = await requestConsent(requestATT);
 
-		useDeviceSettingsStore.getState().setAnalyticsConsent(consent)
+		useDeviceSettingsStore.getState().setAnalyticsConsent(consent);
 
-		allowed = consent === "granted" || consent === "not_applicable"
+		allowed = consent === 'granted' || consent === 'not_applicable';
 
-		await setAnalyticsCollectionEnabled(getAnalytics(), allowed)
-		await setCrashlyticsCollectionEnabled(getCrashlytics(), allowed)
+		await setAnalyticsCollectionEnabled(getAnalytics(), allowed);
+		await setCrashlyticsCollectionEnabled(getCrashlytics(), allowed);
 
 		if (allowed) {
-			startClarity()
+			startClarity();
 
-			await sendTelemetrySafely(applyProperties)
-			await sendTelemetrySafely(applyUserId)
+			await sendTelemetrySafely(applyProperties);
+			await sendTelemetrySafely(applyUserId);
 		}
 
-		await sendTelemetrySafely(applyReplay)
+		await sendTelemetrySafely(applyReplay);
 
-		return consent
+		return consent;
 	})().finally(() => {
-		initialization = undefined
-	})
+		initialization = undefined;
+	});
 
-	return initialization
+	return initialization;
 }
 
 export function setTelemetryIdentity(next: string | null) {
-	userId = next
+	userId = next;
 
 	if (allowed === true) {
-		void sendTelemetrySafely(applyUserId)
+		void sendTelemetrySafely(applyUserId);
 	}
 }
 
 export function setUserProperties(next: UserProperties) {
 	const values = Object.fromEntries(
 		Object.entries(next).map(([key, value]) => [key, value == null ? null : String(value)]),
-	)
+	);
 
 	if (Object.entries(values).every(([key, value]) => properties[key] === value)) {
-		return
+		return;
 	}
 
-	properties = { ...properties, ...values }
+	properties = { ...properties, ...values };
 
 	if (allowed === true) {
-		void sendTelemetrySafely(applyProperties)
+		void sendTelemetrySafely(applyProperties);
 	}
 }
 
@@ -183,59 +175,54 @@ export function syncUserProperties(parrot: Parrot | null, wordCount: number) {
 		parrot_age_months: parrot ? ageMonths(parrot.birthdate) : null,
 		total_words_registered: wordCount,
 		locale: useDeviceSettingsStore.getState().locale,
-	})
+	});
 }
 
 export function track<K extends keyof Events>(name: K, payload: Events[K]) {
 	if (allowed !== true) {
-		return
+		return;
 	}
 
 	void sendTelemetrySafely(async () => {
-		await logEvent(getAnalytics(), name.slice(0, EVENT_NAME_LIMIT), firebaseParameters(payload))
+		await logEvent(getAnalytics(), name.slice(0, EVENT_NAME_LIMIT), firebaseParameters(payload));
 
 		if (!clarityStarted) {
-			return
+			return;
 		}
 
-		if (name === "screen_view") {
-			await Clarity.setCurrentScreenName((payload as Events["screen_view"]).screen_name)
+		if (name === 'screen_view') {
+			await Clarity.setCurrentScreenName((payload as Events['screen_view']).screen_name);
 		}
 
 		for (const [key, value] of Object.entries(payload)) {
 			if (value !== null && value !== undefined) {
-				await clarityTag(
-					`${name}.${key}`,
-					Array.isArray(value) ? value.join(",") : String(value),
-				)
+				await clarityTag(`${name}.${key}`, Array.isArray(value) ? value.join(',') : String(value));
 			}
 		}
 
-		await Clarity.sendCustomEvent(name)
-	})
+		await Clarity.sendCustomEvent(name);
+	});
 }
 
 export function screen(name: string, screenClass = name) {
-	currentScreen = name
+	currentScreen = name;
 
-	track("screen_view", { screen_name: name, screen_class: screenClass })
+	track('screen_view', { screen_name: name, screen_class: screenClass });
 }
 
 export function reportError(error: unknown, scope: string, fatal?: boolean) {
-	const value = error instanceof Error ? error : new Error("UnknownError")
+	const value = error instanceof Error ? error : new Error('UnknownError');
 	const context = {
 		scope,
 		...(currentScreen ? { screen_name: currentScreen } : {}),
 		...(fatal === undefined ? {} : { is_fatal: String(fatal) }),
-	}
+	};
 
 	if (allowed !== false) {
 		void sendTelemetrySafely(() =>
-			setAttributes(getCrashlytics(), context).then(() =>
-				recordError(getCrashlytics(), value),
-			),
-		)
+			setAttributes(getCrashlytics(), context).then(() => recordError(getCrashlytics(), value)),
+		);
 	}
 
-	track("app_error", { error_code: value.name, screen_name: currentScreen })
+	track('app_error', { error_code: value.name, screen_name: currentScreen });
 }

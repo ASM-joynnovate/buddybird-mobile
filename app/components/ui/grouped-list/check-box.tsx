@@ -1,42 +1,45 @@
-import { useEffect } from "react"
-import { StyleSheet, View } from "react-native"
+import { useEffect } from 'react';
+
+import { StyleSheet, View } from 'react-native';
+
 import Animated, {
 	Easing,
 	useAnimatedStyle,
 	useReducedMotion,
 	useSharedValue,
 	withTiming,
-} from "react-native-reanimated"
+} from 'react-native-reanimated';
 
-import { CheckMark } from "@/components/ui/check-mark"
-import { PressableSurface } from "@/components/ui/surface"
-import { colors, depths } from "@/theme"
+import { colors, depths } from '@/theme';
 
-const CHECK_DEPTH = "medium"
+import { CheckMark } from '@/components/ui/check-mark';
+import { PressableSurface } from '@/components/ui/surface';
+
+const CHECK_DEPTH = 'medium';
 
 interface Props {
-	checked: boolean
-	disabled?: boolean
-	onPress(): void
+	checked: boolean;
+	disabled?: boolean;
+	onPress(): void;
 }
 
 export function GroupedListCheckBox({ checked, disabled, onPress }: Props) {
-	const reduced = useReducedMotion()
+	const reduced = useReducedMotion();
 
-	const pop = useSharedValue(1)
-	const mark = useAnimatedStyle(() => ({ transform: [{ scale: pop.get() }] }))
+	const pop = useSharedValue(1);
+	const mark = useAnimatedStyle(() => ({ transform: [{ scale: pop.get() }] }));
 
 	useEffect(() => {
 		if (checked && !reduced) {
-			pop.set(0.7)
-			pop.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }))
+			pop.set(0.7);
+			pop.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }));
 		}
-	}, [checked, reduced, pop])
+	}, [checked, reduced, pop]);
 
-	let tone: "primary" | "neutral" | "muted" = checked ? "primary" : "neutral"
+	let tone: 'primary' | 'neutral' | 'muted' = checked ? 'primary' : 'neutral';
 
 	if (disabled) {
-		tone = "muted"
+		tone = 'muted';
 	}
 
 	return (
@@ -45,23 +48,20 @@ export function GroupedListCheckBox({ checked, disabled, onPress }: Props) {
 				onPress={onPress}
 				disabled={disabled}
 				tone={tone}
-				depth={disabled ? "none" : CHECK_DEPTH}
+				depth={disabled ? 'none' : CHECK_DEPTH}
 				cornerRadius="small"
 				style={[styles.box, disabled && { marginTop: depths[CHECK_DEPTH] }]}
 				contentStyle={styles.boxFace}
 			>
 				<Animated.View style={mark}>
-					<CheckMark
-						size="small"
-						color={checked && !disabled ? colors.onAccent : colors.disabled}
-					/>
+					<CheckMark size="small" color={checked && !disabled ? colors.onAccent : colors.disabled} />
 				</Animated.View>
 			</PressableSurface>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	box: { width: 26 },
-	boxFace: { width: 26, height: 26, alignItems: "center", justifyContent: "center" },
-})
+	boxFace: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
+});

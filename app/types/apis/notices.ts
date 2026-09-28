@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { timestamp, uuid } from '@/types/apis/primitives';
 
-import { timestamp, uuid } from "@/types/apis/primitives"
+import { z } from 'zod';
 
 export const noticeSchema = z.object({
 	id: uuid,
@@ -10,6 +10,6 @@ export const noticeSchema = z.object({
 	ends_at: timestamp.nullable(),
 	is_read: z.boolean(),
 	images: z.array(z.object({ id: uuid, url: z.string() })),
-})
+});
 
-export type Notice = z.infer<typeof noticeSchema>
+export type Notice = z.infer<typeof noticeSchema>;

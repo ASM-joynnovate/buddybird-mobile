@@ -1,20 +1,19 @@
-import type { NotificationKind } from "@/types/apis/notifications"
-import { localDate } from "@/utils/date"
+import type { NotificationKind } from '@/types/apis/notifications';
+
+import { localDate } from '@/utils/date';
 
 type NotificationTarget = {
-	kind: NotificationKind
-	report_date?: string | null
-	sent_at: string
-}
+	kind: NotificationKind;
+	report_date?: string | null;
+	sent_at: string;
+};
 
 export function notificationPath({ kind, report_date, sent_at }: NotificationTarget): string {
-	if (kind === "streak") {
-		return "/report?source=notification"
+	if (kind === 'streak') {
+		return '/report?source=notification';
 	}
 
-	const date = kind === "mimicry" ? localDate(new Date(sent_at)) : report_date
+	const date = kind === 'mimicry' ? localDate(new Date(sent_at)) : report_date;
 
-	return date
-		? `/report?period=day&date=${date}&source=notification`
-		: "/report?period=day&source=notification"
+	return date ? `/report?period=day&date=${date}&source=notification` : '/report?period=day&source=notification';
 }

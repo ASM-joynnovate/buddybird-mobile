@@ -1,11 +1,12 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import type { HomeStackParamList } from '@/types/navigation';
 
-import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { HomeScreen } from "@/screens/home/home-screen"
-import { NotificationsScreen } from "@/screens/home/notifications-screen"
-import type { HomeStackParamList } from "@/types/navigation"
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const HomeStack = createNativeStackNavigator<HomeStackParamList>()
+import { stackOptions } from '@/navigators/main-tabs/stack-options';
+import { HomeScreen } from '@/screens/home/home-screen';
+import { NotificationsScreen } from '@/screens/home/notifications-screen';
+
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 export function HomeTab() {
 	return (
@@ -13,5 +14,5 @@ export function HomeTab() {
 			<HomeStack.Screen name="Home" component={HomeScreen} />
 			<HomeStack.Screen name="Notifications" component={NotificationsScreen} />
 		</HomeStack.Navigator>
-	)
+	);
 }

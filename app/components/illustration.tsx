@@ -1,25 +1,28 @@
-import type { LucideIcon } from "lucide-react-native"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, View } from 'react-native';
 
-import { Mascot } from "@/components/mascot"
-import { colors, radius } from "@/theme"
+import { useTranslation } from 'react-i18next';
+
+import type { LucideIcon } from 'lucide-react-native';
+
+import { colors, radius } from '@/theme';
+
+import { Mascot } from '@/components/mascot';
 
 interface Props {
-	scene: string
-	icon: LucideIcon
-	height?: number
-	mascot?: boolean
+	scene: string;
+	icon: LucideIcon;
+	height?: number;
+	mascot?: boolean;
 }
 
 export function Illustration({ scene, icon: Icon, height = 220, mascot = true }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
 	return (
 		<View
 			accessible
 			accessibilityRole="image"
-			accessibilityLabel={t("common.illustration", { scene })}
+			accessibilityLabel={t('common.illustration', { scene })}
 			style={[styles.panel, { height }]}
 		>
 			{mascot ? <Mascot size={Math.round(height * 0.55)} /> : null}
@@ -27,20 +30,20 @@ export function Illustration({ scene, icon: Icon, height = 220, mascot = true }:
 				<Icon size={mascot ? 26 : 40} color={colors.orangeDark} />
 			</View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	panel: {
-		alignSelf: "stretch",
+		alignSelf: 'stretch',
 		borderRadius: radius.hero,
-		borderCurve: "continuous",
+		borderCurve: 'continuous',
 		backgroundColor: colors.orangeSelected,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	badge: {
-		position: "absolute",
+		position: 'absolute',
 		right: 18,
 		bottom: 18,
 		width: 52,
@@ -49,8 +52,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 		borderWidth: 2,
 		borderColor: colors.orangeSoft,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	centered: {
 		width: 88,
@@ -59,7 +62,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 		borderWidth: 2,
 		borderColor: colors.orangeSoft,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
-})
+});

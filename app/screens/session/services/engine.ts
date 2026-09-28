@@ -1,220 +1,220 @@
+import type { HeartbeatSummary, Phase } from '@/types/apis/sessions';
+
+import type { SleepSettings } from '@/types/sleep-settings';
+
 import {
 	type AudioBuffer,
 	type AudioBufferSourceNode,
 	AudioContext,
 	AudioManager,
 	AudioRecorder,
-} from "react-native-audio-api"
+} from 'react-native-audio-api';
 
-import { LEARNING_TICK_MS, VAD, WORD_REST_FACTOR } from "@/config"
-import { stressCareTracks } from "@/screens/session/services/tracks"
-import { createSpeechDetector, type SpeechSegment } from "@/screens/session/services/vad"
-import { saveWav } from "@/screens/session/services/wav"
-import type { HeartbeatSummary, Phase } from "@/types/apis/sessions"
-import type { SleepSettings } from "@/types/sleep-settings"
-import { localDate } from "@/utils/date"
-import { currentSpan, type PhaseSpan } from "@/utils/phases"
-import { SECOND } from "@/utils/units"
+import { LEARNING_TICK_MS, VAD, WORD_REST_FACTOR } from '@/config';
+import { stressCareTracks } from '@/screens/session/services/tracks';
+import { createSpeechDetector, type SpeechSegment } from '@/screens/session/services/vad';
+import { saveWav } from '@/screens/session/services/wav';
+import { localDate } from '@/utils/date';
+import { currentSpan, type PhaseSpan } from '@/utils/phases';
+import { SECOND } from '@/utils/units';
 
-type CapturedSound = { uri: string; capturedAt: string }
+type CapturedSound = { uri: string; capturedAt: string };
 
 type LearningEngineOptions = {
-	wordId: string
-	recordingUrls: readonly string[]
-	startedAt: number
-	sleep: SleepSettings
-	onSound(sound: CapturedSound): void
-	onError(error: unknown): void
-}
+	wordId: string;
+	recordingUrls: readonly string[];
+	startedAt: number;
+	sleep: SleepSettings;
+	onSound(sound: CapturedSound): void;
+	onError(error: unknown): void;
+};
 
 export type LearningEngine = {
-	start(): Promise<void>
-	pause(): Promise<void>
-	resume(): Promise<void>
-	stop(): Promise<void>
-	summaries(): HeartbeatSummary[]
-	learningMs(): number
-}
+	start(): Promise<void>;
+	pause(): Promise<void>;
+	resume(): Promise<void>;
+	stop(): Promise<void>;
+	summaries(): HeartbeatSummary[];
+	learningMs(): number;
+};
 
-type Counter = "play_count" | "play_duration_ms" | "learning_duration_ms"
+type Counter = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
 
 export function createLearningEngine(options: LearningEngineOptions): LearningEngine {
-	const detector = createSpeechDetector(VAD)
-	const recorder = new AudioRecorder()
+	const detector = createSpeechDetector(VAD);
+	const recorder = new AudioRecorder();
 
-	let context: AudioContext | null = null
-	let recordings: AudioBuffer[] = []
-	let careTracks: string[] = []
-	let timer: ReturnType<typeof setInterval> | null = null
-	let running = false
-	let stopped = false
-	let phase: Phase | null = null
-	let clip: AudioBufferSourceNode | null = null
-	let care: AudioBufferSourceNode | null = null
-	let chosenCare: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null
-	let careStartedAt = 0
-	let nextClip = 0
-	let nextPlayAt = 0
-	let lastTick = 0
-	let totals: Record<string, HeartbeatSummary> = {}
+	let context: AudioContext | null = null;
+	let recordings: AudioBuffer[] = [];
+	let careTracks: string[] = [];
+	let timer: ReturnType<typeof setInterval> | null = null;
+	let running = false;
+	let stopped = false;
+	let phase: Phase | null = null;
+	let clip: AudioBufferSourceNode | null = null;
+	let care: AudioBufferSourceNode | null = null;
+	let chosenCare: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null;
+	let careStartedAt = 0;
+	let nextClip = 0;
+	let nextPlayAt = 0;
+	let lastTick = 0;
+	let totals: Record<string, HeartbeatSummary> = {};
 
 	function count(counter: Counter, amount: number, at: number) {
-		const date = localDate(new Date(at))
+		const date = localDate(new Date(at));
 		const current = totals[date] ?? {
 			word_id: options.wordId,
 			local_date: date,
 			play_count: 0,
 			play_duration_ms: 0,
 			learning_duration_ms: 0,
-		}
+		};
 
 		totals = {
 			...totals,
 			[date]: { ...current, [counter]: (current[counter] ?? 0) + Math.round(amount) },
-		}
+		};
 	}
 
 	function emit(segment: SpeechSegment | null) {
 		if (!segment) {
-			return
+			return;
 		}
 
 		try {
 			options.onSound({
 				uri: saveWav(segment.samples, VAD.sampleRate),
 				capturedAt: new Date(Date.now() - segment.durationMs).toISOString(),
-			})
+			});
 		} catch (error) {
-			options.onError(error)
+			options.onError(error);
 		}
 	}
 
 	function stopClip() {
-		const playing = clip
+		const playing = clip;
 
-		clip = null
+		clip = null;
 
-		playing?.stop()
+		playing?.stop();
 	}
 
 	function stopCare() {
-		const playing = care
+		const playing = care;
 
-		care = null
+		care = null;
 
 		if (playing && context && chosenCare) {
 			chosenCare = {
 				...chosenCare,
-				offset:
-					(chosenCare.offset + context.currentTime - careStartedAt) %
-					chosenCare.buffer.duration,
-			}
+				offset: (chosenCare.offset + context.currentTime - careStartedAt) % chosenCare.buffer.duration,
+			};
 		}
 
-		playing?.stop()
+		playing?.stop();
 	}
 
 	function playClip(now: number) {
-		const buffer = recordings[nextClip % recordings.length]
+		const buffer = recordings[nextClip % recordings.length];
 
 		if (!context || !buffer) {
-			return
+			return;
 		}
 
-		emit(detector.flush())
+		emit(detector.flush());
 
-		const source = context.createBufferSource()
-		const durationMs = buffer.duration * SECOND
+		const source = context.createBufferSource();
+		const durationMs = buffer.duration * SECOND;
 
-		source.buffer = buffer
-		source.connect(context.destination)
+		source.buffer = buffer;
+		source.connect(context.destination);
 		source.onEnded = () => {
 			if (clip === source) {
-				clip = null
-				nextPlayAt = Date.now() + durationMs * WORD_REST_FACTOR
+				clip = null;
+				nextPlayAt = Date.now() + durationMs * WORD_REST_FACTOR;
 			}
-		}
-		source.start()
+		};
+		source.start();
 
-		clip = source
-		nextClip += 1
-		nextPlayAt = Number.POSITIVE_INFINITY
+		clip = source;
+		nextClip += 1;
+		nextPlayAt = Number.POSITIVE_INFINITY;
 
-		detector.suspend(now + durationMs + VAD.echoTailGuardMs)
+		detector.suspend(now + durationMs + VAD.echoTailGuardMs);
 
-		count("play_count", 1, now)
-		count("play_duration_ms", durationMs, now)
+		count('play_count', 1, now);
+		count('play_duration_ms', durationMs, now);
 	}
 
 	async function playCare(span: PhaseSpan) {
-		const owner = context
+		const owner = context;
 
 		if (!owner) {
-			return
+			return;
 		}
 
 		if (chosenCare?.spanStart !== span.start) {
-			const track = careTracks[Math.floor(Math.random() * careTracks.length)]
+			const track = careTracks[Math.floor(Math.random() * careTracks.length)];
 
 			if (!track) {
-				return
+				return;
 			}
 
 			chosenCare = {
 				spanStart: span.start,
 				buffer: await owner.decodeAudioData(track),
 				offset: 0,
-			}
+			};
 		}
 
-		if (context !== owner || phase !== "stress_care" || !running || care) {
-			return
+		if (context !== owner || phase !== 'stress_care' || !running || care) {
+			return;
 		}
 
-		const source = owner.createBufferSource()
+		const source = owner.createBufferSource();
 
-		source.buffer = chosenCare.buffer
-		source.loop = true
-		source.connect(owner.destination)
-		source.start(0, chosenCare.offset)
+		source.buffer = chosenCare.buffer;
+		source.loop = true;
+		source.connect(owner.destination);
+		source.start(0, chosenCare.offset);
 
-		care = source
-		careStartedAt = owner.currentTime
+		care = source;
+		careStartedAt = owner.currentTime;
 	}
 
 	function enter(span: PhaseSpan) {
-		emit(detector.flush())
+		emit(detector.flush());
 
-		stopClip()
-		stopCare()
+		stopClip();
+		stopCare();
 
-		phase = span.phase
-		nextPlayAt = 0
+		phase = span.phase;
+		nextPlayAt = 0;
 
-		if (span.phase === "stress_care") {
-			detector.suspend(span.end + VAD.echoTailGuardMs)
+		if (span.phase === 'stress_care') {
+			detector.suspend(span.end + VAD.echoTailGuardMs);
 
-			playCare(span).catch(options.onError)
+			playCare(span).catch(options.onError);
 		}
 	}
 
 	function tick() {
-		const now = Date.now()
-		const span = currentSpan(options.startedAt, now, options.sleep)
+		const now = Date.now();
+		const span = currentSpan(options.startedAt, now, options.sleep);
 
 		if (span.phase !== phase) {
-			enter(span)
+			enter(span);
 		}
 
-		if (phase === "learning") {
-			count("learning_duration_ms", now - lastTick, now)
+		if (phase === 'learning') {
+			count('learning_duration_ms', now - lastTick, now);
 
 			if (!clip && now >= nextPlayAt) {
-				playClip(now)
+				playClip(now);
 			}
 		}
 
-		lastTick = now
+		lastTick = now;
 	}
 
 	async function startRecorder() {
@@ -226,110 +226,107 @@ export function createLearningEngine(options: LearningEngineOptions): LearningEn
 			},
 			({ buffer }) => {
 				if (running) {
-					detector.push(buffer.getChannelData(0), Date.now()).forEach(emit)
+					detector.push(buffer.getChannelData(0), Date.now()).forEach(emit);
 				}
 			},
-		)
-		recorder.onError((event) => options.onError(new Error(event.message)))
+		);
+		recorder.onError((event) => options.onError(new Error(event.message)));
 
-		const result = await recorder.start()
+		const result = await recorder.start();
 
-		if (result.status === "error") {
-			throw new Error(result.message)
+		if (result.status === 'error') {
+			throw new Error(result.message);
 		}
 	}
 
 	async function begin() {
 		if (stopped) {
-			return
+			return;
 		}
 
-		running = true
-		phase = null
-		lastTick = Date.now()
+		running = true;
+		phase = null;
+		lastTick = Date.now();
 
-		await startRecorder()
+		await startRecorder();
 
 		if (!recorder.isRecording()) {
-			await recorder.stop()
-			await startRecorder()
+			await recorder.stop();
+			await startRecorder();
 		}
 
 		if (stopped || !running) {
-			await recorder.stop()
+			await recorder.stop();
 
-			return
+			return;
 		}
 
-		tick()
+		tick();
 
-		timer = setInterval(tick, LEARNING_TICK_MS)
+		timer = setInterval(tick, LEARNING_TICK_MS);
 	}
 
 	async function halt() {
-		running = false
+		running = false;
 
 		if (timer) {
-			clearInterval(timer)
-			timer = null
+			clearInterval(timer);
+			timer = null;
 		}
 
-		emit(detector.flush())
+		emit(detector.flush());
 
-		stopClip()
-		stopCare()
+		stopClip();
+		stopCare();
 
 		if (recorder.isRecording()) {
-			await recorder.stop()
+			await recorder.stop();
 		}
 	}
 
 	return {
 		async start() {
 			AudioManager.setAudioSessionOptions({
-				iosCategory: "playAndRecord",
-				iosMode: "default",
-				iosOptions: ["defaultToSpeaker"],
-			})
-			await AudioManager.setAudioSessionActivity(true)
+				iosCategory: 'playAndRecord',
+				iosMode: 'default',
+				iosOptions: ['defaultToSpeaker'],
+			});
+			await AudioManager.setAudioSessionActivity(true);
 
 			if (stopped) {
-				return
+				return;
 			}
 
-			const created = new AudioContext()
+			const created = new AudioContext();
 
-			context = created
-			recordings = await Promise.all(
-				options.recordingUrls.map((url) => created.decodeAudioData(url)),
-			)
-			careTracks = await stressCareTracks()
+			context = created;
+			recordings = await Promise.all(options.recordingUrls.map((url) => created.decodeAudioData(url)));
+			careTracks = await stressCareTracks();
 
-			await begin()
+			await begin();
 		},
 		async pause() {
-			await halt()
-			await context?.suspend()
+			await halt();
+			await context?.suspend();
 		},
 		async resume() {
-			await context?.resume()
-			await begin()
+			await context?.resume();
+			await begin();
 		},
 		async stop() {
-			stopped = true
+			stopped = true;
 
-			await halt()
+			await halt();
 
-			recorder.clearOnAudioReady()
-			recorder.clearOnError()
+			recorder.clearOnAudioReady();
+			recorder.clearOnError();
 
-			await context?.close()
-			context = null
+			await context?.close();
+			context = null;
 
-			await AudioManager.setAudioSessionActivity(false)
+			await AudioManager.setAudioSessionActivity(false);
 		},
 		summaries: () => Object.values(totals),
-		learningMs: () =>
-			Object.values(totals).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
-	}
+		learningMs: () => Object.values(totals).reduce((sum, row) => sum + (row.learning_duration_ms ?? 0), 0),
+	};
 }

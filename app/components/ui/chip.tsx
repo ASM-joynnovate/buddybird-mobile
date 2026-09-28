@@ -1,13 +1,14 @@
-import { StyleSheet } from "react-native"
+import { StyleSheet } from 'react-native';
 
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { colors, font } from "@/theme"
+import { colors, font } from '@/theme';
+
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	label: string
-	selected?: boolean
-	onPress(): void
+	label: string;
+	selected?: boolean;
+	onPress(): void;
 }
 
 export function Chip({ label, selected, onPress }: Props) {
@@ -17,7 +18,7 @@ export function Chip({ label, selected, onPress }: Props) {
 			accessibilityLabel={label}
 			accessibilityState={{ selected: Boolean(selected) }}
 			onPress={onPress}
-			tone={selected ? "primary" : "neutral"}
+			tone={selected ? 'primary' : 'neutral'}
 			depth="low"
 			hitSlop={6}
 			cornerRadius="pill"
@@ -28,18 +29,18 @@ export function Chip({ label, selected, onPress }: Props) {
 				{label}
 			</Copy>
 		</PressableSurface>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	shell: { flexShrink: 0 },
 	chip: {
 		minHeight: 32,
-		justifyContent: "center",
-		alignItems: "center",
+		justifyContent: 'center',
+		alignItems: 'center',
 		paddingHorizontal: 14,
 		paddingVertical: 4,
 	},
 	chipText: { fontSize: 13.5, color: colors.muted, fontFamily: font.extraBold },
 	selectedText: { color: colors.onAccent },
-})
+});

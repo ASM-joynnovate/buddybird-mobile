@@ -1,25 +1,29 @@
-import { useQuery } from "@tanstack/react-query"
-import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { Alert } from "react-native"
+import { useEffect, useRef, useState } from 'react';
 
-import { appUpdateQueryOptions } from "@/hooks/apis/app-update"
-import { installedVersion, openStore } from "@/services/device/application"
-import { reportError, track } from "@/services/telemetry/client"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { evaluateUpdate } from "@/utils/update"
+import { Alert } from 'react-native';
+
+import { useQuery } from '@tanstack/react-query';
+
+import { appUpdateQueryOptions } from '@/hooks/apis/app-update';
+
+import { useTranslation } from 'react-i18next';
+
+import { installedVersion, openStore } from '@/services/device/application';
+import { reportError, track } from '@/services/telemetry/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { evaluateUpdate } from '@/utils/update';
 
 export function useUpdatePrompt() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const preferences = useDeviceSettingsStore((state) => state.update)
+	const preferences = useDeviceSettingsStore((state) => state.update);
 
-	const update = useQuery(appUpdateQueryOptions())
+	const update = useQuery(appUpdateQueryOptions());
 
-	const [storeOpening, setStoreOpening] = useState(false)
-	const [acceptedUpdate, setAcceptedUpdate] = useState<string | null>(null)
+	const [storeOpening, setStoreOpening] = useState(false);
+	const [acceptedUpdate, setAcceptedUpdate] = useState<string | null>(null);
 
-	const shownUpdate = useRef<string | null>(null)
+	const shownUpdate = useRef<string | null>(null);
 
 	const decision = update.data
 		? evaluateUpdate(
@@ -31,68 +35,66 @@ export function useUpdatePrompt() {
 				installedVersion,
 				preferences.dismissedVersion,
 			)
-		: null
+		: null;
 
-	const updateVisible =
-		!!decision && (decision.forced || acceptedUpdate !== decision.latestVersion)
+	const updateVisible = !!decision && (decision.forced || acceptedUpdate !== decision.latestVersion);
 
 	const updatesSettled =
-		!update.isFetching &&
-		(update.isSuccess || update.isError || update.fetchStatus === "paused")
+		!update.isFetching && (update.isSuccess || update.isError || update.fetchStatus === 'paused');
 
 	useEffect(() => {
 		if (updateVisible && decision && shownUpdate.current !== decision.latestVersion) {
-			shownUpdate.current = decision.latestVersion
+			shownUpdate.current = decision.latestVersion;
 
-			track("update_prompt_shown", {
+			track('update_prompt_shown', {
 				latest_version: decision.latestVersion,
 				is_forced: decision.forced,
-			})
+			});
 		}
-	}, [updateVisible, decision])
+	}, [updateVisible, decision]);
 
 	async function acceptUpdate() {
 		if (!decision || storeOpening) {
-			return
+			return;
 		}
 
-		setStoreOpening(true)
+		setStoreOpening(true);
 
 		try {
-			track("update_prompt_accepted", {
+			track('update_prompt_accepted', {
 				latest_version: decision.latestVersion,
 				is_forced: decision.forced,
-			})
+			});
 
-			await openStore()
+			await openStore();
 
 			if (!decision.forced) {
-				setAcceptedUpdate(decision.latestVersion)
+				setAcceptedUpdate(decision.latestVersion);
 			}
 		} catch (error) {
-			reportError(error, "open_store")
+			reportError(error, 'open_store');
 
-			throw error
+			throw error;
 		} finally {
-			setStoreOpening(false)
+			setStoreOpening(false);
 		}
 	}
 
 	const dismissUpdatePrompt = () => {
 		if (!decision || decision.forced) {
-			return
+			return;
 		}
 
 		try {
-			useDeviceSettingsStore.getState().dismissUpdate(decision.latestVersion)
+			useDeviceSettingsStore.getState().dismissUpdate(decision.latestVersion);
 
-			track("update_prompt_dismissed", { latest_version: decision.latestVersion })
+			track('update_prompt_dismissed', { latest_version: decision.latestVersion });
 		} catch (error) {
-			reportError(error, "dismiss_update")
+			reportError(error, 'dismiss_update');
 
-			Alert.alert(t("app.update.error"))
+			Alert.alert(t('app.update.error'));
 		}
-	}
+	};
 
 	return {
 		decision,
@@ -101,5 +103,5 @@ export function useUpdatePrompt() {
 		storeOpening,
 		acceptUpdate,
 		dismissUpdatePrompt,
-	}
+	};
 }

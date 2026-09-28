@@ -4,53 +4,47 @@ import {
 	requireNonnegativeNumber,
 	requireRecord,
 	requireText,
-} from "@/utils/validation"
+} from '@/utils/validation';
 
 export type LegacyProfile = {
-	name: string
-	species: string
-	birthDate: string | null
-	photoUri?: string
-}
+	name: string;
+	species: string;
+	birthDate: string | null;
+	photoUri?: string;
+};
 
 export function parseLegacyProfile(value: unknown): LegacyProfile {
-	const profileRecord = requireRecord(value, "profile")
+	const profileRecord = requireRecord(value, 'profile');
 	let birthDate =
-		profileRecord.birthDate === undefined
-			? null
-			: readNullableText(profileRecord.birthDate, "birthDate")
+		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
 
 	if (profileRecord.birthDate === undefined && profileRecord.ageMonths !== undefined) {
-		const date = new Date(requireText(profileRecord.createdAt, "parrot.createdAt"))
-		const age = requireNonnegativeNumber(profileRecord.ageMonths, "ageMonths")
+		const date = new Date(requireText(profileRecord.createdAt, 'parrot.createdAt'));
+		const age = requireNonnegativeNumber(profileRecord.ageMonths, 'ageMonths');
 
 		if (!Number.isInteger(age) || !Number.isFinite(date.getTime())) {
-			throw new Error("Invalid historical profile age")
+			throw new Error('Invalid historical profile age');
 		}
 
-		const birth = new Date(date.getFullYear(), date.getMonth() - age, 1)
+		const birth = new Date(date.getFullYear(), date.getMonth() - age, 1);
 
-		birthDate = `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2, "0")}-01`
+		birthDate = `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2, '0')}-01`;
 	}
 
-	let species = requireText(profileRecord.species, "species")
+	let species = requireText(profileRecord.species, 'species');
 
-	if (species === "parakeet") {
-		species = "budgie"
+	if (species === 'parakeet') {
+		species = 'budgie';
 	}
 
-	if (
-		species === "custom" &&
-		typeof profileRecord.customSpecies === "string" &&
-		profileRecord.customSpecies.trim()
-	) {
-		species = profileRecord.customSpecies.trim()
+	if (species === 'custom' && typeof profileRecord.customSpecies === 'string' && profileRecord.customSpecies.trim()) {
+		species = profileRecord.customSpecies.trim();
 	}
 
 	return {
-		name: requireText(profileRecord.name, "parrot.name"),
+		name: requireText(profileRecord.name, 'parrot.name'),
 		species,
 		birthDate,
-		photoUri: readOptionalText(profileRecord.photoUri, "photoUri"),
-	}
+		photoUri: readOptionalText(profileRecord.photoUri, 'photoUri'),
+	};
 }

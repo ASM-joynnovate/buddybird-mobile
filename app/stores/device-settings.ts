@@ -1,10 +1,3 @@
-import { getLocales } from "expo-localization"
-import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
-
-import { FEEDBACK_PROMPT_THRESHOLDS } from "@/config"
-import { mmkvStorage, restoreOptions } from "@/lib/storage"
-import { persistKeys, storageIds } from "@/stores/keys"
 import {
 	type DeviceSettings,
 	deviceSettingsSchema,
@@ -12,48 +5,57 @@ import {
 	initialLegacyMigration,
 	type LegacyMigration,
 	type LegacySettings,
-} from "@/types/device-settings"
-import { defaultLocale, type Locale, locales } from "@/types/locale"
-import { localDate } from "@/utils/date"
+} from '@/types/device-settings';
+import { defaultLocale, type Locale, locales } from '@/types/locale';
+
+import { mmkvStorage, restoreOptions } from '@/lib/storage';
+
+import { getLocales } from 'expo-localization';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+import { FEEDBACK_PROMPT_THRESHOLDS } from '@/config';
+import { persistKeys, storageIds } from '@/stores/keys';
+import { localDate } from '@/utils/date';
 
 type DeviceSettingsActions = {
-	setLocale: (locale: Locale) => void
-	setAnalyticsConsent: (consent: DeviceSettings["analyticsConsent"]) => void
-	dismissUpdate: (version: string) => void
-	countFeedbackDay: (date?: string) => void
-	consumeFeedbackPrompt: () => void
-	setGuideSeen: (guide: Guide, seen: boolean) => void
-	setOnboardingCompleted: (completed: boolean) => void
-	importLegacySettings: (settings: LegacySettings) => void
-	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void
-}
+	setLocale: (locale: Locale) => void;
+	setAnalyticsConsent: (consent: DeviceSettings['analyticsConsent']) => void;
+	dismissUpdate: (version: string) => void;
+	countFeedbackDay: (date?: string) => void;
+	consumeFeedbackPrompt: () => void;
+	setGuideSeen: (guide: Guide, seen: boolean) => void;
+	setOnboardingCompleted: (completed: boolean) => void;
+	importLegacySettings: (settings: LegacySettings) => void;
+	updateLegacyMigration: (update: (migration: LegacyMigration) => LegacyMigration) => void;
+};
 
-type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions
+type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
 
 function deviceLocale(): Locale {
 	for (const { languageTag, languageCode } of getLocales()) {
-		const exact = locales.find((locale) => locale === languageTag)
-		const sameLanguage = locales.find((locale) => locale.startsWith(`${languageCode}-`))
-		const matched = exact ?? sameLanguage
+		const exact = locales.find((locale) => locale === languageTag);
+		const sameLanguage = locales.find((locale) => locale.startsWith(`${languageCode}-`));
+		const matched = exact ?? sameLanguage;
 
 		if (matched) {
-			return matched
+			return matched;
 		}
 	}
 
-	return defaultLocale
+	return defaultLocale;
 }
 
 function defaultDeviceSettings(): DeviceSettings {
 	return {
 		locale: deviceLocale(),
-		analyticsConsent: "unknown",
+		analyticsConsent: 'unknown',
 		update: { dismissedVersion: null },
 		feedback: { version: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
 		guides: { recording: false },
 		onboardingCompleted: false,
 		legacyMigration: initialLegacyMigration,
-	}
+	};
 }
 
 export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
@@ -62,23 +64,23 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			...defaultDeviceSettings(),
 
 			setLocale: (locale) => {
-				set((state) => ({ ...state, locale }))
+				set((state) => ({ ...state, locale }));
 			},
 
 			setAnalyticsConsent: (analyticsConsent) => {
-				set((state) => ({ ...state, analyticsConsent }))
+				set((state) => ({ ...state, analyticsConsent }));
 			},
 
 			dismissUpdate: (version) => {
 				set((state) => ({
 					...state,
 					update: { ...state.update, dismissedVersion: version },
-				}))
+				}));
 			},
 
 			countFeedbackDay: (date = localDate()) => {
 				if (get().feedback.lastCountedDate === date) {
-					return
+					return;
 				}
 
 				set((state) => ({
@@ -88,7 +90,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 						lastCountedDate: date,
 						dayCount: state.feedback.dayCount + 1,
 					},
-				}))
+				}));
 			},
 
 			consumeFeedbackPrompt: () => {
@@ -102,15 +104,15 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 							FEEDBACK_PROMPT_THRESHOLDS.length - 1,
 						),
 					},
-				}))
+				}));
 			},
 
 			setGuideSeen: (guide, seen) => {
-				set((state) => ({ ...state, guides: { ...state.guides, [guide]: seen } }))
+				set((state) => ({ ...state, guides: { ...state.guides, [guide]: seen } }));
 			},
 
 			setOnboardingCompleted: (onboardingCompleted) => {
-				set((state) => ({ ...state, onboardingCompleted }))
+				set((state) => ({ ...state, onboardingCompleted }));
 			},
 
 			importLegacySettings: (settings) => {
@@ -118,11 +120,11 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 					...state,
 					...settings,
 					legacyMigration: { ...state.legacyMigration, settingsImported: true },
-				}))
+				}));
 			},
 
 			updateLegacyMigration: (update) => {
-				set((state) => ({ ...state, legacyMigration: update(state.legacyMigration) }))
+				set((state) => ({ ...state, legacyMigration: update(state.legacyMigration) }));
 			},
 		}),
 		{
@@ -154,4 +156,4 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			}),
 		},
 	),
-)
+);

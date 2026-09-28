@@ -1,32 +1,27 @@
-import type { PropsWithChildren } from "react"
-import { useTranslation } from "react-i18next"
-import { View } from "react-native"
+import type { PropsWithChildren } from 'react';
 
-import { Dialog } from "@/components/dialogs/dialog"
-import { Button } from "@/components/ui/button"
-import { InlineError } from "@/components/ui/inline-error"
-import { ui } from "@/components/ui/styles"
-import { Copy } from "@/components/ui/text"
+import { View } from 'react-native';
+
+import { useTranslation } from 'react-i18next';
+
+import { Dialog } from '@/components/dialogs/dialog';
+import { Button } from '@/components/ui/button';
+import { InlineError } from '@/components/ui/inline-error';
+import { ui } from '@/components/ui/styles';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	visible: boolean
-	text: { title: string; message?: string; confirm?: string; cancel?: string }
-	state?: { busy?: boolean; error?: string | null }
-	onConfirm(): void
-	onClose(): void
+	visible: boolean;
+	text: { title: string; message?: string; confirm?: string; cancel?: string };
+	state?: { busy?: boolean; error?: string | null };
+	onConfirm(): void;
+	onClose(): void;
 }
 
-export function ConfirmDialog({
-	visible,
-	text,
-	state,
-	onConfirm,
-	onClose,
-	children,
-}: PropsWithChildren<Props>) {
-	const { t } = useTranslation()
+export function ConfirmDialog({ visible, text, state, onConfirm, onClose, children }: PropsWithChildren<Props>) {
+	const { t } = useTranslation();
 
-	const busy = state?.busy ?? false
+	const busy = state?.busy ?? false;
 
 	return (
 		<Dialog
@@ -36,7 +31,7 @@ export function ConfirmDialog({
 			footer={
 				<View style={ui.actions}>
 					<Button
-						label={text.cancel ?? t("common.cancel")}
+						label={text.cancel ?? t('common.cancel')}
 						variant="secondary"
 						compact
 						disabled={busy}
@@ -44,7 +39,7 @@ export function ConfirmDialog({
 						style={ui.action}
 					/>
 					<Button
-						label={text.confirm ?? t("common.confirmDelete.confirm")}
+						label={text.confirm ?? t('common.confirmDelete.confirm')}
 						compact
 						loading={busy}
 						onPress={onConfirm}
@@ -57,5 +52,5 @@ export function ConfirmDialog({
 			{children}
 			<InlineError message={state?.error} />
 		</Dialog>
-	)
+	);
 }

@@ -1,17 +1,17 @@
-import Svg, { Polyline } from "react-native-svg"
+import Svg, { Polyline } from 'react-native-svg';
 
 const sizes = {
 	small: { side: 14, stroke: 3 },
 	medium: { side: 16, stroke: 3.2 },
-} as const
+} as const;
 
 interface Props {
-	color: string
-	size?: keyof typeof sizes
+	color: string;
+	size?: keyof typeof sizes;
 }
 
-export function CheckMark({ color, size = "medium" }: Props) {
-	const { side, stroke } = sizes[size]
+export function CheckMark({ color, size = 'medium' }: Props) {
+	const { side, stroke } = sizes[size];
 
 	return (
 		<Svg width={side} height={side} viewBox="0 0 14 14">
@@ -24,5 +24,5 @@ export function CheckMark({ color, size = "medium" }: Props) {
 				strokeLinejoin="round"
 			/>
 		</Svg>
-	)
+	);
 }

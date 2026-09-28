@@ -1,10 +1,63 @@
 {
 	"$schema": "./node_modules/oxfmt/configuration_schema.json",
-	"semi": false,
-	"singleQuote": false,
+	"semi": true,
+	"singleQuote": true,
 	"trailingComma": "all",
-	"quoteProps": "consistent",
+	"quoteProps": "as-needed",
 	"sortPackageJson": true,
-	"sortImports": { "internalPattern": ["@/", "@assets/", "@modules/"] },
-	"ignorePatterns": ["node_modules", "ios", "android", "dist", ".expo"]
+	"sortImports": {
+		"customGroups": [
+			{ "groupName": "react", "elementNamePattern": ["react"] },
+			{ "groupName": "react-native", "elementNamePattern": ["react-native"] },
+			{ "groupName": "tanstack-query", "elementNamePattern": ["@tanstack/react-query"] },
+			{ "groupName": "apis", "elementNamePattern": ["@/apis/**"] },
+			{ "groupName": "types-apis", "elementNamePattern": ["@/types/apis/**"] },
+			{ "groupName": "types", "elementNamePattern": ["@/types/**"] },
+			{ "groupName": "hooks", "elementNamePattern": ["@/hooks/**"] },
+			{ "groupName": "i18next", "elementNamePattern": ["react-i18next", "i18next"] },
+			{ "groupName": "i18n", "elementNamePattern": ["@/i18n", "@/i18n/**"] },
+			{ "groupName": "lib", "elementNamePattern": ["@/lib/**"] },
+			{ "groupName": "zod", "elementNamePattern": ["zod"] },
+			{
+				"groupName": "app-folders",
+				"elementNamePattern": [
+					"@/app",
+					"@/config",
+					"@/config/**",
+					"@/mocks/**",
+					"@/navigators/**",
+					"@/providers",
+					"@/providers/**",
+					"@/screens/**",
+					"@/services/**",
+					"@/stores/**",
+					"@/theme",
+					"@/theme/**",
+					"@/utils/**"
+				]
+			},
+			{ "groupName": "components", "elementNamePattern": ["@/components/**"] },
+			{ "groupName": "assets", "elementNamePattern": ["@assets/**"] }
+		],
+		"groups": [
+			"react",
+			"react-native",
+			"tanstack-query",
+			"apis",
+			"types-apis",
+			"types",
+			"hooks",
+			"i18next",
+			"i18n",
+			"lib",
+			"zod",
+			"unknown",
+			"app-folders",
+			"components",
+			"assets"
+		],
+		"newlinesBetween": true,
+		"sortSideEffects": true
+	},
+	"ignorePatterns": ["node_modules", "ios", "android", "dist", ".expo", "docs"]
 }

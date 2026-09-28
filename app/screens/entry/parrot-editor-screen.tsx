@@ -1,50 +1,56 @@
-import { type RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useQuery } from "@tanstack/react-query"
-import { useCallback } from "react"
-import { useTranslation } from "react-i18next"
+import { useCallback } from 'react';
 
-import { Screen } from "@/components/ui/screen"
-import { ScreenError } from "@/components/ui/screen-error"
-import { Skeleton } from "@/components/ui/skeleton"
-import { parrotsQueryOptions } from "@/hooks/apis/parrots"
-import { ParrotEditorForm } from "@/screens/entry/components/parrot-editor-form"
-import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
-import type { RootStackParamList } from "@/types/navigation"
+import { useQuery } from '@tanstack/react-query';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { parrotsQueryOptions } from '@/hooks/apis/parrots';
+
+import { useTranslation } from 'react-i18next';
+
+import { type RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { ParrotEditorForm } from '@/screens/entry/components/parrot-editor-form';
+import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+
+import { Screen } from '@/components/ui/screen';
+import { ScreenError } from '@/components/ui/screen-error';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ParrotEditorScreen() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-	const params = useRoute<RouteProp<RootStackParamList, "ParrotEditor">>().params
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+	const params = useRoute<RouteProp<RootStackParamList, 'ParrotEditor'>>().params;
 
-	const parrots = useQuery(parrotsQueryOptions())
+	const parrots = useQuery(parrotsQueryOptions());
 
-	const parrotId = params?.parrotId
-	const entry = params?.source === "entry"
-	const canGoBack = navigation.canGoBack()
+	const parrotId = params?.parrotId;
+	const entry = params?.source === 'entry';
+	const canGoBack = navigation.canGoBack();
 
 	useFocusEffect(
 		useCallback(() => {
 			if (entry) {
-				viewOnboardingStep("parrot")
+				viewOnboardingStep('parrot');
 			}
 		}, [entry]),
-	)
+	);
 
 	function done() {
 		if (entry) {
-			completeOnboardingStep("parrot")
+			completeOnboardingStep('parrot');
 
 			if (parrotId) {
-				navigation.navigate("UsageGuide")
+				navigation.navigate('UsageGuide');
 			}
 
-			return
+			return;
 		}
 
 		if (navigation.canGoBack()) {
-			navigation.goBack()
+			navigation.goBack();
 		}
 	}
 
@@ -52,31 +58,28 @@ export function ParrotEditorScreen() {
 		return (
 			<Screen>
 				{parrots.isError ? (
-					<ScreenError
-						message={t("common.loadError")}
-						onRetry={() => void parrots.refetch()}
-					/>
+					<ScreenError message={t('common.loadError')} onRetry={() => void parrots.refetch()} />
 				) : (
 					<Skeleton rows={4} />
 				)}
 			</Screen>
-		)
+		);
 	}
 
-	const parrot = parrotId ? parrots.data?.find((item) => item.id === parrotId) : undefined
+	const parrot = parrotId ? parrots.data?.find((item) => item.id === parrotId) : undefined;
 
 	if (parrotId && !parrot) {
-		return <Screen />
+		return <Screen />;
 	}
 
 	return (
 		<ParrotEditorForm
-			key={parrot?.id ?? "new"}
+			key={parrot?.id ?? 'new'}
 			parrot={parrot}
 			canDelete={(parrots.data?.length ?? 0) > 1}
 			intro={entry || !parrot}
 			onBack={canGoBack ? () => navigation.goBack() : undefined}
 			onDone={done}
 		/>
-	)
+	);
 }

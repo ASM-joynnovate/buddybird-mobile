@@ -1,13 +1,14 @@
-import { StyleSheet, TextInput, type TextInputProps, View } from "react-native"
+import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
-import { InlineError } from "@/components/ui/inline-error"
-import { ui } from "@/components/ui/styles"
-import { Copy } from "@/components/ui/text"
-import { colors, font } from "@/theme"
+import { colors, font } from '@/theme';
+
+import { InlineError } from '@/components/ui/inline-error';
+import { ui } from '@/components/ui/styles';
+import { Copy } from '@/components/ui/text';
 
 interface Props extends TextInputProps {
-	label?: string
-	error?: string | null
+	label?: string;
+	error?: string | null;
 }
 
 export function TextField({ label, error, style, accessibilityLabel, ...props }: Props) {
@@ -23,7 +24,7 @@ export function TextField({ label, error, style, accessibilityLabel, ...props }:
 			/>
 			<InlineError message={error} />
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -38,4 +39,4 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: colors.text,
 	},
-})
+});

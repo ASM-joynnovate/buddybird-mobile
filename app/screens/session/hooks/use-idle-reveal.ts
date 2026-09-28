@@ -1,31 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { STATION_SCREEN_IDLE_MS } from "@/config"
+import { STATION_SCREEN_IDLE_MS } from '@/config';
 
 export function useIdleReveal(): { visible: boolean; reveal(): void } {
-	const [visible, setVisible] = useState(true)
+	const [visible, setVisible] = useState(true);
 
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const reveal = useCallback(() => {
-		setVisible(true)
+		setVisible(true);
 
 		if (timer.current) {
-			clearTimeout(timer.current)
+			clearTimeout(timer.current);
 		}
 
-		timer.current = setTimeout(() => setVisible(false), STATION_SCREEN_IDLE_MS)
-	}, [])
+		timer.current = setTimeout(() => setVisible(false), STATION_SCREEN_IDLE_MS);
+	}, []);
 
 	useEffect(() => {
-		reveal()
+		reveal();
 
 		return () => {
 			if (timer.current) {
-				clearTimeout(timer.current)
+				clearTimeout(timer.current);
 			}
-		}
-	}, [reveal])
+		};
+	}, [reveal]);
 
-	return { visible, reveal }
+	return { visible, reveal };
 }

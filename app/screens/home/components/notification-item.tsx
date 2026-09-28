@@ -1,41 +1,42 @@
-import {
-	AudioWaveformIcon,
-	ChartNoAxesColumnIcon,
-	FlameIcon,
-	type LucideIcon,
-} from "lucide-react-native"
-import { memo } from "react"
-import { useTranslation } from "react-i18next"
-import { Image, StyleSheet, View } from "react-native"
+import { memo } from 'react';
 
-import { DotBadge } from "@/components/ui/dot-badge"
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { formatMoment } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font, radius } from "@/theme"
-import type { AppNotification, NotificationKind } from "@/types/apis/notifications"
-import { joinLabel } from "@/utils/a11y"
+import { Image, StyleSheet, View } from 'react-native';
+
+import type { AppNotification, NotificationKind } from '@/types/apis/notifications';
+
+import { useTranslation } from 'react-i18next';
+
+import { formatMoment } from '@/i18n/format';
+
+import { AudioWaveformIcon, ChartNoAxesColumnIcon, FlameIcon, type LucideIcon } from 'lucide-react-native';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, font, radius } from '@/theme';
+import { joinLabel } from '@/utils/a11y';
+
+import { DotBadge } from '@/components/ui/dot-badge';
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
 
 const icons: Record<NotificationKind, LucideIcon> = {
 	mimicry: AudioWaveformIcon,
 	daily_summary: ChartNoAxesColumnIcon,
 	streak: FlameIcon,
-}
+};
 
 interface Props {
-	item: AppNotification
-	onOpen(item: AppNotification): void
+	item: AppNotification;
+	onOpen(item: AppNotification): void;
 }
 
 export const NotificationItem = memo(function NotificationItem({ item, onOpen }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const unread = !item.read_at
-	const time = formatMoment(item.sent_at, locale)
-	const KindIcon = icons[item.kind]
+	const unread = !item.read_at;
+	const time = formatMoment(item.sent_at, locale);
+	const KindIcon = icons[item.kind];
 
 	return (
 		<PressableSurface
@@ -44,12 +45,7 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 			cornerRadius="none"
 			style={styles.item}
 			contentStyle={styles.row}
-			accessibilityLabel={joinLabel(
-				unread && t("home.notification.unread"),
-				item.title,
-				item.body,
-				time,
-			)}
+			accessibilityLabel={joinLabel(unread && t('home.notification.unread'), item.title, item.body, time)}
 			onPress={() => onOpen(item)}
 		>
 			<View style={styles.icon}>
@@ -68,21 +64,17 @@ export const NotificationItem = memo(function NotificationItem({ item, onOpen }:
 				<Copy style={styles.time}>{time}</Copy>
 			</View>
 			{item.image ? (
-				<Image
-					source={{ uri: item.image.url }}
-					style={styles.image}
-					accessibilityIgnoresInvertColors
-				/>
+				<Image source={{ uri: item.image.url }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : null}
 		</PressableSurface>
-	)
-})
+	);
+});
 
 const styles = StyleSheet.create({
 	item: { borderBottomWidth: 2, borderBottomColor: colors.border },
 	row: {
-		flexDirection: "row",
-		alignItems: "flex-start",
+		flexDirection: 'row',
+		alignItems: 'flex-start',
 		gap: 12,
 		paddingVertical: 12,
 		paddingHorizontal: 2,
@@ -91,12 +83,12 @@ const styles = StyleSheet.create({
 		width: 36,
 		height: 36,
 		borderRadius: radius.control,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		backgroundColor: colors.orangeSelected,
 	},
 	text: { flex: 1, minWidth: 0, gap: 3 },
-	titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+	titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 	title: { flexShrink: 1, fontFamily: font.black, fontSize: 16, color: colors.text },
 	body: { fontSize: 14, color: colors.text },
 	time: { fontSize: 12, color: colors.muted },
@@ -106,4 +98,4 @@ const styles = StyleSheet.create({
 		borderRadius: radius.control,
 		backgroundColor: colors.surface,
 	},
-})
+});

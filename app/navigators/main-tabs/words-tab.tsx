@@ -1,11 +1,12 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import type { WordsStackParamList } from '@/types/navigation';
 
-import { stackOptions } from "@/navigators/main-tabs/stack-options"
-import { WordEditorScreen } from "@/screens/words/word-editor-screen"
-import { WordListScreen } from "@/screens/words/word-list-screen"
-import type { WordsStackParamList } from "@/types/navigation"
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const WordsStack = createNativeStackNavigator<WordsStackParamList>()
+import { stackOptions } from '@/navigators/main-tabs/stack-options';
+import { WordEditorScreen } from '@/screens/words/word-editor-screen';
+import { WordListScreen } from '@/screens/words/word-list-screen';
+
+const WordsStack = createNativeStackNavigator<WordsStackParamList>();
 
 export function WordsTab() {
 	return (
@@ -13,5 +14,5 @@ export function WordsTab() {
 			<WordsStack.Screen name="WordList" component={WordListScreen} />
 			<WordsStack.Screen name="WordEditor" component={WordEditorScreen} />
 		</WordsStack.Navigator>
-	)
+	);
 }

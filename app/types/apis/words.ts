@@ -1,18 +1,18 @@
-import { z } from "zod"
+import { timestamp, uuid } from '@/types/apis/primitives';
 
-import { timestamp, uuid } from "@/types/apis/primitives"
+import { z } from 'zod';
 
-export const MAX_RECORDINGS = 5
-export const RECOMMENDED_RECORDINGS = 3
-export const WORD_NAME_LIMIT = 50
+export const MAX_RECORDINGS = 5;
+export const RECOMMENDED_RECORDINGS = 3;
+export const WORD_NAME_LIMIT = 50;
 
-const recordingSchema = z.object({ id: uuid, url: z.string(), created_at: timestamp })
+const recordingSchema = z.object({ id: uuid, url: z.string(), created_at: timestamp });
 
 export const wordSchema = z.object({
 	id: uuid,
 	name: z.string(),
 	recordings: z.array(recordingSchema),
-})
+});
 
-export type Recording = z.infer<typeof recordingSchema>
-export type Word = z.infer<typeof wordSchema>
+export type Recording = z.infer<typeof recordingSchema>;
+export type Word = z.infer<typeof wordSchema>;

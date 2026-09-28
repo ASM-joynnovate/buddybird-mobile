@@ -1,10 +1,10 @@
-import { z } from "zod"
+import { timestamp, uuid } from '@/types/apis/primitives';
 
-import { timestamp, uuid } from "@/types/apis/primitives"
+import { z } from 'zod';
 
 const createFeedbackRequestSchema = z.object({
 	message: z.string().trim().min(1).max(1000),
-})
+});
 
 export const feedbackSchema = z.object({
 	id: uuid,
@@ -13,7 +13,7 @@ export const feedbackSchema = z.object({
 	message: z.string(),
 	app_version: z.string(),
 	created_at: timestamp,
-})
+});
 
-export type CreateFeedbackRequest = z.infer<typeof createFeedbackRequestSchema>
-export type Feedback = z.infer<typeof feedbackSchema>
+export type CreateFeedbackRequest = z.infer<typeof createFeedbackRequestSchema>;
+export type Feedback = z.infer<typeof feedbackSchema>;

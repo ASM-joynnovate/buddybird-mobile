@@ -1,24 +1,25 @@
-import { StyleSheet } from "react-native"
+import { StyleSheet } from 'react-native';
 
-import { Copy } from "@/components/ui/text"
-import { colors } from "@/theme"
+import { colors } from '@/theme';
+
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	message?: string | null
+	message?: string | null;
 }
 
 export function InlineError({ message }: Props) {
 	if (!message) {
-		return null
+		return null;
 	}
 
 	return (
 		<Copy accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}>
 			{message}
 		</Copy>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	error: { color: colors.brand, fontSize: 15, lineHeight: 21, marginTop: 10 },
-})
+});

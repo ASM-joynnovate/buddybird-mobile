@@ -1,64 +1,68 @@
-import dayjs from "dayjs"
-import type { TFunction } from "i18next"
-import { type ReactElement, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { type ReactElement, useState } from 'react';
 
-import { PressableSurface } from "@/components/ui/surface"
-import { Copy } from "@/components/ui/text"
-import { formatDateWithWeekday, formatDuration } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font } from "@/theme"
-import type { Report } from "@/types/apis/reports"
-import type { Locale } from "@/types/locale"
-import type { ReportPeriod } from "@/types/report-period"
+import { StyleSheet, View } from 'react-native';
 
-const CHART_HEIGHT = 150
-const MIN_BAR = 3
+import type { Report } from '@/types/apis/reports';
 
-type Bucket = Report["trend"][number]
+import type { Locale } from '@/types/locale';
+import type { ReportPeriod } from '@/types/report-period';
+
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
+
+import { formatDateWithWeekday, formatDuration } from '@/i18n/format';
+
+import dayjs from 'dayjs';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, font } from '@/theme';
+
+import { PressableSurface } from '@/components/ui/surface';
+import { Copy } from '@/components/ui/text';
+
+const CHART_HEIGHT = 150;
+const MIN_BAR = 3;
+
+type Bucket = Report['trend'][number];
 
 function axisLabel(period: ReportPeriod, date: Date, locale: Locale, t: TFunction): string {
-	if (period === "week") {
-		return date.toLocaleDateString(locale, { weekday: "short" })
+	if (period === 'week') {
+		return date.toLocaleDateString(locale, { weekday: 'short' });
 	}
 
-	if (period === "day") {
-		return date.getHours() % 6 === 0 ? t("report.hour", { hour: date.getHours() }) : ""
+	if (period === 'day') {
+		return date.getHours() % 6 === 0 ? t('report.hour', { hour: date.getHours() }) : '';
 	}
 
-	return (date.getDate() - 1) % 7 === 0 ? String(date.getDate()) : ""
+	return (date.getDate() - 1) % 7 === 0 ? String(date.getDate()) : '';
 }
 
 interface Props {
-	period: ReportPeriod
-	trend: Bucket[]
+	period: ReportPeriod;
+	trend: Bucket[];
 }
 
 export function TrendChart({ period, trend }: Props): ReactElement {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const [selected, setSelected] = useState<number | null>(null)
+	const [selected, setSelected] = useState<number | null>(null);
 
-	const max = Math.max(1, ...trend.map((bucket) => bucket.learning_duration_ms))
+	const max = Math.max(1, ...trend.map((bucket) => bucket.learning_duration_ms));
 	const describe = (bucket: Bucket) =>
-		t("report.bar", {
-			label:
-				period === "day"
-					? dayjs(bucket.start).format("LT")
-					: formatDateWithWeekday(bucket.start, locale),
+		t('report.bar', {
+			label: period === 'day' ? dayjs(bucket.start).format('LT') : formatDateWithWeekday(bucket.start, locale),
 			duration: formatDuration(bucket.learning_duration_ms, locale),
-		})
-	const picked = selected === null ? null : trend[selected]
+		});
+	const picked = selected === null ? null : trend[selected];
 
 	return (
 		<View>
 			<Copy accessibilityLiveRegion="polite" style={styles.detail}>
-				{picked ? describe(picked) : " "}
+				{picked ? describe(picked) : ' '}
 			</Copy>
-			<View style={[styles.bars, period === "week" ? styles.wide : styles.narrow]}>
+			<View style={[styles.bars, period === 'week' ? styles.wide : styles.narrow]}>
 				{trend.map((bucket, index) => (
 					<PressableSurface
 						key={bucket.start}
@@ -75,10 +79,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 							style={[
 								styles.bar,
 								{
-									height: Math.max(
-										MIN_BAR,
-										(bucket.learning_duration_ms / max) * CHART_HEIGHT,
-									),
+									height: Math.max(MIN_BAR, (bucket.learning_duration_ms / max) * CHART_HEIGHT),
 								},
 								bucket.learning_duration_ms === 0 && styles.empty,
 								selected === index && styles.selected,
@@ -88,7 +89,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 				))}
 			</View>
 			<View
-				style={[styles.axis, period === "week" ? styles.wide : styles.narrow]}
+				style={[styles.axis, period === 'week' ? styles.wide : styles.narrow]}
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
 			>
@@ -101,7 +102,7 @@ export function TrendChart({ period, trend }: Props): ReactElement {
 				))}
 			</View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -112,20 +113,20 @@ const styles = StyleSheet.create({
 		minHeight: 20,
 		marginBottom: 6,
 	},
-	bars: { height: CHART_HEIGHT, flexDirection: "row", alignItems: "stretch" },
+	bars: { height: CHART_HEIGHT, flexDirection: 'row', alignItems: 'stretch' },
 	wide: { gap: 8 },
 	narrow: { gap: 2 },
-	column: { flex: 1, minWidth: 0, justifyContent: "flex-end", alignItems: "center" },
-	columnFace: { flexGrow: 1, borderWidth: 0, justifyContent: "flex-end", alignSelf: "stretch" },
-	bar: { alignSelf: "stretch", borderRadius: 4, backgroundColor: colors.orange },
+	column: { flex: 1, minWidth: 0, justifyContent: 'flex-end', alignItems: 'center' },
+	columnFace: { flexGrow: 1, borderWidth: 0, justifyContent: 'flex-end', alignSelf: 'stretch' },
+	bar: { alignSelf: 'stretch', borderRadius: 4, backgroundColor: colors.orange },
 	empty: { backgroundColor: colors.border },
 	selected: { backgroundColor: colors.orangeDark },
-	axis: { flexDirection: "row", marginTop: 6 },
+	axis: { flexDirection: 'row', marginTop: 6 },
 	axisText: {
 		width: 36,
-		textAlign: "center",
+		textAlign: 'center',
 		fontFamily: font.extraBold,
 		fontSize: 12,
 		color: colors.muted,
 	},
-})
+});

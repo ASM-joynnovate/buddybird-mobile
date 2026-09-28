@@ -1,18 +1,20 @@
-import type { LucideIcon } from "lucide-react-native"
-import { View } from "react-native"
+import { View } from 'react-native';
 
-import { groupedListStyles } from "@/components/ui/grouped-list/styles"
-import { Copy } from "@/components/ui/text"
-import { colors } from "@/theme"
+import type { LucideIcon } from 'lucide-react-native';
+
+import { colors } from '@/theme';
+
+import { groupedListStyles } from '@/components/ui/grouped-list/styles';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	label: string
-	icon?: LucideIcon
-	detail?: string
+	label: string;
+	icon?: LucideIcon;
+	detail?: string;
 }
 
 export interface GroupedListItemProps extends Props {
-	first?: boolean
+	first?: boolean;
 }
 
 export function GroupedListItemLabel({ label, icon: Icon, detail }: Props) {
@@ -24,5 +26,5 @@ export function GroupedListItemLabel({ label, icon: Icon, detail }: Props) {
 				{detail ? <Copy style={groupedListStyles.detail}>{detail}</Copy> : null}
 			</View>
 		</>
-	)
+	);
 }

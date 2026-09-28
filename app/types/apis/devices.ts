@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { timestamp, uuid } from '@/types/apis/primitives';
 
-import { timestamp, uuid } from "@/types/apis/primitives"
+import { z } from 'zod';
 
 export const deviceSchema = z.object({
 	id: uuid,
@@ -14,7 +14,7 @@ export const deviceSchema = z.object({
 		app_version: z.string(),
 	}),
 	push_registered: z.boolean(),
-})
+});
 
 const registerDeviceRequestSchema = z.object({
 	client_device_id: uuid,
@@ -23,7 +23,7 @@ const registerDeviceRequestSchema = z.object({
 	model: z.string().min(1).max(100),
 	app_version: z.string().min(1).max(12),
 	timezone: z.string().min(1).max(64).nullable().optional(),
-})
+});
 
-export type Device = z.infer<typeof deviceSchema>
-export type RegisterDeviceRequest = z.infer<typeof registerDeviceRequestSchema>
+export type Device = z.infer<typeof deviceSchema>;
+export type RegisterDeviceRequest = z.infer<typeof registerDeviceRequestSchema>;

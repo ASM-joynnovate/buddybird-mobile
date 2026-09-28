@@ -1,14 +1,15 @@
-import type { ReactNode } from "react"
-import { StyleSheet, View } from "react-native"
+import type { ReactNode } from 'react';
 
-import { Button } from "@/components/ui/button"
-import { ui } from "@/components/ui/styles"
-import { Copy } from "@/components/ui/text"
+import { StyleSheet, View } from 'react-native';
+
+import { Button } from '@/components/ui/button';
+import { ui } from '@/components/ui/styles';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	message: string
-	illustration?: ReactNode
-	action?: { label: string; onPress(): void }
+	message: string;
+	illustration?: ReactNode;
+	action?: { label: string; onPress(): void };
 }
 
 export function EmptyState({ message, illustration, action }: Props) {
@@ -16,13 +17,11 @@ export function EmptyState({ message, illustration, action }: Props) {
 		<View style={ui.messageBox}>
 			{illustration}
 			<Copy style={ui.messageText}>{message}</Copy>
-			{action ? (
-				<Button label={action.label} onPress={action.onPress} style={styles.action} />
-			) : null}
+			{action ? <Button label={action.label} onPress={action.onPress} style={styles.action} /> : null}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	action: { alignSelf: "stretch" },
-})
+	action: { alignSelf: 'stretch' },
+});

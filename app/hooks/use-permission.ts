@@ -1,91 +1,92 @@
-import { useCallback, useEffect, useRef, useState } from "react"
-import { AppState } from "react-native"
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { AppState } from 'react-native';
 
 import {
 	type PermissionKind,
 	type PermissionState,
 	readPermission,
 	requestPermission,
-} from "@/services/device/permissions"
-import { reportError } from "@/services/telemetry/client"
+} from '@/services/device/permissions';
+import { reportError } from '@/services/telemetry/client';
 
-export type PermissionDialogState = { visible: boolean; kind: PermissionKind; onClose(): void }
+export type PermissionDialogState = { visible: boolean; kind: PermissionKind; onClose(): void };
 
 export function usePermission(kind: PermissionKind) {
-	const [state, setState] = useState<PermissionState | null>(null)
-	const [dialogOpen, setDialogOpen] = useState(false)
+	const [state, setState] = useState<PermissionState | null>(null);
+	const [dialogOpen, setDialogOpen] = useState(false);
 
-	const pending = useRef<(() => void) | null>(null)
+	const pending = useRef<(() => void) | null>(null);
 
 	const refresh = useCallback(async () => {
-		const next = await readPermission(kind)
+		const next = await readPermission(kind);
 
-		setState(next)
+		setState(next);
 
-		return next
-	}, [kind])
+		return next;
+	}, [kind]);
 
 	useEffect(() => {
-		void refresh().catch((error: unknown) => reportError(error, `permission_${kind}`))
+		void refresh().catch((error: unknown) => reportError(error, `permission_${kind}`));
 
-		const subscription = AppState.addEventListener("change", (status) => {
-			if (status !== "active") {
-				return
+		const subscription = AppState.addEventListener('change', (status) => {
+			if (status !== 'active') {
+				return;
 			}
 
 			void refresh()
 				.then((next) => {
-					const action = pending.current
+					const action = pending.current;
 
 					if (next.granted && action) {
-						pending.current = null
-						setDialogOpen(false)
+						pending.current = null;
+						setDialogOpen(false);
 
-						action()
+						action();
 					}
 				})
-				.catch((error: unknown) => reportError(error, `permission_${kind}`))
-		})
+				.catch((error: unknown) => reportError(error, `permission_${kind}`));
+		});
 
-		return () => subscription.remove()
-	}, [kind, refresh])
+		return () => subscription.remove();
+	}, [kind, refresh]);
 
 	const run = useCallback(
 		async (action: () => void) => {
-			const current = await readPermission(kind)
+			const current = await readPermission(kind);
 
 			if (current.granted) {
-				action()
+				action();
 
-				return
+				return;
 			}
 
 			if (current.canAskAgain) {
-				const next = await requestPermission(kind)
+				const next = await requestPermission(kind);
 
-				setState(next)
+				setState(next);
 
 				if (next.granted) {
-					action()
+					action();
 				}
 
-				return
+				return;
 			}
 
-			pending.current = action
-			setDialogOpen(true)
+			pending.current = action;
+			setDialogOpen(true);
 		},
 		[kind],
-	)
+	);
 
 	const dialog: PermissionDialogState = {
 		visible: dialogOpen,
 		kind,
 		onClose: () => {
-			pending.current = null
-			setDialogOpen(false)
+			pending.current = null;
+			setDialogOpen(false);
 		},
-	}
+	};
 
-	return { granted: state?.granted ?? null, refresh, run, dialog }
+	return { granted: state?.granted ?? null, refresh, run, dialog };
 }

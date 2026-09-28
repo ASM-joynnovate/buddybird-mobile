@@ -1,59 +1,59 @@
 export type EntryMessages = {
 	login: {
-		product: string
-	}
+		product: string;
+	};
 	consent: {
-		intro: string
-		all: string
-		required: string
-		optional: string
-		viewFull: string
-	}
+		intro: string;
+		all: string;
+		required: string;
+		optional: string;
+		viewFull: string;
+	};
 	consentDetail: {
-		agree: string
-	}
+		agree: string;
+	};
 	parrot: {
-		intro: string
-		addTitle: string
-		editTitle: string
-		register: string
-		delete: string
-		deleteError: string
-		photoType: string
-		photoSize: string
-		photoError: string
-	}
+		intro: string;
+		addTitle: string;
+		editTitle: string;
+		register: string;
+		delete: string;
+		deleteError: string;
+		photoType: string;
+		photoSize: string;
+		photoError: string;
+	};
 	usage: {
 		record: {
-			title: string
-			scene: string
-		}
+			title: string;
+			scene: string;
+		};
 		place: {
-			title: string
-			scene: string
-		}
+			title: string;
+			scene: string;
+		};
 		keepOn: {
-			title: string
-			scene: string
-		}
+			title: string;
+			scene: string;
+		};
 		report: {
-			title: string
-			scene: string
-		}
-	}
+			title: string;
+			scene: string;
+		};
+	};
 	permissions: {
-		title: string
-		scene: string
-		microphone: string
-		notifications: string
-		allow: string
-		later: string
-	}
+		title: string;
+		scene: string;
+		microphone: string;
+		notifications: string;
+		allow: string;
+		later: string;
+	};
 	legacy: {
-		uploading: string
-		error: string
-		askTitle: string
-		add: string
-		skip: string
-	}
-}
+		uploading: string;
+		error: string;
+		askTitle: string;
+		add: string;
+		skip: string;
+	};
+};

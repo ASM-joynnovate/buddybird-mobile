@@ -1,12 +1,12 @@
-import { PauseIcon, PlayIcon } from "lucide-react-native"
+import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
-import { IconButton } from "@/components/ui/icon-button"
+import { IconButton } from '@/components/ui/icon-button';
 
 interface Props {
-	playing: boolean
-	label: string
-	onPress(): void
-	disabled?: boolean
+	playing: boolean;
+	label: string;
+	onPress(): void;
+	disabled?: boolean;
 }
 
 export function PlayButton({ playing, label, onPress, disabled }: Props) {
@@ -19,5 +19,5 @@ export function PlayButton({ playing, label, onPress, disabled }: Props) {
 			disabled={disabled}
 			onPress={onPress}
 		/>
-	)
+	);
 }

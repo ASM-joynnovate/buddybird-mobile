@@ -1,8 +1,8 @@
-import { z } from "zod"
+import { localDate, uuid } from '@/types/apis/primitives';
 
-import { localDate, uuid } from "@/types/apis/primitives"
+import { z } from 'zod';
 
-export const PARROT_NAME_LIMIT = 20
+export const PARROT_NAME_LIMIT = 20;
 
 export const parrotSchema = z.object({
 	id: uuid,
@@ -10,20 +10,20 @@ export const parrotSchema = z.object({
 	species: z.string(),
 	birthdate: localDate.nullable(),
 	photo: z.object({ url: z.string() }).nullable(),
-})
+});
 
 const createParrotRequestSchema = z.object({
 	name: z.string(),
 	species: z.string(),
 	birthdate: localDate.nullable().optional(),
-})
+});
 
 const updateParrotRequestSchema = z.object({
 	name: z.string().optional(),
 	species: z.string().optional(),
 	birthdate: localDate.nullable().optional(),
-})
+});
 
-export type Parrot = z.infer<typeof parrotSchema>
-export type CreateParrotRequest = z.infer<typeof createParrotRequestSchema>
-export type UpdateParrotRequest = z.infer<typeof updateParrotRequestSchema>
+export type Parrot = z.infer<typeof parrotSchema>;
+export type CreateParrotRequest = z.infer<typeof createParrotRequestSchema>;
+export type UpdateParrotRequest = z.infer<typeof updateParrotRequestSchema>;

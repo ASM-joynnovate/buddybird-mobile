@@ -1,35 +1,39 @@
-import { useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState } from 'react';
+
+import { useQueryClient } from '@tanstack/react-query';
+
+import { ApiError } from '@/types/apis/common';
+
+import type { SessionDraft } from '@/types/navigation';
 
 import {
 	finishSessionMutationOptions,
 	runningSessionQueryOptions,
 	startSessionMutationOptions,
-} from "@/hooks/apis/sessions"
-import { useIdempotentMutation } from "@/hooks/apis/use-idempotent-mutation"
-import type { StartDialogState } from "@/screens/home/components/start-dialogs"
-import { reportError } from "@/services/telemetry/client"
-import { ApiError } from "@/types/apis/common"
-import type { SessionDraft } from "@/types/navigation"
+} from '@/hooks/apis/sessions';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-type StartSessionState = StartDialogState & { start(draft: SessionDraft): void }
+import type { StartDialogState } from '@/screens/home/components/start-dialogs';
+import { reportError } from '@/services/telemetry/client';
+
+type StartSessionState = StartDialogState & { start(draft: SessionDraft): void };
 
 export function useStartSession(
 	onStarted: (sessionId: string, draft: SessionDraft, endsAt: number | null) => void,
 ): StartSessionState {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
-	const mutation = useIdempotentMutation(startSessionMutationOptions())
-	const finishing = useIdempotentMutation(finishSessionMutationOptions())
+	const mutation = useIdempotentMutation(startSessionMutationOptions());
+	const finishing = useIdempotentMutation(finishSessionMutationOptions());
 
-	const [pending, setPending] = useState<SessionDraft | null>(null)
-	const [takeoverOpen, setTakeoverOpen] = useState(false)
+	const [pending, setPending] = useState<SessionDraft | null>(null);
+	const [takeoverOpen, setTakeoverOpen] = useState(false);
 
 	function start(draft: SessionDraft) {
-		const endsAt = draft.duration.ms === null ? null : Date.now() + draft.duration.ms
+		const endsAt = draft.duration.ms === null ? null : Date.now() + draft.duration.ms;
 
-		setPending(draft)
-		setTakeoverOpen(false)
+		setPending(draft);
+		setTakeoverOpen(false);
 
 		mutation.mutate(
 			{
@@ -41,32 +45,32 @@ export function useStartSession(
 			},
 			{
 				onSuccess: (session) => {
-					setPending(null)
+					setPending(null);
 
-					onStarted(session.id, draft, endsAt)
+					onStarted(session.id, draft, endsAt);
 				},
 				onError: (error) => {
-					if (error instanceof ApiError && error.code === "SESSION__ALREADY_RUNNING") {
-						mutation.reset()
+					if (error instanceof ApiError && error.code === 'SESSION__ALREADY_RUNNING') {
+						mutation.reset();
 
-						setTakeoverOpen(true)
+						setTakeoverOpen(true);
 					}
 				},
 			},
-		)
+		);
 	}
 
 	async function finishRunningThenStart(draft: SessionDraft) {
 		const running = await queryClient.query({
 			...runningSessionQueryOptions(),
 			staleTime: 0,
-		})
+		});
 
 		if (running) {
-			await finishing.mutateAsync({ id: running.id })
+			await finishing.mutateAsync({ id: running.id });
 		}
 
-		start(draft)
+		start(draft);
 	}
 
 	return {
@@ -76,25 +80,23 @@ export function useStartSession(
 		start,
 		confirmTakeover: () => {
 			if (pending) {
-				setTakeoverOpen(false)
+				setTakeoverOpen(false);
 
-				finishRunningThenStart(pending).catch((error: unknown) =>
-					reportError(error, "session_takeover"),
-				)
+				finishRunningThenStart(pending).catch((error: unknown) => reportError(error, 'session_takeover'));
 			}
 		},
 		retry: () => {
 			if (pending) {
-				finishing.reset()
+				finishing.reset();
 
-				start(pending)
+				start(pending);
 			}
 		},
 		dismiss: () => {
-			setTakeoverOpen(false)
+			setTakeoverOpen(false);
 
-			mutation.reset()
-			finishing.reset()
+			mutation.reset();
+			finishing.reset();
 		},
-	}
+	};
 }

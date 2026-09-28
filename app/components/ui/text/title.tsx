@@ -1,11 +1,13 @@
-import type { PropsWithChildren } from "react"
-import { type StyleProp, StyleSheet, type TextStyle } from "react-native"
+import type { PropsWithChildren } from 'react';
 
-import { Copy } from "@/components/ui/text/copy"
-import { font } from "@/theme"
+import { type StyleProp, StyleSheet, type TextStyle } from 'react-native';
+
+import { font } from '@/theme';
+
+import { Copy } from '@/components/ui/text/copy';
 
 interface Props {
-	style?: StyleProp<TextStyle>
+	style?: StyleProp<TextStyle>;
 }
 
 export function Title({ children, style }: PropsWithChildren<Props>) {
@@ -13,9 +15,9 @@ export function Title({ children, style }: PropsWithChildren<Props>) {
 		<Copy accessibilityRole="header" style={[styles.title, style]}>
 			{children}
 		</Copy>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	title: { fontFamily: font.black, fontSize: 26, lineHeight: 32 },
-})
+});

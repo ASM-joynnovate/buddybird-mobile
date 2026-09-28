@@ -1,4 +1,4 @@
-export * from "@/theme/colors"
+export * from '@/theme/colors';
 
 export const radius = {
 	none: 0,
@@ -8,7 +8,7 @@ export const radius = {
 	control: 16,
 	hero: 20,
 	pill: 999,
-}
+};
 
 export const depths = {
 	none: 0,
@@ -16,16 +16,16 @@ export const depths = {
 	medium: 3,
 	high: 4,
 	xhigh: 7,
-}
+};
 
-export const contentMaxWidth = 480
+export const contentMaxWidth = 480;
 
 export const font = {
-	regular: "Pretendard-Regular",
-	bold: "Pretendard-Bold",
-	extraBold: "Pretendard-ExtraBold",
-	black: "Pretendard-Black",
-	splash: "Fredoka-SemiBold",
-}
+	regular: 'Pretendard-Regular',
+	bold: 'Pretendard-Bold',
+	extraBold: 'Pretendard-ExtraBold',
+	black: 'Pretendard-Black',
+	splash: 'Fredoka-SemiBold',
+};
 
-export const mascot = require("@assets/images/buddy-bird.png")
+export const mascot = require('@assets/images/buddy-bird.png');

@@ -1,36 +1,41 @@
-import { ImageIcon, PencilIcon, PlusIcon } from "lucide-react-native"
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { useState } from 'react';
 
-import { Avatar } from "@/components/ui/avatar"
-import { GroupedList } from "@/components/ui/grouped-list"
-import { GroupedListNavItem } from "@/components/ui/grouped-list/nav-item"
-import { InlineError } from "@/components/ui/inline-error"
-import { Sheet } from "@/components/ui/sheet"
-import { PressableSurface } from "@/components/ui/surface"
-import type { usePhotoPicker } from "@/hooks/use-photo-picker"
-import { colors } from "@/theme"
+import { StyleSheet, View } from 'react-native';
 
-const actionIcons = { plus: PlusIcon, edit: PencilIcon }
+import type { usePhotoPicker } from '@/hooks/use-photo-picker';
+
+import { useTranslation } from 'react-i18next';
+
+import { ImageIcon, PencilIcon, PlusIcon } from 'lucide-react-native';
+
+import { colors } from '@/theme';
+
+import { Avatar } from '@/components/ui/avatar';
+import { GroupedList } from '@/components/ui/grouped-list';
+import { GroupedListNavItem } from '@/components/ui/grouped-list/nav-item';
+import { InlineError } from '@/components/ui/inline-error';
+import { Sheet } from '@/components/ui/sheet';
+import { PressableSurface } from '@/components/ui/surface';
+
+const actionIcons = { plus: PlusIcon, edit: PencilIcon };
 
 interface Props {
-	photo: ReturnType<typeof usePhotoPicker>
-	busy: boolean
-	action?: "plus" | "edit"
+	photo: ReturnType<typeof usePhotoPicker>;
+	busy: boolean;
+	action?: 'plus' | 'edit';
 }
 
-export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
-	const { t } = useTranslation()
+export function ProfilePhoto({ photo, busy, action = 'edit' }: Props) {
+	const { t } = useTranslation();
 
-	const [sheetOpen, setSheetOpen] = useState(false)
+	const [sheetOpen, setSheetOpen] = useState(false);
 
-	const ActionIcon = actionIcons[action]
+	const ActionIcon = actionIcons[action];
 
 	return (
 		<View style={styles.photoArea}>
 			<PressableSurface
-				accessibilityLabel={t("parrot.photo")}
+				accessibilityLabel={t('parrot.photo')}
 				disabled={busy}
 				onPress={() => setSheetOpen(true)}
 				cornerRadius="pill"
@@ -42,39 +47,35 @@ export function ProfilePhoto({ photo, busy, action = "edit" }: Props) {
 				</View>
 			</PressableSurface>
 			<InlineError message={photo.error} />
-			<Sheet
-				visible={sheetOpen}
-				title={t("parrot.photoSheet.title")}
-				onClose={() => setSheetOpen(false)}
-			>
+			<Sheet visible={sheetOpen} title={t('parrot.photoSheet.title')} onClose={() => setSheetOpen(false)}>
 				<GroupedList>
 					<GroupedListNavItem
 						first
-						label={t("parrot.photoSheet.take")}
+						label={t('parrot.photoSheet.take')}
 						onPress={() => {
-							setSheetOpen(false)
+							setSheetOpen(false);
 
-							void photo.take()
+							void photo.take();
 						}}
 					/>
 					<GroupedListNavItem
-						label={t("parrot.photoSheet.choose")}
+						label={t('parrot.photoSheet.choose')}
 						onPress={() => {
-							setSheetOpen(false)
+							setSheetOpen(false);
 
-							void photo.choose()
+							void photo.choose();
 						}}
 					/>
 				</GroupedList>
 			</Sheet>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	photoArea: { alignItems: "center", marginBottom: 20, gap: 10 },
+	photoArea: { alignItems: 'center', marginBottom: 20, gap: 10 },
 	photoPlus: {
-		position: "absolute",
+		position: 'absolute',
 		right: -2,
 		bottom: -2,
 		width: 38,
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.orange,
 		borderWidth: 3,
 		borderColor: colors.background,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
-})
+});

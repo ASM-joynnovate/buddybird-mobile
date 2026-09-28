@@ -1,7 +1,7 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions } from '@tanstack/react-query';
 
-import { fetchHomeSummary } from "@/apis/home"
-import { apiKeys } from "@/hooks/apis/keys"
+import { fetchHomeSummary } from '@/apis/home';
 
-export const homeSummaryQueryOptions = () =>
-	queryOptions({ queryKey: apiKeys.home(), queryFn: fetchHomeSummary })
+import { apiKeys } from '@/hooks/apis/keys';
+
+export const homeSummaryQueryOptions = () => queryOptions({ queryKey: apiKeys.home(), queryFn: fetchHomeSummary });

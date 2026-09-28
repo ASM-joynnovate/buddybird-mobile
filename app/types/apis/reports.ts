@@ -1,12 +1,13 @@
-import { z } from "zod"
+import { localDate, timestamp, uuid } from '@/types/apis/primitives';
+import { judgmentStatusSchema } from '@/types/apis/sessions';
 
-import { localDate, timestamp, uuid } from "@/types/apis/primitives"
-import { judgmentStatusSchema } from "@/types/apis/sessions"
-import { reportPeriodSchema } from "@/types/report-period"
+import { reportPeriodSchema } from '@/types/report-period';
 
-const wordRefSchema = z.object({ id: uuid, name: z.string() })
+import { z } from 'zod';
 
-const durationSchema = z.number().int().nonnegative()
+const wordRefSchema = z.object({ id: uuid, name: z.string() });
+
+const durationSchema = z.number().int().nonnegative();
 
 const reportSessionSchema = z.object({
 	id: uuid,
@@ -15,7 +16,7 @@ const reportSessionSchema = z.object({
 	word: wordRefSchema.nullable(),
 	learning_duration_ms: durationSchema,
 	judgment_status: judgmentStatusSchema,
-})
+});
 
 export const reportSchema = z.object({
 	period: reportPeriodSchema,
@@ -26,7 +27,7 @@ export const reportSchema = z.object({
 	words: z.array(z.object({ word: wordRefSchema, learning_duration_ms: durationSchema })),
 	sessions: z.array(reportSessionSchema),
 	mimicry: z.object({ count: z.number().int().nonnegative() }),
-})
+});
 
-export type ReportSession = z.infer<typeof reportSessionSchema>
-export type Report = z.infer<typeof reportSchema>
+export type ReportSession = z.infer<typeof reportSessionSchema>;
+export type Report = z.infer<typeof reportSchema>;

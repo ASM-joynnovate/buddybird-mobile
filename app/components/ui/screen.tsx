@@ -1,12 +1,14 @@
-import type { PropsWithChildren, ReactNode } from "react"
-import { ScrollView, type ScrollViewProps, StyleSheet, View } from "react-native"
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
+import type { PropsWithChildren, ReactNode } from 'react';
 
-import { colors, contentMaxWidth } from "@/theme"
+import { ScrollView, type ScrollViewProps, StyleSheet, View } from 'react-native';
+
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { colors, contentMaxWidth } from '@/theme';
 
 interface Props extends ScrollViewProps {
-	scroll?: boolean
-	footer?: ReactNode
+	scroll?: boolean;
+	footer?: ReactNode;
 }
 
 export function Screen({
@@ -18,10 +20,10 @@ export function Screen({
 	footer,
 	...props
 }: PropsWithChildren<Props>) {
-	const insets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets();
 
 	return (
-		<SafeAreaView edges={["top", "left", "right"]} style={[styles.screen, style]}>
+		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, style]}>
 			{scroll ? (
 				<ScrollView
 					alwaysBounceVertical={false}
@@ -41,11 +43,9 @@ export function Screen({
 			) : (
 				children
 			)}
-			{footer ? (
-				<View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>
-			) : null}
+			{footer ? <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View> : null}
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -56,16 +56,16 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 20,
 		paddingBottom: 30,
-		width: "100%",
+		width: '100%',
 		maxWidth: contentMaxWidth,
-		alignSelf: "center",
+		alignSelf: 'center',
 	},
 	footer: {
-		width: "100%",
+		width: '100%',
 		maxWidth: contentMaxWidth,
-		alignSelf: "center",
+		alignSelf: 'center',
 		paddingHorizontal: 24,
 		paddingTop: 12,
 		gap: 8,
 	},
-})
+});

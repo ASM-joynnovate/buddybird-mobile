@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from "@tanstack/react-query"
+import { mutationOptions, queryOptions } from '@tanstack/react-query';
 
 import {
 	createParrot,
@@ -7,56 +7,50 @@ import {
 	fetchParrots,
 	updateParrot,
 	uploadParrotPhoto,
-} from "@/apis/parrots"
-import { invalidate } from "@/hooks/apis/invalidate"
-import { apiKeys } from "@/hooks/apis/keys"
-import type { CreateParrotRequest } from "@/types/apis/parrots"
+} from '@/apis/parrots';
 
-export const parrotsQueryOptions = () =>
-	queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: fetchParrots })
+import type { CreateParrotRequest } from '@/types/apis/parrots';
+
+import { invalidate } from '@/hooks/apis/invalidate';
+import { apiKeys } from '@/hooks/apis/keys';
+
+export const parrotsQueryOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: fetchParrots });
 
 export const saveParrotMutationOptions = () =>
 	mutationOptions({
-		mutationKey: apiKeys.mutation("parrots", "save"),
+		mutationKey: apiKeys.mutation('parrots', 'save'),
 		mutationFn: ({
 			id,
 			input,
 			idempotencyKey,
 		}: {
-			id: string | null
-			input: CreateParrotRequest
-			idempotencyKey: string
+			id: string | null;
+			input: CreateParrotRequest;
+			idempotencyKey: string;
 		}) => (id ? updateParrot(id, input, idempotencyKey) : createParrot(input, idempotencyKey)),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
-	})
+	});
 
 export const deleteParrotMutationOptions = () =>
 	mutationOptions({
-		mutationKey: apiKeys.mutation("parrots", "delete"),
+		mutationKey: apiKeys.mutation('parrots', 'delete'),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteParrot(id, idempotencyKey),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
-	})
+	});
 
 export const uploadParrotPhotoMutationOptions = () =>
 	mutationOptions({
-		mutationKey: apiKeys.mutation("parrots", "photo", "upload"),
-		mutationFn: ({
-			id,
-			uri,
-			idempotencyKey,
-		}: {
-			id: string
-			uri: string
-			idempotencyKey: string
-		}) => uploadParrotPhoto(id, uri, idempotencyKey),
+		mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
+		mutationFn: ({ id, uri, idempotencyKey }: { id: string; uri: string; idempotencyKey: string }) =>
+			uploadParrotPhoto(id, uri, idempotencyKey),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
-	})
+	});
 
 export const deleteParrotPhotoMutationOptions = () =>
 	mutationOptions({
-		mutationKey: apiKeys.mutation("parrots", "photo", "delete"),
+		mutationKey: apiKeys.mutation('parrots', 'photo', 'delete'),
 		mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
 			deleteParrotPhoto(id, idempotencyKey),
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
-	})
+	});

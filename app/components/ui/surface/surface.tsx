@@ -1,57 +1,52 @@
-import type { PropsWithChildren } from "react"
-import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from "react-native"
-import Animated from "react-native-reanimated"
+import type { PropsWithChildren } from 'react';
 
-import { colors, depths, radius } from "@/theme"
+import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
+
+import Animated from 'react-native-reanimated';
+
+import { colors, depths, radius } from '@/theme';
 
 const tones = {
 	neutral: { face: colors.background, edge: colors.border },
 	primary: { face: colors.orange, edge: colors.orangeDark },
 	selected: { face: colors.orangeSelected, edge: colors.orange },
-	plain: { face: "transparent", edge: "transparent" },
+	plain: { face: 'transparent', edge: 'transparent' },
 	muted: { face: colors.disabledBackground, edge: colors.disabledBackground },
-} as const
+} as const;
 
-type SurfaceTone = keyof typeof tones
+type SurfaceTone = keyof typeof tones;
 
 interface Props extends ViewProps {
-	tone?: SurfaceTone
-	depth?: keyof typeof depths
-	cornerRadius?: keyof typeof radius
-	contentStyle?: StyleProp<ViewStyle>
-	color?: string
-	backgroundColor?: string
+	tone?: SurfaceTone;
+	depth?: keyof typeof depths;
+	cornerRadius?: keyof typeof radius;
+	contentStyle?: StyleProp<ViewStyle>;
+	color?: string;
+	backgroundColor?: string;
 }
 
-export type SurfaceProps = PropsWithChildren<Props>
+export type SurfaceProps = PropsWithChildren<Props>;
 
 export function Surface({
 	children,
-	tone = "neutral",
-	depth = "high",
-	cornerRadius = "card",
+	tone = 'neutral',
+	depth = 'high',
+	cornerRadius = 'card',
 	style,
 	contentStyle,
 	color,
 	backgroundColor,
 	...props
 }: SurfaceProps) {
-	const palette = { face: backgroundColor ?? tones[tone].face, edge: color ?? tones[tone].edge }
-	const borderRadius = radius[cornerRadius]
-	const edgeHeight = depths[depth]
+	const palette = { face: backgroundColor ?? tones[tone].face, edge: color ?? tones[tone].edge };
+	const borderRadius = radius[cornerRadius];
+	const edgeHeight = depths[depth];
 
 	return (
-		<View
-			{...props}
-			collapsable={false}
-			style={[styles.shell, { borderRadius, paddingBottom: edgeHeight }, style]}
-		>
+		<View {...props} collapsable={false} style={[styles.shell, { borderRadius, paddingBottom: edgeHeight }, style]}>
 			<View
 				pointerEvents="none"
-				style={[
-					StyleSheet.absoluteFill,
-					{ top: edgeHeight, backgroundColor: palette.edge, borderRadius },
-				]}
+				style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
 			/>
 			<Animated.View
 				style={[
@@ -67,10 +62,10 @@ export function Surface({
 				{children}
 			</Animated.View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	shell: { borderCurve: "continuous", minWidth: 0, maxWidth: "100%" },
-	face: { minWidth: 0, borderWidth: 2, borderCurve: "continuous" },
-})
+	shell: { borderCurve: 'continuous', minWidth: 0, maxWidth: '100%' },
+	face: { minWidth: 0, borderWidth: 2, borderCurve: 'continuous' },
+});

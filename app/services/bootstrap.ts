@@ -1,53 +1,55 @@
-import NetInfo from "@react-native-community/netinfo"
-import * as SplashScreen from "expo-splash-screen"
+import { initI18n } from '@/i18n';
 
-import { initI18n } from "@/i18n"
-import { configureApi } from "@/lib/api"
-import { takeRestoreErrors } from "@/lib/storage"
-import { mockServer } from "@/mocks/server"
-import { accessToken, installUnauthorizedSignOut } from "@/services/auth/session"
-import { loadLegacy } from "@/services/migration/upload-legacy"
-import { getIsHeadless } from "@/services/push/background"
-import { reportError } from "@/services/telemetry/client"
-import { useAccountStore } from "@/stores/account"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
+import { configureApi } from '@/lib/api';
+import { takeRestoreErrors } from '@/lib/storage';
 
-const { ensureClientDeviceId } = useAccountStore.getState()
-const locale = () => useDeviceSettingsStore.getState().locale
+import NetInfo from '@react-native-community/netinfo';
+import * as SplashScreen from 'expo-splash-screen';
 
-configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, report: reportError })
+import { mockServer } from '@/mocks/server';
+import { accessToken, installUnauthorizedSignOut } from '@/services/auth/session';
+import { loadLegacy } from '@/services/migration/upload-legacy';
+import { getIsHeadless } from '@/services/push/background';
+import { reportError } from '@/services/telemetry/client';
+import { useAccountStore } from '@/stores/account';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-installUnauthorizedSignOut()
+const { ensureClientDeviceId } = useAccountStore.getState();
+const locale = () => useDeviceSettingsStore.getState().locale;
 
-mockServer.configure(locale)
+configureApi({ deviceId: ensureClientDeviceId, locale, accessToken, report: reportError });
 
-void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, "splash_screen"))
+installUnauthorizedSignOut();
+
+mockServer.configure(locale);
+
+void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
 
 // Register the translation instance before the first useTranslation hook renders.
-const i18nReady = initI18n(useDeviceSettingsStore.getState().locale)
+const i18nReady = initI18n(useDeviceSettingsStore.getState().locale);
 
 export async function bootstrap() {
-	await i18nReady
+	await i18nReady;
 
-	const restoreErrors = takeRestoreErrors()
+	const restoreErrors = takeRestoreErrors();
 
 	for (const { error, storeName } of restoreErrors) {
-		reportError(error, `restore_${storeName}`)
+		reportError(error, `restore_${storeName}`);
 	}
 
 	if (await getIsHeadless()) {
-		return "headless" as const
+		return 'headless' as const;
 	}
 
 	if ((await NetInfo.fetch()).isConnected === false) {
-		return "failed" as const
+		return 'failed' as const;
 	}
 
 	try {
-		await loadLegacy()
+		await loadLegacy();
 	} catch (error) {
-		reportError(error, "legacy_load")
+		reportError(error, 'legacy_load');
 	}
 
-	return "ready" as const
+	return 'ready' as const;
 }

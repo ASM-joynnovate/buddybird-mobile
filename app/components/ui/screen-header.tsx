@@ -1,23 +1,26 @@
-import { ChevronLeftIcon, XIcon } from "lucide-react-native"
-import type { ReactNode } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import type { ReactNode } from 'react';
 
-import { IconButton } from "@/components/ui/icon-button"
-import { Title } from "@/components/ui/text"
+import { StyleSheet, View } from 'react-native';
 
-const backIcons = { back: ChevronLeftIcon, close: XIcon }
+import { useTranslation } from 'react-i18next';
+
+import { ChevronLeftIcon, XIcon } from 'lucide-react-native';
+
+import { IconButton } from '@/components/ui/icon-button';
+import { Title } from '@/components/ui/text';
+
+const backIcons = { back: ChevronLeftIcon, close: XIcon };
 
 interface Props {
-	title?: string
-	onBack?(): void
-	backIcon?: "back" | "close"
-	right?: ReactNode
-	large?: boolean
+	title?: string;
+	onBack?(): void;
+	backIcon?: 'back' | 'close';
+	right?: ReactNode;
+	large?: boolean;
 }
 
-export function ScreenHeader({ title, onBack, backIcon = "back", right, large = false }: Props) {
-	const { t } = useTranslation()
+export function ScreenHeader({ title, onBack, backIcon = 'back', right, large = false }: Props) {
+	const { t } = useTranslation();
 
 	return (
 		<View style={styles.wrap}>
@@ -25,7 +28,7 @@ export function ScreenHeader({ title, onBack, backIcon = "back", right, large = 
 				{onBack ? (
 					<IconButton
 						icon={backIcons[backIcon]}
-						label={t(backIcon === "close" ? "common.close" : "common.back")}
+						label={t(backIcon === 'close' ? 'common.close' : 'common.back')}
 						onPress={onBack}
 					/>
 				) : null}
@@ -37,14 +40,14 @@ export function ScreenHeader({ title, onBack, backIcon = "back", right, large = 
 				<View style={styles.right}>{right}</View>
 			</View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	wrap: { marginBottom: 8 },
-	header: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 4 },
+	header: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	title: { flex: 1, minWidth: 0 },
 	compact: { fontSize: 20, lineHeight: 26 },
 	spacer: { flex: 1 },
-	right: { flexDirection: "row", alignItems: "center", gap: 2 },
-})
+	right: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+});

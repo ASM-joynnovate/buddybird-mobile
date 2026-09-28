@@ -1,7 +1,7 @@
-import { z } from "zod"
+import { z } from 'zod';
 
-export const reportPeriodSchema = z.enum(["day", "week", "month"])
+export const reportPeriodSchema = z.enum(['day', 'week', 'month']);
 
-export type ReportPeriod = z.infer<typeof reportPeriodSchema>
+export type ReportPeriod = z.infer<typeof reportPeriodSchema>;
 
-export type ReportPeriodSelection = { period: ReportPeriod; start: string }
+export type ReportPeriodSelection = { period: ReportPeriod; start: string };

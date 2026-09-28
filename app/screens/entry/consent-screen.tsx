@@ -1,55 +1,61 @@
-import { useFocusEffect, useNavigation } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { useCallback } from "react"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { useCallback } from 'react';
 
-import { BuddySays } from "@/components/buddy-says"
-import { ConsentItem } from "@/components/consent-item"
-import { Button } from "@/components/ui/button"
-import { GroupedList } from "@/components/ui/grouped-list"
-import { GroupedListCheckItem } from "@/components/ui/grouped-list/check-item"
-import { InlineError } from "@/components/ui/inline-error"
-import { Screen } from "@/components/ui/screen"
-import { ScreenError } from "@/components/ui/screen-error"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card } from "@/components/ui/surface"
-import { useEntryRoute } from "@/hooks/use-entry-route"
-import { useConsentChecks } from "@/screens/entry/hooks/use-consent-checks"
-import { completeOnboardingStep, viewOnboardingStep } from "@/services/telemetry/onboarding"
-import type { RootStackParamList } from "@/types/navigation"
+import { StyleSheet, View } from 'react-native';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { useEntryRoute } from '@/hooks/use-entry-route';
+
+import { useTranslation } from 'react-i18next';
+
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { useConsentChecks } from '@/screens/entry/hooks/use-consent-checks';
+import { completeOnboardingStep, viewOnboardingStep } from '@/services/telemetry/onboarding';
+
+import { BuddySays } from '@/components/buddy-says';
+import { ConsentItem } from '@/components/consent-item';
+import { Button } from '@/components/ui/button';
+import { GroupedList } from '@/components/ui/grouped-list';
+import { GroupedListCheckItem } from '@/components/ui/grouped-list/check-item';
+import { InlineError } from '@/components/ui/inline-error';
+import { Screen } from '@/components/ui/screen';
+import { ScreenError } from '@/components/ui/screen-error';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/surface';
 
 export function ConsentScreen() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const { route, parrotId } = useEntryRoute()
+	const { route, parrotId } = useEntryRoute();
 
 	const form = useConsentChecks(() => {
-		completeOnboardingStep("consent")
+		completeOnboardingStep('consent');
 
-		if (route !== "Consent") {
-			navigation.navigate("ParrotEditor", {
-				parrotId: route === "UsageGuide" ? parrotId : undefined,
-				source: "entry",
-			})
+		if (route !== 'Consent') {
+			navigation.navigate('ParrotEditor', {
+				parrotId: route === 'UsageGuide' ? parrotId : undefined,
+				source: 'entry',
+			});
 		}
-	})
+	});
 
 	useFocusEffect(
 		useCallback(() => {
-			viewOnboardingStep("consent")
+			viewOnboardingStep('consent');
 		}, []),
-	)
+	);
 
 	function body() {
 		if (form.loadFailed) {
-			return <ScreenError message={t("common.loadError")} onRetry={form.retry} />
+			return <ScreenError message={t('common.loadError')} onRetry={form.retry} />;
 		}
 
 		if (!form.consents) {
-			return <Skeleton rows={4} height={56} />
+			return <Skeleton rows={4} height={56} />;
 		}
 
 		return (
@@ -57,7 +63,7 @@ export function ConsentScreen() {
 				<Card contentStyle={styles.allCard}>
 					<GroupedListCheckItem
 						first
-						label={t("entry.consent.all")}
+						label={t('entry.consent.all')}
 						checked={form.allChecked}
 						disabled={form.saving}
 						onToggle={form.toggleAll}
@@ -74,25 +80,25 @@ export function ConsentScreen() {
 							actions={{
 								toggle: () => form.toggle(consent),
 								open: () =>
-									navigation.navigate("ConsentDetail", {
+									navigation.navigate('ConsentDetail', {
 										consentId: consent.id,
-										source: "entry",
+										source: 'entry',
 									}),
 							}}
 						/>
 					))}
 				</GroupedList>
 			</>
-		)
+		);
 	}
 
 	return (
 		<Screen
 			footer={
 				<>
-					<InlineError message={form.saveFailed ? t("common.saveErrorKept") : null} />
+					<InlineError message={form.saveFailed ? t('common.saveErrorKept') : null} />
 					<Button
-						label={t("common.next")}
+						label={t('common.next')}
 						disabled={!form.consents || !form.ready}
 						loading={form.saving}
 						onPress={form.save}
@@ -101,15 +107,15 @@ export function ConsentScreen() {
 			}
 		>
 			<View style={styles.intro}>
-				<BuddySays message={t("entry.consent.intro")} />
+				<BuddySays message={t('entry.consent.intro')} />
 			</View>
 			<View style={styles.content}>{body()}</View>
 		</Screen>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	intro: { flexGrow: 1, paddingBottom: 28 },
 	content: { gap: 20 },
 	allCard: { padding: 0 },
-})
+});

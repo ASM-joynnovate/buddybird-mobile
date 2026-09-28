@@ -1,21 +1,24 @@
-import { useNetInfo } from "@react-native-community/netinfo"
-import { WifiOffIcon } from "lucide-react-native"
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { StyleSheet, View } from 'react-native';
 
-import { Copy } from "@/components/ui/text"
-import { colors, contentMaxWidth, font, radius } from "@/theme"
+import { useTranslation } from 'react-i18next';
+
+import { useNetInfo } from '@react-native-community/netinfo';
+import { WifiOffIcon } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { colors, contentMaxWidth, font, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/text';
 
 export function OfflineBanner() {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const insets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets();
 
-	const { isConnected } = useNetInfo()
+	const { isConnected } = useNetInfo();
 
 	if (isConnected !== false) {
-		return null
+		return null;
 	}
 
 	return (
@@ -27,24 +30,24 @@ export function OfflineBanner() {
 		>
 			<View style={styles.banner}>
 				<WifiOffIcon size={18} color={colors.onAccent} />
-				<Copy style={styles.text}>{t("common.offline")}</Copy>
+				<Copy style={styles.text}>{t('common.offline')}</Copy>
 			</View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	wrap: { position: "absolute", left: 16, right: 16, alignItems: "center" },
+	wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
 	banner: {
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 8,
 		maxWidth: contentMaxWidth,
 		paddingHorizontal: 14,
 		paddingVertical: 10,
 		borderRadius: radius.control,
-		borderCurve: "continuous",
+		borderCurve: 'continuous',
 		backgroundColor: colors.text,
 	},
 	text: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13.5, color: colors.onAccent },
-})
+});

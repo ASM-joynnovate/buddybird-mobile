@@ -1,22 +1,23 @@
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, View } from 'react-native';
 
-import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import { colors, font, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/text';
 
 const tones = {
 	primary: { face: colors.orangeSelected, edge: colors.orange, text: colors.orangeDark },
 	muted: { face: colors.surface, edge: colors.border, text: colors.muted },
-} as const
+} as const;
 
-type TagTone = keyof typeof tones
+type TagTone = keyof typeof tones;
 
 interface Props {
-	label: string
-	tone?: TagTone
+	label: string;
+	tone?: TagTone;
 }
 
-export function Tag({ label, tone = "muted" }: Props) {
-	const palette = tones[tone]
+export function Tag({ label, tone = 'muted' }: Props) {
+	const palette = tones[tone];
 
 	return (
 		<View style={[styles.tag, { backgroundColor: palette.face, borderColor: palette.edge }]}>
@@ -24,12 +25,12 @@ export function Tag({ label, tone = "muted" }: Props) {
 				{label}
 			</Copy>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	tag: {
-		alignSelf: "flex-start",
+		alignSelf: 'flex-start',
 		flexShrink: 1,
 		borderWidth: 2,
 		borderRadius: radius.pill,
@@ -37,4 +38,4 @@ const styles = StyleSheet.create({
 		paddingVertical: 2,
 	},
 	text: { fontFamily: font.extraBold, fontSize: 13 },
-})
+});

@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { z } from 'zod';
 
-export const loginProviderSchema = z.enum(["google", "kakao", "apple"])
+export const loginProviderSchema = z.enum(['google', 'kakao', 'apple']);
 
 export const accountSchema = z.object({
 	registeredUser: z.string().nullable(),
@@ -10,8 +10,8 @@ export const accountSchema = z.object({
 	provider: loginProviderSchema.nullable(),
 	lastLogin: loginProviderSchema.nullable(),
 	clientDeviceId: z.string().nullable(),
-})
+});
 
-export type LoginProvider = z.infer<typeof loginProviderSchema>
+export type LoginProvider = z.infer<typeof loginProviderSchema>;
 
-export type Account = z.infer<typeof accountSchema>
+export type Account = z.infer<typeof accountSchema>;

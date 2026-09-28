@@ -1,1 +1,1 @@
-export const launch = { noticesShown: false }
+export const launch = { noticesShown: false };

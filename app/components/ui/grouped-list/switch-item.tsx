@@ -1,15 +1,13 @@
-import { Switch, View } from "react-native"
+import { Switch, View } from 'react-native';
 
-import {
-	GroupedListItemLabel,
-	type GroupedListItemProps,
-} from "@/components/ui/grouped-list/item-label"
-import { groupedListStyles } from "@/components/ui/grouped-list/styles"
-import { colors } from "@/theme"
+import { colors } from '@/theme';
+
+import { GroupedListItemLabel, type GroupedListItemProps } from '@/components/ui/grouped-list/item-label';
+import { groupedListStyles } from '@/components/ui/grouped-list/styles';
 
 interface Props extends GroupedListItemProps {
-	value: boolean
-	onChange(value: boolean): void
+	value: boolean;
+	onChange(value: boolean): void;
 }
 
 export function GroupedListSwitchItem({ value, onChange, ...props }: Props) {
@@ -25,5 +23,5 @@ export function GroupedListSwitchItem({ value, onChange, ...props }: Props) {
 				ios_backgroundColor={colors.border}
 			/>
 		</View>
-	)
+	);
 }

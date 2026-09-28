@@ -1,6 +1,7 @@
-import type { Device } from "@/types/apis/devices"
-import type { Session } from "@/types/apis/sessions"
-import type { LinkedDevice } from "@/types/device"
+import type { Device } from '@/types/apis/devices';
+import type { Session } from '@/types/apis/sessions';
+
+import type { LinkedDevice } from '@/types/device';
 
 export function linkDevices(
 	devices: readonly Device[],
@@ -13,5 +14,5 @@ export function linkDevices(
 		lastSeenAt: device.last_seen_at,
 		isThisDevice: device.client_device_id === clientDeviceId,
 		isRunningSession: running?.station.device_id === device.id,
-	}))
+	}));
 }

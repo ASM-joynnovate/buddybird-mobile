@@ -1,20 +1,22 @@
-import { randomUUID } from "expo-crypto"
-import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
+import { type Account, accountSchema, type LoginProvider } from '@/types/account';
 
-import { mmkvStorage, restoreOptions } from "@/lib/storage"
-import { persistKeys, storageIds } from "@/stores/keys"
-import { type Account, accountSchema, type LoginProvider } from "@/types/account"
+import { mmkvStorage, restoreOptions } from '@/lib/storage';
+
+import { randomUUID } from 'expo-crypto';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+import { persistKeys, storageIds } from '@/stores/keys';
 
 type AccountActions = {
-	markRegistered: (authUserId: string, serverUserId: string, isAnonymous: boolean) => void
-	clearRegistration: () => void
-	markLoginScreenSeen: () => void
-	markProvider: (provider: LoginProvider) => void
-	ensureClientDeviceId: () => string
-}
+	markRegistered: (authUserId: string, serverUserId: string, isAnonymous: boolean) => void;
+	clearRegistration: () => void;
+	markLoginScreenSeen: () => void;
+	markProvider: (provider: LoginProvider) => void;
+	ensureClientDeviceId: () => string;
+};
 
-type AccountStore = Account & AccountActions
+type AccountStore = Account & AccountActions;
 
 const initialAccount: Account = {
 	registeredUser: null,
@@ -24,7 +26,7 @@ const initialAccount: Account = {
 	provider: null,
 	lastLogin: null,
 	clientDeviceId: null,
-}
+};
 
 export const useAccountStore = create<AccountStore>()(
 	persist(
@@ -38,7 +40,7 @@ export const useAccountStore = create<AccountStore>()(
 					serverUserId,
 					isAnonymous,
 					lastLogin: isAnonymous ? state.lastLogin : (state.provider ?? state.lastLogin),
-				}))
+				}));
 			},
 
 			clearRegistration: () => {
@@ -48,29 +50,29 @@ export const useAccountStore = create<AccountStore>()(
 					serverUserId: null,
 					isAnonymous: true,
 					loginScreenSeen: false,
-				}))
+				}));
 			},
 
 			markLoginScreenSeen: () => {
-				set((state) => ({ ...state, loginScreenSeen: true }))
+				set((state) => ({ ...state, loginScreenSeen: true }));
 			},
 
 			markProvider: (provider) => {
-				set((state) => ({ ...state, provider }))
+				set((state) => ({ ...state, provider }));
 			},
 
 			ensureClientDeviceId: () => {
-				const saved = get().clientDeviceId
+				const saved = get().clientDeviceId;
 
 				if (saved) {
-					return saved
+					return saved;
 				}
 
-				const created = randomUUID()
+				const created = randomUUID();
 
-				set((state) => ({ ...state, clientDeviceId: created }))
+				set((state) => ({ ...state, clientDeviceId: created }));
 
-				return created
+				return created;
 			},
 		}),
 		{
@@ -102,4 +104,4 @@ export const useAccountStore = create<AccountStore>()(
 			}),
 		},
 	),
-)
+);

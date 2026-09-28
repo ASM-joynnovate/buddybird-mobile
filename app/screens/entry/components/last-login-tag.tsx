@@ -1,11 +1,13 @@
-import { StyleSheet, View } from "react-native"
-import Animated, { FadeInDown } from "react-native-reanimated"
+import { StyleSheet, View } from 'react-native';
 
-import { Copy } from "@/components/ui/text"
-import { colors, font, radius } from "@/theme"
+import Animated, { FadeInDown } from 'react-native-reanimated';
+
+import { colors, font, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	label: string
+	label: string;
 }
 
 export function LastLoginTag({ label }: Props) {
@@ -20,18 +22,18 @@ export function LastLoginTag({ label }: Props) {
 			<Copy style={styles.text}>{label}</Copy>
 			<View style={styles.pointer} />
 		</Animated.View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	tag: {
-		position: "absolute",
+		position: 'absolute',
 		top: -13,
 		right: 14,
 		zIndex: 1,
 		minHeight: 26,
 		paddingHorizontal: 11,
-		justifyContent: "center",
+		justifyContent: 'center',
 		borderRadius: radius.pill,
 		backgroundColor: colors.brand,
 		shadowColor: colors.brand,
@@ -42,14 +44,14 @@ const styles = StyleSheet.create({
 	},
 	text: { fontFamily: font.extraBold, fontSize: 12, lineHeight: 16, color: colors.onAccent },
 	pointer: {
-		position: "absolute",
+		position: 'absolute',
 		bottom: -4,
-		left: "50%",
+		left: '50%',
 		width: 10,
 		height: 10,
 		marginLeft: -5,
 		borderRadius: 2,
 		backgroundColor: colors.brand,
-		transform: [{ rotate: "45deg" }],
+		transform: [{ rotate: '45deg' }],
 	},
-})
+});

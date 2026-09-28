@@ -1,22 +1,26 @@
-import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, View } from 'react-native';
 
-import { Card } from "@/components/ui/surface"
-import { Tag } from "@/components/ui/tag"
-import { Copy } from "@/components/ui/text"
-import { formatMoment } from "@/i18n/format"
-import { useDeviceSettingsStore } from "@/stores/device-settings"
-import { colors, font } from "@/theme"
-import type { LinkedDevice } from "@/types/device"
+import type { LinkedDevice } from '@/types/device';
+
+import { useTranslation } from 'react-i18next';
+
+import { formatMoment } from '@/i18n/format';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, font } from '@/theme';
+
+import { Card } from '@/components/ui/surface';
+import { Tag } from '@/components/ui/tag';
+import { Copy } from '@/components/ui/text';
 
 interface Props {
-	device: LinkedDevice
+	device: LinkedDevice;
 }
 
 export function DeviceCard({ device }: Props) {
-	const { t } = useTranslation()
+	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale)
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	return (
 		<Card contentStyle={styles.card}>
@@ -26,28 +30,26 @@ export function DeviceCard({ device }: Props) {
 				</Copy>
 				{device.lastSeenAt ? (
 					<Copy style={styles.detail}>
-						{t("settings.devices.lastSeen", {
+						{t('settings.devices.lastSeen', {
 							time: formatMoment(device.lastSeenAt, locale),
 						})}
 					</Copy>
 				) : null}
 				{device.isThisDevice || device.isRunningSession ? (
 					<View style={styles.tags}>
-						{device.isThisDevice ? <Tag label={t("settings.devices.current")} /> : null}
-						{device.isRunningSession ? (
-							<Tag tone="primary" label={t("settings.devices.running")} />
-						) : null}
+						{device.isThisDevice ? <Tag label={t('settings.devices.current')} /> : null}
+						{device.isRunningSession ? <Tag tone="primary" label={t('settings.devices.running')} /> : null}
 					</View>
 				) : null}
 			</View>
 		</Card>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
-	card: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+	card: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
 	lines: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	detail: { fontSize: 13, color: colors.muted },
-	tags: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
-})
+	tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+});

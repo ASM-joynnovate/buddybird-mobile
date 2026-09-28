@@ -1,69 +1,68 @@
-import { type AuthError, isAuthRetryableFetchError } from "@supabase/supabase-js"
+import { ApiError, UNAUTHORIZED_STATUS } from '@/types/apis/common';
 
-import { setUnauthorizedHandler } from "@/lib/query-client"
-import { authClient } from "@/services/auth/client"
-import { reportError } from "@/services/telemetry/client"
-import { ApiError, UNAUTHORIZED_STATUS } from "@/types/apis/common"
+import { setUnauthorizedHandler } from '@/lib/query-client';
 
-export type AuthIdentity = { id: string; anonymous: boolean }
+import { type AuthError, isAuthRetryableFetchError } from '@supabase/supabase-js';
 
-type AuthTransition = "signedOut" | "signedIn" | "linked" | "completeLogin"
+import { authClient } from '@/services/auth/client';
+import { reportError } from '@/services/telemetry/client';
 
-export function nextAuthState(
-	registered: AuthIdentity | null,
-	next: AuthIdentity | null,
-): AuthTransition {
+export type AuthIdentity = { id: string; anonymous: boolean };
+
+type AuthTransition = 'signedOut' | 'signedIn' | 'linked' | 'completeLogin';
+
+export function nextAuthState(registered: AuthIdentity | null, next: AuthIdentity | null): AuthTransition {
 	if (next === null) {
-		return "signedOut"
+		return 'signedOut';
 	}
 
 	if (registered?.id !== next.id) {
-		return "completeLogin"
+		return 'completeLogin';
 	}
 
-	return registered.anonymous && !next.anonymous ? "linked" : "signedIn"
+	return registered.anonymous && !next.anonymous ? 'linked' : 'signedIn';
 }
 
 export async function accessToken(): Promise<string> {
-	const { data, error } = await authClient().getSession()
+	const { data, error } = await authClient().getSession();
 
 	if (isAuthRetryableFetchError(error)) {
-		throw new ApiError(0, "CLIENT__NETWORK", error.message)
+		throw new ApiError(0, 'CLIENT__NETWORK', error.message);
 	}
 
 	if (error) {
-		throw new ApiError(UNAUTHORIZED_STATUS, "AUTH__INVALID_TOKEN", error.message)
+		throw new ApiError(UNAUTHORIZED_STATUS, 'AUTH__INVALID_TOKEN', error.message);
 	}
 
 	if (!data.session) {
-		throw new ApiError(UNAUTHORIZED_STATUS, "AUTH__INVALID_TOKEN", "No active session")
+		throw new ApiError(UNAUTHORIZED_STATUS, 'AUTH__INVALID_TOKEN', 'No active session');
 	}
 
-	return data.session.access_token
+	return data.session.access_token;
 }
 
 export async function signUpAnonymously(): Promise<AuthError | null> {
-	const { error } = await authClient().signInAnonymously()
+	const { error } = await authClient().signInAnonymously();
 
-	return error
+	return error;
 }
 
 export async function signOutToAnonymous() {
-	const { error } = await authClient().signOut({ scope: "local" })
+	const { error } = await authClient().signOut({ scope: 'local' });
 
 	if (error) {
-		throw error
+		throw error;
 	}
 }
 
-let unauthorizedSignOut: Promise<void> | undefined
+let unauthorizedSignOut: Promise<void> | undefined;
 
 export function installUnauthorizedSignOut() {
 	setUnauthorizedHandler(() => {
 		unauthorizedSignOut ??= signOutToAnonymous()
-			.catch((error: unknown) => reportError(error, "unauthorized_sign_out"))
+			.catch((error: unknown) => reportError(error, 'unauthorized_sign_out'))
 			.finally(() => {
-				unauthorizedSignOut = undefined
-			})
-	})
+				unauthorizedSignOut = undefined;
+			});
+	});
 }
