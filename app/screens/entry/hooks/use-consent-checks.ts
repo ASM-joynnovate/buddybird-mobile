@@ -1,10 +1,8 @@
 import { useCallback, useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
 import type { Consent } from '@/types/apis/consents';
 
-import { getConsentListOptions, useSaveConsent } from '@/hooks/apis/consents';
+import { useGetConsentList, useSaveConsent } from '@/hooks/apis/consents';
 
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -12,9 +10,7 @@ import { useConsentStore } from '@/stores/consent';
 import { latestConsents } from '@/utils/latest-consents';
 
 export function useConsentChecks(onSaved?: () => void): {
-	consents: Consent[] | undefined;
-	loadFailed: boolean;
-	retry(): void;
+	consents: Consent[];
 	isChecked(consent: Consent): boolean;
 	toggle(consent: Consent): void;
 	allChecked: boolean;
@@ -26,13 +22,13 @@ export function useConsentChecks(onSaved?: () => void): {
 } {
 	const [checked, setChecked] = useState<Record<string, boolean>>({});
 
-	const { data: consentListData, isError, refetch } = useQuery(getConsentListOptions());
+	const { data: consentListData } = useGetConsentList();
 
 	const { isError: isSaveError, isPending, mutateAsync } = useSaveConsent();
 
-	const consents = consentListData ? latestConsents(consentListData) : undefined;
+	const consents = latestConsents(consentListData);
 	const isChecked = (consent: Consent) => checked[consent.id] ?? consent.status === 'granted';
-	const allChecked = Boolean(consents?.length) && (consents ?? []).every(isChecked);
+	const allChecked = Boolean(consents.length) && consents.every(isChecked);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -59,7 +55,7 @@ export function useConsentChecks(onSaved?: () => void): {
 	}
 
 	function save() {
-		if (!consents || isPending) {
+		if (isPending) {
 			return;
 		}
 
@@ -71,13 +67,11 @@ export function useConsentChecks(onSaved?: () => void): {
 
 	return {
 		consents,
-		loadFailed: isError,
-		retry: () => void refetch(),
 		isChecked,
 		toggle: (consent) => setChecked((current) => ({ ...current, [consent.id]: !isChecked(consent) })),
 		allChecked,
-		toggleAll: () => setChecked(Object.fromEntries((consents ?? []).map((consent) => [consent.id, !allChecked]))),
-		ready: (consents ?? []).every((consent) => !consent.is_required || isChecked(consent)),
+		toggleAll: () => setChecked(Object.fromEntries(consents.map((consent) => [consent.id, !allChecked]))),
+		ready: consents.every((consent) => !consent.is_required || isChecked(consent)),
 		saving: isPending,
 		saveFailed: isSaveError,
 		save,

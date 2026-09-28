@@ -39,7 +39,6 @@ import { reportError, screen, track } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 import { notificationPath } from '@/utils/notification';
 
-import { StartupScreen } from '@/components/app/startup-screen';
 import { OfflineBanner } from '@/components/offline-banner';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -110,7 +109,7 @@ function entryState(route: (typeof ENTRY_ORDER)[number], parrotId?: string): Par
 }
 
 function initialStateOf(
-	route: Exclude<EntryRoute, 'loading' | 'error' | 'LegacyUpload'>,
+	route: Exclude<EntryRoute, 'LegacyUpload'>,
 	parrotId?: string,
 ): PartialState<NavigationState> | undefined {
 	if (route === 'Main') {
@@ -129,7 +128,7 @@ export function AppNavigator() {
 
 	const screenName = useRef<string | null>(null);
 
-	const { route, parrotId, retry } = useEntryRoute();
+	const { route, parrotId } = useEntryRoute();
 
 	function recordScreen() {
 		const current = navigationRef.getCurrentRoute()?.name ?? null;
@@ -139,10 +138,6 @@ export function AppNavigator() {
 		}
 
 		screenName.current = current;
-	}
-
-	if (route === 'loading' || route === 'error') {
-		return <StartupScreen startupFailed={route === 'error'} onRetry={retry} />;
 	}
 
 	if (route === 'LegacyUpload') {

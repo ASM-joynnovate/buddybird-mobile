@@ -26,6 +26,7 @@ export const queryClient = new QueryClient({
 		queries: {
 			staleTime: DEFAULT_STALE_TIME_MS,
 			retry: retryPolicy,
+			throwOnError: true,
 		},
 		mutations: { retry: retryPolicy, networkMode: 'always' },
 	},

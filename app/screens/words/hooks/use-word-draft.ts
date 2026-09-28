@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
 import type { Recording, Word } from '@/types/apis/words';
@@ -22,8 +22,7 @@ import { queryClient } from '@/lib/query-client';
 import { randomUUID } from 'expo-crypto';
 
 import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS } from '@/config';
-import { measureRecordingDuration } from '@/services/media/recording-duration';
-import { reportError, track } from '@/services/telemetry/client';
+import { track } from '@/services/telemetry/client';
 
 type SaveStep = 'saving' | 'uploading' | 'processing';
 
@@ -58,11 +57,11 @@ function wait(ms: number): Promise<void> {
 	});
 }
 
-const serverItem = (recording: Recording, durationMs: number | null): DraftItem => ({
+const serverItem = (recording: Recording): DraftItem => ({
 	kind: 'server',
 	id: recording.id,
 	url: recording.url,
-	durationMs,
+	durationMs: null,
 });
 
 export function useWordDraft(routeWordId: string | null, recorded: RecordedSample | undefined): WordDraft {
@@ -84,19 +83,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 		isPending,
 		isError,
 		refetch,
-	} = useQuery({ ...getWordOptions({ id: wordId ?? '' }), enabled: Boolean(wordId) });
-	const durations = useQueries({
-		queries: (wordData?.recordings ?? []).map((recording) => ({
-			queryKey: apiKeys.recordings.duration(recording.id),
-			queryFn: () =>
-				measureRecordingDuration(recording.url).catch((error: unknown) => {
-					reportError(error, 'recording_duration');
-
-					throw error;
-				}),
-			staleTime: Infinity,
-		})),
-	});
+	} = useQuery({ ...getWordOptions({ id: wordId ?? '' }), enabled: !!wordId, throwOnError: false });
 
 	const createWord = useCreateWord();
 	const renameWord = useRenameWord();
@@ -105,7 +92,7 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 
 	const name = nameInput ?? wordData?.name ?? '';
 	const servers = (wordData?.recordings ?? [])
-		.map((recording, index) => serverItem(recording, durations[index]?.data ?? null))
+		.map((recording) => serverItem(recording))
 		.filter((item) => !removedIds.includes(item.id));
 	const items: DraftItem[] = [
 		...servers,
@@ -215,11 +202,12 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 		const expectedCount = (wordData?.recordings.length ?? 0) + locals.length;
 		const addedCount = locals.length;
 		const renamed = name.trim() !== wordData?.name;
+		let id = wordId;
 
 		try {
 			setStep('saving');
 
-			const id = await persistName();
+			id = await persistName();
 
 			setStep('uploading');
 
@@ -270,7 +258,9 @@ export function useWordDraft(routeWordId: string | null, recorded: RecordedSampl
 			if (alive.current) {
 				setSaveFailed(true);
 
-				void refetch();
+				if (id) {
+					void invalidate(apiKeys.words.detail(id));
+				}
 			}
 		} finally {
 			if (alive.current) {

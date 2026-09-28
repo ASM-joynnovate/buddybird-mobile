@@ -5,7 +5,6 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import type { RootStackParamList } from '@/types/navigation';
 
 import { getNoticeListOptions } from '@/hooks/apis/notices';
-import { usePermission } from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
@@ -14,15 +13,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { AccountActions } from '@/screens/settings/components/account-actions';
 import { GeneralGroup } from '@/screens/settings/components/general-group';
-import { NotificationGroup } from '@/screens/settings/components/notification-group';
+import SleepAndNotificationGroups from '@/screens/settings/components/sleep-and-notification-groups';
 import { SupportGroup } from '@/screens/settings/components/support-group';
-import { useSettingsUpdate } from '@/screens/settings/hooks/use-settings-update';
 import { useAccountStore } from '@/stores/account';
 import { useFeedbackStore } from '@/stores/feedback';
 
-import { SleepTimePicker } from '@/components/session/sleep-time-picker';
-import { GroupedList } from '@/components/ui/grouped-list';
-import { InlineError } from '@/components/ui/inline-error';
+import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -33,44 +29,11 @@ export function SettingsScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const { data: noticeListData } = useInfiniteQuery(getNoticeListOptions());
+	const { data: noticeListData } = useInfiniteQuery({ ...getNoticeListOptions(), throwOnError: false });
 
 	const isAnonymous = useAccountStore((account) => account.isAnonymous);
 
 	const feedback = useFeedbackStore();
-
-	const notificationPermission = usePermission('notifications');
-
-	const form = useSettingsUpdate();
-
-	const settings = form.settings;
-
-	function preferences() {
-		if (form.loadFailed) {
-			return <ScreenError message={t('common.loadError')} onRetry={form.retry} />;
-		}
-
-		if (!settings) {
-			return <Skeleton rows={3} height={56} />;
-		}
-
-		return (
-			<>
-				<GroupedList title={t('settings.care.title')}>
-					<SleepTimePicker value={settings.sleep} first onChange={form.updateSleep} />
-				</GroupedList>
-
-				<NotificationGroup
-					settings={settings}
-					permissionOff={notificationPermission.granted === false}
-					onOpenPermissions={() => navigation.navigate('Permissions')}
-					onChange={(key, value) => form.updateNotifications({ ...settings.notifications, [key]: value })}
-				/>
-
-				<InlineError message={form.saveFailed ? t('settings.saveError') : null} />
-			</>
-		);
-	}
 
 	return (
 		<Screen>
@@ -79,7 +42,12 @@ export function SettingsScreen() {
 
 			{/*설정 그룹*/}
 			<View style={styles.sections}>
-				{preferences()}
+				<ErrorHandlingWrapper
+					fallbackComponent={ScreenError}
+					suspenseFallback=<Skeleton rows={3} height={56} />
+				>
+					<SleepAndNotificationGroups />
+				</ErrorHandlingWrapper>
 
 				<GeneralGroup
 					onOpenDevices={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}

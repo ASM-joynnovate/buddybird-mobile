@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { User } from '@/types/apis/users';
+import { useGetMe } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
@@ -14,17 +14,19 @@ import { TextButton } from '@/components/ui/text-button';
 import { TextField } from '@/components/ui/text-field';
 
 interface Props {
-	user: User;
 	onSaved(): void;
 }
 
-export function AccountForm({ user, onSaved }: Props) {
+export function AccountForm({ onSaved }: Props) {
 	const { t } = useTranslation();
 
-	const form = useAccountForm(user, onSaved);
+	const { data: meData } = useGetMe();
+
+	const form = useAccountForm(meData, onSaved);
 
 	return (
 		<>
+			{/*사진*/}
 			<ProfilePhoto photo={form.photo} busy={form.busy} action={form.photo.photoUri ? 'edit' : 'plus'} />
 			{form.photo.photoUri ? (
 				<View style={styles.remove}>
@@ -36,6 +38,8 @@ export function AccountForm({ user, onSaved }: Props) {
 					/>
 				</View>
 			) : null}
+
+			{/*닉네임 입력*/}
 			<TextField
 				label={t('profile.nickname')}
 				error={form.nicknameError}
@@ -48,9 +52,13 @@ export function AccountForm({ user, onSaved }: Props) {
 				returnKeyType="done"
 				onSubmitEditing={form.save}
 			/>
+
+			{/*저장 버튼*/}
 			<View style={styles.spacer} />
 			<InlineError message={form.error} />
 			<Button label={t('common.save')} loading={form.busy} onPress={form.save} style={styles.save} />
+
+			{/*사진 권한 다이얼로그*/}
 			<PermissionDialog state={form.photo.libraryDialog} />
 			<PermissionDialog state={form.photo.cameraDialog} />
 		</>

@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
-
 import type { RootStackParamList } from '@/types/navigation';
 
-import { getConsentListOptions, useSaveConsent } from '@/hooks/apis/consents';
+import { useGetConsentList, useSaveConsent } from '@/hooks/apis/consents';
 
 import { useTranslation } from 'react-i18next';
 
@@ -16,9 +14,7 @@ import { useConsentStore } from '@/stores/consent';
 import { Button } from '@/components/ui/button';
 import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
-import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Copy } from '@/components/ui/text';
 
 export function ConsentDetailScreen() {
@@ -27,11 +23,11 @@ export function ConsentDetailScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { consentId, source } = useRoute<RouteProp<RootStackParamList, 'ConsentDetail'>>().params;
 
-	const { data: consentListData, isError, refetch } = useQuery(getConsentListOptions());
+	const { data: consentListData } = useGetConsentList();
 
 	const { isError: isSaveError, isPending, mutate } = useSaveConsent();
 
-	const consent = consentListData?.find((item) => item.id === consentId);
+	const consent = consentListData.find((item) => item.id === consentId);
 	const canAgree =
 		consent !== undefined && (source === 'entry' || (!consent.is_required && consent.status !== 'granted'));
 
@@ -51,18 +47,6 @@ export function ConsentDetailScreen() {
 		mutate({ data: { consent_id: consent.id, status: 'granted' } }, { onSuccess: () => navigation.goBack() });
 	}
 
-	function body() {
-		if (isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={() => void refetch()} />;
-		}
-
-		if (!consent) {
-			return <Skeleton rows={6} height={20} />;
-		}
-
-		return <Copy style={styles.text}>{consent.body}</Copy>;
-	}
-
 	return (
 		<Screen
 			footer={
@@ -78,7 +62,7 @@ export function ConsentDetailScreen() {
 			<ScreenHeader title={consent?.title} onBack={() => navigation.goBack()} />
 
 			{/*약관 본문*/}
-			{body()}
+			{consent && <Copy style={styles.text}>{consent.body}</Copy>}
 		</Screen>
 	);
 }

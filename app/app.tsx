@@ -9,9 +9,9 @@ import { AppSplash } from '@/components/app/app-splash';
 import { StartupScreen } from '@/components/app/startup-screen';
 
 export function App() {
-	const { state, ready, settled, retry } = useAppBootstrap();
-
 	const [splashFinished, setSplashFinished] = useState(false);
+
+	const { state, ready, settled, retry } = useAppBootstrap();
 
 	const finishSplash = useCallback(() => setSplashFinished(true), []);
 
@@ -21,11 +21,16 @@ export function App() {
 
 	return (
 		<RootProviders>
+			{/*앱 화면*/}
 			{ready ? (
 				<AppContent showDialogs={splashFinished} />
+			) : state === 'failed' ? (
+				<StartupScreen onRetry={retry} />
 			) : (
-				<StartupScreen startupFailed={state === 'failed'} onRetry={retry} />
+				<StartupScreen />
 			)}
+
+			{/*스플래시*/}
 			{!splashFinished ? <AppSplash ready={settled} onComplete={finishSplash} /> : null}
 		</RootProviders>
 	);

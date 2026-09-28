@@ -10,8 +10,8 @@ import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 export function useAnalyticsUser(): void {
-	const { data: parrotListData } = useQuery(getParrotListOptions());
-	const { data: wordListData } = useQuery(getWordListOptions());
+	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
+	const { data: wordListData } = useQuery({ ...getWordListOptions(), throwOnError: false });
 
 	const serverUserId = useAccountStore((account) => account.serverUserId);
 	const locale = useDeviceSettingsStore((state) => state.locale);

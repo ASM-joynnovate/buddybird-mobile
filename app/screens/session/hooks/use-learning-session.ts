@@ -2,11 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AppState } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
-
 import type { RootStackParamList } from '@/types/navigation';
 
-import { getRunningSessionOptions, useFinishSession, useUploadSessionSound } from '@/hooks/apis/sessions';
+import { useFinishSession, useGetRunningSession, useUploadSessionSound } from '@/hooks/apis/sessions';
 import { getWordOptions } from '@/hooks/apis/words';
 
 import { queryClient } from '@/lib/query-client';
@@ -38,7 +36,7 @@ export function useLearningSession(
 	const [engineFailed, setEngineFailed] = useState(false);
 	const [ending, setEnding] = useState(false);
 
-	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
+	const { data: runningSessionData } = useGetRunningSession();
 
 	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
 	const { mutateAsync: finishSession } = useFinishSession();

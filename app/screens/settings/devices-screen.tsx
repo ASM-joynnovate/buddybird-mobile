@@ -1,17 +1,16 @@
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { RootStackParamList } from '@/types/navigation';
-
-import { useDevices } from '@/hooks/use-devices';
 
 import { useTranslation } from 'react-i18next';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { DeviceCard } from '@/screens/settings/components/device-card';
+import DeviceList from '@/screens/settings/components/device-list';
 import { contentMaxWidth } from '@/theme';
 
+import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -22,32 +21,19 @@ export function DevicesScreen() {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const { devices, isError, retry } = useDevices();
-
-	function body() {
-		if (isError) {
-			return <ScreenError message={t('common.loadError')} onRetry={retry} />;
-		}
-
-		if (!devices) {
-			return <Skeleton rows={2} height={110} />;
-		}
-
-		return (
-			<FlatList
-				data={devices}
-				keyExtractor={(item) => item.id}
-				contentContainerStyle={styles.list}
-				renderItem={({ item }) => <DeviceCard device={item} />}
-			/>
-		);
-	}
-
 	return (
 		<Screen scroll={false}>
 			<View style={styles.frame}>
+				{/*헤더*/}
 				<ScreenHeader title={t('settings.devices.title')} onBack={() => navigation.goBack()} />
-				{body()}
+
+				{/*기기 목록*/}
+				<ErrorHandlingWrapper
+					fallbackComponent={ScreenError}
+					suspenseFallback=<Skeleton rows={2} height={110} />
+				>
+					<DeviceList />
+				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
@@ -62,5 +48,4 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 20,
 	},
-	list: { gap: 12, paddingBottom: 32 },
 });

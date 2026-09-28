@@ -15,8 +15,8 @@ export function useFeedbackPrompt(updatesSettled: boolean, updateVisible: boolea
 
 	const feedbackPromptOpen = useRef(false);
 
-	const { data: parrotListData } = useQuery(getParrotListOptions());
-	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
+	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
+	const { data: runningSessionData } = useQuery({ ...getRunningSessionOptions(), throwOnError: false });
 
 	const preferences = useDeviceSettingsStore((state) => state.feedback);
 

@@ -11,17 +11,17 @@ import { ui } from '@/components/ui/styles';
 import { Copy } from '@/components/ui/text';
 
 interface Props {
-	message: string;
-	onRetry(): void;
+	onRetry: () => void;
 }
 
-export function ScreenError({ message, onRetry }: Props) {
+export function ScreenError({ onRetry }: Props) {
 	const { t } = useTranslation();
 
 	return (
 		<View style={ui.messageBox} accessibilityLiveRegion="polite">
 			<TriangleAlertIcon size={32} color={colors.muted} />
-			<Copy style={ui.messageText}>{message}</Copy>
+			<Copy style={ui.messageText}>{t('common.loadError')}</Copy>
+
 			<Button
 				label={t('common.retry')}
 				variant="secondary"

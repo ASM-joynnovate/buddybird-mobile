@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
-import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { useGetParrotList } from '@/hooks/apis/parrots';
 
 import { acceptLegacyUpload, finishLegacyUpload, uploadLegacy } from '@/services/migration/upload-legacy';
 import { reportError } from '@/services/telemetry/client';
@@ -31,12 +29,12 @@ export function useLegacyUpload(): {
 	const [uploadFailed, setUploadFailed] = useState(false);
 	const [attempt, setAttempt] = useState(0);
 
-	const { data: parrotListData } = useQuery(getParrotListOptions());
+	const { data: parrotListData } = useGetParrotList();
 
 	const upload = useDeviceSettingsStore((state) => state.legacyMigration.upload);
 
-	const asking = upload === 'pending' && (parrotListData?.length ?? 0) > 0;
-	const ready = parrotListData !== undefined && !asking;
+	const asking = upload === 'pending' && parrotListData.length > 0;
+	const ready = !asking;
 
 	useEffect(() => {
 		if (!ready) {

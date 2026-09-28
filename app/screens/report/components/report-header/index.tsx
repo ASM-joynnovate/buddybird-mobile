@@ -23,9 +23,7 @@ import { Illustration } from '@/components/illustration';
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
-import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ui } from '@/components/ui/styles';
 import { Card } from '@/components/ui/surface';
 import { Copy } from '@/components/ui/text';
@@ -44,24 +42,25 @@ function periodLabel(report: Report, locale: Locale): string {
 
 interface Props {
 	state: ReportPeriodState;
-	report: Report | undefined;
-	loadFailed: boolean;
-	onRetry(): void;
+	report: Report;
 	onStart(): void;
 }
 
-export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Props): ReactElement {
+export function ReportHeader({ state, report, onStart }: Props): ReactElement {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((settings) => settings.locale);
 
-	const recorded = report !== undefined && report.sessions.length > 0;
-	const label = report ? periodLabel(report, locale) : '';
+	const recorded = report.sessions.length > 0;
+	const label = periodLabel(report, locale);
 	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
 	return (
 		<View>
+			{/*제목*/}
 			<ScreenHeader title={t('report.title')} large />
+
+			{/*기간 칩*/}
 			<View style={ui.row}>
 				{reportPeriodSchema.options.map((period) => (
 					<Chip
@@ -72,6 +71,8 @@ export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Pr
 					/>
 				))}
 			</View>
+
+			{/*기간과 학습 시간*/}
 			<Card style={styles.card}>
 				<View style={ui.row}>
 					<Copy accessibilityRole="header" style={styles.period}>
@@ -85,8 +86,8 @@ export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Pr
 						onPress={() => state.move(1)}
 					/>
 				</View>
-				{!report && !loadFailed ? <Skeleton rows={1} height={220} /> : null}
-				{report && recorded ? (
+
+				{recorded ? (
 					<>
 						<Copy style={styles.label}>{t('report.learningTime')}</Copy>
 						<View style={styles.totals}>
@@ -94,6 +95,7 @@ export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Pr
 								{formatDuration(report.learning_duration_ms, locale)}
 							</Copy>
 						</View>
+
 						<TrendChart
 							key={`${report.period}-${report.start}`}
 							period={report.period}
@@ -102,17 +104,21 @@ export function ReportHeader({ state, report, loadFailed, onRetry, onStart }: Pr
 					</>
 				) : null}
 			</Card>
-			{loadFailed ? <ScreenError message={t('common.loadError')} onRetry={onRetry} /> : null}
-			{report && !recorded ? (
+
+			{/*빈 리포트 안내*/}
+			{!recorded ? (
 				<EmptyState
 					message={t('report.empty')}
 					illustration={illustration}
 					action={{ label: t('report.startSession'), onPress: onStart }}
 				/>
 			) : null}
-			{report && recorded ? (
+
+			{/*단어별 학습 시간과 세션 목록 제목*/}
+			{recorded ? (
 				<>
 					<WordBars words={report.words} />
+
 					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessions]}>
 						{t('report.sessions')}
 					</Copy>

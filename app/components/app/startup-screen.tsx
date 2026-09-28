@@ -7,16 +7,15 @@ import { colors } from '@/theme';
 import { PressableSurface } from '@/components/ui/surface';
 
 interface Props {
-	startupFailed: boolean;
-	onRetry(): void;
+	onRetry?: () => void;
 }
 
-export function StartupScreen({ startupFailed, onRetry }: Props) {
+export function StartupScreen({ onRetry }: Props) {
 	const { t } = useTranslation();
 
 	return (
 		<View style={styles.startup}>
-			{startupFailed ? (
+			{onRetry ? (
 				<>
 					<Text allowFontScaling={false} style={styles.title}>
 						{t('app.startup.title')}
@@ -24,6 +23,7 @@ export function StartupScreen({ startupFailed, onRetry }: Props) {
 					<Text allowFontScaling={false} style={styles.message}>
 						{t('app.startup.message')}
 					</Text>
+
 					<PressableSurface onPress={onRetry} tone="plain" depth="none" contentStyle={styles.retry}>
 						<Text allowFontScaling={false} style={styles.retryLabel}>
 							{t('common.retry')}

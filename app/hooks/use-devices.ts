@@ -1,30 +1,22 @@
-import { useQuery } from '@tanstack/react-query';
-
 import type { LinkedDevice } from '@/types/device';
 
-import { getDeviceListOptions } from '@/hooks/apis/devices';
-import { getRunningSessionOptions } from '@/hooks/apis/sessions';
+import { useGetDeviceList } from '@/hooks/apis/devices';
+import { useGetRunningSession } from '@/hooks/apis/sessions';
 
 import { useAccountStore } from '@/stores/account';
 import { linkDevices } from '@/utils/device';
 
 export function useDevices(): {
-	devices: LinkedDevice[] | undefined;
-	isError: boolean;
-	retry(): void;
+	linkedDevices: LinkedDevice[];
 } {
-	const { data: deviceListData, isError, refetch } = useQuery(getDeviceListOptions());
-	const { data: runningSessionData } = useQuery(getRunningSessionOptions());
+	const { data: deviceListData } = useGetDeviceList();
+	const { data: runningSessionData } = useGetRunningSession();
 
-	const linkedDevices = deviceListData
-		? linkDevices(deviceListData, useAccountStore.getState().ensureClientDeviceId(), runningSessionData ?? null)
-		: undefined;
+	const linkedDevices = linkDevices(
+		deviceListData,
+		useAccountStore.getState().ensureClientDeviceId(),
+		runningSessionData,
+	);
 
-	return {
-		devices: linkedDevices,
-		isError,
-		retry: () => {
-			void refetch();
-		},
-	};
+	return { linkedDevices };
 }

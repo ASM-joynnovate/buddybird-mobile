@@ -21,8 +21,6 @@ import { GroupedList } from '@/components/ui/grouped-list';
 import { GroupedListCheckItem } from '@/components/ui/grouped-list/check-item';
 import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
-import { ScreenError } from '@/components/ui/screen-error';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/surface';
 
 export function ConsentScreen() {
@@ -49,17 +47,22 @@ export function ConsentScreen() {
 		}, []),
 	);
 
-	function body() {
-		if (form.loadFailed) {
-			return <ScreenError message={t('common.loadError')} onRetry={form.retry} />;
-		}
+	return (
+		<Screen
+			footer={
+				<>
+					<InlineError message={form.saveFailed ? t('common.saveErrorKept') : null} />
+					<Button label={t('common.next')} disabled={!form.ready} loading={form.saving} onPress={form.save} />
+				</>
+			}
+		>
+			{/*안내 말풍선*/}
+			<View style={styles.intro}>
+				<BuddySays message={t('entry.consent.intro')} />
+			</View>
 
-		if (!form.consents) {
-			return <Skeleton rows={4} height={56} />;
-		}
-
-		return (
-			<>
+			{/*동의 항목*/}
+			<View style={styles.content}>
 				<Card contentStyle={styles.allCard}>
 					<GroupedListCheckItem
 						first
@@ -69,6 +72,7 @@ export function ConsentScreen() {
 						onToggle={form.toggleAll}
 					/>
 				</Card>
+
 				<GroupedList>
 					{form.consents.map((consent, index) => (
 						<ConsentItem
@@ -88,28 +92,7 @@ export function ConsentScreen() {
 						/>
 					))}
 				</GroupedList>
-			</>
-		);
-	}
-
-	return (
-		<Screen
-			footer={
-				<>
-					<InlineError message={form.saveFailed ? t('common.saveErrorKept') : null} />
-					<Button
-						label={t('common.next')}
-						disabled={!form.consents || !form.ready}
-						loading={form.saving}
-						onPress={form.save}
-					/>
-				</>
-			}
-		>
-			<View style={styles.intro}>
-				<BuddySays message={t('entry.consent.intro')} />
 			</View>
-			<View style={styles.content}>{body()}</View>
 		</Screen>
 	);
 }

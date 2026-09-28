@@ -112,7 +112,7 @@ export function WordEditorScreen(): ReactElement {
 	if (draft.loading) {
 		body = <Skeleton rows={3} />;
 	} else if (draft.loadFailed) {
-		body = <ScreenError message={t('common.loadError')} onRetry={draft.reload} />;
+		body = <ScreenError onRetry={draft.reload} />;
 	} else {
 		body = (
 			<>

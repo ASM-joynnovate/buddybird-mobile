@@ -21,7 +21,13 @@ export function useUpdatePrompt() {
 
 	const shownUpdate = useRef<string | null>(null);
 
-	const { data: appUpdateData, fetchStatus, isError, isFetching, isSuccess } = useQuery(getAppUpdateOptions());
+	const {
+		data: appUpdateData,
+		fetchStatus,
+		isError,
+		isFetching,
+		isSuccess,
+	} = useQuery({ ...getAppUpdateOptions(), throwOnError: false });
 
 	const preferences = useDeviceSettingsStore((state) => state.update);
 
