@@ -68,7 +68,7 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}
 							variant={selected ? 'primary' : 'plain'}
-							depth={selected ? 'medium' : 'none'}
+							depth={selected ? 'xhigh' : 'none'}
 							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
 	tabContainer: { flex: 1, minWidth: 0, maxWidth: 68 },
 	tabTarget: { width: '100%', aspectRatio: 1 },
 	tab: {
+		borderWidth: 0,
 		paddingHorizontal: 8,
 		paddingVertical: 8,
 		alignItems: 'center',

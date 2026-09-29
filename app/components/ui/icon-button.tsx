@@ -50,7 +50,7 @@ export const IconButton = ({ icon: Icon, label, onPress, disabled, variant = 'pl
 			disabled={disabled}
 			onPress={onPress}
 			variant={isPrimary && disabled ? 'disabled' : surfaceVariant}
-			depth={isPrimary ? 'high' : 'none'}
+			depth={isPrimary ? 'medium' : 'none'}
 			cornerRadius={isPrimary ? 'pill' : 'control'}
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}

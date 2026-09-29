@@ -28,7 +28,7 @@ export const PressableSurface = ({
 	onPress,
 	onLongPress,
 	disabled = false,
-	depth = 'high',
+	depth = 'medium',
 	contentStyle,
 	accessibilityState,
 	accessibilityRole = 'button',

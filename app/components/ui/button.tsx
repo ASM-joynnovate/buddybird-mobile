@@ -23,10 +23,10 @@ export const Button = ({
 	size = 'medium',
 	style,
 	disabled,
+	depth = 'medium',
 	...props
 }: Props) => {
 	const inactive = disabled || loading;
-	const depth = size === 'small' ? 'high' : 'xhigh';
 	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = 'primary';
 	let foregroundColor = colors.onFilled;
 

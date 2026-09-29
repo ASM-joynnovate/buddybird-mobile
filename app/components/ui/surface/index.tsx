@@ -31,7 +31,7 @@ export type SurfaceProps = Props;
 export const Surface = ({
 	children,
 	variant = 'neutral',
-	depth = 'high',
+	depth = 'medium',
 	cornerRadius = 'card',
 	style,
 	contentStyle,

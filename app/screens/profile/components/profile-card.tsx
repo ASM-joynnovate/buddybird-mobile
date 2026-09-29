@@ -30,7 +30,7 @@ const ProfileCard = ({ avatar, title, details, label, onPress }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityLabel={label}
-			depth={isLarge ? 'high' : 'low'}
+			depth={isLarge ? 'medium' : 'low'}
 			onPress={onPress}
 			contentStyle={[styles.card, isLarge ? styles.largeCard : styles.mediumCard]}
 		>

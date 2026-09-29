@@ -13,9 +13,9 @@ export const radius = {
 export const depths = {
 	none: 0,
 	low: 2,
-	medium: 3,
-	high: 4,
-	xhigh: 7,
+	medium: 4,
+	high: 6,
+	xhigh: 8,
 };
 
 export const contentMaxWidth = 480;
