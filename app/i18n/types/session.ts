@@ -54,6 +54,7 @@ export type SessionMessages = {
 	};
 	end: {
 		title: string;
+		message: string;
 		button: string;
 		keep: string;
 	};

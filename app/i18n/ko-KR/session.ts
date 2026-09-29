@@ -56,6 +56,7 @@ export const session: SessionMessages = {
 	},
 	end: {
 		title: '세션 종료',
+		message: '학습을 끝낼까요? 끝내면 이번 학습 결과를 보여 드려요.',
 		button: '종료',
 		keep: '계속',
 	},

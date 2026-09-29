@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { AppState, BackHandler, StyleSheet } from 'react-native';
+import { AppState, BackHandler, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
 
@@ -29,6 +29,8 @@ import { currentSpan } from '@/utils/phases';
 import { SECOND } from '@/utils/units';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import Mascot from '@/components/mascot';
+import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 type EndReason = 'time_reached' | 'user' | 'server';
@@ -62,10 +64,10 @@ const SessionRunScreen = () => {
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
-	const ending = useSessionStore((state) => state.ending);
+	const sessionFinishing = useSessionStore((state) => state.sessionFinishing);
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const setEngineFailed = useSessionStore((state) => state.setEngineFailed);
-	const setEnding = useSessionStore((state) => state.setEnding);
+	const setSessionFinishing = useSessionStore((state) => state.setSessionFinishing);
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
 
 	const { sessionId, wordId, endsAt, sleep, duration, sleepChanged } = params;
@@ -82,7 +84,7 @@ const SessionRunScreen = () => {
 
 			endingRef.current = true;
 
-			setEnding(true);
+			setSessionFinishing(true);
 
 			const learningMs = engineRef.current?.learningMs() ?? 0;
 			const playCount = engineRef.current?.summaries().reduce((sum, summary) => sum + summary.play_count, 0) ?? 0;
@@ -118,7 +120,7 @@ const SessionRunScreen = () => {
 
 			finishSession({ id: sessionId }, { onSettled: showSummary });
 		},
-		[finishSession, navigation, sessionId, setEnding, startedAt],
+		[finishSession, navigation, sessionId, setSessionFinishing, startedAt],
 	);
 
 	const latestInputRef = useRef({ startedAt, sleep, endSession });
@@ -138,13 +140,14 @@ const SessionRunScreen = () => {
 	/** 안드로이드 뒤로 가기 버튼을 누르면 종료 다이얼로그 열기 */
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+			showInfo();
 			setEndDialogOpen(true);
 
 			return true;
 		});
 
 		return () => subscription.remove();
-	}, []);
+	}, [showInfo]);
 
 	/** 학습 엔진 실행 */
 	useEffect(() => {
@@ -293,6 +296,11 @@ const SessionRunScreen = () => {
 		return () => clearTimeout(timer);
 	}, [endSession, endsAt]);
 
+	const handleOpenEndDialog = () => {
+		showInfo();
+		setEndDialogOpen(true);
+	};
+
 	const handleEnd = () => {
 		void endSession('user');
 	};
@@ -316,23 +324,28 @@ const SessionRunScreen = () => {
 						endsAt={endsAt}
 						sleep={sleep}
 						engineFailed={engineFailed}
-						onEnd={() => setEndDialogOpen(true)}
+						onEnd={handleOpenEndDialog}
 					/>
 				)}
 			</Animated.View>
 
-			{/*학습 종료 확인 다이얼로그*/}
+			{/*학습 종료 확인 다이얼로그, 화면이 어두워지면 숨김*/}
 			<ConfirmDialog
-				visible={endDialogOpen}
+				visible={endDialogOpen && (infoVisible || sessionFinishing)}
 				text={{
 					title: t('session.end.title'),
 					confirm: t('session.end.button'),
 					cancel: t('session.end.keep'),
 				}}
-				confirmStatus={{ busy: ending }}
+				confirmStatus={{ busy: sessionFinishing }}
 				onConfirm={handleEnd}
 				onClose={() => setEndDialogOpen(false)}
-			/>
+			>
+				<View style={styles.endMessageContainer}>
+					<Mascot size={88} />
+					<Copy style={styles.endMessage}>{t('session.end.message')}</Copy>
+				</View>
+			</ConfirmDialog>
 		</PressableSurface>
 	);
 };
@@ -340,6 +353,8 @@ const SessionRunScreen = () => {
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: sessionColors.background },
 	fill: { flex: 1, borderWidth: 0 },
+	endMessageContainer: { alignItems: 'center', gap: 12 },
+	endMessage: { textAlign: 'center', lineHeight: 22 },
 });
 
 export default SessionRunScreen;

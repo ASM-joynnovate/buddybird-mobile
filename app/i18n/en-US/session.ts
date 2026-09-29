@@ -56,6 +56,7 @@ export const session: SessionMessages = {
 	},
 	end: {
 		title: 'End session',
+		message: "End this session? We'll show you the results.",
 		button: 'End',
 		keep: 'Keep going',
 	},

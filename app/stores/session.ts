@@ -9,7 +9,7 @@ type SessionScreenState = {
 	infoVisible: boolean;
 	hideInfoTimer: ReturnType<typeof setTimeout> | null;
 	engineFailed: boolean;
-	ending: boolean;
+	sessionFinishing: boolean;
 };
 
 type SessionSetupState = {
@@ -21,7 +21,7 @@ type SessionSetupState = {
 type SessionActions = {
 	showInfo: () => void;
 	setEngineFailed: (engineFailed: boolean) => void;
-	setEnding: (ending: boolean) => void;
+	setSessionFinishing: (sessionFinishing: boolean) => void;
 	resetSessionScreen: () => void;
 	setSelectedWordId: (selectedWordId: string) => void;
 	setDuration: (duration: LearningDuration) => void;
@@ -38,7 +38,7 @@ const initSessionScreen = (): SessionScreenState => ({
 	infoVisible: true,
 	hideInfoTimer: null,
 	engineFailed: false,
-	ending: false,
+	sessionFinishing: false,
 });
 
 /** 홈 학습 설정 초기값 */
@@ -73,8 +73,8 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 	},
 
 	/** 학습 종료 진행 여부 저장 */
-	setEnding: (ending) => {
-		set((state) => ({ ...state, ending }));
+	setSessionFinishing: (sessionFinishing) => {
+		set((state) => ({ ...state, sessionFinishing }));
 	},
 
 	/** 세션 화면 값 초기화 */
