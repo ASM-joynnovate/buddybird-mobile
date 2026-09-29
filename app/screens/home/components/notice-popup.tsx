@@ -87,12 +87,14 @@ const NoticePopup = ({ notices }: Props) => {
 						label={t('common.close')}
 						variant="secondary"
 						size="small"
+						depth="high"
 						onPress={handleClose}
 						style={ui.action}
 					/>
 					<Button
 						label={t('home.notice.viewDetail')}
 						size="small"
+						depth="high"
 						onPress={handleOpenDetail}
 						style={ui.action}
 					/>

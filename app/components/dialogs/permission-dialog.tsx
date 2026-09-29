@@ -40,12 +40,14 @@ const PermissionDialog = ({ state }: Props) => {
 						label={t('common.close')}
 						variant="secondary"
 						size="small"
+						depth="high"
 						onPress={state.onClose}
 						style={ui.action}
 					/>
 					<Button
 						label={t('common.permission.openSettings')}
 						size="small"
+						depth="high"
 						onPress={handleOpenSettings}
 						style={ui.action}
 					/>

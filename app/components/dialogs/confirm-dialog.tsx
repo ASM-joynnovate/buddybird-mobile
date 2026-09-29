@@ -45,6 +45,7 @@ const ConfirmDialog = ({ visible, text, confirmStatus, onConfirm, onClose, child
 						variant="secondary"
 						size="small"
 						disabled={busy}
+						depth="high"
 						onPress={onClose}
 						style={ui.action}
 					/>
@@ -52,6 +53,7 @@ const ConfirmDialog = ({ visible, text, confirmStatus, onConfirm, onClose, child
 						label={text.confirm ?? t('common.confirmDelete.confirm')}
 						size="small"
 						loading={busy}
+						depth="high"
 						onPress={onConfirm}
 						style={ui.action}
 					/>

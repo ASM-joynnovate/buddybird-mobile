@@ -89,7 +89,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				visible={visible}
 				onClose={handleClose}
 				title={t('app.feedback.sentTitle')}
-				footer=<Button label={t('common.done')} onPress={handleClose} style={styles.thanksClose} />
+				footer=<Button label={t('common.done')} depth="high" onPress={handleClose} style={styles.thanksClose} />
 			>
 				<Copy style={styles.centeredMessage}>{t('app.feedback.sentMessage')}</Copy>
 			</Dialog>
@@ -107,10 +107,16 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 						<Button
 							label={t('common.close')}
 							variant="secondary"
+							depth="high"
 							onPress={prompt.onDismiss}
 							style={ui.action}
 						/>
-						<Button label={t('app.feedback.write')} onPress={prompt.onWrite} style={ui.action} />
+						<Button
+							label={t('app.feedback.write')}
+							depth="high"
+							onPress={prompt.onWrite}
+							style={ui.action}
+						/>
 					</View>
 				}
 			>
@@ -136,6 +142,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 						label={t('common.cancel')}
 						variant="secondary"
 						disabled={isPending}
+						depth="high"
 						onPress={handleClose}
 						style={ui.action}
 					/>
@@ -144,6 +151,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 						icon={SendIcon}
 						disabled={!message.trim()}
 						loading={isPending}
+						depth="high"
 						onPress={handleSubmit}
 						style={ui.action}
 					/>

@@ -83,6 +83,7 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 							label={t('common.close')}
 							variant="secondary"
 							disabled={appStoreOpening}
+							depth="high"
 							onPress={onDismiss}
 							style={ui.action}
 						/>
@@ -90,6 +91,7 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 					<Button
 						label={t('app.update.accept')}
 						loading={appStoreOpening}
+						depth="high"
 						onPress={() => void handleAcceptUpdate()}
 						style={ui.action}
 					/>

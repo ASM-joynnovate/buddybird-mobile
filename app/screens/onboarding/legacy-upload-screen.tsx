@@ -107,10 +107,17 @@ const LegacyUploadScreen = () => {
 							label={t('common.skip')}
 							variant="secondary"
 							size="small"
+							depth="high"
 							onPress={handleSkip}
 							style={ui.action}
 						/>
-						<Button label={t('common.add')} size="small" onPress={acceptLegacyUpload} style={ui.action} />
+						<Button
+							label={t('common.add')}
+							size="small"
+							depth="high"
+							onPress={acceptLegacyUpload}
+							style={ui.action}
+						/>
 					</View>
 				}
 			/>
