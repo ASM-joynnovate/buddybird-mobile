@@ -15,19 +15,29 @@ export type SessionMessages = {
 		wake_at: string;
 	};
 	start: {
+		title: string;
 		word: string;
-		choose: string;
+		selectWord: string;
 		duration: string;
 		untilEnd: string;
+		untilEndHint: string;
+		presetHints: {
+			short: string;
+			medium: string;
+			long: string;
+		};
 		custom: string;
+		customHint: string;
+		total: string;
 		days: string;
 		hours: string;
 		minutes: string;
+		invalid: string;
 		empty: string;
-		addWord: string;
+		startButton: string;
+		startUnavailable: string;
 		elsewhere: string;
 		endElsewhere: string;
-		previewRecording: string;
 		endElsewhereError: string;
 	};
 	run: {

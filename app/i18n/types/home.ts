@@ -1,4 +1,5 @@
 export type HomeMessages = {
+	brand: string;
 	notifications: string;
 	notificationsUnread: string;
 	settings: string;

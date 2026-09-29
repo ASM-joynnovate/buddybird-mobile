@@ -1,6 +1,7 @@
 import type { HomeMessages } from '@/i18n/types/home';
 
 export const home: HomeMessages = {
+	brand: 'BuddyBird',
 	notifications: 'Notifications',
 	notificationsUnread: 'Notifications, {{count}} unread',
 	settings: 'Settings',

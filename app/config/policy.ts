@@ -8,7 +8,12 @@ export const DEFAULT_STALE_TIME_MS = 30 * SECOND;
 export const HEARTBEAT_INTERVAL_MS = 10 * SECOND;
 export const SESSION_INFO_HIDE_MS = 10 * SECOND;
 
-export const SESSION_DURATION_PRESETS = [40 * MINUTE, 80 * MINUTE, 4 * HOUR] as const;
+export const SESSION_DURATION_PRESETS = [
+	{ id: 'short', ms: 40 * MINUTE },
+	{ id: 'medium', ms: 80 * MINUTE },
+	{ id: 'long', ms: 4 * HOUR },
+] as const;
+export const CUSTOM_SESSION_DEFAULT_MS = 25 * MINUTE;
 export const MAX_SESSION_MS = 7 * DAY;
 
 export const LEARNING_TICK_MS = SECOND;

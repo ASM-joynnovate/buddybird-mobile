@@ -1,6 +1,7 @@
 import type { HomeMessages } from '@/i18n/types/home';
 
 export const home: HomeMessages = {
+	brand: '버디버드',
 	notifications: '알림',
 	notificationsUnread: '알림, 안 읽은 알림 {{count}}개',
 	settings: '설정',

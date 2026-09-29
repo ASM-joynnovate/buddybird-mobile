@@ -4,6 +4,7 @@ export const radius = {
 	none: 0,
 	xsmall: 4,
 	small: 8,
+	tile: 14,
 	card: 18,
 	control: 16,
 	illustration: 20,
@@ -19,6 +20,8 @@ export const depths = {
 };
 
 export const contentMaxWidth = 480;
+
+export const layoutAnimationMs = 200;
 
 export const font = {
 	regular: 'Pretendard-Regular',

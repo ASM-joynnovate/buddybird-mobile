@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
 
-import type { HomeStackParamList, RootStackParamList, SessionSetup } from '@/types/navigation';
+import type { RootStackParamList, SessionSetup } from '@/types/navigation';
 
 import { useGetDeviceList } from '@/hooks/apis/devices';
 import { getHomeSummaryOptions } from '@/hooks/apis/home';
@@ -14,59 +14,47 @@ import { getRunningSessionOptions, useFinishSession, useStartSession } from '@/h
 import { useGetSettings } from '@/hooks/apis/settings';
 import { useGetWordList } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
-import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDurationWithDays } from '@/i18n/format';
-
 import { queryClient } from '@/lib/query-client';
 
-import { type CompositeNavigationProp, useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
-import { BellIcon, ClockIcon, MessageSquareTextIcon, PlayIcon, SettingsIcon } from 'lucide-react-native';
+import { PlayIcon } from 'lucide-react-native';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { SCREEN_REFRESH_MS } from '@/config';
+import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
+import HomeTopBar from '@/screens/home/components/home-top-bar';
 import NoticePopup from '@/screens/home/components/notice-popup';
 import WordPicker from '@/screens/home/components/word-picker';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useSessionStore } from '@/stores/session';
-import { font } from '@/theme';
+import { font, layoutAnimationMs } from '@/theme';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
 import SleepTimePicker from '@/components/session/sleep-time-picker';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
-import { EmptyState } from '@/components/ui/empty-state';
-import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
-import { ItemPicker } from '@/components/ui/item/picker';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { ui } from '@/components/ui/styles';
 import { Card } from '@/components/ui/surface/card';
 import { TextButton } from '@/components/ui/text-button';
 
-type Navigation = CompositeNavigationProp<
-	NativeStackNavigationProp<HomeStackParamList, 'Home'>,
-	NativeStackNavigationProp<RootStackParamList>
->;
-
-interface Props {
-	player: SoundPlayer;
-}
-
 /**
- * 설정과 알림 버튼, 학습할 단어와 학습 시간과 수면 시간 선택, 학습 시작 버튼을 보여 주고 시작 버튼을 누르면 학습을 시작하는 컴포넌트
- * @param player 단어 시트에서 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * 학습 설정과 학습 시작 컴포넌트
  */
-const HomeContent = ({ player }: Props) => {
+const HomeContent = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<Navigation>();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const focused = useIsFocused();
 
 	const [requestedSetup, setRequestedSetup] = useState<SessionSetup | null>(null);
@@ -82,8 +70,6 @@ const HomeContent = ({ player }: Props) => {
 
 	const startSession = useStartSession();
 	const finishSession = useFinishSession();
-
-	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
 
@@ -103,12 +89,19 @@ const HomeContent = ({ player }: Props) => {
 	const unreadCount = homeSummaryData.unread_notification_count;
 
 	const wordsWithRecordings = wordListData.filter((word) => word.recordings.length > 0);
-	const selectedWord = wordsWithRecordings.find((word) => word.id === selectedWordId) ?? null;
+	const selectedWord =
+		wordsWithRecordings.find((word) => word.id === selectedWordId) ?? wordsWithRecordings[0] ?? null;
+	const untilEnd = duration.ms === null;
+	const durationInvalid = duration.ms === 0;
 	const sleep = editedSleep ?? settingsData.sleep;
 	const sleepChanged =
+		untilEnd &&
 		editedSleep !== null &&
 		(editedSleep.sleep_at !== settingsData.sleep.sleep_at || editedSleep.wake_at !== settingsData.sleep.wake_at);
-	const sessionSetup = selectedWord ? { wordId: selectedWord.id, duration, sleep, sleepChanged } : null;
+	const sessionSetup =
+		selectedWord && !durationInvalid
+			? { wordId: selectedWord.id, duration, sleep: untilEnd ? sleep : null, sleepChanged }
+			: null;
 
 	const starting = startSession.isPending || finishSession.isPending;
 	const startFailed = requestedSetup !== null && (startSession.isError || finishSession.isError);
@@ -160,8 +153,6 @@ const HomeContent = ({ player }: Props) => {
 			return;
 		}
 
-		player.stop();
-
 		void microphonePermission.run(() => requestStart(sessionSetup));
 	};
 
@@ -212,68 +203,24 @@ const HomeContent = ({ player }: Props) => {
 		finishSession.reset();
 	};
 
-	/** 녹음이 있는 단어 목록이나 단어가 없을 때 단어 추가 안내 */
-	const renderWordSheet = (close: () => void) => {
-		/** 단어 추가 화면 열기 */
-		const handleAddWord = () => {
-			close();
-
-			navigation.navigate('Main', {
-				screen: 'WordsTab',
-				params: { screen: 'WordEditor' },
-			});
-		};
-
-		/** 단어 선택 */
-		const handleSelectWord = (id: string) => {
-			setSelectedWordId(id);
-
-			close();
-		};
-
-		if (wordsWithRecordings.length === 0) {
-			return (
-				<EmptyState
-					message={t('session.start.empty')}
-					action={{ label: t('session.start.addWord'), onPress: handleAddWord }}
-				/>
-			);
-		}
-
-		return (
-			<WordPicker
-				words={wordsWithRecordings}
-				selectedId={selectedWord?.id ?? null}
-				player={player}
-				onSelect={handleSelectWord}
-			/>
-		);
-	};
-
 	return (
 		<>
-			{/*설정과 알림 버튼*/}
-			<View style={styles.topRow}>
-				<IconButton
-					icon={SettingsIcon}
-					label={t('home.settings')}
-					onPress={() => navigation.navigate('Settings')}
-				/>
-				<IconButton
-					icon={BellIcon}
-					label={
-						unreadCount > 0
-							? t('home.notificationsUnread', { count: unreadCount })
-							: t('home.notifications')
-					}
-					onPress={() => navigation.navigate('Notifications')}
-				/>
-			</View>
+			{/*로고 줄*/}
+			<HomeTopBar unreadCount={unreadCount} />
 
 			{/*학습 설정*/}
-			<View style={styles.setupContainer}>
+			<ScrollView
+				alwaysBounceVertical={false}
+				showsVerticalScrollIndicator={false}
+				style={styles.body}
+				contentContainerStyle={styles.content}
+			>
+				{/*학습 제목*/}
+				<ScreenHeader large title={t('session.start.title')} />
+
+				{/*다른 기기 학습*/}
 				{runningSession && runningElsewhere && (
-					<Card contentStyle={styles.elsewhereCard}>
+					<Card style={styles.elsewhereCardContainer} contentStyle={styles.elsewhereCard}>
 						<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
 						<TextButton
 							label={t('session.start.endElsewhere')}
@@ -284,42 +231,62 @@ const HomeContent = ({ player }: Props) => {
 					</Card>
 				)}
 
-				<ItemGroup>
-					<ItemPicker
-						item={{
-							first: true,
-							icon: MessageSquareTextIcon,
-							label: t('session.start.word'),
-							value: selectedWord?.name ?? t('session.start.choose'),
-						}}
-						sheet={{ title: t('session.start.word'), listLayout: true }}
-					>
-						{renderWordSheet}
-					</ItemPicker>
-					<ItemPicker
-						item={{
-							icon: ClockIcon,
-							label: t('session.start.duration'),
-							value:
-								duration.ms === null
-									? t('session.start.untilEnd')
-									: formatDurationWithDays(duration.ms, locale),
-						}}
-						sheet={{ title: t('session.start.duration') }}
-					>
-						{() => <DurationPicker value={duration} onChange={setDuration} />}
-					</ItemPicker>
-					<SleepTimePicker value={sleep} onChange={setEditedSleep} />
-				</ItemGroup>
-			</View>
+				{/*단어 타일*/}
+				<Copy accessibilityRole="header" style={ui.sectionTitle}>
+					{t('session.start.word')}
+				</Copy>
+				<WordPicker
+					words={wordsWithRecordings}
+					selectedId={selectedWord?.id ?? null}
+					onSelect={setSelectedWordId}
+				/>
+				{!selectedWord && <Copy style={ui.subtitle}>{t('session.start.empty')}</Copy>}
 
-			{/*시작 버튼*/}
+				{/*학습 시간과 합계*/}
+				<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.sectionContainer]}>
+					{t('session.start.duration')}
+				</Copy>
+				<DurationPicker value={duration} onChange={setDuration} />
+				{!durationInvalid && (
+					<Animated.View
+						entering={FadeIn.duration(layoutAnimationMs)}
+						exiting={FadeOut.duration(layoutAnimationMs)}
+						layout={LinearTransition.duration(layoutAnimationMs)}
+					>
+						<DurationBreakdown duration={duration} />
+					</Animated.View>
+				)}
+
+				{/*수면 시간*/}
+				{untilEnd && (
+					<Animated.View
+						entering={FadeIn.duration(layoutAnimationMs)}
+						exiting={FadeOut.duration(layoutAnimationMs)}
+						layout={LinearTransition.duration(layoutAnimationMs)}
+						style={styles.sleepContainer}
+					>
+						<ItemGroup>
+							<SleepTimePicker first value={sleep} onChange={setEditedSleep} />
+						</ItemGroup>
+					</Animated.View>
+				)}
+
+				{/*학습 시간 오류*/}
+				<Animated.View layout={LinearTransition.duration(layoutAnimationMs)}>
+					<InlineError message={durationInvalid ? t('session.start.invalid') : null} />
+				</Animated.View>
+			</ScrollView>
+
+			{/*학습 시작 버튼*/}
 			<Button
-				label={t('common.start')}
+				label={t('session.start.startButton')}
+				accessibilityLabel={sessionSetup ? t('session.start.startButton') : t('session.start.startUnavailable')}
 				icon={PlayIcon}
+				depth="xhigh"
 				loading={starting}
 				disabled={!sessionSetup}
 				onPress={handleStart}
+				style={styles.startButton}
 			/>
 
 			{/*학습 시작 다이얼로그*/}
@@ -355,10 +322,13 @@ const HomeContent = ({ player }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	topRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 4 },
-	setupContainer: { flex: 1, minHeight: 0, gap: 12 },
+	body: { flex: 1 },
+	content: { paddingTop: 8, paddingBottom: 24 },
+	elsewhereCardContainer: { marginBottom: 20 },
 	elsewhereCard: { gap: 8, padding: 16 },
 	elsewhereText: { fontFamily: font.extraBold, fontSize: 15 },
+	sleepContainer: { marginTop: 16 },
+	startButton: { marginTop: 12 },
 });
 
 export default HomeContent;

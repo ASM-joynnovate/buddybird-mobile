@@ -81,6 +81,17 @@ export const currentSpan = (start: number, now: number, sleep: SleepSettings | n
 	return found ?? { phase: 'learning', start: now, end: now + PHASE_CYCLE[0].durationMs };
 };
 
+/** 단계별 합계 시간 */
+export const phaseDurations = (durationMs: number) => {
+	const durations: Record<Phase, number> = { learning: 0, rest: 0, stress_care: 0, sleeping: 0 };
+
+	for (const span of _phaseSpans(0, durationMs, null)) {
+		durations[span.phase] += span.end - span.start;
+	}
+
+	return durations;
+};
+
 /** 지금 학습 단계, 남은 시간, 진행 비율 */
 export const runStatus = (startedAt: string, endsAt: number | null, sleep: SleepSettings | null, now: number) => {
 	const started = dayjs(startedAt).valueOf();
