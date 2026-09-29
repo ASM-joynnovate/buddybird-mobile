@@ -44,10 +44,14 @@ export const session: SessionMessages = {
 	},
 	run: {
 		reveal: '화면을 누르면 세션 정보가 보여요',
-		elapsed: '세션 경과',
-		keepOpen: '학습이 끝날 때까지 앱을 켜 두고 화면을 끄지 마세요',
+		elapsed: '경과',
+		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
+		dimAfter: '배터리 및 화면 보호를 위해 {{seconds}}초 후 자동으로 어두워집니다.',
 		engineError: '소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.',
-		remaining: '{{time}} 남음',
+		remaining: '종료까지',
+		battery: '배터리',
+		batteryLevel: '{{percent}}%',
+		charging: '충전 중',
 	},
 	end: {
 		title: '세션 종료',

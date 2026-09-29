@@ -1,48 +1,49 @@
+import type { ReactNode } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import type { Phase } from '@/types/apis/sessions';
 
 import Svg, { Path } from 'react-native-svg';
 
-import { font } from '@/theme';
 import { sessionColors, sessionPhaseColors } from '@/theme/session-colors';
-import { joinLabel } from '@/utils/a11y';
-
-import { Copy } from '@/components/ui/copy';
 
 const STROKE_WIDTH = 16;
 
+type ArcVariant = 'half' | 'full';
+
 interface Props {
 	width: number;
+	variant: ArcVariant;
 	phase: Phase;
 	progressRatio: number | null;
-	title: string;
-	detail: string | null;
+	children: ReactNode;
 }
 
 /**
- * 진행한 만큼 채워지는 반원과 그 안의 단계 이름, 남은 시간을 보여 주는 컴포넌트
- * @param width 반원의 가로 폭
+ * 진행한 만큼 채워지는 반원 또는 원 컴포넌트
+ * @param width 반원 또는 원의 가로 폭
+ * @param variant 반원이면 half, 원이면 full
  * @param phase 지금 단계, 채우는 색을 정함
  * @param progressRatio 학습 시간 가운데 지난 비율, 종료 시각이 없으면 null
- * @param title 단계 이름
- * @param detail 남은 시간 문구, 종료 시각이 없으면 null
+ * @param children 반원 또는 원 안에 보일 내용
  */
-const SessionProgressArc = ({ width, phase, progressRatio, title, detail }: Props) => {
+const SessionProgressArc = ({ width, variant, phase, progressRatio, children }: Props) => {
+	const isFull = variant === 'full';
 	const radius = (width - STROKE_WIDTH) / 2;
-	const baseline = radius + STROKE_WIDTH / 2;
-	const arc = `M ${STROKE_WIDTH / 2} ${baseline} A ${radius} ${radius} 0 0 1 ${width - STROKE_WIDTH / 2} ${baseline}`;
-	const arcLength = Math.PI * radius;
+	const center = width / 2;
+	const edge = STROKE_WIDTH / 2;
+	const height = isFull ? width : center + edge;
+	const arc = isFull
+		? `M ${center} ${edge} A ${radius} ${radius} 0 0 1 ${center} ${width - edge} A ${radius} ${radius} 0 0 1 ${center} ${edge}`
+		: `M ${edge} ${center} A ${radius} ${radius} 0 0 1 ${width - edge} ${center}`;
+	const arcLength = (isFull ? 2 : 1) * Math.PI * radius;
 	const filledLength = Math.max(0, Math.min(1, progressRatio ?? 0)) * arcLength;
 
 	return (
-		<View
-			style={[styles.container, { width, height: baseline + STROKE_WIDTH / 2 }]}
-			accessible
-			accessibilityLabel={joinLabel(title, detail)}
-		>
-			{/*진행한 만큼 채워지는 반원*/}
-			<Svg width={width} height={baseline + STROKE_WIDTH / 2} style={styles.svg}>
+		<View style={[styles.container, isFull && styles.containerFull, { width, height }]} accessible>
+			{/*진행한 만큼 채워지는 반원 또는 원*/}
+			<Svg width={width} height={height} style={styles.svg}>
 				<Path
 					d={arc}
 					fill="none"
@@ -62,26 +63,15 @@ const SessionProgressArc = ({ width, phase, progressRatio, title, detail }: Prop
 				)}
 			</Svg>
 
-			{/*단계 이름과 남은 시간*/}
-			<View style={styles.phaseContainer}>
-				<Copy style={styles.title}>{title}</Copy>
-				{detail !== null && <Copy style={styles.detail}>{detail}</Copy>}
-			</View>
+			{children}
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { alignItems: 'center', justifyContent: 'flex-end' },
+	container: { alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 12 },
+	containerFull: { justifyContent: 'center', paddingBottom: 0 },
 	svg: { position: 'absolute', top: 0, left: 0 },
-	phaseContainer: { alignItems: 'center', gap: 4, paddingBottom: 12 },
-	title: { fontFamily: font.black, fontSize: 20, color: sessionColors.text },
-	detail: {
-		fontFamily: font.black,
-		fontSize: 26,
-		color: sessionColors.text,
-		fontVariant: ['tabular-nums'],
-	},
 });
 
 export default SessionProgressArc;

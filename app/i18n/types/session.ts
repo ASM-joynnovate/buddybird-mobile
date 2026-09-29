@@ -44,8 +44,12 @@ export type SessionMessages = {
 		reveal: string;
 		elapsed: string;
 		keepOpen: string;
+		dimAfter: string;
 		engineError: string;
 		remaining: string;
+		battery: string;
+		batteryLevel: string;
+		charging: string;
 	};
 	end: {
 		title: string;

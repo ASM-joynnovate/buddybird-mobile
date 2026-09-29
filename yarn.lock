@@ -4587,6 +4587,7 @@ __metadata:
     expo-application: "npm:~55.0.8"
     expo-asset: "npm:~55.0.7"
     expo-audio: "npm:~55.0.8"
+    expo-battery: "npm:~55.0.17"
     expo-build-properties: "npm:~55.0.9"
     expo-constants: "npm:~55.0.9"
     expo-crypto: "npm:~55.0.8"
@@ -5775,6 +5776,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/45b5d226bed41362efac4cb896942722c4b718939b4082a56d761baf1e03806d9d218acb73b5f36dbbd9dcf99093fd5ef45241e2853119417ec3cae039704301
+  languageName: node
+  linkType: hard
+
+"expo-battery@npm:~55.0.17":
+  version: 55.0.17
+  resolution: "expo-battery@npm:55.0.17"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10c0/bdb35394b024d609122d28083c5b10a29f69c09e00b92895bc6705e48ae36e4aeceb55476141bcaa8ff9701c6323fe5320ebc8de275c8962a619e86f3dc68e5e
   languageName: node
   linkType: hard
 

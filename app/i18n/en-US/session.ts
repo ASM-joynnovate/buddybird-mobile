@@ -44,10 +44,14 @@ export const session: SessionMessages = {
 	},
 	run: {
 		reveal: 'Tap the screen to see session info',
-		elapsed: 'Session time',
-		keepOpen: 'Keep the app open and the screen on until learning ends',
+		elapsed: 'Elapsed',
+		keepOpen: 'Keep the app open and the screen on.',
+		dimAfter: 'The screen dims automatically after {{seconds}} seconds to save battery and protect the display.',
 		engineError: "Couldn't play the word. End this session and start again.",
-		remaining: '{{time}} left',
+		remaining: 'Ends in',
+		battery: 'Battery',
+		batteryLevel: '{{percent}}%',
+		charging: 'Charging',
 	},
 	end: {
 		title: 'End session',
