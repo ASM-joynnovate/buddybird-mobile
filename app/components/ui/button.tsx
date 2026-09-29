@@ -66,12 +66,12 @@ export const Button = ({
 			contentStyle={[
 				styles.button,
 				{ borderWidth: variant === 'secondary' ? 2 : 0 },
-				size === 'small' && styles.compact,
+				size === 'small' && styles.buttonSmall,
 			]}
 		>
 			{leadingContent}
 
-			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.compactText]}>
+			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.buttonTextSmall]}>
 				{label}
 			</Copy>
 		</PressableSurface>
@@ -80,7 +80,7 @@ export const Button = ({
 
 const styles = StyleSheet.create({
 	button: {
-		minHeight: 58,
+		minHeight: 64,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -90,17 +90,17 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		fontFamily: font.extraBold,
-		fontSize: 16,
+		fontSize: 20,
 		letterSpacing: 0.32,
 		textTransform: 'uppercase',
 		textAlign: 'center',
 		flexShrink: 1,
 		minWidth: 0,
 	},
-	compact: {
-		minHeight: 42,
+	buttonSmall: {
+		minHeight: 52,
 		paddingHorizontal: 14,
 		paddingVertical: 8,
 	},
-	compactText: { fontSize: 16 },
+	buttonTextSmall: { fontSize: 16 },
 });

@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
 	divider: { width: 2, height: '50%', alignSelf: 'center', borderRadius: 1, backgroundColor: sessionColors.edge },
 	phaseEndContainer: { flex: 1, justifyContent: 'flex-end', paddingBottom: 16 },
 	bottomContainer: { alignSelf: 'center', gap: 16, paddingBottom: 16 },
-	endFace: { minHeight: 58, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
-	endText: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.text },
+	endFace: { minHeight: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+	endText: { fontFamily: font.extraBold, fontSize: 20, color: sessionColors.text },
 });
 
 export default RunInfo;
