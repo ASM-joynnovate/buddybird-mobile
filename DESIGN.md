@@ -74,7 +74,7 @@ typography:
     lineHeight: "16px"
   button:
     fontFamily: "Pretendard-ExtraBold, Pretendard, sans-serif"
-    fontSize: "16px"
+    fontSize: "20px"
     fontWeight: 800
     letterSpacing: "0.32px"
   timer:
@@ -107,35 +107,35 @@ components:
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "10px 22px"
-    height: "58px"
-  button-primary-compact:
+    height: "64px"
+  button-primary-small:
     backgroundColor: "{colors.sunrise-orange}"
     textColor: "{colors.on-accent}"
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "8px 14px"
-    height: "42px"
+    height: "52px"
   button-secondary:
     backgroundColor: "{colors.paper-white}"
     textColor: "{colors.ink}"
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "10px 22px"
-    height: "58px"
+    height: "64px"
   button-blue:
     backgroundColor: "{colors.sky-blue}"
     textColor: "{colors.paper-white}"
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "10px 22px"
-    height: "58px"
+    height: "64px"
   button-disabled:
     backgroundColor: "{colors.disabled-surface}"
     textColor: "{colors.disabled-gray}"
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "10px 22px"
-    height: "58px"
+    height: "64px"
   text-button:
     textColor: "{colors.orange-edge}"
     rounded: "{rounded.control}"
@@ -221,7 +221,7 @@ components:
     textColor: "{colors.night-text}"
     rounded: "{rounded.control}"
     padding: "0 18px"
-    height: "58px"
+    height: "64px"
 ---
 
 # Design System: BuddyBird
@@ -241,7 +241,7 @@ components:
 서체는 한글과 영문 모두 Pretendard이며 굵기가 Bold 아래로 내려가지 않는다.
 
 밀도는 한 손 조작을 전제로 넉넉하다.
-버튼 높이 58px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.
+버튼 높이 64px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.
 주인공은 사용자의 앵무새다.
 마스코트 버디는 로그인, 권한 안내, 세션 요약 인사처럼 앱이 사용자에게 말을 거는 순간에만 나온다.
 
@@ -345,7 +345,7 @@ Tag에서는 각각 오렌지, 블루, 회색 톤이고 새장 앞 화면에서�
 - **Body** (`{typography.body}`): 모든 본문 텍스트의 기본값. Copy 컴포넌트가 이 값을 가진다
 - **Label** (`{typography.label}`): 입력 필드 라벨은 Muted Gray, 말풍선 본문과 목록 행 제목과 빈 상태 문구는 Ink, 22px 행간
 - **Caption** (`{typography.caption}`): 목록 행의 caption, 통계 라벨, 탭 라벨은 11px. Tag, 부재중 띠의 시각과 범례, 새장 앞 화면 라벨은 13px, CountBadge와 단어 카드 태그는 12.5px, 칩은 13.5px
-- **Button** (`{typography.button}`): 버튼 라벨. 영문은 대문자, 0.32px 자간. TextButton은 15px
+- **Button** (`{typography.button}`): 버튼 라벨. 영문은 대문자, 0.32px 자간. `size="small"` 버튼은 16px, TextButton은 15px
 - **Timer** (`{typography.timer}`): 세션 경과 시간. 고정폭 숫자. 소리 행의 시각은 14px 고정폭
 - **Wordmark** (`{typography.wordmark}`): 스플래시의 BuddyBird 워드마크에만 사용
 
@@ -381,7 +381,7 @@ Screen의 스크롤은 `alwaysBounceVertical={false}`라서 내용이 화면보�
 세션 진행 화면은 좌우 24px 여백에 왼쪽 위 안내 문구, 오른쪽 위 배터리 잔량을 둔다.
 세로 방향에서는 화면 가운데에 구간 이름, 아래에 지평선 링과 링 폭의 종료 버튼을 둔다. 링 폭은 좌우 여백 안쪽 폭이고 최대 460px이다.
 가로 방향에서는 화면을 좌우 반으로 나눈다. 왼쪽 가운데에 지름 240px 원형 링, 가운데에 높이의 절반인 2px 구분선, 오른쪽 가운데에 구간 이름, 오른쪽 아래에 폭을 채운 종료 버튼을 둔다.
-종료 버튼은 높이 58px, 깊이 6이다.
+종료 버튼은 높이 64px, 깊이 6이다.
 
 ### Named Rules
 **The Right Thumb Rule.** 폭을 채우지 않는 버튼과 아이콘 버튼은 행의 오른쪽 끝에 둔다. 오른손 엄지가 닿는 자리다. 뒤로 버튼만 왼쪽에 남고, 폭을 채우는 주 버튼은 아래에 둔다.
@@ -397,8 +397,8 @@ Reduce Motion이 켜져 있으면 면은 움직이지 않는다.
 ### Depth vocabulary
 - **0**: 평평한 아이콘 버튼, TextButton, 목록 행, 소리 행, 부재중 띠 표식, 소셜 로그인 버튼, 비활성 버튼
 - **2**: 카드, 칩, 단어 카드, 앵무새 카드, 홈 상태 줄, 응급 카드
-- **4**: 기본 Surface, 주 버튼, 컴팩트 버튼, 선택 여부와 관계없이 ChoiceCard
-- **6**: 세션 진행 화면의 종료 버튼
+- **4**: 기본 Surface, 주 버튼, `size="small"` 버튼, 선택 여부와 관계없이 ChoiceCard
+- **6**: 세션 진행 화면의 종료 버튼, 다이얼로그 안의 버튼
 - **8**: 홈 화면의 학습 시작 버튼, 선택된 탭
 
 Tag, CountBadge, 일러스트 자리, 오프라인 배너는 엣지 판이 없다.
@@ -438,8 +438,8 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 
 ### Buttons
 장난감 버튼처럼 두껍고, 누르면 내려앉는다.
-- **Shape:** 컨트롤 코너 (`{rounded.control}`), 최소 높이 58px, 컴팩트 42px
-- **Primary:** `{components.button-primary}`. 오렌지 면과 Orange Edge 엣지 4, 흰 글자. 홈 화면의 학습 시작 버튼만 엣지 8이다. 아이콘은 26px, 컴팩트 20px
+- **Shape:** 컨트롤 코너 (`{rounded.control}`), 최소 높이는 `size="medium"` 64px, `size="small"` 52px
+- **Primary:** `{components.button-primary}`. 오렌지 면과 Orange Edge 엣지 4, 흰 글자. 다이얼로그 안의 버튼은 엣지 6, 홈 화면의 학습 시작 버튼은 엣지 8이다. 아이콘은 `size="medium"` 26px, `size="small"` 20px
 - **Secondary:** `{components.button-secondary}`. 흰 면에 Hairline Gray 2px 테두리와 엣지, Ink 글자
 - **Blue:** `{components.button-blue}`. 오렌지 버튼 옆의 보조 행동
 - **Disabled / Loading:** `{components.button-disabled}`. 엣지 0, Disabled Surface 면, Disabled Gray 글자. 로딩 중에는 아이콘 자리에 ActivityIndicator
@@ -500,23 +500,23 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 
 ### Screen states
 - **EmptyState:** 가운데 정렬, 선택적 일러스트, Label 16px Ink 문구, 폭을 채우는 주 버튼
-- **ScreenError:** 32px Muted Gray 경고 아이콘, 문구, 오른쪽 끝의 컴팩트 secondary 다시 시도 버튼. polite live region
+- **ScreenError:** 32px Muted Gray 경고 아이콘, 문구, 오른쪽 끝의 `size="small"` secondary 다시 시도 버튼. polite live region
 - **Skeleton:** Cloud Gray 18px 코너 막대를 10px 간격으로 쌓는다. 움직이지 않는다
 - **Preparing:** Cloud Gray 카드 안의 14px Muted Gray 준비 중 문구
 - **OfflineBanner:** `{components.offline-banner}`. 연결이 끊기면 위에 떠서 흰 18px 아이콘과 13.5px 문구를 보인다. 터치를 막지 않는다
 
 ### Dialog
 - `{components.dialog}`. Scrim 위에 fade로 뜨고 가운데 정렬, 18px 코너, 제목은 Title 18px
-- 본문은 스크롤되며 푸터에 버튼이 온다
-- **ConfirmDialog:** 취소는 secondary, 확인은 primary 컴팩트 버튼이다. 처리 중에는 닫히지 않고 확인 버튼이 로딩을 보이며 실패하면 인라인 오류가 붙는다
+- 본문은 스크롤되며 푸터에 깊이 6인 버튼이 온다
+- **ConfirmDialog:** 취소는 secondary, 확인은 primary이고 두 버튼 모두 `size="small"`이다. 처리 중에는 닫히지 않고 확인 버튼이 로딩을 보이며 실패하면 인라인 오류가 붙는다
 - **PermissionDialog:** 88px 마스코트와 권한이 필요한 이유를 가운데 보이고 닫기와 설정 열기 버튼을 둔다
 
 ### Mascot
 버디는 헤드폰을 쓴 붉은 앵무새다.
-로그인 150px, 권한 안내 다이얼로그 88px, 세션 요약 인사 64px에서 1000ms 주기로 높이의 5%를 오르내리며 좌우 2도 기운다.
+로그인 150px, 권한 안내 다이얼로그와 학습 종료 다이얼로그 88px, 세션 요약 인사 64px에서 1000ms 주기로 높이의 5%를 오르내리며 좌우 2도 기운다.
 세션 요약에서는 왼쪽 꼬리 말풍선이 옆에 붙는다.
 홈에서는 상단 바의 34px 정지 이미지로만 나오고 본문은 앵무새 카드가 차지한다.
-세션 진행 화면에는 나오지 않는다.
+세션 진행 화면에서는 학습 종료 다이얼로그에만 나온다.
 Reduce Motion에서는 정지한다.
 
 ### Horizon ring
