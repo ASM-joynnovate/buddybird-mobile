@@ -38,9 +38,9 @@ const SleepTimePicker = ({ value, first, onChange }: Props) => {
 					: undefined,
 				disabled: !value,
 			}}
-			sheet={{ title: t('session.sleep.label') }}
+			sheet={{ title: t('session.sleep.label'), description: t('session.sleep.description') }}
 		>
-			{() => (value ? <SleepTimeEditor value={value} onChange={onChange} /> : null)}
+			{(close) => (value ? <SleepTimeEditor value={value} onChange={onChange} onClose={close} /> : null)}
 		</ItemPicker>
 	);
 };

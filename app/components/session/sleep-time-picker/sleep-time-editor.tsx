@@ -6,55 +6,81 @@ import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useTranslation } from 'react-i18next';
 
+import { ArrowRightIcon } from 'lucide-react-native';
+
+import { colors } from '@/theme';
+
 import TimePicker from '@/components/time-picker';
-import { Chip } from '@/components/ui/chip';
+import { Button } from '@/components/ui/button';
+import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-type SleepTimeField = keyof SleepSettings;
-
-const SLEEP_TIME_FIELDS: readonly SleepTimeField[] = ['sleep_at', 'wake_at'];
+const TIME_PICKER_MAX_WIDTH = 160;
+const ARROW_SIZE = 20;
+const FIELD_GAP = 12;
 
 interface Props {
 	value: SleepSettings;
 	onChange: (value: SleepSettings) => void;
+	onClose: () => void;
 }
 
 /**
  * 수면 시간 편집 컴포넌트
  * @param value 수면 시간
- * @param onChange 수면 시간 변경 시 실행할 함수
+ * @param onChange 저장 버튼을 눌렀을 때 실행할 함수
+ * @param onClose bottom sheet를 닫는 함수
  */
-const SleepTimeEditor = ({ value, onChange }: Props) => {
+const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 	const { t } = useTranslation();
 
-	const [selectedField, setSelectedField] = useState<SleepTimeField>('sleep_at');
+	const [draft, setDraft] = useState(value);
+
+	const handleSave = () => {
+		onChange(draft);
+		onClose();
+	};
 
 	return (
 		<View style={styles.container}>
-			{/*편집할 시각 선택 버튼*/}
-			<View style={ui.controlsRow}>
-				{SLEEP_TIME_FIELDS.map((field) => (
-					<Chip
-						key={field}
-						label={t(`session.sleep.${field}`)}
-						selected={selectedField === field}
-						onPress={() => setSelectedField(field)}
-					/>
-				))}
+			<View style={styles.labelsRow}>
+				<Copy style={[ui.label, styles.label]}>{t('session.sleep.sleep_at')}</Copy>
+				<Copy style={[ui.label, styles.label]}>{t('session.sleep.wake_at')}</Copy>
 			</View>
 
-			<TimePicker
-				key={selectedField}
-				value={value[selectedField]}
-				label={t(`session.sleep.${selectedField}`)}
-				onChange={(time) => onChange({ ...value, [selectedField]: time })}
-			/>
+			<View style={styles.pickersRow}>
+				<View style={styles.picker}>
+					<TimePicker
+						value={draft.sleep_at}
+						label={t('session.sleep.sleep_at')}
+						onChange={(time) => setDraft((current) => ({ ...current, sleep_at: time }))}
+					/>
+				</View>
+				<ArrowRightIcon size={ARROW_SIZE} color={colors.muted} />
+				<View style={styles.picker}>
+					<TimePicker
+						value={draft.wake_at}
+						label={t('session.sleep.wake_at')}
+						onChange={(time) => setDraft((current) => ({ ...current, wake_at: time }))}
+					/>
+				</View>
+			</View>
+
+			<View style={[ui.actionsRow, styles.actions]}>
+				<Button label={t('common.cancel')} variant="secondary" onPress={onClose} style={ui.action} />
+				<Button label={t('common.save')} onPress={handleSave} style={ui.action} />
+			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { gap: 12 },
+	container: { paddingTop: 16 },
+	labelsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: ARROW_SIZE + FIELD_GAP * 2 },
+	label: { flex: 1, maxWidth: TIME_PICKER_MAX_WIDTH, textAlign: 'center' },
+	pickersRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: FIELD_GAP },
+	picker: { flex: 1, maxWidth: TIME_PICKER_MAX_WIDTH },
+	actions: { marginTop: 24 },
 });
 
 export default SleepTimeEditor;

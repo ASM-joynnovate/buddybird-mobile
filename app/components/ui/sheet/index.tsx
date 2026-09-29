@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth } from '@/theme';
 
+import { Copy } from '@/components/ui/copy';
 import { SheetBackdrop } from '@/components/ui/sheet/backdrop';
 import { Title } from '@/components/ui/title';
 
@@ -16,13 +17,14 @@ const LIST_SNAP_POINTS = ['70%'];
 interface Props {
 	visible: boolean;
 	title: string;
+	description?: string;
 	onClose: () => void;
 	listLayout?: boolean;
 	onOpened?: () => void;
 	children: ReactNode;
 }
 
-export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, children }: Props) => {
+export const Sheet = ({ visible, title, description, onClose, listLayout = false, onOpened, children }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	const sheetRef = useRef<BottomSheetModal>(null);
@@ -49,6 +51,13 @@ export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, c
 		}
 	};
 
+	const header = (
+		<View style={styles.header}>
+			<Title style={styles.title}>{title}</Title>
+			{!!description && <Copy style={styles.description}>{description}</Copy>}
+		</View>
+	);
+
 	return (
 		<BottomSheetModal
 			ref={sheetRef}
@@ -64,7 +73,7 @@ export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, c
 		>
 			{listLayout ? (
 				<View accessibilityViewIsModal style={styles.listContainer}>
-					<Title style={[styles.title, styles.listTitle]}>{title}</Title>
+					<View style={styles.listHeader}>{header}</View>
 					{children}
 				</View>
 			) : (
@@ -72,7 +81,7 @@ export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, c
 					accessibilityViewIsModal
 					style={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
 				>
-					<Title style={styles.title}>{title}</Title>
+					{header}
 					{children}
 				</BottomSheetView>
 			)}
@@ -90,7 +99,9 @@ const styles = StyleSheet.create({
 	},
 	handle: { width: 40, height: 5, backgroundColor: colors.border },
 	contentContainer: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
+	header: { gap: 6 },
 	title: { fontSize: 18, lineHeight: 24 },
+	description: { color: colors.muted, lineHeight: 21 },
 	listContainer: { flex: 1 },
-	listTitle: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
+	listHeader: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
 });

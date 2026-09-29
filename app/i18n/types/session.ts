@@ -10,6 +10,7 @@ export type SessionMessages = {
 	};
 	sleep: {
 		label: string;
+		description: string;
 		range: string;
 		sleep_at: string;
 		wake_at: string;

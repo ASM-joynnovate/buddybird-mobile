@@ -12,6 +12,7 @@ export const session: SessionMessages = {
 	},
 	sleep: {
 		label: 'Sleep time',
+		description: 'Sounds pause during these hours so your parrot can rest.',
 		range: '{{sleep}} ~ {{wake}}',
 		sleep_at: 'Bedtime',
 		wake_at: 'Wake time',

@@ -12,6 +12,7 @@ export const session: SessionMessages = {
 	},
 	sleep: {
 		label: '수면 시간',
+		description: '앵무새가 쉴 수 있게 이 시간에는 소리를 멈춰요.',
 		range: '{{sleep}} ~ {{wake}}',
 		sleep_at: '취침 시각',
 		wake_at: '기상 시각',
