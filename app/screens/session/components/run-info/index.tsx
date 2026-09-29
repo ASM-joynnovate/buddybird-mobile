@@ -68,7 +68,7 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 	);
 	const endButton = (
 		<PressableSurface
-			depth="low"
+			depth="high"
 			cornerRadius="control"
 			edgeColor={sessionColors.edge}
 			faceColor={sessionColors.background}
