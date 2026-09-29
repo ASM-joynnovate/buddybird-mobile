@@ -221,7 +221,7 @@ components:
     textColor: "{colors.night-text}"
     rounded: "{rounded.control}"
     padding: "0 18px"
-    height: "44px"
+    height: "58px"
 ---
 
 # Design System: BuddyBird
@@ -319,7 +319,7 @@ components:
 ### Phase colors
 세션 구간은 어디서나 같은 색을 가진다.
 학습은 Sunrise Orange, 휴식과 스트레스 케어는 Sky Blue, 수면은 Disabled Gray다.
-Tag에서는 각각 오렌지, 블루, 회색 톤이고 밤 화면에서는 Night 진행 호 색이다.
+Tag에서는 각각 오렌지, 블루, 회색 톤이고 새장 앞 화면에서는 Night 진행 호 색이다.
 
 ### Named Rules
 **The Red Is the Bird Rule.** Parrot Red는 마스코트와 같은 존재다. 버튼, 탭, 카드 강조에 쓰지 않는다. 새 용도를 추가하려면 정체성 순간인지 먼저 묻는다.
@@ -344,12 +344,12 @@ Tag에서는 각각 오렌지, 블루, 회색 톤이고 밤 화면에서는 Nigh
 - **Title** (`{typography.title}`): 섹션 제목, GroupedList 제목, 다이얼로그 제목, 단어 카드 이름
 - **Body** (`{typography.body}`): 모든 본문 텍스트의 기본값. Copy 컴포넌트가 이 값을 가진다
 - **Label** (`{typography.label}`): 입력 필드 라벨은 Muted Gray, 말풍선 본문과 목록 행 제목과 빈 상태 문구는 Ink, 22px 행간
-- **Caption** (`{typography.caption}`): 목록 행의 caption, 통계 라벨, 탭 라벨은 11px. Tag, 부재중 띠의 시각과 범례, 밤 화면 라벨은 13px, CountBadge와 단어 카드 태그는 12.5px, 칩은 13.5px
+- **Caption** (`{typography.caption}`): 목록 행의 caption, 통계 라벨, 탭 라벨은 11px. Tag, 부재중 띠의 시각과 범례, 새장 앞 화면 라벨은 13px, CountBadge와 단어 카드 태그는 12.5px, 칩은 13.5px
 - **Button** (`{typography.button}`): 버튼 라벨. 영문은 대문자, 0.32px 자간. TextButton은 15px
 - **Timer** (`{typography.timer}`): 세션 경과 시간. 고정폭 숫자. 소리 행의 시각은 14px 고정폭
 - **Wordmark** (`{typography.wordmark}`): 스플래시의 BuddyBird 워드마크에만 사용
 
-밤 화면의 단어는 36px Black 42px 행간, 지평선 링 안의 구간 이름은 20px Black, 남은 시간은 26px Black 고정폭이다.
+세션 진행 화면의 구간 이름은 34px Black 40px 행간이다. 링 안의 세션 시간은 34px Black 고정폭이고 그 위에 15px ExtraBold 라벨이 붙는다.
 
 앱은 시스템 글꼴 크기 조정을 끄고 있다.
 레이아웃은 고정 크기를 전제로 짜여 있고, 좁은 화면에서는 `adjustsFontSizeToFit`으로 줄인다.
@@ -378,8 +378,10 @@ Screen의 스크롤은 `alwaysBounceVertical={false}`라서 내용이 화면보�
 - 오프라인 배너는 상단 safe area 4px 아래, 좌우 16px 안쪽에 떠 있다
 
 새장 앞 화면과 기기 역할의 세션 요약은 가로 방향이다.
-세션 진행 화면은 좌우 24px 여백에 왼쪽 위 단어와 경과 시간, 오른쪽 위 상태 아이콘, 아래 가운데 지평선 링, 오른쪽 아래 종료 버튼을 둔다.
-링 폭은 화면 폭의 55%이고 최대 460px이다.
+세션 진행 화면은 좌우 24px 여백에 왼쪽 위 안내 문구, 오른쪽 위 배터리 잔량을 둔다.
+세로 방향에서는 화면 가운데에 구간 이름, 아래에 지평선 링과 링 폭의 종료 버튼을 둔다. 링 폭은 좌우 여백 안쪽 폭이고 최대 460px이다.
+가로 방향에서는 화면을 좌우 반으로 나눈다. 왼쪽 가운데에 지름 240px 원형 링, 가운데에 높이의 절반인 2px 구분선, 오른쪽 가운데에 구간 이름, 오른쪽 아래에 폭을 채운 종료 버튼을 둔다.
+종료 버튼은 높이 58px, 깊이 6이다.
 
 ### Named Rules
 **The Right Thumb Rule.** 폭을 채우지 않는 버튼과 아이콘 버튼은 행의 오른쪽 끝에 둔다. 오른손 엄지가 닿는 자리다. 뒤로 버튼만 왼쪽에 남고, 폭을 채우는 주 버튼은 아래에 둔다.
@@ -394,10 +396,10 @@ Reduce Motion이 켜져 있으면 면은 움직이지 않는다.
 
 ### Depth vocabulary
 - **0**: 평평한 아이콘 버튼, TextButton, 목록 행, 소리 행, 부재중 띠 표식, 소셜 로그인 버튼, 비활성 버튼
-- **2**: 카드, 칩, 선택되지 않은 ChoiceCard, 단어 카드, 앵무새 카드, 홈 상태 줄, 응급 카드, 밤 화면 종료 버튼
-- **3**: 선택된 ChoiceCard, 선택된 탭
-- **4**: 기본 Surface, 컴팩트 버튼
-- **7**: 주 버튼
+- **2**: 카드, 칩, 단어 카드, 앵무새 카드, 홈 상태 줄, 응급 카드
+- **4**: 기본 Surface, 주 버튼, 컴팩트 버튼, 선택 여부와 관계없이 ChoiceCard
+- **6**: 세션 진행 화면의 종료 버튼
+- **8**: 홈 화면의 학습 시작 버튼, 선택된 탭
 
 Tag, CountBadge, 일러스트 자리, 오프라인 배너는 엣지 판이 없다.
 누를 수 없는 표시 요소이기 때문이다.
@@ -437,7 +439,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 ### Buttons
 장난감 버튼처럼 두껍고, 누르면 내려앉는다.
 - **Shape:** 컨트롤 코너 (`{rounded.control}`), 최소 높이 58px, 컴팩트 42px
-- **Primary:** `{components.button-primary}`. 오렌지 면과 Orange Edge 엣지 7, 흰 글자. 아이콘은 26px, 컴팩트 20px
+- **Primary:** `{components.button-primary}`. 오렌지 면과 Orange Edge 엣지 4, 흰 글자. 홈 화면의 학습 시작 버튼만 엣지 8이다. 아이콘은 26px, 컴팩트 20px
 - **Secondary:** `{components.button-secondary}`. 흰 면에 Hairline Gray 2px 테두리와 엣지, Ink 글자
 - **Blue:** `{components.button-blue}`. 오렌지 버튼 옆의 보조 행동
 - **Disabled / Loading:** `{components.button-disabled}`. 엣지 0, Disabled Surface 면, Disabled Gray 글자. 로딩 중에는 아이콘 자리에 ActivityIndicator
@@ -470,7 +472,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 - **Shadow Strategy:** 엣지 2. Elevation & Depth 참고
 - **Border:** 2px, 엣지와 같은 색
 - **Internal Padding:** 16px
-- **ChoiceCard:** 단일 선택용 카드. 선택되면 `{components.choice-card-selected}`처럼 Orange Selected 면에 오렌지 엣지 3, 접근성 역할은 radio
+- **ChoiceCard:** 단일 선택용 카드. 선택되면 `{components.choice-card-selected}`처럼 Orange Selected 면에 오렌지 엣지 4, 접근성 역할은 radio. 선택되지 않아도 엣지 4다
 - **Word card:** 최소 높이 84px, 이름 18px Black 아래 녹음 수 점 다섯 개와 태그가 온다. 재생 버튼은 카드 오른쪽 끝에 붙는다
 - **Parrot card:** 홈의 주인공이다. 남은 세로 공간을 모두 차지하며 사진이 카드를 채우고 아래에 이름 22px과 종, 나이가 온다. 사진이 없으면 Cloud Gray 자리에 40px 사진 아이콘과 사진 추가 문구를 보인다
 
@@ -491,7 +493,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 
 ### Navigation
 - **Tab bar:** 흰 바탕, 상단 2px Hairline Gray 선. 각 탭이 정사각형 셀 안에 아이콘 25px과 11px ExtraBold 라벨을 세로로 쌓는다
-- **Selected:** `{components.tab-selected}`. 오렌지 면에 엣지 3, 흰 아이콘과 글자
+- **Selected:** `{components.tab-selected}`. 오렌지 면에 엣지 8, 흰 아이콘과 글자
 - **Unselected:** plain 톤에 엣지 0, Muted Gray
 - **Icons:** iOS는 SF Symbols, Android는 Material Icons를 같은 이름표로 매핑한다. 기본 24px
 - **ScreenHeader:** Layout의 헤더 배치를 따른다. 도움말이 열리면 도움말 아이콘이 오렌지로 바뀐다
