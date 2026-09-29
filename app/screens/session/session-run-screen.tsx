@@ -251,10 +251,9 @@ const SessionRunScreen = () => {
 		/** 하트비트 한 번 전송 */
 		const beat = () => {
 			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
-			const span =
-				sessionStartedAt && sleepSettings
-					? currentSpan(dayjs(sessionStartedAt).valueOf(), dayjs().valueOf(), sleepSettings)
-					: null;
+			const span = sessionStartedAt
+				? currentSpan(dayjs(sessionStartedAt).valueOf(), dayjs().valueOf(), sleepSettings)
+				: null;
 
 			sendHeartbeat(
 				{

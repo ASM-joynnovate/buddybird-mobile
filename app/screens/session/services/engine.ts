@@ -28,7 +28,7 @@ interface LearningEngineOptions {
 	wordId: string;
 	recordingUrls: readonly string[];
 	startedAt: number;
-	sleep: SleepSettings;
+	sleep: SleepSettings | null;
 	onSound: (sound: CapturedSound) => void;
 	onError: (error: unknown) => void;
 }

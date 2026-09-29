@@ -26,14 +26,14 @@ export const sessionSchema = z.object({
 		ended_by: z.enum(['user', 'server']).nullable(),
 	}),
 	ends_at: timestampSchema.nullable(),
-	sleep: sleepSettingsSchema,
+	sleep: sleepSettingsSchema.nullable(),
 	judgment_status: judgmentStatusSchema,
 });
 
 const startSessionRequestSchema = z.object({
 	word_id: uuidSchema.nullable().optional(),
 	ends_at: timestampSchema.nullable().optional(),
-	sleep: sleepSettingsSchema.optional(),
+	sleep: sleepSettingsSchema.nullable().optional(),
 });
 
 const heartbeatRequestSchema = z.object({

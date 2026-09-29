@@ -155,8 +155,10 @@ function isStationOnOtherDevice(session: MockSession) {
 	return session.station_device_id !== db.currentDeviceId;
 }
 
+const NO_SLEEP = { sleep_at: '00:00:00', wake_at: '00:00:00' };
+
 function sleepOf(session: MockSession) {
-	return sleepWindowOf({ ...db.settings, sleep: session.sleep ?? db.settings.sleep });
+	return sleepWindowOf({ ...db.settings, sleep: session.sleep ?? NO_SLEEP });
 }
 
 function mergeSummaries(saved: MockSummary[], received: MockSummary[]): MockSummary[] {
@@ -197,7 +199,7 @@ function sessionDto(session: MockSession) {
 			ended_by: session.ended_by,
 		},
 		ends_at: session.ends_at,
-		sleep: session.sleep ?? db.settings.sleep,
+		sleep: session.sleep,
 		judgment_status: judgmentStatus(session, now),
 	};
 }
@@ -695,7 +697,7 @@ export const mockServer = {
 					.map(sessionDto),
 			),
 		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
-		start: (input: { word_id?: string | null; ends_at?: string | null; sleep?: MockSettings['sleep'] }) =>
+		start: (input: { word_id?: string | null; ends_at?: string | null; sleep?: MockSettings['sleep'] | null }) =>
 			respond(() => {
 				if (runningRecord()) {
 					throw new ApiError(409, 'SESSION__ALREADY_RUNNING', 'Another session is running');
@@ -721,7 +723,7 @@ export const mockServer = {
 					applied_settings_version: 0,
 					last_heartbeat_at: null,
 					ends_at: input.ends_at ?? null,
-					sleep: input.sleep ?? null,
+					sleep: input.sleep === undefined ? db.settings.sleep : input.sleep,
 					summaries: [],
 					events: [event('session_started', now)],
 					sleep_events: [],

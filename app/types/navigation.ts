@@ -11,7 +11,7 @@ export interface LearningDuration {
 export interface SessionSetup {
 	wordId: string;
 	duration: LearningDuration;
-	sleep: SleepSettings;
+	sleep: SleepSettings | null;
 	sleepChanged: boolean;
 }
 
@@ -61,7 +61,7 @@ export type RootStackParamList = {
 		sessionId: string;
 		wordId: string;
 		endsAt: number | null;
-		sleep: SleepSettings;
+		sleep: SleepSettings | null;
 		duration: LearningDuration;
 		sleepChanged: boolean;
 	};

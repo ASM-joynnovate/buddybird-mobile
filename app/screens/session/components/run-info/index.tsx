@@ -25,7 +25,7 @@ const ARC_MAX_WIDTH = 460;
 interface Props {
 	startedAt: string;
 	endsAt: number | null;
-	sleep: SleepSettings;
+	sleep: SleepSettings | null;
 	engineFailed: boolean;
 	onEnd: () => void;
 }
@@ -34,7 +34,7 @@ interface Props {
  * 세션 경과 시간, 앱을 켜 두라는 안내, 진행 단계와 남은 시간, 종료 버튼을 보여 주고 종료 버튼을 누르면 onEnd를 실행하는 컴포넌트
  * @param startedAt 세션 시작 시각
  * @param endsAt 학습 종료 시각의 밀리초 값, 정하지 않았으면 null
- * @param sleep 수면 시간 설정
+ * @param sleep 수면 시간 설정, 없으면 null
  * @param engineFailed 학습 엔진 시작 실패 여부
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  */

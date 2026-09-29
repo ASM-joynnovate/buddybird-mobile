@@ -42,12 +42,12 @@ const _nextTimeOfDay = (after: number, time: string) => {
 };
 
 /** 시작부터 끝까지 수면 시간과 학습 단계 순서로 나눈 구간 목록 */
-const _phaseSpans = (start: number, end: number, sleep: SleepSettings) => {
+const _phaseSpans = (start: number, end: number, sleep: SleepSettings | null) => {
 	const spans: PhaseSpan[] = [];
 	let at = start;
 
 	while (at < end) {
-		if (_isSleeping(at, sleep)) {
+		if (sleep && _isSleeping(at, sleep)) {
 			const wake = Math.min(_nextTimeOfDay(at, sleep.wake_at), end);
 
 			spans.push({ phase: 'sleeping', start: at, end: wake });
@@ -55,7 +55,8 @@ const _phaseSpans = (start: number, end: number, sleep: SleepSettings) => {
 			continue;
 		}
 
-		const awakeEnd = sleep.sleep_at === sleep.wake_at ? end : Math.min(_nextTimeOfDay(at, sleep.sleep_at), end);
+		const awakeEnd =
+			!sleep || sleep.sleep_at === sleep.wake_at ? end : Math.min(_nextTimeOfDay(at, sleep.sleep_at), end);
 		let cursor = at;
 		let index = 0;
 
@@ -74,14 +75,14 @@ const _phaseSpans = (start: number, end: number, sleep: SleepSettings) => {
 };
 
 /** 지금 시각이 속한 학습 단계 구간 */
-export const currentSpan = (start: number, now: number, sleep: SleepSettings) => {
+export const currentSpan = (start: number, now: number, sleep: SleepSettings | null) => {
 	const found = _phaseSpans(start, now + DAY, sleep).find((span) => span.start <= now && now < span.end);
 
 	return found ?? { phase: 'learning', start: now, end: now + PHASE_CYCLE[0].durationMs };
 };
 
 /** 지금 학습 단계, 남은 시간, 진행 비율 */
-export const runStatus = (startedAt: string, endsAt: number | null, sleep: SleepSettings, now: number) => {
+export const runStatus = (startedAt: string, endsAt: number | null, sleep: SleepSettings | null, now: number) => {
 	const started = dayjs(startedAt).valueOf();
 	const span = currentSpan(started, now, sleep);
 
