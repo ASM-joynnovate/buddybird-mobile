@@ -25,7 +25,6 @@ export const Screen = ({
 
 	return (
 		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, style]}>
-			{/*내용*/}
 			{scrollable ? (
 				<ScrollView
 					alwaysBounceVertical={false}
@@ -46,7 +45,6 @@ export const Screen = ({
 				children
 			)}
 
-			{/*아래에 고정된 내용*/}
 			{!!footer && <View style={[styles.footerContainer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>}
 		</SafeAreaView>
 	);

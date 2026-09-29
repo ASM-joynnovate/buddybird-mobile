@@ -22,8 +22,8 @@ interface Props {
 }
 
 /**
- * 등록한 단어를 카드로 보여 주고 단어가 없으면 단어 추가 버튼을 보여 주는 목록 컴포넌트
- * @param player 단어의 첫 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * 단어 카드 목록 컴포넌트
+ * @param player useSoundPlayer 결과
  */
 const WordList = ({ player }: Props) => {
 	const { t } = useTranslation();

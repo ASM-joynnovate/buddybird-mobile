@@ -35,11 +35,11 @@ interface Props {
 }
 
 /**
- * 녹음 이름과 길이, 삭제 버튼, 재생 버튼을 보여 주고 재생 버튼을 누르면 녹음을 재생하거나 멈추는 컴포넌트
- * @param recording 보여 줄 녹음
- * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * 녹음 항목 컴포넌트
+ * @param recording 표시할 녹음
+ * @param player useSoundPlayer 결과
  * @param index 녹음 목록 안의 순서
- * @param onDelete 삭제 버튼을 누를 때 실행할 함수, 삭제할 수 없으면 없음
+ * @param onDelete 삭제 버튼을 누를 때 실행할 함수
  */
 const RecordingItem = ({ recording, player, index, onDelete }: Props) => {
 	const { t } = useTranslation();
@@ -66,7 +66,6 @@ const RecordingItem = ({ recording, player, index, onDelete }: Props) => {
 
 	return (
 		<View style={[styles.container, index > 0 && styles.divider]}>
-			{/*녹음 이름과 길이*/}
 			<View style={styles.textContainer}>
 				<Copy style={styles.name}>{name}</Copy>
 				<View style={styles.detailRow}>
@@ -75,7 +74,6 @@ const RecordingItem = ({ recording, player, index, onDelete }: Props) => {
 				</View>
 			</View>
 
-			{/*삭제와 재생 버튼*/}
 			<IconButton
 				icon={TrashIcon}
 				label={t('words.editor.deleteRecording', { name })}

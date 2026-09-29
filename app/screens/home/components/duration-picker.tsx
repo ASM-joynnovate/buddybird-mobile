@@ -37,8 +37,8 @@ interface Props {
 
 /**
  * 학습 시간 선택 컴포넌트
- * @param value 고른 학습 시간
- * @param onChange 학습 시간을 고를 때 실행할 함수
+ * @param value 선택한 학습 시간
+ * @param onChange 학습 시간 변경 시 실행할 함수
  */
 const DurationPicker = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();
@@ -77,7 +77,7 @@ const DurationPicker = ({ value, onChange }: Props) => {
 		},
 	];
 
-	/** 직접 설정 학습 시간 넘기기 */
+	/** 직접 설정한 학습 시간 전달 함수 */
 	const change = (nextDays: number, nextHours: number, nextMinutes: number) => {
 		onChange({
 			ms: Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS),
@@ -85,7 +85,6 @@ const DurationPicker = ({ value, onChange }: Props) => {
 		});
 	};
 
-	/** 고른 학습 시간 넘기기 */
 	const handleSelectChoice = (nextDuration: LearningDuration) => {
 		if (nextDuration.custom && value.custom) {
 			return;
@@ -119,7 +118,7 @@ const DurationPicker = ({ value, onChange }: Props) => {
 				</ChoiceCard>
 			))}
 
-			{/*직접 설정 휠*/}
+			{/*직접 설정한 경우 시간 선택 휠*/}
 			{value.custom && (
 				<Animated.View
 					entering={FadeIn.duration(layoutAnimationMs)}

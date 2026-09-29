@@ -25,8 +25,8 @@ interface Props {
 }
 
 /**
- * 사진, 닉네임 입력, 저장 버튼을 보여 주고 저장을 누르면 닉네임과 바뀐 사진을 저장하는 컴포넌트
- * @param onSaved 저장을 마쳤을 때 실행할 함수
+ * 계정 정보 입력 컴포넌트
+ * @param onSaved 저장 완료 시 실행할 함수
  */
 const AccountForm = ({ onSaved }: Props) => {
 	const { t } = useTranslation();
@@ -57,7 +57,7 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	const saveError = (updateMe.isError && !duplicateNickname) || photoSaveFailed ? t('common.saveErrorKept') : null;
 
-	/** 바뀐 사진의 업로드나 삭제 뒤 저장 완료 */
+	/** 변경한 계정 사진 저장 함수 */
 	const saveUserPhoto = () => {
 		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
 			uploadUserPhoto.mutate(
@@ -74,7 +74,6 @@ const AccountForm = ({ onSaved }: Props) => {
 		}
 	};
 
-	/** 닉네임 변경 */
 	const handleChangeNickname = (value: string) => {
 		setNickname(value);
 		setNicknameInvalid(false);
@@ -82,7 +81,6 @@ const AccountForm = ({ onSaved }: Props) => {
 		updateMe.reset();
 	};
 
-	/** 닉네임 검사 뒤 계정 정보 저장 */
 	const handleSave = () => {
 		if (saving) {
 			return;
@@ -111,7 +109,6 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	return (
 		<>
-			{/*사진*/}
 			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
 			{!!photo.photoUri && (
 				<View style={styles.removePhotoContainer}>
@@ -124,7 +121,6 @@ const AccountForm = ({ onSaved }: Props) => {
 				</View>
 			)}
 
-			{/*닉네임 입력*/}
 			<TextField
 				label={t('profile.nickname')}
 				errorMessage={nicknameError}
@@ -138,12 +134,10 @@ const AccountForm = ({ onSaved }: Props) => {
 				onSubmitEditing={handleSave}
 			/>
 
-			{/*저장 버튼*/}
 			<View style={styles.spacer} />
 			<InlineError message={saveError} />
 			<Button label={t('common.save')} loading={saving} onPress={handleSave} style={styles.save} />
 
-			{/*사진 권한 다이얼로그*/}
 			<PermissionDialog state={photo.libraryDialog} />
 			<PermissionDialog state={photo.cameraDialog} />
 		</>

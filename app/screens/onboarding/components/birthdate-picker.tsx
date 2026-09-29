@@ -21,9 +21,9 @@ interface Props {
 }
 
 /**
- * 고른 생일을 보여 주고 누르면 연, 월, 일 선택과 생일 모름 체크가 있는 시트를 여는 컴포넌트
- * @param value 고른 생일, 모름은 null, 고르기 전은 undefined
- * @param onChange 생일을 바꿀 때 실행할 함수
+ * 생일 선택 컴포넌트
+ * @param value 선택한 생일
+ * @param onChange 생일 변경 시 실행할 함수
  */
 const BirthdatePicker = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();
@@ -38,14 +38,12 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 	const birthdateText =
 		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('LL');
 
-	/** 고른 날짜 변경 */
 	const handleChangeDate = (nextDate: Dayjs) => {
 		setDate(nextDate);
 
 		onChange(nextDate.format('YYYY-MM-DD'));
 	};
 
-	/** 날짜 확정과 시트 닫기 */
 	const handleSelect = (close: () => void) => {
 		if (value === undefined) {
 			onChange(date.format('YYYY-MM-DD'));

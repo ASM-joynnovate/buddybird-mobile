@@ -35,10 +35,10 @@ interface Props {
 }
 
 /**
- * 세션 진행 상태와 종료 버튼 컴포넌트
+ * 세션 진행 정보 컴포넌트
  * @param startedAt 세션 시작 시각
- * @param endsAt 학습 종료 시각의 밀리초 값, 정하지 않았으면 null
- * @param sleep 수면 시간 설정, 없으면 null
+ * @param endsAt 학습 종료 시각
+ * @param sleep 수면 시간 설정
  * @param engineFailed 학습 엔진 시작 실패 여부
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  */
@@ -89,7 +89,7 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 
 	return (
 		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
-			{/*앱을 켜 두라는 안내와 배터리*/}
+			{/*헤더*/}
 			<View style={styles.topRow}>
 				<View style={styles.noticeContainer}>
 					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
@@ -110,7 +110,7 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 
 			{isLandscape ? (
 				<View style={styles.splitRow} pointerEvents="box-none">
-					{/*진행 원과 세션 시간*/}
+					{/*진행률 원 그래프*/}
 					<View style={styles.ringContainer}>
 						<SessionProgressArc
 							width={RING_WIDTH}
@@ -124,7 +124,6 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 
 					<View style={styles.divider} />
 
-					{/*현재 구간과 종료 버튼*/}
 					<View style={styles.phaseEndContainer} pointerEvents="box-none">
 						{currentPhase}
 						{endButton}
@@ -132,10 +131,9 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 				</View>
 			) : (
 				<>
-					{/*현재 구간*/}
 					{currentPhase}
 
-					{/*진행 반원, 세션 시간, 종료 버튼*/}
+					{/*진행률 반원 그래프*/}
 					<View style={[styles.bottomContainer, { width: arcWidth }]} pointerEvents="box-none">
 						<SessionProgressArc
 							width={arcWidth}
@@ -174,7 +172,7 @@ const styles = StyleSheet.create({
 	divider: { width: 2, height: '50%', alignSelf: 'center', borderRadius: 1, backgroundColor: sessionColors.edge },
 	phaseEndContainer: { flex: 1, justifyContent: 'flex-end', paddingBottom: 16 },
 	bottomContainer: { alignSelf: 'center', gap: 16, paddingBottom: 16 },
-	endFace: { minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+	endFace: { minHeight: 58, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
 	endText: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.text },
 });
 

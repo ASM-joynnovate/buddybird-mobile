@@ -21,12 +21,12 @@ interface Props {
 }
 
 /**
- * 진행한 만큼 채워지는 반원 또는 원 컴포넌트
- * @param width 반원 또는 원의 가로 폭
- * @param variant 반원이면 half, 원이면 full
- * @param phase 지금 단계, 채우는 색을 정함
- * @param progressRatio 학습 시간 가운데 지난 비율, 종료 시각이 없으면 null
- * @param children 반원 또는 원 안에 보일 내용
+ * 진행률 그래프 컴포넌트
+ * @param width 그래프 너비
+ * @param variant 그래프 모양
+ * @param phase 현재 학습 단계
+ * @param progressRatio 진행 비율
+ * @param children 그래프 안에 표시할 내용
  */
 const SessionProgressArc = ({ width, variant, phase, progressRatio, children }: Props) => {
 	const isFull = variant === 'full';
@@ -42,7 +42,6 @@ const SessionProgressArc = ({ width, variant, phase, progressRatio, children }: 
 
 	return (
 		<View style={[styles.container, isFull && styles.containerFull, { width, height }]} accessible>
-			{/*진행한 만큼 채워지는 반원 또는 원*/}
 			<Svg width={width} height={height} style={styles.svg}>
 				<Path
 					d={arc}

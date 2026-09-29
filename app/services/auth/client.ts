@@ -47,7 +47,7 @@ let listeners = new Set<Listener>();
 
 let activeSession: Session | null | undefined;
 
-/** mock 세션 응답을 Supabase 세션 모양으로 변환 */
+/** mock 세션 응답을 Supabase 세션 형식으로 변환하는 함수 */
 const toSession = (mock: MockSession): Session => {
 	return {
 		access_token: mock.access_token,
@@ -65,7 +65,7 @@ const toSession = (mock: MockSession): Session => {
 	};
 };
 
-/** 지금 세션 반환, 처음 읽을 때는 계정 스토어의 사용자로 mock 세션 생성 */
+/** 현재 세션을 반환하는 함수 */
 const getActiveSession = () => {
 	if (activeSession === undefined) {
 		const { authUserId, isAnonymous } = useAccountStore.getState();
@@ -76,7 +76,7 @@ const getActiveSession = () => {
 	return activeSession;
 };
 
-/** 세션을 바꾸고 mock 서버와 onAuthStateChange 콜백에 알림 */
+/** 세션을 변경하고 onAuthStateChange 콜백에 알리는 함수 */
 const changeSession = (event: AuthChangeEvent, session: Session | null) => {
 	activeSession = session;
 
@@ -87,7 +87,7 @@ const changeSession = (event: AuthChangeEvent, session: Session | null) => {
 	}
 };
 
-/** 고른 로그인 방식으로 mock 서버에 로그인하고 받은 세션으로 변경 */
+/** mock 서버 로그인 함수 */
 const signInWith = async (provider: string) => {
 	const session = toSession(await mockPostSignIn({ provider: loginProviderSchema.parse(provider) }));
 
@@ -96,7 +96,7 @@ const signInWith = async (provider: string) => {
 	return { data: { user: session.user, session }, error: null };
 };
 
-/** 지금 계정에 로그인 방식 연결, 다른 사용자에 이미 연결된 방식이면 identity_already_exists 오류 */
+/** 현재 계정에 로그인 방식을 연결하는 함수 */
 const linkWith = async (provider: string) => {
 	const linkedSession = await mockPostLinkIdentity({ provider: loginProviderSchema.parse(provider) });
 
@@ -183,17 +183,17 @@ const mockAuth = {
 	stopAutoRefresh: async () => {},
 };
 
-/** Supabase 인증 클라이언트 대신 사용하는 mock 인증 */
+/** Supabase 인증 클라이언트 대신 사용하는 mock 인증 클라이언트 */
 export const authClient = () => {
 	return mockAuth as unknown as AuthClient;
 };
 
-/** 로그인 브라우저를 열지 않고 받은 주소를 성공 결과로 반환하는 mock */
+/** 로그인 브라우저 대신 사용하는 mock 함수 */
 export const openAuthSession = async (url: string, _redirectTo: string) => {
 	return { type: 'success', url };
 };
 
-/** Apple 로그인 없이 고정된 mock ID 토큰과 인증 코드 반환 */
+/** Apple 로그인 대신 사용하는 mock 함수 */
 export const requestAppleCredential = async (_options: AppleAuthenticationSignInOptions) => {
 	return { identityToken: 'mock-apple-identity-token', authorizationCode: 'mock-apple-code' };
 };

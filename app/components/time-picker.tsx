@@ -13,10 +13,10 @@ interface Props {
 }
 
 /**
- * 시와 분을 고르는 휠 두 개를 보여 주고 휠을 돌리면 바뀐 시각으로 변경 함수를 실행하는 컴포넌트
- * @param value 고른 시각
+ * 시각 선택 휠 컴포넌트
+ * @param value 선택한 시각
  * @param label 휠 접근성 라벨에 넣을 시각 이름
- * @param onChange 시각을 바꿀 때 실행할 함수
+ * @param onChange 시각 변경 시 실행할 함수
  */
 const TimePicker = ({ value, label, onChange }: Props) => {
 	const { t } = useTranslation();

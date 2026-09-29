@@ -16,13 +16,13 @@ interface Props {
 }
 
 /**
- * 높이 비율이 바뀌면 정한 시간 동안 높이가 바뀌는 파형 막대 하나를 보여 주는 컴포넌트
+ * 파형 막대 컴포넌트
  * @param index 파형 안의 막대 순서
- * @param heightRatios 막대마다의 높이 비율
- * @param duration 높이가 바뀌는 데 걸리는 시간
+ * @param heightRatios 막대별 높이 비율
+ * @param duration 높이 변경 애니메이션 시간
  * @param color 막대 색
  * @param height 파형 높이
- * @param fill 막대들이 가로 폭을 나눠 채우는지 여부
+ * @param fill 막대가 전체 너비를 나눠 채우는지 여부
  */
 const WaveBar = memo(({ index, heightRatios, duration, color, height, fill }: Props) => {
 	const heightStyle = useAnimatedStyle(() => ({

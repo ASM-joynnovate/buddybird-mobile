@@ -20,7 +20,7 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** 프로필 제목, 설정 버튼, 내 계정과 앵무새 목록을 보여 주는 화면 */
+/** 프로필 화면 */
 const ProfileScreen = () => {
 	const { t } = useTranslation();
 
@@ -31,7 +31,6 @@ const ProfileScreen = () => {
 
 	return (
 		<Screen>
-			{/*프로필 제목과 설정 버튼*/}
 			<ScreenHeader
 				large
 				title={t('profile.title')}
@@ -42,7 +41,6 @@ const ProfileScreen = () => {
 				/>
 			/>
 
-			{/*계정과 앵무새*/}
 			<ErrorHandlingWrapper
 				fallbackComponent={ScreenError}
 				suspenseFallback=<Skeleton blockCount={3} height={96} />

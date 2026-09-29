@@ -10,7 +10,7 @@ import { colors, contentMaxWidth, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
-/** 인터넷 연결이 끊기면 화면 위쪽에 연결 끊김 안내를 보여 주는 컴포넌트 */
+/** 인터넷 연결 끊김 안내 컴포넌트 */
 const OfflineBanner = () => {
 	const { t } = useTranslation();
 

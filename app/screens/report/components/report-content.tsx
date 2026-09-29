@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-/** 리포트 요약, 학습 목록, 앵무새가 따라 한 횟수나 로그인 안내를 보여 주고 아래로 당기면 다시 불러오는 목록 컴포넌트 */
+/** 리포트 목록 컴포넌트 */
 const ReportContent = () => {
 	const { t } = useTranslation();
 
@@ -88,7 +88,7 @@ const ReportContent = () => {
 		</View>
 	) : null;
 
-	/** 화면에 보이는 리포트 기간마다 report_viewed 한 번 전송 */
+	/** 리포트 기간별로 report_viewed 이벤트를 한 번 전송 */
 	useEffect(() => {
 		if (!focused) {
 			trackedPeriodRef.current = null;

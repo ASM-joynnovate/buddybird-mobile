@@ -6,13 +6,13 @@ import { env } from '@/config';
 
 let client: SupabaseClient | undefined;
 
-/** 처음 호출할 때 한 번만 만드는 Supabase 클라이언트 */
+/** Supabase 클라이언트 getter */
 export const getSupabase = () => {
 	if (!env.supabaseUrl || !env.supabasePublishableKey) {
 		throw new Error('Supabase configuration missing');
 	}
 
-	// Supabase PKCE 로그인의 난수와 SHA-256 해시에 필요한 WebCrypto 함수를 Hermes에 추가
+	// Supabase PKCE 로그인에 필요한 WebCrypto 함수를 Hermes에 추가
 	if (!globalThis.crypto) {
 		Object.defineProperty(globalThis, 'crypto', {
 			value: {

@@ -15,7 +15,7 @@ interface Props {
 }
 
 /**
- * 제스처, 화면 안전 영역, 서버 데이터 캐시, 시트를 앱 전체에서 쓰게 하고 상태 표시줄 글자를 어둡게 하는 provider
+ * 앱 공통 provider
  * @param children 감싸는 내용
  */
 const RootProviders = ({ children }: Props) => {

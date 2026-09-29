@@ -10,7 +10,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import GuidePager, { type GuideStep } from '@/components/guide-pager';
 
-/** 녹음 방법 안내와 다시 보지 않기 선택을 보여 주고 안내를 마치면 녹음 화면을 열거나 이전 화면으로 돌아가는 화면 */
+/** 녹음 안내 화면 */
 const RecordingGuideScreen = () => {
 	const { t } = useTranslation();
 
@@ -39,7 +39,7 @@ const RecordingGuideScreen = () => {
 		},
 	];
 
-	/** 녹음 추가로 열었으면 녹음 화면 열기, 아니면 이전 화면으로 돌아가기 */
+	/** 녹음 추가로 열었으면 녹음 화면으로, 아니면 이전 화면으로 이동 */
 	const handleLeave = () => {
 		if (params.source === 'add') {
 			navigation.replace('Recorder', { wordName: params.wordName });

@@ -25,7 +25,7 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** 등록한 단어 카드와 단어 추가 버튼을 보여 주고 추가 버튼을 누르면 단어 편집 화면을 여는 화면 */
+/** 단어 목록 화면 */
 const WordListScreen = () => {
 	const { t } = useTranslation();
 
@@ -43,10 +43,8 @@ const WordListScreen = () => {
 	return (
 		<Screen scrollable={false}>
 			<View style={styles.container}>
-				{/*단어 목록 제목과 단어 추가 버튼*/}
 				<ScreenHeader title={t('words.list.title')} large trailing={addButton} />
 
-				{/*재생 실패 안내와 단어 목록*/}
 				<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}

@@ -26,8 +26,8 @@ interface Props {
 }
 
 /**
- * 총 학습 시간과 단계별 합계 컴포넌트
- * @param duration 고른 학습 시간
+ * 학습 시간 합계 컴포넌트
+ * @param duration 선택한 학습 시간
  */
 const DurationBreakdown = ({ duration }: Props) => {
 	const { t } = useTranslation();
@@ -46,7 +46,7 @@ const DurationBreakdown = ({ duration }: Props) => {
 				</Copy>
 			</View>
 
-			{/*단계별 합계*/}
+			{/*단계별 학습 시간*/}
 			<View style={styles.phasesRow}>
 				{BREAKDOWN_PHASES.map(({ phase, color }, index) => (
 					<View key={phase} style={[styles.phaseContainer, index > 0 && styles.phaseContainerDivided]}>

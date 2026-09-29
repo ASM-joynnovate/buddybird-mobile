@@ -10,7 +10,7 @@ import ConsentItem from '@/components/consent-item';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 약관마다 동의 여부를 보여 주고 누르면 동의 여부를 바꿔 저장하는 컴포넌트 */
+/** 약관 동의 목록 컴포넌트 */
 const ConsentList = () => {
 	const { t } = useTranslation();
 
@@ -18,7 +18,6 @@ const ConsentList = () => {
 
 	const { isError, isPending, mutate } = useSaveConsent();
 
-	/** 동의 여부 변경 */
 	const handleToggleConsent = (consent: Consent) => {
 		if (isPending) {
 			return;
@@ -34,7 +33,6 @@ const ConsentList = () => {
 
 	return (
 		<>
-			{/*약관별 동의 여부*/}
 			<ItemGroup>
 				{latestConsents(consentListData).map((consent, index) => (
 					<ConsentItem
@@ -49,7 +47,6 @@ const ConsentList = () => {
 				))}
 			</ItemGroup>
 
-			{/*저장 실패 안내*/}
 			<InlineError message={isError ? t('settings.consents.saveError') : null} />
 		</>
 	);

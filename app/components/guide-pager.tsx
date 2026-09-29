@@ -33,10 +33,10 @@ interface Props {
 }
 
 /**
- * 단계마다 안내 말풍선과 그림을 보여 주고 다음 버튼을 누르면 다음 단계로, 마지막 단계에서는 끝내기 함수를 실행하는 컴포넌트
- * @param steps 단계마다 보여 줄 안내 문구, 장면 이름, 아이콘
- * @param actions 끝내기, 건너뛰기, 첫 단계에서 뒤로 가기를 누를 때 실행할 함수
- * @param dontShowAgain 다시 보지 않기 선택 여부와 선택을 바꿀 때 실행할 함수
+ * 단계별 안내 컴포넌트
+ * @param steps 안내 단계 목록
+ * @param actions 버튼을 누를 때 실행할 함수 목록
+ * @param dontShowAgain 다시 보지 않기 선택 상태
  * @param finishLabel 마지막 단계의 버튼 문구
  */
 const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
@@ -51,12 +51,12 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 	const step = steps[index];
 	const isLastStep = index === steps.length - 1;
 
-	/** 단계가 바뀔 때 첫 단계에서만 밀어서 뒤로 가기 허용 */
+	/** 첫 단계에서만 스와이프로 뒤로 가기 허용 */
 	useEffect(() => {
 		navigation.setOptions({ gestureEnabled: index === 0 });
 	}, [index, navigation]);
 
-	/** 화면이 보이는 동안 두 번째 단계부터 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
+	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
 	useFocusEffect(
 		useCallback(() => {
 			if (index === 0) {
@@ -73,7 +73,6 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 		}, [index]),
 	);
 
-	/** 마지막 단계면 끝내기 함수 실행, 아니면 다음 단계로 이동 */
 	const handleNext = () => {
 		if (isLastStep) {
 			actions.onFinish();
@@ -84,13 +83,12 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 		setIndex(index + 1);
 	};
 
-	/** 두 번째 단계부터 이전 단계 이동, 첫 단계에서는 뒤로 가기 함수 */
 	const handleBack = index > 0 ? () => setIndex(index - 1) : actions.onBack;
 
 	return (
 		<Screen scrollable={false}>
 			<View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
-				{/*뒤로 가기, 단계 표시, 건너뛰기*/}
+				{/*헤더*/}
 				<View style={styles.topRow}>
 					{handleBack && <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={handleBack} />}
 					<PageDots
@@ -102,13 +100,13 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 					{actions.onSkip && <TextButton label={t('common.skip')} variant="muted" onPress={actions.onSkip} />}
 				</View>
 
-				{/*안내 말풍선과 그림*/}
+				{/*현재 단계 안내*/}
 				<View style={styles.stepContainer}>
 					<BuddySays message={step.title} />
 					<Illustration scene={step.scene} icon={step.icon} height={260} showMascot={false} />
 				</View>
 
-				{/*다시 보지 않기와 다음 버튼*/}
+				{/*footer*/}
 				<View style={styles.bottomContainer}>
 					{dontShowAgain && (
 						<ItemCheckbox

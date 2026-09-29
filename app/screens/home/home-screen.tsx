@@ -15,7 +15,7 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** 로고 줄, 학습 설정, 학습 시작 버튼 화면 */
+/** 학습 설정 화면 */
 const HomeScreen = () => {
 	usePrefetchQuery(getHomeSummaryOptions());
 	usePrefetchQuery(getDeviceListOptions());
@@ -24,7 +24,6 @@ const HomeScreen = () => {
 
 	return (
 		<Screen scrollable={false}>
-			{/*로고 줄, 학습 설정, 학습 시작 버튼*/}
 			<View style={styles.container}>
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={3} />>
 					<HomeContent />

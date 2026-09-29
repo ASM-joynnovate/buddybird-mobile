@@ -8,7 +8,7 @@ import NotificationsScreen from '@/screens/home/notifications-screen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
-/** 홈 탭 안에서 홈 화면과 알림 목록 화면을 오가는 컴포넌트 */
+/** 홈 탭 navigator 컴포넌트 */
 const HomeTab = () => {
 	return (
 		<HomeStack.Navigator screenOptions={stackOptions}>

@@ -15,7 +15,7 @@ interface State {
 }
 
 /**
- * 안쪽 조회가 실패하면 오류 화면을 보여 주고 다시 시도하면 조회 오류를 초기화한 뒤 안쪽 내용을 다시 보여 주는 컴포넌트
+ * 오류 발생 시 API 요청을 다시 시도하기 위한 wrapper
  * @param FallbackComponent 오류 화면 컴포넌트
  * @param onReset 다시 시도할 때 조회 오류를 초기화하는 함수
  * @param children 감싸는 내용
@@ -23,7 +23,7 @@ interface State {
 class QueryErrorBoundary extends Component<Props, State> {
 	state: State = { error: null };
 
-	/** 오류 상태 저장 */
+	/** 오류 상태 변경 */
 	static getDerivedStateFromError = (error: Error) => {
 		return { error };
 	};
@@ -33,14 +33,13 @@ class QueryErrorBoundary extends Component<Props, State> {
 		reportError(error, 'error_boundary');
 	};
 
-	/** 조회 오류와 오류 상태 초기화 */
+	/** 오류 상태 초기화 */
 	reset = () => {
 		this.props.onReset();
 
 		this.setState({ error: null });
 	};
 
-	/** 오류 화면이나 내용 렌더링 */
 	render = () => {
 		const { FallbackComponent, children } = this.props;
 		const { error } = this.state;

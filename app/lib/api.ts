@@ -15,7 +15,7 @@ interface ApiDependencies {
 
 let dependencies: ApiDependencies | undefined;
 
-/** 서버 요청에 쓸 기기 ID, 언어, 액세스 토큰과 오류 보고 함수 등록 */
+/** API 요청 설정 등록 함수 */
 export const configureApi = (next: ApiDependencies) => {
 	dependencies = next;
 };
@@ -35,7 +35,7 @@ interface ApiOptions {
 
 const SERVER_ERROR_STATUS = 500;
 
-/** 서버에 요청을 보내고 스키마로 검사한 응답의 data와 meta 반환 */
+/** 응답을 스키마로 검사하는 API 요청 함수 */
 export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options: ApiOptions = {}) => {
 	const {
 		method = 'GET',
@@ -112,7 +112,7 @@ export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options:
 	return { data: parsedData.data, meta: envelope.data.meta };
 };
 
-/** 오류 코드에 맞는 사용자 문구, ApiError가 아니면 네트워크 연결 문구 */
+/** 오류 코드에 맞는 안내 문구를 반환하는 함수 */
 export const apiErrorMessage = (error: unknown, t: TFunction) => {
 	if (!(error instanceof ApiError)) {
 		return t('apiError.CLIENT__NETWORK');
@@ -121,12 +121,12 @@ export const apiErrorMessage = (error: unknown, t: TFunction) => {
 	return error.code === 'CLIENT__UNKNOWN_ERROR' ? error.message : t(`apiError.${error.code}`);
 };
 
-/** 서버 오류 코드 가운데 앱이 아는 코드, 모르는 코드면 CLIENT__UNKNOWN_ERROR */
+/** 앱이 처리할 수 있는 오류 코드를 반환하는 함수 */
 const knownErrorCode = (code: string) => {
 	return apiErrorCodes.find((known) => known === code) ?? 'CLIENT__UNKNOWN_ERROR';
 };
 
-/** 값이 있는 항목만 담은 URL 쿼리 문자열 */
+/** URL 쿼리 문자열 생성 함수 */
 const queryString = (searchParams: Record<string, SearchParamValue> | undefined) => {
 	const params = new URLSearchParams();
 
@@ -156,13 +156,13 @@ interface RawResponse {
 	text: string;
 }
 
-/** 시간 제한을 두고 fetch로 요청을 보낸 뒤 응답 상태, 요청 ID, 응답 문자열 반환 */
+/** 제한 시간이 있는 fetch 요청 함수 */
 const send = async (url: string, options: SendOptions) => {
 	const { signal, timeoutMs, ...init } = options;
 	const controller = new AbortController();
 	let timedOut = false;
 
-	/** 호출한 쪽의 취소를 fetch 요청에 전달 */
+	/** 호출한 쪽에서 취소하면 fetch 요청도 취소 */
 	const cancel = () => controller.abort(signal?.reason);
 
 	if (signal?.aborted) {
@@ -201,7 +201,7 @@ const send = async (url: string, options: SendOptions) => {
 	}
 };
 
-/** 응답 문자열의 JSON 해석, 비었으면 null, JSON이 아니면 undefined */
+/** 응답 문자열을 JSON으로 파싱하는 함수 */
 const parseBody = (text: string) => {
 	if (!text) {
 		return null;
@@ -214,7 +214,7 @@ const parseBody = (text: string) => {
 	}
 };
 
-/** 서버 응답 형식이 맞지 않을 때의 CLIENT__INVALID_RESPONSE 오류 */
+/** 응답 형식 오류 생성 함수 */
 const invalidResponseError = (response: RawResponse, body: unknown) => {
 	return new ApiError(
 		response.status,
@@ -225,7 +225,7 @@ const invalidResponseError = (response: RawResponse, body: unknown) => {
 	);
 };
 
-/** 5xx 응답, 응답 형식 오류, 모르는 오류 코드 보고 */
+/** 서버 오류 보고 함수 */
 const reportServerError = (error: ApiError) => {
 	if (
 		error.status >= SERVER_ERROR_STATUS ||

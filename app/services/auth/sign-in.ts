@@ -10,12 +10,12 @@ import { useAccountStore } from '@/stores/account';
 
 type OAuthProvider = Exclude<LoginProvider, 'apple'>;
 
-/** 로그인 브라우저가 앱으로 돌아올 주소 */
+/** 로그인 후 앱으로 돌아올 주소 */
 const authRedirectUrl = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
 };
 
-/** 로그인 브라우저 요청 옵션, Google은 갱신 토큰을 받도록 동의 화면 요청 */
+/** 로그인 브라우저 요청 옵션 */
 const oauthOptions = (provider: OAuthProvider) => {
 	return {
 		redirectTo: authRedirectUrl(),
@@ -24,7 +24,7 @@ const oauthOptions = (provider: OAuthProvider) => {
 	};
 };
 
-/** Apple 로그인으로 ID 토큰을 받고 인증 코드는 서버 로그인 요청에 보내도록 저장 */
+/** Apple ID 토큰 요청 함수 */
 const requestAppleIdToken = async () => {
 	const nonce = randomUUID();
 	const credential = await requestAppleCredential({
@@ -43,7 +43,7 @@ const requestAppleIdToken = async () => {
 	return { provider: 'apple' as const, token: credential.identityToken, nonce };
 };
 
-/** 로그인 브라우저를 열어 돌아온 주소, 취소하면 null, 앱 주소가 아니면 오류 */
+/** 로그인 브라우저를 열고 돌아온 주소를 반환하는 함수 */
 const openAuthBrowser = async (url: string) => {
 	const redirectUrl = authRedirectUrl();
 	const authSessionResult = await openAuthSession(url, redirectUrl);
@@ -72,12 +72,12 @@ const openAuthBrowser = async (url: string) => {
 	return callbackUrl;
 };
 
-/** 돌아온 주소의 searchParams나 hash에서 이름으로 찾은 값 */
+/** 돌아온 주소에서 파라미터 값을 찾는 함수 */
 const callbackParam = (callbackUrl: URL, name: string) => {
 	return callbackUrl.searchParams.get(name) ?? new URLSearchParams(callbackUrl.hash.slice(1)).get(name);
 };
 
-/** 돌아온 주소의 인증 코드를 세션으로 교환, 사용자가 거부하면 false */
+/** 돌아온 주소의 인증 코드를 세션으로 교환하는 함수 */
 const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 	const providerError = callbackParam(callbackUrl, 'error');
 
@@ -102,7 +102,7 @@ const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 	return true;
 };
 
-/** 고른 방식으로 로그인, 사용자가 취소하면 false */
+/** 소셜 로그인 함수 */
 export const signIn = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();
@@ -132,7 +132,7 @@ export const signIn = async (provider: LoginProvider) => {
 	return callbackUrl ? exchangeCallback(callbackUrl, provider) : false;
 };
 
-/** 지금 계정에 고른 로그인 방식 연결, 다른 계정에 이미 연결된 방식이면 identityExists, 취소하면 cancelled */
+/** 현재 계정에 소셜 계정을 연결하는 함수 */
 export const linkAccount = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();

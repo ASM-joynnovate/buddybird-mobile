@@ -9,7 +9,7 @@ type LoginCredential = Pick<LoginRequest, 'google' | 'apple'>;
 
 let appleLoginCredential: LoginCredential | undefined;
 
-/** Apple 인증 코드를 서버 로그인 요청에 함께 보낼 값으로 저장 */
+/** 서버 로그인 요청에 보낼 Apple 인증 코드 저장 함수 */
 export const setAppleLoginCredential = (authorizationCode: string) => {
 	const clientId = Application.applicationId;
 
@@ -18,7 +18,7 @@ export const setAppleLoginCredential = (authorizationCode: string) => {
 	}
 };
 
-/** 저장한 Apple 로그인 값을 꺼내고 비우기 */
+/** 저장한 Apple 인증 코드를 꺼내는 함수 */
 export const takeAppleLoginCredential = () => {
 	const credential = appleLoginCredential;
 
@@ -27,7 +27,7 @@ export const takeAppleLoginCredential = () => {
 	return credential;
 };
 
-/** 로그인 방식에 맞춰 서버 로그인 요청에 함께 보낼 Apple 인증 코드나 Google 갱신 토큰 */
+/** 서버 로그인 요청에 보낼 인증 값을 반환하는 함수 */
 export const loginCredential = async () => {
 	const { loginProvider } = useAccountStore.getState();
 

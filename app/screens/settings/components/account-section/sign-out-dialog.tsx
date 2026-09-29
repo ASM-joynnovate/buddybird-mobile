@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * 로그아웃할지 묻고 확인을 누르면 이 기기에서 로그아웃하는 다이얼로그 컴포넌트
+ * 로그아웃 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
  * @param onClose 다이얼로그를 닫을 때 실행할 함수
  */
@@ -22,7 +22,6 @@ const SignOutDialog = ({ visible, onClose }: Props) => {
 
 	const { isPending, isError, mutate, reset } = useLogout();
 
-	/** 로그아웃 요청과 성공 시 이 기기에서 로그아웃 */
 	const handleSignOut = () => {
 		if (isPending) {
 			return;
@@ -33,7 +32,6 @@ const SignOutDialog = ({ visible, onClose }: Props) => {
 		});
 	};
 
-	/** 로그아웃 실패 안내 초기화와 다이얼로그 닫기 */
 	const handleClose = () => {
 		reset();
 

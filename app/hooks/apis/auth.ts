@@ -6,7 +6,7 @@ import { apiKeys } from '@/hooks/apis/keys';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 로그인 훅 */
+/** 로그인 Hook */
 export const useLogin = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'login'),
@@ -16,7 +16,7 @@ export const useLogin = () => {
 	});
 };
 
-/** 로그아웃 훅 */
+/** 로그아웃 Hook */
 export const useLogout = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'logout'),
@@ -25,7 +25,7 @@ export const useLogout = () => {
 	});
 };
 
-/** 탈퇴 훅 */
+/** 회원 탈퇴 Hook */
 export const useWithdraw = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'withdraw'),

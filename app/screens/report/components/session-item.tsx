@@ -25,7 +25,7 @@ interface Props {
 }
 
 /**
- * 세션의 단어, 시작 시각, 판정 중 표시, 학습 시간을 보여 주고 누르면 세션 상세 화면을 여는 컴포넌트
+ * 세션 항목 컴포넌트
  * @param session 리포트 기간의 세션
  */
 const SessionItem = ({ session }: Props) => {
@@ -42,7 +42,6 @@ const SessionItem = ({ session }: Props) => {
 	const wordName = session.word?.name ?? '';
 	const judging = !isAnonymous && session.judgment_status === 'pending';
 
-	/** 세션 상세 화면 열기 */
 	const handleOpenSession = () => {
 		navigation.navigate('Main', {
 			screen: 'ReportTab',
@@ -58,7 +57,6 @@ const SessionItem = ({ session }: Props) => {
 			accessibilityLabel={joinLabel(wordName, startedAtLabel, durationLabel, judging && t('report.judging'))}
 			contentStyle={styles.sessionRow}
 		>
-			{/*단어, 시작 시각, 판정 중 표시*/}
 			<View style={styles.textContainer}>
 				<Copy numberOfLines={1} style={styles.word}>
 					{wordName}
@@ -67,7 +65,6 @@ const SessionItem = ({ session }: Props) => {
 				{judging && <Tag label={t('report.judging')} />}
 			</View>
 
-			{/*학습 시간*/}
 			<Copy style={styles.duration}>{durationLabel}</Copy>
 		</PressableSurface>
 	);

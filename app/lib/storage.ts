@@ -14,7 +14,7 @@ interface RestoreTarget<S> {
 
 let restoreErrors: readonly RestoreError[] = [];
 
-/** zustand persist에 넘길 MMKV 저장소 */
+/** zustand persist에 사용할 MMKV 저장소 */
 export const mmkvStorage = (id: string) => {
 	const storage = new MMKV({ id });
 
@@ -25,12 +25,12 @@ export const mmkvStorage = (id: string) => {
 	};
 };
 
-/** 저장값 복원 실패 기록 */
+/** 저장값 복원 실패 기록 함수 */
 const recordRestoreError = (error: unknown, storeName: string) => {
 	restoreErrors = [...restoreErrors, { error, storeName }];
 };
 
-/** 저장값을 스키마로 검사해 복원하고 복원 실패를 기록하는 persist 옵션 */
+/** 저장값을 스키마로 검사해 복원하는 persist 옵션 */
 export const restoreOptions = <S>({ schema, storeName }: RestoreTarget<S>) => {
 	return {
 		merge: (persisted: unknown, currentState: S) => {
@@ -57,7 +57,7 @@ export const restoreOptions = <S>({ schema, storeName }: RestoreTarget<S>) => {
 	};
 };
 
-/** 모아 둔 복원 실패 목록을 돌려주고 비우기 */
+/** 기록한 복원 실패 목록을 반환하고 비우는 함수 */
 export const takeRestoreErrors = () => {
 	const errors = restoreErrors;
 

@@ -30,10 +30,10 @@ const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; labelKey: keyof C
 interface Props extends BottomTabBarProps {}
 
 /**
- * 홈, 단어, 리포트, 프로필 탭 버튼을 화면 아래쪽에 보여 주고 누르면 그 탭으로 이동하는 컴포넌트
- * @param state 탭 목록과 지금 고른 탭 위치
- * @param navigation 탭 누름 이벤트를 보내고 탭을 이동하는 React Navigation 객체
- * @param insets 기기 화면 가장자리의 안전 영역 여백
+ * 하단 탭 바 컴포넌트
+ * @param state React Navigation 탭 상태
+ * @param navigation React Navigation 객체
+ * @param insets 안전 영역 여백
  */
 const TabBar = ({ state, navigation, insets }: Props) => {
 	const { t } = useTranslation();
@@ -46,7 +46,6 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 				const TabIcon = tab.icon;
 				const tabLabel = t(`common.tabs.${tab.labelKey}`);
 
-				/** 탭 누름 이벤트를 보내고 막히지 않았으면 고른 탭으로 이동 */
 				const handleSelectTab = () => {
 					const event = navigation.emit({
 						type: 'tabPress',

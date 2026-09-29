@@ -20,10 +20,8 @@ export interface ItemBaseProps extends Props {
 export const ItemLabel = ({ label, icon: Icon, detail }: Props) => {
 	return (
 		<>
-			{/*아이콘*/}
 			{Icon && <Icon size={22} color={colors.muted} />}
 
-			{/*이름과 설명*/}
 			<View style={itemStyles.textContainer}>
 				<Copy style={itemStyles.label}>{label}</Copy>
 				{!!detail && <Copy style={itemStyles.detail}>{detail}</Copy>}

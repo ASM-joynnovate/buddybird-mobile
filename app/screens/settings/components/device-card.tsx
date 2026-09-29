@@ -18,7 +18,7 @@ interface Props {
 }
 
 /**
- * 기기 모델명, 마지막 접속 시각, 이 기기와 세션 실행 중 표시를 보여 주는 컴포넌트
+ * 기기 카드 컴포넌트
  * @param device 연결된 기기
  */
 const DeviceCard = ({ device }: Props) => {

@@ -17,7 +17,7 @@ import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 
-/** 약관 제목과 내용을 보여 주고 동의 버튼을 누르면 동의를 반영한 뒤 이전 화면으로 돌아가는 화면 */
+/** 약관 전문 화면 */
 const ConsentDetailScreen = () => {
 	const { t } = useTranslation();
 
@@ -34,7 +34,6 @@ const ConsentDetailScreen = () => {
 	const canAgree =
 		consent !== undefined && (source === 'onboarding' || (!consent.is_required && consent.status !== 'granted'));
 
-	/** 온보딩이면 동의 화면에 동의한 항목 전달, 설정이면 동의 저장 뒤 이전 화면으로 이동 */
 	const handleAgree = () => {
 		if (isPending || !consent) {
 			return;
@@ -62,10 +61,8 @@ const ConsentDetailScreen = () => {
 				) : undefined
 			}
 		>
-			{/*약관 제목과 뒤로 가기 버튼*/}
 			<ScreenHeader title={consent?.title} onBack={() => navigation.goBack()} />
 
-			{/*약관 내용*/}
 			{consent && <Copy style={styles.text}>{consent.body}</Copy>}
 		</Screen>
 	);

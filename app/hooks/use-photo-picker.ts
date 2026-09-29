@@ -15,7 +15,7 @@ const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
 	quality: 0.85,
 };
 
-/** 사진의 MIME 형식, 없으면 파일 확장자로 찾은 형식 */
+/** 사진의 MIME 형식을 반환하는 함수 */
 const photoMimeType = (asset: ImagePicker.ImagePickerAsset) => {
 	if (asset.mimeType) {
 		return asset.mimeType;
@@ -26,7 +26,7 @@ const photoMimeType = (asset: ImagePicker.ImagePickerAsset) => {
 	return extension === 'png' ? 'image/png' : extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' : '';
 };
 
-/** 카메라나 앨범에서 고른 사진의 형식과 크기를 확인해 사진 주소와 오류 문구를 돌려주는 훅 */
+/** 사진 선택 Hook */
 const usePhotoPicker = (initialPhotoUri: string | null) => {
 	const { t } = useTranslation();
 
@@ -36,7 +36,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 	const libraryPermission = usePermission('photos');
 	const cameraPermission = usePermission('camera');
 
-	/** 카메라나 앨범에서 사진을 고르고 형식과 크기 확인 */
+	/** 사진 선택 함수 */
 	const pick = async (source: 'camera' | 'library') => {
 		try {
 			const pickerResult =
@@ -65,7 +65,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 		}
 	};
 
-	/** 카메라 권한 확인 뒤 사진 찍기 */
+	/** 사진 촬영 함수 */
 	const take = async () => {
 		try {
 			await cameraPermission.run(() => void pick('camera'));
@@ -76,7 +76,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 		}
 	};
 
-	/** 사진 권한 확인 뒤 앨범에서 사진 고르기 */
+	/** 앨범에서 사진 선택 함수 */
 	const choose = async () => {
 		try {
 			await libraryPermission.run(() => void pick('library'));

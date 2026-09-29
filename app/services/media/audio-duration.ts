@@ -3,7 +3,7 @@ import { File, Paths } from 'expo-file-system';
 
 import { SECOND } from '@/utils/units';
 
-/** 소리 파일을 내려받아 재생 길이를 밀리초로 측정 */
+/** 소리 파일의 재생 길이를 측정하는 함수 */
 export const measureAudioDuration = async (url: string) => {
 	const file = await File.downloadFileAsync(url, Paths.cache, { idempotent: true });
 	const player = createAudioPlayer(file.uri);

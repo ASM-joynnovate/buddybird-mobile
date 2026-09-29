@@ -18,10 +18,10 @@ interface Props {
 }
 
 /**
- * Google이나 카카오 로고와 계속하기 글자를 보여 주고 누르면 그 계정으로 로그인을 시작하는 버튼 컴포넌트
- * @param provider 로그인 방법
- * @param loading 이 버튼으로 로그인하는 중인지 여부
- * @param disabled 버튼 비활성화 여부
+ * 소셜 로그인 버튼 컴포넌트
+ * @param provider 로그인 방식
+ * @param loading 로그인 진행 여부
+ * @param disabled 비활성화 여부
  * @param hint 스크린 리더가 읽을 도움말
  * @param onPress 버튼을 누를 때 실행할 함수
  */
@@ -43,7 +43,7 @@ const OAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
 			edgeColor={isGoogle ? loginProviderColors.google.border : loginProviderColors.kakao.background}
 			contentStyle={styles.button}
 		>
-			{/*Google이나 카카오 로고*/}
+			{/*로그인 방식 로고*/}
 			{isGoogle ? (
 				// Google 브랜드 가이드가 제공한 로고 경로
 				<Svg width={20} height={20} viewBox="0 0 48 48" accessible={false} opacity={loading ? 0 : 1}>
@@ -73,12 +73,10 @@ const OAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
 				</Svg>
 			)}
 
-			{/*계속하기 글자*/}
 			<Copy style={[styles.label, isGoogle ? styles.googleLabel : styles.kakaoLabel, loading && styles.hidden]}>
 				{t(`auth.continue.${provider}`)}
 			</Copy>
 
-			{/*로그인 중 표시*/}
 			{loading && (
 				<ActivityIndicator
 					color={isGoogle ? loginProviderColors.google.text : loginProviderColors.kakao.icon}

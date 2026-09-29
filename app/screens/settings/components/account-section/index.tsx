@@ -17,7 +17,7 @@ import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 import { TextButton } from '@/components/ui/text-button';
 
-/** 로그인 버튼이나 로그아웃과 회원 탈퇴 버튼을 보여 주고 누르면 로그인 화면이나 확인 다이얼로그를 여는 컴포넌트 */
+/** 계정 설정 컴포넌트 */
 const AccountSection = () => {
 	const { t } = useTranslation();
 
@@ -29,7 +29,6 @@ const AccountSection = () => {
 
 	return (
 		<View>
-			{/*제목과 계정 버튼*/}
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
 				{t('settings.account.title')}
 			</Copy>
@@ -52,7 +51,6 @@ const AccountSection = () => {
 				)}
 			</View>
 
-			{/*로그아웃과 탈퇴 다이얼로그*/}
 			<SignOutDialog visible={openedDialog === 'signOut'} onClose={() => setOpenedDialog(null)} />
 			<WithdrawDialog visible={openedDialog === 'withdraw'} onClose={() => setOpenedDialog(null)} />
 		</View>

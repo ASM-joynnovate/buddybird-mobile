@@ -14,14 +14,12 @@ interface Props {
 export const ItemGroup = ({ children, title }: Props) => {
 	return (
 		<View style={styles.container}>
-			{/*제목*/}
 			{!!title && (
 				<Copy accessibilityRole="header" style={styles.groupTitle}>
 					{title}
 				</Copy>
 			)}
 
-			{/*항목 목록*/}
 			<View style={styles.list}>{children}</View>
 		</View>
 	);

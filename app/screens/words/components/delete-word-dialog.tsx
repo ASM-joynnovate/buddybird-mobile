@@ -16,18 +16,17 @@ interface Props {
 }
 
 /**
- * 단어를 지우면 되돌릴 수 없다는 안내를 보여 주고 삭제를 누르면 단어를 삭제하는 다이얼로그 컴포넌트
+ * 단어 삭제 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
  * @param word 삭제할 단어
  * @param onClose 다이얼로그를 닫을 때 실행할 함수
- * @param onDeleted 단어를 삭제한 뒤 실행할 함수
+ * @param onDeleted 단어 삭제 후 실행할 함수
  */
 const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 	const { t } = useTranslation();
 
 	const { isError, isPending, mutate, reset } = useDeleteWord();
 
-	/** 단어 삭제 */
 	const handleDeleteWord = () => {
 		if (isPending) {
 			return;
@@ -45,7 +44,6 @@ const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 		);
 	};
 
-	/** 삭제 확인 다이얼로그 닫기 */
 	const handleClose = () => {
 		reset();
 

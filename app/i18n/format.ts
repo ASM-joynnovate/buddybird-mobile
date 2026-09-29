@@ -12,34 +12,34 @@ const dateFormats: Record<Locale, { monthDay: string; monthDayWeekday: string; y
 	'en-US': { monthDay: 'MMMM D', monthDayWeekday: 'ddd, MMMM D', yearMonth: 'MMMM YYYY' },
 };
 
-/** 언어에 맞춘 월과 일 문구 */
+/** 날짜를 '9월 29일' 형식으로 변환하는 함수 */
 export const formatMonthDay = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(dateFormats[locale].monthDay);
 };
 
-/** 언어에 맞춘 월, 일, 요일 문구 */
+/** 날짜를 '9월 29일 (화)' 형식으로 변환하는 함수 */
 export const formatMonthDayWeekday = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(dateFormats[locale].monthDayWeekday);
 };
 
-/** 언어에 맞춘 연도와 월 문구 */
+/** 날짜를 '2026년 9월' 형식으로 변환하는 함수 */
 export const formatYearMonth = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(dateFormats[locale].yearMonth);
 };
 
-/** 월, 일과 시각 문구 */
+/** 날짜를 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
 export const formatMonthDayTime = (value: DateInput, locale: Locale) => {
 	return `${formatMonthDay(value, locale)} ${dayjs(value).format('LT')}`;
 };
 
-/** 오늘이면 시각, 다른 날이면 월, 일과 시각 문구 */
+/** 오늘이면 '오후 3:00', 다른 날이면 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
 export const formatTimeOrDateTime = (value: DateInput, locale: Locale, now: DateInput = dayjs()) => {
 	const date = dayjs(value);
 
 	return date.isSame(now, 'day') ? date.format('LT') : formatMonthDayTime(value, locale);
 };
 
-/** 1분 미만은 초를 반올림하고 1분 이상은 분 아래를 버린 시간 길이 문구 */
+/** 밀리초를 '1시간 5분' 형식으로 변환하는 함수 */
 export const formatDuration = (ms: number, locale: Locale) => {
 	const duration = dayjs.duration(Math.max(0, ms));
 
@@ -48,7 +48,7 @@ export const formatDuration = (ms: number, locale: Locale) => {
 		: durationText(dayjs.duration(Math.floor(duration.asMinutes()), 'minutes'), locale);
 };
 
-/** 하루 이상이면 일 수를 앞에 붙인 시간 길이 문구 */
+/** 밀리초를 '2일 1시간 5분' 형식으로 변환하는 함수 */
 export const formatDurationWithDays = (ms: number, locale: Locale) => {
 	const duration = dayjs.duration(ms);
 	const days = Math.floor(duration.asDays());
@@ -63,7 +63,7 @@ export const formatDurationWithDays = (ms: number, locale: Locale) => {
 	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`;
 };
 
-/** 시:분:초나 분:초 모양의 시계 문구 */
+/** 밀리초를 '1:05:30' 형식으로 변환하는 함수 */
 export const formatTimer = (ms: number) => {
 	const duration = dayjs.duration(Math.max(0, ms));
 	const hours = Math.floor(duration.asHours());
@@ -71,7 +71,7 @@ export const formatTimer = (ms: number) => {
 	return hours > 0 ? `${hours}:${duration.format('mm:ss')}` : duration.format('m:ss');
 };
 
-/** 시:분:초 값을 언어에 맞춘 시각 문구 */
+/** '22:30:00' 형식의 시각을 '오후 10:30' 형식으로 변환하는 함수 */
 export const formatClock = (time: string) => {
 	return dayjs(time, CLOCK_FORMAT).format('LT');
 };

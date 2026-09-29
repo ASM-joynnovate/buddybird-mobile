@@ -16,10 +16,10 @@ interface Props {
 }
 
 /**
- * 수면 시간 범위를 보여 주고 누르면 취침 시각과 기상 시각을 고르는 휠을 아래에서 띄우는 컴포넌트
- * @param value 취침 시각과 기상 시각, 없으면 누를 수 없음
+ * 수면 시간 선택 컴포넌트
+ * @param value 수면 시간
  * @param first 목록의 첫 항목 여부
- * @param onChange 수면 시간을 바꿀 때 실행할 함수
+ * @param onChange 수면 시간 변경 시 실행할 함수
  */
 const SleepTimePicker = ({ value, first, onChange }: Props) => {
 	const { t } = useTranslation();

@@ -4,7 +4,7 @@ import { getAppUpdate } from '@/apis/app-update';
 
 import { apiKeys } from '@/hooks/apis/keys';
 
-/** 앱 업데이트 정보 조회 옵션 */
+/** 앱 업데이트 정보 조회 Hook에 사용할 옵션 */
 export const getAppUpdateOptions = () =>
 	queryOptions({
 		queryKey: apiKeys.appUpdate(),
@@ -13,7 +13,7 @@ export const getAppUpdateOptions = () =>
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 	});
-/** 앱 업데이트 정보 조회 훅 */
+/** 앱 업데이트 정보 조회 Hook */
 export const useGetAppUpdate = () => {
 	return useSuspenseQuery(getAppUpdateOptions());
 };

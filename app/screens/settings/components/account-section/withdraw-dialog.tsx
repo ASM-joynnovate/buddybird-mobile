@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * 회원 탈퇴를 경고하고 확인을 누르면 탈퇴한 뒤 이 기기에서 로그아웃하는 다이얼로그 컴포넌트
+ * 회원 탈퇴 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
  * @param onClose 다이얼로그를 닫을 때 실행할 함수
  */
@@ -28,7 +28,6 @@ const WithdrawDialog = ({ visible, onClose }: Props) => {
 
 	const { isPending, error, mutate, reset } = useWithdraw();
 
-	/** 회원 탈퇴 요청과 성공 시 이 기기에서 로그아웃 */
 	const handleWithdraw = () => {
 		if (isPending) {
 			return;
@@ -39,7 +38,6 @@ const WithdrawDialog = ({ visible, onClose }: Props) => {
 		});
 	};
 
-	/** 탈퇴 실패 안내 초기화와 다이얼로그 닫기 */
 	const handleClose = () => {
 		reset();
 

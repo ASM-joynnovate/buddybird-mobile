@@ -12,7 +12,7 @@ import { startPushTokenSync } from '@/services/push/token-sync';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 
-/** 기기 등록 때 서버에 보내는 이 기기의 ID, 플랫폼, OS 버전, 모델명, 앱 버전, 시간대 */
+/** 기기 등록 요청에 보낼 이 기기의 정보 */
 const thisDeviceInfo = () => ({
 	client_device_id: useAccountStore.getState().clientDeviceId ?? '',
 	platform: Platform.OS,
@@ -27,7 +27,7 @@ interface Props {
 }
 
 /**
- * 기기 등록과 푸시 토큰 동기화 provider
+ * 기기 등록 provider
  * @param children 감싸는 내용
  */
 const DeviceProvider = ({ children }: Props) => {
@@ -35,7 +35,7 @@ const DeviceProvider = ({ children }: Props) => {
 
 	const serverUserId = useAccountStore((state) => state.serverUserId);
 
-	/** 서버 사용자 ID가 생기거나 바뀔 때 기기 등록 */
+	/** 서버 사용자 ID 변경 시 기기 등록 */
 	useEffect(() => {
 		if (!serverUserId) {
 			return;

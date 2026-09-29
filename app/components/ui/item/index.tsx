@@ -32,10 +32,8 @@ export const Item = ({ value, showDot, onPress, disabled, trailing, ...props }: 
 			style={!props.first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
-			{/*아이콘, 이름, 설명*/}
 			<ItemLabel {...props} />
 
-			{/*빨간 점, 값, 오른쪽 끝 화살표*/}
 			{showDot && <View style={styles.dot} />}
 			{!!value && <Copy style={styles.value}>{value}</Copy>}
 			{trailing ?? <ChevronRightIcon size={18} color={colors.subtle} />}

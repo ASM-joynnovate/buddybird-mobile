@@ -23,14 +23,14 @@ const requesters: Record<PermissionKind, () => Promise<PermissionState>> = {
 	camera: () => ImagePicker.requestCameraPermissionsAsync(),
 };
 
-/** 권한의 허용 여부와 다시 물을 수 있는지 여부 */
+/** 권한 상태를 반환하는 함수 */
 export const readPermission = async (kind: PermissionKind) => {
 	const { granted, canAskAgain } = await readers[kind]();
 
 	return { granted, canAskAgain };
 };
 
-/** 권한을 요청한 뒤의 허용 여부와 다시 물을 수 있는지 여부 */
+/** 권한 요청 함수 */
 export const requestPermission = async (kind: PermissionKind) => {
 	const { granted, canAskAgain } = await requesters[kind]();
 

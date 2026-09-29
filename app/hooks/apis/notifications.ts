@@ -8,7 +8,7 @@ import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 알림 목록 조회 옵션 */
+/** 알림 목록 조회 Hook에 사용할 옵션 */
 export const getNotificationListOptions = () =>
 	infiniteQueryOptions({
 		queryKey: apiKeys.notifications(),
@@ -16,12 +16,12 @@ export const getNotificationListOptions = () =>
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => (lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1),
 	});
-/** 알림 목록 조회 훅 */
+/** 알림 목록 조회 Hook */
 export const useGetNotificationList = () => {
 	return useSuspenseInfiniteQuery(getNotificationListOptions());
 };
 
-/** 알림 읽음 표시 훅 */
+/** 알림 읽음 처리 Hook */
 export const useReadNotification = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notifications', 'read'),
@@ -31,7 +31,7 @@ export const useReadNotification = () => {
 	});
 };
 
-/** 알림 모두 읽음 표시 훅 */
+/** 알림 모두 읽음 처리 Hook */
 export const useReadAllNotifications = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notifications', 'read-all'),

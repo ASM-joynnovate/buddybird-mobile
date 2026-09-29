@@ -32,14 +32,14 @@ interface LoginAttempt {
 	pending: boolean;
 }
 
-/** Apple 로그인 취소 여부 */
+/** Apple 로그인 취소 여부를 반환하는 함수 */
 const isAppleLoginCanceled = (provider: LoginProvider, e: unknown) =>
 	provider === 'apple' &&
 	e instanceof Error &&
 	'code' in e &&
 	(e.code === 'ERR_REQUEST_CANCELED' || e.code === 'ERR_REQUEST_UNKNOWN');
 
-/** 마스코트와 이 기기에서 쓸 수 있는 로그인 버튼을 보여 주고 누르면 그 계정을 연결하거나 그 계정으로 로그인하는 화면 */
+/** 로그인 화면 */
 const LoginScreen = () => {
 	const { t } = useTranslation();
 
@@ -67,7 +67,7 @@ const LoginScreen = () => {
 			? t('auth.completing')
 			: null;
 
-	/** 화면을 열 때 이 기기에서 쓸 수 있는 로그인 방법 불러오기 */
+	/** 화면 진입 시 사용할 수 있는 로그인 방식 조회 */
 	useEffect(() => {
 		let active = true;
 
@@ -82,7 +82,7 @@ const LoginScreen = () => {
 		};
 	}, []);
 
-	/** 온보딩에서 화면에 들어올 때마다 onboarding_step_viewed 전송 */
+	/** 온보딩에서 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			if (fromOnboarding) {
@@ -91,7 +91,6 @@ const LoginScreen = () => {
 		}, [fromOnboarding]),
 	);
 
-	/** 소셜 계정 연결, 이미 연결된 계정으로 전환, 로그인 단계 완료 전송 */
 	const handleSignIn = async (provider: LoginProvider) => {
 		if (signingInRef.current) {
 			return;
@@ -126,7 +125,6 @@ const LoginScreen = () => {
 		}
 	};
 
-	/** 로그인 단계 건너뛰기 전송과 로그인 화면 본 것으로 저장 */
 	const handleSkip = () => {
 		trackOnboardingStepCompleted('login', { login_method: 'skip' });
 
@@ -136,7 +134,6 @@ const LoginScreen = () => {
 	return (
 		<View style={styles.container}>
 			<Screen contentContainerStyle={styles.screen}>
-				{/*뒤로 가기 버튼이나 건너뛰기 버튼*/}
 				<ScreenHeader
 					onBack={fromOnboarding ? undefined : () => navigation.goBack()}
 					trailing={
@@ -151,13 +148,11 @@ const LoginScreen = () => {
 					}
 				/>
 
-				{/*마스코트와 앱 이름*/}
 				<View style={styles.introContainer}>
 					<Mascot size={150} />
 					<Title style={styles.product}>{t('onboarding.login.product')}</Title>
 				</View>
 
-				{/*로그인 버튼*/}
 				<View style={styles.actionsContainer}>
 					{providers.includes('google') && (
 						<View>
@@ -217,7 +212,6 @@ const LoginScreen = () => {
 				</View>
 			</Screen>
 
-			{/*로그인 진행 표시*/}
 			{!!progressLabel && (
 				<View style={styles.progress} accessibilityLiveRegion="polite" accessibilityViewIsModal>
 					<ActivityIndicator color={colors.orange} size="large" />

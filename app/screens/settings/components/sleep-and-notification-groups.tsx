@@ -8,7 +8,7 @@ import SleepTimePicker from '@/components/session/sleep-time-picker';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 앵무새 케어의 수면 시간 선택과 알림 스위치를 보여 주고 바꾸면 서버에 저장하는 컴포넌트 */
+/** 수면 시간과 알림 설정 컴포넌트 */
 const SleepAndNotificationGroups = () => {
 	const { t } = useTranslation();
 
@@ -21,7 +21,6 @@ const SleepAndNotificationGroups = () => {
 
 	return (
 		<>
-			{/*수면 시간*/}
 			<ItemGroup title={t('settings.care.title')}>
 				<SleepTimePicker
 					value={settingsData.sleep}
@@ -30,7 +29,6 @@ const SleepAndNotificationGroups = () => {
 				/>
 			</ItemGroup>
 
-			{/*알림*/}
 			<NotificationGroup
 				settings={settingsData}
 				onChange={(key, value) =>
@@ -38,7 +36,6 @@ const SleepAndNotificationGroups = () => {
 				}
 			/>
 
-			{/*저장 실패 안내*/}
 			<InlineError message={saveFailed ? t('settings.saveError') : null} />
 		</>
 	);

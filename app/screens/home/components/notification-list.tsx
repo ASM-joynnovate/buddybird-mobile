@@ -12,7 +12,7 @@ import { colors } from '@/theme';
 import Illustration from '@/components/illustration';
 import { EmptyState } from '@/components/ui/empty-state';
 
-/** 받은 알림을 보여 주고 끝까지 내리면 다음 쪽을 불러오는 목록 컴포넌트 */
+/** 받은 알림 목록 컴포넌트 */
 const NotificationList = () => {
 	const { t } = useTranslation();
 
@@ -26,7 +26,6 @@ const NotificationList = () => {
 		/>
 	);
 
-	/** 다음 쪽 알림 불러오기 */
 	const handleFetchNextPage = () => {
 		if (hasNextPage && !isFetchingNextPage) {
 			void fetchNextPage();

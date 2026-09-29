@@ -20,31 +20,31 @@ import { queryClient } from '@/lib/query-client';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 진행 중 세션 조회 옵션 */
+/** 진행 중인 세션 조회 Hook에 사용할 옵션 */
 export const getRunningSessionOptions = () =>
 	queryOptions({ queryKey: apiKeys.sessions.running(), queryFn: getRunningSession });
-/** 진행 중 세션 조회 훅 */
+/** 진행 중인 세션 조회 Hook */
 export const useGetRunningSession = () => {
 	return useSuspenseQuery(getRunningSessionOptions());
 };
 
-/** 세션 조회 옵션 */
+/** 세션 상세 조회 Hook에 사용할 옵션 */
 export const getSessionOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.detail(id), queryFn: () => getSession({ id }) });
-/** 세션 조회 훅 */
+/** 세션 상세 조회 Hook */
 export const useGetSession = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionOptions({ id }));
 };
 
-/** 세션 소리 목록 조회 옵션 */
+/** 세션 소리 목록 조회 Hook에 사용할 옵션 */
 export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.sounds(id), queryFn: () => getAllSessionSounds({ id }) });
-/** 세션 소리 목록 조회 훅 */
+/** 세션 소리 목록 조회 Hook */
 export const useGetSessionSoundList = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionSoundListOptions({ id }));
 };
 
-/** 세션 시작 훅 */
+/** 세션 시작 Hook */
 export const useStartSession = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'start'),
@@ -64,7 +64,7 @@ export const useStartSession = () => {
 	});
 };
 
-/** 세션 종료 훅 */
+/** 세션 종료 Hook */
 export const useFinishSession = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'finish'),
@@ -85,7 +85,7 @@ export const useFinishSession = () => {
 	});
 };
 
-/** 세션 소리 업로드 훅 */
+/** 세션 소리 업로드 Hook */
 export const useUploadSessionSound = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
@@ -94,7 +94,7 @@ export const useUploadSessionSound = () => {
 	});
 };
 
-/** 하트비트 전송 훅 */
+/** 하트비트 전송 Hook */
 export const useSendHeartbeat = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'heartbeat'),

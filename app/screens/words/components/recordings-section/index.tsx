@@ -31,12 +31,12 @@ interface Props {
 }
 
 /**
- * 녹음 개수, 녹음 목록, 녹음 추가 버튼을 보여 주고 도움말 버튼을 누르면 녹음 안내 화면을 여는 컴포넌트
+ * 녹음 목록 컴포넌트
  * @param recordings 편집 중인 단어의 녹음 목록
  * @param recordingMissing 녹음 없이 저장을 눌렀는지 여부
  * @param saving 단어 저장 중 여부
- * @param wordName 녹음 안내 화면에 넘길 단어 이름
- * @param player 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * @param wordName 녹음 안내 화면에 전달할 단어 이름
+ * @param player useSoundPlayer 결과
  * @param onAdd 녹음 추가 버튼을 누를 때 실행할 함수
  * @param onDelete 녹음 삭제 버튼을 누를 때 실행할 함수
  */
@@ -49,7 +49,7 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 
 	return (
 		<View style={ui.sectionContainer}>
-			{/*제목과 도움말 버튼*/}
+			{/*헤더*/}
 			<View style={styles.headerRow}>
 				<Copy accessibilityRole="header" style={styles.title}>
 					{t('words.editor.recordings', { count: recordings.length })}
@@ -62,7 +62,6 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 				/>
 			</View>
 
-			{/*녹음 목록*/}
 			{recordings.map((recording, index) => {
 				const deletable = !saving && !(recording.kind === 'server' && keptServerRecordingCount <= 1);
 
@@ -77,11 +76,9 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 				);
 			})}
 
-			{/*오류 안내*/}
 			<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 			<InlineError message={recordingMissing ? t('words.editor.recordingRequired') : null} />
 
-			{/*녹음 추가 버튼과 권장 개수 안내*/}
 			{recordings.length < MAX_RECORDINGS && (
 				<Button
 					label={t('words.editor.addRecording')}

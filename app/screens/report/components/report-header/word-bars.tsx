@@ -18,7 +18,7 @@ interface Props {
 }
 
 /**
- * 단어마다 이름, 학습 시간 막대, 학습 시간을 보여 주는 컴포넌트
+ * 단어별 학습 시간 컴포넌트
  * @param words 단어별 학습 시간
  */
 const WordBars = ({ words }: Props) => {
@@ -34,12 +34,10 @@ const WordBars = ({ words }: Props) => {
 
 	return (
 		<View style={ui.sectionContainer}>
-			{/*단어별 학습 시간 제목*/}
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
 				{t('report.learningTimeByWord')}
 			</Copy>
 
-			{/*단어 이름, 학습 시간 막대, 학습 시간*/}
 			<View style={styles.listContainer}>
 				{words.map((wordDuration) => {
 					const durationLabel = formatDuration(wordDuration.learning_duration_ms, locale);

@@ -31,9 +31,9 @@ interface Props {
 }
 
 /**
- * 알림 종류별 스위치를 보여 주고 알림 권한이 꺼져 있으면 권한 상태 화면을 여는 안내를 함께 보여 주는 컴포넌트
+ * 알림 설정 컴포넌트
  * @param settings 서버에 저장된 설정
- * @param onChange 알림 스위치를 바꿀 때 실행할 함수
+ * @param onChange 알림 설정 변경 시 실행할 함수
  */
 const NotificationGroup = ({ settings, onChange }: Props) => {
 	const { t } = useTranslation();
@@ -46,7 +46,7 @@ const NotificationGroup = ({ settings, onChange }: Props) => {
 
 	return (
 		<ItemGroup title={t('settings.notifications.title')}>
-			{/*알림 권한이 꺼졌을 때 권한 상태 화면을 여는 안내*/}
+			{/*알림 권한이 꺼져 있으면 권한 설정 안내*/}
 			{permissionOff && (
 				<Item
 					first
@@ -57,7 +57,7 @@ const NotificationGroup = ({ settings, onChange }: Props) => {
 				/>
 			)}
 
-			{/*공지, 리포트, 마케팅 알림 스위치*/}
+			{/*알림 종류별 스위치*/}
 			{NOTIFICATION_SETTINGS.map(({ setting, labelKey }, index) => (
 				<ItemSwitch
 					key={setting}

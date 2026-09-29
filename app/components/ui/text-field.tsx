@@ -14,7 +14,6 @@ interface Props extends TextInputProps {
 export const TextField = ({ label, errorMessage, style, accessibilityLabel, ...props }: Props) => {
 	return (
 		<View>
-			{/*이름과 입력 칸*/}
 			{!!label && <Copy style={ui.label}>{label}</Copy>}
 			<TextInput
 				{...props}
@@ -24,7 +23,6 @@ export const TextField = ({ label, errorMessage, style, accessibilityLabel, ...p
 				style={[styles.input, errorMessage && { borderColor: colors.error }, style]}
 			/>
 
-			{/*오류 문구*/}
 			<InlineError message={errorMessage} />
 		</View>
 	);

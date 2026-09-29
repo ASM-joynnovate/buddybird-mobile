@@ -24,7 +24,7 @@ const MIN_BAR_HEIGHT = 3;
 
 type TrendBar = Report['trend'][number];
 
-/** 기간에 맞춘 막대 아래 축 글자 */
+/** 기간에 맞는 x축 라벨을 반환하는 함수 */
 const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 	if (period === 'week') {
 		return date.format('ddd');
@@ -43,9 +43,9 @@ interface Props {
 }
 
 /**
- * 기간 안의 학습 시간을 막대로 보여 주고 막대를 누르면 그 막대의 날짜와 학습 시간을 위에 보여 주는 컴포넌트
- * @param period 고른 리포트 기간 종류
- * @param trend 막대마다의 시작 시각과 학습 시간
+ * 학습 시간 막대 그래프 컴포넌트
+ * @param period 선택한 리포트 기간 단위
+ * @param trend 막대별 학습 시간
  */
 const TrendChart = ({ period, trend }: Props) => {
 	const { t } = useTranslation();
@@ -57,7 +57,7 @@ const TrendChart = ({ period, trend }: Props) => {
 	const maxDurationMs = Math.max(1, ...trend.map((trendBar) => trendBar.learning_duration_ms));
 	const selectedBar = selectedIndex === null ? null : trend[selectedIndex];
 
-	/** 막대의 시각이나 날짜와 학습 시간을 합친 문구 */
+	/** 막대 설명 문구를 반환하는 함수 */
 	const describeBar = (trendBar: TrendBar) =>
 		t('report.chartBar', {
 			label:
@@ -67,7 +67,7 @@ const TrendChart = ({ period, trend }: Props) => {
 
 	return (
 		<View>
-			{/*고른 막대의 날짜와 학습 시간*/}
+			{/*선택한 막대 설명*/}
 			<Copy accessibilityLiveRegion="polite" style={styles.detail}>
 				{selectedBar ? describeBar(selectedBar) : ' '}
 			</Copy>
@@ -103,7 +103,7 @@ const TrendChart = ({ period, trend }: Props) => {
 				))}
 			</View>
 
-			{/*막대 아래 축 글자*/}
+			{/*x축 라벨*/}
 			<View
 				style={[styles.axisRow, period === 'week' ? styles.wideGap : styles.narrowGap]}
 				accessibilityElementsHidden

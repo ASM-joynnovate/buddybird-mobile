@@ -16,7 +16,7 @@ export interface PermissionDialogState {
 	onClose: () => void;
 }
 
-/** 권한 상태를 확인하고 권한이 있을 때만 동작을 실행하며 설정 안내 다이얼로그 상태를 돌려주는 훅 */
+/** 권한 확인 후 동작을 실행하는 Hook */
 const usePermission = (kind: PermissionKind) => {
 	const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -32,7 +32,7 @@ const usePermission = (kind: PermissionKind) => {
 		},
 	};
 
-	/** 권한 상태를 읽어 저장 */
+	/** 권한 상태 갱신 함수 */
 	const refresh = useCallback(async () => {
 		const permission = await readPermission(kind);
 
@@ -41,7 +41,7 @@ const usePermission = (kind: PermissionKind) => {
 		return permission;
 	}, [kind]);
 
-	/** 권한 종류가 바뀌거나 앱으로 돌아올 때 권한 상태를 다시 읽고 허용되면 미뤄 둔 동작 실행 */
+	/** 앱으로 돌아오면 권한 상태 갱신 */
 	useEffect(() => {
 		void refresh().catch((error: unknown) => reportError(error, `permission_${kind}`));
 
@@ -67,7 +67,7 @@ const usePermission = (kind: PermissionKind) => {
 		return () => subscription.remove();
 	}, [kind, refresh]);
 
-	/** 권한이 있으면 동작 실행, 물을 수 있으면 권한 요청, 아니면 설정 안내 다이얼로그 열기 */
+	/** 권한 확인 후 동작을 실행하는 함수 */
 	const run = async (action: () => void) => {
 		const permission = await readPermission(kind);
 

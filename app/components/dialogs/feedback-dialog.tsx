@@ -29,10 +29,9 @@ interface Props {
 }
 
 /**
- * 의견 입력란을 보여 주고 보내기 버튼을 누르면 의견을 전송한 뒤 감사 문구를 보여 주는 다이얼로그 컴포넌트
- * 의견 요청으로 열리면 닫기 버튼과 쓰기 버튼이 있는 요청 안내를 보여 줌
+ * 피드백 보내기 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
- * @param prompt 의견 요청 안내의 닫기 버튼과 쓰기 버튼을 누를 때 실행할 함수
+ * @param prompt 피드백 요청 안내의 버튼을 누를 때 실행할 함수
  */
 const FeedbackDialog = ({ visible, prompt }: Props) => {
 	const { t } = useTranslation();
@@ -45,7 +44,6 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
 	const closeFeedback = useFeedbackStore((state) => state.closeFeedback);
 
-	/** 입력 초기화와 새 멱등키 발급 뒤 의견 다이얼로그 닫기 */
 	const handleClose = () => {
 		if (isPending) {
 			return;
@@ -59,7 +57,6 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 		closeFeedback();
 	};
 
-	/** 의견 전송과 성공 또는 4xx 거부 시 새 멱등키 발급 */
 	const handleSubmit = () => {
 		if (isPending || !message.trim()) {
 			return;
@@ -153,7 +150,6 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				</View>
 			}
 		>
-			{/*의견 입력과 개인정보 안내*/}
 			<TextField
 				accessibilityLabel={t('app.feedback.title')}
 				value={message}
@@ -167,7 +163,6 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 			/>
 			<Copy style={styles.privacy}>{t('app.feedback.privacy')}</Copy>
 
-			{/*전송 실패 문구*/}
 			<InlineError message={isError ? t('app.feedback.sendError') : null} />
 		</Dialog>
 	);

@@ -18,12 +18,12 @@ interface Props {
 }
 
 /**
- * 화면 가운데에 제목, 스크롤할 수 있는 내용, 하단 버튼을 띄우는 다이얼로그 컴포넌트
+ * 공통 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
  * @param onClose 뒤로 가기 버튼으로 닫을 때 실행할 함수
  * @param title 다이얼로그 제목
- * @param children 제목 아래에 보여 줄 내용
- * @param footer 아래쪽에 보여 줄 버튼
+ * @param children 제목 아래에 표시할 내용
+ * @param footer 하단 버튼
  */
 const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 	const insets = useSafeAreaInsets();
@@ -36,10 +36,8 @@ const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 					style={[styles.backdrop, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
 				>
 					<View accessibilityViewIsModal style={styles.dialog}>
-						{/*제목*/}
 						<Title style={styles.title}>{title}</Title>
 
-						{/*스크롤할 수 있는 내용*/}
 						<ScrollView
 							style={styles.body}
 							keyboardShouldPersistTaps="handled"
@@ -48,7 +46,6 @@ const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 							{children}
 						</ScrollView>
 
-						{/*하단 버튼*/}
 						{footer}
 					</View>
 				</KeyboardAvoidingView>

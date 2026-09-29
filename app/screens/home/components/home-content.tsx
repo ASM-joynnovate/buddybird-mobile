@@ -49,7 +49,7 @@ import { Card } from '@/components/ui/surface/card';
 import { TextButton } from '@/components/ui/text-button';
 
 /**
- * 학습 설정과 학습 시작 컴포넌트
+ * 학습 설정 컴포넌트
  */
 const HomeContent = () => {
 	const { t } = useTranslation();
@@ -106,7 +106,7 @@ const HomeContent = () => {
 	const starting = startSession.isPending || finishSession.isPending;
 	const startFailed = requestedSetup !== null && (startSession.isError || finishSession.isError);
 
-	/** 학습 시작 요청과 학습 화면 이동 */
+	/** 학습 시작 요청 함수 */
 	const requestStart = (setupToStart: SessionSetup) => {
 		const endsAt = setupToStart.duration.ms === null ? null : dayjs().add(setupToStart.duration.ms, 'ms').valueOf();
 
@@ -147,7 +147,6 @@ const HomeContent = () => {
 		);
 	};
 
-	/** 학습 시작 */
 	const handleStart = () => {
 		if (starting || !sessionSetup) {
 			return;
@@ -156,7 +155,7 @@ const HomeContent = () => {
 		void microphonePermission.run(() => requestStart(sessionSetup));
 	};
 
-	/** 진행 중 세션 종료 뒤 학습 시작 요청으로 다른 기기의 학습 넘겨받기 */
+	/** 다른 기기에서 진행 중인 학습을 이 기기로 가져오기 */
 	const handleConfirmTakeover = async () => {
 		if (starting || !requestedSetup) {
 			return;
@@ -183,7 +182,6 @@ const HomeContent = () => {
 		}
 	};
 
-	/** 학습 시작 다시 시도 */
 	const handleRetryStart = () => {
 		if (starting || !requestedSetup) {
 			return;
@@ -194,7 +192,6 @@ const HomeContent = () => {
 		requestStart(requestedSetup);
 	};
 
-	/** 학습 시작 다이얼로그 닫기 */
 	const handleCloseStartDialog = () => {
 		setTakeoverDialogOpen(false);
 		setRequestedSetup(null);
@@ -205,20 +202,17 @@ const HomeContent = () => {
 
 	return (
 		<>
-			{/*로고 줄*/}
 			<HomeTopBar unreadCount={unreadCount} />
 
-			{/*학습 설정*/}
 			<ScrollView
 				alwaysBounceVertical={false}
 				showsVerticalScrollIndicator={false}
 				style={styles.body}
 				contentContainerStyle={styles.content}
 			>
-				{/*학습 제목*/}
 				<ScreenHeader large title={t('session.start.title')} />
 
-				{/*다른 기기 학습*/}
+				{/*다른 기기에서 진행 중인 학습 안내*/}
 				{runningSession && runningElsewhere && (
 					<Card style={styles.elsewhereCardContainer} contentStyle={styles.elsewhereCard}>
 						<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
@@ -231,7 +225,7 @@ const HomeContent = () => {
 					</Card>
 				)}
 
-				{/*단어 타일*/}
+				{/*단어 선택*/}
 				<Copy accessibilityRole="header" style={ui.sectionTitle}>
 					{t('session.start.word')}
 				</Copy>
@@ -242,7 +236,7 @@ const HomeContent = () => {
 				/>
 				{!selectedWord && <Copy style={ui.subtitle}>{t('session.start.empty')}</Copy>}
 
-				{/*학습 시간과 합계*/}
+				{/*학습 시간 선택*/}
 				<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.sectionContainer]}>
 					{t('session.start.duration')}
 				</Copy>
@@ -257,7 +251,7 @@ const HomeContent = () => {
 					</Animated.View>
 				)}
 
-				{/*수면 시간*/}
+				{/*수면 시간 선택*/}
 				{untilEnd && (
 					<Animated.View
 						entering={FadeIn.duration(layoutAnimationMs)}
@@ -277,7 +271,6 @@ const HomeContent = () => {
 				</Animated.View>
 			</ScrollView>
 
-			{/*학습 시작 버튼*/}
 			<Button
 				label={t('session.start.startButton')}
 				accessibilityLabel={sessionSetup ? t('session.start.startButton') : t('session.start.startUnavailable')}
@@ -289,7 +282,7 @@ const HomeContent = () => {
 				style={styles.startButton}
 			/>
 
-			{/*학습 시작 다이얼로그*/}
+			{/*학습 시작 확인 다이얼로그*/}
 			<ConfirmDialog
 				visible={takeoverDialogOpen}
 				text={{
@@ -315,7 +308,6 @@ const HomeContent = () => {
 			/>
 			<PermissionDialog state={microphonePermission.dialog} />
 
-			{/*읽지 않은 공지 다이얼로그*/}
 			<NoticePopup notices={homeSummaryData.unread_notices} />
 		</>
 	);

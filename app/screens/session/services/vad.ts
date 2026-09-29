@@ -23,7 +23,7 @@ const AMPLITUDE_DB_FACTOR = 20;
 const MIN_RMS = 1e-9;
 const EMPTY: Float32Array = new Float32Array(0);
 
-/** 두 샘플 배열을 이어 붙인 새 배열 */
+/** 두 샘플 배열을 이어 붙이는 함수 */
 const concat = (first: Float32Array, second: Float32Array) => {
 	const joined = new Float32Array(first.length + second.length);
 
@@ -33,12 +33,12 @@ const concat = (first: Float32Array, second: Float32Array) => {
 	return joined;
 };
 
-/** 샘플 배열의 끝에서 length개만 남긴 배열 */
+/** 샘플 배열의 마지막 length개를 반환하는 함수 */
 const tail = (samples: Float32Array, length: number) => {
 	return samples.slice(Math.max(0, samples.length - length));
 };
 
-/** 프레임의 소리 크기가 기준보다 큰지 여부 */
+/** 프레임의 소리 크기가 기준보다 큰지 확인하는 함수 */
 const isLoud = (frame: Float32Array, settings: VadSettings) => {
 	const power = frame.reduce((sum, sample) => sum + sample * sample, 0) / frame.length;
 	const decibels = AMPLITUDE_DB_FACTOR * Math.log10(Math.max(Math.sqrt(power), MIN_RMS));
@@ -47,7 +47,7 @@ const isLoud = (frame: Float32Array, settings: VadSettings) => {
 	return Math.min(1, Math.max(0, level)) > settings.threshold;
 };
 
-/** 마이크 샘플에서 큰 소리가 난 구간을 찾는 push, suspend, flush 함수 생성 */
+/** 마이크 샘플에서 큰 소리가 난 구간을 찾는 객체를 만드는 함수 */
 export const createSoundDetector = (settings: VadSettings) => {
 	const samplesPerMs = settings.sampleRate / SECOND;
 	const frameSamples = samplesPerMs * settings.frameMs;
@@ -61,10 +61,10 @@ export const createSoundDetector = (settings: VadSettings) => {
 	let quietTailMs = 0;
 	let suspendedUntil = 0;
 
-	/** 샘플 개수를 밀리초 길이로 변환 */
+	/** 샘플 개수를 밀리초로 변환하는 함수 */
 	const msOf = (samples: Float32Array) => samples.length / samplesPerMs;
 
-	/** 앞에 붙일 샘플, 큰 소리 후보, 모으던 구간 초기화 */
+	/** 감지 상태 초기화 함수 */
 	const reset = () => {
 		padBeforeSamples = EMPTY;
 		loudCandidate = EMPTY;
@@ -73,7 +73,7 @@ export const createSoundDetector = (settings: VadSettings) => {
 		quietTailMs = 0;
 	};
 
-	/** 모으던 소리 구간을 끝내고 반환, 없으면 null */
+	/** 모으던 소리 구간을 끝내고 반환하는 함수 */
 	const flush = () => {
 		if (segment.length === 0) {
 			reset();
@@ -95,7 +95,7 @@ export const createSoundDetector = (settings: VadSettings) => {
 		return completedSegment;
 	};
 
-	/** 프레임 하나를 반영하고 소리 구간이 끝나면 그 구간 반환 */
+	/** 프레임 하나를 처리하고 끝난 소리 구간을 반환하는 함수 */
 	const consume = (frame: Float32Array) => {
 		const loud = isLoud(frame, settings);
 

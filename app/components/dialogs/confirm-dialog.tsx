@@ -20,13 +20,13 @@ interface Props {
 }
 
 /**
- * 안내 문구와 확인, 취소 버튼을 보여 주고 확인 버튼을 누르면 확인 함수를 실행하는 다이얼로그 컴포넌트
+ * 확인 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
- * @param text 제목, 안내 문구, 확인 버튼 문구, 취소 버튼 문구
- * @param confirmStatus 확인 요청 진행 중 여부와 실패 문구
+ * @param text 다이얼로그 문구
+ * @param confirmStatus 확인 요청 상태
  * @param onConfirm 확인 버튼을 누를 때 실행할 함수
- * @param onClose 취소 버튼을 누르거나 다이얼로그를 닫을 때 실행할 함수
- * @param children 안내 문구 아래에 보여 줄 내용
+ * @param onClose 다이얼로그를 닫을 때 실행할 함수
+ * @param children 안내 문구 아래에 표시할 내용
  */
 const ConfirmDialog = ({ visible, text, confirmStatus, onConfirm, onClose, children }: Props) => {
 	const { t } = useTranslation();
@@ -58,11 +58,9 @@ const ConfirmDialog = ({ visible, text, confirmStatus, onConfirm, onClose, child
 				</View>
 			}
 		>
-			{/*안내 문구*/}
 			{!!text.message && <Copy>{text.message}</Copy>}
 			{children}
 
-			{/*실패 문구*/}
 			<InlineError message={confirmStatus?.errorMessage} />
 		</Dialog>
 	);

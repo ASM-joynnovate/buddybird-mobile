@@ -19,8 +19,8 @@ interface Props {
 }
 
 /**
- * 앵무새 사진, 이름, 종, 나이를 보여 주고 누르면 앵무새 편집 화면을 여는 카드 컴포넌트
- * @param parrot 보여 줄 앵무새
+ * 앵무새 카드 컴포넌트
+ * @param parrot 표시할 앵무새
  */
 const ParrotCard = ({ parrot }: Props) => {
 	const { t } = useTranslation();

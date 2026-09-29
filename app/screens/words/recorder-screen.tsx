@@ -59,7 +59,7 @@ interface RecordingFile {
 
 type RecordingFileError = 'empty' | 'tooLarge' | 'invalidFormat' | 'recordError' | null;
 
-/** 녹음 데시벨을 0에서 1 사이의 소리 크기로 바꾼 값, 작은 소리는 0 */
+/** 녹음 데시벨을 0에서 1 사이의 소리 크기로 변환하는 함수 */
 const meteringLevel = (decibels?: number) => {
 	if (decibels === undefined || !Number.isFinite(decibels)) {
 		return 0;
@@ -70,7 +70,7 @@ const meteringLevel = (decibels?: number) => {
 	return normalized < NOISE_FLOOR ? 0 : (normalized - NOISE_FLOOR) / (1 - NOISE_FLOOR);
 };
 
-/** 녹음 상태 문구 */
+/** 녹음 상태 문구를 반환하는 함수 */
 const statusText = (isRecording: boolean, recordingFile: RecordingFile | null, t: TFunction) => {
 	if (isRecording) {
 		return t('words.recorder.recording');
@@ -79,7 +79,7 @@ const statusText = (isRecording: boolean, recordingFile: RecordingFile | null, t
 	return recordingFile ? t('words.recorder.recorded') : t('words.recorder.ready');
 };
 
-/** 녹음 파일 삭제, 실패하면 보고 */
+/** 녹음 파일 삭제 함수 */
 const deleteRecordingFile = (uri: string) => {
 	try {
 		deleteFile(uri);
@@ -88,7 +88,7 @@ const deleteRecordingFile = (uri: string) => {
 	}
 };
 
-/** 녹음 파일의 형식, 빈 파일, 크기 초과 검사 */
+/** 녹음 파일 오류를 반환하는 함수 */
 const getRecordingFileError = (uri: string, durationMs: number) => {
 	if (!uri.toLowerCase().endsWith('.m4a')) {
 		return 'invalidFormat';
@@ -103,7 +103,7 @@ const getRecordingFileError = (uri: string, durationMs: number) => {
 	return fileInfo.size > MAX_UPLOAD_BYTES ? 'tooLarge' : null;
 };
 
-/** 녹음 파형과 녹음 시간, 녹음 버튼을 보여 주고 녹음을 마친 뒤 추가를 누르면 녹음을 단어 편집 화면에 넘기는 화면 */
+/** 녹음 화면 */
 const RecorderScreen = () => {
 	const { t } = useTranslation();
 
@@ -120,7 +120,7 @@ const RecorderScreen = () => {
 	const handledUriRef = useRef<string | null>(null);
 	const closingRef = useRef(false);
 
-	/** 끝난 녹음의 파일 검사 뒤 녹음 파일이나 오류 저장 */
+	/** 녹음이 끝나면 녹음 파일 검사 후 저장 */
 	const handleRecordingFinished = (uri: string, durationMs: number) => {
 		if (closingRef.current || handledUriRef.current === uri) {
 			return;
@@ -167,7 +167,7 @@ const RecorderScreen = () => {
 		elapsedRef.current = recorderState.durationMillis;
 	}, [recorderState.durationMillis]);
 
-	/** 재생 모드 설정, 화면을 나갈 때 녹음 정지와 재생 모드 복구 */
+	/** 화면 진입 시 오디오 모드 설정 */
 	useEffect(() => {
 		closingRef.current = false;
 
@@ -184,7 +184,6 @@ const RecorderScreen = () => {
 		};
 	}, [recorder]);
 
-	/** 이전 녹음 파일 삭제 뒤 녹음 시작 */
 	const handleStartRecording = async () => {
 		if (busy) {
 			return;
@@ -217,7 +216,6 @@ const RecorderScreen = () => {
 		}
 	};
 
-	/** 녹음 정지 뒤 녹음 파일 검사 */
 	const handleStopRecording = async () => {
 		if (busy) {
 			return;
@@ -242,7 +240,6 @@ const RecorderScreen = () => {
 		}
 	};
 
-	/** 녹음 정지와 녹음 파일 삭제 */
 	const handleDiscardRecording = async () => {
 		closingRef.current = true;
 
@@ -261,7 +258,6 @@ const RecorderScreen = () => {
 		}
 	};
 
-	/** 녹음 파일 삭제 뒤 화면 닫기 */
 	const handleClose = async () => {
 		player.stop();
 
@@ -270,14 +266,13 @@ const RecorderScreen = () => {
 		navigation.goBack();
 	};
 
-	/** 마이크 권한 확인 뒤 녹음 시작 */
+	/** 마이크 권한 확인 후 녹음 시작 */
 	const handleRecord = () => {
 		player.stop();
 
 		void microphonePermission.run(() => void handleStartRecording());
 	};
 
-	/** 녹음 중이면 녹음 정지, 아니면 마이크 권한 확인 뒤 녹음 시작 */
 	const handleToggleRecording = () => {
 		if (isRecording) {
 			void handleStopRecording();
@@ -288,7 +283,6 @@ const RecorderScreen = () => {
 		handleRecord();
 	};
 
-	/** 녹음 파일을 단어 편집 화면에 추가 */
 	const handleAddRecording = () => {
 		if (!recordingFile) {
 			return;
@@ -311,7 +305,6 @@ const RecorderScreen = () => {
 	return (
 		<Screen scrollable={false}>
 			<View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
-				{/*단어 이름 제목과 닫기 버튼*/}
 				<ScreenHeader
 					title={params.wordName || t('words.recorder.newWord')}
 					onBack={() => void handleClose()}
@@ -357,7 +350,7 @@ const RecorderScreen = () => {
 					/>
 				</View>
 
-				{/*녹음과 추가 버튼*/}
+				{/*녹음이 끝나면 추가 버튼, 아니면 녹음 버튼 표시*/}
 				{recordingFile && !isRecording ? (
 					<View style={ui.actionsRow}>
 						<Button
@@ -383,7 +376,6 @@ const RecorderScreen = () => {
 				)}
 			</View>
 
-			{/*마이크 권한 다이얼로그*/}
 			<PermissionDialog state={microphonePermission.dialog} />
 		</Screen>
 	);

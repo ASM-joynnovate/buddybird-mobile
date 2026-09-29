@@ -27,7 +27,6 @@ export const WheelPicker = ({ columns }: Props) => {
 			{/*가운데 선택 표시*/}
 			<View pointerEvents="none" style={styles.selection} />
 
-			{/*위아래로 넘기는 숫자 목록과 단위*/}
 			{columns.map((column) => (
 				<View key={column.key} style={styles.columnRow}>
 					<WheelPickerWheel

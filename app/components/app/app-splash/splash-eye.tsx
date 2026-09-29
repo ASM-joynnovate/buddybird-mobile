@@ -12,9 +12,9 @@ interface Props {
 }
 
 /**
- * 스플래시 얼굴의 한쪽 눈을 그리고 눈을 뜬 정도에 맞춰 흰자, 눈동자, 반짝임 높이를 바꾸는 컴포넌트
+ * 스플래시 눈 컴포넌트
  * @param offsetX 왼쪽 눈에서 떨어진 가로 거리
- * @param openness 눈을 뜬 정도, 0이면 감은 눈이고 1이면 뜬 눈
+ * @param openness 0에서 1 사이의 눈을 뜬 정도
  */
 const SplashEye = ({ offsetX, openness }: Props) => {
 	const eyeWhiteProps = useAnimatedProps(() => ({
@@ -38,7 +38,7 @@ const SplashEye = ({ offsetX, openness }: Props) => {
 			{/*눈동자*/}
 			<AnimatedEllipse cx={177 + offsetX} rx={61} fill={artwork.pupil} animatedProps={pupilProps} />
 
-			{/*눈동자 위의 반짝임*/}
+			{/*반짝임*/}
 			<AnimatedEllipse cx={195.5 + offsetX} rx={18.5} fill={artwork.eyeWhite} animatedProps={glintProps} />
 		</>
 	);

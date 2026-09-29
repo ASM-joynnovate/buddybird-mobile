@@ -1,6 +1,6 @@
 import { reportError } from '@/services/telemetry/client';
 
-/** 잡히지 않은 오류와 처리되지 않은 Promise 거부를 보고하도록 등록하고 되돌리는 함수 반환 */
+/** 전역 오류 보고 등록 함수 */
 export const installGlobalErrorReporting = () => {
 	type Handler = (error: Error, fatal?: boolean) => void;
 	const errorUtils = (
@@ -13,7 +13,7 @@ export const installGlobalErrorReporting = () => {
 	).ErrorUtils;
 	const previousHandler = errorUtils?.getGlobalHandler();
 
-	/** 잡히지 않은 오류를 보고하고 이전 전역 오류 핸들러 실행 */
+	/** 잡히지 않은 오류를 보고하는 핸들러 */
 	const globalErrorHandler: Handler = (error, fatal) => {
 		reportError(error, 'uncaught', fatal);
 		previousHandler?.(error, fatal);
@@ -38,7 +38,7 @@ export const installGlobalErrorReporting = () => {
 		}
 	).HermesInternal;
 
-	/** Hermes나 promise 라이브러리의 처리되지 않은 Promise 거부 추적 켜기 */
+	/** Promise 거부 추적 시작 함수 */
 	const enableRejectionTracking = () => {
 		if (hermes?.enablePromiseRejectionTracker) {
 			hermes.enablePromiseRejectionTracker(rejectionTrackingOptions);

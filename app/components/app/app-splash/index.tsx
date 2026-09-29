@@ -30,8 +30,8 @@ interface Props {
 }
 
 /**
- * 눈을 깜빡이는 얼굴 그림과 앱 이름을 보여 주고 시작 준비가 끝나면 서서히 사라지는 스플래시 컴포넌트
- * @param bootstrapSettled 앱 시작 준비가 끝났는지 여부
+ * 앱 시작 스플래시 컴포넌트
+ * @param bootstrapSettled 앱 시작 준비 완료 여부
  * @param onComplete 스플래시가 사라진 뒤 실행할 함수
  */
 const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
@@ -52,7 +52,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 	}));
 	const exitStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.get() }));
 
-	/** 기본 스플래시가 사라지면 등장 애니메이션과 눈 두 번 깜빡임 실행 */
+	/** 네이티브 스플래시가 사라지면 등장 애니메이션 실행 */
 	useEffect(() => {
 		if (!nativeSplashHidden || reducedMotion) {
 			return;
@@ -81,7 +81,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 		};
 	}, [enterProgress, eyeOpenness, reducedMotion, nativeSplashHidden]);
 
-	/** 시작 준비와 눈 깜빡임이 끝나면 스플래시를 서서히 숨긴 뒤 종료 함수 실행 */
+	/** 앱 시작 준비가 끝나면 스플래시 숨기기 */
 	useEffect(() => {
 		if (!bootstrapSettled || !nativeSplashHidden || !blinked) {
 			return;
@@ -98,7 +98,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 		return () => cancelAnimation(exitOpacity);
 	}, [blinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
 
-	/** 첫 배치 때 한 번만 기본 스플래시 숨기기 */
+	/** 네이티브 스플래시 숨기기 */
 	const handleReveal = () => {
 		if (laidOutRef.current) {
 			return;
@@ -134,7 +134,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 					<Path {...artwork.body} transform="translate(4 0)" />
 				</Svg>
 
-				{/*얼굴과 앱 이름*/}
+				{/*얼굴 그림*/}
 				<Svg width="100%" height="100%" viewBox="0 0 860 1851" preserveAspectRatio="xMidYMid meet">
 					<G transform="translate(4 0)">
 						<SplashEye offsetX={0} openness={eyeOpenness} />

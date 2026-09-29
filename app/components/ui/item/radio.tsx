@@ -27,10 +27,8 @@ export const ItemRadio = ({ label, selected, first, onPress }: Props) => {
 			style={!first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
-			{/*이름*/}
 			<Copy style={[itemStyles.label, styles.label, selected && styles.labelSelected]}>{label}</Copy>
 
-			{/*고른 항목의 체크 표시*/}
 			{selected && <CheckMark color={colors.orangeDark} />}
 		</PressableSurface>
 	);

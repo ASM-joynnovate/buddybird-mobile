@@ -44,7 +44,7 @@ export interface LearningEngine {
 
 type SummaryField = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
 
-/** 단계에 맞춰 단어 녹음과 스트레스 케어 음원을 재생하고 들린 소리를 녹음하는 학습 엔진 생성 */
+/** 학습 단계에 따라 소리를 재생하고 녹음하는 학습 엔진 생성 함수 */
 export const createLearningEngine = (options: LearningEngineOptions) => {
 	const detector = createSoundDetector(VAD);
 	const recorder = new AudioRecorder();
@@ -65,7 +65,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	let lastTick = 0;
 	let summariesByDate: Record<string, HeartbeatSummary> = {};
 
-	/** 시각이 속한 날짜의 하트비트 요약에서 field 값 늘리기 */
+	/** 하트비트로 보낼 날짜별 학습 기록에 값을 더하는 함수 */
 	const addToSummary = (field: SummaryField, amount: number, at: number) => {
 		const date = localDate(at);
 		const summary = summariesByDate[date] ?? {
@@ -82,7 +82,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		};
 	};
 
-	/** 소리 구간을 WAV 파일로 저장해 onSound로 전달, 실패하면 onError로 전달 */
+	/** 감지한 소리를 WAV 파일로 저장해 전달하는 함수 */
 	const emitSound = (segment: SoundSegment | null) => {
 		if (!segment) {
 			return;
@@ -98,7 +98,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
-	/** 재생 중인 단어 녹음 정지 */
+	/** 단어 녹음 재생 정지 함수 */
 	const stopClip = () => {
 		const playingSource = clip;
 
@@ -107,7 +107,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		playingSource?.stop();
 	};
 
-	/** 스트레스 케어 음원 정지와 다음에 이어 재생할 위치 저장 */
+	/** 스트레스 케어 음원을 정지하고 이어 재생할 위치를 저장하는 함수 */
 	const stopCare = () => {
 		const playingSource = careSource;
 
@@ -124,7 +124,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		playingSource?.stop();
 	};
 
-	/** 다음 단어 녹음 재생과 재생 횟수, 재생 시간 기록 */
+	/** 다음 단어 녹음 재생 함수 */
 	const playClip = (now: number) => {
 		const buffer = recordings[nextClipIndex % recordings.length];
 
@@ -159,7 +159,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		addToSummary('play_duration_ms', durationMs, now);
 	};
 
-	/** 스트레스 케어 구간의 음원을 골라 멈춘 위치부터 반복 재생 */
+	/** 스트레스 케어 음원 반복 재생 함수 */
 	const playCare = async (span: PhaseSpan) => {
 		const contextAtStart = context;
 
@@ -196,7 +196,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		careStartedAt = contextAtStart.currentTime;
 	};
 
-	/** 단계가 바뀔 때 모으던 소리 전달, 재생 정지, 스트레스 케어 단계면 음원 재생 */
+	/** 학습 단계가 바뀌었을 때 실행하는 함수 */
 	const enterPhase = (span: PhaseSpan) => {
 		emitSound(detector.flush());
 
@@ -213,7 +213,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
-	/** 주기마다 단계 확인, 학습 시간 기록, 다음 단어 녹음 재생 */
+	/** 학습 타이머가 주기마다 실행하는 함수 */
 	const tick = () => {
 		const now = dayjs().valueOf();
 		const span = currentSpan(options.startedAt, now, options.sleep);
@@ -233,7 +233,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		lastTick = now;
 	};
 
-	/** 마이크 녹음 시작과 들어온 샘플의 소리 구간 전달 */
+	/** 마이크 녹음 시작 함수 */
 	const startRecorder = async () => {
 		recorder.onAudioReady(
 			{
@@ -256,7 +256,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
-	/** 녹음 시작과 단계 확인 타이머 시작 */
+	/** 학습 엔진 실행 함수 */
 	const startRunning = async () => {
 		if (stopped) {
 			return;
@@ -284,7 +284,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		timer = setInterval(tick, LEARNING_TICK_MS);
 	};
 
-	/** 단계 확인 타이머 정지, 모으던 소리 전달, 재생과 녹음 정지 */
+	/** 학습 엔진 정지 함수 */
 	const stopRunning = async () => {
 		running = false;
 

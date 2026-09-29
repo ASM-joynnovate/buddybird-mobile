@@ -53,12 +53,12 @@ interface Props {
 }
 
 /**
- * 앵무새 사진, 이름, 종, 생일 입력을 보여 주고 저장 버튼을 누르면 앵무새를 등록하거나 수정하며 휴지통 버튼을 누르면 삭제를 확인하는 컴포넌트
- * @param parrot 수정할 앵무새, 새로 등록하면 undefined
+ * 앵무새 정보 입력 컴포넌트
+ * @param parrot 수정할 앵무새
  * @param canDelete 앵무새 삭제 가능 여부
  * @param intro 안내 말풍선 표시 여부
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
- * @param onDone 저장이나 삭제를 마칠 때 실행할 함수
+ * @param onDone 편집 완료 시 실행할 함수
  */
 const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) => {
 	const { t } = useTranslation();
@@ -108,12 +108,12 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 			/>
 		) : undefined;
 
-	/** 입력 항목의 오류 표시 해제 */
+	/** 입력 항목의 오류 표시 해제 함수 */
 	const clearInvalidField = (field: keyof InvalidFields) => {
 		setInvalidFields((prev) => ({ ...prev, [field]: false }));
 	};
 
-	/** 바뀐 사진의 업로드나 삭제 뒤 저장 완료 */
+	/** 변경한 앵무새 사진 저장 함수 */
 	const saveParrotPhoto = (savedParrot: Parrot) => {
 		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
 			uploadParrotPhoto.mutate(
@@ -130,25 +130,21 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 		}
 	};
 
-	/** 이름 변경 */
 	const handleChangeName = (value: string) => {
 		setName(value);
 		clearInvalidField('name');
 	};
 
-	/** 종 변경 */
 	const handleChangeSpecies = (value: string) => {
 		setSpecies(value);
 		clearInvalidField('species');
 	};
 
-	/** 생일 변경 */
 	const handleChangeBirthdate = (value: string | null) => {
 		setBirthdate(value);
 		clearInvalidField('birthdate');
 	};
 
-	/** 입력 검사 뒤 앵무새 등록이나 수정 */
 	const handleSave = () => {
 		if (saving) {
 			return;
@@ -197,7 +193,6 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 		);
 	};
 
-	/** 앵무새 삭제 */
 	const handleDeleteParrot = () => {
 		if (deleteParrot.isPending || !parrot) {
 			return;
@@ -215,7 +210,6 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 		);
 	};
 
-	/** 삭제 확인 다이얼로그 닫기 */
 	const handleCloseDeleteDialog = () => {
 		deleteParrot.reset();
 
@@ -236,26 +230,23 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 				</>
 			}
 		>
-			{/*등록이나 수정 제목, 뒤로 가기 버튼, 휴지통 버튼*/}
 			<ScreenHeader
 				title={t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}
 				onBack={onBack}
 				trailing={deleteButton}
 			/>
 
-			{/*안내 말풍선*/}
 			{intro && (
 				<View style={styles.introContainer}>
 					<BuddySays message={t('parrot.intro')} />
 				</View>
 			)}
 
-			{/*사진*/}
 			<View style={styles.photoContainer}>
 				<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
 			</View>
 
-			{/*이름, 종, 생일 입력*/}
+			{/*앵무새 정보 입력*/}
 			<View style={styles.fieldsContainer}>
 				<TextField
 					label={t('parrot.name')}
@@ -278,11 +269,10 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 				</View>
 			</View>
 
-			{/*사진 권한 다이얼로그*/}
 			<PermissionDialog state={photo.libraryDialog} />
 			<PermissionDialog state={photo.cameraDialog} />
 
-			{/*삭제 확인 다이얼로그*/}
+			{/*앵무새 삭제 확인 다이얼로그*/}
 			{parrot && (
 				<ConfirmDialog
 					visible={deleteDialogOpen}

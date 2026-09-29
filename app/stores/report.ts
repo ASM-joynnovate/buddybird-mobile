@@ -20,7 +20,7 @@ type ReportActions = {
 
 type ReportStore = ReportState & ReportActions;
 
-/** 리포트 기간 처음 값 */
+/** 리포트 기간 초기값 */
 const initReportStore = (): ReportState => ({ period: 'day', start: null });
 
 export const useReportStore = create<ReportStore>()((set, get) => ({
@@ -31,7 +31,7 @@ export const useReportStore = create<ReportStore>()((set, get) => ({
 		set((state) => ({ ...state, period, start: null }));
 	},
 
-	/** 앞이나 뒤 기간으로 이동 */
+	/** 이전 또는 다음 기간으로 이동 */
 	movePeriod: (step) => {
 		const { period, start } = get();
 		const latestPeriodStart = latestStart(period);

@@ -34,8 +34,8 @@ interface Props {
 }
 
 /**
- * 리포트 기간 선택, 기간의 학습 시간과 막대 그래프, 단어별 학습 시간을 보여 주고 이전과 다음 버튼을 누르면 기간을 옮기는 컴포넌트
- * @param report 고른 기간의 리포트
+ * 기간별 학습 시간 요약 컴포넌트
+ * @param report 선택한 기간의 리포트
  */
 const ReportHeader = ({ report }: Props) => {
 	const { t } = useTranslation();
@@ -61,10 +61,9 @@ const ReportHeader = ({ report }: Props) => {
 
 	return (
 		<View>
-			{/*제목*/}
 			<ScreenHeader title={t('report.title')} large />
 
-			{/*오늘, 이번 주, 이번 달 선택 버튼*/}
+			{/*기간 선택 버튼*/}
 			<View style={ui.controlsRow}>
 				{reportPeriodSchema.options.map((periodOption) => (
 					<Chip
@@ -76,7 +75,7 @@ const ReportHeader = ({ report }: Props) => {
 				))}
 			</View>
 
-			{/*기간과 학습 시간*/}
+			{/*기간별 학습 시간*/}
 			<Card style={styles.card}>
 				<View style={ui.controlsRow}>
 					<Copy accessibilityRole="header" style={styles.period}>
@@ -121,7 +120,7 @@ const ReportHeader = ({ report }: Props) => {
 				/>
 			)}
 
-			{/*단어별 학습 시간과 세션 목록 제목*/}
+			{/*단어별 학습 시간*/}
 			{hasSessions && (
 				<>
 					<WordBars words={report.words} />

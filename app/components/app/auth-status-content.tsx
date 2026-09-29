@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * 로그인 중에는 불러오는 중 표시, 로그인에 실패하면 다시 시도 버튼, 로그인을 마치면 앱의 첫 화면을 보여 주는 컴포넌트
+ * 로그인 상태별 화면 컴포넌트
  * @param splashFinished 스플래시 종료 여부
  */
 const AuthStatusContent = ({ splashFinished }: Props) => {

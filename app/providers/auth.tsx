@@ -29,12 +29,12 @@ interface Props {
 	children: ReactNode;
 }
 
-/** 세션 사용자의 ID와 익명 여부, 세션이 없으면 null */
+/** 세션의 사용자 정보를 반환하는 함수 */
 const identityOf = (session: Session | null) => {
 	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null;
 };
 
-/** 앞서 받은 사용자와 새 사용자의 ID와 익명 여부가 같은지 확인 */
+/** 같은 사용자인지 비교하는 함수 */
 const sameIdentity = (previous: AuthIdentity | null | undefined, nextIdentity: AuthIdentity | null) => {
 	return (
 		previous !== undefined && previous?.id === nextIdentity?.id && previous?.anonymous === nextIdentity?.anonymous
@@ -42,7 +42,7 @@ const sameIdentity = (previous: AuthIdentity | null | undefined, nextIdentity: A
 };
 
 /**
- * 로그인한 사용자가 바뀔 때마다 익명 가입이나 서버 로그인을 하고 인증 상태를 갱신하는 provider
+ * 로그인 상태를 관리하는 provider
  * @param children 감싸는 내용
  */
 const AuthProvider = ({ children }: Props) => {
@@ -50,7 +50,7 @@ const AuthProvider = ({ children }: Props) => {
 
 	const retryCount = useAuthStore((state) => state.retryCount);
 
-	/** 처음 그릴 때와 인증을 다시 시도할 때 저장된 세션 복원, 로그인 상태 변경 구독, 토큰 자동 갱신 시작 */
+	/** 인증 상태 변경 구독 */
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState();
 		const auth = authClient();
@@ -62,7 +62,7 @@ const AuthProvider = ({ children }: Props) => {
 
 		setStatus('loading');
 
-		/** 로그인 정보, 캐시, 학습 설정, 리포트 기간을 비운 뒤 익명으로 다시 가입 */
+		/** 저장된 로그인 정보를 지우고 익명으로 다시 가입하는 함수 */
 		const restartAsAnonymous = async () => {
 			takeAppleLoginCredential();
 			useAccountStore.getState().clearRegistration();
@@ -84,7 +84,7 @@ const AuthProvider = ({ children }: Props) => {
 			}
 		};
 
-		/** 서버 로그인과 서버 사용자 ID 저장, 실패하면 오류 상태로 바꾸거나 로그아웃 */
+		/** 서버 로그인 함수 */
 		const completeLogin = async (identity: AuthIdentity, linked: boolean) => {
 			const controller = new AbortController();
 
@@ -154,7 +154,7 @@ const AuthProvider = ({ children }: Props) => {
 			}
 		};
 
-		/** 새 세션의 사용자 변화에 따라 익명 재가입, 로그인 상태 반영, 서버 로그인 중 하나 실행 */
+		/** 새 세션을 반영하는 함수 */
 		const acceptSession = async (session: Session | null) => {
 			const nextIdentity = identityOf(session);
 
@@ -191,14 +191,14 @@ const AuthProvider = ({ children }: Props) => {
 		const {
 			data: { subscription },
 		} = auth.onAuthStateChange((event, session) => {
-			// INITIAL_SESSION은 세션 복원 실패를 null로 가리므로 아래 getSession 결과로 처리
+			// INITIAL_SESSION 이벤트는 세션 복원 실패도 null로 전달하므로 아래 getSession 결과를 사용
 			if (event === 'INITIAL_SESSION') {
 				return;
 			}
 
 			receivedEvent = true;
 
-			// 콜백 안에서 SDK 호출을 기다리면 인증 잠금이 풀리지 않으므로 콜백은 동기로 유지
+			// 콜백 안에서 SDK 호출을 await하면 인증 잠금이 풀리지 않으므로 await하지 않음
 			void acceptSession(session);
 		});
 
@@ -229,7 +229,7 @@ const AuthProvider = ({ children }: Props) => {
 				}
 			});
 
-		/** 앱이 앞에 있을 때만 토큰 자동 갱신 */
+		/** 앱이 foreground일 때만 토큰 자동 갱신 */
 		const toggleAutoRefresh = (appState: string) => {
 			if (appState === 'active') {
 				void auth.startAutoRefresh();
@@ -254,7 +254,7 @@ const AuthProvider = ({ children }: Props) => {
 	return children;
 };
 
-/** 실패 문구와 서버 오류 코드를 경고창으로 표시 */
+/** 로그인 실패 Alert 표시 함수 */
 const alertFailure = (error: unknown) => {
 	Alert.alert(apiErrorMessage(error, i18next.t), error instanceof ApiError ? error.code : undefined);
 };

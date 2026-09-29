@@ -35,7 +35,7 @@ type EndReason = 'time_reached' | 'user' | 'server';
 
 const FADE_MS = 2 * SECOND;
 
-/** 세션 경과 시간, 진행 단계와 남은 시간, 종료 버튼을 보여 주고 화면을 누르면 숨긴 세션 정보를 다시 보여 주는 화면 */
+/** 학습 진행 화면 */
 const SessionRunScreen = () => {
 	useKeepAwake();
 
@@ -73,7 +73,7 @@ const SessionRunScreen = () => {
 	const startedAt = runningSession?.period.started_at ?? null;
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
-	/** 엔진 정지, 업로드 대기, 종료 요청 뒤 완료 화면 이동 */
+	/** 학습 종료 함수 */
 	const endSession = useCallback(
 		async (reason: EndReason) => {
 			if (endingRef.current) {
@@ -96,7 +96,7 @@ const SessionRunScreen = () => {
 				reportError(e, 'learning_end');
 			}
 
-			/** learning_finished 전송과 완료 화면 이동 */
+			/** 학습 완료 화면 이동 함수 */
 			const showSummary = () => {
 				track('learning_finished', {
 					session_id: sessionId,
@@ -123,19 +123,19 @@ const SessionRunScreen = () => {
 
 	const latestInputRef = useRef({ startedAt, sleep, endSession });
 
-	/** 세션 정보 표시와 화면을 나갈 때 세션 화면 값 초기화 */
+	/** 화면 진입 시 세션 정보 표시 */
 	useEffect(() => {
 		showInfo();
 
 		return () => resetSessionScreen();
 	}, [resetSessionScreen, showInfo]);
 
-	/** infoVisible이 바뀔 때 세션 정보를 바로 보이거나 천천히 흐리게 숨김 */
+	/** infoVisible 변경 시 세션 정보 fade 애니메이션 실행 */
 	useEffect(() => {
 		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
 	}, [infoVisible, opacity]);
 
-	/** 안드로이드 뒤로 가기 버튼을 누르면 화면을 닫지 않고 종료 다이얼로그 열기 */
+	/** 안드로이드 뒤로 가기 버튼을 누르면 종료 다이얼로그 열기 */
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
 			setEndDialogOpen(true);
@@ -146,7 +146,7 @@ const SessionRunScreen = () => {
 		return () => subscription.remove();
 	}, []);
 
-	/** 학습 엔진 시작과 앱 전환 시 엔진 일시 정지, 재개 */
+	/** 학습 엔진 실행 */
 	useEffect(() => {
 		if (!startedAt) {
 			return;
@@ -206,7 +206,7 @@ const SessionRunScreen = () => {
 				setEngineFailed(true);
 			});
 
-		/** 엔진 작업을 앞 작업이 끝난 뒤 순서대로 실행 */
+		/** 엔진 작업을 순서대로 실행하는 함수 */
 		const enqueue = (step: () => Promise<void> | undefined) => {
 			queue = queue.then(step).catch((error: unknown) => reportError(error, 'learning_engine'));
 		};
@@ -241,14 +241,14 @@ const SessionRunScreen = () => {
 		};
 	}, [duration, sessionId, setEngineFailed, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
 
-	/** 하트비트가 읽는 최신 값 저장 */
+	/** 하트비트 전송에 사용할 최신 값 저장 */
 	useEffect(() => {
 		latestInputRef.current = { startedAt, sleep, endSession };
 	}, [endSession, sleep, startedAt]);
 
-	/** 하트비트 주기 전송 */
+	/** 주기마다 하트비트 전송 */
 	useEffect(() => {
-		/** 하트비트 한 번 전송 */
+		/** 하트비트 전송 함수 */
 		const beat = () => {
 			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
 			const span = sessionStartedAt
@@ -293,7 +293,6 @@ const SessionRunScreen = () => {
 		return () => clearTimeout(timer);
 	}, [endSession, endsAt]);
 
-	/** 종료 다이얼로그 확인 시 학습 종료 */
 	const handleEnd = () => {
 		void endSession('user');
 	};
@@ -309,7 +308,7 @@ const SessionRunScreen = () => {
 			onPress={showInfo}
 			accessibilityLabel={t('session.run.reveal')}
 		>
-			{/*경과 시간, 진행 단계, 종료 버튼*/}
+			{/*세션 진행 정보*/}
 			<Animated.View style={[styles.fill, fadeStyle]} pointerEvents={infoVisible ? 'box-none' : 'none'}>
 				{!!startedAt && (
 					<RunInfo
@@ -322,7 +321,7 @@ const SessionRunScreen = () => {
 				)}
 			</Animated.View>
 
-			{/*종료 다이얼로그*/}
+			{/*학습 종료 확인 다이얼로그*/}
 			<ConfirmDialog
 				visible={endDialogOpen}
 				text={{

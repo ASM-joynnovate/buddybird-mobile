@@ -20,7 +20,7 @@ import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ui } from '@/components/ui/styles';
 
-/** v1 데이터 올리기 뒤 캐시 갱신과 올리기 단계 완료 */
+/** v1 데이터 업로드 함수 */
 const uploadAndFinishLegacy = async () => {
 	await uploadLegacy();
 
@@ -31,7 +31,7 @@ const uploadAndFinishLegacy = async () => {
 	finishLegacyUpload();
 };
 
-/** v1 데이터를 올리는 동안 진행 표시를, 실패하면 다시 시도와 건너뛰기 버튼을 보여 주고 이미 앵무새가 있으면 추가할지 묻는 화면 */
+/** v1 데이터 업로드 화면 */
 const LegacyUploadScreen = () => {
 	const { t } = useTranslation();
 
@@ -45,13 +45,13 @@ const LegacyUploadScreen = () => {
 	const askDialogOpen = uploadStatus === 'pending' && parrotListData.length > 0;
 	const canStartUpload = !askDialogOpen;
 
-	/** 화면을 열 때 screen_view와 onboarding_step_viewed 전송 */
+	/** 화면 진입 시 조회 이벤트 전송 */
 	useEffect(() => {
 		trackScreen('LegacyUpload');
 		trackOnboardingStepViewed('legacy_upload');
 	}, []);
 
-	/** 올리기를 시작할 수 있을 때 v1 데이터 올리기와 실패 표시 */
+	/** 업로드를 시작할 수 있으면 v1 데이터 업로드 */
 	useEffect(() => {
 		if (!canStartUpload) {
 			return;
@@ -64,14 +64,12 @@ const LegacyUploadScreen = () => {
 		});
 	}, [canStartUpload, retryCount]);
 
-	/** 올리기 단계 완료 전송과 올리기 건너뛰기 */
 	const handleSkip = () => {
 		trackOnboardingStepCompleted('legacy_upload');
 
 		finishLegacyUpload();
 	};
 
-	/** 실패 표시를 지우고 올리기 다시 시작 */
 	const handleRetry = () => {
 		setUploadFailed(false);
 		setRetryCount((prev) => prev + 1);
@@ -79,7 +77,7 @@ const LegacyUploadScreen = () => {
 
 	return (
 		<Screen scrollable={false}>
-			{/*올리기 진행과 실패 안내*/}
+			{/*업로드 상태*/}
 			<View style={styles.container}>
 				{uploadFailed ? (
 					<>
@@ -98,7 +96,7 @@ const LegacyUploadScreen = () => {
 				)}
 			</View>
 
-			{/*v1 데이터 추가 확인 다이얼로그*/}
+			{/*v1 앵무새 추가 확인 다이얼로그*/}
 			<Dialog
 				visible={askDialogOpen}
 				title={t('onboarding.legacy.askTitle')}

@@ -1,6 +1,6 @@
 export const FIREBASE_NAME_LIMIT = 40;
 
-/** 이벤트 속성을 Firebase의 이름과 값 길이 제한에 맞춰 변환, 보낼 수 없는 값은 제외 */
+/** 이벤트 속성을 Firebase 제한에 맞게 변환하는 함수 */
 export const firebaseParameters = (eventParams: Record<string, unknown>) => {
 	const firebaseParams: Record<string, string | number | boolean> = {};
 
@@ -22,11 +22,11 @@ export const firebaseParameters = (eventParams: Record<string, unknown>) => {
 	return firebaseParams;
 };
 
-/** 분석과 오류 보고 전송, 실패는 무시 */
+/** 실패해도 오류를 던지지 않는 분석 전송 함수 */
 export const sendTelemetrySafely = async (send: () => void | Promise<unknown>) => {
 	try {
 		await send();
 	} catch {
-		// 전송 실패가 학습, 저장, 앱 상태 변경 흐름을 멈추지 않도록 무시
+		// 전송 실패가 앱 동작을 멈추지 않도록 무시
 	}
 };

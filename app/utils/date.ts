@@ -2,17 +2,17 @@ import type { ReportPeriod } from '@/types/report-period';
 
 import dayjs, { type ConfigType } from 'dayjs';
 
-/** YYYY-MM-DD 모양의 날짜 문자열 */
+/** 날짜를 'YYYY-MM-DD' 형식으로 변환하는 함수 */
 export const localDate = (date?: ConfigType) => {
 	return dayjs(date).format('YYYY-MM-DD');
 };
 
-/** 두 날짜 사이의 기간 단위 개수 */
+/** 두 날짜 사이의 기간 수를 반환하는 함수 */
 export const periodsBetween = (period: ReportPeriod, from: string, to: string) => {
 	return dayjs(to).diff(from, period);
 };
 
-/** 생일부터 지금까지의 개월 수, 생일이 없거나 잘못된 날짜면 null */
+/** 생일부터 현재까지의 개월 수를 반환하는 함수 */
 export const ageMonths = (birthdate: string | null, now = dayjs()) => {
 	if (!birthdate) {
 		return null;

@@ -18,7 +18,7 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** 설정 제목과 뒤로 가기 버튼, 앵무새 케어와 알림, 일반, 계정, 지원 설정을 보여 주는 화면 */
+/** 설정 화면 */
 const SettingsScreen = () => {
 	const { t } = useTranslation();
 
@@ -26,10 +26,8 @@ const SettingsScreen = () => {
 
 	return (
 		<Screen>
-			{/*설정 제목과 뒤로 가기 버튼*/}
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
 
-			{/*앵무새 케어, 알림, 일반, 계정, 지원 설정*/}
 			<View style={styles.sectionsContainer}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}

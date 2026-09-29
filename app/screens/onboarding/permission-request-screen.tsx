@@ -32,7 +32,7 @@ const PERMISSIONS: readonly { kind: 'microphone' | 'notifications'; icon: Lucide
 	{ kind: 'notifications', icon: BellIcon },
 ];
 
-/** 권한 요청 뒤 허용 여부 */
+/** 권한을 요청하고 허용 여부를 반환하는 함수 */
 const askPermission = async (kind: PermissionKind) => {
 	try {
 		return (await requestPermission(kind)).granted;
@@ -43,7 +43,7 @@ const askPermission = async (kind: PermissionKind) => {
 	}
 };
 
-/** 지금 권한 허용 여부 */
+/** 현재 권한 허용 여부를 반환하는 함수 */
 const isGranted = async (kind: PermissionKind) => {
 	try {
 		return (await readPermission(kind)).granted;
@@ -54,7 +54,7 @@ const isGranted = async (kind: PermissionKind) => {
 	}
 };
 
-/** 마이크와 알림 권한의 쓰임을 보여 주고 허용하기를 누르면 권한을 요청한 뒤, 나중에를 누르면 바로 온보딩을 마치는 화면 */
+/** 권한 요청 화면 */
 const PermissionRequestScreen = () => {
 	const { t } = useTranslation();
 
@@ -64,14 +64,14 @@ const PermissionRequestScreen = () => {
 
 	const setOnboardingCompleted = useDeviceSettingsStore((state) => state.setOnboardingCompleted);
 
-	/** 화면에 들어올 때마다 onboarding_step_viewed 전송 */
+	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('permissions');
 		}, []),
 	);
 
-	/** 권한 단계와 온보딩 완료 전송, 온보딩 완료 저장 */
+	/** 온보딩 완료 함수 */
 	const finishOnboarding = (microphoneGranted: boolean, notificationsGranted: boolean) => {
 		trackOnboardingStepCompleted('permissions', {
 			microphone_granted: microphoneGranted,
@@ -86,7 +86,6 @@ const PermissionRequestScreen = () => {
 		}
 	};
 
-	/** 마이크와 알림 권한 요청, 알림 허용 시 푸시 토큰 등록, 온보딩 완료 */
 	const handleAllow = async () => {
 		if (busy) {
 			return;
@@ -106,7 +105,6 @@ const PermissionRequestScreen = () => {
 		finishOnboarding(microphoneGranted, notificationsGranted);
 	};
 
-	/** 지금 권한 상태로 온보딩 완료 */
 	const handleLater = async () => {
 		finishOnboarding(await isGranted('microphone'), await isGranted('notifications'));
 	};
@@ -131,10 +129,8 @@ const PermissionRequestScreen = () => {
 				</>
 			}
 		>
-			{/*뒤로 가기 버튼*/}
 			<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
 
-			{/*안내 말풍선과 그림*/}
 			<View style={styles.introContainer}>
 				<BuddySays message={t('onboarding.permissions.intro')} />
 				<Illustration
@@ -145,7 +141,6 @@ const PermissionRequestScreen = () => {
 				/>
 			</View>
 
-			{/*권한 목록*/}
 			<ItemGroup>
 				{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
 					<View key={kind} style={[styles.permissionRow, index > 0 && styles.divider]}>

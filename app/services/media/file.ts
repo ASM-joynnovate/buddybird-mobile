@@ -1,10 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 
-/** iOS가 앱 폴더를 바꾼 뒤에도 저장한 파일을 가리키는 주소 */
+/** iOS 앱 폴더가 바뀌어도 저장한 파일을 찾을 수 있는 주소를 반환하는 함수 */
 export const resolveFileUri = (uri: string) => {
 	const documentRoot = Paths.document.uri.endsWith('/') ? Paths.document.uri : `${Paths.document.uri}/`;
 
-	/** 문서 폴더 기준 주소, 폴더 밖을 가리키는 경로는 오류 */
+	/** 문서 폴더 기준 주소를 반환하는 함수 */
 	const resolveDocumentPath = (directory: string, relativePath: string) => {
 		const decodedPath = decodeURIComponent(relativePath);
 		const containsTraversal = decodedPath.split('/').some((part) => part === '..' || part === '.');
@@ -67,7 +67,7 @@ export const resolveFileUri = (uri: string) => {
 	return uri;
 };
 
-/** 파일 존재 여부와 크기, 읽을 수 없으면 오류 */
+/** 파일 정보를 반환하는 함수 */
 export const readFileInfo = (uri: string) => {
 	const file = new File(resolveFileUri(uri));
 
@@ -91,7 +91,7 @@ export const readFileInfo = (uri: string) => {
 	}
 };
 
-/** 파일이 있으면 삭제 */
+/** 파일 삭제 함수 */
 export const deleteFile = (uri: string) => {
 	const file = new File(uri);
 

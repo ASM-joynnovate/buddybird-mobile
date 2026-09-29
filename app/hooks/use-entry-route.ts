@@ -7,7 +7,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'UsageGuide' | 'Main';
 
-/** 로그인, 필수 동의, v1 올리기, 앵무새 등록, 사용 안내 완료 여부로 첫 화면을 정하는 훅 */
+/** 온보딩 진행 상태에 맞는 첫 화면 결정 Hook */
 const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
 	const { data: consentListData } = useGetConsentList();
 	const { data: parrotListData } = useGetParrotList();

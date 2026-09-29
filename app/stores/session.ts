@@ -33,7 +33,7 @@ type SessionStore = SessionScreenState & SessionSetupState & SessionActions;
 
 const UNTIL_END: LearningDuration = { ms: null, custom: false };
 
-/** 세션 화면 처음 값 */
+/** 세션 화면 초기값 */
 const initSessionScreen = (): SessionScreenState => ({
 	infoVisible: true,
 	hideInfoTimer: null,
@@ -41,7 +41,7 @@ const initSessionScreen = (): SessionScreenState => ({
 	ending: false,
 });
 
-/** 홈 학습 설정 처음 값 */
+/** 홈 학습 설정 초기값 */
 const initSessionSetup = (): SessionSetupState => ({
 	selectedWordId: null,
 	duration: UNTIL_END,
@@ -52,7 +52,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 	...initSessionScreen(),
 	...initSessionSetup(),
 
-	/** 세션 정보 표시와 숨김 타이머 다시 시작 */
+	/** 세션 정보 표시 */
 	showInfo: () => {
 		const { hideInfoTimer } = get();
 
@@ -77,7 +77,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 		set((state) => ({ ...state, ending }));
 	},
 
-	/** 숨김 타이머 정지와 세션 화면 값 초기화 */
+	/** 세션 화면 값 초기화 */
 	resetSessionScreen: () => {
 		const { hideInfoTimer } = get();
 
@@ -98,7 +98,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 		set((state) => ({ ...state, duration }));
 	},
 
-	/** 바꾼 수면 시간 저장 */
+	/** 변경한 수면 시간 저장 */
 	setEditedSleep: (editedSleep) => {
 		set((state) => ({ ...state, editedSleep }));
 	},

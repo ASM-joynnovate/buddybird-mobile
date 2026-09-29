@@ -22,7 +22,7 @@ import { Copy } from '@/components/ui/copy';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 앱 언어 선택, 연결된 기기와 권한 상태 항목을 보여 주고 누르면 앱 언어를 바꾸거나 해당 화면을 여는 컴포넌트 */
+/** 일반 설정 컴포넌트 */
 const GeneralGroup = () => {
 	const { t } = useTranslation();
 
@@ -33,7 +33,6 @@ const GeneralGroup = () => {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 	const setLocale = useDeviceSettingsStore((state) => state.setLocale);
 
-	/** 앱 언어 변경 */
 	const handleChangeLanguage = (nextLocale: Locale) => {
 		if (locale === nextLocale) {
 			return;

@@ -23,11 +23,11 @@ interface Props {
 }
 
 /**
- * 새 버전 안내, 변경 내용, 업데이트 버튼을 보여 주고 업데이트 버튼을 누르면 앱 스토어를 여는 다이얼로그 컴포넌트
- * @param promptedUpdate 안내할 최신 버전, 강제 업데이트 여부, 변경 내용
+ * 업데이트 안내 다이얼로그 컴포넌트
+ * @param promptedUpdate 안내할 업데이트 정보
  * @param visible 다이얼로그 표시 여부
  * @param onDismiss 닫기 버튼을 누를 때 실행할 함수
- * @param onStoreOpened 선택 업데이트에서 스토어를 연 뒤 실행할 함수
+ * @param onStoreOpened 강제가 아닌 업데이트에서 스토어를 연 뒤 실행할 함수
  */
 const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Props) => {
 	const { t } = useTranslation();
@@ -37,7 +37,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 
 	const forced = promptedUpdate?.forced ?? false;
 
-	/** 업데이트 수락 시 스토어 열기 */
 	const handleAcceptUpdate = async () => {
 		if (!promptedUpdate || appStoreOpening) {
 			return;
@@ -66,7 +65,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 		}
 	};
 
-	/** 닫기 요청 시 선택 업데이트 안내 닫기 */
 	const handleClose = () => {
 		if (!forced && !appStoreOpening) {
 			onDismiss();
@@ -98,7 +96,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 				</View>
 			}
 		>
-			{/*업데이트 안내와 변경 내용*/}
 			<Copy style={styles.body}>
 				{t(forced ? 'app.update.forcedMessage' : 'app.update.message', {
 					version: promptedUpdate?.latestVersion ?? '',
@@ -110,7 +107,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 				</Copy>
 			))}
 
-			{/*스토어 열기 실패 문구*/}
 			<InlineError message={appStoreOpenFailed ? t('app.update.openStoreError') : null} />
 		</Dialog>
 	);

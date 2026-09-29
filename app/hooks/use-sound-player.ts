@@ -12,7 +12,7 @@ export interface SoundPlayer {
 	stop: () => void;
 }
 
-/** 녹음 하나를 재생하거나 멈추고 재생 중, 끝까지 들은, 재생에 실패한 녹음 ID를 돌려주는 훅 */
+/** 녹음 재생 Hook */
 const useSoundPlayer = () => {
 	const player = useAudioPlayer(null, { updateInterval: 100 });
 	const status = useAudioPlayerStatus(player);
@@ -23,7 +23,7 @@ const useSoundPlayer = () => {
 
 	const playSequenceRef = useRef(0);
 
-	/** 준비 중인 재생을 무시하고 재생 멈춤 */
+	/** 재생 정지 함수 */
 	const stop = useCallback(() => {
 		playSequenceRef.current++;
 		player.pause();
@@ -31,10 +31,10 @@ const useSoundPlayer = () => {
 		setPlayingId(null);
 	}, [player]);
 
-	/** 컴포넌트가 사라질 때 재생 멈춤 */
+	/** 컴포넌트 unmount 시 재생 정지 */
 	useLayoutEffect(() => stop, [stop]);
 
-	/** 재생이 실패하거나 끝나면 그 녹음 ID를 저장하고 재생 멈춤 */
+	/** 재생 종료 시 녹음 ID 저장 */
 	useEffect(() => {
 		if (!playingId) {
 			return;
@@ -53,7 +53,7 @@ const useSoundPlayer = () => {
 		}
 	}, [playingId, status.didJustFinish, status.playbackState, stop]);
 
-	/** 재생 중인 녹음이면 멈추고 아니면 처음부터 재생 */
+	/** 녹음 재생 또는 정지 함수 */
 	const toggle = (id: string, url: string) => {
 		if (playingId === id) {
 			stop();

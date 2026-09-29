@@ -12,7 +12,7 @@ import TabBar from '@/components/navigation/tab-bar';
 
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 
-/** 아래 탭 버튼으로 홈, 단어, 리포트, 프로필 화면을 오가는 컴포넌트 */
+/** 하단 탭 navigator 컴포넌트 */
 const MainTabs = () => {
 	return (
 		<Tabs.Navigator

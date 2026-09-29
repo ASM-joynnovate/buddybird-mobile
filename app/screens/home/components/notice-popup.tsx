@@ -26,7 +26,7 @@ interface Props {
 }
 
 /**
- * 앱을 켠 뒤 처음 한 번 읽지 않은 공지를 하나씩 보여 주고, 닫기나 자세히를 누르면 읽음으로 표시한 뒤 다음 공지를 보여 주거나 공지 상세 화면을 여는 컴포넌트
+ * 읽지 않은 공지 팝업 컴포넌트
  * @param notices 읽지 않은 공지 목록
  */
 const NoticePopup = ({ notices }: Props) => {
@@ -45,7 +45,7 @@ const NoticePopup = ({ notices }: Props) => {
 	const currentNotice = queue[0] ?? null;
 	const image = currentNotice?.images[0];
 
-	/** 앱을 켠 뒤 처음 한 번 차례로 보여 줄 공지 채우기 */
+	/** 앱 시작 후 처음 한 번 표시할 공지 목록 설정 */
 	useEffect(() => {
 		if (popupShown) {
 			return;
@@ -56,7 +56,6 @@ const NoticePopup = ({ notices }: Props) => {
 		setQueue(notices);
 	}, [notices, popupShown, setPopupShown]);
 
-	/** 현재 공지 읽음 표시와 닫기 */
 	const handleClose = () => {
 		if (!currentNotice) {
 			return;
@@ -67,7 +66,6 @@ const NoticePopup = ({ notices }: Props) => {
 		setQueue((prev) => prev.slice(1));
 	};
 
-	/** 현재 공지 닫기와 공지 상세 열기 */
 	const handleOpenDetail = () => {
 		if (!currentNotice) {
 			return;
@@ -101,7 +99,6 @@ const NoticePopup = ({ notices }: Props) => {
 				</View>
 			}
 		>
-			{/*공지 이미지*/}
 			{image && (
 				<Image
 					source={{ uri: image.url }}
@@ -111,7 +108,6 @@ const NoticePopup = ({ notices }: Props) => {
 				/>
 			)}
 
-			{/*공지 내용*/}
 			{!!currentNotice?.body && <Copy numberOfLines={4}>{currentNotice.body}</Copy>}
 		</Dialog>
 	);

@@ -11,8 +11,8 @@ interface Props {
 }
 
 /**
- * 마지막으로 로그인한 방법의 버튼 오른쪽 위에 최근 로그인 표시를 띄우는 컴포넌트
- * @param label 표시에 보여 줄 글자
+ * 최근 로그인 표시 컴포넌트
+ * @param label 표시 문구
  */
 const LastLoginTag = ({ label }: Props) => {
 	return (
@@ -23,10 +23,9 @@ const LastLoginTag = ({ label }: Props) => {
 			importantForAccessibility="no-hide-descendants"
 			style={styles.container}
 		>
-			{/*최근 로그인 글자*/}
 			<Copy style={styles.text}>{label}</Copy>
 
-			{/*버튼을 가리키는 꼬리*/}
+			{/*말풍선 꼬리*/}
 			<View style={styles.pointer} />
 		</Animated.View>
 	);

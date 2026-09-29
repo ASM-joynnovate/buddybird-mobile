@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * 앵무새가 따라 한 소리를 녹음 시각, 단어, 재생 버튼과 함께 보여 주고 아래로 당기면 다시 불러오는 목록 컴포넌트
+ * 앵무새가 따라 한 소리 목록 컴포넌트
  * @param session 판정이 끝난 세션
  */
 const MimicrySoundList = ({ session }: Props) => {
@@ -46,7 +46,6 @@ const MimicrySoundList = ({ session }: Props) => {
 			wordName: wordListData.find((word) => word.id === sound.judgment?.word_id)?.name ?? '',
 		}));
 
-	/** 소리 목록과 단어 목록 다시 조회 */
 	const handleRefresh = () => {
 		void refetchSessionSoundList();
 		void refetchWordList();

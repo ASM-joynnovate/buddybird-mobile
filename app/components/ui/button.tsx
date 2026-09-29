@@ -69,10 +69,8 @@ export const Button = ({
 				size === 'small' && styles.compact,
 			]}
 		>
-			{/*진행 표시나 아이콘*/}
 			{leadingContent}
 
-			{/*버튼 문구*/}
 			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.compactText]}>
 				{label}
 			</Copy>

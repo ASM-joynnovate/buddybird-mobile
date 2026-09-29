@@ -55,7 +55,7 @@ export const Surface = ({
 				style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
 			/>
 
-			{/*윗면과 내용*/}
+			{/*윗면*/}
 			<Animated.View
 				style={[
 					styles.face,

@@ -6,7 +6,7 @@ export const speciesGroups = {
 
 export type SpeciesId = (typeof speciesGroups)[keyof typeof speciesGroups][number];
 
-/** 앱이 아는 앵무새 종 ID인지 여부 */
+/** 앱이 지원하는 앵무새 종 ID인지 확인하는 함수 */
 export const isSpeciesId = (value: string): value is SpeciesId => {
 	return Object.values<readonly string[]>(speciesGroups).flat().includes(value);
 };

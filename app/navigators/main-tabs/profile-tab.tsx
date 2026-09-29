@@ -8,7 +8,7 @@ import ProfileScreen from '@/screens/profile/profile-screen';
 
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
-/** 프로필 탭 안에서 프로필 화면과 계정 편집 화면을 오가는 컴포넌트 */
+/** 프로필 탭 navigator 컴포넌트 */
 const ProfileTab = () => {
 	return (
 		<ProfileStack.Navigator screenOptions={stackOptions}>

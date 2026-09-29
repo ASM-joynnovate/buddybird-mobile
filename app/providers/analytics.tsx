@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * 분석 사용자 ID와 사용자 속성 설정 provider
+ * 분석 사용자 정보 provider
  * @param children 감싸는 내용
  */
 const AnalyticsProvider = ({ children }: Props) => {
@@ -28,12 +28,12 @@ const AnalyticsProvider = ({ children }: Props) => {
 	const parrot = parrotListData?.[0] ?? null;
 	const wordCount = wordListData?.length;
 
-	/** 서버 사용자 ID로 분석 사용자 ID 설정 */
+	/** 서버 사용자 ID 변경 시 분석 사용자 ID 설정 */
 	useEffect(() => {
 		setTelemetryUserId(serverUserId);
 	}, [serverUserId]);
 
-	/** 앵무새, 단어 수, 앱 언어 변경 시 사용자 속성 동기화 */
+	/** 사용자 속성 변경 시 분석 도구에 동기화 */
 	useEffect(() => {
 		if (wordCount !== undefined) {
 			syncUserProperties(parrot, wordCount);

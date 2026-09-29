@@ -8,7 +8,7 @@ import { reportError } from '@/services/telemetry/client';
 
 export const installedVersion = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.2.0';
 
-/** 스토어 앱에서 이 앱 페이지 열기, 열지 못하면 스토어 웹 페이지 열기 */
+/** 앱 스토어 페이지를 여는 함수 */
 export const openAppStore = async () => {
 	const appId = Application.applicationId;
 

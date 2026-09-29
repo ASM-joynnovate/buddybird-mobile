@@ -17,7 +17,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TextButton } from '@/components/ui/text-button';
 
-/** 받은 알림과 모두 읽음 버튼을 보여 주고 모두 읽음을 누르면 모든 알림을 읽음으로 표시하는 화면 */
+/** 알림 목록 화면 */
 const NotificationsScreen = () => {
 	const { t } = useTranslation();
 
@@ -28,7 +28,6 @@ const NotificationsScreen = () => {
 	return (
 		<Screen scrollable={false}>
 			<View style={styles.container}>
-				{/*알림 제목, 뒤로 가기와 모두 읽음 버튼, 모두 읽음 실패 안내*/}
 				<ScreenHeader
 					title={t('home.notificationList.title')}
 					onBack={() => navigation.goBack()}
@@ -40,7 +39,6 @@ const NotificationsScreen = () => {
 				/>
 				<InlineError message={isError ? t('home.notificationList.readAllError') : null} />
 
-				{/*받은 알림*/}
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={5} />>
 					<NotificationList />
 				</ErrorHandlingWrapper>

@@ -41,7 +41,6 @@ export const ItemCheckbox = ({
 			style={!props.first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
-			{/*작은 안내 문구, 이름, 설명*/}
 			<View style={itemStyles.textContainer}>
 				{!!caption && (
 					<Copy style={[styles.caption, captionVariant === 'primary' && styles.captionPrimary]}>
@@ -52,7 +51,6 @@ export const ItemCheckbox = ({
 				{!!props.detail && <Copy style={itemStyles.detail}>{props.detail}</Copy>}
 			</View>
 
-			{/*오른쪽 끝 내용과 체크 표시*/}
 			{trailing}
 			<Checkbox checked={checked} disabled={disabled} onPress={onToggle} />
 		</PressableSurface>

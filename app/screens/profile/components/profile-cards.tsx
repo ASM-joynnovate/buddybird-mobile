@@ -24,7 +24,7 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<RootStackParamList>
 >;
 
-/** 내 계정, 익명이면 로그인 버튼, 앵무새 목록과 앵무새 추가 버튼을 보여 주고 누르면 계정 수정, 로그인, 앵무새 편집 화면을 여는 컴포넌트 */
+/** 프로필 카드 목록 컴포넌트 */
 const ProfileCards = () => {
 	const { t } = useTranslation();
 
@@ -37,10 +37,8 @@ const ProfileCards = () => {
 
 	return (
 		<>
-			{/*내 사진, 닉네임, 이메일*/}
 			<AccountCard user={meData} />
 
-			{/*로그인 버튼*/}
 			{isAnonymous && (
 				<Button
 					label={t('auth.signIn')}

@@ -16,22 +16,22 @@ import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 단어 목록 조회 옵션 */
+/** 단어 목록 조회 Hook에 사용할 옵션 */
 export const getWordListOptions = () => queryOptions({ queryKey: apiKeys.words.all(), queryFn: getWordList });
-/** 단어 목록 조회 훅 */
+/** 단어 목록 조회 Hook */
 export const useGetWordList = () => {
 	return useSuspenseQuery(getWordListOptions());
 };
 
-/** 단어 조회 옵션 */
+/** 단어 상세 조회 Hook에 사용할 옵션 */
 export const getWordOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.words.detail(id), queryFn: () => getWord({ id }) });
-/** 단어 조회 훅 */
+/** 단어 상세 조회 Hook */
 export const useGetWord = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getWordOptions({ id }));
 };
 
-/** 단어 만들기 훅 */
+/** 단어 추가 Hook */
 export const useCreateWord = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('words', 'create'),
@@ -39,7 +39,7 @@ export const useCreateWord = () => {
 	});
 };
 
-/** 단어 이름 변경 훅 */
+/** 단어 이름 변경 Hook */
 export const useRenameWord = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'rename'),
@@ -47,7 +47,7 @@ export const useRenameWord = () => {
 	});
 };
 
-/** 단어 삭제 훅 */
+/** 단어 삭제 Hook */
 export const useDeleteWord = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'delete'),
@@ -57,7 +57,7 @@ export const useDeleteWord = () => {
 	});
 };
 
-/** 단어 녹음 추가 훅 */
+/** 단어 녹음 추가 Hook */
 export const useAddWordRecording = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'add'),
@@ -65,7 +65,7 @@ export const useAddWordRecording = () => {
 	});
 };
 
-/** 단어 녹음 삭제 훅 */
+/** 단어 녹음 삭제 Hook */
 export const useDeleteWordRecording = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'delete'),

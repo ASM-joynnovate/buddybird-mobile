@@ -13,7 +13,7 @@ import { Copy } from '@/components/ui/copy';
 
 const ICON_SIZE = 18;
 
-/** 배터리 잔량과 충전 상태 컴포넌트 */
+/** 배터리 상태 컴포넌트 */
 const BatteryStatus = () => {
 	const { t } = useTranslation();
 

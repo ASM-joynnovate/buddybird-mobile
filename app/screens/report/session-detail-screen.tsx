@@ -22,7 +22,7 @@ import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** 뒤로 가기 버튼과 세션에서 앵무새가 따라 한 소리를 보여 주고 로그인하지 않았으면 로그인 버튼을 보여 주는 화면 */
+/** 세션 상세 화면 */
 const SessionDetailScreen = () => {
 	const { t } = useTranslation();
 
@@ -31,7 +31,7 @@ const SessionDetailScreen = () => {
 
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
-	/** 세션 상세를 열거나 보는 세션이 바뀔 때 session_detail_viewed 전송 */
+	/** 세션 변경 시 session_detail_viewed 이벤트 전송 */
 	useEffect(() => {
 		track('session_detail_viewed', { session_id: params.sessionId, source: params.source });
 	}, [params.sessionId, params.source]);
@@ -39,10 +39,9 @@ const SessionDetailScreen = () => {
 	return (
 		<Screen scrollable={false}>
 			<View style={styles.container}>
-				{/*뒤로 가기 버튼*/}
 				<ScreenHeader onBack={() => navigation.goBack()} />
 
-				{/*앵무새가 따라 한 소리 목록이나 로그인 안내*/}
+				{/*익명 사용자에게는 로그인 안내 표시*/}
 				{isAnonymous ? (
 					<View style={styles.signInRequiredContainer}>
 						<Copy style={styles.signInRequiredText}>{t('report.signInRequired')}</Copy>

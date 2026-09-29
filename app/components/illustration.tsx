@@ -16,11 +16,11 @@ interface Props {
 }
 
 /**
- * 연한 주황 바탕에 마스코트와 장면 아이콘을 보여 주는 그림 컴포넌트
+ * 장면 그림 컴포넌트
  * @param scene 접근성 라벨에 넣을 장면 이름
  * @param icon 장면을 나타내는 아이콘
  * @param height 그림 높이
- * @param showMascot 마스코트 표시 여부, 거짓이면 아이콘만 가운데에 크게 표시
+ * @param showMascot 마스코트 표시 여부
  */
 const Illustration = ({ scene, icon: Icon, height = 220, showMascot = true }: Props) => {
 	const { t } = useTranslation();
@@ -32,10 +32,9 @@ const Illustration = ({ scene, icon: Icon, height = 220, showMascot = true }: Pr
 			accessibilityLabel={t('common.illustration', { scene })}
 			style={[styles.container, { height }]}
 		>
-			{/*가운데 마스코트*/}
 			{showMascot && <Mascot size={Math.round(height * 0.55)} />}
 
-			{/*원 안의 장면 아이콘*/}
+			{/*장면 아이콘*/}
 			<View style={showMascot ? styles.badge : styles.centered}>
 				<Icon size={showMascot ? 26 : 40} color={colors.orangeDark} />
 			</View>

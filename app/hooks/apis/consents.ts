@@ -8,14 +8,14 @@ import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 동의 목록 조회 옵션 */
+/** 약관 동의 목록 조회 Hook에 사용할 옵션 */
 export const getConsentListOptions = () => queryOptions({ queryKey: apiKeys.consents.all(), queryFn: getConsentList });
-/** 동의 목록 조회 훅 */
+/** 약관 동의 목록 조회 Hook */
 export const useGetConsentList = () => {
 	return useSuspenseQuery(getConsentListOptions());
 };
 
-/** 동의 저장 훅 */
+/** 약관 동의 저장 Hook */
 export const useSaveConsent = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'consents'),

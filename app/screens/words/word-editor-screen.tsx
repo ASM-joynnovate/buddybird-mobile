@@ -53,13 +53,13 @@ type SaveStep = 'saving' | 'uploading' | 'processing';
 
 type DeleteTarget = { kind: 'word' } | { kind: 'recording'; recording: EditorRecording; name: string };
 
-/** 정한 시간 동안 대기 */
+/** ms 동안 대기하는 함수 */
 const wait = (ms: number) =>
 	new Promise<void>((resolve) => {
 		setTimeout(resolve, ms);
 	});
 
-/** 서버 녹음을 편집 화면 녹음으로 변환 */
+/** 서버 녹음을 편집 화면에서 사용할 녹음으로 변환하는 함수 */
 const toEditorRecording = (serverRecording: Recording): EditorRecording => ({
 	kind: 'server',
 	id: serverRecording.id,
@@ -67,7 +67,7 @@ const toEditorRecording = (serverRecording: Recording): EditorRecording => ({
 	durationMs: null,
 });
 
-/** 저장 단계와 실패 여부에 맞는 저장 버튼 문구 */
+/** 저장 진행 상태에 맞는 저장 버튼 문구를 반환하는 함수 */
 const saveLabel = (saveStep: SaveStep | null, saveFailed: boolean, t: TFunction) => {
 	if (saveStep) {
 		return t(`words.editor.${saveStep}`);
@@ -76,7 +76,7 @@ const saveLabel = (saveStep: SaveStep | null, saveFailed: boolean, t: TFunction)
 	return saveFailed ? t('common.retry') : t('common.save');
 };
 
-/** 단어 이름 입력과 녹음 목록을 보여 주고 저장을 누르면 단어 이름과 녹음을 서버에 저장한 뒤 이전 화면으로 돌아가는 화면 */
+/** 단어 편집 화면 */
 const WordEditorScreen = () => {
 	const { t } = useTranslation();
 
@@ -137,7 +137,7 @@ const WordEditorScreen = () => {
 	const loading = Boolean(routeWordId) && isPending;
 	const loadFailed = Boolean(routeWordId) && isError;
 
-	/** 화면이 열려 있는지 기록 */
+	/** 화면 mount 여부 기록 */
 	useEffect(() => {
 		mountedRef.current = true;
 
@@ -146,7 +146,7 @@ const WordEditorScreen = () => {
 		};
 	}, []);
 
-	/** 단어 만들기나 편집 시작 이벤트 전송 */
+	/** 화면 진입 시 단어 편집 시작 이벤트 전송 */
 	useEffect(() => {
 		if (routeWordId) {
 			track('word_edit_started', { word_id: routeWordId });
@@ -170,7 +170,7 @@ const WordEditorScreen = () => {
 		track('recording_finished', { duration_ms: newRecording.durationMs });
 	}, [route.params?.newRecording]);
 
-	/** 녹음 목록에서 녹음 제거 */
+	/** 녹음 목록에서 녹음을 제거하는 함수 */
 	const removeRecording = (recording: EditorRecording) => {
 		if (recording.kind === 'local') {
 			setNewRecordings((prev) => prev.filter(({ key }) => key !== recording.id));
@@ -179,7 +179,7 @@ const WordEditorScreen = () => {
 		}
 	};
 
-	/** 서버 녹음 수가 기대한 수에 이를 때까지 단어 다시 조회 */
+	/** 서버의 녹음 수가 예상한 수가 될 때까지 단어를 다시 조회하는 함수 */
 	const waitForRecordings = async (savedWordId: string, expectedCount: number) => {
 		let intervalMs = UPLOAD_POLL_INTERVAL_MS;
 
@@ -198,7 +198,7 @@ const WordEditorScreen = () => {
 		return null;
 	};
 
-	/** 새 단어 만들기나 바뀐 단어 이름 저장 */
+	/** 단어 이름 저장 함수 */
 	const saveWordName = async () => {
 		const trimmedName = name.trim();
 
@@ -229,7 +229,6 @@ const WordEditorScreen = () => {
 		return wordId;
 	};
 
-	/** 녹음 화면이나 녹음 안내 화면 열기 */
 	const handleOpenRecorder = () => {
 		player.stop();
 
@@ -242,7 +241,6 @@ const WordEditorScreen = () => {
 		});
 	};
 
-	/** 단어 이름 저장, 새 녹음 올리기, 서버 처리 대기, 녹음 삭제 뒤 화면 닫기 */
 	const handleSave = async () => {
 		if (saving) {
 			return;
@@ -330,7 +328,6 @@ const WordEditorScreen = () => {
 		}
 	};
 
-	/** 녹음 삭제 확인 */
 	const handleDeleteRecording = () => {
 		if (deleteTarget?.kind !== 'recording') {
 			return;
@@ -341,7 +338,6 @@ const WordEditorScreen = () => {
 		setDeleteTarget(null);
 	};
 
-	/** 단어 삭제 뒤 화면 닫기 */
 	const handleWordDeleted = () => {
 		setDeleteTarget(null);
 
@@ -357,7 +353,6 @@ const WordEditorScreen = () => {
 	} else {
 		body = (
 			<>
-				{/*단어 이름*/}
 				<TextField
 					label={t('words.editor.name')}
 					placeholder={t('words.editor.nameHint')}
@@ -368,7 +363,6 @@ const WordEditorScreen = () => {
 					errorMessage={nameMissing ? t('words.editor.nameRequired') : null}
 				/>
 
-				{/*녹음 목록*/}
 				<RecordingsSection
 					recordings={recordings}
 					recordingMissing={recordingMissing}
@@ -381,7 +375,6 @@ const WordEditorScreen = () => {
 					}
 				/>
 
-				{/*저장 실패 안내와 저장 버튼*/}
 				<View style={styles.spacer} />
 				<InlineError message={saveFailed ? t('words.editor.saveError') : null} />
 				<Button
@@ -396,7 +389,6 @@ const WordEditorScreen = () => {
 
 	return (
 		<Screen>
-			{/*단어 추가나 수정 제목, 뒤로 가기와 단어 삭제 버튼*/}
 			<ScreenHeader
 				title={t(routeWordId ? 'words.editor.editTitle' : 'words.editor.addTitle')}
 				onBack={() => navigation.goBack()}
@@ -413,10 +405,9 @@ const WordEditorScreen = () => {
 				}
 			/>
 
-			{/*단어 이름 입력, 녹음 목록, 저장 버튼*/}
 			{body}
 
-			{/*삭제 확인 다이얼로그*/}
+			{/*단어 삭제 확인 다이얼로그*/}
 			{!!routeWordId && (
 				<DeleteWordDialog
 					visible={deleteTarget?.kind === 'word'}
@@ -437,7 +428,6 @@ const WordEditorScreen = () => {
 				onClose={() => setDeleteTarget(null)}
 			/>
 
-			{/*마이크 권한 다이얼로그*/}
 			<PermissionDialog state={microphonePermission.dialog} />
 		</Screen>
 	);

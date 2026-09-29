@@ -37,12 +37,12 @@ import OfflineBanner from '@/components/offline-banner';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
-/** 운영과 개발 환경에 맞는 앱 링크 주소 앞부분 */
+/** 실행 환경에 맞는 앱 링크 prefix */
 const linkPrefix = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
 };
 
-/** 푸시 알림 데이터로 열 화면의 앱 링크 주소 만들기와 알림 열기 이벤트 전송 */
+/** 푸시 알림으로 열 화면의 앱 링크 주소를 만드는 함수 */
 const resolvePushUrl = (pushData: unknown) => {
 	const parsed = pushDataSchema.safeParse(pushData);
 
@@ -88,7 +88,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 
 const ONBOARDING_ORDER = ['Consent', 'ParrotEditor', 'UsageGuide'] as const;
 
-/** 동의 화면부터 지금 온보딩 화면까지 쌓은 첫 화면 상태 */
+/** 현재 온보딩 화면까지 쌓은 navigation 상태 생성 함수 */
 const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string) => {
 	const routes = ONBOARDING_ORDER.slice(0, ONBOARDING_ORDER.indexOf(route) + 1).map((name) =>
 		name === 'ParrotEditor'
@@ -105,7 +105,7 @@ const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string)
 	return { index: routes.length - 1, routes };
 };
 
-/** 로그인이나 온보딩에서 시작할 때 쌓아 둘 첫 화면 상태, 메인 화면이면 없음 */
+/** 첫 화면에 맞는 navigation 초기 상태 생성 함수 */
 const initialStateOf = (route: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: string) => {
 	if (route === 'Main') {
 		return undefined;
@@ -118,7 +118,7 @@ const initialStateOf = (route: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: s
 	return entryState(route, parrotId);
 };
 
-/** 첫 화면에 따라 v1 데이터 올리기, 로그인과 온보딩, 메인 화면 중 하나를 보여 주고 화면이 바뀔 때마다 화면 조회를 기록하는 컴포넌트 */
+/** 앱 navigator 컴포넌트 */
 const AppNavigator = () => {
 	const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
@@ -126,7 +126,6 @@ const AppNavigator = () => {
 
 	const { entryRoute, parrotId } = useEntryRoute();
 
-	/** 지금 화면이 바뀌었으면 화면 조회 이벤트 전송 */
 	const handleTrackScreen = () => {
 		const currentScreenName = navigationRef.getCurrentRoute()?.name ?? null;
 
@@ -143,7 +142,6 @@ const AppNavigator = () => {
 
 	return (
 		<>
-			{/*로그인과 온보딩 화면, 또는 아래 탭 화면과 그 위에 여는 화면*/}
 			<NavigationContainer
 				key={entryRoute}
 				ref={navigationRef}
@@ -159,7 +157,7 @@ const AppNavigator = () => {
 						contentStyle: { backgroundColor: colors.background },
 					}}
 				>
-					{/*로그인과 온보딩 화면*/}
+					{/*온보딩 화면*/}
 					{entryRoute !== 'Main' && (
 						<RootStack.Group>
 							<RootStack.Screen name="Login" component={LoginScreen} />
@@ -171,7 +169,7 @@ const AppNavigator = () => {
 						</RootStack.Group>
 					)}
 
-					{/*아래 탭 화면과 그 위에 여는 로그인, 앵무새 편집, 공지, 학습, 녹음, 설정 화면*/}
+					{/*메인 화면*/}
 					{entryRoute === 'Main' && (
 						<RootStack.Group>
 							<RootStack.Screen name="Main" component={MainTabs} />
@@ -216,7 +214,6 @@ const AppNavigator = () => {
 				</RootStack.Navigator>
 			</NavigationContainer>
 
-			{/*인터넷 연결이 끊기면 위쪽에 뜨는 안내*/}
 			<OfflineBanner />
 		</>
 	);

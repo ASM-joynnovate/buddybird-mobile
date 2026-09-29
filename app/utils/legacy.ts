@@ -18,14 +18,14 @@ export interface LegacyProfile {
 	photoUri?: string;
 }
 
-/** v1 업데이트 안내 값에서 읽은 닫은 버전 */
+/** v1 업데이트 안내 값에서 닫은 버전을 읽는 함수 */
 export const parseLegacyAppUpdate = (appUpdate: UnknownRecord) => {
 	return {
 		dismissedVersion: readNullableText(appUpdate.dismissedVersion, 'dismissedVersion'),
 	};
 };
 
-/** v1 의견 요청 값을 지금 형식으로 변환 */
+/** v1 피드백 요청 값을 현재 형식으로 변환하는 함수 */
 export const parseLegacyFeedbackPrompt = (feedbackPrompt: UnknownRecord): DeviceSettings['feedbackPrompt'] => {
 	if (feedbackPrompt.version !== 1) {
 		throw new Error('Unsupported feedback version');
@@ -39,7 +39,7 @@ export const parseLegacyFeedbackPrompt = (feedbackPrompt: UnknownRecord): Device
 	};
 };
 
-/** v1 앵무새 프로필을 검사해 이름, 종, 생일, 사진 주소로 변환 */
+/** v1 앵무새 프로필 변환 함수 */
 export const parseLegacyProfile = (value: unknown) => {
 	const profileRecord = requireRecord(value, 'profile');
 	let birthDate =

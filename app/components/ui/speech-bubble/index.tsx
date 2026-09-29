@@ -28,7 +28,6 @@ export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false,
 			{/*말풍선 꼬리*/}
 			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
 
-			{/*문구*/}
 			{typing && typeof children === 'string' ? (
 				<TypedText key={children} text={keepNumbersWithUnits(children)} />
 			) : (

@@ -27,7 +27,7 @@ import { ItemGroup } from '@/components/ui/item/group';
 import { Screen } from '@/components/ui/screen';
 import { Card } from '@/components/ui/surface/card';
 
-/** 약관 동의 항목과 전체 동의 체크를 보여 주고 다음 버튼을 누르면 동의 여부를 저장한 뒤 다음 온보딩 단계로 넘어가는 화면 */
+/** 약관 동의 화면 */
 const ConsentScreen = () => {
 	const { t } = useTranslation();
 
@@ -52,14 +52,14 @@ const ConsentScreen = () => {
 	const allChecked = Boolean(consents.length) && consents.every(isChecked);
 	const requiredChecked = consents.every((consent) => !consent.is_required || isChecked(consent));
 
-	/** 화면에 들어올 때마다 onboarding_step_viewed 전송 */
+	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('consent');
 		}, []),
 	);
 
-	/** 동의 상세 화면에서 동의한 항목 체크 반영 */
+	/** 약관 전문 화면에서 동의한 항목 체크 반영 */
 	useFocusEffect(
 		useCallback(() => {
 			if (agreedIds.length === 0) {
@@ -75,17 +75,14 @@ const ConsentScreen = () => {
 		}, [agreedIds, clearAgreedIds]),
 	);
 
-	/** 동의 항목 체크 전환 */
 	const handleToggleConsent = (consent: Consent) => {
 		setCheckedById((prev) => ({ ...prev, [consent.id]: !isChecked(consent) }));
 	};
 
-	/** 전체 동의 체크 전환 */
 	const handleToggleAll = () => {
 		setCheckedById(Object.fromEntries(consents.map((consent) => [consent.id, !allChecked])));
 	};
 
-	/** 동의 항목 차례로 저장 뒤 동의 단계 완료 전송과 앵무새 편집 화면 이동 */
 	const handleSave = async () => {
 		if (isPending) {
 			return;
@@ -128,12 +125,10 @@ const ConsentScreen = () => {
 				</>
 			}
 		>
-			{/*안내 말풍선*/}
 			<View style={styles.introContainer}>
 				<BuddySays message={t('onboarding.consent.intro')} />
 			</View>
 
-			{/*동의 항목*/}
 			<View style={styles.consentsContainer}>
 				<Card contentStyle={styles.allCard}>
 					<ItemCheckbox

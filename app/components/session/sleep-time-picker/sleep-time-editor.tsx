@@ -20,9 +20,9 @@ interface Props {
 }
 
 /**
- * 취침 시각과 기상 시각 버튼, 시와 분 휠을 보여 주고 버튼으로 고른 시각을 휠로 바꾸는 컴포넌트
- * @param value 취침 시각과 기상 시각
- * @param onChange 시각을 바꿀 때 실행할 함수
+ * 수면 시간 편집 컴포넌트
+ * @param value 수면 시간
+ * @param onChange 수면 시간 변경 시 실행할 함수
  */
 const SleepTimeEditor = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();
@@ -31,7 +31,7 @@ const SleepTimeEditor = ({ value, onChange }: Props) => {
 
 	return (
 		<View style={styles.container}>
-			{/*취침 시각과 기상 시각 버튼*/}
+			{/*편집할 시각 선택 버튼*/}
 			<View style={ui.controlsRow}>
 				{SLEEP_TIME_FIELDS.map((field) => (
 					<Chip
@@ -43,7 +43,6 @@ const SleepTimeEditor = ({ value, onChange }: Props) => {
 				))}
 			</View>
 
-			{/*고른 시각의 시와 분 휠*/}
 			<TimePicker
 				key={selectedField}
 				value={value[selectedField]}

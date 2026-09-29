@@ -18,10 +18,8 @@ export const ItemPicker = ({ item, sheet, children }: Props) => {
 
 	return (
 		<>
-			{/*이름과 고른 값*/}
 			<Item {...item} onPress={() => setOpen(true)} />
 
-			{/*누르면 아래에서 올라오는 제목과 선택지*/}
 			<Sheet
 				visible={open}
 				title={sheet.title}

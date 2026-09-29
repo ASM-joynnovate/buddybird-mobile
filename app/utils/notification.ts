@@ -8,7 +8,7 @@ interface OpenedNotification {
 	sent_at: string;
 }
 
-/** 알림 종류와 날짜에 맞는 리포트 화면 경로 */
+/** 알림으로 열 리포트 화면 경로를 반환하는 함수 */
 export const notificationPath = ({ kind, report_date, sent_at }: OpenedNotification) => {
 	if (kind === 'streak') {
 		return '/report?source=notification';

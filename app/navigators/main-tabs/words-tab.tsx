@@ -8,7 +8,7 @@ import WordListScreen from '@/screens/words/word-list-screen';
 
 const WordsStack = createNativeStackNavigator<WordsStackParamList>();
 
-/** 단어 탭 안에서 단어 목록 화면과 단어 편집 화면을 오가는 컴포넌트 */
+/** 단어 탭 navigator 컴포넌트 */
 const WordsTab = () => {
 	return (
 		<WordsStack.Navigator screenOptions={stackOptions}>

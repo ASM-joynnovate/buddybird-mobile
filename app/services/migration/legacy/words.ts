@@ -7,7 +7,7 @@ export interface LegacyWord {
 	audioUri: string;
 }
 
-/** v1 단어 기록 하나를 올릴 단어로 변환, 기본 제공 단어나 보관한 단어는 null */
+/** v1 단어를 업로드할 단어로 변환하는 함수 */
 const parseLegacyWord = (value: unknown, id: string) => {
 	const wordRecord = requireRecord(value, `word ${id}`);
 	const sourceType = requireChoice(wordRecord.sourceType, ['preset', 'recording'] as const, 'sourceType');
@@ -23,7 +23,7 @@ const parseLegacyWord = (value: unknown, id: string) => {
 	};
 };
 
-/** v1 단어 목록에서 올릴 단어 목록, 읽지 못한 단어는 보고하고 제외 */
+/** v1 단어 목록에서 업로드할 단어 목록을 만드는 함수 */
 export const parseLegacyWords = (library: UnknownRecord) => {
 	if (library.version !== 1) {
 		throw new Error('Unsupported word library version');

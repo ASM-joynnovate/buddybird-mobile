@@ -35,17 +35,17 @@ const LEGACY_KEY_PREFIXES = ['@buddybird/', '@pethub/'] as const;
 let pendingUpload: LegacyUpload | null = null;
 let uploadPromise: Promise<void> | undefined;
 
-/** 기기 설정 스토어에 저장한 v1 올리기 진행 상태 */
+/** 저장한 v1 업로드 진행 상태 */
 const getLegacyMigration = () => {
 	return useDeviceSettingsStore.getState().legacyMigration;
 };
 
-/** v1 올리기 진행 상태 갱신 */
+/** v1 업로드 진행 상태 갱신 함수 */
 const setLegacyMigration = (updater: (migration: LegacyMigration) => LegacyMigration) => {
 	useDeviceSettingsStore.getState().updateLegacyMigration(updater);
 };
 
-/** v1 값 읽기, 실패하면 보고하고 undefined */
+/** v1 값을 읽는 함수 */
 const tryParseLegacy = <T>(scope: string, parse: () => T) => {
 	try {
 		return parse();
@@ -56,7 +56,7 @@ const tryParseLegacy = <T>(scope: string, parse: () => T) => {
 	}
 };
 
-/** AsyncStorage의 v1 값을 모두 읽고 키 이름으로 값을 찾는 함수 반환 */
+/** AsyncStorage의 v1 값을 모두 읽는 함수 */
 const readLegacyValues = async () => {
 	const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
 		LEGACY_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
@@ -67,14 +67,14 @@ const readLegacyValues = async () => {
 		LEGACY_KEY_PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find((value) => typeof value === 'string');
 };
 
-/** v1 값을 JSON으로 읽은 값, 없으면 undefined */
+/** v1 값을 JSON으로 읽는 함수 */
 const readJson = (read: LegacyValueReader, key: string) => {
 	const raw = read(key);
 
 	return raw === undefined ? undefined : (JSON.parse(raw) as unknown);
 };
 
-/** v1의 언어, 분석 동의, 업데이트 안내, 의견 요청 설정 가운데 읽은 값 */
+/** v1 설정 값을 읽는 함수 */
 const readSettings = (read: LegacyValueReader) => {
 	const locale = tryParseLegacy('locale', () => {
 		const raw = read('locale');
@@ -111,7 +111,7 @@ const readSettings = (read: LegacyValueReader) => {
 	};
 };
 
-/** 서버에 올릴 v1 앵무새 프로필과 단어 목록 */
+/** 서버에 업로드할 v1 데이터를 읽는 함수 */
 const readUpload = (read: LegacyValueReader) => {
 	const profile = tryParseLegacy('profile', () => {
 		const value = readJson(read, 'parrot-profile');
@@ -127,7 +127,7 @@ const readUpload = (read: LegacyValueReader) => {
 	return { profile: profile ?? null, words: words ?? [] };
 };
 
-/** v1 설정을 가져오고 올릴 v1 데이터 준비, 올릴 데이터가 없으면 올리기 완료로 저장 */
+/** v1 데이터 불러오기 함수 */
 export const loadLegacy = async () => {
 	const migration = getLegacyMigration();
 
@@ -156,29 +156,29 @@ export const loadLegacy = async () => {
 	pendingUpload = legacyUpload;
 };
 
-/** 올릴 v1 데이터가 있는지 여부 */
+/** 업로드할 v1 데이터가 있는지 확인하는 함수 */
 export const hasLegacyUpload = () => {
 	return pendingUpload !== null;
 };
 
-/** v1 데이터 올리기를 시작한 것으로 저장 */
+/** v1 데이터 업로드 시작 상태 저장 함수 */
 export const acceptLegacyUpload = () => {
 	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'started' }));
 };
 
-/** 올릴 v1 데이터를 비우고 올리기 완료로 저장 */
+/** v1 데이터 업로드 완료 상태 저장 함수 */
 export const finishLegacyUpload = () => {
 	pendingUpload = null;
 
 	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'finished' }));
 };
 
-/** 주소가 앱의 문서 폴더나 캐시 폴더 안인지 여부 */
+/** 주소가 앱 폴더 안에 있는지 확인하는 함수 */
 const isInsideApp = (uri: string) => {
 	return [Paths.document.uri, Paths.cache.uri].some((root) => uri.startsWith(root)) && !uri.split('/').includes('..');
 };
 
-/** 앱 안에 있고 비어 있지 않은 v1 파일의 주소, 없으면 보고하고 null */
+/** 업로드할 수 있는 v1 파일의 주소를 반환하는 함수 */
 const existingFileUri = async (uri: string, scope: string) => {
 	try {
 		const resolved = resolveFileUri(uri);
@@ -203,11 +203,11 @@ const existingFileUri = async (uri: string, scope: string) => {
 	return null;
 };
 
-/** 이름이 같은 키를 뺀 멱등키 목록 */
+/** 이름이 같은 idempotency key를 제외하는 함수 */
 const withoutIdempotencyKey = (idempotencyKeys: LegacyMigration['idempotencyKeys'], idempotencyKeyName: string) =>
 	Object.fromEntries(Object.entries(idempotencyKeys).filter(([savedKeyName]) => savedKeyName !== idempotencyKeyName));
 
-/** 저장된 멱등키 반환, 없으면 새 키를 저장한 뒤 반환 */
+/** 저장된 idempotency key를 반환하고, 없으면 새로 만드는 함수 */
 const ensureIdempotencyKey = (idempotencyKeyName: string) => {
 	const idempotencyKey = getLegacyMigration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
 
@@ -219,7 +219,7 @@ const ensureIdempotencyKey = (idempotencyKeyName: string) => {
 	return idempotencyKey;
 };
 
-/** 서버가 거부한 요청의 멱등키 삭제 */
+/** 서버가 거부한 요청의 idempotency key 삭제 함수 */
 const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string) => {
 	if (!(error instanceof ApiError) || !error.rejected) {
 		return;
@@ -231,7 +231,7 @@ const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string
 	}));
 };
 
-/** v1 앵무새와 사진 올리기 */
+/** v1 앵무새 업로드 함수 */
 const uploadParrot = async (profile: LegacyProfile) => {
 	const idempotencyKeyName = 'parrot';
 	const parrotId =
@@ -266,7 +266,7 @@ const uploadParrot = async (profile: LegacyProfile) => {
 	setLegacyMigration((migration) => ({ ...migration, photoUploaded: true }));
 };
 
-/** v1 단어 하나의 올리기 진행 상태 저장 */
+/** v1 단어 업로드 진행 상태 저장 함수 */
 const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
 	setLegacyMigration((migration) => ({
 		...migration,
@@ -274,7 +274,7 @@ const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
 	}));
 };
 
-/** v1 단어와 녹음 올리기 */
+/** v1 단어 업로드 함수 */
 const uploadWord = async (word: LegacyWord) => {
 	const savedProgress = getLegacyMigration().wordProgress[word.id];
 
@@ -315,7 +315,7 @@ const uploadWord = async (word: LegacyWord) => {
 	recordWordProgress(word.id, { wordId, done: true });
 };
 
-/** v1 앵무새와 단어를 차례로 올리기, 올리는 중에 다시 부르면 진행 중인 올리기를 기다림 */
+/** v1 데이터 업로드 함수 */
 export const uploadLegacy = () => {
 	uploadPromise ??= (async () => {
 		const legacyUpload = pendingUpload;

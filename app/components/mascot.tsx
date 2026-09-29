@@ -22,8 +22,8 @@ interface Props {
 }
 
 /**
- * 위아래로 떠다니며 좌우로 기우는 마스코트 그림을 보여 주는 컴포넌트
- * @param size 그림의 가로세로 크기
+ * 움직이는 마스코트 컴포넌트
+ * @param size 그림 크기
  */
 const Mascot = ({ size = 120 }: Props) => {
 	const { t } = useTranslation();
@@ -37,7 +37,7 @@ const Mascot = ({ size = 120 }: Props) => {
 		transform: [{ translateY: y.get() }, { rotate: `${rotation.get()}deg` }],
 	}));
 
-	/** 움직임 줄이기 설정이 꺼져 있으면 떠다니고 기우는 애니메이션 반복 */
+	/** 움직임 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
 	useEffect(() => {
 		if (reducedMotion) {
 			return;

@@ -18,10 +18,10 @@ interface Props {
 }
 
 /**
- * 단어 타일 컴포넌트
- * @param word 보여 줄 단어
- * @param selected 고른 단어 여부
- * @param onSelect 단어를 고를 때 실행할 함수
+ * 단어 선택 타일 컴포넌트
+ * @param word 표시할 단어
+ * @param selected 선택 여부
+ * @param onSelect 단어 선택 시 실행할 함수
  */
 const WordChoice = ({ word, selected, onSelect }: Props) => {
 	const { t } = useTranslation();
@@ -35,7 +35,7 @@ const WordChoice = ({ word, selected, onSelect }: Props) => {
 			style={styles.cardContainer}
 			contentStyle={styles.card}
 		>
-			{/*첫 글자와 이름*/}
+			{/*단어 첫 글자*/}
 			<View style={[styles.initialContainer, selected && styles.initialContainerSelected]}>
 				<Copy style={[styles.initialText, selected && styles.initialTextSelected]}>
 					{Array.from(word.name)[0]}
@@ -43,7 +43,6 @@ const WordChoice = ({ word, selected, onSelect }: Props) => {
 			</View>
 			<Copy style={styles.name}>{word.name}</Copy>
 
-			{/*체크 표시*/}
 			{selected && (
 				<View style={styles.checkBadge}>
 					<CheckIcon size={10} color={colors.onFilled} />

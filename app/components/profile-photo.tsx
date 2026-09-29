@@ -26,10 +26,10 @@ interface Props {
 }
 
 /**
- * 프로필 사진을 보여 주고 누르면 사진 찍기와 앨범에서 고르기 선택지를 여는 컴포넌트
- * @param photo 고른 사진 주소, 실패 문구, 사진 찍기 함수와 고르기 함수를 담은 usePhotoPicker 결과
+ * 프로필 사진 선택 컴포넌트
+ * @param photo usePhotoPicker 결과
  * @param busy 저장 중 여부
- * @param action 사진 오른쪽 아래에 보여 줄 추가 또는 편집 아이콘
+ * @param action 사진에 표시할 아이콘 종류
  */
 const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 	const { t } = useTranslation();
@@ -38,14 +38,12 @@ const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 
 	const ActionIcon = actionIcons[action];
 
-	/** 선택지를 닫고 사진 찍기 */
 	const handleTakePhoto = () => {
 		setSheetOpen(false);
 
 		void photo.take();
 	};
 
-	/** 선택지를 닫고 앨범에서 사진 고르기 */
 	const handleChoosePhoto = () => {
 		setSheetOpen(false);
 
@@ -54,7 +52,6 @@ const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 
 	return (
 		<View style={styles.container}>
-			{/*사진, 추가 또는 편집 아이콘, 사진 선택 실패 문구*/}
 			<PressableSurface
 				accessibilityLabel={t('common.profilePhoto.select')}
 				disabled={busy}
@@ -69,7 +66,6 @@ const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 			</PressableSurface>
 			<InlineError message={photo.errorMessage} />
 
-			{/*사진 찍기와 앨범에서 고르기 선택지*/}
 			<Sheet visible={sheetOpen} title={t('common.profilePhoto.title')} onClose={() => setSheetOpen(false)}>
 				<ItemGroup>
 					<Item first label={t('common.profilePhoto.take')} onPress={handleTakePhoto} />

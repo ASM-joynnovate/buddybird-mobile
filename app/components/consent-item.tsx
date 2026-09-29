@@ -21,12 +21,12 @@ interface Props {
 }
 
 /**
- * 동의 항목 제목, 필수 또는 선택 표시, 체크박스를 보여 주고 누르면 동의를 바꾸며 화살표 버튼을 누르면 동의 전문 화면으로 이동하는 컴포넌트
- * @param consent 보여 줄 동의 항목
+ * 약관 동의 항목 컴포넌트
+ * @param consent 약관 동의 항목
  * @param checked 동의 여부
  * @param first 목록의 첫 항목 여부
- * @param disabled 누를 수 없는지 여부
- * @param source 동의 전문 화면을 연 곳
+ * @param disabled 비활성화 여부
+ * @param source 약관 전문 화면을 연 곳
  * @param onToggle 체크박스를 누를 때 실행할 함수
  */
 const ConsentItem = ({ consent, checked, first, disabled, source, onToggle }: Props) => {

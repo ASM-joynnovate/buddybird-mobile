@@ -23,7 +23,7 @@ interface Props {
 }
 
 /**
- * 로고와 설정, 알림 버튼 컴포넌트
+ * 홈 헤더 컴포넌트
  * @param unreadCount 읽지 않은 알림 개수
  */
 const HomeTopBar = ({ unreadCount }: Props) => {
@@ -37,7 +37,6 @@ const HomeTopBar = ({ unreadCount }: Props) => {
 			<Image source={mascotImage} accessible={false} accessibilityIgnoresInvertColors style={styles.mascot} />
 			<Title style={styles.brand}>{t('home.brand')}</Title>
 
-			{/*설정, 알림 버튼*/}
 			<IconButton
 				icon={SettingsIcon}
 				label={t('home.settings')}

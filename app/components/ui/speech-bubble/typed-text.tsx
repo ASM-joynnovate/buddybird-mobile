@@ -35,7 +35,7 @@ export const TypedText = ({ text }: Props) => {
 
 	return (
 		<View>
-			{/*크기를 잡아 두는 보이지 않는 전체 문구*/}
+			{/*전체 문구만큼 공간을 차지하는 보이지 않는 문구*/}
 			<Copy
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"

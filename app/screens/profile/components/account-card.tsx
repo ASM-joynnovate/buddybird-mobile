@@ -16,8 +16,8 @@ interface Props {
 }
 
 /**
- * 내 사진, 닉네임, 이메일을 보여 주고 누르면 계정 편집 화면을 여는 카드 컴포넌트
- * @param user 보여 줄 사용자 정보
+ * 내 계정 카드 컴포넌트
+ * @param user 표시할 사용자 정보
  */
 const AccountCard = ({ user }: Props) => {
 	const { t } = useTranslation();

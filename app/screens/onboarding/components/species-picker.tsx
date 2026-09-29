@@ -31,11 +31,11 @@ interface Props {
 }
 
 /**
- * 고른 종을 보여 주고 누르면 소형, 중형, 대형으로 나눈 종 목록 시트를 여는 컴포넌트
- * @param species 고른 종 ID
- * @param onChange 종을 고를 때 실행할 함수
- * @param disabled 선택 비활성화 여부
- * @param first 위쪽 구분선이 없는 첫 항목 여부
+ * 종 선택 컴포넌트
+ * @param species 선택한 종 ID
+ * @param onChange 종 선택 시 실행할 함수
+ * @param disabled 비활성화 여부
+ * @param first 첫 항목 여부
  */
 const SpeciesPicker = ({ species, onChange, disabled, first }: Props) => {
 	const { t } = useTranslation();
@@ -50,7 +50,7 @@ const SpeciesPicker = ({ species, onChange, disabled, first }: Props) => {
 		data,
 	}));
 
-	/** 고른 종이 목록 가운데에 오도록 스크롤 */
+	/** 선택한 종이 목록 가운데에 오도록 스크롤하는 함수 */
 	const scrollToSelected = () => {
 		if (!isSpeciesId(species)) {
 			return;
@@ -70,14 +70,14 @@ const SpeciesPicker = ({ species, onChange, disabled, first }: Props) => {
 		});
 	};
 
-	/** 스크롤 재시도 횟수 초기화 뒤 고른 종으로 스크롤 */
+	/** bottom sheet가 열리면 선택한 종으로 스크롤 */
 	const handleSheetOpened = () => {
 		scrollRetriesRef.current = 0;
 
 		setTimeout(scrollToSelected, SCROLL_DELAY_MS);
 	};
 
-	/** 스크롤할 항목이 아직 그려지지 않았을 때 정한 횟수까지 다시 스크롤 */
+	/** 항목이 아직 렌더링되지 않았으면 다시 스크롤 */
 	const handleScrollToIndexFailed = () => {
 		if (scrollRetriesRef.current < MAX_SCROLL_RETRIES) {
 			scrollRetriesRef.current += 1;
@@ -117,7 +117,6 @@ const SpeciesPicker = ({ species, onChange, disabled, first }: Props) => {
 						</View>
 					)}
 					renderItem={({ item: speciesId, index }: { item: SpeciesId; index: number }) => {
-						/** 종 선택과 시트 닫기 */
 						const handleSelectSpecies = () => {
 							onChange(speciesId);
 

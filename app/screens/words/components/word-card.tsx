@@ -32,10 +32,10 @@ interface Props {
 }
 
 /**
- * 단어 이름과 녹음 개수, 삭제와 재생 버튼을 보여 주고 카드를 누르면 단어 편집 화면을 여는 컴포넌트
- * @param word 보여 줄 단어
- * @param learning 이 단어로 학습 중인지 여부
- * @param player 단어의 첫 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ * 단어 카드 컴포넌트
+ * @param word 표시할 단어
+ * @param learning 학습 중인 단어 여부
+ * @param player useSoundPlayer 결과
  */
 const WordCard = ({ word, learning, player }: Props) => {
 	const { t } = useTranslation();
@@ -50,7 +50,6 @@ const WordCard = ({ word, learning, player }: Props) => {
 
 	return (
 		<View>
-			{/*단어 이름, 녹음 개수, 학습 중과 녹음 필요 표시*/}
 			<PressableSurface
 				depth="low"
 				onPress={() => navigation.navigate('WordEditor', { wordId: word.id })}
@@ -77,7 +76,6 @@ const WordCard = ({ word, learning, player }: Props) => {
 				</View>
 			</PressableSurface>
 
-			{/*삭제와 재생 버튼*/}
 			<View style={styles.actionsRow}>
 				<IconButton
 					icon={TrashIcon}
@@ -97,7 +95,6 @@ const WordCard = ({ word, learning, player }: Props) => {
 				)}
 			</View>
 
-			{/*삭제 확인 다이얼로그*/}
 			<DeleteWordDialog
 				visible={deleteDialogOpen}
 				word={word}

@@ -24,10 +24,10 @@ interface Props {
 }
 
 /**
- * 3열 단어 타일 목록 컴포넌트
- * @param words 고를 수 있는 단어 목록
- * @param selectedId 고른 단어 ID
- * @param onSelect 단어를 고를 때 실행할 함수
+ * 단어 선택 목록 컴포넌트
+ * @param words 선택할 수 있는 단어 목록
+ * @param selectedId 선택한 단어 ID
+ * @param onSelect 단어 선택 시 실행할 함수
  */
 const WordPicker = ({ words, selectedId, onSelect }: Props) => {
 	const { height } = useWindowDimensions();
@@ -38,7 +38,7 @@ const WordPicker = ({ words, selectedId, onSelect }: Props) => {
 
 	const scrollable = contentHeight > viewportHeight + 1;
 
-	/** 목록 끝 도달 여부 저장 */
+	/** 스크롤 위치가 목록 끝인지 저장 */
 	const handleScroll = ({
 		nativeEvent: { contentOffset, contentSize, layoutMeasurement },
 	}: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -50,7 +50,6 @@ const WordPicker = ({ words, selectedId, onSelect }: Props) => {
 
 	return (
 		<View>
-			{/*단어 타일*/}
 			<ScrollView
 				nestedScrollEnabled
 				persistentScrollbar
@@ -68,7 +67,7 @@ const WordPicker = ({ words, selectedId, onSelect }: Props) => {
 				))}
 			</ScrollView>
 
-			{/*스크롤 흐림*/}
+			{/*위아래 흐림 효과*/}
 			{scrollable && !scrollEdges.top && <View pointerEvents="none" style={[styles.fade, styles.fadeTop]} />}
 			{scrollable && !scrollEdges.bottom && (
 				<View pointerEvents="none" style={[styles.fade, styles.fadeBottom]} />

@@ -41,7 +41,7 @@ let userProperties: UserPropertyStrings = {};
 let userId: string | null = null;
 let currentScreen: string | null = null;
 
-/** 길이 제한에 맞춰 자른 Clarity 태그 전송, 빈 값은 제외 */
+/** Clarity 태그 전송 함수 */
 const setClarityTag = async (key: string, value: string) => {
 	const text = value.slice(0, CLARITY_TEXT_LIMIT).trim();
 
@@ -50,7 +50,7 @@ const setClarityTag = async (key: string, value: string) => {
 	}
 };
 
-/** 사용자 속성을 Firebase Analytics, Crashlytics, Clarity에 전송 */
+/** 사용자 속성 전송 함수 */
 const sendUserProperties = async () => {
 	await setFirebaseUserProperties(getAnalytics(), userProperties);
 
@@ -70,7 +70,7 @@ const sendUserProperties = async () => {
 	}
 };
 
-/** 사용자 ID를 Firebase Analytics, Crashlytics, Clarity에 전송 */
+/** 사용자 ID 전송 함수 */
 const sendUserId = async () => {
 	await setUserId(getAnalytics(), userId);
 
@@ -81,7 +81,7 @@ const sendUserId = async () => {
 	}
 };
 
-/** 분석 허용 여부에 따라 Clarity 녹화를 멈추거나 다시 시작 */
+/** 분석 허용 여부에 따라 Clarity 녹화를 정지하거나 다시 시작하는 함수 */
 const pauseOrResumeClarity = async () => {
 	if (!clarityStarted) {
 		return;
@@ -90,7 +90,7 @@ const pauseOrResumeClarity = async () => {
 	await (telemetryAllowed === true ? Clarity.resume() : Clarity.pause());
 };
 
-/** Clarity 시작, 세션이 시작되면 사용자 속성과 사용자 ID 전송 */
+/** Clarity 시작 함수 */
 const startClarity = () => {
 	if (!clarityConfigured || clarityStarted) {
 		return;
@@ -109,7 +109,7 @@ const startClarity = () => {
 	clarityStarted = true;
 };
 
-/** iOS 앱 추적 허용 상태, shouldRequestATT가 참이고 아직 묻지 않았으면 요청한 결과 */
+/** iOS 앱 추적 허용 상태를 반환하는 함수 */
 const getAnalyticsConsent = async (shouldRequestATT: boolean) => {
 	if (Platform.OS !== 'ios') {
 		return 'not_applicable';
@@ -124,7 +124,7 @@ const getAnalyticsConsent = async (shouldRequestATT: boolean) => {
 	return permission.status === 'granted' ? 'granted' : 'denied';
 };
 
-/** 앱 추적 동의를 확인해 분석과 오류 보고 수집을 켜거나 끄고 동의 상태 반환 */
+/** 분석 도구 초기화 함수 */
 export const initializeTelemetry = (shouldRequestATT = true) => {
 	initialization ??= (async () => {
 		const consent = await getAnalyticsConsent(shouldRequestATT);
@@ -153,7 +153,7 @@ export const initializeTelemetry = (shouldRequestATT = true) => {
 	return initialization;
 };
 
-/** 분석 사용자 ID 저장, 분석을 허용했으면 전송 */
+/** 분석 사용자 ID 설정 함수 */
 export const setTelemetryUserId = (nextUserId: string | null) => {
 	userId = nextUserId;
 
@@ -162,7 +162,7 @@ export const setTelemetryUserId = (nextUserId: string | null) => {
 	}
 };
 
-/** 바뀐 사용자 속성 저장, 분석을 허용했으면 전송 */
+/** 사용자 속성 설정 함수 */
 export const setUserProperties = (nextUserProperties: UserProperties) => {
 	const values = Object.fromEntries(
 		Object.entries(nextUserProperties).map(([key, value]) => [key, value == null ? null : String(value)]),
@@ -179,7 +179,7 @@ export const setUserProperties = (nextUserProperties: UserProperties) => {
 	}
 };
 
-/** 앵무새 종, 앵무새 나이, 등록한 단어 수, 앱 언어를 사용자 속성으로 저장 */
+/** 사용자 속성 동기화 함수 */
 export const syncUserProperties = (parrot: Parrot | null, wordCount: number) => {
 	setUserProperties({
 		parrot_species: parrot?.species ?? null,
@@ -189,7 +189,7 @@ export const syncUserProperties = (parrot: Parrot | null, wordCount: number) => 
 	});
 };
 
-/** 분석 이벤트를 Firebase Analytics와 Clarity에 전송 */
+/** 분석 이벤트 전송 함수 */
 export const track = <K extends keyof AnalyticsEvents>(name: K, eventParams: AnalyticsEvents[K]) => {
 	if (telemetryAllowed !== true) {
 		return;
@@ -216,14 +216,14 @@ export const track = <K extends keyof AnalyticsEvents>(name: K, eventParams: Ana
 	});
 };
 
-/** 지금 화면 이름 저장과 screen_view 이벤트 전송 */
+/** screen_view 이벤트 전송 함수 */
 export const trackScreen = (name: string, screenClass = name) => {
 	currentScreen = name;
 
 	track('screen_view', { screen_name: name, screen_class: screenClass });
 };
 
-/** 오류를 Crashlytics에 보고하고 app_error 이벤트 전송 */
+/** 오류 보고 함수 */
 export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
 	const reportedError = error instanceof Error ? error : new Error('UnknownError');
 	const attributes = {

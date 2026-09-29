@@ -2,7 +2,7 @@ import type { DeviceSettings } from '@/types/device-settings';
 
 import { FEEDBACK_PROMPT_THRESHOLDS } from '@/config/policy';
 
-/** 지금 단계에서 의견 요청을 띄울 접속일 수 */
+/** 피드백 요청을 표시할 접속일 수를 반환하는 함수 */
 export const feedbackThreshold = (feedbackPrompt: DeviceSettings['feedbackPrompt']) => {
 	const lastIndex = FEEDBACK_PROMPT_THRESHOLDS.length - 1;
 

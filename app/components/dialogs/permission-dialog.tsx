@@ -17,13 +17,12 @@ interface Props {
 }
 
 /**
- * 권한이 필요한 이유와 설정 열기 버튼을 보여 주고 누르면 앱 설정 화면을 여는 다이얼로그 컴포넌트
- * @param state 다이얼로그 표시 여부, 권한 종류, 닫을 때 실행할 함수
+ * 권한 설정 안내 다이얼로그 컴포넌트
+ * @param state 다이얼로그 상태
  */
 const PermissionDialog = ({ state }: Props) => {
 	const { t } = useTranslation();
 
-	/** 앱 설정 화면 열기 */
 	const handleOpenSettings = () => {
 		void Linking.openSettings().catch((error: unknown) => reportError(error, 'permission_settings'));
 	};

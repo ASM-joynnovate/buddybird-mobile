@@ -19,11 +19,9 @@ export const ScreenError = ({ onRetry }: Props) => {
 
 	return (
 		<View style={ui.messageContainer} accessibilityLiveRegion="polite">
-			{/*경고 아이콘과 불러오기 실패 문구*/}
 			<TriangleAlertIcon size={32} color={colors.muted} />
 			<Copy style={ui.messageText}>{t('common.loadError')}</Copy>
 
-			{/*다시 시도 버튼*/}
 			<Button
 				label={t('common.retry')}
 				variant="secondary"

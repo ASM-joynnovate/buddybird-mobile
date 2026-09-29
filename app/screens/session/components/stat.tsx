@@ -12,19 +12,17 @@ interface Props {
 }
 
 /**
- * 항목 이름과 값을 한 줄로 보여 주는 컴포넌트
+ * 통계 항목 컴포넌트
  * @param label 항목 이름
  * @param value 항목 값
- * @param size 글자 크기, large면 이름과 값을 줄 양 끝에 둠
+ * @param size 글자 크기
  */
 const Stat = ({ label, value, size = 'small' }: Props) => {
 	if (size === 'large') {
 		return (
 			<View style={styles.container} accessible accessibilityLabel={joinLabel(label, value)}>
-				{/*왼쪽 끝의 항목 이름*/}
 				<Copy style={styles.largeLabel}>{label}</Copy>
 
-				{/*오른쪽 끝의 항목 값*/}
 				<Copy style={styles.largeValue}>{value}</Copy>
 			</View>
 		);

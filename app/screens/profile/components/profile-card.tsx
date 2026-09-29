@@ -17,10 +17,10 @@ interface Props {
 }
 
 /**
- * 사진, 제목, 세부 정보, 오른쪽 화살표를 보여 주는 카드 컴포넌트
- * @param avatar 사진 주소, 사진이 없을 때 보여 줄 아이콘, 크기
- * @param title 제목 글과 강조 여부
- * @param details 제목 아래에 보여 줄 세부 정보
+ * 프로필 카드 컴포넌트
+ * @param avatar 카드 사진
+ * @param title 카드 제목
+ * @param details 제목 아래에 표시할 세부 정보
  * @param label 스크린 리더가 읽을 카드 설명
  * @param onPress 카드를 누를 때 실행할 함수
  */
@@ -34,10 +34,8 @@ const ProfileCard = ({ avatar, title, details, label, onPress }: Props) => {
 			onPress={onPress}
 			contentStyle={[styles.card, isLarge ? styles.largeCard : styles.mediumCard]}
 		>
-			{/*사진*/}
 			<Avatar uri={avatar.uri} icon={avatar.icon} size={avatar.size} />
 
-			{/*제목과 세부 정보*/}
 			<View style={[styles.textContainer, isLarge && styles.textContainerLarge]}>
 				<Copy
 					accessibilityRole={isLarge ? 'header' : undefined}
@@ -55,7 +53,6 @@ const ProfileCard = ({ avatar, title, details, label, onPress }: Props) => {
 				)}
 			</View>
 
-			{/*오른쪽 화살표*/}
 			<ChevronRightIcon size={18} color={colors.subtle} />
 		</PressableSurface>
 	);

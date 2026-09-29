@@ -6,7 +6,7 @@ import { apiKeys } from '@/hooks/apis/keys';
 
 import { reportError } from '@/services/telemetry/client';
 
-/** 의견 전송 훅 */
+/** 피드백 전송 Hook */
 export const useSendFeedback = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('feedback', 'create'),
