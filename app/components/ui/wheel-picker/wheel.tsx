@@ -104,7 +104,7 @@ export const WheelPickerWheel = ({ value, values, label, onChange }: Props) => {
 			onMomentumScrollEnd={handleFinishScroll}
 		>
 			{values.map((itemValue, index) => (
-				<View key={itemValue} style={styles.item}>
+				<View key={itemValue} style={styles.itemContainer}>
 					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>{itemValue}</Copy>
 				</View>
 			))}
@@ -115,7 +115,7 @@ export const WheelPickerWheel = ({ value, values, label, onChange }: Props) => {
 const styles = StyleSheet.create({
 	wheel: { height: WHEEL_ITEM_HEIGHT * 5, flex: 1, minWidth: 0 },
 	content: { paddingVertical: WHEEL_ITEM_HEIGHT * 2 },
-	item: { height: WHEEL_ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+	itemContainer: { height: WHEEL_ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },
 	selectedText: { fontFamily: font.black, fontSize: 22, color: colors.text },
 	text: { fontFamily: font.bold, fontSize: 18, color: colors.wheelText },
 });

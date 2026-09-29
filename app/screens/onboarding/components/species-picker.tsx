@@ -25,7 +25,7 @@ const SCROLL_DELAY_MS = 150;
 
 interface Props {
 	species: string;
-	setSpecies: (value: string) => void;
+	onChange: (value: string) => void;
 	disabled: boolean;
 	first?: boolean;
 }
@@ -33,11 +33,11 @@ interface Props {
 /**
  * 고른 종을 보여 주고 누르면 소형, 중형, 대형으로 나눈 종 목록 시트를 여는 컴포넌트
  * @param species 고른 종 ID
- * @param setSpecies 종을 고를 때 실행할 함수
+ * @param onChange 종을 고를 때 실행할 함수
  * @param disabled 선택 비활성화 여부
  * @param first 위쪽 구분선이 없는 첫 항목 여부
  */
-const SpeciesPicker = ({ species, setSpecies, disabled, first }: Props) => {
+const SpeciesPicker = ({ species, onChange, disabled, first }: Props) => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -110,7 +110,7 @@ const SpeciesPicker = ({ species, setSpecies, disabled, first }: Props) => {
 					onScrollToIndexFailed={handleScrollToIndexFailed}
 					contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
 					renderSectionHeader={({ section }: { section: Section }) => (
-						<View style={styles.header}>
+						<View style={styles.headerContainer}>
 							<Copy accessibilityRole="header" style={styles.headerText}>
 								{t(`parrot.speciesGroups.${section.key}`)}
 							</Copy>
@@ -119,7 +119,7 @@ const SpeciesPicker = ({ species, setSpecies, disabled, first }: Props) => {
 					renderItem={({ item: speciesId, index }: { item: SpeciesId; index: number }) => {
 						/** 종 선택과 시트 닫기 */
 						const handleSelectSpecies = () => {
-							setSpecies(speciesId);
+							onChange(speciesId);
 
 							close();
 						};
@@ -141,7 +141,7 @@ const SpeciesPicker = ({ species, setSpecies, disabled, first }: Props) => {
 
 const styles = StyleSheet.create({
 	list: { paddingHorizontal: 10 },
-	header: {
+	headerContainer: {
 		backgroundColor: colors.background,
 		paddingHorizontal: 14,
 		paddingTop: 16,

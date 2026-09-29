@@ -62,7 +62,7 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 				};
 
 				return (
-					<View key={route.key} style={styles.tabCell}>
+					<View key={route.key} style={styles.tabContainer}>
 						<PressableSurface
 							accessibilityRole="tab"
 							accessibilityLabel={tabLabel}
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		gap: 6,
 	},
-	tabCell: { flex: 1, minWidth: 0, maxWidth: 68 },
+	tabContainer: { flex: 1, minWidth: 0, maxWidth: 68 },
 	tabTarget: { width: '100%', aspectRatio: 1 },
 	tab: {
 		paddingHorizontal: 8,

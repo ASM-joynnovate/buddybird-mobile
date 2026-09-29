@@ -14,7 +14,7 @@ interface Props {
 
 export const EmptyState = ({ message, illustration, action }: Props) => {
 	return (
-		<View style={ui.messageBox}>
+		<View style={ui.messageContainer}>
 			{/*그림과 안내 문구*/}
 			{illustration}
 			<Copy style={ui.messageText}>{message}</Copy>

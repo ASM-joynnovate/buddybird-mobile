@@ -14,7 +14,7 @@ import { getRunningSessionOptions, useFinishSession, useStartSession } from '@/h
 import { useGetSettings } from '@/hooks/apis/settings';
 import { useGetWordList } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
-import useSoundPlayer from '@/hooks/use-sound-player';
+import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -55,8 +55,15 @@ type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<RootStackParamList>
 >;
 
-/** 설정과 알림 버튼, 학습할 단어와 학습 시간과 수면 시간 선택, 학습 시작 버튼을 보여 주고 시작 버튼을 누르면 학습을 시작하는 컴포넌트 */
-const HomeContent = () => {
+interface Props {
+	player: SoundPlayer;
+}
+
+/**
+ * 설정과 알림 버튼, 학습할 단어와 학습 시간과 수면 시간 선택, 학습 시작 버튼을 보여 주고 시작 버튼을 누르면 학습을 시작하는 컴포넌트
+ * @param player 단어 시트에서 녹음을 재생하고 멈추는 useSoundPlayer 결과
+ */
+const HomeContent = ({ player }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<Navigation>();
@@ -89,8 +96,6 @@ const HomeContent = () => {
 	const resetSetup = useSessionStore((state) => state.resetSetup);
 
 	const microphonePermission = usePermission('microphone');
-
-	const player = useSoundPlayer();
 
 	const runningSession = homeSummaryData.running_session;
 	const runningDevice = deviceListData.find((device) => device.id === runningSession?.station.device_id);
@@ -149,20 +154,6 @@ const HomeContent = () => {
 		);
 	};
 
-	/** 진행 중 세션 종료 뒤 학습 시작 요청 */
-	const finishRunningThenStart = async (setupToStart: SessionSetup) => {
-		const latestRunningSession = await queryClient.query({
-			...getRunningSessionOptions(),
-			staleTime: 0,
-		});
-
-		if (latestRunningSession) {
-			finishSession.mutate({ id: latestRunningSession.id }, { onSuccess: () => requestStart(setupToStart) });
-		} else {
-			requestStart(setupToStart);
-		}
-	};
-
 	/** 학습 시작 */
 	const handleStart = () => {
 		if (starting || !sessionSetup) {
@@ -174,15 +165,31 @@ const HomeContent = () => {
 		void microphonePermission.run(() => requestStart(sessionSetup));
 	};
 
-	/** 다른 기기의 학습 넘겨받기 */
-	const handleConfirmTakeover = () => {
+	/** 진행 중 세션 종료 뒤 학습 시작 요청으로 다른 기기의 학습 넘겨받기 */
+	const handleConfirmTakeover = async () => {
 		if (starting || !requestedSetup) {
 			return;
 		}
 
 		setTakeoverDialogOpen(false);
 
-		finishRunningThenStart(requestedSetup).catch((error: unknown) => reportError(error, 'session_takeover'));
+		try {
+			const latestRunningSession = await queryClient.query({
+				...getRunningSessionOptions(),
+				staleTime: 0,
+			});
+
+			if (latestRunningSession) {
+				finishSession.mutate(
+					{ id: latestRunningSession.id },
+					{ onSuccess: () => requestStart(requestedSetup) },
+				);
+			} else {
+				requestStart(requestedSetup);
+			}
+		} catch (e) {
+			reportError(e, 'session_takeover');
+		}
 	};
 
 	/** 학습 시작 다시 시도 */
@@ -264,7 +271,7 @@ const HomeContent = () => {
 			</View>
 
 			{/*학습 설정*/}
-			<View style={styles.body}>
+			<View style={styles.setupContainer}>
 				{runningSession && runningElsewhere && (
 					<Card contentStyle={styles.elsewhereCard}>
 						<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
@@ -324,7 +331,7 @@ const HomeContent = () => {
 					confirm: t('session.takeover.confirm'),
 				}}
 				confirmStatus={{ busy: starting }}
-				onConfirm={handleConfirmTakeover}
+				onConfirm={() => void handleConfirmTakeover()}
 				onClose={handleCloseStartDialog}
 			/>
 			<ConfirmDialog
@@ -349,7 +356,7 @@ const HomeContent = () => {
 
 const styles = StyleSheet.create({
 	topRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 4 },
-	body: { flex: 1, minHeight: 0, gap: 12 },
+	setupContainer: { flex: 1, minHeight: 0, gap: 12 },
 	elsewhereCard: { gap: 8, padding: 16 },
 	elsewhereText: { fontFamily: font.extraBold, fontSize: 15 },
 });

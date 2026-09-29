@@ -1,7 +1,11 @@
 import type { User } from '@/types/apis/users';
 
+import type { ProfileStackParamList } from '@/types/navigation';
+
 import { useTranslation } from 'react-i18next';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { UserIcon } from 'lucide-react-native';
 
 import ProfileCard from '@/screens/profile/components/profile-card';
@@ -9,16 +13,16 @@ import { joinLabel } from '@/utils/a11y';
 
 interface Props {
 	user: User;
-	onPress: () => void;
 }
 
 /**
- * 내 사진, 닉네임, 이메일을 보여 주는 카드 컴포넌트
+ * 내 사진, 닉네임, 이메일을 보여 주고 누르면 계정 편집 화면을 여는 카드 컴포넌트
  * @param user 보여 줄 사용자 정보
- * @param onPress 카드를 누를 때 실행할 함수
  */
-const AccountCard = ({ user, onPress }: Props) => {
+const AccountCard = ({ user }: Props) => {
 	const { t } = useTranslation();
+
+	const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
 
 	const titleText = user.nickname ?? t('profile.nicknameMissing');
 
@@ -28,7 +32,7 @@ const AccountCard = ({ user, onPress }: Props) => {
 			title={{ text: titleText, accent: !user.nickname }}
 			details={[user.email]}
 			label={joinLabel(t('profile.editAccount'), titleText, user.email)}
-			onPress={onPress}
+			onPress={() => navigation.navigate('AccountEditor')}
 		/>
 	);
 };

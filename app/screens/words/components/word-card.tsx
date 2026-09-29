@@ -66,8 +66,8 @@ const WordCard = ({ word, learning, player }: Props) => {
 					{word.name}
 				</Copy>
 
-				<View style={styles.meta}>
-					<View style={styles.dots}>
+				<View style={styles.statusRow}>
+					<View style={styles.dotsRow}>
 						{Array.from({ length: MAX_RECORDINGS }, (_, index) => (
 							<View key={index} style={[styles.dot, index < recordingCount && styles.dotFilled]} />
 						))}
@@ -78,7 +78,7 @@ const WordCard = ({ word, learning, player }: Props) => {
 			</PressableSurface>
 
 			{/*삭제와 재생 버튼*/}
-			<View style={styles.actions}>
+			<View style={styles.actionsRow}>
 				<IconButton
 					icon={TrashIcon}
 					label={t('words.list.delete', { name: word.name })}
@@ -111,11 +111,11 @@ const WordCard = ({ word, learning, player }: Props) => {
 const styles = StyleSheet.create({
 	card: { minHeight: 84, padding: 16, paddingRight: 124, gap: 10, justifyContent: 'center' },
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
-	meta: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-	dots: { flexDirection: 'row', gap: 4 },
+	statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
+	dotsRow: { flexDirection: 'row', gap: 4 },
 	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
 	dotFilled: { backgroundColor: colors.orange },
-	actions: {
+	actionsRow: {
 		position: 'absolute',
 		right: 16,
 		top: 0,

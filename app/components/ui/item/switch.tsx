@@ -12,7 +12,7 @@ interface Props extends ItemBaseProps {
 
 export const ItemSwitch = ({ value, onChange, ...props }: Props) => {
 	return (
-		<View style={[itemStyles.row, !props.first && itemStyles.divider]}>
+		<View style={[itemStyles.itemRow, !props.first && itemStyles.divider]}>
 			{/*아이콘, 이름, 설명*/}
 			<ItemLabel {...props} />
 

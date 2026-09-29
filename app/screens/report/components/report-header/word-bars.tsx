@@ -33,21 +33,21 @@ const WordBars = ({ words }: Props) => {
 	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.learning_duration_ms));
 
 	return (
-		<View style={ui.section}>
+		<View style={ui.sectionContainer}>
 			{/*단어별 학습 시간 제목*/}
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
 				{t('report.learningTimeByWord')}
 			</Copy>
 
 			{/*단어 이름, 학습 시간 막대, 학습 시간*/}
-			<View style={styles.list}>
+			<View style={styles.listContainer}>
 				{words.map((wordDuration) => {
 					const durationLabel = formatDuration(wordDuration.learning_duration_ms, locale);
 
 					return (
 						<View
 							key={wordDuration.word.id}
-							style={styles.row}
+							style={styles.wordRow}
 							accessible
 							accessibilityLabel={joinLabel(wordDuration.word.name, durationLabel)}
 						>
@@ -72,8 +72,8 @@ const WordBars = ({ words }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	list: { gap: 10 },
-	row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+	listContainer: { gap: 10 },
+	wordRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 	name: { width: 72, fontFamily: font.extraBold },
 	track: {
 		flex: 1,

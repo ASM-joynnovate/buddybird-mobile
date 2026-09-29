@@ -84,7 +84,7 @@ const NoticePopup = ({ notices }: Props) => {
 			title={currentNotice?.title ?? ''}
 			onClose={handleClose}
 			footer={
-				<View style={ui.actions}>
+				<View style={ui.actionsRow}>
 					<Button
 						label={t('common.close')}
 						variant="secondary"

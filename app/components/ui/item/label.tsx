@@ -24,7 +24,7 @@ export const ItemLabel = ({ label, icon: Icon, detail }: Props) => {
 			{Icon && <Icon size={22} color={colors.muted} />}
 
 			{/*이름과 설명*/}
-			<View style={itemStyles.labels}>
+			<View style={itemStyles.textContainer}>
 				<Copy style={itemStyles.label}>{label}</Copy>
 				{!!detail && <Copy style={itemStyles.detail}>{detail}</Copy>}
 			</View>

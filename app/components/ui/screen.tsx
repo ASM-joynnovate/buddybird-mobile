@@ -24,7 +24,7 @@ export const Screen = ({
 	const insets = useSafeAreaInsets();
 
 	return (
-		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, style]}>
+		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, style]}>
 			{/*내용*/}
 			{scrollable ? (
 				<ScrollView
@@ -47,13 +47,13 @@ export const Screen = ({
 			)}
 
 			{/*아래에 고정된 내용*/}
-			{!!footer && <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>}
+			{!!footer && <View style={[styles.footerContainer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View>}
 		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
-	screen: { flex: 1, backgroundColor: colors.background },
+	container: { flex: 1, backgroundColor: colors.background },
 	content: {
 		flexGrow: 1,
 		minWidth: 0,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		maxWidth: contentMaxWidth,
 		alignSelf: 'center',
 	},
-	footer: {
+	footerContainer: {
 		width: '100%',
 		maxWidth: contentMaxWidth,
 		alignSelf: 'center',

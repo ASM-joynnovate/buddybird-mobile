@@ -2,8 +2,10 @@ import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
+import { FEEDBACK_MESSAGE_LIMIT } from '@/config';
+
 const createFeedbackRequestSchema = z.object({
-	message: z.string().trim().min(1).max(1000),
+	message: z.string().trim().min(1).max(FEEDBACK_MESSAGE_LIMIT),
 });
 
 export const feedbackSchema = z.object({

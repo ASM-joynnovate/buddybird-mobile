@@ -1,8 +1,9 @@
 import { RefreshControl, ScrollView } from 'react-native';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { usePrefetchQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getSessionOptions } from '@/hooks/apis/sessions';
+import { getWordListOptions } from '@/hooks/apis/words';
 
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +26,8 @@ const SessionMimicry = ({ sessionId }: Props) => {
 	const { t } = useTranslation();
 
 	const focused = useIsFocused();
+
+	usePrefetchQuery(getWordListOptions());
 
 	const {
 		data: sessionData,

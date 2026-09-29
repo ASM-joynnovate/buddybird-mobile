@@ -54,7 +54,7 @@ const GeneralGroup = () => {
 	return (
 		<View>
 			<ItemGroup title={t('settings.general.title')}>
-				<View style={styles.row}>
+				<View style={styles.languageRow}>
 					<MessageSquareTextIcon size={22} color={colors.muted} />
 					<Copy style={styles.label}>{t('settings.general.language')}</Copy>
 					<Chip
@@ -84,7 +84,7 @@ const GeneralGroup = () => {
 };
 
 const styles = StyleSheet.create({
-	row: {
+	languageRow: {
 		minHeight: 56,
 		flexDirection: 'row',
 		alignItems: 'center',

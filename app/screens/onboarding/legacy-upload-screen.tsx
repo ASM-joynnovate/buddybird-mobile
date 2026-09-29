@@ -104,7 +104,7 @@ const LegacyUploadScreen = () => {
 				title={t('onboarding.legacy.askTitle')}
 				onClose={() => {}}
 				footer={
-					<View style={ui.actions}>
+					<View style={ui.actionsRow}>
 						<Button
 							label={t('common.skip')}
 							variant="secondary"

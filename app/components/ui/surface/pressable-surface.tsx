@@ -7,6 +7,7 @@ import { ReduceMotion, useAnimatedStyle, useReducedMotion, useSharedValue, withT
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { depths } from '@/theme';
+import { SECOND } from '@/utils/units';
 
 import { Surface, type SurfaceProps } from '@/components/ui/surface';
 
@@ -60,7 +61,7 @@ export const PressableSurface = ({
 	const gesture = useMemo(() => {
 		const tap = Gesture.Tap()
 			.enabled(!disabled)
-			.maxDuration(10_000)
+			.maxDuration(10 * SECOND)
 			.maxDistance(10)
 			.onBegin(() => {
 				pressProgress.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));

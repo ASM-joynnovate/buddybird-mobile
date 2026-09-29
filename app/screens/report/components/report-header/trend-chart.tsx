@@ -73,7 +73,7 @@ const TrendChart = ({ period, trend }: Props) => {
 			</Copy>
 
 			{/*학습 시간 막대*/}
-			<View style={[styles.bars, period === 'week' ? styles.wideGap : styles.narrowGap]}>
+			<View style={[styles.barsRow, period === 'week' ? styles.wideGap : styles.narrowGap]}>
 				{trend.map((trendBar, index) => (
 					<PressableSurface
 						key={trendBar.start}
@@ -83,7 +83,7 @@ const TrendChart = ({ period, trend }: Props) => {
 						accessibilityLabel={describeBar(trendBar)}
 						accessibilityState={{ selected: selectedIndex === index }}
 						onPress={() => setSelectedIndex(selectedIndex === index ? null : index)}
-						style={styles.column}
+						style={styles.columnContainer}
 						contentStyle={styles.columnContent}
 					>
 						<View
@@ -105,12 +105,12 @@ const TrendChart = ({ period, trend }: Props) => {
 
 			{/*막대 아래 축 글자*/}
 			<View
-				style={[styles.axis, period === 'week' ? styles.wideGap : styles.narrowGap]}
+				style={[styles.axisRow, period === 'week' ? styles.wideGap : styles.narrowGap]}
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
 			>
 				{trend.map((trendBar) => (
-					<View key={trendBar.start} style={styles.column}>
+					<View key={trendBar.start} style={styles.columnContainer}>
 						<Copy numberOfLines={1} style={styles.axisText}>
 							{formatAxisLabel(period, dayjs(trendBar.start), t)}
 						</Copy>
@@ -129,15 +129,15 @@ const styles = StyleSheet.create({
 		minHeight: 20,
 		marginBottom: 6,
 	},
-	bars: { height: CHART_HEIGHT, flexDirection: 'row', alignItems: 'stretch' },
+	barsRow: { height: CHART_HEIGHT, flexDirection: 'row', alignItems: 'stretch' },
 	wideGap: { gap: 8 },
 	narrowGap: { gap: 2 },
-	column: { flex: 1, minWidth: 0, justifyContent: 'flex-end', alignItems: 'center' },
+	columnContainer: { flex: 1, minWidth: 0, justifyContent: 'flex-end', alignItems: 'center' },
 	columnContent: { flexGrow: 1, borderWidth: 0, justifyContent: 'flex-end', alignSelf: 'stretch' },
 	bar: { alignSelf: 'stretch', borderRadius: 4, backgroundColor: colors.orange },
 	empty: { backgroundColor: colors.border },
 	selected: { backgroundColor: colors.orangeDark },
-	axis: { flexDirection: 'row', marginTop: 6 },
+	axisRow: { flexDirection: 'row', marginTop: 6 },
 	axisText: {
 		width: 36,
 		textAlign: 'center',

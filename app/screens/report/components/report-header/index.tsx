@@ -65,7 +65,7 @@ const ReportHeader = ({ report }: Props) => {
 			<ScreenHeader title={t('report.title')} large />
 
 			{/*오늘, 이번 주, 이번 달 선택 버튼*/}
-			<View style={ui.row}>
+			<View style={ui.controlsRow}>
 				{reportPeriodSchema.options.map((periodOption) => (
 					<Chip
 						key={periodOption}
@@ -78,7 +78,7 @@ const ReportHeader = ({ report }: Props) => {
 
 			{/*기간과 학습 시간*/}
 			<Card style={styles.card}>
-				<View style={ui.row}>
+				<View style={ui.controlsRow}>
 					<Copy accessibilityRole="header" style={styles.period}>
 						{periodLabel}
 					</Copy>

@@ -24,7 +24,7 @@ export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.header}>
+			<View style={styles.headerRow}>
 				{onBack && (
 					<IconButton
 						icon={backIcons[backIcon]}
@@ -37,7 +37,7 @@ export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large
 				) : (
 					<View style={styles.spacer} />
 				)}
-				<View style={styles.right}>{trailing}</View>
+				<View style={styles.trailingRow}>{trailing}</View>
 			</View>
 		</View>
 	);
@@ -45,9 +45,9 @@ export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large
 
 const styles = StyleSheet.create({
 	container: { marginBottom: 8 },
-	header: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
+	headerRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	title: { flex: 1, minWidth: 0 },
 	compact: { fontSize: 20, lineHeight: 26 },
 	spacer: { flex: 1 },
-	right: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+	trailingRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 });

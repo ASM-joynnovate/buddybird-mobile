@@ -32,7 +32,7 @@ const SleepTimeEditor = ({ value, onChange }: Props) => {
 	return (
 		<View style={styles.container}>
 			{/*취침 시각과 기상 시각 버튼*/}
-			<View style={ui.row}>
+			<View style={ui.controlsRow}>
 				{SLEEP_TIME_FIELDS.map((field) => (
 					<Chip
 						key={field}

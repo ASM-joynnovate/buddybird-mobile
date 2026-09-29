@@ -1,4 +1,9 @@
+import { usePrefetchQuery } from '@tanstack/react-query';
+
 import type { RootStackParamList } from '@/types/navigation';
+
+import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { getMeOptions } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
@@ -20,6 +25,9 @@ const ProfileScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	usePrefetchQuery(getMeOptions());
+	usePrefetchQuery(getParrotListOptions());
 
 	return (
 		<Screen>

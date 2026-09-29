@@ -1,6 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 
+import { usePrefetchQuery } from '@tanstack/react-query';
+
 import type { RootStackParamList } from '@/types/navigation';
+
+import { getSessionOptions } from '@/hooks/apis/sessions';
+import { getWordListOptions } from '@/hooks/apis/words';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,6 +28,9 @@ const SessionSummaryScreen = () => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionSummary'>>();
+
+	usePrefetchQuery(getSessionOptions({ id: params.sessionId }));
+	usePrefetchQuery(getWordListOptions());
 
 	const resetPeriod = useReportStore((state) => state.resetPeriod);
 
@@ -51,7 +59,7 @@ const SessionSummaryScreen = () => {
 	return (
 		<Screen contentContainerStyle={styles.content}>
 			{/*학습한 단어와 전체 학습 시간*/}
-			<View style={styles.body}>
+			<View style={styles.summaryContainer}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
 					suspenseFallback=<Skeleton blockCount={3} height={56} />
@@ -68,7 +76,7 @@ const SessionSummaryScreen = () => {
 
 const styles = StyleSheet.create({
 	content: { gap: 20 },
-	body: { flex: 1, justifyContent: 'center' },
+	summaryContainer: { flex: 1, justifyContent: 'center' },
 });
 
 export default SessionSummaryScreen;

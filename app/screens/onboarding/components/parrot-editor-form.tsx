@@ -256,7 +256,7 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 			</View>
 
 			{/*이름, 종, 생일 입력*/}
-			<View style={styles.fields}>
+			<View style={styles.fieldsContainer}>
 				<TextField
 					label={t('parrot.name')}
 					errorMessage={nameError}
@@ -270,7 +270,7 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 
 				<View>
 					<ItemGroup>
-						<SpeciesPicker first species={species} setSpecies={handleChangeSpecies} disabled={saving} />
+						<SpeciesPicker first species={species} onChange={handleChangeSpecies} disabled={saving} />
 						<BirthdatePicker value={birthdate} onChange={handleChangeBirthdate} />
 					</ItemGroup>
 					<InlineError message={speciesError} />
@@ -305,7 +305,7 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 const styles = StyleSheet.create({
 	photoContainer: { flexGrow: 1, justifyContent: 'center' },
 	introContainer: { marginTop: 4 },
-	fields: { gap: 16 },
+	fieldsContainer: { gap: 16 },
 });
 
 export default ParrotEditorForm;

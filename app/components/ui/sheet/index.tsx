@@ -63,14 +63,14 @@ export const Sheet = ({ visible, title, onClose, listLayout = false, onOpened, c
 			style={styles.sheet}
 		>
 			{listLayout ? (
-				<View accessibilityViewIsModal style={styles.list}>
+				<View accessibilityViewIsModal style={styles.listContainer}>
 					<Title style={[styles.title, styles.listTitle]}>{title}</Title>
 					{children}
 				</View>
 			) : (
 				<BottomSheetView
 					accessibilityViewIsModal
-					style={[styles.content, { paddingBottom: insets.bottom + 20 }]}
+					style={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
 				>
 					<Title style={styles.title}>{title}</Title>
 					{children}
@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 	},
 	handle: { width: 40, height: 5, backgroundColor: colors.border },
-	content: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
+	contentContainer: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
 	title: { fontSize: 18, lineHeight: 24 },
-	list: { flex: 1 },
+	listContainer: { flex: 1 },
 	listTitle: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
 });

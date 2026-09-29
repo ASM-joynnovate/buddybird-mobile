@@ -79,7 +79,7 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 			onClose={handleClose}
 			title={t(forced ? 'app.update.forcedTitle' : 'app.update.title')}
 			footer={
-				<View style={[ui.actions, styles.actions]}>
+				<View style={[ui.actionsRow, styles.actionsRow]}>
 					{!forced && (
 						<Button
 							label={t('common.close')}
@@ -118,7 +118,7 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 
 const styles = StyleSheet.create({
 	body: { fontSize: 17, lineHeight: 27 },
-	actions: { marginTop: 0 },
+	actionsRow: { marginTop: 0 },
 	note: { marginTop: 12, lineHeight: 24 },
 });
 

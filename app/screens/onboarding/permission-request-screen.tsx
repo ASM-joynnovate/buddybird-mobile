@@ -115,7 +115,7 @@ const PermissionRequestScreen = () => {
 		<Screen
 			footer={
 				<>
-					<View style={styles.later}>
+					<View style={styles.laterContainer}>
 						<TextButton
 							label={t('onboarding.permissions.later')}
 							variant="muted"
@@ -135,7 +135,7 @@ const PermissionRequestScreen = () => {
 			<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
 
 			{/*안내 말풍선과 그림*/}
-			<View style={styles.intro}>
+			<View style={styles.introContainer}>
 				<BuddySays message={t('onboarding.permissions.intro')} />
 				<Illustration
 					scene={t('onboarding.permissions.scene')}
@@ -148,7 +148,7 @@ const PermissionRequestScreen = () => {
 			{/*권한 목록*/}
 			<ItemGroup>
 				{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
-					<View key={kind} style={[styles.row, index > 0 && styles.divider]}>
+					<View key={kind} style={[styles.permissionRow, index > 0 && styles.divider]}>
 						<Icon size={24} color={colors.orangeDark} />
 						<View style={styles.textContainer}>
 							<Copy style={styles.name}>{t(`common.permission.${kind}.name`)}</Copy>
@@ -162,8 +162,8 @@ const PermissionRequestScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	intro: { flexGrow: 1, gap: 24, paddingBottom: 28 },
-	row: {
+	introContainer: { flexGrow: 1, gap: 24, paddingBottom: 28 },
+	permissionRow: {
 		minHeight: 64,
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
 	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.extraBold, fontSize: 16 },
 	purpose: { fontSize: 13, color: colors.muted },
-	later: { alignItems: 'flex-end' },
+	laterContainer: { alignItems: 'flex-end' },
 });
 
 export default PermissionRequestScreen;

@@ -43,7 +43,7 @@ const NoticeContent = ({ noticeId }: Props) => {
 	return (
 		<View style={styles.noticeContainer}>
 			{/*공지 제목과 날짜*/}
-			<View style={styles.heading}>
+			<View style={styles.headingContainer}>
 				<Title>{noticeData.title}</Title>
 				<Copy style={styles.date}>{formatMonthDay(noticeData.starts_at, locale)}</Copy>
 			</View>
@@ -66,7 +66,7 @@ const NoticeContent = ({ noticeId }: Props) => {
 
 const styles = StyleSheet.create({
 	noticeContainer: { gap: 20 },
-	heading: { gap: 6 },
+	headingContainer: { gap: 6 },
 	date: { fontSize: 13, color: colors.muted },
 	text: { lineHeight: 24 },
 	image: {

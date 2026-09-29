@@ -18,7 +18,7 @@ export const ScreenError = ({ onRetry }: Props) => {
 	const { t } = useTranslation();
 
 	return (
-		<View style={ui.messageBox} accessibilityLiveRegion="polite">
+		<View style={ui.messageContainer} accessibilityLiveRegion="polite">
 			{/*경고 아이콘과 불러오기 실패 문구*/}
 			<TriangleAlertIcon size={32} color={colors.muted} />
 			<Copy style={ui.messageText}>{t('common.loadError')}</Copy>

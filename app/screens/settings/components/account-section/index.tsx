@@ -33,7 +33,7 @@ const AccountSection = () => {
 			<Copy accessibilityRole="header" style={ui.sectionTitle}>
 				{t('settings.account.title')}
 			</Copy>
-			<View style={styles.buttons}>
+			<View style={styles.buttonsRow}>
 				{isAnonymous ? (
 					<TextButton label={t('auth.signIn')} onPress={() => navigation.navigate('Login')} />
 				) : (
@@ -60,7 +60,7 @@ const AccountSection = () => {
 };
 
 const styles = StyleSheet.create({
-	buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+	buttonsRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
 });
 
 export default AccountSection;

@@ -56,7 +56,7 @@ const SessionItem = ({ session }: Props) => {
 			onPress={handleOpenSession}
 			accessibilityRole="button"
 			accessibilityLabel={joinLabel(wordName, startedAtLabel, durationLabel, judging && t('report.judging'))}
-			contentStyle={styles.row}
+			contentStyle={styles.sessionRow}
 		>
 			{/*단어, 시작 시각, 판정 중 표시*/}
 			<View style={styles.textContainer}>
@@ -74,7 +74,7 @@ const SessionItem = ({ session }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
+	sessionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
 	textContainer: { flex: 1, minWidth: 0, gap: 4 },
 	word: { fontFamily: font.black, fontSize: 17 },
 	time: { fontSize: 13, color: colors.muted },

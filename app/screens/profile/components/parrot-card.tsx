@@ -1,7 +1,11 @@
 import type { Parrot } from '@/types/apis/parrots';
 
+import type { RootStackParamList } from '@/types/navigation';
+
 import { useTranslation } from 'react-i18next';
 
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ImageIcon } from 'lucide-react-native';
 
 import ProfileCard from '@/screens/profile/components/profile-card';
@@ -12,16 +16,16 @@ import { MONTHS_PER_YEAR } from '@/utils/units';
 
 interface Props {
 	parrot: Parrot;
-	onPress: () => void;
 }
 
 /**
- * 앵무새 사진, 이름, 종, 나이를 보여 주는 카드 컴포넌트
+ * 앵무새 사진, 이름, 종, 나이를 보여 주고 누르면 앵무새 편집 화면을 여는 카드 컴포넌트
  * @param parrot 보여 줄 앵무새
- * @param onPress 카드를 누를 때 실행할 함수
  */
-const ParrotCard = ({ parrot, onPress }: Props) => {
+const ParrotCard = ({ parrot }: Props) => {
 	const { t } = useTranslation();
+
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	const ageInMonths = ageMonths(parrot.birthdate);
 	const speciesName = isSpeciesId(parrot.species) ? t(`parrot.speciesNames.${parrot.species}`) : parrot.species;
@@ -40,7 +44,7 @@ const ParrotCard = ({ parrot, onPress }: Props) => {
 			title={{ text: parrot.name }}
 			details={[speciesName, ageText]}
 			label={joinLabel(t('profile.editParrot', { name: parrot.name }), speciesName, ageText)}
-			onPress={onPress}
+			onPress={() => navigation.navigate('ParrotEditor', { parrotId: parrot.id })}
 		/>
 	);
 };

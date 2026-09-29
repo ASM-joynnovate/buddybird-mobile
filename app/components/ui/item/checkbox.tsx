@@ -42,7 +42,7 @@ export const ItemCheckbox = ({
 			contentStyle={itemStyles.pressRow}
 		>
 			{/*작은 안내 문구, 이름, 설명*/}
-			<View style={itemStyles.labels}>
+			<View style={itemStyles.textContainer}>
 				{!!caption && (
 					<Copy style={[styles.caption, captionVariant === 'primary' && styles.captionPrimary]}>
 						{caption}

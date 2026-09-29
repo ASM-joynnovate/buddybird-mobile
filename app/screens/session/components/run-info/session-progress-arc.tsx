@@ -63,7 +63,7 @@ const SessionProgressArc = ({ width, phase, progressRatio, title, detail }: Prop
 			</Svg>
 
 			{/*단계 이름과 남은 시간*/}
-			<View style={styles.center}>
+			<View style={styles.phaseContainer}>
 				<Copy style={styles.title}>{title}</Copy>
 				{detail !== null && <Copy style={styles.detail}>{detail}</Copy>}
 			</View>
@@ -74,7 +74,7 @@ const SessionProgressArc = ({ width, phase, progressRatio, title, detail }: Prop
 const styles = StyleSheet.create({
 	container: { alignItems: 'center', justifyContent: 'flex-end' },
 	svg: { position: 'absolute', top: 0, left: 0 },
-	center: { alignItems: 'center', gap: 4, paddingBottom: 12 },
+	phaseContainer: { alignItems: 'center', gap: 4, paddingBottom: 12 },
 	title: { fontFamily: font.black, fontSize: 20, color: sessionColors.text },
 	detail: {
 		fontFamily: font.black,

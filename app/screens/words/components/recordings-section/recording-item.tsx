@@ -69,7 +69,7 @@ const RecordingItem = ({ recording, player, index, onDelete }: Props) => {
 			{/*녹음 이름과 길이*/}
 			<View style={styles.textContainer}>
 				<Copy style={styles.name}>{name}</Copy>
-				<View style={styles.meta}>
+				<View style={styles.detailRow}>
 					{durationMs !== null && <Copy style={styles.duration}>{formatDuration(durationMs, locale)}</Copy>}
 					{recording.kind === 'local' && <Copy style={styles.unsaved}>{t('words.editor.unsaved')}</Copy>}
 				</View>
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 	divider: { borderTopWidth: 2, borderTopColor: colors.border },
 	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.extraBold, fontSize: 16 },
-	meta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+	detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 	unsaved: { color: colors.orangeDark, fontFamily: font.extraBold, fontSize: 12.5 },
 	duration: { color: colors.muted, fontSize: 13.5, fontVariant: ['tabular-nums'] },
 });

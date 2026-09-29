@@ -41,7 +41,7 @@ const DeviceCard = ({ device }: Props) => {
 				)}
 
 				{(device.isThisDevice || device.isRunningSession) && (
-					<View style={styles.tags}>
+					<View style={styles.tagsRow}>
 						{device.isThisDevice && <Tag label={t('settings.devices.thisDevice')} />}
 						{device.isRunningSession && (
 							<Tag variant="primary" label={t('settings.devices.runningSession')} />
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	detail: { fontSize: 13, color: colors.muted },
-	tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+	tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
 });
 
 export default DeviceCard;

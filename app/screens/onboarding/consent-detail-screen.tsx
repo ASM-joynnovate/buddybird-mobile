@@ -36,7 +36,7 @@ const ConsentDetailScreen = () => {
 
 	/** 온보딩이면 동의 화면에 동의한 항목 전달, 설정이면 동의 저장 뒤 이전 화면으로 이동 */
 	const handleAgree = () => {
-		if (!consent) {
+		if (isPending || !consent) {
 			return;
 		}
 

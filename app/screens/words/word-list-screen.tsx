@@ -1,7 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 
+import { usePrefetchQuery } from '@tanstack/react-query';
+
 import type { WordsStackParamList } from '@/types/navigation';
 
+import { getRunningSessionOptions } from '@/hooks/apis/sessions';
+import { getWordListOptions } from '@/hooks/apis/words';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
@@ -26,6 +30,9 @@ const WordListScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
+
+	usePrefetchQuery(getWordListOptions());
+	usePrefetchQuery(getRunningSessionOptions());
 
 	const player = useSoundPlayer();
 

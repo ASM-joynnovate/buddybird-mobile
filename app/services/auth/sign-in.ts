@@ -118,7 +118,7 @@ export const signIn = async (provider: LoginProvider) => {
 		return true;
 	}
 
-	const { data, error } = await authClient().signInWithOAuth({
+	const { data: oauthData, error } = await authClient().signInWithOAuth({
 		provider,
 		options: oauthOptions(provider),
 	});
@@ -127,7 +127,7 @@ export const signIn = async (provider: LoginProvider) => {
 		throw error;
 	}
 
-	const callbackUrl = await openAuthBrowser(data.url);
+	const callbackUrl = await openAuthBrowser(oauthData.url);
 
 	return callbackUrl ? exchangeCallback(callbackUrl, provider) : false;
 };
@@ -152,7 +152,7 @@ export const linkAccount = async (provider: LoginProvider) => {
 		return 'linked';
 	}
 
-	const { data, error } = await authClient().linkIdentity({
+	const { data: oauthData, error } = await authClient().linkIdentity({
 		provider,
 		options: oauthOptions(provider),
 	});
@@ -161,7 +161,7 @@ export const linkAccount = async (provider: LoginProvider) => {
 		throw error;
 	}
 
-	const callbackUrl = await openAuthBrowser(data.url);
+	const callbackUrl = await openAuthBrowser(oauthData.url);
 
 	if (!callbackUrl) {
 		return 'cancelled';

@@ -67,7 +67,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 			depth="none"
 			cornerRadius="none"
 			style={styles.item}
-			contentStyle={styles.row}
+			contentStyle={styles.notificationRow}
 			accessibilityLabel={joinLabel(
 				unread && t('home.notificationList.unread'),
 				notification.title,
@@ -105,7 +105,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 
 const styles = StyleSheet.create({
 	item: { borderBottomWidth: 2, borderBottomColor: colors.border },
-	row: {
+	notificationRow: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		gap: 12,

@@ -1,6 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 
+import { usePrefetchQuery } from '@tanstack/react-query';
+
 import type { RootStackParamList } from '@/types/navigation';
+
+import { getDeviceListOptions } from '@/hooks/apis/devices';
+import { getRunningSessionOptions } from '@/hooks/apis/sessions';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +26,9 @@ const DevicesScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	usePrefetchQuery(getDeviceListOptions());
+	usePrefetchQuery(getRunningSessionOptions());
 
 	return (
 		<Screen scrollable={false}>

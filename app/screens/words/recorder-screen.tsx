@@ -319,7 +319,7 @@ const RecorderScreen = () => {
 				/>
 
 				{/*녹음 상태*/}
-				<View style={styles.center}>
+				<View style={styles.recordingContainer}>
 					<AudioWaveform
 						color={colors.orange}
 						height={96}
@@ -359,7 +359,7 @@ const RecorderScreen = () => {
 
 				{/*녹음과 추가 버튼*/}
 				{recordingFile && !isRecording ? (
-					<View style={ui.actions}>
+					<View style={ui.actionsRow}>
 						<Button
 							label={t('words.recorder.recordAgain')}
 							variant="secondary"
@@ -370,7 +370,7 @@ const RecorderScreen = () => {
 						<Button label={t('common.add')} onPress={handleAddRecording} style={ui.action} />
 					</View>
 				) : (
-					<View style={styles.control}>
+					<View style={styles.recordButtonContainer}>
 						<IconButton
 							icon={isRecording ? SquareIcon : MicIcon}
 							label={t(isRecording ? 'words.recorder.stop' : 'words.recorder.start')}
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 12,
 	},
-	center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+	recordingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
 	timer: {
 		fontFamily: font.black,
 		fontSize: 40,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 	status: { color: colors.muted, textAlign: 'center' },
-	control: { alignItems: 'center' },
+	recordButtonContainer: { alignItems: 'center' },
 });
 
 export default RecorderScreen;

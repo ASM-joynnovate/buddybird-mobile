@@ -48,9 +48,9 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 	const keptServerRecordingCount = recordings.filter((recording) => recording.kind === 'server').length;
 
 	return (
-		<View style={ui.section}>
+		<View style={ui.sectionContainer}>
 			{/*제목과 도움말 버튼*/}
-			<View style={styles.header}>
+			<View style={styles.headerRow}>
 				<Copy accessibilityRole="header" style={styles.title}>
 					{t('words.editor.recordings', { count: recordings.length })}
 				</Copy>
@@ -100,7 +100,7 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 };
 
 const styles = StyleSheet.create({
-	header: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+	headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
 	title: { flex: 1, fontSize: 18, lineHeight: 24, fontFamily: font.black },
 	add: { marginTop: 12 },
 	hint: { color: colors.muted, marginTop: 10 },

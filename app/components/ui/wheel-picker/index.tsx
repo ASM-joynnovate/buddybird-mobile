@@ -29,7 +29,7 @@ export const WheelPicker = ({ columns }: Props) => {
 
 			{/*위아래로 넘기는 숫자 목록과 단위*/}
 			{columns.map((column) => (
-				<View key={column.key} style={styles.column}>
+				<View key={column.key} style={styles.columnRow}>
 					<WheelPickerWheel
 						label={column.label}
 						value={column.value}
@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.orange,
 		backgroundColor: colors.wheelSelection,
 	},
-	column: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+	columnRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	unit: { fontFamily: font.extraBold, fontSize: 16, minWidth: 22 },
 });

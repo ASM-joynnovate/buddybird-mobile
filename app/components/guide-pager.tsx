@@ -50,7 +50,6 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 
 	const step = steps[index];
 	const isLastStep = index === steps.length - 1;
-	const back = index > 0 ? () => setIndex(index - 1) : actions.onBack;
 
 	/** 단계가 바뀔 때 첫 단계에서만 밀어서 뒤로 가기 허용 */
 	useEffect(() => {
@@ -85,12 +84,15 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 		setIndex(index + 1);
 	};
 
+	/** 두 번째 단계부터 이전 단계 이동, 첫 단계에서는 뒤로 가기 함수 */
+	const handleBack = index > 0 ? () => setIndex(index - 1) : actions.onBack;
+
 	return (
 		<Screen scrollable={false}>
 			<View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
 				{/*뒤로 가기, 단계 표시, 건너뛰기*/}
-				<View style={styles.top}>
-					{back && <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={back} />}
+				<View style={styles.topRow}>
+					{handleBack && <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={handleBack} />}
 					<PageDots
 						count={steps.length}
 						currentIndex={index}
@@ -101,13 +103,13 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 				</View>
 
 				{/*안내 말풍선과 그림*/}
-				<View style={styles.body}>
+				<View style={styles.stepContainer}>
 					<BuddySays message={step.title} />
 					<Illustration scene={step.scene} icon={step.icon} height={260} showMascot={false} />
 				</View>
 
 				{/*다시 보지 않기와 다음 버튼*/}
-				<View style={styles.bottom}>
+				<View style={styles.bottomContainer}>
 					{dontShowAgain && (
 						<ItemCheckbox
 							first
@@ -135,10 +137,10 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 12,
 	},
-	top: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
+	topRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
 	spacer: { flex: 1 },
-	body: { flex: 1, justifyContent: 'space-between', gap: 24, paddingTop: 16, paddingBottom: 24 },
-	bottom: { gap: 12 },
+	stepContainer: { flex: 1, justifyContent: 'space-between', gap: 24, paddingTop: 16, paddingBottom: 24 },
+	bottomContainer: { gap: 12 },
 });
 
 export default GuidePager;

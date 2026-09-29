@@ -67,7 +67,7 @@ const ReportContent = () => {
 	const header = <ReportHeader report={reportData} />;
 
 	const mimicrySection = hasSessions ? (
-		<View style={ui.section}>
+		<View style={ui.sectionContainer}>
 			<View style={styles.mimicryTitleRow}>
 				<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
 					{t('report.mimicryTitle')}

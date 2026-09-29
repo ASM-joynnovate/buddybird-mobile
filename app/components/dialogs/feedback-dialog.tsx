@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { randomUUID } from 'expo-crypto';
 import { SendIcon } from 'lucide-react-native';
 
+import { FEEDBACK_MESSAGE_LIMIT } from '@/config';
 import { track } from '@/services/telemetry/client';
 import { useFeedbackStore } from '@/stores/feedback';
 import { colors, font, mascotImage } from '@/theme';
@@ -105,7 +106,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				onClose={prompt.onDismiss}
 				title={t('app.feedback.promptTitle')}
 				footer={
-					<View style={[ui.actions, styles.actions]}>
+					<View style={[ui.actionsRow, styles.actionsRow]}>
 						<Button
 							label={t('common.close')}
 							variant="secondary"
@@ -133,7 +134,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 			onClose={handleClose}
 			title={t('app.feedback.title')}
 			footer={
-				<View style={[ui.actions, styles.actions]}>
+				<View style={[ui.actionsRow, styles.actionsRow]}>
 					<Button
 						label={t('common.cancel')}
 						variant="secondary"
@@ -157,7 +158,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				accessibilityLabel={t('app.feedback.title')}
 				value={message}
 				onChangeText={setMessage}
-				maxLength={1000}
+				maxLength={FEEDBACK_MESSAGE_LIMIT}
 				multiline
 				editable={!isPending}
 				textAlignVertical="top"
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
 	thanksClose: { marginTop: 0 },
 	promptMascot: { width: 96, height: 96, resizeMode: 'contain', alignSelf: 'center' },
 	centeredMessage: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 16 },
-	actions: { marginTop: 0 },
+	actionsRow: { marginTop: 0 },
 	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },
 	privacy: { fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 12 },
 });

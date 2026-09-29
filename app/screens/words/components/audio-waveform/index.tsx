@@ -49,7 +49,7 @@ interface Props {
  * @param looping 막대 높이를 일정 간격으로 되풀이해 바꾸는지 여부
  */
 const AudioWaveform = ({ color, height, barCount, fullWidth = false, level, looping = false }: Props) => {
-	const reduced = useReducedMotion();
+	const reducedMotion = useReducedMotion();
 
 	const heightRatios = useSharedValue<number[]>(Array.from({ length: barCount }, () => 0));
 	const duration = useSharedValue(LOOP_INTERVAL_MS);
@@ -57,13 +57,13 @@ const AudioWaveform = ({ color, height, barCount, fullWidth = false, level, loop
 	/** 소리 크기나 되풀이 여부가 바뀔 때 막대 높이 변경, 되풀이 중에는 일정 간격으로 변경 */
 	useEffect(() => {
 		if (typeof level === 'number') {
-			duration.set(reduced ? 0 : LIVE_TRANSITION_MS);
+			duration.set(reducedMotion ? 0 : LIVE_TRANSITION_MS);
 			heightRatios.set(liveHeightRatios(level, barCount));
 
 			return undefined;
 		}
 
-		if (looping && !reduced) {
+		if (looping && !reducedMotion) {
 			/** 되풀이 중인 막대 높이 변경 */
 			const updateLoopHeights = () => {
 				duration.set(LOOP_INTERVAL_MS);
@@ -77,11 +77,11 @@ const AudioWaveform = ({ color, height, barCount, fullWidth = false, level, loop
 			return () => clearInterval(timer);
 		}
 
-		duration.set(reduced ? 0 : LOOP_INTERVAL_MS);
+		duration.set(reducedMotion ? 0 : LOOP_INTERVAL_MS);
 		heightRatios.set(Array(barCount).fill(0));
 
 		return undefined;
-	}, [looping, barCount, duration, level, reduced, heightRatios]);
+	}, [looping, barCount, duration, level, reducedMotion, heightRatios]);
 
 	return (
 		<View

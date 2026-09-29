@@ -56,7 +56,7 @@ const SoundItem = ({ sound, wordName, multiDay, player }: Props) => {
 	}
 
 	/** 소리 주소 공유와 공유 완료 시 mimicry_shared 전송 */
-	const share = async () => {
+	const handleShare = async () => {
 		if (!url) {
 			return;
 		}
@@ -96,12 +96,12 @@ const SoundItem = ({ sound, wordName, multiDay, player }: Props) => {
 				accessibilityLabel={timeLabel}
 				accessibilityHint={url ? t('report.detail.shareHint') : undefined}
 				onPress={() => {}}
-				onLongPress={url ? () => void share() : undefined}
+				onLongPress={url ? () => void handleShare() : undefined}
 				disabled={!url}
 				variant="plain"
 				depth="none"
 				cornerRadius="control"
-				contentStyle={styles.row}
+				contentStyle={styles.soundRow}
 			>
 				{/*녹음 시각과 단어*/}
 				<View style={styles.textContainer}>
@@ -131,7 +131,7 @@ const SoundItem = ({ sound, wordName, multiDay, player }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	row: {
+	soundRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 8,

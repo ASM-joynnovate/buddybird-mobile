@@ -39,13 +39,13 @@ export const loginCredential = async () => {
 		return {};
 	}
 
-	const { data, error } = await authClient().getSession();
+	const { data: sessionData, error } = await authClient().getSession();
 
 	if (error) {
 		throw error;
 	}
 
-	const refreshToken = data.session?.provider_refresh_token;
+	const refreshToken = sessionData.session?.provider_refresh_token;
 
 	return refreshToken ? { google: { refresh_token: refreshToken } } : {};
 };

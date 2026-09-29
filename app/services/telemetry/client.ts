@@ -154,8 +154,8 @@ export const initializeTelemetry = (shouldRequestATT = true) => {
 };
 
 /** 분석 사용자 ID 저장, 분석을 허용했으면 전송 */
-export const setTelemetryUserId = (next: string | null) => {
-	userId = next;
+export const setTelemetryUserId = (nextUserId: string | null) => {
+	userId = nextUserId;
 
 	if (telemetryAllowed === true) {
 		void sendTelemetrySafely(sendUserId);
@@ -163,9 +163,9 @@ export const setTelemetryUserId = (next: string | null) => {
 };
 
 /** 바뀐 사용자 속성 저장, 분석을 허용했으면 전송 */
-export const setUserProperties = (next: UserProperties) => {
+export const setUserProperties = (nextUserProperties: UserProperties) => {
 	const values = Object.fromEntries(
-		Object.entries(next).map(([key, value]) => [key, value == null ? null : String(value)]),
+		Object.entries(nextUserProperties).map(([key, value]) => [key, value == null ? null : String(value)]),
 	);
 
 	if (Object.entries(values).every(([key, value]) => userProperties[key] === value)) {

@@ -204,13 +204,13 @@ const AuthProvider = ({ children }: Props) => {
 
 		void auth
 			.getSession()
-			.then(({ data, error }) => {
+			.then(({ data: sessionData, error }) => {
 				if (!active || receivedEvent) {
 					return;
 				}
 
 				if (!error) {
-					void acceptSession(data.session);
+					void acceptSession(sessionData.session);
 				} else if (isAuthRetryableFetchError(error) && useAccountStore.getState().authUserId !== null) {
 					setStatus('signedIn');
 				} else {

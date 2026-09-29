@@ -39,7 +39,7 @@ const ConfirmDialog = ({ visible, text, confirmStatus, onConfirm, onClose, child
 			title={text.title}
 			onClose={busy ? () => {} : onClose}
 			footer={
-				<View style={ui.actions}>
+				<View style={ui.actionsRow}>
 					<Button
 						label={text.cancel ?? t('common.cancel')}
 						variant="secondary"

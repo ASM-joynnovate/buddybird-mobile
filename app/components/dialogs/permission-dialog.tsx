@@ -36,7 +36,7 @@ const PermissionDialog = ({ state }: Props) => {
 			})}
 			onClose={state.onClose}
 			footer={
-				<View style={ui.actions}>
+				<View style={ui.actionsRow}>
 					<Button
 						label={t('common.close')}
 						variant="secondary"
@@ -53,7 +53,7 @@ const PermissionDialog = ({ state }: Props) => {
 				</View>
 			}
 		>
-			<View style={styles.body}>
+			<View style={styles.reasonContainer}>
 				<Mascot size={88} />
 				<Copy style={styles.reason}>{t(`common.permission.${state.kind}.reason`)}</Copy>
 			</View>
@@ -62,7 +62,7 @@ const PermissionDialog = ({ state }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	body: { alignItems: 'center', gap: 12 },
+	reasonContainer: { alignItems: 'center', gap: 12 },
 	reason: { textAlign: 'center', lineHeight: 22 },
 });
 

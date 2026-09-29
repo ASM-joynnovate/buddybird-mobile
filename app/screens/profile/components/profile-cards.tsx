@@ -38,7 +38,7 @@ const ProfileCards = () => {
 	return (
 		<>
 			{/*내 사진, 닉네임, 이메일*/}
-			<AccountCard user={meData} onPress={() => navigation.navigate('AccountEditor')} />
+			<AccountCard user={meData} />
 
 			{/*로그인 버튼*/}
 			{isAnonymous && (
@@ -51,17 +51,13 @@ const ProfileCards = () => {
 			)}
 
 			{/*앵무새 목록*/}
-			<View style={ui.section}>
+			<View style={ui.sectionContainer}>
 				<Copy accessibilityRole="header" style={ui.sectionTitle}>
 					{t('profile.parrots')}
 				</Copy>
-				<View style={styles.parrots}>
+				<View style={styles.parrotsContainer}>
 					{parrotListData.map((parrot) => (
-						<ParrotCard
-							key={parrot.id}
-							parrot={parrot}
-							onPress={() => navigation.navigate('ParrotEditor', { parrotId: parrot.id })}
-						/>
+						<ParrotCard key={parrot.id} parrot={parrot} />
 					))}
 				</View>
 
@@ -78,7 +74,7 @@ const ProfileCards = () => {
 };
 
 const styles = StyleSheet.create({
-	parrots: { gap: 12 },
+	parrotsContainer: { gap: 12 },
 	addParrotButton: { marginTop: 16 },
 	signIn: { marginTop: 12 },
 });

@@ -55,9 +55,9 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 	}, []);
 
 	return (
-		<SafeAreaView style={styles.info} edges={['top', 'bottom', 'left', 'right']}>
+		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
 			{/*경과 시간과 안내*/}
-			<View style={styles.stack}>
+			<View style={styles.elapsedContainer}>
 				<Copy style={styles.label}>{t('session.run.elapsed')}</Copy>
 				<Copy style={styles.timer}>{formatTimer(dayjs(now).diff(startedAt))}</Copy>
 
@@ -66,7 +66,7 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 			</View>
 
 			{/*진행 단계와 종료 버튼*/}
-			<View style={styles.bottom} pointerEvents="box-none">
+			<View style={styles.bottomRow} pointerEvents="box-none">
 				<SessionProgressArc
 					width={Math.min(width * 0.55, ARC_MAX_WIDTH)}
 					phase={status.phase}
@@ -97,8 +97,8 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	info: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12 },
-	stack: { gap: 2 },
+	container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12 },
+	elapsedContainer: { gap: 2 },
 	label: { fontFamily: font.extraBold, fontSize: 13, color: sessionColors.faint },
 	keepOpen: { marginTop: 12 },
 	timer: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 		color: sessionColors.text,
 		fontVariant: ['tabular-nums'],
 	},
-	bottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center' },
+	bottomRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center' },
 	end: { position: 'absolute', right: 0, bottom: 16 },
 	endFace: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18 },
 	endText: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.text },

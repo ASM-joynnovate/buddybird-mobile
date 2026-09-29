@@ -152,13 +152,13 @@ const LoginScreen = () => {
 				/>
 
 				{/*마스코트와 앱 이름*/}
-				<View style={styles.intro}>
+				<View style={styles.introContainer}>
 					<Mascot size={150} />
 					<Title style={styles.product}>{t('onboarding.login.product')}</Title>
 				</View>
 
 				{/*로그인 버튼*/}
-				<View style={styles.actions}>
+				<View style={styles.actionsContainer}>
 					{providers.includes('google') && (
 						<View>
 							{lastLoginProvider === 'google' && <LastLoginTag label={t('auth.lastLogin')} />}
@@ -231,9 +231,9 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	screen: { gap: 36 },
-	intro: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 20 },
+	introContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 20 },
 	product: { fontSize: 34, lineHeight: 40, textAlign: 'center' },
-	actions: { gap: 12 },
+	actionsContainer: { gap: 12 },
 	appleButton: { width: '100%', height: 56 },
 	appleProgress: {
 		...StyleSheet.absoluteFill,

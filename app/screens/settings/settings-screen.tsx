@@ -30,7 +30,7 @@ const SettingsScreen = () => {
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
 
 			{/*앵무새 케어, 알림, 일반, 계정, 지원 설정*/}
-			<View style={styles.sections}>
+			<View style={styles.sectionsContainer}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
 					suspenseFallback=<Skeleton blockCount={3} height={56} />
@@ -49,7 +49,7 @@ const SettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	sections: { gap: 28 },
+	sectionsContainer: { gap: 28 },
 });
 
 export default SettingsScreen;

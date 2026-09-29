@@ -27,7 +27,7 @@ export const getAuthTransition = (registeredIdentity: AuthIdentity | null, nextI
 
 /** 서버 요청에 넣을 지금 세션의 액세스 토큰, 세션이 없거나 읽지 못하면 ApiError */
 export const accessToken = async () => {
-	const { data, error } = await authClient().getSession();
+	const { data: sessionData, error } = await authClient().getSession();
 
 	if (isAuthRetryableFetchError(error)) {
 		throw new ApiError(0, 'CLIENT__NETWORK', error.message);
@@ -37,11 +37,11 @@ export const accessToken = async () => {
 		throw new ApiError(UNAUTHORIZED_STATUS, 'AUTH__INVALID_TOKEN', error.message);
 	}
 
-	if (!data.session) {
+	if (!sessionData.session) {
 		throw new ApiError(UNAUTHORIZED_STATUS, 'AUTH__INVALID_TOKEN', 'No active session');
 	}
 
-	return data.session.access_token;
+	return sessionData.session.access_token;
 };
 
 /** 익명 로그인, 실패하면 인증 오류 반환 */

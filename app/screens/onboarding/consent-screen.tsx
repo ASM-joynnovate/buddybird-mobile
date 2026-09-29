@@ -129,12 +129,12 @@ const ConsentScreen = () => {
 			}
 		>
 			{/*안내 말풍선*/}
-			<View style={styles.intro}>
+			<View style={styles.introContainer}>
 				<BuddySays message={t('onboarding.consent.intro')} />
 			</View>
 
 			{/*동의 항목*/}
-			<View style={styles.content}>
+			<View style={styles.consentsContainer}>
 				<Card contentStyle={styles.allCard}>
 					<ItemCheckbox
 						first
@@ -164,8 +164,8 @@ const ConsentScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	intro: { flexGrow: 1, paddingBottom: 28 },
-	content: { gap: 20 },
+	introContainer: { flexGrow: 1, paddingBottom: 28 },
+	consentsContainer: { gap: 20 },
 	allCard: { padding: 0 },
 });
 
