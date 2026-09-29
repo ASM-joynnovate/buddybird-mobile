@@ -58,7 +58,7 @@ export const settings: SettingsMessages = {
 	devices: {
 		title: '연결된 기기',
 		thisDevice: '이 기기',
-		runningSession: '세션 실행 중',
+		runningSession: '학습 진행 중',
 		lastSeen: '마지막 접속 {{time}}',
 	},
 	permissions: {

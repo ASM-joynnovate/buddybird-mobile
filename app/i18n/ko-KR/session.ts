@@ -3,11 +3,11 @@ import type { SessionMessages } from '@/i18n/types/session';
 export const session: SessionMessages = {
 	takeover: {
 		title: '이 기기에서 시작할까요?',
-		message: '다른 기기에서 실행 중인 세션을 끝내고 이 기기에서 새로 시작해요.',
+		message: '다른 기기에서 진행 중인 학습을 끝내고 이 기기에서 새로 시작해요.',
 		confirm: '이 기기에서 시작',
 	},
 	startError: {
-		title: '세션을 시작하지 못했어요',
+		title: '학습을 시작하지 못했어요',
 		message: '인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
 	sleep: {
@@ -41,10 +41,10 @@ export const session: SessionMessages = {
 		startUnavailable: '학습할 단어와 시간을 설정하면 시작할 수 있어요',
 		elsewhere: '다른 기기에서 학습 중이에요',
 		endElsewhere: '그 학습 끝내기',
-		endElsewhereError: '세션을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
+		endElsewhereError: '학습을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
 	run: {
-		reveal: '화면을 누르면 세션 정보가 보여요',
+		reveal: '화면을 누르면 학습 정보가 보여요',
 		elapsed: '경과',
 		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
 		dimAfter: '배터리 및 화면 보호를 위해 {{seconds}}초 후 자동으로 어두워집니다.',
@@ -55,7 +55,7 @@ export const session: SessionMessages = {
 		charging: '충전 중',
 	},
 	end: {
-		title: '세션 종료',
+		title: '학습 종료',
 		message: '학습을 끝낼까요? 끝내면 이번 학습 결과를 보여 드려요.',
 		button: '종료',
 		keep: '계속',

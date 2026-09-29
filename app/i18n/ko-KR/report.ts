@@ -19,7 +19,7 @@ export const report: ReportMessages = {
 	judging: '판정 중',
 	empty: '이 기간에는 학습 기록이 없어요',
 	emptyScene: '빈 리포트',
-	startSession: '세션 시작하기',
+	startSession: '학습 시작하기',
 	detail: {
 		judging: '앵무새가 따라 한 소리를 확인하고 있어요. 화면을 아래로 당기면 새로 불러와요.',
 		empty: '이 학습에서 앵무새가 따라 한 소리가 없어요.',
