@@ -19,22 +19,29 @@ interface Props {
 	pointerSide?: 'bottom' | 'left';
 	typing?: boolean;
 	style?: StyleProp<ViewStyle>;
+	contentStyle?: StyleProp<ViewStyle>;
 	children: ReactNode;
 }
 
-export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, style }: Props) => {
+export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, style, contentStyle }: Props) => {
+	let content = children;
+
+	if (typeof children === 'string') {
+		content = typing ? (
+			<TypedText key={children} text={keepNumbersWithUnits(children)} />
+		) : (
+			<Copy lineBreakStrategyIOS="hangul-word" style={styles.text}>
+				{keepNumbersWithUnits(children)}
+			</Copy>
+		);
+	}
+
 	return (
-		<Card cornerRadius="control" style={style} contentStyle={styles.bubble}>
+		<Card cornerRadius="control" style={style} contentStyle={[styles.bubble, contentStyle]}>
 			{/*말풍선 꼬리*/}
 			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
 
-			{typing && typeof children === 'string' ? (
-				<TypedText key={children} text={keepNumbersWithUnits(children)} />
-			) : (
-				<Copy lineBreakStrategyIOS="hangul-word" style={styles.text}>
-					{typeof children === 'string' ? keepNumbersWithUnits(children) : children}
-				</Copy>
-			)}
+			{content}
 		</Card>
 	);
 };

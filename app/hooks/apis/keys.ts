@@ -24,6 +24,7 @@ export const apiKeys = {
 		running: () => [...userKeyPrefix(), 'sessions', 'running'] as const,
 		detail: (id: string) => [...userKeyPrefix(), 'sessions', id] as const,
 		sounds: (id: string) => [...userKeyPrefix(), 'sessions', id, 'sounds'] as const,
+		summary: (id: string) => [...userKeyPrefix(), 'sessions', id, 'summary'] as const,
 	},
 	home: () => [...userKeyPrefix(), 'home'] as const,
 	notifications: () => [...userKeyPrefix(), 'notifications'] as const,

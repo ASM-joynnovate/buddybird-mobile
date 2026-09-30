@@ -4,6 +4,7 @@ import {
 	getAllSessionSounds,
 	getRunningSession,
 	getSession,
+	getSessionSummary,
 	postSession,
 	postSessionFinish,
 	postSessionHeartbeat,
@@ -34,6 +35,14 @@ export const getSessionOptions = ({ id }: { id: string }) =>
 /** 세션 상세 조회 Hook */
 export const useGetSession = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionOptions({ id }));
+};
+
+/** 세션 요약 조회 Hook에 사용할 옵션 */
+export const getSessionSummaryOptions = ({ id }: { id: string }) =>
+	queryOptions({ queryKey: apiKeys.sessions.summary(id), queryFn: () => getSessionSummary({ id }) });
+/** 세션 요약 조회 Hook */
+export const useGetSessionSummary = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getSessionSummaryOptions({ id }));
 };
 
 /** 세션 소리 목록 조회 Hook에 사용할 옵션 */

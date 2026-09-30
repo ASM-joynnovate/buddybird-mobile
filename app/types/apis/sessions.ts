@@ -66,6 +66,18 @@ export const sessionSoundSchema = z.object({
 	judgment: z.object({ word_id: uuidSchema.nullable() }).nullable(),
 });
 
+export const sessionSummarySchema = z.object({
+	word: z.object({ id: uuidSchema, name: z.string() }).nullable(),
+	session: z.object({
+		play_count: z.number().int().nonnegative(),
+		learning_duration_ms: z.number().int().nonnegative(),
+	}),
+	total: z.object({
+		word_learning_duration_ms: z.number().int().nonnegative().nullable(),
+		learning_duration_ms: z.number().int().nonnegative(),
+	}),
+});
+
 export type Phase = z.infer<typeof phaseSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type StartSessionRequest = z.infer<typeof startSessionRequestSchema>;
@@ -73,3 +85,4 @@ export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatSummary = HeartbeatRequest['summaries'][number];
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 export type SessionSound = z.infer<typeof sessionSoundSchema>;
+export type SessionSummary = z.infer<typeof sessionSummarySchema>;

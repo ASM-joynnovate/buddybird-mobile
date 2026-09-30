@@ -3,8 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
+import type { HeartbeatSummary } from '@/types/apis/sessions';
 
 import type { RootStackParamList } from '@/types/navigation';
+import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSessionSound } from '@/hooks/apis/sessions';
 import { getWordOptions } from '@/hooks/apis/words';
@@ -37,6 +39,18 @@ type EndReason = 'time_reached' | 'user' | 'server';
 
 const FADE_MS = 2 * SECOND;
 
+/** 하트비트 요청 본문 생성 함수 */
+const createHeartbeatData = (startedAt: string | null, sleep: SleepSettings | null, summaries: HeartbeatSummary[]) => {
+	const span = startedAt ? currentSpan(dayjs(startedAt).valueOf(), dayjs().valueOf(), sleep) : null;
+
+	return {
+		current_phase: span?.phase ?? null,
+		phase_started_at: span ? dayjs(span.start).toISOString() : null,
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		summaries,
+	};
+};
+
 /** 학습 진행 화면 */
 const SessionRunScreen = () => {
 	useKeepAwake();
@@ -60,7 +74,7 @@ const SessionRunScreen = () => {
 
 	const { mutate: finishSession } = useFinishSession();
 	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
-	const { mutate: sendHeartbeat } = useSendHeartbeat();
+	const { mutate: sendHeartbeat, mutateAsync: sendHeartbeatAsync } = useSendHeartbeat();
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
@@ -91,6 +105,12 @@ const SessionRunScreen = () => {
 
 			try {
 				await engineRef.current?.stop();
+				await Promise.allSettled([
+					sendHeartbeatAsync({
+						id: sessionId,
+						data: createHeartbeatData(startedAt, sleep, engineRef.current?.summaries() ?? []),
+					}),
+				]);
 				engineRef.current = null;
 
 				await Promise.allSettled(uploadsRef.current);
@@ -120,7 +140,7 @@ const SessionRunScreen = () => {
 
 			finishSession({ id: sessionId }, { onSettled: showSummary });
 		},
-		[finishSession, navigation, sessionId, setSessionFinishing, startedAt],
+		[finishSession, navigation, sendHeartbeatAsync, sessionId, setSessionFinishing, sleep, startedAt],
 	);
 
 	const latestInputRef = useRef({ startedAt, sleep, endSession });
@@ -254,19 +274,11 @@ const SessionRunScreen = () => {
 		/** 하트비트 전송 함수 */
 		const beat = () => {
 			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
-			const span = sessionStartedAt
-				? currentSpan(dayjs(sessionStartedAt).valueOf(), dayjs().valueOf(), sleepSettings)
-				: null;
 
 			sendHeartbeat(
 				{
 					id: sessionId,
-					data: {
-						current_phase: span?.phase ?? null,
-						phase_started_at: span ? dayjs(span.start).toISOString() : null,
-						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-						summaries: engineRef.current?.summaries() ?? [],
-					},
+					data: createHeartbeatData(sessionStartedAt, sleepSettings, engineRef.current?.summaries() ?? []),
 				},
 				{
 					onError: (error) => {

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { AccessibilityActionEvent } from 'react-native';
 
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { ReduceMotion, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -19,6 +19,8 @@ interface PressPoint {
 interface Props extends SurfaceProps {
 	onPress: (point: PressPoint) => void;
 	onLongPress?: () => void;
+	onSwipeLeft?: () => void;
+	onSwipeRight?: () => void;
 	disabled?: boolean;
 }
 
@@ -27,6 +29,8 @@ export type PressableSurfaceProps = Props;
 export const PressableSurface = ({
 	onPress,
 	onLongPress,
+	onSwipeLeft,
+	onSwipeRight,
 	disabled = false,
 	depth = 'medium',
 	contentStyle,
@@ -58,7 +62,7 @@ export const PressableSurface = ({
 		}
 	}, [disabled, onLongPress]);
 
-	const gesture = useMemo(() => {
+	const pressGesture = useMemo(() => {
 		const tap = Gesture.Tap()
 			.enabled(!disabled)
 			.maxDuration(10 * SECOND)
@@ -88,6 +92,34 @@ export const PressableSurface = ({
 
 		return Gesture.Exclusive(longPress, tap);
 	}, [activate, disabled, holdActivate, onLongPress, pressProgress]);
+
+	const gesture = useMemo(() => {
+		const swipes = [];
+
+		if (onSwipeLeft) {
+			swipes.push(
+				Gesture.Fling()
+					.enabled(!disabled)
+					.direction(Directions.LEFT)
+					.onStart(() => {
+						scheduleOnRN(onSwipeLeft);
+					}),
+			);
+		}
+
+		if (onSwipeRight) {
+			swipes.push(
+				Gesture.Fling()
+					.enabled(!disabled)
+					.direction(Directions.RIGHT)
+					.onStart(() => {
+						scheduleOnRN(onSwipeRight);
+					}),
+			);
+		}
+
+		return swipes.length > 0 ? Gesture.Race(...swipes, pressGesture) : pressGesture;
+	}, [disabled, onSwipeLeft, onSwipeRight, pressGesture]);
 
 	const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
 		if (event.nativeEvent.actionName === 'activate') {

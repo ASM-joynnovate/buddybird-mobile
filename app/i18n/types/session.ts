@@ -59,8 +59,21 @@ export type SessionMessages = {
 		keep: string;
 	};
 	summary: {
-		word: string;
+		title: string;
+		range: string;
+		parrots: string;
+		together: { lead: string; tail: string };
+		played: { lead: string; tail: string };
+		wordTime: { lead: string; tail: string };
+		allTime: { lead: string; tail: string };
+		count: string;
+		sentenceProgress: string;
+		playCount: string;
 		totalTime: string;
+		wordTotal: string;
+		allTotal: string;
+		added: string;
+		goHome: string;
 		viewDetail: string;
 	};
 };

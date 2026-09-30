@@ -4580,6 +4580,7 @@ __metadata:
     "@types/react": "npm:~19.2.10"
     dayjs: "npm:^1.11.23"
     dependency-cruiser: "npm:^17.0.2"
+    es-hangul: "npm:2.4.0"
     eslint: "npm:10.10.0"
     eslint-plugin-react-native-a11y: "npm:3.5.1"
     expo: "npm:~55.0.31"
@@ -5412,6 +5413,13 @@ __metadata:
   version: 1.3.0
   resolution: "es-errors@npm:1.3.0"
   checksum: 10c0/0a61325670072f98d8ae3b914edab3559b6caa980f08054a3b872052640d91da01d38df55df797fcc916389d77fc92b8d5906cf028f4db46d7e3003abecbca85
+  languageName: node
+  linkType: hard
+
+"es-hangul@npm:2.4.0":
+  version: 2.4.0
+  resolution: "es-hangul@npm:2.4.0"
+  checksum: 10c0/298fcb2b5de2d2fbf80f7f05c02d5ac478c6c235d0e358e15e8cc49e10b1ee2f2589057614f56b6e3630709ea7c1dd13968cd0d6ff8900b756b12470f1f4274f
   languageName: node
   linkType: hard
 

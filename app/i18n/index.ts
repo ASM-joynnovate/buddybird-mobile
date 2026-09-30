@@ -11,6 +11,7 @@ import 'dayjs/locale/ko';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { josa } from 'es-hangul';
 import 'intl-pluralrules';
 
 dayjs.extend(customParseFormat);
@@ -36,6 +37,12 @@ export const changeI18nLocale = async (locale: Locale) => {
 			interpolation: { escapeValue: false },
 			initImmediate: false,
 		});
+
+		i18next.services.formatter?.add(
+			'josa',
+			(value: string, _lng: string | undefined, { type }: { type: Parameters<typeof josa.pick>[1] }) =>
+				josa.pick(value, type),
+		);
 	}
 };
 

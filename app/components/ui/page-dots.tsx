@@ -1,4 +1,6 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
+
+import Animated, { css, useReducedMotion } from 'react-native-reanimated';
 
 import { colors } from '@/theme';
 
@@ -9,6 +11,8 @@ interface Props {
 }
 
 export const PageDots = ({ count, currentIndex, label }: Props) => {
+	const reducedMotion = useReducedMotion();
+
 	if (count < 2) {
 		return null;
 	}
@@ -16,14 +20,22 @@ export const PageDots = ({ count, currentIndex, label }: Props) => {
 	return (
 		<View style={styles.container} accessible accessibilityLabel={label}>
 			{Array.from({ length: count }, (_, dotIndex) => (
-				<View key={dotIndex} style={[styles.dot, dotIndex === currentIndex && styles.dotCurrent]} />
+				<Animated.View
+					key={dotIndex}
+					style={[
+						styles.dot,
+						!reducedMotion && styles.dotTransition,
+						dotIndex === currentIndex && styles.dotCurrent,
+					]}
+				/>
 			))}
 		</View>
 	);
 };
 
-const styles = StyleSheet.create({
-	container: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center' },
-	dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors.border },
-	dotCurrent: { width: 18, backgroundColor: colors.orange },
+const styles = css.create({
+	container: { flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' },
+	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
+	dotTransition: { transitionProperty: ['width', 'backgroundColor'], transitionDuration: 250 },
+	dotCurrent: { width: 20, backgroundColor: colors.orange },
 });

@@ -9,6 +9,8 @@ import {
 	sessionSchema,
 	type SessionSound,
 	sessionSoundSchema,
+	type SessionSummary,
+	sessionSummarySchema,
 	type StartSessionRequest,
 } from '@/types/apis/sessions';
 
@@ -30,6 +32,10 @@ export const getRunningSession = async (): Promise<Session | null> => {
 
 export const getSession = async ({ id }: { id: string }): Promise<Session> => {
 	return sessionSchema.parse(await mockServer.sessions.detail(id));
+};
+
+export const getSessionSummary = async ({ id }: { id: string }): Promise<SessionSummary> => {
+	return sessionSummarySchema.parse(await mockServer.sessions.summary(id));
 };
 
 export const postSession = async ({

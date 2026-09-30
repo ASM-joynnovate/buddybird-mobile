@@ -697,6 +697,28 @@ export const mockServer = {
 					.map(sessionDto),
 			),
 		detail: (id: string) => respond(() => sessionDto(find(db.sessions, id))),
+		summary: (id: string) =>
+			respond(() => {
+				const session = find(db.sessions, id);
+				const word = db.words.find((item) => item.id === session.word_id) ?? null;
+				const learned = (summaries: MockSummary[]) =>
+					summaries.reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0);
+				const allSummaries = db.sessions.flatMap((item) => item.summaries);
+
+				return {
+					word: word ? { id: word.id, name: word.name } : null,
+					session: {
+						play_count: session.summaries.reduce((sum, summary) => sum + summary.play_count, 0),
+						learning_duration_ms: learned(session.summaries),
+					},
+					total: {
+						word_learning_duration_ms: session.word_id
+							? learned(allSummaries.filter((summary) => summary.word_id === session.word_id))
+							: null,
+						learning_duration_ms: learned(allSummaries),
+					},
+				};
+			}),
 		start: (input: { word_id?: string | null; ends_at?: string | null; sleep?: MockSettings['sleep'] | null }) =>
 			respond(() => {
 				if (runningRecord()) {
