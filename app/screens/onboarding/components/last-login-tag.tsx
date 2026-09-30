@@ -41,12 +41,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 11,
 		justifyContent: 'center',
 		borderRadius: radius.pill,
-		backgroundColor: colors.brand,
-		shadowColor: colors.brand,
-		shadowOpacity: 0.28,
-		shadowRadius: 6,
-		shadowOffset: { width: 0, height: 3 },
-		elevation: 3,
+		backgroundColor: colors.text,
 	},
 	text: { fontFamily: font.extraBold, fontSize: 12, lineHeight: 16, color: colors.onFilled },
 	pointer: {
@@ -57,7 +52,7 @@ const styles = StyleSheet.create({
 		height: 10,
 		marginLeft: -5,
 		borderRadius: 2,
-		backgroundColor: colors.brand,
+		backgroundColor: colors.text,
 		transform: [{ rotate: '45deg' }],
 	},
 });

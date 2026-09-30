@@ -2,7 +2,12 @@ import type { OnboardingMessages } from '@/i18n/types/onboarding';
 
 export const onboarding: OnboardingMessages = {
 	login: {
-		product: '버디버드',
+		tagline: '집을 비운 동안에도 앵무새가 말을 배워요',
+		greeting: {
+			title: '반가워요!',
+			body: '로그인하고 함께 시작해요',
+		},
+		words: ['안녕', '사랑해', '좋은 아침', '밥 먹자', '예쁘다'],
 	},
 	consent: {
 		intro: '버디버드 앱 사용을 위해 동의해주세요!',

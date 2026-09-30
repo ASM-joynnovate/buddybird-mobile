@@ -5,13 +5,12 @@ import { StyleSheet, View } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, contentMaxWidth } from '@/theme';
+import { colors, contentMaxWidth, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { SheetBackdrop } from '@/components/ui/sheet/backdrop';
 import { Title } from '@/components/ui/title';
 
-const SHEET_RADIUS = 28;
 const LIST_SNAP_POINTS = ['70%'];
 
 interface Props {
@@ -93,8 +92,8 @@ const styles = StyleSheet.create({
 	sheet: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	background: {
 		backgroundColor: colors.background,
-		borderTopLeftRadius: SHEET_RADIUS,
-		borderTopRightRadius: SHEET_RADIUS,
+		borderTopLeftRadius: radius.sheet,
+		borderTopRightRadius: radius.sheet,
 		borderCurve: 'continuous',
 	},
 	handle: { width: 40, height: 5, backgroundColor: colors.border },

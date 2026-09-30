@@ -1,31 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { Alert, AppState, type LayoutChangeEvent, StatusBar, StyleSheet, View } from 'react-native';
 
 import type { LoginProvider } from '@/types/account';
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useTranslation } from 'react-i18next';
 
-import { type RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import * as AppleAuthentication from 'expo-apple-authentication';
+import { type RouteProp, useFocusEffect, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LastLoginTag from '@/screens/onboarding/components/last-login-tag';
-import OAuthButton from '@/screens/onboarding/components/oauth-button';
+import FloatingWords from '@/screens/onboarding/components/floating-words';
+import LoginSheet from '@/screens/onboarding/components/login-sheet';
 import { availableLoginProviders } from '@/services/auth/providers';
 import { linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useAccountStore } from '@/stores/account';
+import { useAppStore } from '@/stores/app';
 import { useAuthStore } from '@/stores/auth';
-import { colors, font, loginProviderColors, radius } from '@/theme';
+import { colors, contentMaxWidth, font } from '@/theme';
 
-import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
-import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
-import { Title } from '@/components/ui/title';
+
+const WORDMARK_DELAY_MS = 200;
+const TAGLINE_DELAY_MS = 400;
+const HEADER_DELAY_MS = 700;
+const MAX_RISE_HEIGHT = 200;
+const MIN_RISE_HEIGHT = 80;
+const WORD_OVERLAP = 16;
 
 interface LoginAttempt {
 	provider: LoginProvider;
@@ -44,28 +50,34 @@ const LoginScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
+	const focused = useIsFocused();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'Login'>>();
 
-	const [providers, setProviders] = useState<LoginProvider[]>([]);
+	const [providers, setProviders] = useState<LoginProvider[] | null>(null);
 	const [loginAttempt, setLoginAttempt] = useState<LoginAttempt | null>(null);
+	const [wordSpace, setWordSpace] = useState(0);
+	const [appActive, setAppActive] = useState(AppState.currentState === 'active');
 
 	const signingInRef = useRef(false);
 
 	const authStatus = useAuthStore((state) => state.status);
 
-	const lastLoginProvider = useAccountStore((state) => state.lastLoginProvider);
+	const splashFinished = useAppStore((state) => state.splashFinished);
+
 	const setLoginScreenSeen = useAccountStore((state) => state.setLoginScreenSeen);
 
 	const fromOnboarding = params?.source === 'onboarding';
+	const introReady = !fromOnboarding || splashFinished;
 	const completing = authStatus === 'completing';
 	const disabled = loginAttempt?.pending === true || completing;
 	const loadingProvider = disabled ? loginAttempt?.provider : undefined;
-	const lastLoginHint = t('auth.lastLoginHint');
 	const progressLabel = loadingProvider
 		? t(`auth.signingIn.${loadingProvider}`)
 		: completing
 			? t('auth.completing')
 			: null;
+	const riseHeight = Math.min(wordSpace + WORD_OVERLAP, MAX_RISE_HEIGHT);
+	const wordsActive = focused && appActive && !progressLabel && riseHeight >= MIN_RISE_HEIGHT;
 
 	/** 화면 진입 시 사용할 수 있는 로그인 방식 조회 */
 	useEffect(() => {
@@ -80,6 +92,13 @@ const LoginScreen = () => {
 		return () => {
 			active = false;
 		};
+	}, []);
+
+	/** 앱이 백그라운드로 가거나 돌아올 때 활성 여부 변경 */
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', (appState) => setAppActive(appState === 'active'));
+
+		return () => subscription.remove();
 	}, []);
 
 	/** 온보딩에서 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
@@ -131,91 +150,70 @@ const LoginScreen = () => {
 		setLoginScreenSeen(true);
 	};
 
+	/** 소개 문구 아래 빈 높이 저장 */
+	const handleLayoutWordSpace = (event: LayoutChangeEvent) => {
+		setWordSpace(event.nativeEvent.layout.height);
+	};
+
 	return (
 		<View style={styles.container}>
-			<Screen contentContainerStyle={styles.screen}>
-				<ScreenHeader
-					onBack={fromOnboarding ? undefined : () => navigation.goBack()}
-					trailing={
-						fromOnboarding ? (
-							<TextButton
-								label={t('common.skip')}
-								variant="muted"
-								disabled={disabled}
-								onPress={handleSkip}
-							/>
-						) : undefined
-					}
-				/>
+			<StatusBar barStyle="light-content" />
 
-				<View style={styles.introContainer}>
-					<Mascot size={150} />
-					<Title style={styles.product}>{t('onboarding.login.product')}</Title>
-				</View>
-
-				<View style={styles.actionsContainer}>
-					{providers.includes('google') && (
-						<View>
-							{lastLoginProvider === 'google' && <LastLoginTag label={t('auth.lastLogin')} />}
-							<OAuthButton
-								provider="google"
-								loading={loadingProvider === 'google'}
-								disabled={disabled}
-								hint={lastLoginProvider === 'google' ? lastLoginHint : undefined}
-								onPress={() => void handleSignIn('google')}
+			{/*스플래시가 끝나기 전에는 빨간 바탕만 표시*/}
+			<SafeAreaView edges={['top', 'left', 'right']} style={styles.stageContainer}>
+				{introReady && (
+					<View style={styles.stage}>
+						<Animated.View entering={fromOnboarding ? FadeIn.delay(HEADER_DELAY_MS) : undefined}>
+							<ScreenHeader
+								onBack={fromOnboarding ? undefined : () => navigation.goBack()}
+								backVariant="onBrand"
+								trailing={
+									fromOnboarding ? (
+										<TextButton
+											label={t('common.skip')}
+											variant="onBrand"
+											disabled={disabled}
+											onPress={handleSkip}
+										/>
+									) : undefined
+								}
 							/>
+						</Animated.View>
+
+						<View style={styles.introContainer}>
+							<Animated.View entering={fromOnboarding ? FadeInUp.delay(WORDMARK_DELAY_MS) : undefined}>
+								<Copy accessibilityRole="header" style={styles.wordmark}>
+									BuddyBird
+								</Copy>
+							</Animated.View>
+
+							<Animated.View entering={fromOnboarding ? FadeInUp.delay(TAGLINE_DELAY_MS) : undefined}>
+								<Copy style={styles.tagline}>{t('onboarding.login.tagline')}</Copy>
+							</Animated.View>
 						</View>
-					)}
 
-					{providers.includes('kakao') && (
-						<View>
-							{lastLoginProvider === 'kakao' && <LastLoginTag label={t('auth.lastLogin')} />}
-							<OAuthButton
-								provider="kakao"
-								loading={loadingProvider === 'kakao'}
-								disabled={disabled}
-								hint={lastLoginProvider === 'kakao' ? lastLoginHint : undefined}
-								onPress={() => void handleSignIn('kakao')}
-							/>
-						</View>
-					)}
+						<View style={styles.wordSpace} onLayout={handleLayoutWordSpace} />
+					</View>
+				)}
+			</SafeAreaView>
 
-					{providers.includes('apple') && (
-						<View style={styles.appleButton}>
-							{lastLoginProvider === 'apple' && <LastLoginTag label={t('auth.lastLogin')} />}
-							<AppleAuthentication.AppleAuthenticationButton
-								buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-								buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-								cornerRadius={radius.control}
-								style={styles.appleButton}
-								accessibilityLabel={t(
-									loadingProvider === 'apple' ? 'auth.signingIn.apple' : 'auth.continue.apple',
-								)}
-								accessibilityHint={lastLoginProvider === 'apple' ? lastLoginHint : undefined}
-								accessibilityState={{
-									disabled,
-									busy: loadingProvider === 'apple',
-								}}
-								pointerEvents={disabled ? 'none' : 'auto'}
-								onPress={() => void handleSignIn('apple')}
-							/>
-							{loadingProvider === 'apple' && (
-								<ActivityIndicator
-									color={colors.onFilled}
-									style={styles.appleProgress}
-									pointerEvents="none"
-									accessible={false}
-								/>
-							)}
-						</View>
-					)}
-				</View>
-			</Screen>
+			{/*로그인 방식 조회가 끝난 뒤 시트 표시*/}
+			{introReady && providers && (
+				<View style={styles.bottomContainer}>
+					<FloatingWords
+						words={t('onboarding.login.words', { returnObjects: true })}
+						active={wordsActive}
+						riseHeight={riseHeight}
+					/>
 
-			{!!progressLabel && (
-				<View style={styles.progress} accessibilityLiveRegion="polite" accessibilityViewIsModal>
-					<ActivityIndicator color={colors.orange} size="large" />
-					<Copy style={styles.progressText}>{progressLabel}</Copy>
+					<LoginSheet
+						providers={providers}
+						loadingProvider={loadingProvider}
+						disabled={disabled}
+						progressLabel={progressLabel}
+						introAnimated={fromOnboarding}
+						onSignIn={(provider) => void handleSignIn(provider)}
+					/>
 				</View>
 			)}
 		</View>
@@ -223,26 +221,21 @@ const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1 },
-	screen: { gap: 36 },
-	introContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 20 },
-	product: { fontSize: 34, lineHeight: 40, textAlign: 'center' },
-	actionsContainer: { gap: 12 },
-	appleButton: { width: '100%', height: 56 },
-	appleProgress: {
-		...StyleSheet.absoluteFill,
-		backgroundColor: loginProviderColors.apple.background,
-		borderRadius: radius.control,
-		borderCurve: 'continuous',
+	container: { flex: 1, backgroundColor: colors.brand },
+	stageContainer: { flex: 1 },
+	stage: {
+		flex: 1,
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		paddingHorizontal: 24,
+		paddingTop: 20,
 	},
-	progress: {
-		...StyleSheet.absoluteFill,
-		backgroundColor: colors.background,
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 16,
-	},
-	progressText: { fontFamily: font.extraBold, fontSize: 16, textAlign: 'center' },
+	introContainer: { alignItems: 'center', gap: 12, paddingTop: 28 },
+	wordmark: { fontFamily: font.splash, fontSize: 40, lineHeight: 48, color: colors.onBrand },
+	tagline: { fontFamily: font.extraBold, fontSize: 16, lineHeight: 22, color: colors.onBrand, textAlign: 'center' },
+	wordSpace: { flex: 1 },
+	bottomContainer: { alignItems: 'center' },
 });
 
 export default LoginScreen;

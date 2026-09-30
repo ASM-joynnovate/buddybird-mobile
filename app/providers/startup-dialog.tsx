@@ -8,6 +8,7 @@ import { getRunningSessionOptions } from '@/hooks/apis/sessions';
 
 import { installedVersion } from '@/services/device/application';
 import { reportError, track } from '@/services/telemetry/client';
+import { useAppStore } from '@/stores/app';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useFeedbackStore } from '@/stores/feedback';
 import { feedbackThreshold } from '@/utils/feedback';
@@ -18,15 +19,13 @@ import UpdateDialog from '@/components/dialogs/update-dialog';
 
 interface Props {
 	children: ReactNode;
-	splashFinished: boolean;
 }
 
 /**
  * 앱 시작 다이얼로그 provider
  * @param children 감싸는 내용
- * @param splashFinished 스플래시 종료 여부
  */
-const StartupDialogProvider = ({ children, splashFinished }: Props) => {
+const StartupDialogProvider = ({ children }: Props) => {
 	const [promptOpen, setPromptOpen] = useState(false);
 	const [acceptedVersion, setAcceptedVersion] = useState<string | null>(null);
 
@@ -42,6 +41,8 @@ const StartupDialogProvider = ({ children, splashFinished }: Props) => {
 	} = useQuery({ ...getAppUpdateOptions(), throwOnError: false });
 	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
 	const { data: runningSessionData } = useQuery({ ...getRunningSessionOptions(), throwOnError: false });
+
+	const splashFinished = useAppStore((state) => state.splashFinished);
 
 	const updatePrompt = useDeviceSettingsStore((state) => state.updatePrompt);
 	const feedbackPrompt = useDeviceSettingsStore((state) => state.feedbackPrompt);

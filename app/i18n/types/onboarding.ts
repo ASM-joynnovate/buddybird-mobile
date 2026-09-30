@@ -1,6 +1,11 @@
 export type OnboardingMessages = {
 	login: {
-		product: string;
+		tagline: string;
+		greeting: {
+			title: string;
+			body: string;
+		};
+		words: string[];
 	};
 	consent: {
 		intro: string;

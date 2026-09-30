@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import useAppBootstrap from '@/hooks/use-app-bootstrap';
 
 import RootProviders from '@/providers';
+import { useAppStore } from '@/stores/app';
 
 import AppContent from '@/components/app/app-content';
 import AppSplash from '@/components/app/app-splash';
@@ -10,11 +11,12 @@ import StartupScreen from '@/components/app/startup-screen';
 
 /** 앱 최상위 컴포넌트 */
 const App = () => {
-	const [splashFinished, setSplashFinished] = useState(false);
-
 	const { bootstrapStatus, ready, settled, retry } = useAppBootstrap();
 
-	const handleFinishSplash = useCallback(() => setSplashFinished(true), []);
+	const splashFinished = useAppStore((state) => state.splashFinished);
+	const setSplashFinished = useAppStore((state) => state.setSplashFinished);
+
+	const handleFinishSplash = useCallback(() => setSplashFinished(true), [setSplashFinished]);
 
 	if (bootstrapStatus === 'headless') {
 		return null;
@@ -23,7 +25,7 @@ const App = () => {
 	return (
 		<RootProviders>
 			{ready ? (
-				<AppContent splashFinished={splashFinished} />
+				<AppContent />
 			) : bootstrapStatus === 'failed' ? (
 				<StartupScreen onRetry={retry} />
 			) : (

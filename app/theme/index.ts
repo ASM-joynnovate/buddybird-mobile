@@ -8,6 +8,7 @@ export const radius = {
 	card: 18,
 	control: 16,
 	illustration: 20,
+	sheet: 28,
 	pill: 999,
 };
 

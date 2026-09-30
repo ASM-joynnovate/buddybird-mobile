@@ -2,7 +2,12 @@ import type { OnboardingMessages } from '@/i18n/types/onboarding';
 
 export const onboarding: OnboardingMessages = {
 	login: {
-		product: 'BuddyBird',
+		tagline: "Your parrot keeps learning while you're away",
+		greeting: {
+			title: 'Nice to meet you!',
+			body: "Log in and let's get started",
+		},
+		words: ['Hello', 'Love you', 'Good morning', "Let's eat", 'Pretty bird'],
 	},
 	consent: {
 		intro: 'Please agree to use the BuddyBird app!',

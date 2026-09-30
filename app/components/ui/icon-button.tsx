@@ -11,6 +11,7 @@ const variants = {
 	muted: { surfaceVariant: 'plain', color: colors.muted },
 	accent: { surfaceVariant: 'plain', color: colors.orange },
 	primary: { surfaceVariant: 'primary', color: colors.onFilled },
+	onBrand: { surfaceVariant: 'plain', color: colors.onBrand },
 } as const;
 
 const iconSizes = { tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;

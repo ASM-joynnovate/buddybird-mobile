@@ -8,15 +8,8 @@ import { useAuthStore } from '@/stores/auth';
 import StartupScreen from '@/components/app/startup-screen';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 
-interface Props {
-	splashFinished: boolean;
-}
-
-/**
- * 로그인 상태별 화면 컴포넌트
- * @param splashFinished 스플래시 종료 여부
- */
-const AuthStatusContent = ({ splashFinished }: Props) => {
+/** 로그인 상태별 화면 컴포넌트 */
+const AuthStatusContent = () => {
 	const status = useAuthStore((state) => state.status);
 	const retryAuth = useAuthStore((state) => state.retry);
 
@@ -32,7 +25,7 @@ const AuthStatusContent = ({ splashFinished }: Props) => {
 		<ErrorHandlingWrapper fallbackComponent={StartupScreen} suspenseFallback=<StartupScreen />>
 			<DeviceProvider>
 				<AnalyticsProvider>
-					<StartupDialogProvider splashFinished={splashFinished}>
+					<StartupDialogProvider>
 						<AppNavigator />
 					</StartupDialogProvider>
 				</AnalyticsProvider>

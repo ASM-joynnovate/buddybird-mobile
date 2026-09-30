@@ -15,11 +15,19 @@ interface Props {
 	title?: string;
 	onBack?: () => void;
 	backIcon?: 'back' | 'close';
+	backVariant?: 'plain' | 'onBrand';
 	trailing?: ReactNode;
 	large?: boolean;
 }
 
-export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large = false }: Props) => {
+export const ScreenHeader = ({
+	title,
+	onBack,
+	backIcon = 'back',
+	backVariant = 'plain',
+	trailing,
+	large = false,
+}: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -29,6 +37,7 @@ export const ScreenHeader = ({ title, onBack, backIcon = 'back', trailing, large
 					<IconButton
 						icon={backIcons[backIcon]}
 						label={t(backIcon === 'close' ? 'common.close' : 'common.back')}
+						variant={backVariant}
 						onPress={onBack}
 					/>
 				)}
