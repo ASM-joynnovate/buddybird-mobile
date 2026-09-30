@@ -13,10 +13,14 @@ colors:
   berry-purple: "#ce82ff"
   purple-edge: "#A85FD6"
   purple-mist: "#F2E1FF"
+  leaf-green: "#58CC02"
+  green-edge: "#58A700"
+  green-mist: "#E6F8D4"
   sun-yellow: "#FFC800"
   yellow-edge: "#E6A800"
   paper-white: "#ffffff"
   on-accent: "#ffffff"
+  on-brand: "#F7F2EA"
   ink: "#3c3c3c"
   muted-gray: "#777777"
   hairline-gray: "#e5e5e5"
@@ -231,19 +235,20 @@ components:
 **Creative North Star: "통통 튀는 장난감 버튼"**
 
 버디버드의 화면은 유아용 장난감의 큼직한 버튼처럼 두껍고 단단하다.
-눌리는 모든 요소는 2px 테두리와 아래쪽에 깔린 더 진한 색의 엣지로 두께를 드러내고, 누르면 면이 실제로 엣지 위로 내려앉는다.
+눌리는 모든 요소는 아래쪽에 깔린 더 진한 색의 엣지로 두께를 드러내고, 누르면 면이 실제로 엣지 위로 내려앉는다.
 그림자와 반투명 질감은 없다.
 깊이는 색과 형태로만 말한다.
 
 색은 밝은 흰 종이 위에 오렌지가 행동을 이끄는 구조다.
 브랜드 레드는 마스코트 버디의 깃털색이며 스플래시와 몇몇 정체성 순간에만 등장한다.
 블루는 휴식 구간, 퍼플은 축하의 보조색이고, 옐로는 세션 완료 축하에만 쓴다.
+학습 완료 화면은 결과 항목마다 그린, 오렌지, 퍼플, 블루 중 한 벌을 준다.
 서체는 한글과 영문 모두 Pretendard이며 굵기가 Bold 아래로 내려가지 않는다.
 
 밀도는 한 손 조작을 전제로 넉넉하다.
 버튼 높이 64px, 카드 안쪽 여백 16px, 화면 좌우 여백 24px, 콘텐츠 최대 폭 480px의 단일 컬럼이다.
 주인공은 사용자의 앵무새다.
-마스코트 버디는 로그인, 권한 안내, 세션 요약 인사처럼 앱이 사용자에게 말을 거는 순간에만 나온다.
+마스코트 버디는 로그인, 권한 안내, 학습 완료처럼 앱이 사용자에게 말을 거는 순간에만 나온다.
 
 새장 앞에 두는 기기의 화면과 새를 비추는 실시간 영상 화면만 예외다.
 세션 진행, 카메라 설치, 실시간 영상 화면은 가로 방향의 검은 바탕에 아주 어두운 글자와 선만 쓴다.
@@ -265,26 +270,30 @@ components:
 새장 앞 화면에는 같은 색을 어둡게 누른 밤 팔레트가 따로 있다.
 
 ### Primary
-- **Sunrise Orange** (`{colors.sunrise-orange}`): 주 버튼, 선택된 탭, 선택된 칩, 체크된 CheckRow, 학습 구간, 따라 한 소리 표식. 화면에서 행동을 요구하는 모든 곳
+- **Sunrise Orange** (`{colors.sunrise-orange}`): 주 버튼, 선택된 탭, 선택된 칩, 체크된 CheckRow, 학습 구간, 따라 한 소리 표식, 학습 완료 화면의 재생 횟수 항목. 화면에서 행동을 요구하는 모든 곳
 - **Orange Edge** (`{colors.orange-edge}`): 오렌지 면 아래에 깔리는 엣지와 테두리. 오렌지 톤 Tag와 CountBadge의 글자, TextButton 글자, 필수 항목 caption
-- **Orange Selected** (`{colors.orange-selected}`): 선택된 ChoiceCard의 면, 오렌지 톤 Tag와 CountBadge의 면, 강조된 소리 행의 면, 일러스트 자리의 바탕
+- **Orange Selected** (`{colors.orange-selected}`): 선택된 ChoiceCard의 면, 오렌지 톤 Tag와 CountBadge의 면, 강조된 소리 행의 면, 일러스트 자리의 바탕, 선택된 재생 횟수 칩의 면
 - **Orange Mist** (`{colors.orange-mist}`): 재생 중 상태 배경처럼 오렌지 계열을 옅게 깔 때
-- **Parrot Red** (`{colors.parrot-red}`): 마스코트 깃털색. 스플래시 배경처럼 정체성을 드러내는 순간과 인라인 오류 글자색에 사용
+- **Parrot Red** (`{colors.parrot-red}`): 마스코트 깃털색. 스플래시 배경과 로그인 화면 바탕처럼 정체성을 드러내는 순간과 인라인 오류 글자색에 사용
 
 ### Secondary
-- **Sky Blue** (`{colors.sky-blue}`): 휴식과 스트레스 케어 구간. blue 버튼 변형은 코드에 남아 있으나 v2 화면은 쓰지 않는다
+- **Sky Blue** (`{colors.sky-blue}`): 휴식과 스트레스 케어 구간, 학습 완료 화면의 전체 누적 학습 시간 항목. blue 버튼 변형은 코드에 남아 있으나 v2 화면은 쓰지 않는다
 - **Blue Edge** (`{colors.blue-edge}`): 블루 면의 엣지와 테두리, 블루 톤 Tag 글자
-- **Blue Mist** (`{colors.blue-mist}`): 블루 톤 Tag 면
+- **Blue Mist** (`{colors.blue-mist}`): 블루 톤 Tag 면, 선택된 전체 누적 시간 칩의 면
 
 ### Tertiary
-- **Berry Purple** (`{colors.berry-purple}`): 축하 컨페티
+- **Berry Purple** (`{colors.berry-purple}`): 축하 컨페티, 학습 완료 화면의 한 단어 누적 학습 시간 항목
 - **Purple Edge** (`{colors.purple-edge}`): 퍼플 면의 엣지
-- **Purple Mist** (`{colors.purple-mist}`): 퍼플 계열 옅은 배경
+- **Purple Mist** (`{colors.purple-mist}`): 선택된 단어 누적 시간 칩의 면
+- **Leaf Green** (`{colors.leaf-green}`): 학습 완료 화면의 함께한 시간 항목
+- **Green Edge** (`{colors.green-edge}`): 그린 면의 엣지
+- **Green Mist** (`{colors.green-mist}`): 선택된 함께한 시간 칩의 면
 - **Sun Yellow** (`{colors.sun-yellow}`)와 **Yellow Edge** (`{colors.yellow-edge}`): 세션 완료 축하에만 사용
 
 ### Neutral
 - **Paper White** (`{colors.paper-white}`): 화면 배경, 카드 면, 다이얼로그 면, GroupedList 면
 - **On Accent** (`{colors.on-accent}`): 오렌지, 블루, 레드, Ink 면 위의 글자와 아이콘
+- **On Brand** (`{colors.on-brand}`): 스플래시와 로그인 화면의 Parrot Red 바탕 위 워드마크, 소개 문구, 건너뛰기와 뒤로 버튼. `onBrand` variant가 이 색을 쓴다
 - **Ink** (`{colors.ink}`): 본문과 제목 글자색, 부재중 띠의 시각 글자와 커서, 오프라인 배너 면
 - **Muted Gray** (`{colors.muted-gray}`): 보조 설명, 필드 라벨, 선택 항목 caption, 행 아이콘, 선택되지 않은 탭과 칩 글자, placeholder
 - **Hairline Gray** (`{colors.hairline-gray}`): 중립 면의 테두리와 엣지, 목록 행 사이 2px 구분선, 부재중 띠의 활동 선, 꺼진 점, 탭 바 상단선
@@ -321,8 +330,13 @@ components:
 학습은 Sunrise Orange, 휴식과 스트레스 케어는 Sky Blue, 수면은 Disabled Gray다.
 Tag에서는 각각 오렌지, 블루, 회색 톤이고 새장 앞 화면에서는 Night 진행 호 색이다.
 
+### Metric colors
+학습 완료 화면은 결과 항목마다 면색, 엣지색, 옅은 면색 한 벌을 준다.
+함께한 시간은 Leaf Green, 재생 횟수는 Sunrise Orange, 한 단어의 누적 학습 시간은 Berry Purple, 모든 단어의 누적 학습 시간은 Sky Blue다.
+말풍선의 숫자 상자와 날아가는 숫자는 면색과 엣지색을, 선택된 결과 칩은 옅은 면색과 면색 테두리를 쓴다.
+
 ### Named Rules
-**The Red Is the Bird Rule.** Parrot Red는 마스코트와 같은 존재다. 버튼, 탭, 카드 강조에 쓰지 않는다. 새 용도를 추가하려면 정체성 순간인지 먼저 묻는다.
+**The Red Is the Bird Rule.** Parrot Red는 마스코트와 같은 존재다. 버튼, 탭, 카드 강조에 쓰지 않는다. 바탕 전체에 쓰는 곳은 스플래시와 로그인 화면뿐이다. 새 용도를 추가하려면 정체성 순간인지 먼저 묻는다.
 
 **The One Action Color Rule.** 화면에서 행동을 요구하는 요소는 Sunrise Orange만 쓴다. 블루 버튼은 오렌지 버튼과 나란히 놓여 보조 행동임을 드러낼 때만 쓴다.
 
@@ -339,15 +353,15 @@ Tag에서는 각각 오렌지, 블루, 회색 톤이고 새장 앞 화면에서�
 **Character:** 굵고 또렷하다. 가장 가는 무게가 Bold이고 제목은 Black이다. 한글과 영문 모두 Pretendard로 같은 무게를 낸다.
 
 ### Hierarchy
-- **Display** (`{typography.display}`): 로그인 화면의 제품명, 리포트의 총 시간
+- **Display** (`{typography.display}`): 리포트의 총 시간, 학습 완료 화면 제목
 - **Headline** (`{typography.headline}`): 화면 제목. Title 컴포넌트의 기본값이며 header 접근성 역할을 가진다. ScreenHeader의 기본 제목은 20px 26px 행간으로 줄이고 `large`일 때만 26px이다
 - **Title** (`{typography.title}`): 섹션 제목, GroupedList 제목, 다이얼로그 제목, 단어 카드 이름
 - **Body** (`{typography.body}`): 모든 본문 텍스트의 기본값. Copy 컴포넌트가 이 값을 가진다
 - **Label** (`{typography.label}`): 입력 필드 라벨은 Muted Gray, 말풍선 본문과 목록 행 제목과 빈 상태 문구는 Ink, 22px 행간
-- **Caption** (`{typography.caption}`): 목록 행의 caption, 통계 라벨, 탭 라벨은 11px. Tag, 부재중 띠의 시각과 범례, 새장 앞 화면 라벨은 13px, CountBadge와 단어 카드 태그는 12.5px, 칩은 13.5px
+- **Caption** (`{typography.caption}`): 목록 행의 caption과 탭 라벨은 11px. Tag, 부재중 띠의 시각과 범례, 새장 앞 화면 라벨은 13px, CountBadge와 단어 카드 태그는 12.5px, 칩은 13.5px
 - **Button** (`{typography.button}`): 버튼 라벨. 영문은 대문자, 0.32px 자간. `size="small"` 버튼은 16px, TextButton은 15px
 - **Timer** (`{typography.timer}`): 세션 경과 시간. 고정폭 숫자. 소리 행의 시각은 14px 고정폭
-- **Wordmark** (`{typography.wordmark}`): 스플래시의 BuddyBird 워드마크에만 사용
+- **Wordmark** (`{typography.wordmark}`): 스플래시와 로그인 화면의 BuddyBird 워드마크에만 사용. 로그인 화면에서는 40px 48px 행간
 
 세션 진행 화면의 구간 이름은 34px Black 40px 행간이다. 링 안의 세션 시간은 34px Black 고정폭이고 그 위에 15px ExtraBold 라벨이 붙는다.
 
@@ -377,11 +391,16 @@ Screen의 스크롤은 `alwaysBounceVertical={false}`라서 내용이 화면보�
 - 다이얼로그는 화면 가운데에 최대 폭 480px로 뜨고 안쪽 항목 간격은 12px, 제목과 본문과 푸터 간격은 20px이다. 푸터의 두 버튼은 같은 폭으로 나란히 놓이고 확인이 오른쪽이다
 - 오프라인 배너는 상단 safe area 4px 아래, 좌우 16px 안쪽에 떠 있다
 
-새장 앞 화면과 기기 역할의 세션 요약은 가로 방향이다.
+새장 앞 화면은 가로 방향이다.
 세션 진행 화면은 좌우 24px 여백에 왼쪽 위 안내 문구, 오른쪽 위 배터리 잔량을 둔다.
 세로 방향에서는 화면 가운데에 구간 이름, 아래에 지평선 링과 링 폭의 종료 버튼을 둔다. 링 폭은 좌우 여백 안쪽 폭이고 최대 460px이다.
 가로 방향에서는 화면을 좌우 반으로 나눈다. 왼쪽 가운데에 지름 240px 원형 링, 가운데에 높이의 절반인 2px 구분선, 오른쪽 가운데에 구간 이름, 오른쪽 아래에 폭을 채운 종료 버튼을 둔다.
 종료 버튼은 높이 64px, 깊이 6이다.
+
+학습 완료 화면은 기기 방향을 따른다.
+세로 방향에서는 제목과 말풍선, 140px 버디를 위 16px 여백과 40px 간격으로 남은 높이 가운데에 모으고, 그 아래 16px 간격으로 결과 칩 격자를 둔다. 두 버튼은 화면 아래 footer에 놓인다.
+가로 방향에서는 좌우 24px, 위 20px 여백에 두 열을 32px 간격으로 둔다. 왼쪽 280px 열의 세로 가운데에 말풍선과 96px 버디, 오른쪽 열 아래쪽에 제목과 결과 칩을 12px 간격으로 두고 그 아래 16px 간격으로 두 버튼을 둔다.
+결과 칩 격자는 8px 간격이고 칩마다 40% 기준 폭에서 늘어나 한 줄에 둘씩 놓인다.
 
 ### Named Rules
 **The Right Thumb Rule.** 폭을 채우지 않는 버튼과 아이콘 버튼은 행의 오른쪽 끝에 둔다. 오른손 엄지가 닿는 자리다. 뒤로 버튼만 왼쪽에 남고, 폭을 채우는 주 버튼은 아래에 둔다.
@@ -391,12 +410,13 @@ Screen의 스크롤은 `alwaysBounceVertical={false}`라서 내용이 화면보�
 그림자는 없다.
 두께는 아래쪽에 깔린 엣지로 표현한다.
 Surface 컴포넌트는 면 아래에 `depth`만큼 엣지색 판을 두고, 면에는 같은 색 2px 테두리를 두른다.
+Button은 secondary만 이 테두리를 남기고 primary는 테두리 없이 엣지 판으로만 두께를 낸다.
 누르면 면이 60ms 동안 `depth - 1`만큼 내려가 엣지 위에 앉고, 손을 떼면 같은 시간에 돌아온다.
 Reduce Motion이 켜져 있으면 면은 움직이지 않는다.
 
 ### Depth vocabulary
 - **0**: 평평한 아이콘 버튼, TextButton, 목록 행, 소리 행, 부재중 띠 표식, 소셜 로그인 버튼, 비활성 버튼
-- **2**: 카드, 칩, 단어 카드, 앵무새 카드, 홈 상태 줄, 응급 카드
+- **2**: 카드, 칩, 학습 완료 결과 칩, 단어 카드, 앵무새 카드, 홈 상태 줄, 응급 카드
 - **4**: 기본 Surface, 주 버튼, `size="small"` 버튼, 선택 여부와 관계없이 ChoiceCard
 - **6**: 세션 진행 화면의 종료 버튼, 다이얼로그 안의 버튼
 - **8**: 홈 화면의 학습 시작 버튼, 선택된 탭
@@ -408,7 +428,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 다이얼로그는 Scrim 위에 fade로 뜬다.
 
 ### Named Rules
-**The Edge Rule.** 두께가 필요하면 엣지를 늘린다. `shadowColor`, `elevation`, 블러는 쓰지 않는다. 최근 로그인 태그에 남은 그림자 값은 확장하지 않는다.
+**The Edge Rule.** 두께가 필요하면 엣지를 늘린다. `shadowColor`, `elevation`, 블러는 쓰지 않는다.
 
 **The Sit Down Rule.** 눌리는 요소는 색을 바꾸지 않고 자리에 앉는다. 눌림 피드백은 위치 변화이며 투명도 변화가 아니다.
 
@@ -429,17 +449,18 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 - 부재중 띠 막대: 24px 높이에 8px 코너
 - 부재중 띠 표식: 12px 원, 응급은 16px 원에 흰 2px 테두리, 누르는 자리는 28px
 - 유사도 점: 7px 원 세 개, 3px 간격
-- 페이지 점: 7px 원, 현재 페이지는 18px 폭의 알약
+- 페이지 점: 8px 원, 4px 간격, 현재 페이지는 20px 폭의 알약
 - DotBadge: 8px Alert Red 원
 - 말풍선: 16px 코너, 16px 정사각형 꼬리가 45도 회전해 아래나 왼쪽으로 나온다
-- 컨페티 조각: 10px 폭 14px 높이, 아래쪽 3px 엣지
+- 컨페티 조각: 8px 폭 12px 높이, 아래쪽 4px 엣지
+- 숫자 상자: 세로 방향 12px 코너, 가로 방향 8px 코너, 채워지는 면은 아래쪽 4px 엣지
 
 ## Components
 
 ### Buttons
 장난감 버튼처럼 두껍고, 누르면 내려앉는다.
 - **Shape:** 컨트롤 코너 (`{rounded.control}`), 최소 높이는 `size="medium"` 64px, `size="small"` 52px
-- **Primary:** `{components.button-primary}`. 오렌지 면과 Orange Edge 엣지 4, 흰 글자. 다이얼로그 안의 버튼은 엣지 6, 홈 화면의 학습 시작 버튼은 엣지 8이다. 아이콘은 `size="medium"` 26px, `size="small"` 20px
+- **Primary:** `{components.button-primary}`. 테두리 없는 오렌지 면과 Orange Edge 엣지 4, 흰 글자. 다이얼로그 안의 버튼은 엣지 6, 홈 화면의 학습 시작 버튼은 엣지 8이다. 아이콘은 `size="medium"` 26px, `size="small"` 20px
 - **Secondary:** `{components.button-secondary}`. 흰 면에 Hairline Gray 2px 테두리와 엣지, Ink 글자
 - **Blue:** `{components.button-blue}`. 오렌지 버튼 옆의 보조 행동
 - **Disabled / Loading:** `{components.button-disabled}`. 엣지 0, Disabled Surface 면, Disabled Gray 글자. 로딩 중에는 아이콘 자리에 ActivityIndicator
@@ -464,7 +485,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 - **Tag:** `{components.tag}`, `{components.tag-blue}`, `{components.tag-muted}`. 알약형, 옅은 면에 진한 2px 테두리와 더 진한 ExtraBold 13px 글자, 한 줄로 자른다. 구간 상태와 분석 중 표시에 쓴다
 - **CountBadge:** `{components.count-badge}`. 높이 24px, 최소 폭 26px 알약에 고정폭 숫자와 13px 아이콘. 연속 일수는 오렌지 톤, 읽지 않은 알림 수는 Alert Red 면에 흰 글자
 - **DotBadge:** 새 항목을 알리는 8px Alert Red 점
-- **PageDots:** 페이지가 둘 이상일 때만 보인다
+- **PageDots:** 페이지가 둘 이상일 때만 보인다. 꺼진 점은 Hairline Gray, 현재 점은 오렌지이며 폭과 색이 250ms 동안 바뀐다. Reduce Motion에서는 바로 바뀐다
 
 ### Cards / Containers
 - **Corner Style:** `{rounded.card}`
@@ -513,11 +534,22 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 
 ### Mascot
 버디는 헤드폰을 쓴 붉은 앵무새다.
-로그인 150px, 권한 안내 다이얼로그와 학습 종료 다이얼로그 88px, 세션 요약 인사 64px에서 1000ms 주기로 높이의 5%를 오르내리며 좌우 2도 기운다.
-세션 요약에서는 왼쪽 꼬리 말풍선이 옆에 붙는다.
+권한 안내 다이얼로그와 학습 종료 다이얼로그 88px, 로그인 92px, 학습 완료 화면 세로 140px와 가로 96px에서 1000ms 주기로 높이의 5%를 오르내리며 좌우 2도 기운다.
+로그인에서는 왼쪽 꼬리 말풍선이 옆에 붙는다.
+학습 완료 화면에서는 아래 꼬리 말풍선 밑에 서고, 숫자 상자가 다 차면 크기의 12%만큼 180ms 동안 뛰어올랐다가 270ms 동안 내려온다.
+빨간 바탕에 몸이 묻히지 않도록 버디는 항상 흰 면 위에 둔다.
 홈에서는 상단 바의 34px 정지 이미지로만 나오고 본문은 앵무새 카드가 차지한다.
 세션 진행 화면에서는 학습 종료 다이얼로그에만 나온다.
 Reduce Motion에서는 정지한다.
+
+### Login stage
+스플래시가 끝난 뒤 이어지는 로그인 화면이다.
+위쪽은 Parrot Red 바탕에 On Brand 워드마크와 16px ExtraBold 소개 문구를 두고, 아래쪽은 위 모서리 28px의 흰 시트에 버디와 말풍선, 소셜 로그인 버튼을 둔다.
+최근 로그인 표시는 그림자 없는 Ink 면의 알약 태그다.
+- **첫 등장:** 스플래시가 사라지는 동안에는 빨간 바탕만 보인다. 스플래시가 끝나면 버디가 있는 시트가 700ms 동안 올라오고 워드마크, 소개 문구, 말풍선, 헤더가 차례로 나타난다. 버디는 따로 튀어나오지 않고 시트와 함께 올라온다. 프로필에서 들어오면 등장 움직임 없이 완성된 화면을 보인다
+- **떠오르는 단어:** 가르칠 예시 단어 다섯 개가 흰 알약 말풍선으로 1.2초 간격으로 시트 뒤에서 떠올라 6초 동안 흘러가며 사라지고 반복한다. 처음에 빠르게 오르다 천천히 흘러가는 감속 곡선을 쓴다. 떠오르는 높이는 소개 문구 아래 빈 높이에 맞추고 최대 200px이며, 빈 높이가 64px보다 작으면 단어를 띄우지 않는다. 가로 위치는 단어 영역 폭에서 단어 폭을 뺀 거리의 비율로 정해서 어느 화면 폭에서도 단어가 밖으로 나가지 않는다. 화면이 보이지 않거나, 앱이 백그라운드에 있거나, 로그인 중이면 멈춘다
+- **로그인 중:** 버튼 자리를 같은 높이의 오렌지 ActivityIndicator와 진행 문구로 바꾼다. 빨간 바탕과 버디는 그대로 남는다
+- **Reduce Motion:** 단어 세 개가 멈춘 채로 보이고 등장 움직임은 없다. 멈춘 단어는 왼쪽, 가운데 위, 오른쪽에 -4도, 3도, -2도로 기울어 놓인다
 
 ### Horizon ring
 새장 앞 세션 진행 화면의 중심이다.
@@ -549,10 +581,23 @@ Reduce Motion에서는 정지한다.
 - **Illustration:** 최종 그림이 들어오기 전의 자리다. Orange Selected 면에 20px 코너, 가운데 마스코트, 오른쪽 아래 52px 흰 원에 Orange Edge 26px 아이콘을 둔다
 
 ### Celebration
-세션 요약을 보는 사람의 휴대폰에서만 Sun Yellow와 Berry Purple 컨페티 16조각이 한 번 떨어진다.
-조각마다 아래쪽에 자기 엣지색을 가지며 1800ms 동안 흔들리며 떨어지고 사라진다.
-새장 앞 기기의 요약에서는 나오지 않는다.
+학습 완료 화면이 열리면 Sun Yellow와 Berry Purple 컨페티 16조각이 한 번 떨어진다.
+보는 사람의 휴대폰과 새장 앞 기기 모두 같은 학습 완료 화면에서 나온다.
+조각마다 아래쪽에 자기 엣지색을 가지며 1800ms 동안 정해진 거리를 흔들리며 떨어지고 사라진다.
 Reduce Motion에서는 나오지 않는다.
+
+### Completion screen
+세션이 끝나면 보는 학습 완료 화면이다.
+- **제목:** 가운데 정렬로 34px Black 제목과 15px ExtraBold Muted Gray 고정폭 시간대를 4px 간격으로 쌓는다
+- **말풍선:** 버디가 결과를 한 문장씩 말한다. 문장은 2.5초마다 다음으로 넘어가고 마지막 문장에서 멈춘다. 말풍선을 누르거나 왼쪽으로 밀면 다음 문장, 오른쪽으로 밀면 이전 문장으로 가며 직접 넘기면 자동 넘김이 멈춘다. 문장 글자는 세로 방향 18px, 가로 방향 16px ExtraBold이고 아래에 PageDots가 붙는다
+- **숫자 상자:** 문장 가운데의 숫자다. Cloud Gray 면에 2px Hairline Gray 테두리와 Disabled Gray 숫자로 시작해 1.1초 동안 항목 면색이 왼쪽부터 차오르고, 면이 지나간 자리의 숫자는 흰색이 된다. 숫자는 세로 방향 28px, 가로 방향 22px Black 고정폭이다. 이미 찬 문장으로 돌아오면 다 찬 상태로 보인다
+- **결과 칩:** 깊이 2, 16px 코너의 PressableSurface 칩을 2x2 격자로 둔다. 막대 없이 12px ExtraBold Muted Gray 라벨과 20px Black 고정폭 값만 보인다. 말풍선에 보이는 문장의 칩은 항목의 옅은 면색과 면색 테두리를 받고 접근성 selected 상태를 가진다. 칩을 누르면 말풍선이 그 문장으로 옮겨 간다. 단어가 없는 세션은 함께한 시간과 전체 누적 시간 두 칩만 보인다
+- **값:** 이번 학습 칩은 처음부터 최종 값을 보인다. 누적 칩은 숫자가 내려앉기 전까지 학습 전 값을 보이고, 내려앉으면 + 배지가 튀어나오며 300ms 뒤 700ms 동안 값이 올라간다
+- **숫자 이동:** 숫자 상자가 다 차면 같은 색 알약이 말풍선에서 칩 값 자리로 750ms 동안 위로 솟았다가 내려앉는다. 이어서 칩이 커졌다 돌아오고, 흰 빛줄기 SummaryGlint가 550ms 동안 지나가며 값이 튄다. 숫자 상자에도 같은 빛줄기가 지나가고 버디가 뛰어오른다
+- **등장:** 제목과 버디는 popIn, 시간대와 말풍선과 새 문장은 riseIn으로 나타난다. popIn은 500ms 동안 0.4배에서 커지고 riseIn은 450ms 동안 16px 아래에서 떠오른다. 두 동작은 `summary-animations.ts`에 모여 있다
+- **그리기 부담:** 숫자 상자, 날아가는 숫자, 칩의 애니메이션은 transform과 opacity만 움직인다. 올라가는 숫자는 한 번 올라가는 동안 최대 24번 다시 그린다
+- **Reduce Motion:** 날아가는 숫자 없이 숫자 상자, 칩 값, 배지가 바로 최종 상태로 바뀐다
+- **버튼:** 상세 보기 secondary와 홈 primary를 `size="small"`로 같은 폭에 나란히 둔다
 
 ### Audio waveform
 3px 간격의 세로 막대가 소리에 반응한다.
@@ -562,6 +607,8 @@ Reduce Motion에서는 나오지 않는다.
 ### Speech bubble
 카드와 같은 흰 면과 Hairline Gray 테두리에 16px 코너, 안쪽 여백 세로 14px 가로 16px이다.
 ExtraBold 16px 글자에 22px 행간이며 꼬리는 아래 또는 왼쪽으로 나온다.
+`contentStyle`로 안쪽 여백을 바꿀 수 있고, 문자열이 아닌 children은 그대로 그린다.
+학습 완료 화면은 안쪽 여백을 세로 16px 가로 20px로 두고 문장, 숫자 상자, PageDots를 넣는다.
 
 ## Do's and Don'ts
 
@@ -586,4 +633,4 @@ ExtraBold 16px 글자에 22px 행간이며 꼬리는 아래 또는 왼쪽으로 
 - **Don't** 눌림 피드백으로 투명도나 색 변화를 쓰지 않는다. 면이 내려앉는 것이 눌림이다
 - **Don't** Tag와 배지에 엣지 판을 주지 않는다
 - **Don't** 새장 앞 화면에 흰 면, 밝은 오렌지, 마스코트를 두지 않는다
-- **Don't** 새장 앞 기기의 화면에 컨페티를 띄우지 않는다
+- **Don't** 새장 앞 화면에 컨페티를 띄우지 않는다. 컨페티는 학습 완료 화면에서만 떨어진다
