@@ -100,6 +100,8 @@ const config: ExpoConfig = {
 		['expo-audio', { microphonePermission: '단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다.' }],
 		['react-native-audio-api', { androidForegroundService: false }],
 		['expo-tracking-transparency', { userTrackingPermission: '앱 이용 정보를 분석하여 학습 경험을 개선합니다.' }],
+		'expo-asset',
+		'expo-web-browser',
 	],
 	extra: {
 		eas: { projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e' },

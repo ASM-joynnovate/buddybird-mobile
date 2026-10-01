@@ -1,5 +1,5 @@
 diff --git a/android/src/main/java/expo/modules/imagepicker/fileprovider/ImagePickerFileProvider.kt b/android/src/main/java/expo/modules/imagepicker/fileprovider/ImagePickerFileProvider.kt
-index 40010aa242f61eda6c08a6daed3bb050824cc264..c16b73ad2f114e6d15e2010a9e9f6f31379a3b0f 100644
+index 40010aa242f61eda6c08a6daed3bb050824cc264..1f135442667e19051b1d2a7e8024158b8f972f8c 100644
 --- a/android/src/main/java/expo/modules/imagepicker/fileprovider/ImagePickerFileProvider.kt
 +++ b/android/src/main/java/expo/modules/imagepicker/fileprovider/ImagePickerFileProvider.kt
 @@ -1,8 +1,17 @@
