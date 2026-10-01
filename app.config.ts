@@ -61,6 +61,10 @@ const config: ExpoConfig = {
 		[
 			'expo-build-properties',
 			{
+				android: {
+					enableMinifyInReleaseBuilds: true,
+					enableShrinkResourcesInReleaseBuilds: true,
+				},
 				ios: {
 					useFrameworks: 'static',
 					forceStaticLinking: ['RNFBApp', 'RNFBAnalytics', 'RNFBCrashlytics', 'RNFBMessaging'],
