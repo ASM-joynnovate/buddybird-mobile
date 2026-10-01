@@ -245,9 +245,7 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 			)}
 
 			{/*앵무새 카드 사진이 커지며 맞춰질 자리*/}
-			<View style={styles.photoContainer}>
-				{profilePhoto}
-			</View>
+			<View style={styles.photoContainer}>{profilePhoto}</View>
 
 			{/*앵무새 정보 입력*/}
 			<View style={styles.fieldsContainer}>

@@ -7,11 +7,7 @@ import type { RootStackParamList } from '@/types/navigation';
 import useEntryRoute, { type EntryRoute } from '@/hooks/use-entry-route';
 
 import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@react-native-firebase/messaging';
-import {
-	type LinkingOptions,
-	NavigationContainer,
-	useNavigationContainerRef,
-} from '@react-navigation/native';
+import { type LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { env } from '@/config';
@@ -177,10 +173,7 @@ const AppNavigator = () => {
 						<RootStack.Group>
 							<RootStack.Screen name="Main" component={MainTabs} />
 							<RootStack.Screen name="Login" component={LoginScreen} />
-							<RootStack.Screen
-								name="ParrotEditor"
-								component={ParrotEditorScreen}
-							/>
+							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
 							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<RootStack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
 
