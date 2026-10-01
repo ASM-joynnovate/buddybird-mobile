@@ -28,15 +28,20 @@ const BADGE_SHOW_MS = 140;
 const BADGE_HIDE_MS = 100;
 const BADGE_START_SCALE = 0.6;
 
-/** 빠르게 출발해 부드럽게 멈추는 속도 곡선 */
-const flightEasing = Easing.bezier(0.16, 1, 0.3, 1);
+/** 천천히 출발해 가운데에서 빨라지고 부드럽게 멈추는 속도 곡선 */
+const flightEasing = Easing.bezier(0.45, 0, 0.25, 1);
+
+export interface ParrotPhotoFlightStyles {
+	photoStyle: StyleProp<AnimatedStyle<ViewStyle>>;
+	badgeStyle: StyleProp<AnimatedStyle<ViewStyle>>;
+}
 
 interface Props {
 	origin: MeasuredDimensions;
 	tilt: number;
 	targetRef: AnimatedRef<Animated.View>;
 	photoUri: string | null;
-	children: (badgeStyle: StyleProp<AnimatedStyle<ViewStyle>>) => ReactNode;
+	children: (styles: ParrotPhotoFlightStyles) => ReactNode;
 }
 
 /**
@@ -45,7 +50,7 @@ interface Props {
  * @param tilt 카드 기울기 각도
  * @param targetRef 수정 화면 원형 사진의 ref
  * @param photoUri 옮겨 갈 사진 주소
- * @param children 연필 버튼 스타일을 받아 수정 화면 내용을 그리는 함수
+ * @param children 원형 사진과 연필 버튼 스타일을 받아 수정 화면 내용을 그리는 함수
  */
 const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Props) => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -68,29 +73,11 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 		transform: [{ scale: interpolate(badgeShown.get(), [0, 1], [BADGE_START_SCALE, 1]) }],
 	}));
 
-	// 사진이 옮겨 가는 동안 수정 화면의 원형 사진을 바탕색으로 가림
+	// 사진이 옮겨 가는 동안 수정 화면의 원형 사진을 비워 둠
+	const targetPhotoStyle = useAnimatedStyle(() => ({ opacity: flying.get() ? 0 : 1 }));
+
 	// 화면이 열린 직후 배치가 한 번 더 바뀌므로 원 위치는 프레임마다 다시 잼
-	const coverStyle = useAnimatedStyle(() => {
-		if (!flying.get()) {
-			return { opacity: 0 };
-		}
-
-		const to = measure(targetRef) ?? target.get();
-
-		if (!to) {
-			return { opacity: 0 };
-		}
-
-		return {
-			opacity: 1,
-			width: to.width,
-			height: to.height,
-			borderRadius: to.width / 2,
-			transform: [{ translateX: to.pageX }, { translateY: to.pageY }],
-		};
-	});
-
-	const photoStyle = useAnimatedStyle(() => {
+	const flyingPhotoStyle = useAnimatedStyle(() => {
 		if (!flying.get()) {
 			return { opacity: 0 };
 		}
@@ -191,15 +178,14 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 	return (
 		<View style={styles.container}>
 			<Animated.View style={[styles.container, contentStyle]}>
-				{children(badgeStyle)}
-				<Animated.View pointerEvents="none" style={[styles.flying, styles.cover, coverStyle]} />
+				{children({ photoStyle: targetPhotoStyle, badgeStyle })}
 			</Animated.View>
 
 			<Animated.View
 				pointerEvents="none"
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
-				style={[styles.flying, styles.photo, photoStyle]}
+				style={[styles.flying, styles.photo, flyingPhotoStyle]}
 			>
 				{photoUri ? (
 					<Image source={{ uri: photoUri }} style={styles.image} accessibilityIgnoresInvertColors />
@@ -214,7 +200,6 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	flying: { position: 'absolute', top: 0, left: 0, overflow: 'hidden' },
-	cover: { backgroundColor: colors.background },
 	photo: { backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
 	image: { width: '100%', height: '100%' },
 });

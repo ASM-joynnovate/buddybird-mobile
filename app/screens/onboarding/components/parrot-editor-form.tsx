@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
 import { randomUUID } from 'expo-crypto';
-import { TrashIcon } from 'lucide-react-native';
+import { BirdIcon, TrashIcon } from 'lucide-react-native';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef, AnimatedStyle } from 'react-native-reanimated';
 
@@ -53,6 +53,7 @@ interface Props {
 	onBack?: () => void;
 	onDone: () => void;
 	photoRef?: AnimatedRef<Animated.View>;
+	photoStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 	badgeStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 }
 
@@ -64,9 +65,10 @@ interface Props {
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
  * @param onDone 편집 완료 시 실행할 함수
  * @param photoRef 원형 사진의 화면 위치를 잴 때 쓰는 ref
+ * @param photoStyle 원형 사진에 더할 애니메이션 스타일
  * @param badgeStyle 사진 아이콘 버튼에 더할 애니메이션 스타일
  */
-const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, badgeStyle }: Props) => {
+const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, photoStyle, badgeStyle }: Props) => {
 	const { t } = useTranslation();
 
 	const [name, setName] = useState(parrot?.name ?? '');
@@ -254,7 +256,9 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 					busy={saving}
 					action={photo.photoUri ? 'edit' : 'plus'}
 					photoRef={photoRef}
+					photoStyle={photoStyle}
 					badgeStyle={badgeStyle}
+					placeholderIcon={BirdIcon}
 				/>
 			</View>
 
