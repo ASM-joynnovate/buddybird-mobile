@@ -109,6 +109,7 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	return (
 		<>
+			<View style={styles.spacer} />
 			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
 			{!!photo.photoUri && (
 				<View style={styles.removePhotoContainer}>
@@ -121,18 +122,20 @@ const AccountForm = ({ onSaved }: Props) => {
 				</View>
 			)}
 
-			<TextField
-				label={t('profile.nickname')}
-				errorMessage={nicknameError}
-				value={nickname}
-				onChangeText={handleChangeNickname}
-				editable={!saving}
-				maxLength={20}
-				placeholder={t('profile.nicknameHint')}
-				autoCapitalize="none"
-				returnKeyType="done"
-				onSubmitEditing={handleSave}
-			/>
+			<View style={styles.nicknameContainer}>
+				<TextField
+					label={t('profile.nickname')}
+					errorMessage={nicknameError}
+					value={nickname}
+					onChangeText={handleChangeNickname}
+					editable={!saving}
+					maxLength={20}
+					placeholder={t('profile.nicknameHint')}
+					autoCapitalize="none"
+					returnKeyType="done"
+					onSubmitEditing={handleSave}
+				/>
+			</View>
 
 			<View style={styles.spacer} />
 			<InlineError message={saveError} />
@@ -146,6 +149,7 @@ const AccountForm = ({ onSaved }: Props) => {
 
 const styles = StyleSheet.create({
 	removePhotoContainer: { alignItems: 'flex-end', marginTop: -12, marginBottom: 8 },
+	nicknameContainer: { marginTop: 32 },
 	spacer: { flexGrow: 1, minHeight: 24 },
 	save: { marginTop: 12 },
 });
