@@ -9,10 +9,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import AccountSection from '@/screens/settings/components/account-section';
 import GeneralGroup from '@/screens/settings/components/general-group';
-import SleepAndNotificationGroups from '@/screens/settings/components/sleep-and-notification-groups';
 import SupportGroup from '@/screens/settings/components/support-group';
+import { installedVersion } from '@/services/device/application';
+import { colors } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
+import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -31,16 +33,23 @@ const SettingsScreen = () => {
 			<View style={styles.sectionsContainer}>
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton blockCount={3} height={56} />
+					suspenseFallback=<Skeleton blockCount={4} height={56} />
 				>
-					<SleepAndNotificationGroups />
+					<GeneralGroup />
 				</ErrorHandlingWrapper>
 
-				<GeneralGroup />
+				<View style={styles.supportContainer}>
+					<SupportGroup />
 
-				<AccountSection />
+					{/*앱 버전과 로그아웃, 회원 탈퇴 버튼*/}
+					<View style={styles.footerRow}>
+						<Copy style={styles.version}>
+							{t('settings.support.version', { version: installedVersion })}
+						</Copy>
 
-				<SupportGroup />
+						<AccountSection />
+					</View>
+				</View>
 			</View>
 		</Screen>
 	);
@@ -48,6 +57,9 @@ const SettingsScreen = () => {
 
 const styles = StyleSheet.create({
 	sectionsContainer: { gap: 28 },
+	supportContainer: { gap: 12 },
+	footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+	version: { fontSize: 13, color: colors.muted },
 });
 
 export default SettingsScreen;

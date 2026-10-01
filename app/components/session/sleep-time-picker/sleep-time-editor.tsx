@@ -67,8 +67,14 @@ const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 			</View>
 
 			<View style={[ui.actionsRow, styles.actions]}>
-				<Button label={t('common.cancel')} variant="secondary" onPress={onClose} style={ui.action} />
-				<Button label={t('common.save')} onPress={handleSave} style={ui.action} />
+				<Button
+					label={t('common.cancel')}
+					variant="secondary"
+					size="small"
+					onPress={onClose}
+					style={ui.action}
+				/>
+				<Button label={t('common.save')} size="small" onPress={handleSave} style={ui.action} />
 			</View>
 		</View>
 	);

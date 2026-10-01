@@ -1,27 +1,21 @@
 export type SettingsMessages = {
 	title: string;
 	saveError: string;
-	care: {
-		title: string;
-	};
 	notifications: {
 		title: string;
+		all: string;
 		notice: string;
 		report: string;
 		marketing: string;
 		permissionOff: string;
-		permissionLink: string;
 	};
 	general: {
-		title: string;
 		language: string;
 		korean: string;
 		english: string;
 		devices: string;
-		permissions: string;
 	};
 	account: {
-		title: string;
 		signOut: string;
 		withdraw: string;
 	};
@@ -29,7 +23,6 @@ export type SettingsMessages = {
 		title: string;
 		feedback: string;
 		notices: string;
-		unreadNotice: string;
 		consents: string;
 		version: string;
 	};
@@ -58,11 +51,5 @@ export type SettingsMessages = {
 		thisDevice: string;
 		runningSession: string;
 		lastSeen: string;
-	};
-	permissions: {
-		title: string;
-		granted: string;
-		denied: string;
-		checking: string;
 	};
 };

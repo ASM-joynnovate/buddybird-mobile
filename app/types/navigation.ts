@@ -65,5 +65,5 @@ export type RootStackParamList = {
 	NoticeList: undefined;
 	ConsentSettings: undefined;
 	Devices: undefined;
-	Permissions: undefined;
+	NotificationSettings: undefined;
 };

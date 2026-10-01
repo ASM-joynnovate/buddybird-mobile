@@ -13,11 +13,9 @@ import SignOutDialog from '@/screens/settings/components/account-section/sign-ou
 import WithdrawDialog from '@/screens/settings/components/account-section/withdraw-dialog';
 import { useAccountStore } from '@/stores/account';
 
-import { Copy } from '@/components/ui/copy';
-import { ui } from '@/components/ui/styles';
 import { TextButton } from '@/components/ui/text-button';
 
-/** 계정 설정 컴포넌트 */
+/** 로그아웃과 회원 탈퇴 버튼 컴포넌트 */
 const AccountSection = () => {
 	const { t } = useTranslation();
 
@@ -28,10 +26,7 @@ const AccountSection = () => {
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
 	return (
-		<View>
-			<Copy accessibilityRole="header" style={ui.sectionTitle}>
-				{t('settings.account.title')}
-			</Copy>
+		<>
 			<View style={styles.buttonsRow}>
 				{isAnonymous ? (
 					<TextButton label={t('auth.signIn')} onPress={() => navigation.navigate('Login')} />
@@ -53,12 +48,12 @@ const AccountSection = () => {
 
 			<SignOutDialog visible={openedDialog === 'signOut'} onClose={() => setOpenedDialog(null)} />
 			<WithdrawDialog visible={openedDialog === 'withdraw'} onClose={() => setOpenedDialog(null)} />
-		</View>
+		</>
 	);
 };
 
 const styles = StyleSheet.create({
-	buttonsRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+	buttonsRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginRight: -8 },
 });
 
 export default AccountSection;

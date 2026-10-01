@@ -1,22 +1,17 @@
 import { Image, StyleSheet, View } from 'react-native';
 
-import type { HomeStackParamList, RootStackParamList } from '@/types/navigation';
+import type { HomeStackParamList } from '@/types/navigation';
 
 import { useTranslation } from 'react-i18next';
 
-import { type CompositeNavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BellIcon, SettingsIcon } from 'lucide-react-native';
+import { BellIcon } from 'lucide-react-native';
 
 import { mascotImage } from '@/theme';
 
 import { IconButton } from '@/components/ui/icon-button';
 import { Title } from '@/components/ui/title';
-
-type Navigation = CompositeNavigationProp<
-	NativeStackNavigationProp<HomeStackParamList, 'Home'>,
-	NativeStackNavigationProp<RootStackParamList>
->;
 
 interface Props {
 	unreadCount: number;
@@ -29,7 +24,7 @@ interface Props {
 const HomeTopBar = ({ unreadCount }: Props) => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<Navigation>();
+	const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
 	return (
 		<View style={styles.container}>
@@ -37,11 +32,6 @@ const HomeTopBar = ({ unreadCount }: Props) => {
 			<Image source={mascotImage} accessible={false} accessibilityIgnoresInvertColors style={styles.mascot} />
 			<Title style={styles.brand}>{t('home.brand')}</Title>
 
-			<IconButton
-				icon={SettingsIcon}
-				label={t('home.settings')}
-				onPress={() => navigation.navigate('Settings')}
-			/>
 			<IconButton
 				icon={BellIcon}
 				label={

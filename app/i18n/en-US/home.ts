@@ -4,7 +4,6 @@ export const home: HomeMessages = {
 	brand: 'BuddyBird',
 	notifications: 'Notifications',
 	notificationsUnread: 'Notifications, {{count}} unread',
-	settings: 'Settings',
 	notice: {
 		viewDetail: 'Details',
 		image: 'Attached image {{index}}',

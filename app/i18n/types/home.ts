@@ -2,7 +2,6 @@ export type HomeMessages = {
 	brand: string;
 	notifications: string;
 	notificationsUnread: string;
-	settings: string;
 	notice: {
 		viewDetail: string;
 		image: string;
