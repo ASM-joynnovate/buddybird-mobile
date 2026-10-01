@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { ScrollView, type ScrollViewProps, StyleSheet, View } from 'react-native';
+import { type ScrollViewProps, StyleSheet, View } from 'react-native';
 
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth } from '@/theme';
+
+const KEYBOARD_BOTTOM_OFFSET = 36;
 
 interface Props extends ScrollViewProps {
 	scrollable?: boolean;
@@ -12,24 +15,16 @@ interface Props extends ScrollViewProps {
 	children: ReactNode;
 }
 
-export const Screen = ({
-	children,
-	scrollable = true,
-	automaticallyAdjustKeyboardInsets = true,
-	style,
-	contentContainerStyle,
-	footer,
-	...props
-}: Props) => {
+export const Screen = ({ children, scrollable = true, style, contentContainerStyle, footer, ...props }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
 		<SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, style]}>
 			{scrollable ? (
-				<ScrollView
+				<KeyboardAwareScrollView
 					alwaysBounceVertical={false}
 					{...props}
-					automaticallyAdjustKeyboardInsets={automaticallyAdjustKeyboardInsets}
+					bottomOffset={KEYBOARD_BOTTOM_OFFSET}
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"
 					keyboardDismissMode="on-drag"
@@ -40,7 +35,7 @@ export const Screen = ({
 					]}
 				>
 					{children}
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			) : (
 				children
 			)}

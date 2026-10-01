@@ -8,6 +8,7 @@ import { queryClient } from '@/lib/query-client';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 interface Props {
@@ -21,12 +22,14 @@ interface Props {
 const RootProviders = ({ children }: Props) => {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
-			<SafeAreaProvider>
-				<StatusBar barStyle="dark-content" />
-				<QueryClientProvider client={queryClient}>
-					<BottomSheetModalProvider>{children}</BottomSheetModalProvider>
-				</QueryClientProvider>
-			</SafeAreaProvider>
+			<KeyboardProvider>
+				<SafeAreaProvider>
+					<StatusBar barStyle="dark-content" />
+					<QueryClientProvider client={queryClient}>
+						<BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+					</QueryClientProvider>
+				</SafeAreaProvider>
+			</KeyboardProvider>
 		</GestureHandlerRootView>
 	);
 };

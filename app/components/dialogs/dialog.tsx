@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth, radius } from '@/theme';
@@ -32,7 +33,7 @@ const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 		<Modal statusBarTranslucent visible={visible} transparent animationType="fade" onRequestClose={onClose}>
 			<GestureHandlerRootView style={{ flex: 1 }}>
 				<KeyboardAvoidingView
-					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+					behavior="padding"
 					style={[styles.backdrop, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
 				>
 					<View accessibilityViewIsModal style={styles.dialog}>
