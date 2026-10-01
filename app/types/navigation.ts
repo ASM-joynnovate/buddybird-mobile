@@ -15,12 +15,6 @@ export interface SessionSetup {
 	sleepChanged: boolean;
 }
 
-export interface NewRecording {
-	key: string;
-	uri: string;
-	durationMs: number;
-}
-
 export type HomeStackParamList = {
 	Home: undefined;
 	Notifications: undefined;
@@ -28,7 +22,7 @@ export type HomeStackParamList = {
 
 export type WordsStackParamList = {
 	WordList: undefined;
-	WordEditor: { wordId?: string; newRecording?: NewRecording } | undefined;
+	WordEditor: { wordId?: string } | undefined;
 };
 
 export type ReportStackParamList = {
@@ -66,8 +60,7 @@ export type RootStackParamList = {
 		sleepChanged: boolean;
 	};
 	SessionSummary: { sessionId: string };
-	RecordingGuide: { source: 'add' | 'help'; wordName: string };
-	Recorder: { wordName: string };
+	RecordingGuide: undefined;
 	Settings: undefined;
 	NoticeList: undefined;
 	ConsentSettings: undefined;

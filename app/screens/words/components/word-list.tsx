@@ -2,7 +2,6 @@ import { FlatList, StyleSheet } from 'react-native';
 
 import type { WordsStackParamList } from '@/types/navigation';
 
-import { useGetRunningSession } from '@/hooks/apis/sessions';
 import { useGetWordList } from '@/hooks/apis/words';
 import type { SoundPlayer } from '@/hooks/use-sound-player';
 
@@ -31,9 +30,6 @@ const WordList = ({ player }: Props) => {
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
 
 	const { data: wordListData } = useGetWordList();
-	const { data: runningSessionData } = useGetRunningSession();
-
-	const learningWordId = runningSessionData?.word_id ?? null;
 
 	const illustration = <Illustration scene={t('words.list.emptyScene')} icon={MessageSquareTextIcon} height={200} />;
 	const emptyContent = (
@@ -50,9 +46,7 @@ const WordList = ({ player }: Props) => {
 			keyExtractor={(word) => word.id}
 			contentContainerStyle={styles.list}
 			showsVerticalScrollIndicator={false}
-			renderItem={({ item: word }) => (
-				<WordCard word={word} learning={word.id === learningWordId} player={player} />
-			)}
+			renderItem={({ item: word }) => <WordCard word={word} player={player} />}
 			ListEmptyComponent={emptyContent}
 		/>
 	);

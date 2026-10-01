@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/types/apis/common';
 import type { Recording } from '@/types/apis/words';
 
-import type { NewRecording, RootStackParamList, WordsStackParamList } from '@/types/navigation';
+import type { RootStackParamList, WordsStackParamList } from '@/types/navigation';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
@@ -18,7 +18,6 @@ import {
 	useDeleteWordRecording,
 	useRenameWord,
 } from '@/hooks/apis/words';
-import usePermission from '@/hooks/use-permission';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
 import type { TFunction } from 'i18next';
@@ -33,13 +32,12 @@ import { TrashIcon } from 'lucide-react-native';
 
 import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS, WORD_NAME_LIMIT } from '@/config';
 import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
+import RecordingSheet from '@/screens/words/components/recording-sheet';
 import RecordingsSection from '@/screens/words/components/recordings-section';
-import type { EditorRecording } from '@/screens/words/components/recordings-section/recording-item';
+import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
 import { reportError, track } from '@/services/telemetry/client';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
-import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
@@ -65,6 +63,16 @@ const toEditorRecording = (serverRecording: Recording): EditorRecording => ({
 	id: serverRecording.id,
 	url: serverRecording.url,
 	durationMs: null,
+	waveformLevels: null,
+});
+
+/** 새 녹음을 편집 화면에서 사용할 녹음으로 변환하는 함수 */
+const toLocalRecording = (newRecording: NewRecording): EditorRecording => ({
+	kind: 'local',
+	id: newRecording.key,
+	url: newRecording.uri,
+	durationMs: newRecording.durationMs,
+	waveformLevels: newRecording.waveformLevels,
 });
 
 /** 저장 진행 상태에 맞는 저장 버튼 문구를 반환하는 함수 */
@@ -92,9 +100,9 @@ const WordEditorScreen = () => {
 	const [saveAttempted, setSaveAttempted] = useState(false);
 	const [createWordKey, setCreateWordKey] = useState(() => randomUUID());
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+	const [recordingSheetOpen, setRecordingSheetOpen] = useState(false);
 
 	const mountedRef = useRef(true);
-	const addedRecordingKeysRef = useRef(new Set<string>());
 
 	const routeWordId = route.params?.wordId ?? null;
 	const wordId = routeWordId ?? createdWordId;
@@ -111,24 +119,25 @@ const WordEditorScreen = () => {
 	const addWordRecording = useAddWordRecording();
 	const deleteWordRecording = useDeleteWordRecording();
 
-	const seenGuides = useDeviceSettingsStore((state) => state.seenGuides);
-
-	const microphonePermission = usePermission('microphone');
-
 	const player = useSoundPlayer();
 
 	const name = nameInput ?? wordData?.name ?? '';
-	const keptServerRecordings = (wordData?.recordings ?? [])
-		.map((serverRecording) => toEditorRecording(serverRecording))
-		.filter((recording) => !removedRecordingIds.includes(recording.id));
+	const serverRecordings = wordData?.recordings ?? [];
 	const recordings: EditorRecording[] = [
-		...keptServerRecordings,
-		...newRecordings.map((newRecording): EditorRecording => ({
-			kind: 'local',
-			id: newRecording.key,
-			url: newRecording.uri,
-			durationMs: newRecording.durationMs,
-		})),
+		...serverRecordings.flatMap((serverRecording) => {
+			const replacement = newRecordings.find(
+				({ replacedRecordingId }) => replacedRecordingId === serverRecording.id,
+			);
+
+			if (replacement) {
+				return [toLocalRecording(replacement)];
+			}
+
+			return removedRecordingIds.includes(serverRecording.id) ? [] : [toEditorRecording(serverRecording)];
+		}),
+		...newRecordings
+			.filter(({ replacedRecordingId }) => !serverRecordings.some(({ id }) => id === replacedRecordingId))
+			.map((newRecording) => toLocalRecording(newRecording)),
 	];
 	const nameMissing = saveAttempted && !name.trim();
 	const recordingMissing = saveAttempted && recordings.length === 0;
@@ -154,21 +163,6 @@ const WordEditorScreen = () => {
 			track('word_create_started', {});
 		}
 	}, [routeWordId]);
-
-	/** 녹음 화면에서 받은 새 녹음 추가 */
-	useEffect(() => {
-		const newRecording = route.params?.newRecording;
-
-		if (!newRecording || addedRecordingKeysRef.current.has(newRecording.key)) {
-			return;
-		}
-
-		addedRecordingKeysRef.current = new Set([...addedRecordingKeysRef.current, newRecording.key]);
-
-		setNewRecordings((prev) => [...prev, newRecording]);
-
-		track('recording_finished', { duration_ms: newRecording.durationMs });
-	}, [route.params?.newRecording]);
 
 	/** 녹음 목록에서 녹음을 제거하는 함수 */
 	const removeRecording = (recording: EditorRecording) => {
@@ -229,16 +223,33 @@ const WordEditorScreen = () => {
 		return wordId;
 	};
 
-	const handleOpenRecorder = () => {
+	const handleOpenRecordingSheet = () => {
 		player.stop();
 
-		void microphonePermission.run(() => {
-			if (seenGuides.recording) {
-				navigation.navigate('Recorder', { wordName });
-			} else {
-				navigation.navigate('RecordingGuide', { source: 'add', wordName });
-			}
-		});
+		setRecordingSheetOpen(true);
+	};
+
+	const handleCloseRecordingSheet = () => {
+		player.stop();
+
+		setRecordingSheetOpen(false);
+	};
+
+	const handleReplaceRecording = (recording: EditorRecording, newRecording: NewRecording) => {
+		if (recording.kind === 'local') {
+			setNewRecordings((prev) =>
+				prev.map((item) =>
+					item.key === recording.id
+						? { ...newRecording, replacedRecordingId: item.replacedRecordingId }
+						: item,
+				),
+			);
+
+			return;
+		}
+
+		setRemovedRecordingIds((prev) => [...prev, recording.id]);
+		setNewRecordings((prev) => [...prev, { ...newRecording, replacedRecordingId: recording.id }]);
 	};
 
 	const handleSave = async () => {
@@ -367,9 +378,8 @@ const WordEditorScreen = () => {
 					recordings={recordings}
 					recordingMissing={recordingMissing}
 					saving={saving}
-					wordName={wordName}
 					player={player}
-					onAdd={handleOpenRecorder}
+					onAdd={handleOpenRecordingSheet}
 					onDelete={(recording, recordingName) =>
 						setDeleteTarget({ kind: 'recording', recording, name: recordingName })
 					}
@@ -428,7 +438,14 @@ const WordEditorScreen = () => {
 				onClose={() => setDeleteTarget(null)}
 			/>
 
-			<PermissionDialog state={microphonePermission.dialog} />
+			<RecordingSheet
+				visible={recordingSheetOpen}
+				recordings={recordings}
+				player={player}
+				onAdd={(newRecording) => setNewRecordings((prev) => [...prev, newRecording])}
+				onReplace={handleReplaceRecording}
+				onClose={handleCloseRecordingSheet}
+			/>
 		</Screen>
 	);
 };

@@ -34,7 +34,7 @@ import WordPicker from '@/screens/home/components/word-picker';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useSessionStore } from '@/stores/session';
-import { font, layoutAnimationMs } from '@/theme';
+import { colors, font, layoutAnimationMs } from '@/theme';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -275,6 +275,7 @@ const HomeContent = () => {
 				label={t('session.start.startButton')}
 				accessibilityLabel={sessionSetup ? t('session.start.startButton') : t('session.start.startUnavailable')}
 				icon={PlayIcon}
+				iconProps={{ fill: sessionSetup ? colors.onFilled : colors.subtle }}
 				depth="xhigh"
 				loading={starting}
 				disabled={!sessionSetup}

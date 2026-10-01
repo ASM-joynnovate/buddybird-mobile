@@ -2,7 +2,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { useTranslation } from 'react-i18next';
 
-import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MessageSquareTextIcon, MicIcon, MoonIcon, SmartphoneIcon } from 'lucide-react-native';
 
@@ -14,7 +14,6 @@ import GuidePager, { type GuideStep } from '@/components/guide-pager';
 const RecordingGuideScreen = () => {
 	const { t } = useTranslation();
 
-	const { params } = useRoute<RouteProp<RootStackParamList, 'RecordingGuide'>>();
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	const seenGuides = useDeviceSettingsStore((state) => state.seenGuides);
@@ -39,20 +38,11 @@ const RecordingGuideScreen = () => {
 		},
 	];
 
-	/** 녹음 추가로 열었으면 녹음 화면으로, 아니면 이전 화면으로 이동 */
-	const handleLeave = () => {
-		if (params.source === 'add') {
-			navigation.replace('Recorder', { wordName: params.wordName });
-		} else {
-			navigation.goBack();
-		}
-	};
-
 	return (
 		<GuidePager
 			steps={steps}
-			actions={{ onFinish: handleLeave, onSkip: handleLeave }}
-			finishLabel={t(params.source === 'add' ? 'words.guide.record' : 'common.done')}
+			actions={{ onFinish: () => navigation.goBack(), onSkip: () => navigation.goBack() }}
+			finishLabel={t('common.done')}
 			dontShowAgain={{
 				value: seenGuides.recording,
 				onChange: (seen) => setGuideSeen('recording', seen),

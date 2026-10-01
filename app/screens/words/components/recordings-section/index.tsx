@@ -18,13 +18,13 @@ import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
+import { ItemGroup } from '@/components/ui/item/group';
 import { ui } from '@/components/ui/styles';
 
 interface Props {
 	recordings: EditorRecording[];
 	recordingMissing: boolean;
 	saving: boolean;
-	wordName: string;
 	player: SoundPlayer;
 	onAdd: () => void;
 	onDelete: (recording: EditorRecording, name: string) => void;
@@ -35,12 +35,11 @@ interface Props {
  * @param recordings 편집 중인 단어의 녹음 목록
  * @param recordingMissing 녹음 없이 저장을 눌렀는지 여부
  * @param saving 단어 저장 중 여부
- * @param wordName 녹음 안내 화면에 전달할 단어 이름
  * @param player useSoundPlayer 결과
  * @param onAdd 녹음 추가 버튼을 누를 때 실행할 함수
  * @param onDelete 녹음 삭제 버튼을 누를 때 실행할 함수
  */
-const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, player, onAdd, onDelete }: Props) => {
+const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd, onDelete }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -58,23 +57,31 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 					icon={CircleQuestionMarkIcon}
 					label={t('words.editor.openGuide')}
 					variant="muted"
-					onPress={() => navigation.navigate('RecordingGuide', { source: 'help', wordName })}
+					onPress={() => navigation.navigate('RecordingGuide')}
 				/>
 			</View>
+			{recordings.length < RECOMMENDED_RECORDINGS && (
+				<Copy style={styles.hint}>{t('words.editor.recordingsHint')}</Copy>
+			)}
 
-			{recordings.map((recording, index) => {
-				const deletable = !saving && !(recording.kind === 'server' && keptServerRecordingCount <= 1);
+			{recordings.length > 0 && (
+				<ItemGroup>
+					{recordings.map((recording, index) => {
+						const deletable = !saving && !(recording.kind === 'server' && keptServerRecordingCount <= 1);
 
-				return (
-					<RecordingItem
-						key={recording.id}
-						recording={recording}
-						player={player}
-						index={index}
-						onDelete={deletable ? (name) => onDelete(recording, name) : undefined}
-					/>
-				);
-			})}
+						return (
+							<RecordingItem
+								key={recording.id}
+								recording={recording}
+								player={player}
+								index={index}
+								uploading={saving && recording.kind === 'local'}
+								onDelete={deletable ? (name) => onDelete(recording, name) : undefined}
+							/>
+						);
+					})}
+				</ItemGroup>
+			)}
 
 			<InlineError message={player.failedId ? t('common.sound.playError') : null} />
 			<InlineError message={recordingMissing ? t('words.editor.recordingRequired') : null} />
@@ -84,13 +91,11 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 					label={t('words.editor.addRecording')}
 					icon={MicIcon}
 					variant="secondary"
+					size="small"
 					disabled={saving}
 					onPress={onAdd}
 					style={styles.add}
 				/>
-			)}
-			{recordings.length < RECOMMENDED_RECORDINGS && (
-				<Copy style={styles.hint}>{t('words.editor.recordingsHint')}</Copy>
 			)}
 		</View>
 	);
@@ -99,8 +104,8 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, wordName, pla
 const styles = StyleSheet.create({
 	headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
 	title: { flex: 1, fontSize: 18, lineHeight: 24, fontFamily: font.black },
+	hint: { color: colors.muted, marginBottom: 12 },
 	add: { marginTop: 12 },
-	hint: { color: colors.muted, marginTop: 10 },
 });
 
 export default RecordingsSection;

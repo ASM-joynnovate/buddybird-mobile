@@ -255,7 +255,7 @@ components:
 같은 엣지 구조와 Pretendard를 유지하되 밝기를 낮춰 새를 자극하지 않는다.
 
 **Key Characteristics:**
-- 엣지 기반 두께. 그림자 대신 아래쪽 색 엣지와 2px 테두리
+- 엣지 기반 두께. 그림자 대신 아래쪽 색 엣지를 쓰고, 2px 테두리는 흰 면과 고른 ChoiceCard에만 보인다
 - 오렌지가 모든 주 행동을 담당
 - 브랜드 레드는 정체성 순간에만 등장
 - 한글과 영문 모두 Pretendard
@@ -271,7 +271,7 @@ components:
 
 ### Primary
 - **Sunrise Orange** (`{colors.sunrise-orange}`): 주 버튼, 선택된 탭, 선택된 칩, 체크된 CheckRow, 학습 구간, 따라 한 소리 표식, 학습 완료 화면의 재생 횟수 항목. 화면에서 행동을 요구하는 모든 곳
-- **Orange Edge** (`{colors.orange-edge}`): 오렌지 면 아래에 깔리는 엣지와 테두리. 오렌지 톤 Tag와 CountBadge의 글자, TextButton 글자, 필수 항목 caption
+- **Orange Edge** (`{colors.orange-edge}`): 오렌지 면 아래에 깔리는 엣지. 오렌지 톤 Tag와 CountBadge의 글자, TextButton 글자, 필수 항목 caption
 - **Orange Selected** (`{colors.orange-selected}`): 선택된 ChoiceCard의 면, 오렌지 톤 Tag와 CountBadge의 면, 강조된 소리 행의 면, 일러스트 자리의 바탕, 선택된 재생 횟수 칩의 면
 - **Orange Mist** (`{colors.orange-mist}`): 재생 중 상태 배경처럼 오렌지 계열을 옅게 깔 때
 - **Parrot Red** (`{colors.parrot-red}`): 마스코트 깃털색. 스플래시 배경과 로그인 화면 바탕처럼 정체성을 드러내는 순간과 인라인 오류 글자색에 사용
@@ -409,8 +409,9 @@ Screen의 스크롤은 `alwaysBounceVertical={false}`라서 내용이 화면보�
 
 그림자는 없다.
 두께는 아래쪽에 깔린 엣지로 표현한다.
-Surface 컴포넌트는 면 아래에 `depth`만큼 엣지색 판을 두고, 면에는 같은 색 2px 테두리를 두른다.
-Button은 secondary만 이 테두리를 남기고 primary는 테두리 없이 엣지 판으로만 두께를 낸다.
+Surface 컴포넌트는 면 아래에 `depth`만큼 엣지색 판을 두고, 면에 2px 테두리를 두른다.
+흰 면과 고른 ChoiceCard는 테두리가 엣지와 같은 색으로 보이고, 오렌지 면과 비활성 면은 테두리가 면과 같은 색이라 보이지 않는다.
+그래서 오렌지 버튼, 고른 칩, 고른 탭은 아래 두께만 드러나고, 흰 카드, secondary 버튼, 고른 ChoiceCard는 테두리를 가진다.
 누르면 면이 60ms 동안 `depth - 1`만큼 내려가 엣지 위에 앉고, 손을 떼면 같은 시간에 돌아온다.
 Reduce Motion이 켜져 있으면 면은 움직이지 않는다.
 
@@ -441,7 +442,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 
 반복되는 형태는 다음과 같다.
 
-- 체크: CheckRow 오른쪽 끝의 28px 원, 3px Hairline Gray 테두리. 체크되면 오렌지 면에 Orange Edge 테두리와 흰 16px 체크, 비활성이면 Disabled Surface로 채운다
+- 체크: CheckRow 오른쪽 끝의 28px 원, 3px Hairline Gray 테두리. 체크되면 테두리 없는 오렌지 면에 흰 16px 체크, 비활성이면 Disabled Surface로 채운다
 - 목록 그룹: 18px 코너, 2px Hairline Gray 테두리 안에 행을 쌓고 행 사이를 2px 선으로 나눈다
 - 프로필 사진: 폭 40%, 최대 110px의 원
 - 앵무새 사진: 카드 안쪽 10px 여백에 16px 코너
@@ -465,7 +466,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 - **Blue:** `{components.button-blue}`. 오렌지 버튼 옆의 보조 행동
 - **Disabled / Loading:** `{components.button-disabled}`. 엣지 0, Disabled Surface 면, Disabled Gray 글자. 로딩 중에는 아이콘 자리에 ActivityIndicator
 - **Pressed:** 면이 엣지 위로 내려앉는다. 색 변화 없음
-- **Icon button:** 48px 정사각형, 기본은 plain 톤에 엣지 0, `round`이면 알약형. 목록과 카드 안의 재생 버튼은 44px 오렌지 원에 흰 아이콘
+- **Icon button:** 48px 정사각형이고 기본은 plain 톤에 엣지 0이다. primary는 엣지 4인 오렌지 원이며 `shape="square"`를 넘기면 컨트롤 코너의 네모가 된다. 단어 목록의 단어 추가 버튼이 네모를 쓴다. 목록과 카드 안의 재생 버튼은 44px 오렌지 원에 흰 아이콘
 - **TextButton:** `{components.text-button}`. 테두리와 엣지 없이 Orange Edge ExtraBold 15px 글자만 보인다. 건너뛰기처럼 약한 행동은 Muted Gray
 - **Social login:** 엣지 0, 1px 테두리, 56px 높이. Google은 흰 면에 `#747775` 테두리, Kakao는 `#FEE500` 면, Apple은 시스템 버튼
 
@@ -494,7 +495,7 @@ Tag와 CountBadge는 2px 테두리만 가진다.
 - **Border:** 2px, 엣지와 같은 색
 - **Internal Padding:** 16px
 - **ChoiceCard:** 단일 선택용 카드. 선택되면 `{components.choice-card-selected}`처럼 Orange Selected 면에 오렌지 엣지 4, 접근성 역할은 radio. 선택되지 않아도 엣지 4다
-- **Word card:** 최소 높이 84px, 이름 18px Black 아래 녹음 수 점 다섯 개와 태그가 온다. 재생 버튼은 카드 오른쪽 끝에 붙는다
+- **Word card:** 최소 높이 84px에 이름 18px Black 한 줄만 온다. 삭제 버튼과 재생 버튼은 카드 오른쪽 끝에 붙는다
 - **Parrot card:** 홈의 주인공이다. 남은 세로 공간을 모두 차지하며 사진이 카드를 채우고 아래에 이름 22px과 종, 나이가 온다. 사진이 없으면 Cloud Gray 자리에 40px 사진 아이콘과 사진 추가 문구를 보인다
 
 ### Lists

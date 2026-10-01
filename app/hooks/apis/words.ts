@@ -14,6 +14,7 @@ import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
+import { measureAudioDuration } from '@/services/media/audio-duration';
 import { reportError } from '@/services/telemetry/client';
 
 /** 단어 목록 조회 Hook에 사용할 옵션 */
@@ -30,6 +31,20 @@ export const getWordOptions = ({ id }: { id: string }) =>
 export const useGetWord = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getWordOptions({ id }));
 };
+
+/** 녹음 재생 길이 조회 Hook에 사용할 옵션 */
+export const getRecordingDurationOptions = ({ id, url }: { id: string; url: string }) =>
+	// oxlint-disable-next-line @tanstack/query/exhaustive-deps
+	queryOptions({
+		queryKey: apiKeys.recordings.duration(id),
+		queryFn: () =>
+			measureAudioDuration(url).catch((error: unknown) => {
+				reportError(error, 'recording_duration');
+
+				throw error;
+			}),
+		staleTime: Infinity,
+	});
 
 /** 단어 추가 Hook */
 export const useCreateWord = () => {

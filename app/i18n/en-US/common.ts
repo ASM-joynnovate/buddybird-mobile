@@ -9,7 +9,6 @@ export const common: CommonMessages = {
 	close: 'Close',
 	select: 'Choose',
 	unknown: 'Unknown',
-	needsRecording: 'Needs recording',
 	tabs: {
 		home: 'Home',
 		words: 'Words',
@@ -32,7 +31,7 @@ export const common: CommonMessages = {
 		sleeping: 'Sleep time',
 	},
 	sound: {
-		stop: 'Stop playback',
+		stop: 'Stop',
 		stopNamed: 'Stop {{name}}',
 		playError: "We couldn't play the sound. Tap play again.",
 	},

@@ -4,8 +4,6 @@ export type WordsMessages = {
 		add: string;
 		empty: string;
 		emptyScene: string;
-		recordingCount: string;
-		learning: string;
 		play: string;
 		delete: string;
 	};
@@ -19,7 +17,6 @@ export type WordsMessages = {
 		recordings: string;
 		openGuide: string;
 		recordingName: string;
-		unsaved: string;
 		play: string;
 		deleteRecording: string;
 		addRecording: string;
@@ -39,17 +36,13 @@ export type WordsMessages = {
 		distanceScene: string;
 		speakClearly: string;
 		speakClearlyScene: string;
-		record: string;
 	};
 	recorder: {
-		newWord: string;
+		done: string;
 		start: string;
 		stop: string;
 		play: string;
-		recordAgain: string;
-		ready: string;
-		recording: string;
-		recorded: string;
+		rerecord: string;
 		empty: string;
 		tooLarge: string;
 		invalidFormat: string;

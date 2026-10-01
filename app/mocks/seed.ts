@@ -547,10 +547,9 @@ export function seed(now: number): Database {
 	const created = now - 60 * DAY;
 	const words = [
 		...presetWords(created),
-		word('사과', [], created),
 		word('초코야', [clips.hello, clips.love, clips.bye, clips.apple, clips.hello], created),
 	];
-	const refs = words.filter((item) => item.recordings.length > 0).map((item) => ({ id: item.id, name: item.name }));
+	const refs = words.map((item) => ({ id: item.id, name: item.name }));
 	const station = createDevice(
 		{ platform: 'android', os_version: '14', model: 'Galaxy S21', app_version: '1.2.0' },
 		now - 4000,

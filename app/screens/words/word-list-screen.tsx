@@ -4,7 +4,6 @@ import { usePrefetchQuery } from '@tanstack/react-query';
 
 import type { WordsStackParamList } from '@/types/navigation';
 
-import { getRunningSessionOptions } from '@/hooks/apis/sessions';
 import { getWordListOptions } from '@/hooks/apis/words';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
@@ -32,12 +31,17 @@ const WordListScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
 
 	usePrefetchQuery(getWordListOptions());
-	usePrefetchQuery(getRunningSessionOptions());
 
 	const player = useSoundPlayer();
 
 	const addButton = (
-		<IconButton icon={PlusIcon} label={t('words.list.add')} onPress={() => navigation.navigate('WordEditor', {})} />
+		<IconButton
+			icon={PlusIcon}
+			label={t('words.list.add')}
+			variant="primary"
+			shape="square"
+			onPress={() => navigation.navigate('WordEditor', {})}
+		/>
 	);
 
 	return (

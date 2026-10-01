@@ -9,7 +9,6 @@ export const common: CommonMessages = {
 	close: '닫기',
 	select: '선택',
 	unknown: '모름',
-	needsRecording: '녹음 필요',
 	tabs: {
 		home: '홈',
 		words: '단어',
@@ -32,8 +31,8 @@ export const common: CommonMessages = {
 		sleeping: '수면 시간',
 	},
 	sound: {
-		stop: '재생 멈추기',
-		stopNamed: '{{name}} 재생 멈추기',
+		stop: '중지',
+		stopNamed: '{{name}} 중지',
 		playError: '소리를 재생하지 못했어요. 재생 버튼을 다시 눌러 주세요.',
 	},
 	permission: {

@@ -12,7 +12,6 @@ interface Props {
 	duration: SharedValue<number>;
 	color: string;
 	height: number;
-	fill: boolean;
 }
 
 /**
@@ -22,26 +21,19 @@ interface Props {
  * @param duration 높이 변경 애니메이션 시간
  * @param color 막대 색
  * @param height 파형 높이
- * @param fill 막대가 전체 너비를 나눠 채우는지 여부
  */
-const WaveBar = memo(({ index, heightRatios, duration, color, height, fill }: Props) => {
+const WaveBar = memo(({ index, heightRatios, duration, color, height }: Props) => {
 	const heightStyle = useAnimatedStyle(() => ({
-		height: withTiming(height * (MIN_HEIGHT_RATIO + (1 - MIN_HEIGHT_RATIO) * heightRatios.get()[index]), {
+		height: withTiming(height * (MIN_HEIGHT_RATIO + (1 - MIN_HEIGHT_RATIO) * (heightRatios.get()[index] ?? 0)), {
 			duration: duration.get(),
 		}),
 	}));
 
-	return (
-		<Animated.View
-			style={[styles.bar, fill ? styles.fillBar : styles.fixedBar, { backgroundColor: color }, heightStyle]}
-		/>
-	);
+	return <Animated.View style={[styles.bar, { backgroundColor: color }, heightStyle]} />;
 });
 
 const styles = StyleSheet.create({
-	bar: { borderRadius: 2 },
-	fixedBar: { width: 4 },
-	fillBar: { flex: 1, minWidth: 1 },
+	bar: { flex: 1, minWidth: 1, borderRadius: 2 },
 });
 
 export default WaveBar;

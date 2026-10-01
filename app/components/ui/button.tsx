@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet } from 'react-native';
 
-import type { LucideIcon } from 'lucide-react-native';
+import type { LucideIcon, LucideProps } from 'lucide-react-native';
 
 import { colors, depths, font } from '@/theme';
 
@@ -10,6 +10,7 @@ import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/su
 interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
 	label: string;
 	icon?: LucideIcon;
+	iconProps?: LucideProps;
 	variant?: 'primary' | 'secondary';
 	loading?: boolean;
 	size?: 'small' | 'medium';
@@ -18,6 +19,7 @@ interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
 export const Button = ({
 	label,
 	icon: Icon,
+	iconProps,
 	variant = 'primary',
 	loading,
 	size = 'medium',
@@ -45,7 +47,7 @@ export const Button = ({
 	if (loading) {
 		leadingContent = <ActivityIndicator color={foregroundColor} />;
 	} else if (Icon) {
-		leadingContent = <Icon color={foregroundColor} size={size === 'small' ? 20 : 26} />;
+		leadingContent = <Icon color={foregroundColor} size={size === 'small' ? 20 : 26} {...iconProps} />;
 	}
 
 	return (

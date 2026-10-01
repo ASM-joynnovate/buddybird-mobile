@@ -27,7 +27,6 @@ import DevicesScreen from '@/screens/settings/devices-screen';
 import NoticeListScreen from '@/screens/settings/notice-list-screen';
 import PermissionsScreen from '@/screens/settings/permissions-screen';
 import SettingsScreen from '@/screens/settings/settings-screen';
-import RecorderScreen from '@/screens/words/recorder-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
 import { reportError, track, trackScreen } from '@/services/telemetry/client';
 import { colors } from '@/theme';
@@ -198,11 +197,6 @@ const AppNavigator = () => {
 							/>
 
 							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
-							<RootStack.Screen
-								name="Recorder"
-								component={RecorderScreen}
-								options={{ presentation: 'fullScreenModal' }}
-							/>
 
 							<RootStack.Screen name="Settings" component={SettingsScreen} />
 							<RootStack.Screen name="NoticeList" component={NoticeListScreen} />

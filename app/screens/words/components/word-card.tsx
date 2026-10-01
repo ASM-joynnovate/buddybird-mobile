@@ -14,30 +14,25 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TrashIcon } from 'lucide-react-native';
 
-import { MAX_RECORDINGS } from '@/config';
 import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
-import { colors, font } from '@/theme';
-import { joinLabel } from '@/utils/a11y';
+import { font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlayButton } from '@/components/ui/play-button';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
-import { Tag } from '@/components/ui/tag';
 
 interface Props {
 	word: Word;
-	learning: boolean;
 	player: SoundPlayer;
 }
 
 /**
  * 단어 카드 컴포넌트
  * @param word 표시할 단어
- * @param learning 학습 중인 단어 여부
  * @param player useSoundPlayer 결과
  */
-const WordCard = ({ word, learning, player }: Props) => {
+const WordCard = ({ word, player }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
@@ -46,34 +41,17 @@ const WordCard = ({ word, learning, player }: Props) => {
 
 	const firstRecording = word.recordings[0];
 	const playing = player.playingId === word.id;
-	const recordingCount = word.recordings.length;
 
 	return (
 		<View>
 			<PressableSurface
 				depth="low"
 				onPress={() => navigation.navigate('WordEditor', { wordId: word.id })}
-				accessibilityLabel={joinLabel(
-					word.name,
-					t('words.list.recordingCount', { count: recordingCount }),
-					learning && t('words.list.learning'),
-					recordingCount === 0 && t('common.needsRecording'),
-				)}
 				contentStyle={styles.card}
 			>
 				<Copy numberOfLines={1} style={styles.name}>
 					{word.name}
 				</Copy>
-
-				<View style={styles.statusRow}>
-					<View style={styles.dotsRow}>
-						{Array.from({ length: MAX_RECORDINGS }, (_, index) => (
-							<View key={index} style={[styles.dot, index < recordingCount && styles.dotFilled]} />
-						))}
-					</View>
-					{learning && <Tag label={t('words.list.learning')} variant="primary" />}
-					{recordingCount === 0 && <Tag label={t('common.needsRecording')} variant="muted" />}
-				</View>
 			</PressableSurface>
 
 			<View style={styles.actionsRow}>
@@ -84,15 +62,13 @@ const WordCard = ({ word, learning, player }: Props) => {
 					size="small"
 					onPress={() => setDeleteDialogOpen(true)}
 				/>
-				{firstRecording && (
-					<PlayButton
-						playing={playing}
-						label={t(playing ? 'common.sound.stopNamed' : 'words.list.play', {
-							name: word.name,
-						})}
-						onPress={() => player.toggle(word.id, firstRecording.url)}
-					/>
-				)}
+				<PlayButton
+					playing={playing}
+					label={t(playing ? 'common.sound.stopNamed' : 'words.list.play', {
+						name: word.name,
+					})}
+					onPress={() => player.toggle(word.id, firstRecording.url)}
+				/>
 			</View>
 
 			<DeleteWordDialog
@@ -106,12 +82,8 @@ const WordCard = ({ word, learning, player }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	card: { minHeight: 84, padding: 16, paddingRight: 124, gap: 10, justifyContent: 'center' },
+	card: { minHeight: 84, padding: 16, paddingRight: 124, justifyContent: 'center' },
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
-	statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-	dotsRow: { flexDirection: 'row', gap: 4 },
-	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
-	dotFilled: { backgroundColor: colors.orange },
 	actionsRow: {
 		position: 'absolute',
 		right: 16,

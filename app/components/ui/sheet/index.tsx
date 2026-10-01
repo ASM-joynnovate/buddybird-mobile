@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, contentMaxWidth, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
-import { SheetBackdrop } from '@/components/ui/sheet/backdrop';
+import { FixedSheetBackdrop, SheetBackdrop } from '@/components/ui/sheet/backdrop';
 import { Title } from '@/components/ui/title';
 
 const LIST_SNAP_POINTS = ['70%'];
@@ -20,10 +20,22 @@ interface Props {
 	onClose: () => void;
 	listLayout?: boolean;
 	onOpened?: () => void;
+	headerAction?: ReactNode;
+	dismissible?: boolean;
 	children: ReactNode;
 }
 
-export const Sheet = ({ visible, title, description, onClose, listLayout = false, onOpened, children }: Props) => {
+export const Sheet = ({
+	visible,
+	title,
+	description,
+	onClose,
+	listLayout = false,
+	onOpened,
+	headerAction,
+	dismissible = true,
+	children,
+}: Props) => {
 	const insets = useSafeAreaInsets();
 
 	const sheetRef = useRef<BottomSheetModal>(null);
@@ -52,7 +64,10 @@ export const Sheet = ({ visible, title, description, onClose, listLayout = false
 
 	const header = (
 		<View style={styles.header}>
-			<Title style={styles.title}>{title}</Title>
+			<View style={styles.titleRow}>
+				<Title style={styles.title}>{title}</Title>
+				{headerAction}
+			</View>
 			{!!description && <Copy style={styles.description}>{description}</Copy>}
 		</View>
 	);
@@ -64,8 +79,9 @@ export const Sheet = ({ visible, title, description, onClose, listLayout = false
 			onChange={handleSheetChange}
 			enableContentPanningGesture={listLayout}
 			enableDynamicSizing={!listLayout}
+			enablePanDownToClose={dismissible}
 			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
-			backdropComponent={SheetBackdrop}
+			backdropComponent={dismissible ? SheetBackdrop : FixedSheetBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
 			style={styles.sheet}
@@ -99,7 +115,8 @@ const styles = StyleSheet.create({
 	handle: { width: 40, height: 5, backgroundColor: colors.border },
 	contentContainer: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
 	header: { gap: 6 },
-	title: { fontSize: 18, lineHeight: 24 },
+	titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+	title: { flex: 1, fontSize: 18, lineHeight: 24 },
 	description: { color: colors.muted, lineHeight: 21 },
 	listContainer: { flex: 1 },
 	listHeader: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },

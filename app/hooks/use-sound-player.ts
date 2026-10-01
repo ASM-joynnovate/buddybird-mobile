@@ -8,13 +8,14 @@ export interface SoundPlayer {
 	playingId: string | null;
 	finishedIds: ReadonlySet<string>;
 	failedId: string | null;
+	progress: number;
 	toggle: (id: string, url: string) => void;
 	stop: () => void;
 }
 
 /** 녹음 재생 Hook */
 const useSoundPlayer = () => {
-	const player = useAudioPlayer(null, { updateInterval: 100 });
+	const player = useAudioPlayer(null, { updateInterval: 100, keepAudioSessionActive: true });
 	const status = useAudioPlayerStatus(player);
 
 	const [playingId, setPlayingId] = useState<string | null>(null);
@@ -22,6 +23,8 @@ const useSoundPlayer = () => {
 	const [finishedIds, setFinishedIds] = useState<ReadonlySet<string>>(new Set());
 
 	const playSequenceRef = useRef(0);
+
+	const progress = playingId && status.duration > 0 ? Math.min(1, status.currentTime / status.duration) : 0;
 
 	/** 재생 정지 함수 */
 	const stop = useCallback(() => {
@@ -74,6 +77,26 @@ const useSoundPlayer = () => {
 				}
 
 				player.replace({ uri: url });
+
+				// 불러오기 전에 재생하면 iOS가 끝까지 재생된 이전 소리에 재생을 적용한 뒤 바로 멈춤
+				await new Promise<void>((resolve, reject) => {
+					const subscription = player.addListener('playbackStatusUpdate', (nextStatus) => {
+						if (nextStatus.isLoaded) {
+							subscription.remove();
+
+							resolve();
+						} else if (nextStatus.playbackState === 'failed') {
+							subscription.remove();
+
+							reject(new Error('Sound could not be loaded'));
+						}
+					});
+				});
+
+				if (token !== playSequenceRef.current) {
+					return;
+				}
+
 				await player.seekTo(0);
 				player.play();
 
@@ -89,7 +112,7 @@ const useSoundPlayer = () => {
 			});
 	};
 
-	return { playingId, finishedIds, failedId, toggle, stop };
+	return { playingId, finishedIds, failedId, progress, toggle, stop };
 };
 
 export default useSoundPlayer;

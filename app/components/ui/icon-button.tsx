@@ -1,31 +1,37 @@
 import { StyleSheet } from 'react-native';
 
-import type { LucideIcon } from 'lucide-react-native';
+import type { LucideIcon, LucideProps } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const variants = {
-	plain: { surfaceVariant: 'plain', color: colors.text },
-	muted: { surfaceVariant: 'plain', color: colors.muted },
-	accent: { surfaceVariant: 'plain', color: colors.orange },
-	primary: { surfaceVariant: 'primary', color: colors.onFilled },
-	onBrand: { surfaceVariant: 'plain', color: colors.onBrand },
+	plain: { surfaceVariant: 'plain', color: colors.text, shape: 'square' },
+	muted: { surfaceVariant: 'plain', color: colors.muted, shape: 'square' },
+	accent: { surfaceVariant: 'plain', color: colors.orange, shape: 'square' },
+	primary: { surfaceVariant: 'primary', color: colors.onFilled, shape: 'circle' },
+	onBrand: { surfaceVariant: 'plain', color: colors.onBrand, shape: 'square' },
 } as const;
+
+const cornerRadii = { circle: 'pill', square: 'control' } as const;
 
 const iconSizes = { tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;
 
 type IconButtonVariant = keyof typeof variants;
 
+type IconButtonShape = keyof typeof cornerRadii;
+
 type IconButtonSize = keyof typeof iconSizes;
 
 interface Props {
 	icon: LucideIcon;
+	iconProps?: LucideProps;
 	label: string;
 	onPress: () => void;
 	disabled?: boolean;
 	variant?: IconButtonVariant;
+	shape?: IconButtonShape;
 	size?: IconButtonSize;
 }
 
@@ -39,9 +45,19 @@ const boxStyle = (size: IconButtonSize) => {
 	}[size];
 };
 
-export const IconButton = ({ icon: Icon, label, onPress, disabled, variant = 'plain', size = 'medium' }: Props) => {
-	const { surfaceVariant, color } = variants[variant];
+export const IconButton = ({
+	icon: Icon,
+	iconProps,
+	label,
+	onPress,
+	disabled,
+	variant = 'plain',
+	shape,
+	size = 'medium',
+}: Props) => {
+	const { surfaceVariant, color, shape: variantShape } = variants[variant];
 	const isPrimary = variant === 'primary';
+	const buttonShape = shape ?? variantShape;
 
 	return (
 		<PressableSurface
@@ -52,11 +68,11 @@ export const IconButton = ({ icon: Icon, label, onPress, disabled, variant = 'pl
 			onPress={onPress}
 			variant={isPrimary && disabled ? 'disabled' : surfaceVariant}
 			depth={isPrimary ? 'medium' : 'none'}
-			cornerRadius={isPrimary ? 'pill' : 'control'}
+			cornerRadius={cornerRadii[buttonShape]}
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}
 		>
-			<Icon color={disabled ? colors.subtle : color} size={iconSizes[size]} />
+			<Icon color={disabled ? colors.subtle : color} size={iconSizes[size]} {...iconProps} />
 		</PressableSurface>
 	);
 };

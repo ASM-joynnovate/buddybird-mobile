@@ -4,18 +4,25 @@ import { BottomSheetBackdrop, type BottomSheetBackdropProps } from '@gorhom/bott
 
 import { colors } from '@/theme';
 
-interface Props extends BottomSheetBackdropProps {}
+interface Props extends BottomSheetBackdropProps {
+	pressBehavior?: 'close' | 'none';
+}
 
-export const SheetBackdrop = (props: Props) => {
+export const SheetBackdrop = ({ pressBehavior = 'close', ...props }: Props) => {
 	return (
 		<BottomSheetBackdrop
 			{...props}
 			appearsOnIndex={0}
 			disappearsOnIndex={-1}
 			opacity={1}
+			pressBehavior={pressBehavior}
 			style={[props.style, styles.backdrop]}
 		/>
 	);
+};
+
+export const FixedSheetBackdrop = (props: BottomSheetBackdropProps) => {
+	return <SheetBackdrop {...props} pressBehavior="none" />;
 };
 
 const styles = StyleSheet.create({

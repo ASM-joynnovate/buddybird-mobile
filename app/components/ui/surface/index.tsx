@@ -6,12 +6,13 @@ import Animated from 'react-native-reanimated';
 
 import { colors, depths, radius } from '@/theme';
 
+// 오렌지 면과 비활성 면은 테두리를 면과 같은 색으로 칠해 아래 두께만 드러냄
 const variants = {
-	neutral: { face: colors.background, edge: colors.border },
-	primary: { face: colors.orange, edge: colors.orangeDark },
-	selected: { face: colors.orangePale, edge: colors.orange },
-	plain: { face: 'transparent', edge: 'transparent' },
-	disabled: { face: colors.disabledBackground, edge: colors.disabledBackground },
+	neutral: { face: colors.background, edge: colors.border, border: colors.border },
+	primary: { face: colors.orange, edge: colors.orangeDark, border: colors.orange },
+	selected: { face: colors.orangePale, edge: colors.orange, border: colors.orange },
+	plain: { face: 'transparent', edge: 'transparent', border: 'transparent' },
+	disabled: { face: colors.disabledBackground, edge: colors.disabledBackground, border: colors.disabledBackground },
 } as const;
 
 type SurfaceVariant = keyof typeof variants;
@@ -39,7 +40,11 @@ export const Surface = ({
 	faceColor,
 	...props
 }: Props) => {
-	const palette = { face: faceColor ?? variants[variant].face, edge: edgeColor ?? variants[variant].edge };
+	const palette = {
+		face: faceColor ?? variants[variant].face,
+		edge: edgeColor ?? variants[variant].edge,
+		border: edgeColor ?? variants[variant].border,
+	};
 	const borderRadius = radius[cornerRadius];
 	const edgeHeight = depths[depth];
 
@@ -61,7 +66,7 @@ export const Surface = ({
 					styles.face,
 					{
 						backgroundColor: palette.face,
-						borderColor: palette.edge,
+						borderColor: palette.border,
 						borderRadius,
 					},
 					contentStyle,
