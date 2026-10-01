@@ -196,7 +196,7 @@ export const track = <K extends keyof AnalyticsEvents>(name: K, eventParams: Ana
 	}
 
 	void sendTelemetrySafely(async () => {
-		await logEvent(getAnalytics(), name.slice(0, FIREBASE_NAME_LIMIT), firebaseParameters(eventParams));
+		logEvent(getAnalytics(), name.slice(0, FIREBASE_NAME_LIMIT), firebaseParameters(eventParams));
 
 		if (!clarityStarted) {
 			return;

@@ -56,7 +56,7 @@ const config: ExpoConfig = {
 	},
 	plugins: [
 		'./plugins/withAndroidBuildMemory',
-		'@react-native-firebase/app',
+		['@react-native-firebase/app', { ios: { disableSPM: true } }],
 		'@react-native-firebase/crashlytics',
 		[
 			'expo-build-properties',

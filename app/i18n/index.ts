@@ -35,7 +35,7 @@ export const changeI18nLocale = async (locale: Locale) => {
 				'en-US': { translation: en },
 			},
 			interpolation: { escapeValue: false },
-			initImmediate: false,
+			initAsync: false,
 		});
 
 		i18next.services.formatter?.add(

@@ -28,7 +28,7 @@ jobs:
           node-version: 24
           cache: yarn
       - run: yarn install --immutable
-      - run: npm install --global eas-cli@24.6.0 # zizmor: ignore[adhoc-packages]
+      - run: npm install --global eas-cli@24.8.0 # zizmor: ignore[adhoc-packages]
       - name: Prepare Firebase identity for EAS configuration
         env:
           DEV_IOS: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}

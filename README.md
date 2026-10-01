@@ -1,6 +1,6 @@
 # BuddyBird mobile
 
-A fresh Ignite 11.5.0 / Expo 55 implementation of BuddyBird for iOS and Android. React Native 0.83.2, React 19.2, React Navigation, React Context, MMKV, i18next, TanStack Query v5 and native fetch.
+A fresh Ignite 11.5.0 / Expo 57 implementation of BuddyBird for iOS and Android. React Native 0.86.3, React 19.2, React Navigation, React Context, MMKV, i18next, TanStack Query v5 and native fetch.
 
 ## How to start
 ```sh

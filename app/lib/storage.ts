@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
 interface RestoreError {
 	error: unknown;
@@ -16,12 +16,12 @@ let restoreErrors: readonly RestoreError[] = [];
 
 /** zustand persist에 사용할 MMKV 저장소 */
 export const mmkvStorage = (id: string) => {
-	const storage = new MMKV({ id });
+	const storage = createMMKV({ id });
 
 	return {
 		getItem: (name: string) => storage.getString(name) ?? null,
 		setItem: (name: string, value: string) => storage.set(name, value),
-		removeItem: (name: string) => storage.delete(name),
+		removeItem: (name: string) => storage.remove(name),
 	};
 };
 

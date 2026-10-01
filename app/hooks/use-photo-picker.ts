@@ -1,9 +1,12 @@
 import { useState } from 'react';
 
+import { Platform } from 'react-native';
+
 import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
+import * as Device from 'expo-device';
 import * as ImagePicker from 'expo-image-picker';
 
 import { MAX_UPLOAD_BYTES, PHOTO_MIME_TYPES } from '@/config';
@@ -38,6 +41,13 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 
 	/** 사진 선택 함수 */
 	const pick = async (source: 'camera' | 'library') => {
+		// 카메라가 없는 iOS 시뮬레이터에서 카메라를 열면 앱이 종료되므로 오류 문구만 표시
+		if (Platform.OS === 'ios' && source === 'camera' && !Device.isDevice) {
+			setErrorMessage(t('common.profilePhoto.loadError'));
+
+			return;
+		}
+
 		try {
 			const pickerResult =
 				source === 'camera'
