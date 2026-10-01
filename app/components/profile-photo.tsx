@@ -59,7 +59,10 @@ const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 				cornerRadius="pill"
 				depth="none"
 			>
-				<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
+				{/*바깥 Transition.Boundary가 있으면 다른 화면의 같은 사진이 이 원으로 맞춰짐*/}
+				<View>
+					<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
+				</View>
 				<View style={styles.photoBadge}>
 					<ActionIcon size={20} color={colors.onFilled} />
 				</View>

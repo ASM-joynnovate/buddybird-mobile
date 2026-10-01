@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { type StyleProp, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 
-import Animated from 'react-native-reanimated';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
 import { colors, depths, radius } from '@/theme';
 
@@ -21,7 +21,7 @@ interface Props extends ViewProps {
 	variant?: SurfaceVariant;
 	depth?: keyof typeof depths;
 	cornerRadius?: keyof typeof radius;
-	contentStyle?: StyleProp<ViewStyle>;
+	contentStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 	edgeColor?: string;
 	faceColor?: string;
 	children: ReactNode;

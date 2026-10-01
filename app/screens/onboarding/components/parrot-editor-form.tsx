@@ -216,6 +216,8 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 		setDeleteDialogOpen(false);
 	};
 
+	const profilePhoto = <ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />;
+
 	return (
 		<Screen
 			footer={
@@ -242,8 +244,9 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 				</View>
 			)}
 
+			{/*앵무새 카드 사진이 커지며 맞춰질 자리*/}
 			<View style={styles.photoContainer}>
-				<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
+				{profilePhoto}
 			</View>
 
 			{/*앵무새 정보 입력*/}
