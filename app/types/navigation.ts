@@ -2,6 +2,7 @@ import type { ReportPeriod } from '@/types/report-period';
 import type { SleepSettings } from '@/types/sleep-settings';
 
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { MeasuredDimensions } from 'react-native-reanimated';
 
 export interface LearningDuration {
 	ms: number | null;
@@ -46,7 +47,9 @@ export type RootStackParamList = {
 	Login: { source?: 'onboarding' } | undefined;
 	Consent: undefined;
 	ConsentDetail: { consentId: string; source: 'onboarding' | 'settings' };
-	ParrotEditor: { parrotId?: string; source?: 'onboarding' } | undefined;
+	ParrotEditor:
+		| { parrotId?: string; source?: 'onboarding'; photoOrigin?: MeasuredDimensions; photoTilt?: number }
+		| undefined;
 	UsageGuide: undefined;
 	PermissionRequest: undefined;
 	Main: NavigatorScreenParams<MainTabParamList> | undefined;

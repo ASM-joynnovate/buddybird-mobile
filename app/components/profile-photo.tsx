@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
 
 import { ImageIcon, PencilIcon, PlusIcon } from 'lucide-react-native';
+import Animated, { type AnimatedRef, type AnimatedStyle } from 'react-native-reanimated';
 
 import { colors } from '@/theme';
 
@@ -23,6 +24,8 @@ interface Props {
 	photo: ReturnType<typeof usePhotoPicker>;
 	busy: boolean;
 	action?: 'plus' | 'edit';
+	photoRef?: AnimatedRef<Animated.View>;
+	badgeStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 }
 
 /**
@@ -30,8 +33,10 @@ interface Props {
  * @param photo usePhotoPicker 결과
  * @param busy 저장 중 여부
  * @param action 사진에 표시할 아이콘 종류
+ * @param photoRef 원형 사진의 화면 위치를 잴 때 쓰는 ref
+ * @param badgeStyle 사진 아이콘 버튼에 더할 애니메이션 스타일
  */
-const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
+const ProfilePhoto = ({ photo, busy, action = 'edit', photoRef, badgeStyle }: Props) => {
 	const { t } = useTranslation();
 
 	const [sheetOpen, setSheetOpen] = useState(false);
@@ -59,13 +64,12 @@ const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
 				cornerRadius="pill"
 				depth="none"
 			>
-				{/*바깥 Transition.Boundary가 있으면 다른 화면의 같은 사진이 이 원으로 맞춰짐*/}
-				<View>
+				<Animated.View ref={photoRef}>
 					<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
-				</View>
-				<View style={styles.photoBadge}>
+				</Animated.View>
+				<Animated.View style={[styles.photoBadge, badgeStyle]}>
 					<ActionIcon size={20} color={colors.onFilled} />
-				</View>
+				</Animated.View>
 			</PressableSurface>
 			<InlineError message={photo.errorMessage} />
 

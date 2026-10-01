@@ -1,13 +1,18 @@
 import { useCallback } from 'react';
 
+import type { StyleProp, ViewStyle } from 'react-native';
+
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useGetParrotList } from '@/hooks/apis/parrots';
 
 import { type RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type Animated from 'react-native-reanimated';
+import { type AnimatedStyle, useAnimatedRef } from 'react-native-reanimated';
 
 import ParrotEditorForm from '@/screens/onboarding/components/parrot-editor-form';
+import ParrotPhotoFlight from '@/screens/onboarding/components/parrot-photo-flight';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 
 import { Screen } from '@/components/ui/screen';
@@ -19,6 +24,8 @@ const ParrotEditorScreen = () => {
 	const params = useRoute<RouteProp<RootStackParamList, 'ParrotEditor'>>().params;
 
 	const { data: parrotListData } = useGetParrotList();
+
+	const photoRef = useAnimatedRef<Animated.View>();
 
 	const parrotId = params?.parrotId;
 	const fromOnboarding = params?.source === 'onboarding';
@@ -58,7 +65,7 @@ const ParrotEditorScreen = () => {
 		);
 	}
 
-	return (
+	const renderForm = (badgeStyle?: StyleProp<AnimatedStyle<ViewStyle>>) => (
 		<ParrotEditorForm
 			key={parrot?.id ?? 'new'}
 			parrot={parrot}
@@ -66,7 +73,24 @@ const ParrotEditorScreen = () => {
 			intro={fromOnboarding || !parrot}
 			onBack={canGoBack ? () => navigation.goBack() : undefined}
 			onDone={handleDone}
+			photoRef={photoRef}
+			badgeStyle={badgeStyle}
 		/>
+	);
+
+	if (!params?.photoOrigin) {
+		return renderForm();
+	}
+
+	return (
+		<ParrotPhotoFlight
+			origin={params.photoOrigin}
+			tilt={params.photoTilt ?? 0}
+			targetRef={photoRef}
+			photoUri={parrot?.photo?.url ?? null}
+		>
+			{renderForm}
+		</ParrotPhotoFlight>
 	);
 };
 

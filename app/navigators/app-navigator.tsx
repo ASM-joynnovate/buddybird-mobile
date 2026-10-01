@@ -7,8 +7,13 @@ import type { RootStackParamList } from '@/types/navigation';
 import useEntryRoute, { type EntryRoute } from '@/hooks/use-entry-route';
 
 import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@react-native-firebase/messaging';
-import { type LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+	type LinkingOptions,
+	NavigationContainer,
+	type RouteProp,
+	useNavigationContainerRef,
+} from '@react-navigation/native';
+import { createNativeStackNavigator, type NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { env } from '@/config';
 import MainTabs from '@/navigators/main-tabs';
@@ -35,6 +40,26 @@ import { notificationPath } from '@/utils/notification';
 import OfflineBanner from '@/components/offline-banner';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+/**
+ * 앵무새 카드에서 연 수정 화면은 투명 모달로 띄워 사진이 옮겨 가는 동안 뒤의 프로필이 보이게 함
+ * @param route 앵무새 수정 화면 route
+ */
+const parrotEditorOptions = ({
+	route,
+}: {
+	route: RouteProp<RootStackParamList, 'ParrotEditor'>;
+}): NativeStackNavigationOptions => {
+	if (!route.params?.photoOrigin) {
+		return {};
+	}
+
+	return {
+		presentation: 'containedTransparentModal',
+		animation: 'none',
+		contentStyle: { backgroundColor: colors.backgroundTransparent },
+	};
+};
 
 /** 실행 환경에 맞는 앱 링크 prefix */
 const linkPrefix = () => {
@@ -173,7 +198,11 @@ const AppNavigator = () => {
 						<RootStack.Group>
 							<RootStack.Screen name="Main" component={MainTabs} />
 							<RootStack.Screen name="Login" component={LoginScreen} />
-							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
+							<RootStack.Screen
+								name="ParrotEditor"
+								component={ParrotEditorScreen}
+								options={parrotEditorOptions}
+							/>
 							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<RootStack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
 

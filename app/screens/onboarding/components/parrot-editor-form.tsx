@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
@@ -19,6 +19,8 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { randomUUID } from 'expo-crypto';
 import { TrashIcon } from 'lucide-react-native';
+import type Animated from 'react-native-reanimated';
+import type { AnimatedRef, AnimatedStyle } from 'react-native-reanimated';
 
 import { PARROT_NAME_LIMIT } from '@/config';
 import BirthdatePicker from '@/screens/onboarding/components/birthdate-picker';
@@ -50,6 +52,8 @@ interface Props {
 	intro: boolean;
 	onBack?: () => void;
 	onDone: () => void;
+	photoRef?: AnimatedRef<Animated.View>;
+	badgeStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 }
 
 /**
@@ -59,8 +63,10 @@ interface Props {
  * @param intro 안내 말풍선 표시 여부
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
  * @param onDone 편집 완료 시 실행할 함수
+ * @param photoRef 원형 사진의 화면 위치를 잴 때 쓰는 ref
+ * @param badgeStyle 사진 아이콘 버튼에 더할 애니메이션 스타일
  */
-const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) => {
+const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, badgeStyle }: Props) => {
 	const { t } = useTranslation();
 
 	const [name, setName] = useState(parrot?.name ?? '');
@@ -216,8 +222,6 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 		setDeleteDialogOpen(false);
 	};
 
-	const profilePhoto = <ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />;
-
 	return (
 		<Screen
 			footer={
@@ -244,8 +248,15 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone }: Props) =
 				</View>
 			)}
 
-			{/*앵무새 카드 사진이 커지며 맞춰질 자리*/}
-			<View style={styles.photoContainer}>{profilePhoto}</View>
+			<View style={styles.photoContainer}>
+				<ProfilePhoto
+					photo={photo}
+					busy={saving}
+					action={photo.photoUri ? 'edit' : 'plus'}
+					photoRef={photoRef}
+					badgeStyle={badgeStyle}
+				/>
+			</View>
 
 			{/*앵무새 정보 입력*/}
 			<View style={styles.fieldsContainer}>

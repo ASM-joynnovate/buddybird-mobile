@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BirdIcon } from 'lucide-react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { type MeasuredDimensions, measure, useAnimatedRef } from 'react-native-reanimated';
+import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import { dropIn } from '@/screens/profile/components/parrot-card-animations';
 import { colors, font, radius } from '@/theme';
@@ -40,6 +41,8 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+	const photoRef = useAnimatedRef<Animated.View>();
+
 	const ageInMonths = ageMonths(parrot.birthdate);
 	const speciesName = isSpeciesId(parrot.species) ? t(`parrot.speciesNames.${parrot.species}`) : parrot.species;
 	let ageText: string | null = null;
@@ -51,16 +54,33 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 				: t('profile.ageYears', { count: Math.floor(ageInMonths / MONTHS_PER_YEAR) });
 	}
 
+	const openEditor = (photoOrigin: MeasuredDimensions | null) => {
+		navigation.navigate('ParrotEditor', {
+			parrotId: parrot.id,
+			photoOrigin: photoOrigin ?? undefined,
+			photoTilt: tilt,
+		});
+	};
+
+	/** 카드 사진의 화면 위치를 재서 수정 화면으로 넘김 */
+	const handlePress = () => {
+		scheduleOnUI(() => {
+			'worklet';
+
+			scheduleOnRN(openEditor, measure(photoRef));
+		});
+	};
+
 	return (
 		<Animated.View entering={dropIn(tilt, order)} style={[ui.action, { transform: [{ rotate: `${tilt}deg` }] }]}>
 			<PressableSurface
 				accessibilityLabel={joinLabel(t('profile.editParrot', { name: parrot.name }), speciesName, ageText)}
 				depth="low"
-				onPress={() => navigation.navigate('ParrotEditor', { parrotId: parrot.id })}
+				onPress={handlePress}
 				style={styles.card}
 				contentStyle={styles.cardContent}
 			>
-				<View style={styles.photo}>
+				<Animated.View ref={photoRef} style={styles.photo}>
 					{parrot.photo ? (
 						<Image
 							source={{ uri: parrot.photo.url }}
@@ -70,7 +90,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 					) : (
 						<BirdIcon size={40} color={colors.subtle} />
 					)}
-				</View>
+				</Animated.View>
 
 				<Copy numberOfLines={1} style={styles.name}>
 					{parrot.name}
