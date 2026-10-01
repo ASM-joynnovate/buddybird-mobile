@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
@@ -53,18 +53,28 @@ const ProfilePhoto = ({
 
 	const [sheetOpen, setSheetOpen] = useState(false);
 
+	const pendingPickRef = useRef<(() => Promise<void>) | null>(null);
+
 	const ActionIcon = actionIcons[action];
 
 	const handleTakePhoto = () => {
+		pendingPickRef.current = photo.take;
 		setSheetOpen(false);
-
-		void photo.take();
 	};
 
 	const handleChoosePhoto = () => {
+		pendingPickRef.current = photo.choose;
+		setSheetOpen(false);
+	};
+
+	/** 시트가 닫히는 애니메이션이 끝난 뒤 카메라나 앨범을 열어야 다음에 시트가 다시 열림 */
+	const handleCloseSheet = () => {
+		const pick = pendingPickRef.current;
+
+		pendingPickRef.current = null;
 		setSheetOpen(false);
 
-		void photo.choose();
+		void pick?.();
 	};
 
 	return (
@@ -85,7 +95,7 @@ const ProfilePhoto = ({
 			</PressableSurface>
 			<InlineError message={photo.errorMessage} />
 
-			<Sheet visible={sheetOpen} title={t('common.profilePhoto.title')} onClose={() => setSheetOpen(false)}>
+			<Sheet visible={sheetOpen} title={t('common.profilePhoto.title')} onClose={handleCloseSheet}>
 				<ItemGroup>
 					<Item first label={t('common.profilePhoto.take')} onPress={handleTakePhoto} />
 					<Item label={t('common.profilePhoto.choose')} onPress={handleChoosePhoto} />
