@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
@@ -22,7 +22,7 @@ import { queryClient } from '@/lib/query-client';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
-import { PlayIcon } from 'lucide-react-native';
+import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { SCREEN_REFRESH_MS } from '@/config';
@@ -214,15 +214,18 @@ const HomeContent = () => {
 
 				{/*다른 기기에서 진행 중인 학습 안내*/}
 				{runningSession && runningElsewhere && (
-					<Card style={styles.elsewhereCardContainer} contentStyle={styles.elsewhereCard}>
-						<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
-						<TextButton
-							label={t('session.start.endElsewhere')}
-							disabled={finishSession.isPending}
-							onPress={() => finishSession.mutate({ id: runningSession.id })}
-						/>
+					<View style={styles.elsewhereContainer}>
+						<Card contentStyle={styles.elsewhereCard}>
+							<MonitorSmartphoneIcon size={20} color={colors.orangeDark} />
+							<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
+							<TextButton
+								label={t('session.start.endElsewhere')}
+								disabled={finishSession.isPending}
+								onPress={() => finishSession.mutate({ id: runningSession.id })}
+							/>
+						</Card>
 						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
-					</Card>
+					</View>
 				)}
 
 				{/*단어 선택*/}
@@ -317,9 +320,9 @@ const HomeContent = () => {
 const styles = StyleSheet.create({
 	body: { flex: 1 },
 	content: { paddingTop: 8, paddingBottom: 24 },
-	elsewhereCardContainer: { marginBottom: 20 },
-	elsewhereCard: { gap: 8, padding: 16 },
-	elsewhereText: { fontFamily: font.extraBold, fontSize: 15 },
+	elsewhereContainer: { marginBottom: 20 },
+	elsewhereCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 4, paddingLeft: 14 },
+	elsewhereText: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 15, lineHeight: 21 },
 	sleepContainer: { marginTop: 16 },
 	startButton: { marginTop: 12 },
 });

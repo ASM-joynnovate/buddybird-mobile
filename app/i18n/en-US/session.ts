@@ -40,7 +40,7 @@ export const session: SessionMessages = {
 		startButton: 'Start learning',
 		startUnavailable: 'Choose a word and duration to start',
 		elsewhere: 'Learning is running on another device',
-		endElsewhere: 'End that session',
+		endElsewhere: 'End',
 		endElsewhereError: "Couldn't end the session. Check your internet connection and try again.",
 	},
 	run: {

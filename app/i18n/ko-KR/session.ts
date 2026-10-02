@@ -40,7 +40,7 @@ export const session: SessionMessages = {
 		startButton: '학습 시작',
 		startUnavailable: '학습할 단어와 시간을 설정하면 시작할 수 있어요',
 		elsewhere: '다른 기기에서 학습 중이에요',
-		endElsewhere: '그 학습 끝내기',
+		endElsewhere: '끝내기',
 		endElsewhereError: '학습을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
 	run: {
