@@ -1,6 +1,6 @@
 import { AppState } from 'react-native';
 
-import { initializeTelemetry, reportError } from '@/services/telemetry/client';
+import { initializeTelemetry, reportError, track } from '@/services/telemetry/client';
 import { installGlobalErrorReporting } from '@/services/telemetry/global-errors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
@@ -22,12 +22,27 @@ export const startAppServices = () => {
 	countFeedbackDay('app_settings');
 
 	let previousAppState = AppState.currentState;
+	let appBackgrounded = previousAppState === 'background';
 
 	const appStateSubscription = AppState.addEventListener('change', (appState) => {
 		if (appState === 'active' && previousAppState !== 'active') {
-			void initializeTelemetry(false).catch((error) => reportError(error, 'telemetry_foreground'));
+			const returnedFromBackground = appBackgrounded;
+
+			appBackgrounded = false;
+
+			void initializeTelemetry(false)
+				.then(() => {
+					if (returnedFromBackground) {
+						track('app_foregrounded', {});
+					}
+				})
+				.catch((error) => reportError(error, 'telemetry_foreground'));
 
 			countFeedbackDay('foreground');
+		} else if (appState === 'background' && !appBackgrounded) {
+			appBackgrounded = true;
+
+			track('app_backgrounded', {});
 		}
 
 		previousAppState = appState;

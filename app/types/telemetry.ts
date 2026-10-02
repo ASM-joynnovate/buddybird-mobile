@@ -64,6 +64,8 @@ export interface AnalyticsEvents {
 	feedback_prompt_shown: { threshold: number };
 	feedback_prompt_dismissed: { threshold: number };
 	feedback_submitted: { source: 'prompt' | 'profile'; message_length: number };
+	app_foregrounded: Record<string, never>;
+	app_backgrounded: Record<string, never>;
 	app_error: { error_code: string; screen_name: string | null };
 	screen_view: { screen_name: string; screen_class: string };
 }
