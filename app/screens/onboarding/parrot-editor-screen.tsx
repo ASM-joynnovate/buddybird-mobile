@@ -10,7 +10,7 @@ import type Animated from 'react-native-reanimated';
 import { useAnimatedRef } from 'react-native-reanimated';
 
 import ParrotEditorForm from '@/screens/onboarding/components/parrot-editor-form';
-import ParrotPhotoFlight, { type ParrotPhotoFlightStyles } from '@/screens/onboarding/components/parrot-photo-flight';
+import ParrotPhotoFlight, { type ParrotPhotoFlightParts } from '@/screens/onboarding/components/parrot-photo-flight';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 
 import { Screen } from '@/components/ui/screen';
@@ -63,7 +63,7 @@ const ParrotEditorScreen = () => {
 		);
 	}
 
-	const renderForm = (flightStyles?: ParrotPhotoFlightStyles) => (
+	const renderForm = (flight?: ParrotPhotoFlightParts) => (
 		<ParrotEditorForm
 			key={parrot?.id ?? 'new'}
 			parrot={parrot}
@@ -72,8 +72,7 @@ const ParrotEditorScreen = () => {
 			onBack={canGoBack ? () => navigation.goBack() : undefined}
 			onDone={handleDone}
 			photoRef={photoRef}
-			photoStyle={flightStyles?.photoStyle}
-			badgeStyle={flightStyles?.badgeStyle}
+			flight={flight}
 		/>
 	);
 

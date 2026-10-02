@@ -44,4 +44,5 @@ export type ParrotMessages = {
 	register: string;
 	delete: string;
 	deleteError: string;
+	addPhoto: string;
 };

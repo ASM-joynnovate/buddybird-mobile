@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
@@ -18,27 +18,31 @@ import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
 import { randomUUID } from 'expo-crypto';
-import { BirdIcon, TrashIcon } from 'lucide-react-native';
-import type Animated from 'react-native-reanimated';
-import type { AnimatedRef, AnimatedStyle } from 'react-native-reanimated';
+import { ChevronLeftIcon, TrashIcon } from 'lucide-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import Animated, { type AnimatedRef, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PARROT_NAME_LIMIT } from '@/config';
 import BirthdatePicker from '@/screens/onboarding/components/birthdate-picker';
+import ParrotPhotoBackdrop from '@/screens/onboarding/components/parrot-photo-backdrop';
+import type { ParrotPhotoFlightParts } from '@/screens/onboarding/components/parrot-photo-flight';
 import SpeciesPicker from '@/screens/onboarding/components/species-picker';
 import { reportError } from '@/services/telemetry/client';
+import { colors, contentMaxWidth, radius } from '@/theme';
 import { isSpeciesId } from '@/utils/species';
 
 import BuddySays from '@/components/buddy-says';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
-import ProfilePhoto from '@/components/profile-photo';
 import { Button } from '@/components/ui/button';
-import { IconButton } from '@/components/ui/icon-button';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
-import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { TextField } from '@/components/ui/text-field';
+import { Title } from '@/components/ui/title';
+
+const KEYBOARD_BOTTOM_OFFSET = 36;
 
 interface InvalidFields {
 	name: boolean;
@@ -53,8 +57,7 @@ interface Props {
 	onBack?: () => void;
 	onDone: () => void;
 	photoRef?: AnimatedRef<Animated.View>;
-	photoStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-	badgeStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
+	flight?: ParrotPhotoFlightParts;
 }
 
 /**
@@ -65,11 +68,14 @@ interface Props {
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
  * @param onDone 편집 완료 시 실행할 함수
  * @param photoRef 사진의 화면 위치를 잴 때 쓰는 ref
- * @param photoStyle 사진에 더할 애니메이션 스타일
- * @param badgeStyle 사진 아이콘 버튼에 더할 애니메이션 스타일
+ * @param flight 사진이 옮겨 가는 애니메이션
  */
-const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, photoStyle, badgeStyle }: Props) => {
+const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, flight }: Props) => {
 	const { t } = useTranslation();
+
+	const insets = useSafeAreaInsets();
+
+	const scrollY = useSharedValue(0);
 
 	const [name, setName] = useState(parrot?.name ?? '');
 
@@ -105,16 +111,12 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 	const speciesError = invalidFields.species ? t('parrot.speciesRequired') : null;
 	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
 	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
+	// 사진이 도착한 뒤에만 상태 표시줄 글자를 밝게 함
+	const photoUnderStatusBar = !!photo.photoUri && (flight?.photoLanded ?? true);
 
-	const deleteButton =
-		parrot && canDelete ? (
-			<IconButton
-				icon={TrashIcon}
-				label={t('parrot.delete')}
-				disabled={saving}
-				onPress={() => setDeleteDialogOpen(true)}
-			/>
-		) : undefined;
+	const handleScroll = useAnimatedScrollHandler((event) => {
+		scrollY.set(event.contentOffset.y);
+	});
 
 	/** 입력 항목의 오류 표시 해제 함수 */
 	const clearInvalidField = (field: keyof InvalidFields) => {
@@ -225,66 +227,108 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 	};
 
 	return (
-		<Screen
-			footer={
-				<>
-					<InlineError message={saveError} />
-					<Button
-						label={t(parrot ? 'common.save' : 'parrot.register')}
-						disabled={!requiredFilled}
-						loading={saving}
-						onPress={handleSave}
-					/>
-				</>
-			}
-		>
-			<ScreenHeader
-				title={t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}
-				onBack={onBack}
-				trailing={deleteButton}
-			/>
+		<View style={styles.container}>
+			<StatusBar barStyle={photoUnderStatusBar ? 'light-content' : 'dark-content'} />
 
-			{intro && (
-				<View style={styles.introContainer}>
-					<BuddySays message={t('parrot.intro')} />
-				</View>
-			)}
+			{flight?.flyingPhoto}
 
-			<View style={styles.photoContainer}>
-				<ProfilePhoto
+			<KeyboardAwareScrollView
+				bounces={false}
+				bottomOffset={KEYBOARD_BOTTOM_OFFSET}
+				showsVerticalScrollIndicator={false}
+				keyboardShouldPersistTaps="handled"
+				keyboardDismissMode="on-drag"
+				onScroll={handleScroll}
+				contentContainerStyle={styles.scrollContent}
+			>
+				<ParrotPhotoBackdrop
 					photo={photo}
 					busy={saving}
-					action={photo.photoUri ? 'edit' : 'plus'}
-					shape="square"
+					scrollY={scrollY}
 					photoRef={photoRef}
-					photoStyle={photoStyle}
-					badgeStyle={badgeStyle}
-					placeholderIcon={BirdIcon}
-				/>
-			</View>
-
-			{/*앵무새 정보 입력*/}
-			<View style={styles.fieldsContainer}>
-				<TextField
-					label={t('parrot.name')}
-					errorMessage={nameError}
-					value={name}
-					onChangeText={handleChangeName}
-					editable={!saving}
-					maxLength={PARROT_NAME_LIMIT}
-					placeholder={t('parrot.nameHint')}
-					returnKeyType="done"
+					photoStyle={flight?.photoStyle}
+					badgeStyle={flight?.buttonsStyle}
 				/>
 
-				<View>
-					<ItemGroup>
-						<SpeciesPicker first species={species} onChange={handleChangeSpecies} disabled={saving} />
-						<BirthdatePicker value={birthdate} onChange={handleChangeBirthdate} />
-					</ItemGroup>
-					<InlineError message={speciesError} />
-					<InlineError message={birthdateError} />
-				</View>
-			</View>
+				<Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }, flight?.sheetStyle]}>
+					<View style={styles.sheetContent}>
+						<Title>{t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}</Title>
+
+						{intro && <BuddySays message={t('parrot.intro')} />}
+
+						<InlineError message={photo.errorMessage} />
+
+						{/*앵무새 정보 입력*/}
+						<View style={styles.fieldsContainer}>
+							<TextField
+								label={t('parrot.name')}
+								errorMessage={nameError}
+								value={name}
+								onChangeText={handleChangeName}
+								editable={!saving}
+								maxLength={PARROT_NAME_LIMIT}
+								placeholder={t('parrot.nameHint')}
+								returnKeyType="done"
+							/>
+
+							<View>
+								<ItemGroup>
+									<SpeciesPicker
+										first
+										species={species}
+										onChange={handleChangeSpecies}
+										disabled={saving}
+									/>
+									<BirthdatePicker value={birthdate} onChange={handleChangeBirthdate} />
+								</ItemGroup>
+								<InlineError message={speciesError} />
+								<InlineError message={birthdateError} />
+							</View>
+						</View>
+
+						<View style={styles.footerContainer}>
+							<InlineError message={saveError} />
+							<Button
+								label={t(parrot ? 'common.save' : 'parrot.register')}
+								disabled={!requiredFilled}
+								loading={saving}
+								onPress={handleSave}
+							/>
+						</View>
+					</View>
+				</Animated.View>
+			</KeyboardAwareScrollView>
+
+			{/*사진 위에 떠 있는 버튼*/}
+			<Animated.View
+				pointerEvents="box-none"
+				style={[styles.photoButtons, { top: insets.top + 4 }, flight?.buttonsStyle]}
+			>
+				{onBack && (
+					<PressableSurface
+						accessibilityLabel={t('common.back')}
+						depth="low"
+						cornerRadius="pill"
+						onPress={onBack}
+						contentStyle={styles.photoButton}
+					>
+						<ChevronLeftIcon size={24} color={colors.text} />
+					</PressableSurface>
+				)}
+				<View style={styles.photoButtonsSpacer} />
+				{parrot && canDelete && (
+					<PressableSurface
+						accessibilityLabel={t('parrot.delete')}
+						disabled={saving}
+						depth="low"
+						cornerRadius="pill"
+						onPress={() => setDeleteDialogOpen(true)}
+						contentStyle={styles.photoButton}
+					>
+						<TrashIcon size={24} color={saving ? colors.subtle : colors.text} />
+					</PressableSurface>
+				)}
+			</Animated.View>
 
 			<PermissionDialog state={photo.libraryDialog} />
 			<PermissionDialog state={photo.cameraDialog} />
@@ -305,14 +349,27 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 					onConfirm={handleDeleteParrot}
 				/>
 			)}
-		</Screen>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	photoContainer: { flexGrow: 1, justifyContent: 'center' },
-	introContainer: { marginTop: 4 },
+	container: { flex: 1 },
+	scrollContent: { flexGrow: 1 },
+	sheet: {
+		paddingTop: 28,
+		paddingHorizontal: 24,
+		borderTopLeftRadius: radius.sheet,
+		borderTopRightRadius: radius.sheet,
+		borderCurve: 'continuous',
+		backgroundColor: colors.background,
+	},
+	sheetContent: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 20 },
 	fieldsContainer: { gap: 16 },
+	footerContainer: { gap: 8 },
+	photoButtons: { position: 'absolute', left: 16, right: 16, flexDirection: 'row' },
+	photoButtonsSpacer: { flex: 1 },
+	photoButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default ParrotEditorForm;

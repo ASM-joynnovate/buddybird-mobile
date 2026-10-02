@@ -46,4 +46,5 @@ export const parrot: ParrotMessages = {
 	register: 'Add',
 	delete: 'Delete parrot',
 	deleteError: "We couldn't delete the parrot. Please try again.",
+	addPhoto: 'Add photo',
 };
