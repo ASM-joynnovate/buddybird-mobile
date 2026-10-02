@@ -64,8 +64,8 @@ interface Props {
  * @param intro 안내 말풍선 표시 여부
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
  * @param onDone 편집 완료 시 실행할 함수
- * @param photoRef 원형 사진의 화면 위치를 잴 때 쓰는 ref
- * @param photoStyle 원형 사진에 더할 애니메이션 스타일
+ * @param photoRef 사진의 화면 위치를 잴 때 쓰는 ref
+ * @param photoStyle 사진에 더할 애니메이션 스타일
  * @param badgeStyle 사진 아이콘 버튼에 더할 애니메이션 스타일
  */
 const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, photoStyle, badgeStyle }: Props) => {
@@ -255,6 +255,7 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 					photo={photo}
 					busy={saving}
 					action={photo.photoUri ? 'edit' : 'plus'}
+					shape="square"
 					photoRef={photoRef}
 					photoStyle={photoStyle}
 					badgeStyle={badgeStyle}

@@ -45,12 +45,12 @@ interface Props {
 }
 
 /**
- * 앵무새 카드 사진이 수정 화면의 원형 사진 자리로 옮겨 가며 화면이 나타나고, 닫을 때는 사진이 카드로 돌아가는 컴포넌트
+ * 앵무새 카드 사진이 수정 화면의 사진 자리로 옮겨 가며 화면이 나타나고, 닫을 때는 사진이 카드로 돌아가는 컴포넌트
  * @param origin 카드 사진의 화면 위치
  * @param tilt 카드 기울기 각도
- * @param targetRef 수정 화면 원형 사진의 ref
+ * @param targetRef 수정 화면 사진의 ref
  * @param photoUri 옮겨 갈 사진 주소
- * @param children 원형 사진과 연필 버튼 스타일을 받아 수정 화면 내용을 그리는 함수
+ * @param children 사진과 연필 버튼 스타일을 받아 수정 화면 내용을 그리는 함수
  */
 const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Props) => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -73,10 +73,10 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 		transform: [{ scale: interpolate(badgeShown.get(), [0, 1], [BADGE_START_SCALE, 1]) }],
 	}));
 
-	// 사진이 옮겨 가는 동안 수정 화면의 원형 사진을 비워 둠
+	// 사진이 옮겨 가는 동안 수정 화면의 사진을 비워 둠
 	const targetPhotoStyle = useAnimatedStyle(() => ({ opacity: flying.get() ? 0 : 1 }));
 
-	// 화면이 열린 직후 배치가 한 번 더 바뀌므로 원 위치는 프레임마다 다시 잼
+	// 화면이 열린 직후 배치가 한 번 더 바뀌므로 사진 위치는 프레임마다 다시 잼
 	const flyingPhotoStyle = useAnimatedStyle(() => {
 		if (!flying.get()) {
 			return { opacity: 0 };
@@ -101,7 +101,7 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 			opacity: 1,
 			width: to.width,
 			height: to.height,
-			borderRadius: interpolate(progress.get(), [0, 1], [radius.control, to.width / 2]) / scale,
+			borderRadius: radius.control / scale,
 			transform: [
 				{ translateX: centerX - to.width / 2 },
 				{ translateY: centerY - to.height / 2 },
@@ -111,7 +111,7 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 		};
 	});
 
-	/** 그려진 뒤 카드 사진 자리에서 원형 사진 자리로 사진을 옮기며 화면 보이기 */
+	/** 그려진 뒤 카드 사진 자리에서 수정 화면 사진 자리로 사진을 옮기며 화면 보이기 */
 	useEffect(() => {
 		scheduleOnUI(() => {
 			'worklet';
