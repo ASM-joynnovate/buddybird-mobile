@@ -36,7 +36,7 @@ const AnalyticsProvider = ({ children }: Props) => {
 	/** 사용자 속성 변경 시 분석 도구에 동기화 */
 	useEffect(() => {
 		if (wordCount !== undefined) {
-			syncUserProperties(parrot, wordCount);
+			syncUserProperties(parrot, wordCount, locale);
 		}
 	}, [parrot, wordCount, locale]);
 

@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import type { Parrot } from '@/types/apis/parrots';
 
 import type { AnalyticsConsent } from '@/types/analytics-consent';
+import type { DeviceSettings } from '@/types/device-settings';
 import type { AnalyticsEvents, UserProperties } from '@/types/telemetry';
 
 import {
@@ -24,7 +25,6 @@ import * as Clarity from 'react-native-clarity';
 
 import { env } from '@/config';
 import { FIREBASE_NAME_LIMIT, firebaseParameters, sendTelemetrySafely } from '@/services/telemetry/events';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { ageMonths } from '@/utils/date';
 
 type UserPropertyStrings = Record<string, string | null>;
@@ -129,8 +129,6 @@ export const initializeTelemetry = (shouldRequestATT = true) => {
 	initialization ??= (async () => {
 		const consent = await getAnalyticsConsent(shouldRequestATT);
 
-		useDeviceSettingsStore.getState().setAnalyticsConsent(consent);
-
 		telemetryAllowed = consent === 'granted' || consent === 'not_applicable';
 
 		await setAnalyticsCollectionEnabled(getAnalytics(), telemetryAllowed);
@@ -180,12 +178,12 @@ export const setUserProperties = (nextUserProperties: UserProperties) => {
 };
 
 /** 사용자 속성 동기화 함수 */
-export const syncUserProperties = (parrot: Parrot | null, wordCount: number) => {
+export const syncUserProperties = (parrot: Parrot | null, wordCount: number, locale: DeviceSettings['locale']) => {
 	setUserProperties({
 		parrot_species: parrot?.species ?? null,
 		parrot_age_months: parrot ? ageMonths(parrot.birthdate) : null,
 		total_words_registered: wordCount,
-		locale: useDeviceSettingsStore.getState().locale,
+		locale,
 	});
 };
 
