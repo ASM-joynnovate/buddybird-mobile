@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useGetParrotList } from '@/hooks/apis/parrots';
 import useLegacyMigration from '@/hooks/use-legacy-migration';
+import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
@@ -34,6 +35,9 @@ const LegacyUploadScreen = () => {
 	const { data: parrotListData } = useGetParrotList();
 
 	const { uploadLegacy } = useLegacyMigration();
+
+	// 버디가 없는 화면이므로 앱 시작 화면의 버디가 횃대와 함께 위로 올라감
+	useStartupLanding();
 
 	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
 

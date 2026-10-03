@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import Animated, { type AnimatedRef } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, contentMaxWidth, font, radius } from '@/theme';
@@ -12,6 +13,7 @@ interface Props {
 	title: ReactNode;
 	accessory?: ReactNode;
 	footer: ReactNode;
+	sheetRef?: AnimatedRef<Animated.View>;
 	children?: ReactNode;
 }
 
@@ -20,13 +22,14 @@ interface Props {
  * @param title 제목
  * @param accessory 제목 위에 놓을 요소
  * @param footer 하단 버튼
+ * @param sheetRef bottom sheet의 화면 위치를 잴 때 쓰는 ref
  * @param children 제목 아래 내용
  */
-const SceneSheet = ({ title, accessory, footer, children }: Props) => {
+const SceneSheet = ({ title, accessory, footer, sheetRef, children }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
-		<View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+		<Animated.View ref={sheetRef} style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
 			<View style={styles.content}>
 				{accessory}
 
@@ -38,7 +41,7 @@ const SceneSheet = ({ title, accessory, footer, children }: Props) => {
 
 				<View style={styles.footer}>{footer}</View>
 			</View>
-		</View>
+		</Animated.View>
 	);
 };
 

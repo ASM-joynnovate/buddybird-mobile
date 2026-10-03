@@ -131,6 +131,7 @@ export default defineConfig({
 			excludeFiles: [
 				"app/components/ui/surface/pressable-surface.tsx",
 				"app/components/ui/text-field.tsx",
+				"app/components/app/startup-screen/perch.tsx",
 			],
 			rules: {
 				"no-restricted-imports": [

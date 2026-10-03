@@ -2,11 +2,14 @@ import { StyleSheet, View } from 'react-native';
 
 import type { HomeStackParamList } from '@/types/navigation';
 
+import useStartupLanding from '@/hooks/use-startup-landing';
+
 import { useTranslation } from 'react-i18next';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
 
 import MascotArtwork from '@/components/mascot/mascot-artwork';
 import { IconButton } from '@/components/ui/icon-button';
@@ -25,12 +28,14 @@ const HomeTopBar = ({ unreadCount }: Props) => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
+	const { buddyRef, buddyStyle } = useStartupLanding();
+
 	return (
 		<View style={styles.container}>
 			{/*로고*/}
-			<View style={styles.mascot}>
+			<Animated.View ref={buddyRef} style={[styles.mascot, buddyStyle]}>
 				<MascotArtwork />
-			</View>
+			</Animated.View>
 			<Title style={styles.brand}>{t('home.brand')}</Title>
 
 			<IconButton

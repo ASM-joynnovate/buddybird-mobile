@@ -10,6 +10,7 @@ import type { Parrot } from '@/types/apis/parrots';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useCreateParrot, useDeleteParrot, useUpdateParrot, useUploadParrotPhoto } from '@/hooks/apis/parrots';
 import usePhotoPicker from '@/hooks/use-photo-picker';
+import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
@@ -102,6 +103,8 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 	const savedPhotoUrl = parrot?.photo_file?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
+
+	const { buddyRef, sheetRef, buddyStyle, bubbleStyle } = useStartupLanding();
 
 	const parrotId = parrot?.id ?? createParrot.data?.id;
 	const saving =
@@ -246,11 +249,21 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 					badgeStyle={flight?.buttonsStyle}
 				/>
 
-				<Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }, flight?.sheetStyle]}>
+				<Animated.View
+					ref={sheetRef}
+					style={[styles.sheet, { paddingBottom: insets.bottom + 12 }, flight?.sheetStyle]}
+				>
 					<View style={styles.sheetContent}>
 						<Title>{t(parrot ? 'parrot.editTitle' : 'parrot.addTitle')}</Title>
 
-						{intro && <BuddySays message={t('parrot.intro')} />}
+						{intro && (
+							<BuddySays
+								message={t('parrot.intro')}
+								mascotRef={buddyRef}
+								mascotStyle={buddyStyle}
+								bubbleStyle={bubbleStyle}
+							/>
+						)}
 
 						<InlineError message={photo.errorMessage} />
 

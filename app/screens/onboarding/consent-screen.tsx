@@ -8,6 +8,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { useGetConsentList, useSaveConsent } from '@/hooks/apis/consents';
 import useEntryRoute from '@/hooks/use-entry-route';
+import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
@@ -43,6 +44,8 @@ const ConsentScreen = () => {
 	const clearAgreedIds = useConsentStore((state) => state.clearAgreedIds);
 
 	const { entryRoute, parrotId } = useEntryRoute();
+
+	const { buddyRef, buddyStyle, bubbleStyle } = useStartupLanding();
 
 	const consents = latestConsents(consentListData);
 
@@ -126,7 +129,12 @@ const ConsentScreen = () => {
 			}
 		>
 			<View style={styles.introContainer}>
-				<BuddySays message={t('onboarding.consent.intro')} />
+				<BuddySays
+					message={t('onboarding.consent.intro')}
+					mascotRef={buddyRef}
+					mascotStyle={buddyStyle}
+					bubbleStyle={bubbleStyle}
+				/>
 			</View>
 
 			<View style={styles.consentsContainer}>

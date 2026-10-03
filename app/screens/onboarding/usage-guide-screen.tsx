@@ -5,6 +5,7 @@ import { StatusBar, Text, View } from 'react-native';
 import type { RootStackParamList } from '@/types/navigation';
 
 import useGuideStep from '@/hooks/use-guide-step';
+import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -57,6 +58,8 @@ const UsageGuideScreen = () => {
 	const mascotY = useSharedValue(0);
 
 	const { stepIndex, setStepIndex } = useGuideStep();
+
+	const { buddyRef, sheetRef, buddyStyle } = useStartupLanding();
 
 	const { step, backgroundColor, backgroundDark } = STEPS[stepIndex];
 	const isLastStep = stepIndex === STEPS.length - 1;
@@ -125,13 +128,14 @@ const UsageGuideScreen = () => {
 			<UsageScene step={step} />
 
 			<SceneSheet
+				sheetRef={sheetRef}
 				title=<Trans
 					i18nKey={`onboarding.usage.${step}.title`}
 					components={{ b: <Text style={styles.titleHighlight} /> }}
 				/>
 				accessory={
 					<View style={styles.sheetTopRow}>
-						<Animated.View style={[styles.mascotContainer, mascotHopStyle]}>
+						<Animated.View ref={buddyRef} style={[styles.mascotContainer, mascotHopStyle, buddyStyle]}>
 							<Mascot size={MASCOT_SIZE} />
 						</Animated.View>
 						<PageDots

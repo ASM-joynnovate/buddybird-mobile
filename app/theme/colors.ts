@@ -1,10 +1,12 @@
 export const colors = {
 	brand: '#DB030F',
+	brandDark: '#A8020B',
 	onBrand: '#F7F2EA',
 	background: '#ffffff',
 	backgroundTransparent: '#ffffff00',
 	onFilled: '#ffffff',
 	text: '#3c3c3c',
+	textDark: '#1f1f1f',
 	muted: '#777777',
 	border: '#e5e5e5',
 	surface: '#f7f7f7',

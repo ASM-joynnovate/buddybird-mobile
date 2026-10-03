@@ -2,6 +2,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import type { LoginProvider } from '@/types/account';
 
+import useStartupLanding from '@/hooks/use-startup-landing';
+
 import { useTranslation } from 'react-i18next';
 
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -46,20 +48,23 @@ const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, intro
 
 	const insets = useSafeAreaInsets();
 
+	const { buddyRef, sheetRef, buddyStyle } = useStartupLanding();
+
 	const lastLoginProvider = useAccountStore((state) => state.lastLoginProvider);
 
 	const lastLoginHint = t('auth.lastLoginHint');
 
 	return (
 		<Animated.View
+			ref={sheetRef}
 			entering={introAnimated ? SlideInDown.duration(SHEET_MS).easing(sheetEasing) : undefined}
 			style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}
 		>
 			<View style={styles.content}>
 				<View style={styles.greetingContainer}>
-					<View style={styles.mascot}>
+					<Animated.View ref={buddyRef} style={[styles.mascot, buddyStyle]}>
 						<Mascot size={92} />
-					</View>
+					</Animated.View>
 
 					<Animated.View
 						entering={introAnimated ? FadeInUp.delay(GREETING_DELAY_MS) : undefined}
