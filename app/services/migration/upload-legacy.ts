@@ -1,6 +1,3 @@
-import { postParrot, putParrotPhoto } from '@/apis/parrots';
-import { postWord, postWordRecording } from '@/apis/words';
-
 import { ApiError } from '@/types/apis/common';
 
 import type { LegacyMigration } from '@/types/device-settings';
@@ -33,15 +30,14 @@ type WordProgress = LegacyMigration['wordProgress'][string];
 const LEGACY_KEY_PREFIXES = ['@buddybird/', '@pethub/'] as const;
 
 let pendingUpload: LegacyUpload | null = null;
-let uploadPromise: Promise<void> | undefined;
 
 /** 저장한 v1 업로드 진행 상태 */
-const getLegacyMigration = () => {
+export const getLegacyMigration = () => {
 	return useDeviceSettingsStore.getState().legacyMigration;
 };
 
 /** v1 업로드 진행 상태 갱신 함수 */
-const setLegacyMigration = (updater: (migration: LegacyMigration) => LegacyMigration) => {
+export const setLegacyMigration = (updater: (migration: LegacyMigration) => LegacyMigration) => {
 	useDeviceSettingsStore.getState().updateLegacyMigration(updater);
 };
 
@@ -156,6 +152,11 @@ export const loadLegacy = async () => {
 	pendingUpload = legacyUpload;
 };
 
+/** 업로드할 v1 데이터를 반환하는 함수 */
+export const getPendingLegacyUpload = () => {
+	return pendingUpload;
+};
+
 /** 업로드할 v1 데이터가 있는지 확인하는 함수 */
 export const hasLegacyUpload = () => {
 	return pendingUpload !== null;
@@ -179,7 +180,7 @@ const isInsideApp = (uri: string) => {
 };
 
 /** 업로드할 수 있는 v1 파일의 주소를 반환하는 함수 */
-const existingFileUri = async (uri: string, scope: string) => {
+export const existingFileUri = async (uri: string, scope: string) => {
 	try {
 		const resolved = resolveFileUri(uri);
 
@@ -204,11 +205,14 @@ const existingFileUri = async (uri: string, scope: string) => {
 };
 
 /** 이름이 같은 idempotency key를 제외하는 함수 */
-const withoutIdempotencyKey = (idempotencyKeys: LegacyMigration['idempotencyKeys'], idempotencyKeyName: string) =>
+export const withoutIdempotencyKey = (
+	idempotencyKeys: LegacyMigration['idempotencyKeys'],
+	idempotencyKeyName: string,
+) =>
 	Object.fromEntries(Object.entries(idempotencyKeys).filter(([savedKeyName]) => savedKeyName !== idempotencyKeyName));
 
 /** 저장된 idempotency key를 반환하고, 없으면 새로 만드는 함수 */
-const ensureIdempotencyKey = (idempotencyKeyName: string) => {
+export const ensureIdempotencyKey = (idempotencyKeyName: string) => {
 	const idempotencyKey = getLegacyMigration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
 
 	setLegacyMigration((migration) => ({
@@ -220,7 +224,7 @@ const ensureIdempotencyKey = (idempotencyKeyName: string) => {
 };
 
 /** 서버가 거부한 요청의 idempotency key 삭제 함수 */
-const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string) => {
+export const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string) => {
 	if (!(error instanceof ApiError) || !error.rejected) {
 		return;
 	}
@@ -231,111 +235,10 @@ const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string
 	}));
 };
 
-/** v1 앵무새 업로드 함수 */
-const uploadParrot = async (profile: LegacyProfile) => {
-	const idempotencyKeyName = 'parrot';
-	const parrotId =
-		getLegacyMigration().parrotId ??
-		(
-			await postParrot({
-				data: { name: profile.name, species: profile.species, birthdate: profile.birthDate },
-				idempotencyKey: ensureIdempotencyKey(idempotencyKeyName),
-			}).catch((error: unknown) => {
-				removeRejectedIdempotencyKey(error, idempotencyKeyName);
-
-				throw error;
-			})
-		).id;
-
-	setLegacyMigration((migration) => ({
-		...migration,
-		parrotId,
-		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
-	}));
-
-	if (!profile.photoUri || getLegacyMigration().photoUploaded) {
-		return;
-	}
-
-	const photoUri = await existingFileUri(profile.photoUri, 'legacy_photo');
-
-	if (photoUri) {
-		await putParrotPhoto({ id: parrotId, uri: photoUri, idempotencyKey: randomUUID() });
-	}
-
-	setLegacyMigration((migration) => ({ ...migration, photoUploaded: true }));
-};
-
 /** v1 단어 업로드 진행 상태 저장 함수 */
-const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
+export const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
 	setLegacyMigration((migration) => ({
 		...migration,
 		wordProgress: { ...migration.wordProgress, [legacyWordId]: progress },
 	}));
-};
-
-/** v1 단어 업로드 함수 */
-const uploadWord = async (word: LegacyWord) => {
-	const savedProgress = getLegacyMigration().wordProgress[word.id];
-
-	if (savedProgress?.done) {
-		return;
-	}
-
-	const recordingUri = await existingFileUri(word.audioUri, 'legacy_recording');
-
-	if (!recordingUri) {
-		recordWordProgress(word.id, { wordId: savedProgress?.wordId ?? null, done: true });
-
-		return;
-	}
-
-	const idempotencyKeyName = `word:${word.id}`;
-	const wordId =
-		savedProgress?.wordId ??
-		(
-			await postWord({
-				data: { name: word.name },
-				idempotencyKey: ensureIdempotencyKey(idempotencyKeyName),
-			}).catch((error: unknown) => {
-				removeRejectedIdempotencyKey(error, idempotencyKeyName);
-
-				throw error;
-			})
-		).id;
-
-	setLegacyMigration((migration) => ({
-		...migration,
-		wordProgress: { ...migration.wordProgress, [word.id]: { wordId, done: false } },
-		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
-	}));
-
-	await postWordRecording({ id: wordId, uri: recordingUri, idempotencyKey: randomUUID() });
-
-	recordWordProgress(word.id, { wordId, done: true });
-};
-
-/** v1 데이터 업로드 함수 */
-export const uploadLegacy = () => {
-	uploadPromise ??= (async () => {
-		const legacyUpload = pendingUpload;
-
-		if (!legacyUpload) {
-			return;
-		}
-
-		acceptLegacyUpload();
-
-		if (legacyUpload.profile) {
-			await uploadParrot(legacyUpload.profile);
-		}
-
-		for (const word of legacyUpload.words) {
-			await uploadWord(word);
-		}
-	})().finally(() => {
-		uploadPromise = undefined;
-	});
-
-	return uploadPromise;
 };

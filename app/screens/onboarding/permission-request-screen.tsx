@@ -6,6 +6,7 @@ import { usePrefetchQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
 
+import { useUpdatePushToken } from '@/hooks/apis/devices';
 import { getSettingsOptions } from '@/hooks/apis/settings';
 
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon, LockIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 
 import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
-import { sendPushToken } from '@/services/push/registration';
+import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { colors, font } from '@/theme';
@@ -64,6 +65,8 @@ const PermissionRequestScreen = () => {
 
 	usePrefetchQuery(getSettingsOptions());
 
+	const { mutate } = useUpdatePushToken();
+
 	const [busy, setBusy] = useState(false);
 
 	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
@@ -94,7 +97,13 @@ const PermissionRequestScreen = () => {
 		const notificationsGranted = await askPermission('notifications');
 
 		if (notificationsGranted) {
-			void sendPushToken().catch((error) => reportError(error, 'push_token_register'));
+			void readPushToken()
+				.then((token) => {
+					if (token) {
+						mutate({ data: { token } }, { onError: (error) => reportError(error, 'push_token_register') });
+					}
+				})
+				.catch((error) => reportError(error, 'push_token_register'));
 		}
 
 		setBusy(false);

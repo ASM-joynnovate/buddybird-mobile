@@ -1,6 +1,6 @@
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 
-import { getDeviceList, putDevice } from '@/apis/devices';
+import { getDeviceList, putDevice, putPushToken } from '@/apis/devices';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -17,5 +17,13 @@ export const useRegisterDevice = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('devices', 'register'),
 		mutationFn: putDevice,
+	});
+};
+
+/** 푸시 토큰 저장 Hook */
+export const useUpdatePushToken = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('devices', 'me', 'push-token', 'update'),
+		mutationFn: putPushToken,
 	});
 };

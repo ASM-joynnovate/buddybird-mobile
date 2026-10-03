@@ -5,10 +5,11 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useGetParrotList } from '@/hooks/apis/parrots';
+import useLegacyMigration from '@/hooks/use-legacy-migration';
 
 import { useTranslation } from 'react-i18next';
 
-import { acceptLegacyUpload, finishLegacyUpload, uploadLegacy } from '@/services/migration/upload-legacy';
+import { acceptLegacyUpload, finishLegacyUpload } from '@/services/migration/upload-legacy';
 import { reportError, trackScreen } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -20,17 +21,6 @@ import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ui } from '@/components/ui/styles';
 
-/** v1 데이터 업로드 함수 */
-const uploadAndFinishLegacy = async () => {
-	await uploadLegacy();
-
-	await invalidate(apiKeys.parrots.all(), apiKeys.words.all());
-
-	trackOnboardingStepCompleted('legacy_upload');
-
-	finishLegacyUpload();
-};
-
 /** v1 데이터 업로드 화면 */
 const LegacyUploadScreen = () => {
 	const { t } = useTranslation();
@@ -39,6 +29,8 @@ const LegacyUploadScreen = () => {
 	const [retryCount, setRetryCount] = useState(0);
 
 	const { data: parrotListData } = useGetParrotList();
+
+	const { uploadLegacy } = useLegacyMigration();
 
 	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
 
@@ -57,12 +49,23 @@ const LegacyUploadScreen = () => {
 			return;
 		}
 
+		/** v1 데이터 업로드 함수 */
+		const uploadAndFinishLegacy = async () => {
+			await uploadLegacy();
+
+			await invalidate(apiKeys.parrots.all(), apiKeys.words.all());
+
+			trackOnboardingStepCompleted('legacy_upload');
+
+			finishLegacyUpload();
+		};
+
 		void uploadAndFinishLegacy().catch((error) => {
 			reportError(error, 'legacy_upload');
 
 			setUploadFailed(true);
 		});
-	}, [canStartUpload, retryCount]);
+	}, [canStartUpload, retryCount, uploadLegacy]);
 
 	const handleSkip = () => {
 		trackOnboardingStepCompleted('legacy_upload');
