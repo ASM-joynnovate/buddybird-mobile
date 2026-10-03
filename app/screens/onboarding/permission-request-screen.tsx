@@ -13,22 +13,21 @@ import { useTranslation } from 'react-i18next';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BellIcon, LockIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
+import { BellIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import PermissionScene from '@/screens/onboarding/components/permission-scene';
+import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
-import { colors, font } from '@/theme';
+import { colors, contentMaxWidth, font } from '@/theme';
 
-import BuddySays from '@/components/buddy-says';
-import Illustration from '@/components/illustration';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
-import { ItemGroup } from '@/components/ui/item/group';
-import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { TextButton } from '@/components/ui/text-button';
+import { ui } from '@/components/ui/styles';
 
 const PERMISSIONS: readonly { kind: 'microphone' | 'notifications'; icon: LucideIcon }[] = [
 	{ kind: 'microphone', icon: MicIcon },
@@ -116,67 +115,58 @@ const PermissionRequestScreen = () => {
 	};
 
 	return (
-		<Screen
-			footer={
-				<>
-					<View style={styles.laterContainer}>
-						<TextButton
+		<View style={styles.container}>
+			<SafeAreaView edges={['top', 'left', 'right']}>
+				<View style={styles.header}>
+					<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
+				</View>
+			</SafeAreaView>
+
+			<PermissionScene />
+
+			<SceneSheet
+				title={t('onboarding.permissions.intro')}
+				footer={
+					<View style={ui.actionsRow}>
+						<Button
 							label={t('onboarding.permissions.later')}
-							variant="muted"
+							variant="secondary"
+							size="small"
 							disabled={busy}
+							style={ui.action}
 							onPress={() => void handleLater()}
 						/>
+						<Button
+							label={t('onboarding.permissions.allow')}
+							size="small"
+							loading={busy}
+							style={ui.action}
+							onPress={() => void handleAllow()}
+						/>
 					</View>
-					<Button
-						label={t('onboarding.permissions.allow')}
-						loading={busy}
-						onPress={() => void handleAllow()}
-					/>
-				</>
-			}
-		>
-			<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
-
-			<View style={styles.introContainer}>
-				<BuddySays message={t('onboarding.permissions.intro')} />
-				<Illustration
-					scene={t('onboarding.permissions.scene')}
-					icon={LockIcon}
-					height={180}
-					showMascot={false}
-				/>
-			</View>
-
-			<ItemGroup>
-				{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
-					<View key={kind} style={[styles.permissionRow, index > 0 && styles.divider]}>
-						<Icon size={24} color={colors.orangeDark} />
-						<View style={styles.textContainer}>
+				}
+			>
+				<View>
+					{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
+						<View key={kind} style={[styles.permissionRow, index > 0 && styles.divider]}>
+							<Icon size={22} color={colors.orangeDark} />
 							<Copy style={styles.name}>{t(`common.permission.${kind}.name`)}</Copy>
 							<Copy style={styles.purpose}>{t(`onboarding.permissions.purpose.${kind}`)}</Copy>
 						</View>
-					</View>
-				))}
-			</ItemGroup>
-		</Screen>
+					))}
+				</View>
+			</SceneSheet>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	introContainer: { flexGrow: 1, gap: 24, paddingBottom: 28 },
-	permissionRow: {
-		minHeight: 64,
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 14,
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
+	container: { flex: 1, backgroundColor: colors.orangePale },
+	header: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 20 },
+	permissionRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
 	divider: { borderTopWidth: 2, borderTopColor: colors.border },
-	textContainer: { flex: 1, minWidth: 0, gap: 2 },
-	name: { fontFamily: font.extraBold, fontSize: 16 },
-	purpose: { fontSize: 13, color: colors.muted },
-	laterContainer: { alignItems: 'flex-end' },
+	name: { minWidth: 44, fontFamily: font.extraBold, fontSize: 15 },
+	purpose: { flex: 1, minWidth: 0, fontSize: 14, lineHeight: 20, color: colors.muted },
 });
 
 export default PermissionRequestScreen;

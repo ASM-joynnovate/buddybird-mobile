@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useGetSettings, useUpdateNotificationSettings } from '@/hooks/apis/settings';
 
@@ -9,7 +9,7 @@ import { trackOnboardingCompleted, trackOnboardingStepCompleted } from '@/servic
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { Button } from '@/components/ui/button';
-import { TextButton } from '@/components/ui/text-button';
+import { ui } from '@/components/ui/styles';
 
 /** 마케팅 알림 수신 여부를 저장하는 버튼 컴포넌트 */
 const MarketingNotificationAnswer = () => {
@@ -45,22 +45,24 @@ const MarketingNotificationAnswer = () => {
 	};
 
 	return (
-		<>
-			<View style={styles.declineContainer}>
-				<TextButton
-					label={t('onboarding.marketing.decline')}
-					variant="muted"
-					disabled={isPending}
-					onPress={() => handleAnswer(false)}
-				/>
-			</View>
-			<Button label={t('onboarding.marketing.accept')} loading={isPending} onPress={() => handleAnswer(true)} />
-		</>
+		<View style={ui.actionsRow}>
+			<Button
+				label={t('onboarding.marketing.decline')}
+				variant="secondary"
+				size="small"
+				disabled={isPending}
+				style={ui.action}
+				onPress={() => handleAnswer(false)}
+			/>
+			<Button
+				label={t('onboarding.marketing.accept')}
+				size="small"
+				loading={isPending}
+				style={ui.action}
+				onPress={() => handleAnswer(true)}
+			/>
+		</View>
 	);
 };
-
-const styles = StyleSheet.create({
-	declineContainer: { alignItems: 'flex-end' },
-});
 
 export default MarketingNotificationAnswer;

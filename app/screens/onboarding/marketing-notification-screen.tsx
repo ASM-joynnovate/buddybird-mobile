@@ -5,17 +5,16 @@ import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { MegaphoneIcon } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MarketingNotificationAnswer from '@/screens/onboarding/components/marketing-notification-answer';
+import MarketingScene from '@/screens/onboarding/components/marketing-scene';
+import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import { trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
-import BuddySays from '@/components/buddy-says';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
-import Illustration from '@/components/illustration';
 import { Copy } from '@/components/ui/copy';
-import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,36 +33,36 @@ const MarketingNotificationScreen = () => {
 	);
 
 	return (
-		<Screen
-			footer={
-				<ErrorHandlingWrapper
-					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton blockCount={1} height={56} />
-				>
-					<MarketingNotificationAnswer />
-				</ErrorHandlingWrapper>
-			}
-		>
-			<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
+		<View style={styles.container}>
+			<SafeAreaView edges={['top', 'left', 'right']}>
+				<View style={styles.header}>
+					<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
+				</View>
+			</SafeAreaView>
 
-			<View style={styles.introContainer}>
-				<BuddySays message={t('onboarding.marketing.intro')} />
-				<Illustration
-					scene={t('onboarding.marketing.scene')}
-					icon={MegaphoneIcon}
-					height={180}
-					showMascot={false}
-				/>
-			</View>
+			<MarketingScene />
 
-			<Copy style={styles.hint}>{t('onboarding.marketing.hint')}</Copy>
-		</Screen>
+			<SceneSheet
+				title={t('onboarding.marketing.intro')}
+				footer={
+					<ErrorHandlingWrapper
+						fallbackComponent={ScreenError}
+						suspenseFallback=<Skeleton blockCount={1} height={56} />
+					>
+						<MarketingNotificationAnswer />
+					</ErrorHandlingWrapper>
+				}
+			>
+				<Copy style={styles.hint}>{t('onboarding.marketing.hint')}</Copy>
+			</SceneSheet>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	introContainer: { flexGrow: 1, gap: 24, paddingBottom: 28 },
-	hint: { color: colors.muted, textAlign: 'center' },
+	container: { flex: 1, backgroundColor: colors.orangePale },
+	header: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 20 },
+	hint: { color: colors.muted },
 });
 
 export default MarketingNotificationScreen;

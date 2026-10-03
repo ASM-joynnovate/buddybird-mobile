@@ -33,7 +33,14 @@ export const onboarding: OnboardingMessages = {
 	},
 	permissions: {
 		intro: '버디버드에 필요한 권한이에요',
-		scene: '권한을 설명하는 버디',
+		scene: '새장 앞 휴대폰이 앵무새 소리를 듣고 알림을 보내는 장면',
+		buddyWord: '안녕!',
+		listening: '소리 듣는 중',
+		alert: {
+			appName: '버디버드',
+			time: '지금',
+			message: '학습을 마쳤어요',
+		},
 		purpose: {
 			microphone: '단어 녹음과 앵무새 소리 기록',
 			notifications: '학습 소식 알림',
@@ -43,7 +50,11 @@ export const onboarding: OnboardingMessages = {
 	},
 	marketing: {
 		intro: '새 기능과 이벤트 소식을 알림으로 받아 볼까요?',
-		scene: '새 소식을 알려 주는 버디',
+		scene: '횃대 위 버디와 벽에 붙은 새 소식',
+		news: {
+			features: '새 기능',
+			events: '이벤트',
+		},
 		hint: '설정의 알림에서 언제든 바꿀 수 있어요.',
 		accept: '받을게요',
 		decline: '괜찮아요',

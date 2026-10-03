@@ -32,6 +32,13 @@ export type OnboardingMessages = {
 	permissions: {
 		intro: string;
 		scene: string;
+		buddyWord: string;
+		listening: string;
+		alert: {
+			appName: string;
+			time: string;
+			message: string;
+		};
 		purpose: {
 			microphone: string;
 			notifications: string;
@@ -42,6 +49,10 @@ export type OnboardingMessages = {
 	marketing: {
 		intro: string;
 		scene: string;
+		news: {
+			features: string;
+			events: string;
+		};
 		hint: string;
 		accept: string;
 		decline: string;

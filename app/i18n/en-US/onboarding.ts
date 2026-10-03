@@ -33,7 +33,14 @@ export const onboarding: OnboardingMessages = {
 	},
 	permissions: {
 		intro: 'Permissions BuddyBird needs',
-		scene: 'Buddy explaining permissions',
+		scene: 'a phone by the cage hearing the parrot and sending an alert',
+		buddyWord: 'Hello!',
+		listening: 'Listening',
+		alert: {
+			appName: 'BuddyBird',
+			time: 'now',
+			message: 'Learning finished',
+		},
 		purpose: {
 			microphone: "Record words and your parrot's sounds",
 			notifications: 'Learning alerts',
@@ -43,7 +50,11 @@ export const onboarding: OnboardingMessages = {
 	},
 	marketing: {
 		intro: 'Want news about new features and events?',
-		scene: 'Buddy sharing news',
+		scene: 'Buddy on a perch with news pinned to the wall',
+		news: {
+			features: 'New features',
+			events: 'Events',
+		},
 		hint: 'You can change this anytime in Settings > Notifications.',
 		accept: 'Yes, notify me',
 		decline: 'No thanks',
