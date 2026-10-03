@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 
 import useAppBootstrap from '@/hooks/use-app-bootstrap';
 
+import * as Sentry from '@sentry/react-native';
+
 import RootProviders from '@/providers';
 import { useAppStore } from '@/stores/app';
 
@@ -37,4 +39,4 @@ const App = () => {
 	);
 };
 
-export default App;
+export default Sentry.wrap(App);

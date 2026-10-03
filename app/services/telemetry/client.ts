@@ -20,6 +20,7 @@ import {
 	setCrashlyticsCollectionEnabled,
 	setUserId as setCrashlyticsUserId,
 } from '@react-native-firebase/crashlytics';
+import * as Sentry from '@sentry/react-native';
 import { getTrackingPermissionsAsync, requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import * as Clarity from 'react-native-clarity';
 
@@ -30,6 +31,17 @@ import { ageMonths } from '@/utils/date';
 type UserPropertyStrings = Record<string, string | null>;
 
 const CLARITY_TEXT_LIMIT = 255;
+
+export const navigationIntegration = Sentry.reactNavigationIntegration();
+
+Sentry.init({
+	dsn: 'https://1efbf86681a92ef311ce12e25c1e37c9@o4512127698862080.ingest.de.sentry.io/4512127704498256',
+	sendDefaultPii: true,
+	enableLogs: true,
+	replaysOnErrorSampleRate: 1.0,
+	tracesSampleRate: 1.0,
+	integrations: [Sentry.mobileReplayIntegration(), navigationIntegration],
+});
 
 const clarityConfigured = env.clarityProjectId.trim() !== '';
 
@@ -132,7 +144,7 @@ export const initializeTelemetry = (shouldRequestATT = true) => {
 		telemetryAllowed = consent === 'granted' || consent === 'not_applicable';
 
 		await setAnalyticsCollectionEnabled(getAnalytics(), telemetryAllowed);
-		await setCrashlyticsCollectionEnabled(getCrashlytics(), telemetryAllowed);
+		await setCrashlyticsCollectionEnabled(getCrashlytics(), true);
 
 		if (telemetryAllowed) {
 			startClarity();
@@ -230,11 +242,11 @@ export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
 		...(fatal === undefined ? {} : { is_fatal: String(fatal) }),
 	};
 
-	if (telemetryAllowed !== false) {
-		void sendTelemetrySafely(() =>
-			setAttributes(getCrashlytics(), attributes).then(() => recordError(getCrashlytics(), reportedError)),
-		);
-	}
+	void sendTelemetrySafely(() =>
+		setAttributes(getCrashlytics(), attributes).then(() => recordError(getCrashlytics(), reportedError)),
+	);
+
+	Sentry.captureException(reportedError, { tags: attributes });
 
 	track('app_error', { error_code: reportedError.name, screen_name: currentScreen });
 };

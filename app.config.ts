@@ -59,6 +59,10 @@ const config: ExpoConfig = {
 		['@react-native-firebase/app', { ios: { disableSPM: true } }],
 		'@react-native-firebase/crashlytics',
 		[
+			'@sentry/react-native/expo',
+			{ url: 'https://sentry.io/', organization: 'joynnovate', project: 'buddybird-mobile' },
+		],
+		[
 			'expo-build-properties',
 			{
 				android: {

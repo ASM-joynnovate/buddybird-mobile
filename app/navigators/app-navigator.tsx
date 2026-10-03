@@ -34,7 +34,7 @@ import NoticeListScreen from '@/screens/settings/notice-list-screen';
 import NotificationSettingsScreen from '@/screens/settings/notification-settings-screen';
 import SettingsScreen from '@/screens/settings/settings-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
-import { reportError, track, trackScreen } from '@/services/telemetry/client';
+import { navigationIntegration, reportError, track, trackScreen } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 import { notificationPath } from '@/utils/notification';
 
@@ -172,7 +172,10 @@ const AppNavigator = () => {
 				ref={navigationRef}
 				initialState={initialStateOf(entryRoute, parrotId)}
 				linking={entryRoute === 'Main' ? linking : undefined}
-				onReady={handleTrackScreen}
+				onReady={() => {
+					navigationIntegration.registerNavigationContainer(navigationRef);
+					handleTrackScreen();
+				}}
 				onStateChange={handleTrackScreen}
 			>
 				<RootStack.Navigator
