@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { Image, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,17 +15,20 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SECOND } from '@/config/units';
-import { mascotImage } from '@/theme';
+
+import MascotArtwork from '@/components/mascot/mascot-artwork';
 
 interface Props {
 	size?: number;
+	floating?: boolean;
 }
 
 /**
- * 움직이는 마스코트 컴포넌트
+ * 마스코트 컴포넌트
  * @param size 그림 크기
+ * @param floating 위아래로 움직이는지 여부
  */
-const Mascot = ({ size = 120 }: Props) => {
+const Mascot = ({ size = 120, floating = true }: Props) => {
 	const { t } = useTranslation();
 
 	const reducedMotion = useReducedMotion();
@@ -39,7 +42,7 @@ const Mascot = ({ size = 120 }: Props) => {
 
 	/** 움직임 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
 	useEffect(() => {
-		if (reducedMotion) {
+		if (reducedMotion || !floating) {
 			return;
 		}
 
@@ -57,7 +60,7 @@ const Mascot = ({ size = 120 }: Props) => {
 			cancelAnimation(y);
 			cancelAnimation(rotation);
 		};
-	}, [reducedMotion, rotation, size, y]);
+	}, [floating, reducedMotion, rotation, size, y]);
 
 	return (
 		<Animated.View
@@ -66,19 +69,13 @@ const Mascot = ({ size = 120 }: Props) => {
 			accessibilityLabel={t('common.mascot')}
 			style={[styles.container, { width: size }, floatStyle]}
 		>
-			<Image
-				source={mascotImage}
-				resizeMode="contain"
-				style={[StyleSheet.absoluteFill, styles.image]}
-				accessibilityIgnoresInvertColors
-			/>
+			<MascotArtwork />
 		</Animated.View>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: { maxWidth: '100%', aspectRatio: 1, flexShrink: 0 },
-	image: { width: '100%', height: '100%' },
 });
 
 export default Mascot;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
 
@@ -14,9 +14,10 @@ import { SendIcon } from 'lucide-react-native';
 import { FEEDBACK_MESSAGE_LIMIT } from '@/config';
 import { track } from '@/services/telemetry/client';
 import { useFeedbackStore } from '@/stores/feedback';
-import { colors, font, mascotImage } from '@/theme';
+import { colors, font } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
+import MascotArtwork from '@/components/mascot/mascot-artwork';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
@@ -120,12 +121,9 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 					</View>
 				}
 			>
-				<Image
-					accessible={false}
-					source={mascotImage}
-					style={styles.promptMascot}
-					accessibilityIgnoresInvertColors
-				/>
+				<View style={styles.promptMascot}>
+					<MascotArtwork />
+				</View>
 				<Copy style={styles.centeredMessage}>{t('app.feedback.promptMessage')}</Copy>
 			</Dialog>
 		);
@@ -178,7 +176,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 
 const styles = StyleSheet.create({
 	thanksClose: { marginTop: 0 },
-	promptMascot: { width: 96, height: 96, resizeMode: 'contain', alignSelf: 'center' },
+	promptMascot: { width: 96, height: 96, alignSelf: 'center' },
 	centeredMessage: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 16 },
 	actionsRow: { marginTop: 0 },
 	message: { minHeight: 160, fontFamily: font.bold, fontSize: 17, lineHeight: 26 },

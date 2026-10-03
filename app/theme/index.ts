@@ -32,4 +32,4 @@ export const font = {
 	splash: 'Fredoka-SemiBold',
 };
 
-export const mascotImage = require('@assets/images/buddy-bird.png');
+export const appIconImage = require('@assets/images/icon.png');

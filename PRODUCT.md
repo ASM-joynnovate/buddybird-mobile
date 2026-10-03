@@ -120,7 +120,7 @@ adaptive
 
 - 제품명은 버디버드이고 영문 표기는 BuddyBird다. 마스코트 이름은 버디다
 - 마스코트는 온보딩에서 1인칭으로 말을 걸고 앱 전반의 안내 문구는 해요체다
-- 브랜드 자산은 `assets/images/icon.png`, `assets/images/splash-wordmark.png`, `assets/images/buddy-bird.png`, `assets/images/android-icon-foreground.png`에 있다
+- 브랜드 자산은 `assets/images/icon.png`, `assets/images/splash-wordmark.png`, `assets/images/mascot.svg`, `assets/images/android-icon-foreground.png`에 있다
 - 사용자 대상 문구는 오류 상황에서 원인과 다음 행동을 함께 안내한다. 예를 들어 저장 실패 시 입력한 내용이 보존되었다고 알린다
 
 ## Evidence on Hand

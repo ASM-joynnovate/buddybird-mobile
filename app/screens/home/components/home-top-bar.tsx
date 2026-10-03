@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { HomeStackParamList } from '@/types/navigation';
 
@@ -8,8 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
 
-import { mascotImage } from '@/theme';
-
+import MascotArtwork from '@/components/mascot/mascot-artwork';
 import { IconButton } from '@/components/ui/icon-button';
 import { Title } from '@/components/ui/title';
 
@@ -29,7 +28,9 @@ const HomeTopBar = ({ unreadCount }: Props) => {
 	return (
 		<View style={styles.container}>
 			{/*로고*/}
-			<Image source={mascotImage} accessible={false} accessibilityIgnoresInvertColors style={styles.mascot} />
+			<View style={styles.mascot}>
+				<MascotArtwork />
+			</View>
 			<Title style={styles.brand}>{t('home.brand')}</Title>
 
 			<IconButton
