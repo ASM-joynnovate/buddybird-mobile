@@ -15,20 +15,23 @@ export const onboarding: OnboardingMessages = {
 	},
 	usage: {
 		record: {
-			title: '앵무새에게 가르칠 단어를 내 목소리로 녹음해요',
-			scene: '마이크에 단어를 녹음하는 사람과 버디',
+			title: '앵무새에게 가르칠 단어를 <b>내 목소리</b>로 녹음해요',
+			scene: '녹음 중인 단어와 마이크',
+			recording: '녹음 중',
 		},
 		place: {
-			title: '휴대폰을 새장 앞에 두고 시작을 누르면 앵무새에게 단어를 들려줘요',
-			scene: '새장 앞에 세워 둔 휴대폰',
+			title: '휴대폰을 <b>새장 앞</b>에 두고 시작을 누르면 앵무새에게 단어를 들려줘요',
+			scene: '새장 앞에 세운 휴대폰이 앵무새에게 단어를 들려주는 장면',
 		},
 		keepOn: {
-			title: '학습하는 동안에는 앱을 켜 두고 화면을 끄지 마세요',
-			scene: '화면이 켜진 채 새장 앞에 놓인 휴대폰',
+			title: '학습하는 동안에는 앱을 켜 두고 <b>화면을 끄지 마세요</b>',
+			scene: '어두운 방에서 화면을 켠 채 충전하는 휴대폰',
 		},
 		report: {
-			title: '리포트에서 학습한 시간과 기록을 확인해요',
-			scene: '휴대폰으로 학습 리포트를 보는 사람',
+			title: '<b>리포트</b>에서 학습한 시간과 기록을 확인해요',
+			scene: '이번 주와 지난주 학습 시간을 비교하는 리포트',
+			lastWeek: '지난주',
+			comparedToLastWeek: '지난주 대비 +{{duration}}',
 		},
 	},
 	permissions: {

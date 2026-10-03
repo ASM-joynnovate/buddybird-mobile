@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { BackHandler, StyleSheet, View } from 'react-native';
+import useGuideStep from '@/hooks/use-guide-step';
 
 import { useTranslation } from 'react-i18next';
 
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon, type LucideIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,36 +41,12 @@ interface Props {
 const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation();
-
 	const insets = useSafeAreaInsets();
 
-	const [index, setIndex] = useState(0);
+	const { stepIndex, setStepIndex } = useGuideStep();
 
-	const step = steps[index];
-	const isLastStep = index === steps.length - 1;
-
-	/** 첫 단계에서만 스와이프로 뒤로 가기 허용 */
-	useEffect(() => {
-		navigation.setOptions({ gestureEnabled: index === 0 });
-	}, [index, navigation]);
-
-	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
-	useFocusEffect(
-		useCallback(() => {
-			if (index === 0) {
-				return;
-			}
-
-			const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-				setIndex(index - 1);
-
-				return true;
-			});
-
-			return () => subscription.remove();
-		}, [index]),
-	);
+	const step = steps[stepIndex];
+	const isLastStep = stepIndex === steps.length - 1;
 
 	const handleNext = () => {
 		if (isLastStep) {
@@ -80,10 +55,10 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 			return;
 		}
 
-		setIndex(index + 1);
+		setStepIndex(stepIndex + 1);
 	};
 
-	const handleBack = index > 0 ? () => setIndex(index - 1) : actions.onBack;
+	const handleBack = stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : actions.onBack;
 
 	return (
 		<Screen scrollable={false}>
@@ -93,8 +68,8 @@ const GuidePager = ({ steps, actions, dontShowAgain, finishLabel }: Props) => {
 					{handleBack && <IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={handleBack} />}
 					<PageDots
 						count={steps.length}
-						currentIndex={index}
-						label={t('common.stepProgress', { current: index + 1, total: steps.length })}
+						currentIndex={stepIndex}
+						label={t('common.stepProgress', { current: stepIndex + 1, total: steps.length })}
 					/>
 					<View style={styles.spacer} />
 					{actions.onSkip && <TextButton label={t('common.skip')} variant="muted" onPress={actions.onSkip} />}

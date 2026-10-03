@@ -15,20 +15,23 @@ export const onboarding: OnboardingMessages = {
 	},
 	usage: {
 		record: {
-			title: 'Record the words to teach your parrot in your own voice',
-			scene: 'a person recording a word into a microphone with Buddy',
+			title: 'Record the words to teach your parrot in <b>your own voice</b>',
+			scene: 'a word being recorded and a microphone',
+			recording: 'Recording',
 		},
 		place: {
-			title: 'Place your phone by the cage and press Start to play words to your parrot',
-			scene: 'a phone standing by the cage',
+			title: 'Place your phone <b>by the cage</b> and press Start to play words to your parrot',
+			scene: 'a phone by the cage playing a word to the parrot',
 		},
 		keepOn: {
-			title: 'Keep the app open and the screen on while learning',
-			scene: 'a phone by the cage with its screen on',
+			title: 'Keep the app open and <b>the screen on</b> while learning',
+			scene: 'a charging phone by the cage with its screen on in a dark room',
 		},
 		report: {
-			title: 'Check your learning time and records in Report',
-			scene: 'a person viewing the learning report on a phone',
+			title: 'Check your learning time and records in <b>Report</b>',
+			scene: 'a report comparing this week with last week',
+			lastWeek: 'Last week',
+			comparedToLastWeek: '+{{duration}} vs last week',
 		},
 	},
 	permissions: {

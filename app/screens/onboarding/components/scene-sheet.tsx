@@ -9,7 +9,8 @@ import { colors, contentMaxWidth, font, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 
 interface Props {
-	title: string;
+	title: ReactNode;
+	accessory?: ReactNode;
 	footer: ReactNode;
 	children?: ReactNode;
 }
@@ -17,15 +18,18 @@ interface Props {
 /**
  * 장면 아래를 덮는 bottom sheet 컴포넌트
  * @param title 제목
+ * @param accessory 제목 위에 놓을 요소
  * @param footer 하단 버튼
  * @param children 제목 아래 내용
  */
-const SceneSheet = ({ title, footer, children }: Props) => {
+const SceneSheet = ({ title, accessory, footer, children }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
 		<View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
 			<View style={styles.content}>
+				{accessory}
+
 				<Copy accessibilityRole="header" lineBreakStrategyIOS="hangul-word" style={styles.title}>
 					{title}
 				</Copy>

@@ -15,6 +15,7 @@ export type OnboardingMessages = {
 		record: {
 			title: string;
 			scene: string;
+			recording: string;
 		};
 		place: {
 			title: string;
@@ -27,6 +28,8 @@ export type OnboardingMessages = {
 		report: {
 			title: string;
 			scene: string;
+			lastWeek: string;
+			comparedToLastWeek: string;
 		};
 	};
 	permissions: {
