@@ -2,16 +2,16 @@ import { type ReactNode, useEffect } from 'react';
 
 import { Alert, AppState } from 'react-native';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { ApiError } from '@/types/apis/common';
 
 import { useLogin } from '@/hooks/apis/auth';
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 
 import i18next from '@/i18n';
 
 import { apiErrorMessage } from '@/lib/api';
-import { queryClient } from '@/lib/query-client';
 import { getSupabase } from '@/lib/supabase';
 
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
@@ -46,6 +46,8 @@ const sameIdentity = (previous: AuthIdentity | null | undefined, nextIdentity: A
  * @param children 감싸는 내용
  */
 const AuthProvider = ({ children }: Props) => {
+	const queryClient = useQueryClient();
+
 	const { mutateAsync } = useLogin();
 
 	const retryCount = useAuthStore((state) => state.retryCount);
@@ -118,7 +120,7 @@ const AuthProvider = ({ children }: Props) => {
 				setStatus('signedIn');
 
 				if (linked) {
-					void invalidate(apiKeys.all());
+					void queryClient.invalidateQueries({ queryKey: apiKeys.all() });
 				}
 			} catch (e) {
 				if (!active || controller.signal.aborted) {
@@ -249,7 +251,7 @@ const AuthProvider = ({ children }: Props) => {
 			appStateSubscription.remove();
 			void auth.stopAutoRefresh();
 		};
-	}, [retryCount, mutateAsync]);
+	}, [retryCount, mutateAsync, queryClient]);
 
 	return children;
 };

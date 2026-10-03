@@ -1,8 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { type Locale, locales } from '@/types/locale';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,8 @@ const LANGUAGE_LABEL_KEYS: Record<Locale, keyof SettingsMessages['general']> = {
 
 /** 앱 언어 선택 컴포넌트 */
 const LanguagePicker = () => {
+	const queryClient = useQueryClient();
+
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -37,7 +40,7 @@ const LanguagePicker = () => {
 		try {
 			setLocale(nextLocale);
 
-			void invalidate(apiKeys.all());
+			void queryClient.invalidateQueries({ queryKey: apiKeys.all() });
 
 			setUserProperties({ locale: nextLocale });
 			track('language_changed', { from: locale, to: nextLocale });

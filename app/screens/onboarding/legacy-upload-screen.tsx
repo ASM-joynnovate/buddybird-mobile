@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { invalidate } from '@/hooks/apis/invalidate';
+import { useQueryClient } from '@tanstack/react-query';
+
 import { apiKeys } from '@/hooks/apis/keys';
 import { useGetParrotList } from '@/hooks/apis/parrots';
 import useLegacyMigration from '@/hooks/use-legacy-migration';
@@ -23,6 +24,8 @@ import { ui } from '@/components/ui/styles';
 
 /** v1 데이터 업로드 화면 */
 const LegacyUploadScreen = () => {
+	const queryClient = useQueryClient();
+
 	const { t } = useTranslation();
 
 	const [uploadFailed, setUploadFailed] = useState(false);
@@ -53,7 +56,10 @@ const LegacyUploadScreen = () => {
 		const uploadAndFinishLegacy = async () => {
 			await uploadLegacy();
 
-			await invalidate(apiKeys.parrots.all(), apiKeys.words.all());
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
+			]);
 
 			trackOnboardingStepCompleted('legacy_upload');
 
@@ -65,7 +71,7 @@ const LegacyUploadScreen = () => {
 
 			setUploadFailed(true);
 		});
-	}, [canStartUpload, retryCount, uploadLegacy]);
+	}, [canStartUpload, queryClient, retryCount, uploadLegacy]);
 
 	const handleSkip = () => {
 		trackOnboardingStepCompleted('legacy_upload');

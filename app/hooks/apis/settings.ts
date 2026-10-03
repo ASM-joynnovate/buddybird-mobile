@@ -1,19 +1,16 @@
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
+import { type QueryClient, queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getSettings, putNotificationSettings, putSleepSettings } from '@/apis/settings';
 
 import type { Settings } from '@/types/apis/settings';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-
-import { queryClient } from '@/lib/query-client';
 
 import { reportError } from '@/services/telemetry/client';
 
 /** 저장 요청 전에 캐시의 설정을 먼저 변경하는 함수 */
-const patchCachedSettings = async (patch: Partial<Settings>) => {
+const patchCachedSettings = async (queryClient: QueryClient, patch: Partial<Settings>) => {
 	await queryClient.cancelQueries({ queryKey: apiKeys.settings() });
 
 	const previousSettings = queryClient.getQueryData<Settings>(apiKeys.settings());
@@ -26,7 +23,10 @@ const patchCachedSettings = async (patch: Partial<Settings>) => {
 };
 
 /** 저장 실패 시 캐시의 설정을 이전 값으로 되돌리는 함수 */
-const restoreCachedSettings = (context: { previousSettings: Settings | undefined } | undefined) => {
+const restoreCachedSettings = (
+	queryClient: QueryClient,
+	context: { previousSettings: Settings | undefined } | undefined,
+) => {
 	if (context?.previousSettings) {
 		queryClient.setQueryData(apiKeys.settings(), context.previousSettings);
 	}
@@ -41,30 +41,44 @@ export const useGetSettings = () => {
 
 /** 수면 설정 저장 Hook */
 export const useUpdateSleepSettings = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'sleep'),
 		mutationFn: putSleepSettings,
-		onMutate: ({ data }) => patchCachedSettings({ sleep: data }),
+		onMutate: ({ data }) => patchCachedSettings(queryClient, { sleep: data }),
 		onError: (error, _variables, context) => {
-			restoreCachedSettings(context);
+			restoreCachedSettings(queryClient, context);
 
 			reportError(error, 'sleep_settings_save');
 		},
-		onSettled: () => invalidate(apiKeys.settings(), apiKeys.sessions.running(), apiKeys.home()),
+		onSettled: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+			]),
 	});
 };
 
 /** 알림 설정 저장 Hook */
 export const useUpdateNotificationSettings = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications'),
 		mutationFn: putNotificationSettings,
-		onMutate: ({ data }) => patchCachedSettings({ notifications: data }),
+		onMutate: ({ data }) => patchCachedSettings(queryClient, { notifications: data }),
 		onError: (error, _variables, context) => {
-			restoreCachedSettings(context);
+			restoreCachedSettings(queryClient, context);
 
 			reportError(error, 'notification_settings_save');
 		},
-		onSettled: () => invalidate(apiKeys.settings(), apiKeys.sessions.running(), apiKeys.home()),
+		onSettled: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+			]),
 	});
 };

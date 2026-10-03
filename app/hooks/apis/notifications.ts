@@ -1,8 +1,7 @@
-import { infiniteQueryOptions, useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { infiniteQueryOptions, useQueryClient, useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 import { getNotificationList, postAllNotificationsRead, postNotificationRead } from '@/apis/notifications';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
@@ -23,20 +22,32 @@ export const useGetNotificationList = () => {
 
 /** 알림 읽음 처리 Hook */
 export const useReadNotification = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notifications', 'read'),
 		mutationFn: postNotificationRead,
-		onSuccess: () => invalidate(apiKeys.notifications(), apiKeys.home()),
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.notifications() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+			]),
 		onError: (error) => reportError(error, 'notification_read'),
 	});
 };
 
 /** 알림 모두 읽음 처리 Hook */
 export const useReadAllNotifications = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notifications', 'read-all'),
 		mutationFn: postAllNotificationsRead,
-		onSuccess: () => invalidate(apiKeys.notifications(), apiKeys.home()),
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.notifications() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+			]),
 		onError: (error) => reportError(error, 'notification_read_all'),
 	});
 };

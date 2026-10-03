@@ -1,8 +1,13 @@
-import { infiniteQueryOptions, queryOptions, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+	infiniteQueryOptions,
+	queryOptions,
+	useQueryClient,
+	useSuspenseInfiniteQuery,
+	useSuspenseQuery,
+} from '@tanstack/react-query';
 
 import { getNotice, getNoticeList, postNoticeRead } from '@/apis/notices';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
@@ -31,10 +36,16 @@ export const useGetNotice = ({ id }: { id: string }) => {
 
 /** 공지 읽음 처리 Hook */
 export const useReadNotice = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('notices', 'read'),
 		mutationFn: postNoticeRead,
-		onSuccess: () => invalidate(apiKeys.notices.all(), apiKeys.home()),
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.notices.all() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+			]),
 		onError: (error) => reportError(error, 'notice_read'),
 	});
 };

@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
 	deleteWord,
@@ -10,7 +10,6 @@ import {
 	postWordRecording,
 } from '@/apis/words';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
@@ -64,28 +63,34 @@ export const useRenameWord = () => {
 
 /** 단어 삭제 Hook */
 export const useDeleteWord = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'delete'),
 		mutationFn: deleteWord,
-		onSuccess: () => invalidate(apiKeys.words.all()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
 		onError: (error) => reportError(error, 'word_delete'),
 	});
 };
 
 /** 단어 녹음 추가 Hook */
 export const useAddWordRecording = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'add'),
 		mutationFn: postWordRecording,
-		onSuccess: () => invalidate(apiKeys.words.all()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
 	});
 };
 
 /** 단어 녹음 삭제 Hook */
 export const useDeleteWordRecording = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'delete'),
 		mutationFn: deleteWordRecording,
-		onSuccess: () => invalidate(apiKeys.words.all()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
 	});
 };

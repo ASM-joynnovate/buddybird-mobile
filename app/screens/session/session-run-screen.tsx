@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AppState, BackHandler, StyleSheet, View } from 'react-native';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { ApiError } from '@/types/apis/common';
 import type { HeartbeatLearningSegment } from '@/types/apis/sessions';
 
@@ -12,8 +14,6 @@ import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSess
 import { getWordOptions } from '@/hooks/apis/words';
 
 import { useTranslation } from 'react-i18next';
-
-import { queryClient } from '@/lib/query-client';
 
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -58,6 +58,8 @@ const createHeartbeatData = (
 /** 학습 진행 화면 */
 const SessionRunScreen = () => {
 	useKeepAwake();
+
+	const queryClient = useQueryClient();
 
 	const { t } = useTranslation();
 
@@ -266,7 +268,7 @@ const SessionRunScreen = () => {
 				return engine?.stop();
 			});
 		};
-	}, [duration, sessionId, setEngineFailed, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
+	}, [duration, queryClient, sessionId, setEngineFailed, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
 
 	/** 하트비트 전송에 사용할 최신 값 저장 */
 	useEffect(() => {

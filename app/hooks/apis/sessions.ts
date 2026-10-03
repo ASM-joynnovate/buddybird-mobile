@@ -1,4 +1,10 @@
-import { infiniteQueryOptions, queryOptions, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+	infiniteQueryOptions,
+	queryOptions,
+	useQueryClient,
+	useSuspenseInfiniteQuery,
+	useSuspenseQuery,
+} from '@tanstack/react-query';
 
 import {
 	getRunningSession,
@@ -14,11 +20,8 @@ import {
 
 import { ApiError } from '@/types/apis/common';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
-
-import { queryClient } from '@/lib/query-client';
 
 import { reportError } from '@/services/telemetry/client';
 
@@ -61,13 +64,19 @@ export const useGetSessionMimicrySoundList = ({ id }: { id: string }) => {
 
 /** 세션 시작 Hook */
 export const useStartSession = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'start'),
 		mutationFn: postSession,
 		onSuccess: (session) => {
 			queryClient.setQueryData(apiKeys.sessions.running(), session);
 
-			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices());
+			return Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
+			]);
 		},
 		onError: (error) => {
 			if (error instanceof ApiError && error.code === 'SESSION__ALREADY_RUNNING') {
@@ -81,6 +90,8 @@ export const useStartSession = () => {
 
 /** 세션 종료 Hook */
 export const useFinishSession = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'finish'),
 		mutationFn: postSessionFinish,
@@ -88,7 +99,12 @@ export const useFinishSession = () => {
 			queryClient.setQueryData(apiKeys.sessions.running(), null);
 			queryClient.setQueryData(apiKeys.sessions.detail(session.id), session);
 
-			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices(), apiKeys.reports.all());
+			return Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
+			]);
 		},
 		onError: (error) => {
 			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
@@ -102,13 +118,20 @@ export const useFinishSession = () => {
 
 /** 진행 중인 세션을 찾아 종료하는 Hook */
 export const useFinishRunningSession = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'finishRunning'),
 		mutationFn: postRunningSessionFinish,
 		onSuccess: () => {
 			queryClient.setQueryData(apiKeys.sessions.running(), null);
 
-			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices(), apiKeys.reports.all());
+			return Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
+			]);
 		},
 		onError: (error) => {
 			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
@@ -122,20 +145,24 @@ export const useFinishRunningSession = () => {
 
 /** 세션 소리 업로드 Hook */
 export const useUploadSessionSound = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
-		onSuccess: (_data, { id }) => invalidate(apiKeys.sessions.mimicrySounds(id)),
+		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.mimicrySounds(id) }),
 	});
 };
 
 /** 하트비트 전송 Hook */
 export const useSendHeartbeat = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'heartbeat'),
 		mutationFn: postSessionHeartbeat,
 		retry: false,
-		onSuccess: () => invalidate(apiKeys.sessions.running()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
 		onError: (error) => {
 			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
 				return;

@@ -1,8 +1,7 @@
-import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getMe, patchMe, putUserPhoto } from '@/apis/users';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
@@ -15,18 +14,22 @@ export const useGetMe = () => {
 
 /** 내 정보 수정 Hook */
 export const useUpdateMe = () => {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'update'),
 		mutationFn: patchMe,
-		onSuccess: () => invalidate(apiKeys.me()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.me() }),
 	});
 };
 
 /** 계정 사진 업로드 Hook */
 export const useUploadUserPhoto = () => {
+	const queryClient = useQueryClient();
+
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'photo', 'upload'),
 		mutationFn: putUserPhoto,
-		onSuccess: () => invalidate(apiKeys.me()),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.me() }),
 	});
 };

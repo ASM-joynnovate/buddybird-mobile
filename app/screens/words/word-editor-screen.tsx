@@ -2,14 +2,13 @@ import { type ReactElement, useEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
 import type { Recording } from '@/types/apis/words';
 
 import type { RootStackParamList, WordsStackParamList } from '@/types/navigation';
 
-import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
 import {
 	getWordOptions,
@@ -22,8 +21,6 @@ import useSoundPlayer from '@/hooks/use-sound-player';
 
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-
-import { queryClient } from '@/lib/query-client';
 
 import { type RouteProp, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -89,6 +86,8 @@ const saveLabel = (saveStep: SaveStep | null, saveFailed: boolean, t: TFunction)
 
 /** 단어 편집 화면 */
 const WordEditorScreen = () => {
+	const queryClient = useQueryClient();
+
 	const { t } = useTranslation();
 
 	const route = useRoute<RouteProp<WordsStackParamList, 'WordEditor'>>();
@@ -393,7 +392,7 @@ const WordEditorScreen = () => {
 				await deleteWordRecording.mutateAsync({ id: savedWordId, recordingId });
 			}
 
-			await invalidate(apiKeys.words.all());
+			await queryClient.invalidateQueries({ queryKey: apiKeys.words.all() });
 
 			const recordingCount = uploadedRecordings(latestWord.recordings).length - recordingIdsToDelete.length;
 
@@ -419,7 +418,7 @@ const WordEditorScreen = () => {
 				setSaveFailed(true);
 
 				if (savedWordId) {
-					await invalidate(apiKeys.words.detail(savedWordId));
+					await queryClient.invalidateQueries({ queryKey: apiKeys.words.detail(savedWordId) });
 				}
 			}
 		} finally {
