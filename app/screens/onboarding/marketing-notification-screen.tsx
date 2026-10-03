@@ -8,6 +8,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MarketingNotificationAnswer from '@/screens/onboarding/components/marketing-notification-answer';
+import MarketingNotificationAnswerSkeleton from '@/screens/onboarding/components/marketing-notification-answer-skeleton';
 import MarketingScene from '@/screens/onboarding/components/marketing-scene';
 import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import { trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
@@ -17,8 +18,6 @@ import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Copy } from '@/components/ui/copy';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 마케팅 알림 수신 여부를 묻는 화면 */
 const MarketingNotificationScreen = () => {
 	const { t } = useTranslation();
@@ -47,7 +46,7 @@ const MarketingNotificationScreen = () => {
 				footer={
 					<ErrorHandlingWrapper
 						fallbackComponent={ScreenError}
-						suspenseFallback=<Skeleton blockCount={1} height={56} />
+						suspenseFallback=<MarketingNotificationAnswerSkeleton />
 					>
 						<MarketingNotificationAnswer />
 					</ErrorHandlingWrapper>

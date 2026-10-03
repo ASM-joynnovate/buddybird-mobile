@@ -14,6 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PlusIcon } from 'lucide-react-native';
 
 import WordList from '@/screens/words/components/word-list';
+import WordListSkeleton from '@/screens/words/components/word-list-skeleton';
 import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
@@ -22,8 +23,6 @@ import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 단어 목록 화면 */
 const WordListScreen = () => {
 	const { t } = useTranslation();
@@ -50,10 +49,7 @@ const WordListScreen = () => {
 				<ScreenHeader title={t('words.list.title')} large trailing={addButton} />
 
 				<InlineError message={player.failedId ? t('common.sound.playError') : null} />
-				<ErrorHandlingWrapper
-					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton blockCount={4} height={84} />
-				>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<WordListSkeleton />>
 					<WordList player={player} />
 				</ErrorHandlingWrapper>
 			</View>

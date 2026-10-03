@@ -18,8 +18,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Confetti from '@/screens/session/components/confetti';
 import SummarySpeech from '@/screens/session/components/summary-speech';
+import SummarySpeechSkeleton from '@/screens/session/components/summary-speech/summary-speech-skeleton';
 import SummaryStats from '@/screens/session/components/summary-stats';
+import SummaryStatsSkeleton from '@/screens/session/components/summary-stats/summary-stats-skeleton';
 import SummaryTitle from '@/screens/session/components/summary-title';
+import SummaryTitleSkeleton from '@/screens/session/components/summary-title-skeleton';
 import { useReportStore } from '@/stores/report';
 import { useSessionStore } from '@/stores/session';
 
@@ -27,7 +30,6 @@ import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ui } from '@/components/ui/styles';
 
 /** 학습 완료 화면 */
@@ -110,7 +112,7 @@ const SessionSummaryScreen = () => {
 						<View style={styles.sideColumn}>
 							<ErrorHandlingWrapper
 								fallbackComponent={ScreenError}
-								suspenseFallback=<Skeleton blockCount={2} height={120} />
+								suspenseFallback=<SummarySpeechSkeleton mascotSize={96} />
 							>
 								<SummarySpeech sessionId={params.sessionId} mascotSize={96} />
 							</ErrorHandlingWrapper>
@@ -120,7 +122,12 @@ const SessionSummaryScreen = () => {
 							<View style={styles.mainContent}>
 								<ErrorHandlingWrapper
 									fallbackComponent={ScreenError}
-									suspenseFallback=<Skeleton blockCount={3} height={56} />
+									suspenseFallback={
+										<>
+											<SummaryTitleSkeleton />
+											<SummaryStatsSkeleton />
+										</>
+									}
 								>
 									<SummaryTitle sessionId={params.sessionId} />
 									<SummaryStats sessionId={params.sessionId} />
@@ -135,7 +142,16 @@ const SessionSummaryScreen = () => {
 				<Screen footer={actions} contentContainerStyle={styles.portraitContent}>
 					<ErrorHandlingWrapper
 						fallbackComponent={ScreenError}
-						suspenseFallback=<Skeleton blockCount={3} height={56} />
+						suspenseFallback={
+							<View style={styles.portraitSkeleton}>
+								<View style={styles.titleSpeechContainer}>
+									<SummaryTitleSkeleton />
+									<SummarySpeechSkeleton mascotSize={140} />
+								</View>
+
+								<SummaryStatsSkeleton />
+							</View>
+						}
 					>
 						<View style={styles.titleSpeechContainer}>
 							<SummaryTitle sessionId={params.sessionId} />
@@ -155,6 +171,7 @@ const SessionSummaryScreen = () => {
 const styles = StyleSheet.create({
 	screen: { flex: 1 },
 	portraitContent: { gap: 16 },
+	portraitSkeleton: { flex: 1, overflow: 'hidden', gap: 16 },
 	titleSpeechContainer: { flexGrow: 1, justifyContent: 'center', gap: 40, paddingTop: 16 },
 	landscapeContainer: { flex: 1, flexDirection: 'row', gap: 32, paddingTop: 20, paddingHorizontal: 24 },
 	sideColumn: { width: 280, justifyContent: 'center' },

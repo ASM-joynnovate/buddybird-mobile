@@ -32,6 +32,7 @@ import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
 import RecordingSheet from '@/screens/words/components/recording-sheet';
 import RecordingsSection from '@/screens/words/components/recordings-section';
 import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
+import WordEditorSkeleton from '@/screens/words/components/word-editor-skeleton';
 import { reportError, track } from '@/services/telemetry/client';
 import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
@@ -42,7 +43,6 @@ import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
 import { TextField } from '@/components/ui/text-field';
 
 type SaveStep = 'saving' | 'uploading' | 'processing';
@@ -120,6 +120,7 @@ const WordEditorScreen = () => {
 		data: wordData,
 		isPending,
 		isError,
+		error: wordLoadError,
 		isFetching,
 		refetch,
 	} = useQuery({
@@ -462,9 +463,9 @@ const WordEditorScreen = () => {
 	let body: ReactElement;
 
 	if (loading) {
-		body = <Skeleton blockCount={3} />;
+		body = <WordEditorSkeleton />;
 	} else if (loadFailed) {
-		body = <ScreenError loading={isFetching} onRetry={() => void refetch()} />;
+		body = <ScreenError error={wordLoadError} loading={isFetching} onRetry={() => void refetch()} />;
 	} else {
 		body = (
 			<>

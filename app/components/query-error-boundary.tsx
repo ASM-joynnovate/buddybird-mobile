@@ -6,6 +6,7 @@ import { reportError } from '@/services/telemetry/client';
 
 interface Props {
 	FallbackComponent: ComponentType<ErrorFallbackProps>;
+	placeholder: ReactNode;
 	onReset: () => void;
 	children: ReactNode;
 }
@@ -17,6 +18,7 @@ interface State {
 /**
  * 오류 발생 시 API 요청을 다시 시도하기 위한 wrapper
  * @param FallbackComponent 오류 화면 컴포넌트
+ * @param placeholder 오류 화면 뒤에 깔 로딩 중 내용
  * @param onReset 다시 시도할 때 조회 오류를 초기화하는 함수
  * @param children 감싸는 내용
  */
@@ -41,11 +43,11 @@ class QueryErrorBoundary extends Component<Props, State> {
 	};
 
 	render = () => {
-		const { FallbackComponent, children } = this.props;
+		const { FallbackComponent, placeholder, children } = this.props;
 		const { error } = this.state;
 
 		if (error) {
-			return <FallbackComponent error={error} onRetry={this.reset} />;
+			return <FallbackComponent error={error} placeholder={placeholder} onRetry={this.reset} />;
 		}
 
 		return children;

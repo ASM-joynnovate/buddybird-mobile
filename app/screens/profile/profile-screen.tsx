@@ -12,14 +12,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SettingsIcon } from 'lucide-react-native';
 
 import ProfileCards from '@/screens/profile/components/profile-cards';
+import ProfileCardsSkeleton from '@/screens/profile/components/profile-cards-skeleton';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 프로필 화면 */
 const ProfileScreen = () => {
 	const { t } = useTranslation();
@@ -41,10 +40,7 @@ const ProfileScreen = () => {
 				/>
 			/>
 
-			<ErrorHandlingWrapper
-				fallbackComponent={ScreenError}
-				suspenseFallback=<Skeleton blockCount={3} height={96} />
-			>
+			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<ProfileCardsSkeleton />>
 				<ProfileCards />
 			</ErrorHandlingWrapper>
 		</Screen>

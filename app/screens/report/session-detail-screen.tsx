@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import MimicrySoundListSkeleton from '@/screens/report/components/mimicry-sound-list-skeleton';
 import SessionMimicry from '@/screens/report/components/session-mimicry';
 import { track } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
@@ -20,8 +21,6 @@ import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 세션 상세 화면 */
 const SessionDetailScreen = () => {
 	const { t } = useTranslation();
@@ -52,7 +51,7 @@ const SessionDetailScreen = () => {
 						/>
 					</View>
 				) : (
-					<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={4} />>
+					<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<MimicrySoundListSkeleton />>
 						<SessionMimicry sessionId={params.sessionId} />
 					</ErrorHandlingWrapper>
 				)}

@@ -22,7 +22,11 @@ const ErrorHandlingWrapper = ({ children, fallbackComponent, suspenseFallback }:
 	return (
 		<QueryErrorResetBoundary>
 			{({ reset }) => (
-				<QueryErrorBoundary FallbackComponent={fallbackComponent} onReset={reset}>
+				<QueryErrorBoundary
+					FallbackComponent={fallbackComponent}
+					placeholder={suspenseFallback}
+					onReset={reset}
+				>
 					<Suspense fallback={suspenseFallback}>{children}</Suspense>
 				</QueryErrorBoundary>
 			)}

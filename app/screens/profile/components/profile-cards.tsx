@@ -26,7 +26,7 @@ import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
 const CARDS_PER_ROW = 2;
-const CARD_TILTS = [-1.6, 1.2, 1.4, -1.1, 1.3];
+export const CARD_TILTS = [-1.6, 1.2, 1.4, -1.1, 1.3];
 
 type Navigation = CompositeNavigationProp<
 	NativeStackNavigationProp<ProfileStackParamList, 'Profile'>,

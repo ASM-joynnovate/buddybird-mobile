@@ -21,7 +21,7 @@ export const common: CommonMessages = {
 	dontShowAgain: '다시 보지 않기',
 	stepProgress: '{{total}}단계 중 {{current}}단계',
 	offline: '인터넷 연결이 끊겼어요. 다시 연결되면 자동으로 불러와요.',
-	loadError: '정보를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
+	loadError: '정보를 불러오지 못했어요',
 	saveErrorKept: '저장하지 못했어요. 입력한 내용은 그대로 남아 있으니 다시 시도해 주세요.',
 	illustration: '{{scene}} 그림',
 	phases: {

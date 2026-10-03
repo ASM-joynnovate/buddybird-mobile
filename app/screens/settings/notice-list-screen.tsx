@@ -8,14 +8,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import NoticeList from '@/screens/settings/components/notice-list';
+import NoticeListSkeleton from '@/screens/settings/components/notice-list-skeleton';
 import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 공지 목록 화면 */
 const NoticeListScreen = () => {
 	const { t } = useTranslation();
@@ -27,7 +26,7 @@ const NoticeListScreen = () => {
 			<View style={styles.container}>
 				<ScreenHeader title={t('settings.notices.title')} onBack={() => navigation.goBack()} />
 
-				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<Skeleton blockCount={3} />>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<NoticeListSkeleton />>
 					<NoticeList />
 				</ErrorHandlingWrapper>
 			</View>

@@ -13,14 +13,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import DeviceList from '@/screens/settings/components/device-list';
+import DeviceListSkeleton from '@/screens/settings/components/device-list-skeleton';
 import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 연결된 기기 화면 */
 const DevicesScreen = () => {
 	const { t } = useTranslation();
@@ -35,10 +34,7 @@ const DevicesScreen = () => {
 			<View style={styles.container}>
 				<ScreenHeader title={t('settings.devices.title')} onBack={() => navigation.goBack()} />
 
-				<ErrorHandlingWrapper
-					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton blockCount={2} height={110} />
-				>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<DeviceListSkeleton />>
 					<DeviceList />
 				</ErrorHandlingWrapper>
 			</View>

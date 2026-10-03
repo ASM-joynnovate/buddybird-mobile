@@ -9,6 +9,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import AccountSection from '@/screens/settings/components/account-section';
 import GeneralGroup from '@/screens/settings/components/general-group';
+import GeneralGroupSkeleton from '@/screens/settings/components/general-group-skeleton';
 import SupportGroup from '@/screens/settings/components/support-group';
 import { installedVersion } from '@/services/device/application';
 import { colors } from '@/theme';
@@ -18,8 +19,6 @@ import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /** 설정 화면 */
 const SettingsScreen = () => {
 	const { t } = useTranslation();
@@ -31,10 +30,7 @@ const SettingsScreen = () => {
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
 
 			<View style={styles.sectionsContainer}>
-				<ErrorHandlingWrapper
-					fallbackComponent={ScreenError}
-					suspenseFallback=<Skeleton blockCount={4} height={56} />
-				>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<GeneralGroupSkeleton />>
 					<GeneralGroup />
 				</ErrorHandlingWrapper>
 
