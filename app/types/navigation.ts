@@ -52,6 +52,7 @@ export type RootStackParamList = {
 		| undefined;
 	UsageGuide: undefined;
 	PermissionRequest: undefined;
+	MarketingNotification: undefined;
 	Main: NavigatorScreenParams<MainTabParamList> | undefined;
 	NoticeDetail: { noticeId: string };
 	SessionRun: {

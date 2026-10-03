@@ -14,8 +14,6 @@ export const report: ReportMessages = {
 	chartHour: '{{hour}}h',
 	learningTimeByWord: 'Learning time by word',
 	sessions: 'Sessions',
-	mimicryTitle: 'Parrot mimicry',
-	mimicryCount: 'Mimicked {{count}}',
 	judging: 'Checking',
 	empty: 'No learning records in this period',
 	emptyScene: 'an empty report',

@@ -17,13 +17,13 @@ import { randomUUID } from 'expo-crypto';
 import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from 'lucide-react-native';
 
 import { MAX_RECORDINGS, MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/config';
+import { SECOND } from '@/config/units';
 import AudioWaveform from '@/screens/words/components/audio-waveform';
 import RecordingStepItem from '@/screens/words/components/recording-sheet/step-item';
 import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
 import { deleteFile, readFileInfo } from '@/services/media/file';
 import { reportError, track } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { Button } from '@/components/ui/button';
@@ -135,6 +135,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 	const closingRef = useRef(true);
 	const targetRef = useRef<RecordingTarget | null>(null);
 	const recordedLevelsRef = useRef<number[]>([]);
+	const handleRecordingFinishedRef = useRef<(uri: string, durationMs: number) => void>(() => undefined);
 
 	const currentRecording = recordings[currentIndex] ?? null;
 
@@ -193,7 +194,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 		if (status.hasError) {
 			setRecordingFileError('recordError');
 		} else if (status.isFinished && status.url) {
-			handleRecordingFinished(status.url, elapsedRef.current);
+			handleRecordingFinishedRef.current(status.url, elapsedRef.current);
 		}
 	});
 	const recorderState = useAudioRecorderState(recorder, 80);
@@ -226,6 +227,11 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 	useEffect(() => {
 		elapsedRef.current = recorderState.durationMillis;
 	}, [recorderState.durationMillis]);
+
+	/** 최신 handleRecordingFinished를 ref에 저장 */
+	useEffect(() => {
+		handleRecordingFinishedRef.current = handleRecordingFinished;
+	});
 
 	/** 녹음 중 소리 크기를 파형 오른쪽 끝에 추가 */
 	useEffect(() => {
@@ -339,6 +345,10 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 
 	/** 마이크 권한 확인 후 녹음 시작 */
 	const handleRecord = () => {
+		if (busy || microphonePermission.checking) {
+			return;
+		}
+
 		player.stop();
 
 		void microphonePermission.run(() => void handleStartRecording());
@@ -366,7 +376,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 			label={t('words.recorder.start')}
 			icon={MicIcon}
 			size="small"
-			disabled={busy}
+			disabled={busy || microphonePermission.checking}
 			onPress={handleRecord}
 			style={ui.action}
 		/>
@@ -400,7 +410,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 					label={t('words.recorder.rerecord')}
 					icon={MicIcon}
 					size="small"
-					disabled={busy}
+					disabled={busy || microphonePermission.checking || currentRecording.pending}
 					onPress={handleRecord}
 					style={ui.action}
 				/>

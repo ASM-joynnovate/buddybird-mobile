@@ -51,11 +51,11 @@ const ReportHeader = ({ report }: Props) => {
 
 	const hasSessions = report.sessions.length > 0;
 	const periodLabel =
-		report.period === 'day'
-			? formatMonthDayWeekday(report.start, locale)
-			: report.period === 'month'
-				? formatYearMonth(report.start, locale)
-				: `${formatMonthDay(report.start, locale)} ~ ${formatMonthDay(report.end, locale)}`;
+		report.period.unit === 'day'
+			? formatMonthDayWeekday(report.period.start, locale)
+			: report.period.unit === 'month'
+				? formatYearMonth(report.period.start, locale)
+				: `${formatMonthDay(report.period.start, locale)} ~ ${formatMonthDay(report.period.end, locale)}`;
 	const isLatest = start === null || start >= latestStart(period);
 	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
@@ -95,14 +95,14 @@ const ReportHeader = ({ report }: Props) => {
 						<Copy style={styles.label}>{t('report.learningTime')}</Copy>
 						<View style={styles.totalRow}>
 							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.total}>
-								{formatDuration(report.learning_duration_ms, locale)}
+								{formatDuration(report.learning.duration_ms, locale)}
 							</Copy>
 						</View>
 
 						<TrendChart
-							key={`${report.period}-${report.start}`}
-							period={report.period}
-							trend={report.trend}
+							key={`${report.period.unit}-${report.period.start}`}
+							period={report.period.unit}
+							trend={report.learning.trend}
 						/>
 					</>
 				)}
@@ -123,7 +123,7 @@ const ReportHeader = ({ report }: Props) => {
 			{/*단어별 학습 시간*/}
 			{hasSessions && (
 				<>
-					<WordBars words={report.words} />
+					<WordBars words={report.learning.words} />
 
 					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessionsTitle]}>
 						{t('report.sessions')}

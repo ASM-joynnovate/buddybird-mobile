@@ -1,13 +1,6 @@
 import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
-import {
-	deleteParrot,
-	deleteParrotPhoto,
-	getParrotList,
-	patchParrot,
-	postParrot,
-	putParrotPhoto,
-} from '@/apis/parrots';
+import { deleteParrot, getParrotList, patchParrot, postParrot, putParrotPhoto } from '@/apis/parrots';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
@@ -55,15 +48,6 @@ export const useUploadParrotPhoto = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
 		mutationFn: putParrotPhoto,
-		onSuccess: () => invalidate(apiKeys.parrots.all()),
-	});
-};
-
-/** 앵무새 사진 삭제 Hook */
-export const useDeleteParrotPhoto = () => {
-	return useIdempotentMutation({
-		mutationKey: apiKeys.mutation('parrots', 'photo', 'delete'),
-		mutationFn: deleteParrotPhoto,
 		onSuccess: () => invalidate(apiKeys.parrots.all()),
 	});
 };

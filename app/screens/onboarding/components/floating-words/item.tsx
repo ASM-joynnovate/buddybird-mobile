@@ -15,8 +15,8 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
+import { SECOND } from '@/config/units';
 import { colors, font, radius } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 import { Copy } from '@/components/ui/copy';
 

@@ -14,8 +14,8 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
+import { SECOND } from '@/config/units';
 import { mascotImage } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 interface Props {
 	size?: number;

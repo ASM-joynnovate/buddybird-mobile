@@ -8,14 +8,13 @@ import {
 } from '@/types/device-settings';
 import { defaultLocale, type Locale, locales } from '@/types/locale';
 
-import { mmkvStorage, restoreOptions } from '@/lib/storage';
+import { mmkvStorage, persistKeys, restoreOptions, storageIds } from '@/lib/storage';
 
 import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { FEEDBACK_PROMPT_THRESHOLDS } from '@/config';
-import { persistKeys, storageIds } from '@/stores/keys';
 import { localDate } from '@/utils/date';
 
 type DeviceSettingsActions = {

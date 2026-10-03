@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * 이번 학습과 지금까지의 학습 결과 칩 목록 컴포넌트
+ * 학습 결과 칩 목록 컴포넌트
  * @param sessionId 세션 ID
  */
 const SummaryStats = ({ sessionId }: Props) => {
@@ -37,36 +37,31 @@ const SummaryStats = ({ sessionId }: Props) => {
 	const allTimeStat: SummaryStat = {
 		metric: 'allTime',
 		label: t('session.summary.allTotal'),
-		value: total.learning_duration_ms,
-		valueBeforeSession: Math.max(0, total.learning_duration_ms - session.learning_duration_ms),
+		value: total.learning.duration_ms,
+		valueBeforeSession: Math.max(0, total.learning.duration_ms - session.learning.duration_ms),
 		unit: 'duration',
-		revealAt: word ? 2 : 1,
+		revealAt: 2,
 	};
-	const stats: SummaryStat[] = word
-		? [
-				totalTimeStat,
-				{
-					metric: 'played',
-					label: t('session.summary.playCount'),
-					value: session.play_count,
-					valueBeforeSession: null,
-					unit: 'count',
-					revealAt: 1,
-				},
-				allTimeStat,
-				{
-					metric: 'wordTime',
-					label: t('session.summary.wordTotal', { word: word.name }),
-					value: total.word_learning_duration_ms ?? 0,
-					valueBeforeSession: Math.max(
-						0,
-						(total.word_learning_duration_ms ?? 0) - session.learning_duration_ms,
-					),
-					unit: 'duration',
-					revealAt: 3,
-				},
-			]
-		: [totalTimeStat, allTimeStat];
+	const stats: SummaryStat[] = [
+		totalTimeStat,
+		{
+			metric: 'played',
+			label: t('session.summary.playCount'),
+			value: session.play_count,
+			valueBeforeSession: null,
+			unit: 'count',
+			revealAt: 1,
+		},
+		allTimeStat,
+		{
+			metric: 'wordTime',
+			label: t('session.summary.wordTotal', { word: word.name }),
+			value: word.learning.duration_ms,
+			valueBeforeSession: Math.max(0, word.learning.duration_ms - session.learning.duration_ms),
+			unit: 'duration',
+			revealAt: 3,
+		},
+	];
 
 	return (
 		<View style={styles.container}>

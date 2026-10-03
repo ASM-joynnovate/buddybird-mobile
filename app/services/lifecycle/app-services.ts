@@ -26,13 +26,13 @@ export const startAppServices = () => {
 
 	const appStateSubscription = AppState.addEventListener('change', (appState) => {
 		if (appState === 'active' && previousAppState !== 'active') {
-			const returnedFromBackground = appBackgrounded;
+			const appReturnedFromBackground = appBackgrounded;
 
 			appBackgrounded = false;
 
 			void initializeTelemetry(false)
 				.then(() => {
-					if (returnedFromBackground) {
+					if (appReturnedFromBackground) {
 						track('app_foregrounded', {});
 					}
 				})

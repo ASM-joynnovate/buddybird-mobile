@@ -1,9 +1,11 @@
 import { type NotificationSettings, type Settings, settingsSchema } from '@/types/apis/settings';
 
-import { mockServer } from '@/mocks/server';
+import { apiRequest } from '@/lib/api';
 
 export const getSettings = async (): Promise<Settings> => {
-	return settingsSchema.parse(await mockServer.settings.get());
+	const { data: settings } = await apiRequest('/api/v1/users/me/settings', settingsSchema);
+
+	return settings;
 };
 
 export const putSleepSettings = async ({
@@ -13,7 +15,13 @@ export const putSleepSettings = async ({
 	data: Settings['sleep'];
 	idempotencyKey: string;
 }): Promise<Settings> => {
-	return settingsSchema.parse(await mockServer.settings.updateSleep(data));
+	const { data: settings } = await apiRequest('/api/v1/users/me/settings/sleep', settingsSchema, {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+
+	return settings;
 };
 
 export const putNotificationSettings = async ({
@@ -23,5 +31,11 @@ export const putNotificationSettings = async ({
 	data: NotificationSettings;
 	idempotencyKey: string;
 }): Promise<Settings> => {
-	return settingsSchema.parse(await mockServer.settings.updateNotifications(data));
+	const { data: settings } = await apiRequest('/api/v1/users/me/settings/notifications', settingsSchema, {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+
+	return settings;
 };

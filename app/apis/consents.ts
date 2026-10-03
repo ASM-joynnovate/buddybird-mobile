@@ -1,11 +1,13 @@
 import { type Consent, consentSchema, type SaveConsentRequest } from '@/types/apis/consents';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 export const getConsentList = async (): Promise<Consent[]> => {
-	return z.array(consentSchema).parse(await mockServer.consents.list());
+	const { data: consents } = await apiRequest('/api/v1/consents', z.array(consentSchema));
+
+	return consents;
 };
 
 export const postConsent = async ({
@@ -15,5 +17,5 @@ export const postConsent = async ({
 	data: SaveConsentRequest;
 	idempotencyKey: string;
 }): Promise<void> => {
-	await mockServer.consents.save(data);
+	await apiRequest('/api/v1/users/me/consents', z.unknown(), { method: 'POST', json: data, idempotencyKey });
 };

@@ -3,9 +3,9 @@ import { sleepSettingsSchema } from '@/types/sleep-settings';
 import { z } from 'zod';
 
 const notificationSettingsSchema = z.object({
-	notice: z.boolean(),
-	report: z.boolean(),
-	marketing: z.boolean(),
+	notice_enabled: z.boolean(),
+	report_enabled: z.boolean(),
+	marketing_enabled: z.boolean(),
 });
 
 export const settingsSchema = z.object({

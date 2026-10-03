@@ -77,6 +77,7 @@ export const useAddWordRecording = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'add'),
 		mutationFn: postWordRecording,
+		onSuccess: () => invalidate(apiKeys.words.all()),
 	});
 };
 
@@ -85,5 +86,6 @@ export const useDeleteWordRecording = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'delete'),
 		mutationFn: deleteWordRecording,
+		onSuccess: () => invalidate(apiKeys.words.all()),
 	});
 };

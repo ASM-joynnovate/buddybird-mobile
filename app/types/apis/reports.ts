@@ -11,22 +11,20 @@ const durationSchema = z.number().int().nonnegative();
 
 const reportSessionSchema = z.object({
 	id: uuidSchema,
-	started_at: timestampSchema,
-	ended_at: timestampSchema.nullable(),
-	word: wordRefSchema.nullable(),
-	learning_duration_ms: durationSchema,
-	judgment_status: judgmentStatusSchema,
+	period: z.object({ started_at: timestampSchema, ended_at: timestampSchema.nullable() }),
+	word: wordRefSchema,
+	learning: z.object({ duration_ms: durationSchema }),
+	judgment: z.object({ status: judgmentStatusSchema }),
 });
 
 export const reportSchema = z.object({
-	period: reportPeriodSchema,
-	start: localDateSchema,
-	end: localDateSchema,
-	learning_duration_ms: durationSchema,
-	trend: z.array(z.object({ start: timestampSchema, learning_duration_ms: durationSchema })),
-	words: z.array(z.object({ word: wordRefSchema, learning_duration_ms: durationSchema })),
+	period: z.object({ unit: reportPeriodSchema, start: localDateSchema, end: localDateSchema }),
+	learning: z.object({
+		duration_ms: durationSchema,
+		trend: z.array(z.object({ start: timestampSchema, duration_ms: durationSchema })),
+		words: z.array(z.object({ word: wordRefSchema, duration_ms: durationSchema })),
+	}),
 	sessions: z.array(reportSessionSchema),
-	mimicry: z.object({ count: z.number().int().nonnegative() }),
 });
 
 export type ReportSession = z.infer<typeof reportSessionSchema>;

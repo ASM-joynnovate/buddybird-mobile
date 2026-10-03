@@ -44,7 +44,7 @@ const SoundItem = ({ sound, wordName, multiDay, player }: Props) => {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const playing = player.playingId === sound.id;
-	const url = sound.audio.url;
+	const url = sound.audio_file.url;
 	const timeLabel = multiDay ? formatMonthDayTime(sound.captured_at, locale) : dayjs(sound.captured_at).format('LT');
 
 	let errorMessage: string | null = null;

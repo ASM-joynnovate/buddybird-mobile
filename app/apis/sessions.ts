@@ -14,14 +14,14 @@ import {
 	type StartSessionRequest,
 } from '@/types/apis/sessions';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 const getSessionList = async ({ page }: { page: number }): Promise<Page<Session>> => {
-	const { data, meta } = await mockServer.sessions.list(page);
+	const { data, meta } = await apiRequest('/api/v1/sessions', z.array(sessionSchema), { searchParams: { page } });
 
-	return { data: z.array(sessionSchema).parse(data), meta: pageMetaSchema.parse(meta) };
+	return { data, meta: pageMetaSchema.parse(meta) };
 };
 
 export const getRunningSession = async (): Promise<Session | null> => {
@@ -31,11 +31,15 @@ export const getRunningSession = async (): Promise<Session | null> => {
 };
 
 export const getSession = async ({ id }: { id: string }): Promise<Session> => {
-	return sessionSchema.parse(await mockServer.sessions.detail(id));
+	const { data: session } = await apiRequest(`/api/v1/sessions/${id}`, sessionSchema);
+
+	return session;
 };
 
 export const getSessionSummary = async ({ id }: { id: string }): Promise<SessionSummary> => {
-	return sessionSummarySchema.parse(await mockServer.sessions.summary(id));
+	const { data: sessionSummary } = await apiRequest(`/api/v1/sessions/${id}/summary`, sessionSummarySchema);
+
+	return sessionSummary;
 };
 
 export const postSession = async ({
@@ -45,7 +49,13 @@ export const postSession = async ({
 	data: StartSessionRequest;
 	idempotencyKey: string;
 }): Promise<Session> => {
-	return sessionSchema.parse(await mockServer.sessions.start(data));
+	const { data: session } = await apiRequest('/api/v1/sessions', sessionSchema, {
+		method: 'POST',
+		json: data,
+		idempotencyKey,
+	});
+
+	return session;
 };
 
 export const postSessionFinish = async ({
@@ -55,7 +65,20 @@ export const postSessionFinish = async ({
 	id: string;
 	idempotencyKey: string;
 }): Promise<Session> => {
-	return sessionSchema.parse(await mockServer.sessions.finish(id));
+	const { data: session } = await apiRequest(`/api/v1/sessions/${id}/finish`, sessionSchema, {
+		method: 'POST',
+		idempotencyKey,
+	});
+
+	return session;
+};
+
+export const postRunningSessionFinish = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
+	const runningSession = await getRunningSession();
+
+	if (runningSession) {
+		await postSessionFinish({ id: runningSession.id, idempotencyKey });
+	}
 };
 
 export const postSessionHeartbeat = async ({
@@ -67,7 +90,13 @@ export const postSessionHeartbeat = async ({
 	data: HeartbeatRequest;
 	idempotencyKey: string;
 }): Promise<Heartbeat> => {
-	return heartbeatSchema.parse(await mockServer.sessions.heartbeat(id, data));
+	const { data: heartbeat } = await apiRequest(`/api/v1/sessions/${id}/heartbeat`, heartbeatSchema, {
+		method: 'POST',
+		json: data,
+		idempotencyKey,
+	});
+
+	return heartbeat;
 };
 
 export const postSessionSound = async ({
@@ -81,25 +110,19 @@ export const postSessionSound = async ({
 	data: { captured_at: string };
 	idempotencyKey: string;
 }): Promise<void> => {
-	await putUploadFile({ upload: await postSessionSoundUpload({ id, data, idempotencyKey }), uri });
+	await putUploadFile({ upload: await postSessionSoundUpload({ id, uri, data, idempotencyKey }), uri });
 };
 
-export const getSessionSoundList = async ({ id, page }: { id: string; page: number }): Promise<Page<SessionSound>> => {
-	const { data, meta } = await mockServer.sessions.sounds(id, page);
+export const getSessionMimicrySoundList = async ({
+	id,
+	page,
+}: {
+	id: string;
+	page: number;
+}): Promise<Page<SessionSound>> => {
+	const { data, meta } = await apiRequest(`/api/v1/sessions/${id}/sounds`, z.array(sessionSoundSchema), {
+		searchParams: { mimicry: true, page },
+	});
 
-	return { data: z.array(sessionSoundSchema).parse(data), meta: pageMetaSchema.parse(meta) };
-};
-
-export const getAllSessionSounds = async ({ id }: { id: string }): Promise<SessionSound[]> => {
-	let sounds: SessionSound[] = [];
-
-	for (let pageNumber = 1; ; pageNumber++) {
-		const soundPage = await getSessionSoundList({ id, page: pageNumber });
-
-		sounds = sounds.concat(soundPage.data);
-
-		if (soundPage.meta.is_last) {
-			return sounds;
-		}
-	}
+	return { data, meta: pageMetaSchema.parse(meta) };
 };

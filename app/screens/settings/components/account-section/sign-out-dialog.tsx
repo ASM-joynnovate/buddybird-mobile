@@ -1,9 +1,6 @@
-import { useLogout } from '@/hooks/apis/auth';
+import { useLogout, useSignOutLocally } from '@/hooks/apis/auth';
 
 import { useTranslation } from 'react-i18next';
-
-import { signOutLocally } from '@/services/auth/session';
-import { reportError } from '@/services/telemetry/client';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 
@@ -20,20 +17,22 @@ interface Props {
 const SignOutDialog = ({ visible, onClose }: Props) => {
 	const { t } = useTranslation();
 
-	const { isPending, isError, mutate, reset } = useLogout();
+	const logout = useLogout();
+	const signOutLocally = useSignOutLocally();
+
+	const signOutPending = logout.isPending || signOutLocally.isPending;
 
 	const handleSignOut = () => {
-		if (isPending) {
+		if (signOutPending) {
 			return;
 		}
 
-		mutate(undefined, {
-			onSuccess: () => void signOutLocally().catch((error: unknown) => reportError(error, 'sign_out')),
-		});
+		logout.mutate(undefined, { onSuccess: () => signOutLocally.mutate() });
 	};
 
 	const handleClose = () => {
-		reset();
+		logout.reset();
+		signOutLocally.reset();
 
 		onClose();
 	};
@@ -46,7 +45,7 @@ const SignOutDialog = ({ visible, onClose }: Props) => {
 				message: t('settings.signOutDialog.message'),
 				confirm: t('settings.signOutDialog.confirm'),
 			}}
-			confirmStatus={{ busy: isPending, errorMessage: isError ? t('auth.signOutError') : null }}
+			confirmStatus={{ busy: signOutPending, errorMessage: logout.isError ? t('auth.signOutError') : null }}
 			onConfirm={handleSignOut}
 			onClose={handleClose}
 		/>

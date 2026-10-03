@@ -1,5 +1,3 @@
-import { mockPutLocale } from '@/apis/mock';
-
 import { changeI18nLocale } from '@/i18n';
 
 import { configureApi } from '@/lib/api';
@@ -25,8 +23,6 @@ const locale = () => useDeviceSettingsStore.getState().locale;
 configureApi({ deviceId, locale, accessToken, reportError });
 
 installUnauthorizedSignOut();
-
-mockPutLocale({ locale });
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
 

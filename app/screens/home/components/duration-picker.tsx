@@ -10,9 +10,9 @@ import { CheckIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { CUSTOM_SESSION_DEFAULT_MS, MAX_SESSION_MS, SESSION_DURATION_PRESETS } from '@/config';
+import { DAY, HOUR, MINUTE } from '@/config/units';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, layoutAnimationMs, radius } from '@/theme';
-import { DAY, HOUR, MINUTE } from '@/utils/units';
 
 import { Copy } from '@/components/ui/copy';
 import { Card } from '@/components/ui/surface/card';

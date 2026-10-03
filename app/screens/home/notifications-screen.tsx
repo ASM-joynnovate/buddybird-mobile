@@ -25,6 +25,14 @@ const NotificationsScreen = () => {
 
 	const { isError, isPending, mutate } = useReadAllNotifications();
 
+	const handleReadAll = () => {
+		if (isPending) {
+			return;
+		}
+
+		mutate({});
+	};
+
 	return (
 		<Screen scrollable={false}>
 			<View style={styles.container}>
@@ -34,7 +42,7 @@ const NotificationsScreen = () => {
 					trailing=<TextButton
 						label={t('home.notificationList.readAll')}
 						disabled={isPending}
-						onPress={() => mutate({})}
+						onPress={handleReadAll}
 					/>
 				/>
 				<InlineError message={isError ? t('home.notificationList.readAllError') : null} />

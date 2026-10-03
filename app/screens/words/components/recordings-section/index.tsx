@@ -44,7 +44,9 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const keptServerRecordingCount = recordings.filter((recording) => recording.kind === 'server').length;
+	const uploadedRecordingCount = recordings.filter(
+		(recording) => recording.kind === 'server' && !recording.pending,
+	).length;
 
 	return (
 		<View style={ui.sectionContainer}>
@@ -67,7 +69,10 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 			{recordings.length > 0 && (
 				<ItemGroup>
 					{recordings.map((recording, index) => {
-						const deletable = !saving && !(recording.kind === 'server' && keptServerRecordingCount <= 1);
+						const deletable =
+							!saving &&
+							!recording.pending &&
+							!(recording.kind === 'server' && uploadedRecordingCount <= 1);
 
 						return (
 							<RecordingItem
@@ -75,7 +80,7 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 								recording={recording}
 								player={player}
 								index={index}
-								uploading={saving && recording.kind === 'local'}
+								uploading={(saving && recording.kind === 'local') || recording.pending}
 								onDelete={deletable ? (name) => onDelete(recording, name) : undefined}
 							/>
 						);

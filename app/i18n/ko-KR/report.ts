@@ -14,8 +14,6 @@ export const report: ReportMessages = {
 	chartHour: '{{hour}}시',
 	learningTimeByWord: '단어별 학습 시간',
 	sessions: '학습 목록',
-	mimicryTitle: '앵무새가 따라 한 소리',
-	mimicryCount: '{{count}}번 따라 함',
 	judging: '판정 중',
 	empty: '이 기간에는 학습 기록이 없어요',
 	emptyScene: '빈 리포트',

@@ -55,9 +55,9 @@ const StartupDialogProvider = ({ children }: Props) => {
 	const promptedUpdate = appUpdateData
 		? evaluateUpdate(
 				{
-					latestVersion: appUpdateData.latest_version,
-					minimumVersion: appUpdateData.min_supported_version,
-					notes: appUpdateData.release_notes,
+					latestVersion: appUpdateData.latest.version,
+					minimumVersion: appUpdateData.min_supported.version,
+					notes: appUpdateData.latest.release_notes,
 				},
 				installedVersion,
 				updatePrompt.dismissedVersion,

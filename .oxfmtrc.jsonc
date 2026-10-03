@@ -24,7 +24,6 @@
 					"@/app",
 					"@/config",
 					"@/config/**",
-					"@/mocks/**",
 					"@/navigators/**",
 					"@/providers",
 					"@/providers/**",

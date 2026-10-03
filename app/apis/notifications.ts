@@ -1,14 +1,16 @@
 import { type Page, pageMetaSchema } from '@/types/apis/common';
 import { type AppNotification, notificationSchema } from '@/types/apis/notifications';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 export const getNotificationList = async ({ page }: { page: number }): Promise<Page<AppNotification>> => {
-	const { data, meta } = await mockServer.notifications.list(page);
+	const { data, meta } = await apiRequest('/api/v1/notifications', z.array(notificationSchema), {
+		searchParams: { page },
+	});
 
-	return { data: z.array(notificationSchema).parse(data), meta: pageMetaSchema.parse(meta) };
+	return { data, meta: pageMetaSchema.parse(meta) };
 };
 
 export const postNotificationRead = async ({
@@ -18,9 +20,9 @@ export const postNotificationRead = async ({
 	id: string;
 	idempotencyKey: string;
 }): Promise<void> => {
-	await mockServer.notifications.read(id);
+	await apiRequest(`/api/v1/notifications/${id}/read`, z.unknown(), { method: 'POST', idempotencyKey });
 };
 
 export const postAllNotificationsRead = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
-	await mockServer.notifications.readAll();
+	await apiRequest('/api/v1/notifications/read-all', z.unknown(), { method: 'POST', idempotencyKey });
 };

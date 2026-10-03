@@ -1,4 +1,4 @@
-import type { HeartbeatSummary, Phase } from '@/types/apis/sessions';
+import type { Heartbeat, HeartbeatLearningSegment, Phase } from '@/types/apis/sessions';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
@@ -12,16 +12,24 @@ import {
 } from 'react-native-audio-api';
 
 import { LEARNING_TICK_MS, VAD, WORD_REPLAY_DELAY_FACTOR } from '@/config';
+import { SECOND } from '@/config/units';
 import { loadStressCareTracks } from '@/screens/session/services/tracks';
 import { createSoundDetector, type SoundSegment } from '@/screens/session/services/vad';
 import { saveWav } from '@/screens/session/services/wav';
-import { localDate } from '@/utils/date';
 import { currentSpan, type PhaseSpan } from '@/utils/phases';
-import { SECOND } from '@/utils/units';
 
 interface CapturedSound {
 	uri: string;
 	capturedAt: string;
+}
+
+interface LearningSegment {
+	startedAt: number;
+	endedAt: number;
+	playCount: number;
+	playDurationMs: number;
+	closed: boolean;
+	acknowledged: boolean;
 }
 
 interface LearningEngineOptions {
@@ -38,13 +46,16 @@ export interface LearningEngine {
 	pause: () => Promise<void>;
 	resume: () => Promise<void>;
 	stop: () => Promise<void>;
-	summaries: () => HeartbeatSummary[];
+	unacknowledgedSegments: () => HeartbeatLearningSegment[];
+	acknowledgeSegments: (
+		acknowledgedSegments: Heartbeat['acknowledged'],
+		sentSegments: HeartbeatLearningSegment[],
+	) => void;
 	learningMs: () => number;
+	playCount: () => number;
 }
 
-type SummaryField = 'play_count' | 'play_duration_ms' | 'learning_duration_ms';
-
-/** 학습 단계에 따라 소리를 재생하고 녹음하는 학습 엔진 생성 함수 */
+/** 학습 엔진을 만드는 함수 */
 export const createLearningEngine = (options: LearningEngineOptions) => {
 	const detector = createSoundDetector(VAD);
 	const recorder = new AudioRecorder();
@@ -63,23 +74,44 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	let nextClipIndex = 0;
 	let nextPlayAt = 0;
 	let lastTick = 0;
-	let summariesByDate: Record<string, HeartbeatSummary> = {};
+	let learningSegments: LearningSegment[] = [];
 
-	/** 하트비트로 보낼 날짜별 학습 기록에 값을 더하는 함수 */
-	const addToSummary = (field: SummaryField, amount: number, at: number) => {
-		const date = localDate(at);
-		const summary = summariesByDate[date] ?? {
-			word_id: options.wordId,
-			local_date: date,
-			play_count: 0,
-			play_duration_ms: 0,
-			learning_duration_ms: 0,
-		};
+	/** 새 학습 구간을 여는 함수 */
+	const openLearningSegment = () => {
+		learningSegments = [
+			...learningSegments,
+			{
+				startedAt: lastTick,
+				endedAt: lastTick,
+				playCount: 0,
+				playDurationMs: 0,
+				closed: false,
+				acknowledged: false,
+			},
+		];
+	};
 
-		summariesByDate = {
-			...summariesByDate,
-			[date]: { ...summary, [field]: (summary[field] ?? 0) + Math.round(amount) },
-		};
+	/** 열린 학습 구간을 현재 시각까지 늘리는 함수 */
+	const extendLearningSegment = (now: number) => {
+		learningSegments = learningSegments.map((segment) => (segment.closed ? segment : { ...segment, endedAt: now }));
+	};
+
+	/** 열린 학습 구간에 재생 기록을 더하는 함수 */
+	const addPlayToLearningSegment = (durationMs: number) => {
+		learningSegments = learningSegments.map((segment) =>
+			segment.closed
+				? segment
+				: {
+						...segment,
+						playCount: segment.playCount + 1,
+						playDurationMs: segment.playDurationMs + Math.round(durationMs),
+					},
+		);
+	};
+
+	/** 열린 학습 구간을 닫는 함수 */
+	const closeLearningSegment = () => {
+		learningSegments = learningSegments.map((segment) => ({ ...segment, closed: true }));
 	};
 
 	/** 감지한 소리를 WAV 파일로 저장해 전달하는 함수 */
@@ -155,8 +187,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 		detector.suspend(now + durationMs + VAD.ignoreAfterPlaybackMs);
 
-		addToSummary('play_count', 1, now);
-		addToSummary('play_duration_ms', durationMs, now);
+		addPlayToLearningSegment(durationMs);
 	};
 
 	/** 스트레스 케어 음원 반복 재생 함수 */
@@ -200,11 +231,16 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	const enterPhase = (span: PhaseSpan) => {
 		emitSound(detector.flush());
 
+		closeLearningSegment();
 		stopClip();
 		stopCare();
 
 		phase = span.phase;
 		nextPlayAt = 0;
+
+		if (span.phase === 'learning') {
+			openLearningSegment();
+		}
 
 		if (span.phase === 'stress_care') {
 			detector.suspend(span.end + VAD.ignoreAfterPlaybackMs);
@@ -223,7 +259,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 
 		if (phase === 'learning') {
-			addToSummary('learning_duration_ms', now - lastTick, now);
+			extendLearningSegment(now);
 
 			if (!clip && now >= nextPlayAt) {
 				playClip(now);
@@ -288,6 +324,8 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	const stopRunning = async () => {
 		running = false;
 
+		closeLearningSegment();
+
 		if (timer) {
 			clearInterval(timer);
 			timer = null;
@@ -345,8 +383,39 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 			await AudioManager.setAudioSessionActivity(false);
 		},
-		summaries: () => Object.values(summariesByDate),
-		learningMs: () =>
-			Object.values(summariesByDate).reduce((sum, summary) => sum + (summary.learning_duration_ms ?? 0), 0),
+		/** 확인받지 않은 학습 구간을 반환하는 함수 */
+		unacknowledgedSegments: () =>
+			learningSegments
+				.filter((segment) => !segment.acknowledged)
+				.map((segment) => ({
+					word_id: options.wordId,
+					started_at: dayjs(segment.startedAt).toISOString(),
+					ended_at: dayjs(segment.endedAt).toISOString(),
+					play_count: segment.playCount,
+					play_duration_ms: segment.playDurationMs,
+				})),
+		/** 확인받은 학습 구간을 기록하는 함수 */
+		acknowledgeSegments: (
+			acknowledgedSegments: Heartbeat['acknowledged'],
+			sentSegments: HeartbeatLearningSegment[],
+		) => {
+			learningSegments = learningSegments.map((segment) => {
+				const finalValueSent =
+					segment.closed &&
+					sentSegments.some(
+						(sentSegment) =>
+							sentSegment.started_at === dayjs(segment.startedAt).toISOString() &&
+							sentSegment.ended_at === dayjs(segment.endedAt).toISOString(),
+					);
+				const startedAtAcknowledged = acknowledgedSegments.some(
+					(acknowledgedSegment) => dayjs(acknowledgedSegment.started_at).valueOf() === segment.startedAt,
+				);
+
+				return finalValueSent && startedAtAcknowledged ? { ...segment, acknowledged: true } : segment;
+			});
+		},
+		learningMs: () => learningSegments.reduce((sum, segment) => sum + segment.endedAt - segment.startedAt, 0),
+		/** 전체 재생 횟수를 반환하는 함수 */
+		playCount: () => learningSegments.reduce((sum, segment) => sum + segment.playCount, 0),
 	};
 };

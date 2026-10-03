@@ -2,7 +2,10 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useDeleteUserPhoto, useGetMe, useUpdateMe, useUploadUserPhoto } from '@/hooks/apis/users';
+import { useIsMutating } from '@tanstack/react-query';
+
+import { apiKeys } from '@/hooks/apis/keys';
+import { useGetMe, useUpdateMe, useUploadUserPhoto } from '@/hooks/apis/users';
 import usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
@@ -17,7 +20,6 @@ import PermissionDialog from '@/components/dialogs/permission-dialog';
 import ProfilePhoto from '@/components/profile-photo';
 import { Button } from '@/components/ui/button';
 import { InlineError } from '@/components/ui/inline-error';
-import { TextButton } from '@/components/ui/text-button';
 import { TextField } from '@/components/ui/text-field';
 
 interface Props {
@@ -38,14 +40,15 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	const updateMe = useUpdateMe();
 	const uploadUserPhoto = useUploadUserPhoto();
-	const deleteUserPhoto = useDeleteUserPhoto();
 
-	const savedPhotoUrl = meData.photo?.url ?? null;
+	const userPhotoUploading = useIsMutating({ mutationKey: apiKeys.mutation('users', 'me', 'photo', 'upload') }) > 0;
+
+	const savedPhotoUrl = meData.photo_file?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
 
-	const saving = updateMe.isPending || uploadUserPhoto.isPending || deleteUserPhoto.isPending;
-	const photoSaveFailed = uploadUserPhoto.isError || deleteUserPhoto.isError;
+	const saving = updateMe.isPending || userPhotoUploading;
+	const photoSaveFailed = uploadUserPhoto.isError;
 	const duplicateNickname = isDuplicateNickname(updateMe.error);
 	let nicknameError: string | null = null;
 
@@ -59,16 +62,11 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	/** 변경한 계정 사진 저장 함수 */
 	const saveUserPhoto = () => {
-		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
+		if (photo.photoChanged && photo.photoUri) {
 			uploadUserPhoto.mutate(
 				{ uri: photo.photoUri },
 				{ onSuccess: onSaved, onError: (error) => reportError(error, 'account_save') },
 			);
-		} else if (!photo.photoUri && savedPhotoUrl) {
-			deleteUserPhoto.mutate(undefined, {
-				onSuccess: onSaved,
-				onError: (error) => reportError(error, 'account_save'),
-			});
 		} else {
 			onSaved();
 		}
@@ -111,16 +109,6 @@ const AccountForm = ({ onSaved }: Props) => {
 		<>
 			<View style={styles.spacer} />
 			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
-			{!!photo.photoUri && (
-				<View style={styles.removePhotoContainer}>
-					<TextButton
-						label={t('profile.removePhoto')}
-						variant="muted"
-						disabled={saving}
-						onPress={() => photo.setPhotoUri(null)}
-					/>
-				</View>
-			)}
 
 			<View style={styles.nicknameContainer}>
 				<TextField
@@ -148,7 +136,6 @@ const AccountForm = ({ onSaved }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	removePhotoContainer: { alignItems: 'flex-end', marginTop: -12, marginBottom: 8 },
 	nicknameContainer: { marginTop: 32 },
 	spacer: { flexGrow: 1, minHeight: 24 },
 	save: { marginTop: 12 },

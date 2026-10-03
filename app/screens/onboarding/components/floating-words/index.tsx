@@ -4,9 +4,9 @@ import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 
 import Animated, { FadeOut, useReducedMotion } from 'react-native-reanimated';
 
+import { SECOND } from '@/config/units';
 import FloatingWordsItem, { type FloatingWordPath } from '@/screens/onboarding/components/floating-words/item';
 import { contentMaxWidth } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 const START_DELAY_MS = SECOND;
 const STAGGER_MS = 1.2 * SECOND;

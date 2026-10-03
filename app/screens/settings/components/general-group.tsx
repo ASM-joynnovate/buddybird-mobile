@@ -1,4 +1,5 @@
 import type { RootStackParamList } from '@/types/navigation';
+import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useGetSettings, useUpdateSleepSettings } from '@/hooks/apis/settings';
 
@@ -16,7 +17,7 @@ import { InlineError } from '@/components/ui/inline-error';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 
-/** 수면 시간, 알림, 앱 언어, 연결된 기기 설정 컴포넌트 */
+/** 일반 설정 컴포넌트 */
 const GeneralGroup = () => {
 	const { t } = useTranslation();
 
@@ -28,13 +29,22 @@ const GeneralGroup = () => {
 
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
+	const handleSaveSleepSettings = (sleep: SleepSettings) => {
+		if (updateSleepSettings.isPending) {
+			return;
+		}
+
+		updateSleepSettings.mutate({ data: sleep });
+	};
+
 	return (
 		<>
 			<ItemGroup>
 				<SleepTimePicker
 					value={settingsData.sleep}
 					first
-					onChange={(sleep) => updateSleepSettings.mutate({ data: sleep })}
+					disabled={updateSleepSettings.isPending}
+					onChange={handleSaveSleepSettings}
 				/>
 				<Item
 					icon={BellIcon}

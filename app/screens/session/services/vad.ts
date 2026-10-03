@@ -1,4 +1,4 @@
-import { SECOND } from '@/utils/units';
+import { SECOND } from '@/config/units';
 
 interface VadSettings {
 	sampleRate: number;

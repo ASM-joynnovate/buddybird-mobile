@@ -1,8 +1,9 @@
 import type { LoginRequest } from '@/types/apis/auth';
 
+import { getSupabase } from '@/lib/supabase';
+
 import * as Application from 'expo-application';
 
-import { authClient } from '@/services/auth/client';
 import { useAccountStore } from '@/stores/account';
 
 type LoginCredential = Pick<LoginRequest, 'google' | 'apple'>;
@@ -39,7 +40,7 @@ export const loginCredential = async () => {
 		return {};
 	}
 
-	const { data: sessionData, error } = await authClient().getSession();
+	const { data: sessionData, error } = await getSupabase().auth.getSession();
 
 	if (error) {
 		throw error;

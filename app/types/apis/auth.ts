@@ -10,7 +10,5 @@ const loginRequestSchema = z.object({
 
 export const loginResultSchema = z.object({ user_id: uuidSchema, is_new_user: z.boolean() });
 
-export const withdrawalSchema = z.object({ user_id: uuidSchema });
-
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type LoginResult = z.infer<typeof loginResultSchema>;

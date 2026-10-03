@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 
 import type { LucideIcon } from 'lucide-react-native';
 
@@ -12,19 +12,25 @@ interface Props {
 	uri?: string | null;
 	icon: LucideIcon;
 	size: AvatarSize;
+	uploading?: boolean;
 }
 
 const sizeStyle = (size: AvatarSize) => {
 	return { medium: styles.medium, large: styles.large, xlarge: styles.xlarge }[size];
 };
 
-export const Avatar = ({ uri, icon: Icon, size }: Props) => {
+export const Avatar = ({ uri, icon: Icon, size, uploading = false }: Props) => {
 	return (
 		<View style={[styles.container, sizeStyle(size)]}>
 			{uri ? (
 				<Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : (
 				<Icon size={iconSizes[size]} color={colors.subtle} />
+			)}
+			{uploading && (
+				<View style={styles.progressContainer}>
+					<ActivityIndicator color={colors.onFilled} />
+				</View>
 			)}
 		</View>
 	);
@@ -41,4 +47,10 @@ const styles = StyleSheet.create({
 	large: { width: 80, height: 80, borderRadius: 40 },
 	xlarge: { width: 110, height: 110, borderRadius: 55 },
 	image: { width: '100%', height: '100%' },
+	progressContainer: {
+		...StyleSheet.absoluteFill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: colors.backdrop,
+	},
 });

@@ -13,5 +13,6 @@ export const profile: ProfileMessages = {
 	nickname: 'Nickname',
 	nicknameHint: '2 to 20 characters',
 	nicknameInvalid: 'Use 2 to 20 characters: Korean, English letters, numbers, underscores, and spaces.',
-	removePhoto: 'Remove photo',
+	photoUploading: 'Uploading photo',
+	photoUploadFailed: 'Photo upload failed.',
 };

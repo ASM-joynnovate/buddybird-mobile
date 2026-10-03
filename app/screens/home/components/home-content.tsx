@@ -10,14 +10,12 @@ import type { RootStackParamList, SessionSetup } from '@/types/navigation';
 
 import { useGetDeviceList } from '@/hooks/apis/devices';
 import { getHomeSummaryOptions } from '@/hooks/apis/home';
-import { getRunningSessionOptions, useFinishSession, useStartSession } from '@/hooks/apis/sessions';
+import { useFinishRunningSession, useFinishSession, useStartSession } from '@/hooks/apis/sessions';
 import { useGetSettings } from '@/hooks/apis/settings';
 import { useGetWordList } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
-
-import { queryClient } from '@/lib/query-client';
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -31,10 +29,10 @@ import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
 import NoticePopup from '@/screens/home/components/notice-popup';
 import WordPicker from '@/screens/home/components/word-picker';
-import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useSessionStore } from '@/stores/session';
 import { colors, font, layoutAnimationMs } from '@/theme';
+import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -55,14 +53,14 @@ const HomeContent = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const focused = useIsFocused();
+	const screenFocused = useIsFocused();
 
 	const [requestedSetup, setRequestedSetup] = useState<SessionSetup | null>(null);
 	const [takeoverDialogOpen, setTakeoverDialogOpen] = useState(false);
 
 	const { data: homeSummaryData } = useSuspenseQuery({
 		...getHomeSummaryOptions(),
-		refetchInterval: focused ? SCREEN_REFRESH_MS : false,
+		refetchInterval: screenFocused ? SCREEN_REFRESH_MS : false,
 	});
 	const { data: deviceListData } = useGetDeviceList();
 	const { data: wordListData } = useGetWordList();
@@ -70,6 +68,7 @@ const HomeContent = () => {
 
 	const startSession = useStartSession();
 	const finishSession = useFinishSession();
+	const finishRunningSession = useFinishRunningSession();
 
 	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
 
@@ -88,7 +87,7 @@ const HomeContent = () => {
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
 	const unreadCount = homeSummaryData.unread_notification_count;
 
-	const wordsWithRecordings = wordListData.filter((word) => word.recordings.length > 0);
+	const wordsWithRecordings = wordListData.filter((word) => uploadedRecordings(word.recordings).length > 0);
 	const selectedWord =
 		wordsWithRecordings.find((word) => word.id === selectedWordId) ?? wordsWithRecordings[0] ?? null;
 	const untilEnd = duration.ms === null;
@@ -103,8 +102,13 @@ const HomeContent = () => {
 			? { wordId: selectedWord.id, duration, sleep: untilEnd ? sleep : null, sleepChanged }
 			: null;
 
-	const starting = startSession.isPending || finishSession.isPending;
-	const startFailed = requestedSetup !== null && (startSession.isError || finishSession.isError);
+	const starting =
+		microphonePermission.checking ||
+		startSession.isPending ||
+		finishSession.isPending ||
+		finishRunningSession.isPending;
+	const startFailed =
+		requestedSetup !== null && (startSession.isError || finishSession.isError || finishRunningSession.isError);
 
 	/** 학습 시작 요청 함수 */
 	const requestStart = (setupToStart: SessionSetup) => {
@@ -156,30 +160,14 @@ const HomeContent = () => {
 	};
 
 	/** 다른 기기에서 진행 중인 학습을 이 기기로 가져오기 */
-	const handleConfirmTakeover = async () => {
+	const handleConfirmTakeover = () => {
 		if (starting || !requestedSetup) {
 			return;
 		}
 
 		setTakeoverDialogOpen(false);
 
-		try {
-			const latestRunningSession = await queryClient.query({
-				...getRunningSessionOptions(),
-				staleTime: 0,
-			});
-
-			if (latestRunningSession) {
-				finishSession.mutate(
-					{ id: latestRunningSession.id },
-					{ onSuccess: () => requestStart(requestedSetup) },
-				);
-			} else {
-				requestStart(requestedSetup);
-			}
-		} catch (e) {
-			reportError(e, 'session_takeover');
-		}
+		finishRunningSession.mutate({}, { onSuccess: () => requestStart(requestedSetup) });
 	};
 
 	const handleRetryStart = () => {
@@ -188,6 +176,7 @@ const HomeContent = () => {
 		}
 
 		finishSession.reset();
+		finishRunningSession.reset();
 
 		requestStart(requestedSetup);
 	};
@@ -198,6 +187,15 @@ const HomeContent = () => {
 
 		startSession.reset();
 		finishSession.reset();
+		finishRunningSession.reset();
+	};
+
+	const handleEndElsewhere = () => {
+		if (starting || !runningSession) {
+			return;
+		}
+
+		finishSession.mutate({ id: runningSession.id });
 	};
 
 	return (
@@ -220,8 +218,8 @@ const HomeContent = () => {
 							<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
 							<TextButton
 								label={t('session.start.endElsewhere')}
-								disabled={finishSession.isPending}
-								onPress={() => finishSession.mutate({ id: runningSession.id })}
+								disabled={starting}
+								onPress={handleEndElsewhere}
 							/>
 						</Card>
 						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
@@ -295,7 +293,7 @@ const HomeContent = () => {
 					confirm: t('session.takeover.confirm'),
 				}}
 				confirmStatus={{ busy: starting }}
-				onConfirm={() => void handleConfirmTakeover()}
+				onConfirm={handleConfirmTakeover}
 				onClose={handleCloseStartDialog}
 			/>
 			<ConfirmDialog

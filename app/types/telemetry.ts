@@ -1,7 +1,14 @@
 import type { LoginProvider } from '@/types/account';
 import type { ReportPeriod } from '@/types/report-period';
 
-export type OnboardingStep = 'login' | 'consent' | 'legacy_upload' | 'parrot' | 'usage_guide' | 'permissions';
+export type OnboardingStep =
+	| 'login'
+	| 'consent'
+	| 'legacy_upload'
+	| 'parrot'
+	| 'usage_guide'
+	| 'permissions'
+	| 'marketing_notification';
 
 export interface AnalyticsEvents {
 	onboarding_step_viewed: { step: OnboardingStep };

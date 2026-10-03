@@ -12,12 +12,12 @@ import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SESSION_INFO_HIDE_MS } from '@/config';
+import { SECOND } from '@/config/units';
 import BatteryStatus from '@/screens/session/components/run-info/battery-status';
 import SessionProgressArc from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { runStatus } from '@/utils/phases';
-import { SECOND } from '@/utils/units';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';

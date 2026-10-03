@@ -33,7 +33,7 @@ const NoticePopup = ({ notices }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const focused = useIsFocused();
+	const screenFocused = useIsFocused();
 
 	const [queue, setQueue] = useState<readonly Notice[]>([]);
 
@@ -78,7 +78,7 @@ const NoticePopup = ({ notices }: Props) => {
 
 	return (
 		<Dialog
-			visible={focused && currentNotice !== null}
+			visible={screenFocused && currentNotice !== null}
 			title={currentNotice?.title ?? ''}
 			onClose={handleClose}
 			footer={

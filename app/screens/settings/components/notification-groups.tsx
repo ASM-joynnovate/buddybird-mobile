@@ -22,12 +22,12 @@ const NOTIFICATION_SETTINGS: readonly {
 	setting: NotificationSetting;
 	labelKey: keyof SettingsMessages['notifications'];
 }[] = [
-	{ setting: 'notice', labelKey: 'notice' },
-	{ setting: 'report', labelKey: 'report' },
-	{ setting: 'marketing', labelKey: 'marketing' },
+	{ setting: 'notice_enabled', labelKey: 'notice' },
+	{ setting: 'report_enabled', labelKey: 'report' },
+	{ setting: 'marketing_enabled', labelKey: 'marketing' },
 ];
 
-/** 전체 알림과 종류별 알림 설정 컴포넌트 */
+/** 알림 설정 스위치 컴포넌트 */
 const NotificationGroups = () => {
 	const { t } = useTranslation();
 
@@ -50,6 +50,14 @@ const NotificationGroups = () => {
 		}
 
 		void Linking.openSettings().catch((error: unknown) => reportError(error, 'permission_settings'));
+	};
+
+	const handleToggleNotification = (setting: NotificationSetting, enabled: boolean) => {
+		if (updateNotificationSettings.isPending) {
+			return;
+		}
+
+		updateNotificationSettings.mutate({ data: { ...settingsData.notifications, [setting]: enabled } });
 	};
 
 	return (
@@ -80,11 +88,8 @@ const NotificationGroups = () => {
 							first={index === 0}
 							label={t(`settings.notifications.${labelKey}`)}
 							value={settingsData.notifications[setting]}
-							onChange={(enabled) =>
-								updateNotificationSettings.mutate({
-									data: { ...settingsData.notifications, [setting]: enabled },
-								})
-							}
+							disabled={updateNotificationSettings.isPending}
+							onChange={(enabled) => handleToggleNotification(setting, enabled)}
 						/>
 					))}
 				</ItemGroup>

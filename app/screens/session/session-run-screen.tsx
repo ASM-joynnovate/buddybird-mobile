@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
-import type { HeartbeatSummary } from '@/types/apis/sessions';
+import type { HeartbeatLearningSegment } from '@/types/apis/sessions';
 
 import type { RootStackParamList } from '@/types/navigation';
 import type { SleepSettings } from '@/types/sleep-settings';
@@ -22,13 +22,14 @@ import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { HEARTBEAT_INTERVAL_MS } from '@/config';
+import { SECOND } from '@/config/units';
 import RunInfo from '@/screens/session/components/run-info';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { sessionColors } from '@/theme/session-colors';
 import { currentSpan } from '@/utils/phases';
-import { SECOND } from '@/utils/units';
+import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import Mascot from '@/components/mascot';
@@ -40,14 +41,17 @@ type EndReason = 'time_reached' | 'user' | 'server';
 const FADE_MS = 2 * SECOND;
 
 /** 하트비트 요청 본문 생성 함수 */
-const createHeartbeatData = (startedAt: string | null, sleep: SleepSettings | null, summaries: HeartbeatSummary[]) => {
+const createHeartbeatData = (
+	startedAt: string | null,
+	sleep: SleepSettings | null,
+	learningSegments: HeartbeatLearningSegment[],
+) => {
 	const span = startedAt ? currentSpan(dayjs(startedAt).valueOf(), dayjs().valueOf(), sleep) : null;
 
 	return {
 		current_phase: span?.phase ?? null,
 		phase_started_at: span ? dayjs(span.start).toISOString() : null,
-		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-		summaries,
+		learning_segments: learningSegments,
 	};
 };
 
@@ -74,7 +78,7 @@ const SessionRunScreen = () => {
 
 	const { mutate: finishSession } = useFinishSession();
 	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
-	const { mutate: sendHeartbeat, mutateAsync: sendHeartbeatAsync } = useSendHeartbeat();
+	const { mutateAsync: sendHeartbeatAsync } = useSendHeartbeat();
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
@@ -101,14 +105,14 @@ const SessionRunScreen = () => {
 			setSessionFinishing(true);
 
 			const learningMs = engineRef.current?.learningMs() ?? 0;
-			const playCount = engineRef.current?.summaries().reduce((sum, summary) => sum + summary.play_count, 0) ?? 0;
+			const playCount = engineRef.current?.playCount() ?? 0;
 
 			try {
 				await engineRef.current?.stop();
 				await Promise.allSettled([
 					sendHeartbeatAsync({
 						id: sessionId,
-						data: createHeartbeatData(startedAt, sleep, engineRef.current?.summaries() ?? []),
+						data: createHeartbeatData(startedAt, sleep, engineRef.current?.unacknowledgedSegments() ?? []),
 					}),
 				]);
 				engineRef.current = null;
@@ -180,7 +184,7 @@ const SessionRunScreen = () => {
 			.then(async (word) => {
 				const createdEngine = createLearningEngine({
 					wordId,
-					recordingUrls: word.recordings.map(({ url }) => url),
+					recordingUrls: uploadedRecordings(word.recordings).map(({ audio_file }) => audio_file.url),
 					startedAt: dayjs(startedAt).valueOf(),
 					sleep,
 					onSound: (sound) => {
@@ -208,7 +212,7 @@ const SessionRunScreen = () => {
 				track('learning_started', {
 					session_id: sessionId,
 					word_id: wordId,
-					recording_count: word.recordings.length,
+					recording_count: uploadedRecordings(word.recordings).length,
 					...(duration.ms === null ? {} : { planned_duration_ms: duration.ms }),
 					custom_duration: duration.custom,
 					sleep_changed: sleepChanged,
@@ -274,20 +278,18 @@ const SessionRunScreen = () => {
 		/** 하트비트 전송 함수 */
 		const beat = () => {
 			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
+			const learningSegments = engineRef.current?.unacknowledgedSegments() ?? [];
 
-			sendHeartbeat(
-				{
-					id: sessionId,
-					data: createHeartbeatData(sessionStartedAt, sleepSettings, engineRef.current?.summaries() ?? []),
-				},
-				{
-					onError: (error) => {
-						if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
-							void latestInputRef.current.endSession('server');
-						}
-					},
-				},
-			);
+			sendHeartbeatAsync({
+				id: sessionId,
+				data: createHeartbeatData(sessionStartedAt, sleepSettings, learningSegments),
+			})
+				.then((heartbeat) => engineRef.current?.acknowledgeSegments(heartbeat.acknowledged, learningSegments))
+				.catch((error: unknown) => {
+					if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+						void latestInputRef.current.endSession('server');
+					}
+				});
 		};
 
 		beat();
@@ -295,7 +297,7 @@ const SessionRunScreen = () => {
 		const timer = setInterval(beat, HEARTBEAT_INTERVAL_MS);
 
 		return () => clearInterval(timer);
-	}, [sendHeartbeat, sessionId]);
+	}, [sendHeartbeatAsync, sessionId]);
 
 	/** 종료 시각이 되면 학습 종료 */
 	useEffect(() => {

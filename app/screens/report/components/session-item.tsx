@@ -37,10 +37,10 @@ const SessionItem = ({ session }: Props) => {
 
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
-	const startedAtLabel = formatMonthDayTime(session.started_at, locale);
-	const durationLabel = formatDuration(session.learning_duration_ms, locale);
-	const wordName = session.word?.name ?? '';
-	const judging = !isAnonymous && session.judgment_status === 'pending';
+	const startedAtLabel = formatMonthDayTime(session.period.started_at, locale);
+	const durationLabel = formatDuration(session.learning.duration_ms, locale);
+	const wordName = session.word.name;
+	const judging = !isAnonymous && session.judgment.status === 'pending';
 
 	const handleOpenSession = () => {
 		navigation.navigate('Main', {

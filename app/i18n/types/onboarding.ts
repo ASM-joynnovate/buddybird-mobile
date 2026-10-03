@@ -39,6 +39,13 @@ export type OnboardingMessages = {
 		allow: string;
 		later: string;
 	};
+	marketing: {
+		intro: string;
+		scene: string;
+		hint: string;
+		accept: string;
+		decline: string;
+	};
 	legacy: {
 		uploading: string;
 		uploadError: string;

@@ -1,8 +1,9 @@
+import { fileSchema } from '@/types/apis/common';
 import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
-const recordingSchema = z.object({ id: uuidSchema, url: z.string(), created_at: timestampSchema });
+const recordingSchema = z.object({ id: uuidSchema, audio_file: fileSchema, created_at: timestampSchema });
 
 export const wordSchema = z.object({
 	id: uuidSchema,

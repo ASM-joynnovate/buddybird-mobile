@@ -23,6 +23,7 @@ export interface EditorRecording {
 	kind: 'server' | 'local';
 	id: string;
 	url: string;
+	pending: boolean;
 	durationMs: number | null;
 	waveformLevels: number[] | null;
 }

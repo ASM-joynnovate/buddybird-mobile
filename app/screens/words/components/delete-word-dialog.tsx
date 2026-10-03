@@ -5,6 +5,7 @@ import { useDeleteWord } from '@/hooks/apis/words';
 import { useTranslation } from 'react-i18next';
 
 import { track } from '@/services/telemetry/client';
+import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 
@@ -36,7 +37,10 @@ const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 			{ id: word.id },
 			{
 				onSuccess: () => {
-					track('word_deleted', { word_id: word.id, recording_count: word.recordings.length });
+					track('word_deleted', {
+						word_id: word.id,
+						recording_count: uploadedRecordings(word.recordings).length,
+					});
 
 					onDeleted();
 				},

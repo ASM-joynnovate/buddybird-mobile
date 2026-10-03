@@ -1,3 +1,4 @@
+import { fileSchema } from '@/types/apis/common';
 import { localDateSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
@@ -7,7 +8,8 @@ export const parrotSchema = z.object({
 	name: z.string(),
 	species: z.string(),
 	birthdate: localDateSchema.nullable(),
-	photo: z.object({ url: z.string() }).nullable(),
+	photo_file: fileSchema.nullable(),
+	uploading_photo_file: fileSchema.nullable(),
 });
 
 const createParrotRequestSchema = z.object({

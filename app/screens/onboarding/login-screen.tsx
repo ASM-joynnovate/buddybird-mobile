@@ -5,6 +5,8 @@ import { Alert, AppState, type LayoutChangeEvent, StatusBar, StyleSheet, View } 
 import type { LoginProvider } from '@/types/account';
 import type { RootStackParamList } from '@/types/navigation';
 
+import { useLogout } from '@/hooks/apis/auth';
+
 import { useTranslation } from 'react-i18next';
 
 import { type RouteProp, useFocusEffect, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
@@ -50,7 +52,7 @@ const LoginScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
-	const focused = useIsFocused();
+	const screenFocused = useIsFocused();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'Login'>>();
 
 	const [providers, setProviders] = useState<LoginProvider[] | null>(null);
@@ -59,6 +61,8 @@ const LoginScreen = () => {
 	const [appActive, setAppActive] = useState(AppState.currentState === 'active');
 
 	const signingInRef = useRef(false);
+
+	const { mutateAsync } = useLogout();
 
 	const authStatus = useAuthStore((state) => state.status);
 
@@ -77,7 +81,7 @@ const LoginScreen = () => {
 			? t('auth.completing')
 			: null;
 	const riseHeight = Math.min(wordSpace + WORD_OVERLAP, MAX_RISE_HEIGHT);
-	const wordsActive = focused && appActive && !progressLabel && riseHeight >= MIN_RISE_HEIGHT;
+	const wordsActive = screenFocused && appActive && !progressLabel && riseHeight >= MIN_RISE_HEIGHT;
 
 	/** 화면 진입 시 사용할 수 있는 로그인 방식 조회 */
 	useEffect(() => {
@@ -123,6 +127,14 @@ const LoginScreen = () => {
 			const linkResult = await linkAccount(provider);
 
 			if (linkResult === 'identityExists') {
+				try {
+					await mutateAsync();
+				} catch {
+					Alert.alert(t('auth.signInError'));
+
+					return;
+				}
+
 				await signIn(provider);
 			} else if (linkResult === 'linked' && !fromOnboarding) {
 				navigation.goBack();

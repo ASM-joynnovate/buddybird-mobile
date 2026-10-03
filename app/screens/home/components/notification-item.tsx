@@ -42,7 +42,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 
 	const linkTo = useLinkTo();
 
-	const { mutate } = useReadNotification();
+	const { isPending, mutate } = useReadNotification();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -51,13 +51,19 @@ const NotificationItem = memo(({ notification }: Props) => {
 	const KindIcon = icons[notification.kind];
 
 	const handleOpen = () => {
-		if (unread) {
+		if (unread && !isPending) {
 			mutate({ id: notification.id });
 		}
 
 		track('notification_opened', { kind: notification.kind, from: 'list' });
 
-		linkTo(notificationPath(notification));
+		linkTo(
+			notificationPath({
+				kind: notification.kind,
+				report_date: notification.data?.report_date,
+				sent_at: notification.sent_at,
+			}),
+		);
 	};
 
 	return (

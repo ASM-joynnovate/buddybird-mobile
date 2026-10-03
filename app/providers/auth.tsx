@@ -12,10 +12,10 @@ import i18next from '@/i18n';
 
 import { apiErrorMessage } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
+import { getSupabase } from '@/lib/supabase';
 
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
 
-import { authClient } from '@/services/auth/client';
 import { loginCredential, takeAppleLoginCredential } from '@/services/auth/credential';
 import { type AuthIdentity, getAuthTransition, signOutLocally, signUpAnonymously } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
@@ -53,7 +53,7 @@ const AuthProvider = ({ children }: Props) => {
 	/** 인증 상태 변경 구독 */
 	useEffect(() => {
 		const { setStatus } = useAuthStore.getState();
-		const auth = authClient();
+		const auth = getSupabase().auth;
 
 		let active = true;
 		let currentIdentity: AuthIdentity | null | undefined;

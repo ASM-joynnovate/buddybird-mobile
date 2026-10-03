@@ -5,7 +5,7 @@ import { CLOCK_FORMAT, type SleepSettings } from '@/types/sleep-settings';
 import dayjs, { type Dayjs } from 'dayjs';
 
 import { PHASE_CYCLE } from '@/config/policy';
-import { DAY, MINUTES_PER_HOUR } from '@/utils/units';
+import { DAY, MINUTES_PER_HOUR } from '@/config/units';
 
 export interface PhaseSpan {
 	phase: Phase;

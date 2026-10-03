@@ -22,6 +22,7 @@ import ConsentDetailScreen from '@/screens/onboarding/consent-detail-screen';
 import ConsentScreen from '@/screens/onboarding/consent-screen';
 import LegacyUploadScreen from '@/screens/onboarding/legacy-upload-screen';
 import LoginScreen from '@/screens/onboarding/login-screen';
+import MarketingNotificationScreen from '@/screens/onboarding/marketing-notification-screen';
 import ParrotEditorScreen from '@/screens/onboarding/parrot-editor-screen';
 import PermissionRequestScreen from '@/screens/onboarding/permission-request-screen';
 import UsageGuideScreen from '@/screens/onboarding/usage-guide-screen';
@@ -190,6 +191,7 @@ const AppNavigator = () => {
 							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
 							<RootStack.Screen name="UsageGuide" component={UsageGuideScreen} />
 							<RootStack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
+							<RootStack.Screen name="MarketingNotification" component={MarketingNotificationScreen} />
 						</RootStack.Group>
 					)}
 

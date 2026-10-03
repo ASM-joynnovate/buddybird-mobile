@@ -1,6 +1,6 @@
 import { type CreateFeedbackRequest, type Feedback, feedbackSchema } from '@/types/apis/feedback';
 
-import { mockServer } from '@/mocks/server';
+import { apiRequest } from '@/lib/api';
 
 export const postFeedback = async ({
 	data,
@@ -9,5 +9,11 @@ export const postFeedback = async ({
 	data: CreateFeedbackRequest;
 	idempotencyKey: string;
 }): Promise<Feedback> => {
-	return feedbackSchema.parse(await mockServer.feedback.create(data.message));
+	const { data: feedback } = await apiRequest('/api/v1/feedback', feedbackSchema, {
+		method: 'POST',
+		json: data,
+		idempotencyKey,
+	});
+
+	return feedback;
 };

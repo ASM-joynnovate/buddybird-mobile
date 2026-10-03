@@ -1,8 +1,8 @@
-import { FlatList } from 'react-native';
+import { ActivityIndicator, FlatList } from 'react-native';
 
 import type { Session } from '@/types/apis/sessions';
 
-import { useGetSessionSoundList } from '@/hooks/apis/sessions';
+import { useGetSessionMimicrySoundList } from '@/hooks/apis/sessions';
 import { useGetWordList } from '@/hooks/apis/words';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import SoundItem from '@/screens/report/components/sound-item';
+import { colors } from '@/theme';
 
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -29,26 +30,37 @@ const MimicrySoundList = ({ session }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	const {
-		data: sessionSoundListData,
-		isRefetching: isSessionSoundListRefetching,
-		refetch: refetchSessionSoundList,
-	} = useGetSessionSoundList({ id: session.id });
+		data: sessionMimicrySoundListData,
+		isRefetching: isSessionMimicrySoundListRefetching,
+		refetch: refetchSessionMimicrySoundList,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useGetSessionMimicrySoundList({ id: session.id });
 	const { data: wordListData, refetch: refetchWordList } = useGetWordList();
 
 	const player = useSoundPlayer();
 
 	const period = session.period;
 	const multiDay = period.ended_at ? !dayjs(period.started_at).isSame(period.ended_at, 'day') : false;
-	const mimicrySounds = sessionSoundListData
-		.filter((sound) => sound.judgment?.word_id)
+	const mimicrySounds = sessionMimicrySoundListData.pages
+		.flatMap((soundPage) => soundPage.data)
 		.map((sound) => ({
 			sound,
 			wordName: wordListData.find((word) => word.id === sound.judgment?.word_id)?.name ?? '',
 		}));
 
 	const handleRefresh = () => {
-		void refetchSessionSoundList();
+		void refetchSessionMimicrySoundList();
 		void refetchWordList();
+	};
+
+	const handleFetchNextPage = () => {
+		if (!hasNextPage || isFetchingNextPage) {
+			return;
+		}
+
+		void fetchNextPage();
 	};
 
 	return (
@@ -64,11 +76,14 @@ const MimicrySoundList = ({ session }: Props) => {
 				/>
 			)}
 			extraData={[player.playingId, player.failedId]}
-			refreshing={isSessionSoundListRefetching}
+			refreshing={isSessionMimicrySoundListRefetching}
 			onRefresh={handleRefresh}
 			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
 			ListEmptyComponent=<EmptyState message={t('report.detail.empty')} />
+			onEndReachedThreshold={0.4}
+			onEndReached={handleFetchNextPage}
+			ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={colors.orange} /> : null}
 		/>
 	);
 };

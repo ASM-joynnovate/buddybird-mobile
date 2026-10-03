@@ -1,10 +1,12 @@
 import type { LoginProvider } from '@/types/account';
 
+import { getSupabase } from '@/lib/supabase';
+
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from 'expo-crypto';
+import * as WebBrowser from 'expo-web-browser';
 
 import { env } from '@/config';
-import { authClient, openAuthSession, requestAppleCredential } from '@/services/auth/client';
 import { setAppleLoginCredential } from '@/services/auth/credential';
 import { useAccountStore } from '@/stores/account';
 
@@ -27,7 +29,7 @@ const oauthOptions = (provider: OAuthProvider) => {
 /** Apple ID 토큰 요청 함수 */
 const requestAppleIdToken = async () => {
 	const nonce = randomUUID();
-	const credential = await requestAppleCredential({
+	const credential = await AppleAuthentication.signInAsync({
 		nonce: await digestStringAsync(CryptoDigestAlgorithm.SHA256, nonce),
 		requestedScopes: [AppleAuthentication.AppleAuthenticationScope.EMAIL],
 	});
@@ -46,7 +48,7 @@ const requestAppleIdToken = async () => {
 /** 로그인 브라우저를 열고 돌아온 주소를 반환하는 함수 */
 const openAuthBrowser = async (url: string) => {
 	const redirectUrl = authRedirectUrl();
-	const authSessionResult = await openAuthSession(url, redirectUrl);
+	const authSessionResult = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
 
 	if (authSessionResult.type === 'cancel' || authSessionResult.type === 'dismiss') {
 		return null;
@@ -93,7 +95,7 @@ const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 
 	useAccountStore.getState().setLoginProvider(provider);
 
-	const { error } = await authClient().exchangeCodeForSession(code);
+	const { error } = await getSupabase().auth.exchangeCodeForSession(code);
 
 	if (error) {
 		throw error;
@@ -109,7 +111,7 @@ export const signIn = async (provider: LoginProvider) => {
 
 		useAccountStore.getState().setLoginProvider(provider);
 
-		const { error } = await authClient().signInWithIdToken(idTokenCredentials);
+		const { error } = await getSupabase().auth.signInWithIdToken(idTokenCredentials);
 
 		if (error) {
 			throw error;
@@ -118,7 +120,7 @@ export const signIn = async (provider: LoginProvider) => {
 		return true;
 	}
 
-	const { data: oauthData, error } = await authClient().signInWithOAuth({
+	const { data: oauthData, error } = await getSupabase().auth.signInWithOAuth({
 		provider,
 		options: oauthOptions(provider),
 	});
@@ -139,7 +141,7 @@ export const linkAccount = async (provider: LoginProvider) => {
 
 		useAccountStore.getState().setLoginProvider(provider);
 
-		const { error } = await authClient().linkIdentity(idTokenCredentials);
+		const { error } = await getSupabase().auth.linkIdentity(idTokenCredentials);
 
 		if (error?.code === 'identity_already_exists') {
 			return 'identityExists';
@@ -152,7 +154,7 @@ export const linkAccount = async (provider: LoginProvider) => {
 		return 'linked';
 	}
 
-	const { data: oauthData, error } = await authClient().linkIdentity({
+	const { data: oauthData, error } = await getSupabase().auth.linkIdentity({
 		provider,
 		options: oauthOptions(provider),
 	});

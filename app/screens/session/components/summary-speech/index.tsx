@@ -15,6 +15,7 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
+import { SECOND } from '@/config/units';
 import { bounceEasing, popIn, riseIn } from '@/screens/session/components/summary-animations';
 import SummarySpeechFillingNumber, {
 	type SummarySentence,
@@ -22,7 +23,6 @@ import SummarySpeechFillingNumber, {
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionEndedAt } from '@/utils/date';
-import { SECOND } from '@/utils/units';
 
 import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
@@ -84,30 +84,28 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const allTimeSentence: SummarySentence = {
 		lead: t('session.summary.allTime.lead'),
 		tail: t('session.summary.allTime.tail'),
-		value: total.learning_duration_ms,
+		value: total.learning.duration_ms,
 		unit: 'duration',
 		metric: 'allTime',
 	};
-	const sentences: SummarySentence[] = word
-		? [
-				togetherSentence,
-				{
-					lead: t('session.summary.played.lead', { word: word.name }),
-					tail: t('session.summary.played.tail'),
-					value: session.play_count,
-					unit: 'count',
-					metric: 'played',
-				},
-				allTimeSentence,
-				{
-					lead: t('session.summary.wordTime.lead', { word: word.name }),
-					tail: t('session.summary.wordTime.tail'),
-					value: total.word_learning_duration_ms ?? 0,
-					unit: 'duration',
-					metric: 'wordTime',
-				},
-			]
-		: [togetherSentence, allTimeSentence];
+	const sentences: SummarySentence[] = [
+		togetherSentence,
+		{
+			lead: t('session.summary.played.lead', { word: word.name }),
+			tail: t('session.summary.played.tail'),
+			value: session.play_count,
+			unit: 'count',
+			metric: 'played',
+		},
+		allTimeSentence,
+		{
+			lead: t('session.summary.wordTime.lead', { word: word.name }),
+			tail: t('session.summary.wordTime.tail'),
+			value: word.learning.duration_ms,
+			unit: 'duration',
+			metric: 'wordTime',
+		},
+	];
 	const lastIndex = sentences.length - 1;
 	const sentence = sentences[summarySentenceIndex];
 	const sentenceFilled = summaryFilledSentenceIndexes.includes(summarySentenceIndex);

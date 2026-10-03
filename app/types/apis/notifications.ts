@@ -10,8 +10,7 @@ export const notificationSchema = z.object({
 	title: z.string(),
 	body: z.string(),
 	image: z.object({ url: z.string() }).nullable(),
-	sound_id: uuidSchema.nullable(),
-	report_date: localDateSchema.nullable(),
+	data: z.object({ report_date: localDateSchema.optional() }).nullable(),
 	sent_at: timestampSchema,
 	read_at: timestampSchema.nullable(),
 });

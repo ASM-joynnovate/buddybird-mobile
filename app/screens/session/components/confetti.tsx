@@ -2,8 +2,8 @@ import { StyleSheet, View } from 'react-native';
 
 import Animated, { Easing, Keyframe, useReducedMotion } from 'react-native-reanimated';
 
+import { SECOND } from '@/config/units';
 import { colors } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 const FALL_MS = 1.8 * SECOND;
 

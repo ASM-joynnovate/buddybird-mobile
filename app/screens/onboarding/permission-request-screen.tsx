@@ -2,20 +2,22 @@ import { useCallback, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import { usePrefetchQuery } from '@tanstack/react-query';
+
+import type { RootStackParamList } from '@/types/navigation';
+
+import { getSettingsOptions } from '@/hooks/apis/settings';
+
 import { useTranslation } from 'react-i18next';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon, LockIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 
 import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
 import { sendPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
-import {
-	trackOnboardingCompleted,
-	trackOnboardingStepCompleted,
-	trackOnboardingStepViewed,
-} from '@/services/telemetry/onboarding';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { colors, font } from '@/theme';
 
 import BuddySays from '@/components/buddy-says';
@@ -58,11 +60,11 @@ const isGranted = async (kind: PermissionKind) => {
 const PermissionRequestScreen = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	usePrefetchQuery(getSettingsOptions());
 
 	const [busy, setBusy] = useState(false);
-
-	const setOnboardingCompleted = useDeviceSettingsStore((state) => state.setOnboardingCompleted);
 
 	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
@@ -71,19 +73,14 @@ const PermissionRequestScreen = () => {
 		}, []),
 	);
 
-	/** 온보딩 완료 함수 */
-	const finishOnboarding = (microphoneGranted: boolean, notificationsGranted: boolean) => {
+	/** 권한 단계를 끝내는 함수 */
+	const completePermissionStep = (microphoneGranted: boolean, notificationsGranted: boolean) => {
 		trackOnboardingStepCompleted('permissions', {
 			microphone_granted: microphoneGranted,
 			notifications_granted: notificationsGranted,
 		});
-		trackOnboardingCompleted();
 
-		try {
-			setOnboardingCompleted(true);
-		} catch (e) {
-			reportError(e, 'onboarding_completed_save');
-		}
+		navigation.navigate('MarketingNotification');
 	};
 
 	const handleAllow = async () => {
@@ -102,11 +99,11 @@ const PermissionRequestScreen = () => {
 
 		setBusy(false);
 
-		finishOnboarding(microphoneGranted, notificationsGranted);
+		completePermissionStep(microphoneGranted, notificationsGranted);
 	};
 
 	const handleLater = async () => {
-		finishOnboarding(await isGranted('microphone'), await isGranted('notifications'));
+		completePermissionStep(await isGranted('microphone'), await isGranted('notifications'));
 	};
 
 	return (

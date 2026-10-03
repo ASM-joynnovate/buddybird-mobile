@@ -1,3 +1,4 @@
+import { fileSchema } from '@/types/apis/common';
 import { uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
@@ -6,7 +7,8 @@ export const userSchema = z.object({
 	id: uuidSchema,
 	email: z.string().nullable(),
 	nickname: z.string().nullable(),
-	photo: z.object({ url: z.string() }).nullable(),
+	photo_file: fileSchema.nullable(),
+	uploading_photo_file: fileSchema.nullable(),
 });
 
 const updateUserRequestSchema = z.object({

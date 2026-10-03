@@ -62,6 +62,7 @@ export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options:
 		'X-BuddyBird-Client': 'mobile',
 		'X-Device-Id': dependencies.deviceId(),
 		'Accept-Language': dependencies.locale(),
+		'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
 		Authorization: `Bearer ${await dependencies.accessToken()}`,
 	});
 

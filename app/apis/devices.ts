@@ -1,11 +1,13 @@
 import { type Device, deviceSchema, type RegisterDeviceRequest } from '@/types/apis/devices';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 export const getDeviceList = async (): Promise<Device[]> => {
-	return z.array(deviceSchema).parse(await mockServer.devices.list());
+	const { data: devices } = await apiRequest('/api/v1/devices', z.array(deviceSchema));
+
+	return devices;
 };
 
 export const putDevice = async ({
@@ -15,7 +17,13 @@ export const putDevice = async ({
 	data: RegisterDeviceRequest;
 	idempotencyKey: string;
 }): Promise<Device> => {
-	return deviceSchema.parse(await mockServer.devices.register(data));
+	const { data: device } = await apiRequest('/api/v1/devices', deviceSchema, {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+
+	return device;
 };
 
 export const putPushToken = async ({
@@ -25,5 +33,11 @@ export const putPushToken = async ({
 	data: { token: string };
 	idempotencyKey: string;
 }): Promise<Device> => {
-	return deviceSchema.parse(await mockServer.devices.updatePushToken(data.token));
+	const { data: device } = await apiRequest('/api/v1/devices/me/push-token', deviceSchema, {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+
+	return device;
 };

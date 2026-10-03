@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
-import { deleteUserPhoto, getMe, patchMe, putUserPhoto } from '@/apis/users';
+import { getMe, patchMe, putUserPhoto } from '@/apis/users';
 
 import { invalidate } from '@/hooks/apis/invalidate';
 import { apiKeys } from '@/hooks/apis/keys';
@@ -27,15 +27,6 @@ export const useUploadUserPhoto = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'photo', 'upload'),
 		mutationFn: putUserPhoto,
-		onSuccess: () => invalidate(apiKeys.me()),
-	});
-};
-
-/** 계정 사진 삭제 Hook */
-export const useDeleteUserPhoto = () => {
-	return useMutation({
-		mutationKey: apiKeys.mutation('users', 'me', 'photo', 'delete'),
-		mutationFn: deleteUserPhoto,
 		onSuccess: () => invalidate(apiKeys.me()),
 	});
 };

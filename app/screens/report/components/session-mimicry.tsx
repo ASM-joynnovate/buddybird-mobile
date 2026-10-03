@@ -25,7 +25,7 @@ interface Props {
 const SessionMimicry = ({ sessionId }: Props) => {
 	const { t } = useTranslation();
 
-	const focused = useIsFocused();
+	const screenFocused = useIsFocused();
 
 	usePrefetchQuery(getWordListOptions());
 
@@ -36,10 +36,10 @@ const SessionMimicry = ({ sessionId }: Props) => {
 	} = useSuspenseQuery({
 		...getSessionOptions({ id: sessionId }),
 		refetchInterval: (query) =>
-			focused && query.state.data?.judgment_status === 'pending' ? SCREEN_REFRESH_MS : false,
+			screenFocused && query.state.data?.judgment.status === 'pending' ? SCREEN_REFRESH_MS : false,
 	});
 
-	return sessionData.judgment_status === 'done' ? (
+	return sessionData.judgment.status === 'done' ? (
 		<MimicrySoundList session={sessionData} />
 	) : (
 		<ScrollView

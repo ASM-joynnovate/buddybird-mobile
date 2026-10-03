@@ -15,12 +15,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { SECOND } from '@/config/units';
 import CountUpText, { type CountUnit } from '@/screens/session/components/count-up-text';
 import { bumpScale, burstEasing, glintSweep } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
 import SummaryGlint from '@/screens/session/components/summary-glint';
 import { colors, font } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 const FILL_MS = 1.1 * SECOND;
 const SPARK_MS = 600;

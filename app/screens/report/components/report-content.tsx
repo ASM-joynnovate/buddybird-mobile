@@ -1,39 +1,27 @@
 import { useDeferredValue, useEffect, useRef } from 'react';
 
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
-import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
+import type { ReportStackParamList } from '@/types/navigation';
 
 import { getReportOptions } from '@/hooks/apis/reports';
 
-import { useTranslation } from 'react-i18next';
-
-import { type RouteProp, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { type RouteProp, useIsFocused, useRoute } from '@react-navigation/native';
 
 import { SCREEN_REFRESH_MS } from '@/config';
 import ReportHeader from '@/screens/report/components/report-header';
 import SessionItem from '@/screens/report/components/session-item';
 import { track } from '@/services/telemetry/client';
-import { useAccountStore } from '@/stores/account';
 import { useReportStore } from '@/stores/report';
-import { colors, font } from '@/theme';
 import { periodsBetween } from '@/utils/date';
 import { latestStart, periodSelectionFromParams } from '@/utils/report-period';
 
-import { Button } from '@/components/ui/button';
-import { Copy } from '@/components/ui/copy';
-import { ui } from '@/components/ui/styles';
-
 /** 리포트 목록 컴포넌트 */
 const ReportContent = () => {
-	const { t } = useTranslation();
-
 	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const focused = useIsFocused();
+	const screenFocused = useIsFocused();
 
 	const trackedPeriodRef = useRef<string | null>(null);
 	const trackedNotificationParamsRef = useRef<object | null>(null);
@@ -53,44 +41,19 @@ const ReportContent = () => {
 	} = useSuspenseQuery({
 		...getReportOptions({ period: deferredPeriod, start: deferredStart }),
 		refetchInterval: (query) =>
-			focused && query.state.data?.sessions.some((session) => session.judgment_status === 'pending')
+			screenFocused && query.state.data?.sessions.some((session) => session.judgment.status === 'pending')
 				? SCREEN_REFRESH_MS
 				: false,
 	});
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
-
-	const hasSessions = reportData.sessions.length > 0;
 	const isSelectedPeriodShown = deferredPeriod === period && deferredStart === selectedStart;
 	const periodsAgo = periodsBetween(period, selectedStart, latestStart(period));
 
 	const header = <ReportHeader report={reportData} />;
 
-	const mimicrySection = hasSessions ? (
-		<View style={ui.sectionContainer}>
-			<View style={styles.mimicryTitleRow}>
-				<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.grow]}>
-					{t('report.mimicryTitle')}
-				</Copy>
-				{!isAnonymous && (
-					<Copy style={styles.mimicryCount}>
-						{t('report.mimicryCount', { count: reportData.mimicry.count })}
-					</Copy>
-				)}
-			</View>
-
-			{isAnonymous && (
-				<View style={styles.signInRequiredContainer}>
-					<Copy style={styles.signInRequiredText}>{t('report.signInRequired')}</Copy>
-					<Button label={t('auth.signIn')} variant="secondary" onPress={() => navigation.navigate('Login')} />
-				</View>
-			)}
-		</View>
-	) : null;
-
 	/** 리포트 기간별로 report_viewed 이벤트를 한 번 전송 */
 	useEffect(() => {
-		if (!focused) {
+		if (!screenFocused) {
 			trackedPeriodRef.current = null;
 
 			return;
@@ -121,7 +84,7 @@ const ReportContent = () => {
 			source: openedFromNotification ? 'notification' : 'tab',
 			session_count: reportData.sessions.length,
 		});
-	}, [deferredPeriod, deferredStart, focused, isSelectedPeriodShown, periodsAgo, reportData, route.params]);
+	}, [deferredPeriod, deferredStart, screenFocused, isSelectedPeriodShown, periodsAgo, reportData, route.params]);
 
 	return (
 		<FlatList
@@ -132,7 +95,6 @@ const ReportContent = () => {
 			refreshing={isRefetching}
 			onRefresh={() => void refetch()}
 			ListHeaderComponent={header}
-			ListFooterComponent={mimicrySection}
 			renderItem={({ item: session }) => <SessionItem session={session} />}
 		/>
 	);
@@ -144,11 +106,6 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 		gap: 10,
 	},
-	signInRequiredText: { color: colors.muted },
-	signInRequiredContainer: { gap: 12 },
-	mimicryTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-	grow: { flex: 1 },
-	mimicryCount: { fontFamily: font.extraBold, fontSize: 15, color: colors.orangeDark },
 });
 
 export default ReportContent;

@@ -22,7 +22,7 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 const CHART_HEIGHT = 150;
 const MIN_BAR_HEIGHT = 3;
 
-type TrendBar = Report['trend'][number];
+type TrendBar = Report['learning']['trend'][number];
 
 /** 기간에 맞는 x축 라벨을 반환하는 함수 */
 const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
@@ -54,7 +54,7 @@ const TrendChart = ({ period, trend }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const maxDurationMs = Math.max(1, ...trend.map((trendBar) => trendBar.learning_duration_ms));
+	const maxDurationMs = Math.max(1, ...trend.map((trendBar) => trendBar.duration_ms));
 	const selectedBar = selectedIndex === null ? null : trend[selectedIndex];
 
 	/** 막대 설명 문구를 반환하는 함수 */
@@ -62,7 +62,7 @@ const TrendChart = ({ period, trend }: Props) => {
 		t('report.chartBar', {
 			label:
 				period === 'day' ? dayjs(trendBar.start).format('LT') : formatMonthDayWeekday(trendBar.start, locale),
-			duration: formatDuration(trendBar.learning_duration_ms, locale),
+			duration: formatDuration(trendBar.duration_ms, locale),
 		});
 
 	return (
@@ -92,10 +92,10 @@ const TrendChart = ({ period, trend }: Props) => {
 								{
 									height: Math.max(
 										MIN_BAR_HEIGHT,
-										(trendBar.learning_duration_ms / maxDurationMs) * CHART_HEIGHT,
+										(trendBar.duration_ms / maxDurationMs) * CHART_HEIGHT,
 									),
 								},
-								trendBar.learning_duration_ms === 0 && styles.empty,
+								trendBar.duration_ms === 0 && styles.empty,
 								selectedIndex === index && styles.selected,
 							]}
 						/>

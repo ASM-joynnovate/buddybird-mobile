@@ -2,16 +2,20 @@ import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
 
 import { type Word, wordSchema } from '@/types/apis/words';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 export const getWordList = async (): Promise<Word[]> => {
-	return z.array(wordSchema).parse(await mockServer.words.list());
+	const { data: words } = await apiRequest('/api/v1/words', z.array(wordSchema));
+
+	return words;
 };
 
 export const getWord = async ({ id }: { id: string }): Promise<Word> => {
-	return wordSchema.parse(await mockServer.words.get(id));
+	const { data: word } = await apiRequest(`/api/v1/words/${id}`, wordSchema);
+
+	return word;
 };
 
 export const postWord = async ({
@@ -21,7 +25,13 @@ export const postWord = async ({
 	data: { name: string };
 	idempotencyKey: string;
 }): Promise<Word> => {
-	return wordSchema.parse(await mockServer.words.create(data.name));
+	const { data: word } = await apiRequest('/api/v1/words', wordSchema, {
+		method: 'POST',
+		json: data,
+		idempotencyKey,
+	});
+
+	return word;
 };
 
 export const patchWord = async ({
@@ -33,11 +43,17 @@ export const patchWord = async ({
 	data: { name: string };
 	idempotencyKey: string;
 }): Promise<Word> => {
-	return wordSchema.parse(await mockServer.words.update(id, data.name));
+	const { data: word } = await apiRequest(`/api/v1/words/${id}`, wordSchema, {
+		method: 'PATCH',
+		json: data,
+		idempotencyKey,
+	});
+
+	return word;
 };
 
 export const deleteWord = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
-	await mockServer.words.remove(id);
+	await apiRequest(`/api/v1/words/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };
 
 export const postWordRecording = async ({
@@ -49,7 +65,7 @@ export const postWordRecording = async ({
 	uri: string;
 	idempotencyKey: string;
 }): Promise<void> => {
-	await putUploadFile({ upload: await postWordRecordingUpload({ id, idempotencyKey }), uri });
+	await putUploadFile({ upload: await postWordRecordingUpload({ id, uri, idempotencyKey }), uri });
 };
 
 export const deleteWordRecording = async ({
@@ -61,5 +77,8 @@ export const deleteWordRecording = async ({
 	recordingId: string;
 	idempotencyKey: string;
 }): Promise<void> => {
-	await mockServer.words.removeRecording(id, recordingId);
+	await apiRequest(`/api/v1/words/${id}/recordings/${recordingId}`, z.unknown(), {
+		method: 'DELETE',
+		idempotencyKey,
+	});
 };

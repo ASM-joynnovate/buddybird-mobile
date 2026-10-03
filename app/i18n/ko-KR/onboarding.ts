@@ -41,6 +41,13 @@ export const onboarding: OnboardingMessages = {
 		allow: '허용하기',
 		later: '나중에',
 	},
+	marketing: {
+		intro: '새 기능과 이벤트 소식을 알림으로 받아 볼까요?',
+		scene: '새 소식을 알려 주는 버디',
+		hint: '설정의 알림에서 언제든 바꿀 수 있어요.',
+		accept: '받을게요',
+		decline: '괜찮아요',
+	},
 	legacy: {
 		uploading: '이 휴대폰의 앵무새와 단어를 옮기고 있어요',
 		uploadError: '앵무새와 단어를 옮기지 못했어요. 연결을 확인하고 다시 시도해 주세요.',

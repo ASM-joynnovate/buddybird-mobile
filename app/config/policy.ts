@@ -1,4 +1,4 @@
-import { DAY, HOUR, MIB, MINUTE, SECOND } from '@/utils/units';
+import { DAY, HOUR, MIB, MINUTE, SECOND } from '@/config/units';
 
 export const API_TIMEOUT_MS = 30 * SECOND;
 

@@ -2,17 +2,20 @@ import { useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import { useSuspenseQuery } from '@tanstack/react-query';
+
 import type { MainTabParamList, ProfileStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { useGetParrotList } from '@/hooks/apis/parrots';
-import { useGetMe } from '@/hooks/apis/users';
+import { getParrotListOptions } from '@/hooks/apis/parrots';
+import { getMeOptions } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { type CompositeNavigationProp, useNavigation } from '@react-navigation/native';
+import { type CompositeNavigationProp, useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { UPLOAD_POLL_INTERVAL_MS } from '@/config';
 import AccountCard from '@/screens/profile/components/account-card';
 import AddParrotCard from '@/screens/profile/components/add-parrot-card';
 import ParrotCard from '@/screens/profile/components/parrot-card';
@@ -35,9 +38,22 @@ const ProfileCards = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<Navigation>();
+	const screenFocused = useIsFocused();
 
-	const { data: meData } = useGetMe();
-	const { data: parrotListData } = useGetParrotList();
+	const { data: meData } = useSuspenseQuery({
+		...getMeOptions(),
+		refetchInterval: (query) =>
+			screenFocused && query.state.data?.uploading_photo_file?.status === 'pending'
+				? UPLOAD_POLL_INTERVAL_MS
+				: false,
+	});
+	const { data: parrotListData } = useSuspenseQuery({
+		...getParrotListOptions(),
+		refetchInterval: (query) =>
+			screenFocused && query.state.data?.some((parrot) => parrot.uploading_photo_file?.status === 'pending')
+				? UPLOAD_POLL_INTERVAL_MS
+				: false,
+	});
 
 	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 

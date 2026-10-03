@@ -8,11 +8,11 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import Animated, { Easing, FadeInUp, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SECOND } from '@/config/units';
 import LastLoginTag from '@/screens/onboarding/components/last-login-tag';
 import OAuthButton from '@/screens/onboarding/components/oauth-button';
 import { useAccountStore } from '@/stores/account';
 import { colors, contentMaxWidth, font, loginProviderColors, radius } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';

@@ -14,7 +14,7 @@ import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
 interface Props {
-	words: Report['words'];
+	words: Report['learning']['words'];
 }
 
 /**
@@ -30,7 +30,7 @@ const WordBars = ({ words }: Props) => {
 		return null;
 	}
 
-	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.learning_duration_ms));
+	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.duration_ms));
 
 	return (
 		<View style={ui.sectionContainer}>
@@ -40,7 +40,7 @@ const WordBars = ({ words }: Props) => {
 
 			<View style={styles.listContainer}>
 				{words.map((wordDuration) => {
-					const durationLabel = formatDuration(wordDuration.learning_duration_ms, locale);
+					const durationLabel = formatDuration(wordDuration.duration_ms, locale);
 
 					return (
 						<View
@@ -56,7 +56,7 @@ const WordBars = ({ words }: Props) => {
 								<View
 									style={[
 										styles.fill,
-										{ width: `${(wordDuration.learning_duration_ms / maxDurationMs) * 100}%` },
+										{ width: `${(wordDuration.duration_ms / maxDurationMs) * 100}%` },
 									]}
 								/>
 							</View>

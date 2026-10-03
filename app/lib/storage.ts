@@ -2,6 +2,15 @@ import type { z } from 'zod';
 
 import { createMMKV } from 'react-native-mmkv';
 
+export const storageIds = {
+	device: 'buddybird.device',
+} as const;
+
+export const persistKeys = {
+	deviceSettings: { name: 'device-settings', version: 1 },
+	account: { name: 'account', version: 2 },
+} as const;
+
 interface RestoreError {
 	error: unknown;
 	storeName: string;

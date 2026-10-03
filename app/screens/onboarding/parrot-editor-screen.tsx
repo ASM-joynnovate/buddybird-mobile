@@ -85,7 +85,7 @@ const ParrotEditorScreen = () => {
 			origin={params.photoOrigin}
 			tilt={params.photoTilt ?? 0}
 			targetRef={photoRef}
-			photoUri={parrot?.photo?.url ?? null}
+			photoUri={parrot?.photo_file?.url ?? null}
 		>
 			{renderForm}
 		</ParrotPhotoFlight>

@@ -11,10 +11,11 @@ import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
 interface Props {
+	loading?: boolean;
 	onRetry: () => void;
 }
 
-export const ScreenError = ({ onRetry }: Props) => {
+export const ScreenError = ({ loading, onRetry }: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -27,6 +28,7 @@ export const ScreenError = ({ onRetry }: Props) => {
 				variant="secondary"
 				icon={RotateCwIcon}
 				size="small"
+				loading={loading}
 				onPress={onRetry}
 				style={styles.retry}
 			/>

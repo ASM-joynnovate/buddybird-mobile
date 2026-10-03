@@ -2,16 +2,13 @@ import { useState } from 'react';
 
 import { StatusBar, StyleSheet, View } from 'react-native';
 
+import { useIsMutating } from '@tanstack/react-query';
+
 import { ApiError } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
 
-import {
-	useCreateParrot,
-	useDeleteParrot,
-	useDeleteParrotPhoto,
-	useUpdateParrot,
-	useUploadParrotPhoto,
-} from '@/hooks/apis/parrots';
+import { apiKeys } from '@/hooks/apis/keys';
+import { useCreateParrot, useDeleteParrot, useUpdateParrot, useUploadParrotPhoto } from '@/hooks/apis/parrots';
 import usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
@@ -95,18 +92,22 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 	const updateParrot = useUpdateParrot();
 	const deleteParrot = useDeleteParrot();
 	const uploadParrotPhoto = useUploadParrotPhoto();
-	const deleteParrotPhoto = useDeleteParrotPhoto();
 
-	const savedPhotoUrl = parrot?.photo?.url ?? null;
+	const parrotPhotoUploading =
+		useIsMutating({
+			mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
+			predicate: (mutation) => (mutation.state.variables as { id: string }).id === parrot?.id,
+		}) > 0;
+
+	const savedPhotoUrl = parrot?.photo_file?.url ?? null;
 
 	const photo = usePhotoPicker(savedPhotoUrl);
 
+	const parrotId = parrot?.id ?? createParrot.data?.id;
 	const saving =
-		createParrot.isPending || updateParrot.isPending || uploadParrotPhoto.isPending || deleteParrotPhoto.isPending;
+		createParrot.isPending || updateParrot.isPending || uploadParrotPhoto.isPending || parrotPhotoUploading;
 	const saveError =
-		createParrot.isError || updateParrot.isError || uploadParrotPhoto.isError || deleteParrotPhoto.isError
-			? t('common.saveErrorKept')
-			: null;
+		createParrot.isError || updateParrot.isError || uploadParrotPhoto.isError ? t('common.saveErrorKept') : null;
 	const nameError = invalidFields.name ? t('parrot.nameRequired') : null;
 	const speciesError = invalidFields.species ? t('parrot.speciesRequired') : null;
 	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
@@ -125,14 +126,9 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 
 	/** 변경한 앵무새 사진 저장 함수 */
 	const saveParrotPhoto = (savedParrot: Parrot) => {
-		if (photo.photoUri && photo.photoUri !== savedPhotoUrl) {
+		if (photo.photoChanged && photo.photoUri) {
 			uploadParrotPhoto.mutate(
 				{ id: savedParrot.id, uri: photo.photoUri },
-				{ onSuccess: onDone, onError: (error) => reportError(error, 'parrot_save') },
-			);
-		} else if (!photo.photoUri && savedPhotoUrl) {
-			deleteParrotPhoto.mutate(
-				{ id: savedParrot.id },
 				{ onSuccess: onDone, onError: (error) => reportError(error, 'parrot_save') },
 			);
 		} else {
@@ -175,9 +171,9 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 
 		const parrotInfo = { name: trimmedName, species, birthdate: birthdate ?? null };
 
-		if (parrot) {
+		if (parrotId) {
 			updateParrot.mutate(
-				{ id: parrot.id, data: parrotInfo },
+				{ id: parrotId, data: parrotInfo },
 				{ onSuccess: saveParrotPhoto, onError: (error) => reportError(error, 'parrot_save') },
 			);
 

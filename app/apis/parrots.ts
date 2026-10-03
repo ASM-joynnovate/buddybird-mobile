@@ -2,12 +2,14 @@ import { putParrotPhotoUpload, putUploadFile } from '@/apis/uploads';
 
 import { type CreateParrotRequest, type Parrot, parrotSchema, type UpdateParrotRequest } from '@/types/apis/parrots';
 
+import { apiRequest } from '@/lib/api';
+
 import { z } from 'zod';
 
-import { mockServer } from '@/mocks/server';
-
 export const getParrotList = async (): Promise<Parrot[]> => {
-	return z.array(parrotSchema).parse(await mockServer.parrots.list());
+	const { data: parrots } = await apiRequest('/api/v1/parrots', z.array(parrotSchema));
+
+	return parrots;
 };
 
 export const postParrot = async ({
@@ -17,7 +19,13 @@ export const postParrot = async ({
 	data: CreateParrotRequest;
 	idempotencyKey: string;
 }): Promise<Parrot> => {
-	return parrotSchema.parse(await mockServer.parrots.create(data));
+	const { data: parrot } = await apiRequest('/api/v1/parrots', parrotSchema, {
+		method: 'POST',
+		json: data,
+		idempotencyKey,
+	});
+
+	return parrot;
 };
 
 export const patchParrot = async ({
@@ -29,11 +37,17 @@ export const patchParrot = async ({
 	data: UpdateParrotRequest;
 	idempotencyKey: string;
 }): Promise<Parrot> => {
-	return parrotSchema.parse(await mockServer.parrots.update(id, data));
+	const { data: parrot } = await apiRequest(`/api/v1/parrots/${id}`, parrotSchema, {
+		method: 'PATCH',
+		json: data,
+		idempotencyKey,
+	});
+
+	return parrot;
 };
 
 export const deleteParrot = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
-	await mockServer.parrots.remove(id);
+	await apiRequest(`/api/v1/parrots/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };
 
 export const putParrotPhoto = async ({
@@ -45,15 +59,5 @@ export const putParrotPhoto = async ({
 	uri: string;
 	idempotencyKey: string;
 }): Promise<void> => {
-	await putUploadFile({ upload: await putParrotPhotoUpload({ id, idempotencyKey }), uri });
-};
-
-export const deleteParrotPhoto = async ({
-	id,
-	idempotencyKey,
-}: {
-	id: string;
-	idempotencyKey: string;
-}): Promise<void> => {
-	await mockServer.parrots.deletePhoto(id);
+	await putUploadFile({ upload: await putParrotPhotoUpload({ id, uri, idempotencyKey }), uri });
 };

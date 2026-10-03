@@ -1,7 +1,7 @@
 import { createAudioPlayer } from 'expo-audio';
 import { File, Paths } from 'expo-file-system';
 
-import { SECOND } from '@/utils/units';
+import { SECOND } from '@/config/units';
 
 /** 소리 파일의 재생 길이를 측정하는 함수 */
 export const measureAudioDuration = async (url: string) => {

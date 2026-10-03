@@ -28,10 +28,22 @@ const AccountCard = ({ user }: Props) => {
 
 	return (
 		<ProfileCard
-			avatar={{ uri: user.photo?.url, icon: UserIcon, size: 'large' }}
+			avatar={{
+				uri: user.photo_file?.url,
+				icon: UserIcon,
+				size: 'large',
+				uploading: user.uploading_photo_file?.status === 'pending',
+				errorMessage: user.uploading_photo_file?.status === 'rejected' ? t('profile.photoUploadFailed') : null,
+			}}
 			title={{ text: titleText, accent: !user.nickname }}
 			details={[user.email]}
-			label={joinLabel(t('profile.editAccount'), titleText, user.email)}
+			label={joinLabel(
+				t('profile.editAccount'),
+				titleText,
+				user.email,
+				user.uploading_photo_file?.status === 'pending' && t('profile.photoUploading'),
+				user.uploading_photo_file?.status === 'rejected' && t('profile.photoUploadFailed'),
+			)}
 			onPress={() => navigation.navigate('AccountEditor')}
 		/>
 	);

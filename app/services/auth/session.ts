@@ -1,10 +1,10 @@
 import { ApiError, UNAUTHORIZED_STATUS } from '@/types/apis/common';
 
 import { setUnauthorizedHandler } from '@/lib/query-client';
+import { getSupabase } from '@/lib/supabase';
 
 import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 
-import { authClient } from '@/services/auth/client';
 import { reportError } from '@/services/telemetry/client';
 
 export interface AuthIdentity {
@@ -27,7 +27,7 @@ export const getAuthTransition = (registeredIdentity: AuthIdentity | null, nextI
 
 /** 현재 세션의 액세스 토큰을 반환하는 함수 */
 export const accessToken = async () => {
-	const { data: sessionData, error } = await authClient().getSession();
+	const { data: sessionData, error } = await getSupabase().auth.getSession();
 
 	if (isAuthRetryableFetchError(error)) {
 		throw new ApiError(0, 'CLIENT__NETWORK', error.message);
@@ -46,14 +46,14 @@ export const accessToken = async () => {
 
 /** 익명 로그인 함수 */
 export const signUpAnonymously = async () => {
-	const { error } = await authClient().signInAnonymously();
+	const { error } = await getSupabase().auth.signInAnonymously();
 
 	return error;
 };
 
 /** 이 기기에서만 로그아웃하는 함수 */
 export const signOutLocally = async () => {
-	const { error } = await authClient().signOut({ scope: 'local' });
+	const { error } = await getSupabase().auth.signOut({ scope: 'local' });
 
 	if (error) {
 		throw error;

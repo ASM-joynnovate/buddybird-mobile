@@ -19,6 +19,7 @@ export interface PermissionDialogState {
 /** 권한 확인 후 동작을 실행하는 Hook */
 const usePermission = (kind: PermissionKind) => {
 	const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
+	const [permissionChecking, setPermissionChecking] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
 	const pendingActionRef = useRef<(() => void) | null>(null);
@@ -69,31 +70,41 @@ const usePermission = (kind: PermissionKind) => {
 
 	/** 권한 확인 후 동작을 실행하는 함수 */
 	const run = async (action: () => void) => {
-		const permission = await readPermission(kind);
-
-		if (permission.granted) {
-			action();
-
+		if (permissionChecking) {
 			return;
 		}
 
-		if (permission.canAskAgain) {
-			const requestedPermission = await requestPermission(kind);
+		setPermissionChecking(true);
 
-			setPermissionState(requestedPermission);
+		try {
+			const permission = await readPermission(kind);
 
-			if (requestedPermission.granted) {
+			if (permission.granted) {
 				action();
+
+				return;
 			}
 
-			return;
-		}
+			if (permission.canAskAgain) {
+				const requestedPermission = await requestPermission(kind);
 
-		pendingActionRef.current = action;
-		setDialogOpen(true);
+				setPermissionState(requestedPermission);
+
+				if (requestedPermission.granted) {
+					action();
+				}
+
+				return;
+			}
+
+			pendingActionRef.current = action;
+			setDialogOpen(true);
+		} finally {
+			setPermissionChecking(false);
+		}
 	};
 
-	return { granted: permissionState?.granted ?? null, refresh, run, dialog };
+	return { granted: permissionState?.granted ?? null, checking: permissionChecking, refresh, run, dialog };
 };
 
 export default usePermission;

@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
 
-import { signOutLocally } from '@/services/auth/session';
-import { reportError } from '@/services/telemetry/client';
 import { colors } from '@/theme';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
@@ -33,9 +31,7 @@ const WithdrawDialog = ({ visible, onClose }: Props) => {
 			return;
 		}
 
-		mutate(undefined, {
-			onSuccess: () => void signOutLocally().catch((e: unknown) => reportError(e, 'withdraw')),
-		});
+		mutate();
 	};
 
 	const handleClose = () => {

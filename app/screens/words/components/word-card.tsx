@@ -16,6 +16,7 @@ import { TrashIcon } from 'lucide-react-native';
 
 import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
 import { font } from '@/theme';
+import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
@@ -39,8 +40,16 @@ const WordCard = ({ word, player }: Props) => {
 
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-	const firstRecording = word.recordings[0];
+	const firstRecording = uploadedRecordings(word.recordings).at(0);
 	const playing = player.playingId === word.id;
+
+	const handlePlay = () => {
+		if (!firstRecording) {
+			return;
+		}
+
+		player.toggle(word.id, firstRecording.audio_file.url);
+	};
 
 	return (
 		<View>
@@ -67,7 +76,8 @@ const WordCard = ({ word, player }: Props) => {
 					label={t(playing ? 'common.sound.stopNamed' : 'words.list.play', {
 						name: word.name,
 					})}
-					onPress={() => player.toggle(word.id, firstRecording.url)}
+					disabled={!firstRecording}
+					onPress={handlePlay}
 				/>
 			</View>
 

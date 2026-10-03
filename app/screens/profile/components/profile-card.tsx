@@ -6,10 +6,17 @@ import { colors, font } from '@/theme';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
+import { InlineError } from '@/components/ui/inline-error';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
-	avatar: { uri?: string | null; icon: LucideIcon; size: 'medium' | 'large' };
+	avatar: {
+		uri?: string | null;
+		icon: LucideIcon;
+		size: 'medium' | 'large';
+		uploading: boolean;
+		errorMessage: string | null;
+	};
 	title: { text: string; accent?: boolean };
 	details: readonly (string | null)[];
 	label: string;
@@ -32,36 +39,40 @@ const ProfileCard = ({ avatar, title, details, label, onPress }: Props) => {
 			accessibilityLabel={label}
 			depth={isLarge ? 'medium' : 'low'}
 			onPress={onPress}
-			contentStyle={[styles.card, isLarge ? styles.largeCard : styles.mediumCard]}
+			contentStyle={isLarge ? styles.largeCard : styles.mediumCard}
 		>
-			<Avatar uri={avatar.uri} icon={avatar.icon} size={avatar.size} />
+			<View style={[styles.contentRow, isLarge && styles.contentRowLarge]}>
+				<Avatar uri={avatar.uri} icon={avatar.icon} size={avatar.size} uploading={avatar.uploading} />
 
-			<View style={[styles.textContainer, isLarge && styles.textContainerLarge]}>
-				<Copy
-					accessibilityRole={isLarge ? 'header' : undefined}
-					numberOfLines={isLarge ? undefined : 1}
-					style={[isLarge ? styles.largeTitle : styles.mediumTitle, title.accent && styles.accent]}
-				>
-					{title.text}
-				</Copy>
-				{details.map((detail) =>
-					detail ? (
-						<Copy key={detail} style={styles.detail} numberOfLines={1}>
-							{detail}
-						</Copy>
-					) : null,
-				)}
+				<View style={[styles.textContainer, isLarge && styles.textContainerLarge]}>
+					<Copy
+						accessibilityRole={isLarge ? 'header' : undefined}
+						numberOfLines={isLarge ? undefined : 1}
+						style={[isLarge ? styles.largeTitle : styles.mediumTitle, title.accent && styles.accent]}
+					>
+						{title.text}
+					</Copy>
+					{details.map((detail) =>
+						detail ? (
+							<Copy key={detail} style={styles.detail} numberOfLines={1}>
+								{detail}
+							</Copy>
+						) : null,
+					)}
+				</View>
+
+				<ChevronRightIcon size={18} color={colors.subtle} />
 			</View>
-
-			<ChevronRightIcon size={18} color={colors.subtle} />
+			<InlineError message={avatar.errorMessage} />
 		</PressableSurface>
 	);
 };
 
 const styles = StyleSheet.create({
-	card: { flexDirection: 'row', alignItems: 'center' },
-	mediumCard: { gap: 14, padding: 16 },
-	largeCard: { gap: 16, padding: 20 },
+	mediumCard: { padding: 16 },
+	largeCard: { padding: 20 },
+	contentRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+	contentRowLarge: { gap: 16 },
 	textContainer: { flex: 1, minWidth: 0, gap: 2 },
 	textContainerLarge: { gap: 4 },
 	mediumTitle: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },

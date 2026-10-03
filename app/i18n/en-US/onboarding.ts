@@ -41,6 +41,13 @@ export const onboarding: OnboardingMessages = {
 		allow: 'Allow',
 		later: 'Later',
 	},
+	marketing: {
+		intro: 'Want news about new features and events?',
+		scene: 'Buddy sharing news',
+		hint: 'You can change this anytime in Settings > Notifications.',
+		accept: 'Yes, notify me',
+		decline: 'No thanks',
+	},
 	legacy: {
 		uploading: 'Moving the parrot and words on this phone',
 		uploadError: "We couldn't move your parrot and words. Check your connection and try again.",

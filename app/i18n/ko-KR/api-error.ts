@@ -22,7 +22,6 @@ export const apiError: ApiErrorMessages = {
 	DEVICE__SAVE_UNAVAILABLE: '기기 정보를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
 	PARROT__SAVE_UNAVAILABLE: '앵무새 정보를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
 	WORD__SAVE_UNAVAILABLE: '단어를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
-	WORD__RECORDING_LIMIT: '녹음은 단어마다 5개까지 등록할 수 있어요.',
 	WORD__RECORDING_REQUIRED: '단어마다 녹음이 1개 이상 있어야 해요.',
 	WORD__INVALID_RECORDING: 'm4a, wav, mp3 녹음 파일만 올릴 수 있어요.',
 	SESSION__SAVE_UNAVAILABLE: '학습 정보를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',

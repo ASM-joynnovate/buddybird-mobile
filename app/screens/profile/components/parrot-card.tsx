@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 
 import type { Parrot } from '@/types/apis/parrots';
 
@@ -12,14 +12,15 @@ import { BirdIcon } from 'lucide-react-native';
 import Animated, { type MeasuredDimensions, measure, useAnimatedRef } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
+import { MONTHS_PER_YEAR } from '@/config/units';
 import { dropIn } from '@/screens/profile/components/parrot-card-animations';
 import { colors, font, radius } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 import { ageMonths } from '@/utils/date';
 import { isSpeciesId } from '@/utils/species';
-import { MONTHS_PER_YEAR } from '@/utils/units';
 
 import { Copy } from '@/components/ui/copy';
+import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { Tag } from '@/components/ui/tag';
@@ -31,7 +32,7 @@ interface Props {
 }
 
 /**
- * 사진이 위를 채우고 아래에 이름, 종, 나이가 오는 앵무새 카드 컴포넌트
+ * 앵무새 정보 카드 컴포넌트
  * @param parrot 표시할 앵무새
  * @param tilt 카드 기울기 각도
  * @param order 처음 나타날 때 떨어지는 순서
@@ -74,23 +75,37 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 	return (
 		<Animated.View entering={dropIn(tilt, order)} style={[ui.action, { transform: [{ rotate: `${tilt}deg` }] }]}>
 			<PressableSurface
-				accessibilityLabel={joinLabel(t('profile.editParrot', { name: parrot.name }), speciesName, ageText)}
+				accessibilityLabel={joinLabel(
+					t('profile.editParrot', { name: parrot.name }),
+					speciesName,
+					ageText,
+					parrot.uploading_photo_file?.status === 'pending' && t('profile.photoUploading'),
+					parrot.uploading_photo_file?.status === 'rejected' && t('profile.photoUploadFailed'),
+				)}
 				depth="low"
 				onPress={handlePress}
 				style={styles.card}
 				contentStyle={styles.cardContent}
 			>
 				<Animated.View ref={photoRef} style={styles.photo}>
-					{parrot.photo ? (
+					{parrot.photo_file ? (
 						<Image
-							source={{ uri: parrot.photo.url }}
+							source={{ uri: parrot.photo_file.url }}
 							style={styles.image}
 							accessibilityIgnoresInvertColors
 						/>
 					) : (
 						<BirdIcon size={40} color={colors.subtle} />
 					)}
+					{parrot.uploading_photo_file?.status === 'pending' && (
+						<View style={styles.progressContainer}>
+							<ActivityIndicator color={colors.onFilled} />
+						</View>
+					)}
 				</Animated.View>
+				<InlineError
+					message={parrot.uploading_photo_file?.status === 'rejected' ? t('profile.photoUploadFailed') : null}
+				/>
 
 				<Copy numberOfLines={1} style={styles.name}>
 					{parrot.name}
@@ -123,6 +138,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	image: { width: '100%', height: '100%' },
+	progressContainer: {
+		...StyleSheet.absoluteFill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: colors.backdrop,
+	},
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24, paddingHorizontal: 2 },
 	tags: { flexDirection: 'row', gap: 6, paddingHorizontal: 2 },
 	ageTag: { flexShrink: 0 },

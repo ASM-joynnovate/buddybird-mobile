@@ -21,7 +21,6 @@ export const apiErrorCodes = [
 	'DEVICE__SAVE_UNAVAILABLE',
 	'PARROT__SAVE_UNAVAILABLE',
 	'WORD__SAVE_UNAVAILABLE',
-	'WORD__RECORDING_LIMIT',
 	'WORD__RECORDING_REQUIRED',
 	'WORD__INVALID_RECORDING',
 	'SESSION__SAVE_UNAVAILABLE',
@@ -82,6 +81,8 @@ export const pageMetaSchema = z.object({
 	is_first: z.boolean(),
 	is_last: z.boolean(),
 });
+
+export const fileSchema = z.object({ url: z.string(), status: z.enum(['pending', 'uploaded', 'rejected']) });
 
 type PageMeta = z.infer<typeof pageMetaSchema>;
 

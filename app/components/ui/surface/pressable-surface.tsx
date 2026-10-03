@@ -6,8 +6,8 @@ import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handl
 import { ReduceMotion, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { SECOND } from '@/config/units';
 import { depths } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 import { Surface, type SurfaceProps } from '@/components/ui/surface';
 

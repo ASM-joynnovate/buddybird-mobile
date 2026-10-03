@@ -21,7 +21,6 @@ export const apiError: ApiErrorMessages = {
 	DEVICE__SAVE_UNAVAILABLE: "Couldn't save device details. Please try again shortly.",
 	PARROT__SAVE_UNAVAILABLE: "Couldn't save your parrot's details. Please try again shortly.",
 	WORD__SAVE_UNAVAILABLE: "Couldn't save the word. Please try again shortly.",
-	WORD__RECORDING_LIMIT: 'Each word can have up to 5 recordings.',
 	WORD__RECORDING_REQUIRED: 'Each word needs at least 1 recording.',
 	WORD__INVALID_RECORDING: 'Only m4a, wav, or mp3 recordings can be uploaded.',
 	SESSION__SAVE_UNAVAILABLE: "Couldn't save the session. Please try again shortly.",

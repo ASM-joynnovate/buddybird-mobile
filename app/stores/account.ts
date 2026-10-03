@@ -1,11 +1,9 @@
 import { type Account, accountSchema, type LoginProvider } from '@/types/account';
 
-import { mmkvStorage, restoreOptions } from '@/lib/storage';
+import { mmkvStorage, persistKeys, restoreOptions, storageIds } from '@/lib/storage';
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-import { persistKeys, storageIds } from '@/stores/keys';
 
 type AccountActions = {
 	setRegistration: (authUserId: string, serverUserId: string, isAnonymous: boolean) => void;

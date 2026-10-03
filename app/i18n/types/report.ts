@@ -12,8 +12,6 @@ export type ReportMessages = {
 	chartHour: string;
 	learningTimeByWord: string;
 	sessions: string;
-	mimicryTitle: string;
-	mimicryCount: string;
 	judging: string;
 	empty: string;
 	emptyScene: string;

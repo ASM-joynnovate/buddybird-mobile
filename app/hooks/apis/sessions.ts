@@ -1,10 +1,11 @@
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
-	getAllSessionSounds,
 	getRunningSession,
 	getSession,
+	getSessionMimicrySoundList,
 	getSessionSummary,
+	postRunningSessionFinish,
 	postSession,
 	postSessionFinish,
 	postSessionHeartbeat,
@@ -45,12 +46,17 @@ export const useGetSessionSummary = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionSummaryOptions({ id }));
 };
 
-/** 세션 소리 목록 조회 Hook에 사용할 옵션 */
-export const getSessionSoundListOptions = ({ id }: { id: string }) =>
-	queryOptions({ queryKey: apiKeys.sessions.sounds(id), queryFn: () => getAllSessionSounds({ id }) });
-/** 세션 소리 목록 조회 Hook */
-export const useGetSessionSoundList = ({ id }: { id: string }) => {
-	return useSuspenseQuery(getSessionSoundListOptions({ id }));
+/** 앵무새가 따라 한 소리 목록 조회 Hook에 사용할 옵션 */
+export const getSessionMimicrySoundListOptions = ({ id }: { id: string }) =>
+	infiniteQueryOptions({
+		queryKey: apiKeys.sessions.mimicrySounds(id),
+		queryFn: ({ pageParam }) => getSessionMimicrySoundList({ id, page: pageParam }),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => (lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1),
+	});
+/** 앵무새가 따라 한 소리 목록 조회 Hook */
+export const useGetSessionMimicrySoundList = ({ id }: { id: string }) => {
+	return useSuspenseInfiniteQuery(getSessionMimicrySoundListOptions({ id }));
 };
 
 /** 세션 시작 Hook */
@@ -94,12 +100,32 @@ export const useFinishSession = () => {
 	});
 };
 
+/** 진행 중인 세션을 찾아 종료하는 Hook */
+export const useFinishRunningSession = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'finishRunning'),
+		mutationFn: postRunningSessionFinish,
+		onSuccess: () => {
+			queryClient.setQueryData(apiKeys.sessions.running(), null);
+
+			return invalidate(apiKeys.sessions.all(), apiKeys.home(), apiKeys.devices(), apiKeys.reports.all());
+		},
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+				return;
+			}
+
+			reportError(error, 'session_takeover');
+		},
+	});
+};
+
 /** 세션 소리 업로드 Hook */
 export const useUploadSessionSound = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
-		onSuccess: (_data, { id }) => invalidate(apiKeys.sessions.sounds(id)),
+		onSuccess: (_data, { id }) => invalidate(apiKeys.sessions.mimicrySounds(id)),
 	});
 };
 

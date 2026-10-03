@@ -33,7 +33,7 @@ const photoMimeType = (asset: ImagePicker.ImagePickerAsset) => {
 const usePhotoPicker = (initialPhotoUri: string | null) => {
 	const { t } = useTranslation();
 
-	const [photoUri, setPhotoUri] = useState(initialPhotoUri);
+	const [photo, setPhoto] = useState({ uri: initialPhotoUri, changed: false });
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const libraryPermission = usePermission('photos');
@@ -65,7 +65,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 			} else if ((asset.fileSize ?? 0) > MAX_UPLOAD_BYTES) {
 				setErrorMessage(t('common.profilePhoto.sizeError'));
 			} else {
-				setPhotoUri(asset.uri);
+				setPhoto({ uri: asset.uri, changed: true });
 				setErrorMessage(null);
 			}
 		} catch (e) {
@@ -98,11 +98,8 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 	};
 
 	return {
-		photoUri,
-		setPhotoUri: (uri: string | null) => {
-			setPhotoUri(uri);
-			setErrorMessage(null);
-		},
+		photoUri: photo.uri,
+		photoChanged: photo.changed,
 		take,
 		choose,
 		errorMessage,

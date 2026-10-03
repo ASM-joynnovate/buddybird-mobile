@@ -11,5 +11,6 @@ export type ProfileMessages = {
 	nickname: string;
 	nicknameHint: string;
 	nicknameInvalid: string;
-	removePhoto: string;
+	photoUploading: string;
+	photoUploadFailed: string;
 };

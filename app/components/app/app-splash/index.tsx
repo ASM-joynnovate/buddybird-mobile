@@ -16,9 +16,9 @@ import Animated, {
 import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { SECOND } from '@/config/units';
 import { reportError } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
-import { SECOND } from '@/utils/units';
 
 import SplashEye from '@/components/app/app-splash/splash-eye';
 
