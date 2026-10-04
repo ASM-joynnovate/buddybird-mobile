@@ -12,6 +12,7 @@ type ReportState = {
 type ReportActions = {
 	selectPeriod: (period: ReportPeriod) => void;
 	movePeriod: (step: number) => void;
+	moveToLatestPeriod: () => void;
 	setPeriodFromParams: (params: unknown) => void;
 	resetPeriod: () => void;
 };
@@ -40,6 +41,11 @@ export const useReportStore = create<ReportStore>()((set, get) => ({
 		}
 
 		set((state) => ({ ...state, start: movedStart === latestPeriodStart ? null : movedStart }));
+	},
+
+	/** 오늘이 들어 있는 기간으로 이동 */
+	moveToLatestPeriod: () => {
+		set((state) => ({ ...state, start: null }));
 	},
 
 	/** route params의 기간 반영 */

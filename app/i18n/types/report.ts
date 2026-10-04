@@ -30,6 +30,7 @@ export type ReportMessages = {
 	noChange: string;
 	previous: string;
 	next: string;
+	today: string;
 	chartHour: string;
 	chartLabel: string;
 	until: string;

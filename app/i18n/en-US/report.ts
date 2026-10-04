@@ -32,6 +32,7 @@ export const report: ReportMessages = {
 	noChange: 'No change',
 	previous: 'Previous period',
 	next: 'Next period',
+	today: 'Go to today',
 	chartHour: '{{hour}}h',
 	chartLabel: '{{period}} cumulative learning time {{duration}}, {{previousPeriod}} {{previousDuration}}',
 	until: 'Through {{label}}',
