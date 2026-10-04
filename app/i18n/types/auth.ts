@@ -11,7 +11,6 @@ export type AuthMessages = {
 	};
 	completing: string;
 	signInError: string;
-	restoreError: string;
 	lastLogin: string;
 	lastLoginHint: string;
 	signOutError: string;

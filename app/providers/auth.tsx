@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 
-import { Alert, AppState } from 'react-native';
+import { AppState } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -22,6 +22,7 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useMessageStore } from '@/stores/message';
 import { useReportStore } from '@/stores/report';
 import { useSessionStore } from '@/stores/session';
 
@@ -80,7 +81,7 @@ const AuthProvider = ({ children }: Props) => {
 			const error = await signUpAnonymously();
 
 			if (error && active) {
-				alertFailure(error);
+				reportError(error, 'anonymous_sign_up');
 
 				setStatus('error');
 			}
@@ -127,7 +128,7 @@ const AuthProvider = ({ children }: Props) => {
 					return;
 				}
 
-				alertFailure(e);
+				reportError(e, 'login');
 
 				if (
 					identity.anonymous ||
@@ -142,14 +143,14 @@ const AuthProvider = ({ children }: Props) => {
 					return;
 				}
 
+				useMessageStore.getState().openPopup({ title: apiErrorMessage(e, i18next.t) });
+
 				try {
 					await signOutLocally();
 				} catch (signOutError) {
 					reportError(signOutError, 'login_sign_out');
 
 					if (active && !controller.signal.aborted) {
-						Alert.alert(i18next.t('auth.signOutError'));
-
 						setStatus('error');
 					}
 				}
@@ -216,7 +217,7 @@ const AuthProvider = ({ children }: Props) => {
 				} else if (isAuthRetryableFetchError(error) && useAccountStore.getState().authUserId !== null) {
 					setStatus('signedIn');
 				} else {
-					Alert.alert(i18next.t('auth.restoreError'));
+					reportError(error, 'auth_restore');
 
 					setStatus('error');
 				}
@@ -225,8 +226,6 @@ const AuthProvider = ({ children }: Props) => {
 				reportError(error, 'auth_restore');
 
 				if (active && !receivedEvent) {
-					Alert.alert(i18next.t('auth.restoreError'));
-
 					setStatus('error');
 				}
 			});
@@ -254,11 +253,6 @@ const AuthProvider = ({ children }: Props) => {
 	}, [retryCount, mutateAsync, queryClient]);
 
 	return children;
-};
-
-/** 로그인 실패 Alert 표시 함수 */
-const alertFailure = (error: unknown) => {
-	Alert.alert(apiErrorMessage(error, i18next.t), error instanceof ApiError ? error.code : undefined);
 };
 
 export default AuthProvider;

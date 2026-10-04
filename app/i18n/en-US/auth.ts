@@ -13,7 +13,6 @@ export const auth: AuthMessages = {
 	},
 	completing: 'Finishing your BuddyBird login',
 	signInError: "Couldn't log in. Check your connection and tap a login button to try again.",
-	restoreError: "Couldn't restore your login. Please try again.",
 	lastLogin: 'Last used',
 	lastLoginHint: 'You last logged in this way',
 	signOutError: "Couldn't log out. Check your connection and try again.",

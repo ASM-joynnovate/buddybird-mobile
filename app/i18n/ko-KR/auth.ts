@@ -13,7 +13,6 @@ export const auth: AuthMessages = {
 	},
 	completing: '버디버드 로그인을 마무리하고 있어요',
 	signInError: '로그인하지 못했어요. 연결을 확인하고 로그인 버튼을 다시 눌러 주세요.',
-	restoreError: '저장된 로그인을 확인하지 못했어요. 다시 시도해 주세요.',
 	lastLogin: '최근 로그인',
 	lastLoginHint: '마지막으로 로그인한 방법이에요',
 	signOutError: '로그아웃하지 못했어요. 연결을 확인하고 다시 시도해 주세요.',

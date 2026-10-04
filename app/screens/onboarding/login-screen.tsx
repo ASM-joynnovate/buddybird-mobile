@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Alert, AppState, type LayoutChangeEvent, StatusBar, StyleSheet, View } from 'react-native';
+import { AppState, type LayoutChangeEvent, StatusBar, StyleSheet, View } from 'react-native';
 
 import type { LoginProvider } from '@/types/account';
 import type { RootStackParamList } from '@/types/navigation';
@@ -22,6 +22,7 @@ import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/servi
 import { useAccountStore } from '@/stores/account';
 import { useAppStore } from '@/stores/app';
 import { useAuthStore } from '@/stores/auth';
+import { useMessageStore } from '@/stores/message';
 import { colors, contentMaxWidth, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -69,6 +70,8 @@ const LoginScreen = () => {
 	const splashFinished = useAppStore((state) => state.splashFinished);
 
 	const setLoginScreenSeen = useAccountStore((state) => state.setLoginScreenSeen);
+
+	const openPopup = useMessageStore((state) => state.openPopup);
 
 	const fromOnboarding = params?.source === 'onboarding';
 	const introReady = !fromOnboarding || splashFinished;
@@ -130,7 +133,7 @@ const LoginScreen = () => {
 				try {
 					await mutateAsync();
 				} catch {
-					Alert.alert(t('auth.signInError'));
+					openPopup({ title: t('auth.signInError') });
 
 					return;
 				}
@@ -147,7 +150,7 @@ const LoginScreen = () => {
 			if (!isAppleLoginCanceled(provider, e)) {
 				reportError(e, 'sign_in');
 
-				Alert.alert(t('auth.signInError'));
+				openPopup({ title: t('auth.signInError') });
 			}
 		} finally {
 			signingInRef.current = false;

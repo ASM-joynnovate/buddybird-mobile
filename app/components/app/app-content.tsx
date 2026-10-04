@@ -1,4 +1,5 @@
 import AuthProvider from '@/providers/auth';
+import MessageProvider from '@/providers/message';
 import SystemProvider from '@/providers/system';
 
 import AuthStatusContent from '@/components/app/auth-status-content';
@@ -7,9 +8,11 @@ import AuthStatusContent from '@/components/app/auth-status-content';
 const AppContent = () => {
 	return (
 		<SystemProvider>
-			<AuthProvider>
-				<AuthStatusContent />
-			</AuthProvider>
+			<MessageProvider>
+				<AuthProvider>
+					<AuthStatusContent />
+				</AuthProvider>
+			</MessageProvider>
 		</SystemProvider>
 	);
 };
