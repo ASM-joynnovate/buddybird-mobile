@@ -1,10 +1,19 @@
+import { useEffect, useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { BatteryState, usePowerState } from 'expo-battery';
+import {
+	addBatteryLevelListener,
+	addBatteryStateListener,
+	BatteryState,
+	getBatteryLevelAsync,
+	getBatteryStateAsync,
+} from 'expo-battery';
 import { BatteryChargingIcon, BatteryIcon } from 'lucide-react-native';
 
+import { reportError } from '@/services/telemetry/client';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { joinLabel } from '@/utils/a11y';
@@ -17,7 +26,37 @@ const ICON_SIZE = 18;
 const BatteryStatus = () => {
 	const { t } = useTranslation();
 
-	const { batteryLevel, batteryState } = usePowerState();
+	const [batteryLevel, setBatteryLevel] = useState(-1);
+	const [batteryState, setBatteryState] = useState(BatteryState.UNKNOWN);
+
+	/** 배터리 변경 이벤트 구독 */
+	useEffect(() => {
+		/** 배터리 잔량 조회 함수 */
+		const refreshBatteryLevel = () =>
+			void getBatteryLevelAsync()
+				.then(setBatteryLevel)
+				.catch((error: unknown) => reportError(error, 'battery_level'));
+
+		refreshBatteryLevel();
+
+		void getBatteryStateAsync()
+			.then(setBatteryState)
+			.catch((error: unknown) => reportError(error, 'battery_state'));
+
+		const levelSubscription = addBatteryLevelListener((event) => setBatteryLevel(event.batteryLevel));
+
+		// Android는 잔량이 바뀔 때 이 이벤트만 보냄
+		const stateSubscription = addBatteryStateListener((event) => {
+			setBatteryState(event.batteryState);
+
+			refreshBatteryLevel();
+		});
+
+		return () => {
+			levelSubscription.remove();
+			stateSubscription.remove();
+		};
+	}, []);
 
 	if (batteryLevel < 0) {
 		return null;
