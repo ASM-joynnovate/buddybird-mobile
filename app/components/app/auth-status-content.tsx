@@ -27,7 +27,11 @@ const AuthStatusContent = () => {
 	}
 
 	return (
-		<ErrorHandlingWrapper fallbackComponent={StartupScreen} suspenseFallback=<StartupScreen />>
+		<ErrorHandlingWrapper
+			fallbackComponent={StartupScreen}
+			suspenseFallback=<StartupScreen />
+			fallbackDelayed={false}
+		>
 			<DeviceProvider>
 				<AnalyticsProvider>
 					<StartupDialogProvider>
