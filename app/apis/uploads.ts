@@ -1,4 +1,4 @@
-import { type Upload, uploadSchema } from '@/types/apis/uploads';
+import { type Upload, uploadSchema, type WordRecordingUpload, wordRecordingUploadSchema } from '@/types/apis/uploads';
 
 import { apiRequest } from '@/lib/api';
 
@@ -52,10 +52,10 @@ export const postWordRecordingUpload = async ({
 	id: string;
 	uri: string;
 	idempotencyKey: string;
-}): Promise<Upload> => {
+}): Promise<WordRecordingUpload> => {
 	const file = new File(uri);
 
-	const { data: upload } = await apiRequest(`/api/v1/words/${id}/recordings`, uploadSchema, {
+	const { data: upload } = await apiRequest(`/api/v1/words/${id}/recordings`, wordRecordingUploadSchema, {
 		method: 'POST',
 		json: { content_type: 'audio/mp4', file_size: file.size },
 		idempotencyKey,

@@ -4,31 +4,22 @@ import { StyleSheet, View } from 'react-native';
 
 import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { useTranslation } from 'react-i18next';
-
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import MimicrySoundListSkeleton from '@/screens/report/components/mimicry-sound-list-skeleton';
 import SessionMimicry from '@/screens/report/components/session-mimicry';
 import { track } from '@/services/telemetry/client';
-import { useAccountStore } from '@/stores/account';
-import { colors, contentMaxWidth } from '@/theme';
+import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
-import { Button } from '@/components/ui/button';
-import { Copy } from '@/components/ui/copy';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 /** 세션 상세 화면 */
 const SessionDetailScreen = () => {
-	const { t } = useTranslation();
-
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<ReportStackParamList, 'SessionDetail'>>();
-
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
 
 	/** 세션 변경 시 session_detail_viewed 이벤트 전송 */
 	useEffect(() => {
@@ -40,21 +31,9 @@ const SessionDetailScreen = () => {
 			<View style={styles.container}>
 				<ScreenHeader onBack={() => navigation.goBack()} />
 
-				{/*익명 사용자에게는 로그인 안내 표시*/}
-				{isAnonymous ? (
-					<View style={styles.signInRequiredContainer}>
-						<Copy style={styles.signInRequiredText}>{t('report.signInRequired')}</Copy>
-						<Button
-							label={t('auth.signIn')}
-							variant="secondary"
-							onPress={() => navigation.navigate('Login')}
-						/>
-					</View>
-				) : (
-					<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<MimicrySoundListSkeleton />>
-						<SessionMimicry sessionId={params.sessionId} />
-					</ErrorHandlingWrapper>
-				)}
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<MimicrySoundListSkeleton />>
+					<SessionMimicry sessionId={params.sessionId} />
+				</ErrorHandlingWrapper>
 			</View>
 		</Screen>
 	);
@@ -69,8 +48,6 @@ const styles = StyleSheet.create({
 		maxWidth: contentMaxWidth,
 		alignSelf: 'center',
 	},
-	signInRequiredText: { color: colors.muted },
-	signInRequiredContainer: { gap: 12 },
 });
 
 export default SessionDetailScreen;

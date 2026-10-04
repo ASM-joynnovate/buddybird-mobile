@@ -14,7 +14,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 
-import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
@@ -55,15 +54,13 @@ const SessionItem = ({ session, period, order }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
-
 	const startedAtLabel =
 		period === 'day'
 			? formatMonthDayTime(session.period.started_at, locale)
 			: dayjs(session.period.started_at).format('LT');
 	const durationLabel = formatDuration(session.learning.duration_ms, locale);
 	const wordName = session.word.name;
-	const judging = !isAnonymous && session.judgment.status === 'pending';
+	const judging = session.judgment.status === 'pending';
 
 	const handleOpenSession = () => {
 		navigation.navigate('Main', {

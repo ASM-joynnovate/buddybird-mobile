@@ -1,5 +1,3 @@
-import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
-
 import { type Word, wordSchema } from '@/types/apis/words';
 
 import { apiRequest } from '@/lib/api';
@@ -54,18 +52,6 @@ export const patchWord = async ({
 
 export const deleteWord = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
 	await apiRequest(`/api/v1/words/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
-};
-
-export const postWordRecording = async ({
-	id,
-	uri,
-	idempotencyKey,
-}: {
-	id: string;
-	uri: string;
-	idempotencyKey: string;
-}): Promise<void> => {
-	await putUploadFile({ upload: await postWordRecordingUpload({ id, uri, idempotencyKey }), uri });
 };
 
 export const deleteWordRecording = async ({

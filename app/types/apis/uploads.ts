@@ -9,4 +9,7 @@ export const uploadSchema = z.object({
 	expires_in: z.number().int(),
 });
 
+export const wordRecordingUploadSchema = uploadSchema.extend({ recording_id: uuidSchema });
+
 export type Upload = z.infer<typeof uploadSchema>;
+export type WordRecordingUpload = z.infer<typeof wordRecordingUploadSchema>;

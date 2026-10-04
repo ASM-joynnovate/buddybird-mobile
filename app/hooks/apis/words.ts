@@ -1,14 +1,7 @@
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
-import {
-	deleteWord,
-	deleteWordRecording,
-	getWord,
-	getWordList,
-	patchWord,
-	postWord,
-	postWordRecording,
-} from '@/apis/words';
+import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
+import { deleteWord, deleteWordRecording, getWord, getWordList, patchWord, postWord } from '@/apis/words';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -75,11 +68,19 @@ export const useDeleteWord = () => {
 
 /** 단어 녹음 추가 Hook */
 export const useAddWordRecording = () => {
-	const queryClient = useQueryClient();
-
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'add'),
-		mutationFn: postWordRecording,
+		mutationFn: postWordRecordingUpload,
+	});
+};
+
+/** 단어 녹음 파일 업로드 Hook */
+export const useUploadWordRecording = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationKey: apiKeys.mutation('words', 'recordings', 'upload'),
+		mutationFn: putUploadFile,
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
 	});
 };

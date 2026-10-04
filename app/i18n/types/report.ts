@@ -46,5 +46,4 @@ export type ReportMessages = {
 		shareError: string;
 		shareHint: string;
 	};
-	signInRequired: string;
 };

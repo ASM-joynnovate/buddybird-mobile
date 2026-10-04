@@ -16,6 +16,7 @@ import {
 	useCreateWord,
 	useDeleteWordRecording,
 	useRenameWord,
+	useUploadWordRecording,
 } from '@/hooks/apis/words';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
@@ -136,12 +137,16 @@ const WordEditorScreen = () => {
 	const createWord = useCreateWord();
 	const renameWord = useRenameWord();
 	const addWordRecording = useAddWordRecording();
+	const uploadWordRecording = useUploadWordRecording();
 	const deleteWordRecording = useDeleteWordRecording();
 
 	const player = useSoundPlayer();
 
 	const name = nameInput ?? wordData?.name ?? '';
-	const serverRecordings = wordData?.recordings ?? [];
+	// 로컬 녹음으로 보여 주는 중인 서버 녹음은 제외
+	const serverRecordings = (wordData?.recordings ?? []).filter(
+		(serverRecording) => !newRecordings.some(({ recordingId }) => recordingId === serverRecording.id),
+	);
 	const recordings: EditorRecording[] = [
 		...serverRecordings.flatMap((serverRecording) => {
 			const replacement = newRecordings.find(
@@ -284,6 +289,19 @@ const WordEditorScreen = () => {
 		return wordCreationRef.current;
 	};
 
+	/** 녹음을 단어에 추가하고 파일을 올린 뒤 로컬 녹음을 지우는 함수 */
+	const saveRecording = async (savedWordId: string, newRecording: NewRecording) => {
+		const upload = await addWordRecording.mutateAsync({ id: savedWordId, uri: newRecording.uri });
+
+		setNewRecordings((prev) =>
+			prev.map((item) => (item.key === newRecording.key ? { ...item, recordingId: upload.recording_id } : item)),
+		);
+
+		await uploadWordRecording.mutateAsync({ upload, uri: newRecording.uri });
+
+		setNewRecordings((prev) => prev.filter(({ key }) => key !== newRecording.key));
+	};
+
 	/** 녹음을 바로 서버에 올리는 함수 */
 	const uploadRecording = async (newRecording: NewRecording) => {
 		setUploadingRecordingKeys((prev) => [...prev, newRecording.key]);
@@ -291,10 +309,9 @@ const WordEditorScreen = () => {
 		try {
 			const savedWordId = wordId ?? (await createWordOnce());
 
-			await addWordRecording.mutateAsync({ id: savedWordId, uri: newRecording.uri });
+			await saveRecording(savedWordId, newRecording);
 
 			setAddedBeforeSaveCount((prev) => prev + 1);
-			setNewRecordings((prev) => prev.filter(({ key }) => key !== newRecording.key));
 		} catch (e) {
 			reportError(e, 'recording_upload');
 		} finally {
@@ -370,9 +387,7 @@ const WordEditorScreen = () => {
 			setSaveStep('uploading');
 
 			for (const newRecording of newRecordings) {
-				await addWordRecording.mutateAsync({ id: savedWordId, uri: newRecording.uri });
-
-				setNewRecordings((prev) => prev.filter(({ key }) => key !== newRecording.key));
+				await saveRecording(savedWordId, newRecording);
 			}
 
 			setSaveStep('processing');

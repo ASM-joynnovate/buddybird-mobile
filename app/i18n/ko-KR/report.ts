@@ -48,5 +48,4 @@ export const report: ReportMessages = {
 		shareError: '소리를 공유하지 못했어요. 다시 시도해 주세요.',
 		shareHint: '길게 누르면 소리를 공유할 수 있어요',
 	},
-	signInRequired: '로그인하면 앵무새가 따라 한 소리를 볼 수 있어요',
 };
