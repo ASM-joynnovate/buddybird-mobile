@@ -20,7 +20,7 @@ export const common: CommonMessages = {
 	start: 'Start',
 	dontShowAgain: "Don't show again",
 	stepProgress: 'Step {{current}} of {{total}}',
-	offline: "You're offline. We'll reload once you're connected again.",
+	offline: "You're offline.\nWe'll reload once you're connected again.",
 	loadError: "We couldn't load this",
 	saveErrorKept: "We couldn't save. Your input is still here, so please try again.",
 	illustration: 'Illustration of {{scene}}',
