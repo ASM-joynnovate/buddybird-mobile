@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { ApiError } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
 
 import type { AnalyticsConsent } from '@/types/analytics-consent';
@@ -32,15 +33,29 @@ type UserPropertyStrings = Record<string, string | null>;
 
 const CLARITY_TEXT_LIMIT = 255;
 
-export const navigationIntegration = Sentry.reactNavigationIntegration();
+export const navigationIntegration = Sentry.reactNavigationIntegration({
+	enableTimeToInitialDisplay: true,
+});
 
 Sentry.init({
 	dsn: 'https://1efbf86681a92ef311ce12e25c1e37c9@o4512127698862080.ingest.de.sentry.io/4512127704498256',
+	enabled: !__DEV__,
+	environment: env.isProduction ? 'prod' : 'dev',
 	sendDefaultPii: true,
 	enableLogs: true,
 	replaysOnErrorSampleRate: 1.0,
 	tracesSampleRate: 1.0,
 	integrations: [Sentry.mobileReplayIntegration(), navigationIntegration],
+	beforeSend: (event, hint) => {
+		if (hint.originalException instanceof ApiError) {
+			return {
+				...event,
+				fingerprint: ['{{ default }}', String(hint.originalException.status), hint.originalException.code],
+			};
+		}
+
+		return event;
+	},
 });
 
 const clarityConfigured = env.clarityProjectId.trim() !== '';

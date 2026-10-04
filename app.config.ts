@@ -60,7 +60,7 @@ const config: ExpoConfig = {
 		'@react-native-firebase/crashlytics',
 		[
 			'@sentry/react-native/expo',
-			{ url: 'https://sentry.io/', organization: 'joynnovate', project: 'buddybird-mobile' },
+			{ url: 'https://sentry.io/', organization: 'joynnovate', project: 'buddybird-mobile', useNativeInit: true },
 		],
 		[
 			'expo-build-properties',

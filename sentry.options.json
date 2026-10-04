@@ -1,0 +1,6 @@
+{
+	"dsn": "https://1efbf86681a92ef311ce12e25c1e37c9@o4512127698862080.ingest.de.sentry.io/4512127704498256",
+	"environment": "prod",
+	"sendDefaultPii": true,
+	"tracesSampleRate": 1.0
+}
