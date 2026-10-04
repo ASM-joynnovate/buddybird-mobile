@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 
 import { colors, font } from '@/theme';
 
@@ -9,9 +9,10 @@ interface Props {
 	label: string;
 	selected?: boolean;
 	onPress: () => void;
+	style?: StyleProp<ViewStyle>;
 }
 
-export const Chip = ({ label, selected, onPress }: Props) => {
+export const Chip = ({ label, selected, onPress, style }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="button"
@@ -22,7 +23,7 @@ export const Chip = ({ label, selected, onPress }: Props) => {
 			depth="low"
 			hitSlop={6}
 			cornerRadius="pill"
-			style={styles.shell}
+			style={[styles.shell, style]}
 			contentStyle={styles.chip}
 		>
 			<Copy numberOfLines={1} style={[styles.chipText, selected && styles.selectedText]}>
