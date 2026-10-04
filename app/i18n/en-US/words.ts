@@ -5,7 +5,6 @@ export const words: WordsMessages = {
 		title: 'Words',
 		add: 'Add word',
 		empty: "You haven't added any words yet",
-		emptyScene: 'an empty word list',
 		play: 'Play {{name}} recording',
 		delete: 'Delete {{name}}',
 	},

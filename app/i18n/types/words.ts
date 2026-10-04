@@ -3,7 +3,6 @@ export type WordsMessages = {
 		title: string;
 		add: string;
 		empty: string;
-		emptyScene: string;
 		play: string;
 		delete: string;
 	};

@@ -14,6 +14,5 @@ export const home: HomeMessages = {
 		readAllError: "Couldn't mark all as read. Tap again.",
 		unread: 'Unread',
 		empty: 'No notifications yet',
-		emptyScene: 'Buddy by an empty inbox',
 	},
 };

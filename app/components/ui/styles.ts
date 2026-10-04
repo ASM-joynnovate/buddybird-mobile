@@ -12,7 +12,7 @@ export const ui = StyleSheet.create({
 	sectionContainer: { marginTop: 20 },
 	sectionTitle: { fontSize: 18, lineHeight: 24, fontFamily: font.black, marginBottom: 10 },
 	subtitle: { color: colors.muted, marginTop: 6, marginBottom: 24 },
-	messageContainer: { alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 32 },
+	messageContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 32 },
 	messageText: {
 		fontFamily: font.extraBold,
 		fontSize: 16,

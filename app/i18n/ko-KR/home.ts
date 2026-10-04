@@ -14,6 +14,5 @@ export const home: HomeMessages = {
 		readAllError: '모두 읽음으로 표시하지 못했어요. 다시 눌러 주세요.',
 		unread: '안 읽음',
 		empty: '아직 받은 알림이 없어요',
-		emptyScene: '빈 알림함 앞의 버디',
 	},
 };

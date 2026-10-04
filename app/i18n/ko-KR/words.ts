@@ -5,7 +5,6 @@ export const words: WordsMessages = {
 		title: '단어',
 		add: '단어 추가',
 		empty: '아직 등록한 단어가 없어요',
-		emptyScene: '빈 단어장',
 		play: '{{name}} 녹음 재생',
 		delete: '{{name}} 삭제',
 	},

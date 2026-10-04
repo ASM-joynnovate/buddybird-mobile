@@ -4,12 +4,9 @@ import { useGetNotificationList } from '@/hooks/apis/notifications';
 
 import { useTranslation } from 'react-i18next';
 
-import { BellIcon } from 'lucide-react-native';
-
 import NotificationItem from '@/screens/home/components/notification-item';
 import { colors } from '@/theme';
 
-import Illustration from '@/components/illustration';
 import { EmptyState } from '@/components/ui/empty-state';
 
 /** 받은 알림 목록 컴포넌트 */
@@ -19,12 +16,6 @@ const NotificationList = () => {
 	const { data: notificationListData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetNotificationList();
 
 	const notifications = notificationListData.pages.flatMap((notificationPage) => notificationPage.data);
-	const emptyContent = (
-		<EmptyState
-			message={t('home.notificationList.empty')}
-			illustration=<Illustration scene={t('home.notificationList.emptyScene')} icon={BellIcon} height={180} />
-		/>
-	);
 
 	const handleFetchNextPage = () => {
 		if (hasNextPage && !isFetchingNextPage) {
@@ -37,7 +28,7 @@ const NotificationList = () => {
 			data={notifications}
 			keyExtractor={(notification) => notification.id}
 			renderItem={({ item: notification }) => <NotificationItem notification={notification} />}
-			ListEmptyComponent={emptyContent}
+			ListEmptyComponent=<EmptyState message={t('home.notificationList.empty')} />
 			onEndReachedThreshold={0.4}
 			onEndReached={handleFetchNextPage}
 			ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={colors.orange} /> : null}

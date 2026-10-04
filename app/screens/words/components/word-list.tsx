@@ -1,19 +1,12 @@
 import { FlatList, StyleSheet } from 'react-native';
 
-import type { WordsStackParamList } from '@/types/navigation';
-
 import { useGetWordList } from '@/hooks/apis/words';
 import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { MessageSquareTextIcon } from 'lucide-react-native';
-
 import WordCard from '@/screens/words/components/word-card';
 
-import Illustration from '@/components/illustration';
 import { EmptyState } from '@/components/ui/empty-state';
 
 interface Props {
@@ -27,18 +20,7 @@ interface Props {
 const WordList = ({ player }: Props) => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<WordsStackParamList>>();
-
 	const { data: wordListData } = useGetWordList();
-
-	const illustration = <Illustration scene={t('words.list.emptyScene')} icon={MessageSquareTextIcon} height={200} />;
-	const emptyContent = (
-		<EmptyState
-			message={t('words.list.empty')}
-			illustration={illustration}
-			action={{ label: t('words.list.add'), onPress: () => navigation.navigate('WordEditor', {}) }}
-		/>
-	);
 
 	return (
 		<FlatList
@@ -47,7 +29,7 @@ const WordList = ({ player }: Props) => {
 			contentContainerStyle={styles.list}
 			showsVerticalScrollIndicator={false}
 			renderItem={({ item: word }) => <WordCard word={word} player={player} />}
-			ListEmptyComponent={emptyContent}
+			ListEmptyComponent=<EmptyState message={t('words.list.empty')} />
 		/>
 	);
 };

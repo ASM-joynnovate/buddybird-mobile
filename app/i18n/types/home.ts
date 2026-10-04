@@ -12,6 +12,5 @@ export type HomeMessages = {
 		readAllError: string;
 		unread: string;
 		empty: string;
-		emptyScene: string;
 	};
 };
