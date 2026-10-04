@@ -1,4 +1,4 @@
-name: Mobile release
+name: Staging release
 on:
   workflow_call:
     inputs:
@@ -14,10 +14,10 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: mobile-release
+  group: staging-release
   cancel-in-progress: false
 jobs:
-  started:
+  notify-started:
     runs-on: ubuntu-latest
     outputs:
       started_at: ${{ steps.range.outputs.started_at }}
@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: 🚀 buddybird-mobile 릴리스 시작 ${{ inputs.tag }}
+          title: 🚀 buddybird-mobile staging 릴리스 시작 ${{ inputs.tag }}
           fields: |
             태그=${{ inputs.tag }}
             실행자=${{ github.actor }}
@@ -48,14 +48,14 @@ jobs:
             GitHub Release=${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.tag }}
           commit-range: ${{ steps.range.outputs.previous }}..${{ inputs.tag }}
 
-  staging:
-    uses: ./.github/workflows/eas-release.yml
+  staging-build-and-submit:
+    uses: ./.github/workflows/eas-build-and-submit.yml
     with:
       profile: staging
       tag: ${{ inputs.tag }}
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
-  e2e:
+  android-e2e:
     name: Android E2E (Maestro)
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -124,27 +124,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  approve:
-    name: Approve production release
-    needs: [staging, e2e]
-    if: ${{ !cancelled() && needs.staging.result == 'success' }}
-    environment: production
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Approved $TAG"
-        env:
-          TAG: ${{ inputs.tag }}
-
-  production:
-    needs: approve
-    uses: ./.github/workflows/eas-release.yml
-    with:
-      profile: production
-      tag: ${{ inputs.tag }}
-    secrets: inherit # zizmor: ignore[secrets-inherit]
-
-  finished:
-    needs: [started, staging, e2e, production]
+  notify-finished:
+    needs: [notify-started, staging-build-and-submit, android-e2e]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -153,7 +134,7 @@ jobs:
           persist-credentials: false
       - id: duration
         env:
-          STARTED_AT: ${{ needs.started.outputs.started_at }}
+          STARTED_AT: ${{ needs.notify-started.outputs.started_at }}
         run: |
           elapsed=$(( $(date +%s) - ${STARTED_AT:-$(date +%s)} ))
           echo "value=$(( elapsed / 60 ))m $(( elapsed % 60 ))s" >> "$GITHUB_OUTPUT"
@@ -161,12 +142,11 @@ jobs:
         continue-on-error: true
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: "${{ needs.production.result == 'success' && '✅ buddybird-mobile 릴리스 완료' || contains(needs.*.result, 'failure') && '❌ buddybird-mobile 릴리스 실패' || '⚠️ buddybird-mobile 릴리스 취소' }} ${{ inputs.tag }}"
+          title: "${{ needs.staging-build-and-submit.result == 'success' && needs.android-e2e.result == 'success' && '✅ buddybird-mobile staging 릴리스 완료' || contains(needs.*.result, 'failure') && '❌ buddybird-mobile staging 릴리스 실패' || '⚠️ buddybird-mobile staging 릴리스 취소' }} ${{ inputs.tag }}"
           fields: |
             태그=${{ inputs.tag }}
-            staging=${{ needs.staging.result }}
-            e2e=${{ needs.e2e.result }}
-            production=${{ needs.production.result }}
+            staging=${{ needs.staging-build-and-submit.result }}
+            e2e=${{ needs.android-e2e.result }}
             소요 시간=${{ steps.duration.outputs.value }}
           buttons: |
             실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

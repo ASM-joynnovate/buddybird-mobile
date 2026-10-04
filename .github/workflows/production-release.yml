@@ -1,0 +1,51 @@
+name: Production release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to submit to the stores, e.g. v1.3.1
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+jobs:
+  wait-for-production-approval:
+    name: Wait for production approval
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Approved $TAG"
+        env:
+          TAG: ${{ inputs.tag }}
+
+  production-build-and-submit:
+    needs: wait-for-production-approval
+    uses: ./.github/workflows/eas-build-and-submit.yml
+    with:
+      profile: production
+      tag: ${{ inputs.tag }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+
+  notify-finished:
+    needs: [production-build-and-submit]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: "${{ needs.production-build-and-submit.result == 'success' && '✅ buddybird-mobile production 릴리스 완료' || contains(needs.*.result, 'failure') && '❌ buddybird-mobile production 릴리스 실패' || '⚠️ buddybird-mobile production 릴리스 취소' }} ${{ inputs.tag }}"
+          fields: |
+            태그=${{ inputs.tag }}
+            production=${{ needs.production-build-and-submit.result }}
+            실행자=${{ github.actor }}
+          buttons: |
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            GitHub Release=${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.tag }}
