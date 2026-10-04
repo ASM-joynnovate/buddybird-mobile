@@ -14,7 +14,8 @@
 		"preview": {
 			"distribution": "internal",
 			"env": {
-				"APP_VARIANT": "development"
+				"APP_VARIANT": "development",
+				"SENTRY_ENVIRONMENT": "dev"
 			}
 		},
 		"staging": {
@@ -22,7 +23,8 @@
 			"environment": "preview",
 			"autoIncrement": true,
 			"env": {
-				"APP_VARIANT": "development"
+				"APP_VARIANT": "development",
+				"SENTRY_ENVIRONMENT": "dev"
 			}
 		},
 		"production": {
