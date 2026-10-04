@@ -1,54 +1,47 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
+  - directory: /
+    package-ecosystem: github-actions
     schedule:
       interval: weekly
       day: monday
-      time: "09:00"
+      time: '09:00'
       timezone: Asia/Seoul
     open-pull-requests-limit: 5
-    labels:
-      - "area: ci"
-      - "dependencies"
+    cooldown:
+      default-days: 7
+    labels: ['dependencies', 'area: ci']
     commit-message:
       prefix: ci
       include: scope
     groups:
-      actions-minor:
-        update-types:
-          - minor
-          - patch
-
-  - package-ecosystem: npm
-    directory: /
+      compatible-actions:
+        update-types: [minor, patch]
+  - directory: /
+    package-ecosystem: npm
     schedule:
       interval: weekly
       day: monday
-      time: "09:00"
+      time: '09:00'
       timezone: Asia/Seoul
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
+    cooldown:
+      default-days: 7
+    labels: [dependencies]
     commit-message:
       prefix: chore
       include: scope
     ignore:
-      # Expo SDK 메이저 마이그레이션은 수동
-      - dependency-name: "expo"
-      - dependency-name: "expo-*"
-        update-types: ["version-update:semver-major"]
-      # React 코어는 SDK와 함께 핀
-      - dependency-name: "react"
-      - dependency-name: "react-native"
-      - dependency-name: "react-native-*"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: expo
+      - dependency-name: react
+      - dependency-name: react-native
+      - dependency-name: expo-*
+        update-types: [version-update:semver-major]
+      - dependency-name: react-native-*
+        update-types: [version-update:semver-major]
     groups:
-      npm-patches:
-        update-types:
-          - patch
-      types-and-dev:
+      patches:
+        update-types: [patch]
+      development:
         dependency-type: development
-        update-types:
-          - minor
-          - patch
+        update-types: [minor, patch]

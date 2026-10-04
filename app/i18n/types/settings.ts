@@ -1,0 +1,55 @@
+export type SettingsMessages = {
+	title: string;
+	saveError: string;
+	notifications: {
+		title: string;
+		all: string;
+		notice: string;
+		report: string;
+		marketing: string;
+		permissionOff: string;
+	};
+	general: {
+		language: string;
+		korean: string;
+		english: string;
+		devices: string;
+	};
+	account: {
+		signOut: string;
+		withdraw: string;
+	};
+	support: {
+		title: string;
+		feedback: string;
+		notices: string;
+		consents: string;
+		version: string;
+	};
+	signOutDialog: {
+		title: string;
+		message: string;
+		confirm: string;
+	};
+	withdrawDialog: {
+		title: string;
+		message: string;
+		warning: string;
+		confirm: string;
+	};
+	notices: {
+		title: string;
+		empty: string;
+		unread: string;
+	};
+	consents: {
+		title: string;
+		saveError: string;
+	};
+	devices: {
+		title: string;
+		thisDevice: string;
+		runningSession: string;
+		lastSeen: string;
+	};
+};

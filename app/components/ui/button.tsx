@@ -1,0 +1,108 @@
+import { ActivityIndicator, StyleSheet } from 'react-native';
+
+import type { LucideIcon, LucideProps } from 'lucide-react-native';
+
+import { colors, depths, font } from '@/theme';
+
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/surface/pressable-surface';
+
+interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
+	label: string;
+	icon?: LucideIcon;
+	iconProps?: LucideProps;
+	variant?: 'primary' | 'secondary';
+	loading?: boolean;
+	size?: 'small' | 'medium';
+}
+
+export const Button = ({
+	label,
+	icon: Icon,
+	iconProps,
+	variant = 'primary',
+	loading,
+	size = 'medium',
+	style,
+	disabled,
+	depth = 'medium',
+	...props
+}: Props) => {
+	const inactive = disabled || loading;
+	let surfaceVariant: 'primary' | 'neutral' | 'disabled' = 'primary';
+	let foregroundColor = colors.onFilled;
+
+	if (variant === 'secondary') {
+		surfaceVariant = 'neutral';
+		foregroundColor = colors.text;
+	}
+
+	if (inactive) {
+		surfaceVariant = 'disabled';
+		foregroundColor = colors.subtle;
+	}
+
+	let leadingContent = null;
+
+	if (loading) {
+		leadingContent = <ActivityIndicator color={foregroundColor} />;
+	} else if (Icon) {
+		leadingContent = <Icon color={foregroundColor} size={size === 'small' ? 20 : 26} {...iconProps} />;
+	}
+
+	return (
+		<PressableSurface
+			{...props}
+			accessibilityRole="button"
+			accessibilityLabel={props.accessibilityLabel ?? label}
+			accessibilityState={{
+				...props.accessibilityState,
+				disabled: Boolean(inactive),
+				busy: Boolean(loading),
+			}}
+			disabled={inactive}
+			variant={surfaceVariant}
+			depth={inactive ? 'none' : depth}
+			cornerRadius="control"
+			style={[inactive && { marginTop: depths[depth] }, style]}
+			contentStyle={[
+				styles.button,
+				{ borderWidth: variant === 'secondary' ? 2 : 0 },
+				size === 'small' && styles.buttonSmall,
+			]}
+		>
+			{leadingContent}
+
+			<Copy style={[styles.buttonText, { color: foregroundColor }, size === 'small' && styles.buttonTextSmall]}>
+				{label}
+			</Copy>
+		</PressableSurface>
+	);
+};
+
+const styles = StyleSheet.create({
+	button: {
+		minHeight: 64,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 8,
+		paddingHorizontal: 22,
+		paddingVertical: 10,
+	},
+	buttonText: {
+		fontFamily: font.extraBold,
+		fontSize: 20,
+		letterSpacing: 0.32,
+		textTransform: 'uppercase',
+		textAlign: 'center',
+		flexShrink: 1,
+		minWidth: 0,
+	},
+	buttonSmall: {
+		minHeight: 52,
+		paddingHorizontal: 14,
+		paddingVertical: 8,
+	},
+	buttonTextSmall: { fontSize: 16 },
+});

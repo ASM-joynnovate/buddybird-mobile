@@ -1,0 +1,103 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    name: Verify (lint + typecheck) / Verify (lint + typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - name: Verify expo-image-picker patch is active
+        run: grep -q "expo-image-picker@patch:" yarn.lock
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn check:deps
+      - run: npx expo-doctor
+      - name: Build JS bundles
+        run: yarn export:ios && yarn export:android
+      - name: Validate GitHub Actions workflows
+        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 .github/workflows/*.yml
+      - name: Audit GitHub Actions workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pipx run zizmor==1.30.1 .github/
+      - name: Notify check failure
+        if: failure()
+        uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: ❌ 검사 실패 ${{ github.event.pull_request.title || github.ref_name }}
+          fields: |
+            PR=${{ github.event.pull_request.number && format('#{0}', github.event.pull_request.number) || '' }}
+            브랜치=${{ github.head_ref || github.ref_name }}
+            작성자=${{ github.actor }}
+          buttons: |
+            PR 확인=${{ github.event.pull_request.html_url || '' }}
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      native: ${{ steps.filter.outputs.native }}
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            native:
+              - modules/**
+              - plugins/**
+              - ios/**
+              - android/**
+              - app.config.ts
+              - package.json
+              - yarn.lock
+              - eas.json
+
+  native-ios:
+    name: Native (iOS prebuild + pod install)
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - name: Prepare dev Firebase identity
+        env:
+          DEV_IOS: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+        run: |
+          mkdir -p config/dev/firebase
+          if [ -n "$DEV_IOS" ]; then
+            printf '%s' "$DEV_IOS" | base64 -d > config/dev/firebase/GoogleService-Info.plist
+          else
+            printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict/></plist>\n' > config/dev/firebase/GoogleService-Info.plist
+          fi
+      - run: npx expo prebuild --platform ios --no-install
+        env:
+          APP_VARIANT: development
+      - run: pod install --project-directory=ios

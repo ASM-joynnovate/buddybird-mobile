@@ -1,0 +1,86 @@
+import type { CommonMessages } from '@/i18n/types/common';
+
+export const common: CommonMessages = {
+	mascot: '버디 마스코트',
+	cancel: '취소',
+	save: '저장',
+	back: '뒤로',
+	retry: '다시 시도',
+	close: '닫기',
+	select: '선택',
+	unknown: '모름',
+	tabs: {
+		home: '홈',
+		words: '단어',
+		report: '리포트',
+		profile: '프로필',
+	},
+	skip: '건너뛰기',
+	next: '다음',
+	start: '시작',
+	dontShowAgain: '다시 보지 않기',
+	stepProgress: '{{total}}단계 중 {{current}}단계',
+	offline: '인터넷 연결이 끊겼어요. 다시 연결되면 자동으로 불러와요.',
+	loadError: '정보를 불러오지 못했어요',
+	saveErrorKept: '저장하지 못했어요. 입력한 내용은 그대로 남아 있으니 다시 시도해 주세요.',
+	illustration: '{{scene}} 그림',
+	phases: {
+		learning: '학습',
+		rest: '휴식',
+		stress_care: '스트레스 케어',
+		sleeping: '수면 시간',
+	},
+	sound: {
+		stop: '중지',
+		stopNamed: '{{name}} 중지',
+		playError: '소리를 재생하지 못했어요. 재생 버튼을 다시 눌러 주세요.',
+	},
+	permission: {
+		title: '{{name}} 권한이 필요해요',
+		openSettings: '설정 열기',
+		microphone: {
+			name: '마이크',
+			reason: '단어를 녹음하고 앵무새가 낸 소리를 기록하려면 마이크가 필요해요.',
+		},
+		notifications: {
+			name: '알림',
+			reason: '학습 소식을 알려 드리려면 알림이 필요해요.',
+		},
+		photos: {
+			name: '사진',
+			reason: '프로필 사진을 고르려면 사진 보관함에 접근해야 해요.',
+		},
+		camera: {
+			name: '카메라',
+			reason: '프로필 사진을 찍으려면 카메라가 필요해요.',
+		},
+	},
+	confirmDelete: {
+		title: '{{name}} 삭제',
+		message: '삭제하면 되돌릴 수 없어요.',
+		confirm: '삭제',
+	},
+	time: {
+		hour: '시',
+		minute: '분',
+		hourPicker: '{{label}}의 시 선택',
+		minutePicker: '{{label}}의 분 선택',
+	},
+	done: '확인',
+	add: '추가',
+	consent: {
+		required: '필수',
+		optional: '선택',
+		viewFull: '{{title}} 전문 보기',
+		agree: '동의',
+	},
+	profilePhoto: {
+		select: '프로필 사진 선택',
+		title: '프로필 사진',
+		take: '사진 찍기',
+		choose: '앨범에서 고르기',
+		typeError: 'JPEG 또는 PNG 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
+		sizeError: '5MB 이하 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
+		loadError: '사진을 불러오지 못했어요. 다시 골라 주세요.',
+	},
+};

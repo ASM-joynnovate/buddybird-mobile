@@ -1,0 +1,86 @@
+import type { CommonMessages } from '@/i18n/types/common';
+
+export const common: CommonMessages = {
+	mascot: 'Buddy mascot',
+	cancel: 'Cancel',
+	save: 'Save',
+	back: 'Back',
+	retry: 'Try again',
+	close: 'Close',
+	select: 'Choose',
+	unknown: 'Unknown',
+	tabs: {
+		home: 'Home',
+		words: 'Words',
+		report: 'Report',
+		profile: 'Profile',
+	},
+	skip: 'Skip',
+	next: 'Next',
+	start: 'Start',
+	dontShowAgain: "Don't show again",
+	stepProgress: 'Step {{current}} of {{total}}',
+	offline: "You're offline. We'll reload once you're connected again.",
+	loadError: "We couldn't load this",
+	saveErrorKept: "We couldn't save. Your input is still here, so please try again.",
+	illustration: 'Illustration of {{scene}}',
+	phases: {
+		learning: 'Learning',
+		rest: 'Rest',
+		stress_care: 'Stress care',
+		sleeping: 'Sleep time',
+	},
+	sound: {
+		stop: 'Stop',
+		stopNamed: 'Stop {{name}}',
+		playError: "We couldn't play the sound. Tap play again.",
+	},
+	permission: {
+		title: '{{name}} access needed',
+		openSettings: 'Open Settings',
+		microphone: {
+			name: 'Microphone',
+			reason: "BuddyBird needs the microphone to record words and your parrot's sounds.",
+		},
+		notifications: {
+			name: 'Notification',
+			reason: 'BuddyBird needs notifications to send you learning updates.',
+		},
+		photos: {
+			name: 'Photo',
+			reason: 'BuddyBird needs photo access to choose a profile picture.',
+		},
+		camera: {
+			name: 'Camera',
+			reason: 'BuddyBird needs the camera to take a profile picture.',
+		},
+	},
+	confirmDelete: {
+		title: 'Delete {{name}}',
+		message: "This can't be undone.",
+		confirm: 'Delete',
+	},
+	time: {
+		hour: 'h',
+		minute: 'm',
+		hourPicker: 'Choose the hour for {{label}}',
+		minutePicker: 'Choose the minute for {{label}}',
+	},
+	done: 'Done',
+	add: 'Add',
+	consent: {
+		required: 'Required',
+		optional: 'Optional',
+		viewFull: 'Read {{title}}',
+		agree: 'Agree',
+	},
+	profilePhoto: {
+		select: 'Choose profile photo',
+		title: 'Profile photo',
+		take: 'Take photo',
+		choose: 'Choose from album',
+		typeError: 'Only JPEG or PNG photos work. Please choose another photo.',
+		sizeError: 'Photos must be 5MB or smaller. Please choose another photo.',
+		loadError: "We couldn't load the photo. Please choose it again.",
+	},
+};
