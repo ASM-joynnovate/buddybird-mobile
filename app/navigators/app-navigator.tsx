@@ -170,7 +170,7 @@ const AppNavigator = () => {
 	}
 
 	return (
-		<>
+		<OfflineBanner>
 			<NavigationContainer
 				key={entryRoute}
 				ref={navigationRef}
@@ -245,9 +245,7 @@ const AppNavigator = () => {
 					)}
 				</RootStack.Navigator>
 			</NavigationContainer>
-
-			<OfflineBanner />
-		</>
+		</OfflineBanner>
 	);
 };
 
