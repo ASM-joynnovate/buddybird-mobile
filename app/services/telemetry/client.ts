@@ -41,6 +41,7 @@ Sentry.init({
 	dsn: 'https://1efbf86681a92ef311ce12e25c1e37c9@o4512127698862080.ingest.de.sentry.io/4512127704498256',
 	enabled: !__DEV__,
 	environment: env.isProduction ? 'prod' : 'dev',
+	// oxlint-disable-next-line typescript/no-deprecated
 	sendDefaultPii: true,
 	enableLogs: true,
 	replaysOnErrorSampleRate: 1.0,
