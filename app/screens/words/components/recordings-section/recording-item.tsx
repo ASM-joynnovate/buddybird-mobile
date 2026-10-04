@@ -34,6 +34,7 @@ export interface NewRecording {
 	durationMs: number;
 	waveformLevels: number[];
 	replacedRecordingId: string | null;
+	recordingId: string | null;
 }
 
 interface Props {
