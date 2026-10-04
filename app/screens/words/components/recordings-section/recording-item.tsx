@@ -7,11 +7,9 @@ import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration } from '@/i18n/format';
-
 import { TrashIcon } from 'lucide-react-native';
 
-import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { SECOND } from '@/config/units';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -62,8 +60,6 @@ const RecordingItem = ({ recording, player, index, uploading, onDelete }: Props)
 		throwOnError: false,
 	});
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const name = t('words.editor.recordingName', { index: index + 1 });
 	const playing = player.playingId === recording.id;
 	const durationMs = recording.durationMs ?? recordingDurationData ?? null;
@@ -72,7 +68,11 @@ const RecordingItem = ({ recording, player, index, uploading, onDelete }: Props)
 		<View style={[styles.container, index > 0 && styles.divider, playing && styles.playingContainer]}>
 			<View style={styles.textContainer}>
 				<Copy style={[styles.name, playing && styles.playingName]}>{name}</Copy>
-				{durationMs !== null && <Copy style={styles.duration}>{formatDuration(durationMs, locale)}</Copy>}
+				{durationMs !== null && (
+					<Copy style={styles.duration}>
+						{t('common.duration.seconds', { value: (durationMs / SECOND).toFixed(2) })}
+					</Copy>
+				)}
 			</View>
 
 			<IconButton
