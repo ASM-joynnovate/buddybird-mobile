@@ -28,6 +28,11 @@ export const latestStart = (period: ReportPeriod) => {
 	return localDate(_periodStart(period, dayjs()));
 };
 
+/** 기간 시작 날짜를 step 기간만큼 옮긴 날짜를 반환하는 함수 */
+export const shiftedStart = (period: ReportPeriod, start: string, step: number) => {
+	return localDate(dayjs(start).add(step, period));
+};
+
 /** route params에서 리포트 기간을 읽는 함수 */
 export const periodSelectionFromParams = (params: unknown) => {
 	const parsed = paramsSchema.safeParse(params ?? {});

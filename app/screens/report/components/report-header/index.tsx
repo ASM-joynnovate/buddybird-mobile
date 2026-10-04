@@ -2,130 +2,52 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Report } from '@/types/apis/reports';
 
-import type { RootStackParamList } from '@/types/navigation';
-import { reportPeriodSchema } from '@/types/report-period';
-
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration, formatMonthDay, formatMonthDayWeekday, formatYearMonth } from '@/i18n/format';
-
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
-
-import TrendChart from '@/screens/report/components/report-header/trend-chart';
+import PeriodMenu from '@/screens/report/components/report-header/period-menu';
+import PeriodNav from '@/screens/report/components/report-header/period-nav';
+import TrendPager from '@/screens/report/components/report-header/trend-pager';
 import WordBars from '@/screens/report/components/report-header/word-bars';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
-import { latestStart } from '@/utils/report-period';
 
-import Illustration from '@/components/illustration';
-import { Chip } from '@/components/ui/chip';
 import { Copy } from '@/components/ui/copy';
-import { EmptyState } from '@/components/ui/empty-state';
-import { IconButton } from '@/components/ui/icon-button';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { ui } from '@/components/ui/styles';
-import { Card } from '@/components/ui/surface/card';
 
 interface Props {
 	report: Report;
+	previousReport: Report;
 }
 
 /**
  * 기간별 학습 시간 요약 컴포넌트
  * @param report 선택한 기간의 리포트
+ * @param previousReport 선택한 기간 바로 전 기간의 리포트
  */
-const ReportHeader = ({ report }: Props) => {
+const ReportHeader = ({ report, previousReport }: Props) => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
-	const period = useReportStore((state) => state.period);
-	const start = useReportStore((state) => state.start);
-	const selectPeriod = useReportStore((state) => state.selectPeriod);
-	const movePeriod = useReportStore((state) => state.movePeriod);
-
 	const hasSessions = report.sessions.length > 0;
-	const periodLabel =
-		report.period.unit === 'day'
-			? formatMonthDayWeekday(report.period.start, locale)
-			: report.period.unit === 'month'
-				? formatYearMonth(report.period.start, locale)
-				: `${formatMonthDay(report.period.start, locale)} ~ ${formatMonthDay(report.period.end, locale)}`;
-	const isLatest = start === null || start >= latestStart(period);
-	const illustration = <Illustration scene={t('report.emptyScene')} icon={ChartNoAxesColumnIcon} height={180} />;
 
 	return (
 		<View>
-			<ScreenHeader title={t('report.title')} large />
+			<ScreenHeader title={t('report.title')} large trailing=<PeriodMenu /> />
+			<View style={styles.divider} />
 
-			{/*기간 선택 버튼*/}
-			<View style={ui.controlsRow}>
-				{reportPeriodSchema.options.map((periodOption) => (
-					<Chip
-						key={periodOption}
-						label={t(`report.periods.${periodOption}`)}
-						selected={period === periodOption}
-						onPress={() => selectPeriod(periodOption)}
-					/>
-				))}
-			</View>
+			<PeriodNav />
+			<TrendPager key={report.period.unit} />
 
-			{/*기간별 학습 시간*/}
-			<Card style={styles.card}>
-				<View style={ui.controlsRow}>
-					<Copy accessibilityRole="header" style={styles.period}>
-						{periodLabel}
-					</Copy>
-					<IconButton icon={ChevronLeftIcon} label={t('report.previous')} onPress={() => movePeriod(-1)} />
-					<IconButton
-						icon={ChevronRightIcon}
-						label={t('report.next')}
-						disabled={isLatest}
-						onPress={() => movePeriod(1)}
-					/>
-				</View>
-
-				{hasSessions && (
-					<>
-						<Copy style={styles.label}>{t('report.learningTime')}</Copy>
-						<View style={styles.totalRow}>
-							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.total}>
-								{formatDuration(report.learning.duration_ms, locale)}
-							</Copy>
-						</View>
-
-						<TrendChart
-							key={`${report.period.unit}-${report.period.start}`}
-							period={report.period.unit}
-							trend={report.learning.trend}
-						/>
-					</>
-				)}
-			</Card>
-
-			{/*빈 리포트 안내*/}
-			{!hasSessions && (
-				<EmptyState
-					message={t('report.empty')}
-					illustration={illustration}
-					action={{
-						label: t('report.startSession'),
-						onPress: () => navigation.navigate('Main', { screen: 'HomeTab' }),
-					}}
-				/>
-			)}
-
-			{/*단어별 학습 시간*/}
 			{hasSessions && (
 				<>
-					<WordBars words={report.learning.words} />
+					<View style={styles.band} />
+					<WordBars
+						key={report.period.start}
+						period={report.period.unit}
+						words={report.learning.words}
+						previousWords={previousReport.learning.words}
+					/>
 
-					<Copy accessibilityRole="header" style={[ui.sectionTitle, styles.sessionsTitle]}>
+					<View style={styles.band} />
+					<Copy accessibilityRole="header" style={styles.sessionsTitle}>
 						{t('report.sessions')}
 					</Copy>
 				</>
@@ -135,12 +57,16 @@ const ReportHeader = ({ report }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	card: { marginTop: 16 },
-	period: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 16 },
-	label: { marginTop: 12, fontFamily: font.extraBold, fontSize: 13.5, color: colors.muted },
-	totalRow: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 8 },
-	total: { flex: 1, fontFamily: font.black, fontSize: 34, lineHeight: 40 },
-	sessionsTitle: { marginTop: 24, marginBottom: 0 },
+	divider: { height: 2, marginHorizontal: -24, marginBottom: 8, backgroundColor: colors.border },
+	band: {
+		height: 10,
+		marginHorizontal: -24,
+		marginVertical: 22,
+		borderTopWidth: 2,
+		borderTopColor: colors.border,
+		backgroundColor: colors.surface,
+	},
+	sessionsTitle: { fontFamily: font.black, fontSize: 16, lineHeight: 22, marginBottom: 2 },
 });
 
 export default ReportHeader;

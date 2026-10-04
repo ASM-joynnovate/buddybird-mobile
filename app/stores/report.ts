@@ -1,10 +1,8 @@
 import type { ReportPeriod } from '@/types/report-period';
 
-import dayjs from 'dayjs';
 import { create } from 'zustand';
 
-import { localDate } from '@/utils/date';
-import { latestStart, periodSelectionFromParams } from '@/utils/report-period';
+import { latestStart, periodSelectionFromParams, shiftedStart } from '@/utils/report-period';
 
 type ReportState = {
 	period: ReportPeriod;
@@ -13,7 +11,7 @@ type ReportState = {
 
 type ReportActions = {
 	selectPeriod: (period: ReportPeriod) => void;
-	movePeriod: (step: 1 | -1) => void;
+	movePeriod: (step: number) => void;
 	setPeriodFromParams: (params: unknown) => void;
 	resetPeriod: () => void;
 };
@@ -31,11 +29,11 @@ export const useReportStore = create<ReportStore>()((set, get) => ({
 		set((state) => ({ ...state, period, start: null }));
 	},
 
-	/** 이전 또는 다음 기간으로 이동 */
+	/** 이전 또는 다음 기간으로 step만큼 이동 */
 	movePeriod: (step) => {
 		const { period, start } = get();
 		const latestPeriodStart = latestStart(period);
-		const movedStart = localDate(dayjs(start ?? latestPeriodStart).add(step, period));
+		const movedStart = shiftedStart(period, start ?? latestPeriodStart, step);
 
 		if (movedStart > latestPeriodStart) {
 			return;
