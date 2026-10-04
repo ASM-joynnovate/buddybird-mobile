@@ -4423,7 +4423,7 @@ __metadata:
     react-native-keyboard-controller: "npm:1.21.9"
     react-native-mmkv: "npm:4.3.2"
     react-native-nitro-modules: "npm:0.37.1"
-    react-native-reanimated: "npm:4.6.0"
+    react-native-reanimated: "npm:4.7.0"
     react-native-safe-area-context: "npm:~5.10.1"
     react-native-screens: "npm:~4.28.0"
     react-native-svg: "npm:15.15.5"
@@ -9018,17 +9018,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:4.6.0":
-  version: 4.6.0
-  resolution: "react-native-reanimated@npm:4.6.0"
+"react-native-reanimated@npm:4.7.0":
+  version: 4.7.0
+  resolution: "react-native-reanimated@npm:4.7.0"
   dependencies:
     react-native-is-edge-to-edge: "npm:^1.3.1"
     semver: "npm:^7.7.3"
   peerDependencies:
     react: "*"
-    react-native: 0.83 - 0.87
-    react-native-worklets: 0.12.x
-  checksum: 10c0/947c9038b9c876a5e77364afd4b256327e05317537022b283aa76dc35af20b5cb4786989117fd1c3926c583595165703903e91ab3c204f90fdb6296022eff614
+    react-native: 0.86 - 0.88
+    react-native-worklets: 0.13.x
+  checksum: 10c0/29f98cc26aa75a4a512fd5d2416b3faa4495f1c465aeddcc1501ee91a6f9408be15061de04b0338dc07f6769fff118a3b0916d937db857b12511b2982f002115
   languageName: node
   linkType: hard
 
