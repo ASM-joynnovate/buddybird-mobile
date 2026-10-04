@@ -54,7 +54,7 @@ const OfflineBanner = ({ children }: Props) => {
 	}));
 	const slotStyle = useAnimatedStyle(() => ({ height: progress.get() * bannerHeight }));
 
-	/** 연결이 끊기면 안내 높이를 잰 뒤 펼치고, 다시 연결되면 접은 다음 안내를 내림 */
+	/** 연결이 끊기면 안내 높이를 측정한 뒤 펼치고, 다시 연결되면 접은 다음 안내를 내림 */
 	useEffect(() => {
 		if (offline) {
 			setBannerVisible(true);
