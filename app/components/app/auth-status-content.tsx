@@ -26,8 +26,10 @@ const AuthStatusContent = () => {
 		return status === 'error' ? <StartupScreen onRetry={retryAuth} /> : <StartupScreen />;
 	}
 
+	// 사용자가 바뀌면 다시 마운트
 	return (
 		<ErrorHandlingWrapper
+			key={authUserId}
 			fallbackComponent={StartupScreen}
 			suspenseFallback=<StartupScreen />
 			fallbackDelayed={false}
