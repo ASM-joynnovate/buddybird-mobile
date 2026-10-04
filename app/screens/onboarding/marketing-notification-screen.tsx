@@ -46,6 +46,7 @@ const MarketingNotificationScreen = () => {
 				footer={
 					<ErrorHandlingWrapper
 						fallbackComponent={ScreenError}
+						errorSize="inline"
 						suspenseFallback=<MarketingNotificationAnswerSkeleton />
 					>
 						<MarketingNotificationAnswer />

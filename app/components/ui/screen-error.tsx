@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/types/apis/common';
 
+import type { ErrorSize } from '@/types/error-boundary';
+
 import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
@@ -18,16 +20,44 @@ import { Copy } from '@/components/ui/copy';
 interface Props {
 	error: unknown;
 	placeholder?: ReactNode;
+	size?: ErrorSize;
 	loading?: boolean;
 	onRetry: () => void;
 }
 
-export const ScreenError = ({ error, placeholder, loading, onRetry }: Props) => {
+export const ScreenError = ({ error, placeholder, size = 'screen', loading, onRetry }: Props) => {
 	const { t } = useTranslation();
 
 	const connectionFailed =
 		!(error instanceof ApiError) || error.code === 'CLIENT__NETWORK' || error.code === 'CLIENT__TIMEOUT';
 	const Icon = connectionFailed ? WifiOffIcon : ServerCrashIcon;
+
+	const texts = (
+		<View style={styles.texts}>
+			<Copy style={styles.title}>{t('common.loadError')}</Copy>
+			<Copy style={styles.reason}>{apiErrorMessage(error, t)}</Copy>
+		</View>
+	);
+	const retryButton = (
+		<Button
+			label={t('common.retry')}
+			icon={RotateCwIcon}
+			size="small"
+			loading={loading}
+			onPress={onRetry}
+			style={size === 'screen' && styles.retry}
+		/>
+	);
+
+	if (size === 'inline') {
+		return (
+			<View style={[styles.card, styles.inlineCard]} accessibilityLiveRegion="polite">
+				<Icon size={22} color={colors.muted} />
+				{texts}
+				{retryButton}
+			</View>
+		);
+	}
 
 	return (
 		<View style={placeholder ? styles.overPlaceholder : null}>
@@ -37,21 +67,10 @@ export const ScreenError = ({ error, placeholder, loading, onRetry }: Props) => 
 			<View style={styles.card} accessibilityLiveRegion="polite">
 				<View style={styles.message}>
 					<Icon size={22} color={colors.muted} style={styles.icon} />
-
-					<View style={styles.texts}>
-						<Copy style={styles.title}>{t('common.loadError')}</Copy>
-						<Copy style={styles.reason}>{apiErrorMessage(error, t)}</Copy>
-					</View>
+					{texts}
 				</View>
 
-				<Button
-					label={t('common.retry')}
-					icon={RotateCwIcon}
-					size="small"
-					loading={loading}
-					onPress={onRetry}
-					style={styles.retry}
-				/>
+				{retryButton}
 			</View>
 		</View>
 	);
@@ -69,6 +88,7 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.background,
 	},
+	inlineCard: { flexDirection: 'row', alignItems: 'center' },
 	message: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 	icon: { marginTop: 1 },
 	texts: { flex: 1, minWidth: 0, gap: 2 },

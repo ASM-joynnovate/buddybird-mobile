@@ -30,7 +30,11 @@ const SettingsScreen = () => {
 			<ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
 
 			<View style={styles.sectionsContainer}>
-				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<GeneralGroupSkeleton />>
+				<ErrorHandlingWrapper
+					fallbackComponent={ScreenError}
+					errorSize="inline"
+					suspenseFallback=<GeneralGroupSkeleton />
+				>
 					<GeneralGroup />
 				</ErrorHandlingWrapper>
 

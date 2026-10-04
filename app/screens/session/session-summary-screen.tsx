@@ -112,6 +112,7 @@ const SessionSummaryScreen = () => {
 						<View style={styles.sideColumn}>
 							<ErrorHandlingWrapper
 								fallbackComponent={ScreenError}
+								errorSize="inline"
 								suspenseFallback=<SummarySpeechSkeleton mascotSize={96} />
 							>
 								<SummarySpeech sessionId={params.sessionId} mascotSize={96} />
@@ -122,6 +123,7 @@ const SessionSummaryScreen = () => {
 							<View style={styles.mainContent}>
 								<ErrorHandlingWrapper
 									fallbackComponent={ScreenError}
+									errorSize="inline"
 									suspenseFallback={
 										<>
 											<SummaryTitleSkeleton />
