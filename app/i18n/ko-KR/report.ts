@@ -32,6 +32,7 @@ export const report: ReportMessages = {
 	noChange: '변동 없음',
 	previous: '이전 기간',
 	next: '다음 기간',
+	today: '오늘로 이동',
 	chartHour: '{{hour}}시',
 	chartLabel: '{{period}} 누적 학습 시간 {{duration}}, {{previousPeriod}} {{previousDuration}}',
 	until: '{{label}}까지',

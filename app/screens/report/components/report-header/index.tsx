@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import PeriodMenu from '@/screens/report/components/report-header/period-menu';
 import PeriodNav from '@/screens/report/components/report-header/period-nav';
+import ReportHeaderTodayButton from '@/screens/report/components/report-header/today-button';
 import TrendPager from '@/screens/report/components/report-header/trend-pager';
 import WordBars from '@/screens/report/components/report-header/word-bars';
 import { colors, font } from '@/theme';
@@ -30,7 +31,16 @@ const ReportHeader = ({ report, previousReport }: Props) => {
 
 	return (
 		<View>
-			<ScreenHeader title={t('report.title')} large trailing=<PeriodMenu /> />
+			<ScreenHeader
+				title={t('report.title')}
+				large
+				trailing={
+					<>
+						<ReportHeaderTodayButton />
+						<PeriodMenu />
+					</>
+				}
+			/>
 			<View style={styles.divider} />
 
 			<PeriodNav />
