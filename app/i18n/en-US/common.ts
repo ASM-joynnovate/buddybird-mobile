@@ -66,6 +66,17 @@ export const common: CommonMessages = {
 		hourPicker: 'Choose the hour for {{label}}',
 		minutePicker: 'Choose the minute for {{label}}',
 	},
+	duration: {
+		days: '{{value}}d',
+		hours: '{{value}}h',
+		minutes: '{{value}}m',
+		seconds: '{{value}}s',
+	},
+	dateFormat: {
+		monthDay: 'MMMM D',
+		monthDayWeekday: 'ddd, MMMM D',
+		yearMonth: 'MMMM YYYY',
+	},
 	done: 'Done',
 	add: 'Add',
 	consent: {

@@ -35,6 +35,7 @@ export const report: ReportMessages = {
 	chartHour: '{{hour}}시',
 	chartLabel: '{{period}} 누적 학습 시간 {{duration}}, {{previousPeriod}} {{previousDuration}}',
 	until: '{{label}}까지',
+	dateRange: '{{start}} ~ {{end}}',
 	bucketDuration: '{{duration}} 학습',
 	learningTimeByWord: '단어별 학습 시간',
 	sessions: '학습 목록',

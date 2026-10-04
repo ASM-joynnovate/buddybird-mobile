@@ -32,7 +32,10 @@ const PeriodNav = () => {
 			? formatMonthDayWeekday(selectedStart, locale)
 			: period === 'month'
 				? formatYearMonth(selectedStart, locale)
-				: `${formatMonthDay(selectedStart, locale)} ~ ${formatMonthDay(periodEnd, locale)}`;
+				: t('report.dateRange', {
+						start: formatMonthDay(selectedStart, locale),
+						end: formatMonthDay(periodEnd, locale),
+					});
 	const isLatest = selectedStart >= latestStart(period);
 
 	return (
