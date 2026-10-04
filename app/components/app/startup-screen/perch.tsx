@@ -46,8 +46,6 @@ const MIN_DRAG_DEPTH = 80;
 const MAX_RELEASE_SPEED = 120;
 const LEAN_RATIO = -0.3;
 
-const NUDGE_MS = 3.2 * SECOND;
-const NUDGE_KICK = 38;
 const LAND_KICK_DELAY_MS = 200;
 const LAND_KICK = 70;
 const FLY_KICK = 90;
@@ -115,15 +113,6 @@ const pushAgainstTilt = (angle: SharedValue<number>, speed: SharedValue<number>,
 	'worklet';
 
 	speed.set(speed.get() + (angle.get() >= 0 ? -force : force));
-};
-
-/** 끌고 있지 않으면 횃대를 짧게 흔드는 함수 */
-const nudgePerch = (speed: SharedValue<number>, dragging: SharedValue<boolean>) => {
-	'worklet';
-
-	if (!dragging.get()) {
-		speed.set(speed.get() + NUDGE_KICK);
-	}
 };
 
 /** 손가락 위치에 맞는 횃대 각도를 반환하는 함수 */
@@ -231,17 +220,6 @@ const Perch = ({ size, barBottom, buddySeated, dragEnabled, buddyRef, buddyStyle
 		speed.set(nextSpeed);
 		angle.set(angle.get() + nextSpeed * seconds);
 	}, !reducedMotion);
-
-	/** 버디가 없는 동안 일정 간격으로 횃대를 흔듦 */
-	useEffect(() => {
-		if (buddySeated || reducedMotion) {
-			return;
-		}
-
-		const timer = setInterval(() => scheduleOnUI(nudgePerch, speed, dragging), NUDGE_MS);
-
-		return () => clearInterval(timer);
-	}, [buddySeated, dragging, reducedMotion, speed]);
 
 	/** 버디가 횃대에 내려앉거나 떠날 때 애니메이션 실행 */
 	useEffect(() => {
@@ -377,7 +355,7 @@ const styles = StyleSheet.create({
 	swing: { position: 'absolute', top: -PIVOT_ABOVE, transformOrigin: '50% 0%' },
 	rope: { position: 'absolute', top: 0, backgroundColor: colors.text },
 	buddy: { position: 'absolute' },
-	lean: { flex: 1, transformOrigin: `50% ${MASCOT_FEET_RATIO * 100}%` },
+	lean: { flex: 1, transformOrigin: '50% 88%' },
 	barEdge: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.textDark },
 	bar: { backgroundColor: colors.text },
 });

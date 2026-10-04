@@ -5,6 +5,7 @@ import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import Animated, {
+	type AnimatedRef,
 	Easing,
 	interpolate,
 	type MeasuredDimensions,
@@ -35,6 +36,7 @@ const BUDDY_MIN_SIZE = 64;
 const BUDDY_MAX_SIZE = 144;
 
 const LANDING_WAIT_MS = 2 * SECOND;
+const RETRY_SEATED_MS = 2.4 * SECOND;
 const WORDS_HIDE_MS = 200;
 const WORDS_DROP = 12;
 const FLIGHT_DELAY_MS = 50;
@@ -102,6 +104,13 @@ const flightFrameOf = (motion: 'flyUp' | 'dropDown', progress: number, dx: numbe
 	};
 };
 
+/** 화면에 붙은 view만 재고, 아니면 null을 반환하는 함수 */
+const measureAttached = (ref: AnimatedRef<Animated.View>) => {
+	'worklet';
+
+	return ref() ? measure(ref) : null;
+};
+
 /** 흰 바탕이 사라지는 애니메이션을 만드는 함수 */
 const backgroundFadeMotion = () => {
 	'worklet';
@@ -127,6 +136,7 @@ const StartupOverlay = () => {
 
 	const [sceneBottom, setSceneBottom] = useState(0);
 	const [buddySeated, setBuddySeated] = useState(startupScreen?.onRetry === undefined);
+	const [buddyArriving, setBuddyArriving] = useState(false);
 	const [retryShown, setRetryShown] = useState(startupScreen?.onRetry !== undefined);
 	const [landing, setLanding] = useState<{ target: LandingTarget | null } | null>(null);
 
@@ -144,17 +154,23 @@ const StartupOverlay = () => {
 
 	const starting = startupScreen !== null;
 	const failed = startupScreen?.onRetry !== undefined;
+	const failureShown = failed && !buddyArriving;
 	const buddySize = Math.min(BUDDY_MAX_SIZE, Math.max(BUDDY_MIN_SIZE, sceneBottom * BUDDY_SIZE_RATIO));
 	const barBottom = sceneBottom * BAR_POSITION;
 	const targetBuddyRef = landing?.target?.buddyRef;
 	const targetSheetRef = landing?.target?.sheetRef;
 
-	// 시작 화면 요청이 있는 동안에만 실패 여부를 버디에 반영
-	if (starting && buddySeated === failed) {
-		setBuddySeated(!failed);
+	// 다시 시도하면 버디가 내려앉고, 앉은 뒤 일정 시간이 지나야 실패를 반영
+	if (starting && !failed && !buddySeated) {
+		setBuddySeated(true);
+		setBuddyArriving(!reducedMotion);
 	}
 
-	if (failed && !retryShown) {
+	if (failureShown && buddySeated) {
+		setBuddySeated(false);
+	}
+
+	if (failureShown && !retryShown) {
 		setRetryShown(true);
 	}
 
@@ -166,7 +182,9 @@ const StartupOverlay = () => {
 	// 목적지 bottom sheet가 올라오는 중이면 흰 바탕도 따라가도록 sheet 위치를 프레임마다 다시 잼
 	const backgroundStyle = useAnimatedStyle(() => {
 		const sheet =
-			landingMotion.get() === 'dropDown' && targetSheetRef ? (measure(targetSheetRef) ?? sheetFrom.get()) : null;
+			landingMotion.get() === 'dropDown' && targetSheetRef
+				? (measureAttached(targetSheetRef) ?? sheetFrom.get())
+				: null;
 
 		return {
 			opacity: 1 - backgroundFade.get(),
@@ -203,7 +221,7 @@ const StartupOverlay = () => {
 	const flyingBuddyStyle = useAnimatedStyle(() => {
 		const motion = landingMotion.get();
 		const from = flightFrom.get();
-		const to = (targetBuddyRef ? measure(targetBuddyRef) : null) ?? flightTo.get();
+		const to = (targetBuddyRef ? measureAttached(targetBuddyRef) : null) ?? flightTo.get();
 
 		if ((motion !== 'flyUp' && motion !== 'dropDown') || !from || !to) {
 			return { opacity: 0 };
@@ -232,9 +250,20 @@ const StartupOverlay = () => {
 		};
 	});
 
+	/** 다시 시도로 내려앉은 버디가 앉아 있는 시간이 지나면 표시 */
+	useEffect(() => {
+		if (!buddyArriving) {
+			return;
+		}
+
+		const timer = setTimeout(() => setBuddyArriving(false), RETRY_SEATED_MS);
+
+		return () => clearTimeout(timer);
+	}, [buddyArriving]);
+
 	/** 시작 화면 요청이 모두 사라지면 목적지 화면의 버디를 기다림 */
 	useEffect(() => {
-		if (starting || landing) {
+		if (starting || landing || buddyArriving) {
 			return;
 		}
 
@@ -253,7 +282,7 @@ const StartupOverlay = () => {
 		const timer = setTimeout(() => setLanding({ target: null }), LANDING_WAIT_MS);
 
 		return () => clearTimeout(timer);
-	}, [hideStartupOverlay, landing, landingTarget, reducedMotion, splashFinished, starting]);
+	}, [buddyArriving, hideStartupOverlay, landing, landingTarget, reducedMotion, splashFinished, starting]);
 
 	/** 목적지가 정해지면 버디를 목적지로 옮김 */
 	useEffect(() => {
@@ -268,8 +297,8 @@ const StartupOverlay = () => {
 
 			wordsHidden.set(withTiming(1, { duration: WORDS_HIDE_MS, easing: wordsHideEasing }));
 
-			const from = measure(perchBuddyRef);
-			const to = target ? measure(target.buddyRef) : null;
+			const from = measureAttached(perchBuddyRef);
+			const to = target ? measureAttached(target.buddyRef) : null;
 
 			// 옮겨 갈 버디가 없으면 횃대와 함께 위로 올라감
 			if (!buddySeated || !target || !from || !to) {
@@ -289,7 +318,7 @@ const StartupOverlay = () => {
 				return;
 			}
 
-			const sheet = measure(target.sheetRef);
+			const sheet = measureAttached(target.sheetRef);
 
 			target.buddyHidden.set(true);
 			flightFrom.set(from);
@@ -391,13 +420,13 @@ const StartupOverlay = () => {
 				<Animated.View style={[styles.bottomContainer, wordsStyle]}>
 					<View accessibilityLiveRegion="polite" style={styles.words}>
 						<Title style={styles.title}>
-							{t(failed ? 'app.startupError.title' : 'app.startup.loading')}
+							{t(failureShown ? 'app.startupError.title' : 'app.startup.loading')}
 						</Title>
 						<Copy
-							accessibilityElementsHidden={!failed}
-							importantForAccessibility={failed ? 'auto' : 'no-hide-descendants'}
+							accessibilityElementsHidden={!failureShown}
+							importantForAccessibility={failureShown ? 'auto' : 'no-hide-descendants'}
 							lineBreakStrategyIOS="hangul-word"
-							style={[styles.message, !failed && styles.hidden]}
+							style={[styles.message, !failureShown && styles.hidden]}
 						>
 							{t('app.startupError.message')}
 						</Copy>
@@ -410,7 +439,7 @@ const StartupOverlay = () => {
 						pointerEvents={retryShown ? 'auto' : 'none'}
 						style={!retryShown && styles.hidden}
 					>
-						<Button label={t('common.retry')} loading={!failed} onPress={handleRetry} />
+						<Button label={t('common.retry')} loading={!failureShown} onPress={handleRetry} />
 					</View>
 				</Animated.View>
 			</View>
