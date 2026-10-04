@@ -24,10 +24,10 @@ const styles = StyleSheet.create({
 	totalsRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginTop: 4 },
 	currentContainer: { flex: 1, minWidth: 0 },
 	block: { borderRadius: radius.small, backgroundColor: colors.surface },
-	legendBlock: { width: 56, height: 12 },
-	totalBlock: { width: 150, height: 28, marginTop: 8 },
+	legendBlock: { width: 56, height: 12, marginVertical: 3 },
+	totalBlock: { width: 150, height: 28, marginVertical: 3 },
 	previousBlock: { width: 70, height: 34 },
-	changeBlock: { width: 130, height: 14, marginTop: 8 },
+	changeBlock: { width: 130, height: 14, marginTop: 8, marginBottom: 2 },
 	chartBlock: { height: 160, marginTop: 14, borderRadius: radius.control },
 	axisSpace: { height: 22 },
 });

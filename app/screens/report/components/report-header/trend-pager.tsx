@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FlatList, type NativeScrollEvent, type NativeSyntheticEvent, StyleSheet, View } from 'react-native';
 
 import TrendPane from '@/screens/report/components/report-header/trend-pane';
+import TrendPaneSkeleton from '@/screens/report/components/report-header/trend-pane-skeleton';
 import { useReportStore } from '@/stores/report';
 import { periodsBetween } from '@/utils/date';
 import { latestStart, shiftedStart } from '@/utils/report-period';
@@ -50,6 +51,13 @@ const TrendPager = () => {
 
 	return (
 		<View style={styles.container} onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}>
+			{/*폭을 받기 전에는 같은 높이의 스켈레톤으로 자리 유지*/}
+			{pageWidth === 0 && (
+				<View style={styles.page}>
+					<TrendPaneSkeleton />
+				</View>
+			)}
+
 			{pageWidth > 0 && (
 				<FlatList
 					ref={listRef}
