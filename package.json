@@ -96,7 +96,7 @@
 		"oxlint-plugin-react-native": "0.2.36",
 		"oxlint-tsgolint": "7.0.2003",
 		"tsx": "4.23.15",
-		"typescript": "~6.0.3"
+		"typescript": "~7.0.2"
 	},
 	"engines": {
 		"node": ">=22.14.0"
