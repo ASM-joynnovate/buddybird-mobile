@@ -18,6 +18,7 @@ const MainTabs = () => {
 		<Tabs.Navigator
 			screenOptions={{
 				headerShown: false,
+				popToTopOnBlur: true,
 				sceneStyle: { backgroundColor: colors.background },
 			}}
 			tabBar={(props) => <TabBar {...props} />}
