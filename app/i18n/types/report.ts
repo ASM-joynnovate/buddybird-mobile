@@ -34,6 +34,7 @@ export type ReportMessages = {
 	chartHour: string;
 	chartLabel: string;
 	until: string;
+	dateRange: string;
 	bucketDuration: string;
 	learningTimeByWord: string;
 	sessions: string;

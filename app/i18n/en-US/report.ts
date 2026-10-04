@@ -36,6 +36,7 @@ export const report: ReportMessages = {
 	chartHour: '{{hour}}h',
 	chartLabel: '{{period}} cumulative learning time {{duration}}, {{previousPeriod}} {{previousDuration}}',
 	until: 'Through {{label}}',
+	dateRange: '{{start}} ~ {{end}}',
 	bucketDuration: '{{duration}} learned',
 	learningTimeByWord: 'Learning time by word',
 	sessions: 'Sessions',
