@@ -1,15 +1,15 @@
+import { useState } from 'react';
+
 import { RefreshControl, ScrollView } from 'react-native';
 
 import { usePrefetchQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getSessionOptions } from '@/hooks/apis/sessions';
 import { getWordListOptions } from '@/hooks/apis/words';
+import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
 import { useTranslation } from 'react-i18next';
 
-import { useIsFocused } from '@react-navigation/native';
-
-import { SCREEN_REFRESH_MS } from '@/config';
 import MimicrySoundList from '@/screens/report/components/mimicry-sound-list';
 
 import { EmptyState } from '@/components/ui/empty-state';
@@ -25,25 +25,30 @@ interface Props {
 const SessionMimicry = ({ sessionId }: Props) => {
 	const { t } = useTranslation();
 
-	const screenFocused = useIsFocused();
+	const [refetchingByUser, setRefetchingByUser] = useState(false);
 
 	usePrefetchQuery(getWordListOptions());
 
-	const {
-		data: sessionData,
-		isRefetching,
-		refetch,
-	} = useSuspenseQuery({
-		...getSessionOptions({ id: sessionId }),
-		refetchInterval: (query) =>
-			screenFocused && query.state.data?.judgment.status === 'pending' ? SCREEN_REFRESH_MS : false,
-	});
+	const { data: sessionData, refetch } = useSuspenseQuery(getSessionOptions({ id: sessionId }));
+
+	useRefreshOnFocus(refetch);
+
+	// 아래로 당겨 새로고침할 때만 로딩 표시
+	const handleRefresh = async () => {
+		setRefetchingByUser(true);
+
+		try {
+			await refetch();
+		} finally {
+			setRefetchingByUser(false);
+		}
+	};
 
 	return sessionData.judgment.status === 'done' ? (
 		<MimicrySoundList session={sessionData} />
 	) : (
 		<ScrollView
-			refreshControl=<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
+			refreshControl=<RefreshControl refreshing={refetchingByUser} onRefresh={() => void handleRefresh()} />
 			showsVerticalScrollIndicator={false}
 		>
 			<EmptyState message={t('report.detail.judging')} />

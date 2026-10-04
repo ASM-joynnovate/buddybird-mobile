@@ -2,7 +2,6 @@ import { DAY, HOUR, MIB, MINUTE, SECOND } from '@/config/units';
 
 export const API_TIMEOUT_MS = 30 * SECOND;
 
-export const SCREEN_REFRESH_MS = 10 * SECOND;
 export const DEFAULT_STALE_TIME_MS = 30 * SECOND;
 
 export const HEARTBEAT_INTERVAL_MS = 10 * SECOND;

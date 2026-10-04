@@ -14,16 +14,16 @@ import { useFinishRunningSession, useFinishSession, useStartSession } from '@/ho
 import { useGetSettings } from '@/hooks/apis/settings';
 import { useGetWordList } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
+import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
 import { useTranslation } from 'react-i18next';
 
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
-import { SCREEN_REFRESH_MS } from '@/config';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
@@ -53,18 +53,16 @@ const HomeContent = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const screenFocused = useIsFocused();
 
 	const [requestedSetup, setRequestedSetup] = useState<SessionSetup | null>(null);
 	const [takeoverDialogOpen, setTakeoverDialogOpen] = useState(false);
 
-	const { data: homeSummaryData } = useSuspenseQuery({
-		...getHomeSummaryOptions(),
-		refetchInterval: screenFocused ? SCREEN_REFRESH_MS : false,
-	});
+	const { data: homeSummaryData, refetch: refetchHomeSummary } = useSuspenseQuery(getHomeSummaryOptions());
 	const { data: deviceListData } = useGetDeviceList();
 	const { data: wordListData } = useGetWordList();
 	const { data: settingsData } = useGetSettings();
+
+	useRefreshOnFocus(refetchHomeSummary);
 
 	const startSession = useStartSession();
 	const finishSession = useFinishSession();
