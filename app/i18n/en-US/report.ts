@@ -48,5 +48,4 @@ export const report: ReportMessages = {
 		shareError: "We couldn't share the sound. Please try again.",
 		shareHint: 'Long press to share the sound',
 	},
-	signInRequired: 'Log in to see the sounds your parrot mimicked',
 };
