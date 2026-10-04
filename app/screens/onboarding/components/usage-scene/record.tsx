@@ -14,9 +14,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SECOND } from '@/config/units';
-import { popIn } from '@/screens/onboarding/components/usage-scene-animations';
 import { colors, font, radius } from '@/theme';
 
+import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 
 const EXAMPLE_WORDS = [

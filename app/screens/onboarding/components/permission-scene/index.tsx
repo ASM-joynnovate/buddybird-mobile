@@ -23,12 +23,12 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import { SECOND } from '@/config/units';
 import PermissionSceneAlert from '@/screens/onboarding/components/permission-scene/alert';
 import PermissionSceneWaves from '@/screens/onboarding/components/permission-scene/waves';
-import SceneStage, { getStageScale, type SceneArea } from '@/screens/onboarding/components/scene-stage';
 import SceneWindow from '@/screens/onboarding/components/scene-window';
 import { colors, font, radius } from '@/theme';
 import { sessionColors, sessionPhaseColors } from '@/theme/session-colors';
 
 import Mascot from '@/components/mascot';
+import SceneStage, { getStageScale, type SceneArea } from '@/components/scene-stage';
 import { Copy } from '@/components/ui/copy';
 
 const STAGE_WIDTH = 393;

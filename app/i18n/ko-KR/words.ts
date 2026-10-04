@@ -29,14 +29,28 @@ export const words: WordsMessages = {
 		saveError: '저장하지 못했어요. 녹음은 화면에 그대로 남아 있으니 다시 시도해 주세요.',
 	},
 	guide: {
-		manyRecordings: '녹음을 여러 개 등록할수록 판정이 정확해져요',
-		manyRecordingsScene: '여러 개의 녹음',
-		quiet: '조용한 곳에서 녹음해 주세요',
-		quietScene: '조용한 방',
-		distance: '입과 휴대폰 사이를 20cm에서 30cm쯤 띄워 주세요',
-		distanceScene: '입과 휴대폰 사이 거리',
-		speakClearly: '또렷하고 천천히 말해 주세요',
-		speakClearlyScene: '천천히 말하는 사람',
+		word: '안녕',
+		manyRecordings: {
+			title: '녹음을 <b>여러 개</b> 등록할수록 리포트가 정확해져요',
+			scene: '녹음이 하나씩 늘 때마다 차오르는 리포트 그래프',
+			recordingOrder: '{{order}}번째',
+			report: '리포트',
+		},
+		quiet: {
+			title: '<b>조용한 곳</b>에서 녹음해 주세요',
+			scene: '소음이 사라진 어두운 방에서 녹음 중인 휴대폰',
+			recording: '녹음 중',
+		},
+		distance: {
+			title: '입과 휴대폰 사이를 <b>20cm에서 30cm</b>쯤 띄워 주세요',
+			scene: '입과 휴대폰 사이를 20cm에서 30cm 띄운 사람',
+			length: '20~30cm',
+		},
+		highVoice: {
+			title: '<b>높은 목소리</b>로 또렷하게 말해 주세요',
+			scene: '높이 올라가는 목소리 막대와 안녕 말풍선',
+			speech: '안녕!',
+		},
 	},
 	recorder: {
 		done: '완료',

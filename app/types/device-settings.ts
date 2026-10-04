@@ -32,7 +32,6 @@ export const deviceSettingsSchema = z.object({
 		dayCount: z.number().nonnegative(),
 		thresholdIndex: z.number().nonnegative(),
 	}),
-	seenGuides: z.object({ recording: z.boolean() }),
 	onboardingCompleted: z.boolean(),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 });
@@ -42,5 +41,3 @@ export type LegacySettings = Partial<
 >;
 
 export type DeviceSettings = z.infer<typeof deviceSettingsSchema>;
-
-export type Guide = keyof DeviceSettings['seenGuides'];

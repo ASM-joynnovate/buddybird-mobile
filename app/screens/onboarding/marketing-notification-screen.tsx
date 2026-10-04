@@ -10,11 +10,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MarketingNotificationAnswer from '@/screens/onboarding/components/marketing-notification-answer';
 import MarketingNotificationAnswerSkeleton from '@/screens/onboarding/components/marketing-notification-answer-skeleton';
 import MarketingScene from '@/screens/onboarding/components/marketing-scene';
-import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import { trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { colors, contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
+import SceneSheet from '@/components/scene-sheet';
 import { Copy } from '@/components/ui/copy';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';

@@ -18,11 +18,11 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
-import { popIn } from '@/screens/onboarding/components/usage-scene-animations';
 import UsageSceneCage from '@/screens/onboarding/components/usage-scene/cage';
 import { colors, font, radius } from '@/theme';
 
 import Mascot from '@/components/mascot';
+import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 
 const FLIGHT_MS = 2.6 * SECOND;

@@ -18,10 +18,10 @@ import Animated, {
 import Svg, { Circle, G, Line, Polygon, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { HOUR, MINUTE, SECOND } from '@/config/units';
-import { popIn } from '@/screens/onboarding/components/usage-scene-animations';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
+import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 
 const PHONE_WIDTH = 300;

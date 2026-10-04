@@ -16,13 +16,13 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
-import { SCENE_FLOOR_HEIGHT } from '@/screens/onboarding/components/scene-stage';
-import { popIn } from '@/screens/onboarding/components/usage-scene-animations';
 import UsageSceneCage from '@/screens/onboarding/components/usage-scene/cage';
 import { font, radius } from '@/theme';
 import { sessionColors, sessionPhaseColors } from '@/theme/session-colors';
 
 import Mascot from '@/components/mascot';
+import { popIn } from '@/components/scene-animations';
+import { SCENE_FLOOR_HEIGHT } from '@/components/scene-stage';
 import { Copy } from '@/components/ui/copy';
 
 const ARC_PATH = 'M8 80A72 72 0 0 1 152 80';

@@ -27,14 +27,28 @@ export type WordsMessages = {
 		saveError: string;
 	};
 	guide: {
-		manyRecordings: string;
-		manyRecordingsScene: string;
-		quiet: string;
-		quietScene: string;
-		distance: string;
-		distanceScene: string;
-		speakClearly: string;
-		speakClearlyScene: string;
+		word: string;
+		manyRecordings: {
+			title: string;
+			scene: string;
+			recordingOrder: string;
+			report: string;
+		};
+		quiet: {
+			title: string;
+			scene: string;
+			recording: string;
+		};
+		distance: {
+			title: string;
+			scene: string;
+			length: string;
+		};
+		highVoice: {
+			title: string;
+			scene: string;
+			speech: string;
+		};
 	};
 	recorder: {
 		done: string;
