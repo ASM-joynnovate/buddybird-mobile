@@ -74,7 +74,7 @@ const NoticeList = () => {
 };
 
 const styles = StyleSheet.create({
-	list: { gap: 12, paddingBottom: 32 },
+	list: { flexGrow: 1, gap: 12, paddingBottom: 32 },
 	card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
 	textContainer: { flex: 1, minWidth: 0, gap: 4 },
 	title: { fontFamily: font.extraBold, fontSize: 16 },

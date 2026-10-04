@@ -41,7 +41,7 @@ export const report: ReportMessages = {
 	judging: 'Analyzing',
 	empty: 'No learning records in this period',
 	detail: {
-		judging: 'Checking which sounds your parrot mimicked. Pull down to refresh.',
+		judging: 'Checking which sounds your parrot mimicked.\nPull down to refresh.',
 		empty: "Your parrot didn't mimic any words in this session.",
 		playSound: 'Play sound detected at {{time}}',
 		soundExpired: 'This sound is past its storage period',

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 import { usePrefetchQuery, useSuspenseQuery } from '@tanstack/react-query';
 
@@ -50,10 +50,15 @@ const SessionMimicry = ({ sessionId }: Props) => {
 		<ScrollView
 			refreshControl=<RefreshControl refreshing={refetchingByUser} onRefresh={() => void handleRefresh()} />
 			showsVerticalScrollIndicator={false}
+			contentContainerStyle={styles.content}
 		>
 			<EmptyState message={t('report.detail.judging')} />
 		</ScrollView>
 	);
 };
+
+const styles = StyleSheet.create({
+	content: { flexGrow: 1 },
+});
 
 export default SessionMimicry;
