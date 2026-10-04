@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +37,7 @@ export const Sheet = ({
 	children,
 }: Props) => {
 	const insets = useSafeAreaInsets();
+	const { width } = useWindowDimensions();
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 	const presentedRef = useRef(false);
@@ -84,7 +85,7 @@ export const Sheet = ({
 			backdropComponent={dismissible ? SheetBackdrop : FixedSheetBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
-			style={styles.sheet}
+			style={{ marginHorizontal: Math.max(0, (width - contentMaxWidth) / 2) }}
 		>
 			{listLayout ? (
 				<View accessibilityViewIsModal style={styles.listContainer}>
@@ -105,7 +106,6 @@ export const Sheet = ({
 };
 
 const styles = StyleSheet.create({
-	sheet: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	background: {
 		backgroundColor: colors.background,
 		borderTopLeftRadius: radius.sheet,
