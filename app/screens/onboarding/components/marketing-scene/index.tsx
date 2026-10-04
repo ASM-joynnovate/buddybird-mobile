@@ -11,11 +11,11 @@ import Svg, { G, Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
 import MarketingSceneNote from '@/screens/onboarding/components/marketing-scene/note';
-import SceneStage, { getStageScale, type SceneArea } from '@/screens/onboarding/components/scene-stage';
 import SceneWindow from '@/screens/onboarding/components/scene-window';
 import { colors } from '@/theme';
 
 import Mascot from '@/components/mascot';
+import SceneStage, { getStageScale, type SceneArea } from '@/components/scene-stage';
 
 const STAGE_WIDTH = 393;
 const STAGE_HEIGHT = 350;

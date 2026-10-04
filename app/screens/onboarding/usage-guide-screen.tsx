@@ -21,13 +21,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import UsageScene, { type UsageStep } from '@/screens/onboarding/components/usage-scene';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { colors, contentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
 import Mascot from '@/components/mascot';
+import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
 import { PageDots } from '@/components/ui/page-dots';
 import { ScreenHeader } from '@/components/ui/screen-header';

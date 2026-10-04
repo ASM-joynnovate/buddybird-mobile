@@ -17,8 +17,6 @@ export const common: CommonMessages = {
 	},
 	skip: 'Skip',
 	next: 'Next',
-	start: 'Start',
-	dontShowAgain: "Don't show again",
 	stepProgress: 'Step {{current}} of {{total}}',
 	offline: "You're offline.\nWe'll reload once you're connected again.",
 	loadError: "We couldn't load this",

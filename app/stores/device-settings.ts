@@ -1,7 +1,6 @@
 import {
 	type DeviceSettings,
 	deviceSettingsSchema,
-	type Guide,
 	initialLegacyMigration,
 	type LegacyMigration,
 	type LegacySettings,
@@ -23,7 +22,6 @@ type DeviceSettingsActions = {
 	dismissUpdate: (version: string) => void;
 	countFeedbackDay: (date?: string) => void;
 	consumeFeedbackPrompt: () => void;
-	setGuideSeen: (guide: Guide, seen: boolean) => void;
 	setOnboardingCompleted: (onboardingCompleted: boolean) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
 	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
@@ -53,7 +51,6 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		analyticsConsent: 'unknown',
 		updatePrompt: { dismissedVersion: null },
 		feedbackPrompt: { formatVersion: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
-		seenGuides: { recording: false },
 		onboardingCompleted: false,
 		legacyMigration: initialLegacyMigration,
 	};
@@ -113,11 +110,6 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				}));
 			},
 
-			/** 안내 화면 확인 여부 저장 */
-			setGuideSeen: (guide, seen) => {
-				set((state) => ({ ...state, seenGuides: { ...state.seenGuides, [guide]: seen } }));
-			},
-
 			/** 온보딩 완료 여부 저장 */
 			setOnboardingCompleted: (onboardingCompleted) => {
 				set((state) => ({ ...state, onboardingCompleted }));
@@ -147,7 +139,6 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				analyticsConsent,
 				updatePrompt,
 				feedbackPrompt,
-				seenGuides,
 				onboardingCompleted,
 				legacyMigration,
 			}) => ({
@@ -155,7 +146,6 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				analyticsConsent,
 				updatePrompt,
 				feedbackPrompt,
-				seenGuides,
 				onboardingCompleted,
 				legacyMigration,
 			}),

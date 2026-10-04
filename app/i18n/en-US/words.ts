@@ -29,14 +29,28 @@ export const words: WordsMessages = {
 		saveError: "We couldn't save. Your recordings are still here, so please try again.",
 	},
 	guide: {
-		manyRecordings: 'More recordings make matching more accurate',
-		manyRecordingsScene: 'several recordings',
-		quiet: 'Record in a quiet place',
-		quietScene: 'a quiet room',
-		distance: 'Hold the phone 20 to 30 cm from your mouth',
-		distanceScene: 'the distance between mouth and phone',
-		speakClearly: 'Speak clearly and slowly',
-		speakClearlyScene: 'a person speaking slowly',
+		word: 'Hello',
+		manyRecordings: {
+			title: 'The <b>more recordings</b> you add, the more accurate your report',
+			scene: 'a report chart that fills up with each new recording',
+			recordingOrder: '#{{order}}',
+			report: 'Report',
+		},
+		quiet: {
+			title: 'Record in a <b>quiet place</b>',
+			scene: 'a phone recording in a dark room with the noise gone',
+			recording: 'Recording',
+		},
+		distance: {
+			title: 'Hold the phone <b>20 to 30 cm</b> from your mouth',
+			scene: 'a person holding a phone 20 to 30 cm from their mouth',
+			length: '20–30 cm',
+		},
+		highVoice: {
+			title: 'Speak clearly in a <b>high voice</b>',
+			scene: 'a voice level rising high and a Hello speech bubble',
+			speech: 'Hello!',
+		},
 	},
 	recorder: {
 		done: 'Done',

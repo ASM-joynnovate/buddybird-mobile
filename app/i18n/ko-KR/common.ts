@@ -17,8 +17,6 @@ export const common: CommonMessages = {
 	},
 	skip: '건너뛰기',
 	next: '다음',
-	start: '시작',
-	dontShowAgain: '다시 보지 않기',
 	stepProgress: '{{total}}단계 중 {{current}}단계',
 	offline: '인터넷 연결이 끊겼어요.\n다시 연결되면 자동으로 불러와요.',
 	loadError: '정보를 불러오지 못했어요',

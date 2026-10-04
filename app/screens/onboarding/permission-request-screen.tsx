@@ -17,13 +17,13 @@ import { BellIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PermissionScene from '@/screens/onboarding/components/permission-scene';
-import SceneSheet from '@/screens/onboarding/components/scene-sheet';
 import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { colors, contentMaxWidth, font } from '@/theme';
 
+import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ScreenHeader } from '@/components/ui/screen-header';

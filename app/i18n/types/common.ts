@@ -15,8 +15,6 @@ export type CommonMessages = {
 	};
 	skip: string;
 	next: string;
-	start: string;
-	dontShowAgain: string;
 	stepProgress: string;
 	offline: string;
 	loadError: string;

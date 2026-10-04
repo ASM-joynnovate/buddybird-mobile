@@ -7,29 +7,29 @@ import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
 import { useReducedMotion } from 'react-native-reanimated';
 
-import UsageSceneKeepOn from '@/screens/onboarding/components/usage-scene/keep-on';
-import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
-import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
-import UsageSceneReport from '@/screens/onboarding/components/usage-scene/report';
+import RecordingSceneDistance from '@/screens/words/components/recording-scene/distance';
+import RecordingSceneHighVoice from '@/screens/words/components/recording-scene/high-voice';
+import RecordingSceneManyRecordings from '@/screens/words/components/recording-scene/many-recordings';
+import RecordingSceneQuiet from '@/screens/words/components/recording-scene/quiet';
 import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
 import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/scene-stage';
 
-const STAGE_WIDTH = 393;
-const STAGE_HEIGHT = 360;
+const STAGE_WIDTH = 375;
+const STAGE_HEIGHT = 400;
 
-export type UsageStep = 'record' | 'place' | 'keepOn' | 'report';
+export type RecordingGuideStep = 'manyRecordings' | 'quiet' | 'distance' | 'highVoice';
 
 interface Props {
-	step: UsageStep;
+	step: RecordingGuideStep;
 }
 
 /**
- * 사용 안내 단계별 장면 컴포넌트
+ * 녹음 가이드 단계별 장면 컴포넌트
  * @param step 현재 안내 단계
  */
-const UsageScene = ({ step }: Props) => {
+const RecordingScene = ({ step }: Props) => {
 	const { t } = useTranslation();
 
 	const screenFocused = useIsFocused();
@@ -51,20 +51,20 @@ const UsageScene = ({ step }: Props) => {
 		<View
 			accessible
 			accessibilityRole="image"
-			accessibilityLabel={t('common.illustration', { scene: t(`onboarding.usage.${step}.scene`) })}
+			accessibilityLabel={t('common.illustration', { scene: t(`words.guide.${step}.scene`) })}
 			onLayout={handleLayout}
 			style={styles.container}
 		>
 			{/*바닥*/}
-			{step === 'place' && <View style={[styles.floor, styles.placeFloor]} />}
-			{step === 'keepOn' && <View style={[styles.floor, styles.keepOnFloor]} />}
+			{step === 'quiet' && <View style={[styles.floor, styles.quietFloor]} />}
+			{step === 'distance' && <View style={[styles.floor, styles.distanceFloor]} />}
 
 			{scale > 0 && (
 				<View key={step} style={[styles.stage, { width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }]}>
-					{step === 'record' && <UsageSceneRecord scale={scale} animated={animated} />}
-					{step === 'place' && <UsageScenePlace scale={scale} animated={animated} />}
-					{step === 'keepOn' && <UsageSceneKeepOn scale={scale} animated={animated} />}
-					{step === 'report' && <UsageSceneReport scale={scale} animated={animated} />}
+					{step === 'manyRecordings' && <RecordingSceneManyRecordings scale={scale} />}
+					{step === 'quiet' && <RecordingSceneQuiet scale={scale} animated={animated} />}
+					{step === 'distance' && <RecordingSceneDistance scale={scale} />}
+					{step === 'highVoice' && <RecordingSceneHighVoice scale={scale} animated={animated} />}
 				</View>
 			)}
 		</View>
@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	floor: { position: 'absolute', left: 0, right: 0, bottom: 0, height: SCENE_FLOOR_HEIGHT },
-	placeFloor: { backgroundColor: colors.orangeDark },
-	keepOnFloor: { borderTopWidth: 2, borderTopColor: sessionColors.track },
+	quietFloor: { borderTopWidth: 2, borderTopColor: sessionColors.track },
+	distanceFloor: { backgroundColor: colors.orangeDark },
 	stage: { position: 'relative' },
 });
 
-export default UsageScene;
+export default RecordingScene;
