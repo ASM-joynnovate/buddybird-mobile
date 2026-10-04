@@ -6,6 +6,12 @@ export type ParrotMessages = {
 	birthdateUnknown: string;
 	choose: string;
 	speciesQuestion: string;
+	speciesSearchHint: string;
+	speciesSearchClear: string;
+	speciesAll: string;
+	speciesNotFound: string;
+	speciesNotFoundInGroup: string;
+	searchAllSpecies: string;
 	birthdateQuestion: string;
 	nameRequired: string;
 	speciesRequired: string;
