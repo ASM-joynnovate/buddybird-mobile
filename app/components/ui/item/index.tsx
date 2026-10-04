@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ChevronRightIcon } from 'lucide-react-native';
 
-import { colors, font } from '@/theme';
+import { colors } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
@@ -35,13 +35,12 @@ export const Item = ({ value, showDot, onPress, disabled, trailing, ...props }: 
 			<ItemLabel {...props} />
 
 			{showDot && <View style={styles.dot} />}
-			{!!value && <Copy style={styles.value}>{value}</Copy>}
+			{!!value && <Copy style={itemStyles.value}>{value}</Copy>}
 			{trailing ?? <ChevronRightIcon size={18} color={colors.subtle} />}
 		</PressableSurface>
 	);
 };
 
 const styles = StyleSheet.create({
-	value: { fontFamily: font.bold, fontSize: 14, color: colors.muted, flexShrink: 1 },
 	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error },
 });

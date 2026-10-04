@@ -82,6 +82,7 @@ export const Sheet = ({
 			enableDynamicSizing={!listLayout}
 			enablePanDownToClose={dismissible}
 			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
+			topInset={insets.top}
 			backdropComponent={dismissible ? SheetBackdrop : FixedSheetBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}

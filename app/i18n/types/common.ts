@@ -62,6 +62,17 @@ export type CommonMessages = {
 		hourPicker: string;
 		minutePicker: string;
 	};
+	duration: {
+		days: string;
+		hours: string;
+		minutes: string;
+		seconds: string;
+	};
+	dateFormat: {
+		monthDay: string;
+		monthDayWeekday: string;
+		yearMonth: string;
+	};
 	done: string;
 	add: string;
 	consent: {
