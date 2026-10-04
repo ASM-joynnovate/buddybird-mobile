@@ -172,6 +172,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 				durationMs: Math.min(RECORDING_MAX_SECONDS * SECOND, durationMs),
 				waveformLevels: summarizeLevels(recordedLevelsRef.current),
 				replacedRecordingId: null,
+				recordingId: null,
 			};
 
 			if (target.recording) {
