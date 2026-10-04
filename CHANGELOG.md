@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.3.1...v1.4.0) (2026-10-04)
+
+
+### Features
+
+* **app:** add a today button to the report screen [BB-589] ([#180](https://github.com/ASM-joynnovate/buddybird-mobile/issues/180)) ([8dd1017](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8dd101710b8feee40046b45e67b650bc855ed1a8))
+* **app:** redesign the word recording guide [BB-101] ([#182](https://github.com/ASM-joynnovate/buddybird-mobile/issues/182)) ([ef9c9a4](https://github.com/ASM-joynnovate/buddybird-mobile/commit/ef9c9a4a22bb30bf847ba6363a1014cd868e8796))
+* **app:** show recording lengths in hundredths of a second [BB-441] ([#178](https://github.com/ASM-joynnovate/buddybird-mobile/issues/178)) ([84faceb](https://github.com/ASM-joynnovate/buddybird-mobile/commit/84faceb95a845e8a8db9a58b4ba8617fd2696a12))
+* **app:** sort and search parrot species [BB-99] ([#181](https://github.com/ASM-joynnovate/buddybird-mobile/issues/181)) ([5d3c850](https://github.com/ASM-joynnovate/buddybird-mobile/commit/5d3c85044eb2c6292f6d39eb3139e67015972e2b))
+
+
+### Bug Fixes
+
+* **app:** center the bottom sheet on tablets [BB-592] ([#175](https://github.com/ASM-joynnovate/buddybird-mobile/issues/175)) ([d3d6961](https://github.com/ASM-joynnovate/buddybird-mobile/commit/d3d6961fed915ebbdbaeebdb259fc8b90d2bbca4))
+* **app:** refresh the battery level on the session screen [BB-588] ([#179](https://github.com/ASM-joynnovate/buddybird-mobile/issues/179)) ([be295e9](https://github.com/ASM-joynnovate/buddybird-mobile/commit/be295e9ad39a127ad284e420e922eb160d7035c5))
+* **app:** remount the app when the signed-in account changes ([#176](https://github.com/ASM-joynnovate/buddybird-mobile/issues/176)) ([380aabb](https://github.com/ASM-joynnovate/buddybird-mobile/commit/380aabb11dd98af35bdd6079b5c8a16858900554))
+* **app:** show the offline banner above the header [BB-590] ([#174](https://github.com/ASM-joynnovate/buddybird-mobile/issues/174)) ([10e44c6](https://github.com/ASM-joynnovate/buddybird-mobile/commit/10e44c621d8d2d1ec505f5efb4b9d98843df91e3))
+
 ## [1.3.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.3.0...v1.3.1) (2026-10-04)
 
 
