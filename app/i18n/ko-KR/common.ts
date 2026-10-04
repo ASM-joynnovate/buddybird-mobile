@@ -66,6 +66,17 @@ export const common: CommonMessages = {
 		hourPicker: '{{label}}의 시 선택',
 		minutePicker: '{{label}}의 분 선택',
 	},
+	duration: {
+		days: '{{value}}일',
+		hours: '{{value}}시간',
+		minutes: '{{value}}분',
+		seconds: '{{value}}초',
+	},
+	dateFormat: {
+		monthDay: 'MMMM D일',
+		monthDayWeekday: 'MMMM D일 (ddd)',
+		yearMonth: 'YYYY년 MMMM',
+	},
 	done: '확인',
 	add: '추가',
 	consent: {

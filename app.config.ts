@@ -9,16 +9,30 @@ const { version } = JSON.parse(readFileSync(path.join(__dirname, 'package.json')
 const production = process.env.APP_VARIANT === 'production';
 const variant = production ? 'prod' : 'dev';
 const id = production ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
+const appNameSuffix = production ? '' : ' (DEV)';
+
+/** 언어별 네이티브 문구를 읽고 앱 이름 뒤에 빌드 구분을 붙이는 함수 */
+const nativeLocale = (file: string) => {
+	const { ios, android } = JSON.parse(readFileSync(path.join(__dirname, file), 'utf8')) as {
+		ios: Record<string, string>;
+		android: Record<string, string>;
+	};
+
+	return {
+		ios: { ...ios, CFBundleDisplayName: `${ios.CFBundleDisplayName}${appNameSuffix}` },
+		android: { ...android, app_name: `${android.app_name}${appNameSuffix}` },
+	};
+};
 
 const config: ExpoConfig = {
-	name: production ? '버디버드' : '버디버드 (DEV)',
+	name: `BuddyBird${appNameSuffix}`,
 	slug: 'buddybird',
 	owner: 'joynnovate0410',
 	version,
 	orientation: 'default',
 	scheme: production ? 'buddybird' : 'buddybird-dev',
 	userInterfaceStyle: 'automatic',
-	locales: { ko: './app/i18n/native/ko.json', en: './app/i18n/native/en.json' },
+	locales: { ko: nativeLocale('app/i18n/native/ko.json'), en: nativeLocale('app/i18n/native/en.json') },
 	icon: './assets/images/icon.png',
 	ios: {
 		bundleIdentifier: id,
@@ -30,11 +44,13 @@ const config: ExpoConfig = {
 		entitlements: { 'aps-environment': production ? 'production' : 'development' },
 		infoPlist: {
 			CFBundleName: 'BuddyBird',
+			CFBundleAllowMixedLocalizations: true,
 			ITSAppUsesNonExemptEncryption: false,
 			UIBackgroundModes: ['audio', 'remote-notification'],
-			NSMicrophoneUsageDescription: '단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다.',
-			NSPhotoLibraryUsageDescription: '앵무새 프로필에 사용할 사진을 선택합니다.',
-			NSCameraUsageDescription: '앵무새와 내 프로필 사진을 찍을 때 카메라를 사용합니다.',
+			NSMicrophoneUsageDescription:
+				'Microphone access lets you record words for your parrot and capture sounds during training.',
+			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
+			NSCameraUsageDescription: 'Use the camera to take a profile photo of your parrot or yourself.',
 		},
 	},
 	android: {
@@ -101,9 +117,21 @@ const config: ExpoConfig = {
 		'expo-apple-authentication',
 		'expo-secure-store',
 		'expo-image-picker',
-		['expo-audio', { microphonePermission: '단어를 녹음하고 학습 중 앵무새의 소리를 저장합니다.' }],
+		[
+			'expo-audio',
+			{
+				microphonePermission:
+					'Microphone access lets you record words for your parrot and capture sounds during training.',
+			},
+		],
 		['react-native-audio-api', { androidForegroundService: false }],
-		['expo-tracking-transparency', { userTrackingPermission: '앱 이용 정보를 분석하여 학습 경험을 개선합니다.' }],
+		[
+			'expo-tracking-transparency',
+			{
+				userTrackingPermission:
+					'App usage statistics help us improve the learning experience. Training remains available if you decline tracking.',
+			},
+		],
 		'expo-asset',
 		'expo-web-browser',
 	],
