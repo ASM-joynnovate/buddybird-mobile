@@ -111,7 +111,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 	},
 };
 
-const ONBOARDING_ORDER = ['Consent', 'ParrotEditor', 'UsageGuide'] as const;
+const ONBOARDING_ORDER = ['ParrotEditor', 'UsageGuide'] as const;
 
 /** 현재 온보딩 화면까지 쌓은 navigation 상태 생성 함수 */
 const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string) => {
@@ -138,6 +138,10 @@ const initialStateOf = (route: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: s
 
 	if (route === 'Login') {
 		return { index: 0, routes: [{ name: 'Login', params: { source: 'onboarding' } }] };
+	}
+
+	if (route === 'Consent') {
+		return { index: 0, routes: [{ name: 'Consent' }] };
 	}
 
 	return entryState(route, parrotId);

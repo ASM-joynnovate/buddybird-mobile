@@ -4,16 +4,12 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Consent } from '@/types/apis/consents';
 
-import type { RootStackParamList } from '@/types/navigation';
-
 import { useGetConsentList, useSaveConsent } from '@/hooks/apis/consents';
-import useEntryRoute from '@/hooks/use-entry-route';
 import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useConsentStore } from '@/stores/consent';
@@ -32,8 +28,6 @@ import { Card } from '@/components/ui/surface/card';
 const ConsentScreen = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
 	const [checkedById, setCheckedById] = useState<Record<string, boolean>>({});
 
 	const { data: consentListData } = useGetConsentList();
@@ -42,8 +36,6 @@ const ConsentScreen = () => {
 
 	const agreedIds = useConsentStore((state) => state.agreedIds);
 	const clearAgreedIds = useConsentStore((state) => state.clearAgreedIds);
-
-	const { entryRoute, parrotId } = useEntryRoute();
 
 	const { buddyRef, buddyStyle, bubbleStyle } = useStartupLanding();
 
@@ -105,13 +97,6 @@ const ConsentScreen = () => {
 		}
 
 		trackOnboardingStepCompleted('consent');
-
-		if (entryRoute !== 'Consent') {
-			navigation.navigate('ParrotEditor', {
-				parrotId: entryRoute === 'UsageGuide' ? parrotId : undefined,
-				source: 'onboarding',
-			});
-		}
 	};
 
 	return (
