@@ -1,4 +1,5 @@
 import AppNavigator from '@/navigators/app-navigator';
+import LoginNavigator from '@/navigators/login-navigator';
 import AnalyticsProvider from '@/providers/analytics';
 import DeviceProvider from '@/providers/device';
 import StartupDialogProvider from '@/providers/startup-dialog';
@@ -16,6 +17,10 @@ const AuthStatusContent = () => {
 	const authUserId = useAccountStore((state) => state.authUserId);
 
 	const registered = authUserId !== null;
+
+	if (status === 'signedOut' || (status === 'completing' && !registered)) {
+		return <LoginNavigator />;
+	}
 
 	if (status !== 'signedIn' && !(status === 'completing' && registered)) {
 		return status === 'error' ? <StartupScreen onRetry={retryAuth} /> : <StartupScreen />;

@@ -17,7 +17,7 @@ import { getSupabase } from '@/lib/supabase';
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
 
 import { loginCredential, takeAppleLoginCredential } from '@/services/auth/credential';
-import { type AuthIdentity, getAuthTransition, signOutLocally, signUpAnonymously } from '@/services/auth/session';
+import { type AuthIdentity, getAuthTransition, signOutLocally } from '@/services/auth/session';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
@@ -65,8 +65,8 @@ const AuthProvider = ({ children }: Props) => {
 
 		setStatus('loading');
 
-		/** 저장된 로그인 정보를 지우고 익명으로 다시 가입하는 함수 */
-		const restartAsAnonymous = async () => {
+		/** 저장된 로그인 정보를 지우고 로그인 화면으로 돌아가는 함수 */
+		const clearSignedOutState = () => {
 			takeAppleLoginCredential();
 			useAccountStore.getState().clearRegistration();
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
@@ -76,15 +76,7 @@ const AuthProvider = ({ children }: Props) => {
 			useSessionStore.getState().resetSetup();
 			useReportStore.getState().resetPeriod();
 
-			setStatus('signingUp');
-
-			const error = await signUpAnonymously();
-
-			if (error && active) {
-				reportError(error, 'anonymous_sign_up');
-
-				setStatus('error');
-			}
+			setStatus('signedOut');
 		};
 
 		/** 서버 로그인 함수 */
@@ -177,7 +169,7 @@ const AuthProvider = ({ children }: Props) => {
 			);
 
 			if (transition === 'signedOut' || nextIdentity === null) {
-				await restartAsAnonymous();
+				clearSignedOutState();
 
 				return;
 			}

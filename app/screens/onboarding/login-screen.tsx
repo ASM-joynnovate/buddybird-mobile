@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FloatingWords from '@/screens/onboarding/components/floating-words';
 import LoginSheet from '@/screens/onboarding/components/login-sheet';
 import { availableLoginProviders } from '@/services/auth/providers';
+import { signUpAnonymously } from '@/services/auth/session';
 import { linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
@@ -58,6 +59,7 @@ const LoginScreen = () => {
 
 	const [providers, setProviders] = useState<LoginProvider[] | null>(null);
 	const [loginAttempt, setLoginAttempt] = useState<LoginAttempt | null>(null);
+	const [existingAccountProvider, setExistingAccountProvider] = useState<LoginProvider | null>(null);
 	const [wordSpace, setWordSpace] = useState(0);
 	const [appActive, setAppActive] = useState(AppState.currentState === 'active');
 
@@ -66,6 +68,7 @@ const LoginScreen = () => {
 	const { mutateAsync } = useLogout();
 
 	const authStatus = useAuthStore((state) => state.status);
+	const setAuthStatus = useAuthStore((state) => state.setStatus);
 
 	const splashFinished = useAppStore((state) => state.splashFinished);
 
@@ -127,9 +130,16 @@ const LoginScreen = () => {
 		setLoginAttempt({ provider, pending: true });
 
 		try {
-			const linkResult = await linkAccount(provider);
+			if (fromOnboarding) {
+				if (await signIn(provider)) {
+					trackOnboardingStepCompleted('login', { login_method: provider });
+				}
 
-			if (linkResult === 'identityExists') {
+				return;
+			}
+
+			// 이미 가입한 계정 안내를 본 뒤 같은 버튼을 다시 누르면 그 계정으로 로그인
+			if (existingAccountProvider === provider) {
 				try {
 					await mutateAsync();
 				} catch {
@@ -139,12 +149,17 @@ const LoginScreen = () => {
 				}
 
 				await signIn(provider);
-			} else if (linkResult === 'linked' && !fromOnboarding) {
-				navigation.goBack();
+
+				return;
 			}
 
-			if (fromOnboarding && linkResult !== 'cancelled') {
-				trackOnboardingStepCompleted('login', { login_method: provider });
+			const linkResult = await linkAccount(provider);
+
+			// 첫 번째 브라우저가 닫히는 중에는 새 브라우저를 열 수 없으므로 안내만 표시
+			if (linkResult === 'identityExists') {
+				setExistingAccountProvider(provider);
+			} else if (linkResult === 'linked') {
+				navigation.goBack();
 			}
 		} catch (e) {
 			if (!isAppleLoginCanceled(provider, e)) {
@@ -159,10 +174,30 @@ const LoginScreen = () => {
 		}
 	};
 
-	const handleSkip = () => {
+	const handleSkip = async () => {
+		if (signingInRef.current) {
+			return;
+		}
+
 		trackOnboardingStepCompleted('login', { login_method: 'skip' });
 
 		setLoginScreenSeen(true);
+
+		if (authStatus !== 'signedOut') {
+			return;
+		}
+
+		signingInRef.current = true;
+
+		const error = await signUpAnonymously();
+
+		signingInRef.current = false;
+
+		if (error) {
+			reportError(error, 'anonymous_sign_up');
+
+			setAuthStatus('error');
+		}
 	};
 
 	/** 소개 문구 아래 빈 높이 저장 */
@@ -188,7 +223,7 @@ const LoginScreen = () => {
 											label={t('common.skip')}
 											variant="onBrand"
 											disabled={disabled}
-											onPress={handleSkip}
+											onPress={() => void handleSkip()}
 										/>
 									) : undefined
 								}
@@ -226,6 +261,7 @@ const LoginScreen = () => {
 						loadingProvider={loadingProvider}
 						disabled={disabled}
 						progressLabel={progressLabel}
+						existingAccountProvider={existingAccountProvider}
 						introAnimated={fromOnboarding}
 						onSignIn={(provider) => void handleSignIn(provider)}
 					/>

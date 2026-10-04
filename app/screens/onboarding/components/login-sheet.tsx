@@ -30,6 +30,7 @@ interface Props {
 	loadingProvider?: LoginProvider;
 	disabled: boolean;
 	progressLabel: string | null;
+	existingAccountProvider: LoginProvider | null;
 	introAnimated: boolean;
 	onSignIn: (provider: LoginProvider) => void;
 }
@@ -40,10 +41,19 @@ interface Props {
  * @param loadingProvider 로그인 중인 방식
  * @param disabled 버튼 비활성화 여부
  * @param progressLabel 로그인 진행 문구
+ * @param existingAccountProvider 이미 가입한 계정이라 연결하지 못한 로그인 방식
  * @param introAnimated 첫 등장 애니메이션 실행 여부
  * @param onSignIn 로그인 버튼을 누를 때 실행할 함수
  */
-const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, introAnimated, onSignIn }: Props) => {
+const LoginSheet = ({
+	providers,
+	loadingProvider,
+	disabled,
+	progressLabel,
+	existingAccountProvider,
+	introAnimated,
+	onSignIn,
+}: Props) => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -69,10 +79,19 @@ const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, intro
 					<Animated.View
 						entering={introAnimated ? FadeInUp.delay(GREETING_DELAY_MS) : undefined}
 						style={styles.bubbleContainer}
+						accessibilityLiveRegion="polite"
 					>
 						<SpeechBubble pointerSide="left">
-							<Copy style={styles.greetingTitle}>{t('onboarding.login.greeting.title')}</Copy>
-							<Copy style={styles.greetingBody}>{t('onboarding.login.greeting.body')}</Copy>
+							<Copy style={styles.greetingTitle}>
+								{existingAccountProvider
+									? t(`auth.existingAccount.title.${existingAccountProvider}`)
+									: t('onboarding.login.greeting.title')}
+							</Copy>
+							<Copy style={styles.greetingBody}>
+								{existingAccountProvider
+									? t('auth.existingAccount.body')
+									: t('onboarding.login.greeting.body')}
+							</Copy>
 						</SpeechBubble>
 					</Animated.View>
 				</View>

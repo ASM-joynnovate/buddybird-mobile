@@ -12,6 +12,14 @@ export const auth: AuthMessages = {
 		apple: 'Logging in with Apple',
 	},
 	completing: 'Finishing your BuddyBird login',
+	existingAccount: {
+		title: {
+			google: 'This Google account is already registered.',
+			kakao: 'This Kakao account is already registered.',
+			apple: 'This Apple account is already registered.',
+		},
+		body: "Tap again to log in to that account. What you've recorded so far won't be moved.",
+	},
 	signInError: "Couldn't log in. Check your connection and tap a login button to try again.",
 	lastLogin: 'Last used',
 	lastLoginHint: 'You last logged in this way',
