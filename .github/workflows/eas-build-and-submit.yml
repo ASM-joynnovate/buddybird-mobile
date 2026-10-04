@@ -1,4 +1,4 @@
-name: EAS release
+name: EAS build and submit
 on:
   workflow_call:
     inputs:

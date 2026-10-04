@@ -30,10 +30,10 @@ jobs:
           release-type: node
           token: ${{ steps.app-token.outputs.token }}
 
-  pipeline:
+  staging-release:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
-    uses: ./.github/workflows/release-pipeline.yml
+    uses: ./.github/workflows/staging-release.yml
     with:
       tag: ${{ needs.release-please.outputs.tag_name }}
     secrets: inherit # zizmor: ignore[secrets-inherit]

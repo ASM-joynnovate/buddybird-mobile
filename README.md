@@ -25,8 +25,8 @@ Use the existing dev/prod Firebase configuration and signing identity described 
 
 ## Release
 main에 머지된 conventional commit을 읽어 release-please가 `chore(main): release x.y.z` PR을 연다.
-그 PR을 머지하면 태그와 GitHub Release가 생기고 Mobile release 워크플로우가 시작된다.
+그 PR을 머지하면 태그와 GitHub Release가 생기고 Staging release 워크플로우가 시작된다.
 staging 빌드는 TestFlight와 Play 내부 테스트에 자동 제출되고, Android Maestro E2E가 병렬로 실행된다.
-Actions의 Approve production release 잡을 승인하면 production 빌드가 App Store Connect와 Play 콘솔 draft에 제출된다.
+Production release 워크플로우를 Run workflow로 실행하고 태그를 입력한 뒤 Wait for production approval 잡을 승인하면 production 빌드가 App Store Connect와 Play 콘솔 draft에 제출된다.
 심사 제출과 출시 버튼은 각 콘솔에서 직접 누른다.
-같은 태그를 다시 빌드하려면 Mobile release 워크플로우를 Run workflow로 실행하고 태그를 입력한다.
+같은 태그로 staging을 다시 빌드하려면 Staging release 워크플로우를 Run workflow로 실행하고 태그를 입력한다.
