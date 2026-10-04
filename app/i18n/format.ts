@@ -1,30 +1,26 @@
 import type { Locale } from '@/types/locale';
 import { CLOCK_FORMAT } from '@/types/sleep-settings';
 
+import i18next from '@/i18n';
 import { durationText } from '@/i18n/duration';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
 type DateInput = string | number | Dayjs;
 
-const dateFormats: Record<Locale, { monthDay: string; monthDayWeekday: string; yearMonth: string }> = {
-	'ko-KR': { monthDay: 'MMMM D일', monthDayWeekday: 'MMMM D일 (ddd)', yearMonth: 'YYYY년 MMMM' },
-	'en-US': { monthDay: 'MMMM D', monthDayWeekday: 'ddd, MMMM D', yearMonth: 'MMMM YYYY' },
-};
-
 /** 날짜를 '9월 29일' 형식으로 변환하는 함수 */
 export const formatMonthDay = (value: DateInput, locale: Locale) => {
-	return dayjs(value).format(dateFormats[locale].monthDay);
+	return dayjs(value).format(i18next.t('common.dateFormat.monthDay', { lng: locale }));
 };
 
 /** 날짜를 '9월 29일 (화)' 형식으로 변환하는 함수 */
 export const formatMonthDayWeekday = (value: DateInput, locale: Locale) => {
-	return dayjs(value).format(dateFormats[locale].monthDayWeekday);
+	return dayjs(value).format(i18next.t('common.dateFormat.monthDayWeekday', { lng: locale }));
 };
 
 /** 날짜를 '2026년 9월' 형식으로 변환하는 함수 */
 export const formatYearMonth = (value: DateInput, locale: Locale) => {
-	return dayjs(value).format(dateFormats[locale].yearMonth);
+	return dayjs(value).format(i18next.t('common.dateFormat.yearMonth', { lng: locale }));
 };
 
 /** 날짜를 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
@@ -58,7 +54,7 @@ export const formatDurationWithDays = (ms: number, locale: Locale) => {
 		return formatDuration(ms, locale);
 	}
 
-	const dayText = `${days}${locale === 'ko-KR' ? '일' : 'd'}`;
+	const dayText = i18next.t('common.duration.days', { value: days, lng: locale });
 
 	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`;
 };
