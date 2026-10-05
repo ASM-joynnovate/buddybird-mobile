@@ -42,12 +42,11 @@ export const words: WordsMessages = {
 			recording: '녹음 중',
 		},
 		distance: {
-			title: '입과 휴대폰 사이를 <b>20cm에서 30cm</b>쯤 띄워 주세요',
-			scene: '입과 휴대폰 사이를 20cm에서 30cm 띄운 사람',
-			length: '20~30cm',
+			title: '휴대폰 <b>아래쪽 끝</b>을 입 쪽으로 향하게 하고, 통화할 때처럼 가까이 들어 주세요',
+			scene: '아래쪽 마이크를 입 쪽으로 향하게 든 휴대폰에 목소리가 파형으로 기록되는 장면',
 		},
 		highVoice: {
-			title: '<b>높은 목소리</b>로 또렷하게 말해 주세요',
+			title: '앵무새가 따라 하기 쉽게 <b>높은 음역대</b>로 또렷하게 발음해 주세요',
 			scene: '높이 올라가는 목소리 막대와 안녕 말풍선',
 			speech: '안녕!',
 		},

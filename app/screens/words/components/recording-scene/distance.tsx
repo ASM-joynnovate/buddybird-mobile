@@ -1,15 +1,27 @@
+import { useEffect } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
-import { useTranslation } from 'react-i18next';
-
 import { MicIcon } from 'lucide-react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
+import Animated, {
+	cancelAnimation,
+	Easing,
+	Extrapolation,
+	interpolate,
+	Keyframe,
+	type SharedValue,
+	useAnimatedStyle,
+	useSharedValue,
+	withDelay,
+	withRepeat,
+	withTiming,
+} from 'react-native-reanimated';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 
-import { colors, font, radius } from '@/theme';
+import { SECOND } from '@/config/units';
+import { colors, radius } from '@/theme';
 
 import { popIn } from '@/components/scene-animations';
-import { Copy } from '@/components/ui/copy';
 
 const PERSON_WIDTH = 150;
 const PERSON_HEIGHT = 200;
@@ -21,44 +33,179 @@ const PERSON_COLORS = {
 	blush: '#FFAE95',
 	mouth: '#6b2f2a',
 };
-const ARROW_WIDTH = 80;
-const ARROW_HEIGHT = 20;
-const PHONE_SLIDE_DELAY_MS = 250;
-const PHONE_SLIDE_MS = 800;
-const ARROW_GROW_DELAY_MS = 900;
-const ARROW_GROW_MS = 500;
-const LENGTH_APPEAR_ORDER = 16;
+const PHONE_TILT = '40deg';
+const MIC_TILT = '-40deg';
+const PHONE_BRING_DELAY_MS = 250;
+const PHONE_BRING_MS = 900;
+const SOUND_WAVE_WIDTH = 64;
+const SOUND_WAVE_HEIGHT = 60;
+const SOUND_WAVE_COUNT = 3;
+const WAVEFORM_LEVELS = [0.35, 0.6, 0.9, 0.55, 1, 0.7, 0.45, 0.85, 0.6, 0.95, 0.5, 0.3];
+const RECORDING_CYCLE_DELAY_MS = 1.2 * SECOND;
+const RECORDING_CYCLE_MS = 2.4 * SECOND;
+const BLINK_MS = 0.6 * SECOND;
 
-/** 휴대폰이 입에서 멀어지는 애니메이션 */
-const slideAway = () => {
+/** 휴대폰이 옆에서 다가와 아래쪽 끝을 입 쪽으로 기울이는 애니메이션 */
+const bringToMouth = () => {
 	return new Keyframe({
-		0: { transform: [{ translateX: -80 }, { rotate: '-4deg' }] },
-		100: { transform: [{ translateX: 0 }, { rotate: '-4deg' }], easing: Easing.out(Easing.back(1.3)) },
+		0: { transform: [{ translateX: 70 }, { translateY: 20 }, { rotate: '-4deg' }] },
+		100: {
+			transform: [{ translateX: 0 }, { translateY: 0 }, { rotate: PHONE_TILT }],
+			easing: Easing.out(Easing.back(1.25)),
+		},
 	})
-		.duration(PHONE_SLIDE_MS)
-		.delay(PHONE_SLIDE_DELAY_MS);
+		.duration(PHONE_BRING_MS)
+		.delay(PHONE_BRING_DELAY_MS);
 };
 
-/** 화살표가 왼쪽부터 늘어나는 애니메이션 */
-const growRight = () => {
-	return new Keyframe({
-		0: { transform: [{ scaleX: 0 }] },
-		100: { transform: [{ scaleX: 1 }], easing: Easing.out(Easing.cubic) },
-	})
-		.duration(ARROW_GROW_MS)
-		.delay(ARROW_GROW_DELAY_MS);
+interface SoundWaveProps {
+	index: number;
+	scale: number;
+	animated: boolean;
+	cycleProgress: SharedValue<number>;
+}
+
+/**
+ * 입에서 나와 마이크 쪽으로 퍼지는 소리 물결 컴포넌트
+ * @param index 입에서부터 센 물결 순서
+ * @param scale 그림 배율
+ * @param animated 움직임 실행 여부
+ * @param cycleProgress 녹음 주기 진행률
+ */
+const SoundWave = ({ index, scale, animated, cycleProgress }: SoundWaveProps) => {
+	const waveStyle = useAnimatedStyle(() => {
+		if (!animated) {
+			return { opacity: 1 };
+		}
+
+		const start = index * 0.05;
+		const range = [start, start + 0.06, start + 0.2];
+
+		return {
+			opacity: interpolate(cycleProgress.get(), range, [0, 1, 0], Extrapolation.CLAMP),
+			transform: [
+				{ translateX: interpolate(cycleProgress.get(), range, [-8, 0, 14], Extrapolation.CLAMP) * scale },
+			],
+		};
+	});
+
+	const x = 6 + index * 14;
+
+	return (
+		<Animated.View style={[StyleSheet.absoluteFill, waveStyle]}>
+			<Svg
+				width={SOUND_WAVE_WIDTH * scale}
+				height={SOUND_WAVE_HEIGHT * scale}
+				viewBox={`0 0 ${SOUND_WAVE_WIDTH} ${SOUND_WAVE_HEIGHT}`}
+			>
+				<Path
+					d={`M${x} ${18 - index * 7}Q${18 + index * 17} 30 ${x} ${42 + index * 7}`}
+					fill="none"
+					stroke={colors.background}
+					strokeWidth={5}
+					strokeLinecap="round"
+				/>
+			</Svg>
+		</Animated.View>
+	);
+};
+
+interface WaveformBarProps {
+	index: number;
+	level: number;
+	scale: number;
+	animated: boolean;
+	cycleProgress: SharedValue<number>;
+}
+
+/**
+ * 휴대폰 화면에 녹음된 소리를 그리는 파형 막대 컴포넌트
+ * @param index 왼쪽부터 센 막대 순서
+ * @param level 막대 높이 비율
+ * @param scale 그림 배율
+ * @param animated 움직임 실행 여부
+ * @param cycleProgress 녹음 주기 진행률
+ */
+const WaveformBar = ({ index, level, scale, animated, cycleProgress }: WaveformBarProps) => {
+	const barStyle = useAnimatedStyle(() => {
+		if (!animated) {
+			return { opacity: 1, transform: [{ scaleY: 1 }] };
+		}
+
+		const start = 0.28 + index * 0.042;
+		const recorded = interpolate(
+			cycleProgress.get(),
+			[start, start + 0.05, 0.88, 0.96],
+			[0, 1, 1, 0],
+			Extrapolation.CLAMP,
+		);
+
+		return { opacity: 0.35 + recorded * 0.65, transform: [{ scaleY: 0.12 + recorded * 0.88 }] };
+	});
+
+	return <Animated.View style={[styles.waveformBar, { width: 3 * scale, height: level * 40 * scale }, barStyle]} />;
 };
 
 interface Props {
 	scale: number;
+	animated: boolean;
 }
 
 /**
- * 입과 휴대폰 사이를 띄우는 장면 컴포넌트
+ * 휴대폰 아래쪽 마이크를 입 가까이 대고 녹음하는 장면 컴포넌트
  * @param scale 그림 배율
+ * @param animated 녹음 움직임 실행 여부
  */
-const RecordingSceneDistance = ({ scale }: Props) => {
-	const { t } = useTranslation();
+const RecordingSceneDistance = ({ scale, animated }: Props) => {
+	const cycleProgress = useSharedValue(0);
+	const recordingDotOpacity = useSharedValue(1);
+
+	const micBadgeStyle = useAnimatedStyle(() => {
+		if (!animated) {
+			return { transform: [{ scale: 1 }] };
+		}
+
+		return {
+			transform: [
+				{ scale: interpolate(cycleProgress.get(), [0.2, 0.27, 0.36], [1, 1.18, 1], Extrapolation.CLAMP) },
+			],
+		};
+	});
+	const micRingStyle = useAnimatedStyle(() => {
+		if (!animated) {
+			return { opacity: 0 };
+		}
+
+		const range = [0.22, 0.26, 0.5];
+
+		return {
+			opacity: interpolate(cycleProgress.get(), range, [0, 0.9, 0], Extrapolation.CLAMP),
+			transform: [{ scale: interpolate(cycleProgress.get(), range, [0.6, 0.9, 1.7], Extrapolation.CLAMP) }],
+		};
+	});
+	const recordingDotStyle = useAnimatedStyle(() => ({ opacity: recordingDotOpacity.get() }));
+
+	/** 움직임이 켜져 있으면 소리가 마이크로 들어가 파형으로 기록되기를 반복 */
+	useEffect(() => {
+		if (!animated) {
+			return;
+		}
+
+		cycleProgress.set(0);
+		cycleProgress.set(
+			withDelay(
+				RECORDING_CYCLE_DELAY_MS,
+				withRepeat(withTiming(1, { duration: RECORDING_CYCLE_MS, easing: Easing.linear }), -1),
+			),
+		);
+
+		recordingDotOpacity.set(withRepeat(withTiming(0.3, { duration: BLINK_MS }), -1, true));
+
+		return () => {
+			cancelAnimation(cycleProgress);
+			cancelAnimation(recordingDotOpacity);
+		};
+	}, [animated, cycleProgress, recordingDotOpacity]);
 
 	return (
 		<>
@@ -98,72 +245,85 @@ const RecordingSceneDistance = ({ scale }: Props) => {
 				</Svg>
 			</Animated.View>
 
-			{/*입에서 떨어진 휴대폰*/}
+			{/*입에서 마이크로 퍼지는 소리*/}
+			<View
+				style={[
+					styles.sceneItem,
+					{
+						left: 138 * scale,
+						bottom: 58 * scale,
+						width: SOUND_WAVE_WIDTH * scale,
+						height: SOUND_WAVE_HEIGHT * scale,
+					},
+				]}
+			>
+				{Array.from({ length: SOUND_WAVE_COUNT }, (_, index) => (
+					<SoundWave
+						key={index}
+						index={index}
+						scale={scale}
+						animated={animated}
+						cycleProgress={cycleProgress}
+					/>
+				))}
+			</View>
+
+			{/*아래쪽 끝을 입 쪽으로 기울인 휴대폰*/}
 			<Animated.View
-				entering={slideAway()}
+				entering={bringToMouth()}
 				style={[
 					styles.sceneItem,
 					styles.phone,
 					{
-						left: 246 * scale,
-						bottom: 0,
+						left: 202 * scale,
+						bottom: 63 * scale,
 						width: 96 * scale,
 						height: 176 * scale,
-						padding: 7 * scale,
+						paddingTop: 7 * scale,
+						paddingHorizontal: 7 * scale,
+						paddingBottom: 18 * scale,
 						borderRadius: 22 * scale,
 					},
 				]}
 			>
-				<View style={[styles.phoneScreen, { borderRadius: 15 * scale }]}>
-					<View style={[styles.micButton, { width: 48 * scale, height: 48 * scale }]}>
-						<MicIcon size={24 * scale} color={colors.onFilled} />
+				<View style={[styles.phoneScreen, { gap: 10 * scale, borderRadius: 15 * scale }]}>
+					<Animated.View
+						style={[styles.recordingDot, { width: 9 * scale, height: 9 * scale }, recordingDotStyle]}
+					/>
+
+					<View style={[styles.waveform, { height: 40 * scale, gap: 3 * scale }]}>
+						{WAVEFORM_LEVELS.map((level, index) => (
+							<WaveformBar
+								key={index}
+								index={index}
+								level={level}
+								scale={scale}
+								animated={animated}
+								cycleProgress={cycleProgress}
+							/>
+						))}
 					</View>
 				</View>
-			</Animated.View>
 
-			{/*입과 휴대폰 사이 거리*/}
-			<Animated.View
-				entering={growRight()}
-				style={[styles.sceneItem, styles.arrow, { left: 162 * scale, bottom: 80 * scale }]}
-			>
-				<Svg
-					width={ARROW_WIDTH * scale}
-					height={ARROW_HEIGHT * scale}
-					viewBox={`0 0 ${ARROW_WIDTH} ${ARROW_HEIGHT}`}
+				{/*아래쪽 끝의 마이크*/}
+				<Animated.View
+					style={[
+						styles.micMark,
+						styles.micRing,
+						{ bottom: -20 * scale, width: 40 * scale, height: 40 * scale, marginLeft: -20 * scale },
+						micRingStyle,
+					]}
+				/>
+				<Animated.View
+					style={[
+						styles.micMark,
+						styles.micBadge,
+						{ bottom: -20 * scale, width: 40 * scale, height: 40 * scale, marginLeft: -20 * scale },
+						micBadgeStyle,
+					]}
 				>
-					<Path
-						d={`M10 10H${ARROW_WIDTH - 10}`}
-						stroke={colors.background}
-						strokeWidth={3.5}
-						strokeDasharray="7 7"
-						strokeLinecap="round"
-					/>
-					<Path
-						d={`M14 3 6 10l8 7M${ARROW_WIDTH - 14} 3l8 7-8 7`}
-						fill="none"
-						stroke={colors.background}
-						strokeWidth={3.5}
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					/>
-				</Svg>
-			</Animated.View>
-			<Animated.View
-				entering={popIn(LENGTH_APPEAR_ORDER)}
-				style={[
-					styles.sceneItem,
-					styles.lengthLabel,
-					{
-						left: 150 * scale,
-						bottom: 120 * scale,
-						paddingVertical: 8 * scale,
-						paddingHorizontal: 16 * scale,
-					},
-				]}
-			>
-				<Copy style={[styles.lengthText, { fontSize: 18 * scale, lineHeight: 24 * scale }]}>
-					{t('words.guide.distance.length')}
-				</Copy>
+					<MicIcon size={18 * scale} color={colors.onFilled} style={styles.micIcon} />
+				</Animated.View>
 			</Animated.View>
 		</>
 	);
@@ -171,7 +331,7 @@ const RecordingSceneDistance = ({ scale }: Props) => {
 
 const styles = StyleSheet.create({
 	sceneItem: { position: 'absolute' },
-	phone: { borderCurve: 'continuous', transform: [{ rotate: '-4deg' }], backgroundColor: colors.background },
+	phone: { borderCurve: 'continuous', transform: [{ rotate: PHONE_TILT }], backgroundColor: colors.background },
 	phoneScreen: {
 		flex: 1,
 		alignItems: 'center',
@@ -179,15 +339,19 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.orangePale,
 	},
-	micButton: {
-		alignItems: 'center',
-		justifyContent: 'center',
+	recordingDot: { borderRadius: radius.pill, backgroundColor: colors.error },
+	waveform: { flexDirection: 'row', alignItems: 'center' },
+	waveformBar: { borderRadius: radius.pill, backgroundColor: colors.orange },
+	micMark: {
+		position: 'absolute',
+		left: '50%',
+		borderWidth: 3,
+		borderColor: colors.background,
 		borderRadius: radius.pill,
-		backgroundColor: colors.orange,
 	},
-	arrow: { transformOrigin: 'left' },
-	lengthLabel: { borderRadius: radius.pill, backgroundColor: colors.background },
-	lengthText: { fontFamily: font.black, color: colors.orangeDark },
+	micRing: { opacity: 0 },
+	micBadge: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.orangeDark },
+	micIcon: { transform: [{ rotate: MIC_TILT }] },
 });
 
 export default RecordingSceneDistance;
