@@ -39,8 +39,8 @@ const OfflineBanner = ({ children }: Props) => {
 
 	const reducedMotion = useReducedMotion();
 
-	const { isConnected } = useNetInfo();
-	const offline = isConnected === false;
+	const { isConnected, isInternetReachable } = useNetInfo();
+	const offline = isConnected === false || isInternetReachable === false;
 
 	const [bannerVisible, setBannerVisible] = useState(false);
 	const [bannerHeight, setBannerHeight] = useState(0);
