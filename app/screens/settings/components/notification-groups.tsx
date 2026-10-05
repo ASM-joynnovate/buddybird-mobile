@@ -1,4 +1,4 @@
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { NotificationSetting } from '@/types/apis/settings';
 
@@ -15,6 +15,7 @@ import { reportError } from '@/services/telemetry/client';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { InlineError } from '@/components/ui/inline-error';
+import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 import { ItemSwitch } from '@/components/ui/item/switch';
 
@@ -22,7 +23,7 @@ const NOTIFICATION_SETTINGS: readonly {
 	setting: NotificationSetting;
 	labelKey: keyof SettingsMessages['notifications'];
 }[] = [
-	{ setting: 'notice_enabled', labelKey: 'notice' },
+	{ setting: 'announcement_enabled', labelKey: 'announcement' },
 	{ setting: 'report_enabled', labelKey: 'report' },
 	{ setting: 'marketing_enabled', labelKey: 'marketing' },
 ];
@@ -38,18 +39,12 @@ const NotificationGroups = () => {
 	const notificationPermission = usePermission('notifications');
 
 	const permissionOff = notificationPermission.granted === false;
+	const pushOff = !settingsData.notifications.push_enabled;
 
-	/** 켜면 알림 권한을 요청하고 끄면 OS 설정을 여는 함수 */
-	const handleToggleAll = (enabled: boolean) => {
-		if (enabled) {
-			void notificationPermission
-				.run(() => void notificationPermission.refresh())
-				.catch((error: unknown) => reportError(error, 'permission_notifications'));
-
-			return;
-		}
-
-		void Linking.openSettings().catch((error: unknown) => reportError(error, 'permission_settings'));
+	const handleRequestPermission = () => {
+		void notificationPermission
+			.run(() => void notificationPermission.refresh())
+			.catch((error: unknown) => reportError(error, 'permission_notifications'));
 	};
 
 	const handleToggleNotification = (setting: NotificationSetting, enabled: boolean) => {
@@ -62,24 +57,27 @@ const NotificationGroups = () => {
 
 	return (
 		<View style={styles.container}>
-			{/*OS 알림 권한을 따르는 전체 알림 스위치*/}
+			{/*전체 알림 스위치. OS 알림 권한이 꺼져 있으면 권한 안내 표시*/}
 			<ItemGroup>
 				<ItemSwitch
 					first
 					icon={BellIcon}
 					label={t('settings.notifications.all')}
-					detail={permissionOff ? t('settings.notifications.permissionOff') : undefined}
-					value={notificationPermission.granted === true}
-					onChange={handleToggleAll}
+					value={settingsData.notifications.push_enabled}
+					disabled={updateNotificationSettings.isPending}
+					onChange={(enabled) => handleToggleNotification('push_enabled', enabled)}
 				/>
+				{permissionOff && (
+					<Item label={t('settings.notifications.permissionOff')} onPress={handleRequestPermission} />
+				)}
 			</ItemGroup>
 
-			{/*알림 종류별 스위치. 알림 권한이 없으면 저장된 값을 보인 채 누를 수 없음*/}
+			{/*알림 종류별 스위치. 전체 알림이 꺼져 있으면 저장된 값을 보인 채 누를 수 없음*/}
 			<View
-				style={permissionOff && styles.dimmed}
-				pointerEvents={permissionOff ? 'none' : 'auto'}
-				accessibilityElementsHidden={permissionOff}
-				importantForAccessibility={permissionOff ? 'no-hide-descendants' : 'auto'}
+				style={pushOff && styles.dimmed}
+				pointerEvents={pushOff ? 'none' : 'auto'}
+				accessibilityElementsHidden={pushOff}
+				importantForAccessibility={pushOff ? 'no-hide-descendants' : 'auto'}
 			>
 				<ItemGroup>
 					{NOTIFICATION_SETTINGS.map(({ setting, labelKey }, index) => (
@@ -92,10 +90,17 @@ const NotificationGroups = () => {
 							onChange={(enabled) => handleToggleNotification(setting, enabled)}
 						/>
 					))}
+					<ItemSwitch
+						label={t('settings.notifications.marketingNight')}
+						detail={t('settings.notifications.marketingNightHours')}
+						value={settingsData.notifications.marketing_night_enabled}
+						disabled={updateNotificationSettings.isPending || !settingsData.notifications.marketing_enabled}
+						onChange={(enabled) => handleToggleNotification('marketing_night_enabled', enabled)}
+					/>
 				</ItemGroup>
-
-				<InlineError message={updateNotificationSettings.isError ? t('settings.saveError') : null} />
 			</View>
+
+			<InlineError message={updateNotificationSettings.isError ? t('settings.saveError') : null} />
 
 			<PermissionDialog state={notificationPermission.dialog} />
 		</View>

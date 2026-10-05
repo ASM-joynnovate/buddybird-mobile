@@ -2,7 +2,7 @@ import { memo } from 'react';
 
 import { Image, StyleSheet, View } from 'react-native';
 
-import type { AppNotification, NotificationKind } from '@/types/apis/notifications';
+import type { AppNotification } from '@/types/apis/notifications';
 
 import { useReadNotification } from '@/hooks/apis/notifications';
 
@@ -11,7 +11,14 @@ import { useTranslation } from 'react-i18next';
 import { formatTimeOrDateTime } from '@/i18n/format';
 
 import { useLinkTo } from '@react-navigation/native';
-import { AudioWaveformIcon, ChartNoAxesColumnIcon, FlameIcon, type LucideIcon } from 'lucide-react-native';
+import {
+	BellIcon,
+	ChartNoAxesColumnIcon,
+	GiftIcon,
+	type LucideIcon,
+	MegaphoneIcon,
+	TriangleAlertIcon,
+} from 'lucide-react-native';
 
 import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -23,10 +30,11 @@ import { Copy } from '@/components/ui/copy';
 import { DotBadge } from '@/components/ui/dot-badge';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const icons: Record<NotificationKind, LucideIcon> = {
-	mimicry: AudioWaveformIcon,
-	daily_summary: ChartNoAxesColumnIcon,
-	streak: FlameIcon,
+const icons: Partial<Record<string, LucideIcon>> = {
+	announcement: MegaphoneIcon,
+	urgent: TriangleAlertIcon,
+	marketing: GiftIcon,
+	report: ChartNoAxesColumnIcon,
 };
 
 interface Props {
@@ -48,7 +56,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 
 	const unread = !notification.read_at;
 	const sentAtLabel = formatTimeOrDateTime(notification.sent_at, locale);
-	const KindIcon = icons[notification.kind];
+	const KindIcon = icons[notification.kind] ?? BellIcon;
 
 	const handleOpen = () => {
 		if (unread && !isPending) {
@@ -57,13 +65,15 @@ const NotificationItem = memo(({ notification }: Props) => {
 
 		track('notification_opened', { kind: notification.kind, from: 'list' });
 
-		linkTo(
-			notificationPath({
-				kind: notification.kind,
-				report_date: notification.data?.report_date,
-				sent_at: notification.sent_at,
-			}),
-		);
+		const path = notificationPath({
+			kind: notification.kind,
+			notification_id: notification.id,
+			data_id: notification.data_id,
+		});
+
+		if (path) {
+			linkTo(path);
+		}
 	};
 
 	return (

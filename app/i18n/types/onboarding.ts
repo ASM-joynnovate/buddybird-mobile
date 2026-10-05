@@ -57,6 +57,7 @@ export type OnboardingMessages = {
 			events: string;
 		};
 		hint: string;
+		night: string;
 		accept: string;
 		decline: string;
 	};

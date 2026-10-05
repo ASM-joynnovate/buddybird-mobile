@@ -1,23 +1,27 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { pushDataSchema } from '@/types/apis/notifications';
 
-import type { RootStackParamList } from '@/types/navigation';
+import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
 
+import { useReadNotification } from '@/hooks/apis/notifications';
 import useEntryRoute, { type EntryRoute } from '@/hooks/use-entry-route';
 
 import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import {
 	type LinkingOptions,
 	NavigationContainer,
+	type PathConfig,
 	type RouteProp,
 	useNavigationContainerRef,
 } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import * as Notifications from 'expo-notifications';
 
 import { env } from '@/config';
 import MainTabs from '@/navigators/main-tabs';
-import NoticeDetailScreen from '@/screens/home/notice-detail-screen';
+import AnnouncementDetailScreen from '@/screens/home/announcement-detail-screen';
+import NotificationDetailScreen from '@/screens/home/notification-detail-screen';
 import ConsentDetailScreen from '@/screens/onboarding/consent-detail-screen';
 import ConsentScreen from '@/screens/onboarding/consent-screen';
 import LegacyUploadScreen from '@/screens/onboarding/legacy-upload-screen';
@@ -30,7 +34,6 @@ import SessionRunScreen from '@/screens/session/session-run-screen';
 import SessionSummaryScreen from '@/screens/session/session-summary-screen';
 import ConsentSettingsScreen from '@/screens/settings/consent-settings-screen';
 import DevicesScreen from '@/screens/settings/devices-screen';
-import NoticeListScreen from '@/screens/settings/notice-list-screen';
 import NotificationSettingsScreen from '@/screens/settings/notification-settings-screen';
 import SettingsScreen from '@/screens/settings/settings-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
@@ -67,48 +70,9 @@ const linkPrefix = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
 };
 
-/** 푸시 알림으로 열 화면의 앱 링크 주소를 만드는 함수 */
-const resolvePushUrl = (pushData: unknown) => {
-	const parsed = pushDataSchema.safeParse(pushData);
-
-	if (!parsed.success) {
-		reportError(parsed.error, 'push_opened');
-
-		return null;
-	}
-
-	track('notification_opened', { kind: parsed.data.kind, from: 'push' });
-
-	return `${linkPrefix()}${notificationPath(parsed.data).slice(1)}`;
-};
-
-const linking: LinkingOptions<RootStackParamList> = {
-	prefixes: [linkPrefix()],
-	config: {
-		screens: {
-			Main: { screens: { ReportTab: { screens: { Report: 'report' } } } },
-		},
-	},
-	getInitialURL: async () => {
-		try {
-			const message = await getInitialNotification(getMessaging());
-
-			return message ? resolvePushUrl(message.data) : null;
-		} catch (e) {
-			reportError(e, 'push_initial');
-
-			return null;
-		}
-	},
-	subscribe: (listener) => {
-		return onNotificationOpenedApp(getMessaging(), (message) => {
-			const url = resolvePushUrl(message.data);
-
-			if (url) {
-				listener(url);
-			}
-		});
-	},
+const reportTabLinking: PathConfig<ReportStackParamList> = {
+	initialRouteName: 'Report',
+	screens: { SessionDetail: 'sessions/:sessionId' },
 };
 
 const ONBOARDING_ORDER = ['ParrotEditor', 'UsageGuide'] as const;
@@ -154,6 +118,96 @@ const AppNavigator = () => {
 	const screenNameRef = useRef<string | null>(null);
 
 	const { entryRoute, parrotId } = useEntryRoute();
+
+	const { mutate: readNotification } = useReadNotification();
+
+	const linking = useMemo<LinkingOptions<RootStackParamList>>(() => {
+		/** 푸시를 읽음으로 바꾸고 열 화면의 앱 링크 주소를 만드는 함수 */
+		const resolvePushUrl = (pushData: unknown) => {
+			const parsed = pushDataSchema.safeParse(pushData);
+
+			if (!parsed.success) {
+				reportError(parsed.error, 'push_opened');
+
+				return null;
+			}
+
+			track('notification_opened', { kind: parsed.data.kind, from: 'push' });
+
+			if (parsed.data.notification_id) {
+				readNotification({ id: parsed.data.notification_id });
+			}
+
+			const path = notificationPath(parsed.data);
+
+			return path ? `${linkPrefix()}${path.slice(1)}` : null;
+		};
+
+		return {
+			prefixes: [linkPrefix()],
+			config: {
+				initialRouteName: 'Main',
+				screens: {
+					Main: { screens: { ReportTab: reportTabLinking } },
+					AnnouncementDetail: 'announcements/:announcementId',
+					NotificationDetail: 'notifications/:notificationId',
+					NotificationSettings: 'settings/notifications',
+				},
+			},
+			getInitialURL: async () => {
+				try {
+					const message = await getInitialNotification(getMessaging());
+
+					if (message) {
+						return resolvePushUrl(message.data);
+					}
+
+					const response = Notifications.getLastNotificationResponse();
+					const trigger = response?.notification.request.trigger;
+
+					if (!response || (trigger && 'type' in trigger && trigger.type === 'push')) {
+						return null;
+					}
+
+					Notifications.clearLastNotificationResponse();
+
+					return resolvePushUrl(response.notification.request.content.data);
+				} catch (e) {
+					reportError(e, 'push_initial');
+
+					return null;
+				}
+			},
+			subscribe: (listener) => {
+				/** 학습 화면이 아닐 때만 푸시가 가리키는 화면으로 이동하는 함수 */
+				const openPush = (pushData: unknown) => {
+					const url = resolvePushUrl(pushData);
+
+					if (url && navigationRef.getCurrentRoute()?.name !== 'SessionRun') {
+						listener(url);
+					}
+				};
+
+				const unsubscribeOpenedApp = onNotificationOpenedApp(getMessaging(), (message) =>
+					openPush(message.data),
+				);
+				const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+					const { trigger } = response.notification.request;
+
+					if (!(trigger && 'type' in trigger && trigger.type === 'push')) {
+						Notifications.clearLastNotificationResponse();
+
+						openPush(response.notification.request.content.data);
+					}
+				});
+
+				return () => {
+					unsubscribeOpenedApp();
+					responseSubscription.remove();
+				};
+			},
+		};
+	}, [navigationRef, readNotification]);
 
 	const handleTrackScreen = () => {
 		const currentScreenName = navigationRef.getCurrentRoute()?.name ?? null;
@@ -213,7 +267,8 @@ const AppNavigator = () => {
 								options={parrotEditorOptions}
 							/>
 							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
-							<RootStack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
+							<RootStack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} />
+							<RootStack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
 
 							<RootStack.Screen
 								name="SessionRun"
@@ -237,7 +292,6 @@ const AppNavigator = () => {
 							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 
 							<RootStack.Screen name="Settings" component={SettingsScreen} />
-							<RootStack.Screen name="NoticeList" component={NoticeListScreen} />
 							<RootStack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
 							<RootStack.Screen name="Devices" component={DevicesScreen} />
 							<RootStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />

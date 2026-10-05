@@ -24,10 +24,10 @@ import dayjs from 'dayjs';
 import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
+import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
-import NoticePopup from '@/screens/home/components/notice-popup';
 import WordPicker from '@/screens/home/components/word-picker';
 import { useAccountStore } from '@/stores/account';
 import { useSessionStore } from '@/stores/session';
@@ -308,7 +308,7 @@ const HomeContent = () => {
 			/>
 			<PermissionDialog state={microphonePermission.dialog} />
 
-			<NoticePopup notices={homeSummaryData.unread_notices} />
+			<AnnouncementPopup announcements={homeSummaryData.unread_announcements} />
 		</>
 	);
 };

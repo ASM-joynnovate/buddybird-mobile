@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { type Locale, locales } from '@/types/locale';
 
+import { useUpdateDevice } from '@/hooks/apis/devices';
 import { apiKeys } from '@/hooks/apis/keys';
 
 import { useTranslation } from 'react-i18next';
@@ -29,16 +30,23 @@ const LanguagePicker = () => {
 
 	const { t } = useTranslation();
 
+	const { isPending, mutate: updateDevice } = useUpdateDevice();
+
 	const locale = useDeviceSettingsStore((state) => state.locale);
 	const setLocale = useDeviceSettingsStore((state) => state.setLocale);
 
 	const handleChangeLanguage = (nextLocale: Locale) => {
-		if (locale === nextLocale) {
+		if (isPending || locale === nextLocale) {
 			return;
 		}
 
 		try {
 			setLocale(nextLocale);
+
+			updateDevice(
+				{ data: { locale: nextLocale } },
+				{ onError: (error) => reportError(error, 'device_locale_update') },
+			);
 
 			void queryClient.invalidateQueries({ queryKey: apiKeys.all() });
 
@@ -55,6 +63,7 @@ const LanguagePicker = () => {
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
 				value: t(`settings.general.${LANGUAGE_LABEL_KEYS[locale]}`),
+				disabled: isPending,
 			}}
 			sheet={{ title: t('settings.general.language') }}
 		>

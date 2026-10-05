@@ -1,10 +1,14 @@
+import { Platform } from 'react-native';
+
 import { changeI18nLocale } from '@/i18n';
 
 import { configureApi } from '@/lib/api';
 import { takeRestoreErrors } from '@/lib/storage';
 
 import NetInfo from '@react-native-community/netinfo';
+import { getMessaging, onMessage } from '@react-native-firebase/messaging';
 import { randomUUID } from 'expo-crypto';
+import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { accessToken, installUnauthorizedSignOut } from '@/services/auth/session';
@@ -25,6 +29,29 @@ configureApi({ deviceId, locale, accessToken, reportError });
 installUnauthorizedSignOut();
 
 void SplashScreen.preventAutoHideAsync().catch((error) => reportError(error, 'splash_screen'));
+
+Notifications.setNotificationHandler({
+	handleNotification: async () => ({
+		shouldShowBanner: true,
+		shouldShowList: true,
+		shouldPlaySound: true,
+		shouldSetBadge: false,
+	}),
+});
+
+// Android는 앱이 앞에 떠 있을 때 받은 FCM 알림을 표시하지 않으므로 같은 내용의 로컬 알림으로 표시
+if (Platform.OS === 'android') {
+	onMessage(getMessaging(), (message) => {
+		if (!message.notification) {
+			return;
+		}
+
+		void Notifications.scheduleNotificationAsync({
+			content: { title: message.notification.title, body: message.notification.body, data: message.data },
+			trigger: null,
+		}).catch((error) => reportError(error, 'push_foreground'));
+	});
+}
 
 // 첫 화면이 useTranslation을 호출하기 전에 i18next 초기화 시작
 const i18nReady = changeI18nLocale(useDeviceSettingsStore.getState().locale);

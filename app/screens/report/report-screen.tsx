@@ -1,14 +1,8 @@
-import { useEffect } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import { usePrefetchQuery } from '@tanstack/react-query';
 
-import type { ReportStackParamList } from '@/types/navigation';
-
 import { getReportOptions } from '@/hooks/apis/reports';
-
-import { type RouteProp, useRoute } from '@react-navigation/native';
 
 import ReportContent from '@/screens/report/components/report-content';
 import ReportSkeleton from '@/screens/report/components/report-skeleton';
@@ -22,24 +16,14 @@ import { ScreenError } from '@/components/ui/screen-error';
 
 /** 리포트 화면 */
 const ReportScreen = () => {
-	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
-
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
-	const setPeriodFromParams = useReportStore((state) => state.setPeriodFromParams);
 
 	const selectedStart = start ?? latestStart(period);
 
 	usePrefetchQuery(getReportOptions({ period, start: selectedStart }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -1) }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -2) }));
-
-	/** route params의 리포트 기간 반영 */
-	useEffect(() => {
-		if (route.params) {
-			setPeriodFromParams(route.params);
-		}
-	}, [route.params, setPeriodFromParams]);
 
 	return (
 		<Screen scrollable={false}>

@@ -12,6 +12,7 @@ import { installedVersion } from '@/services/device/application';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 /** 기기 등록 요청에 보낼 이 기기의 정보 */
 const thisDeviceInfo = () => ({
@@ -21,6 +22,7 @@ const thisDeviceInfo = () => ({
 	model: (Device.modelName ?? '').slice(0, MAX_DEVICE_MODEL_LENGTH),
 	app_version: installedVersion,
 	timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+	locale: useDeviceSettingsStore.getState().locale,
 });
 
 interface Props {

@@ -1,0 +1,59 @@
+import { Image, StyleSheet, View } from 'react-native';
+
+import { useGetNotification } from '@/hooks/apis/notifications';
+
+import { formatTimeOrDateTime } from '@/i18n/format';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/copy';
+import { Title } from '@/components/ui/title';
+
+interface Props {
+	notificationId: string;
+}
+
+/**
+ * 알림 상세 컴포넌트
+ * @param notificationId 알림 ID
+ */
+const NotificationContent = ({ notificationId }: Props) => {
+	const { data: notificationData } = useGetNotification({ id: notificationId });
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
+	return (
+		<View style={styles.notificationContainer}>
+			<View style={styles.headingContainer}>
+				<Title>{notificationData.title}</Title>
+				<Copy style={styles.time}>{formatTimeOrDateTime(notificationData.sent_at, locale)}</Copy>
+			</View>
+
+			<Copy style={styles.text}>{notificationData.body}</Copy>
+			{notificationData.image && (
+				<Image
+					source={{ uri: notificationData.image.url }}
+					style={styles.image}
+					resizeMode="contain"
+					accessibilityIgnoresInvertColors
+				/>
+			)}
+		</View>
+	);
+};
+
+const styles = StyleSheet.create({
+	notificationContainer: { gap: 20 },
+	headingContainer: { gap: 6 },
+	time: { fontSize: 13, color: colors.muted },
+	text: { lineHeight: 24 },
+	image: {
+		width: '100%',
+		aspectRatio: 4 / 3,
+		borderRadius: radius.card,
+		backgroundColor: colors.surface,
+	},
+});
+
+export default NotificationContent;

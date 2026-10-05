@@ -13,6 +13,12 @@ export const getNotificationList = async ({ page }: { page: number }): Promise<P
 	return { data, meta: pageMetaSchema.parse(meta) };
 };
 
+export const getNotification = async ({ id }: { id: string }): Promise<AppNotification> => {
+	const { data: notification } = await apiRequest(`/api/v1/notifications/${id}`, notificationSchema);
+
+	return notification;
+};
+
 export const postNotificationRead = async ({
 	id,
 	idempotencyKey,

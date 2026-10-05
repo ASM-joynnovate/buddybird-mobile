@@ -1,4 +1,4 @@
-import { type Device, deviceSchema, type RegisterDeviceRequest } from '@/types/apis/devices';
+import { type Device, deviceSchema, type RegisterDeviceRequest, type UpdateDeviceRequest } from '@/types/apis/devices';
 
 import { apiRequest } from '@/lib/api';
 
@@ -35,6 +35,22 @@ export const putPushToken = async ({
 }): Promise<Device> => {
 	const { data: device } = await apiRequest('/api/v1/devices/me/push-token', deviceSchema, {
 		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+
+	return device;
+};
+
+export const patchDevice = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: UpdateDeviceRequest;
+	idempotencyKey: string;
+}): Promise<Device> => {
+	const { data: device } = await apiRequest('/api/v1/devices/me', deviceSchema, {
+		method: 'PATCH',
 		json: data,
 		idempotencyKey,
 	});

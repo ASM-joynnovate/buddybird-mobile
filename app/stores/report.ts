@@ -2,7 +2,7 @@ import type { ReportPeriod } from '@/types/report-period';
 
 import { create } from 'zustand';
 
-import { latestStart, periodSelectionFromParams, shiftedStart } from '@/utils/report-period';
+import { latestStart, shiftedStart } from '@/utils/report-period';
 
 type ReportState = {
 	period: ReportPeriod;
@@ -13,7 +13,6 @@ type ReportActions = {
 	selectPeriod: (period: ReportPeriod) => void;
 	movePeriod: (step: number) => void;
 	moveToLatestPeriod: () => void;
-	setPeriodFromParams: (params: unknown) => void;
 	resetPeriod: () => void;
 };
 
@@ -46,11 +45,6 @@ export const useReportStore = create<ReportStore>()((set, get) => ({
 	/** 오늘이 들어 있는 기간으로 이동 */
 	moveToLatestPeriod: () => {
 		set((state) => ({ ...state, start: null }));
-	},
-
-	/** route params의 기간 반영 */
-	setPeriodFromParams: (params) => {
-		set((state) => ({ ...state, ...periodSelectionFromParams(params) }));
 	},
 
 	/** 리포트 기간 초기화 */

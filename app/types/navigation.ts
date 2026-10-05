@@ -1,4 +1,3 @@
-import type { ReportPeriod } from '@/types/report-period';
 import type { SleepSettings } from '@/types/sleep-settings';
 
 import type { NavigatorScreenParams } from '@react-navigation/native';
@@ -27,8 +26,8 @@ export type WordsStackParamList = {
 };
 
 export type ReportStackParamList = {
-	Report: { period?: ReportPeriod; date?: string; source?: 'notification' } | undefined;
-	SessionDetail: { sessionId: string; source: 'report' | 'summary' };
+	Report: undefined;
+	SessionDetail: { sessionId: string; source: 'report' | 'summary' | 'notification' };
 };
 
 export type ProfileStackParamList = {
@@ -54,7 +53,8 @@ export type RootStackParamList = {
 	PermissionRequest: undefined;
 	MarketingNotification: undefined;
 	Main: NavigatorScreenParams<MainTabParamList> | undefined;
-	NoticeDetail: { noticeId: string };
+	AnnouncementDetail: { announcementId: string };
+	NotificationDetail: { notificationId: string };
 	SessionRun: {
 		sessionId: string;
 		wordId: string;
@@ -66,7 +66,6 @@ export type RootStackParamList = {
 	SessionSummary: { sessionId: string };
 	RecordingGuide: undefined;
 	Settings: undefined;
-	NoticeList: undefined;
 	ConsentSettings: undefined;
 	Devices: undefined;
 	NotificationSettings: undefined;

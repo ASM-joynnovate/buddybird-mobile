@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 
 import { Image, StyleSheet, View } from 'react-native';
 
-import type { Notice } from '@/types/apis/notices';
+import type { Announcement } from '@/types/apis/announcements';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { useReadNotice } from '@/hooks/apis/notices';
+import { useReadAnnouncement } from '@/hooks/apis/announcements';
 
 import { useTranslation } from 'react-i18next';
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { useNoticeStore } from '@/stores/notice';
+import { useAnnouncementStore } from '@/stores/announcement';
 import { colors, radius } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
@@ -22,28 +22,29 @@ import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
 interface Props {
-	notices: Notice[];
+	announcements: Announcement[];
 }
 
 /**
  * 읽지 않은 공지 팝업 컴포넌트
- * @param notices 읽지 않은 공지 목록
+ * @param announcements 읽지 않은 공지 목록
  */
-const NoticePopup = ({ notices }: Props) => {
+const AnnouncementPopup = ({ announcements }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const screenFocused = useIsFocused();
 
-	const [queue, setQueue] = useState<readonly Notice[]>([]);
+	const [queue, setQueue] = useState<readonly Announcement[]>([]);
 
-	const { mutate } = useReadNotice();
+	const { mutate } = useReadAnnouncement();
 
-	const popupShown = useNoticeStore((state) => state.popupShown);
-	const setPopupShown = useNoticeStore((state) => state.setPopupShown);
+	const popupShown = useAnnouncementStore((state) => state.popupShown);
+	const setPopupShown = useAnnouncementStore((state) => state.setPopupShown);
 
-	const currentNotice = queue[0] ?? null;
-	const image = currentNotice?.images[0];
+	const currentAnnouncement =
+		queue.find((announcement) => announcements.some(({ id }) => id === announcement.id)) ?? null;
+	const image = currentAnnouncement?.images[0];
 
 	/** 앱 시작 후 처음 한 번 표시할 공지 목록 설정 */
 	useEffect(() => {
@@ -53,33 +54,33 @@ const NoticePopup = ({ notices }: Props) => {
 
 		setPopupShown(true);
 
-		setQueue(notices);
-	}, [notices, popupShown, setPopupShown]);
+		setQueue(announcements);
+	}, [announcements, popupShown, setPopupShown]);
 
 	const handleClose = () => {
-		if (!currentNotice) {
+		if (!currentAnnouncement) {
 			return;
 		}
 
-		mutate({ id: currentNotice.id });
+		mutate({ id: currentAnnouncement.id });
 
-		setQueue((prev) => prev.slice(1));
+		setQueue((prev) => prev.filter((announcement) => announcement.id !== currentAnnouncement.id));
 	};
 
 	const handleOpenDetail = () => {
-		if (!currentNotice) {
+		if (!currentAnnouncement) {
 			return;
 		}
 
 		handleClose();
 
-		navigation.navigate('NoticeDetail', { noticeId: currentNotice.id });
+		navigation.navigate('AnnouncementDetail', { announcementId: currentAnnouncement.id });
 	};
 
 	return (
 		<Dialog
-			visible={screenFocused && currentNotice !== null}
-			title={currentNotice?.title ?? ''}
+			visible={screenFocused && currentAnnouncement !== null}
+			title={currentAnnouncement?.title ?? ''}
 			onClose={handleClose}
 			footer={
 				<View style={ui.actionsRow}>
@@ -92,7 +93,7 @@ const NoticePopup = ({ notices }: Props) => {
 						style={ui.action}
 					/>
 					<Button
-						label={t('home.notice.viewDetail')}
+						label={t('home.announcement.viewDetail')}
 						size="small"
 						depth="high"
 						onPress={handleOpenDetail}
@@ -110,7 +111,7 @@ const NoticePopup = ({ notices }: Props) => {
 				/>
 			)}
 
-			{!!currentNotice?.body && <Copy numberOfLines={4}>{currentNotice.body}</Copy>}
+			{!!currentAnnouncement?.body && <Copy numberOfLines={4}>{currentAnnouncement.body}</Copy>}
 		</Dialog>
 	);
 };
@@ -124,4 +125,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default NoticePopup;
+export default AnnouncementPopup;

@@ -1,16 +1,16 @@
 import { create } from 'zustand';
 
-type NoticeState = {
+type AnnouncementState = {
 	popupShown: boolean;
 };
 
-type NoticeActions = {
+type AnnouncementActions = {
 	setPopupShown: (popupShown: boolean) => void;
 };
 
-type NoticeStore = NoticeState & NoticeActions;
+type AnnouncementStore = AnnouncementState & AnnouncementActions;
 
-export const useNoticeStore = create<NoticeStore>()((set) => ({
+export const useAnnouncementStore = create<AnnouncementStore>()((set) => ({
 	popupShown: false,
 
 	/** 공지 팝업 표시 여부 저장 */

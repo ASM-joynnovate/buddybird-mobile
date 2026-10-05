@@ -6,9 +6,11 @@ export const settings: SettingsMessages = {
 	notifications: {
 		title: 'Notifications',
 		all: 'All notifications',
-		notice: 'Notice alerts',
+		announcement: 'Announcement alerts',
 		report: 'Report alerts',
 		marketing: 'Marketing alerts',
+		marketingNight: 'Night marketing alerts',
+		marketingNightHours: '9 PM to 8 AM',
 		permissionOff: "Notifications are off, so you won't get alerts",
 	},
 	general: {
@@ -24,7 +26,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: 'Support',
 		feedback: 'Send feedback',
-		notices: 'Notices',
 		consents: 'Terms and consents',
 		version: 'App version {{version}}',
 	},
@@ -38,11 +39,6 @@ export const settings: SettingsMessages = {
 		message: 'Buddy will miss you. Do you really want to leave?',
 		warning: "This can't be undone.",
 		confirm: 'Delete account',
-	},
-	notices: {
-		title: 'Notices',
-		empty: 'No notices right now',
-		unread: 'Unread',
 	},
 	consents: {
 		title: 'Terms and consents',
