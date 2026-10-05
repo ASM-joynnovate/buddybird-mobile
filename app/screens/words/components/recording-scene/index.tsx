@@ -63,7 +63,7 @@ const RecordingScene = ({ step }: Props) => {
 				<View key={step} style={[styles.stage, { width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }]}>
 					{step === 'manyRecordings' && <RecordingSceneManyRecordings scale={scale} />}
 					{step === 'quiet' && <RecordingSceneQuiet scale={scale} animated={animated} />}
-					{step === 'distance' && <RecordingSceneDistance scale={scale} />}
+					{step === 'distance' && <RecordingSceneDistance scale={scale} animated={animated} />}
 					{step === 'highVoice' && <RecordingSceneHighVoice scale={scale} animated={animated} />}
 				</View>
 			)}

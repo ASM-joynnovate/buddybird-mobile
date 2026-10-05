@@ -42,7 +42,6 @@ export type WordsMessages = {
 		distance: {
 			title: string;
 			scene: string;
-			length: string;
 		};
 		highVoice: {
 			title: string;
