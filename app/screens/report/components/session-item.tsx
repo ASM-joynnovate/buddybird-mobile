@@ -58,7 +58,7 @@ const SessionItem = ({ session, period, order }: Props) => {
 		period === 'day'
 			? formatMonthDayTime(session.period.started_at, locale)
 			: dayjs(session.period.started_at).format('LT');
-	const durationLabel = formatDuration(session.learning.duration_ms, locale);
+	const durationLabel = formatDuration(session.active.duration_ms, locale);
 	const wordName = session.word.name;
 	const judging = session.judgment.status === 'pending';
 

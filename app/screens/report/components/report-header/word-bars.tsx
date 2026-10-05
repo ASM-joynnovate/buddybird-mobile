@@ -28,8 +28,8 @@ const growIn = () => {
 
 interface Props {
 	period: ReportPeriod;
-	words: Report['learning']['words'];
-	previousWords: Report['learning']['words'];
+	words: Report['active']['words'];
+	previousWords: Report['active']['words'];
 }
 
 /**

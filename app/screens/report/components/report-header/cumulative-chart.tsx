@@ -81,7 +81,7 @@ const EdgedDot = ({ x, y, radius, color, opacity }: DotProps) => {
 
 interface Props {
 	period: ReportPeriod;
-	trend: Report['learning']['trend'];
+	trend: Report['active']['trend'];
 	currentTotalsMs: number[];
 	previousTotalsMs: number[];
 	scrubIndex: number | null;

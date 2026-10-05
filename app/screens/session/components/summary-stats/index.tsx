@@ -37,8 +37,8 @@ const SummaryStats = ({ sessionId }: Props) => {
 	const allTimeStat: SummaryStat = {
 		metric: 'allTime',
 		label: t('session.summary.allTotal'),
-		value: total.learning.duration_ms,
-		valueBeforeSession: Math.max(0, total.learning.duration_ms - session.learning.duration_ms),
+		value: total.active.duration_ms,
+		valueBeforeSession: Math.max(0, total.active.duration_ms - session.active.duration_ms),
 		unit: 'duration',
 		revealAt: 2,
 	};
@@ -56,8 +56,8 @@ const SummaryStats = ({ sessionId }: Props) => {
 		{
 			metric: 'wordTime',
 			label: t('session.summary.wordTotal', { word: word.name }),
-			value: word.learning.duration_ms,
-			valueBeforeSession: Math.max(0, word.learning.duration_ms - session.learning.duration_ms),
+			value: word.active.duration_ms,
+			valueBeforeSession: Math.max(0, word.active.duration_ms - session.active.duration_ms),
 			unit: 'duration',
 			revealAt: 3,
 		},

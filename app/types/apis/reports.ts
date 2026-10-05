@@ -13,13 +13,13 @@ const reportSessionSchema = z.object({
 	id: uuidSchema,
 	period: z.object({ started_at: timestampSchema, ended_at: timestampSchema.nullable() }),
 	word: wordRefSchema,
-	learning: z.object({ duration_ms: durationSchema }),
+	active: z.object({ duration_ms: durationSchema }),
 	judgment: z.object({ status: judgmentStatusSchema }),
 });
 
 export const reportSchema = z.object({
 	period: z.object({ unit: reportPeriodSchema, start: localDateSchema, end: localDateSchema }),
-	learning: z.object({
+	active: z.object({
 		duration_ms: durationSchema,
 		trend: z.array(z.object({ start: timestampSchema, duration_ms: durationSchema })),
 		words: z.array(z.object({ word: wordRefSchema, duration_ms: durationSchema })),
