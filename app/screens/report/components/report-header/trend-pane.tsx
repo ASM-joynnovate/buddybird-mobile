@@ -27,7 +27,7 @@ import { latestStart, shiftedStart } from '@/utils/report-period';
 
 import { Copy } from '@/components/ui/copy';
 
-type TrendBucket = Report['learning']['trend'][number];
+type TrendBucket = Report['active']['trend'][number];
 
 /** 구간별 학습 시간을 0부터 시작하는 누적 학습 시간 목록으로 변환하는 함수 */
 const cumulativeTotals = (trend: TrendBucket[]) => {
@@ -84,10 +84,10 @@ const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 		return <TrendPaneSkeleton />;
 	}
 
-	const trend = reportData.learning.trend;
+	const trend = reportData.active.trend;
 	const startedBucketCount = trend.filter((bucket) => dayjs(bucket.start).isBefore(dayjs())).length;
 	const currentTotalsMs = cumulativeTotals(trend).slice(0, startedBucketCount + 1);
-	const previousTotalsMs = cumulativeTotals(previousReportData.learning.trend);
+	const previousTotalsMs = cumulativeTotals(previousReportData.active.trend);
 	const shownIndex = scrubIndex ?? startedBucketCount;
 	const previousShownMs = previousTotalsMs[Math.min(shownIndex, previousTotalsMs.length - 1)];
 	const changeMs = currentTotalsMs[shownIndex] - previousShownMs;
@@ -95,8 +95,8 @@ const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 
 	const periodName = start === latestStart(period) ? t(`report.periods.${period}`) : t('report.selectedPeriod');
 	const previousPeriodName = t(`report.previousPeriods.${period}`);
-	const totalLabel = formatDuration(reportData.learning.duration_ms, locale);
-	const previousTotalLabel = formatDuration(previousReportData.learning.duration_ms, locale);
+	const totalLabel = formatDuration(reportData.active.duration_ms, locale);
+	const previousTotalLabel = formatDuration(previousReportData.active.duration_ms, locale);
 	const changeLabel =
 		changeMs === 0
 			? t('report.noChange')

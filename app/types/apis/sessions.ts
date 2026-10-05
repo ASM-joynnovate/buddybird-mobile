@@ -65,12 +65,12 @@ export const sessionSoundSchema = z.object({
 	judgment: z.object({ word_id: uuidSchema.nullable() }).nullable(),
 });
 
-const learningSchema = z.object({ duration_ms: z.number().int().nonnegative() });
+const activeSchema = z.object({ duration_ms: z.number().int().nonnegative() });
 
 export const sessionSummarySchema = z.object({
-	word: z.object({ id: uuidSchema, name: z.string(), learning: learningSchema }),
-	session: z.object({ play_count: z.number().int().nonnegative(), learning: learningSchema }),
-	total: z.object({ learning: learningSchema }),
+	word: z.object({ id: uuidSchema, name: z.string(), active: activeSchema }),
+	session: z.object({ play_count: z.number().int().nonnegative(), active: activeSchema }),
+	total: z.object({ active: activeSchema }),
 });
 
 export type Phase = z.infer<typeof phaseSchema>;

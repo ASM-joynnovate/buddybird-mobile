@@ -84,7 +84,7 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const allTimeSentence: SummarySentence = {
 		lead: t('session.summary.allTime.lead'),
 		tail: t('session.summary.allTime.tail'),
-		value: total.learning.duration_ms,
+		value: total.active.duration_ms,
 		unit: 'duration',
 		metric: 'allTime',
 	};
@@ -101,7 +101,7 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 		{
 			lead: t('session.summary.wordTime.lead', { word: word.name }),
 			tail: t('session.summary.wordTime.tail'),
-			value: word.learning.duration_ms,
+			value: word.active.duration_ms,
 			unit: 'duration',
 			metric: 'wordTime',
 		},

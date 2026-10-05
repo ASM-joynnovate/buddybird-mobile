@@ -52,8 +52,8 @@ const ReportHeader = ({ report, previousReport }: Props) => {
 					<WordBars
 						key={report.period.start}
 						period={report.period.unit}
-						words={report.learning.words}
-						previousWords={previousReport.learning.words}
+						words={report.active.words}
+						previousWords={previousReport.active.words}
 					/>
 
 					<View style={styles.band} />
