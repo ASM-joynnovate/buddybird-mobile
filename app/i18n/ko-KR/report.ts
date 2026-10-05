@@ -44,7 +44,7 @@ export const report: ReportMessages = {
 	empty: '이 기간에는 학습 기록이 없어요',
 	detail: {
 		judging: '앵무새가 따라 한 소리를 확인하고 있어요.\n화면을 아래로 당기면 새로 불러와요.',
-		empty: '이 학습에서 앵무새가 따라 한 소리가 없어요.',
+		empty: '학습 중 감지된 소리가 없어요.',
 		playSound: '{{time}}에 감지한 소리 재생',
 		soundExpired: '보관 기간이 지나 들을 수 없어요',
 		shareError: '소리를 공유하지 못했어요. 다시 시도해 주세요.',
