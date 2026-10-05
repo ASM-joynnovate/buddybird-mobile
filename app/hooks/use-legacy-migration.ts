@@ -1,8 +1,11 @@
 import { useCallback, useRef } from 'react';
 
-import { useCreateParrot, useUploadParrotPhoto } from '@/hooks/apis/parrots';
-import { useAddWordRecording, useCreateWord } from '@/hooks/apis/words';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { useCreateParrot, useUploadParrotPhoto } from '@/hooks/apis/parrots';
+import { getWordListOptions, useAddWordRecording, useCreateWord, useUploadWordRecording } from '@/hooks/apis/words';
+
+import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS } from '@/config';
 import type { LegacyWord } from '@/services/migration/legacy/words';
 import {
 	acceptLegacyUpload,
@@ -16,13 +19,17 @@ import {
 	withoutIdempotencyKey,
 } from '@/services/migration/upload-legacy';
 import type { LegacyProfile } from '@/utils/legacy';
+import { wait } from '@/utils/wait';
 
 /** v1 데이터를 서버에 올리는 Hook */
 const useLegacyMigration = () => {
+	const queryClient = useQueryClient();
+
 	const { mutateAsync: createParrot } = useCreateParrot();
 	const { mutateAsync: uploadParrotPhoto } = useUploadParrotPhoto();
 	const { mutateAsync: createWord } = useCreateWord();
 	const { mutateAsync: addWordRecording } = useAddWordRecording();
+	const { mutateAsync: uploadWordRecording } = useUploadWordRecording();
 
 	const uploadPromiseRef = useRef<Promise<void> | undefined>(undefined);
 
@@ -99,9 +106,32 @@ const useLegacyMigration = () => {
 				idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
 			}));
 
-			await addWordRecording({ id: wordId, uri: recordingUri });
+			const upload = await addWordRecording({ id: wordId, uri: recordingUri });
+
+			await uploadWordRecording({ upload, uri: recordingUri });
 
 			recordWordProgress(word.id, { wordId, done: true });
+		};
+
+		/** pending 녹음이 없을 때까지 단어 목록을 다시 조회하는 함수 */
+		const waitForRecordings = async () => {
+			let intervalMs = UPLOAD_POLL_INTERVAL_MS;
+
+			while (true) {
+				const latestWordList = await queryClient.query({ ...getWordListOptions(), staleTime: 0 });
+
+				if (
+					!latestWordList.some((word) =>
+						word.recordings.some((recording) => recording.audio_file.status === 'pending'),
+					)
+				) {
+					return;
+				}
+
+				await wait(intervalMs);
+
+				intervalMs = Math.min(intervalMs * 2, UPLOAD_POLL_MAX_INTERVAL_MS);
+			}
 		};
 
 		if (uploadPromiseRef.current) {
@@ -124,12 +154,14 @@ const useLegacyMigration = () => {
 			for (const word of legacyUpload.words) {
 				await uploadWord(word);
 			}
+
+			await waitForRecordings();
 		})().finally(() => {
 			uploadPromiseRef.current = undefined;
 		});
 
 		return uploadPromiseRef.current;
-	}, [createParrot, uploadParrotPhoto, createWord, addWordRecording]);
+	}, [queryClient, createParrot, uploadParrotPhoto, createWord, addWordRecording, uploadWordRecording]);
 
 	return { uploadLegacy };
 };

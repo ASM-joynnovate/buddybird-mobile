@@ -36,6 +36,7 @@ import type { EditorRecording, NewRecording } from '@/screens/words/components/r
 import WordEditorSkeleton from '@/screens/words/components/word-editor-skeleton';
 import { reportError, track } from '@/services/telemetry/client';
 import { uploadedRecordings } from '@/utils/uploaded-recordings';
+import { wait } from '@/utils/wait';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
@@ -49,12 +50,6 @@ import { TextField } from '@/components/ui/text-field';
 type SaveStep = 'saving' | 'uploading' | 'processing';
 
 type DeleteTarget = { kind: 'word' } | { kind: 'recording'; recording: EditorRecording; name: string };
-
-/** ms 동안 대기하는 함수 */
-const wait = (ms: number) =>
-	new Promise<void>((resolve) => {
-		setTimeout(resolve, ms);
-	});
 
 /** 서버 녹음을 편집 화면에서 사용할 녹음으로 변환하는 함수 */
 const toEditorRecording = (serverRecording: Recording): EditorRecording => ({
