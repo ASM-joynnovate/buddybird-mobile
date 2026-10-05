@@ -42,12 +42,11 @@ export const words: WordsMessages = {
 			recording: 'Recording',
 		},
 		distance: {
-			title: 'Hold the phone <b>20 to 30 cm</b> from your mouth',
-			scene: 'a person holding a phone 20 to 30 cm from their mouth',
-			length: '20–30 cm',
+			title: 'Point the <b>bottom of your phone</b> toward your mouth and hold it close, like on a call',
+			scene: 'a phone held with its bottom mic toward the mouth, recording the voice as a waveform',
 		},
 		highVoice: {
-			title: 'Speak clearly in a <b>high voice</b>',
+			title: 'Say it clearly in a <b>high pitch</b> so your parrot can copy it easily',
 			scene: 'a voice level rising high and a Hello speech bubble',
 			speech: 'Hello!',
 		},
