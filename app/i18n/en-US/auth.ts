@@ -13,12 +13,8 @@ export const auth: AuthMessages = {
 	},
 	completing: 'Finishing your BuddyBird login',
 	existingAccount: {
-		title: {
-			google: 'This Google account is already registered.',
-			kakao: 'This Kakao account is already registered.',
-			apple: 'This Apple account is already registered.',
-		},
-		body: "Tap again to log in to that account. What you've recorded so far won't be moved.",
+		title: 'You already have an account',
+		message: "Log in to that account? What you've recorded so far won't be moved.",
 	},
 	signInError: "Couldn't log in. Check your connection and tap a login button to try again.",
 	lastLogin: 'Last used',

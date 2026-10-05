@@ -79,6 +79,11 @@ const callbackParam = (callbackUrl: URL, name: string) => {
 	return callbackUrl.searchParams.get(name) ?? new URLSearchParams(callbackUrl.hash.slice(1)).get(name);
 };
 
+/** 이미 가입한 계정이 있어 연결하지 못했는지 확인하는 함수 */
+const isExistingAccountError = (errorCode?: string | null) => {
+	return errorCode === 'identity_already_exists' || errorCode === 'email_exists';
+};
+
 /** 돌아온 주소의 인증 코드를 세션으로 교환하는 함수 */
 const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 	const providerError = callbackParam(callbackUrl, 'error');
@@ -143,8 +148,8 @@ export const linkAccount = async (provider: LoginProvider) => {
 
 		const { error } = await getSupabase().auth.linkIdentity(idTokenCredentials);
 
-		if (error?.code === 'identity_already_exists') {
-			return 'identityExists';
+		if (isExistingAccountError(error?.code)) {
+			return 'accountExists';
 		}
 
 		if (error) {
@@ -169,8 +174,8 @@ export const linkAccount = async (provider: LoginProvider) => {
 		return 'cancelled';
 	}
 
-	if (callbackParam(callbackUrl, 'error_code') === 'identity_already_exists') {
-		return 'identityExists';
+	if (isExistingAccountError(callbackParam(callbackUrl, 'error_code'))) {
+		return 'accountExists';
 	}
 
 	return (await exchangeCallback(callbackUrl, provider)) ? 'linked' : 'cancelled';

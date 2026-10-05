@@ -26,6 +26,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useMessageStore } from '@/stores/message';
 import { colors, contentMaxWidth, font } from '@/theme';
 
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Copy } from '@/components/ui/copy';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
@@ -138,8 +139,10 @@ const LoginScreen = () => {
 				return;
 			}
 
-			// 이미 가입한 계정 안내를 본 뒤 같은 버튼을 다시 누르면 그 계정으로 로그인
+			// 이미 가입한 계정 다이얼로그에서 로그인을 누르면 그 계정으로 로그인
 			if (existingAccountProvider === provider) {
+				setExistingAccountProvider(null);
+
 				try {
 					await mutateAsync();
 				} catch {
@@ -155,8 +158,8 @@ const LoginScreen = () => {
 
 			const linkResult = await linkAccount(provider);
 
-			// 첫 번째 브라우저가 닫히는 중에는 새 브라우저를 열 수 없으므로 안내만 표시
-			if (linkResult === 'identityExists') {
+			// 첫 번째 브라우저가 닫히는 중에는 새 브라우저를 열 수 없으므로 다이얼로그로 확인한 뒤 로그인
+			if (linkResult === 'accountExists') {
 				setExistingAccountProvider(provider);
 			} else if (linkResult === 'linked') {
 				navigation.goBack();
@@ -171,6 +174,12 @@ const LoginScreen = () => {
 			signingInRef.current = false;
 
 			setLoginAttempt({ provider, pending: false });
+		}
+	};
+
+	const handleSignInExistingAccount = () => {
+		if (existingAccountProvider) {
+			void handleSignIn(existingAccountProvider);
 		}
 	};
 
@@ -261,12 +270,22 @@ const LoginScreen = () => {
 						loadingProvider={loadingProvider}
 						disabled={disabled}
 						progressLabel={progressLabel}
-						existingAccountProvider={existingAccountProvider}
 						introAnimated={fromOnboarding}
 						onSignIn={(provider) => void handleSignIn(provider)}
 					/>
 				</View>
 			)}
+
+			<ConfirmDialog
+				visible={existingAccountProvider !== null}
+				text={{
+					title: t('auth.existingAccount.title'),
+					message: t('auth.existingAccount.message'),
+					confirm: t('auth.signIn'),
+				}}
+				onConfirm={handleSignInExistingAccount}
+				onClose={() => setExistingAccountProvider(null)}
+			/>
 		</View>
 	);
 };
