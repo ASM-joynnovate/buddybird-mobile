@@ -2,7 +2,7 @@ import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
-export const noticeSchema = z.object({
+export const announcementSchema = z.object({
 	id: uuidSchema,
 	title: z.string(),
 	body: z.string().nullable(),
@@ -12,4 +12,4 @@ export const noticeSchema = z.object({
 	images: z.array(z.object({ id: uuidSchema, url: z.string() })),
 });
 
-export type Notice = z.infer<typeof noticeSchema>;
+export type Announcement = z.infer<typeof announcementSchema>;

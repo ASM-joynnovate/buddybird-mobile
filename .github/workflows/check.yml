@@ -64,6 +64,7 @@ jobs:
             native:
               - modules/**
               - plugins/**
+              - targets/**
               - ios/**
               - android/**
               - app.config.ts

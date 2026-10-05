@@ -1,20 +1,22 @@
-import type { NotificationKind } from '@/types/apis/notifications';
-
-import { localDate } from '@/utils/date';
-
 interface OpenedNotification {
-	kind: NotificationKind;
-	report_date?: string | null;
-	sent_at: string;
+	kind: string;
+	notification_id?: string;
+	data_id?: string | null;
 }
 
-/** 알림으로 열 리포트 화면 경로를 반환하는 함수 */
-export const notificationPath = ({ kind, report_date, sent_at }: OpenedNotification) => {
-	if (kind === 'streak') {
-		return '/report?source=notification';
+/** 알림으로 열 화면 경로를 반환하는 함수 */
+export const notificationPath = ({ kind, notification_id, data_id }: OpenedNotification) => {
+	if (kind === 'report') {
+		return data_id ? `/sessions/${data_id}?source=notification` : null;
 	}
 
-	const date = kind === 'mimicry' ? localDate(sent_at) : report_date;
+	if (kind === 'announcement' && data_id) {
+		return `/announcements/${data_id}`;
+	}
 
-	return date ? `/report?period=day&date=${date}&source=notification` : '/report?period=day&source=notification';
+	if (kind === 'marketing') {
+		return '/settings/notifications';
+	}
+
+	return notification_id ? `/notifications/${notification_id}` : null;
 };

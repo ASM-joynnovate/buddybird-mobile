@@ -4,8 +4,6 @@ import { FlatList, StyleSheet, View } from 'react-native';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
-import type { ReportStackParamList } from '@/types/navigation';
-
 import { getReportOptions } from '@/hooks/apis/reports';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
@@ -13,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { formatMonthDayWeekday } from '@/i18n/format';
 
-import { type RouteProp, useIsFocused, useRoute } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import ReportHeader from '@/screens/report/components/report-header';
@@ -23,7 +21,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
 import { periodsBetween } from '@/utils/date';
-import { latestStart, periodSelectionFromParams, shiftedStart } from '@/utils/report-period';
+import { latestStart, shiftedStart } from '@/utils/report-period';
 
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -32,11 +30,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 const ReportContent = () => {
 	const { t } = useTranslation();
 
-	const route = useRoute<RouteProp<ReportStackParamList, 'Report'>>();
 	const screenFocused = useIsFocused();
 
 	const trackedPeriodRef = useRef<string | null>(null);
-	const trackedNotificationParamsRef = useRef<object | null>(null);
 
 	const [refetchingByUser, setRefetchingByUser] = useState(false);
 
@@ -85,31 +81,15 @@ const ReportContent = () => {
 		}
 
 		const shownPeriodKey = `${period}:${selectedStart}`;
-		const openedFromNotification =
-			route.params?.source === 'notification' && trackedNotificationParamsRef.current !== route.params;
 
-		if (!selectedPeriodShown || (trackedPeriodRef.current === shownPeriodKey && !openedFromNotification)) {
+		if (!selectedPeriodShown || trackedPeriodRef.current === shownPeriodKey) {
 			return;
 		}
 
-		if (openedFromNotification) {
-			const notificationPeriod = periodSelectionFromParams(route.params);
-
-			if (notificationPeriod.period !== period || notificationPeriod.start !== selectedStart) {
-				return;
-			}
-		}
-
 		trackedPeriodRef.current = shownPeriodKey;
-		trackedNotificationParamsRef.current = route.params ?? null;
 
-		track('report_viewed', {
-			period,
-			periods_ago: periodsAgo,
-			source: openedFromNotification ? 'notification' : 'tab',
-			session_count: reportData.sessions.length,
-		});
-	}, [period, selectedStart, screenFocused, selectedPeriodShown, periodsAgo, reportData, route.params]);
+		track('report_viewed', { period, periods_ago: periodsAgo, session_count: reportData.sessions.length });
+	}, [period, selectedStart, screenFocused, selectedPeriodShown, periodsAgo, reportData]);
 
 	return (
 		<FlatList

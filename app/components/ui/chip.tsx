@@ -3,16 +3,18 @@ import { type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
+import { DotBadge } from '@/components/ui/dot-badge';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
 	selected?: boolean;
+	showDot?: boolean;
 	onPress: () => void;
 	style?: StyleProp<ViewStyle>;
 }
 
-export const Chip = ({ label, selected, onPress, style }: Props) => {
+export const Chip = ({ label, selected, showDot, onPress, style }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="button"
@@ -29,6 +31,7 @@ export const Chip = ({ label, selected, onPress, style }: Props) => {
 			<Copy numberOfLines={1} style={[styles.chipText, selected && styles.selectedText]}>
 				{label}
 			</Copy>
+			{showDot && <DotBadge />}
 		</PressableSurface>
 	);
 };
@@ -37,8 +40,10 @@ const styles = StyleSheet.create({
 	shell: { flexShrink: 0 },
 	chip: {
 		minHeight: 32,
+		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
+		gap: 6,
 		paddingHorizontal: 14,
 		paddingVertical: 4,
 	},

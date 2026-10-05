@@ -6,9 +6,11 @@ export const settings: SettingsMessages = {
 	notifications: {
 		title: '알림',
 		all: '전체 알림',
-		notice: '공지 알림',
+		announcement: '공지 알림',
 		report: '리포트 알림',
 		marketing: '마케팅 알림',
+		marketingNight: '야간 마케팅 알림',
+		marketingNightHours: '밤 9시~아침 8시',
 		permissionOff: '알림 권한이 꺼져 있어 알림을 받을 수 없어요',
 	},
 	general: {
@@ -24,7 +26,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: '지원',
 		feedback: '피드백 보내기',
-		notices: '공지',
 		consents: '약관 동의',
 		version: '앱 버전 {{version}}',
 	},
@@ -38,11 +39,6 @@ export const settings: SettingsMessages = {
 		message: '버디가 많이 아쉬워할 거예요. 정말 떠나시겠어요?',
 		warning: '탈퇴하면 되돌릴 수 없어요.',
 		confirm: '탈퇴하기',
-	},
-	notices: {
-		title: '공지',
-		empty: '게시 중인 공지가 없어요',
-		unread: '읽지 않음',
 	},
 	consents: {
 		title: '약관 동의',

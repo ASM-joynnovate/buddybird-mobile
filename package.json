@@ -9,10 +9,10 @@
 		"android": "expo run:android",
 		"prebuild": "expo prebuild",
 		"typecheck": "tsc --noEmit",
-		"lint": "oxlint app plugins *.js *.ts *.tsx",
-		"lint:fix": "oxlint --fix app plugins *.js *.ts *.tsx",
-		"format": "oxfmt app plugins docs *.json *.js *.ts *.tsx",
-		"format:check": "oxfmt --check app plugins docs *.json *.js *.ts *.tsx",
+		"lint": "oxlint app plugins targets *.js *.ts *.tsx",
+		"lint:fix": "oxlint --fix app plugins targets *.js *.ts *.tsx",
+		"format": "oxfmt app plugins targets docs *.json *.js *.ts *.tsx",
+		"format:check": "oxfmt --check app plugins targets docs *.json *.js *.ts *.tsx",
 		"check:deps": "depcruise app --config .dependency-cruiser.cjs",
 		"test": "node --import tsx --test \"app/**/*.test.ts\"",
 		"check": "yarn typecheck && yarn lint && yarn format:check && yarn check:deps && npx expo install --check",
@@ -21,6 +21,7 @@
 		"postinstall": "node .husky/install.mjs"
 	},
 	"dependencies": {
+		"@bacons/apple-targets": "^5.0.0",
 		"@gorhom/bottom-sheet": "^5.2.14",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"@react-native-community/netinfo": "12.0.1",

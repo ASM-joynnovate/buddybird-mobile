@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { Image, StyleSheet, View } from 'react-native';
 
-import { useGetNotice, useReadNotice } from '@/hooks/apis/notices';
+import { useGetAnnouncement, useReadAnnouncement } from '@/hooks/apis/announcements';
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,47 +15,47 @@ import { Copy } from '@/components/ui/copy';
 import { Title } from '@/components/ui/title';
 
 interface Props {
-	noticeId: string;
+	announcementId: string;
 }
 
 /**
  * 공지 상세 컴포넌트
- * @param noticeId 공지 ID
+ * @param announcementId 공지 ID
  */
-const NoticeContent = ({ noticeId }: Props) => {
+const AnnouncementContent = ({ announcementId }: Props) => {
 	const { t } = useTranslation();
 
-	const { data: noticeData } = useGetNotice({ id: noticeId });
+	const { data: announcementData } = useGetAnnouncement({ id: announcementId });
 
-	const { mutate } = useReadNotice();
+	const { mutate } = useReadAnnouncement();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const alreadyRead = noticeData.is_read;
+	const alreadyRead = announcementData.is_read;
 
 	/** 읽지 않은 공지를 열면 읽음 처리 */
 	useEffect(() => {
 		if (!alreadyRead) {
-			mutate({ id: noticeId });
+			mutate({ id: announcementId });
 		}
-	}, [alreadyRead, mutate, noticeId]);
+	}, [alreadyRead, mutate, announcementId]);
 
 	return (
-		<View style={styles.noticeContainer}>
+		<View style={styles.announcementContainer}>
 			<View style={styles.headingContainer}>
-				<Title>{noticeData.title}</Title>
-				<Copy style={styles.date}>{formatMonthDay(noticeData.starts_at, locale)}</Copy>
+				<Title>{announcementData.title}</Title>
+				<Copy style={styles.date}>{formatMonthDay(announcementData.starts_at, locale)}</Copy>
 			</View>
 
-			{!!noticeData.body && <Copy style={styles.text}>{noticeData.body}</Copy>}
-			{noticeData.images.map((image, index) => (
+			{!!announcementData.body && <Copy style={styles.text}>{announcementData.body}</Copy>}
+			{announcementData.images.map((image, index) => (
 				<Image
 					key={`${image.url}-${index}`}
 					source={{ uri: image.url }}
 					style={styles.image}
 					resizeMode="contain"
 					accessibilityIgnoresInvertColors
-					accessibilityLabel={t('home.notice.image', { index: index + 1 })}
+					accessibilityLabel={t('home.announcement.image', { index: index + 1 })}
 				/>
 			))}
 		</View>
@@ -63,7 +63,7 @@ const NoticeContent = ({ noticeId }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	noticeContainer: { gap: 20 },
+	announcementContainer: { gap: 20 },
 	headingContainer: { gap: 6 },
 	date: { fontSize: 13, color: colors.muted },
 	text: { lineHeight: 24 },
@@ -75,4 +75,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default NoticeContent;
+export default AnnouncementContent;

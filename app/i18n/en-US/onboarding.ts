@@ -59,6 +59,7 @@ export const onboarding: OnboardingMessages = {
 			events: 'Events',
 		},
 		hint: 'You can change this anytime in Settings > Notifications.',
+		night: 'Also notify me from 9 PM to 8 AM',
 		accept: 'Yes, notify me',
 		decline: 'No thanks',
 	},

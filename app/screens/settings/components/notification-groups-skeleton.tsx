@@ -11,9 +11,10 @@ import { ItemGroup } from '@/components/ui/item/group';
 import { itemStyles } from '@/components/ui/item/styles';
 
 const KIND_LABELS = [
-	'settings.notifications.notice',
+	'settings.notifications.announcement',
 	'settings.notifications.report',
 	'settings.notifications.marketing',
+	'settings.notifications.marketingNight',
 ] as const;
 
 /** 알림 설정을 불러오는 동안 보이는 컴포넌트 */

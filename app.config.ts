@@ -134,6 +134,7 @@ const config: ExpoConfig = {
 		],
 		'expo-asset',
 		'expo-web-browser',
+		'@bacons/apple-targets',
 	],
 	extra: {
 		eas: { projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e' },

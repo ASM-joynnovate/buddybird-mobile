@@ -1,10 +1,10 @@
 import { FlatList, StyleSheet, View } from 'react-native';
 
-import type { Notice } from '@/types/apis/notices';
+import type { Announcement } from '@/types/apis/announcements';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-import { useGetNoticeList } from '@/hooks/apis/notices';
+import { useGetAnnouncementList } from '@/hooks/apis/announcements';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,34 +23,38 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 /** 공지 목록 컴포넌트 */
-const NoticeList = () => {
+const AnnouncementList = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const { data: noticeListData, fetchNextPage, hasNextPage } = useGetNoticeList();
+	const { data: announcementListData, fetchNextPage, hasNextPage } = useGetAnnouncementList();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	/** 공지 항목 렌더링 함수 */
-	const renderItem = ({ item: notice }: { item: Notice }) => {
-		const dateText = formatMonthDay(notice.starts_at, locale);
+	const renderItem = ({ item: announcement }: { item: Announcement }) => {
+		const dateText = formatMonthDay(announcement.starts_at, locale);
 
 		return (
 			<PressableSurface
-				accessibilityLabel={joinLabel(notice.title, dateText, !notice.is_read && t('settings.notices.unread'))}
+				accessibilityLabel={joinLabel(
+					announcement.title,
+					dateText,
+					!announcement.is_read && t('home.announcementList.unread'),
+				)}
 				depth="low"
-				onPress={() => navigation.navigate('NoticeDetail', { noticeId: notice.id })}
+				onPress={() => navigation.navigate('AnnouncementDetail', { announcementId: announcement.id })}
 				contentStyle={styles.card}
 			>
 				<View style={styles.textContainer}>
 					<Copy style={styles.title} numberOfLines={2}>
-						{notice.title}
+						{announcement.title}
 					</Copy>
 					<Copy style={styles.date}>{dateText}</Copy>
 				</View>
 
-				{!notice.is_read && <DotBadge />}
+				{!announcement.is_read && <DotBadge />}
 			</PressableSurface>
 		);
 	};
@@ -63,12 +67,12 @@ const NoticeList = () => {
 
 	return (
 		<FlatList
-			data={noticeListData.pages.flatMap((noticePage) => noticePage.data)}
-			keyExtractor={(notice) => notice.id}
+			data={announcementListData.pages.flatMap((announcementPage) => announcementPage.data)}
+			keyExtractor={(announcement) => announcement.id}
 			renderItem={renderItem}
 			onEndReached={handleFetchNextPage}
 			contentContainerStyle={styles.list}
-			ListEmptyComponent=<EmptyState message={t('settings.notices.empty')} />
+			ListEmptyComponent=<EmptyState message={t('home.announcementList.empty')} />
 		/>
 	);
 };
@@ -81,4 +85,4 @@ const styles = StyleSheet.create({
 	date: { fontSize: 13, color: colors.muted },
 });
 
-export default NoticeList;
+export default AnnouncementList;

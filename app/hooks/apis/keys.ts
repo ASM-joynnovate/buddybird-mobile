@@ -27,15 +27,19 @@ export const apiKeys = {
 		summary: (id: string) => [...userKeyPrefix(), 'sessions', id, 'summary'] as const,
 	},
 	home: () => [...userKeyPrefix(), 'home'] as const,
-	notifications: () => [...userKeyPrefix(), 'notifications'] as const,
+	notifications: {
+		all: () => [...userKeyPrefix(), 'notifications'] as const,
+		list: () => [...userKeyPrefix(), 'notifications', 'list'] as const,
+		detail: (id: string) => [...userKeyPrefix(), 'notifications', id] as const,
+	},
 	reports: {
 		all: () => [...userKeyPrefix(), 'reports'] as const,
 		detail: (period: string, start: string) => [...userKeyPrefix(), 'reports', period, start] as const,
 	},
-	notices: {
-		all: () => [...userKeyPrefix(), 'notices'] as const,
-		list: () => [...userKeyPrefix(), 'notices', 'list'] as const,
-		detail: (id: string) => [...userKeyPrefix(), 'notices', id] as const,
+	announcements: {
+		all: () => [...userKeyPrefix(), 'announcements'] as const,
+		list: () => [...userKeyPrefix(), 'announcements', 'list'] as const,
+		detail: (id: string) => [...userKeyPrefix(), 'announcements', id] as const,
 	},
 	recordings: {
 		duration: (id: string) => [...userKeyPrefix(), 'recordings', id, 'duration'] as const,

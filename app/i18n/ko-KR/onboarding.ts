@@ -59,6 +59,7 @@ export const onboarding: OnboardingMessages = {
 			events: '이벤트',
 		},
 		hint: '설정의 알림에서 언제든 바꿀 수 있어요.',
+		night: '밤 9시~아침 8시에도 받기',
 		accept: '받을게요',
 		decline: '괜찮아요',
 	},

@@ -54,14 +54,13 @@ export interface AnalyticsEvents {
 	report_viewed: {
 		period: ReportPeriod;
 		periods_ago: number;
-		source: 'tab' | 'notification';
 		session_count: number;
 	};
-	session_detail_viewed: { session_id: string; source: 'report' | 'summary' };
+	session_detail_viewed: { session_id: string; source: 'report' | 'summary' | 'notification' };
 	mimicry_played: { session_id: string };
 	mimicry_shared: { session_id: string };
 	notification_opened: {
-		kind: 'mimicry' | 'daily_summary' | 'streak';
+		kind: string;
 		from: 'push' | 'list';
 	};
 	language_changed: { from: string; to: string };

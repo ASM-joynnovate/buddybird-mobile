@@ -4,9 +4,11 @@ export type SettingsMessages = {
 	notifications: {
 		title: string;
 		all: string;
-		notice: string;
+		announcement: string;
 		report: string;
 		marketing: string;
+		marketingNight: string;
+		marketingNightHours: string;
 		permissionOff: string;
 	};
 	general: {
@@ -22,7 +24,6 @@ export type SettingsMessages = {
 	support: {
 		title: string;
 		feedback: string;
-		notices: string;
 		consents: string;
 		version: string;
 	};
@@ -36,11 +37,6 @@ export type SettingsMessages = {
 		message: string;
 		warning: string;
 		confirm: string;
-	};
-	notices: {
-		title: string;
-		empty: string;
-		unread: string;
 	};
 	consents: {
 		title: string;
