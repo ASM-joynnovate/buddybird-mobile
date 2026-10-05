@@ -1,32 +1,39 @@
 import { createAudioPlayer } from 'expo-audio';
-import { File, Paths } from 'expo-file-system';
+import { randomUUID } from 'expo-crypto';
+import { Directory, File, Paths } from 'expo-file-system';
 
 import { SECOND } from '@/config/units';
 
 /** 소리 파일의 재생 길이를 측정하는 함수 */
 export const measureAudioDuration = async (url: string) => {
-	const file = await File.downloadFileAsync(url, Paths.cache, { idempotent: true });
-	const player = createAudioPlayer(file.uri);
+	const directory = new Directory(Paths.cache, 'audio-durations', randomUUID());
+
+	directory.create({ intermediates: true });
 
 	try {
-		const seconds = await new Promise<number>((resolve, reject) => {
-			const subscription = player.addListener('playbackStatusUpdate', (status) => {
-				if (status.isLoaded) {
-					subscription.remove();
+		const file = await File.downloadFileAsync(url, directory);
+		const player = createAudioPlayer(file.uri);
 
-					resolve(status.duration);
-				} else if (status.playbackState === 'failed') {
-					subscription.remove();
+		try {
+			const seconds = await new Promise<number>((resolve, reject) => {
+				const subscription = player.addListener('playbackStatusUpdate', (status) => {
+					if (status.isLoaded) {
+						subscription.remove();
 
-					reject(new Error('Recording could not be loaded'));
-				}
+						resolve(status.duration);
+					} else if (status.playbackState === 'failed') {
+						subscription.remove();
+
+						reject(new Error('Recording could not be loaded'));
+					}
+				});
 			});
-		});
 
-		return Math.round(seconds * SECOND);
+			return Math.round(seconds * SECOND);
+		} finally {
+			player.remove();
+		}
 	} finally {
-		player.remove();
-
-		file.delete();
+		directory.delete();
 	}
 };
