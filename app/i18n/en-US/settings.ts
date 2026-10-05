@@ -53,5 +53,9 @@ export const settings: SettingsMessages = {
 		thisDevice: 'This device',
 		runningSession: 'Session running',
 		lastSeen: 'Last seen {{time}}',
+		delete: 'Delete {{name}}',
+		deleteMessage: 'This device will stop getting notifications.',
+		sessionEnds: 'The session running on this device will end.',
+		deleteError: "We couldn't delete the device. Please try again.",
 	},
 };

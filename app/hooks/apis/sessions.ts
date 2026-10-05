@@ -164,7 +164,10 @@ export const useSendHeartbeat = () => {
 		retry: false,
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
 		onError: (error) => {
-			if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+			if (
+				error instanceof ApiError &&
+				(error.code === 'SESSION__NOT_RUNNING' || error.code === 'DEVICE__NOT_REGISTERED')
+			) {
 				return;
 			}
 

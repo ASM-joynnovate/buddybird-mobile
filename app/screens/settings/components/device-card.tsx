@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import type { LinkedDevice } from '@/types/device';
@@ -6,10 +8,14 @@ import { useTranslation } from 'react-i18next';
 
 import { formatTimeOrDateTime } from '@/i18n/format';
 
+import { TrashIcon } from 'lucide-react-native';
+
+import DeleteDeviceDialog from '@/screens/settings/components/delete-device-dialog';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
+import { IconButton } from '@/components/ui/icon-button';
 import { Card } from '@/components/ui/surface/card';
 import { Tag } from '@/components/ui/tag';
 
@@ -25,6 +31,8 @@ const DeviceCard = ({ device }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
+
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	return (
 		<Card contentStyle={styles.card}>
@@ -49,6 +57,20 @@ const DeviceCard = ({ device }: Props) => {
 					</View>
 				)}
 			</View>
+
+			{!device.isThisDevice && (
+				<View style={styles.deleteButton}>
+					<IconButton
+						icon={TrashIcon}
+						label={t('settings.devices.delete', { name: device.model })}
+						variant="muted"
+						size="small"
+						onPress={() => setDeleteDialogOpen(true)}
+					/>
+				</View>
+			)}
+
+			<DeleteDeviceDialog visible={deleteDialogOpen} device={device} onClose={() => setDeleteDialogOpen(false)} />
 		</Card>
 	);
 };
@@ -59,6 +81,7 @@ const styles = StyleSheet.create({
 	name: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	detail: { fontSize: 13, color: colors.muted },
 	tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+	deleteButton: { marginTop: -8, marginRight: -8 },
 });
 
 export default DeviceCard;
