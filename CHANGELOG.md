@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.6.1...v2.0.0) (2026-10-05)
+
+
+### Bug Fixes
+
+* **app:** finish the migration after the recordings are uploaded [BB-605] ([#198](https://github.com/ASM-joynnovate/buddybird-mobile/issues/198)) ([8026292](https://github.com/ASM-joynnovate/buddybird-mobile/commit/80262920bcc4be9b221f90d0ec1ce2f025d8a6ac))
+* **app:** show the whole mic icon in the recording guide [BB-604] ([#196](https://github.com/ASM-joynnovate/buddybird-mobile/issues/196)) ([f2089c1](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f2089c178677b7423f0c36ce74cdf95854ccbe2f))
+
 ## [1.6.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.6.0...v1.6.1) (2026-10-05)
 
 
