@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.6.0...v1.6.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **app:** declare GoogleUtilities in both iOS targets to fix the archive build [BB-601] ([#194](https://github.com/ASM-joynnovate/buddybird-mobile/issues/194)) ([16fd51b](https://github.com/ASM-joynnovate/buddybird-mobile/commit/16fd51bb0c79bd69d3566838f97b8287c39fe333))
+
 ## [1.6.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.5.0...v1.6.0) (2026-10-05)
 
 
