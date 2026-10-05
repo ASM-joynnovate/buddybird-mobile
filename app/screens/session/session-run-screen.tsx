@@ -288,7 +288,10 @@ const SessionRunScreen = () => {
 			})
 				.then((heartbeat) => engineRef.current?.acknowledgeSegments(heartbeat.acknowledged, learningSegments))
 				.catch((error: unknown) => {
-					if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+					if (
+						error instanceof ApiError &&
+						(error.code === 'SESSION__NOT_RUNNING' || error.code === 'DEVICE__NOT_REGISTERED')
+					) {
 						void latestInputRef.current.endSession('server');
 					}
 				});
