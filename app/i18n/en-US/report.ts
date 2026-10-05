@@ -44,7 +44,7 @@ export const report: ReportMessages = {
 	empty: 'No learning records in this period',
 	detail: {
 		judging: 'Checking which sounds your parrot mimicked.\nPull down to refresh.',
-		empty: "Your parrot didn't mimic any words in this session.",
+		empty: 'No sounds were detected during this session.',
 		playSound: 'Play sound detected at {{time}}',
 		soundExpired: 'This sound is past its storage period',
 		shareError: "We couldn't share the sound. Please try again.",
