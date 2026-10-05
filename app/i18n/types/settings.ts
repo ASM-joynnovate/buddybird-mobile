@@ -51,5 +51,9 @@ export type SettingsMessages = {
 		thisDevice: string;
 		runningSession: string;
 		lastSeen: string;
+		delete: string;
+		deleteMessage: string;
+		sessionEnds: string;
+		deleteError: string;
 	};
 };

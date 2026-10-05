@@ -53,5 +53,9 @@ export const settings: SettingsMessages = {
 		thisDevice: '이 기기',
 		runningSession: '학습 진행 중',
 		lastSeen: '마지막 접속 {{time}}',
+		delete: '{{name}} 삭제',
+		deleteMessage: '삭제하면 이 기기로 알림이 가지 않아요.',
+		sessionEnds: '이 기기에서 진행 중인 학습이 종료돼요.',
+		deleteError: '기기를 삭제하지 못했어요. 다시 시도해 주세요.',
 	},
 };

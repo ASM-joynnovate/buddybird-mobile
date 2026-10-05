@@ -41,3 +41,7 @@ export const putPushToken = async ({
 
 	return device;
 };
+
+export const deleteDevice = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
+	await apiRequest(`/api/v1/devices/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
+};
