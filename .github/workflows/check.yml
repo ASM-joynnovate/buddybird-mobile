@@ -101,4 +101,5 @@ jobs:
       - run: npx expo prebuild --platform ios --no-install
         env:
           APP_VARIANT: development
-      - run: pod install --project-directory=ios
+      - run: pod install
+        working-directory: ios
