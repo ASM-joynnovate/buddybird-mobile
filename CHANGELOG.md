@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.4.0...v1.5.0) (2026-10-05)
+
+
+### Features
+
+* **app:** read active time from the summary and report APIs [BB-595] ([#187](https://github.com/ASM-joynnovate/buddybird-mobile/issues/187)) ([306a493](https://github.com/ASM-joynnovate/buddybird-mobile/commit/306a4933f4318ba5a3b338d0f35fd21a769f694d))
+
+
+### Bug Fixes
+
+* **app:** load every recording length in the word editor [BB-441] ([#184](https://github.com/ASM-joynnovate/buddybird-mobile/issues/184)) ([de1aa29](https://github.com/ASM-joynnovate/buddybird-mobile/commit/de1aa290e99885b7aa0bc63a45eea039c6c51b37))
+* **app:** show the offline banner when the internet is unreachable [BB-590] ([#186](https://github.com/ASM-joynnovate/buddybird-mobile/issues/186)) ([39905cc](https://github.com/ASM-joynnovate/buddybird-mobile/commit/39905cc41ff68ecac2029e9b34c052ae215eab1d))
+
 ## [1.4.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.3.1...v1.4.0) (2026-10-04)
 
 
