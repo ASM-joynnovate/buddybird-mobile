@@ -322,7 +322,9 @@ const RecordingSceneDistance = ({ scale, animated }: Props) => {
 						micBadgeStyle,
 					]}
 				>
-					<MicIcon size={18 * scale} color={colors.onFilled} style={styles.micIcon} />
+					<View style={styles.micIcon}>
+						<MicIcon size={18 * scale} color={colors.onFilled} />
+					</View>
 				</Animated.View>
 			</Animated.View>
 		</>
