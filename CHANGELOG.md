@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.5.0...v1.6.0) (2026-10-05)
+
+
+### Features
+
+* **app:** delete devices from the connected devices list ([#192](https://github.com/ASM-joynnovate/buddybird-mobile/issues/192)) ([86b5bc2](https://github.com/ASM-joynnovate/buddybird-mobile/commit/86b5bc27934d17ff3d0c44076a2916208107c069))
+* **app:** update notifications and announcements for the new APIs [BB-601] ([#193](https://github.com/ASM-joynnovate/buddybird-mobile/issues/193)) ([571db3d](https://github.com/ASM-joynnovate/buddybird-mobile/commit/571db3dad798d346b6ec37c348275ed0d629d90c))
+* **app:** update the recording guide distance and pitch steps [BB-101] ([#188](https://github.com/ASM-joynnovate/buddybird-mobile/issues/188)) ([18c8feb](https://github.com/ASM-joynnovate/buddybird-mobile/commit/18c8febdc85cd47ece77da373d8786a43727d690))
+
+
+### Bug Fixes
+
+* **app:** ask to log in to the existing account when linking fails ([#189](https://github.com/ASM-joynnovate/buddybird-mobile/issues/189)) ([1b2027d](https://github.com/ASM-joynnovate/buddybird-mobile/commit/1b2027d8154a3bda67914c17f0943a9c5e6afbac))
+* **app:** change the session detail empty text [BB-437] ([#191](https://github.com/ASM-joynnovate/buddybird-mobile/issues/191)) ([fb034b4](https://github.com/ASM-joynnovate/buddybird-mobile/commit/fb034b44389ea4f38587bc157fba59d2410bc7c3))
+
 ## [1.5.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.4.0...v1.5.0) (2026-10-05)
 
 
