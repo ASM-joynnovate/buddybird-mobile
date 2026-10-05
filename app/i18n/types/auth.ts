@@ -11,12 +11,8 @@ export type AuthMessages = {
 	};
 	completing: string;
 	existingAccount: {
-		title: {
-			google: string;
-			kakao: string;
-			apple: string;
-		};
-		body: string;
+		title: string;
+		message: string;
 	};
 	signInError: string;
 	lastLogin: string;
