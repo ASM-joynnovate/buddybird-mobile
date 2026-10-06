@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
+import * as Device from 'expo-device';
 import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
@@ -163,7 +164,10 @@ const HomeContent = () => {
 		try {
 			const { volume } = await VolumeManager.getVolume();
 
-			if (volume === 0) {
+			// iOS 시뮬레이터는 음량이 항상 0
+			const iosSimulator = Platform.OS === 'ios' && !Device.isDevice;
+
+			if (volume === 0 && !iosSimulator) {
 				setLowVolumeDialogOpen(true);
 
 				return;
