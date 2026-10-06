@@ -123,10 +123,10 @@ const AuthProvider = ({ children }: Props) => {
 				reportError(e, 'login');
 
 				if (
-					identity.anonymous ||
 					!(e instanceof ApiError) ||
 					e.retryable ||
-					e.code === 'CLIENT__INVALID_RESPONSE'
+					e.code === 'CLIENT__INVALID_RESPONSE' ||
+					(identity.anonymous && e.code !== 'AUTH__INVALID_TOKEN')
 				) {
 					currentIdentity = undefined;
 
@@ -135,7 +135,9 @@ const AuthProvider = ({ children }: Props) => {
 					return;
 				}
 
-				useMessageStore.getState().openPopup({ title: apiErrorMessage(e, i18next.t) });
+				if (!identity.anonymous) {
+					useMessageStore.getState().openPopup({ title: apiErrorMessage(e, i18next.t) });
+				}
 
 				try {
 					await signOutLocally();
