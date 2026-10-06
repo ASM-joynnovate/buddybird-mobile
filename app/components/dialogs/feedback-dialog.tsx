@@ -90,7 +90,13 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				visible={visible}
 				onClose={handleClose}
 				title={t('app.feedback.sentTitle')}
-				footer=<Button label={t('common.done')} depth="high" onPress={handleClose} style={styles.thanksClose} />
+				footer=<Button
+					label={t('common.done')}
+					size="small"
+					depth="high"
+					onPress={handleClose}
+					style={styles.thanksClose}
+				/>
 			>
 				<Copy style={styles.centeredMessage}>{t('app.feedback.sentMessage')}</Copy>
 			</Dialog>
@@ -140,6 +146,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				<View style={[ui.actionsRow, styles.actionsRow]}>
 					<Button
 						label={t('common.cancel')}
+						size="small"
 						variant="secondary"
 						disabled={isPending}
 						depth="high"
@@ -148,6 +155,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 					/>
 					<Button
 						label={t(isError ? 'app.feedback.retry' : 'app.feedback.send')}
+						size="small"
 						icon={SendIcon}
 						disabled={!message.trim()}
 						loading={isPending}

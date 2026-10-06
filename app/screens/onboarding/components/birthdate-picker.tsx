@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
-import { useDeviceSettingsStore } from '@/stores/device-settings';
-
 import { Button } from '@/components/ui/button';
 import { ItemCheckbox } from '@/components/ui/item/checkbox';
 import { ItemGroup } from '@/components/ui/item/group';
@@ -16,8 +14,6 @@ import { WheelPicker } from '@/components/ui/wheel-picker';
 
 const MAX_AGE_YEARS = 100;
 const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
-// 영어는 월, 일, 연 순서로 표시
-const US_COLUMN_ORDER = ['month', 'day', 'year'];
 
 interface Props {
 	value: string | null | undefined;
@@ -32,8 +28,6 @@ interface Props {
 const BirthdatePicker = ({ value, onChange }: Props) => {
 	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const [date, setDate] = useState(() => (value ? dayjs(value) : dayjs().subtract(1, 'year').date(1)));
 
 	const birthdateUnknown = value === null;
@@ -43,6 +37,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 	const days = Array.from({ length: date.daysInMonth() }, (_, index) => index + 1);
 	const birthdateText =
 		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('ll');
+	const dateOrder = t('common.dateFormat.order', { returnObjects: true });
 
 	const handleChangeDate = (nextDate: Dayjs) => {
 		setDate(nextDate);
@@ -50,8 +45,16 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 		onChange(nextDate.format('YYYY-MM-DD'));
 	};
 
-	const dateColumns = [
-		{
+	const handleSelect = (close: () => void) => {
+		if (value === undefined) {
+			onChange(date.format('YYYY-MM-DD'));
+		}
+
+		close();
+	};
+
+	const dateColumns = {
+		year: {
 			key: 'year',
 			label: t('parrot.yearPicker'),
 			value: date.year(),
@@ -59,7 +62,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			unit: t('parrot.year'),
 			onChange: (year: number) => handleChangeDate(date.year(year)),
 		},
-		{
+		month: {
 			key: 'month',
 			label: t('parrot.monthPicker'),
 			value: date.month() + 1,
@@ -67,7 +70,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			unit: t('parrot.month'),
 			onChange: (month: number) => handleChangeDate(date.month(month - 1)),
 		},
-		{
+		day: {
 			key: 'day',
 			label: t('parrot.dayPicker'),
 			value: date.date(),
@@ -75,18 +78,6 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			unit: t('parrot.day'),
 			onChange: (day: number) => handleChangeDate(date.date(day)),
 		},
-	];
-	const columns =
-		locale === 'en-US'
-			? US_COLUMN_ORDER.flatMap((key) => dateColumns.filter((column) => column.key === key))
-			: dateColumns;
-
-	const handleSelect = (close: () => void) => {
-		if (value === undefined) {
-			onChange(date.format('YYYY-MM-DD'));
-		}
-
-		close();
 	};
 
 	return (
@@ -101,7 +92,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 						pointerEvents={birthdateUnknown ? 'none' : 'auto'}
 						accessibilityElementsHidden={birthdateUnknown}
 					>
-						<WheelPicker columns={columns} />
+						<WheelPicker columns={dateOrder.map((unit) => dateColumns[unit])} />
 					</View>
 					<ItemGroup>
 						<ItemCheckbox

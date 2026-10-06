@@ -10,7 +10,7 @@ export const app: AppMessages = {
 	},
 	feedback: {
 		sentMessage: 'Your feedback came through. We will use it to make BuddyBird better.',
-		retry: 'Retry',
+		retry: 'Resend',
 		promptTitle: 'Tell us what you think',
 		promptMessage: 'Share anything you love or wish were different about BuddyBird. It really helps!',
 		write: 'Feedback',

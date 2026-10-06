@@ -17,8 +17,8 @@ export type SessionMessages = {
 		label: string;
 		description: string;
 		range: string;
-		sleep_at: string;
-		wake_at: string;
+		bedtime: string;
+		wakeTime: string;
 	};
 	start: {
 		title: string;
@@ -71,8 +71,8 @@ export type SessionMessages = {
 		played: { lead: string; tail: string };
 		wordTime: { lead: string; tail: string };
 		allTime: { lead: string; tail: string };
-		count: string;
-		count_one?: string;
+		count_one: string;
+		count_other: string;
 		sentenceProgress: string;
 		playCount: string;
 		totalTime: string;

@@ -74,6 +74,7 @@ export const common: CommonMessages = {
 		monthDay: 'MMM D',
 		monthDayWeekday: 'ddd, MMM D',
 		yearMonth: 'MMM YYYY',
+		order: ['month', 'day', 'year'],
 	},
 	done: 'Done',
 	add: 'Add',
