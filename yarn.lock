@@ -4721,6 +4721,7 @@ __metadata:
     react-native-safe-area-context: "npm:~5.10.1"
     react-native-screens: "npm:~4.28.0"
     react-native-svg: "npm:15.15.5"
+    react-native-volume-manager: "npm:2.2.0"
     react-native-worklets: "npm:0.12.2"
     tsx: "npm:4.23.15"
     typescript: "npm:~6.0.3"
@@ -9487,6 +9488,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/34b71b6c83d7235efbc4263abaffcbad780375f9e0fca95786e4f1a543a2b6d07e90c7df426f708e85be68331c412066cdc639f4a6ce82bed42bc728050d9402
+  languageName: node
+  linkType: hard
+
+"react-native-volume-manager@npm:2.2.0":
+  version: 2.2.0
+  resolution: "react-native-volume-manager@npm:2.2.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/8807b4c10a1cf091417d8c0fcc2bf86f58dba2ab42b1508337548ae4ff7e0682410cb230ac53430148d6f01aaa70af357a32ca41b64deee96ce1bde01abace47
   languageName: node
   linkType: hard
 

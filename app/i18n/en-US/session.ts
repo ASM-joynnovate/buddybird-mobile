@@ -10,6 +10,11 @@ export const session: SessionMessages = {
 		title: "Couldn't start the session",
 		message: 'Check your internet connection and try again.',
 	},
+	lowVolume: {
+		title: 'The volume is low',
+		message: 'Turn up the device volume so your parrot can hear the word clearly.',
+		confirm: 'Start anyway',
+	},
 	sleep: {
 		label: 'Sleep time',
 		description: 'Sounds pause during these hours so your parrot can rest.',

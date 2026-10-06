@@ -8,6 +8,11 @@ export type SessionMessages = {
 		title: string;
 		message: string;
 	};
+	lowVolume: {
+		title: string;
+		message: string;
+		confirm: string;
+	};
 	sleep: {
 		label: string;
 		description: string;
