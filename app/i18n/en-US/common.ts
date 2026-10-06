@@ -7,7 +7,7 @@ export const common: CommonMessages = {
 	back: 'Back',
 	retry: 'Try again',
 	close: 'Close',
-	select: 'Choose',
+	select: 'Select',
 	unknown: 'Unknown',
 	tabs: {
 		home: 'Home',
@@ -41,7 +41,7 @@ export const common: CommonMessages = {
 			reason: "BuddyBird needs the microphone to record words and your parrot's sounds.",
 		},
 		notifications: {
-			name: 'Notification',
+			name: 'Notifications',
 			reason: 'BuddyBird needs notifications to send you learning updates.',
 		},
 		photos: {
@@ -71,9 +71,9 @@ export const common: CommonMessages = {
 		seconds: '{{value}}s',
 	},
 	dateFormat: {
-		monthDay: 'MMMM D',
-		monthDayWeekday: 'ddd, MMMM D',
-		yearMonth: 'MMMM YYYY',
+		monthDay: 'MMM D',
+		monthDayWeekday: 'ddd, MMM D',
+		yearMonth: 'MMM YYYY',
 	},
 	done: 'Done',
 	add: 'Add',

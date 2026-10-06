@@ -107,6 +107,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 					<View style={[ui.actionsRow, styles.actionsRow]}>
 						<Button
 							label={t('common.close')}
+							size="small"
 							variant="secondary"
 							depth="high"
 							onPress={prompt.onDismiss}
@@ -114,6 +115,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 						/>
 						<Button
 							label={t('app.feedback.write')}
+							size="small"
 							depth="high"
 							onPress={prompt.onWrite}
 							style={ui.action}

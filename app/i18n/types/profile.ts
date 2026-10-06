@@ -8,6 +8,7 @@ export type ProfileMessages = {
 	editParrot: string;
 	ageMonths: string;
 	ageYears: string;
+	ageYears_one?: string;
 	nickname: string;
 	nicknameHint: string;
 	nicknameInvalid: string;

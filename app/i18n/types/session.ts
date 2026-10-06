@@ -72,6 +72,7 @@ export type SessionMessages = {
 		wordTime: { lead: string; tail: string };
 		allTime: { lead: string; tail: string };
 		count: string;
+		count_one?: string;
 		sentenceProgress: string;
 		playCount: string;
 		totalTime: string;
