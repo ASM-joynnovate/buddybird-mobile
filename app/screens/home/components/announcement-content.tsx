@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useGetAnnouncement, useReadAnnouncement } from '@/hooks/apis/announcements';
 
@@ -8,8 +8,9 @@ import { useTranslation } from 'react-i18next';
 
 import { formatMonthDay } from '@/i18n/format';
 
+import AttachedImages from '@/screens/home/components/attached-images';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors, radius } from '@/theme';
+import { colors } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { Title } from '@/components/ui/title';
@@ -47,17 +48,13 @@ const AnnouncementContent = ({ announcementId }: Props) => {
 				<Copy style={styles.date}>{formatMonthDay(announcementData.starts_at, locale)}</Copy>
 			</View>
 
+			<AttachedImages
+				images={announcementData.images.map((image, index) => ({
+					uri: image.url,
+					label: t('home.announcement.image', { index: index + 1 }),
+				}))}
+			/>
 			{!!announcementData.body && <Copy style={styles.text}>{announcementData.body}</Copy>}
-			{announcementData.images.map((image, index) => (
-				<Image
-					key={`${image.url}-${index}`}
-					source={{ uri: image.url }}
-					style={styles.image}
-					resizeMode="contain"
-					accessibilityIgnoresInvertColors
-					accessibilityLabel={t('home.announcement.image', { index: index + 1 })}
-				/>
-			))}
 		</View>
 	);
 };
@@ -67,12 +64,6 @@ const styles = StyleSheet.create({
 	headingContainer: { gap: 6 },
 	date: { fontSize: 13, color: colors.muted },
 	text: { lineHeight: 24 },
-	image: {
-		width: '100%',
-		aspectRatio: 4 / 3,
-		borderRadius: radius.card,
-		backgroundColor: colors.surface,
-	},
 });
 
 export default AnnouncementContent;

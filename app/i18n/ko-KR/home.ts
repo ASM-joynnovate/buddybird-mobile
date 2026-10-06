@@ -8,6 +8,9 @@ export const home: HomeMessages = {
 		viewDetail: '자세히',
 		image: '첨부 이미지 {{index}}',
 	},
+	notification: {
+		viewImage: '사진 크게 보기',
+	},
 	notificationList: {
 		title: '알림',
 		notifications: '알림',

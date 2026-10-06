@@ -8,6 +8,9 @@ export const home: HomeMessages = {
 		viewDetail: 'Details',
 		image: 'Attached image {{index}}',
 	},
+	notification: {
+		viewImage: 'View photo in full screen',
+	},
 	notificationList: {
 		title: 'Notifications',
 		notifications: 'Notifications',

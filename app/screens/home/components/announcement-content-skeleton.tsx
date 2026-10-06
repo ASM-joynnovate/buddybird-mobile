@@ -14,15 +14,15 @@ const AnnouncementContentSkeleton = () => {
 				<View style={[styles.block, styles.dateBlock]} />
 			</View>
 
+			{/*첨부 이미지 자리*/}
+			<View style={[styles.block, styles.imageBlock]} />
+
 			{/*본문 자리*/}
 			<View style={styles.body}>
 				{BODY_LINE_WIDTHS.map((width, index) => (
 					<View key={index} style={[styles.block, styles.lineBlock, { width }]} />
 				))}
 			</View>
-
-			{/*첨부 이미지 자리*/}
-			<View style={[styles.block, styles.imageBlock]} />
 		</View>
 	);
 };

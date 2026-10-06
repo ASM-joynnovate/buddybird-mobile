@@ -1,11 +1,14 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useGetNotification } from '@/hooks/apis/notifications';
 
+import { useTranslation } from 'react-i18next';
+
 import { formatTimeOrDateTime } from '@/i18n/format';
 
+import AttachedImages from '@/screens/home/components/attached-images';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors, radius } from '@/theme';
+import { colors } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { Title } from '@/components/ui/title';
@@ -19,6 +22,8 @@ interface Props {
  * @param notificationId 알림 ID
  */
 const NotificationContent = ({ notificationId }: Props) => {
+	const { t } = useTranslation();
+
 	const { data: notificationData } = useGetNotification({ id: notificationId });
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -30,15 +35,12 @@ const NotificationContent = ({ notificationId }: Props) => {
 				<Copy style={styles.time}>{formatTimeOrDateTime(notificationData.sent_at, locale)}</Copy>
 			</View>
 
-			<Copy style={styles.text}>{notificationData.body}</Copy>
 			{notificationData.image && (
-				<Image
-					source={{ uri: notificationData.image.url }}
-					style={styles.image}
-					resizeMode="contain"
-					accessibilityIgnoresInvertColors
+				<AttachedImages
+					images={[{ uri: notificationData.image.url, label: t('home.notification.viewImage') }]}
 				/>
 			)}
+			<Copy style={styles.text}>{notificationData.body}</Copy>
 		</View>
 	);
 };
@@ -48,12 +50,6 @@ const styles = StyleSheet.create({
 	headingContainer: { gap: 6 },
 	time: { fontSize: 13, color: colors.muted },
 	text: { lineHeight: 24 },
-	image: {
-		width: '100%',
-		aspectRatio: 4 / 3,
-		borderRadius: radius.card,
-		backgroundColor: colors.surface,
-	},
 });
 
 export default NotificationContent;
