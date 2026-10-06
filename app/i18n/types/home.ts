@@ -6,6 +6,9 @@ export type HomeMessages = {
 		viewDetail: string;
 		image: string;
 	};
+	notification: {
+		viewImage: string;
+	};
 	notificationList: {
 		title: string;
 		notifications: string;

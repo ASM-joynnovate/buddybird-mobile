@@ -14,15 +14,15 @@ const NotificationContentSkeleton = () => {
 				<View style={[styles.block, styles.timeBlock]} />
 			</View>
 
+			{/*사진 자리*/}
+			<View style={[styles.block, styles.imageBlock]} />
+
 			{/*본문 자리*/}
 			<View style={styles.body}>
 				{BODY_LINE_WIDTHS.map((width, index) => (
 					<View key={index} style={[styles.block, styles.lineBlock, { width }]} />
 				))}
 			</View>
-
-			{/*사진 자리*/}
-			<View style={[styles.block, styles.imageBlock]} />
 		</View>
 	);
 };
