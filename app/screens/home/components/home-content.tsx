@@ -23,6 +23,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { VolumeManager } from 'react-native-volume-manager';
 
 import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
@@ -56,6 +57,8 @@ const HomeContent = () => {
 
 	const [requestedSetup, setRequestedSetup] = useState<SessionSetup | null>(null);
 	const [takeoverDialogOpen, setTakeoverDialogOpen] = useState(false);
+	const [volumeChecking, setVolumeChecking] = useState(false);
+	const [lowVolumeDialogOpen, setLowVolumeDialogOpen] = useState(false);
 
 	const { data: homeSummaryData, refetch: refetchHomeSummary } = useSuspenseQuery(getHomeSummaryOptions());
 	const { data: deviceListData } = useGetDeviceList();
@@ -101,6 +104,7 @@ const HomeContent = () => {
 			: null;
 
 	const starting =
+		volumeChecking ||
 		microphonePermission.checking ||
 		startSession.isPending ||
 		finishSession.isPending ||
@@ -149,12 +153,41 @@ const HomeContent = () => {
 		);
 	};
 
-	const handleStart = () => {
+	const handleStart = async () => {
 		if (starting || !sessionSetup) {
 			return;
 		}
 
+		setVolumeChecking(true);
+
+		try {
+			const { volume } = await VolumeManager.getVolume();
+
+			if (volume === 0) {
+				setLowVolumeDialogOpen(true);
+
+				return;
+			}
+
+			void microphonePermission.run(() => requestStart(sessionSetup));
+		} finally {
+			setVolumeChecking(false);
+		}
+	};
+
+	/** 음량이 0인 채로 학습 시작 */
+	const handleConfirmLowVolume = () => {
+		if (starting || !sessionSetup) {
+			return;
+		}
+
+		setLowVolumeDialogOpen(false);
+
 		void microphonePermission.run(() => requestStart(sessionSetup));
+	};
+
+	const handleCloseLowVolumeDialog = () => {
+		setLowVolumeDialogOpen(false);
 	};
 
 	/** 다른 기기에서 진행 중인 학습을 이 기기로 가져오기 */
@@ -278,11 +311,21 @@ const HomeContent = () => {
 				depth="xhigh"
 				loading={starting}
 				disabled={!sessionSetup}
-				onPress={handleStart}
+				onPress={() => void handleStart()}
 				style={styles.startButton}
 			/>
 
 			{/*학습 시작 확인 다이얼로그*/}
+			<ConfirmDialog
+				visible={lowVolumeDialogOpen}
+				text={{
+					title: t('session.lowVolume.title'),
+					message: t('session.lowVolume.message'),
+					confirm: t('session.lowVolume.confirm'),
+				}}
+				onConfirm={handleConfirmLowVolume}
+				onClose={handleCloseLowVolumeDialog}
+			/>
 			<ConfirmDialog
 				visible={takeoverDialogOpen}
 				text={{

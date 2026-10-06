@@ -10,6 +10,11 @@ export const session: SessionMessages = {
 		title: '학습을 시작하지 못했어요',
 		message: '인터넷 연결을 확인하고 다시 시도해 주세요.',
 	},
+	lowVolume: {
+		title: '음량이 작아요',
+		message: '앵무새가 단어를 잘 들을 수 있도록 기기 음량을 높여 주세요.',
+		confirm: '그대로 시작',
+	},
 	sleep: {
 		label: '수면 시간',
 		description: '앵무새가 쉴 수 있게 이 시간에는 소리를 멈춰요.',
