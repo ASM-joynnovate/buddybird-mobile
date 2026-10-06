@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.0.0...v2.1.0) (2026-10-06)
+
+
+### Features
+
+* **app:** open notification and announcement photos in a full-screen viewer [BB-609] ([#201](https://github.com/ASM-joynnovate/buddybird-mobile/issues/201)) ([7dcc219](https://github.com/ASM-joynnovate/buddybird-mobile/commit/7dcc2193bd33978b1b141ddb224cfd38b72cb0cd))
+
+
+### Bug Fixes
+
+* **app:** sign out the anonymous session when the server rejects the login [BB-608] ([#199](https://github.com/ASM-joynnovate/buddybird-mobile/issues/199)) ([e454a87](https://github.com/ASM-joynnovate/buddybird-mobile/commit/e454a87d5761e59d7bcda7a3f8c953a40213eb79))
+
 ## [2.0.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v1.6.1...v2.0.0) (2026-10-05)
 
 
