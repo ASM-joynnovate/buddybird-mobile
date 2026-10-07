@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDuration, formatDurationWithDays } from '@/i18n/format';
 
 import { CheckIcon } from 'lucide-react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { CUSTOM_SESSION_DEFAULT_MS, MAX_SESSION_MS, SESSION_DURATION_PRESETS } from '@/config';
 import { DAY, HOUR, MINUTE } from '@/config/units';
@@ -51,14 +51,6 @@ const DurationPicker = ({ value, onChange }: Props) => {
 	const minutes = Math.floor((totalMs % HOUR) / MINUTE);
 	const atMax = totalMs >= MAX_SESSION_MS;
 	const choices: DurationChoice[] = [
-		{
-			key: 'untilEnd',
-			title: t('session.start.untilEnd'),
-			durationText: null,
-			hint: t('session.start.untilEndHint'),
-			selected: !value.custom && value.ms === null,
-			nextDuration: { ms: null, custom: false },
-		},
 		...SESSION_DURATION_PRESETS.map((preset) => ({
 			key: preset.id,
 			title: formatDuration(preset.ms, locale),
@@ -74,6 +66,14 @@ const DurationPicker = ({ value, onChange }: Props) => {
 			hint: t('session.start.customHint'),
 			selected: value.custom,
 			nextDuration: { ms: CUSTOM_SESSION_DEFAULT_MS, custom: true },
+		},
+		{
+			key: 'untilEnd',
+			title: t('session.start.untilEnd'),
+			durationText: null,
+			hint: t('session.start.untilEndHint'),
+			selected: !value.custom && value.ms === null,
+			nextDuration: { ms: null, custom: false },
 		},
 	];
 
@@ -97,67 +97,72 @@ const DurationPicker = ({ value, onChange }: Props) => {
 		<>
 			{/*학습 시간 카드*/}
 			{choices.map((choice) => (
-				<ChoiceCard
-					key={choice.key}
-					selected={choice.selected}
-					onPress={() => handleSelectChoice(choice.nextDuration)}
-					accessibilityLabel={choice.durationText ? `${choice.title}, ${choice.durationText}` : choice.title}
-					style={styles.choiceCardContainer}
-					contentStyle={styles.choiceCard}
-				>
-					<View style={[styles.radio, choice.selected && styles.radioSelected]}>
-						{choice.selected && <CheckIcon size={15} color={colors.onFilled} />}
-					</View>
-					<View style={styles.choiceTextContainer}>
-						<View style={styles.titleRow}>
-							<Copy style={styles.title}>{choice.title}</Copy>
-							{!!choice.durationText && <Copy style={styles.durationText}>{choice.durationText}</Copy>}
+				<Animated.View key={choice.key} layout={LinearTransition.duration(layoutAnimationMs)}>
+					<ChoiceCard
+						selected={choice.selected}
+						onPress={() => handleSelectChoice(choice.nextDuration)}
+						accessibilityLabel={
+							choice.durationText ? `${choice.title}, ${choice.durationText}` : choice.title
+						}
+						style={styles.choiceCardContainer}
+						contentStyle={styles.choiceCard}
+					>
+						<View style={[styles.radio, choice.selected && styles.radioSelected]}>
+							{choice.selected && <CheckIcon size={15} color={colors.onFilled} />}
 						</View>
-						<Copy style={styles.hint}>{choice.hint}</Copy>
-					</View>
-				</ChoiceCard>
-			))}
+						<View style={styles.choiceTextContainer}>
+							<View style={styles.titleRow}>
+								<Copy style={styles.title}>{choice.title}</Copy>
+								{!!choice.durationText && (
+									<Copy style={styles.durationText}>{choice.durationText}</Copy>
+								)}
+							</View>
+							<Copy style={styles.hint}>{choice.hint}</Copy>
+						</View>
+					</ChoiceCard>
 
-			{/*직접 설정한 경우 시간 선택 휠*/}
-			{value.custom && (
-				<Animated.View
-					entering={FadeIn.duration(layoutAnimationMs)}
-					exiting={FadeOut.duration(layoutAnimationMs)}
-					style={styles.customCardContainer}
-				>
-					<Card depth="none" contentStyle={styles.customCard}>
-						<Copy style={styles.customTitle}>{t('session.start.total')}</Copy>
-						<WheelPicker
-							columns={[
-								{
-									key: 'days',
-									label: t('session.start.days'),
-									value: days,
-									values: DAYS,
-									unit: t('session.start.days'),
-									onChange: (nextDays) => change(nextDays, hours, minutes),
-								},
-								{
-									key: 'hours',
-									label: t('session.start.hours'),
-									value: hours,
-									values: atMax ? [0] : HOURS,
-									unit: t('session.start.hours'),
-									onChange: (nextHours) => change(days, nextHours, minutes),
-								},
-								{
-									key: 'minutes',
-									label: t('session.start.minutes'),
-									value: minutes,
-									values: atMax ? [0] : MINUTE_STEPS,
-									unit: t('session.start.minutes'),
-									onChange: (nextMinutes) => change(days, hours, nextMinutes),
-								},
-							]}
-						/>
-					</Card>
+					{/*직접 설정한 경우 시간 선택 휠*/}
+					{choice.key === 'custom' && value.custom && (
+						<Animated.View
+							entering={FadeIn.duration(layoutAnimationMs)}
+							exiting={FadeOut.duration(layoutAnimationMs)}
+							style={styles.customCardContainer}
+						>
+							<Card depth="none" contentStyle={styles.customCard}>
+								<Copy style={styles.customTitle}>{t('session.start.total')}</Copy>
+								<WheelPicker
+									columns={[
+										{
+											key: 'days',
+											label: t('session.start.days'),
+											value: days,
+											values: DAYS,
+											unit: t('session.start.days'),
+											onChange: (nextDays) => change(nextDays, hours, minutes),
+										},
+										{
+											key: 'hours',
+											label: t('session.start.hours'),
+											value: hours,
+											values: atMax ? [0] : HOURS,
+											unit: t('session.start.hours'),
+											onChange: (nextHours) => change(days, nextHours, minutes),
+										},
+										{
+											key: 'minutes',
+											label: t('session.start.minutes'),
+											value: minutes,
+											values: atMax ? [0] : MINUTE_STEPS,
+											unit: t('session.start.minutes'),
+											onChange: (nextMinutes) => change(days, hours, nextMinutes),
+										},
+									]}
+								/>
+							</Card>
+						</Animated.View>
+					)}
 				</Animated.View>
-			)}
+			))}
 		</>
 	);
 };
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
 	title: { flexGrow: 1, flexShrink: 1, fontFamily: font.black, fontSize: 16 },
 	durationText: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 12.5, color: colors.orange },
 	hint: { marginTop: 4, fontSize: 12, lineHeight: 17, color: colors.muted },
-	customCardContainer: { marginBottom: 16 },
+	customCardContainer: { marginBottom: 8 },
 	customCard: { padding: 12, gap: 10 },
 	customTitle: { fontSize: 12, lineHeight: 17, textAlign: 'center' },
 });

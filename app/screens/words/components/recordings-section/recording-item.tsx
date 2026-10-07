@@ -56,7 +56,7 @@ const RecordingItem = ({ recording, player, index, uploading, onDelete }: Props)
 
 	const { data: recordingDurationData } = useQuery({
 		...getRecordingDurationOptions({ id: recording.id, url: recording.url }),
-		enabled: recording.kind === 'server',
+		enabled: recording.kind === 'server' && !recording.pending,
 		throwOnError: false,
 	});
 

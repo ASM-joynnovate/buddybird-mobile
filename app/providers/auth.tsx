@@ -85,9 +85,9 @@ const AuthProvider = ({ children }: Props) => {
 
 			loginAbort = controller;
 
-			setStatus('completing');
-
 			if (!linked) {
+				setStatus('completing');
+
 				queryClient.clear();
 
 				useSessionStore.getState().resetSetup();

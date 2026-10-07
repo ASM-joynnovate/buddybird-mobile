@@ -44,15 +44,15 @@ const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 	return (
 		<View style={styles.container}>
 			<View style={styles.labelsRow}>
-				<Copy style={[ui.label, styles.label]}>{t('session.sleep.sleep_at')}</Copy>
-				<Copy style={[ui.label, styles.label]}>{t('session.sleep.wake_at')}</Copy>
+				<Copy style={[ui.label, styles.label]}>{t('session.sleep.bedtime')}</Copy>
+				<Copy style={[ui.label, styles.label]}>{t('session.sleep.wakeTime')}</Copy>
 			</View>
 
 			<View style={styles.pickersRow}>
 				<View style={styles.picker}>
 					<TimePicker
 						value={draft.sleep_at}
-						label={t('session.sleep.sleep_at')}
+						label={t('session.sleep.bedtime')}
 						onChange={(time) => setDraft((current) => ({ ...current, sleep_at: time }))}
 					/>
 				</View>
@@ -60,7 +60,7 @@ const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 				<View style={styles.picker}>
 					<TimePicker
 						value={draft.wake_at}
-						label={t('session.sleep.wake_at')}
+						label={t('session.sleep.wakeTime')}
 						onChange={(time) => setDraft((current) => ({ ...current, wake_at: time }))}
 					/>
 				</View>

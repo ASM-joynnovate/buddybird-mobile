@@ -5,12 +5,12 @@ export const onboarding: OnboardingMessages = {
 		tagline: "Your parrot keeps learning while you're away",
 		greeting: {
 			title: 'Nice to meet you!',
-			body: "Log in and let's get started",
+			body: "Sign in and let's get started",
 		},
 		words: ['Hello', 'Love you', 'Good morning', "Let's eat", 'Pretty bird'],
 	},
 	consent: {
-		intro: 'Please agree to use the BuddyBird app!',
+		intro: 'Please agree to the terms to get started!',
 		all: 'Agree to all',
 	},
 	usage: {
@@ -20,7 +20,7 @@ export const onboarding: OnboardingMessages = {
 			recording: 'Recording',
 		},
 		place: {
-			title: 'Place your phone <b>by the cage</b> and press Start to play words to your parrot',
+			title: 'Place your phone <b>by the cage</b> and tap Start',
 			scene: 'a phone by the cage playing a word to the parrot',
 		},
 		keepOn: {
@@ -45,7 +45,7 @@ export const onboarding: OnboardingMessages = {
 			message: 'Learning finished',
 		},
 		purpose: {
-			microphone: "Record words and your parrot's sounds",
+			microphone: 'Record words and parrot sounds',
 			notifications: 'Learning alerts',
 		},
 		allow: 'Allow',
@@ -60,7 +60,7 @@ export const onboarding: OnboardingMessages = {
 		},
 		hint: 'You can change this anytime in Settings > Notifications.',
 		night: 'Also notify me from 9 PM to 8 AM',
-		accept: 'Yes, notify me',
+		accept: 'Notify me',
 		decline: 'No thanks',
 	},
 	legacy: {
