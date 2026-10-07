@@ -48,7 +48,7 @@ const config: ExpoConfig = {
 			ITSAppUsesNonExemptEncryption: false,
 			UIBackgroundModes: ['audio', 'remote-notification'],
 			NSMicrophoneUsageDescription:
-				'Microphone access lets you record words for your parrot and capture sounds during training.',
+				'Microphone access lets you record words for your parrot and capture sounds during learning.',
 			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
 			NSCameraUsageDescription: 'Use the camera to take a profile photo of your parrot or yourself.',
 		},
@@ -123,7 +123,7 @@ const config: ExpoConfig = {
 			'expo-audio',
 			{
 				microphonePermission:
-					'Microphone access lets you record words for your parrot and capture sounds during training.',
+					'Microphone access lets you record words for your parrot and capture sounds during learning.',
 			},
 		],
 		['react-native-audio-api', { androidForegroundService: false }],
@@ -131,7 +131,7 @@ const config: ExpoConfig = {
 			'expo-tracking-transparency',
 			{
 				userTrackingPermission:
-					'App usage statistics help us improve the learning experience. Training remains available if you decline tracking.',
+					'App usage statistics help us improve the learning experience. Learning remains available if you decline tracking.',
 			},
 		],
 		'expo-asset',
