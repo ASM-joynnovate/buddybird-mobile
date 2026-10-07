@@ -36,7 +36,8 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 	const years = Array.from({ length: thisYear - earliestYear + 1 }, (_, index) => earliestYear + index);
 	const days = Array.from({ length: date.daysInMonth() }, (_, index) => index + 1);
 	const birthdateText =
-		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('LL');
+		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('ll');
+	const dateOrder = t('common.dateFormat.order', { returnObjects: true });
 
 	const handleChangeDate = (nextDate: Dayjs) => {
 		setDate(nextDate);
@@ -52,6 +53,33 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 		close();
 	};
 
+	const dateColumns = {
+		year: {
+			key: 'year',
+			label: t('parrot.yearPicker'),
+			value: date.year(),
+			values: years,
+			unit: t('parrot.year'),
+			onChange: (year: number) => handleChangeDate(date.year(year)),
+		},
+		month: {
+			key: 'month',
+			label: t('parrot.monthPicker'),
+			value: date.month() + 1,
+			values: MONTHS,
+			unit: t('parrot.month'),
+			onChange: (month: number) => handleChangeDate(date.month(month - 1)),
+		},
+		day: {
+			key: 'day',
+			label: t('parrot.dayPicker'),
+			value: date.date(),
+			values: days,
+			unit: t('parrot.day'),
+			onChange: (day: number) => handleChangeDate(date.date(day)),
+		},
+	};
+
 	return (
 		<ItemPicker
 			item={{ label: t('parrot.birthdate'), value: birthdateText }}
@@ -64,34 +92,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 						pointerEvents={birthdateUnknown ? 'none' : 'auto'}
 						accessibilityElementsHidden={birthdateUnknown}
 					>
-						<WheelPicker
-							columns={[
-								{
-									key: 'year',
-									label: t('parrot.yearPicker'),
-									value: date.year(),
-									values: years,
-									unit: t('parrot.year'),
-									onChange: (year) => handleChangeDate(date.year(year)),
-								},
-								{
-									key: 'month',
-									label: t('parrot.monthPicker'),
-									value: date.month() + 1,
-									values: MONTHS,
-									unit: t('parrot.month'),
-									onChange: (month) => handleChangeDate(date.month(month - 1)),
-								},
-								{
-									key: 'day',
-									label: t('parrot.dayPicker'),
-									value: date.date(),
-									values: days,
-									unit: t('parrot.day'),
-									onChange: (day) => handleChangeDate(date.date(day)),
-								},
-							]}
-						/>
+						<WheelPicker columns={dateOrder.map((unit) => dateColumns[unit])} />
 					</View>
 					<ItemGroup>
 						<ItemCheckbox
