@@ -141,7 +141,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 
 	const { data: currentDurationData } = useQuery({
 		...getRecordingDurationOptions({ id: currentRecording?.id ?? '', url: currentRecording?.url ?? '' }),
-		enabled: currentRecording?.kind === 'server',
+		enabled: currentRecording?.kind === 'server' && !currentRecording.pending,
 		throwOnError: false,
 	});
 
