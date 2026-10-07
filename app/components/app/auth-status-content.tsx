@@ -22,7 +22,7 @@ const AuthStatusContent = () => {
 		return <LoginNavigator />;
 	}
 
-	if (status !== 'signedIn' && !(status === 'completing' && registered)) {
+	if (status !== 'signedIn') {
 		return status === 'error' ? <StartupScreen onRetry={retryAuth} /> : <StartupScreen />;
 	}
 
