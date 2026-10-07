@@ -25,7 +25,6 @@ jobs:
       - run: yarn lint
       - run: yarn format:check
       - run: yarn check:deps
-      - run: npx expo-doctor
       - name: Build JS bundles
         run: yarn export:ios && yarn export:android
       - name: Validate GitHub Actions workflows
@@ -56,6 +55,7 @@ jobs:
       pull-requests: read
     outputs:
       native: ${{ steps.filter.outputs.native }}
+      deps: ${{ steps.filter.outputs.deps }}
     steps:
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
@@ -71,6 +71,39 @@ jobs:
               - package.json
               - yarn.lock
               - eas.json
+            deps:
+              - yarn.lock
+
+  expo-doctor:
+    name: Expo Doctor
+    needs: changes
+    if: needs.changes.outputs.deps == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - run: npx expo-doctor
+      - name: Notify check failure
+        if: failure()
+        uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: ❌ 검사 실패 ${{ github.event.pull_request.title || github.ref_name }}
+          fields: |
+            PR=${{ github.event.pull_request.number && format('#{0}', github.event.pull_request.number) || '' }}
+            브랜치=${{ github.head_ref || github.ref_name }}
+            작성자=${{ github.actor }}
+          buttons: |
+            PR 확인=${{ github.event.pull_request.html_url || '' }}
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   native-ios:
     name: Native (iOS prebuild + pod install)

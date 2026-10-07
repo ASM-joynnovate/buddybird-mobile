@@ -42,7 +42,7 @@ export const words: WordsMessages = {
 			recording: 'Recording',
 		},
 		distance: {
-			title: 'Point the <b>bottom of your phone</b> toward your mouth and hold it close, like on a call',
+			title: 'Hold the <b>bottom of your phone</b> close to your mouth, like on a call',
 			scene: 'a phone held with its bottom mic toward the mouth, recording the voice as a waveform',
 		},
 		highVoice: {
