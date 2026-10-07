@@ -4,7 +4,7 @@ import type { SleepSettings } from '@/types/sleep-settings';
 import type { MeasuredDimensions } from 'react-native-reanimated';
 import { create } from 'zustand';
 
-import { SESSION_INFO_HIDE_MS } from '@/config';
+import { SESSION_DURATION_PRESETS, SESSION_INFO_HIDE_MS } from '@/config';
 
 type SessionScreenState = {
 	infoVisible: boolean;
@@ -44,8 +44,6 @@ type SessionActions = {
 
 type SessionStore = SessionScreenState & SessionSetupState & SessionSummaryState & SessionActions;
 
-const UNTIL_END: LearningDuration = { ms: null, custom: false };
-
 /** 세션 화면 초기값 */
 const initSessionScreen = (): SessionScreenState => ({
 	infoVisible: true,
@@ -57,7 +55,7 @@ const initSessionScreen = (): SessionScreenState => ({
 /** 홈 학습 설정 초기값 */
 const initSessionSetup = (): SessionSetupState => ({
 	selectedWordId: null,
-	duration: UNTIL_END,
+	duration: { ms: SESSION_DURATION_PRESETS[0].ms, custom: false },
 	editedSleep: null,
 });
 
