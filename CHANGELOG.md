@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.2.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.1.0...v2.2.0) (2026-10-07)
+
+
+### Features
+
+* **app:** reorder the learning duration choices on the home tab [BB-623] ([#206](https://github.com/ASM-joynnovate/buddybird-mobile/issues/206)) ([9fb7a71](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9fb7a718ab3a5e8d62fcf6d64622d3fe9228f155))
+* **app:** warn before starting a session with the volume muted [BB-612] ([#202](https://github.com/ASM-joynnovate/buddybird-mobile/issues/202)) ([6adcc16](https://github.com/ASM-joynnovate/buddybird-mobile/commit/6adcc168a19b5834879e99469e26cc5ac2e62062))
+
+
+### Bug Fixes
+
+* **app:** close the bottom sheet with the Android back button [BB-624] ([#208](https://github.com/ASM-joynnovate/buddybird-mobile/issues/208)) ([d56b71d](https://github.com/ASM-joynnovate/buddybird-mobile/commit/d56b71de7a08e455368a76aeb4cc8b724a1771dd))
+* **app:** improve en-US translations [BB-611] ([#205](https://github.com/ASM-joynnovate/buddybird-mobile/issues/205)) ([fc8a4f8](https://github.com/ASM-joynnovate/buddybird-mobile/commit/fc8a4f8fab2a8d125a500a53218af7178d578cba))
+* **app:** replace the permission screen buttons with a single Continue button [BB-630] ([#212](https://github.com/ASM-joynnovate/buddybird-mobile/issues/212)) ([f4197e5](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f4197e57a40b33f7fbb7a9e85f57c0fb0687d414))
+* **app:** skip measuring the duration of pending recordings [BB-627] ([#209](https://github.com/ASM-joynnovate/buddybird-mobile/issues/209)) ([f73b38e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f73b38e140765cafa686d341a5447e551029ecf9))
+* **app:** skip the FCM token fetch on iOS without an APNs token [BB-626] ([#210](https://github.com/ASM-joynnovate/buddybird-mobile/issues/210)) ([1e0aea2](https://github.com/ASM-joynnovate/buddybird-mobile/commit/1e0aea262139ae78dd6260072eaad3d22d7fe5c1))
+* **app:** skip the volume check on the iOS simulator [BB-612] ([#204](https://github.com/ASM-joynnovate/buddybird-mobile/issues/204)) ([4729366](https://github.com/ASM-joynnovate/buddybird-mobile/commit/472936619145237312dc0297e96fbb85cea06b2e))
+* **app:** treat a file as missing when its folder does not exist [BB-628] ([#211](https://github.com/ASM-joynnovate/buddybird-mobile/issues/211)) ([c4df46c](https://github.com/ASM-joynnovate/buddybird-mobile/commit/c4df46c090919a3759c86d9c0b1c3c8f84f951aa))
+* **app:** wait for the server login before querying the new account [BB-625] ([#207](https://github.com/ASM-joynnovate/buddybird-mobile/issues/207)) ([3ff5f91](https://github.com/ASM-joynnovate/buddybird-mobile/commit/3ff5f91eff0f7c38089f176bcab962e304029ee1))
+
 ## [2.1.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.0.0...v2.1.0) (2026-10-06)
 
 
