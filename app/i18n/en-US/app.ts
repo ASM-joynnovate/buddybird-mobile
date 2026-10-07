@@ -10,10 +10,10 @@ export const app: AppMessages = {
 	},
 	feedback: {
 		sentMessage: 'Your feedback came through. We will use it to make BuddyBird better.',
-		retry: 'Try again',
+		retry: 'Resend',
 		promptTitle: 'Tell us what you think',
 		promptMessage: 'Share anything you love or wish were different about BuddyBird. It really helps!',
-		write: 'Give feedback',
+		write: 'Feedback',
 		title: 'Send feedback',
 		placeholder: 'Tell us what to improve, what feels off, or a feature you wish existed.',
 		privacy: '⚠ Please do not include personal info like your name or contact details.',

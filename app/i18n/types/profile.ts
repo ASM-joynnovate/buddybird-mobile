@@ -7,7 +7,8 @@ export type ProfileMessages = {
 	addParrot: string;
 	editParrot: string;
 	ageMonths: string;
-	ageYears: string;
+	ageYears_one: string;
+	ageYears_other: string;
 	nickname: string;
 	nicknameHint: string;
 	nicknameInvalid: string;
