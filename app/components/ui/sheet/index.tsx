@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { BackHandler, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +41,16 @@ export const Sheet = ({
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 	const presentedRef = useRef(false);
+	const mountedRef = useRef(true);
+
+	/** bottom sheet mount 여부 기록 */
+	useEffect(() => {
+		mountedRef.current = true;
+
+		return () => {
+			mountedRef.current = false;
+		};
+	}, []);
 
 	useEffect(() => {
 		if (visible) {
@@ -52,9 +62,29 @@ export const Sheet = ({
 		}
 	}, [visible]);
 
+	/** 안드로이드 뒤로 가기 버튼으로 bottom sheet 닫기 */
+	useEffect(() => {
+		if (!visible) {
+			return undefined;
+		}
+
+		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+			if (dismissible) {
+				sheetRef.current?.dismiss();
+			}
+
+			return true;
+		});
+
+		return () => subscription.remove();
+	}, [visible, dismissible]);
+
 	const handleDismiss = () => {
 		presentedRef.current = false;
-		onClose();
+
+		if (mountedRef.current) {
+			onClose();
+		}
 	};
 
 	const handleSheetChange = (index: number) => {

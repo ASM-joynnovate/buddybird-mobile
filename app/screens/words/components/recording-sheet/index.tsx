@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -255,7 +255,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 	}, [visible, recordings.length]);
 
 	/** bottom sheet가 열리면 오디오 모드 설정 */
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!visible) {
 			return undefined;
 		}
@@ -270,11 +270,13 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 			closingRef.current = true;
 
 			if (recorder.getStatus().isRecording) {
+				const recordingUri = recorder.uri;
+
 				void recorder
 					.stop()
 					.then(() => {
-						if (recorder.uri) {
-							deleteRecordingFile(recorder.uri);
+						if (recordingUri) {
+							deleteRecordingFile(recordingUri);
 						}
 					})
 					.catch((error: unknown) => reportError(error, 'recording_cleanup'));
