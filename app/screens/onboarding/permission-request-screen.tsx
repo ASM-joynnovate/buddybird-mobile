@@ -17,7 +17,7 @@ import { BellIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PermissionScene from '@/screens/onboarding/components/permission-scene';
-import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
+import { type PermissionKind, requestPermission } from '@/services/device/permissions';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
@@ -27,7 +27,6 @@ import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { ui } from '@/components/ui/styles';
 
 const PERMISSIONS: readonly { kind: 'microphone' | 'notifications'; icon: LucideIcon }[] = [
 	{ kind: 'microphone', icon: MicIcon },
@@ -40,17 +39,6 @@ const askPermission = async (kind: PermissionKind) => {
 		return (await requestPermission(kind)).granted;
 	} catch (e) {
 		reportError(e, `permission_request_${kind}`);
-
-		return false;
-	}
-};
-
-/** 현재 권한 허용 여부를 반환하는 함수 */
-const isGranted = async (kind: PermissionKind) => {
-	try {
-		return (await readPermission(kind)).granted;
-	} catch (e) {
-		reportError(e, `permission_read_${kind}`);
 
 		return false;
 	}
@@ -75,17 +63,7 @@ const PermissionRequestScreen = () => {
 		}, []),
 	);
 
-	/** 권한 단계를 끝내는 함수 */
-	const completePermissionStep = (microphoneGranted: boolean, notificationsGranted: boolean) => {
-		trackOnboardingStepCompleted('permissions', {
-			microphone_granted: microphoneGranted,
-			notifications_granted: notificationsGranted,
-		});
-
-		navigation.navigate('MarketingNotification');
-	};
-
-	const handleAllow = async () => {
+	const handleContinue = async () => {
 		if (busy) {
 			return;
 		}
@@ -107,11 +85,12 @@ const PermissionRequestScreen = () => {
 
 		setBusy(false);
 
-		completePermissionStep(microphoneGranted, notificationsGranted);
-	};
+		trackOnboardingStepCompleted('permissions', {
+			microphone_granted: microphoneGranted,
+			notifications_granted: notificationsGranted,
+		});
 
-	const handleLater = async () => {
-		completePermissionStep(await isGranted('microphone'), await isGranted('notifications'));
+		navigation.navigate('MarketingNotification');
 	};
 
 	return (
@@ -126,25 +105,11 @@ const PermissionRequestScreen = () => {
 
 			<SceneSheet
 				title={t('onboarding.permissions.intro')}
-				footer={
-					<View style={ui.actionsRow}>
-						<Button
-							label={t('onboarding.permissions.later')}
-							variant="secondary"
-							size="small"
-							disabled={busy}
-							style={ui.action}
-							onPress={() => void handleLater()}
-						/>
-						<Button
-							label={t('onboarding.permissions.allow')}
-							size="small"
-							loading={busy}
-							style={ui.action}
-							onPress={() => void handleAllow()}
-						/>
-					</View>
-				}
+				footer=<Button
+					label={t('onboarding.permissions.continue')}
+					loading={busy}
+					onPress={() => void handleContinue()}
+				/>
 			>
 				<View>
 					{PERMISSIONS.map(({ kind, icon: Icon }, index) => (
