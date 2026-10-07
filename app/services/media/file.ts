@@ -73,7 +73,7 @@ export const readFileInfo = (uri: string) => {
 
 	if (!file.exists) {
 		// exists가 false여도 부모 폴더 목록에 있으면 접근할 수 없는 파일
-		if (file.parentDirectory.list().some((entry) => entry.name === file.name)) {
+		if (file.parentDirectory.exists && file.parentDirectory.list().some((entry) => entry.name === file.name)) {
 			throw new Error('File is inaccessible');
 		}
 

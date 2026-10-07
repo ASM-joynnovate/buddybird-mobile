@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
 	comparedTo: { fontFamily: font.extraBold, fontSize: 12, color: colors.muted },
 	wordRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13 },
 	dividedRow: { borderTopWidth: 2, borderTopColor: colors.border },
-	name: { width: 64, fontFamily: font.extraBold, fontSize: 14 },
+	name: { width: 96, fontFamily: font.extraBold, fontSize: 14 },
 	track: { flex: 1, height: 19, borderRadius: 8, backgroundColor: colors.surface },
 	fill: {
 		height: 19,
