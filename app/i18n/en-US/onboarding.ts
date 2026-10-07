@@ -48,8 +48,7 @@ export const onboarding: OnboardingMessages = {
 			microphone: "Record words and your parrot's sounds",
 			notifications: 'Learning alerts',
 		},
-		allow: 'Allow',
-		later: 'Later',
+		continue: 'Continue',
 	},
 	marketing: {
 		intro: 'Want news about new features and events?',

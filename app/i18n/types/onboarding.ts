@@ -46,8 +46,7 @@ export type OnboardingMessages = {
 			microphone: string;
 			notifications: string;
 		};
-		allow: string;
-		later: string;
+		continue: string;
 	};
 	marketing: {
 		intro: string;

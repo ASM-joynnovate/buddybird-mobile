@@ -48,8 +48,7 @@ export const onboarding: OnboardingMessages = {
 			microphone: '단어 녹음과 앵무새 소리 기록',
 			notifications: '학습 소식 알림',
 		},
-		allow: '허용하기',
-		later: '나중에',
+		continue: '계속',
 	},
 	marketing: {
 		intro: '새 기능과 이벤트 소식을 알림으로 받아 볼까요?',
