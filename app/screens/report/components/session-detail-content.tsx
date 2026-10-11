@@ -185,7 +185,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 
 		setSelection({ itemId: movedItem.id, selectedBy: 'key' });
 
-		if (playing && movedItem.sounds.length > 0) {
+		if (movedItem.sounds.length > 0) {
 			toggleItem(movedItem);
 		}
 	};
