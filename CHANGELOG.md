@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.4.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.2...v2.4.0) (2026-10-11)
+
+
+### Features
+
+* **app:** record device activity hourly in the foreground ([#226](https://github.com/ASM-joynnovate/buddybird-mobile/issues/226)) ([990a5e0](https://github.com/ASM-joynnovate/buddybird-mobile/commit/990a5e059ab5e6e7ac083e0697ad12a3e4dc028b))
+
+
+### Bug Fixes
+
+* **app:** open the sound detail panel below the selected pill [BB-654] ([#222](https://github.com/ASM-joynnovate/buddybird-mobile/issues/222)) ([17a1208](https://github.com/ASM-joynnovate/buddybird-mobile/commit/17a120801b565db7ac16e6184982d9485c7fa06c))
+
+
+### Performance Improvements
+
+* **app:** reduce re-renders on the session detail screen [BB-654] ([#225](https://github.com/ASM-joynnovate/buddybird-mobile/issues/225)) ([5e3e7a8](https://github.com/ASM-joynnovate/buddybird-mobile/commit/5e3e7a833e9020be86f56c33dcaed8d5ce7507c3))
+
 ## [2.3.2](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.1...v2.3.2) (2026-10-11)
 
 
