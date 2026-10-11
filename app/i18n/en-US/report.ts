@@ -61,7 +61,7 @@ export const report: ReportMessages = {
 		playMyVoice: 'Play my voice',
 		previous: 'Previous sound',
 		next: 'Next sound',
-		tapeLog: 'Tape log',
+		tapeLog: 'Log',
 		start: 'Start',
 		end: 'End',
 		hour: '{{hour}}',

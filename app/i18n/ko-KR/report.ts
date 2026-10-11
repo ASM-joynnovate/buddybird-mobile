@@ -61,7 +61,7 @@ export const report: ReportMessages = {
 		playMyVoice: '내 목소리 듣기',
 		previous: '이전 소리',
 		next: '다음 소리',
-		tapeLog: '테이프 기록',
+		tapeLog: '기록',
 		start: '시작',
 		end: '종료',
 		hour: '{{hour}}시',
