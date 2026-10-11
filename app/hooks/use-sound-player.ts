@@ -9,6 +9,7 @@ export interface SoundPlayer {
 	finishedIds: ReadonlySet<string>;
 	failedId: string | null;
 	progress: number;
+	play: (id: string, ...urls: string[]) => void;
 	toggle: (id: string, ...urls: string[]) => void;
 	stop: () => void;
 }
@@ -109,44 +110,55 @@ const useSoundPlayer = () => {
 		}
 	}, [playFromStart, playingId, status.didJustFinish, status.playbackState, stop]);
 
+	/** 녹음 재생 함수 */
+	const play = useCallback(
+		(id: string, ...urls: string[]) => {
+			const [firstUrl, ...nextUrls] = urls;
+			const token = ++playSequenceRef.current;
+
+			player.pause();
+
+			nextUrlsRef.current = nextUrls;
+
+			setFailedId(null);
+
+			void setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false })
+				.then(async () => {
+					if (token !== playSequenceRef.current) {
+						return;
+					}
+
+					if (await playFromStart(firstUrl, token)) {
+						setPlayingId(id);
+					}
+				})
+				.catch((error: unknown) => {
+					if (token === playSequenceRef.current) {
+						setFailedId(id);
+						setPlayingId(null);
+
+						reportError(error, 'sound_playback');
+					}
+				});
+		},
+		[playFromStart, player],
+	);
+
 	/** 녹음 재생 또는 정지 함수 */
-	const toggle = (id: string, ...urls: string[]) => {
-		if (playingId === id) {
-			stop();
+	const toggle = useCallback(
+		(id: string, ...urls: string[]) => {
+			if (playingId === id) {
+				stop();
 
-			return;
-		}
+				return;
+			}
 
-		const [firstUrl, ...nextUrls] = urls;
-		const token = ++playSequenceRef.current;
+			play(id, ...urls);
+		},
+		[play, playingId, stop],
+	);
 
-		player.pause();
-
-		nextUrlsRef.current = nextUrls;
-
-		setFailedId(null);
-
-		void setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false })
-			.then(async () => {
-				if (token !== playSequenceRef.current) {
-					return;
-				}
-
-				if (await playFromStart(firstUrl, token)) {
-					setPlayingId(id);
-				}
-			})
-			.catch((error: unknown) => {
-				if (token === playSequenceRef.current) {
-					setFailedId(id);
-					setPlayingId(null);
-
-					reportError(error, 'sound_playback');
-				}
-			});
-	};
-
-	return { playingId, finishedIds, failedId, progress, toggle, stop };
+	return { playingId, finishedIds, failedId, progress, play, toggle, stop };
 };
 
 export default useSoundPlayer;
