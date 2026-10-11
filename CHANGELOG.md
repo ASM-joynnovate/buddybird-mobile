@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.0...v2.3.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **app:** skip measuring unmounted recorder parts [BB-654] ([#218](https://github.com/ASM-joynnovate/buddybird-mobile/issues/218)) ([f2ffb1b](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f2ffb1bd14ca2f0eb4cc141422fb2f64e215ae0d))
+
 ## [2.3.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.2.0...v2.3.0) (2026-10-11)
 
 
