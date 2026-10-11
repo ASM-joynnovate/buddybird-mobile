@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { useQuery } from '@tanstack/react-query';
+
 import type { RootStackParamList } from '@/types/navigation';
 
-import { useFinishSession, useGetRunningSession } from '@/hooks/apis/sessions';
+import { getSessionOptions, useFinishSession } from '@/hooks/apis/sessions';
 
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +16,7 @@ import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
 
+import { HEARTBEAT_INTERVAL_MS } from '@/config';
 import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
@@ -44,23 +47,29 @@ const SessionWatchScreen = () => {
 
 	const leavingRef = useRef(false);
 
-	const { data: runningSessionData } = useGetRunningSession();
+	// 진행 중 세션 목록 캐시는 이 기기에서 학습을 시작하지 않았으면 비어 있을 수 있어, 세션을 직접 조회
+	const { data: session } = useQuery({
+		...getSessionOptions({ id: params.sessionId }),
+		staleTime: 0,
+		throwOnError: false,
+		refetchInterval: HEARTBEAT_INTERVAL_MS,
+	});
 	const { mutate: finishSession, isPending: finishing, isError: finishFailed } = useFinishSession();
 
-	const session = runningSessionData?.id === params.sessionId ? runningSessionData : null;
+	const finished = session?.status === 'finished';
 
 	/** 학습이 끝나면 홈으로 돌아가기 */
 	useEffect(() => {
-		if (session || leavingRef.current) {
+		if (!finished || leavingRef.current) {
 			return;
 		}
 
 		leavingRef.current = true;
 
 		navigation.goBack();
-	}, [navigation, session]);
+	}, [finished, navigation]);
 
-	if (!session) {
+	if (!session || finished) {
 		return <View style={styles.screen} />;
 	}
 
