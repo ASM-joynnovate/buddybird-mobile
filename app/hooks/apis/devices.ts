@@ -1,6 +1,8 @@
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
-import { deleteDevice, getDeviceList, patchDevice, putDevice, putPushToken } from '@/apis/devices';
+import { deleteDevice, getDeviceList, patchDevice, putDevice, putDeviceActivity, putPushToken } from '@/apis/devices';
+
+import { ApiError } from '@/types/apis/common';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -27,6 +29,21 @@ export const useUpdatePushToken = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('devices', 'me', 'push-token', 'update'),
 		mutationFn: putPushToken,
+	});
+};
+
+/** 기기 접속 기록 Hook */
+export const useRecordDeviceActivity = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('devices', 'me', 'activity', 'record'),
+		mutationFn: putDeviceActivity,
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === 'DEVICE__NOT_REGISTERED') {
+				return;
+			}
+
+			reportError(error, 'device_activity');
+		},
 	});
 };
 
