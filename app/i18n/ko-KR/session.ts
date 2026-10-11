@@ -45,11 +45,13 @@ export const session: SessionMessages = {
 		startButton: '학습 시작',
 		startUnavailable: '학습할 단어와 시간을 설정하면 시작할 수 있어요',
 		elsewhere: '다른 기기에서 학습 중이에요',
-		endElsewhere: '끝내기',
+		endElsewhere: '학습 종료',
 		endElsewhereError: '학습을 끝내지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.',
+		watch: '학습 보기',
 	},
 	run: {
 		reveal: '화면을 누르면 학습 정보가 보여요',
+		camera: '카메라',
 		elapsed: '경과',
 		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
 		dimAfter: '배터리 및 화면 보호를 위해 {{seconds}}초 후 자동으로 어두워집니다.',
@@ -62,8 +64,18 @@ export const session: SessionMessages = {
 	end: {
 		title: '학습 종료',
 		message: '학습을 끝낼까요? 끝내면 이번 학습 결과를 보여 드려요.',
-		button: '종료',
+		button: '학습 종료',
 		keep: '계속',
+	},
+	watch: {
+		leave: '나가기',
+		connecting: '학습 중인 기기와 연결하고 있어요',
+		cameraOff: {
+			title: '카메라가 꺼져 있어요',
+			message: '오른쪽 위 카메라 버튼을 누르면 학습 중인 기기의 카메라가 켜져요.',
+		},
+		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 탭하면 원래대로 돌아와요' },
+		zoomLevel: '{{zoom}}×',
 	},
 	summary: {
 		title: '학습 완료!',
