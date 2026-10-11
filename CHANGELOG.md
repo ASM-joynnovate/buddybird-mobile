@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.2.0...v2.3.0) (2026-10-11)
+
+
+### Features
+
+* **app:** redesign the session detail screen [BB-654] ([#215](https://github.com/ASM-joynnovate/buddybird-mobile/issues/215)) ([9169866](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9169866fc7063a011f9964ce6a0bb6cf13aebbc6))
+
+
+### Bug Fixes
+
+* **app:** update the session detail titles [BB-654] ([#217](https://github.com/ASM-joynnovate/buddybird-mobile/issues/217)) ([76c55ea](https://github.com/ASM-joynnovate/buddybird-mobile/commit/76c55ea91fde6c254ce808b2a0ab9b77bacd58dc))
+
 ## [2.2.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.1.0...v2.2.0) (2026-10-07)
 
 
