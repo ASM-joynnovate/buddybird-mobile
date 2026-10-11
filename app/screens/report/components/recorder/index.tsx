@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
@@ -82,208 +82,212 @@ interface Props {
  * @param deckLayout 녹음기 위치를 저장할 값
  * @param deckParts 녹음기 부분별 위치를 저장할 값
  */
-const Recorder = ({
-	item,
-	playing,
-	pinned,
-	previousDisabled,
-	nextDisabled,
-	playDisabled,
-	onPrevious,
-	onTogglePlay,
-	onNext,
-	scrollY,
-	feedRadius,
-	takeRadius,
-	deckLayout,
-	deckParts,
-}: Props) => {
-	const { t } = useTranslation();
-
-	const deckRef = useAnimatedRef<Animated.View>();
-	const windowRef = useAnimatedRef<Animated.View>();
-	const leftReelRef = useAnimatedRef<Animated.View>();
-	const rightReelRef = useAnimatedRef<Animated.View>();
-	const waveRef = useAnimatedRef<Animated.View>();
-	const timeLabelRef = useAnimatedRef<Animated.View>();
-	const timeRef = useAnimatedRef<Animated.View>();
-	const recordingRef = useAnimatedRef<Animated.View>();
-	const kindLabelRef = useAnimatedRef<Animated.View>();
-	const kindNameRef = useAnimatedRef<Animated.View>();
-	const previousKeyRef = useAnimatedRef<Animated.View>();
-	const playKeyRef = useAnimatedRef<Animated.View>();
-	const nextKeyRef = useAnimatedRef<Animated.View>();
-	const keyLabelRef = useAnimatedRef<Animated.View>();
-
-	const keyLabel = item
-		? t('report.detail.soundAt', { time: dayjs(item.startedAt).format('LT') })
-		: t('report.detail.playMyVoice');
-	const hiddenStyle = useAnimatedStyle(() => ({ opacity: scrollY.get() > deckLayout.get().y ? 0 : 1 }));
-
-	/** 녹음기 부분별 위치를 녹음기 기준으로 재는 함수 */
-	const measureParts = useCallback(() => {
-		'worklet';
-
-		const deck = measure(deckRef);
-
-		if (!deck) {
-			return;
-		}
-
-		const rectOf = (ref: AnimatedRef<Animated.View>) => {
-			const part = ref() ? measure(ref) : null;
-
-			return part
-				? { x: part.pageX - deck.pageX, y: part.pageY - deck.pageY, width: part.width, height: part.height }
-				: null;
-		};
-		const window = rectOf(windowRef);
-		const leftReel = rectOf(leftReelRef);
-		const rightReel = rectOf(rightReelRef);
-		const wave = rectOf(waveRef);
-		const timeLabel = rectOf(timeLabelRef);
-		const time = rectOf(timeRef);
-		const sub = rectOf(kindNameRef) ?? rectOf(recordingRef) ?? time;
-		const keys = [rectOf(previousKeyRef), rectOf(playKeyRef), rectOf(nextKeyRef)];
-
-		if (!window || !leftReel || !rightReel || !wave || !timeLabel || !time || !sub) {
-			return;
-		}
-
-		const measuredKeys = keys.filter((key) => key !== null);
-
-		if (measuredKeys.length !== keys.length) {
-			return;
-		}
-
-		deckParts.set({
-			window,
-			reels: [leftReel, rightReel],
-			wave,
-			timeLabel,
-			time,
-			kindLabel: rectOf(kindLabelRef),
-			sub,
-			keys: measuredKeys.map((key) => ({ ...key, height: key.height - DECK_KEY_EDGE })),
-			keyLabelWidth: measure(keyLabelRef)?.width ?? 0,
-		});
-	}, [
+const Recorder = memo(
+	({
+		item,
+		playing,
+		pinned,
+		previousDisabled,
+		nextDisabled,
+		playDisabled,
+		onPrevious,
+		onTogglePlay,
+		onNext,
+		scrollY,
+		feedRadius,
+		takeRadius,
+		deckLayout,
 		deckParts,
-		deckRef,
-		keyLabelRef,
-		kindLabelRef,
-		kindNameRef,
-		leftReelRef,
-		nextKeyRef,
-		playKeyRef,
-		previousKeyRef,
-		recordingRef,
-		rightReelRef,
-		timeLabelRef,
-		timeRef,
-		waveRef,
-		windowRef,
-	]);
+	}: Props) => {
+		const { t } = useTranslation();
 
-	/** 선택한 소리가 바뀌면 다시 잼 */
-	useEffect(() => {
-		runOnUI(measureParts)();
-	}, [item, measureParts]);
+		const deckRef = useAnimatedRef<Animated.View>();
+		const windowRef = useAnimatedRef<Animated.View>();
+		const leftReelRef = useAnimatedRef<Animated.View>();
+		const rightReelRef = useAnimatedRef<Animated.View>();
+		const waveRef = useAnimatedRef<Animated.View>();
+		const timeLabelRef = useAnimatedRef<Animated.View>();
+		const timeRef = useAnimatedRef<Animated.View>();
+		const recordingRef = useAnimatedRef<Animated.View>();
+		const kindLabelRef = useAnimatedRef<Animated.View>();
+		const kindNameRef = useAnimatedRef<Animated.View>();
+		const previousKeyRef = useAnimatedRef<Animated.View>();
+		const playKeyRef = useAnimatedRef<Animated.View>();
+		const nextKeyRef = useAnimatedRef<Animated.View>();
+		const keyLabelRef = useAnimatedRef<Animated.View>();
 
-	const handleLayout = (event: LayoutChangeEvent) => {
-		const { x, y, width, height } = event.nativeEvent.layout;
+		const keyLabel = item
+			? t('report.detail.soundAt', { time: dayjs(item.startedAt).format('LT') })
+			: t('report.detail.playMyVoice');
+		const hiddenStyle = useAnimatedStyle(() => ({ opacity: scrollY.get() > deckLayout.get().y ? 0 : 1 }));
 
-		deckLayout.set({ x, y, width, height: height - DECK_EDGE });
+		/** 녹음기 부분별 위치를 녹음기 기준으로 재는 함수 */
+		const measureParts = useCallback(() => {
+			'worklet';
 
-		runOnUI(measureParts)();
-	};
+			const deck = measure(deckRef);
 
-	return (
-		<Animated.View
-			ref={deckRef}
-			pointerEvents={pinned ? 'none' : 'auto'}
-			style={[styles.deck, hiddenStyle]}
-			onLayout={handleLayout}
-		>
-			<View style={styles.edge} />
+			if (!deck) {
+				return;
+			}
 
-			<View style={styles.face}>
-				{/*선택한 소리 라벨*/}
-				<View style={styles.top}>
-					<RecorderTimeLabel
-						item={item}
-						labelRef={timeLabelRef}
-						timeRef={timeRef}
-						recordingRef={recordingRef}
-					/>
-					{item && <RecorderKindLabel kind={item.kind} labelRef={kindLabelRef} nameRef={kindNameRef} />}
-				</View>
+			const rectOf = (ref: AnimatedRef<Animated.View>) => {
+				const part = ref() ? measure(ref) : null;
 
-				<Animated.View ref={windowRef} style={styles.window}>
-					<View style={styles.reels}>
-						<Animated.View ref={leftReelRef}>
-							<TapeReel
-								size={DECK_REEL_SIZE}
-								side="left"
-								radius={feedRadius}
-								scrollY={scrollY}
-								playing={playing}
+				return part
+					? { x: part.pageX - deck.pageX, y: part.pageY - deck.pageY, width: part.width, height: part.height }
+					: null;
+			};
+			const window = rectOf(windowRef);
+			const leftReel = rectOf(leftReelRef);
+			const rightReel = rectOf(rightReelRef);
+			const wave = rectOf(waveRef);
+			const timeLabel = rectOf(timeLabelRef);
+			const time = rectOf(timeRef);
+			const sub = rectOf(kindNameRef) ?? rectOf(recordingRef) ?? time;
+			const keys = [rectOf(previousKeyRef), rectOf(playKeyRef), rectOf(nextKeyRef)];
+
+			if (!window || !leftReel || !rightReel || !wave || !timeLabel || !time || !sub) {
+				return;
+			}
+
+			const measuredKeys = keys.filter((key) => key !== null);
+
+			if (measuredKeys.length !== keys.length) {
+				return;
+			}
+
+			deckParts.set({
+				window,
+				reels: [leftReel, rightReel],
+				wave,
+				timeLabel,
+				time,
+				kindLabel: rectOf(kindLabelRef),
+				sub,
+				keys: measuredKeys.map((key) => ({ ...key, height: key.height - DECK_KEY_EDGE })),
+				keyLabelWidth: measure(keyLabelRef)?.width ?? 0,
+			});
+		}, [
+			deckParts,
+			deckRef,
+			keyLabelRef,
+			kindLabelRef,
+			kindNameRef,
+			leftReelRef,
+			nextKeyRef,
+			playKeyRef,
+			previousKeyRef,
+			recordingRef,
+			rightReelRef,
+			timeLabelRef,
+			timeRef,
+			waveRef,
+			windowRef,
+		]);
+
+		/** 선택한 소리가 바뀌면 다시 잼 */
+		useEffect(() => {
+			runOnUI(measureParts)();
+		}, [item, measureParts]);
+
+		const handleLayout = (event: LayoutChangeEvent) => {
+			const { x, y, width, height } = event.nativeEvent.layout;
+
+			deckLayout.set({ x, y, width, height: height - DECK_EDGE });
+
+			runOnUI(measureParts)();
+		};
+
+		return (
+			<Animated.View
+				ref={deckRef}
+				pointerEvents={pinned ? 'none' : 'auto'}
+				style={[styles.deck, hiddenStyle]}
+				onLayout={handleLayout}
+			>
+				<View style={styles.edge} />
+
+				<View style={styles.face}>
+					{/*선택한 소리 라벨*/}
+					<View style={styles.top}>
+						<RecorderTimeLabel
+							item={item}
+							labelRef={timeLabelRef}
+							timeRef={timeRef}
+							recordingRef={recordingRef}
+						/>
+						{item && <RecorderKindLabel kind={item.kind} labelRef={kindLabelRef} nameRef={kindNameRef} />}
+					</View>
+
+					<Animated.View ref={windowRef} style={styles.window}>
+						<View style={styles.reels}>
+							<Animated.View ref={leftReelRef}>
+								<TapeReel
+									size={DECK_REEL_SIZE}
+									side="left"
+									radius={feedRadius}
+									scrollY={scrollY}
+									playing={playing}
+								/>
+							</Animated.View>
+
+							<Animated.View ref={waveRef} style={styles.between}>
+								<RecorderWaveform active={item !== null} playing={playing} />
+							</Animated.View>
+
+							<Animated.View ref={rightReelRef}>
+								<TapeReel
+									size={DECK_REEL_SIZE}
+									side="right"
+									radius={takeRadius}
+									scrollY={scrollY}
+									playing={playing}
+								/>
+							</Animated.View>
+						</View>
+					</Animated.View>
+
+					<View style={styles.keys}>
+						<Animated.View ref={previousKeyRef} style={styles.sideKey}>
+							<RecorderKey
+								variant="side"
+								icon={SkipBackIcon}
+								accessibilityLabel={t('report.detail.previous')}
+								disabled={previousDisabled}
+								onPress={onPrevious}
 							/>
 						</Animated.View>
 
-						<Animated.View ref={waveRef} style={styles.between}>
-							<RecorderWaveform active={item !== null} playing={playing} />
+						<Animated.View ref={playKeyRef} style={styles.mainKey}>
+							<RecorderKey
+								variant="main"
+								icon={playing ? PauseIcon : PlayIcon}
+								accessibilityLabel={
+									playing ? t('common.sound.stopNamed', { name: keyLabel }) : keyLabel
+								}
+								disabled={playDisabled}
+								label={keyLabel}
+								labelRef={keyLabelRef}
+								onPress={onTogglePlay}
+							/>
 						</Animated.View>
 
-						<Animated.View ref={rightReelRef}>
-							<TapeReel
-								size={DECK_REEL_SIZE}
-								side="right"
-								radius={takeRadius}
-								scrollY={scrollY}
-								playing={playing}
+						<Animated.View ref={nextKeyRef} style={styles.sideKey}>
+							<RecorderKey
+								variant="side"
+								icon={SkipForwardIcon}
+								accessibilityLabel={t('report.detail.next')}
+								disabled={nextDisabled}
+								onPress={onNext}
 							/>
 						</Animated.View>
 					</View>
-				</Animated.View>
-
-				<View style={styles.keys}>
-					<Animated.View ref={previousKeyRef} style={styles.sideKey}>
-						<RecorderKey
-							variant="side"
-							icon={SkipBackIcon}
-							accessibilityLabel={t('report.detail.previous')}
-							disabled={previousDisabled}
-							onPress={onPrevious}
-						/>
-					</Animated.View>
-
-					<Animated.View ref={playKeyRef} style={styles.mainKey}>
-						<RecorderKey
-							variant="main"
-							icon={playing ? PauseIcon : PlayIcon}
-							accessibilityLabel={playing ? t('common.sound.stopNamed', { name: keyLabel }) : keyLabel}
-							disabled={playDisabled}
-							label={keyLabel}
-							labelRef={keyLabelRef}
-							onPress={onTogglePlay}
-						/>
-					</Animated.View>
-
-					<Animated.View ref={nextKeyRef} style={styles.sideKey}>
-						<RecorderKey
-							variant="side"
-							icon={SkipForwardIcon}
-							accessibilityLabel={t('report.detail.next')}
-							disabled={nextDisabled}
-							onPress={onNext}
-						/>
-					</Animated.View>
 				</View>
-			</View>
-		</Animated.View>
-	);
-};
+			</Animated.View>
+		);
+	},
+);
 
 const styles = StyleSheet.create({
 	deck: { marginTop: 32, paddingBottom: DECK_EDGE },

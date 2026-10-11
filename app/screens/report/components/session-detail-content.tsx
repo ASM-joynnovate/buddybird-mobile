@@ -78,7 +78,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		queries: [getSessionEventListOptions({ id: sessionId })].filter(() => emergencyShown),
 	}).at(0);
 
-	const player = useSoundPlayer();
+	const { playingId, play, toggle, stop } = useSoundPlayer();
 
 	const scrollRef = useAnimatedRef<Animated.ScrollView>();
 	const scrollY = useScrollOffset(scrollRef);
@@ -109,7 +109,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		null;
 	const selectedItem = items.find((item) => item.id === selection?.itemId) ?? latestItem;
 	const selectedIndex = selectedItem ? items.indexOf(selectedItem) : -1;
-	const playing = player.playingId !== null && player.playingId === (selectedItem?.id ?? recording?.id);
+	const playing = playingId !== null && playingId === (selectedItem?.id ?? recording?.id);
 	const playDisabled = selectedItem ? selectedItem.sounds.length === 0 : recording === null;
 	const pageProgress = useDerivedValue(() =>
 		Math.min(Math.max(scrollY.get() / Math.max(contentHeight.get() - viewportHeight.get(), 1), 0), 1),
@@ -143,68 +143,81 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		},
 	);
 
-	/** 알약의 소리를 재생하거나 멈추는 함수 */
-	const toggleItem = (item: TapeItem) => {
-		if (player.playingId !== item.id) {
+	/** 알약의 소리를 처음부터 재생하는 함수 */
+	const playItem = useCallback(
+		(item: TapeItem) => {
 			track('parrot_sound_played', { session_id: sessionId });
-		}
 
-		player.toggle(item.id, ...item.sounds.map((sound) => sound.audio_file.url));
-	};
+			play(item.id, ...item.sounds.map((sound) => sound.audio_file.url));
+		},
+		[play, sessionId],
+	);
 
-	const handleTogglePlay = () => {
-		if (selectedItem) {
-			toggleItem(selectedItem);
+	const handleTogglePlay = useCallback(() => {
+		if (selectedItem && playingId === selectedItem.id) {
+			stop();
+		} else if (selectedItem) {
+			playItem(selectedItem);
 		} else if (recording) {
-			player.toggle(recording.id, recording.audio_file.url);
+			toggle(recording.id, recording.audio_file.url);
 		}
-	};
+	}, [playItem, playingId, recording, selectedItem, stop, toggle]);
 
-	const handlePressItem = (item: TapeItem) => {
-		if (item === selectedItem) {
-			handleTogglePlay();
+	const handleSelectItem = useCallback(
+		(item: TapeItem) => {
+			setSelection({ itemId: item.id, selectedBy: 'item' });
 
-			return;
-		}
-
-		setSelection({ itemId: item.id, selectedBy: 'item' });
-
-		if (item.sounds.length > 0) {
-			toggleItem(item);
-		}
-	};
-
-	const handleMoveItem = (step: number) => {
-		const movedIndex = selectedIndex + step;
-
-		if (selectedIndex === -1 || movedIndex < 0 || movedIndex >= items.length) {
-			return;
-		}
-
-		const movedItem = items[movedIndex];
-
-		setSelection({ itemId: movedItem.id, selectedBy: 'key' });
-
-		if (movedItem.sounds.length > 0) {
-			toggleItem(movedItem);
-		}
-	};
-
-	const handleShareItem = async (item: TapeItem) => {
-		const url = item.sounds[0].audio_file.url;
-
-		try {
-			const shareResult = await Share.share({ url, message: url });
-
-			if (shareResult.action === Share.sharedAction) {
-				track('parrot_sound_shared', { session_id: sessionId });
+			if (item.sounds.length > 0) {
+				playItem(item);
 			}
-		} catch (e) {
-			reportError(e, 'parrot_sound_share');
+		},
+		[playItem],
+	);
 
-			openPopup({ title: t('report.detail.shareError') });
-		}
-	};
+	const handleMoveItem = useCallback(
+		(step: number) => {
+			const movedIndex = selectedIndex + step;
+
+			if (selectedIndex === -1 || movedIndex < 0 || movedIndex >= items.length) {
+				return;
+			}
+
+			const movedItem = items[movedIndex];
+
+			setSelection({ itemId: movedItem.id, selectedBy: 'key' });
+
+			if (movedItem.sounds.length > 0) {
+				playItem(movedItem);
+			}
+		},
+		[items, playItem, selectedIndex],
+	);
+
+	const handlePrevious = useCallback(() => handleMoveItem(-1), [handleMoveItem]);
+
+	const handleNext = useCallback(() => handleMoveItem(1), [handleMoveItem]);
+
+	/** 알약의 소리를 공유하는 함수 */
+	const shareItem = useCallback(
+		async (item: TapeItem) => {
+			const url = item.sounds[0].audio_file.url;
+
+			try {
+				const shareResult = await Share.share({ url, message: url });
+
+				if (shareResult.action === Share.sharedAction) {
+					track('parrot_sound_shared', { session_id: sessionId });
+				}
+			} catch (e) {
+				reportError(e, 'parrot_sound_share');
+
+				openPopup({ title: t('report.detail.shareError') });
+			}
+		},
+		[openPopup, sessionId, t],
+	);
+
+	const handleShareItem = useCallback((item: TapeItem) => void shareItem(item), [shareItem]);
 
 	const recorderProps = {
 		item: selectedItem,
@@ -213,9 +226,9 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		previousDisabled: selectedIndex <= 0,
 		nextDisabled: selectedIndex === -1 || selectedIndex === items.length - 1,
 		playDisabled,
-		onPrevious: () => handleMoveItem(-1),
+		onPrevious: handlePrevious,
 		onTogglePlay: handleTogglePlay,
-		onNext: () => handleMoveItem(1),
+		onNext: handleNext,
 		scrollY,
 		feedRadius: deckFeedRadius,
 		takeRadius: deckTakeRadius,
@@ -253,9 +266,9 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 					scrollRef={scrollRef}
 					scrollY={scrollY}
 					viewportHeight={viewportHeight}
-					onPressItem={handlePressItem}
+					onSelectItem={handleSelectItem}
 					onTogglePlay={handleTogglePlay}
-					onShareItem={(item) => void handleShareItem(item)}
+					onShareItem={handleShareItem}
 				/>
 			</Animated.ScrollView>
 
