@@ -9,16 +9,17 @@ interface Props {
 	label: string;
 	onPress: () => void;
 	disabled?: boolean;
+	size?: 'compact' | 'small';
 }
 
-export const PlayButton = ({ playing, label, onPress, disabled }: Props) => {
+export const PlayButton = ({ playing, label, onPress, disabled, size = 'small' }: Props) => {
 	return (
 		<IconButton
 			icon={playing ? PauseIcon : PlayIcon}
 			iconProps={{ fill: disabled ? colors.subtle : colors.onFilled }}
 			label={label}
 			variant="primary"
-			size="small"
+			size={size}
 			disabled={disabled}
 			onPress={onPress}
 		/>

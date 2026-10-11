@@ -18,6 +18,11 @@ export const formatMonthDayWeekday = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.monthDayWeekday', { lng: locale }));
 };
 
+/** 날짜를 '9월 29일 화요일' 형식으로 변환하는 함수 */
+export const formatMonthDayLongWeekday = (value: DateInput, locale: Locale) => {
+	return dayjs(value).format(i18next.t('common.dateFormat.monthDayLongWeekday', { lng: locale }));
+};
+
 /** 날짜를 '2026년 9월' 형식으로 변환하는 함수 */
 export const formatYearMonth = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.yearMonth', { lng: locale }));
