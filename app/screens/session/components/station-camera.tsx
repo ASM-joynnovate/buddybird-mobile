@@ -11,7 +11,7 @@ const StationCamera = () => {
 		<View style={StyleSheet.absoluteFill} pointerEvents="none">
 			<CameraView
 				style={StyleSheet.absoluteFill}
-				facing="front"
+				facing="back"
 				animateShutter={false}
 				onMountError={(event) => reportError(new Error(event.message), 'station_camera')}
 			/>
