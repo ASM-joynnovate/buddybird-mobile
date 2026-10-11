@@ -19,11 +19,18 @@ import { runOnUI } from 'react-native-worklets';
 import { PINNED_BAND_HEIGHT } from '@/screens/report/components/recorder/pinned';
 import TapeLogDayBreak from '@/screens/report/components/tape-log/day-break';
 import TapeLogHeader from '@/screens/report/components/tape-log/header';
-import TapeLogRow, { type RowLayout } from '@/screens/report/components/tape-log/row';
+import TapeLogRow, { type LineLayout, type RowLayout } from '@/screens/report/components/tape-log/row';
 import TapeLogStrip, { type StickyLayout } from '@/screens/report/components/tape-log/strip';
 import { font } from '@/theme';
 import { sessionEndedAt } from '@/utils/date';
-import { getMidnights, getSleepSpans, getTapeDays, type SoundKind, type TapeItem } from '@/utils/tape-log';
+import {
+	getMidnights,
+	getSleepSpans,
+	getTapeDays,
+	getTapeLineIndex,
+	type SoundKind,
+	type TapeItem,
+} from '@/utils/tape-log';
 
 import { Copy } from '@/components/ui/copy';
 import { Tag } from '@/components/ui/tag';
@@ -86,6 +93,7 @@ const TapeLog = ({
 	const stripLayout = useSharedValue<StickyLayout>({ y: 0, height: 0 });
 	const dayBreakLayouts = useSharedValue<StickyLayout[]>([]);
 	const rowLayouts = useSharedValue<RowLayout[]>([]);
+	const lineLayouts = useSharedValue<LineLayout[][]>([]);
 
 	const { span, sleepSpans, midnights, days } = useMemo(() => {
 		const sessionSpan = {
@@ -105,6 +113,8 @@ const TapeLog = ({
 	const rows = days.flatMap((day) => day.rows);
 	const selectedItemId = selectedItem?.id;
 	const selectedRowIndex = selectedItem ? rows.findIndex((row) => row.items.includes(selectedItem)) : -1;
+	const selectedLineIndex =
+		selectedItem && selectedRowIndex !== -1 ? getTapeLineIndex(rows[selectedRowIndex], selectedItem) : -1;
 	const counts = {
 		parrot: items.filter((item) => item.kind === 'parrot').length,
 		mimic: items.filter((item) => item.kind === 'mimic').length,
@@ -112,46 +122,54 @@ const TapeLog = ({
 	};
 
 	const openedRowIndexRef = useRef(selectedRowIndex);
+	const openedLineIndexRef = useRef(selectedLineIndex);
 
-	/** 버튼으로 옮긴 알약이 가려지면 스크롤 */
+	/** 버튼으로 옮긴 알약이나 패널이 가려지면 스크롤 */
 	useEffect(() => {
 		const openedRowIndex = openedRowIndexRef.current;
+		const openedLineIndex = openedLineIndexRef.current;
 
 		openedRowIndexRef.current = selectedRowIndex;
+		openedLineIndexRef.current = selectedLineIndex;
 
 		if (selectedBy !== 'key' || selectedRowIndex === -1) {
 			return;
 		}
 
-		runOnUI((rowIndex: number, previousRowIndex: number) => {
+		runOnUI((rowIndex: number, lineIndex: number, previousRowIndex: number, previousLineIndex: number) => {
 			'worklet';
 
-			const layouts = rowLayouts.get();
-			const target = layouts.at(rowIndex);
+			const row = rowLayouts.get()[rowIndex];
+			const line = lineLayouts.get()[rowIndex]?.[lineIndex];
 
-			if (!target) {
+			if (!row || !line) {
 				return;
 			}
 
-			// 접히는 패널만큼 행이 올라감
-			const collapse =
-				previousRowIndex !== -1 && previousRowIndex < rowIndex
-					? (layouts.at(previousRowIndex)?.panelHeight ?? 0)
-					: 0;
-			const top = logY.get() + target.y - collapse;
+			const previousRow = rowLayouts.get()[previousRowIndex];
+			const previousLine = lineLayouts.get()[previousRowIndex]?.[previousLineIndex];
+			const lineY = row.y + line.y;
+
+			// 새 패널은 이전 패널과 높이가 같다고 봄
+			const panelHeight = previousRow?.panelHeight ?? 0;
+
+			// 위쪽 패널이 접히는 만큼 줄이 올라감
+			const collapse = previousRow && previousLine && previousRow.y + previousLine.y < lineY ? panelHeight : 0;
+			const top = logY.get() + lineY - collapse;
 			const coveredHeight =
 				PINNED_BAND_HEIGHT + stripLayout.get().height + (dayBreakLayouts.get().at(0)?.height ?? 0);
 			const visibleTop = scrollY.get() + coveredHeight;
 			const visibleBottom = scrollY.get() + viewportHeight.get();
 
-			if (top >= visibleTop && top + target.height - target.panelHeight <= visibleBottom) {
+			if (top >= visibleTop && top + line.height + panelHeight <= visibleBottom) {
 				return;
 			}
 
 			scrollTo(scrollRef, 0, Math.max(top - coveredHeight, 0), !reducedMotion);
-		})(selectedRowIndex, openedRowIndex);
+		})(selectedRowIndex, selectedLineIndex, openedRowIndex, openedLineIndex);
 	}, [
 		dayBreakLayouts,
+		lineLayouts,
 		logY,
 		reducedMotion,
 		rowLayouts,
@@ -159,6 +177,7 @@ const TapeLog = ({
 		scrollY,
 		selectedBy,
 		selectedItemId,
+		selectedLineIndex,
 		selectedRowIndex,
 		stripLayout,
 		viewportHeight,
@@ -218,7 +237,7 @@ const TapeLog = ({
 								index={rowIndex}
 								lanes={lanes}
 								selectedItem={rowIndex === selectedRowIndex ? selectedItem : null}
-								holdOnClose={selectedBy === 'item' && selectedRowIndex > rowIndex}
+								pressedItemHeld={selectedBy === 'item' && selectedRowIndex >= rowIndex}
 								playing={playing}
 								wordName={wordName}
 								scrollRef={scrollRef}
@@ -226,6 +245,7 @@ const TapeLog = ({
 								viewportHeight={viewportHeight}
 								logY={logY}
 								rowLayouts={rowLayouts}
+								lineLayouts={lineLayouts}
 								onPressItem={onPressItem}
 								onTogglePlay={onTogglePlay}
 								onShareItem={onShareItem}

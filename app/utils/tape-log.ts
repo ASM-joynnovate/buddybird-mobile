@@ -141,6 +141,11 @@ export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => 
 	return [...soundItems, ...emergencyItems].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
 };
 
+/** 행 안에서 알약이 놓인 줄 번호를 반환하는 함수 */
+export const getTapeLineIndex = (row: TapeRow, item: TapeItem) => {
+	return row.items.filter((rowItem) => rowItem.kind === item.kind).indexOf(item);
+};
+
 /** 날짜별 행에 알약을 담는 함수 */
 export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: TapeItem[]) => {
 	const awakeSpans = [...sleepSpans, { start: session.end, end: session.end }].map((sleepSpan, index) => ({
