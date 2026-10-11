@@ -95,6 +95,10 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 				})}
 			</Copy>
 
+			<View style={styles.divider}>
+				<DashedLine color={colors.border} />
+			</View>
+
 			<View style={styles.counters}>
 				<View
 					accessible

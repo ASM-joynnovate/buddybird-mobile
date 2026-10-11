@@ -21,7 +21,7 @@ const SessionDetailSkeleton = () => {
 const styles = StyleSheet.create({
 	container: { flex: 1, overflow: 'hidden', gap: 8, paddingTop: 8 },
 	block: { borderRadius: radius.small, backgroundColor: colors.surface },
-	overviewBlock: { height: 280, borderRadius: radius.card },
+	overviewBlock: { height: 300, borderRadius: radius.card },
 	recorderBlock: { height: 250, marginTop: 24, borderRadius: 24 },
 	rowBlock: { height: 50, borderRadius: 10 },
 });
