@@ -19,8 +19,6 @@ import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatMonthDayTime } from '@/i18n/format';
-
 import Animated, {
 	useAnimatedReaction,
 	useAnimatedRef,
@@ -36,13 +34,8 @@ import SessionOverview from '@/screens/report/components/session-overview';
 import TapeLog, { type TapeSelectionSource } from '@/screens/report/components/tape-log';
 import { shouldShowEmergencyAudioEvent } from '@/services/remote-config/client';
 import { reportError, track } from '@/services/telemetry/client';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useMessageStore } from '@/stores/message';
-import { colors, font } from '@/theme';
 import { getTapeItems, type SoundKind, type TapeItem } from '@/utils/tape-log';
-
-import { Copy } from '@/components/ui/copy';
-import { Title } from '@/components/ui/title';
 
 const NO_EVENTS: SessionEvent[] = [];
 const LANES_WITH_EMERGENCY: SoundKind[] = ['parrot', 'mimic', 'emergency'];
@@ -98,8 +91,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 	const [selection, setSelection] = useState<TapeSelection | null>(null);
 	const [pinned, setPinned] = useState(false);
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const openPopup = useMessageStore((state) => state.openPopup);
 
 	const sessionEvents = sessionEventListQuery?.data ?? NO_EVENTS;
@@ -120,7 +111,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 	const selectedIndex = selectedItem ? items.indexOf(selectedItem) : -1;
 	const playing = player.playingId !== null && player.playingId === (selectedItem?.id ?? recording?.id);
 	const playDisabled = selectedItem ? selectedItem.sounds.length === 0 : recording === null;
-	const period = sessionData.period;
 	const pageProgress = useDerivedValue(() =>
 		Math.min(Math.max(scrollY.get() / Math.max(contentHeight.get() - viewportHeight.get(), 1), 0), 1),
 	);
@@ -248,14 +238,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 				contentContainerStyle={styles.content}
 				onContentSizeChange={(_, height) => contentHeight.set(height)}
 			>
-				<Title style={styles.title}>{sessionSummaryData.word.name}</Title>
-				<Copy style={styles.period}>
-					{t('report.detail.period', {
-						start: formatMonthDayTime(period.started_at, locale),
-						end: period.ended_at ? formatMonthDayTime(period.ended_at, locale) : t('report.detail.now'),
-					})}
-				</Copy>
-
 				<SessionOverview session={sessionData} sessionSummary={sessionSummaryData} />
 
 				<Recorder {...recorderProps} />
@@ -285,15 +267,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 const styles = StyleSheet.create({
 	viewport: { flex: 1, marginHorizontal: -24 },
 	content: { paddingTop: 8, paddingHorizontal: 24, paddingBottom: 16 },
-	title: { fontSize: 34, lineHeight: 40 },
-	period: {
-		marginTop: 4,
-		fontFamily: font.extraBold,
-		fontSize: 15,
-		lineHeight: 21,
-		color: colors.muted,
-		fontVariant: ['tabular-nums'],
-	},
 });
 
 export default SessionDetailContent;

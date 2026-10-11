@@ -4,7 +4,7 @@ import type { Session, SessionSummary } from '@/types/apis/sessions';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration } from '@/i18n/format';
+import { formatDuration, formatMonthDayTime } from '@/i18n/format';
 
 import { ChevronRightIcon } from 'lucide-react-native';
 
@@ -17,6 +17,7 @@ import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
 import { Surface } from '@/components/ui/surface';
+import { Title } from '@/components/ui/title';
 
 interface FlowStepProps {
 	label: string;
@@ -77,6 +78,7 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
+	const period = session.period;
 	const learningMs = sessionSummary.session.active.duration_ms;
 	const learningClock = [Math.floor(learningMs / HOUR), Math.floor(learningMs / MINUTE) % MINUTES_PER_HOUR]
 		.map((value) => String(value).padStart(2, '0'))
@@ -84,58 +86,56 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 	const playCount = sessionSummary.session.play_count;
 
 	return (
-		<View style={styles.container}>
-			<View style={styles.panel}>
-				<View style={styles.counters}>
-					<View
-						accessible
-						accessibilityLabel={joinLabel(
-							t('report.detail.learningTime'),
-							formatDuration(learningMs, locale),
-						)}
-						style={styles.counter}
-					>
-						<Copy style={styles.counterLabel}>{t('report.detail.learningTime')}</Copy>
-						<SessionOverviewOdometer value={learningClock} />
-					</View>
+		<View style={styles.panel}>
+			<Title>{sessionSummary.word.name}</Title>
+			<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.period}>
+				{t('report.detail.period', {
+					start: formatMonthDayTime(period.started_at, locale),
+					end: period.ended_at ? formatMonthDayTime(period.ended_at, locale) : t('report.detail.now'),
+				})}
+			</Copy>
 
-					<View
-						accessible
-						accessibilityLabel={joinLabel(t('report.detail.playCount'), String(playCount))}
-						style={styles.counter}
-					>
-						<Copy style={styles.counterLabel}>{t('report.detail.playCount')}</Copy>
-						<SessionOverviewOdometer value={String(playCount)} />
-					</View>
+			<View style={styles.counters}>
+				<View
+					accessible
+					accessibilityLabel={joinLabel(t('report.detail.learningTime'), formatDuration(learningMs, locale))}
+					style={styles.counter}
+				>
+					<Copy style={styles.counterLabel}>{t('report.detail.learningTime')}</Copy>
+					<SessionOverviewOdometer value={learningClock} />
 				</View>
 
-				<View style={styles.divider}>
-					<DashedLine color={colors.border} />
+				<View
+					accessible
+					accessibilityLabel={joinLabel(t('report.detail.playCount'), String(playCount))}
+					style={styles.counter}
+				>
+					<Copy style={styles.counterLabel}>{t('report.detail.playCount')}</Copy>
+					<SessionOverviewOdometer value={String(playCount)} />
 				</View>
+			</View>
 
-				{/*감지된 소리에서 따라 한 소리까지 줄어드는 흐름*/}
-				<View style={styles.flow}>
-					<FlowStep label={t('report.detail.detected')} count={session.sounds.vad_count} />
-					<View style={styles.arrow}>
-						<ChevronRightIcon size={16} color={colors.subtle} />
-					</View>
-					<FlowStep
-						label={t('report.detail.kinds.parrot')}
-						count={session.sounds.parrot_count}
-						kind="parrot"
-					/>
-					<View style={styles.arrow}>
-						<ChevronRightIcon size={16} color={colors.subtle} />
-					</View>
-					<FlowStep label={t('report.detail.kinds.mimic')} count={session.sounds.mimic_count} kind="mimic" />
+			<View style={styles.divider}>
+				<DashedLine color={colors.border} />
+			</View>
+
+			{/*감지된 소리에서 따라 한 소리까지 줄어드는 흐름*/}
+			<View style={styles.flow}>
+				<FlowStep label={t('report.detail.detected')} count={session.sounds.vad_count} />
+				<View style={styles.arrow}>
+					<ChevronRightIcon size={16} color={colors.subtle} />
 				</View>
+				<FlowStep label={t('report.detail.kinds.parrot')} count={session.sounds.parrot_count} kind="parrot" />
+				<View style={styles.arrow}>
+					<ChevronRightIcon size={16} color={colors.subtle} />
+				</View>
+				<FlowStep label={t('report.detail.kinds.mimic')} count={session.sounds.mimic_count} kind="mimic" />
 			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { marginTop: 20 },
 	panel: {
 		padding: 16,
 		borderRadius: 18,
@@ -143,7 +143,15 @@ const styles = StyleSheet.create({
 		borderColor: colors.border,
 		backgroundColor: colors.surface,
 	},
-	counters: { gap: 10 },
+	period: {
+		marginTop: 2,
+		fontFamily: font.extraBold,
+		fontSize: 13,
+		lineHeight: 18,
+		color: colors.muted,
+		fontVariant: ['tabular-nums'],
+	},
+	counters: { gap: 10, marginTop: 16 },
 	counter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
 	counterLabel: { fontFamily: font.extraBold, fontSize: 13, color: colors.muted },
 	divider: { marginTop: 16 },
