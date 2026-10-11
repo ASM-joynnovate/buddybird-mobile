@@ -131,7 +131,7 @@ const Recorder = ({
 		}
 
 		const rectOf = (ref: AnimatedRef<Animated.View>) => {
-			const part = measure(ref);
+			const part = ref() ? measure(ref) : null;
 
 			return part
 				? { x: part.pageX - deck.pageX, y: part.pageY - deck.pageY, width: part.width, height: part.height }
