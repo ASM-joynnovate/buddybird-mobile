@@ -73,6 +73,7 @@ export const common: CommonMessages = {
 	dateFormat: {
 		monthDay: 'MMM D',
 		monthDayWeekday: 'ddd, MMM D',
+		monthDayLongWeekday: 'dddd, MMM D',
 		yearMonth: 'MMM YYYY',
 		order: ['month', 'day', 'year'],
 	},

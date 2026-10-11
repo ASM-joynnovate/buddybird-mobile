@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.3.2](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.1...v2.3.2) (2026-10-11)
+
+
+### Bug Fixes
+
+* **app:** open the sound detail panel fully and play sounds on skip [BB-654] ([#220](https://github.com/ASM-joynnovate/buddybird-mobile/issues/220)) ([432a256](https://github.com/ASM-joynnovate/buddybird-mobile/commit/432a256fcc79e2b9411225907e04f9f58f6fadb2))
+
+## [2.3.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.0...v2.3.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **app:** skip measuring unmounted recorder parts [BB-654] ([#218](https://github.com/ASM-joynnovate/buddybird-mobile/issues/218)) ([f2ffb1b](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f2ffb1bd14ca2f0eb4cc141422fb2f64e215ae0d))
+
+## [2.3.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.2.0...v2.3.0) (2026-10-11)
+
+
+### Features
+
+* **app:** redesign the session detail screen [BB-654] ([#215](https://github.com/ASM-joynnovate/buddybird-mobile/issues/215)) ([9169866](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9169866fc7063a011f9964ce6a0bb6cf13aebbc6))
+
+
+### Bug Fixes
+
+* **app:** update the session detail titles [BB-654] ([#217](https://github.com/ASM-joynnovate/buddybird-mobile/issues/217)) ([76c55ea](https://github.com/ASM-joynnovate/buddybird-mobile/commit/76c55ea91fde6c254ce808b2a0ab9b77bacd58dc))
+
 ## [2.2.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.1.0...v2.2.0) (2026-10-07)
 
 

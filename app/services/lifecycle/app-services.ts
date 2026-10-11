@@ -1,5 +1,6 @@
 import { AppState } from 'react-native';
 
+import { initializeRemoteConfig } from '@/services/remote-config/client';
 import { initializeTelemetry, reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
@@ -17,6 +18,8 @@ export const startAppServices = () => {
 	void initializeTelemetry()
 		.then((consent) => useDeviceSettingsStore.getState().setAnalyticsConsent(consent))
 		.catch((error) => reportError(error, 'telemetry_start'));
+
+	void initializeRemoteConfig().catch((error) => reportError(error, 'remote_config_start'));
 
 	countFeedbackDay('app_settings');
 

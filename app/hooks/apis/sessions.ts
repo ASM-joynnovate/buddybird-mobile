@@ -9,7 +9,8 @@ import {
 import {
 	getRunningSession,
 	getSession,
-	getSessionMimicrySoundList,
+	getSessionEventList,
+	getSessionSoundList,
 	getSessionSummary,
 	postRunningSessionFinish,
 	postSession,
@@ -49,18 +50,22 @@ export const useGetSessionSummary = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionSummaryOptions({ id }));
 };
 
-/** 앵무새가 따라 한 소리 목록 조회 Hook에 사용할 옵션 */
-export const getSessionMimicrySoundListOptions = ({ id }: { id: string }) =>
+/** 세션 소리 목록 조회 Hook에 사용할 옵션 */
+export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 	infiniteQueryOptions({
-		queryKey: apiKeys.sessions.mimicrySounds(id),
-		queryFn: ({ pageParam }) => getSessionMimicrySoundList({ id, page: pageParam }),
+		queryKey: apiKeys.sessions.sounds(id),
+		queryFn: ({ pageParam }) => getSessionSoundList({ id, page: pageParam }),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => (lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1),
 	});
-/** 앵무새가 따라 한 소리 목록 조회 Hook */
-export const useGetSessionMimicrySoundList = ({ id }: { id: string }) => {
-	return useSuspenseInfiniteQuery(getSessionMimicrySoundListOptions({ id }));
+/** 세션 소리 목록 조회 Hook */
+export const useGetSessionSoundList = ({ id }: { id: string }) => {
+	return useSuspenseInfiniteQuery(getSessionSoundListOptions({ id }));
 };
+
+/** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
+export const getSessionEventListOptions = ({ id }: { id: string }) =>
+	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => getSessionEventList({ id }) });
 
 /** 세션 시작 Hook */
 export const useStartSession = () => {
@@ -150,7 +155,7 @@ export const useUploadSessionSound = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
-		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.mimicrySounds(id) }),
+		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(id) }),
 	});
 };
 

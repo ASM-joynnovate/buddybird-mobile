@@ -41,11 +41,36 @@ export type ReportMessages = {
 	judging: string;
 	empty: string;
 	detail: {
-		judging: string;
-		empty: string;
-		playSound: string;
-		soundExpired: string;
+		period: string;
+		now: string;
+		title: string;
+		learningTime: string;
+		playCount: string;
+		detected: string;
+		kinds: {
+			parrot: string;
+			mimic: string;
+			emergency: string;
+		};
+		myVoice: string;
+		firstRecording: string;
+		noMimic: string;
+		soundAt: string;
+		playMyVoice: string;
+		previous: string;
+		next: string;
+		tapeLog: string;
+		start: string;
+		end: string;
+		hour: string;
+		timeRange: string;
+		play: string;
+		share: string;
+		scores: {
+			parrot: string;
+			mimic: string;
+		};
+		percent: string;
 		shareError: string;
-		shareHint: string;
 	};
 };

@@ -1,6 +1,6 @@
 {
 	"name": "buddybird-mobile",
-	"version": "2.2.0",
+	"version": "2.3.2",
 	"private": true,
 	"main": "index.tsx",
 	"scripts": {
@@ -30,6 +30,7 @@
 		"@react-native-firebase/app": "26.4.0",
 		"@react-native-firebase/crashlytics": "26.4.0",
 		"@react-native-firebase/messaging": "26.4.0",
+		"@react-native-firebase/remote-config": "26.4.0",
 		"@react-navigation/bottom-tabs": "^7.20.0",
 		"@react-navigation/native": "^7.5.0",
 		"@react-navigation/native-stack": "^7.20.0",
