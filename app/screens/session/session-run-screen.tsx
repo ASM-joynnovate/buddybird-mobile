@@ -82,6 +82,7 @@ const SessionRunScreen = () => {
 	const soundCountRef = useRef(0);
 	const pausedAtRef = useRef<number | null>(null);
 	const endingRef = useRef(false);
+	const cameraPromptRef = useRef(false);
 
 	const { data: runningSessionData } = useGetRunningSession();
 
@@ -248,6 +249,15 @@ const SessionRunScreen = () => {
 		};
 
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
+			// iOS는 카메라 권한 창이 떠 있는 동안 inactive가 되므로, 이 동안은 학습을 멈추지 않음
+			if (cameraPromptRef.current && appState !== 'background') {
+				if (appState === 'active') {
+					cameraPromptRef.current = false;
+				}
+
+				return;
+			}
+
 			if (appState !== 'active' && engineRef.current && pausedAtRef.current === null) {
 				pausedAtRef.current = dayjs().valueOf();
 
@@ -341,7 +351,16 @@ const SessionRunScreen = () => {
 			return;
 		}
 
-		void cameraPermission.run(() => setCameraOn(true));
+		cameraPromptRef.current = true;
+
+		void cameraPermission
+			.run(() => setCameraOn(true))
+			.finally(() => {
+				// 권한 창이 닫힌 뒤 active 이벤트가 늦게 와도 건너뛸 수 있도록 잠시 뒤 해제
+				setTimeout(() => {
+					cameraPromptRef.current = false;
+				}, SECOND);
+			});
 	};
 
 	return (
