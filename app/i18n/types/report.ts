@@ -43,7 +43,7 @@ export type ReportMessages = {
 	detail: {
 		period: string;
 		now: string;
-		overview: string;
+		title: string;
 		learningTime: string;
 		playCount: string;
 		detected: string;

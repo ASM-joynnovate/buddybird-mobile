@@ -45,10 +45,10 @@ export const report: ReportMessages = {
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '지금',
-		overview: '이번 학습',
+		title: '학습 상세',
 		learningTime: '학습 시간',
 		playCount: '들려준 횟수',
-		detected: '감지된 소리',
+		detected: '오디오',
 		kinds: {
 			parrot: '앵무새 소리',
 			mimic: '따라 한 소리',
@@ -61,7 +61,7 @@ export const report: ReportMessages = {
 		playMyVoice: '내 목소리 듣기',
 		previous: '이전 소리',
 		next: '다음 소리',
-		tapeLog: '테이프 기록',
+		tapeLog: '기록',
 		start: '시작',
 		end: '종료',
 		hour: '{{hour}}시',

@@ -45,7 +45,7 @@ export const report: ReportMessages = {
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Now',
-		overview: 'This session',
+		title: 'Session details',
 		learningTime: 'Learning time',
 		playCount: 'Played',
 		detected: 'Detected',
@@ -61,7 +61,7 @@ export const report: ReportMessages = {
 		playMyVoice: 'Play my voice',
 		previous: 'Previous sound',
 		next: 'Next sound',
-		tapeLog: 'Tape log',
+		tapeLog: 'Log',
 		start: 'Start',
 		end: 'End',
 		hour: '{{hour}}',
