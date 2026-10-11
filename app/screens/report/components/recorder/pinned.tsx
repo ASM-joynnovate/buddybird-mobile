@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { StyleSheet } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
@@ -147,324 +149,340 @@ interface Props {
  * @param deckLayout 큰 녹음기 위치
  * @param deckParts 큰 녹음기 부분별 위치
  */
-const RecorderPinned = ({
-	item,
-	playing,
-	pinned,
-	previousDisabled,
-	nextDisabled,
-	playDisabled,
-	onPrevious,
-	onTogglePlay,
-	onNext,
-	scrollY,
-	viewportWidth,
-	feedRadius,
-	takeRadius,
-	deckLayout,
-	deckParts,
-}: Props) => {
-	const { t } = useTranslation();
+const RecorderPinned = memo(
+	({
+		item,
+		playing,
+		pinned,
+		previousDisabled,
+		nextDisabled,
+		playDisabled,
+		onPrevious,
+		onTogglePlay,
+		onNext,
+		scrollY,
+		viewportWidth,
+		feedRadius,
+		takeRadius,
+		deckLayout,
+		deckParts,
+	}: Props) => {
+		const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+		const reducedMotion = useReducedMotion();
 
-	const time = item ? dayjs(item.startedAt).format('LT') : t('report.detail.myVoice');
-	const keyLabel = item ? t('report.detail.soundAt', { time }) : t('report.detail.playMyVoice');
-	const sub = item ? t(`report.detail.kinds.${item.kind}`) : t('report.detail.noMimic');
+		const time = item ? dayjs(item.startedAt).format('LT') : t('report.detail.myVoice');
+		const keyLabel = item ? t('report.detail.soundAt', { time }) : t('report.detail.playMyVoice');
+		const sub = item ? t(`report.detail.kinds.${item.kind}`) : t('report.detail.noMimic');
 
-	// 높이 차이만큼 스크롤하는 동안 접힘
-	const collapse = useDerivedValue(() => {
-		const deck = deckLayout.get();
-		const travel = Math.min((scrollY.get() - deck.y) / Math.max(deck.height - MINI_HEIGHT, 1), 1);
+		// 높이 차이만큼 스크롤하는 동안 접힘
+		const collapse = useDerivedValue(() => {
+			const deck = deckLayout.get();
+			const travel = Math.min((scrollY.get() - deck.y) / Math.max(deck.height - MINI_HEIGHT, 1), 1);
 
-		if (travel <= 0) {
-			return 0;
-		}
+			if (travel <= 0) {
+				return 0;
+			}
 
-		return collapseEasing(reducedMotion ? Math.round(travel) : travel);
-	});
-	const morph = useDerivedValue(() => {
-		const parts = deckParts.get();
-		const deck = deckLayout.get();
+			return collapseEasing(reducedMotion ? Math.round(travel) : travel);
+		});
+		const morph = useDerivedValue(() => {
+			const parts = deckParts.get();
+			const deck = deckLayout.get();
 
-		if (!parts || deck.width === 0) {
-			return null;
-		}
+			if (!parts || deck.width === 0) {
+				return null;
+			}
 
-		const mini = miniParts(viewportWidth.get());
-		const progress = collapse.get();
+			const mini = miniParts(viewportWidth.get());
+			const progress = collapse.get();
 
-		return {
-			progress,
-			body: interpolateRect({ x: deck.x, y: 0, width: deck.width, height: deck.height }, mini.body, progress),
-			window: interpolateRect(parts.window, mini.window, progress),
-			reels: parts.reels.map((reel, index) => interpolateRect(reel, mini.reels[index], progress)),
-			wave: interpolateRect(
-				parts.wave,
-				{ ...mini.time, width: parts.wave.width, height: parts.wave.height },
+			return {
 				progress,
-			),
-			timeLabel: interpolateRect(
-				parts.timeLabel,
-				labelRectForText(parts.timeLabel, parts.time, mini.time),
-				progress,
-			),
-			kindLabel: parts.kindLabel
-				? interpolateRect(parts.kindLabel, labelRectForText(parts.kindLabel, parts.sub, mini.sub), progress)
-				: null,
-			time: interpolateRect(parts.time, mini.time, progress),
-			sub: interpolateRect(parts.sub, mini.sub, progress),
-			keys: parts.keys.map((key, index) => interpolateRect(key, mini.keys[index], progress)),
-			keyLabelWidth: parts.keyLabelWidth,
-		};
-	});
+				body: interpolateRect({ x: deck.x, y: 0, width: deck.width, height: deck.height }, mini.body, progress),
+				window: interpolateRect(parts.window, mini.window, progress),
+				reels: parts.reels.map((reel, index) => interpolateRect(reel, mini.reels[index], progress)),
+				wave: interpolateRect(
+					parts.wave,
+					{ ...mini.time, width: parts.wave.width, height: parts.wave.height },
+					progress,
+				),
+				timeLabel: interpolateRect(
+					parts.timeLabel,
+					labelRectForText(parts.timeLabel, parts.time, mini.time),
+					progress,
+				),
+				kindLabel: parts.kindLabel
+					? interpolateRect(parts.kindLabel, labelRectForText(parts.kindLabel, parts.sub, mini.sub), progress)
+					: null,
+				time: interpolateRect(parts.time, mini.time, progress),
+				sub: interpolateRect(parts.sub, mini.sub, progress),
+				keys: parts.keys.map((key, index) => interpolateRect(key, mini.keys[index], progress)),
+				keyLabelWidth: parts.keyLabelWidth,
+			};
+		});
 
-	const overlayStyle = useAnimatedStyle(() => ({
-		opacity: morph.get() && scrollY.get() > deckLayout.get().y ? 1 : 0,
-	}));
-	const bandStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+		const overlayStyle = useAnimatedStyle(() => ({
+			opacity: morph.get() && scrollY.get() > deckLayout.get().y ? 1 : 0,
+		}));
+		const bandStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return {
-			height: current
-				? current.body.y +
-					current.body.height +
-					interpolate(current.progress, [0, 1], [DECK_BAND_MARGIN, MINI_BAND_MARGIN])
-				: 0,
-		};
-	});
-	const bodyStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return {
+				height: current
+					? current.body.y +
+						current.body.height +
+						interpolate(current.progress, [0, 1], [DECK_BAND_MARGIN, MINI_BAND_MARGIN])
+					: 0,
+			};
+		});
+		const bodyStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? {
-					width: current.body.width,
-					height: current.body.height,
-					transform: [{ translateX: current.body.x }, { translateY: current.body.y }],
-				}
-			: {};
-	});
-	const bodyEdgeStyle = useAnimatedStyle(() => {
-		const progress = morph.get()?.progress ?? 0;
-		const edge = interpolate(progress, [0, 1], [DECK_EDGE, MINI_EDGE]);
+			return current
+				? {
+						width: current.body.width,
+						height: current.body.height,
+						transform: [{ translateX: current.body.x }, { translateY: current.body.y }],
+					}
+				: {};
+		});
+		const bodyEdgeStyle = useAnimatedStyle(() => {
+			const progress = morph.get()?.progress ?? 0;
+			const edge = interpolate(progress, [0, 1], [DECK_EDGE, MINI_EDGE]);
 
-		return { top: edge, bottom: -edge, borderRadius: interpolate(progress, [0, 1], [24, 20]) };
-	});
-	const bodyFaceStyle = useAnimatedStyle(() => ({
-		borderRadius: interpolate(morph.get()?.progress ?? 0, [0, 1], [24, 20]),
-	}));
-	const windowStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return { top: edge, bottom: -edge, borderRadius: interpolate(progress, [0, 1], [24, 20]) };
+		});
+		const bodyFaceStyle = useAnimatedStyle(() => ({
+			borderRadius: interpolate(morph.get()?.progress ?? 0, [0, 1], [24, 20]),
+		}));
+		const windowStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? {
-					width: current.window.width,
-					height: current.window.height,
-					borderRadius: interpolate(current.progress, [0, 1], [16, 14]),
-					transform: [{ translateX: current.window.x }, { translateY: current.window.y }],
-				}
-			: {};
-	});
-	const leftReelStyle = useAnimatedStyle(() => {
-		const reel = morph.get()?.reels[0];
+			return current
+				? {
+						width: current.window.width,
+						height: current.window.height,
+						borderRadius: interpolate(current.progress, [0, 1], [16, 14]),
+						transform: [{ translateX: current.window.x }, { translateY: current.window.y }],
+					}
+				: {};
+		});
+		const leftReelStyle = useAnimatedStyle(() => {
+			const reel = morph.get()?.reels[0];
 
-		return reel
-			? {
-					transform: [{ translateX: reel.x }, { translateY: reel.y }, { scale: reel.width / DECK_REEL_SIZE }],
-				}
-			: {};
-	});
-	const rightReelStyle = useAnimatedStyle(() => {
-		const reel = morph.get()?.reels[1];
+			return reel
+				? {
+						transform: [
+							{ translateX: reel.x },
+							{ translateY: reel.y },
+							{ scale: reel.width / DECK_REEL_SIZE },
+						],
+					}
+				: {};
+		});
+		const rightReelStyle = useAnimatedStyle(() => {
+			const reel = morph.get()?.reels[1];
 
-		return reel
-			? {
-					transform: [{ translateX: reel.x }, { translateY: reel.y }, { scale: reel.width / DECK_REEL_SIZE }],
-				}
-			: {};
-	});
-	const waveStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return reel
+				? {
+						transform: [
+							{ translateX: reel.x },
+							{ translateY: reel.y },
+							{ scale: reel.width / DECK_REEL_SIZE },
+						],
+					}
+				: {};
+		});
+		const waveStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? {
-					width: current.wave.width,
-					height: current.wave.height,
-					opacity: Math.max(1 - current.progress * WAVE_FADE_SPEED, 0),
-					transform: [{ translateX: current.wave.x }, { translateY: current.wave.y }],
-				}
-			: {};
-	});
-	const timeLabelStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return current
+				? {
+						width: current.wave.width,
+						height: current.wave.height,
+						opacity: Math.max(1 - current.progress * WAVE_FADE_SPEED, 0),
+						transform: [{ translateX: current.wave.x }, { translateY: current.wave.y }],
+					}
+				: {};
+		});
+		const timeLabelStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? {
-					opacity: 1 - current.progress,
-					transform: [{ translateX: current.timeLabel.x }, { translateY: current.timeLabel.y }],
-				}
-			: {};
-	});
-	const kindLabelStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return current
+				? {
+						opacity: 1 - current.progress,
+						transform: [{ translateX: current.timeLabel.x }, { translateY: current.timeLabel.y }],
+					}
+				: {};
+		});
+		const kindLabelStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current?.kindLabel
-			? {
-					opacity: 1 - current.progress,
-					transform: [{ translateX: current.kindLabel.x }, { translateY: current.kindLabel.y }],
-				}
-			: {};
-	});
-	const timeStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return current?.kindLabel
+				? {
+						opacity: 1 - current.progress,
+						transform: [{ translateX: current.kindLabel.x }, { translateY: current.kindLabel.y }],
+					}
+				: {};
+		});
+		const timeStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? { opacity: current.progress, transform: [{ translateX: current.time.x }, { translateY: current.time.y }] }
-			: {};
-	});
-	const subStyle = useAnimatedStyle(() => {
-		const current = morph.get();
+			return current
+				? {
+						opacity: current.progress,
+						transform: [{ translateX: current.time.x }, { translateY: current.time.y }],
+					}
+				: {};
+		});
+		const subStyle = useAnimatedStyle(() => {
+			const current = morph.get();
 
-		return current
-			? { opacity: current.progress, transform: [{ translateX: current.sub.x }, { translateY: current.sub.y }] }
-			: {};
-	});
-	const previousKeyStyle = useAnimatedStyle(() => {
-		const key = morph.get()?.keys[0];
+			return current
+				? {
+						opacity: current.progress,
+						transform: [{ translateX: current.sub.x }, { translateY: current.sub.y }],
+					}
+				: {};
+		});
+		const previousKeyStyle = useAnimatedStyle(() => {
+			const key = morph.get()?.keys[0];
 
-		return key
-			? {
-					width: key.width,
-					height: key.height + DECK_KEY_EDGE,
-					transform: [{ translateX: key.x }, { translateY: key.y }],
-				}
-			: {};
-	});
-	const playKeyStyle = useAnimatedStyle(() => {
-		const key = morph.get()?.keys[1];
+			return key
+				? {
+						width: key.width,
+						height: key.height + DECK_KEY_EDGE,
+						transform: [{ translateX: key.x }, { translateY: key.y }],
+					}
+				: {};
+		});
+		const playKeyStyle = useAnimatedStyle(() => {
+			const key = morph.get()?.keys[1];
 
-		return key
-			? {
-					width: key.width,
-					height: key.height + DECK_KEY_EDGE,
-					transform: [{ translateX: key.x }, { translateY: key.y }],
-				}
-			: {};
-	});
-	const nextKeyStyle = useAnimatedStyle(() => {
-		const key = morph.get()?.keys[2];
+			return key
+				? {
+						width: key.width,
+						height: key.height + DECK_KEY_EDGE,
+						transform: [{ translateX: key.x }, { translateY: key.y }],
+					}
+				: {};
+		});
+		const nextKeyStyle = useAnimatedStyle(() => {
+			const key = morph.get()?.keys[2];
 
-		return key
-			? {
-					width: key.width,
-					height: key.height + DECK_KEY_EDGE,
-					transform: [{ translateX: key.x }, { translateY: key.y }],
-				}
-			: {};
-	});
-	const keyLabelStyle = useAnimatedStyle(() => {
-		const current = morph.get();
-		const shrink = Math.min((current?.progress ?? 0) * KEY_LABEL_SHRINK_SPEED, 1);
+			return key
+				? {
+						width: key.width,
+						height: key.height + DECK_KEY_EDGE,
+						transform: [{ translateX: key.x }, { translateY: key.y }],
+					}
+				: {};
+		});
+		const keyLabelStyle = useAnimatedStyle(() => {
+			const current = morph.get();
+			const shrink = Math.min((current?.progress ?? 0) * KEY_LABEL_SHRINK_SPEED, 1);
 
-		return {
-			opacity: Math.max(1 - (current?.progress ?? 0) * KEY_LABEL_FADE_SPEED, 0),
-			maxWidth: interpolate(shrink, [0, 1], [current?.keyLabelWidth ?? 0, 0]),
-			marginLeft: interpolate(shrink, [0, 1], [KEY_LABEL_MARGIN, 0]),
-		};
-	});
+			return {
+				opacity: Math.max(1 - (current?.progress ?? 0) * KEY_LABEL_FADE_SPEED, 0),
+				maxWidth: interpolate(shrink, [0, 1], [current?.keyLabelWidth ?? 0, 0]),
+				marginLeft: interpolate(shrink, [0, 1], [KEY_LABEL_MARGIN, 0]),
+			};
+		});
 
-	return (
-		<Animated.View pointerEvents={pinned ? 'box-none' : 'none'} style={[styles.overlay, overlayStyle]}>
-			{/*녹음기 뒤로 지나가는 내용을 가리는 흰 띠*/}
-			<Animated.View pointerEvents="none" style={[styles.band, bandStyle]} />
+		return (
+			<Animated.View pointerEvents={pinned ? 'box-none' : 'none'} style={[styles.overlay, overlayStyle]}>
+				{/*녹음기 뒤로 지나가는 내용을 가리는 흰 띠*/}
+				<Animated.View pointerEvents="none" style={[styles.band, bandStyle]} />
 
-			<Animated.View pointerEvents="box-none" style={[styles.part, bodyStyle]}>
-				<Animated.View pointerEvents="none" style={[styles.bodyEdge, bodyEdgeStyle]} />
-				<Animated.View pointerEvents="none" style={[styles.bodyFace, bodyFaceStyle]} />
+				<Animated.View pointerEvents="box-none" style={[styles.part, bodyStyle]}>
+					<Animated.View pointerEvents="none" style={[styles.bodyEdge, bodyEdgeStyle]} />
+					<Animated.View pointerEvents="none" style={[styles.bodyFace, bodyFaceStyle]} />
 
-				<Animated.View pointerEvents="none" style={[styles.part, styles.window, windowStyle]} />
+					<Animated.View pointerEvents="none" style={[styles.part, styles.window, windowStyle]} />
 
-				<Animated.View pointerEvents="none" style={[styles.part, styles.reel, leftReelStyle]}>
-					<TapeReel
-						size={DECK_REEL_SIZE}
-						side="left"
-						radius={feedRadius}
-						scrollY={scrollY}
-						playing={playing}
-					/>
-				</Animated.View>
-
-				<Animated.View pointerEvents="none" style={[styles.part, styles.reel, rightReelStyle]}>
-					<TapeReel
-						size={DECK_REEL_SIZE}
-						side="right"
-						radius={takeRadius}
-						scrollY={scrollY}
-						playing={playing}
-					/>
-				</Animated.View>
-
-				<Animated.View pointerEvents="none" style={[styles.part, styles.wave, waveStyle]}>
-					<RecorderWaveform active={item !== null} playing={playing} />
-				</Animated.View>
-
-				<Animated.View pointerEvents="none" style={[styles.part, timeLabelStyle]}>
-					<RecorderTimeLabel item={item} />
-				</Animated.View>
-
-				{item && (
-					<Animated.View pointerEvents="none" style={[styles.part, kindLabelStyle]}>
-						<RecorderKindLabel kind={item.kind} />
+					<Animated.View pointerEvents="none" style={[styles.part, styles.reel, leftReelStyle]}>
+						<TapeReel
+							size={DECK_REEL_SIZE}
+							side="left"
+							radius={feedRadius}
+							scrollY={scrollY}
+							playing={playing}
+						/>
 					</Animated.View>
-				)}
 
-				<Animated.View pointerEvents="none" style={[styles.part, timeStyle]}>
-					<Copy numberOfLines={1} style={styles.time}>
-						{time}
-					</Copy>
-				</Animated.View>
+					<Animated.View pointerEvents="none" style={[styles.part, styles.reel, rightReelStyle]}>
+						<TapeReel
+							size={DECK_REEL_SIZE}
+							side="right"
+							radius={takeRadius}
+							scrollY={scrollY}
+							playing={playing}
+						/>
+					</Animated.View>
 
-				<Animated.View pointerEvents="none" style={[styles.part, subStyle]}>
-					<Copy numberOfLines={1} style={styles.sub}>
-						{sub}
-					</Copy>
-				</Animated.View>
+					<Animated.View pointerEvents="none" style={[styles.part, styles.wave, waveStyle]}>
+						<RecorderWaveform active={item !== null} playing={playing} />
+					</Animated.View>
 
-				<Animated.View style={[styles.part, previousKeyStyle]}>
-					<RecorderKey
-						variant="side"
-						icon={SkipBackIcon}
-						accessibilityLabel={t('report.detail.previous')}
-						disabled={previousDisabled}
-						onPress={onPrevious}
-					/>
-				</Animated.View>
+					<Animated.View pointerEvents="none" style={[styles.part, timeLabelStyle]}>
+						<RecorderTimeLabel item={item} />
+					</Animated.View>
 
-				<Animated.View style={[styles.part, playKeyStyle]}>
-					<RecorderKey
-						variant="main"
-						icon={playing ? PauseIcon : PlayIcon}
-						accessibilityLabel={playing ? t('common.sound.stopNamed', { name: keyLabel }) : keyLabel}
-						disabled={playDisabled}
-						label={keyLabel}
-						labelStyle={keyLabelStyle}
-						onPress={onTogglePlay}
-					/>
-				</Animated.View>
+					{item && (
+						<Animated.View pointerEvents="none" style={[styles.part, kindLabelStyle]}>
+							<RecorderKindLabel kind={item.kind} />
+						</Animated.View>
+					)}
 
-				<Animated.View style={[styles.part, nextKeyStyle]}>
-					<RecorderKey
-						variant="side"
-						icon={SkipForwardIcon}
-						accessibilityLabel={t('report.detail.next')}
-						disabled={nextDisabled}
-						onPress={onNext}
-					/>
+					<Animated.View pointerEvents="none" style={[styles.part, timeStyle]}>
+						<Copy numberOfLines={1} style={styles.time}>
+							{time}
+						</Copy>
+					</Animated.View>
+
+					<Animated.View pointerEvents="none" style={[styles.part, subStyle]}>
+						<Copy numberOfLines={1} style={styles.sub}>
+							{sub}
+						</Copy>
+					</Animated.View>
+
+					<Animated.View style={[styles.part, previousKeyStyle]}>
+						<RecorderKey
+							variant="side"
+							icon={SkipBackIcon}
+							accessibilityLabel={t('report.detail.previous')}
+							disabled={previousDisabled}
+							onPress={onPrevious}
+						/>
+					</Animated.View>
+
+					<Animated.View style={[styles.part, playKeyStyle]}>
+						<RecorderKey
+							variant="main"
+							icon={playing ? PauseIcon : PlayIcon}
+							accessibilityLabel={playing ? t('common.sound.stopNamed', { name: keyLabel }) : keyLabel}
+							disabled={playDisabled}
+							label={keyLabel}
+							labelStyle={keyLabelStyle}
+							onPress={onTogglePlay}
+						/>
+					</Animated.View>
+
+					<Animated.View style={[styles.part, nextKeyStyle]}>
+						<RecorderKey
+							variant="side"
+							icon={SkipForwardIcon}
+							accessibilityLabel={t('report.detail.next')}
+							disabled={nextDisabled}
+							onPress={onNext}
+						/>
+					</Animated.View>
 				</Animated.View>
 			</Animated.View>
-		</Animated.View>
-	);
-};
+		);
+	},
+);
 
 const styles = StyleSheet.create({
 	overlay: { position: 'absolute', top: 0, right: 0, left: 0, zIndex: 3 },

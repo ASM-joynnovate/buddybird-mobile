@@ -42,6 +42,10 @@ export const putPushToken = async ({
 	return device;
 };
 
+export const putDeviceActivity = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
+	await apiRequest('/api/v1/devices/me/activity', z.unknown(), { method: 'PUT', idempotencyKey });
+};
+
 export const patchDevice = async ({
 	data,
 	idempotencyKey,
