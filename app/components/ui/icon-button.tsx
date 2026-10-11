@@ -12,11 +12,14 @@ const variants = {
 	accent: { surfaceVariant: 'plain', color: colors.orange, shape: 'square' },
 	primary: { surfaceVariant: 'primary', color: colors.onFilled, shape: 'circle' },
 	onBrand: { surfaceVariant: 'plain', color: colors.onBrand, shape: 'square' },
+	onDark: { surfaceVariant: 'onDark', color: colors.text, shape: 'circle' },
 } as const;
 
 const cornerRadii = { circle: 'pill', square: 'control' } as const;
 
-const iconSizes = { tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;
+const iconSizes = { compact: 16, tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;
+
+const COMPACT_HIT_SLOP = 4;
 
 type IconButtonVariant = keyof typeof variants;
 
@@ -37,6 +40,7 @@ interface Props {
 
 const boxStyle = (size: IconButtonSize) => {
 	return {
+		compact: boxes.compact,
 		tiny: boxes.tiny,
 		small: boxes.small,
 		medium: boxes.medium,
@@ -56,7 +60,7 @@ export const IconButton = ({
 	size = 'medium',
 }: Props) => {
 	const { surfaceVariant, color, shape: variantShape } = variants[variant];
-	const isPrimary = variant === 'primary';
+	const surfaceRaised = variant === 'primary' || variant === 'onDark';
 	const buttonShape = shape ?? variantShape;
 
 	return (
@@ -66,8 +70,9 @@ export const IconButton = ({
 			accessibilityState={{ disabled: Boolean(disabled) }}
 			disabled={disabled}
 			onPress={onPress}
-			variant={isPrimary && disabled ? 'disabled' : surfaceVariant}
-			depth={isPrimary ? 'medium' : 'none'}
+			hitSlop={size === 'compact' ? COMPACT_HIT_SLOP : undefined}
+			variant={surfaceRaised && disabled ? 'disabled' : surfaceVariant}
+			depth={surfaceRaised ? 'medium' : 'none'}
 			cornerRadius={cornerRadii[buttonShape]}
 			style={[styles.shell, boxStyle(size)]}
 			contentStyle={[styles.face, boxStyle(size)]}
@@ -83,6 +88,7 @@ const styles = StyleSheet.create({
 });
 
 const boxes = StyleSheet.create({
+	compact: { minWidth: 36, minHeight: 36 },
 	tiny: { minWidth: 44, minHeight: 44 },
 	small: { minWidth: 44, minHeight: 44 },
 	medium: { minWidth: 48, minHeight: 48 },

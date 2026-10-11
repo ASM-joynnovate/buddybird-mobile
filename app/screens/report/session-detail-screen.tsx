@@ -7,8 +7,8 @@ import type { ReportStackParamList, RootStackParamList } from '@/types/navigatio
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import MimicrySoundListSkeleton from '@/screens/report/components/mimicry-sound-list-skeleton';
-import SessionMimicry from '@/screens/report/components/session-mimicry';
+import SessionDetailContent from '@/screens/report/components/session-detail-content';
+import SessionDetailSkeleton from '@/screens/report/components/session-detail-skeleton';
 import { track } from '@/services/telemetry/client';
 import { contentMaxWidth } from '@/theme';
 
@@ -31,8 +31,8 @@ const SessionDetailScreen = () => {
 			<View style={styles.container}>
 				<ScreenHeader onBack={() => navigation.goBack()} />
 
-				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<MimicrySoundListSkeleton />>
-					<SessionMimicry sessionId={params.sessionId} />
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<SessionDetailSkeleton />>
+					<SessionDetailContent sessionId={params.sessionId} />
 				</ErrorHandlingWrapper>
 			</View>
 		</Screen>

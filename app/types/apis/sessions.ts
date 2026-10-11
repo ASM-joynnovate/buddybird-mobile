@@ -28,6 +28,11 @@ export const sessionSchema = z.object({
 		ended_by: z.enum(['user', 'server']).nullable(),
 	}),
 	judgment: z.object({ status: judgmentStatusSchema }),
+	sounds: z.object({
+		vad_count: z.number().int().nonnegative(),
+		parrot_count: z.number().int().nonnegative(),
+		mimic_count: z.number().int().nonnegative(),
+	}),
 });
 
 const startSessionRequestSchema = z.object({
@@ -57,12 +62,36 @@ export const heartbeatSchema = z.object({
 	acknowledged: z.array(z.object({ word_id: uuidSchema, started_at: timestampSchema })),
 });
 
+const scoreSchema = z.number().min(0).max(1);
+
 export const sessionSoundSchema = z.object({
 	id: uuidSchema,
 	session_id: uuidSchema,
 	captured_at: timestampSchema,
 	audio_file: fileSchema,
-	judgment: z.object({ word_id: uuidSchema.nullable() }).nullable(),
+	analysis: z.object({ score: scoreSchema }).nullish(),
+	judgment: z.object({ word_id: uuidSchema.nullable(), score: scoreSchema.nullish() }).nullable(),
+});
+
+const sessionEventKindSchema = z.enum([
+	'session_started',
+	'learning_started',
+	'learning_toggled',
+	'learning_finished',
+	'word_changed',
+	'station_disconnected',
+	'station_reconnected',
+	'emergency_detected',
+	'session_finished',
+]);
+
+export const sessionEventSchema = z.object({
+	id: uuidSchema,
+	kind: sessionEventKindSchema,
+	occurred_at: timestampSchema,
+	ended_at: timestampSchema.nullable(),
+	word: z.object({ id: uuidSchema }).nullable(),
+	sound_ids: z.array(uuidSchema),
 });
 
 const activeSchema = z.object({ duration_ms: z.number().int().nonnegative() });
@@ -80,4 +109,5 @@ export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatLearningSegment = HeartbeatRequest['learning_segments'][number];
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 export type SessionSound = z.infer<typeof sessionSoundSchema>;
+export type SessionEvent = z.infer<typeof sessionEventSchema>;
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;

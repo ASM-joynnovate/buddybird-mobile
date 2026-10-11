@@ -6,6 +6,8 @@ import {
 	type HeartbeatRequest,
 	heartbeatSchema,
 	type Session,
+	type SessionEvent,
+	sessionEventSchema,
 	sessionSchema,
 	type SessionSound,
 	sessionSoundSchema,
@@ -17,6 +19,8 @@ import {
 import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
+
+const SOUND_PAGE_SIZE = 50;
 
 const getSessionList = async ({ page }: { page: number }): Promise<Page<Session>> => {
 	const { data, meta } = await apiRequest('/api/v1/sessions', z.array(sessionSchema), { searchParams: { page } });
@@ -113,16 +117,16 @@ export const postSessionSound = async ({
 	await putUploadFile({ upload: await postSessionSoundUpload({ id, uri, data, idempotencyKey }), uri });
 };
 
-export const getSessionMimicrySoundList = async ({
-	id,
-	page,
-}: {
-	id: string;
-	page: number;
-}): Promise<Page<SessionSound>> => {
+export const getSessionSoundList = async ({ id, page }: { id: string; page: number }): Promise<Page<SessionSound>> => {
 	const { data, meta } = await apiRequest(`/api/v1/sessions/${id}/sounds`, z.array(sessionSoundSchema), {
-		searchParams: { mimicry: true, page },
+		searchParams: { page, count_by_page: SOUND_PAGE_SIZE },
 	});
 
 	return { data, meta: pageMetaSchema.parse(meta) };
+};
+
+export const getSessionEventList = async ({ id }: { id: string }): Promise<SessionEvent[]> => {
+	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, z.array(sessionEventSchema));
+
+	return sessionEvents;
 };
