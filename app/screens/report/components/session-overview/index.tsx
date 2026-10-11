@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import type { Session, SessionSummary } from '@/types/apis/sessions';
@@ -73,7 +75,7 @@ interface Props {
  * @param session 세션
  * @param sessionSummary 세션 요약
  */
-const SessionOverview = ({ session, sessionSummary }: Props) => {
+const SessionOverview = memo(({ session, sessionSummary }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -137,7 +139,7 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 			</View>
 		</View>
 	);
-};
+});
 
 const styles = StyleSheet.create({
 	panel: {

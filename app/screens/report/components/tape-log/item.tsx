@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -56,7 +56,7 @@ interface Props {
  * @param rowRevealed 행이 화면에 나타났는지 여부
  * @param onPress 누르면 실행할 함수
  */
-const TapeLogItem = ({ item, order, selected, playing, rowRevealed, onPress }: Props) => {
+const TapeLogItem = memo(({ item, order, selected, playing, rowRevealed, onPress }: Props) => {
 	const { t } = useTranslation();
 
 	const reducedMotion = useReducedMotion();
@@ -153,7 +153,7 @@ const TapeLogItem = ({ item, order, selected, playing, rowRevealed, onPress }: P
 			</PressableSurface>
 		</Animated.View>
 	);
-};
+});
 
 const styles = StyleSheet.create({
 	pill: { height: 36, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },

@@ -88,7 +88,7 @@ interface Props {
 	logY: SharedValue<number>;
 	rowLayouts: SharedValue<RowLayout[]>;
 	lineLayouts: SharedValue<LineLayout[][]>;
-	onPressItem: (item: TapeItem) => void;
+	onSelectItem: (item: TapeItem) => void;
 	onTogglePlay: () => void;
 	onShareItem: (item: TapeItem) => void;
 }
@@ -108,7 +108,7 @@ interface Props {
  * @param logY 테이프 기록 위치
  * @param rowLayouts 행 위치를 저장할 값
  * @param lineLayouts 줄 위치를 저장할 값
- * @param onPressItem 알약을 누르면 실행할 함수
+ * @param onSelectItem 알약을 선택하면 실행할 함수
  * @param onTogglePlay 패널의 재생 버튼을 누르면 실행할 함수
  * @param onShareItem 패널의 공유 버튼을 누르면 실행할 함수
  */
@@ -126,7 +126,7 @@ const TapeLogRow = ({
 	logY,
 	rowLayouts,
 	lineLayouts,
-	onPressItem,
+	onSelectItem,
 	onTogglePlay,
 	onShareItem,
 }: Props) => {
@@ -426,7 +426,7 @@ const TapeLogRow = ({
 													selected={item === selectedItem}
 													playing={playing && item === selectedItem}
 													rowRevealed={rowRevealed}
-													onPress={onPressItem}
+													onPress={item === selectedItem ? onTogglePlay : onSelectItem}
 												/>
 											)}
 											{lineIndex === 0 && laneItems[laneIndex].length === 0 && (

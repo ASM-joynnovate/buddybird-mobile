@@ -7,6 +7,7 @@ import Animated, {
 	useAnimatedProps,
 	useAnimatedReaction,
 	useAnimatedStyle,
+	useDerivedValue,
 	useFrameCallback,
 	useReducedMotion,
 	useSharedValue,
@@ -30,6 +31,7 @@ const VIEW_WIDTH = 86;
 const VIEW_HEIGHT = 92;
 const CENTER = 43;
 const HUB_RADIUS = 14;
+const RADIUS_STEP = 0.25;
 const RING_INSETS = [5, 11];
 const SPOKE_ANGLES = [0, 60, 120, 180, 240, 300];
 const PLAYING_TAPE_SPEED = 0.06;
@@ -62,10 +64,13 @@ const TapeReel = ({ size, side, radius, scrollY, playing }: Props) => {
 	const direction = side === 'right' ? 1 : -1;
 	const height = Math.round((size * VIEW_HEIGHT) / VIEW_WIDTH);
 	const spinStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${angle.get()}deg` }] }));
-	const tapeProps = useAnimatedProps(() => ({ r: radius.get() }));
-	const innerRingProps = useAnimatedProps(() => ({ r: Math.max(radius.get() - RING_INSETS[0], 0) }));
-	const outerRingProps = useAnimatedProps(() => ({ r: Math.max(radius.get() - RING_INSETS[1], 0) }));
-	const markProps = useAnimatedProps(() => ({ y: CENTER - radius.get() + 1 }));
+
+	// 화면 한 픽셀보다 작은 변화는 다시 그리지 않음
+	const drawnRadius = useDerivedValue(() => Math.round(radius.get() / RADIUS_STEP) * RADIUS_STEP);
+	const tapeProps = useAnimatedProps(() => ({ r: drawnRadius.get() }));
+	const innerRingProps = useAnimatedProps(() => ({ r: Math.max(drawnRadius.get() - RING_INSETS[0], 0) }));
+	const outerRingProps = useAnimatedProps(() => ({ r: Math.max(drawnRadius.get() - RING_INSETS[1], 0) }));
+	const markProps = useAnimatedProps(() => ({ y: CENTER - drawnRadius.get() + 1 }));
 
 	/** 테이프가 움직인 거리를 반지름으로 나눈 만큼 돎 */
 	useAnimatedReaction(

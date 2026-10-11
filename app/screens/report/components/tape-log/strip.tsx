@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
-import Animated, { type SharedValue, useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
+import Animated, { type SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue } from 'react-native-reanimated';
 import Svg, { Defs, Pattern, Rect } from 'react-native-svg';
 
 import { PINNED_BAND_HEIGHT } from '@/screens/report/components/recorder/pinned';
@@ -77,6 +77,8 @@ const TapeLogStrip = ({
 }: Props) => {
 	const { t } = useTranslation();
 
+	const ribbonWidth = useSharedValue(0);
+
 	const duration = Math.max(span.end - span.start, 1);
 	const percentOf = (time: number) => ((time - span.start) / duration) * 100;
 
@@ -102,7 +104,9 @@ const TapeLogStrip = ({
 			{ translateY: Math.max(scrollY.get() + PINNED_BAND_HEIGHT - (logY.get() + stripLayout.get().y), 0) },
 		],
 	}));
-	const progressStyle = useAnimatedStyle(() => ({ width: `${progress.get() * 100}%` }));
+	const progressStyle = useAnimatedStyle(() => ({
+		transform: [{ translateX: progress.get() * ribbonWidth.get() }],
+	}));
 	const stuckLineStyle = useAnimatedStyle(() => {
 		const strip = stripLayout.get();
 		const firstDayBreak = dayBreakLayouts.get().at(0);
@@ -136,7 +140,7 @@ const TapeLogStrip = ({
 					<TapeReel size={REEL_SIZE} side="left" radius={feedRadius} scrollY={scrollY} playing={playing} />
 				</View>
 
-				<View style={styles.ribbon}>
+				<View style={styles.ribbon} onLayout={(event) => ribbonWidth.set(event.nativeEvent.layout.width)}>
 					<Svg width="100%" height={RIBBON_HEIGHT}>
 						<Defs>
 							<Pattern id="tape" width="9" height={RIBBON_HEIGHT} patternUnits="userSpaceOnUse">
@@ -173,7 +177,10 @@ const TapeLogStrip = ({
 						))}
 					</Svg>
 
-					<Animated.View style={[styles.progress, progressStyle]} />
+					{/*감긴 만큼 왼쪽에서 밀려 나오는 오렌지 선*/}
+					<View style={styles.progressClip}>
+						<Animated.View style={[styles.progress, progressStyle]} />
+					</View>
 
 					{/*자정의 흰 이음 테이프*/}
 					{midnights.map((midnight) => (
@@ -213,11 +220,21 @@ const styles = StyleSheet.create({
 	deck: { flexDirection: 'row', alignItems: 'center' },
 	reel: { zIndex: 1 },
 	ribbon: { flex: 1, height: RIBBON_HEIGHT, marginHorizontal: -6, overflow: 'visible', borderRadius: 2 },
-	progress: {
+	progressClip: {
 		position: 'absolute',
 		top: 5,
+		right: 0,
 		left: 0,
 		height: 4,
+		overflow: 'hidden',
+		borderRadius: 2,
+	},
+	progress: {
+		position: 'absolute',
+		top: 0,
+		bottom: 0,
+		left: '-100%',
+		width: '100%',
 		borderRadius: 2,
 		backgroundColor: colors.orange,
 	},
