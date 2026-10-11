@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
 	cell: { flex: 1, minWidth: 0, gap: 8, minHeight: 44, padding: 4, borderRadius: 10 },
 	emptyMark: { width: 10, height: 3, margin: 'auto', borderRadius: 2, backgroundColor: colors.blackFaint },
 	panelClip: { overflow: 'hidden' },
-	panelContent: { paddingTop: PANEL_TOP },
+	panelContent: { position: 'absolute', top: 0, right: 0, left: 0, paddingTop: PANEL_TOP },
 });
 
 export default TapeLogRow;
