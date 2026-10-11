@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.1...v2.3.2) (2026-10-11)
+
+
+### Bug Fixes
+
+* **app:** open the sound detail panel fully and play sounds on skip [BB-654] ([#220](https://github.com/ASM-joynnovate/buddybird-mobile/issues/220)) ([432a256](https://github.com/ASM-joynnovate/buddybird-mobile/commit/432a256fcc79e2b9411225907e04f9f58f6fadb2))
+
 ## [2.3.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.0...v2.3.1) (2026-10-11)
 
 
