@@ -119,7 +119,7 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 				<DashedLine color={colors.border} />
 			</View>
 
-			{/*감지된 소리에서 따라 한 소리까지 줄어드는 흐름*/}
+			{/*오디오에서 따라 한 소리까지 줄어드는 흐름*/}
 			<View style={styles.flow}>
 				<FlowStep label={t('report.detail.detected')} count={session.sounds.vad_count} />
 				<View style={styles.arrow}>

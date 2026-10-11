@@ -48,7 +48,7 @@ export const report: ReportMessages = {
 		title: '학습 상세',
 		learningTime: '학습 시간',
 		playCount: '들려준 횟수',
-		detected: '감지된 소리',
+		detected: '오디오',
 		kinds: {
 			parrot: '앵무새 소리',
 			mimic: '따라 한 소리',
