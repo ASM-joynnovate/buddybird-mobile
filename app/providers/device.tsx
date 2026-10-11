@@ -1,13 +1,14 @@
 import { type ReactNode, useEffect } from 'react';
 
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
-import { useRegisterDevice, useUpdatePushToken } from '@/hooks/apis/devices';
+import { useRecordDeviceActivity, useRegisterDevice, useUpdatePushToken } from '@/hooks/apis/devices';
 
 import { getMessaging, onTokenRefresh } from '@react-native-firebase/messaging';
+import dayjs from 'dayjs';
 import * as Device from 'expo-device';
 
-import { MAX_DEVICE_MODEL_LENGTH, MAX_DEVICE_OS_VERSION_LENGTH } from '@/config';
+import { DEVICE_ACTIVITY_INTERVAL_MS, MAX_DEVICE_MODEL_LENGTH, MAX_DEVICE_OS_VERSION_LENGTH } from '@/config';
 import { installedVersion } from '@/services/device/application';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
@@ -36,6 +37,7 @@ interface Props {
 const DeviceProvider = ({ children }: Props) => {
 	const { isSuccess: deviceRegistered, mutate: registerDevice } = useRegisterDevice();
 	const { mutate: updatePushToken } = useUpdatePushToken();
+	const { mutate: recordDeviceActivity } = useRecordDeviceActivity();
 
 	const serverUserId = useAccountStore((state) => state.serverUserId);
 
@@ -70,6 +72,51 @@ const DeviceProvider = ({ children }: Props) => {
 
 		return unsubscribe;
 	}, [deviceRegistered, updatePushToken]);
+
+	/** foreground에서 주기마다 접속 기록 */
+	useEffect(() => {
+		if (!deviceRegistered) {
+			return;
+		}
+
+		// 기기 등록이 첫 접속 기록
+		let activityRecordedAt = dayjs().valueOf();
+		let activityTimer: ReturnType<typeof setTimeout> | undefined;
+
+		/** 다음 접속 기록 예약 함수 */
+		const scheduleActivityRecord = () => {
+			const nextRecordAt = activityRecordedAt + DEVICE_ACTIVITY_INTERVAL_MS;
+
+			activityTimer = setTimeout(
+				() => {
+					activityRecordedAt = dayjs().valueOf();
+
+					recordDeviceActivity({});
+
+					scheduleActivityRecord();
+				},
+				Math.max(0, nextRecordAt - dayjs().valueOf()),
+			);
+		};
+
+		/** 앱이 foreground일 때만 접속 기록 예약 */
+		const toggleActivityRecord = (appState: string) => {
+			clearTimeout(activityTimer);
+
+			if (appState === 'active') {
+				scheduleActivityRecord();
+			}
+		};
+
+		toggleActivityRecord(AppState.currentState);
+
+		const appStateSubscription = AppState.addEventListener('change', toggleActivityRecord);
+
+		return () => {
+			clearTimeout(activityTimer);
+			appStateSubscription.remove();
+		};
+	}, [deviceRegistered, recordDeviceActivity]);
 
 	return <>{children}</>;
 };
