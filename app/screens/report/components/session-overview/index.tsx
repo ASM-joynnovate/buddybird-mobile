@@ -85,10 +85,6 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 
 	return (
 		<View style={styles.container}>
-			<Copy accessibilityRole="header" style={styles.title}>
-				{t('report.detail.overview')}
-			</Copy>
-
 			<View style={styles.panel}>
 				<View style={styles.counters}>
 					<View
@@ -140,7 +136,6 @@ const SessionOverview = ({ session, sessionSummary }: Props) => {
 
 const styles = StyleSheet.create({
 	container: { marginTop: 20 },
-	title: { marginBottom: 12, fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	panel: {
 		padding: 16,
 		borderRadius: 18,

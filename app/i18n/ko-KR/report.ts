@@ -45,7 +45,7 @@ export const report: ReportMessages = {
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '지금',
-		overview: '이번 학습',
+		title: '학습 상세',
 		learningTime: '학습 시간',
 		playCount: '들려준 횟수',
 		detected: '감지된 소리',

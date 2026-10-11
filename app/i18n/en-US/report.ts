@@ -45,7 +45,7 @@ export const report: ReportMessages = {
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Now',
-		overview: 'This session',
+		title: 'Session details',
 		learningTime: 'Learning time',
 		playCount: 'Played',
 		detected: 'Detected',

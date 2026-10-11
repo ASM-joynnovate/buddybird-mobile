@@ -21,7 +21,7 @@ const SessionDetailSkeleton = () => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, overflow: 'hidden', gap: 8 },
+	container: { flex: 1, overflow: 'hidden', gap: 8, paddingTop: 8 },
 	block: { borderRadius: radius.small, backgroundColor: colors.surface },
 	titleBlock: { width: 120, height: 34, marginVertical: 3 },
 	periodBlock: { width: 220, height: 15, marginVertical: 3 },

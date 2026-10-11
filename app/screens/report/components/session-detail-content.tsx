@@ -284,7 +284,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 
 const styles = StyleSheet.create({
 	viewport: { flex: 1, marginHorizontal: -24 },
-	content: { paddingHorizontal: 24, paddingBottom: 16 },
+	content: { paddingTop: 8, paddingHorizontal: 24, paddingBottom: 16 },
 	title: { fontSize: 34, lineHeight: 40 },
 	period: {
 		marginTop: 4,
