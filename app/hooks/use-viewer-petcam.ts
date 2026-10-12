@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { MediaStream } from 'react-native-webrtc';
 
-import { createViewerPetcam, type PetcamState } from '@/screens/session/services/petcam';
+import { createViewerPetcam, type PetcamState } from '@/services/petcam/connection';
 import { reportError } from '@/services/telemetry/client';
 
 type ViewerPetcam = ReturnType<typeof createViewerPetcam>;

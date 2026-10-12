@@ -6,7 +6,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
 import { type MediaStream, RTCIceCandidate, RTCPeerConnection, RTCSessionDescription } from 'react-native-webrtc';
 
-import { PETCAM_ICE_SERVERS } from '@/config';
+import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS } from '@/config';
 
 const BROADCAST_EVENT = 'petcam';
 
@@ -22,11 +22,22 @@ const messageSchema = z.discriminatedUnion('type', [
 	z.object({ type: z.literal('viewer-join'), viewerId: z.string() }),
 	z.object({ type: z.literal('viewer-leave'), viewerId: z.string() }),
 	z.object({ type: z.literal('camera-set'), on: z.boolean() }),
-	z.object({ type: z.literal('offer'), viewerId: z.string(), description: descriptionSchema }),
-	z.object({ type: z.literal('answer'), viewerId: z.string(), description: descriptionSchema }),
+	z.object({
+		type: z.literal('offer'),
+		viewerId: z.string(),
+		offerId: z.string(),
+		description: descriptionSchema,
+	}),
+	z.object({
+		type: z.literal('answer'),
+		viewerId: z.string(),
+		offerId: z.string(),
+		description: descriptionSchema,
+	}),
 	z.object({
 		type: z.literal('candidate'),
 		viewerId: z.string(),
+		offerId: z.string(),
 		from: z.enum(['station', 'viewer']),
 		candidate: candidateSchema,
 	}),
@@ -75,6 +86,12 @@ interface Peer {
 	close: () => void;
 }
 
+interface StationPeer {
+	peer: Peer;
+	offerId: string;
+	connectTimer: ReturnType<typeof setTimeout>;
+}
+
 interface StationPetcamOptions {
 	sessionId: string;
 	onCameraRequest: (on: boolean) => void;
@@ -88,6 +105,9 @@ interface ViewerPetcamOptions {
 	onError: (error: unknown) => void;
 }
 
+// 같은 채널을 닫는 중에 다시 열면 닫히는 채널이 재사용되어 구독되지 않으므로, 닫기가 끝날 때까지 대기
+const closingChannels = new Map<string, Promise<unknown>>();
+
 /** 세션별 Supabase Realtime 채널로 연결 정보를 주고받는 함수 */
 const openSignaling = (
 	sessionId: string,
@@ -98,6 +118,7 @@ const openSignaling = (
 	const supabase = getSupabase();
 
 	let channel: RealtimeChannel | null = null;
+	let topic: string | null = null;
 	let closed = false;
 
 	/** 본인 계정의 세션 채널을 여는 함수, 채널 이름에 사용자 id가 들어가야 접근 규칙을 통과 */
@@ -109,13 +130,17 @@ const openSignaling = (
 			throw new Error('Petcam requires a signed-in user');
 		}
 
+		const channelTopic = `petcam:${userId}:${sessionId}`;
+
+		await closingChannels.get(channelTopic);
 		await supabase.realtime.setAuth();
 
 		if (closed) {
 			return;
 		}
 
-		channel = supabase.channel(`petcam:${userId}:${sessionId}`, {
+		topic = channelTopic;
+		channel = supabase.channel(channelTopic, {
 			config: { private: true, broadcast: { self: false } },
 		});
 
@@ -130,8 +155,8 @@ const openSignaling = (
 			.subscribe((status, error) => {
 				if (status === 'SUBSCRIBED') {
 					onReady();
-				} else if (status === 'CHANNEL_ERROR') {
-					onError(error ?? new Error('Petcam channel error'));
+				} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+					onError(error ?? new Error(`Petcam channel ${status}`));
 				}
 			});
 	};
@@ -142,14 +167,31 @@ const openSignaling = (
 		send: (message) => {
 			void channel
 				?.send({ type: 'broadcast', event: BROADCAST_EVENT, payload: message })
+				.then((result) => {
+					if (result !== 'ok') {
+						onError(new Error(`Petcam message ${result}`));
+					}
+				})
 				.catch((error: unknown) => onError(error));
 		},
 		close: () => {
 			closed = true;
 
-			if (channel) {
-				void supabase.removeChannel(channel).catch((error: unknown) => onError(error));
+			if (!channel || !topic) {
+				return;
 			}
+
+			const channelTopic = topic;
+			const closing: Promise<unknown> = supabase
+				.removeChannel(channel)
+				.catch((error: unknown) => onError(error))
+				.finally(() => {
+					if (closingChannels.get(channelTopic) === closing) {
+						closingChannels.delete(channelTopic);
+					}
+				});
+
+			closingChannels.set(channelTopic, closing);
 		},
 	};
 };
@@ -227,16 +269,38 @@ const createPeer = (
 
 /** 학습 중인 기기에서 카메라 영상을 보내는 연결을 만드는 함수 */
 export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: StationPetcamOptions) => {
-	const peers = new Map<string, Peer>();
+	const peers = new Map<string, StationPeer>();
 
 	let viewerIds: string[] = [];
 	let stream: MediaStream | null = null;
 	let permissionDenied = false;
+	let turnedOnRemotely = false;
+	let closed = false;
 
 	/** 보는 기기와의 연결 닫기 함수 */
 	const closePeer = (viewerId: string) => {
-		peers.get(viewerId)?.close();
+		const current = peers.get(viewerId);
+
+		if (!current) {
+			return;
+		}
+
+		clearTimeout(current.connectTimer);
+		current.peer.close();
 		peers.delete(viewerId);
+	};
+
+	/** 떠난 보는 기기를 정리하고, 원격으로 켠 카메라는 보는 기기가 없으면 끄는 함수 */
+	const removeViewer = (viewerId: string) => {
+		viewerIds = viewerIds.filter((id) => id !== viewerId);
+
+		closePeer(viewerId);
+
+		if (viewerIds.length === 0 && turnedOnRemotely) {
+			turnedOnRemotely = false;
+
+			onCameraRequest(false);
+		}
 	};
 
 	/** 카메라 상태 전송 함수 */
@@ -248,24 +312,34 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 	const offer = async (viewerId: string, media: MediaStream) => {
 		const iceServers = await fetchIceServers(onError);
 
-		// 접속 정보를 받는 사이 카메라가 꺼졌으면 연결하지 않음
-		if (stream !== media) {
+		// 접속 정보를 받는 사이 카메라가 꺼졌거나 보는 기기가 떠났으면 연결하지 않음
+		if (closed || stream !== media || !viewerIds.includes(viewerId)) {
 			return;
 		}
 
 		closePeer(viewerId);
 
+		const offerId = randomUUID();
 		const peer = createPeer(
 			iceServers,
-			(candidate) => signaling.send({ type: 'candidate', viewerId, from: 'station', candidate }),
+			(candidate) => signaling.send({ type: 'candidate', viewerId, offerId, from: 'station', candidate }),
 			onError,
 		);
 
-		peers.set(viewerId, peer);
+		peers.set(viewerId, {
+			peer,
+			offerId,
+			// 응답이 오지 않는 연결은 실패 상태가 되지 않으므로, 일정 시간 안에 연결되지 않으면 떠난 것으로 처리
+			connectTimer: setTimeout(() => {
+				if (peers.get(viewerId)?.peer === peer && peer.connection.connectionState !== 'connected') {
+					removeViewer(viewerId);
+				}
+			}, PETCAM_CONNECT_TIMEOUT_MS),
+		});
 
 		listen(peer.connection, 'connectionstatechange', () => {
-			if (peer.connection.connectionState === 'failed' && peers.get(viewerId) === peer) {
-				closePeer(viewerId);
+			if (peer.connection.connectionState === 'failed' && peers.get(viewerId)?.peer === peer) {
+				removeViewer(viewerId);
 			}
 		});
 
@@ -277,7 +351,7 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 
 		await peer.connection.setLocalDescription(description);
 
-		signaling.send({ type: 'offer', viewerId, description });
+		signaling.send({ type: 'offer', viewerId, offerId, description });
 	};
 
 	const signaling = openSignaling(
@@ -292,14 +366,22 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 					void offer(message.viewerId, stream).catch(onError);
 				}
 			} else if (message.type === 'viewer-leave') {
-				viewerIds = viewerIds.filter((id) => id !== message.viewerId);
-
-				closePeer(message.viewerId);
+				removeViewer(message.viewerId);
 			} else if (message.type === 'answer') {
-				void peers.get(message.viewerId)?.setRemote(message.description).catch(onError);
+				const current = peers.get(message.viewerId);
+
+				if (current?.offerId === message.offerId) {
+					void current.peer.setRemote(message.description).catch(onError);
+				}
 			} else if (message.type === 'candidate' && message.from === 'viewer') {
-				peers.get(message.viewerId)?.addCandidate(message.candidate);
+				const current = peers.get(message.viewerId);
+
+				if (current?.offerId === message.offerId) {
+					current.peer.addCandidate(message.candidate);
+				}
 			} else if (message.type === 'camera-set') {
+				turnedOnRemotely = message.on && (turnedOnRemotely || stream === null);
+
 				onCameraRequest(message.on);
 			}
 		},
@@ -319,6 +401,10 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 			stream = media;
 			permissionDenied = false;
 
+			if (!media) {
+				turnedOnRemotely = false;
+			}
+
 			sendState();
 
 			if (media) {
@@ -328,10 +414,13 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 		/** 카메라 권한이 없어 켜지 못했음을 보는 기기에 알리는 함수 */
 		reportPermissionDenied: () => {
 			permissionDenied = true;
+			turnedOnRemotely = false;
 
 			sendState();
 		},
 		close: () => {
+			closed = true;
+
 			[...peers.keys()].forEach(closePeer);
 
 			signaling.close();
@@ -346,13 +435,13 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 	const viewerId = randomUUID();
 
 	let peer: Peer | null = null;
-	let answerCount = 0;
-	// 접속 정보를 받는 동안 먼저 도착한 후보는 모아 두었다가 연결이 만들어지면 적용
-	let earlyCandidates: Candidate[] = [];
+	let offerId: string | null = null;
+	// 연결이 만들어지기 전에 도착한 후보는 제안별로 모아 두었다가 적용
+	let earlyCandidates: { offerId: string; candidate: Candidate }[] = [];
 
 	/** 받고 있던 영상 연결 닫기 함수 */
 	const closePeer = () => {
-		answerCount += 1;
+		offerId = null;
 		earlyCandidates = [];
 
 		peer?.close();
@@ -362,28 +451,31 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 	};
 
 	/** 학습 중인 기기가 제안한 영상 연결을 수락하는 함수 */
-	const answer = async (description: Description) => {
+	const answer = async (acceptedOfferId: string, description: Description) => {
+		const arrivedCandidates = earlyCandidates.filter((early) => early.offerId === acceptedOfferId);
+
 		closePeer();
 
-		answerCount += 1;
+		offerId = acceptedOfferId;
+		earlyCandidates = arrivedCandidates;
 
-		const answerId = answerCount;
 		const iceServers = await fetchIceServers(onError);
 
-		// 접속 정보를 받는 사이 새 제안이 왔으면 이전 제안은 버림
-		if (answerId !== answerCount) {
+		// 접속 정보를 받는 사이 새 제안이 왔거나 연결이 닫혔으면 이전 제안은 버림
+		if (offerId !== acceptedOfferId) {
 			return;
 		}
 
 		const created = createPeer(
 			iceServers,
-			(candidate) => signaling.send({ type: 'candidate', viewerId, from: 'viewer', candidate }),
+			(candidate) =>
+				signaling.send({ type: 'candidate', viewerId, offerId: acceptedOfferId, from: 'viewer', candidate }),
 			onError,
 		);
 
 		peer = created;
 
-		earlyCandidates.forEach(created.addCandidate);
+		earlyCandidates.forEach((early) => created.addCandidate(early.candidate));
 		earlyCandidates = [];
 
 		listen(created.connection, 'track', (event) => {
@@ -407,7 +499,7 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 
 		await created.connection.setLocalDescription(localDescription);
 
-		signaling.send({ type: 'answer', viewerId, description: localDescription });
+		signaling.send({ type: 'answer', viewerId, offerId: acceptedOfferId, description: localDescription });
 	};
 
 	const signaling = openSignaling(
@@ -424,12 +516,12 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 					closePeer();
 				}
 			} else if (message.type === 'offer' && message.viewerId === viewerId) {
-				void answer(message.description).catch(onError);
+				void answer(message.offerId, message.description).catch(onError);
 			} else if (message.type === 'candidate' && message.from === 'station' && message.viewerId === viewerId) {
-				if (peer) {
+				if (peer && message.offerId === offerId) {
 					peer.addCandidate(message.candidate);
 				} else {
-					earlyCandidates = [...earlyCandidates, message.candidate];
+					earlyCandidates = [...earlyCandidates, { offerId: message.offerId, candidate: message.candidate }];
 				}
 			}
 		},
@@ -443,7 +535,7 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 		close: () => {
 			signaling.send({ type: 'viewer-leave', viewerId });
 
-			answerCount += 1;
+			offerId = null;
 
 			peer?.close();
 			peer = null;

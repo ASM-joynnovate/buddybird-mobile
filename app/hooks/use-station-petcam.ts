@@ -3,13 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { mediaDevices, type MediaStream } from 'react-native-webrtc';
 
 import { PETCAM_ENABLED, PETCAM_VIDEO } from '@/config';
-import { createStationPetcam, type StationPetcam } from '@/screens/session/services/petcam';
+import { createStationPetcam, type StationPetcam } from '@/services/petcam/connection';
 import { reportError } from '@/services/telemetry/client';
 
 interface Options {
 	sessionId: string;
 	cameraOn: boolean;
 	onRemoteCamera: (on: boolean) => void;
+	onCameraFailed: () => void;
 }
 
 /** 카메라 영상 닫기 함수 */
@@ -19,16 +20,18 @@ const closeStream = (stream: MediaStream) => {
 };
 
 /** 학습 중인 기기의 카메라 영상을 열어 보는 기기로 보내는 Hook */
-const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera }: Options) => {
+const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed }: Options) => {
 	const [stream, setStream] = useState<MediaStream | null>(null);
 
 	const stationRef = useRef<StationPetcam | null>(null);
 	const onRemoteCameraRef = useRef(onRemoteCamera);
+	const onCameraFailedRef = useRef(onCameraFailed);
 
-	/** 원격 카메라 요청에 사용할 최신 함수 저장 */
+	/** 카메라 요청과 실패 처리에 사용할 최신 함수 저장 */
 	useEffect(() => {
 		onRemoteCameraRef.current = onRemoteCamera;
-	}, [onRemoteCamera]);
+		onCameraFailedRef.current = onCameraFailed;
+	}, [onCameraFailed, onRemoteCamera]);
 
 	/** 보는 기기와 연결 정보를 주고받는 채널 열기 */
 	useEffect(() => {
@@ -74,7 +77,13 @@ const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera }: Options) => {
 				setStream(media);
 				stationRef.current?.setStream(media);
 			})
-			.catch((error: unknown) => reportError(error, 'petcam_camera'));
+			.catch((error: unknown) => {
+				reportError(error, 'petcam_camera');
+
+				if (!cancelled) {
+					onCameraFailedRef.current();
+				}
+			});
 
 		return () => {
 			cancelled = true;

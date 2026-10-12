@@ -112,6 +112,12 @@ const SessionWatchScreen = () => {
 	}, [ended, navigation, queryClient]);
 
 	const handleLeave = () => {
+		if (leavingRef.current) {
+			return;
+		}
+
+		leavingRef.current = true;
+
 		navigation.goBack();
 	};
 

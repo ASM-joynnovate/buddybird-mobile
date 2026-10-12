@@ -3939,13 +3939,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/emscripten@npm:^1.41.5":
-  version: 1.41.6
-  resolution: "@types/emscripten@npm:1.41.6"
-  checksum: 10c0/b51a730b6cb2848ac5e3f0536707bf656b6887be21f20e96b01e74a59ed52319dd0942f49b1072b1ca6d38df19e2d633f540df54d6ba1f7216be14af7373a41f
-  languageName: node
-  linkType: hard
-
 "@types/esrecurse@npm:^4.3.1":
   version: 4.3.1
   resolution: "@types/esrecurse@npm:4.3.1"
@@ -4638,15 +4631,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"barcode-detector@npm:^3.0.0":
-  version: 3.2.2
-  resolution: "barcode-detector@npm:3.2.2"
-  dependencies:
-    zxing-wasm: "npm:3.1.3"
-  checksum: 10c0/921afdf0b557cd1afc174fd8119b5fdb5573e4f8cb6a4beca769d1080b2834341f033d0c8ad9017416073c850cf7601f9fd26d0f5ffa6b2f46762253205f4bf5
-  languageName: node
-  linkType: hard
-
 "base64-js@npm:1.5.1, base64-js@npm:^1.2.3, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -4794,7 +4778,6 @@ __metadata:
     expo-audio: "npm:~57.0.5"
     expo-battery: "npm:~57.0.3"
     expo-build-properties: "npm:~57.0.22"
-    expo-camera: "npm:~57.0.6"
     expo-constants: "npm:~57.0.21"
     expo-crypto: "npm:~57.0.3"
     expo-dev-client: "npm:~57.0.19"
@@ -6160,23 +6143,6 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/e2247e535a88c215d4becc5d4d6c4b4965c3380464326c1a704cbc35b052f13e509d15448fd1dd9ad0ffa35629531039e78d04e199e9b35a4e050f12bcce92cc
-  languageName: node
-  linkType: hard
-
-"expo-camera@npm:~57.0.6":
-  version: 57.0.6
-  resolution: "expo-camera@npm:57.0.6"
-  dependencies:
-    barcode-detector: "npm:^3.0.0"
-  peerDependencies:
-    expo: "*"
-    react: "*"
-    react-native: "*"
-    react-native-web: "*"
-  peerDependenciesMeta:
-    react-native-web:
-      optional: true
-  checksum: 10c0/40f4e40751fb246e577c950c9261531259955081d21ccf70a5718afb36452d8e4639ca88a2e72104baafa81152a496b8e5197b6c547a208e763db9b091d3e8ce
   languageName: node
   linkType: hard
 
@@ -10550,13 +10516,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tagged-tag@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "tagged-tag@npm:1.0.0"
-  checksum: 10c0/91d25c9ffb86a91f20522cefb2cbec9b64caa1febe27ad0df52f08993ff60888022d771e868e6416cf2e72dab68449d2139e8709ba009b74c6c7ecd4000048d1
-  languageName: node
-  linkType: hard
-
 "tapable@npm:^2.2.1, tapable@npm:^2.3.3":
   version: 2.3.3
   resolution: "tapable@npm:2.3.3"
@@ -10743,15 +10702,6 @@ __metadata:
   version: 0.7.1
   resolution: "type-fest@npm:0.7.1"
   checksum: 10c0/ce6b5ef806a76bf08d0daa78d65e61f24d9a0380bd1f1df36ffb61f84d14a0985c3a921923cf4b97831278cb6fa9bf1b89c751df09407e0510b14e8c081e4e0f
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^5.8.0":
-  version: 5.10.0
-  resolution: "type-fest@npm:5.10.0"
-  dependencies:
-    tagged-tag: "npm:^1.0.0"
-  checksum: 10c0/313c5d0e37a3f1cc82e942f3228f897623c8b54a63a8a95532d0c2c21ab200793caa70bd8904a83fd713eb28d87ba32468b09b345ef6efa25cecb345b467226f
   languageName: node
   linkType: hard
 
@@ -11401,17 +11351,5 @@ __metadata:
     use-sync-external-store:
       optional: true
   checksum: 10c0/ed3a883950a8c22d98e8c72cef103af18043ce66b45faf218ad20ccc8ee29716aacfc6b0a3e783b2152ea38b7663f3982bb6bf2b13ce3df692b05276446afa04
-  languageName: node
-  linkType: hard
-
-"zxing-wasm@npm:3.1.3":
-  version: 3.1.3
-  resolution: "zxing-wasm@npm:3.1.3"
-  dependencies:
-    "@types/emscripten": "npm:^1.41.5"
-    type-fest: "npm:^5.8.0"
-  peerDependencies:
-    "@types/emscripten": ">=1.39.6"
-  checksum: 10c0/0a422842c8c5ec61c5a4e9472d37014a386593265f31a66db03559e6a067a3fd611aabc73406ee438e5e770b80c36cb3776b6f72bbfa36cf2b2ea197edfd166d
   languageName: node
   linkType: hard

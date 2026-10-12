@@ -123,10 +123,13 @@ const SessionRunScreen = () => {
 			.catch((error: unknown) => reportError(error, 'petcam_permission'));
 	}, []);
 
+	const handleCameraFailed = useCallback(() => setCameraOn(false), []);
+
 	const { stream: cameraStream, reportPermissionDenied } = useStationPetcam({
 		sessionId,
 		cameraOn,
 		onRemoteCamera: handleRemoteCamera,
+		onCameraFailed: handleCameraFailed,
 	});
 	const runningSession = runningSessionData?.id === sessionId ? runningSessionData : null;
 	const startedAt = runningSession?.period.started_at ?? null;
@@ -297,11 +300,7 @@ const SessionRunScreen = () => {
 
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
 			// iOS는 카메라 권한 창이 떠 있는 동안 inactive가 되므로, 이 동안은 학습을 멈추지 않음
-			if (cameraPromptRef.current && appState !== 'background') {
-				if (appState === 'active') {
-					cameraPromptRef.current = false;
-				}
-
+			if (cameraPromptRef.current && appState === 'inactive') {
 				return;
 			}
 
