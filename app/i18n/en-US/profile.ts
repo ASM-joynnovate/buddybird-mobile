@@ -10,10 +10,12 @@ export const profile: ProfileMessages = {
 	editParrot: 'Edit {{name}}',
 	ageMonths: '{{count}} mo',
 	ageYears_one: '{{count}} yr',
+	ageYears_few: '{{count}} yrs',
+	ageYears_many: '{{count}} yrs',
 	ageYears_other: '{{count}} yrs',
 	nickname: 'Nickname',
 	nicknameHint: '2 to 20 characters',
-	nicknameInvalid: 'Use 2 to 20 characters: Korean, English letters, numbers, underscores, and spaces.',
+	nicknameInvalid: 'Use 2 to 20 characters: letters, numbers, underscores, and spaces.',
 	photoUploading: 'Uploading photo',
 	photoUploadFailed: 'Photo upload failed.',
 };

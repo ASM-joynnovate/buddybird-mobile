@@ -4,10 +4,16 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { en } from '@/i18n/en-US';
+import { es } from '@/i18n/es-ES';
+import { ja } from '@/i18n/ja-JP';
 import { ko } from '@/i18n/ko-KR';
+import { ru } from '@/i18n/ru-RU';
 
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
+import 'dayjs/locale/ru';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -18,7 +24,13 @@ dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 dayjs.extend(localizedFormat);
 
-const dayjsLocales: Record<Locale, string> = { 'ko-KR': 'ko', 'en-US': 'en' };
+const dayjsLocales: Record<Locale, string> = {
+	'ko-KR': 'ko',
+	'en-US': 'en',
+	'ja-JP': 'ja',
+	'ru-RU': 'ru',
+	'es-ES': 'es',
+};
 
 /** 앱 언어 변경 함수 */
 export const changeI18nLocale = async (locale: Locale) => {
@@ -33,6 +45,9 @@ export const changeI18nLocale = async (locale: Locale) => {
 			resources: {
 				'ko-KR': { translation: ko },
 				'en-US': { translation: en },
+				'ja-JP': { translation: ja },
+				'ru-RU': { translation: ru },
+				'es-ES': { translation: es },
 			},
 			interpolation: { escapeValue: false },
 			initAsync: false,

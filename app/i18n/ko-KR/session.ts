@@ -74,6 +74,8 @@ export const session: SessionMessages = {
 		wordTime: { lead: "지금까지 '{{word}}'{{word, josa(type: 은/는)}}", tail: '학습했어요' },
 		allTime: { lead: '지금까지 총', tail: '학습했어요' },
 		count_one: '{{count, number}}번',
+		count_few: '{{count, number}}번',
+		count_many: '{{count, number}}번',
 		count_other: '{{count, number}}번',
 		sentenceProgress: '{{total}}개 중 {{current}}번째 문장',
 		playCount: '들려준 횟수',

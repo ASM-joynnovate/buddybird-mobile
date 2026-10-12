@@ -97,10 +97,7 @@ const AuthProvider = ({ children }: Props) => {
 			try {
 				const credential = await loginCredential();
 				const { user_id } = await mutateAsync({
-					data: {
-						...credential,
-						language: useDeviceSettingsStore.getState().locale === 'ko-KR' ? 'ko' : 'en',
-					},
+					data: credential,
 					signal: controller.signal,
 				});
 

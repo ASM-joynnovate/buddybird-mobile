@@ -65,6 +65,8 @@ export const report: ReportMessages = {
 		start: 'Start',
 		end: 'End',
 		soundCount_one: '{{count}} sound',
+		soundCount_few: '{{count}} sounds',
+		soundCount_many: '{{count}} sounds',
 		soundCount_other: '{{count}} sounds',
 		share: 'Share {{name}}',
 		scores: {

@@ -22,6 +22,9 @@ import { ItemRadio } from '@/components/ui/item/radio';
 const LANGUAGE_LABEL_KEYS: Record<Locale, keyof SettingsMessages['general']> = {
 	'ko-KR': 'korean',
 	'en-US': 'english',
+	'ja-JP': 'japanese',
+	'ru-RU': 'russian',
+	'es-ES': 'spanish',
 };
 
 /** 앱 언어 선택 컴포넌트 */

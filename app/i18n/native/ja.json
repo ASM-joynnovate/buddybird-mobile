@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "インコに聞かせる言葉や、練習中の音を録音するためにマイクを使用します。",
+		"NSPhotoLibraryUsageDescription": "選んだ写真をインコのプロフィール写真に使用します。",
+		"NSCameraUsageDescription": "インコや自分のプロフィール写真を撮るためにカメラを使用します。",
+		"NSUserTrackingUsageDescription": "アプリの利用状況をもとに練習体験を改善します。トラッキングを許可しなくても、練習機能は利用できます。"
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

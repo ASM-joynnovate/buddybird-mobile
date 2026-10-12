@@ -14,10 +14,14 @@ import { formatDuration } from '@/i18n/format';
 import {
 	Circle,
 	DashPathEffect,
+	FontWeight,
 	Group,
+	Paragraph,
+	Skia,
 	Line as SkiaLine,
-	Text as SkiaText,
-	useFont,
+	type SkTypefaceFontProvider,
+	TextAlign,
+	useFonts,
 	vec,
 } from '@shopify/react-native-skia';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -32,6 +36,9 @@ import { colors, font } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 
 const GUIDE_FONT: number = require('@assets/fonts/Pretendard-ExtraBold.otf');
+const GUIDE_FONT_FAMILY = 'Pretendard';
+const GUIDE_FONT_SIZE = 11;
+const GUIDE_LABEL_OFFSET_Y = 18;
 const CHART_HEIGHT = 160;
 const CHART_PADDING = { top: 12, bottom: 10, left: 3, right: 10 };
 const GUIDE_STEPS_MS = [30 * MINUTE, HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 5 * HOUR, 10 * HOUR, 15 * HOUR, 20 * HOUR];
@@ -52,6 +59,19 @@ const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 	}
 
 	return (date.date() - 1) % 7 === 0 ? String(date.date()) : '';
+};
+
+/** 기준선 라벨을 만드는 함수 */
+const createGuideLabel = (text: string, fontProvider: SkTypefaceFontProvider) => {
+	return Skia.ParagraphBuilder.Make({ textAlign: TextAlign.Right }, fontProvider)
+		.pushStyle({
+			color: Skia.Color(colors.muted),
+			fontFamilies: [GUIDE_FONT_FAMILY],
+			fontSize: GUIDE_FONT_SIZE,
+			fontStyle: { weight: FontWeight.ExtraBold },
+		})
+		.addText(text)
+		.build();
 };
 
 interface DotProps {
@@ -123,7 +143,7 @@ const CumulativeChart = ({
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const guideFont = useFont(GUIDE_FONT, 11);
+	const guideFontProvider = useFonts({ [GUIDE_FONT_FAMILY]: [GUIDE_FONT] });
 
 	const { state: pressState } = useChartPressState({ x: 0, y: { current: 0, previous: 0 } });
 
@@ -199,13 +219,12 @@ const CumulativeChart = ({
 										>
 											<DashPathEffect intervals={[2, 6]} />
 										</SkiaLine>
-										{guideFont && (
-											<SkiaText
-												x={chartBounds.right - guideFont.measureText(guideLabel).width}
-												y={guideY - 5}
-												text={guideLabel}
-												font={guideFont}
-												color={colors.muted}
+										{guideFontProvider && (
+											<Paragraph
+												paragraph={createGuideLabel(guideLabel, guideFontProvider)}
+												x={chartBounds.left}
+												y={guideY - GUIDE_LABEL_OFFSET_Y}
+												width={chartBounds.right - chartBounds.left}
 											/>
 										)}
 									</Group>

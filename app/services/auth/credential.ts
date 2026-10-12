@@ -6,9 +6,7 @@ import * as Application from 'expo-application';
 
 import { useAccountStore } from '@/stores/account';
 
-type LoginCredential = Pick<LoginRequest, 'google' | 'apple'>;
-
-let appleLoginCredential: LoginCredential | undefined;
+let appleLoginCredential: LoginRequest | undefined;
 
 /** 서버 로그인 요청에 보낼 Apple 인증 코드 저장 함수 */
 export const setAppleLoginCredential = (authorizationCode: string) => {
