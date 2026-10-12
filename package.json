@@ -110,6 +110,13 @@
 	},
 	"packageManager": "yarn@4.18.1",
 	"expo": {
+		"doctor": {
+			"reactNativeDirectoryCheck": {
+				"exclude": [
+					"react-native-webrtc"
+				]
+			}
+		},
 		"install": {
 			"exclude": [
 				"@sentry/react-native",
