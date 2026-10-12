@@ -3,7 +3,7 @@
 		"CFBundleDisplayName": "BuddyBird",
 		"NSMicrophoneUsageDescription": "Microphone access lets you record words for your parrot and capture sounds during learning.",
 		"NSPhotoLibraryUsageDescription": "Use a photo you choose as your parrot's profile picture.",
-		"NSCameraUsageDescription": "Use the camera to take a profile photo of your parrot or yourself.",
+		"NSCameraUsageDescription": "Use the camera to take profile photos and to show your parrot during a learning session.",
 		"NSUserTrackingUsageDescription": "App usage statistics help us improve the learning experience. Learning remains available if you decline tracking."
 	},
 	"android": {

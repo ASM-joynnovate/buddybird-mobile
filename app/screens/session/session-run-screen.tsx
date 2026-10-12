@@ -12,6 +12,7 @@ import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSessionSound } from '@/hooks/apis/sessions';
 import { getWordOptions } from '@/hooks/apis/words';
+import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,9 +22,11 @@ import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { HEARTBEAT_INTERVAL_MS } from '@/config';
+import { HEARTBEAT_INTERVAL_MS, PETCAM_ENABLED } from '@/config';
 import { SECOND } from '@/config/units';
+import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
+import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
@@ -32,6 +35,7 @@ import { currentSpan } from '@/utils/phases';
 import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import PermissionDialog from '@/components/dialogs/permission-dialog';
 import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
@@ -69,12 +73,16 @@ const SessionRunScreen = () => {
 	const opacity = useSharedValue(1);
 
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
+	const [cameraOn, setCameraOn] = useState(false);
+
+	const cameraPermission = usePermission('camera');
 
 	const engineRef = useRef<LearningEngine | null>(null);
 	const uploadsRef = useRef<Promise<unknown>[]>([]);
 	const soundCountRef = useRef(0);
 	const pausedAtRef = useRef<number | null>(null);
 	const endingRef = useRef(false);
+	const cameraPromptRef = useRef(false);
 
 	const { data: runningSessionData } = useGetRunningSession();
 
@@ -241,6 +249,15 @@ const SessionRunScreen = () => {
 		};
 
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
+			// iOS는 카메라 권한 창이 떠 있는 동안 inactive가 되므로, 이 동안은 학습을 멈추지 않음
+			if (cameraPromptRef.current && appState !== 'background') {
+				if (appState === 'active') {
+					cameraPromptRef.current = false;
+				}
+
+				return;
+			}
+
 			if (appState !== 'active' && engineRef.current && pausedAtRef.current === null) {
 				pausedAtRef.current = dayjs().valueOf();
 
@@ -324,6 +341,28 @@ const SessionRunScreen = () => {
 		void endSession('user');
 	};
 
+	/** 카메라 켜기·끄기, 처음 켤 때 카메라 권한 확인 */
+	const handleToggleCamera = () => {
+		showInfo();
+
+		if (cameraOn) {
+			setCameraOn(false);
+
+			return;
+		}
+
+		cameraPromptRef.current = true;
+
+		void cameraPermission
+			.run(() => setCameraOn(true))
+			.finally(() => {
+				// 권한 창이 닫힌 뒤 active 이벤트가 늦게 와도 건너뛸 수 있도록 잠시 뒤 해제
+				setTimeout(() => {
+					cameraPromptRef.current = false;
+				}, SECOND);
+			});
+	};
+
 	return (
 		<PressableSurface
 			variant="plain"
@@ -335,6 +374,13 @@ const SessionRunScreen = () => {
 			onPress={showInfo}
 			accessibilityLabel={t('session.run.reveal')}
 		>
+			{/*카메라 영상, 화면이 어두워져도 카메라는 계속 동작*/}
+			{cameraOn && (
+				<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">
+					<StationCamera />
+				</Animated.View>
+			)}
+
 			{/*세션 진행 정보*/}
 			<Animated.View style={[styles.fill, fadeStyle]} pointerEvents={infoVisible ? 'box-none' : 'none'}>
 				{!!startedAt && (
@@ -344,6 +390,9 @@ const SessionRunScreen = () => {
 						sleep={sleep}
 						engineFailed={engineFailed}
 						onEnd={handleOpenEndDialog}
+						cameraButton={
+							PETCAM_ENABLED ? <CameraButton on={cameraOn} onPress={handleToggleCamera} /> : undefined
+						}
 					/>
 				)}
 			</Animated.View>
@@ -365,6 +414,7 @@ const SessionRunScreen = () => {
 					<Copy style={styles.endMessage}>{t('session.end.message')}</Copy>
 				</View>
 			</ConfirmDialog>
+			<PermissionDialog state={cameraPermission.dialog} />
 		</PressableSurface>
 	);
 };

@@ -45,9 +45,11 @@ export type SessionMessages = {
 		elsewhere: string;
 		endElsewhere: string;
 		endElsewhereError: string;
+		watch: string;
 	};
 	run: {
 		reveal: string;
+		camera: string;
 		elapsed: string;
 		keepOpen: string;
 		dimAfter: string;
@@ -62,6 +64,13 @@ export type SessionMessages = {
 		message: string;
 		button: string;
 		keep: string;
+	};
+	watch: {
+		leave: string;
+		connecting: string;
+		cameraOff: { title: string; message: string };
+		zoomHint: { title: string; message: string };
+		zoomLevel: string;
 	};
 	summary: {
 		title: string;
