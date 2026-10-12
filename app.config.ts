@@ -127,6 +127,15 @@ const config: ExpoConfig = {
 		'expo-secure-store',
 		'expo-image-picker',
 		[
+			'@config-plugins/react-native-webrtc',
+			{
+				cameraPermission:
+					'Use the camera to take profile photos and to show your parrot during a learning session.',
+				microphonePermission:
+					'Microphone access lets you record words for your parrot and capture sounds during learning.',
+			},
+		],
+		[
 			'expo-camera',
 			{
 				cameraPermission:

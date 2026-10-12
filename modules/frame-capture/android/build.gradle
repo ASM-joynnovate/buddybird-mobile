@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.framecapture'
+version = '0.0.1'
+
+android {
+  namespace "expo.modules.framecapture"
+  defaultConfig {
+    versionCode 1
+    versionName "0.0.1"
+  }
+}
+
+dependencies {
+  // 송출 중인 카메라 영상에 프레임 처리기를 끼우기 위해 react-native-webrtc의 확장 지점을 사용
+  implementation project(':react-native-webrtc')
+}
