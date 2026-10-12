@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
+
 import type { MediaStream } from 'react-native-webrtc';
 
 import { createViewerPetcam, type PetcamState } from '@/services/petcam/connection';
@@ -12,12 +14,15 @@ const useViewerPetcam = (sessionId: string) => {
 	const [state, setState] = useState<PetcamState | null>(null);
 	const [stream, setStream] = useState<MediaStream | null>(null);
 
+	const { mutateAsync: issueTurnCredential } = useIssuePetcamTurnCredential();
+
 	const viewerRef = useRef<ViewerPetcam | null>(null);
 
 	/** 학습 중인 기기와 연결 정보를 주고받는 채널 열기 */
 	useEffect(() => {
 		const viewer = createViewerPetcam({
 			sessionId,
+			issueTurnCredential,
 			onState: setState,
 			onStream: setStream,
 			onError: (error) => reportError(error, 'petcam_viewer'),
@@ -33,7 +38,7 @@ const useViewerPetcam = (sessionId: string) => {
 			setState(null);
 			setStream(null);
 		};
-	}, [sessionId]);
+	}, [issueTurnCredential, sessionId]);
 
 	/** 학습 중인 기기의 카메라를 켜거나 끄도록 요청하는 함수 */
 	const setCamera = useCallback((on: boolean) => viewerRef.current?.setCamera(on), []);

@@ -1,3 +1,5 @@
+import type { PetcamTurnCredential } from '@/types/apis/petcam';
+
 import { getSupabase } from '@/lib/supabase';
 
 import { z } from 'zod';
@@ -43,24 +45,19 @@ const messageSchema = z.discriminatedUnion('type', [
 	}),
 ]);
 
-const iceServersSchema = z.object({
-	iceServers: z.array(
-		z.object({
-			urls: z.union([z.string(), z.array(z.string())]),
-			username: z.string().optional(),
-			credential: z.string().optional(),
-		}),
-	),
-});
-
 type PetcamMessage = z.infer<typeof messageSchema>;
-type IceServers = z.infer<typeof iceServersSchema>['iceServers'];
 type Description = z.infer<typeof descriptionSchema>;
 type Candidate = z.infer<typeof candidateSchema>;
 
 export interface PetcamState {
 	cameraOn: boolean;
 	permissionDenied: boolean;
+}
+
+interface IceServer {
+	urls: string | string[];
+	username?: string;
+	credential?: string;
 }
 
 // react-native-webrtc가 이벤트 타입 정의를 배포본에 넣지 않아, 사용하는 이벤트만 직접 정의
@@ -94,12 +91,14 @@ interface StationPeer {
 
 interface StationPetcamOptions {
 	sessionId: string;
+	issueTurnCredential: () => Promise<PetcamTurnCredential>;
 	onCameraRequest: (on: boolean) => void;
 	onError: (error: unknown) => void;
 }
 
 interface ViewerPetcamOptions {
 	sessionId: string;
+	issueTurnCredential: () => Promise<PetcamTurnCredential>;
 	onState: (state: PetcamState) => void;
 	onStream: (stream: MediaStream | null) => void;
 	onError: (error: unknown) => void;
@@ -197,15 +196,14 @@ const openSignaling = (
 };
 
 /** 영상 중계(TURN) 접속 정보를 받아 오는 함수, 받지 못하면 공개 STUN만 사용 */
-const fetchIceServers = async (onError: (error: unknown) => void): Promise<IceServers> => {
+const fetchIceServers = async (
+	issueTurnCredential: () => Promise<PetcamTurnCredential>,
+	onError: (error: unknown) => void,
+): Promise<IceServer[]> => {
 	try {
-		const { data, error } = await getSupabase().functions.invoke<unknown>('petcam-turn');
+		const { ice_servers: iceServers } = await issueTurnCredential();
 
-		if (error) {
-			throw error;
-		}
-
-		return iceServersSchema.parse(data).iceServers;
+		return iceServers;
 	} catch (error) {
 		onError(error);
 
@@ -224,7 +222,7 @@ const listen = <Type extends keyof PeerEvents>(
 
 /** 상대 기기와의 영상 연결을 만드는 함수 */
 const createPeer = (
-	iceServers: IceServers,
+	iceServers: IceServer[],
 	onCandidate: (candidate: Candidate) => void,
 	onError: (error: unknown) => void,
 ): Peer => {
@@ -268,7 +266,12 @@ const createPeer = (
 };
 
 /** 학습 중인 기기에서 카메라 영상을 보내는 연결을 만드는 함수 */
-export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: StationPetcamOptions) => {
+export const createStationPetcam = ({
+	sessionId,
+	issueTurnCredential,
+	onCameraRequest,
+	onError,
+}: StationPetcamOptions) => {
 	const peers = new Map<string, StationPeer>();
 
 	let viewerIds: string[] = [];
@@ -310,7 +313,7 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 
 	/** 보는 기기에 영상 연결을 제안하는 함수 */
 	const offer = async (viewerId: string, media: MediaStream) => {
-		const iceServers = await fetchIceServers(onError);
+		const iceServers = await fetchIceServers(issueTurnCredential, onError);
 
 		// 접속 정보를 받는 사이 카메라가 꺼졌거나 보는 기기가 떠났으면 연결하지 않음
 		if (closed || stream !== media || !viewerIds.includes(viewerId)) {
@@ -431,7 +434,13 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 export type StationPetcam = ReturnType<typeof createStationPetcam>;
 
 /** 다른 기기에서 진행 중인 학습의 카메라 영상을 받는 연결을 만드는 함수 */
-export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: ViewerPetcamOptions) => {
+export const createViewerPetcam = ({
+	sessionId,
+	issueTurnCredential,
+	onState,
+	onStream,
+	onError,
+}: ViewerPetcamOptions) => {
 	const viewerId = randomUUID();
 
 	let peer: Peer | null = null;
@@ -459,7 +468,7 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 		offerId = acceptedOfferId;
 		earlyCandidates = arrivedCandidates;
 
-		const iceServers = await fetchIceServers(onError);
+		const iceServers = await fetchIceServers(issueTurnCredential, onError);
 
 		// 접속 정보를 받는 사이 새 제안이 왔거나 연결이 닫혔으면 이전 제안은 버림
 		if (offerId !== acceptedOfferId) {

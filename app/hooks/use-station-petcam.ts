@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
+
 import { mediaDevices, type MediaStream } from 'react-native-webrtc';
 
 import { PETCAM_ENABLED, PETCAM_VIDEO } from '@/config';
@@ -23,6 +25,8 @@ const closeStream = (stream: MediaStream) => {
 const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed }: Options) => {
 	const [stream, setStream] = useState<MediaStream | null>(null);
 
+	const { mutateAsync: issueTurnCredential } = useIssuePetcamTurnCredential();
+
 	const stationRef = useRef<StationPetcam | null>(null);
 	const onRemoteCameraRef = useRef(onRemoteCamera);
 	const onCameraFailedRef = useRef(onCameraFailed);
@@ -41,6 +45,7 @@ const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed 
 
 		const station = createStationPetcam({
 			sessionId,
+			issueTurnCredential,
 			onCameraRequest: (on) => onRemoteCameraRef.current(on),
 			onError: (error) => reportError(error, 'petcam_station'),
 		});
@@ -52,7 +57,7 @@ const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed 
 
 			station.close();
 		};
-	}, [sessionId]);
+	}, [issueTurnCredential, sessionId]);
 
 	/** 카메라가 켜져 있는 동안 후면 카메라 영상 열기 */
 	useEffect(() => {
