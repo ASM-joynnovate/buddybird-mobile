@@ -2980,10 +2980,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oxlint/plugins@npm:1.85.0":
-  version: 1.85.0
-  resolution: "@oxlint/plugins@npm:1.85.0"
-  checksum: 10c0/39df18aec0a330784c467583c46c762967af966b84d2463b780e96438a61819dc985de76c6b1783d2fd8c4c0af7bc36887ce39778bbef0decd2b8dd13bba2b45
+"@oxlint/plugins@npm:1.86.0":
+  version: 1.86.0
+  resolution: "@oxlint/plugins@npm:1.86.0"
+  checksum: 10c0/4eddfc296610b1cdc6117e47b4732c64b1d15a11bce0401c8a64a58575e67fe97ca6ead8b6bf5ea2bcac2971a33e267d7b8ae8acff77df33e398f75a27505a5d
   languageName: node
   linkType: hard
 
@@ -3881,9 +3881,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/eslint-plugin-query@npm:5.104.0":
-  version: 5.104.0
-  resolution: "@tanstack/eslint-plugin-query@npm:5.104.0"
+"@tanstack/eslint-plugin-query@npm:5.104.1":
+  version: 5.104.1
+  resolution: "@tanstack/eslint-plugin-query@npm:5.104.1"
   dependencies:
     "@typescript-eslint/utils": "npm:^8.70.1"
   peerDependencies:
@@ -3892,25 +3892,25 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/df1bcaa7654b628887ac6fff42cc9ea3507027f281173b9b0d06cb29c0fea24729ac91f1a134882ee89d151443b20ce3665af3a18666dd3dce6704e88737b1dc
+  checksum: 10c0/9fadc1bf7448cc0b99f44fdc25727812e2c8b7d54666dec9cc050d3355167af7505764058b48af5d3fbd185b2dc33a069825a15dcd4f813728f66f33ce2d902f
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.104.0":
-  version: 5.104.0
-  resolution: "@tanstack/query-core@npm:5.104.0"
-  checksum: 10c0/e080454f308dc41bf0e52e46aac455af3112f454519d369740aacaec4d260a3bfddde569204908ff7a6e1b1b84f8e065e0ac1375555e2bc1b023d398c0b44f96
+"@tanstack/query-core@npm:5.104.1":
+  version: 5.104.1
+  resolution: "@tanstack/query-core@npm:5.104.1"
+  checksum: 10c0/d42788e0c9ee4a389d7de21c5fe856acd50d24f72cc87b3c76e6852399ab9835801f415d0a9e10706d2a3a27937d42c5f1ac621ceeac21e6bcd60aa87984bdf4
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:5.104.0":
-  version: 5.104.0
-  resolution: "@tanstack/react-query@npm:5.104.0"
+"@tanstack/react-query@npm:5.104.1":
+  version: 5.104.1
+  resolution: "@tanstack/react-query@npm:5.104.1"
   dependencies:
-    "@tanstack/query-core": "npm:5.104.0"
+    "@tanstack/query-core": "npm:5.104.1"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10c0/efcf6328c95847c99e4b41c6e68f74d303b8e9eef673473648643dd2fcc8d9d3368223f27a4e510526f3fa3fd5508554e804141a67a9cf37c90842f8639cb430
+  checksum: 10c0/b5d431f983ff3dbd91c14eb2e3ec2dc0a429ab0b8b7dd6169a5b021eb450fffe1f2f1d0bef0726914b63d5b264b699d2ae1b4a2381bff85bb9c1c4c070407b74
   languageName: node
   linkType: hard
 
@@ -4751,8 +4751,8 @@ __metadata:
     "@sentry/react-native": "npm:~8.29.0"
     "@shopify/react-native-skia": "npm:2.6.9"
     "@supabase/supabase-js": "npm:2.117.2"
-    "@tanstack/eslint-plugin-query": "npm:5.104.0"
-    "@tanstack/react-query": "npm:5.104.0"
+    "@tanstack/eslint-plugin-query": "npm:5.104.1"
+    "@tanstack/react-query": "npm:5.104.1"
     "@types/d3-scale": "npm:^4.0.3"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:~19.2.10"
@@ -4790,13 +4790,13 @@ __metadata:
     oxfmt: "npm:0.71.0"
     oxlint: "npm:1.86.0"
     oxlint-config-universe: "npm:0.2.0"
-    oxlint-plugin-react-native: "npm:0.2.36"
+    oxlint-plugin-react-native: "npm:0.2.37"
     oxlint-tsgolint: "npm:7.0.2003"
     react: "npm:19.2.3"
     react-i18next: "npm:^17.0.15"
     react-native: "npm:0.86.3"
     react-native-audio-api: "npm:^0.13.6"
-    react-native-clarity: "npm:^4.9.1"
+    react-native-clarity: "npm:^4.9.2"
     react-native-gesture-handler: "npm:~2.33.0"
     react-native-keyboard-controller: "npm:1.21.9"
     react-native-mmkv: "npm:4.3.2"
@@ -8968,14 +8968,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oxlint-plugin-react-native@npm:0.2.36":
-  version: 0.2.36
-  resolution: "oxlint-plugin-react-native@npm:0.2.36"
+"oxlint-plugin-react-native@npm:0.2.37":
+  version: 0.2.37
+  resolution: "oxlint-plugin-react-native@npm:0.2.37"
   dependencies:
-    "@oxlint/plugins": "npm:1.85.0"
+    "@oxlint/plugins": "npm:1.86.0"
   peerDependencies:
     oxlint: ">=1.0.0"
-  checksum: 10c0/a87ead49b979895aec7bfdc7cd9cd28911e4d22e2f8d8495e155fb8f460171b8bcbfcd4975468586337e075899b333542ff655aa9cc21b07cf9c2193c40ef19d
+  checksum: 10c0/f3f53c6989872807c89d3f284369fa4b78a7599a68957920560155a7d27edd482debca0e4a7833d045e136afe2e74fa9d4ce1b4c0998930d6878b61568160b0d
   languageName: node
   linkType: hard
 
@@ -9431,9 +9431,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-clarity@npm:^4.9.1":
-  version: 4.9.1
-  resolution: "react-native-clarity@npm:4.9.1"
+"react-native-clarity@npm:^4.9.2":
+  version: 4.9.2
+  resolution: "react-native-clarity@npm:4.9.2"
   peerDependencies:
     react: "*"
     react-native: "*"
@@ -9441,7 +9441,7 @@ __metadata:
   peerDependenciesMeta:
     react-native-svg:
       optional: true
-  checksum: 10c0/3247fe33c431e48b475b88800ba006d6ec76316cc195f85691da0a7aadd5b70b3e7b5c8782c697b2a5d8cbbf88209b8aa3a59ff28454834736e3b85d179b3faf
+  checksum: 10c0/f2c2444f5bb87191c6a96b6147fa88887bd1b4dd3aadd4a141024a63e985f4b629e7afaf6140a8c0d834e947c42673af5f99b6220fccd0dfca353e6b49a14d15
   languageName: node
   linkType: hard
 
