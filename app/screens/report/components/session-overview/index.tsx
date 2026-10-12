@@ -24,41 +24,33 @@ import { Title } from '@/components/ui/title';
 interface FlowStepProps {
 	label: string;
 	count: number;
-	kind?: 'parrot' | 'mimic';
+	faceFilled?: boolean;
 }
 
 /**
  * 소리 흐름의 한 칸 컴포넌트
  * @param label 칸 이름
  * @param count 소리 개수
- * @param kind 숫자에 색을 칠할 소리 종류
+ * @param faceFilled 면을 오렌지로 채울지 여부
  */
-const FlowStep = ({ label, count, kind }: FlowStepProps) => {
+const FlowStep = ({ label, count, faceFilled = false }: FlowStepProps) => {
 	const stepEmpty = count === 0;
-	const stepFilled = !stepEmpty && kind === 'mimic';
+	const stepFilled = !stepEmpty && faceFilled;
 
 	return (
 		<Surface
 			accessible
 			accessibilityLabel={joinLabel(label, String(count))}
-			depth={stepEmpty ? 'none' : 'low'}
+			depth="none"
 			cornerRadius="tile"
-			faceColor={stepFilled ? colors.purple : undefined}
-			edgeColor={stepFilled ? colors.purpleDark : undefined}
+			faceColor={stepFilled ? colors.orange : undefined}
 			style={styles.step}
 			contentStyle={[styles.stepFace, stepFilled && styles.filledStepFace, stepEmpty && styles.emptyStepFace]}
 		>
 			<Copy numberOfLines={1} style={[styles.stepLabel, stepFilled && styles.filledText]}>
 				{label}
 			</Copy>
-			<Copy
-				style={[
-					styles.stepCount,
-					!stepEmpty && kind === 'parrot' && styles.parrotCount,
-					stepFilled && styles.filledText,
-					stepEmpty && styles.emptyCount,
-				]}
-			>
+			<Copy style={[styles.stepCount, stepFilled && styles.filledText, stepEmpty && styles.emptyCount]}>
 				{count}
 			</Copy>
 		</Surface>
@@ -131,11 +123,11 @@ const SessionOverview = memo(({ session, sessionSummary }: Props) => {
 				<View style={styles.arrow}>
 					<ChevronRightIcon size={16} color={colors.subtle} />
 				</View>
-				<FlowStep label={t('report.detail.kinds.parrot')} count={session.sounds.parrot_count} kind="parrot" />
+				<FlowStep label={t('report.detail.kinds.parrot')} count={session.sounds.parrot_count} />
 				<View style={styles.arrow}>
 					<ChevronRightIcon size={16} color={colors.subtle} />
 				</View>
-				<FlowStep label={t('report.detail.kinds.mimic')} count={session.sounds.mimic_count} kind="mimic" />
+				<FlowStep label={t('report.detail.kinds.mimic')} count={session.sounds.mimic_count} faceFilled />
 			</View>
 		</View>
 	);
@@ -165,11 +157,10 @@ const styles = StyleSheet.create({
 	arrow: { alignSelf: 'center' },
 	step: { flex: 1, minWidth: 0 },
 	stepFace: { flexGrow: 1, alignItems: 'center', gap: 2, paddingTop: 8, paddingHorizontal: 8, paddingBottom: 6 },
-	filledStepFace: { borderColor: colors.purple },
+	filledStepFace: { borderColor: colors.orange },
 	emptyStepFace: { borderStyle: 'dashed', borderColor: colors.subtle },
 	stepLabel: { fontFamily: font.extraBold, fontSize: 12, color: colors.muted },
 	stepCount: { fontFamily: font.black, fontSize: 20, lineHeight: 26, fontVariant: ['tabular-nums'] },
-	parrotCount: { color: colors.blueDark },
 	filledText: { color: colors.onFilled },
 	emptyCount: { color: colors.subtle },
 });

@@ -1,6 +1,7 @@
 import {
 	infiniteQueryOptions,
 	queryOptions,
+	useMutation,
 	useQueryClient,
 	useSuspenseInfiniteQuery,
 	useSuspenseQuery,
@@ -10,6 +11,7 @@ import {
 	getRunningSession,
 	getSession,
 	getSessionEventList,
+	getSessionSoundDuration,
 	getSessionSoundList,
 	getSessionSummary,
 	postRunningSessionFinish,
@@ -24,6 +26,7 @@ import { ApiError } from '@/types/apis/common';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
+import { shareAudioFile } from '@/services/media/share';
 import { reportError } from '@/services/telemetry/client';
 
 /** 진행 중인 세션 조회 Hook에 사용할 옵션 */
@@ -62,6 +65,20 @@ export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 export const useGetSessionSoundList = ({ id }: { id: string }) => {
 	return useSuspenseInfiniteQuery(getSessionSoundListOptions({ id }));
 };
+
+/** 세션 소리 재생 길이 조회 Hook에 사용할 옵션 */
+export const getSessionSoundDurationOptions = ({ id, url }: { id: string; url: string }) =>
+	// oxlint-disable-next-line @tanstack/query/exhaustive-deps
+	queryOptions({
+		queryKey: apiKeys.sessionSounds.duration(id),
+		queryFn: () =>
+			getSessionSoundDuration({ url }).catch((error: unknown) => {
+				reportError(error, 'session_sound_duration');
+
+				throw error;
+			}),
+		staleTime: Infinity,
+	});
 
 /** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
 export const getSessionEventListOptions = ({ id }: { id: string }) =>
@@ -156,6 +173,15 @@ export const useUploadSessionSound = () => {
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
 		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(id) }),
+	});
+};
+
+/** 세션 소리 공유 Hook */
+export const useShareSessionSound = () => {
+	return useMutation({
+		mutationKey: apiKeys.mutation('sessions', 'shareSound'),
+		mutationFn: shareAudioFile,
+		onError: (error) => reportError(error, 'parrot_sound_share'),
 	});
 };
 

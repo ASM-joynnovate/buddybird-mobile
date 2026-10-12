@@ -1237,6 +1237,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/config-plugins@npm:^57.0.9, @expo/config-plugins@npm:~57.0.10":
+  version: 57.0.10
+  resolution: "@expo/config-plugins@npm:57.0.10"
+  dependencies:
+    "@expo/config-types": "npm:^57.0.2"
+    "@expo/json-file": "npm:~11.0.1"
+    "@expo/plist": "npm:^0.8.1"
+    "@expo/require-utils": "npm:^57.0.6"
+    "@expo/sdk-runtime-versions": "npm:^1.0.0"
+    chalk: "npm:^4.1.2"
+    debug: "npm:^4.3.5"
+    getenv: "npm:^2.0.0"
+    glob: "npm:^13.0.0"
+    semver: "npm:^7.5.4"
+    slugify: "npm:^1.6.6"
+    xcode: "npm:^3.0.1"
+    xml2js: "npm:0.6.0"
+  checksum: 10c0/f15543106b941b7f025e6cb3d1779cb8c2f1de495fafc2ab474fd423868e88c95d34ee9f9692e7bc739ccde188d137f4d3292ae9af1db5cff94b78a2226e559f
+  languageName: node
+  linkType: hard
+
 "@expo/config-plugins@npm:~55.0.11":
   version: 55.0.11
   resolution: "@expo/config-plugins@npm:55.0.11"
@@ -1255,27 +1276,6 @@ __metadata:
     xcode: "npm:^3.0.1"
     xml2js: "npm:0.6.0"
   checksum: 10c0/dd147a8a42a5ca33df96b0268e03fc00993e7cb67b3f4486ffd0920a129fabefa1c999aa17118667859aca8c50c5a59b255874759203ae118cee78a1a58fe96d
-  languageName: node
-  linkType: hard
-
-"@expo/config-plugins@npm:~57.0.10":
-  version: 57.0.10
-  resolution: "@expo/config-plugins@npm:57.0.10"
-  dependencies:
-    "@expo/config-types": "npm:^57.0.2"
-    "@expo/json-file": "npm:~11.0.1"
-    "@expo/plist": "npm:^0.8.1"
-    "@expo/require-utils": "npm:^57.0.6"
-    "@expo/sdk-runtime-versions": "npm:^1.0.0"
-    chalk: "npm:^4.1.2"
-    debug: "npm:^4.3.5"
-    getenv: "npm:^2.0.0"
-    glob: "npm:^13.0.0"
-    semver: "npm:^7.5.4"
-    slugify: "npm:^1.6.6"
-    xcode: "npm:^3.0.1"
-    xml2js: "npm:0.6.0"
-  checksum: 10c0/f15543106b941b7f025e6cb3d1779cb8c2f1de495fafc2ab474fd423868e88c95d34ee9f9692e7bc739ccde188d137f4d3292ae9af1db5cff94b78a2226e559f
   languageName: node
   linkType: hard
 
@@ -4779,6 +4779,7 @@ __metadata:
     expo-localization: "npm:~57.0.2"
     expo-notifications: "npm:~57.0.22"
     expo-secure-store: "npm:~57.0.4"
+    expo-sharing: "npm:~57.0.22"
     expo-splash-screen: "npm:~57.0.9"
     expo-system-ui: "npm:~57.0.4"
     expo-tracking-transparency: "npm:~57.0.2"
@@ -6369,6 +6370,21 @@ __metadata:
   version: 57.0.3
   resolution: "expo-server@npm:57.0.3"
   checksum: 10c0/541d9b319ba513df718868c87a8d57e30161c3879b7d5b43f308923290ce5ee349a1b3469901c2f382984b6595f4cf6beaee9d870f5eb874c45ddc0a42a13e56
+  languageName: node
+  linkType: hard
+
+"expo-sharing@npm:~57.0.22":
+  version: 57.0.22
+  resolution: "expo-sharing@npm:57.0.22"
+  dependencies:
+    "@expo/config-plugins": "npm:^57.0.9"
+    "@expo/config-types": "npm:^57.0.2"
+    "@expo/plist": "npm:^0.8.1"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/0f4a263f7f9335267b955a230ca371a825644ce28ef9b4e3c2f32df4bdbee789a275418f241d64def7bd4033d6695b358de7bc34ad741fdd22800eaf1f64fb1f
   languageName: node
   linkType: hard
 

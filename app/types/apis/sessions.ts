@@ -69,6 +69,7 @@ export const sessionSoundSchema = z.object({
 	session_id: uuidSchema,
 	captured_at: timestampSchema,
 	audio_file: fileSchema,
+	duration_ms: z.number().int().nonnegative().nullish(),
 	analysis: z.object({ score: scoreSchema }).nullish(),
 	judgment: z.object({ word_id: uuidSchema.nullable(), score: scoreSchema.nullish() }).nullable(),
 });

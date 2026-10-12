@@ -6,8 +6,6 @@ import dayjs from 'dayjs';
 
 import { HOUR } from '@/config/units';
 
-const NOON_HOUR = 12;
-
 export type SoundKind = 'parrot' | 'mimic' | 'emergency';
 
 export interface TimeSpan {
@@ -22,11 +20,11 @@ export interface TapeItem {
 	endedAt: string | null;
 	sounds: SessionSound[];
 	score: number | null;
+	durationMs: number | null;
 }
 
 export interface TapeRow extends TimeSpan {
 	sleeping: boolean;
-	meridiemShown: boolean;
 	items: TapeItem[];
 }
 
@@ -65,7 +63,6 @@ const _hourRows = ({ start, end }: TimeSpan) => {
 			start: Math.max(hour, start),
 			end: Math.min(hour + HOUR, end),
 			sleeping: false,
-			meridiemShown: rows.length === 0 || dayjs(hour).hour() === NOON_HOUR,
 			items: [],
 		});
 	}
@@ -110,7 +107,7 @@ export const getMidnights = (span: TimeSpan) => {
 		.map((midnightSpan) => midnightSpan.start);
 };
 
-/** 시각순 알약 목록을 반환하는 함수 */
+/** 시각순 소리 카드 목록을 반환하는 함수 */
 export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 	const emergencyEvents = events.filter((event) => event.kind === 'emergency_detected');
 	const emergencySoundIds = new Set(emergencyEvents.flatMap((event) => event.sound_ids));
@@ -127,6 +124,7 @@ export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => 
 				endedAt: null,
 				sounds: [sound],
 				score: (mimicked ? sound.judgment?.score : sound.analysis?.score) ?? null,
+				durationMs: sound.duration_ms ?? null,
 			};
 		});
 	const emergencyItems = emergencyEvents.map((event): TapeItem => ({
@@ -136,17 +134,13 @@ export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => 
 		endedAt: event.ended_at,
 		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(_compareCapturedAt),
 		score: null,
+		durationMs: event.ended_at ? Date.parse(event.ended_at) - Date.parse(event.occurred_at) : null,
 	}));
 
 	return [...soundItems, ...emergencyItems].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
 };
 
-/** 행 안에서 알약이 놓인 줄 번호를 반환하는 함수 */
-export const getTapeLineIndex = (row: TapeRow, item: TapeItem) => {
-	return row.items.filter((rowItem) => rowItem.kind === item.kind).indexOf(item);
-};
-
-/** 날짜별 행에 알약을 담는 함수 */
+/** 날짜별 행에 소리 카드를 담는 함수 */
 export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: TapeItem[]) => {
 	const awakeSpans = [...sleepSpans, { start: session.end, end: session.end }].map((sleepSpan, index) => ({
 		start: index === 0 ? session.start : sleepSpans[index - 1].end,
@@ -158,13 +152,12 @@ export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: Ta
 			? _splitAtMidnight(sleepSpans[index]).map((sleepSpan): TapeRow => ({
 					...sleepSpan,
 					sleeping: true,
-					meridiemShown: false,
 					items: [],
 				}))
 			: []),
 	]);
 
-	// 세션 밖 시각의 알약은 가장 가까운 행에 둠
+	// 세션 밖 시각의 소리는 가장 가까운 행에 둠
 	const rowsWithItems = rows.map((row) => ({
 		...row,
 		items: items.filter((item) => {

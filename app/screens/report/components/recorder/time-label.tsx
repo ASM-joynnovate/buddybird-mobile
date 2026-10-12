@@ -19,7 +19,7 @@ interface Props {
 
 /**
  * 선택한 소리의 시각 라벨 컴포넌트
- * @param item 선택한 알약, 없으면 내 목소리
+ * @param item 선택한 소리, 없으면 내 목소리
  * @param labelRef 라벨 위치를 잴 ref
  * @param timeRef 시각 글자 위치를 잴 ref
  * @param recordingRef 녹음 이름 위치를 잴 ref

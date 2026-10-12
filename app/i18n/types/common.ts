@@ -73,6 +73,7 @@ export type CommonMessages = {
 		monthDayWeekday: string;
 		monthDayLongWeekday: string;
 		yearMonth: string;
+		hour: string;
 		order: readonly ('year' | 'month' | 'day')[];
 	};
 	done: string;

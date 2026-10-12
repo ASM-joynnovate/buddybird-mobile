@@ -62,9 +62,8 @@ export type ReportMessages = {
 		tapeLog: string;
 		start: string;
 		end: string;
-		hour: string;
-		timeRange: string;
-		play: string;
+		soundCount_one: string;
+		soundCount_other: string;
 		share: string;
 		scores: {
 			parrot: string;

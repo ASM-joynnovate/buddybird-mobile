@@ -45,5 +45,8 @@ export const apiKeys = {
 	recordings: {
 		duration: (id: string) => [...userKeyPrefix(), 'recordings', id, 'duration'] as const,
 	},
+	sessionSounds: {
+		duration: (id: string) => [...userKeyPrefix(), 'session-sounds', id, 'duration'] as const,
+	},
 	mutation: (...parts: string[]) => ['api', ...parts] as const,
 };

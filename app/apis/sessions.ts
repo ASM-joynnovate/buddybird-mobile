@@ -20,7 +20,12 @@ import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
+import { API_TIMEOUT_MS } from '@/config';
+import { SECOND } from '@/config/units';
+
 const SOUND_PAGE_SIZE = 50;
+const WAV_HEADER_BYTES = 44;
+const WAV_BYTE_RATE_OFFSET = 28;
 
 const getSessionList = async ({ page }: { page: number }): Promise<Page<Session>> => {
 	const { data, meta } = await apiRequest('/api/v1/sessions', z.array(sessionSchema), { searchParams: { page } });
@@ -129,4 +134,24 @@ export const getSessionEventList = async ({ id }: { id: string }): Promise<Sessi
 	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, z.array(sessionEventSchema));
 
 	return sessionEvents;
+};
+
+export const getSessionSoundDuration = async ({ url }: { url: string }): Promise<number> => {
+	const response = await fetch(url, {
+		headers: { Range: `bytes=0-${WAV_HEADER_BYTES - 1}` },
+		signal: AbortSignal.timeout(API_TIMEOUT_MS),
+	});
+	const fileSize = Number(response.headers.get('Content-Range')?.split('/').at(1));
+
+	if (!response.ok || !Number.isFinite(fileSize)) {
+		throw new Error(`Sound header request failed (HTTP ${response.status})`);
+	}
+
+	const byteRate = new DataView(await response.arrayBuffer()).getUint32(WAV_BYTE_RATE_OFFSET, true);
+
+	if (byteRate === 0) {
+		throw new Error('Sound header is invalid');
+	}
+
+	return Math.round(((fileSize - WAV_HEADER_BYTES) / byteRate) * SECOND);
 };
