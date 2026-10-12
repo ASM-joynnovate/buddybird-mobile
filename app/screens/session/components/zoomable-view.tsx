@@ -47,6 +47,7 @@ const ZoomableView = ({ children }: Props) => {
 	const offsetY = useSharedValue(0);
 	const savedOffsetX = useSharedValue(0);
 	const savedOffsetY = useSharedValue(0);
+	const pointerCount = useSharedValue(0);
 
 	const contentStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }, { scale: scale.get() }],
@@ -75,10 +76,18 @@ const ZoomableView = ({ children }: Props) => {
 		const pan = Gesture.Pan()
 			.averageTouches(true)
 			.onUpdate((event) => {
+				// 손가락 수가 바뀌면 이동 거리가 튀므로, 지금 위치를 기준으로 다시 맞춤
+				if (event.numberOfPointers !== pointerCount.get()) {
+					pointerCount.set(event.numberOfPointers);
+					savedOffsetX.set(offsetX.get() - event.translationX);
+					savedOffsetY.set(offsetY.get() - event.translationY);
+				}
+
 				offsetX.set(clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get()));
 				offsetY.set(clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get()));
 			})
 			.onEnd(() => {
+				pointerCount.set(0);
 				savedOffsetX.set(offsetX.get());
 				savedOffsetY.set(offsetY.get());
 			});
@@ -96,7 +105,7 @@ const ZoomableView = ({ children }: Props) => {
 			});
 
 		return Gesture.Simultaneous(pinch, pan, doubleTap);
-	}, [height, hideHint, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale, width]);
+	}, [height, hideHint, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
 
 	/** 배율이 바뀌면 현재 배율을 잠깐 표시 */
 	useAnimatedReaction(

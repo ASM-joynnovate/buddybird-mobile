@@ -10,6 +10,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { getSessionOptions, useFinishSession } from '@/hooks/apis/sessions';
+import useViewerPetcam from '@/hooks/use-viewer-petcam';
 
 import { useTranslation } from 'react-i18next';
 
@@ -19,6 +20,7 @@ import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { RTCView } from 'react-native-webrtc';
 
 import { HEARTBEAT_INTERVAL_MS } from '@/config';
 import CameraButton from '@/screens/session/components/camera-button';
@@ -49,10 +51,11 @@ const SessionWatchScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
 
-	// 영상 전송과 원격 카메라 제어(BB-657) 전까지는 이 화면 안의 상태로만 표시
-	const [cameraOn, setCameraOn] = useState(false);
-	const [streamReady] = useState(false);
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
+
+	const { state: petcamState, stream, setCamera } = useViewerPetcam(params.sessionId);
+
+	const cameraOn = petcamState?.cameraOn ?? false;
 
 	const leavingRef = useRef(false);
 
@@ -101,7 +104,7 @@ const SessionWatchScreen = () => {
 				<Copy style={styles.leaveText}>{t('session.watch.leave')}</Copy>
 			</PressableSurface>
 
-			{!!session && <CameraButton on={cameraOn} onPress={() => setCameraOn((on) => !on)} />}
+			{!!session && <CameraButton on={cameraOn} onPress={() => setCamera(!cameraOn)} />}
 		</View>
 	);
 
@@ -124,16 +127,16 @@ const SessionWatchScreen = () => {
 	return (
 		<View style={styles.screen}>
 			{/*영상*/}
-			{streamReady && (
+			{!!stream && (
 				<ZoomableView>
-					<View style={styles.screen} />
+					<RTCView streamURL={stream.toURL()} objectFit="cover" style={styles.screen} />
 				</ZoomableView>
 			)}
 
 			{/*영상이 없을 때 안내*/}
-			{!streamReady && (
+			{!stream && (
 				<View style={styles.statusContainer} pointerEvents="none">
-					{cameraOn ? (
+					{!petcamState || cameraOn ? (
 						<>
 							<ActivityIndicator color={sessionColors.text} />
 							<Copy style={styles.statusTitle}>{t('session.watch.connecting')}</Copy>
@@ -141,9 +144,13 @@ const SessionWatchScreen = () => {
 					) : (
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
-							<Copy style={styles.statusTitle}>{t('session.watch.cameraOff.title')}</Copy>
+							<Copy style={styles.statusTitle}>
+								{t(`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.title`)}
+							</Copy>
 							<Copy lineBreakStrategyIOS="hangul-word" style={styles.statusMessage}>
-								{t('session.watch.cameraOff.message')}
+								{t(
+									`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.message`,
+								)}
 							</Copy>
 						</>
 					)}
