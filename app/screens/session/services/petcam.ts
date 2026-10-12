@@ -32,7 +32,18 @@ const messageSchema = z.discriminatedUnion('type', [
 	}),
 ]);
 
+const iceServersSchema = z.object({
+	iceServers: z.array(
+		z.object({
+			urls: z.union([z.string(), z.array(z.string())]),
+			username: z.string().optional(),
+			credential: z.string().optional(),
+		}),
+	),
+});
+
 type PetcamMessage = z.infer<typeof messageSchema>;
+type IceServers = z.infer<typeof iceServersSchema>['iceServers'];
 type Description = z.infer<typeof descriptionSchema>;
 type Candidate = z.infer<typeof candidateSchema>;
 
@@ -118,6 +129,23 @@ const openSignaling = (
 	};
 };
 
+/** 영상 중계(TURN) 접속 정보를 받아 오는 함수, 받지 못하면 공개 STUN만 사용 */
+const fetchIceServers = async (onError: (error: unknown) => void): Promise<IceServers> => {
+	try {
+		const { data, error } = await getSupabase().functions.invoke<unknown>('petcam-turn');
+
+		if (error) {
+			throw error;
+		}
+
+		return iceServersSchema.parse(data).iceServers;
+	} catch (error) {
+		onError(error);
+
+		return [...PETCAM_ICE_SERVERS];
+	}
+};
+
 /** 영상 연결의 이벤트를 듣는 함수 */
 const listen = <Type extends keyof PeerEvents>(
 	connection: RTCPeerConnection,
@@ -128,8 +156,12 @@ const listen = <Type extends keyof PeerEvents>(
 };
 
 /** 상대 기기와의 영상 연결을 만드는 함수 */
-const createPeer = (onCandidate: (candidate: Candidate) => void, onError: (error: unknown) => void): Peer => {
-	const connection = new RTCPeerConnection({ iceServers: [...PETCAM_ICE_SERVERS] });
+const createPeer = (
+	iceServers: IceServers,
+	onCandidate: (candidate: Candidate) => void,
+	onError: (error: unknown) => void,
+): Peer => {
+	const connection = new RTCPeerConnection({ iceServers });
 
 	// 상대 연결 정보가 적용되기 전에 도착한 후보는 모아 두었다가 적용
 	let pendingCandidates: Candidate[] = [];
@@ -189,9 +221,17 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 
 	/** 보는 기기에 영상 연결을 제안하는 함수 */
 	const offer = async (viewerId: string, media: MediaStream) => {
+		const iceServers = await fetchIceServers(onError);
+
+		// 접속 정보를 받는 사이 카메라가 꺼졌으면 연결하지 않음
+		if (stream !== media) {
+			return;
+		}
+
 		closePeer(viewerId);
 
 		const peer = createPeer(
+			iceServers,
 			(candidate) => signaling.send({ type: 'candidate', viewerId, from: 'station', candidate }),
 			onError,
 		);
@@ -282,9 +322,13 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 	const viewerId = randomUUID();
 
 	let peer: Peer | null = null;
+	let answerCount = 0;
 
 	/** 받고 있던 영상 연결 닫기 함수 */
 	const closePeer = () => {
+		// 접속 정보를 받고 있던 제안도 함께 취소
+		answerCount += 1;
+
 		peer?.close();
 		peer = null;
 
@@ -295,7 +339,18 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 	const answer = async (description: Description) => {
 		closePeer();
 
+		answerCount += 1;
+
+		const answerId = answerCount;
+		const iceServers = await fetchIceServers(onError);
+
+		// 접속 정보를 받는 사이 새 제안이 왔으면 이전 제안은 버림
+		if (answerId !== answerCount) {
+			return;
+		}
+
 		const created = createPeer(
+			iceServers,
 			(candidate) => signaling.send({ type: 'candidate', viewerId, from: 'viewer', candidate }),
 			onError,
 		);
@@ -355,6 +410,8 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 		setCamera: (on: boolean) => signaling.send({ type: 'camera-set', on }),
 		close: () => {
 			signaling.send({ type: 'viewer-leave', viewerId });
+
+			answerCount += 1;
 
 			peer?.close();
 			peer = null;
