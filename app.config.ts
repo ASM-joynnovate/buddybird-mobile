@@ -50,8 +50,7 @@ const config: ExpoConfig = {
 			NSMicrophoneUsageDescription:
 				'Microphone access lets you record words for your parrot and capture sounds during learning.',
 			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
-			NSCameraUsageDescription:
-				'Use the camera to take profile photos and to show your parrot during a learning session.',
+			NSCameraUsageDescription: 'Use the camera to take a profile photo of your parrot or yourself.',
 		},
 	},
 	android: {
@@ -126,16 +125,6 @@ const config: ExpoConfig = {
 		'expo-apple-authentication',
 		'expo-secure-store',
 		'expo-image-picker',
-		[
-			'expo-camera',
-			{
-				cameraPermission:
-					'Use the camera to take profile photos and to show your parrot during a learning session.',
-				microphonePermission:
-					'Microphone access lets you record words for your parrot and capture sounds during learning.',
-				barcodeScannerEnabled: false,
-			},
-		],
 		[
 			'expo-audio',
 			{

@@ -132,7 +132,6 @@ export default defineConfig({
 				"app/components/ui/surface/pressable-surface.tsx",
 				"app/components/ui/text-field.tsx",
 				"app/components/app/startup-screen/perch.tsx",
-				"app/screens/session/components/zoomable-view.tsx",
 			],
 			rules: {
 				"no-restricted-imports": [
