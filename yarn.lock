@@ -4757,9 +4757,9 @@ __metadata:
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:~19.2.10"
     dayjs: "npm:^1.11.23"
-    dependency-cruiser: "npm:^18.4.0"
+    dependency-cruiser: "npm:^18.5.0"
     es-hangul: "npm:2.4.0"
-    eslint: "npm:10.11.0"
+    eslint: "npm:10.12.0"
     eslint-plugin-react-native-a11y: "npm:3.5.1"
     expo: "npm:~57.0.27"
     expo-apple-authentication: "npm:~57.0.2"
@@ -5454,9 +5454,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dependency-cruiser@npm:^18.4.0":
-  version: 18.4.0
-  resolution: "dependency-cruiser@npm:18.4.0"
+"dependency-cruiser@npm:^18.5.0":
+  version: 18.5.0
+  resolution: "dependency-cruiser@npm:18.5.0"
   dependencies:
     acorn: "npm:8.18.0"
     acorn-jsx: "npm:5.3.2"
@@ -5464,10 +5464,10 @@ __metadata:
     acorn-loose: "npm:8.5.2"
     acorn-walk: "npm:8.3.5"
     commander: "npm:15.0.0"
-    enhanced-resolve: "npm:5.25.1"
-    ignore: "npm:7.0.9"
+    enhanced-resolve: "npm:5.26.0"
+    ignore: "npm:7.0.11"
     interpret: "npm:3.1.1"
-    is-installed-globally: "npm:1.0.0"
+    is-installed-globally: "npm:1.0.1"
     json5: "npm:2.2.3"
     picomatch: "npm:4.0.7"
     prompts: "npm:2.4.2"
@@ -5483,7 +5483,7 @@ __metadata:
     depcruise-wrap-stream-in-html: bin/wrap-stream-in-html.mjs
     dependency-cruise: bin/dependency-cruiser.mjs
     dependency-cruiser: bin/dependency-cruiser.mjs
-  checksum: 10c0/51a1c89aaf778fcb721270e821f5d1eb118dfb09d66275e4f78bc0ae0155ed3c4e0262168fb5e29c523d9750c411319a3948b13c6543142b7ef3d5d7ea31a799
+  checksum: 10c0/14c22f2cc4c199c47dd52ceccb762e138694af9549db8b5588df601f16a60d952f0a9939ae03c9d05670bd56b1a6d578d38f39fd48dfb2243bfb9845ff663348
   languageName: node
   linkType: hard
 
@@ -5613,13 +5613,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enhanced-resolve@npm:5.25.1":
-  version: 5.25.1
-  resolution: "enhanced-resolve@npm:5.25.1"
+"enhanced-resolve@npm:5.26.0":
+  version: 5.26.0
+  resolution: "enhanced-resolve@npm:5.26.0"
   dependencies:
     graceful-fs: "npm:^4.2.4"
     tapable: "npm:^2.3.3"
-  checksum: 10c0/c19ac10cd01f3c03648c0bc8fc981810490af6c10506e9ba4a300d57956c8948eeabf0e6af0d3bed91f37b89a775746664d5043c61c7c03a946f1a235013e955
+  checksum: 10c0/fea1f02aa89793fecfd3ab0764be988fdf10dd5147ef65548726d918e68e3b9cf84224de37387356b54eee69363e4d59d9624dd7be9a23a0b1f568c46fa7a8a2
   languageName: node
   linkType: hard
 
@@ -5951,9 +5951,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:10.11.0":
-  version: 10.11.0
-  resolution: "eslint@npm:10.11.0"
+"eslint@npm:10.12.0":
+  version: 10.12.0
+  resolution: "eslint@npm:10.12.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.8.0"
     "@eslint-community/regexpp": "npm:^4.12.2"
@@ -5992,7 +5992,7 @@ __metadata:
       optional: true
   bin:
     eslint: bin/eslint.js
-  checksum: 10c0/c767f45f21d1921b41d70e30b1c8fa7ec4e65c0f43a8d80cc4990ca3d923127fa7b9b3416b8f5be6e877d9286f97d3c51a04ed341bc6aa73c0dba0f463e1f861
+  checksum: 10c0/1302ce8a7df2f67fe8f4014b2f9449bd38eb86903ba7b841d9a8ca5a5daf8ee15442861ab870e96c0074d5f333b405d7b2f16388981f807db410cc3a02178af9
   languageName: node
   linkType: hard
 
@@ -7148,10 +7148,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:7.0.9":
-  version: 7.0.9
-  resolution: "ignore@npm:7.0.9"
-  checksum: 10c0/fec02e67b8c01a873d3b60eff6cce5e390365d7c45fea57f60f4ff52b9be5873c366867a3b8e154a3140330b72b41b94f19e1f28adfe0ef558c6b28bbf02a1b4
+"ignore@npm:7.0.11":
+  version: 7.0.11
+  resolution: "ignore@npm:7.0.11"
+  checksum: 10c0/4be6206eb3b2a9fc7b93cceb0d0f249060127604c752bfa4f96b06d4561b5bfa77c4ff244ecdd5ccc3cbb4a1e1ad9c9c9c215b81ace8ea03c3d0d1f5dc55d2eb
   languageName: node
   linkType: hard
 
@@ -7374,13 +7374,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-installed-globally@npm:1.0.0":
-  version: 1.0.0
-  resolution: "is-installed-globally@npm:1.0.0"
+"is-installed-globally@npm:1.0.1":
+  version: 1.0.1
+  resolution: "is-installed-globally@npm:1.0.1"
   dependencies:
     global-directory: "npm:^4.0.1"
     is-path-inside: "npm:^4.0.0"
-  checksum: 10c0/5f57745b6e75b2e9e707a26470d0cb74291d9be33c0fe0dc06c6955fe086bc2ca0a8960631b1ecb9677100eac90af33e911aec7a2c0b88097d702bfa3b76486d
+  checksum: 10c0/30f466dcf7b86dd66b1f6a383414a3784272e387848df8b8c40b13ac5e46423b89b9418160df58a557b3fb59a7be0e0f44b095207d9b12c6fe3f8881b9a82461
   languageName: node
   linkType: hard
 
