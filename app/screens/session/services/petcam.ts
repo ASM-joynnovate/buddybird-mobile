@@ -323,11 +323,14 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 
 	let peer: Peer | null = null;
 	let answerCount = 0;
+	// 접속 정보를 받는 동안 먼저 도착한 후보는 모아 두었다가 연결이 만들어지면 적용
+	let earlyCandidates: Candidate[] = [];
 
 	/** 받고 있던 영상 연결 닫기 함수 */
 	const closePeer = () => {
 		// 접속 정보를 받고 있던 제안도 함께 취소
 		answerCount += 1;
+		earlyCandidates = [];
 
 		peer?.close();
 		peer = null;
@@ -356,6 +359,9 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 		);
 
 		peer = created;
+
+		earlyCandidates.forEach(created.addCandidate);
+		earlyCandidates = [];
 
 		listen(created.connection, 'track', (event) => {
 			const [media] = event.streams;
@@ -398,7 +404,11 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 			} else if (message.type === 'offer' && message.viewerId === viewerId) {
 				void answer(message.description).catch(onError);
 			} else if (message.type === 'candidate' && message.from === 'station' && message.viewerId === viewerId) {
-				peer?.addCandidate(message.candidate);
+				if (peer) {
+					peer.addCandidate(message.candidate);
+				} else {
+					earlyCandidates = [...earlyCandidates, message.candidate];
+				}
 			}
 		},
 		() => signaling.send({ type: 'viewer-join', viewerId }),
