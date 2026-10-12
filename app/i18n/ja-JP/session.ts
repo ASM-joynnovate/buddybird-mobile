@@ -74,6 +74,7 @@ export const session: SessionMessages = {
 			title: 'カメラがオフです',
 			message: '右上のカメラボタンをタップすると、練習中の端末のカメラがオンになります。',
 		},
+		permission: { title: 'カメラの許可が必要です', message: '練習中の端末でカメラの使用を許可してください。' },
 		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
 		zoomLevel: '{{zoom}}×',
 	},
