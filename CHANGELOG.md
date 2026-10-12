@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.5.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.4.0...v2.5.0) (2026-10-12)
+
+
+### Features
+
+* **app:** add the petcam camera button and session watch screen [BB-656] ([#214](https://github.com/ASM-joynnovate/buddybird-mobile/issues/214)) ([0734e57](https://github.com/ASM-joynnovate/buddybird-mobile/commit/0734e573c92c5c27a66e53fa8f584c2eaed7fb1f))
+* **app:** show sounds as cards on the session detail screen [BB-654] ([#235](https://github.com/ASM-joynnovate/buddybird-mobile/issues/235)) ([f25334f](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f25334f12e1a2f4f2f08639cc6ef2455b7456ce4))
+
+
+### Reverts
+
+* **app:** add the petcam camera button and session watch screen [BB-656] ([#232](https://github.com/ASM-joynnovate/buddybird-mobile/issues/232)) ([aac5b66](https://github.com/ASM-joynnovate/buddybird-mobile/commit/aac5b668dd9d989f428b34b2728ff38c14395517))
+
 ## [2.4.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.2...v2.4.0) (2026-10-11)
 
 
