@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -32,8 +32,6 @@ interface Props {
 	sleep: SleepSettings | null;
 	engineFailed: boolean;
 	onEnd: () => void;
-	header?: ReactNode;
-	cameraButton?: ReactNode;
 }
 
 /**
@@ -43,10 +41,8 @@ interface Props {
  * @param sleep 수면 시간 설정
  * @param engineFailed 학습 엔진 시작 실패 여부
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
- * @param header 기본 안내 문구 대신 표시할 헤더
- * @param cameraButton 배터리 표시 아래에 둘 카메라 버튼
  */
-const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, cameraButton }: Props) => {
+const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -94,28 +90,23 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, camera
 	return (
 		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
 			{/*헤더*/}
-			{header ?? (
-				<View style={styles.topRow}>
-					<View style={styles.noticeContainer}>
+			<View style={styles.topRow}>
+				<View style={styles.noticeContainer}>
+					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
+						{t('session.run.keepOpen')}
+					</Copy>
+					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
+						{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
+					</Copy>
+					{engineFailed && (
 						<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-							{t('session.run.keepOpen')}
+							{t('session.run.engineError')}
 						</Copy>
-						<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-							{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
-						</Copy>
-						{engineFailed && (
-							<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-								{t('session.run.engineError')}
-							</Copy>
-						)}
-					</View>
-
-					<View style={styles.statusContainer}>
-						<BatteryStatus />
-						{cameraButton}
-					</View>
+					)}
 				</View>
-			)}
+
+				<BatteryStatus />
+			</View>
 
 			{isLandscape ? (
 				<View style={styles.splitRow} pointerEvents="box-none">
@@ -164,7 +155,6 @@ const styles = StyleSheet.create({
 	container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SCREEN_PADDING, paddingTop: 12 },
 	topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
 	noticeContainer: { flex: 1 },
-	statusContainer: { alignItems: 'flex-end', gap: 12 },
 	noticeText: { fontFamily: font.extraBold, fontSize: 13, lineHeight: 18, color: sessionColors.faint },
 	phaseContainer: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
 	phaseText: { fontFamily: font.black, fontSize: 34, lineHeight: 40, color: sessionColors.text },

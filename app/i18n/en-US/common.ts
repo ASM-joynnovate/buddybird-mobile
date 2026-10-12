@@ -50,7 +50,7 @@ export const common: CommonMessages = {
 		},
 		camera: {
 			name: 'Camera',
-			reason: 'BuddyBird needs the camera to take a profile picture and to show your parrot during a session.',
+			reason: 'BuddyBird needs the camera to take a profile picture.',
 		},
 	},
 	confirmDelete: {

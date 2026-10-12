@@ -22,11 +22,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import * as Device from 'expo-device';
-import { EyeIcon, MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
+import { MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
 
-import { PETCAM_ENABLED } from '@/config';
 import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
@@ -234,15 +233,6 @@ const HomeContent = () => {
 		finishSession.mutate({ id: runningSession.id });
 	};
 
-	/** 다른 기기에서 진행 중인 학습 보기 */
-	const handleWatchElsewhere = () => {
-		if (!runningSession) {
-			return;
-		}
-
-		navigation.navigate('SessionWatch', { sessionId: runningSession.id });
-	};
-
 	return (
 		<>
 			<HomeTopBar unreadCount={unreadCount} />
@@ -259,25 +249,13 @@ const HomeContent = () => {
 				{runningSession && runningElsewhere && (
 					<View style={styles.elsewhereContainer}>
 						<Card contentStyle={styles.elsewhereCard}>
-							<View style={styles.elsewhereRow}>
-								<MonitorSmartphoneIcon size={20} color={colors.orangeDark} />
-								<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
-								<TextButton
-									label={t('session.start.endElsewhere')}
-									disabled={starting}
-									onPress={handleEndElsewhere}
-								/>
-							</View>
-							{PETCAM_ENABLED && (
-								<Button
-									label={t('session.start.watch')}
-									icon={EyeIcon}
-									size="small"
-									disabled={starting}
-									onPress={handleWatchElsewhere}
-									style={styles.watchButton}
-								/>
-							)}
+							<MonitorSmartphoneIcon size={20} color={colors.orangeDark} />
+							<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
+							<TextButton
+								label={t('session.start.endElsewhere')}
+								disabled={starting}
+								onPress={handleEndElsewhere}
+							/>
 						</Card>
 						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
 					</View>
@@ -386,9 +364,7 @@ const styles = StyleSheet.create({
 	body: { flex: 1 },
 	content: { paddingTop: 8, paddingBottom: 24 },
 	elsewhereContainer: { marginBottom: 20 },
-	elsewhereCard: { padding: 4, paddingLeft: 14 },
-	elsewhereRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-	watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
+	elsewhereCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 4, paddingLeft: 14 },
 	elsewhereText: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 15, lineHeight: 21 },
 	sleepContainer: { marginTop: 16 },
 	startButton: { marginTop: 12 },
