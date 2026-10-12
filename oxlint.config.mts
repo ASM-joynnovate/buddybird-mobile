@@ -18,7 +18,7 @@ export default defineConfig({
 		{ name: "react-native-a11y", specifier: "eslint-plugin-react-native-a11y" },
 	],
 	options: { typeAware: true, denyWarnings: true },
-	ignorePatterns: ["node_modules", "ios", "android", "dist", ".expo"],
+	ignorePatterns: ["node_modules", "ios", "android", "dist", ".expo", "supabase"],
 	rules: {
 		"react/exhaustive-deps": "warn",
 		"one-var": ["error", "never"],
