@@ -45,13 +45,11 @@ export const session: SessionMessages = {
 		startButton: 'Start learning',
 		startUnavailable: 'Choose a word and duration to start',
 		elsewhere: 'Learning on another device',
-		endElsewhere: 'End session',
+		endElsewhere: 'End',
 		endElsewhereError: "Couldn't end the session. Check your internet connection and try again.",
-		watch: 'Watch session',
 	},
 	run: {
 		reveal: 'Tap the screen to see session info',
-		camera: 'Camera',
 		elapsed: 'Elapsed',
 		keepOpen: 'Keep the app open and the screen on.',
 		dimAfter: 'The screen dims automatically after {{seconds}} seconds to save battery and protect the display.',
@@ -64,18 +62,8 @@ export const session: SessionMessages = {
 	end: {
 		title: 'End session',
 		message: "End this session? We'll show you the results.",
-		button: 'End session',
+		button: 'End',
 		keep: 'Keep going',
-	},
-	watch: {
-		leave: 'Leave',
-		connecting: 'Connecting to the learning device',
-		cameraOff: {
-			title: 'The camera is off',
-			message: 'Tap the camera button in the top right to turn on the camera on the learning device.',
-		},
-		zoomHint: { title: 'Pinch to zoom in', message: 'Double-tap to reset' },
-		zoomLevel: '{{zoom}}×',
 	},
 	summary: {
 		title: 'All done!',

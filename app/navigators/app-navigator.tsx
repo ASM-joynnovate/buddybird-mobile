@@ -32,7 +32,6 @@ import PermissionRequestScreen from '@/screens/onboarding/permission-request-scr
 import UsageGuideScreen from '@/screens/onboarding/usage-guide-screen';
 import SessionRunScreen from '@/screens/session/session-run-screen';
 import SessionSummaryScreen from '@/screens/session/session-summary-screen';
-import SessionWatchScreen from '@/screens/session/session-watch-screen';
 import ConsentSettingsScreen from '@/screens/settings/consent-settings-screen';
 import DevicesScreen from '@/screens/settings/devices-screen';
 import NotificationSettingsScreen from '@/screens/settings/notification-settings-screen';
@@ -288,12 +287,6 @@ const AppNavigator = () => {
 									gestureEnabled: false,
 									orientation: 'default',
 								}}
-							/>
-
-							<RootStack.Screen
-								name="SessionWatch"
-								component={SessionWatchScreen}
-								options={{ animation: 'fade', orientation: 'default' }}
 							/>
 
 							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
