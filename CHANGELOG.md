@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.6.0...v2.6.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **app:** prevent long labels from wrapping and overflowing ([#239](https://github.com/ASM-joynnovate/buddybird-mobile/issues/239)) ([79588b9](https://github.com/ASM-joynnovate/buddybird-mobile/commit/79588b972005dc5807e53bff65704675c327481c))
+
 ## [2.6.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.5.0...v2.6.0) (2026-10-12)
 
 
