@@ -27,13 +27,15 @@ const ZOOM_LABEL_MS = SECOND;
 
 interface Props {
 	children: ReactNode;
+	onTap: () => void;
 }
 
 /**
  * 두 손가락으로 확대하고 끌어서 옮기는 영상 영역 컴포넌트
  * @param children 확대할 내용
+ * @param onTap 화면을 누를 때 실행할 함수
  */
-const ZoomableView = ({ children }: Props) => {
+const ZoomableView = ({ children, onTap }: Props) => {
 	const { t } = useTranslation();
 
 	const [hintVisible, setHintVisible] = useState(true);
@@ -104,8 +106,12 @@ const ZoomableView = ({ children }: Props) => {
 				savedOffsetY.set(0);
 			});
 
-		return Gesture.Simultaneous(pinch, pan, doubleTap);
-	}, [height, hideHint, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
+		const tap = Gesture.Tap().onEnd(() => {
+			scheduleOnRN(onTap);
+		});
+
+		return Gesture.Simultaneous(pinch, pan, doubleTap, tap);
+	}, [height, hideHint, onTap, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
 
 	/** 배율이 바뀌면 현재 배율을 잠깐 표시 */
 	useAnimatedReaction(
