@@ -28,6 +28,11 @@ export const formatYearMonth = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.yearMonth', { lng: locale }));
 };
 
+/** 시각을 '오후 3시' 형식으로 변환하는 함수 */
+export const formatHour = (value: DateInput, locale: Locale) => {
+	return dayjs(value).format(i18next.t('common.dateFormat.hour', { lng: locale }));
+};
+
 /** 날짜를 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
 export const formatMonthDayTime = (value: DateInput, locale: Locale) => {
 	return `${formatMonthDay(value, locale)} ${dayjs(value).format('LT')}`;

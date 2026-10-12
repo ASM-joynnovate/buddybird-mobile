@@ -64,9 +64,8 @@ export const report: ReportMessages = {
 		tapeLog: 'Log',
 		start: 'Start',
 		end: 'End',
-		hour: '{{hour}}',
-		timeRange: '{{start}} ~ {{end}}',
-		play: 'Play {{name}}',
+		soundCount_one: '{{count}} sound',
+		soundCount_other: '{{count}} sounds',
 		share: 'Share {{name}}',
 		scores: {
 			parrot: 'Parrot',

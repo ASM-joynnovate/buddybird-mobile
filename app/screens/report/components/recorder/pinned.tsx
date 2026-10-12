@@ -133,7 +133,7 @@ interface Props {
 
 /**
  * 화면 위에 작게 접히는 녹음기 컴포넌트
- * @param item 선택한 알약, 없으면 내 목소리
+ * @param item 선택한 소리, 없으면 내 목소리
  * @param playing 재생 중 여부
  * @param pinned 화면 위에 고정되었는지 여부
  * @param previousDisabled 이전 버튼 비활성 여부

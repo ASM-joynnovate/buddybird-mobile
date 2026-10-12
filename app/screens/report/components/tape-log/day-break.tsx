@@ -21,7 +21,8 @@ import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
-const MARGIN_TOP = 2;
+const FIRST_MARGIN_TOP = 2;
+const MARGIN_TOP = 24;
 const REVEAL_RATIO = 0.35;
 const SLIDE_DISTANCE = 12;
 const FADE_MS = 320;
@@ -138,7 +139,10 @@ const TapeLogDayBreak = ({
 	};
 
 	return (
-		<Animated.View style={[styles.dayBreak, stickyStyle]} onLayout={handleLayout}>
+		<Animated.View
+			style={[styles.dayBreak, index === 0 && styles.firstDayBreak, stickyStyle]}
+			onLayout={handleLayout}
+		>
 			<Animated.View style={[styles.date, labelStyle]}>
 				<CalendarIcon size={14} color={colors.onFilled} />
 				<Copy accessibilityRole="header" style={styles.dateText}>
@@ -167,6 +171,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		backgroundColor: colors.background,
 	},
+	firstDayBreak: { marginTop: FIRST_MARGIN_TOP },
 	date: {
 		flexDirection: 'row',
 		alignItems: 'center',

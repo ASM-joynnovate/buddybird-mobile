@@ -64,9 +64,8 @@ export const report: ReportMessages = {
 		tapeLog: '기록',
 		start: '시작',
 		end: '종료',
-		hour: '{{hour}}시',
-		timeRange: '{{start}} ~ {{end}}',
-		play: '{{name}} 재생',
+		soundCount_one: '소리 {{count}}개',
+		soundCount_other: '소리 {{count}}개',
 		share: '{{name}} 공유',
 		scores: {
 			parrot: '앵무새 소리',

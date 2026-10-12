@@ -75,6 +75,7 @@ export const common: CommonMessages = {
 		monthDayWeekday: 'MMMM D일 (ddd)',
 		monthDayLongWeekday: 'MMMM D일 dddd',
 		yearMonth: 'YYYY년 MMMM',
+		hour: 'A h시',
 		order: ['year', 'month', 'day'],
 	},
 	done: '확인',

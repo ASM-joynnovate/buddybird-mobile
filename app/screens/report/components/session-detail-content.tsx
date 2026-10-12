@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Share, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
 
@@ -12,6 +12,7 @@ import {
 	useGetSession,
 	useGetSessionSoundList,
 	useGetSessionSummary,
+	useShareSessionSound,
 } from '@/hooks/apis/sessions';
 import { useGetWordList } from '@/hooks/apis/words';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
@@ -19,6 +20,7 @@ import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
+import dayjs from 'dayjs';
 import Animated, {
 	useAnimatedReaction,
 	useAnimatedRef,
@@ -33,13 +35,12 @@ import RecorderPinned from '@/screens/report/components/recorder/pinned';
 import SessionOverview from '@/screens/report/components/session-overview';
 import TapeLog, { type TapeSelectionSource } from '@/screens/report/components/tape-log';
 import { shouldShowEmergencyAudioEvent } from '@/services/remote-config/client';
-import { reportError, track } from '@/services/telemetry/client';
+import { track } from '@/services/telemetry/client';
 import { useMessageStore } from '@/stores/message';
-import { getTapeItems, type SoundKind, type TapeItem } from '@/utils/tape-log';
+import { getTapeItems, type TapeItem } from '@/utils/tape-log';
 
 const NO_EVENTS: SessionEvent[] = [];
-const LANES_WITH_EMERGENCY: SoundKind[] = ['parrot', 'mimic', 'emergency'];
-const LANES_WITHOUT_EMERGENCY: SoundKind[] = ['parrot', 'mimic'];
+const SHARED_FILE_TIME_FORMAT = 'YYYYMMDD-HHmmss';
 const DECK_FEED_FULL_RADIUS = 34;
 const DECK_TAKE_EMPTY_RADIUS = 18;
 const DECK_WOUND_RADIUS = 16;
@@ -78,6 +79,8 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		queries: [getSessionEventListOptions({ id: sessionId })].filter(() => emergencyShown),
 	}).at(0);
 
+	const { isPending, mutate } = useShareSessionSound();
+
 	const { playingId, play, toggle, stop } = useSoundPlayer();
 
 	const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -103,11 +106,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		[sessionEvents, sessionSoundListData],
 	);
 	const recording = wordListData.find((word) => word.id === sessionData.word.id)?.recordings.at(0) ?? null;
-	const latestItem =
-		items.filter((item) => item.kind === 'mimic').at(-1) ??
-		items.filter((item) => item.kind === 'parrot').at(-1) ??
-		null;
-	const selectedItem = items.find((item) => item.id === selection?.itemId) ?? latestItem;
+	const selectedItem = items.find((item) => item.id === selection?.itemId) ?? items.at(0) ?? null;
 	const selectedIndex = selectedItem ? items.indexOf(selectedItem) : -1;
 	const playing = playingId !== null && playingId === (selectedItem?.id ?? recording?.id);
 	const playDisabled = selectedItem ? selectedItem.sounds.length === 0 : recording === null;
@@ -143,7 +142,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		},
 	);
 
-	/** 알약의 소리를 처음부터 재생하는 함수 */
+	/** 카드의 소리를 처음부터 재생하는 함수 */
 	const playItem = useCallback(
 		(item: TapeItem) => {
 			track('parrot_sound_played', { session_id: sessionId });
@@ -197,27 +196,25 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 
 	const handleNext = useCallback(() => handleMoveItem(1), [handleMoveItem]);
 
-	/** 알약의 소리를 공유하는 함수 */
-	const shareItem = useCallback(
-		async (item: TapeItem) => {
-			const url = item.sounds[0].audio_file.url;
-
-			try {
-				const shareResult = await Share.share({ url, message: url });
-
-				if (shareResult.action === Share.sharedAction) {
-					track('parrot_sound_shared', { session_id: sessionId });
-				}
-			} catch (e) {
-				reportError(e, 'parrot_sound_share');
-
-				openPopup({ title: t('report.detail.shareError') });
+	const handleShareItem = useCallback(
+		(item: TapeItem) => {
+			if (isPending) {
+				return;
 			}
-		},
-		[openPopup, sessionId, t],
-	);
 
-	const handleShareItem = useCallback((item: TapeItem) => void shareItem(item), [shareItem]);
+			mutate(
+				{
+					url: item.sounds[0].audio_file.url,
+					fileName: `buddybird-${dayjs(item.startedAt).format(SHARED_FILE_TIME_FORMAT)}.wav`,
+				},
+				{
+					onSuccess: () => track('parrot_sound_shared', { session_id: sessionId }),
+					onError: () => openPopup({ title: t('report.detail.shareError') }),
+				},
+			);
+		},
+		[isPending, mutate, openPopup, sessionId, t],
+	);
 
 	const recorderProps = {
 		item: selectedItem,
@@ -258,7 +255,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 				<TapeLog
 					session={sessionData}
 					items={items}
-					lanes={emergencyShown ? LANES_WITH_EMERGENCY : LANES_WITHOUT_EMERGENCY}
 					selectedItem={selectedItem}
 					selectedBy={selection?.selectedBy ?? null}
 					playing={playing}

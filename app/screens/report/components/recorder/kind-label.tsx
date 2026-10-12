@@ -27,7 +27,7 @@ const RecorderKindLabel = ({ kind, labelRef, nameRef }: Props) => {
 
 	return (
 		<Animated.View ref={labelRef} style={styles.label}>
-			<SoundKindIcon kind={kind} size="small" />
+			<SoundKindIcon kind={kind} />
 
 			<Animated.View ref={nameRef}>
 				<Copy numberOfLines={1} style={styles.name}>
