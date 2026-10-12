@@ -9,7 +9,6 @@ type ViewerPetcam = ReturnType<typeof createViewerPetcam>;
 
 /** 다른 기기에서 진행 중인 학습의 카메라 영상을 받는 Hook */
 const useViewerPetcam = (sessionId: string) => {
-	// 학습 중인 기기가 응답하기 전에는 null
 	const [state, setState] = useState<PetcamState | null>(null);
 	const [stream, setStream] = useState<MediaStream | null>(null);
 

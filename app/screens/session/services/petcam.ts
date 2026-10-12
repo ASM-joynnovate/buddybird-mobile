@@ -96,35 +96,60 @@ const openSignaling = (
 	onError: (error: unknown) => void,
 ): Signaling => {
 	const supabase = getSupabase();
-	// 채널 권한(BB-658)이 준비되면 private 채널로 전환
-	const channel: RealtimeChannel = supabase.channel(`petcam:${sessionId}`, {
-		config: { broadcast: { self: false } },
-	});
 
-	channel
-		.on('broadcast', { event: BROADCAST_EVENT }, ({ payload }) => {
-			const parsed = messageSchema.safeParse(payload);
+	let channel: RealtimeChannel | null = null;
+	let closed = false;
 
-			if (parsed.success) {
-				onMessage(parsed.data);
-			}
-		})
-		.subscribe((status, error) => {
-			if (status === 'SUBSCRIBED') {
-				onReady();
-			} else if (status === 'CHANNEL_ERROR') {
-				onError(error ?? new Error('Petcam channel error'));
-			}
+	/** 본인 계정의 세션 채널을 여는 함수, 채널 이름에 사용자 id가 들어가야 접근 규칙을 통과 */
+	const open = async () => {
+		const { data } = await supabase.auth.getSession();
+		const userId = data.session?.user.id;
+
+		if (!userId) {
+			throw new Error('Petcam requires a signed-in user');
+		}
+
+		await supabase.realtime.setAuth();
+
+		if (closed) {
+			return;
+		}
+
+		channel = supabase.channel(`petcam:${userId}:${sessionId}`, {
+			config: { private: true, broadcast: { self: false } },
 		});
+
+		channel
+			.on('broadcast', { event: BROADCAST_EVENT }, ({ payload }) => {
+				const parsed = messageSchema.safeParse(payload);
+
+				if (parsed.success) {
+					onMessage(parsed.data);
+				}
+			})
+			.subscribe((status, error) => {
+				if (status === 'SUBSCRIBED') {
+					onReady();
+				} else if (status === 'CHANNEL_ERROR') {
+					onError(error ?? new Error('Petcam channel error'));
+				}
+			});
+	};
+
+	void open().catch(onError);
 
 	return {
 		send: (message) => {
 			void channel
-				.send({ type: 'broadcast', event: BROADCAST_EVENT, payload: message })
+				?.send({ type: 'broadcast', event: BROADCAST_EVENT, payload: message })
 				.catch((error: unknown) => onError(error));
 		},
 		close: () => {
-			void supabase.removeChannel(channel).catch((error: unknown) => onError(error));
+			closed = true;
+
+			if (channel) {
+				void supabase.removeChannel(channel).catch((error: unknown) => onError(error));
+			}
 		},
 	};
 };
@@ -239,7 +264,6 @@ export const createStationPetcam = ({ sessionId, onCameraRequest, onError }: Sta
 		peers.set(viewerId, peer);
 
 		listen(peer.connection, 'connectionstatechange', () => {
-			// 연결이 끊기면 보는 기기가 다시 요청할 때까지 정리
 			if (peer.connection.connectionState === 'failed' && peers.get(viewerId) === peer) {
 				closePeer(viewerId);
 			}
@@ -328,7 +352,6 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 
 	/** 받고 있던 영상 연결 닫기 함수 */
 	const closePeer = () => {
-		// 접속 정보를 받고 있던 제안도 함께 취소
 		answerCount += 1;
 		earlyCandidates = [];
 
@@ -371,7 +394,6 @@ export const createViewerPetcam = ({ sessionId, onState, onStream, onError }: Vi
 			}
 		});
 		listen(created.connection, 'connectionstatechange', () => {
-			// 연결이 끊기면 다시 요청
 			if (created.connection.connectionState === 'failed' && peer === created) {
 				closePeer();
 
