@@ -1,0 +1,98 @@
+import type { CommonMessages } from '@/i18n/types/common';
+
+export const common: CommonMessages = {
+	mascot: 'Buddy, la mascota',
+	cancel: 'Cancelar',
+	save: 'Guardar',
+	back: 'Atrás',
+	retry: 'Reintentar',
+	close: 'Cerrar',
+	select: 'Seleccionar',
+	unknown: 'No lo sé',
+	tabs: {
+		home: 'Inicio',
+		words: 'Palabras',
+		report: 'Informe',
+		profile: 'Perfil',
+	},
+	skip: 'Omitir',
+	next: 'Siguiente',
+	stepProgress: 'Paso {{current}} de {{total}}',
+	offline: 'Te has quedado sin conexión.\nCuando vuelva, se cargará todo solo.',
+	loadError: 'No hemos podido cargar la información',
+	saveErrorKept: 'No hemos podido guardar. Lo que has escrito sigue ahí. Inténtalo de nuevo.',
+	illustration: 'Ilustración: {{scene}}',
+	phases: {
+		learning: 'Entrenamiento',
+		rest: 'Descanso',
+		stress_care: 'Antiestrés',
+		sleeping: 'Sueño',
+	},
+	sound: {
+		stop: 'Detener',
+		stopNamed: 'Detener: {{name}}',
+		playError: 'No hemos podido reproducir el sonido. Pulsa otra vez el botón de reproducir.',
+	},
+	permission: {
+		title: 'Permiso necesario: {{name}}',
+		openSettings: 'Abrir Ajustes',
+		microphone: {
+			name: 'Micrófono',
+			reason: 'Hace falta el micrófono para grabar palabras y registrar los sonidos de tu loro.',
+		},
+		notifications: {
+			name: 'Notificaciones',
+			reason: 'Hacen falta las notificaciones para avisarte de las novedades de los entrenamientos.',
+		},
+		photos: {
+			name: 'Fotos',
+			reason: 'Para elegir una foto de perfil, la app necesita acceder a tus fotos.',
+		},
+		camera: {
+			name: 'Cámara',
+			reason: 'Hace falta la cámara para hacer una foto de perfil.',
+		},
+	},
+	confirmDelete: {
+		title: '¿Eliminar «{{name}}»?',
+		message: 'Esta acción no se puede deshacer.',
+		confirm: 'Eliminar',
+	},
+	time: {
+		hour: 'h',
+		minute: 'min',
+		hourPicker: 'Elegir hora: {{label}}',
+		minutePicker: 'Elegir minutos: {{label}}',
+	},
+	duration: {
+		days: '{{value}} d',
+		hours: '{{value}} h',
+		minutes: '{{value}} min',
+		seconds: '{{value}} s',
+	},
+	dateFormat: {
+		monthDay: 'D MMM',
+		monthDayWeekday: 'ddd D MMM',
+		monthDayLongWeekday: 'dddd, D [de] MMMM',
+		yearMonth: 'MMMM [de] YYYY',
+		hour: 'H[:00]',
+		order: ['day', 'month', 'year'],
+	},
+	done: 'Aceptar',
+	add: 'Añadir',
+	consent: {
+		required: 'Obligatorio',
+		optional: 'Opcional',
+		viewFull: 'Ver el texto completo: {{title}}',
+		agree: 'Acepto',
+	},
+	profilePhoto: {
+		select: 'Elegir foto de perfil',
+		title: 'Foto de perfil',
+		take: 'Hacer una foto',
+		choose: 'Elegir de la galería',
+		typeError: 'Solo valen fotos en JPEG o PNG. Elige otra.',
+		sizeError: 'Solo valen fotos de hasta 5 MB. Elige otra.',
+		loadError: 'No hemos podido cargar la foto. Elígela de nuevo.',
+	},
+};

@@ -52,7 +52,9 @@ const DurationBreakdown = ({ duration }: Props) => {
 					<View key={phase} style={[styles.phaseContainer, index > 0 && styles.phaseContainerDivided]}>
 						<View style={styles.phaseLabelRow}>
 							<View style={[styles.dot, { backgroundColor: color }]} />
-							<Copy style={styles.phaseLabel}>{t(`common.phases.${phase}`)}</Copy>
+							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.phaseLabel}>
+								{t(`common.phases.${phase}`)}
+							</Copy>
 						</View>
 						{totals ? (
 							<Copy style={[styles.phaseTime, { color }]}>

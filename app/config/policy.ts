@@ -41,7 +41,7 @@ export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png'];
 export const MAX_RECORDINGS = 5;
 export const RECOMMENDED_RECORDINGS = 3;
 
-export const NICKNAME_PATTERN = /^[\p{Script=Hangul}A-Za-z0-9_ ]{2,20}$/u;
+export const NICKNAME_PATTERN = /^[\p{L}\p{N}_ ]{2,20}$/u;
 export const PARROT_NAME_LIMIT = 20;
 export const WORD_NAME_LIMIT = 50;
 export const FEEDBACK_MESSAGE_LIMIT = 1000;

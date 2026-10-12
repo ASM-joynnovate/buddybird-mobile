@@ -21,7 +21,7 @@ export const words: WordsMessages = {
 		play: 'Play {{name}}',
 		deleteRecording: 'Delete {{name}}',
 		addRecording: 'Add recording',
-		recordingsHint: 'Add 3 or more for more accurate matching',
+		recordingsHint: 'Add 3 or more for a more accurate report',
 		recordingRequired: 'Add at least one recording.',
 		saving: 'Saving',
 		uploading: 'Uploading',

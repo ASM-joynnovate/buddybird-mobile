@@ -32,7 +32,13 @@ const config: ExpoConfig = {
 	orientation: 'default',
 	scheme: production ? 'buddybird' : 'buddybird-dev',
 	userInterfaceStyle: 'automatic',
-	locales: { ko: nativeLocale('app/i18n/native/ko.json'), en: nativeLocale('app/i18n/native/en.json') },
+	locales: {
+		ko: nativeLocale('app/i18n/native/ko.json'),
+		en: nativeLocale('app/i18n/native/en.json'),
+		ja: nativeLocale('app/i18n/native/ja.json'),
+		ru: nativeLocale('app/i18n/native/ru.json'),
+		es: nativeLocale('app/i18n/native/es.json'),
+	},
 	icon: './assets/images/icon.png',
 	ios: {
 		bundleIdentifier: id,
