@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.4.0...v2.5.0) (2026-10-12)
+
+
+### Features
+
+* **app:** add the petcam camera button and session watch screen [BB-656] ([#214](https://github.com/ASM-joynnovate/buddybird-mobile/issues/214)) ([0734e57](https://github.com/ASM-joynnovate/buddybird-mobile/commit/0734e573c92c5c27a66e53fa8f584c2eaed7fb1f))
+
 ## [2.4.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.3.2...v2.4.0) (2026-10-11)
 
 
