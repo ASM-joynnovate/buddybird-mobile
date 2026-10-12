@@ -41,13 +41,13 @@ const SettingsScreen = () => {
 				<View style={styles.supportContainer}>
 					<SupportGroup />
 
-					{/*앱 버전과 로그아웃, 회원 탈퇴 버튼*/}
-					<View style={styles.footerRow}>
+					{/*로그아웃, 회원 탈퇴 버튼 및 앱 버전*/}
+					<View>
+						<AccountSection />
+
 						<Copy style={styles.version}>
 							{t('settings.support.version', { version: installedVersion })}
 						</Copy>
-
-						<AccountSection />
 					</View>
 				</View>
 			</View>
@@ -58,8 +58,7 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
 	sectionsContainer: { gap: 28 },
 	supportContainer: { gap: 12 },
-	footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-	version: { fontSize: 13, color: colors.muted },
+	version: { fontSize: 13, color: colors.muted, textAlign: 'center' },
 });
 
 export default SettingsScreen;

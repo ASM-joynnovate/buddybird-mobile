@@ -73,7 +73,10 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 	};
 
 	return (
-		<Animated.View entering={dropIn(tilt, order)} style={[ui.action, { transform: [{ rotate: `${tilt}deg` }] }]}>
+		<Animated.View
+			entering={dropIn(tilt, order)}
+			style={[ui.equalColumn, { transform: [{ rotate: `${tilt}deg` }] }]}
+		>
 			<PressableSurface
 				accessibilityLabel={joinLabel(
 					t('profile.editParrot', { name: parrot.name }),

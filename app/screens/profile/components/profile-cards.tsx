@@ -103,7 +103,7 @@ const ProfileCards = () => {
 					{cardRows.map((row, index) => (
 						<View key={index} style={ui.actionsRow}>
 							{row}
-							{row.length < CARDS_PER_ROW && <View style={ui.action} />}
+							{row.length < CARDS_PER_ROW && <View style={ui.equalColumn} />}
 						</View>
 					))}
 				</View>
