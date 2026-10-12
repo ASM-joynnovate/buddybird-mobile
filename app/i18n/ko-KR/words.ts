@@ -21,7 +21,7 @@ export const words: WordsMessages = {
 		play: '{{name}} 재생',
 		deleteRecording: '{{name}} 삭제',
 		addRecording: '녹음 추가',
-		recordingsHint: '3개 이상 등록하면 판정이 정확해져요',
+		recordingsHint: '3개 이상 등록하면 리포트가 정확해져요',
 		recordingRequired: '녹음을 1개 이상 추가해 주세요.',
 		saving: '저장 중',
 		uploading: '업로드 중',

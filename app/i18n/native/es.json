@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "Necesitamos el micrófono para grabar las palabras que escuchará tu loro y los sonidos durante el entrenamiento.",
+		"NSPhotoLibraryUsageDescription": "La foto que elijas se usará como foto de perfil de tu loro.",
+		"NSCameraUsageDescription": "Usamos la cámara para hacer fotos de perfil y para mostrar a tu loro durante el entrenamiento.",
+		"NSUserTrackingUsageDescription": "Las estadísticas de uso nos ayudan a mejorar la experiencia. La app funciona igual aunque no permitas el seguimiento."
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

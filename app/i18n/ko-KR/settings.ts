@@ -17,6 +17,9 @@ export const settings: SettingsMessages = {
 		language: '앱 언어',
 		korean: '한국어',
 		english: 'English',
+		japanese: '日本語',
+		russian: 'Русский',
+		spanish: 'Español',
 		devices: '연결된 기기',
 	},
 	account: {

@@ -1,0 +1,98 @@
+import type { CommonMessages } from '@/i18n/types/common';
+
+export const common: CommonMessages = {
+	mascot: 'Талисман Бадди',
+	cancel: 'Отмена',
+	save: 'Сохранить',
+	back: 'Назад',
+	retry: 'Повторить',
+	close: 'Закрыть',
+	select: 'Выбрать',
+	unknown: 'Неизвестно',
+	tabs: {
+		home: 'Главная',
+		words: 'Слова',
+		report: 'Отчёт',
+		profile: 'Профиль',
+	},
+	skip: 'Пропустить',
+	next: 'Далее',
+	stepProgress: 'Шаг {{current}} из {{total}}',
+	offline: 'Нет подключения к интернету.\nКогда связь вернётся, всё загрузится само.',
+	loadError: 'Не получилось загрузить данные',
+	saveErrorKept: 'Не получилось сохранить. Введённые данные никуда не делись. Попробуй ещё раз.',
+	illustration: 'Иллюстрация: {{scene}}',
+	phases: {
+		learning: 'Занятие',
+		rest: 'Отдых',
+		stress_care: 'Антистресс',
+		sleeping: 'Время сна',
+	},
+	sound: {
+		stop: 'Стоп',
+		stopNamed: 'Остановить: {{name}}',
+		playError: 'Не получилось воспроизвести звук. Нажми кнопку воспроизведения ещё раз.',
+	},
+	permission: {
+		title: 'Нужно разрешение: {{name}}',
+		openSettings: 'Открыть настройки',
+		microphone: {
+			name: 'Микрофон',
+			reason: 'Микрофон нужен, чтобы записывать слова и звуки попугая.',
+		},
+		notifications: {
+			name: 'Уведомления',
+			reason: 'Уведомления нужны, чтобы сообщать новости о занятиях.',
+		},
+		photos: {
+			name: 'Фото',
+			reason: 'Чтобы выбрать фото профиля, нужен доступ к галерее.',
+		},
+		camera: {
+			name: 'Камера',
+			reason: 'Камера нужна, чтобы сделать фото профиля и показывать попугая во время занятия.',
+		},
+	},
+	confirmDelete: {
+		title: 'Удалить: {{name}}?',
+		message: 'Вернуть удалённое не получится.',
+		confirm: 'Удалить',
+	},
+	time: {
+		hour: 'ч',
+		minute: 'мин',
+		hourPicker: 'Выбор часа: {{label}}',
+		minutePicker: 'Выбор минут: {{label}}',
+	},
+	duration: {
+		days: '{{value}} дн.',
+		hours: '{{value}} ч',
+		minutes: '{{value}} мин',
+		seconds: '{{value}} с',
+	},
+	dateFormat: {
+		monthDay: 'D MMM',
+		monthDayWeekday: 'dd, D MMM',
+		monthDayLongWeekday: 'dddd, D MMMM',
+		yearMonth: 'MMMM YYYY',
+		hour: 'H[:00]',
+		order: ['day', 'month', 'year'],
+	},
+	done: 'Готово',
+	add: 'Добавить',
+	consent: {
+		required: 'Обязательно',
+		optional: 'По желанию',
+		viewFull: 'Открыть полный текст: {{title}}',
+		agree: 'Принять',
+	},
+	profilePhoto: {
+		select: 'Выбрать фото профиля',
+		title: 'Фото профиля',
+		take: 'Сделать фото',
+		choose: 'Выбрать из галереи',
+		typeError: 'Подходят только фото JPEG или PNG. Выбери другое.',
+		sizeError: 'Подходят только фото до 5 МБ. Выбери другое.',
+		loadError: 'Не получилось загрузить фото. Выбери его ещё раз.',
+	},
+};

@@ -65,6 +65,8 @@ export const report: ReportMessages = {
 		start: '시작',
 		end: '종료',
 		soundCount_one: '소리 {{count}}개',
+		soundCount_few: '소리 {{count}}개',
+		soundCount_many: '소리 {{count}}개',
 		soundCount_other: '소리 {{count}}개',
 		share: '{{name}} 공유',
 		scores: {

@@ -63,6 +63,8 @@ export type ReportMessages = {
 		start: string;
 		end: string;
 		soundCount_one: string;
+		soundCount_few: string;
+		soundCount_many: string;
 		soundCount_other: string;
 		share: string;
 		scores: {

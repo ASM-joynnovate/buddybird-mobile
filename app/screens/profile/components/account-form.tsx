@@ -84,16 +84,16 @@ const AccountForm = ({ onSaved }: Props) => {
 			return;
 		}
 
-		const trimmedNickname = nickname.trim();
+		const normalizedNickname = nickname.normalize('NFC').trim();
 
-		if (!NICKNAME_PATTERN.test(trimmedNickname)) {
+		if (!NICKNAME_PATTERN.test(normalizedNickname)) {
 			setNicknameInvalid(true);
 
 			return;
 		}
 
 		updateMe.mutate(
-			{ data: { nickname: trimmedNickname } },
+			{ data: { nickname: normalizedNickname } },
 			{
 				onSuccess: saveUserPhoto,
 				onError: (error) => {

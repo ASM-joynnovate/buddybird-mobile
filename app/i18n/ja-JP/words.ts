@@ -1,0 +1,66 @@
+import type { WordsMessages } from '@/i18n/types/words';
+
+export const words: WordsMessages = {
+	list: {
+		title: '言葉',
+		add: '言葉を追加',
+		empty: 'まだ登録した言葉がありません',
+		play: '{{name}}の録音を再生',
+		delete: '{{name}}を削除',
+	},
+	editor: {
+		addTitle: '言葉を追加',
+		editTitle: '言葉を編集',
+		delete: '言葉を削除',
+		name: '言葉',
+		nameHint: '例：こんにちは',
+		nameRequired: '言葉を入力してください。',
+		recordings: '録音 {{count}}/5',
+		openGuide: '録音ガイドを見る',
+		recordingName: '録音{{index}}',
+		play: '{{name}}を再生',
+		deleteRecording: '{{name}}を削除',
+		addRecording: '録音を追加',
+		recordingsHint: '3つ以上登録するとレポートが正確になります',
+		recordingRequired: '録音を1つ以上追加してください。',
+		saving: '保存中',
+		uploading: 'アップロード中',
+		processing: '処理中',
+		saveError: '保存できませんでした。録音は画面にそのまま残っているので、もう一度試してみてください。',
+	},
+	guide: {
+		word: 'こんにちは',
+		manyRecordings: {
+			title: '録音を<b>たくさん</b>登録するほど、レポートが正確になります',
+			scene: '録音が1つ増えるたびに伸びていくレポートのグラフ',
+			recordingOrder: '{{order}}つ目',
+			report: 'レポート',
+		},
+		quiet: {
+			title: '<b>静かな場所</b>で録音してください',
+			scene: '雑音が消えた暗い部屋で録音しているスマホ',
+			recording: '録音中',
+		},
+		distance: {
+			title: 'スマホの<b>下の端</b>を口に向けて、電話するときのように近づけてください',
+			scene: '下のマイクを口に向けて持ったスマホに、声が波形で記録される様子',
+		},
+		highVoice: {
+			title: 'インコがまねしやすいように、<b>高めの声</b>ではっきり発音してください',
+			scene: '高く伸びていく声のバーと「こんにちは」の吹き出し',
+			speech: 'こんにちは！',
+		},
+	},
+	recorder: {
+		done: '完了',
+		start: '録音開始',
+		stop: '録音停止',
+		play: '再生',
+		rerecord: '録り直す',
+		empty: '何も録音されていません。もう一度録音してください。',
+		tooLarge: '録音ファイルが5MBを超えています。もっと短く録り直してください。',
+		invalidFormat: '録音ファイルの形式が正しくありません。もう一度録音してください。',
+		recordError: '録音できませんでした。マイクを確認して、もう一度試してみてください。',
+	},
+	deleteError: '言葉を削除できませんでした。接続を確認して、もう一度試してみてください。',
+};

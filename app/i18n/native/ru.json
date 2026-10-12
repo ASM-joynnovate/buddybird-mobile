@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "Микрофон нужен, чтобы записывать слова для попугая и звуки во время занятий.",
+		"NSPhotoLibraryUsageDescription": "Выбранное фото станет фото профиля попугая.",
+		"NSCameraUsageDescription": "Камера нужна, чтобы делать фото профиля и показывать попугая во время занятия.",
+		"NSUserTrackingUsageDescription": "Статистика использования помогает делать занятия лучше. Заниматься можно и без разрешения на отслеживание."
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

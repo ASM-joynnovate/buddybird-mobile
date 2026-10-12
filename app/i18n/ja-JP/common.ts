@@ -1,0 +1,98 @@
+import type { CommonMessages } from '@/i18n/types/common';
+
+export const common: CommonMessages = {
+	mascot: 'マスコットのバディ',
+	cancel: 'キャンセル',
+	save: '保存',
+	back: '戻る',
+	retry: 'もう一度試す',
+	close: '閉じる',
+	select: '選択',
+	unknown: 'わからない',
+	tabs: {
+		home: 'ホーム',
+		words: '言葉',
+		report: 'レポート',
+		profile: 'プロフィール',
+	},
+	skip: 'スキップ',
+	next: '次へ',
+	stepProgress: '{{total}}ステップ中{{current}}ステップ目',
+	offline: 'インターネット接続が切れました。\nつながったら自動で読み込みます。',
+	loadError: '情報を読み込めませんでした',
+	saveErrorKept: '保存できませんでした。入力した内容はそのまま残っているので、もう一度試してみてください。',
+	illustration: '{{scene}}のイラスト',
+	phases: {
+		learning: '練習',
+		rest: '休憩',
+		stress_care: 'ストレスケア',
+		sleeping: 'おやすみ時間',
+	},
+	sound: {
+		stop: '停止',
+		stopNamed: '{{name}}を停止',
+		playError: '音声を再生できませんでした。再生ボタンをもう一度タップしてください。',
+	},
+	permission: {
+		title: '{{name}}の許可が必要です',
+		openSettings: '設定を開く',
+		microphone: {
+			name: 'マイク',
+			reason: '言葉を録音してインコの声を記録するには、マイクが必要です。',
+		},
+		notifications: {
+			name: '通知',
+			reason: '練習の状況をお伝えするには、通知が必要です。',
+		},
+		photos: {
+			name: '写真',
+			reason: 'プロフィール写真を選ぶには、写真ライブラリへのアクセスが必要です。',
+		},
+		camera: {
+			name: 'カメラ',
+			reason: 'プロフィール写真を撮ったり、練習中のインコを見たりするには、カメラが必要です。',
+		},
+	},
+	confirmDelete: {
+		title: '{{name}}を削除',
+		message: '削除すると元に戻せません。',
+		confirm: '削除',
+	},
+	time: {
+		hour: '時',
+		minute: '分',
+		hourPicker: '{{label}}の時を選択',
+		minutePicker: '{{label}}の分を選択',
+	},
+	duration: {
+		days: '{{value}}日',
+		hours: '{{value}}時間',
+		minutes: '{{value}}分',
+		seconds: '{{value}}秒',
+	},
+	dateFormat: {
+		monthDay: 'M月D日',
+		monthDayWeekday: 'M月D日(ddd)',
+		monthDayLongWeekday: 'M月D日 dddd',
+		yearMonth: 'YYYY年M月',
+		hour: 'H時',
+		order: ['year', 'month', 'day'],
+	},
+	done: 'OK',
+	add: '追加',
+	consent: {
+		required: '必須',
+		optional: '任意',
+		viewFull: '{{title}}の全文を見る',
+		agree: '同意',
+	},
+	profilePhoto: {
+		select: 'プロフィール写真を選択',
+		title: 'プロフィール写真',
+		take: '写真を撮る',
+		choose: 'アルバムから選ぶ',
+		typeError: 'JPEGまたはPNGの写真だけ使えます。別の写真を選んでください。',
+		sizeError: '5MB以下の写真だけ使えます。別の写真を選んでください。',
+		loadError: '写真を読み込めませんでした。もう一度選んでください。',
+	},
+};

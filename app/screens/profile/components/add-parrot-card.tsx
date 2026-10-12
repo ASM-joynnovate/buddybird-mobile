@@ -33,7 +33,10 @@ const AddParrotCard = ({ tilt, order }: Props) => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
-		<Animated.View entering={dropIn(tilt, order)} style={[ui.action, { transform: [{ rotate: `${tilt}deg` }] }]}>
+		<Animated.View
+			entering={dropIn(tilt, order)}
+			style={[ui.equalColumn, { transform: [{ rotate: `${tilt}deg` }] }]}
+		>
 			<PressableSurface
 				accessibilityLabel={t('profile.addParrot')}
 				depth="low"
