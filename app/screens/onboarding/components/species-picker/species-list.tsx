@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
 		color: colors.text,
 	},
 	clearButtonContainer: { position: 'absolute', right: 3, top: 3 },
-	filtersRow: { flexDirection: 'row', gap: 8 },
-	filter: { flex: 1 },
+	filtersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+	filter: { flexGrow: 1 },
 	list: { paddingHorizontal: 10 },
 	searchAllContainer: { alignItems: 'flex-end' },
 });

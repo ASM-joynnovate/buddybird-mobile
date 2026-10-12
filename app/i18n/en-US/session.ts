@@ -86,6 +86,8 @@ export const session: SessionMessages = {
 		wordTime: { lead: "We've practiced '{{word}}' for", tail: 'so far' },
 		allTime: { lead: "We've practiced all words for", tail: 'so far' },
 		count_one: '{{count, number}} time',
+		count_few: '{{count, number}} times',
+		count_many: '{{count, number}} times',
 		count_other: '{{count, number}} times',
 		sentenceProgress: 'Sentence {{current}} of {{total}}',
 		playCount: 'Played',

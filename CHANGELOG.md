@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.6.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.6.0...v2.6.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **app:** prevent long labels from wrapping and overflowing ([#239](https://github.com/ASM-joynnovate/buddybird-mobile/issues/239)) ([79588b9](https://github.com/ASM-joynnovate/buddybird-mobile/commit/79588b972005dc5807e53bff65704675c327481c))
+
+## [2.6.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.5.0...v2.6.0) (2026-10-12)
+
+
+### Features
+
+* **app:** add Japanese, Russian and Spanish [BB-659][BB-660][BB-661] ([#237](https://github.com/ASM-joynnovate/buddybird-mobile/issues/237)) ([761e9bf](https://github.com/ASM-joynnovate/buddybird-mobile/commit/761e9bf1c05e8fd5cad0116d09e95db0a961bda2))
+
 ## [2.5.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.4.0...v2.5.0) (2026-10-12)
 
 

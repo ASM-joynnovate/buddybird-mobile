@@ -56,7 +56,7 @@ const SummaryTitle = ({ sessionId }: Props) => {
 
 const styles = StyleSheet.create({
 	container: { alignItems: 'center', gap: 4 },
-	title: { fontSize: 34, lineHeight: 40 },
+	title: { fontSize: 34, lineHeight: 40, textAlign: 'center' },
 	range: {
 		fontFamily: font.extraBold,
 		fontSize: 15,

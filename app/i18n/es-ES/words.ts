@@ -1,0 +1,66 @@
+import type { WordsMessages } from '@/i18n/types/words';
+
+export const words: WordsMessages = {
+	list: {
+		title: 'Palabras',
+		add: 'Añadir palabra',
+		empty: 'Todavía no has añadido ninguna palabra',
+		play: 'Reproducir la grabación de {{name}}',
+		delete: 'Eliminar {{name}}',
+	},
+	editor: {
+		addTitle: 'Añadir palabra',
+		editTitle: 'Editar palabra',
+		delete: 'Eliminar palabra',
+		name: 'Palabra',
+		nameHint: 'Ej.: Hola',
+		nameRequired: 'Escribe la palabra.',
+		recordings: 'Grabaciones {{count}}/5',
+		openGuide: 'Ver la guía de grabación',
+		recordingName: 'Grabación {{index}}',
+		play: 'Reproducir {{name}}',
+		deleteRecording: 'Eliminar {{name}}',
+		addRecording: 'Añadir grabación',
+		recordingsHint: 'Con 3 o más, el informe es más preciso',
+		recordingRequired: 'Añade al menos una grabación.',
+		saving: 'Guardando',
+		uploading: 'Subiendo',
+		processing: 'Procesando',
+		saveError: 'No hemos podido guardar. Las grabaciones siguen en pantalla. Inténtalo de nuevo.',
+	},
+	guide: {
+		word: 'Hola',
+		manyRecordings: {
+			title: 'Cuantas <b>más grabaciones</b> añadas, más preciso será el informe',
+			scene: 'un gráfico del informe que crece con cada grabación nueva',
+			recordingOrder: '{{order}}.ª',
+			report: 'Informe',
+		},
+		quiet: {
+			title: 'Graba en un <b>lugar silencioso</b>',
+			scene: 'un móvil grabando en una habitación a oscuras y sin ruido',
+			recording: 'Grabando',
+		},
+		distance: {
+			title: 'Apunta la <b>parte de abajo</b> del móvil hacia tu boca y acércalo como si hablaras por teléfono',
+			scene: 'un móvil con el micrófono de abajo hacia la boca que registra la voz en forma de onda',
+		},
+		highVoice: {
+			title: 'Habla con <b>voz aguda</b> y clara para que a tu loro le resulte fácil imitarte',
+			scene: 'unas barras de voz que suben y un bocadillo con «Hola»',
+			speech: '¡Hola!',
+		},
+	},
+	recorder: {
+		done: 'Listo',
+		start: 'Empezar a grabar',
+		stop: 'Detener grabación',
+		play: 'Escuchar',
+		rerecord: 'Grabar de nuevo',
+		empty: 'La grabación está vacía. Graba otra vez.',
+		tooLarge: 'La grabación pesa más de 5 MB. Graba una más corta.',
+		invalidFormat: 'El formato de la grabación no vale. Graba otra vez.',
+		recordError: 'No hemos podido grabar. Revisa el micrófono e inténtalo de nuevo.',
+	},
+	deleteError: 'No hemos podido eliminar la palabra. Revisa la conexión e inténtalo de nuevo.',
+};
