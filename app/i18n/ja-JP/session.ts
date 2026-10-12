@@ -45,11 +45,13 @@ export const session: SessionMessages = {
 		startButton: '練習開始',
 		startUnavailable: '言葉と時間を設定すると始められます',
 		elsewhere: 'ほかの端末で練習中です',
-		endElsewhere: '終了する',
+		endElsewhere: '練習終了',
 		endElsewhereError: '練習を終了できませんでした。インターネット接続を確認して、もう一度試してみてください。',
+		watch: '練習を見る',
 	},
 	run: {
 		reveal: '画面をタップすると練習情報が表示されます',
+		camera: 'カメラ',
 		elapsed: '経過',
 		keepOpen: 'アプリを開いたまま、画面を消さないでください。',
 		dimAfter: 'バッテリーと画面を守るため、{{seconds}}秒後に自動で暗くなります。',
@@ -62,8 +64,18 @@ export const session: SessionMessages = {
 	end: {
 		title: '練習終了',
 		message: '練習を終了しますか？終了すると、今回の結果をお見せします。',
-		button: '終了',
+		button: '練習終了',
 		keep: '続ける',
+	},
+	watch: {
+		leave: '退出',
+		connecting: '練習中の端末に接続しています',
+		cameraOff: {
+			title: 'カメラがオフです',
+			message: '右上のカメラボタンをタップすると、練習中の端末のカメラがオンになります。',
+		},
+		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
+		zoomLevel: '{{zoom}}×',
 	},
 	summary: {
 		title: '練習完了！',
