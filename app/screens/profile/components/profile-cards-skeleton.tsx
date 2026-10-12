@@ -32,7 +32,7 @@ const ProfileCardsSkeleton = () => {
 				<View style={[ui.actionsRow, styles.parrotsRow]}>
 					<View
 						style={[
-							ui.action,
+							ui.equalColumn,
 							styles.outline,
 							styles.parrotCard,
 							{ transform: [{ rotate: `${CARD_TILTS[0]}deg` }] },
@@ -44,7 +44,7 @@ const ProfileCardsSkeleton = () => {
 					</View>
 					<View
 						style={[
-							ui.action,
+							ui.equalColumn,
 							styles.outline,
 							styles.addCard,
 							{ transform: [{ rotate: `${CARD_TILTS[1]}deg` }] },
