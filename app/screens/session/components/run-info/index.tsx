@@ -31,6 +31,7 @@ interface Props {
 	endsAt: number | null;
 	sleep: SleepSettings | null;
 	engineFailed: boolean;
+	paused: boolean;
 	onEnd: () => void;
 	header?: ReactNode;
 	cameraButton?: ReactNode;
@@ -42,11 +43,12 @@ interface Props {
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
  * @param engineFailed 학습 엔진 시작 실패 여부
+ * @param paused 펫캠 시청으로 학습이 멈췄는지 여부, 멈춘 동안 진행률과 시간을 갱신하지 않음
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  * @param header 기본 안내 문구 대신 표시할 헤더
  * @param cameraButton 배터리 표시 아래에 둘 카메라 버튼
  */
-const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, cameraButton }: Props) => {
+const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, paused, onEnd, header, cameraButton }: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -59,7 +61,13 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, camera
 
 	const currentPhase = (
 		<View style={styles.phaseContainer} pointerEvents="none">
-			<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
+			{paused ? (
+				<Copy lineBreakStrategyIOS="hangul-word" style={styles.pausedText}>
+					{t('session.run.petcamPaused')}
+				</Copy>
+			) : (
+				<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
+			)}
 		</View>
 	);
 	const sessionTime = (
@@ -84,12 +92,16 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, camera
 		</PressableSurface>
 	);
 
-	/** 1초마다 현재 시각 갱신 */
+	/** 1초마다 현재 시각 갱신, 학습이 멈춘 동안은 갱신하지 않음 */
 	useEffect(() => {
+		if (paused) {
+			return;
+		}
+
 		const timer = setInterval(() => setNow(dayjs().valueOf()), SECOND);
 
 		return () => clearInterval(timer);
-	}, []);
+	}, [paused]);
 
 	return (
 		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']} pointerEvents="box-none">
@@ -166,8 +178,20 @@ const styles = StyleSheet.create({
 	noticeContainer: { flex: 1 },
 	statusContainer: { alignItems: 'flex-end', gap: 12 },
 	noticeText: { fontFamily: font.extraBold, fontSize: 13, lineHeight: 18, color: sessionColors.faint },
-	phaseContainer: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
+	phaseContainer: {
+		...StyleSheet.absoluteFill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: SCREEN_PADDING,
+	},
 	phaseText: { fontFamily: font.black, fontSize: 34, lineHeight: 40, color: sessionColors.text },
+	pausedText: {
+		fontFamily: font.extraBold,
+		fontSize: 17,
+		lineHeight: 26,
+		textAlign: 'center',
+		color: sessionColors.text,
+	},
 	sessionTimeContainer: { alignItems: 'center', gap: 2 },
 	sessionTimeLabel: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.faint },
 	sessionTimeText: {

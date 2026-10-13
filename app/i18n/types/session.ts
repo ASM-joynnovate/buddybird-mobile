@@ -54,6 +54,7 @@ export type SessionMessages = {
 		keepOpen: string;
 		dimAfter: string;
 		engineError: string;
+		petcamPaused: string;
 		remaining: string;
 		battery: string;
 		batteryLevel: string;

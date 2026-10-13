@@ -56,6 +56,8 @@ export const session: SessionMessages = {
 		keepOpen: 'アプリを開いたまま、画面を消さないでください。',
 		dimAfter: 'バッテリーと画面を守るため、{{seconds}}秒後に自動で暗くなります。',
 		engineError: '音声を再生できませんでした。練習を終了して、もう一度始めてください。',
+		petcamPaused:
+			'ペットカメラモードに切り替わったため、練習を停止しました。ペットカメラを終了すると、自動的に練習が再開されます。',
 		remaining: '終了まで',
 		battery: 'バッテリー',
 		batteryLevel: '{{percent}}%',

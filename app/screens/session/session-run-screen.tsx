@@ -481,6 +481,7 @@ const SessionRunScreen = () => {
 						endsAt={endsAt}
 						sleep={sleep}
 						engineFailed={engineFailed}
+						paused={petcamWatched}
 						onEnd={handleOpenEndDialog}
 						cameraButton={
 							PETCAM_ENABLED ? <CameraButton on={cameraOn} onPress={handleToggleCamera} /> : undefined
