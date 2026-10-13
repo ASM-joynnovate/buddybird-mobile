@@ -6,6 +6,7 @@ import type { Parrot } from '@/types/apis/parrots';
 import type { AnalyticsConsent } from '@/types/analytics-consent';
 import type { DeviceSettings } from '@/types/device-settings';
 import type { PetcamVideoSettings, PetcamVideoStats } from '@/types/petcam';
+import type { RemoteConfigValues } from '@/types/remote-config';
 import type { AnalyticsEvents, UserProperties } from '@/types/telemetry';
 
 import {
@@ -268,6 +269,16 @@ export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
 	track('app_error', { error_code: reportedError.name, screen_name: currentScreen });
 };
 
+/** 적용된 Remote Config 값을 Sentry에 기록하는 함수 */
+export const recordRemoteConfig = (configValues: RemoteConfigValues) => {
+	const attributeEntries = Object.entries(configValues).map(
+		([key, value]) => [`remote_config.${key}`, value] as const,
+	);
+
+	Sentry.setTags(Object.fromEntries(attributeEntries.map(([key, value]) => [key, String(value)])));
+	Sentry.setAttributes(Object.fromEntries(attributeEntries));
+};
+
 /** 요청한 영상 설정의 Sentry 속성을 반환하는 함수 */
 const requestedVideoAttributes = (video: PetcamVideoSettings) => ({
 	'petcam.requested_width': video.width,
@@ -281,14 +292,9 @@ export const tracePetcamCamera = <Result>(video: PetcamVideoSettings, openCamera
 };
 
 /** 영상 통계를 metric으로 기록하는 함수 */
-export const recordPetcamVideoStats = (
-	role: 'sender' | 'receiver',
-	stats: PetcamVideoStats,
-	video?: PetcamVideoSettings,
-) => {
+export const recordPetcamVideoStats = (role: 'sender' | 'receiver', stats: PetcamVideoStats) => {
 	const attributes = {
 		role,
-		...(video ? requestedVideoAttributes(video) : {}),
 		...(stats.qualityLimitation ? { quality_limitation: stats.qualityLimitation } : {}),
 	};
 

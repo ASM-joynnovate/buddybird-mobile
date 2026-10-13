@@ -7,6 +7,7 @@ import { getParrotListOptions } from '@/hooks/apis/parrots';
 import { getRunningSessionOptions } from '@/hooks/apis/sessions';
 
 import { installedVersion } from '@/services/device/application';
+import { getFeedbackPromptThresholds } from '@/services/remote-config/client';
 import { reportError, track } from '@/services/telemetry/client';
 import { useAppStore } from '@/stores/app';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -70,7 +71,7 @@ const StartupDialogProvider = ({ children }: Props) => {
 	const updateCheckSettled = !isFetching && (isSuccess || isError || fetchStatus === 'paused');
 
 	const sessionActive = runningSessionData != null;
-	const threshold = feedbackThreshold(feedbackPrompt);
+	const threshold = feedbackThreshold(feedbackPrompt, getFeedbackPromptThresholds());
 	const eligible =
 		splashFinished &&
 		(parrotListData?.length ?? 0) > 0 &&

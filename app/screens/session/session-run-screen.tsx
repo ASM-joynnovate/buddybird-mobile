@@ -235,7 +235,7 @@ const SessionRunScreen = () => {
 					.catch((error: unknown) => reportError(error, 'petcam_permission'));
 			},
 			onViewerConnectedChange: setViewerConnected,
-			onVideoStats: (stats) => recordPetcamVideoStats('sender', stats, getPetcamVideo()),
+			onVideoStats: (stats) => recordPetcamVideoStats('sender', stats),
 			onError: (error) => reportError(error, 'petcam_sender'),
 		});
 
