@@ -74,6 +74,7 @@ export const session: SessionMessages = {
 			title: '카메라가 꺼져 있어요',
 			message: '오른쪽 위 카메라 버튼을 누르면 학습 중인 기기의 카메라가 켜져요.',
 		},
+		permission: { title: '카메라 권한이 필요해요', message: '학습 중인 기기에서 카메라 권한을 허용해 주세요.' },
 		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 탭하면 원래대로 돌아와요' },
 		zoomLevel: '{{zoom}}×',
 	},

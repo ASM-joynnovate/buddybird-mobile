@@ -74,6 +74,7 @@ export const session: SessionMessages = {
 			title: 'The camera is off',
 			message: 'Tap the camera button in the top right to turn on the camera on the learning device.',
 		},
+		permission: { title: 'Camera access needed', message: 'Allow camera access on the learning device.' },
 		zoomHint: { title: 'Pinch to zoom in', message: 'Double-tap to reset' },
 		zoomLevel: '{{zoom}}×',
 	},

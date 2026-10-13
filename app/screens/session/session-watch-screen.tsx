@@ -10,6 +10,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { getSessionOptions, useFinishSession } from '@/hooks/apis/sessions';
+import useViewerPetcam from '@/hooks/use-viewer-petcam';
 
 import { useTranslation } from 'react-i18next';
 
@@ -18,12 +19,16 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { RTCView } from 'react-native-webrtc';
 
 import { HEARTBEAT_INTERVAL_MS } from '@/config';
+import { SECOND } from '@/config/units';
 import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
+import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
@@ -33,6 +38,7 @@ import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const ICON_SIZE = 22;
+const FADE_MS = 2 * SECOND;
 
 /** 다시 시도해도 결과가 같은 오류인지 판단하는 함수 */
 const isFinalError = (error: unknown) => error instanceof ApiError && !error.retryable;
@@ -49,10 +55,32 @@ const SessionWatchScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
 
-	// 영상 전송과 원격 카메라 제어(BB-657) 전까지는 이 화면 안의 상태로만 표시
-	const [cameraOn, setCameraOn] = useState(false);
-	const [streamReady] = useState(false);
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
+
+	const { state: petcamState, stream, setCamera } = useViewerPetcam(params.sessionId);
+
+	const infoVisible = useSessionStore((state) => state.infoVisible);
+	const showInfo = useSessionStore((state) => state.showInfo);
+	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
+
+	const opacity = useSharedValue(1);
+
+	const cameraOn = petcamState?.cameraOn ?? false;
+	// 영상이 없을 때는 안내와 버튼이 보여야 하므로 숨기지 않음
+	const infoShown = infoVisible || !stream;
+	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
+
+	/** 영상이 나오기 시작하면 학습 정보를 잠시 보여 준 뒤 숨김 */
+	useEffect(() => {
+		showInfo();
+
+		return () => resetSessionScreen();
+	}, [resetSessionScreen, showInfo, stream]);
+
+	/** 학습 정보 fade 애니메이션 실행 */
+	useEffect(() => {
+		opacity.set(infoShown ? 1 : withTiming(0, { duration: FADE_MS }));
+	}, [infoShown, opacity]);
 
 	const leavingRef = useRef(false);
 
@@ -84,7 +112,23 @@ const SessionWatchScreen = () => {
 	}, [ended, navigation, queryClient]);
 
 	const handleLeave = () => {
+		if (leavingRef.current) {
+			return;
+		}
+
+		leavingRef.current = true;
+
 		navigation.goBack();
+	};
+
+	const handleToggleCamera = () => {
+		showInfo();
+		setCamera(!cameraOn);
+	};
+
+	const handleOpenEndDialog = () => {
+		showInfo();
+		setEndDialogOpen(true);
 	};
 
 	const header = (
@@ -101,7 +145,7 @@ const SessionWatchScreen = () => {
 				<Copy style={styles.leaveText}>{t('session.watch.leave')}</Copy>
 			</PressableSurface>
 
-			{!!session && <CameraButton on={cameraOn} onPress={() => setCameraOn((on) => !on)} />}
+			{!!session && <CameraButton on={cameraOn} onPress={handleToggleCamera} />}
 		</View>
 	);
 
@@ -124,16 +168,16 @@ const SessionWatchScreen = () => {
 	return (
 		<View style={styles.screen}>
 			{/*영상*/}
-			{streamReady && (
-				<ZoomableView>
-					<View style={styles.screen} />
+			{!!stream && (
+				<ZoomableView onTap={showInfo}>
+					<RTCView streamURL={stream.toURL()} objectFit="cover" style={styles.screen} />
 				</ZoomableView>
 			)}
 
 			{/*영상이 없을 때 안내*/}
-			{!streamReady && (
+			{!stream && (
 				<View style={styles.statusContainer} pointerEvents="none">
-					{cameraOn ? (
+					{!petcamState || cameraOn ? (
 						<>
 							<ActivityIndicator color={sessionColors.text} />
 							<Copy style={styles.statusTitle}>{t('session.watch.connecting')}</Copy>
@@ -141,9 +185,13 @@ const SessionWatchScreen = () => {
 					) : (
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
-							<Copy style={styles.statusTitle}>{t('session.watch.cameraOff.title')}</Copy>
+							<Copy style={styles.statusTitle}>
+								{t(`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.title`)}
+							</Copy>
 							<Copy lineBreakStrategyIOS="hangul-word" style={styles.statusMessage}>
-								{t('session.watch.cameraOff.message')}
+								{t(
+									`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.message`,
+								)}
 							</Copy>
 						</>
 					)}
@@ -151,16 +199,16 @@ const SessionWatchScreen = () => {
 			)}
 
 			{/*세션 진행 정보*/}
-			<View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+			<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents={infoShown ? 'box-none' : 'none'}>
 				<RunInfo
 					startedAt={session.period.started_at}
 					endsAt={session.schedule.ends_at ? dayjs(session.schedule.ends_at).valueOf() : null}
 					sleep={session.schedule.sleep}
 					engineFailed={false}
-					onEnd={() => setEndDialogOpen(true)}
+					onEnd={handleOpenEndDialog}
 					header={header}
 				/>
-			</View>
+			</Animated.View>
 
 			{/*학습 종료 확인 다이얼로그*/}
 			<ConfirmDialog

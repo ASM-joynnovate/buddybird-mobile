@@ -69,6 +69,7 @@ export type SessionMessages = {
 		leave: string;
 		connecting: string;
 		cameraOff: { title: string; message: string };
+		permission: { title: string; message: string };
 		zoomHint: { title: string; message: string };
 		zoomLevel: string;
 	};

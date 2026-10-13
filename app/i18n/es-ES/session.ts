@@ -76,6 +76,10 @@ export const session: SessionMessages = {
 			message:
 				'Toca el botón de la cámara, arriba a la derecha, para encender la cámara del dispositivo del entrenamiento.',
 		},
+		permission: {
+			title: 'Hace falta acceso a la cámara',
+			message: 'Permite el acceso a la cámara en el dispositivo del entrenamiento.',
+		},
 		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
 		zoomLevel: '{{zoom}}×',
 	},

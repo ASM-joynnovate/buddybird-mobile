@@ -13,6 +13,7 @@ import type { SleepSettings } from '@/types/sleep-settings';
 import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSessionSound } from '@/hooks/apis/sessions';
 import { getWordOptions } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
+import useStationPetcam from '@/hooks/use-station-petcam';
 
 import { useTranslation } from 'react-i18next';
 
@@ -28,6 +29,7 @@ import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
+import { readPermission } from '@/services/device/permissions';
 import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { sessionColors } from '@/theme/session-colors';
@@ -74,6 +76,7 @@ const SessionRunScreen = () => {
 
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 	const [cameraOn, setCameraOn] = useState(false);
+	const [previewVisible, setPreviewVisible] = useState(true);
 
 	const cameraPermission = usePermission('camera');
 
@@ -83,6 +86,7 @@ const SessionRunScreen = () => {
 	const pausedAtRef = useRef<number | null>(null);
 	const endingRef = useRef(false);
 	const cameraPromptRef = useRef(false);
+	const reportPermissionDeniedRef = useRef<() => void>(() => undefined);
 
 	const { data: runningSessionData } = useGetRunningSession();
 
@@ -99,6 +103,34 @@ const SessionRunScreen = () => {
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
 
 	const { sessionId, wordId, endsAt, sleep, duration, sleepChanged } = params;
+
+	/** 보는 기기가 카메라를 켜거나 끄도록 요청하면, 권한 창을 띄우지 않고 가능한 경우에만 반영 */
+	const handleRemoteCamera = useCallback((on: boolean) => {
+		if (!on) {
+			setCameraOn(false);
+
+			return;
+		}
+
+		void readPermission('camera')
+			.then((permission) => {
+				if (permission.granted) {
+					setCameraOn(true);
+				} else {
+					reportPermissionDeniedRef.current();
+				}
+			})
+			.catch((error: unknown) => reportError(error, 'petcam_permission'));
+	}, []);
+
+	const handleCameraFailed = useCallback(() => setCameraOn(false), []);
+
+	const { stream: cameraStream, reportPermissionDenied } = useStationPetcam({
+		sessionId,
+		cameraOn,
+		onRemoteCamera: handleRemoteCamera,
+		onCameraFailed: handleCameraFailed,
+	});
 	const runningSession = runningSessionData?.id === sessionId ? runningSessionData : null;
 	const startedAt = runningSession?.period.started_at ?? null;
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
@@ -170,6 +202,24 @@ const SessionRunScreen = () => {
 	useEffect(() => {
 		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
 	}, [infoVisible, opacity]);
+
+	/** 화면이 어두워지면 카메라 미리보기는 그리지 않고 송출만 유지 */
+	useEffect(() => {
+		if (infoVisible) {
+			setPreviewVisible(true);
+
+			return;
+		}
+
+		const timer = setTimeout(() => setPreviewVisible(false), FADE_MS);
+
+		return () => clearTimeout(timer);
+	}, [infoVisible]);
+
+	/** 원격 카메라 요청에 사용할 최신 함수 저장 */
+	useEffect(() => {
+		reportPermissionDeniedRef.current = reportPermissionDenied;
+	}, [reportPermissionDenied]);
 
 	/** 안드로이드 뒤로 가기 버튼을 누르면 종료 다이얼로그 열기 */
 	useEffect(() => {
@@ -250,11 +300,7 @@ const SessionRunScreen = () => {
 
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
 			// iOS는 카메라 권한 창이 떠 있는 동안 inactive가 되므로, 이 동안은 학습을 멈추지 않음
-			if (cameraPromptRef.current && appState !== 'background') {
-				if (appState === 'active') {
-					cameraPromptRef.current = false;
-				}
-
+			if (cameraPromptRef.current && appState === 'inactive') {
 				return;
 			}
 
@@ -375,9 +421,9 @@ const SessionRunScreen = () => {
 			accessibilityLabel={t('session.run.reveal')}
 		>
 			{/*카메라 영상, 화면이 어두워져도 카메라는 계속 동작*/}
-			{cameraOn && (
+			{!!cameraStream && previewVisible && (
 				<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">
-					<StationCamera />
+					<StationCamera stream={cameraStream} />
 				</Animated.View>
 			)}
 

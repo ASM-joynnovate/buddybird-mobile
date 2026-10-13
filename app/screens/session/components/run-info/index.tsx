@@ -92,7 +92,7 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd, header, camera
 	}, []);
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']} pointerEvents="box-none">
 			{/*헤더*/}
 			{header ?? (
 				<View style={styles.topRow}>
