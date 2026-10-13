@@ -12,6 +12,7 @@ export const PETCAM_ZOOM_HINT_MS = 4 * SECOND;
 export const PETCAM_VIDEO = { facingMode: 'environment', width: 1280, height: 720, frameRate: 15 } as const;
 export const PETCAM_CONNECT_TIMEOUT_MS = 30 * SECOND;
 export const PETCAM_CAMERA_REQUEST_TIMEOUT_MS = 5 * SECOND;
+export const PETCAM_STATS_INTERVAL_MS = 30 * SECOND;
 export const PETCAM_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }] as const;
 
 export const SESSION_DURATION_PRESETS = [

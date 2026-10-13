@@ -30,7 +30,7 @@ import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
 import { createPetcamReceiver, type PetcamReceiver } from '@/services/petcam/connection';
-import { reportError } from '@/services/telemetry/client';
+import { recordPetcamVideoStats, reportError } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
@@ -121,6 +121,7 @@ const SessionWatchScreen = () => {
 			issueTurnCredential: issuePetcamTurnCredential,
 			onState: setPetcamState,
 			onStream: setStream,
+			onVideoStats: (stats) => recordPetcamVideoStats('receiver', stats),
 			onError: (error) => reportError(error, 'petcam_receiver'),
 		});
 

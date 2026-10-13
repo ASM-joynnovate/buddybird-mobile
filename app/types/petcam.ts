@@ -37,6 +37,24 @@ export const petcamMessageSchema = z.discriminatedUnion('type', [
 	}),
 ]);
 
+export const petcamSentVideoStatsSchema = z.object({
+	type: z.literal('outbound-rtp'),
+	kind: z.literal('video'),
+	framesPerSecond: z.number(),
+	frameWidth: z.number(),
+	frameHeight: z.number(),
+	bytesSent: z.number(),
+	qualityLimitationReason: z.string().optional(),
+});
+
+export const petcamReceivedVideoStatsSchema = z.object({
+	type: z.literal('inbound-rtp'),
+	kind: z.literal('video'),
+	framesPerSecond: z.number(),
+	frameWidth: z.number(),
+	frameHeight: z.number(),
+});
+
 export type PetcamDescription = z.infer<typeof petcamDescriptionSchema>;
 export type PetcamCandidate = z.infer<typeof petcamCandidateSchema>;
 export type PetcamMessage = z.infer<typeof petcamMessageSchema>;
@@ -44,6 +62,20 @@ export type PetcamMessage = z.infer<typeof petcamMessageSchema>;
 export interface PetcamState {
 	cameraOn: boolean;
 	permissionDenied: boolean;
+}
+
+export interface PetcamVideoSettings {
+	width: number;
+	height: number;
+	frameRate: number;
+}
+
+export interface PetcamVideoStats {
+	frameRate: number;
+	frameWidth: number;
+	frameHeight: number;
+	bitrate: number | null;
+	qualityLimitation: string | null;
 }
 
 export interface PetcamIceServer {
@@ -91,6 +123,7 @@ export interface PetcamSenderOptions {
 	issueTurnCredential: PetcamTurnCredentialIssuer;
 	onCameraRequest: (cameraOn: boolean) => void;
 	onViewerConnectedChange: (viewerConnected: boolean) => void;
+	onVideoStats: (stats: PetcamVideoStats) => void;
 	onError: (error: unknown) => void;
 }
 
@@ -99,5 +132,6 @@ export interface PetcamReceiverOptions {
 	issueTurnCredential: PetcamTurnCredentialIssuer;
 	onState: (state: PetcamState) => void;
 	onStream: (stream: MediaStream | null) => void;
+	onVideoStats: (stats: PetcamVideoStats) => void;
 	onError: (error: unknown) => void;
 }

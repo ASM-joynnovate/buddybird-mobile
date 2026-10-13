@@ -24,7 +24,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { mediaDevices, type MediaStream } from 'react-native-webrtc';
 
-import { HEARTBEAT_INTERVAL_MS, PETCAM_VIDEO, SESSION_INFO_HIDE_MS } from '@/config';
+import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_HIDE_MS } from '@/config';
 import { SECOND } from '@/config/units';
 import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
@@ -33,8 +33,8 @@ import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { readPermission } from '@/services/device/permissions';
 import { createPetcamSender, type PetcamSender } from '@/services/petcam/connection';
-import { shouldShowPetcam } from '@/services/remote-config/client';
-import { reportError, track } from '@/services/telemetry/client';
+import { getPetcamVideo, shouldShowPetcam } from '@/services/remote-config/client';
+import { recordPetcamVideoStats, reportError, tracePetcamCamera, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
@@ -235,6 +235,7 @@ const SessionRunScreen = () => {
 					.catch((error: unknown) => reportError(error, 'petcam_permission'));
 			},
 			onViewerConnectedChange: setViewerConnected,
+			onVideoStats: (stats) => recordPetcamVideoStats('sender', stats, getPetcamVideo()),
 			onError: (error) => reportError(error, 'petcam_sender'),
 		});
 
@@ -253,11 +254,12 @@ const SessionRunScreen = () => {
 			return;
 		}
 
+		const video = getPetcamVideo();
+
 		let openedStream: MediaStream | null = null;
 		let effectActive = true;
 
-		void mediaDevices
-			.getUserMedia({ audio: false, video: PETCAM_VIDEO })
+		void tracePetcamCamera(video, () => mediaDevices.getUserMedia({ audio: false, video }))
 			.then((stream) => {
 				if (!effectActive) {
 					closeMediaStream(stream);

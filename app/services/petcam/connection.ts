@@ -14,11 +14,16 @@ import {
 	petcamCandidateSchema,
 	petcamDescriptionSchema,
 	petcamMessageSchema,
+	petcamReceivedVideoStatsSchema,
+	petcamSentVideoStatsSchema,
 } from '@/types/petcam';
 
 import { getSupabase } from '@/lib/supabase';
 
+import type { z } from 'zod';
+
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import dayjs from 'dayjs';
 import { randomUUID } from 'expo-crypto';
 import {
 	type MediaStream,
@@ -28,9 +33,10 @@ import {
 	RTCSessionDescription,
 } from 'react-native-webrtc';
 
-import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS } from '@/config';
+import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS, PETCAM_STATS_INTERVAL_MS } from '@/config';
 
 const BROADCAST_EVENT = 'petcam';
+const BITS_PER_BYTE = 8;
 
 // 닫는 중인 채널
 const closingChannels = new Map<string, Promise<unknown>>();
@@ -148,6 +154,15 @@ const addPeerListener = <Type extends keyof PetcamPeerEvents>(
 	(connection as unknown as PetcamPeerEventTarget).addEventListener(type, listener);
 };
 
+/** peer의 영상 통계를 반환하는 함수 */
+const readVideoStats = async <Stats>(connection: RTCPeerConnection, schema: z.ZodType<Stats>) => {
+	const reports: Map<string, unknown> = await connection.getStats();
+
+	return (
+		[...reports.values()].map((report) => schema.safeParse(report)).find((parsed) => parsed.success)?.data ?? null
+	);
+};
+
 /** peer 연결을 만드는 함수 */
 const createPeer = (
 	iceServers: PetcamIceServer[],
@@ -199,9 +214,11 @@ export const createPetcamSender = ({
 	issueTurnCredential,
 	onCameraRequest,
 	onViewerConnectedChange,
+	onVideoStats,
 	onError,
 }: PetcamSenderOptions) => {
 	const peers = new Map<string, PetcamSenderPeer>();
+	const sentBytes = new Map<string, { bytesSent: number; readAt: number }>();
 
 	let viewerIds: string[] = [];
 	let cameraStream: MediaStream | null = null;
@@ -232,9 +249,42 @@ export const createPetcamSender = ({
 		clearTimeout(senderPeer.connectTimer);
 		senderPeer.peer.close();
 		peers.delete(viewerId);
+		sentBytes.delete(viewerId);
 
 		updateViewerConnected();
 	};
+
+	/** 연결된 Viewer별 영상 통계 전달 함수 */
+	const reportVideoStats = () => {
+		return Promise.all(
+			[...peers]
+				.filter(([, { peer }]) => peer.connection.connectionState === 'connected')
+				.map(async ([viewerId, { peer }]) => {
+					const stats = await readVideoStats(peer.connection, petcamSentVideoStatsSchema);
+
+					if (!stats) {
+						return;
+					}
+
+					const readAt = dayjs().valueOf();
+					const previous = sentBytes.get(viewerId);
+
+					sentBytes.set(viewerId, { bytesSent: stats.bytesSent, readAt });
+
+					onVideoStats({
+						frameRate: stats.framesPerSecond,
+						frameWidth: stats.frameWidth,
+						frameHeight: stats.frameHeight,
+						bitrate: previous
+							? ((stats.bytesSent - previous.bytesSent) * BITS_PER_BYTE) / (readAt - previous.readAt)
+							: null,
+						qualityLimitation: stats.qualityLimitationReason ?? null,
+					});
+				}),
+		);
+	};
+
+	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), PETCAM_STATS_INTERVAL_MS);
 
 	/** Viewer 제거 함수 */
 	const removeViewer = (viewerId: string) => {
@@ -373,6 +423,8 @@ export const createPetcamSender = ({
 		close: () => {
 			senderClosed = true;
 
+			clearInterval(statsTimer);
+
 			[...peers.keys()].forEach(closePeer);
 
 			signaling.close();
@@ -388,6 +440,7 @@ export const createPetcamReceiver = ({
 	issueTurnCredential,
 	onState,
 	onStream,
+	onVideoStats,
 	onError,
 }: PetcamReceiverOptions) => {
 	const viewerId = randomUUID();
@@ -407,6 +460,27 @@ export const createPetcamReceiver = ({
 
 		onStream(null);
 	};
+
+	/** 수신 중인 영상 통계 전달 함수 */
+	const reportVideoStats = async () => {
+		if (peer?.connection.connectionState !== 'connected') {
+			return;
+		}
+
+		const stats = await readVideoStats(peer.connection, petcamReceivedVideoStatsSchema);
+
+		if (stats) {
+			onVideoStats({
+				frameRate: stats.framesPerSecond,
+				frameWidth: stats.frameWidth,
+				frameHeight: stats.frameHeight,
+				bitrate: null,
+				qualityLimitation: null,
+			});
+		}
+	};
+
+	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), PETCAM_STATS_INTERVAL_MS);
 
 	/** offer에 answer를 보내는 함수 */
 	const sendAnswer = async (acceptedOfferId: string, description: PetcamDescription) => {
@@ -493,6 +567,8 @@ export const createPetcamReceiver = ({
 		/** Station 카메라 상태 요청 함수 */
 		setCamera: (cameraOn: boolean) => signaling.send({ type: 'camera-set', cameraOn }),
 		close: () => {
+			clearInterval(statsTimer);
+
 			signaling.send({ type: 'viewer-leave', viewerId });
 
 			offerId = null;
