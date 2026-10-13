@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.7.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.6.1...v2.7.0) (2026-10-13)
+
+
+### Features
+
+* **app:** add the petcam with video streaming between devices [BB-656][BB-657][BB-658] ([#241](https://github.com/ASM-joynnovate/buddybird-mobile/issues/241)) ([154228b](https://github.com/ASM-joynnovate/buddybird-mobile/commit/154228b57135a8e267db41c21de0d8cc9662dbec))
+* **app:** set app settings with remote config and check updates before login [BB-680] ([#246](https://github.com/ASM-joynnovate/buddybird-mobile/issues/246)) ([8166cf0](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8166cf0b4716c658d1b0d8d1fbdfc6f3e3f938e2))
+
 ## [2.6.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.6.0...v2.6.1) (2026-10-12)
 
 
