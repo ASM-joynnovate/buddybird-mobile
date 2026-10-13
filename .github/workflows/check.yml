@@ -90,6 +90,9 @@ jobs:
           cache: yarn
       - run: yarn install --immutable
       - run: npx expo-doctor
+        env:
+          # 설치된 expo 기준으로 버전 검사
+          EXPO_OFFLINE: '1'
       - name: Notify check failure
         if: failure()
         uses: ./.github/actions/notify-slack
