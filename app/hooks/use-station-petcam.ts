@@ -11,19 +11,21 @@ import { reportError } from '@/services/telemetry/client';
 interface Options {
 	sessionId: string;
 	cameraOn: boolean;
+	audioOn: boolean;
 	onRemoteCamera: (on: boolean) => void;
 	onCameraFailed: () => void;
 }
 
-/** 카메라 영상 닫기 함수 */
+/** 카메라 영상이나 마이크 소리 닫기 함수 */
 const closeStream = (stream: MediaStream) => {
 	stream.getTracks().forEach((track) => track.stop());
 	stream.release();
 };
 
 /** 학습 중인 기기의 카메라 영상을 열어 보는 기기로 보내는 Hook */
-const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed }: Options) => {
+const useStationPetcam = ({ sessionId, cameraOn, audioOn, onRemoteCamera, onCameraFailed }: Options) => {
 	const [stream, setStream] = useState<MediaStream | null>(null);
+	const [watched, setWatched] = useState(false);
 
 	const { mutateAsync: issueTurnCredential } = useIssuePetcamTurnCredential();
 
@@ -47,6 +49,7 @@ const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed 
 			sessionId,
 			issueTurnCredential,
 			onCameraRequest: (on) => onRemoteCameraRef.current(on),
+			onWatchedChange: setWatched,
 			onError: (error) => reportError(error, 'petcam_station'),
 		});
 
@@ -102,10 +105,45 @@ const useStationPetcam = ({ sessionId, cameraOn, onRemoteCamera, onCameraFailed 
 		};
 	}, [cameraOn]);
 
+	/** 소리를 보낼 수 있는 동안 마이크를 열어 보는 기기로 전송 */
+	useEffect(() => {
+		if (!audioOn) {
+			return;
+		}
+
+		let opened: MediaStream | null = null;
+		let cancelled = false;
+
+		void mediaDevices
+			.getUserMedia({ audio: true, video: false })
+			.then((media) => {
+				if (cancelled) {
+					closeStream(media);
+
+					return;
+				}
+
+				opened = media;
+
+				stationRef.current?.setAudioTrack(media.getAudioTracks()[0] ?? null);
+			})
+			.catch((error: unknown) => reportError(error, 'petcam_microphone'));
+
+		return () => {
+			cancelled = true;
+
+			stationRef.current?.setAudioTrack(null);
+
+			if (opened) {
+				closeStream(opened);
+			}
+		};
+	}, [audioOn]);
+
 	/** 카메라 권한이 없어 켜지 못했음을 보는 기기에 알리는 함수 */
 	const reportPermissionDenied = useCallback(() => stationRef.current?.reportPermissionDenied(), []);
 
-	return { stream, reportPermissionDenied };
+	return { stream, watched, reportPermissionDenied };
 };
 
 export default useStationPetcam;

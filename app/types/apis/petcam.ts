@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { MediaStream, RTCIceCandidate, RTCPeerConnection } from 'react-native-webrtc';
+import type { MediaStream, RTCIceCandidate, RTCPeerConnection, RTCRtpSender } from 'react-native-webrtc';
 
 // react-native-webrtc가 null인 접속 정보를 처리하지 못해, 값이 없는 서버는 주소만 남김
 const iceServerSchema = z
@@ -92,6 +92,7 @@ export interface PetcamPeer {
 export interface PetcamStationPeer {
 	peer: PetcamPeer;
 	offerId: string;
+	audioSender: RTCRtpSender;
 	connectTimer: ReturnType<typeof setTimeout>;
 }
 
@@ -99,6 +100,7 @@ export interface StationPetcamOptions {
 	sessionId: string;
 	issueTurnCredential: () => Promise<PetcamTurnCredential>;
 	onCameraRequest: (on: boolean) => void;
+	onWatchedChange: (watched: boolean) => void;
 	onError: (error: unknown) => void;
 }
 

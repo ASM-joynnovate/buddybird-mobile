@@ -20,7 +20,13 @@ import { getSupabase } from '@/lib/supabase';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
-import { type MediaStream, RTCIceCandidate, RTCPeerConnection, RTCSessionDescription } from 'react-native-webrtc';
+import {
+	type MediaStream,
+	type MediaStreamTrack,
+	RTCIceCandidate,
+	RTCPeerConnection,
+	RTCSessionDescription,
+} from 'react-native-webrtc';
 
 import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS } from '@/config';
 
@@ -192,15 +198,29 @@ export const createStationPetcam = ({
 	sessionId,
 	issueTurnCredential,
 	onCameraRequest,
+	onWatchedChange,
 	onError,
 }: StationPetcamOptions) => {
 	const peers = new Map<string, PetcamStationPeer>();
 
 	let viewerIds: string[] = [];
 	let stream: MediaStream | null = null;
+	let audioTrack: MediaStreamTrack | null = null;
+	let watched = false;
 	let permissionDenied = false;
 	let turnedOnRemotely = false;
 	let closed = false;
+
+	/** 영상을 받고 있는 보는 기기가 생기거나 없어지면 알리는 함수 */
+	const updateWatched = () => {
+		const connected = [...peers.values()].some(({ peer }) => peer.connection.connectionState === 'connected');
+
+		if (connected !== watched) {
+			watched = connected;
+
+			onWatchedChange(connected);
+		}
+	};
 
 	/** 보는 기기와의 연결 닫기 함수 */
 	const closePeer = (viewerId: string) => {
@@ -213,6 +233,8 @@ export const createStationPetcam = ({
 		clearTimeout(current.connectTimer);
 		current.peer.close();
 		peers.delete(viewerId);
+
+		updateWatched();
 	};
 
 	/** 떠난 보는 기기를 정리하고, 원격으로 켠 카메라는 보는 기기가 없으면 끄는 함수 */
@@ -251,9 +273,20 @@ export const createStationPetcam = ({
 			onError,
 		);
 
+		media.getTracks().forEach((track) => {
+			peer.connection.addTrack(track, media);
+		});
+
+		// 소리는 보는 기기가 연결된 뒤에 보내므로, 다시 협상하지 않도록 보낼 자리만 미리 만듦
+		const { sender: audioSender } = peer.connection.addTransceiver('audio', {
+			direction: 'sendonly',
+			streams: [media],
+		});
+
 		peers.set(viewerId, {
 			peer,
 			offerId,
+			audioSender,
 			// 응답이 오지 않는 연결은 실패 상태가 되지 않으므로, 일정 시간 안에 연결되지 않으면 떠난 것으로 처리
 			connectTimer: setTimeout(() => {
 				if (peers.get(viewerId)?.peer === peer && peer.connection.connectionState !== 'connected') {
@@ -266,11 +299,13 @@ export const createStationPetcam = ({
 			if (peer.connection.connectionState === 'failed' && peers.get(viewerId)?.peer === peer) {
 				removeViewer(viewerId);
 			}
+
+			updateWatched();
 		});
 
-		media.getTracks().forEach((track) => {
-			peer.connection.addTrack(track, media);
-		});
+		if (audioTrack) {
+			void audioSender.replaceTrack(audioTrack).catch(onError);
+		}
 
 		const description = petcamDescriptionSchema.parse(await peer.connection.createOffer({}));
 
@@ -335,6 +370,12 @@ export const createStationPetcam = ({
 			if (media) {
 				viewerIds.forEach((viewerId) => void offer(viewerId, media).catch(onError));
 			}
+		},
+		/** 보낼 마이크 소리를 바꾸는 함수, 소리를 보내지 않으면 null */
+		setAudioTrack: (track: MediaStreamTrack | null) => {
+			audioTrack = track;
+
+			peers.forEach(({ audioSender }) => void audioSender.replaceTrack(track).catch(onError));
 		},
 		/** 카메라 권한이 없어 켜지 못했음을 보는 기기에 알리는 함수 */
 		reportPermissionDenied: () => {

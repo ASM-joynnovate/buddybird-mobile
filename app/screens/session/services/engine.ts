@@ -341,14 +341,19 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
+	/** 학습에 쓰는 오디오 세션 설정을 적용하는 함수 */
+	const activateAudioSession = async () => {
+		AudioManager.setAudioSessionOptions({
+			iosCategory: 'playAndRecord',
+			iosMode: 'default',
+			iosOptions: ['defaultToSpeaker'],
+		});
+		await AudioManager.setAudioSessionActivity(true);
+	};
+
 	return {
 		start: async () => {
-			AudioManager.setAudioSessionOptions({
-				iosCategory: 'playAndRecord',
-				iosMode: 'default',
-				iosOptions: ['defaultToSpeaker'],
-			});
-			await AudioManager.setAudioSessionActivity(true);
+			await activateAudioSession();
 
 			if (stopped) {
 				return;
@@ -367,6 +372,8 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 			await context?.suspend();
 		},
 		resume: async () => {
+			// 멈춘 동안 펫캠이 소리를 보내며 오디오 세션 설정을 바꿀 수 있어 다시 적용
+			await activateAudioSession();
 			await context?.resume();
 			await startRunning();
 		},
