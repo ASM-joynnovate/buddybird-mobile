@@ -12,6 +12,7 @@ export const getAppUpdateOptions = () =>
 		retry: false,
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
+		meta: { authorizationOmitted: true },
 	});
 /** 앱 업데이트 정보 조회 Hook */
 export const useGetAppUpdate = () => {

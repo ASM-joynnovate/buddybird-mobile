@@ -1,7 +1,7 @@
 export interface UpdatePolicy {
-	latestVersion: string;
+	latestVersion: string | null;
 	minimumVersion: string;
 	notes: string[];
 }
 
-export type PromptedUpdate = { latestVersion: string; forced: boolean; notes: string[] } | null;
+export type PromptedUpdate = { latestVersion: string | null; forced: boolean; notes: string[] } | null;

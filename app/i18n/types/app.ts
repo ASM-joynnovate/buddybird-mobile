@@ -24,6 +24,7 @@ export type AppMessages = {
 		forcedTitle: string;
 		message: string;
 		forcedMessage: string;
+		forcedMessageWithoutVersion: string;
 		accept: string;
 		openStoreError: string;
 	};

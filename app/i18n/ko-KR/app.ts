@@ -26,6 +26,7 @@ export const app: AppMessages = {
 		forcedTitle: '업데이트가 필요해요',
 		message: '버디버드 {{version}} 버전을 사용할 수 있어요.',
 		forcedMessage: '계속 사용하려면 {{version}} 버전으로 업데이트해 주세요.',
+		forcedMessageWithoutVersion: '계속 사용하려면 앱을 업데이트해 주세요.',
 		accept: '업데이트',
 		openStoreError: '스토어를 열지 못했어요. 다시 시도해 주세요.',
 	},

@@ -1,4 +1,4 @@
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { MutationCache, type Query, QueryCache, QueryClient } from '@tanstack/react-query';
 
 import { ApiError, UNAUTHORIZED_STATUS } from '@/types/apis/common';
 
@@ -17,6 +17,9 @@ export const setUnauthorizedHandler = (handler: () => void) => {
 const retryPolicy = (failureCount: number, error: unknown) =>
 	failureCount < MAX_RETRIES && error instanceof ApiError && error.retryable;
 
+/** 로그인 토큰을 사용하는 조회인지 반환하는 함수 */
+export const usesAuthorization = (query: Pick<Query, 'meta'>) => !query.meta?.authorizationOmitted;
+
 /** 401 응답 시 인증 만료 함수 실행 */
 const handleUnauthorized = (error: unknown) => {
 	if (error instanceof ApiError && error.status === UNAUTHORIZED_STATUS) {
@@ -33,7 +36,13 @@ export const queryClient = new QueryClient({
 		},
 		mutations: { retry: retryPolicy, networkMode: 'always' },
 	},
-	queryCache: new QueryCache({ onError: handleUnauthorized }),
+	queryCache: new QueryCache({
+		onError: (error, query) => {
+			if (usesAuthorization(query)) {
+				handleUnauthorized(error);
+			}
+		},
+	}),
 	mutationCache: new MutationCache({
 		onError: (error, _variables, _context, mutation) => {
 			if (!mutation.meta?.skipUnauthorizedSignOut) {

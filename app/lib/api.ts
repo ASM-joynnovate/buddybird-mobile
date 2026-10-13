@@ -31,6 +31,7 @@ interface ApiOptions {
 	idempotencyKey?: string;
 	signal?: AbortSignal;
 	timeoutMs?: number;
+	authorizationOmitted?: boolean;
 }
 
 const SERVER_ERROR_STATUS = 500;
@@ -46,6 +47,7 @@ export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options:
 		idempotencyKey,
 		signal,
 		timeoutMs = API_TIMEOUT_MS,
+		authorizationOmitted = false,
 	} = options;
 
 	const baseUrl = env.apiBaseUrl;
@@ -63,8 +65,11 @@ export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options:
 		'X-Device-Id': dependencies.deviceId(),
 		'Accept-Language': dependencies.locale(),
 		'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
-		Authorization: `Bearer ${await dependencies.accessToken()}`,
 	});
+
+	if (!authorizationOmitted) {
+		headers.set('Authorization', `Bearer ${await dependencies.accessToken()}`);
+	}
 
 	if (idempotencyKey) {
 		headers.set('Idempotency-Key', idempotencyKey);

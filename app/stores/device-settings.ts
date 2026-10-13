@@ -13,7 +13,6 @@ import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { FEEDBACK_PROMPT_THRESHOLDS } from '@/config';
 import { localDate } from '@/utils/date';
 
 type DeviceSettingsActions = {
@@ -102,10 +101,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 					feedbackPrompt: {
 						...state.feedbackPrompt,
 						dayCount: 0,
-						thresholdIndex: Math.min(
-							state.feedbackPrompt.thresholdIndex + 1,
-							FEEDBACK_PROMPT_THRESHOLDS.length - 1,
-						),
+						thresholdIndex: state.feedbackPrompt.thresholdIndex + 1,
 					},
 				}));
 			},

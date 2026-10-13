@@ -27,6 +27,7 @@ export const app: AppMessages = {
 		forcedTitle: 'アップデートが必要です',
 		message: 'BuddyBird {{version}} が利用できます。',
 		forcedMessage: '引き続き使うには、バージョン{{version}}にアップデートしてください。',
+		forcedMessageWithoutVersion: '引き続き使うには、アプリをアップデートしてください。',
 		accept: 'アップデート',
 		openStoreError: 'ストアを開けませんでした。もう一度試してみてください。',
 	},

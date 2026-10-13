@@ -1,6 +1,7 @@
 import AuthProvider from '@/providers/auth';
 import MessageProvider from '@/providers/message';
 import SystemProvider from '@/providers/system';
+import UpdateDialogProvider from '@/providers/update-dialog';
 
 import AuthStatusContent from '@/components/app/auth-status-content';
 
@@ -10,7 +11,9 @@ const AppContent = () => {
 		<SystemProvider>
 			<MessageProvider>
 				<AuthProvider>
-					<AuthStatusContent />
+					<UpdateDialogProvider>
+						<AuthStatusContent />
+					</UpdateDialogProvider>
 				</AuthProvider>
 			</MessageProvider>
 		</SystemProvider>

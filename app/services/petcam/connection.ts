@@ -33,7 +33,8 @@ import {
 	RTCSessionDescription,
 } from 'react-native-webrtc';
 
-import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS, PETCAM_STATS_INTERVAL_MS } from '@/config';
+import { PETCAM_ICE_SERVERS } from '@/config';
+import { getPetcamConnectTimeoutMs, getPetcamStatsIntervalMs } from '@/services/remote-config/client';
 
 const BROADCAST_EVENT = 'petcam';
 const BITS_PER_BYTE = 8;
@@ -217,6 +218,8 @@ export const createPetcamSender = ({
 	onVideoStats,
 	onError,
 }: PetcamSenderOptions) => {
+	const connectTimeoutMs = getPetcamConnectTimeoutMs();
+
 	const peers = new Map<string, PetcamSenderPeer>();
 	const sentBytes = new Map<string, { bytesSent: number; readAt: number }>();
 
@@ -284,7 +287,7 @@ export const createPetcamSender = ({
 		);
 	};
 
-	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), PETCAM_STATS_INTERVAL_MS);
+	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), getPetcamStatsIntervalMs());
 
 	/** Viewer 제거 함수 */
 	const removeViewer = (viewerId: string) => {
@@ -335,7 +338,7 @@ export const createPetcamSender = ({
 				if (peers.get(viewerId)?.peer === peer && peer.connection.connectionState !== 'connected') {
 					removeViewer(viewerId);
 				}
-			}, PETCAM_CONNECT_TIMEOUT_MS),
+			}, connectTimeoutMs),
 		});
 
 		addPeerListener(peer.connection, 'connectionstatechange', () => {
@@ -480,7 +483,7 @@ export const createPetcamReceiver = ({
 		}
 	};
 
-	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), PETCAM_STATS_INTERVAL_MS);
+	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), getPetcamStatsIntervalMs());
 
 	/** offer에 answer를 보내는 함수 */
 	const sendAnswer = async (acceptedOfferId: string, description: PetcamDescription) => {

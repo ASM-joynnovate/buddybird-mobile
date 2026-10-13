@@ -33,25 +33,25 @@ const _compareVersions = (a: string, b: string) => {
 	return 0;
 };
 
+/** 두 버전 중 높은 버전을 반환하는 함수 */
+export const higherVersion = (a: string, b: string) => {
+	return (_compareVersions(a, b) ?? 0) < 0 ? b : a;
+};
+
 /** 안내할 업데이트를 결정하는 함수 */
 export const evaluateUpdate = (policy: UpdatePolicy, installedVersion: string, dismissedVersion: string | null) => {
-	if (!policy.latestVersion || _compareVersions(installedVersion, policy.latestVersion) === null) {
-		return null;
-	}
-
+	// 최신 버전을 모르면 강제 업데이트만 판단
+	const comparedToLatest =
+		policy.latestVersion === null ? 0 : _compareVersions(installedVersion, policy.latestVersion);
 	const comparedToMinimum = policy.minimumVersion ? _compareVersions(installedVersion, policy.minimumVersion) : 0;
 
-	if (comparedToMinimum === null) {
+	if (comparedToLatest === null || comparedToMinimum === null) {
 		return null;
 	}
 
 	const forced = comparedToMinimum < 0;
 
-	if (
-		!forced &&
-		((_compareVersions(installedVersion, policy.latestVersion) ?? 0) >= 0 ||
-			dismissedVersion === policy.latestVersion)
-	) {
+	if (!forced && (comparedToLatest >= 0 || dismissedVersion === policy.latestVersion)) {
 		return null;
 	}
 

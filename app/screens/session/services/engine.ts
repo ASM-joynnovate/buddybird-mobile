@@ -11,11 +11,12 @@ import {
 	AudioRecorder,
 } from 'react-native-audio-api';
 
-import { LEARNING_TICK_MS, VAD, WORD_REPLAY_DELAY_FACTOR } from '@/config';
+import { LEARNING_TICK_MS } from '@/config';
 import { SECOND } from '@/config/units';
 import { loadStressCareTracks } from '@/screens/session/services/tracks';
 import { createSoundDetector, type SoundSegment } from '@/screens/session/services/vad';
 import { saveWav } from '@/screens/session/services/wav';
+import { getVad, getWordReplayDelayFactor } from '@/services/remote-config/client';
 import { currentSpan, type PhaseSpan } from '@/utils/phases';
 
 interface CapturedSound {
@@ -57,7 +58,10 @@ export interface LearningEngine {
 
 /** 학습 엔진을 만드는 함수 */
 export const createLearningEngine = (options: LearningEngineOptions) => {
-	const detector = createSoundDetector(VAD);
+	const vad = getVad();
+	const wordReplayDelayFactor = getWordReplayDelayFactor();
+
+	const detector = createSoundDetector(vad);
 	const recorder = new AudioRecorder();
 
 	let context: AudioContext | null = null;
@@ -122,7 +126,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 		try {
 			options.onSound({
-				uri: saveWav(segment.samples, VAD.sampleRate),
+				uri: saveWav(segment.samples, vad.sampleRate),
 				capturedAt: dayjs().subtract(segment.durationMs, 'ms').toISOString(),
 			});
 		} catch (e) {
@@ -175,7 +179,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 			if (clip === source) {
 				clip = null;
 				nextPlayAt = dayjs()
-					.add(durationMs * WORD_REPLAY_DELAY_FACTOR, 'ms')
+					.add(durationMs * wordReplayDelayFactor, 'ms')
 					.valueOf();
 			}
 		};
@@ -185,7 +189,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		nextClipIndex += 1;
 		nextPlayAt = Number.POSITIVE_INFINITY;
 
-		detector.suspend(now + durationMs + VAD.ignoreAfterPlaybackMs);
+		detector.suspend(now + durationMs + vad.ignoreAfterPlaybackMs);
 
 		addPlayToLearningSegment(durationMs);
 	};
@@ -243,7 +247,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 
 		if (span.phase === 'stress_care') {
-			detector.suspend(span.end + VAD.ignoreAfterPlaybackMs);
+			detector.suspend(span.end + vad.ignoreAfterPlaybackMs);
 
 			playCare(span).catch(options.onError);
 		}
@@ -273,8 +277,8 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	const startRecorder = async () => {
 		recorder.onAudioReady(
 			{
-				sampleRate: VAD.sampleRate,
-				bufferLength: (VAD.sampleRate * VAD.frameMs) / SECOND,
+				sampleRate: vad.sampleRate,
+				bufferLength: (vad.sampleRate * vad.frameMs) / SECOND,
 				channelCount: 1,
 			},
 			({ buffer }) => {

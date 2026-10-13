@@ -24,12 +24,13 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { type MediaStream, RTCView } from 'react-native-webrtc';
 
-import { HEARTBEAT_INTERVAL_MS, PETCAM_CAMERA_REQUEST_TIMEOUT_MS, PETCAM_CONNECT_TIMEOUT_MS } from '@/config';
+import { HEARTBEAT_INTERVAL_MS } from '@/config';
 import { SECOND } from '@/config/units';
 import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
 import { createPetcamReceiver, type PetcamReceiver } from '@/services/petcam/connection';
+import { getPetcamCameraRequestTimeoutMs, getPetcamConnectTimeoutMs } from '@/services/remote-config/client';
 import { recordPetcamVideoStats, reportError } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
@@ -140,7 +141,7 @@ const SessionWatchScreen = () => {
 			return;
 		}
 
-		const timer = setTimeout(() => setStationUnreachable(true), PETCAM_CONNECT_TIMEOUT_MS);
+		const timer = setTimeout(() => setStationUnreachable(true), getPetcamConnectTimeoutMs());
 
 		return () => clearTimeout(timer);
 	}, [petcamState]);
@@ -156,7 +157,7 @@ const SessionWatchScreen = () => {
 			return;
 		}
 
-		const timer = setTimeout(() => setCameraRequestPending(false), PETCAM_CAMERA_REQUEST_TIMEOUT_MS);
+		const timer = setTimeout(() => setCameraRequestPending(false), getPetcamCameraRequestTimeoutMs());
 
 		return () => clearTimeout(timer);
 	}, [cameraRequestPending]);

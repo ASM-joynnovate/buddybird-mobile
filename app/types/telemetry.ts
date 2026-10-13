@@ -64,8 +64,8 @@ export interface AnalyticsEvents {
 		from: 'push' | 'list';
 	};
 	language_changed: { from: string; to: string };
-	update_prompt_shown: { latest_version: string; is_forced: boolean };
-	update_prompt_accepted: { latest_version: string; is_forced: boolean };
+	update_prompt_shown: { latest_version: string | null; is_forced: boolean };
+	update_prompt_accepted: { latest_version: string | null; is_forced: boolean };
 	update_prompt_dismissed: { latest_version: string };
 	feedback_prompt_shown: { threshold: number };
 	feedback_prompt_dismissed: { threshold: number };
