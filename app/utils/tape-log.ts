@@ -109,7 +109,7 @@ export const getMidnights = (span: TimeSpan) => {
 
 /** 시각순 소리 카드 목록을 반환하는 함수 */
 export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => {
-	const emergencyEvents = events.filter((event) => event.kind === 'emergency_detected');
+	const emergencyEvents = events.filter((event) => event.kind === 'sound_emergency_detected');
 	const emergencySoundIds = new Set(emergencyEvents.flatMap((event) => event.sound_ids));
 
 	const soundItems = sounds

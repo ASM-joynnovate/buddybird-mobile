@@ -7,27 +7,23 @@ import { z } from 'zod';
 
 const phaseSchema = z.enum(['learning', 'rest', 'stress_care', 'sleeping']);
 
-const sessionStatusSchema = z.enum(['running', 'finished']);
-
-export const judgmentStatusSchema = z.enum(['pending', 'done']);
-
 export const sessionSchema = z.object({
 	id: uuidSchema,
-	status: sessionStatusSchema,
+	status: z.string(),
 	station: z.object({ device_id: uuidSchema }),
 	word: z.object({ id: uuidSchema }),
 	schedule: z.object({ ends_at: timestampSchema.nullable(), sleep: sleepSettingsSchema.nullable() }),
 	progress: z.object({
-		current_phase: phaseSchema.nullable(),
+		current_phase: z.string().nullable(),
 		phase_started_at: timestampSchema.nullable(),
 		last_heartbeat_at: timestampSchema.nullable(),
 	}),
 	period: z.object({
 		started_at: timestampSchema,
 		ended_at: timestampSchema.nullable(),
-		ended_by: z.enum(['user', 'server']).nullable(),
+		ended_by: z.string().nullable(),
 	}),
-	judgment: z.object({ status: judgmentStatusSchema }),
+	judgment: z.object({ status: z.string() }),
 	sounds: z.object({
 		vad_count: z.number().int().nonnegative(),
 		parrot_count: z.number().int().nonnegative(),
@@ -58,7 +54,7 @@ const heartbeatRequestSchema = z.object({
 });
 
 export const heartbeatSchema = z.object({
-	session: z.object({ status: sessionStatusSchema }),
+	session: z.object({ status: z.string() }),
 	acknowledged: z.array(z.object({ word_id: uuidSchema, started_at: timestampSchema })),
 });
 
@@ -82,7 +78,7 @@ const sessionEventKindSchema = z.enum([
 	'word_changed',
 	'station_disconnected',
 	'station_reconnected',
-	'emergency_detected',
+	'sound_emergency_detected',
 	'session_finished',
 ]);
 
@@ -94,6 +90,11 @@ export const sessionEventSchema = z.object({
 	word: z.object({ id: uuidSchema }).nullable(),
 	sound_ids: z.array(uuidSchema),
 });
+
+export const sessionEventListSchema = z
+	.array(z.looseObject({ kind: z.string() }))
+	.transform((events) => events.filter((event) => sessionEventKindSchema.safeParse(event.kind).success))
+	.pipe(z.array(sessionEventSchema));
 
 const activeSchema = z.object({ duration_ms: z.number().int().nonnegative() });
 

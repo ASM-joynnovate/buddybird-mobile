@@ -1,5 +1,4 @@
 import { localDateSchema, timestampSchema, uuidSchema } from '@/types/apis/primitives';
-import { judgmentStatusSchema } from '@/types/apis/sessions';
 
 import { reportPeriodSchema } from '@/types/report-period';
 
@@ -14,7 +13,7 @@ const reportSessionSchema = z.object({
 	period: z.object({ started_at: timestampSchema, ended_at: timestampSchema.nullable() }),
 	word: wordRefSchema,
 	active: z.object({ duration_ms: durationSchema }),
-	judgment: z.object({ status: judgmentStatusSchema }),
+	judgment: z.object({ status: z.string() }),
 });
 
 export const reportSchema = z.object({
