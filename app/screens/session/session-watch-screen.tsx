@@ -205,6 +205,7 @@ const SessionWatchScreen = () => {
 					endsAt={session.schedule.ends_at ? dayjs(session.schedule.ends_at).valueOf() : null}
 					sleep={session.schedule.sleep}
 					engineFailed={false}
+					paused={!!stream}
 					onEnd={handleOpenEndDialog}
 					header={header}
 				/>
