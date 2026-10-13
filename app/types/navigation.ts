@@ -64,7 +64,7 @@ export type RootStackParamList = {
 		sleepChanged: boolean;
 	};
 	SessionSummary: { sessionId: string };
-	SessionWatch: { sessionId: string };
+	SessionWatch: { sessionId: string; source?: 'notification' };
 	RecordingGuide: undefined;
 	Settings: undefined;
 	ConsentSettings: undefined;

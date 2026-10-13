@@ -69,6 +69,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 			kind: notification.kind,
 			notification_id: notification.id,
 			data_id: notification.data_id,
+			link: notification.link,
 		});
 
 		if (path) {

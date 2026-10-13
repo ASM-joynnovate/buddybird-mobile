@@ -9,6 +9,7 @@ export const notificationSchema = z.object({
 	body: z.string(),
 	image: z.object({ url: z.string() }).nullable(),
 	data_id: uuidSchema.nullable(),
+	link: z.string().nullish(),
 	sent_at: timestampSchema,
 	read_at: timestampSchema.nullable(),
 });
@@ -17,6 +18,7 @@ export const pushDataSchema = z.object({
 	kind: z.string(),
 	notification_id: uuidSchema.optional(),
 	data_id: uuidSchema.optional(),
+	link: z.string().optional(),
 	sent_at: timestampSchema.optional(),
 });
 

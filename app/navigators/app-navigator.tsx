@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 
 import { pushDataSchema } from '@/types/apis/notifications';
 
-import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 
 import { useReadNotification } from '@/hooks/apis/notifications';
 import useEntryRoute, { type EntryRoute } from '@/hooks/use-entry-route';
@@ -11,7 +11,6 @@ import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@
 import {
 	type LinkingOptions,
 	NavigationContainer,
-	type PathConfig,
 	type RouteProp,
 	useNavigationContainerRef,
 } from '@react-navigation/native';
@@ -40,6 +39,7 @@ import SettingsScreen from '@/screens/settings/settings-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
 import { navigationIntegration, reportError, track, trackScreen } from '@/services/telemetry/client';
 import { colors } from '@/theme';
+import { linkingConfig } from '@/utils/linking';
 import { notificationPath } from '@/utils/notification';
 
 import OfflineBanner from '@/components/offline-banner';
@@ -69,11 +69,6 @@ const parrotEditorOptions = ({
 /** 실행 환경에 맞는 앱 링크 prefix */
 const linkPrefix = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
-};
-
-const reportTabLinking: PathConfig<ReportStackParamList> = {
-	initialRouteName: 'Report',
-	screens: { SessionDetail: 'sessions/:sessionId' },
 };
 
 const ONBOARDING_ORDER = ['ParrotEditor', 'UsageGuide'] as const;
@@ -146,15 +141,7 @@ const AppNavigator = () => {
 
 		return {
 			prefixes: [linkPrefix()],
-			config: {
-				initialRouteName: 'Main',
-				screens: {
-					Main: { screens: { ReportTab: reportTabLinking } },
-					AnnouncementDetail: 'announcements/:announcementId',
-					NotificationDetail: 'notifications/:notificationId',
-					NotificationSettings: 'settings/notifications',
-				},
-			},
+			config: linkingConfig,
 			getInitialURL: async () => {
 				try {
 					const message = await getInitialNotification(getMessaging());
