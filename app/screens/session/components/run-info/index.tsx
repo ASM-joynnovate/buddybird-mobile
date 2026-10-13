@@ -11,9 +11,7 @@ import { formatTimer } from '@/i18n/format';
 import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SESSION_INFO_HIDE_MS } from '@/config';
 import { SECOND } from '@/config/units';
-import BatteryStatus from '@/screens/session/components/run-info/battery-status';
 import SessionProgressArc from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
@@ -30,11 +28,9 @@ interface Props {
 	startedAt: string;
 	endsAt: number | null;
 	sleep: SleepSettings | null;
-	engineFailed: boolean;
-	paused: boolean;
+	pauseNotice: string | null;
 	onEnd: () => void;
-	header?: ReactNode;
-	cameraButton?: ReactNode;
+	header: ReactNode;
 }
 
 /**
@@ -42,13 +38,11 @@ interface Props {
  * @param startedAt 세션 시작 시각
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
- * @param engineFailed 학습 엔진 시작 실패 여부
- * @param paused 펫캠 시청으로 학습이 멈췄는지 여부, 멈춘 동안 진행률과 시간을 갱신하지 않음
+ * @param pauseNotice 학습 단계 대신 표시할 문구
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
- * @param header 기본 안내 문구 대신 표시할 헤더
- * @param cameraButton 배터리 표시 아래에 둘 카메라 버튼
+ * @param header 위쪽에 표시할 헤더
  */
-const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, paused, onEnd, header, cameraButton }: Props) => {
+const RunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -61,9 +55,9 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, paused, onEnd, header
 
 	const currentPhase = (
 		<View style={styles.phaseContainer} pointerEvents="none">
-			{paused ? (
-				<Copy lineBreakStrategyIOS="hangul-word" style={styles.pausedText}>
-					{t('session.run.petcamPaused')}
+			{pauseNotice ? (
+				<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNotice}>
+					{pauseNotice}
 				</Copy>
 			) : (
 				<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
@@ -92,42 +86,17 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, paused, onEnd, header
 		</PressableSurface>
 	);
 
-	/** 1초마다 현재 시각 갱신, 학습이 멈춘 동안은 갱신하지 않음 */
+	/** 1초마다 현재 시각 갱신 */
 	useEffect(() => {
-		if (paused) {
-			return;
-		}
-
 		const timer = setInterval(() => setNow(dayjs().valueOf()), SECOND);
 
 		return () => clearInterval(timer);
-	}, [paused]);
+	}, []);
 
 	return (
 		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']} pointerEvents="box-none">
 			{/*헤더*/}
-			{header ?? (
-				<View style={styles.topRow}>
-					<View style={styles.noticeContainer}>
-						<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-							{t('session.run.keepOpen')}
-						</Copy>
-						<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-							{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
-						</Copy>
-						{engineFailed && (
-							<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-								{t('session.run.engineError')}
-							</Copy>
-						)}
-					</View>
-
-					<View style={styles.statusContainer}>
-						<BatteryStatus />
-						{cameraButton}
-					</View>
-				</View>
-			)}
+			{header}
 
 			{isLandscape ? (
 				<View style={styles.splitRow} pointerEvents="box-none">
@@ -174,10 +143,6 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, paused, onEnd, header
 
 const styles = StyleSheet.create({
 	container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SCREEN_PADDING, paddingTop: 12 },
-	topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-	noticeContainer: { flex: 1 },
-	statusContainer: { alignItems: 'flex-end', gap: 12 },
-	noticeText: { fontFamily: font.extraBold, fontSize: 13, lineHeight: 18, color: sessionColors.faint },
 	phaseContainer: {
 		...StyleSheet.absoluteFill,
 		alignItems: 'center',
@@ -185,7 +150,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: SCREEN_PADDING,
 	},
 	phaseText: { fontFamily: font.black, fontSize: 34, lineHeight: 40, color: sessionColors.text },
-	pausedText: {
+	pauseNotice: {
 		fontFamily: font.extraBold,
 		fontSize: 17,
 		lineHeight: 26,

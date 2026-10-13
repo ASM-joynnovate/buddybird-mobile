@@ -26,12 +26,12 @@ import { EyeIcon, MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
 
-import { PETCAM_ENABLED } from '@/config';
 import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
 import WordPicker from '@/screens/home/components/word-picker';
+import { shouldShowPetcam } from '@/services/remote-config/client';
 import { useAccountStore } from '@/stores/account';
 import { useSessionStore } from '@/stores/session';
 import { colors, font, layoutAnimationMs } from '@/theme';
@@ -89,6 +89,7 @@ const HomeContent = () => {
 	const runningDevice = deviceListData.find((device) => device.id === runningSession?.station.device_id);
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
 	const unreadCount = homeSummaryData.unread_notification_count;
+	const petcamShown = shouldShowPetcam();
 
 	const wordsWithRecordings = wordListData.filter((word) => uploadedRecordings(word.recordings).length > 0);
 	const selectedWord =
@@ -268,7 +269,7 @@ const HomeContent = () => {
 									onPress={handleEndElsewhere}
 								/>
 							</View>
-							{PETCAM_ENABLED && (
+							{petcamShown && (
 								<Button
 									label={t('session.start.watch')}
 									icon={EyeIcon}

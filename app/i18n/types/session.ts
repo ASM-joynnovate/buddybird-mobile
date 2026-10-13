@@ -54,7 +54,8 @@ export type SessionMessages = {
 		keepOpen: string;
 		dimAfter: string;
 		engineError: string;
-		petcamPaused: string;
+		learningPaused: string;
+		cameraSettingsNotice: string;
 		remaining: string;
 		battery: string;
 		batteryLevel: string;
@@ -71,6 +72,8 @@ export type SessionMessages = {
 		connecting: string;
 		cameraOff: { title: string; message: string };
 		permission: { title: string; message: string };
+		unreachable: { title: string; message: string };
+		learningPaused: string;
 		zoomHint: { title: string; message: string };
 		zoomLevel: string;
 	};

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+	clamp,
 	FadeIn,
 	FadeOut,
 	useAnimatedReaction,
@@ -19,7 +20,7 @@ import { PETCAM_MAX_ZOOM, PETCAM_ZOOM_HINT_MS } from '@/config';
 import { SECOND } from '@/config/units';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
-import { clampOffset, clampZoom } from '@/utils/zoom';
+import { clampOffset } from '@/utils/zoom';
 
 import { Copy } from '@/components/ui/copy';
 
@@ -31,7 +32,7 @@ interface Props {
 }
 
 /**
- * 두 손가락으로 확대하고 끌어서 옮기는 영상 영역 컴포넌트
+ * 확대할 수 있는 영상 컴포넌트
  * @param children 확대할 내용
  * @param onTap 화면을 누를 때 실행할 함수
  */
@@ -63,7 +64,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 				scheduleOnRN(hideHint);
 			})
 			.onUpdate((event) => {
-				const nextScale = clampZoom(savedScale.get() * event.scale, PETCAM_MAX_ZOOM);
+				const nextScale = clamp(savedScale.get() * event.scale, 1, PETCAM_MAX_ZOOM);
 
 				scale.set(nextScale);
 				offsetX.set(clampOffset(offsetX.get(), nextScale, width.get()));
@@ -78,7 +79,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		const pan = Gesture.Pan()
 			.averageTouches(true)
 			.onUpdate((event) => {
-				// 손가락 수가 바뀌면 이동 거리가 튀므로, 지금 위치를 기준으로 다시 맞춤
+				// 손가락 수가 바뀌면 기준 위치 갱신
 				if (event.numberOfPointers !== pointerCount.get()) {
 					pointerCount.set(event.numberOfPointers);
 					savedOffsetX.set(offsetX.get() - event.translationX);
@@ -94,7 +95,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 				savedOffsetY.set(offsetY.get());
 			});
 
-		// 두 번 탭하면 원래 배율로
+		// 두 번 누르면 배율 초기화
 		const doubleTap = Gesture.Tap()
 			.numberOfTaps(2)
 			.onEnd(() => {

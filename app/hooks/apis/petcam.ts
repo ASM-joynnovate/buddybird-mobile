@@ -4,7 +4,7 @@ import { postPetcamTurnCredential } from '@/apis/petcam';
 
 import { apiKeys } from '@/hooks/apis/keys';
 
-/** 펫캠 영상 중계(TURN) 접속 정보 발급 Hook */
+/** TURN 접속 정보 발급 Hook */
 export const useIssuePetcamTurnCredential = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('petcam', 'turn-credential'),

@@ -56,8 +56,8 @@ export const session: SessionMessages = {
 		keepOpen: 'アプリを開いたまま、画面を消さないでください。',
 		dimAfter: 'バッテリーと画面を守るため、{{seconds}}秒後に自動で暗くなります。',
 		engineError: '音声を再生できませんでした。練習を終了して、もう一度始めてください。',
-		petcamPaused:
-			'ペットカメラモードに切り替わったため、練習を停止しました。ペットカメラを終了すると、自動的に練習が再開されます。',
+		learningPaused: 'ほかの端末で見ている間は、練習が一時停止します。見終わると再開します。',
+		cameraSettingsNotice: '設定で許可を変更するとアプリが再起動し、練習が終了することがあります。',
 		remaining: '終了まで',
 		battery: 'バッテリー',
 		batteryLevel: '{{percent}}%',
@@ -77,6 +77,11 @@ export const session: SessionMessages = {
 			message: '右上のカメラボタンをタップすると、練習中の端末のカメラがオンになります。',
 		},
 		permission: { title: 'カメラの許可が必要です', message: '練習中の端末でカメラの使用を許可してください。' },
+		unreachable: {
+			title: '練習中の端末に接続できませんでした',
+			message: '練習中の端末がインターネットに接続されていて、アプリが最新バージョンか確認してください。',
+		},
+		learningPaused: '見ている間は、練習が一時停止します。退出すると再開します。',
 		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
 		zoomLevel: '{{zoom}}×',
 	},

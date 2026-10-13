@@ -56,7 +56,8 @@ export const session: SessionMessages = {
 		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
 		dimAfter: '배터리 및 화면 보호를 위해 {{seconds}}초 후 자동으로 어두워집니다.',
 		engineError: '소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.',
-		petcamPaused: '펫캠 모드 전환으로 학습이 중지되었습니다. 펫캠을 종료하면 자동으로 학습이 다시 진행됩니다.',
+		learningPaused: '다른 기기에서 보는 동안 학습이 잠시 멈춰요. 보기를 끝내면 다시 시작돼요.',
+		cameraSettingsNotice: '설정에서 권한을 변경하면 앱이 다시 시작되어 학습이 끝날 수 있어요.',
 		remaining: '종료까지',
 		battery: '배터리',
 		batteryLevel: '{{percent}}%',
@@ -76,7 +77,12 @@ export const session: SessionMessages = {
 			message: '오른쪽 위 카메라 버튼을 누르면 학습 중인 기기의 카메라가 켜져요.',
 		},
 		permission: { title: '카메라 권한이 필요해요', message: '학습 중인 기기에서 카메라 권한을 허용해 주세요.' },
-		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 탭하면 원래대로 돌아와요' },
+		unreachable: {
+			title: '학습 중인 기기와 연결하지 못했어요',
+			message: '학습 중인 기기가 인터넷에 연결되어 있고 앱이 최신 버전인지 확인해 주세요.',
+		},
+		learningPaused: '보는 동안에는 학습이 잠시 멈춰요. 나가면 다시 시작돼요.',
+		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 누르면 원래대로 돌아와요' },
 		zoomLevel: '{{zoom}}×',
 	},
 	summary: {

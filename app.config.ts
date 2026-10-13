@@ -76,7 +76,7 @@ const config: ExpoConfig = {
 			'FOREGROUND_SERVICE_MEDIA_PLAYBACK',
 			'com.google.android.gms.permission.AD_ID',
 		],
-		// react-native-webrtc 플러그인이 넣는 권한 중 영상 전송에 쓰지 않는 것은 제외
+		// WebRTC 플러그인의 미사용 권한
 		blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW', 'android.permission.BLUETOOTH'],
 	},
 	plugins: [
@@ -134,15 +134,7 @@ const config: ExpoConfig = {
 		'expo-apple-authentication',
 		'expo-secure-store',
 		'expo-image-picker',
-		[
-			'@config-plugins/react-native-webrtc',
-			{
-				cameraPermission:
-					'Use the camera to take profile photos and to show your parrot during a learning session.',
-				microphonePermission:
-					'Microphone access lets you record words for your parrot and capture sounds during learning.',
-			},
-		],
+		'@config-plugins/react-native-webrtc',
 		[
 			'expo-audio',
 			{

@@ -7,10 +7,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/types/apis/common';
 
 import type { RootStackParamList } from '@/types/navigation';
+import type { PetcamState } from '@/types/petcam';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
 import { getSessionOptions, useFinishSession } from '@/hooks/apis/sessions';
-import useViewerPetcam from '@/hooks/use-viewer-petcam';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,13 +22,15 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RTCView } from 'react-native-webrtc';
+import { type MediaStream, RTCView } from 'react-native-webrtc';
 
-import { HEARTBEAT_INTERVAL_MS } from '@/config';
+import { HEARTBEAT_INTERVAL_MS, PETCAM_CAMERA_REQUEST_TIMEOUT_MS, PETCAM_CONNECT_TIMEOUT_MS } from '@/config';
 import { SECOND } from '@/config/units';
 import CameraButton from '@/screens/session/components/camera-button';
 import RunInfo from '@/screens/session/components/run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
+import { createPetcamReceiver, type PetcamReceiver } from '@/services/petcam/connection';
+import { reportError } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
@@ -40,12 +43,21 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 const ICON_SIZE = 22;
 const FADE_MS = 2 * SECOND;
 
-/** 다시 시도해도 결과가 같은 오류인지 판단하는 함수 */
-const isFinalError = (error: unknown) => error instanceof ApiError && !error.retryable;
+/** 영상이 없을 때 표시할 안내를 반환하는 함수 */
+const watchStatus = (petcamState: PetcamState | null, stationUnreachable: boolean) => {
+	if (!petcamState) {
+		return stationUnreachable ? 'unreachable' : 'connecting';
+	}
 
-/** 다른 기기에서 진행 중인 학습을 지켜보는 화면 */
+	if (petcamState.cameraOn) {
+		return 'connecting';
+	}
+
+	return petcamState.permissionDenied ? 'permission' : 'cameraOff';
+};
+
+/** 다른 기기의 학습을 보는 화면 */
 const SessionWatchScreen = () => {
-	// 보는 화면이라 학습 화면과 달리 어두워지지 않음
 	useKeepAwake();
 
 	const { t } = useTranslation();
@@ -55,22 +67,42 @@ const SessionWatchScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
 
-	const [endDialogOpen, setEndDialogOpen] = useState(false);
+	const opacity = useSharedValue(1);
 
-	const { state: petcamState, stream, setCamera } = useViewerPetcam(params.sessionId);
+	const [endDialogOpen, setEndDialogOpen] = useState(false);
+	const [petcamState, setPetcamState] = useState<PetcamState | null>(null);
+	const [stream, setStream] = useState<MediaStream | null>(null);
+	const [stationUnreachable, setStationUnreachable] = useState(false);
+	const [cameraRequestPending, setCameraRequestPending] = useState(false);
+
+	const leavingRef = useRef(false);
+	const petcamReceiverRef = useRef<PetcamReceiver | null>(null);
+
+	const { data: sessionData, error: sessionError } = useQuery({
+		...getSessionOptions({ id: params.sessionId }),
+		staleTime: 0,
+		throwOnError: false,
+		refetchInterval: HEARTBEAT_INTERVAL_MS,
+	});
+
+	const { mutate: finishSession, isPending: sessionFinishing, error: finishError } = useFinishSession();
+	const { mutateAsync: issuePetcamTurnCredential } = useIssuePetcamTurnCredential();
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
 
-	const opacity = useSharedValue(1);
-
 	const cameraOn = petcamState?.cameraOn ?? false;
-	// 영상이 없을 때는 안내와 버튼이 보여야 하므로 숨기지 않음
+	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
+	const finishNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
+	const sessionEnded =
+		sessionData?.status === 'finished' ||
+		(sessionError instanceof ApiError && !sessionError.retryable) ||
+		finishNotRunning;
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
-	/** 영상이 나오기 시작하면 학습 정보를 잠시 보여 준 뒤 숨김 */
+	/** 영상이 바뀌면 학습 정보 표시 */
 	useEffect(() => {
 		showInfo();
 
@@ -82,24 +114,55 @@ const SessionWatchScreen = () => {
 		opacity.set(infoShown ? 1 : withTiming(0, { duration: FADE_MS }));
 	}, [infoShown, opacity]);
 
-	const leavingRef = useRef(false);
-
-	// 진행 중 세션 목록 캐시는 이 기기에서 학습을 시작하지 않았으면 비어 있을 수 있어, 세션을 직접 조회
-	const { data: session, error: sessionError } = useQuery({
-		...getSessionOptions({ id: params.sessionId }),
-		staleTime: 0,
-		throwOnError: false,
-		refetchInterval: HEARTBEAT_INTERVAL_MS,
-	});
-	const { mutate: finishSession, isPending: finishing, error: finishError } = useFinishSession();
-
-	// 끝난 세션을 다시 종료하려 한 경우는 오류로 보지 않음
-	const finishNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
-	const ended = session?.status === 'finished' || isFinalError(sessionError) || finishNotRunning;
-
-	/** 학습이 끝나면 홈 정보를 새로 불러오고 홈으로 돌아가기 */
+	/** Station과 연결할 채널 열기 */
 	useEffect(() => {
-		if (!ended || leavingRef.current) {
+		const receiver = createPetcamReceiver({
+			sessionId: params.sessionId,
+			issueTurnCredential: issuePetcamTurnCredential,
+			onState: setPetcamState,
+			onStream: setStream,
+			onError: (error) => reportError(error, 'petcam_receiver'),
+		});
+
+		petcamReceiverRef.current = receiver;
+
+		return () => {
+			petcamReceiverRef.current = null;
+
+			receiver.close();
+		};
+	}, [issuePetcamTurnCredential, params.sessionId]);
+
+	/** Station 응답이 없으면 안내 표시 */
+	useEffect(() => {
+		if (petcamState) {
+			return;
+		}
+
+		const timer = setTimeout(() => setStationUnreachable(true), PETCAM_CONNECT_TIMEOUT_MS);
+
+		return () => clearTimeout(timer);
+	}, [petcamState]);
+
+	/** Station이 응답하면 카메라 요청 완료 */
+	useEffect(() => {
+		setCameraRequestPending(false);
+	}, [petcamState]);
+
+	/** 응답이 없으면 카메라 요청 취소 */
+	useEffect(() => {
+		if (!cameraRequestPending) {
+			return;
+		}
+
+		const timer = setTimeout(() => setCameraRequestPending(false), PETCAM_CAMERA_REQUEST_TIMEOUT_MS);
+
+		return () => clearTimeout(timer);
+	}, [cameraRequestPending]);
+
+	/** 학습이 끝나면 화면 나가기 */
+	useEffect(() => {
+		if (!sessionEnded || leavingRef.current) {
 			return;
 		}
 
@@ -108,8 +171,21 @@ const SessionWatchScreen = () => {
 		void queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() });
 		void queryClient.invalidateQueries({ queryKey: apiKeys.home() });
 
+		if (params.source === 'notification') {
+			navigation.popTo('Main', {
+				screen: 'ReportTab',
+				params: {
+					screen: 'SessionDetail',
+					params: { sessionId: params.sessionId, source: 'notification' },
+					initial: false,
+				},
+			});
+
+			return;
+		}
+
 		navigation.goBack();
-	}, [ended, navigation, queryClient]);
+	}, [navigation, params.sessionId, params.source, queryClient, sessionEnded]);
 
 	const handleLeave = () => {
 		if (leavingRef.current) {
@@ -122,13 +198,27 @@ const SessionWatchScreen = () => {
 	};
 
 	const handleToggleCamera = () => {
+		if (cameraRequestPending) {
+			return;
+		}
+
 		showInfo();
-		setCamera(!cameraOn);
+		setCameraRequestPending(true);
+
+		petcamReceiverRef.current?.setCamera(!cameraOn);
 	};
 
 	const handleOpenEndDialog = () => {
 		showInfo();
 		setEndDialogOpen(true);
+	};
+
+	const handleEnd = () => {
+		if (sessionFinishing) {
+			return;
+		}
+
+		finishSession({ id: params.sessionId });
 	};
 
 	const header = (
@@ -145,12 +235,13 @@ const SessionWatchScreen = () => {
 				<Copy style={styles.leaveText}>{t('session.watch.leave')}</Copy>
 			</PressableSurface>
 
-			{!!session && <CameraButton on={cameraOn} onPress={handleToggleCamera} />}
+			{!!sessionData && (
+				<CameraButton cameraOn={cameraOn} loading={cameraRequestPending} onPress={handleToggleCamera} />
+			)}
 		</View>
 	);
 
-	// 세션을 불러오는 중이거나 다시 시도 중이어도 나갈 수 있도록 헤더는 항상 표시
-	if (!session || ended) {
+	if (!sessionData || sessionEnded) {
 		return (
 			<SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
 				<View style={styles.loadingHeader}>{header}</View>
@@ -160,10 +251,6 @@ const SessionWatchScreen = () => {
 			</SafeAreaView>
 		);
 	}
-
-	const handleEnd = () => {
-		finishSession({ id: session.id });
-	};
 
 	return (
 		<View style={styles.screen}>
@@ -177,7 +264,7 @@ const SessionWatchScreen = () => {
 			{/*영상이 없을 때 안내*/}
 			{!stream && (
 				<View style={styles.statusContainer} pointerEvents="none">
-					{!petcamState || cameraOn ? (
+					{status === 'connecting' ? (
 						<>
 							<ActivityIndicator color={sessionColors.text} />
 							<Copy style={styles.statusTitle}>{t('session.watch.connecting')}</Copy>
@@ -185,13 +272,9 @@ const SessionWatchScreen = () => {
 					) : (
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
-							<Copy style={styles.statusTitle}>
-								{t(`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.title`)}
-							</Copy>
+							<Copy style={styles.statusTitle}>{t(`session.watch.${status}.title`)}</Copy>
 							<Copy lineBreakStrategyIOS="hangul-word" style={styles.statusMessage}>
-								{t(
-									`session.watch.${petcamState.permissionDenied ? 'permission' : 'cameraOff'}.message`,
-								)}
+								{t(`session.watch.${status}.message`)}
 							</Copy>
 						</>
 					)}
@@ -201,11 +284,10 @@ const SessionWatchScreen = () => {
 			{/*세션 진행 정보*/}
 			<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents={infoShown ? 'box-none' : 'none'}>
 				<RunInfo
-					startedAt={session.period.started_at}
-					endsAt={session.schedule.ends_at ? dayjs(session.schedule.ends_at).valueOf() : null}
-					sleep={session.schedule.sleep}
-					engineFailed={false}
-					paused={!!stream}
+					startedAt={sessionData.period.started_at}
+					endsAt={sessionData.schedule.ends_at ? dayjs(sessionData.schedule.ends_at).valueOf() : null}
+					sleep={sessionData.schedule.sleep}
+					pauseNotice={stream ? t('session.watch.learningPaused') : null}
 					onEnd={handleOpenEndDialog}
 					header={header}
 				/>
@@ -220,7 +302,7 @@ const SessionWatchScreen = () => {
 					cancel: t('session.end.keep'),
 				}}
 				confirmStatus={{
-					busy: finishing,
+					busy: sessionFinishing,
 					errorMessage: finishError && !finishNotRunning ? t('session.start.endElsewhereError') : null,
 				}}
 				onConfirm={handleEnd}

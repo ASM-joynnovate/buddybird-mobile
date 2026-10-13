@@ -4,17 +4,17 @@ import {
 	type PetcamIceServer,
 	type PetcamMessage,
 	type PetcamPeer,
-	type PetcamPeerEventTarget,
 	type PetcamPeerEvents,
+	type PetcamPeerEventTarget,
+	type PetcamReceiverOptions,
+	type PetcamSenderOptions,
+	type PetcamSenderPeer,
 	type PetcamSignaling,
-	type PetcamStationPeer,
-	type PetcamTurnCredential,
-	type StationPetcamOptions,
-	type ViewerPetcamOptions,
+	type PetcamTurnCredentialIssuer,
 	petcamCandidateSchema,
 	petcamDescriptionSchema,
 	petcamMessageSchema,
-} from '@/types/apis/petcam';
+} from '@/types/petcam';
 
 import { getSupabase } from '@/lib/supabase';
 
@@ -32,10 +32,10 @@ import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS } from '@/config';
 
 const BROADCAST_EVENT = 'petcam';
 
-// 같은 채널을 닫는 중에 다시 열면 닫히는 채널이 재사용되어 구독되지 않으므로, 닫기가 끝날 때까지 대기
+// 닫는 중인 채널
 const closingChannels = new Map<string, Promise<unknown>>();
 
-/** 세션별 Supabase Realtime 채널로 연결 정보를 주고받는 함수 */
+/** signaling 채널을 여는 함수 */
 const openSignaling = (
 	sessionId: string,
 	onMessage: (message: PetcamMessage) => void,
@@ -46,10 +46,10 @@ const openSignaling = (
 
 	let channel: RealtimeChannel | null = null;
 	let topic: string | null = null;
-	let closed = false;
+	let channelClosed = false;
 
-	/** 본인 계정의 세션 채널을 여는 함수, 채널 이름에 사용자 id가 들어가야 접근 규칙을 통과 */
-	const open = async () => {
+	/** Realtime 채널 구독 함수 */
+	const subscribeChannel = async () => {
 		const { data } = await supabase.auth.getSession();
 		const userId = data.session?.user.id;
 
@@ -62,7 +62,7 @@ const openSignaling = (
 		await closingChannels.get(channelTopic);
 		await supabase.realtime.setAuth();
 
-		if (closed) {
+		if (channelClosed) {
 			return;
 		}
 
@@ -88,7 +88,7 @@ const openSignaling = (
 			});
 	};
 
-	void open().catch(onError);
+	void subscribeChannel().catch(onError);
 
 	return {
 		send: (message) => {
@@ -102,30 +102,30 @@ const openSignaling = (
 				.catch((error: unknown) => onError(error));
 		},
 		close: () => {
-			closed = true;
+			channelClosed = true;
 
 			if (!channel || !topic) {
 				return;
 			}
 
 			const channelTopic = topic;
-			const closing: Promise<unknown> = supabase
+			const channelClosing: Promise<unknown> = supabase
 				.removeChannel(channel)
 				.catch((error: unknown) => onError(error))
 				.finally(() => {
-					if (closingChannels.get(channelTopic) === closing) {
+					if (closingChannels.get(channelTopic) === channelClosing) {
 						closingChannels.delete(channelTopic);
 					}
 				});
 
-			closingChannels.set(channelTopic, closing);
+			closingChannels.set(channelTopic, channelClosing);
 		},
 	};
 };
 
-/** 영상 중계(TURN) 접속 정보를 받아 오는 함수, 받지 못하면 공개 STUN만 사용 */
+/** ICE 서버 목록을 반환하는 함수 */
 const fetchIceServers = async (
-	issueTurnCredential: () => Promise<PetcamTurnCredential>,
+	issueTurnCredential: PetcamTurnCredentialIssuer,
 	onError: (error: unknown) => void,
 ): Promise<PetcamIceServer[]> => {
 	try {
@@ -139,8 +139,8 @@ const fetchIceServers = async (
 	}
 };
 
-/** 영상 연결의 이벤트를 듣는 함수 */
-const listen = <Type extends keyof PetcamPeerEvents>(
+/** peer 이벤트 구독 함수 */
+const addPeerListener = <Type extends keyof PetcamPeerEvents>(
 	connection: RTCPeerConnection,
 	type: Type,
 	listener: (event: PetcamPeerEvents[Type]) => void,
@@ -148,7 +148,7 @@ const listen = <Type extends keyof PetcamPeerEvents>(
 	(connection as unknown as PetcamPeerEventTarget).addEventListener(type, listener);
 };
 
-/** 상대 기기와의 영상 연결을 만드는 함수 */
+/** peer 연결을 만드는 함수 */
 const createPeer = (
 	iceServers: PetcamIceServer[],
 	onCandidate: (candidate: PetcamCandidate) => void,
@@ -156,16 +156,16 @@ const createPeer = (
 ): PetcamPeer => {
 	const connection = new RTCPeerConnection({ iceServers });
 
-	// 상대 연결 정보가 적용되기 전에 도착한 후보는 모아 두었다가 적용
+	// 적용을 기다리는 candidate
 	let pendingCandidates: PetcamCandidate[] = [];
-	let remoteReady = false;
+	let remoteDescriptionSet = false;
 
-	/** ICE 후보 적용 함수 */
+	/** ICE candidate 적용 함수 */
 	const applyCandidate = (candidate: PetcamCandidate) => {
 		void connection.addIceCandidate(new RTCIceCandidate(candidate)).catch((error: unknown) => onError(error));
 	};
 
-	listen(connection, 'icecandidate', (event) => {
+	addPeerListener(connection, 'icecandidate', (event) => {
 		if (event.candidate) {
 			onCandidate(petcamCandidateSchema.parse(event.candidate.toJSON()));
 		}
@@ -176,12 +176,12 @@ const createPeer = (
 		setRemote: async (description) => {
 			await connection.setRemoteDescription(new RTCSessionDescription(description));
 
-			remoteReady = true;
+			remoteDescriptionSet = true;
 			pendingCandidates.forEach(applyCandidate);
 			pendingCandidates = [];
 		},
 		addCandidate: (candidate) => {
-			if (remoteReady) {
+			if (remoteDescriptionSet) {
 				applyCandidate(candidate);
 			} else {
 				pendingCandidates = [...pendingCandidates, candidate];
@@ -193,74 +193,67 @@ const createPeer = (
 	};
 };
 
-/** 학습 중인 기기에서 카메라 영상을 보내는 연결을 만드는 함수 */
-export const createStationPetcam = ({
+/** 카메라 영상 전송 연결을 만드는 함수 */
+export const createPetcamSender = ({
 	sessionId,
 	issueTurnCredential,
 	onCameraRequest,
-	onWatchedChange,
+	onViewerConnectedChange,
 	onError,
-}: StationPetcamOptions) => {
-	const peers = new Map<string, PetcamStationPeer>();
+}: PetcamSenderOptions) => {
+	const peers = new Map<string, PetcamSenderPeer>();
 
 	let viewerIds: string[] = [];
-	let stream: MediaStream | null = null;
+	let cameraStream: MediaStream | null = null;
 	let audioTrack: MediaStreamTrack | null = null;
-	let watched = false;
+	let viewerConnected = false;
 	let permissionDenied = false;
-	let turnedOnRemotely = false;
-	let closed = false;
+	let senderClosed = false;
 
-	/** 영상을 받고 있는 보는 기기가 생기거나 없어지면 알리는 함수 */
-	const updateWatched = () => {
+	/** Viewer 연결 여부 갱신 함수 */
+	const updateViewerConnected = () => {
 		const connected = [...peers.values()].some(({ peer }) => peer.connection.connectionState === 'connected');
 
-		if (connected !== watched) {
-			watched = connected;
+		if (connected !== viewerConnected) {
+			viewerConnected = connected;
 
-			onWatchedChange(connected);
+			onViewerConnectedChange(connected);
 		}
 	};
 
-	/** 보는 기기와의 연결 닫기 함수 */
+	/** Viewer와의 peer 닫기 함수 */
 	const closePeer = (viewerId: string) => {
-		const current = peers.get(viewerId);
+		const senderPeer = peers.get(viewerId);
 
-		if (!current) {
+		if (!senderPeer) {
 			return;
 		}
 
-		clearTimeout(current.connectTimer);
-		current.peer.close();
+		clearTimeout(senderPeer.connectTimer);
+		senderPeer.peer.close();
 		peers.delete(viewerId);
 
-		updateWatched();
+		updateViewerConnected();
 	};
 
-	/** 떠난 보는 기기를 정리하고, 원격으로 켠 카메라는 보는 기기가 없으면 끄는 함수 */
+	/** Viewer 제거 함수 */
 	const removeViewer = (viewerId: string) => {
 		viewerIds = viewerIds.filter((id) => id !== viewerId);
 
 		closePeer(viewerId);
-
-		if (viewerIds.length === 0 && turnedOnRemotely) {
-			turnedOnRemotely = false;
-
-			onCameraRequest(false);
-		}
 	};
 
 	/** 카메라 상태 전송 함수 */
 	const sendState = () => {
-		signaling.send({ type: 'state', cameraOn: stream !== null, permissionDenied });
+		signaling.send({ type: 'state', cameraOn: cameraStream !== null, permissionDenied });
 	};
 
-	/** 보는 기기에 영상 연결을 제안하는 함수 */
-	const offer = async (viewerId: string, media: MediaStream) => {
+	/** Viewer에게 offer를 보내는 함수 */
+	const sendOffer = async (viewerId: string, stream: MediaStream) => {
 		const iceServers = await fetchIceServers(issueTurnCredential, onError);
 
-		// 접속 정보를 받는 사이 카메라가 꺼졌거나 보는 기기가 떠났으면 연결하지 않음
-		if (closed || stream !== media || !viewerIds.includes(viewerId)) {
+		// 그 사이 상태가 바뀌면 중단
+		if (senderClosed || cameraStream !== stream || !viewerIds.includes(viewerId)) {
 			return;
 		}
 
@@ -273,21 +266,21 @@ export const createStationPetcam = ({
 			onError,
 		);
 
-		media.getTracks().forEach((track) => {
-			peer.connection.addTrack(track, media);
+		stream.getTracks().forEach((track) => {
+			peer.connection.addTrack(track, stream);
 		});
 
-		// 소리는 보는 기기가 연결된 뒤에 보내므로, 다시 협상하지 않도록 보낼 자리만 미리 만듦
+		// 소리 전송용 transceiver
 		const { sender: audioSender } = peer.connection.addTransceiver('audio', {
 			direction: 'sendonly',
-			streams: [media],
+			streams: [stream],
 		});
 
 		peers.set(viewerId, {
 			peer,
 			offerId,
 			audioSender,
-			// 응답이 오지 않는 연결은 실패 상태가 되지 않으므로, 일정 시간 안에 연결되지 않으면 떠난 것으로 처리
+			// 연결되지 않은 Viewer 제거
 			connectTimer: setTimeout(() => {
 				if (peers.get(viewerId)?.peer === peer && peer.connection.connectionState !== 'connected') {
 					removeViewer(viewerId);
@@ -295,12 +288,12 @@ export const createStationPetcam = ({
 			}, PETCAM_CONNECT_TIMEOUT_MS),
 		});
 
-		listen(peer.connection, 'connectionstatechange', () => {
+		addPeerListener(peer.connection, 'connectionstatechange', () => {
 			if (peer.connection.connectionState === 'failed' && peers.get(viewerId)?.peer === peer) {
 				removeViewer(viewerId);
 			}
 
-			updateWatched();
+			updateViewerConnected();
 		});
 
 		if (audioTrack) {
@@ -322,27 +315,25 @@ export const createStationPetcam = ({
 
 				sendState();
 
-				if (stream) {
-					void offer(message.viewerId, stream).catch(onError);
+				if (cameraStream) {
+					void sendOffer(message.viewerId, cameraStream).catch(onError);
 				}
 			} else if (message.type === 'viewer-leave') {
 				removeViewer(message.viewerId);
 			} else if (message.type === 'answer') {
-				const current = peers.get(message.viewerId);
+				const senderPeer = peers.get(message.viewerId);
 
-				if (current?.offerId === message.offerId) {
-					void current.peer.setRemote(message.description).catch(onError);
+				if (senderPeer?.offerId === message.offerId) {
+					void senderPeer.peer.setRemote(message.description).catch(onError);
 				}
 			} else if (message.type === 'candidate' && message.from === 'viewer') {
-				const current = peers.get(message.viewerId);
+				const senderPeer = peers.get(message.viewerId);
 
-				if (current?.offerId === message.offerId) {
-					current.peer.addCandidate(message.candidate);
+				if (senderPeer?.offerId === message.offerId) {
+					senderPeer.peer.addCandidate(message.candidate);
 				}
 			} else if (message.type === 'camera-set') {
-				turnedOnRemotely = message.on && (turnedOnRemotely || stream === null);
-
-				onCameraRequest(message.on);
+				onCameraRequest(message.cameraOn);
 			}
 		},
 		() => {
@@ -354,38 +345,33 @@ export const createStationPetcam = ({
 	);
 
 	return {
-		/** 보낼 카메라 영상을 바꾸는 함수, 카메라를 끄면 null */
-		setStream: (media: MediaStream | null) => {
+		/** 보낼 카메라 영상을 바꾸는 함수 */
+		setStream: (stream: MediaStream | null) => {
 			[...peers.keys()].forEach(closePeer);
 
-			stream = media;
+			cameraStream = stream;
 			permissionDenied = false;
-
-			if (!media) {
-				turnedOnRemotely = false;
-			}
 
 			sendState();
 
-			if (media) {
-				viewerIds.forEach((viewerId) => void offer(viewerId, media).catch(onError));
+			if (stream) {
+				viewerIds.forEach((viewerId) => void sendOffer(viewerId, stream).catch(onError));
 			}
 		},
-		/** 보낼 마이크 소리를 바꾸는 함수, 소리를 보내지 않으면 null */
+		/** 보낼 마이크 소리를 바꾸는 함수 */
 		setAudioTrack: (track: MediaStreamTrack | null) => {
 			audioTrack = track;
 
 			peers.forEach(({ audioSender }) => void audioSender.replaceTrack(track).catch(onError));
 		},
-		/** 카메라 권한이 없어 켜지 못했음을 보는 기기에 알리는 함수 */
+		/** 카메라 권한 없음을 알리는 함수 */
 		reportPermissionDenied: () => {
 			permissionDenied = true;
-			turnedOnRemotely = false;
 
 			sendState();
 		},
 		close: () => {
-			closed = true;
+			senderClosed = true;
 
 			[...peers.keys()].forEach(closePeer);
 
@@ -394,24 +380,24 @@ export const createStationPetcam = ({
 	};
 };
 
-export type StationPetcam = ReturnType<typeof createStationPetcam>;
+export type PetcamSender = ReturnType<typeof createPetcamSender>;
 
-/** 다른 기기에서 진행 중인 학습의 카메라 영상을 받는 연결을 만드는 함수 */
-export const createViewerPetcam = ({
+/** 카메라 영상 수신 연결을 만드는 함수 */
+export const createPetcamReceiver = ({
 	sessionId,
 	issueTurnCredential,
 	onState,
 	onStream,
 	onError,
-}: ViewerPetcamOptions) => {
+}: PetcamReceiverOptions) => {
 	const viewerId = randomUUID();
 
 	let peer: PetcamPeer | null = null;
 	let offerId: string | null = null;
-	// 연결이 만들어지기 전에 도착한 후보는 제안별로 모아 두었다가 적용
+	// peer보다 먼저 도착한 candidate
 	let earlyCandidates: { offerId: string; candidate: PetcamCandidate }[] = [];
 
-	/** 받고 있던 영상 연결 닫기 함수 */
+	/** 수신 중인 peer 닫기 함수 */
 	const closePeer = () => {
 		offerId = null;
 		earlyCandidates = [];
@@ -422,9 +408,11 @@ export const createViewerPetcam = ({
 		onStream(null);
 	};
 
-	/** 학습 중인 기기가 제안한 영상 연결을 수락하는 함수 */
-	const answer = async (acceptedOfferId: string, description: PetcamDescription) => {
-		const arrivedCandidates = earlyCandidates.filter((early) => early.offerId === acceptedOfferId);
+	/** offer에 answer를 보내는 함수 */
+	const sendAnswer = async (acceptedOfferId: string, description: PetcamDescription) => {
+		const arrivedCandidates = earlyCandidates.filter(
+			(earlyCandidate) => earlyCandidate.offerId === acceptedOfferId,
+		);
 
 		closePeer();
 
@@ -433,43 +421,43 @@ export const createViewerPetcam = ({
 
 		const iceServers = await fetchIceServers(issueTurnCredential, onError);
 
-		// 접속 정보를 받는 사이 새 제안이 왔거나 연결이 닫혔으면 이전 제안은 버림
+		// 새 offer가 오면 중단
 		if (offerId !== acceptedOfferId) {
 			return;
 		}
 
-		const created = createPeer(
+		const createdPeer = createPeer(
 			iceServers,
 			(candidate) =>
 				signaling.send({ type: 'candidate', viewerId, offerId: acceptedOfferId, from: 'viewer', candidate }),
 			onError,
 		);
 
-		peer = created;
+		peer = createdPeer;
 
-		earlyCandidates.forEach((early) => created.addCandidate(early.candidate));
+		earlyCandidates.forEach((earlyCandidate) => createdPeer.addCandidate(earlyCandidate.candidate));
 		earlyCandidates = [];
 
-		listen(created.connection, 'track', (event) => {
-			const [media] = event.streams;
+		addPeerListener(createdPeer.connection, 'track', (event) => {
+			const [stream] = event.streams;
 
-			if (media && peer === created) {
-				onStream(media);
+			if (stream && peer === createdPeer) {
+				onStream(stream);
 			}
 		});
-		listen(created.connection, 'connectionstatechange', () => {
-			if (created.connection.connectionState === 'failed' && peer === created) {
+		addPeerListener(createdPeer.connection, 'connectionstatechange', () => {
+			if (createdPeer.connection.connectionState === 'failed' && peer === createdPeer) {
 				closePeer();
 
 				signaling.send({ type: 'viewer-join', viewerId });
 			}
 		});
 
-		await created.setRemote(description);
+		await createdPeer.setRemote(description);
 
-		const localDescription = petcamDescriptionSchema.parse(await created.connection.createAnswer());
+		const localDescription = petcamDescriptionSchema.parse(await createdPeer.connection.createAnswer());
 
-		await created.connection.setLocalDescription(localDescription);
+		await createdPeer.connection.setLocalDescription(localDescription);
 
 		signaling.send({ type: 'answer', viewerId, offerId: acceptedOfferId, description: localDescription });
 	};
@@ -488,7 +476,7 @@ export const createViewerPetcam = ({
 					closePeer();
 				}
 			} else if (message.type === 'offer' && message.viewerId === viewerId) {
-				void answer(message.offerId, message.description).catch(onError);
+				void sendAnswer(message.offerId, message.description).catch(onError);
 			} else if (message.type === 'candidate' && message.from === 'station' && message.viewerId === viewerId) {
 				if (peer && message.offerId === offerId) {
 					peer.addCandidate(message.candidate);
@@ -502,8 +490,8 @@ export const createViewerPetcam = ({
 	);
 
 	return {
-		/** 학습 중인 기기의 카메라를 켜거나 끄도록 요청하는 함수 */
-		setCamera: (on: boolean) => signaling.send({ type: 'camera-set', on }),
+		/** Station 카메라 상태 요청 함수 */
+		setCamera: (cameraOn: boolean) => signaling.send({ type: 'camera-set', cameraOn }),
 		close: () => {
 			signaling.send({ type: 'viewer-leave', viewerId });
 
@@ -516,3 +504,5 @@ export const createViewerPetcam = ({
 		},
 	};
 };
+
+export type PetcamReceiver = ReturnType<typeof createPetcamReceiver>;
