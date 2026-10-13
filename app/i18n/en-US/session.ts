@@ -56,6 +56,7 @@ export const session: SessionMessages = {
 		keepOpen: 'Keep the app open and the screen on.',
 		dimAfter: 'The screen dims automatically after {{seconds}} seconds to save battery and protect the display.',
 		engineError: "Couldn't play the word. End this session and start again.",
+		petcamPaused: 'Learning is paused while the petcam is on. It resumes automatically when the petcam ends.',
 		remaining: 'Ends in',
 		battery: 'Battery',
 		batteryLevel: '{{percent}}%',

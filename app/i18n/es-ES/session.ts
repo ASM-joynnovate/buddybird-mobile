@@ -57,6 +57,8 @@ export const session: SessionMessages = {
 		keepOpen: 'Deja la app abierta y no apagues la pantalla.',
 		dimAfter: 'Para cuidar la batería y la pantalla, se oscurecerá sola en {{seconds}} segundos.',
 		engineError: 'No hemos podido reproducir el sonido. Termina el entrenamiento y empieza de nuevo.',
+		petcamPaused:
+			'El entrenamiento está en pausa por el modo cámara. Se reanudará automáticamente cuando termine la cámara.',
 		remaining: 'Termina en',
 		battery: 'Batería',
 		batteryLevel: '{{percent}} %',

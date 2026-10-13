@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { PetcamState } from '@/types/apis/petcam';
+
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
 
 import type { MediaStream } from 'react-native-webrtc';
 
-import { createViewerPetcam, type PetcamState } from '@/services/petcam/connection';
+import { createViewerPetcam } from '@/services/petcam/connection';
 import { reportError } from '@/services/telemetry/client';
 
 type ViewerPetcam = ReturnType<typeof createViewerPetcam>;

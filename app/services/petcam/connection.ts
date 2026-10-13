@@ -1,108 +1,36 @@
-import type { PetcamTurnCredential } from '@/types/apis/petcam';
+import {
+	type PetcamCandidate,
+	type PetcamDescription,
+	type PetcamIceServer,
+	type PetcamMessage,
+	type PetcamPeer,
+	type PetcamPeerEventTarget,
+	type PetcamPeerEvents,
+	type PetcamSignaling,
+	type PetcamStationPeer,
+	type PetcamTurnCredential,
+	type StationPetcamOptions,
+	type ViewerPetcamOptions,
+	petcamCandidateSchema,
+	petcamDescriptionSchema,
+	petcamMessageSchema,
+} from '@/types/apis/petcam';
 
 import { getSupabase } from '@/lib/supabase';
 
-import { z } from 'zod';
-
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
-import { type MediaStream, RTCIceCandidate, RTCPeerConnection, RTCSessionDescription } from 'react-native-webrtc';
+import {
+	type MediaStream,
+	type MediaStreamTrack,
+	RTCIceCandidate,
+	RTCPeerConnection,
+	RTCSessionDescription,
+} from 'react-native-webrtc';
 
 import { PETCAM_CONNECT_TIMEOUT_MS, PETCAM_ICE_SERVERS } from '@/config';
 
 const BROADCAST_EVENT = 'petcam';
-
-const descriptionSchema = z.object({ type: z.enum(['offer', 'answer']), sdp: z.string() });
-const candidateSchema = z.object({
-	candidate: z.string(),
-	sdpMLineIndex: z.number().nullable(),
-	sdpMid: z.string().nullable(),
-});
-const messageSchema = z.discriminatedUnion('type', [
-	z.object({ type: z.literal('station-ready') }),
-	z.object({ type: z.literal('state'), cameraOn: z.boolean(), permissionDenied: z.boolean() }),
-	z.object({ type: z.literal('viewer-join'), viewerId: z.string() }),
-	z.object({ type: z.literal('viewer-leave'), viewerId: z.string() }),
-	z.object({ type: z.literal('camera-set'), on: z.boolean() }),
-	z.object({
-		type: z.literal('offer'),
-		viewerId: z.string(),
-		offerId: z.string(),
-		description: descriptionSchema,
-	}),
-	z.object({
-		type: z.literal('answer'),
-		viewerId: z.string(),
-		offerId: z.string(),
-		description: descriptionSchema,
-	}),
-	z.object({
-		type: z.literal('candidate'),
-		viewerId: z.string(),
-		offerId: z.string(),
-		from: z.enum(['station', 'viewer']),
-		candidate: candidateSchema,
-	}),
-]);
-
-type PetcamMessage = z.infer<typeof messageSchema>;
-type Description = z.infer<typeof descriptionSchema>;
-type Candidate = z.infer<typeof candidateSchema>;
-
-export interface PetcamState {
-	cameraOn: boolean;
-	permissionDenied: boolean;
-}
-
-interface IceServer {
-	urls: string | string[];
-	username?: string;
-	credential?: string;
-}
-
-// react-native-webrtc가 이벤트 타입 정의를 배포본에 넣지 않아, 사용하는 이벤트만 직접 정의
-interface PeerEvents {
-	icecandidate: { candidate: RTCIceCandidate | null };
-	track: { streams: MediaStream[] };
-	connectionstatechange: object;
-}
-
-interface PeerEventTarget {
-	addEventListener: <Type extends keyof PeerEvents>(type: Type, listener: (event: PeerEvents[Type]) => void) => void;
-}
-
-interface Signaling {
-	send: (message: PetcamMessage) => void;
-	close: () => void;
-}
-
-interface Peer {
-	connection: RTCPeerConnection;
-	setRemote: (description: Description) => Promise<void>;
-	addCandidate: (candidate: Candidate) => void;
-	close: () => void;
-}
-
-interface StationPeer {
-	peer: Peer;
-	offerId: string;
-	connectTimer: ReturnType<typeof setTimeout>;
-}
-
-interface StationPetcamOptions {
-	sessionId: string;
-	issueTurnCredential: () => Promise<PetcamTurnCredential>;
-	onCameraRequest: (on: boolean) => void;
-	onError: (error: unknown) => void;
-}
-
-interface ViewerPetcamOptions {
-	sessionId: string;
-	issueTurnCredential: () => Promise<PetcamTurnCredential>;
-	onState: (state: PetcamState) => void;
-	onStream: (stream: MediaStream | null) => void;
-	onError: (error: unknown) => void;
-}
 
 // 같은 채널을 닫는 중에 다시 열면 닫히는 채널이 재사용되어 구독되지 않으므로, 닫기가 끝날 때까지 대기
 const closingChannels = new Map<string, Promise<unknown>>();
@@ -113,7 +41,7 @@ const openSignaling = (
 	onMessage: (message: PetcamMessage) => void,
 	onReady: () => void,
 	onError: (error: unknown) => void,
-): Signaling => {
+): PetcamSignaling => {
 	const supabase = getSupabase();
 
 	let channel: RealtimeChannel | null = null;
@@ -145,7 +73,7 @@ const openSignaling = (
 
 		channel
 			.on('broadcast', { event: BROADCAST_EVENT }, ({ payload }) => {
-				const parsed = messageSchema.safeParse(payload);
+				const parsed = petcamMessageSchema.safeParse(payload);
 
 				if (parsed.success) {
 					onMessage(parsed.data);
@@ -199,7 +127,7 @@ const openSignaling = (
 const fetchIceServers = async (
 	issueTurnCredential: () => Promise<PetcamTurnCredential>,
 	onError: (error: unknown) => void,
-): Promise<IceServer[]> => {
+): Promise<PetcamIceServer[]> => {
 	try {
 		const { ice_servers: iceServers } = await issueTurnCredential();
 
@@ -212,34 +140,34 @@ const fetchIceServers = async (
 };
 
 /** 영상 연결의 이벤트를 듣는 함수 */
-const listen = <Type extends keyof PeerEvents>(
+const listen = <Type extends keyof PetcamPeerEvents>(
 	connection: RTCPeerConnection,
 	type: Type,
-	listener: (event: PeerEvents[Type]) => void,
+	listener: (event: PetcamPeerEvents[Type]) => void,
 ) => {
-	(connection as unknown as PeerEventTarget).addEventListener(type, listener);
+	(connection as unknown as PetcamPeerEventTarget).addEventListener(type, listener);
 };
 
 /** 상대 기기와의 영상 연결을 만드는 함수 */
 const createPeer = (
-	iceServers: IceServer[],
-	onCandidate: (candidate: Candidate) => void,
+	iceServers: PetcamIceServer[],
+	onCandidate: (candidate: PetcamCandidate) => void,
 	onError: (error: unknown) => void,
-): Peer => {
+): PetcamPeer => {
 	const connection = new RTCPeerConnection({ iceServers });
 
 	// 상대 연결 정보가 적용되기 전에 도착한 후보는 모아 두었다가 적용
-	let pendingCandidates: Candidate[] = [];
+	let pendingCandidates: PetcamCandidate[] = [];
 	let remoteReady = false;
 
 	/** ICE 후보 적용 함수 */
-	const applyCandidate = (candidate: Candidate) => {
+	const applyCandidate = (candidate: PetcamCandidate) => {
 		void connection.addIceCandidate(new RTCIceCandidate(candidate)).catch((error: unknown) => onError(error));
 	};
 
 	listen(connection, 'icecandidate', (event) => {
 		if (event.candidate) {
-			onCandidate(candidateSchema.parse(event.candidate.toJSON()));
+			onCandidate(petcamCandidateSchema.parse(event.candidate.toJSON()));
 		}
 	});
 
@@ -270,15 +198,29 @@ export const createStationPetcam = ({
 	sessionId,
 	issueTurnCredential,
 	onCameraRequest,
+	onWatchedChange,
 	onError,
 }: StationPetcamOptions) => {
-	const peers = new Map<string, StationPeer>();
+	const peers = new Map<string, PetcamStationPeer>();
 
 	let viewerIds: string[] = [];
 	let stream: MediaStream | null = null;
+	let audioTrack: MediaStreamTrack | null = null;
+	let watched = false;
 	let permissionDenied = false;
 	let turnedOnRemotely = false;
 	let closed = false;
+
+	/** 영상을 받고 있는 보는 기기가 생기거나 없어지면 알리는 함수 */
+	const updateWatched = () => {
+		const connected = [...peers.values()].some(({ peer }) => peer.connection.connectionState === 'connected');
+
+		if (connected !== watched) {
+			watched = connected;
+
+			onWatchedChange(connected);
+		}
+	};
 
 	/** 보는 기기와의 연결 닫기 함수 */
 	const closePeer = (viewerId: string) => {
@@ -291,6 +233,8 @@ export const createStationPetcam = ({
 		clearTimeout(current.connectTimer);
 		current.peer.close();
 		peers.delete(viewerId);
+
+		updateWatched();
 	};
 
 	/** 떠난 보는 기기를 정리하고, 원격으로 켠 카메라는 보는 기기가 없으면 끄는 함수 */
@@ -329,9 +273,20 @@ export const createStationPetcam = ({
 			onError,
 		);
 
+		media.getTracks().forEach((track) => {
+			peer.connection.addTrack(track, media);
+		});
+
+		// 소리는 보는 기기가 연결된 뒤에 보내므로, 다시 협상하지 않도록 보낼 자리만 미리 만듦
+		const { sender: audioSender } = peer.connection.addTransceiver('audio', {
+			direction: 'sendonly',
+			streams: [media],
+		});
+
 		peers.set(viewerId, {
 			peer,
 			offerId,
+			audioSender,
 			// 응답이 오지 않는 연결은 실패 상태가 되지 않으므로, 일정 시간 안에 연결되지 않으면 떠난 것으로 처리
 			connectTimer: setTimeout(() => {
 				if (peers.get(viewerId)?.peer === peer && peer.connection.connectionState !== 'connected') {
@@ -344,13 +299,15 @@ export const createStationPetcam = ({
 			if (peer.connection.connectionState === 'failed' && peers.get(viewerId)?.peer === peer) {
 				removeViewer(viewerId);
 			}
+
+			updateWatched();
 		});
 
-		media.getTracks().forEach((track) => {
-			peer.connection.addTrack(track, media);
-		});
+		if (audioTrack) {
+			void audioSender.replaceTrack(audioTrack).catch(onError);
+		}
 
-		const description = descriptionSchema.parse(await peer.connection.createOffer({}));
+		const description = petcamDescriptionSchema.parse(await peer.connection.createOffer({}));
 
 		await peer.connection.setLocalDescription(description);
 
@@ -414,6 +371,12 @@ export const createStationPetcam = ({
 				viewerIds.forEach((viewerId) => void offer(viewerId, media).catch(onError));
 			}
 		},
+		/** 보낼 마이크 소리를 바꾸는 함수, 소리를 보내지 않으면 null */
+		setAudioTrack: (track: MediaStreamTrack | null) => {
+			audioTrack = track;
+
+			peers.forEach(({ audioSender }) => void audioSender.replaceTrack(track).catch(onError));
+		},
 		/** 카메라 권한이 없어 켜지 못했음을 보는 기기에 알리는 함수 */
 		reportPermissionDenied: () => {
 			permissionDenied = true;
@@ -443,10 +406,10 @@ export const createViewerPetcam = ({
 }: ViewerPetcamOptions) => {
 	const viewerId = randomUUID();
 
-	let peer: Peer | null = null;
+	let peer: PetcamPeer | null = null;
 	let offerId: string | null = null;
 	// 연결이 만들어지기 전에 도착한 후보는 제안별로 모아 두었다가 적용
-	let earlyCandidates: { offerId: string; candidate: Candidate }[] = [];
+	let earlyCandidates: { offerId: string; candidate: PetcamCandidate }[] = [];
 
 	/** 받고 있던 영상 연결 닫기 함수 */
 	const closePeer = () => {
@@ -460,7 +423,7 @@ export const createViewerPetcam = ({
 	};
 
 	/** 학습 중인 기기가 제안한 영상 연결을 수락하는 함수 */
-	const answer = async (acceptedOfferId: string, description: Description) => {
+	const answer = async (acceptedOfferId: string, description: PetcamDescription) => {
 		const arrivedCandidates = earlyCandidates.filter((early) => early.offerId === acceptedOfferId);
 
 		closePeer();
@@ -504,7 +467,7 @@ export const createViewerPetcam = ({
 
 		await created.setRemote(description);
 
-		const localDescription = descriptionSchema.parse(await created.connection.createAnswer());
+		const localDescription = petcamDescriptionSchema.parse(await created.connection.createAnswer());
 
 		await created.connection.setLocalDescription(localDescription);
 

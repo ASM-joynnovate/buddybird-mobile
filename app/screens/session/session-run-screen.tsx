@@ -77,6 +77,7 @@ const SessionRunScreen = () => {
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 	const [cameraOn, setCameraOn] = useState(false);
 	const [previewVisible, setPreviewVisible] = useState(true);
+	const [petcamAudioOn, setPetcamAudioOn] = useState(false);
 
 	const cameraPermission = usePermission('camera');
 
@@ -84,6 +85,9 @@ const SessionRunScreen = () => {
 	const uploadsRef = useRef<Promise<unknown>[]>([]);
 	const soundCountRef = useRef(0);
 	const pausedAtRef = useRef<number | null>(null);
+	const appActiveRef = useRef(true);
+	const petcamWatchedRef = useRef(false);
+	const syncEngineRef = useRef<() => void>(() => undefined);
 	const endingRef = useRef(false);
 	const cameraPromptRef = useRef(false);
 	const reportPermissionDeniedRef = useRef<() => void>(() => undefined);
@@ -125,9 +129,14 @@ const SessionRunScreen = () => {
 
 	const handleCameraFailed = useCallback(() => setCameraOn(false), []);
 
-	const { stream: cameraStream, reportPermissionDenied } = useStationPetcam({
+	const {
+		stream: cameraStream,
+		watched: petcamWatched,
+		reportPermissionDenied,
+	} = useStationPetcam({
 		sessionId,
 		cameraOn,
+		audioOn: petcamAudioOn,
 		onRemoteCamera: handleRemoteCamera,
 		onCameraFailed: handleCameraFailed,
 	});
@@ -298,6 +307,28 @@ const SessionRunScreen = () => {
 			queue = queue.then(step).catch((error: unknown) => reportError(error, 'learning_engine'));
 		};
 
+		let enginePaused = false;
+
+		/** 앱이 화면에 없거나 보는 기기가 영상을 받는 동안 학습을 멈추고, 멈춘 뒤에만 펫캠 소리를 켜는 함수 */
+		const syncEngine = () => {
+			enqueue(async () => {
+				const engine = engineRef.current;
+				const shouldPause = !appActiveRef.current || petcamWatchedRef.current;
+
+				if (engine && shouldPause !== enginePaused) {
+					enginePaused = shouldPause;
+
+					await (shouldPause ? engine.pause() : engine.resume());
+				}
+
+				setPetcamAudioOn(petcamWatchedRef.current && (enginePaused || !engine));
+			});
+		};
+
+		syncEngineRef.current = syncEngine;
+
+		syncEngine();
+
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
 			// iOS는 카메라 권한 창이 떠 있는 동안 inactive가 되므로, 이 동안은 학습을 멈추지 않음
 			if (cameraPromptRef.current && appState === 'inactive') {
@@ -317,11 +348,15 @@ const SessionRunScreen = () => {
 				pausedAtRef.current = null;
 			}
 
-			enqueue(() => (appState === 'active' ? engineRef.current?.resume() : engineRef.current?.pause()));
+			appActiveRef.current = appState === 'active';
+
+			syncEngine();
 		});
 
 		return () => {
 			appStateSubscription.remove();
+
+			syncEngineRef.current = () => undefined;
 
 			enqueue(() => {
 				const engine = engineRef.current;
@@ -332,6 +367,17 @@ const SessionRunScreen = () => {
 			});
 		};
 	}, [duration, queryClient, sessionId, setEngineFailed, sleep, sleepChanged, startedAt, uploadSessionSound, wordId]);
+
+	/** 보는 기기가 영상을 받는 동안 학습을 멈추고 소리를 전송, 받는 기기가 없어지면 소리를 끈 뒤 학습 재개 */
+	useEffect(() => {
+		petcamWatchedRef.current = petcamWatched;
+
+		if (!petcamWatched) {
+			setPetcamAudioOn(false);
+		}
+
+		syncEngineRef.current();
+	}, [petcamWatched]);
 
 	/** 하트비트 전송에 사용할 최신 값 저장 */
 	useEffect(() => {
@@ -435,6 +481,7 @@ const SessionRunScreen = () => {
 						endsAt={endsAt}
 						sleep={sleep}
 						engineFailed={engineFailed}
+						paused={petcamWatched}
 						onEnd={handleOpenEndDialog}
 						cameraButton={
 							PETCAM_ENABLED ? <CameraButton on={cameraOn} onPress={handleToggleCamera} /> : undefined

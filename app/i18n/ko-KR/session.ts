@@ -56,6 +56,7 @@ export const session: SessionMessages = {
 		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
 		dimAfter: '배터리 및 화면 보호를 위해 {{seconds}}초 후 자동으로 어두워집니다.',
 		engineError: '소리를 재생하지 못했어요. 학습을 끝내고 다시 시작해 주세요.',
+		petcamPaused: '펫캠 모드 전환으로 학습이 중지되었습니다. 펫캠을 종료하면 자동으로 학습이 다시 진행됩니다.',
 		remaining: '종료까지',
 		battery: '배터리',
 		batteryLevel: '{{percent}}%',
