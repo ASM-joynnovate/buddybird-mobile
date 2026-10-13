@@ -1,11 +1,20 @@
+import { getStateFromPath } from '@react-navigation/native';
+
+import { linkingConfig } from '@/utils/linking';
+
 interface OpenedNotification {
 	kind: string;
 	notification_id?: string;
 	data_id?: string | null;
+	link?: string | null;
 }
 
 /** 알림으로 열 화면 경로를 반환하는 함수 */
-export const notificationPath = ({ kind, notification_id, data_id }: OpenedNotification) => {
+export const notificationPath = ({ kind, notification_id, data_id, link }: OpenedNotification) => {
+	if (link && getStateFromPath(link, linkingConfig)) {
+		return link;
+	}
+
 	if (kind === 'report') {
 		return data_id ? `/sessions/${data_id}?source=notification` : null;
 	}

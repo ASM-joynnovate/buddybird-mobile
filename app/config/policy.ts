@@ -7,6 +7,14 @@ export const DEFAULT_STALE_TIME_MS = 30 * SECOND;
 export const HEARTBEAT_INTERVAL_MS = 10 * SECOND;
 export const SESSION_INFO_HIDE_MS = 10 * SECOND;
 
+export const PETCAM_MAX_ZOOM = 3;
+export const PETCAM_ZOOM_HINT_MS = 4 * SECOND;
+export const PETCAM_VIDEO = { facingMode: 'environment', width: 1280, height: 720, frameRate: 15 } as const;
+export const PETCAM_CONNECT_TIMEOUT_MS = 30 * SECOND;
+export const PETCAM_CAMERA_REQUEST_TIMEOUT_MS = 5 * SECOND;
+export const PETCAM_STATS_INTERVAL_MS = 30 * SECOND;
+export const PETCAM_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }] as const;
+
 export const SESSION_DURATION_PRESETS = [
 	{ id: 'short', ms: 40 * MINUTE },
 	{ id: 'medium', ms: 80 * MINUTE },

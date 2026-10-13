@@ -82,7 +82,7 @@ export const pageMetaSchema = z.object({
 	is_last: z.boolean(),
 });
 
-export const fileSchema = z.object({ url: z.string(), status: z.enum(['pending', 'uploaded', 'rejected']) });
+export const fileSchema = z.object({ url: z.string(), status: z.string() });
 
 type PageMeta = z.infer<typeof pageMetaSchema>;
 

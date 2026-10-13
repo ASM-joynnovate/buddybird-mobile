@@ -12,7 +12,7 @@ export const consentSchema = z.object({
 	body: z.string(),
 	is_required: z.boolean(),
 	published_at: timestampSchema,
-	status: consentStatusSchema.nullable(),
+	status: z.string().nullable(),
 });
 
 const saveConsentRequestSchema = z.object({

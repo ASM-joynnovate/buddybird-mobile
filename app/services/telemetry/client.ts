@@ -5,6 +5,7 @@ import type { Parrot } from '@/types/apis/parrots';
 
 import type { AnalyticsConsent } from '@/types/analytics-consent';
 import type { DeviceSettings } from '@/types/device-settings';
+import type { PetcamVideoSettings, PetcamVideoStats } from '@/types/petcam';
 import type { AnalyticsEvents, UserProperties } from '@/types/telemetry';
 
 import {
@@ -265,4 +266,37 @@ export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
 	Sentry.captureException(reportedError, { tags: attributes });
 
 	track('app_error', { error_code: reportedError.name, screen_name: currentScreen });
+};
+
+/** 요청한 영상 설정의 Sentry 속성을 반환하는 함수 */
+const requestedVideoAttributes = (video: PetcamVideoSettings) => ({
+	'petcam.requested_width': video.width,
+	'petcam.requested_height': video.height,
+	'petcam.requested_frame_rate': video.frameRate,
+});
+
+/** 카메라 열기를 span으로 기록하는 함수 */
+export const tracePetcamCamera = <Result>(video: PetcamVideoSettings, openCamera: () => Promise<Result>) => {
+	return Sentry.startSpan({ name: 'petcam.camera', attributes: requestedVideoAttributes(video) }, openCamera);
+};
+
+/** 영상 통계를 metric으로 기록하는 함수 */
+export const recordPetcamVideoStats = (
+	role: 'sender' | 'receiver',
+	stats: PetcamVideoStats,
+	video?: PetcamVideoSettings,
+) => {
+	const attributes = {
+		role,
+		...(video ? requestedVideoAttributes(video) : {}),
+		...(stats.qualityLimitation ? { quality_limitation: stats.qualityLimitation } : {}),
+	};
+
+	Sentry.metrics.distribution('petcam.frame_rate', stats.frameRate, { attributes });
+	Sentry.metrics.distribution('petcam.frame_width', stats.frameWidth, { attributes });
+	Sentry.metrics.distribution('petcam.frame_height', stats.frameHeight, { attributes });
+
+	if (stats.bitrate !== null) {
+		Sentry.metrics.distribution('petcam.bitrate', stats.bitrate, { unit: 'kbps', attributes });
+	}
 };

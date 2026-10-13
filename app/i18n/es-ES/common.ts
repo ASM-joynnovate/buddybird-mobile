@@ -50,7 +50,7 @@ export const common: CommonMessages = {
 		},
 		camera: {
 			name: 'Cámara',
-			reason: 'Hace falta la cámara para hacer una foto de perfil.',
+			reason: 'Hace falta la cámara para hacer una foto de perfil y para ver a tu loro durante el entrenamiento.',
 		},
 	},
 	confirmDelete: {

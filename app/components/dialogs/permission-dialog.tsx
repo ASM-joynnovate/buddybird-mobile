@@ -14,13 +14,15 @@ import { ui } from '@/components/ui/styles';
 
 interface Props {
 	state: PermissionDialogState;
+	notice?: string;
 }
 
 /**
  * 권한 설정 안내 다이얼로그 컴포넌트
  * @param state 다이얼로그 상태
+ * @param notice 권한 설명 아래에 표시할 문구
  */
-const PermissionDialog = ({ state }: Props) => {
+const PermissionDialog = ({ state, notice }: Props) => {
 	const { t } = useTranslation();
 
 	const handleOpenSettings = () => {
@@ -57,6 +59,7 @@ const PermissionDialog = ({ state }: Props) => {
 			<View style={styles.reasonContainer}>
 				<Mascot size={88} />
 				<Copy style={styles.reason}>{t(`common.permission.${state.kind}.reason`)}</Copy>
+				{!!notice && <Copy style={styles.reason}>{notice}</Copy>}
 			</View>
 		</Dialog>
 	);

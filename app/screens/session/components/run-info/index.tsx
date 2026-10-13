@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -11,9 +11,7 @@ import { formatTimer } from '@/i18n/format';
 import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SESSION_INFO_HIDE_MS } from '@/config';
 import { SECOND } from '@/config/units';
-import BatteryStatus from '@/screens/session/components/run-info/battery-status';
 import SessionProgressArc from '@/screens/session/components/run-info/session-progress-arc';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
@@ -30,8 +28,9 @@ interface Props {
 	startedAt: string;
 	endsAt: number | null;
 	sleep: SleepSettings | null;
-	engineFailed: boolean;
+	pauseNotice: string | null;
 	onEnd: () => void;
+	header: ReactNode;
 }
 
 /**
@@ -39,10 +38,11 @@ interface Props {
  * @param startedAt 세션 시작 시각
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
- * @param engineFailed 학습 엔진 시작 실패 여부
+ * @param pauseNotice 학습 단계 대신 표시할 문구
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
+ * @param header 위쪽에 표시할 헤더
  */
-const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
+const RunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -55,7 +55,13 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 
 	const currentPhase = (
 		<View style={styles.phaseContainer} pointerEvents="none">
-			<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
+			{pauseNotice ? (
+				<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNotice}>
+					{pauseNotice}
+				</Copy>
+			) : (
+				<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
+			)}
 		</View>
 	);
 	const sessionTime = (
@@ -88,25 +94,9 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 	}, []);
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']} pointerEvents="box-none">
 			{/*헤더*/}
-			<View style={styles.topRow}>
-				<View style={styles.noticeContainer}>
-					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-						{t('session.run.keepOpen')}
-					</Copy>
-					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-						{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
-					</Copy>
-					{engineFailed && (
-						<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-							{t('session.run.engineError')}
-						</Copy>
-					)}
-				</View>
-
-				<BatteryStatus />
-			</View>
+			{header}
 
 			{isLandscape ? (
 				<View style={styles.splitRow} pointerEvents="box-none">
@@ -153,11 +143,20 @@ const RunInfo = ({ startedAt, endsAt, sleep, engineFailed, onEnd }: Props) => {
 
 const styles = StyleSheet.create({
 	container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SCREEN_PADDING, paddingTop: 12 },
-	topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-	noticeContainer: { flex: 1 },
-	noticeText: { fontFamily: font.extraBold, fontSize: 13, lineHeight: 18, color: sessionColors.faint },
-	phaseContainer: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
+	phaseContainer: {
+		...StyleSheet.absoluteFill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: SCREEN_PADDING,
+	},
 	phaseText: { fontFamily: font.black, fontSize: 34, lineHeight: 40, color: sessionColors.text },
+	pauseNotice: {
+		fontFamily: font.extraBold,
+		fontSize: 17,
+		lineHeight: 26,
+		textAlign: 'center',
+		color: sessionColors.text,
+	},
 	sessionTimeContainer: { alignItems: 'center', gap: 2 },
 	sessionTimeLabel: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.faint },
 	sessionTimeText: {

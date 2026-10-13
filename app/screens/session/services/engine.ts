@@ -341,14 +341,19 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
+	/** 오디오 세션 설정 적용 함수 */
+	const activateAudioSession = async () => {
+		AudioManager.setAudioSessionOptions({
+			iosCategory: 'playAndRecord',
+			iosMode: 'default',
+			iosOptions: ['defaultToSpeaker'],
+		});
+		await AudioManager.setAudioSessionActivity(true);
+	};
+
 	return {
 		start: async () => {
-			AudioManager.setAudioSessionOptions({
-				iosCategory: 'playAndRecord',
-				iosMode: 'default',
-				iosOptions: ['defaultToSpeaker'],
-			});
-			await AudioManager.setAudioSessionActivity(true);
+			await activateAudioSession();
 
 			if (stopped) {
 				return;
@@ -367,6 +372,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 			await context?.suspend();
 		},
 		resume: async () => {
+			await activateAudioSession();
 			await context?.resume();
 			await startRunning();
 		},

@@ -45,16 +45,21 @@ export const session: SessionMessages = {
 		startButton: 'Empezar entrenamiento',
 		startUnavailable: 'Elige una palabra y la duración para empezar',
 		elsewhere: 'Hay un entrenamiento en otro dispositivo',
-		endElsewhere: 'Terminar',
+		endElsewhere: 'Terminar entrenamiento',
 		endElsewhereError:
 			'No hemos podido terminar el entrenamiento. Revisa tu conexión a internet e inténtalo de nuevo.',
+		watch: 'Ver entrenamiento',
 	},
 	run: {
 		reveal: 'Toca la pantalla para ver los datos del entrenamiento',
+		camera: 'Cámara',
 		elapsed: 'Transcurrido',
 		keepOpen: 'Deja la app abierta y no apagues la pantalla.',
 		dimAfter: 'Para cuidar la batería y la pantalla, se oscurecerá sola en {{seconds}} segundos.',
 		engineError: 'No hemos podido reproducir el sonido. Termina el entrenamiento y empieza de nuevo.',
+		learningPaused:
+			'El entrenamiento se pausa mientras lo ven desde otro dispositivo. Se reanuda cuando dejen de verlo.',
+		cameraSettingsNotice: 'Si cambias el permiso en Ajustes, la app se reinicia y el entrenamiento puede terminar.',
 		remaining: 'Termina en',
 		battery: 'Batería',
 		batteryLevel: '{{percent}} %',
@@ -63,8 +68,29 @@ export const session: SessionMessages = {
 	end: {
 		title: 'Terminar entrenamiento',
 		message: '¿Quieres terminar el entrenamiento? Al terminar te enseñamos los resultados.',
-		button: 'Terminar',
+		button: 'Terminar entrenamiento',
 		keep: 'Seguir',
+	},
+	watch: {
+		leave: 'Salir',
+		connecting: 'Conectando con el dispositivo del entrenamiento',
+		cameraOff: {
+			title: 'La cámara está apagada',
+			message:
+				'Toca el botón de la cámara, arriba a la derecha, para encender la cámara del dispositivo del entrenamiento.',
+		},
+		permission: {
+			title: 'Hace falta acceso a la cámara',
+			message: 'Permite el acceso a la cámara en el dispositivo del entrenamiento.',
+		},
+		unreachable: {
+			title: 'No hemos podido conectar con el dispositivo del entrenamiento',
+			message:
+				'Comprueba que el dispositivo del entrenamiento tiene conexión a internet y la última versión de la app.',
+		},
+		learningPaused: 'El entrenamiento se pausa mientras lo ves. Se reanuda cuando salgas.',
+		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
+		zoomLevel: '{{zoom}}×',
 	},
 	summary: {
 		title: '¡Entrenamiento completado!',

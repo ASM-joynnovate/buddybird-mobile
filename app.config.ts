@@ -56,7 +56,8 @@ const config: ExpoConfig = {
 			NSMicrophoneUsageDescription:
 				'Microphone access lets you record words for your parrot and capture sounds during learning.',
 			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
-			NSCameraUsageDescription: 'Use the camera to take a profile photo of your parrot or yourself.',
+			NSCameraUsageDescription:
+				'Use the camera to take profile photos and to show your parrot during a learning session.',
 		},
 	},
 	android: {
@@ -75,6 +76,8 @@ const config: ExpoConfig = {
 			'FOREGROUND_SERVICE_MEDIA_PLAYBACK',
 			'com.google.android.gms.permission.AD_ID',
 		],
+		// WebRTC 플러그인의 미사용 권한
+		blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW', 'android.permission.BLUETOOTH'],
 	},
 	plugins: [
 		'./plugins/withAndroidBuildMemory',
@@ -131,6 +134,7 @@ const config: ExpoConfig = {
 		'expo-apple-authentication',
 		'expo-secure-store',
 		'expo-image-picker',
+		'@config-plugins/react-native-webrtc',
 		[
 			'expo-audio',
 			{
