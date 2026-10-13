@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
 	FEEDBACK_PROMPT_THRESHOLDS,
+	MIN_SUPPORTED_VERSION,
 	PETCAM_CAMERA_REQUEST_TIMEOUT_MS,
 	PETCAM_CONNECT_TIMEOUT_MS,
 	PETCAM_STATS_INTERVAL_MS,
@@ -46,6 +47,11 @@ export const remoteConfigSchema = z.object({
 		.min(1)
 		.max(20)
 		.catch([...FEEDBACK_PROMPT_THRESHOLDS]),
+
+	min_supported_version: z
+		.string()
+		.regex(/^\d+\.\d+\.\d+$/)
+		.catch(MIN_SUPPORTED_VERSION),
 });
 
 export type RemoteConfigValues = z.infer<typeof remoteConfigSchema>;

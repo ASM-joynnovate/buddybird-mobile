@@ -99,9 +99,11 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 			}
 		>
 			<Copy style={styles.body}>
-				{t(forced ? 'app.update.forcedMessage' : 'app.update.message', {
-					version: promptedUpdate?.latestVersion ?? '',
-				})}
+				{promptedUpdate?.latestVersion === null
+					? t('app.update.forcedMessageWithoutVersion')
+					: t(forced ? 'app.update.forcedMessage' : 'app.update.message', {
+							version: promptedUpdate?.latestVersion ?? '',
+						})}
 			</Copy>
 			{(promptedUpdate?.notes ?? []).map((note, index) => (
 				<Copy key={`${index}-${note}`} style={styles.note}>

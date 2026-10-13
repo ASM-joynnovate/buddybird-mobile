@@ -27,6 +27,7 @@ export const app: AppMessages = {
 		forcedTitle: 'Hace falta actualizar',
 		message: 'Ya está disponible BuddyBird {{version}}.',
 		forcedMessage: 'Actualiza a la versión {{version}} para seguir usando la app.',
+		forcedMessageWithoutVersion: 'Actualiza la app para seguir usándola.',
 		accept: 'Actualizar',
 		openStoreError: 'No hemos podido abrir la tienda. Inténtalo de nuevo.',
 	},

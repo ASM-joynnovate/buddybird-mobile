@@ -56,6 +56,9 @@ export const FEEDBACK_MESSAGE_LIMIT = 1000;
 
 export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const;
 
+export const MIN_SUPPORTED_VERSION = '0.0.0';
+export const REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS = HOUR;
+
 export const DEVICE_ACTIVITY_INTERVAL_MS = HOUR;
 export const MAX_DEVICE_MODEL_LENGTH = 100;
 export const MAX_DEVICE_OS_VERSION_LENGTH = 20;

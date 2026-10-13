@@ -12,6 +12,7 @@ import { apiKeys } from '@/hooks/apis/keys';
 import i18next from '@/i18n';
 
 import { apiErrorMessage } from '@/lib/api';
+import { usesAuthorization } from '@/lib/query-client';
 import { getSupabase } from '@/lib/supabase';
 
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
@@ -71,7 +72,8 @@ const AuthProvider = ({ children }: Props) => {
 			useAccountStore.getState().clearRegistration();
 			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 
-			queryClient.clear();
+			queryClient.removeQueries({ predicate: usesAuthorization });
+			queryClient.getMutationCache().clear();
 
 			useSessionStore.getState().resetSetup();
 			useReportStore.getState().resetPeriod();
@@ -88,7 +90,8 @@ const AuthProvider = ({ children }: Props) => {
 			if (!linked) {
 				setStatus('completing');
 
-				queryClient.clear();
+				queryClient.removeQueries({ predicate: usesAuthorization });
+				queryClient.getMutationCache().clear();
 
 				useSessionStore.getState().resetSetup();
 				useReportStore.getState().resetPeriod();
@@ -159,7 +162,7 @@ const AuthProvider = ({ children }: Props) => {
 			currentIdentity = nextIdentity;
 
 			loginAbort?.abort();
-			void queryClient.cancelQueries();
+			void queryClient.cancelQueries({ predicate: usesAuthorization });
 
 			const { authUserId, isAnonymous } = useAccountStore.getState();
 			const transition = getAuthTransition(

@@ -26,6 +26,7 @@ export const app: AppMessages = {
 		forcedTitle: 'Update needed',
 		message: 'BuddyBird {{version}} is available.',
 		forcedMessage: 'Update to {{version}} to keep using BuddyBird.',
+		forcedMessageWithoutVersion: 'Update the app to keep using BuddyBird.',
 		accept: 'Update',
 		openStoreError: "Couldn't open the store. Please try again.",
 	},

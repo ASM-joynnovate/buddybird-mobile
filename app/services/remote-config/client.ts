@@ -2,16 +2,18 @@ import { remoteConfigSchema } from '@/types/remote-config';
 
 import { activate, fetchAndActivate, getRemoteConfig, getValue } from '@react-native-firebase/remote-config';
 
-import { PETCAM_VIDEO, VAD } from '@/config';
+import { PETCAM_VIDEO, REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS, VAD } from '@/config';
 import { recordRemoteConfig } from '@/services/telemetry/client';
+
+const configListeners = new Set<() => void>();
 
 /** JSON 문자열을 값으로 변환하는 함수 */
 const parseJson = (text: string): unknown => {
 	try {
 		return JSON.parse(text) as unknown;
 	} catch {
-		// 잘못된 값은 기본값 사용
-		return undefined;
+		// JSON이 아니면 문자열 그대로 사용
+		return text;
 	}
 };
 
@@ -33,12 +35,30 @@ const readConfigValues = () => {
 export const initializeRemoteConfig = async () => {
 	const remoteConfig = getRemoteConfig();
 
+	remoteConfig.settings = {
+		...remoteConfig.settings,
+		minimumFetchIntervalMillis: REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS,
+	};
+
 	try {
 		await activate(remoteConfig);
 		await fetchAndActivate(remoteConfig);
 	} finally {
 		recordRemoteConfig(readConfigValues());
+
+		for (const listener of configListeners) {
+			listener();
+		}
 	}
+};
+
+/** Remote Config 값을 받은 뒤 실행할 함수를 등록하는 함수 */
+export const subscribeRemoteConfig = (listener: () => void) => {
+	configListeners.add(listener);
+
+	return () => {
+		configListeners.delete(listener);
+	};
 };
 
 /** 응급 상황 소리를 보여 줄지 반환하는 함수 */
@@ -100,4 +120,9 @@ export const getWordReplayDelayFactor = () => {
 /** 피드백 요청 접속일 수 목록을 반환하는 함수 */
 export const getFeedbackPromptThresholds = () => {
 	return readConfigValues().feedback_prompt_thresholds;
+};
+
+/** 최소 지원 버전을 반환하는 함수 */
+export const getMinSupportedVersion = () => {
+	return readConfigValues().min_supported_version;
 };
