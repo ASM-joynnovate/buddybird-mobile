@@ -43,6 +43,12 @@ export type ParrotMessages = {
 		amazon: string;
 		cockatoo: string;
 		macaw: string;
+		bourke: string;
+		'sun-conure': string;
+		pionus: string;
+		alexandrine: string;
+		galah: string;
+		vasa: string;
 	};
 	intro: string;
 	addTitle: string;
