@@ -123,6 +123,8 @@ const config: ExpoConfig = {
 			{
 				fonts: [
 					'./assets/fonts/Pretendard-Regular.otf',
+					'./assets/fonts/Pretendard-Medium.otf',
+					'./assets/fonts/Pretendard-SemiBold.otf',
 					'./assets/fonts/Pretendard-Bold.otf',
 					'./assets/fonts/Pretendard-ExtraBold.otf',
 					'./assets/fonts/Pretendard-Black.otf',
@@ -134,6 +136,7 @@ const config: ExpoConfig = {
 		'expo-apple-authentication',
 		'expo-secure-store',
 		'expo-image-picker',
+		'expo-video',
 		'@config-plugins/react-native-webrtc',
 		[
 			'expo-audio',
