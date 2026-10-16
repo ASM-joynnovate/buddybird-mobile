@@ -1,7 +1,7 @@
 export const speciesGroups = {
-	small: ['budgie', 'cockatiel', 'lovebird', 'parrotlet'],
-	medium: ['conure', 'quaker', 'caique', 'ringneck', 'senegal', 'lory'],
-	large: ['african-grey', 'eclectus', 'amazon', 'cockatoo', 'macaw'],
+	small: ['bourke', 'budgie', 'cockatiel', 'lovebird', 'parrotlet'],
+	medium: ['alexandrine', 'caique', 'conure', 'lory', 'pionus', 'quaker', 'ringneck', 'senegal', 'sun-conure'],
+	large: ['african-grey', 'amazon', 'cockatoo', 'eclectus', 'galah', 'macaw', 'vasa'],
 } as const;
 
 export type SpeciesGroup = keyof typeof speciesGroups;
