@@ -26,6 +26,8 @@ export const layoutAnimationMs = 200;
 
 export const font = {
 	regular: 'Pretendard-Regular',
+	medium: 'Pretendard-Medium',
+	semiBold: 'Pretendard-SemiBold',
 	bold: 'Pretendard-Bold',
 	extraBold: 'Pretendard-ExtraBold',
 	black: 'Pretendard-Black',

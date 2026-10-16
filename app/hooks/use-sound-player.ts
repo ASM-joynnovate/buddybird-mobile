@@ -22,11 +22,13 @@ const useSoundPlayer = () => {
 	const [playingId, setPlayingId] = useState<string | null>(null);
 	const [failedId, setFailedId] = useState<string | null>(null);
 	const [finishedIds, setFinishedIds] = useState<ReadonlySet<string>>(new Set());
+	const [urlPosition, setUrlPosition] = useState({ index: 0, count: 1 });
 
 	const playSequenceRef = useRef(0);
 	const nextUrlsRef = useRef<string[]>([]);
 
-	const progress = playingId && status.duration > 0 ? Math.min(1, status.currentTime / status.duration) : 0;
+	const urlProgress = status.duration > 0 ? Math.min(1, status.currentTime / status.duration) : 0;
+	const progress = playingId ? (urlPosition.index + urlProgress) / urlPosition.count : 0;
 
 	/** 재생 정지 함수 */
 	const stop = useCallback(() => {
@@ -89,15 +91,21 @@ const useSoundPlayer = () => {
 
 				nextUrlsRef.current = restUrls;
 
-				void playFromStart(nextUrl, token).catch((error: unknown) => {
-					if (token === playSequenceRef.current) {
-						setFailedId(playingId);
+				void playFromStart(nextUrl, token)
+					.then((started) => {
+						if (started) {
+							setUrlPosition((position) => ({ ...position, index: position.index + 1 }));
+						}
+					})
+					.catch((error: unknown) => {
+						if (token === playSequenceRef.current) {
+							setFailedId(playingId);
 
-						stop();
+							stop();
 
-						reportError(error, 'sound_playback');
-					}
-				});
+							reportError(error, 'sound_playback');
+						}
+					});
 
 				return;
 			}
@@ -129,6 +137,7 @@ const useSoundPlayer = () => {
 					}
 
 					if (await playFromStart(firstUrl, token)) {
+						setUrlPosition({ index: 0, count: urls.length });
 						setPlayingId(id);
 					}
 				})
