@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.8.1...v2.9.0) (2026-10-16)
+
+
+### Features
+
+* **app:** load the notification settings from the server [BB-698] ([#255](https://github.com/ASM-joynnovate/buddybird-mobile/issues/255)) ([1e99f47](https://github.com/ASM-joynnovate/buddybird-mobile/commit/1e99f479eccbee26719ecf4aba54b2fa31a96bac))
+* **app:** replace the session detail icons [BB-719] ([#253](https://github.com/ASM-joynnovate/buddybird-mobile/issues/253)) ([cd063f8](https://github.com/ASM-joynnovate/buddybird-mobile/commit/cd063f82d115ec652fd1aa9e67f0f5df4b60ecd1))
+
 ## [2.8.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.8.0...v2.8.1) (2026-10-16)
 
 
