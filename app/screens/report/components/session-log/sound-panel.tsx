@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import { sessionDetailColors, logItemColors } from '@/screens/report/components/session-detail-colors';
+import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import { track } from '@/services/telemetry/client';
 import { useMessageStore } from '@/stores/message';
@@ -42,7 +42,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 
 	const { data: soundDurationData } = useQuery({
 		...getSessionSoundDurationOptions({ id: item.id, url: item.sounds.at(0)?.audio_file.url ?? '' }),
-		enabled: item.kind !== 'emergency' && item.durationMs === null && item.sounds.length > 0,
+		enabled: item.kind !== 'distressCall' && item.durationMs === null && item.sounds.length > 0,
 		throwOnError: false,
 	});
 	const { isPending: fileSharing, mutate: shareFile } = useShareSessionFile();
@@ -52,7 +52,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 
 	const openPopup = useMessageStore((state) => state.openPopup);
 
-	const palette = logItemColors[item.kind];
+	const accent = item.kind === 'distressCall' ? colors.error : colors.orange;
 	const playing = playingId === item.id;
 	const soundless = item.sounds.length === 0;
 	const durationMs = item.durationMs ?? soundDurationData ?? null;
@@ -61,7 +61,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 
 	if (durationMs !== null) {
 		durationText = t('common.duration.seconds', {
-			value: item.kind === 'emergency' ? Math.round(durationMs / SECOND) : (durationMs / SECOND).toFixed(1),
+			value: item.kind === 'distressCall' ? Math.round(durationMs / SECOND) : (durationMs / SECOND).toFixed(1),
 		});
 	}
 
@@ -88,7 +88,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 			onError: () => openPopup({ title: t('report.detail.shareError') }),
 		};
 
-		if (item.kind === 'emergency') {
+		if (item.kind === 'distressCall') {
 			shareJoinedSound({ urls: item.sounds.map((sound) => sound.audio_file.url), fileName }, callbacks);
 		} else {
 			shareFile({ url: item.sounds[0].audio_file.url, fileName, fileType: 'wav' }, callbacks);
@@ -103,7 +103,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 						<View
 							style={[
 								styles.waveFill,
-								{ width: `${(playing ? progress : 0) * PERCENT}%`, backgroundColor: palette.accent },
+								{ width: `${(playing ? progress : 0) * PERCENT}%`, backgroundColor: accent },
 							]}
 						/>
 					</View>
@@ -119,8 +119,8 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 					onPress={handleTogglePlay}
 					depth="none"
 					cornerRadius="pill"
-					faceColor={soundless ? colors.disabledBackground : palette.accent}
-					edgeColor={soundless ? colors.disabledBackground : palette.accent}
+					faceColor={soundless ? colors.disabledBackground : accent}
+					edgeColor={soundless ? colors.disabledBackground : accent}
 					style={styles.play}
 					contentStyle={styles.playFace}
 				>

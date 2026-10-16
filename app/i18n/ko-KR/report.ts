@@ -60,7 +60,7 @@ export const report: ReportMessages = {
 		emergencyCountValue_other: '{{count}}건',
 		kinds: {
 			parrot: '짹짹',
-			emergency: '신경질적 짹짹',
+			distressCall: '신경질적 짹짹',
 			parrotDisappeared: '앵무새 사라짐',
 			parrotAppeared: '앵무새 나타남',
 		},

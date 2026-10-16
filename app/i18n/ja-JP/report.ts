@@ -60,7 +60,7 @@ export const report: ReportMessages = {
 		emergencyCountValue_other: '{{count}}件',
 		kinds: {
 			parrot: '鳴き声',
-			emergency: '激しい鳴き声',
+			distressCall: '激しい鳴き声',
 			parrotDisappeared: 'インコが画面外',
 			parrotAppeared: 'インコが画面内',
 		},

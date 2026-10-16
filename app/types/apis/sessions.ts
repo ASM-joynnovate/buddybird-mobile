@@ -78,7 +78,7 @@ const sessionEventKindSchema = z.enum([
 	'word_changed',
 	'station_disconnected',
 	'station_reconnected',
-	'sound_emergency_detected',
+	'distress_call_detected',
 	'session_finished',
 	'parrot_disappeared',
 	'parrot_appeared',

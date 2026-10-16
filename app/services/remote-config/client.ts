@@ -61,9 +61,9 @@ export const subscribeRemoteConfig = (listener: () => void) => {
 	};
 };
 
-/** 응급 상황 소리를 보여 줄지 반환하는 함수 */
-export const shouldShowEmergencyAudioEvent = () => {
-	return readConfigValues().show_emergency_audio_event;
+/** 신경질적 짹짹을 보여 줄지 반환하는 함수 */
+export const shouldShowDistressCall = () => {
+	return readConfigValues().show_distress_call_detected;
 };
 
 /** 펫캠을 보여 줄지 반환하는 함수 */

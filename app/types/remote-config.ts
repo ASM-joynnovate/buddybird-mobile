@@ -16,7 +16,7 @@ import {
 import { HOUR, MINUTE, SECOND } from '@/config/units';
 
 export const remoteConfigSchema = z.object({
-	show_emergency_audio_event: z.boolean().catch(false),
+	show_distress_call_detected: z.boolean().catch(false),
 	show_petcam: z.boolean().catch(false),
 
 	petcam_video_width: z.int().min(160).max(3840).catch(PETCAM_VIDEO.width),
