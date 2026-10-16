@@ -2,15 +2,10 @@ import type { SettingsMessages } from '@/i18n/types/settings';
 
 export const settings: SettingsMessages = {
 	title: 'Settings',
-	saveError: "We couldn't save, so we restored the previous value. Please try again.",
+	saveError: "We couldn't save, so we restored the previous value.\nPlease try again.",
 	notifications: {
 		title: 'Notifications',
 		all: 'All notifications',
-		announcement: 'Announcement alerts',
-		report: 'Report alerts',
-		marketing: 'Marketing alerts',
-		marketingNight: 'Night marketing alerts',
-		marketingNightHours: '9 PM to 8 AM',
 		permissionOff: "Notifications are off, so you won't get alerts",
 	},
 	general: {

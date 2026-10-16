@@ -1,16 +1,21 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { NotificationSetting } from '@/types/apis/settings';
+import type { RootStackParamList } from '@/types/navigation';
 
-import { useGetSettings, useUpdateNotificationSettings } from '@/hooks/apis/settings';
+import {
+	useGetNotificationSettings,
+	useUpdateNotificationSettingItem,
+	useUpdatePushSetting,
+} from '@/hooks/apis/settings';
 import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
-import type { SettingsMessages } from '@/i18n/types/settings';
-
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
 
+import NotificationItemGroup from '@/screens/settings/components/notification-item-group';
 import { reportError } from '@/services/telemetry/client';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -19,27 +24,23 @@ import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 import { ItemSwitch } from '@/components/ui/item/switch';
 
-const NOTIFICATION_SETTINGS: readonly {
-	setting: NotificationSetting;
-	labelKey: keyof SettingsMessages['notifications'];
-}[] = [
-	{ setting: 'announcement_enabled', labelKey: 'announcement' },
-	{ setting: 'report_enabled', labelKey: 'report' },
-	{ setting: 'marketing_enabled', labelKey: 'marketing' },
-];
-
 /** 알림 설정 스위치 컴포넌트 */
 const NotificationGroups = () => {
 	const { t } = useTranslation();
 
-	const { data: settingsData } = useGetSettings();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const updateNotificationSettings = useUpdateNotificationSettings();
+	const { data: notificationSettingsData } = useGetNotificationSettings();
+
+	const updatePushSetting = useUpdatePushSetting();
+	const updateNotificationSettingItem = useUpdateNotificationSettingItem();
 
 	const notificationPermission = usePermission('notifications');
 
 	const permissionOff = notificationPermission.granted === false;
-	const pushOff = !settingsData.notifications.push_enabled;
+	const pushOff = !notificationSettingsData.push_enabled;
+	const settingSaving = updatePushSetting.isPending || updateNotificationSettingItem.isPending;
+	const settingSaveFailed = updatePushSetting.isError || updateNotificationSettingItem.isError;
 
 	const handleRequestPermission = () => {
 		void notificationPermission
@@ -47,12 +48,20 @@ const NotificationGroups = () => {
 			.catch((error: unknown) => reportError(error, 'permission_notifications'));
 	};
 
-	const handleToggleNotification = (setting: NotificationSetting, enabled: boolean) => {
-		if (updateNotificationSettings.isPending) {
+	const handleTogglePush = (enabled: boolean) => {
+		if (settingSaving) {
 			return;
 		}
 
-		updateNotificationSettings.mutate({ data: { ...settingsData.notifications, [setting]: enabled } });
+		updatePushSetting.mutate({ data: { push_enabled: enabled } });
+	};
+
+	const handleToggleItem = (itemId: string, enabled: boolean) => {
+		if (settingSaving) {
+			return;
+		}
+
+		updateNotificationSettingItem.mutate({ id: itemId, data: { enabled } });
 	};
 
 	return (
@@ -63,44 +72,46 @@ const NotificationGroups = () => {
 					first
 					icon={BellIcon}
 					label={t('settings.notifications.all')}
-					value={settingsData.notifications.push_enabled}
-					disabled={updateNotificationSettings.isPending}
-					onChange={(enabled) => handleToggleNotification('push_enabled', enabled)}
+					value={notificationSettingsData.push_enabled}
+					disabled={settingSaving}
+					onChange={handleTogglePush}
 				/>
 				{permissionOff && (
 					<Item label={t('settings.notifications.permissionOff')} onPress={handleRequestPermission} />
 				)}
 			</ItemGroup>
 
-			{/*알림 종류별 스위치. 전체 알림이 꺼져 있으면 저장된 값을 보인 채 누를 수 없음*/}
+			{/*전체 알림이 꺼지면 누를 수 없음*/}
 			<View
-				style={pushOff && styles.dimmed}
+				style={[styles.itemsContainer, pushOff && styles.dimmed]}
 				pointerEvents={pushOff ? 'none' : 'auto'}
 				accessibilityElementsHidden={pushOff}
 				importantForAccessibility={pushOff ? 'no-hide-descendants' : 'auto'}
 			>
-				<ItemGroup>
-					{NOTIFICATION_SETTINGS.map(({ setting, labelKey }, index) => (
-						<ItemSwitch
-							key={setting}
-							first={index === 0}
-							label={t(`settings.notifications.${labelKey}`)}
-							value={settingsData.notifications[setting]}
-							disabled={updateNotificationSettings.isPending}
-							onChange={(enabled) => handleToggleNotification(setting, enabled)}
-						/>
-					))}
-					<ItemSwitch
-						label={t('settings.notifications.marketingNight')}
-						detail={t('settings.notifications.marketingNightHours')}
-						value={settingsData.notifications.marketing_night_enabled}
-						disabled={updateNotificationSettings.isPending || !settingsData.notifications.marketing_enabled}
-						onChange={(enabled) => handleToggleNotification('marketing_night_enabled', enabled)}
+				{notificationSettingsData.items.length > 0 && (
+					<NotificationItemGroup
+						items={notificationSettingsData.items}
+						disabled={settingSaving}
+						onToggle={handleToggleItem}
 					/>
-				</ItemGroup>
+				)}
+
+				{notificationSettingsData.groups.length > 0 && (
+					<ItemGroup>
+						{notificationSettingsData.groups.map((group, index) => (
+							<Item
+								key={group.id}
+								first={index === 0}
+								label={group.title}
+								detail={group.description ?? undefined}
+								onPress={() => navigation.navigate('NotificationGroupSettings', { groupId: group.id })}
+							/>
+						))}
+					</ItemGroup>
+				)}
 			</View>
 
-			<InlineError message={updateNotificationSettings.isError ? t('settings.saveError') : null} />
+			<InlineError message={settingSaveFailed ? t('settings.saveError') : null} />
 
 			<PermissionDialog state={notificationPermission.dialog} />
 		</View>
@@ -109,6 +120,7 @@ const NotificationGroups = () => {
 
 const styles = StyleSheet.create({
 	container: { gap: 28 },
+	itemsContainer: { gap: 28 },
 	dimmed: { opacity: 0.4 },
 });
 

@@ -34,6 +34,7 @@ import SessionSummaryScreen from '@/screens/session/session-summary-screen';
 import SessionWatchScreen from '@/screens/session/session-watch-screen';
 import ConsentSettingsScreen from '@/screens/settings/consent-settings-screen';
 import DevicesScreen from '@/screens/settings/devices-screen';
+import NotificationGroupSettingsScreen from '@/screens/settings/notification-group-settings-screen';
 import NotificationSettingsScreen from '@/screens/settings/notification-settings-screen';
 import SettingsScreen from '@/screens/settings/settings-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
@@ -289,6 +290,10 @@ const AppNavigator = () => {
 							<RootStack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
 							<RootStack.Screen name="Devices" component={DevicesScreen} />
 							<RootStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+							<RootStack.Screen
+								name="NotificationGroupSettings"
+								component={NotificationGroupSettingsScreen}
+							/>
 						</RootStack.Group>
 					)}
 				</RootStack.Navigator>

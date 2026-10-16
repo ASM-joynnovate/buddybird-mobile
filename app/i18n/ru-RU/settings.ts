@@ -2,15 +2,10 @@ import type { SettingsMessages } from '@/i18n/types/settings';
 
 export const settings: SettingsMessages = {
 	title: 'Настройки',
-	saveError: 'Не получилось сохранить настройку, поэтому вернули прежнее значение. Попробуй ещё раз.',
+	saveError: 'Не получилось сохранить настройку, поэтому вернули прежнее значение.\nПопробуй ещё раз.',
 	notifications: {
 		title: 'Уведомления',
 		all: 'Все уведомления',
-		announcement: 'Объявления',
-		report: 'Отчёты',
-		marketing: 'Реклама и акции',
-		marketingNight: 'Реклама и акции ночью',
-		marketingNightHours: 'с 21:00 до 8:00',
 		permissionOff: 'Уведомления запрещены, поэтому они не приходят',
 	},
 	general: {
