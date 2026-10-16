@@ -29,11 +29,7 @@ export const colors = {
 	backdrop: '#00000066',
 	disabledBackground: '#EBEBEB',
 	error: '#FF4B4B',
-	errorDark: '#D93838',
 	subtle: '#AFAFAF',
-	grayPale: '#f0f0f0',
-	whiteSoft: '#ffffff61',
-	blackFaint: '#00000014',
 	wheelSelection: '#ff96000f',
 	wheelText: '#3c3c3c59',
 };

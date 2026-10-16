@@ -13,20 +13,23 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import DashedLine from '@/screens/report/components/dashed-line';
-import { PINNED_BAND_HEIGHT } from '@/screens/report/components/recorder/pinned';
 import { burstEasing } from '@/screens/report/components/session-detail-animations';
-import type { StickyLayout } from '@/screens/report/components/tape-log/strip';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
-const FIRST_MARGIN_TOP = 2;
+const FIRST_MARGIN_TOP = 4;
 const MARGIN_TOP = 24;
 const REVEAL_RATIO = 0.35;
 const SLIDE_DISTANCE = 12;
 const FADE_MS = 320;
 const SLIDE_MS = 420;
+
+export interface StickyLayout {
+	y: number;
+	height: number;
+}
 
 interface Props {
 	date: number;
@@ -35,31 +38,20 @@ interface Props {
 	viewportHeight: SharedValue<number>;
 	logY: SharedValue<number>;
 	logHeight: SharedValue<number>;
-	stripLayout: SharedValue<StickyLayout>;
 	dayBreakLayouts: SharedValue<StickyLayout[]>;
 }
 
 /**
- * 가로 테이프 아래에 붙는 날짜 띠 컴포넌트
+ * 화면 위에 붙는 날짜 띠 컴포넌트
  * @param date 날짜
- * @param index 테이프 기록 안에서의 날짜 순서
+ * @param index 기록 안에서의 날짜 순서
  * @param scrollY 화면 스크롤 위치
  * @param viewportHeight 화면 높이
- * @param logY 테이프 기록 위치
- * @param logHeight 테이프 기록 높이
- * @param stripLayout 가로 테이프 위치
+ * @param logY 기록 위치
+ * @param logHeight 기록 높이
  * @param dayBreakLayouts 날짜 띠 위치를 저장할 값
  */
-const TapeLogDayBreak = ({
-	date,
-	index,
-	scrollY,
-	viewportHeight,
-	logY,
-	logHeight,
-	stripLayout,
-	dayBreakLayouts,
-}: Props) => {
+const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logY, logHeight, dayBreakLayouts }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const labelOpacity = useSharedValue(reducedMotion ? 1 : 0);
@@ -77,9 +69,8 @@ const TapeLogDayBreak = ({
 
 		const nextTop = layouts.at(index + 1)?.y;
 		const end = nextTop === undefined ? logHeight.get() : nextTop - MARGIN_TOP;
-		const stickTop = PINNED_BAND_HEIGHT + stripLayout.get().height;
 		const translateY = Math.min(
-			Math.max(scrollY.get() + stickTop - (logY.get() + own.y), 0),
+			Math.max(scrollY.get() - (logY.get() + own.y), 0),
 			Math.max(end - own.y - own.height, 0),
 		);
 
@@ -87,12 +78,7 @@ const TapeLogDayBreak = ({
 	});
 	const stuckLineStyle = useAnimatedStyle(() => {
 		const own = dayBreakLayouts.get().at(index);
-		const strip = stripLayout.get();
-		const stripStuck = scrollY.get() + PINNED_BAND_HEIGHT >= logY.get() + strip.y;
-		const stuck =
-			own !== undefined &&
-			stripStuck &&
-			logY.get() + own.y - scrollY.get() <= PINNED_BAND_HEIGHT + strip.height + 0.5;
+		const stuck = own !== undefined && logY.get() + own.y - scrollY.get() <= 0.5;
 
 		return { opacity: stuck ? 1 : 0 };
 	});
@@ -182,7 +168,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		backgroundColor: colors.text,
 	},
-	dateText: { fontFamily: font.extraBold, fontSize: 13, color: colors.onFilled },
+	dateText: { fontFamily: font.medium, fontSize: 13, color: colors.onFilled },
 	line: { flex: 1 },
 	stuckLine: {
 		position: 'absolute',
@@ -194,4 +180,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default TapeLogDayBreak;
+export default SessionLogDayBreak;

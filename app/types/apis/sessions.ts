@@ -80,7 +80,11 @@ const sessionEventKindSchema = z.enum([
 	'station_reconnected',
 	'sound_emergency_detected',
 	'session_finished',
+	'parrot_disappeared',
+	'parrot_appeared',
 ]);
+
+const sessionEventFileSchema = fileSchema.extend({ status: z.enum(['pending', 'uploaded', 'rejected']) });
 
 export const sessionEventSchema = z.object({
 	id: uuidSchema,
@@ -89,6 +93,8 @@ export const sessionEventSchema = z.object({
 	ended_at: timestampSchema.nullable(),
 	word: z.object({ id: uuidSchema }).nullable(),
 	sound_ids: z.array(uuidSchema),
+	image: sessionEventFileSchema.nullable(),
+	video: sessionEventFileSchema.nullable(),
 });
 
 export const sessionEventListSchema = z
@@ -112,4 +118,5 @@ export type HeartbeatLearningSegment = HeartbeatRequest['learning_segments'][num
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 export type SessionSound = z.infer<typeof sessionSoundSchema>;
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
+export type SessionEventFile = z.infer<typeof sessionEventFileSchema>;
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
