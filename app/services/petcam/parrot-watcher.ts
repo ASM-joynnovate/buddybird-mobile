@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import type { PetcamEventKind, SessionPetcamEvent } from '@/types/apis/sessions';
+import type { PetcamEventKind, SessionEvent } from '@/types/apis/sessions';
 import type { PetcamEventUpload, Upload } from '@/types/apis/uploads';
 
 import { FRAME_CAPTURE_PROCESSOR, FrameCapture, type ParrotCheckResult } from '@modules/frame-capture/src';
@@ -38,7 +38,7 @@ interface PendingVideo {
 interface ParrotWatcherOptions {
 	sessionId: string;
 	stream: MediaStream;
-	loadPetcamEvents: () => Promise<SessionPetcamEvent[]>;
+	loadSessionEvents: () => Promise<SessionEvent[]>;
 	issuePetcamEventUpload: (variables: {
 		id: string;
 		uri: string;
@@ -82,8 +82,8 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 
 	/** 마지막 이벤트가 앵무새 미검출인지 반환하는 함수 */
 	const loadParrotUndetected = async () => {
-		const petcamEvents = await options.loadPetcamEvents();
-		const lastUploaded = petcamEvents.filter((event) => event.image?.status === 'uploaded').at(-1);
+		const sessionEvents = await options.loadSessionEvents();
+		const lastUploaded = sessionEvents.filter((event) => event.image?.status === 'uploaded').at(-1);
 
 		return lastUploaded?.kind === 'parrot_disappeared';
 	};

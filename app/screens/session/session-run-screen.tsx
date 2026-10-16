@@ -12,7 +12,7 @@ import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
 import {
-	getSessionPetcamEventListOptions,
+	getSessionEventListOptions,
 	useFinishSession,
 	useGetRunningSession,
 	useIssuePetcamEventUpload,
@@ -281,8 +281,8 @@ const SessionRunScreen = () => {
 					parrotWatcher = createParrotWatcher({
 						sessionId,
 						stream,
-						loadPetcamEvents: () =>
-							queryClient.query({ ...getSessionPetcamEventListOptions({ id: sessionId }), staleTime: 0 }),
+						loadSessionEvents: () =>
+							queryClient.query({ ...getSessionEventListOptions({ id: sessionId }), staleTime: 0 }),
 						issuePetcamEventUpload,
 						uploadPetcamPhoto,
 						uploadPetcamVideo,

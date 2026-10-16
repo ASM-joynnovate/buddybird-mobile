@@ -11,7 +11,6 @@ import {
 	getRunningSession,
 	getSession,
 	getSessionEventList,
-	getSessionPetcamEventList,
 	getSessionSoundDuration,
 	getSessionSoundList,
 	getSessionSummary,
@@ -29,7 +28,7 @@ import { ApiError } from '@/types/apis/common';
 import { apiKeys } from '@/hooks/apis/keys';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-import { shareAudioFile } from '@/services/media/share';
+import { shareFile, shareJoinedWav } from '@/services/media/share';
 import { reportError } from '@/services/telemetry/client';
 
 /** 진행 중인 세션 조회 Hook에 사용할 옵션 */
@@ -86,13 +85,10 @@ export const getSessionSoundDurationOptions = ({ id, url }: { id: string; url: s
 /** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
 export const getSessionEventListOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => getSessionEventList({ id }) });
-
-/** 펫캠 이벤트 목록 조회 Hook에 사용할 옵션 */
-export const getSessionPetcamEventListOptions = ({ id }: { id: string }) =>
-	queryOptions({
-		queryKey: apiKeys.sessions.petcamEvents(id),
-		queryFn: () => getSessionPetcamEventList({ id }),
-	});
+/** 세션 이벤트 목록 조회 Hook */
+export const useGetSessionEventList = ({ id }: { id: string }) => {
+	return useSuspenseQuery(getSessionEventListOptions({ id }));
+};
 
 /** 세션 시작 Hook */
 export const useStartSession = () => {
@@ -213,11 +209,20 @@ export const useUploadPetcamVideo = () => {
 	});
 };
 
-/** 세션 소리 공유 Hook */
-export const useShareSessionSound = () => {
+/** 세션 기록 파일 공유 Hook */
+export const useShareSessionFile = () => {
 	return useMutation({
-		mutationKey: apiKeys.mutation('sessions', 'shareSound'),
-		mutationFn: shareAudioFile,
+		mutationKey: apiKeys.mutation('sessions', 'shareFile'),
+		mutationFn: shareFile,
+		onError: (error) => reportError(error, 'session_file_share'),
+	});
+};
+
+/** 이어 붙인 세션 소리 공유 Hook */
+export const useShareSessionJoinedSound = () => {
+	return useMutation({
+		mutationKey: apiKeys.mutation('sessions', 'shareJoinedSound'),
+		mutationFn: shareJoinedWav,
 		onError: (error) => reportError(error, 'parrot_sound_share'),
 	});
 };

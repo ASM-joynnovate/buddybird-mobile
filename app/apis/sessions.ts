@@ -8,8 +8,6 @@ import {
 	type Session,
 	type SessionEvent,
 	sessionEventListSchema,
-	type SessionPetcamEvent,
-	sessionPetcamEventListSchema,
 	sessionSchema,
 	type SessionSound,
 	sessionSoundSchema,
@@ -133,17 +131,11 @@ export const getSessionSoundList = async ({ id, page }: { id: string; page: numb
 };
 
 export const getSessionEventList = async ({ id }: { id: string }): Promise<SessionEvent[]> => {
-	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionEventListSchema);
-
-	return sessionEvents;
-};
-
-export const getSessionPetcamEventList = async ({ id }: { id: string }): Promise<SessionPetcamEvent[]> => {
-	const { data: petcamEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionPetcamEventListSchema, {
+	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionEventListSchema, {
 		searchParams: { petcam: true },
 	});
 
-	return petcamEvents;
+	return sessionEvents;
 };
 
 export const postSessionPetcamVideo = async ({

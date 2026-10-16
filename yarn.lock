@@ -4595,6 +4595,7 @@ __metadata:
     expo-splash-screen: "npm:~57.0.9"
     expo-system-ui: "npm:~57.0.4"
     expo-tracking-transparency: "npm:~57.0.2"
+    expo-video: "npm:~57.0.5"
     expo-web-browser: "npm:~57.0.3"
     husky: "npm:9.1.7"
     i18next: "npm:^26.4.2"
@@ -6155,6 +6156,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/8ab3eb93281e83d5d91b1e6b7d315d7f64bb55b344a2919db942c256f1639ddbe4c6f0147f0c809cbebf08ab2c54243f6bf805129b8a5a07f86c8923463b98e9
+  languageName: node
+  linkType: hard
+
+"expo-video@npm:~57.0.5":
+  version: 57.0.5
+  resolution: "expo-video@npm:57.0.5"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/89562cf6fd0e5a1a724eb027d3ad56587db1f42e83eb0cfd7626aaa02555d11334954812b1d9960e3c7d95cc584341849439200b054a71ab7946ee3135dec129
   languageName: node
   linkType: hard
 
