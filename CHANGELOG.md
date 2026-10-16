@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.1](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.8.0...v2.8.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **app:** keep MediaPipe framework classes called from native code [BB-668] ([#251](https://github.com/ASM-joynnovate/buddybird-mobile/issues/251)) ([ada1ee0](https://github.com/ASM-joynnovate/buddybird-mobile/commit/ada1ee05fccb6143ed10099e79b996a19c616ba4))
+
 ## [2.8.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.7.0...v2.8.0) (2026-10-16)
 
 
