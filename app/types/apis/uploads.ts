@@ -11,5 +11,8 @@ export const uploadSchema = z.object({
 
 export const wordRecordingUploadSchema = uploadSchema.extend({ recording_id: uuidSchema });
 
+export const petcamEventUploadSchema = uploadSchema.extend({ event_id: uuidSchema });
+
 export type Upload = z.infer<typeof uploadSchema>;
+export type PetcamEventUpload = z.infer<typeof petcamEventUploadSchema>;
 export type WordRecordingUpload = z.infer<typeof wordRecordingUploadSchema>;

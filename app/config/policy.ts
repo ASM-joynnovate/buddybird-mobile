@@ -14,6 +14,24 @@ export const PETCAM_CONNECT_TIMEOUT_MS = 30 * SECOND;
 export const PETCAM_CAMERA_REQUEST_TIMEOUT_MS = 5 * SECOND;
 export const PETCAM_STATS_INTERVAL_MS = 30 * SECOND;
 export const PETCAM_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }] as const;
+export const PETCAM_VIDEO_UPLOAD_TIMEOUT_MS = 5 * MINUTE;
+
+export const PARROT_CHECK = {
+	intervalMs: MINUTE,
+	scoreThreshold: 0.3,
+	undetectedCount: 5,
+	minBrightness: 16,
+	photoQuality: 80,
+} as const;
+export const PARROT_VIDEO = {
+	beforeMs: 90 * SECOND,
+	afterMs: 90 * SECOND,
+	width: 1280,
+	height: 720,
+	frameRate: 15,
+	bitrate: 1_000_000,
+} as const;
+export const PARROT_NIGHT_CORRECTION = { startBrightness: 80, frameRate: 5, mergeMs: 2 * SECOND } as const;
 
 export const SESSION_DURATION_PRESETS = [
 	{ id: 'short', ms: 40 * MINUTE },

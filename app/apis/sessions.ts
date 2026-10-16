@@ -1,4 +1,4 @@
-import { postSessionSoundUpload, putUploadFile } from '@/apis/uploads';
+import { postSessionPetcamVideoUpload, postSessionSoundUpload, putUploadFile } from '@/apis/uploads';
 
 import { type Page, pageMetaSchema } from '@/types/apis/common';
 import {
@@ -8,6 +8,8 @@ import {
 	type Session,
 	type SessionEvent,
 	sessionEventListSchema,
+	type SessionPetcamEvent,
+	sessionPetcamEventListSchema,
 	sessionSchema,
 	type SessionSound,
 	sessionSoundSchema,
@@ -20,7 +22,7 @@ import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
-import { API_TIMEOUT_MS } from '@/config';
+import { API_TIMEOUT_MS, PETCAM_VIDEO_UPLOAD_TIMEOUT_MS } from '@/config';
 import { SECOND } from '@/config/units';
 
 const SOUND_PAGE_SIZE = 50;
@@ -134,6 +136,32 @@ export const getSessionEventList = async ({ id }: { id: string }): Promise<Sessi
 	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionEventListSchema);
 
 	return sessionEvents;
+};
+
+export const getSessionPetcamEventList = async ({ id }: { id: string }): Promise<SessionPetcamEvent[]> => {
+	const { data: petcamEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionPetcamEventListSchema, {
+		searchParams: { petcam: true },
+	});
+
+	return petcamEvents;
+};
+
+export const postSessionPetcamVideo = async ({
+	id,
+	eventId,
+	uri,
+	idempotencyKey,
+}: {
+	id: string;
+	eventId: string;
+	uri: string;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await putUploadFile({
+		upload: await postSessionPetcamVideoUpload({ id, eventId, uri, idempotencyKey }),
+		uri,
+		timeoutMs: PETCAM_VIDEO_UPLOAD_TIMEOUT_MS,
+	});
 };
 
 export const getSessionSoundDuration = async ({ url }: { url: string }): Promise<number> => {

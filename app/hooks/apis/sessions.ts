@@ -11,6 +11,7 @@ import {
 	getRunningSession,
 	getSession,
 	getSessionEventList,
+	getSessionPetcamEventList,
 	getSessionSoundDuration,
 	getSessionSoundList,
 	getSessionSummary,
@@ -18,8 +19,10 @@ import {
 	postSession,
 	postSessionFinish,
 	postSessionHeartbeat,
+	postSessionPetcamVideo,
 	postSessionSound,
 } from '@/apis/sessions';
+import { postSessionPetcamEventUpload, putUploadFile } from '@/apis/uploads';
 
 import { ApiError } from '@/types/apis/common';
 
@@ -83,6 +86,13 @@ export const getSessionSoundDurationOptions = ({ id, url }: { id: string; url: s
 /** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
 export const getSessionEventListOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => getSessionEventList({ id }) });
+
+/** 펫캠 이벤트 목록 조회 Hook에 사용할 옵션 */
+export const getSessionPetcamEventListOptions = ({ id }: { id: string }) =>
+	queryOptions({
+		queryKey: apiKeys.sessions.petcamEvents(id),
+		queryFn: () => getSessionPetcamEventList({ id }),
+	});
 
 /** 세션 시작 Hook */
 export const useStartSession = () => {
@@ -173,6 +183,33 @@ export const useUploadSessionSound = () => {
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
 		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(id) }),
+	});
+};
+
+/** 펫캠 이벤트 사진 업로드 URL 발급 Hook */
+export const useIssuePetcamEventUpload = () => {
+	return useMutation({
+		mutationKey: apiKeys.mutation('sessions', 'petcamEventUpload'),
+		mutationFn: postSessionPetcamEventUpload,
+		retry: false,
+	});
+};
+
+/** 펫캠 사진 업로드 Hook */
+export const useUploadPetcamPhoto = () => {
+	return useMutation({
+		mutationKey: apiKeys.mutation('sessions', 'petcamPhoto'),
+		mutationFn: putUploadFile,
+		retry: false,
+	});
+};
+
+/** 펫캠 영상 업로드 Hook */
+export const useUploadPetcamVideo = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'petcamVideo'),
+		mutationFn: postSessionPetcamVideo,
+		retry: false,
 	});
 };
 

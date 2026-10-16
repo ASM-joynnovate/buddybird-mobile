@@ -4,7 +4,7 @@ import { initializeRemoteConfig } from '@/services/remote-config/client';
 import { initializeTelemetry, reportError, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-/** 피드백 요청 접속일을 세는 함수 */
+/** 피드백 요청 접속일을 카운트하는 함수 */
 const countFeedbackDay = (scope: string) => {
 	try {
 		useDeviceSettingsStore.getState().countFeedbackDay();

@@ -96,6 +96,18 @@ export const sessionEventListSchema = z
 	.transform((events) => events.filter((event) => sessionEventKindSchema.safeParse(event.kind).success))
 	.pipe(z.array(sessionEventSchema));
 
+const petcamEventKindSchema = z.enum(['parrot_disappeared', 'parrot_appeared']);
+
+const sessionPetcamEventSchema = z.object({
+	kind: petcamEventKindSchema,
+	image: fileSchema.pick({ status: true }).nullable(),
+});
+
+export const sessionPetcamEventListSchema = z
+	.array(z.looseObject({ kind: z.string() }))
+	.transform((events) => events.filter((event) => petcamEventKindSchema.safeParse(event.kind).success))
+	.pipe(z.array(sessionPetcamEventSchema));
+
 const activeSchema = z.object({ duration_ms: z.number().int().nonnegative() });
 
 export const sessionSummarySchema = z.object({
@@ -112,4 +124,6 @@ export type HeartbeatLearningSegment = HeartbeatRequest['learning_segments'][num
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 export type SessionSound = z.infer<typeof sessionSoundSchema>;
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
+export type PetcamEventKind = z.infer<typeof petcamEventKindSchema>;
+export type SessionPetcamEvent = z.infer<typeof sessionPetcamEventSchema>;
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
