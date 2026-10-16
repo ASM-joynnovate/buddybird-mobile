@@ -32,7 +32,7 @@ export const parrot: ParrotMessages = {
 	speciesNames: {
 		bourke: 'アキクサインコ',
 		pionus: 'アケボノインコ',
-		cockatoo: 'オウム',
+		cockatoo: 'オウム（コカトゥー）',
 		eclectus: 'オオハナインコ',
 		alexandrine: 'オオホンセイインコ',
 		cockatiel: 'オカメインコ',
