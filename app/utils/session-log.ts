@@ -1,4 +1,4 @@
-import type { SessionEvent, SessionSound } from '@/types/apis/sessions';
+import type { SessionEvent, SessionEventFile, SessionSound } from '@/types/apis/sessions';
 
 import { CLOCK_FORMAT, type SleepSettings } from '@/types/sleep-settings';
 
@@ -6,31 +6,32 @@ import dayjs from 'dayjs';
 
 import { HOUR } from '@/config/units';
 
-export type SoundKind = 'parrot' | 'mimic' | 'emergency';
+export type LogItemKind = 'parrot' | 'mimic' | 'emergency' | 'parrotDisappeared' | 'parrotAppeared';
 
 export interface TimeSpan {
 	start: number;
 	end: number;
 }
 
-export interface TapeItem {
+export interface LogItem {
 	id: string;
-	kind: SoundKind;
+	kind: LogItemKind;
 	startedAt: string;
 	endedAt: string | null;
 	sounds: SessionSound[];
 	score: number | null;
 	durationMs: number | null;
+	file: SessionEventFile | null;
 }
 
-export interface TapeRow extends TimeSpan {
+export interface LogRow extends TimeSpan {
 	sleeping: boolean;
-	items: TapeItem[];
+	items: LogItem[];
 }
 
-export interface TapeDay {
+export interface LogDay {
 	date: number;
-	rows: TapeRow[];
+	rows: LogRow[];
 }
 
 /** 소리의 녹음 시각을 비교하는 함수 */
@@ -56,7 +57,7 @@ const _splitAtMidnight = ({ start, end }: TimeSpan) => {
 
 /** 구간을 한 시간마다 나누는 함수 */
 const _hourRows = ({ start, end }: TimeSpan) => {
-	const rows: TapeRow[] = [];
+	const rows: LogRow[] = [];
 
 	for (let hour = dayjs(start).startOf('hour').valueOf(); hour < end; hour += HOUR) {
 		rows.push({
@@ -100,21 +101,14 @@ export const getSleepSpans = ({ start, end }: TimeSpan, sleep: SleepSettings | n
 	return spans;
 };
 
-/** 구간 안의 자정 시각 목록을 반환하는 함수 */
-export const getMidnights = (span: TimeSpan) => {
-	return _splitAtMidnight(span)
-		.slice(1)
-		.map((midnightSpan) => midnightSpan.start);
-};
-
-/** 시각순 소리 카드 목록을 반환하는 함수 */
-export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => {
+/** 시각순 기록 목록을 반환하는 함수 */
+export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 	const emergencyEvents = events.filter((event) => event.kind === 'sound_emergency_detected');
 	const emergencySoundIds = new Set(emergencyEvents.flatMap((event) => event.sound_ids));
 
 	const soundItems = sounds
 		.filter((sound) => !emergencySoundIds.has(sound.id))
-		.map((sound): TapeItem => {
+		.map((sound): LogItem => {
 			const mimicked = Boolean(sound.judgment?.word_id);
 
 			return {
@@ -125,9 +119,10 @@ export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => 
 				sounds: [sound],
 				score: (mimicked ? sound.judgment?.score : sound.analysis?.score) ?? null,
 				durationMs: sound.duration_ms ?? null,
+				file: null,
 			};
 		});
-	const emergencyItems = emergencyEvents.map((event): TapeItem => ({
+	const emergencyItems = emergencyEvents.map((event): LogItem => ({
 		id: event.id,
 		kind: 'emergency',
 		startedAt: event.occurred_at,
@@ -135,13 +130,32 @@ export const getTapeItems = (sounds: SessionSound[], events: SessionEvent[]) => 
 		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(_compareCapturedAt),
 		score: null,
 		durationMs: event.ended_at ? Date.parse(event.ended_at) - Date.parse(event.occurred_at) : null,
+		file: null,
 	}));
+	const petcamItems = events
+		.filter((event) => event.kind === 'parrot_disappeared' || event.kind === 'parrot_appeared')
+		.map((event): LogItem => {
+			const disappeared = event.kind === 'parrot_disappeared';
 
-	return [...soundItems, ...emergencyItems].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+			return {
+				id: event.id,
+				kind: disappeared ? 'parrotDisappeared' : 'parrotAppeared',
+				startedAt: event.occurred_at,
+				endedAt: event.ended_at,
+				sounds: [],
+				score: null,
+				durationMs: null,
+				file: disappeared ? event.video : event.image,
+			};
+		});
+
+	return [...soundItems, ...emergencyItems, ...petcamItems].sort(
+		(a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
+	);
 };
 
-/** 날짜별 행에 소리 카드를 담는 함수 */
-export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: TapeItem[]) => {
+/** 날짜별 행에 기록을 담는 함수 */
+export const getLogDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: LogItem[]) => {
 	const awakeSpans = [...sleepSpans, { start: session.end, end: session.end }].map((sleepSpan, index) => ({
 		start: index === 0 ? session.start : sleepSpans[index - 1].end,
 		end: sleepSpan.start,
@@ -149,7 +163,7 @@ export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: Ta
 	const rows = awakeSpans.flatMap((awakeSpan, index) => [
 		..._splitAtMidnight(awakeSpan).flatMap(_hourRows),
 		...(index < sleepSpans.length
-			? _splitAtMidnight(sleepSpans[index]).map((sleepSpan): TapeRow => ({
+			? _splitAtMidnight(sleepSpans[index]).map((sleepSpan): LogRow => ({
 					...sleepSpan,
 					sleeping: true,
 					items: [],
@@ -168,7 +182,7 @@ export const getTapeDays = (session: TimeSpan, sleepSpans: TimeSpan[], items: Ta
 	}));
 	const dates = [...new Set(rowsWithItems.map((row) => dayjs(row.start).startOf('day').valueOf()))];
 
-	return dates.map((date): TapeDay => ({
+	return dates.map((date): LogDay => ({
 		date,
 		rows: rowsWithItems.filter((row) => dayjs(row.start).startOf('day').valueOf() === date),
 	}));
