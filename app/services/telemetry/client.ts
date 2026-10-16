@@ -9,6 +9,7 @@ import type { PetcamVideoSettings, PetcamVideoStats } from '@/types/petcam';
 import type { RemoteConfigValues } from '@/types/remote-config';
 import type { AnalyticsEvents, UserProperties } from '@/types/telemetry';
 
+import type { ParrotCheckResult } from '@modules/frame-capture/src';
 import {
 	getAnalytics,
 	logEvent,
@@ -305,4 +306,29 @@ export const recordPetcamVideoStats = (role: 'sender' | 'receiver', stats: Petca
 	if (stats.bitrate !== null) {
 		Sentry.metrics.distribution('petcam.bitrate', stats.bitrate, { unit: 'kbps', attributes });
 	}
+};
+
+/** 앵무새 확인 결과를 metric으로 기록하는 함수 */
+export const recordParrotCheck = (checkResult: ParrotCheckResult) => {
+	const attributes = { night_corrected: checkResult.nightCorrected };
+
+	Sentry.metrics.distribution('petcam.bird_score', checkResult.birdScore, { attributes });
+	Sentry.metrics.distribution('petcam.photo_brightness', checkResult.brightness, { attributes });
+	Sentry.metrics.distribution('petcam.inference_duration', checkResult.inferenceMs, {
+		unit: 'millisecond',
+		attributes,
+	});
+};
+
+/** 펫캠 파일 업로드를 metric으로 기록하는 함수 */
+export const recordPetcamUpload = (file: 'photo' | 'video', bytes: number, durationMs: number) => {
+	const attributes = { file };
+
+	Sentry.metrics.distribution('petcam.upload_size', bytes, { unit: 'byte', attributes });
+	Sentry.metrics.distribution('petcam.upload_duration', durationMs, { unit: 'millisecond', attributes });
+};
+
+/** 펫캠 파일 업로드 실패를 metric으로 기록하는 함수 */
+export const recordPetcamUploadFailure = (file: 'photo' | 'video') => {
+	Sentry.metrics.count('petcam.upload_failure', 1, { attributes: { file } });
 };

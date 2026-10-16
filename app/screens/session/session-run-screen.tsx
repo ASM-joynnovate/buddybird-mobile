@@ -11,7 +11,16 @@ import type { RootStackParamList } from '@/types/navigation';
 import type { SleepSettings } from '@/types/sleep-settings';
 
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
-import { useFinishSession, useGetRunningSession, useSendHeartbeat, useUploadSessionSound } from '@/hooks/apis/sessions';
+import {
+	getSessionEventListOptions,
+	useFinishSession,
+	useGetRunningSession,
+	useIssuePetcamEventUpload,
+	useSendHeartbeat,
+	useUploadPetcamPhoto,
+	useUploadPetcamVideo,
+	useUploadSessionSound,
+} from '@/hooks/apis/sessions';
 import { getWordOptions } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
 
@@ -33,7 +42,8 @@ import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 import { readPermission } from '@/services/device/permissions';
 import { createPetcamSender, type PetcamSender } from '@/services/petcam/connection';
-import { getPetcamVideo, shouldShowPetcam } from '@/services/remote-config/client';
+import { createParrotWatcher, type ParrotWatcher } from '@/services/petcam/parrot-watcher';
+import { getPetcamVideo, shouldCheckParrotDetection, shouldShowPetcam } from '@/services/remote-config/client';
 import { recordPetcamVideoStats, reportError, tracePetcamCamera, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
@@ -88,7 +98,6 @@ const SessionRunScreen = () => {
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 	const [cameraOn, setCameraOn] = useState(false);
 	const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-	const [previewVisible, setPreviewVisible] = useState(true);
 	const [viewerConnected, setViewerConnected] = useState(false);
 	const [petcamAudioOn, setPetcamAudioOn] = useState(false);
 
@@ -111,6 +120,9 @@ const SessionRunScreen = () => {
 	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
 	const { mutateAsync: sendHeartbeatAsync } = useSendHeartbeat();
 	const { mutateAsync: issuePetcamTurnCredential } = useIssuePetcamTurnCredential();
+	const { mutateAsync: issuePetcamEventUpload } = useIssuePetcamEventUpload();
+	const { mutateAsync: uploadPetcamPhoto } = useUploadPetcamPhoto();
+	const { mutateAsync: uploadPetcamVideo } = useUploadPetcamVideo();
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
@@ -195,19 +207,6 @@ const SessionRunScreen = () => {
 		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
 	}, [infoVisible, opacity]);
 
-	/** 화면이 어두워지면 미리보기 숨김 */
-	useEffect(() => {
-		if (infoVisible) {
-			setPreviewVisible(true);
-
-			return;
-		}
-
-		const timer = setTimeout(() => setPreviewVisible(false), FADE_MS);
-
-		return () => clearTimeout(timer);
-	}, [infoVisible]);
-
 	/** Viewer와 연결할 채널 열기 */
 	useEffect(() => {
 		if (!petcamShown) {
@@ -248,7 +247,7 @@ const SessionRunScreen = () => {
 		};
 	}, [issuePetcamTurnCredential, petcamShown, sessionId]);
 
-	/** 카메라가 켜진 동안 영상 전송 */
+	/** 카메라가 켜진 동안 카메라 영상 열기 */
 	useEffect(() => {
 		if (!cameraOn) {
 			return;
@@ -257,6 +256,7 @@ const SessionRunScreen = () => {
 		const video = getPetcamVideo();
 
 		let openedStream: MediaStream | null = null;
+		let parrotWatcher: ParrotWatcher | null = null;
 		let effectActive = true;
 
 		void tracePetcamCamera(video, () => mediaDevices.getUserMedia({ audio: false, video }))
@@ -271,6 +271,26 @@ const SessionRunScreen = () => {
 
 				setCameraStream(stream);
 				petcamSenderRef.current?.setStream(stream);
+
+				if (!shouldCheckParrotDetection()) {
+					return;
+				}
+
+				// 앵무새 검출을 시작하지 못해도 영상 전송 유지
+				try {
+					parrotWatcher = createParrotWatcher({
+						sessionId,
+						stream,
+						loadSessionEvents: () =>
+							queryClient.query({ ...getSessionEventListOptions({ id: sessionId }), staleTime: 0 }),
+						issuePetcamEventUpload,
+						uploadPetcamPhoto,
+						uploadPetcamVideo,
+						onError: (error) => reportError(error, 'parrot_detection'),
+					});
+				} catch (e) {
+					reportError(e, 'parrot_detection');
+				}
 			})
 			.catch((error: unknown) => {
 				reportError(error, 'petcam_camera');
@@ -283,6 +303,12 @@ const SessionRunScreen = () => {
 		return () => {
 			effectActive = false;
 
+			try {
+				parrotWatcher?.close();
+			} catch (e) {
+				reportError(e, 'parrot_detection');
+			}
+
 			if (openedStream) {
 				closeMediaStream(openedStream);
 			}
@@ -290,7 +316,7 @@ const SessionRunScreen = () => {
 			setCameraStream(null);
 			petcamSenderRef.current?.setStream(null);
 		};
-	}, [cameraOn]);
+	}, [cameraOn, issuePetcamEventUpload, queryClient, sessionId, uploadPetcamPhoto, uploadPetcamVideo]);
 
 	/** 학습이 멈춘 동안 마이크 소리 전송 */
 	useEffect(() => {
@@ -583,7 +609,7 @@ const SessionRunScreen = () => {
 			accessibilityLabel={t('session.run.reveal')}
 		>
 			{/*카메라 영상*/}
-			{!!cameraStream && previewVisible && (
+			{!!cameraStream && (
 				<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">
 					<StationCamera stream={cameraStream} />
 				</Animated.View>

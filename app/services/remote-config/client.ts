@@ -98,6 +98,50 @@ export const getPetcamCameraRequestTimeoutMs = () => {
 	return readConfigValues().petcam_camera_request_timeout_ms;
 };
 
+/** 앵무새 검출을 사용할지 반환하는 함수 */
+export const shouldCheckParrotDetection = () => {
+	return readConfigValues().check_parrot_detection;
+};
+
+/** 앵무새 확인 설정을 반환하는 함수 */
+export const getParrotCheck = () => {
+	const configValues = readConfigValues();
+
+	return {
+		intervalMs: configValues.parrot_check_interval_ms,
+		scoreThreshold: configValues.parrot_score_threshold,
+		undetectedCount: configValues.parrot_undetected_count,
+		minBrightness: configValues.parrot_min_brightness,
+		photoQuality: configValues.parrot_photo_quality,
+	};
+};
+
+/** 앵무새 미검출 영상 설정을 반환하는 함수 */
+export const getParrotVideo = () => {
+	const configValues = readConfigValues();
+
+	return {
+		beforeMs: configValues.parrot_video_before_ms,
+		afterMs: configValues.parrot_video_after_ms,
+		width: configValues.parrot_video_width,
+		height: configValues.parrot_video_height,
+		frameRate: configValues.parrot_video_frame_rate,
+		bitrate: configValues.parrot_video_bitrate,
+	};
+};
+
+/** 야간 사진 보정 설정을 반환하는 함수 */
+export const getParrotNightCorrection = () => {
+	const configValues = readConfigValues();
+
+	return {
+		correctionEnabled: configValues.correct_parrot_night_photo,
+		startBrightness: configValues.parrot_night_start_brightness,
+		frameRate: configValues.parrot_night_frame_rate,
+		mergeMs: configValues.parrot_night_merge_ms,
+	};
+};
+
 /** 소리 감지 설정을 반환하는 함수 */
 export const getVad = () => {
 	const configValues = readConfigValues();

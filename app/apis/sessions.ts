@@ -1,4 +1,4 @@
-import { postSessionSoundUpload, putUploadFile } from '@/apis/uploads';
+import { postSessionPetcamVideoUpload, postSessionSoundUpload, putUploadFile } from '@/apis/uploads';
 
 import { type Page, pageMetaSchema } from '@/types/apis/common';
 import {
@@ -20,7 +20,7 @@ import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
-import { API_TIMEOUT_MS } from '@/config';
+import { API_TIMEOUT_MS, PETCAM_VIDEO_UPLOAD_TIMEOUT_MS } from '@/config';
 import { SECOND } from '@/config/units';
 
 const SOUND_PAGE_SIZE = 50;
@@ -136,6 +136,24 @@ export const getSessionEventList = async ({ id }: { id: string }): Promise<Sessi
 	});
 
 	return sessionEvents;
+};
+
+export const postSessionPetcamVideo = async ({
+	id,
+	eventId,
+	uri,
+	idempotencyKey,
+}: {
+	id: string;
+	eventId: string;
+	uri: string;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await putUploadFile({
+		upload: await postSessionPetcamVideoUpload({ id, eventId, uri, idempotencyKey }),
+		uri,
+		timeoutMs: PETCAM_VIDEO_UPLOAD_TIMEOUT_MS,
+	});
 };
 
 export const getSessionSoundDuration = async ({ url }: { url: string }): Promise<number> => {
