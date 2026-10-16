@@ -60,7 +60,7 @@ export const report: ReportMessages = {
 		emergencyCountValue_other: '{{count}}',
 		kinds: {
 			parrot: 'Chirp',
-			emergency: 'Distress calls',
+			distressCall: 'Distress calls',
 			parrotDisappeared: 'Parrot out of view',
 			parrotAppeared: 'Parrot back in view',
 		},

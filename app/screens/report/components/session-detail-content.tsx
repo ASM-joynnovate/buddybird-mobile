@@ -17,7 +17,7 @@ import Animated, { useAnimatedRef, useScrollOffset, useSharedValue } from 'react
 
 import SessionLog from '@/screens/report/components/session-log';
 import SessionOverview from '@/screens/report/components/session-overview';
-import { shouldShowEmergencyAudioEvent } from '@/services/remote-config/client';
+import { shouldShowDistressCall } from '@/services/remote-config/client';
 import { getLogItems, type LogItem } from '@/utils/session-log';
 
 interface Props {
@@ -31,7 +31,7 @@ interface Props {
 const SessionDetailContent = ({ sessionId }: Props) => {
 	const queryClient = useQueryClient();
 
-	const emergencyShown = shouldShowEmergencyAudioEvent();
+	const distressCallShown = shouldShowDistressCall();
 
 	const { data: sessionData } = useGetSession({ id: sessionId });
 	const { data: sessionSummaryData } = useGetSessionSummary({ id: sessionId });
@@ -54,12 +54,12 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		() =>
 			getLogItems(
 				sessionSoundListData.pages.flatMap((soundPage) => soundPage.data),
-				sessionEventListData.filter((event) => emergencyShown || event.kind !== 'sound_emergency_detected'),
+				sessionEventListData.filter((event) => distressCallShown || event.kind !== 'distress_call_detected'),
 			),
-		[emergencyShown, sessionEventListData, sessionSoundListData],
+		[distressCallShown, sessionEventListData, sessionSoundListData],
 	);
 	const emergencyCount = items.filter(
-		(item) => item.kind === 'emergency' || item.kind === 'parrotDisappeared',
+		(item) => item.kind === 'distressCall' || item.kind === 'parrotDisappeared',
 	).length;
 
 	const refetchSessionDetail = useCallback(

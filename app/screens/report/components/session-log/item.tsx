@@ -8,7 +8,8 @@ import dayjs from 'dayjs';
 import { ChevronDownIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import { sessionDetailColors, logItemColors } from '@/screens/report/components/session-detail-colors';
+import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
+import SessionLogKindIcon from '@/screens/report/components/session-log/kind-icon';
 import SessionLogMediaPanel from '@/screens/report/components/session-log/media-panel';
 import SessionLogSoundPanel from '@/screens/report/components/session-log/sound-panel';
 import { colors, font } from '@/theme';
@@ -21,11 +22,12 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 const TIME_FORMAT = 'HH:mm:ss';
 const PERCENT = 100;
 const SIDE_PADDING = 14;
+const LINES_INSET = 48;
 
 const mediaTypes: Record<LogItemKind, 'audio' | 'video' | 'image'> = {
 	parrot: 'audio',
 	mimic: 'audio',
-	emergency: 'audio',
+	distressCall: 'audio',
 	parrotDisappeared: 'video',
 	parrotAppeared: 'image',
 };
@@ -56,11 +58,10 @@ const SessionLogItem = memo(
 	({ item, open, dividerShown, sleeping, sessionId, judgmentPending, wordName, onToggle }: Props) => {
 		const { t } = useTranslation();
 
-		const palette = logItemColors[item.kind];
 		const mediaType = mediaTypes[item.kind];
 		const name = item.kind === 'mimic' ? wordName : t(`report.detail.kinds.${item.kind}`);
 		const startTime = dayjs(item.startedAt).format(TIME_FORMAT);
-		const rangeShown = item.kind === 'emergency' || item.kind === 'parrotDisappeared';
+		const rangeShown = item.kind === 'distressCall' || item.kind === 'parrotDisappeared';
 		let value: string | null = null;
 		let time = startTime;
 
@@ -68,7 +69,7 @@ const SessionLogItem = memo(
 			value = t('report.detail.percent', { value: Math.round(item.score * PERCENT) });
 		} else if (judgmentPending && (item.kind === 'parrot' || item.kind === 'mimic')) {
 			value = t('report.judging');
-		} else if (item.kind === 'emergency' && item.durationMs !== null) {
+		} else if (item.kind === 'distressCall' && item.durationMs !== null) {
 			value = t('common.duration.seconds', { value: Math.round(item.durationMs / SECOND) });
 		}
 
@@ -95,6 +96,8 @@ const SessionLogItem = memo(
 					cornerRadius="none"
 					contentStyle={styles.head}
 				>
+					<SessionLogKindIcon kind={item.kind} />
+
 					<View style={styles.lines}>
 						<View style={styles.main}>
 							<Copy numberOfLines={1} style={styles.name}>
@@ -107,8 +110,8 @@ const SessionLogItem = memo(
 						</Copy>
 					</View>
 
-					<View style={[styles.tag, { backgroundColor: palette.tagFace }]}>
-						<Copy numberOfLines={1} style={[styles.tagText, { color: palette.tagText }]}>
+					<View style={styles.tag}>
+						<Copy numberOfLines={1} style={styles.tagText}>
 							{mediaTypeName}
 						</Copy>
 					</View>
@@ -116,12 +119,15 @@ const SessionLogItem = memo(
 					<ChevronDownIcon size={20} color={colors.muted} style={open && styles.chevronOpen} />
 				</PressableSurface>
 
-				{open &&
-					(mediaType === 'audio' ? (
-						<SessionLogSoundPanel item={item} itemName={itemName} sessionId={sessionId} />
-					) : (
-						<SessionLogMediaPanel item={item} itemName={itemName} mediaType={mediaType} />
-					))}
+				{open && (
+					<View style={styles.panel}>
+						{mediaType === 'audio' ? (
+							<SessionLogSoundPanel item={item} itemName={itemName} sessionId={sessionId} />
+						) : (
+							<SessionLogMediaPanel item={item} itemName={itemName} mediaType={mediaType} />
+						)}
+					</View>
+				)}
 			</View>
 		);
 	},
@@ -133,7 +139,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: SIDE_PADDING,
-		left: SIDE_PADDING,
+		left: SIDE_PADDING + LINES_INSET,
 		height: 1,
 		backgroundColor: sessionDetailColors.divider,
 	},
@@ -145,7 +151,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		borderWidth: 0,
 	},
-	lines: { flex: 1, minWidth: 0, gap: 2 },
+	lines: { flex: 1, minWidth: 0, gap: 2, marginLeft: 4 },
 	main: { flexDirection: 'row', alignItems: 'baseline', gap: 6, minWidth: 0 },
 	name: { flexShrink: 1, fontFamily: font.bold, fontSize: 13, lineHeight: 20, color: colors.muted },
 	value: { fontFamily: font.bold, fontSize: 16, lineHeight: 22, fontVariant: ['tabular-nums'] },
@@ -156,9 +162,16 @@ const styles = StyleSheet.create({
 		color: colors.muted,
 		fontVariant: ['tabular-nums'],
 	},
-	tag: { flexShrink: 0, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 8 },
+	tag: {
+		flexShrink: 0,
+		paddingVertical: 3,
+		paddingHorizontal: 8,
+		borderRadius: 8,
+		backgroundColor: sessionDetailColors.track,
+	},
 	tagText: { fontFamily: font.semiBold, fontSize: 13, lineHeight: 18 },
 	chevronOpen: { transform: [{ rotate: '180deg' }] },
+	panel: { paddingLeft: LINES_INSET },
 });
 
 export default SessionLogItem;

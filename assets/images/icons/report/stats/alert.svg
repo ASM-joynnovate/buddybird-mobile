@@ -1,0 +1,16 @@
+<svg width="108" height="108" viewBox="0 0 108 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M40 20H68C85.28 20 92 26.72 92 44V70C92 87.28 85.28 94 68 94H40C22.72 94 16 87.28 16 70V44C16 26.72 22.72 20 40 20Z" fill="#D93A3A"/>
+<path d="M40 14H68C85.28 14 92 20.72 92 38V64C92 81.28 85.28 88 68 88H40C22.72 88 16 81.28 16 64V38C16 20.72 22.72 14 40 14Z" fill="#FF4B4B"/>
+<path d="M54 38.54V32.06" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="#D93A3A"/>
+<path d="M42.12 43.94L37.8 39.62" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="#D93A3A"/>
+<path d="M65.8799 43.94L70.1999 39.62" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="#D93A3A"/>
+<path d="M42.1199 67.16V56.36C42.1199 53.2092 43.3715 50.1875 45.5994 47.9596C47.8274 45.7316 50.8491 44.48 53.9999 44.48C57.1506 44.48 60.1724 45.7316 62.4003 47.9596C64.6282 50.1875 65.8799 53.2092 65.8799 56.36V67.16H42.1199Z" fill="#D93A3A"/>
+<path d="M68.04 66.08H39.96C38.1706 66.08 36.72 67.5306 36.72 69.32V72.56C36.72 74.3494 38.1706 75.8 39.96 75.8H68.04C69.8294 75.8 71.28 74.3494 71.28 72.56V69.32C71.28 67.5306 69.8294 66.08 68.04 66.08Z" fill="#D93A3A"/>
+<path d="M54 35.34V28.86" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path d="M42.12 40.74L37.8 36.42" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path d="M65.8799 40.74L70.1999 36.42" stroke-width="4.86" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path d="M42.1199 63.96V53.16C42.1199 50.0092 43.3715 46.9875 45.5994 44.7596C47.8274 42.5316 50.8491 41.28 53.9999 41.28C57.1506 41.28 60.1724 42.5316 62.4003 44.7596C64.6282 46.9875 65.8799 50.0092 65.8799 53.16V63.96H42.1199Z" fill="white"/>
+<path d="M68.04 62.88H39.96C38.1706 62.88 36.72 64.3306 36.72 66.12V69.36C36.72 71.1494 38.1706 72.6 39.96 72.6H68.04C69.8294 72.6 71.28 71.1494 71.28 69.36V66.12C71.28 64.3306 69.8294 62.88 68.04 62.88Z" fill="white"/>
+<path d="M51.84 51.27C51.84 49.9279 50.752 48.84 49.41 48.84C48.0679 48.84 46.98 49.9279 46.98 51.27V58.29C46.98 59.632 48.0679 60.72 49.41 60.72C50.752 60.72 51.84 59.632 51.84 58.29V51.27Z" fill="#FF4B4B"/>
+<path d="M38.8799 62.88H69.1199" stroke-width="1.89" stroke-linecap="round" stroke-linejoin="round" stroke="#FF4B4B"/>
+</svg>

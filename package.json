@@ -102,6 +102,7 @@
 		"oxlint-config-universe": "0.2.0",
 		"oxlint-plugin-react-native": "0.2.37",
 		"oxlint-tsgolint": "7.0.2003",
+		"react-native-svg-transformer": "1.5.3",
 		"typescript": "~6.0.3"
 	},
 	"engines": {

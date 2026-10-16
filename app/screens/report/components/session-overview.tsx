@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { type ComponentType, memo } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
 
+import type { SvgProps } from 'react-native-svg';
+
 import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
@@ -15,22 +17,29 @@ import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
 
+import MimicIcon from '@assets/images/icons/report/events/mimic.svg';
+import AlertIcon from '@assets/images/icons/report/stats/alert.svg';
+import ClockIcon from '@assets/images/icons/report/stats/clock.svg';
+import SpeechBubbleIcon from '@assets/images/icons/report/stats/speech-bubble.svg';
+
+const ICON_SIZE = 36;
+
 interface StatProps {
-	emoji: string;
+	icon: ComponentType<SvgProps>;
 	value: string;
 	label: string;
 }
 
 /**
  * 요약 칸 컴포넌트
- * @param emoji 이모지
+ * @param icon 아이콘
  * @param value 값
  * @param label 이름
  */
-const Stat = ({ emoji, value, label }: StatProps) => {
+const Stat = ({ icon: Icon, value, label }: StatProps) => {
 	return (
 		<View accessible accessibilityLabel={joinLabel(label, value)} style={styles.stat}>
-			<Copy style={styles.emoji}>{emoji}</Copy>
+			<Icon width={ICON_SIZE} height={ICON_SIZE} />
 			<View style={styles.statText}>
 				<Copy numberOfLines={1} style={styles.value}>
 					{value}
@@ -63,18 +72,18 @@ const SessionOverview = memo(({ session, sessionSummary, emergencyCount }: Props
 	return (
 		<View style={styles.stats}>
 			<Stat
-				emoji="⏱️"
+				icon={ClockIcon}
 				value={formatDuration(sessionSummary.session.active.duration_ms, locale)}
 				label={t('report.detail.learningTime')}
 			/>
-			<Stat emoji="💬" value={sessionSummary.word.name} label={t('report.detail.taughtWord')} />
+			<Stat icon={SpeechBubbleIcon} value={sessionSummary.word.name} label={t('report.detail.taughtWord')} />
 			<Stat
-				emoji="🦜"
+				icon={MimicIcon}
 				value={t('report.detail.mimicCountValue', { count: session.sounds.mimic_count })}
 				label={t('report.detail.mimicCount')}
 			/>
 			<Stat
-				emoji="🚨"
+				icon={AlertIcon}
 				value={t('report.detail.emergencyCountValue', { count: emergencyCount })}
 				label={t('report.detail.emergencyCount')}
 			/>
@@ -91,12 +100,13 @@ const styles = StyleSheet.create({
 		minHeight: 72,
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 12,
-		padding: 14,
+		gap: 10,
+		paddingVertical: 12,
+		paddingRight: 14,
+		paddingLeft: 10,
 		borderRadius: 16,
 		backgroundColor: sessionDetailColors.face,
 	},
-	emoji: { fontSize: 20, lineHeight: 24 },
 	statText: { flex: 1, minWidth: 0 },
 	value: { fontFamily: font.extraBold, fontSize: 18, lineHeight: 24, fontVariant: ['tabular-nums'] },
 	label: { fontFamily: font.medium, fontSize: 13, lineHeight: 18, color: colors.muted },

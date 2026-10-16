@@ -58,7 +58,7 @@ export type ReportMessages = {
 		emergencyCountValue_other: string;
 		kinds: {
 			parrot: string;
-			emergency: string;
+			distressCall: string;
 			parrotDisappeared: string;
 			parrotAppeared: string;
 		};

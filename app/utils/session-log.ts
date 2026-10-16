@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 import { HOUR } from '@/config/units';
 
-export type LogItemKind = 'parrot' | 'mimic' | 'emergency' | 'parrotDisappeared' | 'parrotAppeared';
+export type LogItemKind = 'parrot' | 'mimic' | 'distressCall' | 'parrotDisappeared' | 'parrotAppeared';
 
 export interface TimeSpan {
 	start: number;
@@ -103,11 +103,11 @@ export const getSleepSpans = ({ start, end }: TimeSpan, sleep: SleepSettings | n
 
 /** 시각순 기록 목록을 반환하는 함수 */
 export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
-	const emergencyEvents = events.filter((event) => event.kind === 'sound_emergency_detected');
-	const emergencySoundIds = new Set(emergencyEvents.flatMap((event) => event.sound_ids));
+	const distressCallEvents = events.filter((event) => event.kind === 'distress_call_detected');
+	const distressCallSoundIds = new Set(distressCallEvents.flatMap((event) => event.sound_ids));
 
 	const soundItems = sounds
-		.filter((sound) => !emergencySoundIds.has(sound.id))
+		.filter((sound) => !distressCallSoundIds.has(sound.id))
 		.map((sound): LogItem => {
 			const mimicked = Boolean(sound.judgment?.word_id);
 
@@ -122,9 +122,9 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 				file: null,
 			};
 		});
-	const emergencyItems = emergencyEvents.map((event): LogItem => ({
+	const distressCallItems = distressCallEvents.map((event): LogItem => ({
 		id: event.id,
-		kind: 'emergency',
+		kind: 'distressCall',
 		startedAt: event.occurred_at,
 		endedAt: event.ended_at,
 		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(_compareCapturedAt),
@@ -149,7 +149,7 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 			};
 		});
 
-	return [...soundItems, ...emergencyItems, ...petcamItems].sort(
+	return [...soundItems, ...distressCallItems, ...petcamItems].sort(
 		(a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
 	);
 };
