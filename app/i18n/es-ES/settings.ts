@@ -2,15 +2,10 @@ import type { SettingsMessages } from '@/i18n/types/settings';
 
 export const settings: SettingsMessages = {
 	title: 'Ajustes',
-	saveError: 'No hemos podido guardar el ajuste y hemos vuelto al valor anterior. Inténtalo de nuevo.',
+	saveError: 'No hemos podido guardar el ajuste y hemos vuelto al valor anterior.\nInténtalo de nuevo.',
 	notifications: {
 		title: 'Notificaciones',
 		all: 'Todas las notificaciones',
-		announcement: 'Anuncios',
-		report: 'Informes',
-		marketing: 'Promociones',
-		marketingNight: 'Promociones por la noche',
-		marketingNightHours: 'De 21:00 a 8:00',
 		permissionOff: 'El permiso de notificaciones está desactivado, así que no recibirás ninguna',
 	},
 	general: {

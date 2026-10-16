@@ -70,4 +70,5 @@ export type RootStackParamList = {
 	ConsentSettings: undefined;
 	Devices: undefined;
 	NotificationSettings: undefined;
+	NotificationGroupSettings: { groupId: string };
 };

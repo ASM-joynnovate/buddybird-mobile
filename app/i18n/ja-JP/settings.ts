@@ -2,15 +2,10 @@ import type { SettingsMessages } from '@/i18n/types/settings';
 
 export const settings: SettingsMessages = {
 	title: '設定',
-	saveError: '設定を保存できなかったので、元の設定に戻しました。もう一度試してみてください。',
+	saveError: '設定を保存できなかったので、元の設定に戻しました。\nもう一度試してみてください。',
 	notifications: {
 		title: '通知',
 		all: 'すべての通知',
-		announcement: 'お知らせの通知',
-		report: 'レポートの通知',
-		marketing: 'マーケティングの通知',
-		marketingNight: '夜間のマーケティング通知',
-		marketingNightHours: '夜9時〜朝8時',
 		permissionOff: '通知の許可がオフのため、通知を受け取れません',
 	},
 	general: {

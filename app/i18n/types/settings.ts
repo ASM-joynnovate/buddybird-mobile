@@ -4,11 +4,6 @@ export type SettingsMessages = {
 	notifications: {
 		title: string;
 		all: string;
-		announcement: string;
-		report: string;
-		marketing: string;
-		marketingNight: string;
-		marketingNightHours: string;
 		permissionOff: string;
 	};
 	general: {

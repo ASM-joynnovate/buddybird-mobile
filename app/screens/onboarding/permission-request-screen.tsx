@@ -7,7 +7,7 @@ import { usePrefetchQuery } from '@tanstack/react-query';
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useUpdatePushToken } from '@/hooks/apis/devices';
-import { getSettingsOptions } from '@/hooks/apis/settings';
+import { getNotificationSettingsOptions } from '@/hooks/apis/settings';
 
 import { useTranslation } from 'react-i18next';
 
@@ -50,7 +50,7 @@ const PermissionRequestScreen = () => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	usePrefetchQuery(getSettingsOptions());
+	usePrefetchQuery(getNotificationSettingsOptions());
 
 	const { mutate } = useUpdatePushToken();
 

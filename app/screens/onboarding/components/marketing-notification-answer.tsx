@@ -2,13 +2,14 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useGetSettings, useUpdateNotificationSettings } from '@/hooks/apis/settings';
+import { useGetNotificationSettings, useUpdateNotificationSettingItem } from '@/hooks/apis/settings';
 
 import { useTranslation } from 'react-i18next';
 
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingCompleted, trackOnboardingStepCompleted } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { allNotificationSettingItems } from '@/utils/notification-setting-items';
 
 import { Button } from '@/components/ui/button';
 import { ItemCheckbox } from '@/components/ui/item/checkbox';
@@ -21,11 +22,17 @@ const MarketingNotificationAnswer = () => {
 
 	const [nightAccepted, setNightAccepted] = useState(false);
 
-	const { data: settingsData } = useGetSettings();
+	const { data: notificationSettingsData } = useGetNotificationSettings();
 
-	const { isPending, mutate } = useUpdateNotificationSettings();
+	const updateMarketing = useUpdateNotificationSettingItem();
+	const updateMarketingNight = useUpdateNotificationSettingItem();
 
 	const setOnboardingCompleted = useDeviceSettingsStore((state) => state.setOnboardingCompleted);
+
+	const notificationSettingItems = allNotificationSettingItems(notificationSettingsData);
+	const marketingItem = notificationSettingItems.find((item) => item.kind === 'marketing');
+	const marketingNightItem = notificationSettingItems.find((item) => item.kind === 'marketing_night');
+	const isPending = updateMarketing.isPending || updateMarketingNight.isPending;
 
 	/** 온보딩 완료 함수 */
 	const finishOnboarding = () => {
@@ -40,19 +47,19 @@ const MarketingNotificationAnswer = () => {
 	};
 
 	const handleAnswer = (marketingEnabled: boolean) => {
-		if (isPending) {
+		if (isPending || !marketingItem || !marketingNightItem) {
 			return;
 		}
 
-		mutate(
+		updateMarketing.mutate(
+			{ id: marketingItem.id, data: { enabled: marketingEnabled } },
 			{
-				data: {
-					...settingsData.notifications,
-					marketing_enabled: marketingEnabled,
-					marketing_night_enabled: marketingEnabled && nightAccepted,
-				},
+				onSettled: () =>
+					updateMarketingNight.mutate(
+						{ id: marketingNightItem.id, data: { enabled: marketingEnabled && nightAccepted } },
+						{ onSettled: finishOnboarding },
+					),
 			},
-			{ onSettled: finishOnboarding },
 		);
 	};
 

@@ -2,15 +2,10 @@ import type { SettingsMessages } from '@/i18n/types/settings';
 
 export const settings: SettingsMessages = {
 	title: '설정',
-	saveError: '설정을 저장하지 못해 이전 값으로 되돌렸어요. 다시 시도해 주세요.',
+	saveError: '설정을 저장하지 못해 이전 값으로 되돌렸어요.\n다시 시도해 주세요.',
 	notifications: {
 		title: '알림',
 		all: '전체 알림',
-		announcement: '공지 알림',
-		report: '리포트 알림',
-		marketing: '마케팅 알림',
-		marketingNight: '야간 마케팅 알림',
-		marketingNightHours: '밤 9시~아침 8시',
 		permissionOff: '알림 권한이 꺼져 있어 알림을 받을 수 없어요',
 	},
 	general: {

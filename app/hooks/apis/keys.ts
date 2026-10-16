@@ -8,6 +8,7 @@ export const apiKeys = {
 	appUpdate: () => ['api', 'app-update'] as const,
 	me: () => [...userKeyPrefix(), 'users', 'me'] as const,
 	settings: () => [...userKeyPrefix(), 'users', 'me', 'settings'] as const,
+	notificationSettings: () => [...userKeyPrefix(), 'users', 'me', 'settings', 'notifications'] as const,
 	consents: {
 		all: () => [...userKeyPrefix(), 'users', 'me', 'consents'] as const,
 	},
