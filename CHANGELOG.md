@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.8.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.7.0...v2.8.0) (2026-10-16)
+
+
+### Features
+
+* **app:** add six parrot species options [BB-696] ([#247](https://github.com/ASM-joynnovate/buddybird-mobile/issues/247)) ([d106121](https://github.com/ASM-joynnovate/buddybird-mobile/commit/d106121b0a87c3fbad601a57d4282071a1d3a7dd))
+* **app:** detect the parrot on the petcam [BB-668] ([#249](https://github.com/ASM-joynnovate/buddybird-mobile/issues/249)) ([b72b7c9](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b72b7c93e8e619b1ae8cf7340192851a34977bd9))
+* **app:** redesign the session detail with petcam events [BB-699] ([#248](https://github.com/ASM-joynnovate/buddybird-mobile/issues/248)) ([8380c9c](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8380c9c0a24cd01ffb3a648701346b1fce7d9faf))
+
 ## [2.7.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.6.1...v2.7.0) (2026-10-13)
 
 
