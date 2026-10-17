@@ -31,6 +31,7 @@ export type CommonMessages = {
 		stopNamed: string;
 		playError: string;
 	};
+	notificationChannelName: string;
 	permission: {
 		title: string;
 		openSettings: string;

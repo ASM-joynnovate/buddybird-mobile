@@ -1,5 +1,7 @@
 import { useMemo, useRef } from 'react';
 
+import { AppState, Platform } from 'react-native';
+
 import { pushDataSchema } from '@/types/apis/notifications';
 
 import type { RootStackParamList } from '@/types/navigation';
@@ -15,7 +17,7 @@ import {
 	useNavigationContainerRef,
 } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import * as Notifications from 'expo-notifications';
+import notifee, { EventType } from 'react-native-notify-kit';
 
 import { env } from '@/config';
 import MainTabs from '@/navigators/main-tabs';
@@ -151,16 +153,13 @@ const AppNavigator = () => {
 						return resolvePushUrl(message.data);
 					}
 
-					const response = Notifications.getLastNotificationResponse();
-					const trigger = response?.notification.request.trigger;
-
-					if (!response || (trigger && 'type' in trigger && trigger.type === 'push')) {
+					if (Platform.OS !== 'android') {
 						return null;
 					}
 
-					Notifications.clearLastNotificationResponse();
+					const initialNotification = await notifee.getInitialNotification();
 
-					return resolvePushUrl(response.notification.request.content.data);
+					return initialNotification ? resolvePushUrl(initialNotification.notification.data) : null;
 				} catch (e) {
 					reportError(e, 'push_initial');
 
@@ -180,19 +179,41 @@ const AppNavigator = () => {
 				const unsubscribeOpenedApp = onNotificationOpenedApp(getMessaging(), (message) =>
 					openPush(message.data),
 				);
-				const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-					const { trigger } = response.notification.request;
 
-					if (!(trigger && 'type' in trigger && trigger.type === 'push')) {
-						Notifications.clearLastNotificationResponse();
+				if (Platform.OS !== 'android') {
+					return unsubscribeOpenedApp;
+				}
 
-						openPush(response.notification.request.content.data);
+				/** 앱이 띄운 알림 중 누른 알림을 여는 함수 */
+				const openPressedNotification = () => {
+					void notifee
+						.getInitialNotification()
+						.then((initialNotification) => {
+							if (initialNotification) {
+								openPush(initialNotification.notification.data);
+							}
+						})
+						.catch((error: unknown) => reportError(error, 'push_pressed'));
+				};
+
+				// 앱이 앞에 있을 때 누름
+				const unsubscribeForeground = notifee.onForegroundEvent(({ type }) => {
+					if (type === EventType.PRESS) {
+						openPressedNotification();
+					}
+				});
+
+				// 백그라운드에서 누르고 돌아옴
+				const appStateSubscription = AppState.addEventListener('change', (appState) => {
+					if (appState === 'active') {
+						openPressedNotification();
 					}
 				});
 
 				return () => {
 					unsubscribeOpenedApp();
-					responseSubscription.remove();
+					unsubscribeForeground();
+					appStateSubscription.remove();
 				};
 			},
 		};

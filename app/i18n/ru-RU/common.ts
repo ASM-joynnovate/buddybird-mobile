@@ -33,6 +33,7 @@ export const common: CommonMessages = {
 		stopNamed: 'Остановить: {{name}}',
 		playError: 'Не получилось воспроизвести звук. Нажми кнопку воспроизведения ещё раз.',
 	},
+	notificationChannelName: 'Уведомления',
 	permission: {
 		title: 'Нужно разрешение: {{name}}',
 		openSettings: 'Открыть настройки',

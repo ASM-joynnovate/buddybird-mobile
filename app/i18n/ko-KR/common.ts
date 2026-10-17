@@ -33,6 +33,7 @@ export const common: CommonMessages = {
 		stopNamed: '{{name}} 중지',
 		playError: '소리를 재생하지 못했어요. 재생 버튼을 다시 눌러 주세요.',
 	},
+	notificationChannelName: '알림',
 	permission: {
 		title: '{{name}} 권한이 필요해요',
 		openSettings: '설정 열기',
