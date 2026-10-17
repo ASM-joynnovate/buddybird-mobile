@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.10.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.9.0...v2.10.0) (2026-10-17)
+
+
+### Features
+
+* add lineolated parakeet to small species ([#256](https://github.com/ASM-joynnovate/buddybird-mobile/issues/256)) ([bd2e61f](https://github.com/ASM-joynnovate/buddybird-mobile/commit/bd2e61ff31da0f56eee25d777ea50e33620bbbc9))
+
+
+### Bug Fixes
+
+* **app:** hide the petcam ([#260](https://github.com/ASM-joynnovate/buddybird-mobile/issues/260)) ([cac8185](https://github.com/ASM-joynnovate/buddybird-mobile/commit/cac81851ca9f1857516f6e9ee914767c36664185))
+* **app:** show the image in foreground notifications on Android ([#257](https://github.com/ASM-joynnovate/buddybird-mobile/issues/257)) ([cf1d37f](https://github.com/ASM-joynnovate/buddybird-mobile/commit/cf1d37f10ed01ba9b434184eb6323bfa0a85c49e))
+* **app:** show the mimic count as a number of times ([#259](https://github.com/ASM-joynnovate/buddybird-mobile/issues/259)) ([a4f09b5](https://github.com/ASM-joynnovate/buddybird-mobile/commit/a4f09b5f1665d6afee4e99cf728e8808342787cc))
+
 ## [2.9.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.8.1...v2.9.0) (2026-10-16)
 
 
