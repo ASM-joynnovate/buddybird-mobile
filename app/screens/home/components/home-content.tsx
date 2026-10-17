@@ -22,7 +22,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import * as Device from 'expo-device';
-import { EyeIcon, MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
+// TODO: 펫캠 가이드 추가 후 사용
+import { /* EyeIcon, */ MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
 
@@ -31,7 +32,6 @@ import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
 import WordPicker from '@/screens/home/components/word-picker';
-import { shouldShowPetcam } from '@/services/remote-config/client';
 import { useAccountStore } from '@/stores/account';
 import { useSessionStore } from '@/stores/session';
 import { colors, font, layoutAnimationMs } from '@/theme';
@@ -89,7 +89,6 @@ const HomeContent = () => {
 	const runningDevice = deviceListData.find((device) => device.id === runningSession?.station.device_id);
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
 	const unreadCount = homeSummaryData.unread_notification_count;
-	const petcamShown = shouldShowPetcam();
 
 	const wordsWithRecordings = wordListData.filter((word) => uploadedRecordings(word.recordings).length > 0);
 	const selectedWord =
@@ -235,14 +234,15 @@ const HomeContent = () => {
 		finishSession.mutate({ id: runningSession.id });
 	};
 
-	/** 다른 기기에서 진행 중인 학습 보기 */
-	const handleWatchElsewhere = () => {
-		if (!runningSession) {
-			return;
-		}
-
-		navigation.navigate('SessionWatch', { sessionId: runningSession.id });
-	};
+	// TODO: 펫캠 가이드 추가 후 사용
+	// /** 다른 기기에서 진행 중인 학습 보기 */
+	// const handleWatchElsewhere = () => {
+	// 	if (!runningSession) {
+	// 		return;
+	// 	}
+	//
+	// 	navigation.navigate('SessionWatch', { sessionId: runningSession.id });
+	// };
 
 	return (
 		<>
@@ -269,16 +269,15 @@ const HomeContent = () => {
 									onPress={handleEndElsewhere}
 								/>
 							</View>
-							{petcamShown && (
-								<Button
-									label={t('session.start.watch')}
-									icon={EyeIcon}
-									size="small"
-									disabled={starting}
-									onPress={handleWatchElsewhere}
-									style={styles.watchButton}
-								/>
-							)}
+							{/*TODO: 펫캠 가이드 추가 후 사용*/}
+							{/*<Button
+								label={t('session.start.watch')}
+								icon={EyeIcon}
+								size="small"
+								disabled={starting}
+								onPress={handleWatchElsewhere}
+								style={styles.watchButton}
+							/>*/}
 						</Card>
 						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
 					</View>
@@ -389,7 +388,8 @@ const styles = StyleSheet.create({
 	elsewhereContainer: { marginBottom: 20 },
 	elsewhereCard: { padding: 4, paddingLeft: 14 },
 	elsewhereRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-	watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
+	// TODO: 펫캠 가이드 추가 후 사용
+	// watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
 	elsewhereText: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 15, lineHeight: 21 },
 	sleepContainer: { marginTop: 16 },
 	startButton: { marginTop: 12 },

@@ -66,11 +66,6 @@ export const shouldShowDistressCall = () => {
 	return readConfigValues().show_distress_call_detected;
 };
 
-/** 펫캠을 보여 줄지 반환하는 함수 */
-export const shouldShowPetcam = () => {
-	return readConfigValues().show_petcam;
-};
-
 /** 펫캠 영상 설정을 반환하는 함수 */
 export const getPetcamVideo = () => {
 	const configValues = readConfigValues();
