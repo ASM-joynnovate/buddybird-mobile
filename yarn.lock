@@ -1313,7 +1313,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/image-utils@npm:^0.8.17":
+"@expo/image-utils@npm:^0.8.14, @expo/image-utils@npm:^0.8.17":
   version: 0.8.17
   resolution: "@expo/image-utils@npm:0.8.17"
   dependencies:
@@ -4552,13 +4552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"badgin@npm:^1.1.5":
-  version: 1.2.3
-  resolution: "badgin@npm:1.2.3"
-  checksum: 10c0/f8ba1090240a8602a8d174214e3426b1a7ec3ecb820ec7e4561fd6181c07df572f02ad0e7ec9250e19dd9594d05a57719a5717a126d769f91fc0cc5d233119cf
-  languageName: node
-  linkType: hard
-
 "balanced-match@npm:^1.0.0":
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
@@ -4729,7 +4722,6 @@ __metadata:
     expo-image-picker: "patch:expo-image-picker@npm%3A57.0.20#~/.yarn/patches/expo-image-picker-npm-57.0.20-b36f96d5eb.patch"
     expo-keep-awake: "npm:~57.0.2"
     expo-localization: "npm:~57.0.2"
-    expo-notifications: "npm:~57.0.22"
     expo-secure-store: "npm:~57.0.4"
     expo-sharing: "npm:~57.0.22"
     expo-splash-screen: "npm:~57.0.9"
@@ -4755,6 +4747,7 @@ __metadata:
     react-native-keyboard-controller: "npm:1.21.9"
     react-native-mmkv: "npm:4.3.2"
     react-native-nitro-modules: "npm:0.37.1"
+    react-native-notify-kit: "npm:10.8.1"
     react-native-reanimated: "npm:4.6.0"
     react-native-safe-area-context: "npm:~5.10.1"
     react-native-screens: "npm:~4.28.0"
@@ -6272,23 +6265,6 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10c0/48ba18200a38dd27c2035e2234ff182a03730764fa20c1be4957156b7d49f950beeb394dab52527c5951a3ea6669d6ce1adb40e384f9b18803e8bb00039b172a
-  languageName: node
-  linkType: hard
-
-"expo-notifications@npm:~57.0.22":
-  version: 57.0.22
-  resolution: "expo-notifications@npm:57.0.22"
-  dependencies:
-    "@expo/image-utils": "npm:^0.11.6"
-    abort-controller: "npm:^3.0.0"
-    badgin: "npm:^1.1.5"
-    expo-application: "npm:~57.0.3"
-    expo-constants: "npm:~57.0.21"
-  peerDependencies:
-    expo: "*"
-    react: "*"
-    react-native: "*"
-  checksum: 10c0/0b135aad104b1ecf4297c3d8126cf0cf555c93dbf9cf59ab95abc599bf5ce750c27efc6eb786de2294920998f466f1d16f1e9190b0ceefd59501329b7c13f7d8
   languageName: node
   linkType: hard
 
@@ -9196,7 +9172,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"plist@npm:^3.0.5":
+"plist@npm:^3.0.5, plist@npm:^3.1.0":
   version: 3.1.1
   resolution: "plist@npm:3.1.1"
   dependencies:
@@ -9505,6 +9481,36 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/5178f2ee891cb746b084fdf382b6020e366d8e4a81922a3f1d60a453d34fca6ebb1b00c4c28785c36385bc182ab76a30cba70441c39abbc25d3ad54db612e46e
+  languageName: node
+  linkType: hard
+
+"react-native-notify-kit@npm:10.8.1":
+  version: 10.8.1
+  resolution: "react-native-notify-kit@npm:10.8.1"
+  dependencies:
+    "@expo/image-utils": "npm:^0.8.14"
+    chalk: "npm:^4.1.0"
+    commander: "npm:^12.0.0"
+    plist: "npm:^3.1.0"
+    xcode: "npm:^3.0.1"
+  peerDependencies:
+    expo: "*"
+    react-native: ">=0.73.0"
+  dependenciesMeta:
+    chalk:
+      optional: true
+    commander:
+      optional: true
+    plist:
+      optional: true
+    xcode:
+      optional: true
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  bin:
+    react-native-notify-kit: cli/bin/react-native-notify-kit
+  checksum: 10c0/f080f0b61f7f36df0cba6ac12832d9c61181155079e3c5e9077399fc07aa48ce5c1d7240f4bda2bf3542649155341c7e9d2618fc929b2738801f08d9c4740bef
   languageName: node
   linkType: hard
 

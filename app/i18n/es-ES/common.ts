@@ -33,6 +33,7 @@ export const common: CommonMessages = {
 		stopNamed: 'Detener: {{name}}',
 		playError: 'No hemos podido reproducir el sonido. Pulsa otra vez el botón de reproducir.',
 	},
+	notificationChannelName: 'Notificaciones',
 	permission: {
 		title: 'Permiso necesario: {{name}}',
 		openSettings: 'Abrir Ajustes',
