@@ -39,6 +39,7 @@ export const parrot: ParrotMessages = {
 		ringneck: '목도리앵무',
 		vasa: '바사앵무',
 		bourke: '버크앵무',
+		'lineolated-parakeet': '빗창앵무(사자나미)',
 		budgie: '사랑앵무(잉꼬)',
 		senegal: '세네갈앵무',
 		'sun-conure': '썬코뉴어',

@@ -42,6 +42,7 @@ export const parrot: ParrotMessages = {
 		eclectus: 'Eclectus',
 		galah: 'Galah',
 		ringneck: 'Indian Ringneck',
+		'lineolated-parakeet': 'Lineolated Parakeet',
 		lory: 'Lory',
 		lovebird: 'Lovebird',
 		macaw: 'Macaw',

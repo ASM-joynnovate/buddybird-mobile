@@ -1,5 +1,5 @@
 export const speciesGroups = {
-	small: ['bourke', 'budgie', 'cockatiel', 'lovebird', 'parrotlet'],
+	small: ['bourke', 'budgie', 'cockatiel', 'lineolated-parakeet', 'lovebird', 'parrotlet'],
 	medium: ['alexandrine', 'caique', 'conure', 'lory', 'pionus', 'quaker', 'ringneck', 'senegal', 'sun-conure'],
 	large: ['african-grey', 'amazon', 'cockatoo', 'eclectus', 'galah', 'macaw', 'vasa'],
 } as const;

@@ -44,6 +44,7 @@ export const parrot: ParrotMessages = {
 		lovebird: 'Неразлучник',
 		ringneck: 'Ожереловый попугай',
 		pionus: 'Пионус',
+		'lineolated-parakeet': 'Полосатый попугай',
 		bourke: 'Попугай Бурка',
 		vasa: 'Попугай ваза',
 		quaker: 'Попугай-монах',

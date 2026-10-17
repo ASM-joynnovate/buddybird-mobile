@@ -41,6 +41,7 @@ export const parrot: ParrotMessages = {
 		'sun-conure': 'コガネメキシコインコ',
 		conure: 'コニュア',
 		macaw: 'コンゴウインコ',
+		'lineolated-parakeet': 'サザナミインコ',
 		caique: 'シロハラインコ',
 		budgie: 'セキセイインコ',
 		senegal: 'セネガルパロット',

@@ -49,6 +49,7 @@ export const parrot: ParrotMessages = {
 		vasa: 'Loro vasa',
 		cockatiel: 'Ninfa (carolina)',
 		budgie: 'Periquito',
+		'lineolated-parakeet': 'Periquito barrado',
 		bourke: 'Periquito de Bourke',
 		'african-grey': 'Yaco (loro gris)',
 	},
