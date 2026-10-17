@@ -33,6 +33,7 @@ export const common: CommonMessages = {
 		stopNamed: 'Stop {{name}}',
 		playError: "We couldn't play the sound. Tap play again.",
 	},
+	notificationChannelName: 'Notifications',
 	permission: {
 		title: '{{name}} access needed',
 		openSettings: 'Open Settings',
