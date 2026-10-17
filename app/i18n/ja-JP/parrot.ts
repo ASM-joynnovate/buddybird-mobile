@@ -30,6 +30,7 @@ export const parrot: ParrotMessages = {
 		large: '大型',
 	},
 	speciesNames: {
+		kakariki: 'アオハシインコ',
 		bourke: 'アキクサインコ',
 		pionus: 'アケボノインコ',
 		cockatoo: 'オウム（コカトゥー）',
@@ -43,6 +44,7 @@ export const parrot: ParrotMessages = {
 		macaw: 'コンゴウインコ',
 		'lineolated-parakeet': 'サザナミインコ',
 		caique: 'シロハラインコ',
+		jardine: 'ズアカハネナガインコ',
 		budgie: 'セキセイインコ',
 		senegal: 'セネガルパロット',
 		amazon: 'ボウシインコ',

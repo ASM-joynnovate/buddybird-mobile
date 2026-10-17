@@ -39,6 +39,8 @@ export type ParrotMessages = {
 		conure: string;
 		eclectus: string;
 		galah: string;
+		jardine: string;
+		kakariki: string;
 		'lineolated-parakeet': string;
 		lory: string;
 		lovebird: string;
