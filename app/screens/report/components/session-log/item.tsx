@@ -116,7 +116,9 @@ const SessionLogItem = memo(
 						</Copy>
 					</View>
 
-					<ChevronDownIcon size={20} color={colors.muted} style={open && styles.chevronOpen} />
+					<View style={open && styles.chevronOpen}>
+						<ChevronDownIcon size={20} color={colors.muted} />
+					</View>
 				</PressableSurface>
 
 				{open && (
