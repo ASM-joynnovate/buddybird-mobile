@@ -1,16 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import { StatusBar, Text, View } from 'react-native';
+import { BackHandler, StatusBar, Text, View } from 'react-native';
 
-import type { RootStackParamList } from '@/types/navigation';
-
-import useGuideStep from '@/hooks/use-guide-step';
 import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Animated, {
 	css,
 	useAnimatedStyle,
@@ -21,11 +16,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import UsageScene, { type UsageStep } from '@/screens/onboarding/components/usage-scene';
+import { initializeTelemetry, reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, contentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
+import UsageScene, { type UsageStep } from '@/components/app/usage-guide-screen/usage-scene';
 import Mascot from '@/components/mascot';
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
@@ -49,29 +46,42 @@ const HOP_DOWN_MS = 270;
 const UsageGuideScreen = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-	const screenFocused = useIsFocused();
-
 	const reducedMotion = useReducedMotion();
 
 	const mascotY = useSharedValue(0);
 
-	const { stepIndex, setStepIndex } = useGuideStep();
+	const [stepIndex, setStepIndex] = useState(0);
 
 	const { buddyRef, sheetRef, buddyStyle } = useStartupLanding();
+
+	const setUsageGuideSeen = useDeviceSettingsStore((state) => state.setUsageGuideSeen);
 
 	const { step, backgroundColor, backgroundDark } = STEPS[stepIndex];
 	const isLastStep = stepIndex === STEPS.length - 1;
 
 	const mascotHopStyle = useAnimatedStyle(() => ({ transform: [{ translateY: mascotY.get() }] }));
 
-	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
-	useFocusEffect(
-		useCallback(() => {
-			trackOnboardingStepViewed('usage_guide');
-		}, []),
-	);
+	/** 분석 초기화 후 onboarding_step_viewed 이벤트 전송 */
+	useEffect(() => {
+		void initializeTelemetry()
+			.then(() => trackOnboardingStepViewed('usage_guide'))
+			.catch((error) => reportError(error, 'usage_guide_viewed'));
+	}, []);
+
+	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
+	useEffect(() => {
+		if (stepIndex === 0) {
+			return;
+		}
+
+		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+			setStepIndex(stepIndex - 1);
+
+			return true;
+		});
+
+		return () => subscription.remove();
+	}, [stepIndex]);
 
 	/** 단계가 바뀌면 버디가 한 번 뜀 */
 	useEffect(() => {
@@ -87,7 +97,7 @@ const UsageGuideScreen = () => {
 	const handleFinish = () => {
 		trackOnboardingStepCompleted('usage_guide');
 
-		navigation.navigate('PermissionRequest');
+		setUsageGuideSeen(true);
 	};
 
 	const handleNext = () => {
@@ -100,16 +110,11 @@ const UsageGuideScreen = () => {
 		setStepIndex(stepIndex + 1);
 	};
 
-	const handleBack =
-		stepIndex > 0
-			? () => setStepIndex(stepIndex - 1)
-			: navigation.canGoBack()
-				? () => navigation.goBack()
-				: undefined;
+	const handleBack = stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined;
 
 	return (
 		<Animated.View style={[styles.container, { backgroundColor }, !reducedMotion && styles.backgroundTransition]}>
-			{screenFocused && <StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />}
+			<StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />
 
 			<SafeAreaView edges={['top', 'left', 'right']}>
 				<View style={styles.header}>
