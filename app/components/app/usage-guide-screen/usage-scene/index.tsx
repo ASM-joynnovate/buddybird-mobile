@@ -4,16 +4,15 @@ import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { useIsFocused } from '@react-navigation/native';
 import { useReducedMotion } from 'react-native-reanimated';
 
-import UsageSceneKeepOn from '@/screens/onboarding/components/usage-scene/keep-on';
-import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
-import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
-import UsageSceneReport from '@/screens/onboarding/components/usage-scene/report';
 import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
+import UsageSceneKeepOn from '@/components/app/usage-guide-screen/usage-scene/keep-on';
+import UsageScenePlace from '@/components/app/usage-guide-screen/usage-scene/place';
+import UsageSceneRecord from '@/components/app/usage-guide-screen/usage-scene/record';
+import UsageSceneReport from '@/components/app/usage-guide-screen/usage-scene/report';
 import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/scene-stage';
 
 const STAGE_WIDTH = 393;
@@ -32,13 +31,11 @@ interface Props {
 const UsageScene = ({ step }: Props) => {
 	const { t } = useTranslation();
 
-	const screenFocused = useIsFocused();
-
 	const reducedMotion = useReducedMotion();
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
-	const animated = screenFocused && !reducedMotion;
+	const animated = !reducedMotion;
 	const scale = getStageScale(area, STAGE_WIDTH, STAGE_HEIGHT);
 
 	const handleLayout = (event: LayoutChangeEvent) => {

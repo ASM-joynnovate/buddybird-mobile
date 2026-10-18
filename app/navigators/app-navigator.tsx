@@ -30,7 +30,6 @@ import LoginScreen from '@/screens/onboarding/login-screen';
 import MarketingNotificationScreen from '@/screens/onboarding/marketing-notification-screen';
 import ParrotEditorScreen from '@/screens/onboarding/parrot-editor-screen';
 import PermissionRequestScreen from '@/screens/onboarding/permission-request-screen';
-import UsageGuideScreen from '@/screens/onboarding/usage-guide-screen';
 import SessionRunScreen from '@/screens/session/session-run-screen';
 import SessionSummaryScreen from '@/screens/session/session-summary-screen';
 import SessionWatchScreen from '@/screens/session/session-watch-screen';
@@ -74,7 +73,7 @@ const linkPrefix = () => {
 	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://`;
 };
 
-const ONBOARDING_ORDER = ['ParrotEditor', 'UsageGuide'] as const;
+const ONBOARDING_ORDER = ['ParrotEditor', 'PermissionRequest'] as const;
 
 /** 현재 온보딩 화면까지 쌓은 navigation 상태 생성 함수 */
 const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string) => {
@@ -83,7 +82,7 @@ const entryState = (route: (typeof ONBOARDING_ORDER)[number], parrotId?: string)
 			? {
 					name,
 					params: {
-						parrotId: route === 'UsageGuide' ? parrotId : undefined,
+						parrotId: route === 'PermissionRequest' ? parrotId : undefined,
 						source: 'onboarding',
 					},
 				}
@@ -260,7 +259,6 @@ const AppNavigator = () => {
 							<RootStack.Screen name="Consent" component={ConsentScreen} />
 							<RootStack.Screen name="ConsentDetail" component={ConsentDetailScreen} />
 							<RootStack.Screen name="ParrotEditor" component={ParrotEditorScreen} />
-							<RootStack.Screen name="UsageGuide" component={UsageGuideScreen} />
 							<RootStack.Screen name="PermissionRequest" component={PermissionRequestScreen} />
 							<RootStack.Screen name="MarketingNotification" component={MarketingNotificationScreen} />
 						</RootStack.Group>

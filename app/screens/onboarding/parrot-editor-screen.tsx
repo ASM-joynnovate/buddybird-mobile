@@ -44,7 +44,7 @@ const ParrotEditorScreen = () => {
 			trackOnboardingStepCompleted('parrot');
 
 			if (parrotId) {
-				navigation.navigate('UsageGuide');
+				navigation.navigate('PermissionRequest');
 			}
 
 			return;

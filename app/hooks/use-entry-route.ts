@@ -5,7 +5,7 @@ import { hasLegacyUpload } from '@/services/migration/upload-legacy';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'UsageGuide' | 'Main';
+export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'PermissionRequest' | 'Main';
 
 /** 온보딩 진행 상태에 맞는 첫 화면 결정 Hook */
 const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
@@ -38,7 +38,7 @@ const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
 	}
 
 	return {
-		entryRoute: onboardingCompleted ? 'Main' : 'UsageGuide',
+		entryRoute: onboardingCompleted ? 'Main' : 'PermissionRequest',
 		parrotId: parrotListData[0]?.id,
 	};
 };

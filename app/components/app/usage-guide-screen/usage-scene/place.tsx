@@ -18,9 +18,9 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
-import UsageSceneCage from '@/screens/onboarding/components/usage-scene/cage';
 import { colors, font, radius } from '@/theme';
 
+import UsageSceneCage from '@/components/app/usage-guide-screen/usage-scene/cage';
 import Mascot from '@/components/mascot';
 import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';

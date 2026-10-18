@@ -49,7 +49,6 @@ export type RootStackParamList = {
 	ParrotEditor:
 		| { parrotId?: string; source?: 'onboarding'; photoOrigin?: MeasuredDimensions; photoTilt?: number }
 		| undefined;
-	UsageGuide: undefined;
 	PermissionRequest: undefined;
 	MarketingNotification: undefined;
 	Main: NavigatorScreenParams<MainTabParamList> | undefined;

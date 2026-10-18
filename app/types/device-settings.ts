@@ -33,6 +33,7 @@ export const deviceSettingsSchema = z.object({
 		thresholdIndex: z.number().nonnegative(),
 	}),
 	onboardingCompleted: z.boolean(),
+	usageGuideSeen: z.boolean().default(true),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 });
 
