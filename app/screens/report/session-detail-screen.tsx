@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
 
 import { getSessionOptions } from '@/hooks/apis/sessions';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +23,7 @@ import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, contentMaxWidth, font } from '@/theme';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
@@ -38,6 +40,8 @@ const SessionDetailScreen = () => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
+	const lowPerformance = useIsLowPerformance();
+
 	/** 세션 변경 시 session_detail_viewed 이벤트 전송 */
 	useEffect(() => {
 		track('session_detail_viewed', { session_id: params.sessionId, source: params.source });
@@ -45,6 +49,8 @@ const SessionDetailScreen = () => {
 
 	return (
 		<Screen scrollable={false}>
+			<BuddyRefreshHint mascotShown={!lowPerformance} />
+
 			<View style={styles.container}>
 				<View style={styles.header}>
 					<IconButton icon={ChevronLeftIcon} label={t('common.back')} onPress={() => navigation.goBack()} />

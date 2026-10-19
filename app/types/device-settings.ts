@@ -34,6 +34,7 @@ export const deviceSettingsSchema = z.object({
 	}),
 	onboardingCompleted: z.boolean(),
 	usageGuideSeen: z.boolean().default(true),
+	pullToRefreshUsed: z.boolean().default(false),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 });
 

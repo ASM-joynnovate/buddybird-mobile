@@ -11,14 +11,29 @@ import {
 	useGetSessionSoundList,
 	useGetSessionSummary,
 } from '@/hooks/apis/sessions';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
+import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
-import Animated, { useAnimatedRef, useScrollOffset, useSharedValue } from 'react-native-reanimated';
+import Animated, { useDerivedValue } from 'react-native-reanimated';
 
 import SessionLog from '@/screens/report/components/session-log';
 import SessionOverview from '@/screens/report/components/session-overview';
 import { shouldShowDistressCall } from '@/services/remote-config/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { getLogItems, type LogItem } from '@/utils/session-log';
+
+import {
+	BUDDY_REFRESH_FINISH_MS,
+	BUDDY_REFRESH_HEIGHT,
+	BUDDY_REFRESH_MIN_MS,
+} from '@/components/buddy-refresh/options';
+import RopeRefreshIndicator from '@/components/buddy-refresh/rope-indicator';
+import SwingRefreshIndicator from '@/components/buddy-refresh/swing-indicator';
+import ThrobberRefreshIndicator from '@/components/buddy-refresh/throbber-indicator';
+import PullToRefreshContainer from '@/components/pull-to-refresh';
+
+const CONTENT_PADDING_BOTTOM = 32;
 
 interface Props {
 	sessionId: string;
@@ -30,6 +45,10 @@ interface Props {
  */
 const SessionDetailContent = ({ sessionId }: Props) => {
 	const queryClient = useQueryClient();
+
+	const lowPerformance = useIsLowPerformance();
+
+	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 
 	const distressCallShown = shouldShowDistressCall();
 
@@ -43,10 +62,6 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		fetchNextPage,
 	} = useGetSessionSoundList({ id: sessionId });
 	const { data: sessionEventListData } = useGetSessionEventList({ id: sessionId });
-
-	const scrollRef = useAnimatedRef<Animated.ScrollView>();
-	const scrollY = useScrollOffset(scrollRef);
-	const viewportHeight = useSharedValue(0);
 
 	const [openItemId, setOpenItemId] = useState<string | null>(null);
 
@@ -69,6 +84,20 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 
 	useRefreshOnFocus(refetchSessionDetail);
 
+	const { pullToRefresh, scrollProps } = usePullToRefresh<Animated.ScrollView>({
+		onRefresh: () => {
+			setPullToRefreshUsed(true);
+
+			return refetchSessionDetail();
+		},
+		holdHeight: BUDDY_REFRESH_HEIGHT,
+		minRefreshMs: BUDDY_REFRESH_MIN_MS,
+		finishMs: BUDDY_REFRESH_FINISH_MS,
+	});
+
+	const { scrollY, viewportHeight, contentHeight } = pullToRefresh;
+	const logBottom = useDerivedValue(() => contentHeight.get() - CONTENT_PADDING_BOTTOM);
+
 	/** 소리 목록의 다음 쪽이 있으면 끝까지 이어서 조회 */
 	useEffect(() => {
 		if (!hasNextPage || isFetchingNextPage || isFetchNextPageError) {
@@ -83,36 +112,46 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 	}, []);
 
 	return (
-		<Animated.ScrollView
-			ref={scrollRef}
-			showsVerticalScrollIndicator={false}
-			scrollEventThrottle={16}
+		<PullToRefreshContainer
 			style={styles.viewport}
-			contentContainerStyle={styles.content}
-			onLayout={(event) => viewportHeight.set(event.nativeEvent.layout.height)}
+			indicatorStyle={styles.refreshIndicator}
+			pullToRefresh={pullToRefresh}
+			indicatorComponents={
+				lowPerformance ? [ThrobberRefreshIndicator] : [SwingRefreshIndicator, RopeRefreshIndicator]
+			}
 		>
-			<SessionOverview
-				session={sessionData}
-				sessionSummary={sessionSummaryData}
-				emergencyCount={emergencyCount}
-			/>
+			<Animated.ScrollView
+				{...scrollProps}
+				showsVerticalScrollIndicator={false}
+				style={[styles.list, scrollProps.style]}
+				contentContainerStyle={styles.content}
+			>
+				<SessionOverview
+					session={sessionData}
+					sessionSummary={sessionSummaryData}
+					emergencyCount={emergencyCount}
+				/>
 
-			<SessionLog
-				session={sessionData}
-				items={items}
-				openItemId={openItemId}
-				wordName={sessionSummaryData.word.name}
-				scrollY={scrollY}
-				viewportHeight={viewportHeight}
-				onToggleItem={handleToggleItem}
-			/>
-		</Animated.ScrollView>
+				<SessionLog
+					session={sessionData}
+					items={items}
+					openItemId={openItemId}
+					wordName={sessionSummaryData.word.name}
+					scrollY={scrollY}
+					viewportHeight={viewportHeight}
+					logBottom={logBottom}
+					onToggleItem={handleToggleItem}
+				/>
+			</Animated.ScrollView>
+		</PullToRefreshContainer>
 	);
 };
 
 const styles = StyleSheet.create({
-	viewport: { flex: 1, marginHorizontal: -24 },
-	content: { paddingHorizontal: 24, paddingBottom: 32 },
+	viewport: { marginHorizontal: -24 },
+	refreshIndicator: { right: 24, left: 24 },
+	list: { flex: 1 },
+	content: { paddingHorizontal: 24, paddingBottom: CONTENT_PADDING_BOTTOM },
 });
 
 export default SessionDetailContent;

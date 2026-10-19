@@ -36,8 +36,7 @@ interface Props {
 	index: number;
 	scrollY: SharedValue<number>;
 	viewportHeight: SharedValue<number>;
-	logY: SharedValue<number>;
-	logHeight: SharedValue<number>;
+	logBottom: SharedValue<number>;
 	dayBreakLayouts: SharedValue<StickyLayout[]>;
 }
 
@@ -47,11 +46,10 @@ interface Props {
  * @param index 기록 안에서의 날짜 순서
  * @param scrollY 화면 스크롤 위치
  * @param viewportHeight 화면 높이
- * @param logY 기록 위치
- * @param logHeight 기록 높이
+ * @param logBottom 기록 아래쪽 끝 위치
  * @param dayBreakLayouts 날짜 띠 위치를 저장할 값
  */
-const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logY, logHeight, dayBreakLayouts }: Props) => {
+const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, dayBreakLayouts }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const labelOpacity = useSharedValue(reducedMotion ? 1 : 0);
@@ -68,17 +66,14 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logY, logHei
 		}
 
 		const nextTop = layouts.at(index + 1)?.y;
-		const end = nextTop === undefined ? logHeight.get() : nextTop - MARGIN_TOP;
-		const translateY = Math.min(
-			Math.max(scrollY.get() - (logY.get() + own.y), 0),
-			Math.max(end - own.y - own.height, 0),
-		);
+		const end = nextTop === undefined ? logBottom.get() : nextTop - MARGIN_TOP;
+		const translateY = Math.min(Math.max(scrollY.get() - own.y, 0), Math.max(end - own.y - own.height, 0));
 
 		return { transform: [{ translateY }] };
 	});
 	const stuckLineStyle = useAnimatedStyle(() => {
 		const own = dayBreakLayouts.get().at(index);
-		const stuck = own !== undefined && logY.get() + own.y - scrollY.get() <= 0.5;
+		const stuck = own !== undefined && own.y - scrollY.get() <= 0.5;
 
 		return { opacity: stuck ? 1 : 0 };
 	});
@@ -96,9 +91,8 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logY, logHei
 				return false;
 			}
 
-			const top = logY.get() + own.y;
-			const visibleTop = Math.max(top, scrollY.get());
-			const visibleBottom = Math.min(top + own.height, scrollY.get() + viewportHeight.get());
+			const visibleTop = Math.max(own.y, scrollY.get());
+			const visibleBottom = Math.min(own.y + own.height, scrollY.get() + viewportHeight.get());
 
 			return (visibleBottom - visibleTop) / own.height >= REVEAL_RATIO;
 		},
