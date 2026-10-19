@@ -55,6 +55,12 @@ const ParrotEditorScreen = () => {
 		}
 	};
 
+	const handleSkip = () => {
+		trackOnboardingStepCompleted('parrot', { parrot_skipped: true });
+
+		navigation.navigate('PermissionRequest');
+	};
+
 	if (parrotId && !parrot) {
 		return (
 			<Screen>
@@ -71,6 +77,7 @@ const ParrotEditorScreen = () => {
 			intro={fromOnboarding || !parrot}
 			onBack={canGoBack ? () => navigation.goBack() : undefined}
 			onDone={handleDone}
+			onSkip={fromOnboarding && !parrotId ? handleSkip : undefined}
 			photoRef={photoRef}
 			flight={flight}
 		/>

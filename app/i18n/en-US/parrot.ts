@@ -62,4 +62,5 @@ export const parrot: ParrotMessages = {
 	delete: 'Delete parrot',
 	deleteError: "We couldn't delete the parrot. Please try again.",
 	addPhoto: 'Add photo',
+	noParrotYet: "Don't have a parrot yet?",
 };

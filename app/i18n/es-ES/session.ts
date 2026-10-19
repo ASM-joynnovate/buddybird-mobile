@@ -97,6 +97,7 @@ export const session: SessionMessages = {
 		range: '{{start}} – {{end}}',
 		parrots: '{{name}} y {{count}} más',
 		together: { lead: '¡Hola de nuevo! He pasado', tail: 'con {{parrot}}' },
+		withoutParrot: { lead: '¡Hola de nuevo! He pasado', tail: 'reproduciendo tus palabras' },
 		played: { lead: 'He reproducido «{{word}}»', tail: 'en este entrenamiento' },
 		wordTime: { lead: '«{{word}}» lleva ya', tail: 'de entrenamiento en total' },
 		allTime: { lead: 'Todas las palabras suman ya', tail: 'de entrenamiento en total' },

@@ -60,4 +60,5 @@ export type ParrotMessages = {
 	delete: string;
 	deleteError: string;
 	addPhoto: string;
+	noParrotYet: string;
 };

@@ -62,4 +62,5 @@ export const parrot: ParrotMessages = {
 	delete: 'Eliminar loro',
 	deleteError: 'No hemos podido eliminar el loro. Inténtalo de nuevo.',
 	addPhoto: 'Añadir foto',
+	noParrotYet: '¿Aún no tienes loro?',
 };

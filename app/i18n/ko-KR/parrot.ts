@@ -62,4 +62,5 @@ export const parrot: ParrotMessages = {
 	delete: '앵무새 삭제',
 	deleteError: '앵무새를 삭제하지 못했어요. 다시 시도해 주세요.',
 	addPhoto: '사진 추가',
+	noParrotYet: '아직 앵무새가 없나요?',
 };

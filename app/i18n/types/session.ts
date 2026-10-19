@@ -82,6 +82,7 @@ export type SessionMessages = {
 		range: string;
 		parrots: string;
 		together: { lead: string; tail: string };
+		withoutParrot: { lead: string; tail: string };
 		played: { lead: string; tail: string };
 		wordTime: { lead: string; tail: string };
 		allTime: { lead: string; tail: string };

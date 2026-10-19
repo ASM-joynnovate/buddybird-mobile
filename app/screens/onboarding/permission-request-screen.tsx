@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -17,7 +17,7 @@ import { BellIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PermissionScene from '@/screens/onboarding/components/permission-scene';
-import { type PermissionKind, requestPermission } from '@/services/device/permissions';
+import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
@@ -55,12 +55,46 @@ const PermissionRequestScreen = () => {
 	const { mutate } = useUpdatePushToken();
 
 	const [busy, setBusy] = useState(false);
+	const [permissionsChecked, setPermissionsChecked] = useState(false);
 
-	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
+	/** 권한이 모두 허용되어 있으면 다음 화면으로 이동 */
+	useEffect(() => {
+		let active = true;
+
+		void Promise.all(PERMISSIONS.map(({ kind }) => readPermission(kind)))
+			.then((states) => {
+				if (!active) {
+					return;
+				}
+
+				if (states.every(({ granted }) => granted)) {
+					navigation.replace('MarketingNotification');
+
+					return;
+				}
+
+				setPermissionsChecked(true);
+			})
+			.catch((error) => {
+				reportError(error, 'permission_read');
+
+				if (active) {
+					setPermissionsChecked(true);
+				}
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [navigation]);
+
+	/** 화면이 보일 때 onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
-			trackOnboardingStepViewed('permissions');
-		}, []),
+			if (permissionsChecked) {
+				trackOnboardingStepViewed('permissions');
+			}
+		}, [permissionsChecked]),
 	);
 
 	const handleContinue = async () => {
@@ -92,6 +126,10 @@ const PermissionRequestScreen = () => {
 
 		navigation.navigate('MarketingNotification');
 	};
+
+	if (!permissionsChecked) {
+		return <View style={styles.container} />;
+	}
 
 	return (
 		<View style={styles.container}>

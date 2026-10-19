@@ -18,6 +18,7 @@ export interface AnalyticsEvents {
 		login_method?: LoginProvider | 'skip';
 		microphone_granted?: boolean;
 		notifications_granted?: boolean;
+		parrot_skipped?: boolean;
 	};
 	onboarding_completed: { total_duration_ms: number };
 	word_create_started: Record<string, never>;

@@ -70,7 +70,6 @@ const AuthProvider = ({ children }: Props) => {
 		const clearSignedOutState = () => {
 			takeAppleLoginCredential();
 			useAccountStore.getState().clearRegistration();
-			useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 
 			queryClient.removeQueries({ predicate: usesAuthorization });
 			queryClient.getMutationCache().clear();
@@ -99,13 +98,18 @@ const AuthProvider = ({ children }: Props) => {
 
 			try {
 				const credential = await loginCredential();
-				const { user_id } = await mutateAsync({
+				const { user_id, is_new_user } = await mutateAsync({
 					data: credential,
 					signal: controller.signal,
 				});
 
 				if (!active || controller.signal.aborted) {
 					return;
+				}
+
+				// 새로 가입한 계정은 온보딩부터 표시
+				if (is_new_user) {
+					useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 				}
 
 				useAccountStore.getState().setRegistration(identity.id, user_id, identity.anonymous);
