@@ -19,7 +19,7 @@ type ReportActions = {
 type ReportStore = ReportState & ReportActions;
 
 /** 리포트 기간 초기값 */
-const initReportStore = (): ReportState => ({ period: 'day', start: null });
+const initReportStore = (): ReportState => ({ period: 'month', start: null });
 
 export const useReportStore = create<ReportStore>()((set, get) => ({
 	...initReportStore(),
