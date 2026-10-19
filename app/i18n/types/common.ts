@@ -17,6 +17,10 @@ export type CommonMessages = {
 	next: string;
 	stepProgress: string;
 	offline: string;
+	pullToRefresh: {
+		hint: string;
+		messages: string[];
+	};
 	loadError: string;
 	saveErrorKept: string;
 	illustration: string;
