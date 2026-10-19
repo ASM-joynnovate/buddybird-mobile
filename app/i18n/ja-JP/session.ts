@@ -90,6 +90,7 @@ export const session: SessionMessages = {
 		range: '{{start}}〜{{end}}',
 		parrots: '{{name}}ほか{{count}}羽',
 		together: { lead: 'おかえりなさい！{{parrot}}と', tail: 'いっしょにいました' },
+		withoutParrot: { lead: 'おかえりなさい！', tail: '言葉を聞かせました' },
 		played: { lead: '「{{word}}」を', tail: '聞かせました' },
 		wordTime: { lead: 'これまでに「{{word}}」を', tail: '練習しました' },
 		allTime: { lead: 'これまでに合計', tail: '練習しました' },

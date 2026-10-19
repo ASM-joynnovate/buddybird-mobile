@@ -33,14 +33,15 @@ const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
 		return { entryRoute: 'LegacyUpload' };
 	}
 
+	if (onboardingCompleted) {
+		return { entryRoute: 'Main' };
+	}
+
 	if (parrotListData.length === 0) {
 		return { entryRoute: 'ParrotEditor' };
 	}
 
-	return {
-		entryRoute: onboardingCompleted ? 'Main' : 'PermissionRequest',
-		parrotId: parrotListData[0]?.id,
-	};
+	return { entryRoute: 'PermissionRequest', parrotId: parrotListData[0]?.id };
 };
 
 export default useEntryRoute;

@@ -74,9 +74,14 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 		parrotListData.length > 1
 			? t('session.summary.parrots', { name: firstParrotName, count: parrotListData.length - 1 })
 			: firstParrotName;
+	const parrotRegistered = parrotListData.length > 0;
 	const togetherSentence: SummarySentence = {
-		lead: t('session.summary.together.lead', { parrot: parrotName }),
-		tail: t('session.summary.together.tail', { parrot: parrotName }),
+		lead: parrotRegistered
+			? t('session.summary.together.lead', { parrot: parrotName })
+			: t('session.summary.withoutParrot.lead'),
+		tail: parrotRegistered
+			? t('session.summary.together.tail', { parrot: parrotName })
+			: t('session.summary.withoutParrot.tail'),
 		value: sessionEndedAt(period).diff(period.started_at),
 		unit: 'duration',
 		metric: 'together',

@@ -90,6 +90,7 @@ export const session: SessionMessages = {
 		range: '{{start}} ~ {{end}}',
 		parrots: '{{name}} 외 {{count}}마리',
 		together: { lead: '다녀오셨어요! {{parrot}}{{parrot, josa(type: 와/과)}}', tail: '동안 함께 있었어요' },
+		withoutParrot: { lead: '다녀오셨어요!', tail: '동안 단어를 들려줬어요' },
 		played: { lead: "'{{word}}'{{word, josa(type: 을/를)}}", tail: '들려줬어요' },
 		wordTime: { lead: "지금까지 '{{word}}'{{word, josa(type: 은/는)}}", tail: '학습했어요' },
 		allTime: { lead: '지금까지 총', tail: '학습했어요' },

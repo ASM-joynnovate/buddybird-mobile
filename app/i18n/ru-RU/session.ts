@@ -93,6 +93,7 @@ export const session: SessionMessages = {
 		range: '{{start}} – {{end}}',
 		parrots: '{{name}} (+{{count}})',
 		together: { lead: 'С возвращением! {{parrot}} и я были вместе', tail: 'пока тебя не было' },
+		withoutParrot: { lead: 'С возвращением! Слова звучали', tail: 'пока тебя не было' },
 		played: { lead: 'Слово «{{word}}» прозвучало', tail: 'за это занятие' },
 		wordTime: { lead: 'Слово «{{word}}» мы учили уже', tail: 'за все занятия' },
 		allTime: { lead: 'За всё время мы занимались', tail: 'считая это занятие' },

@@ -27,19 +27,18 @@ const App = () => {
 	}
 
 	return (
-		<RootProviders>
-			{ready ? (
-				<AppContent />
-			) : bootstrapStatus === 'failed' ? (
-				<StartupScreen onRetry={retry} />
-			) : (
-				<StartupScreen />
-			)}
+		<>
+			{/*준비 중 시작 화면 표시 요청*/}
+			{!ready && (bootstrapStatus === 'failed' ? <StartupScreen onRetry={retry} /> : <StartupScreen />)}
 
-			{startupOverlayShown && <StartupOverlay />}
+			<RootProviders>
+				{ready && <AppContent />}
 
-			{!splashFinished && <AppSplash bootstrapSettled={settled} onComplete={handleFinishSplash} />}
-		</RootProviders>
+				{startupOverlayShown && <StartupOverlay />}
+
+				{!splashFinished && <AppSplash bootstrapSettled={settled} onComplete={handleFinishSplash} />}
+			</RootProviders>
+		</>
 	);
 };
 

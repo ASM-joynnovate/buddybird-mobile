@@ -62,4 +62,5 @@ export const parrot: ParrotMessages = {
 	delete: 'インコの登録を削除',
 	deleteError: 'インコの登録を削除できませんでした。もう一度試してみてください。',
 	addPhoto: '写真を追加',
+	noParrotYet: 'まだインコを飼っていませんか？',
 };

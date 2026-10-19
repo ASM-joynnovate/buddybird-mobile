@@ -23,7 +23,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { Surface } from '@/components/ui/surface';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const MIN_HEIGHT = 240;
+const MIN_HEIGHT = 124;
 const SCROLL_FOLLOW_RATIO = 0.45;
 
 interface Props {

@@ -90,6 +90,7 @@ export const session: SessionMessages = {
 		range: '{{start}} ~ {{end}}',
 		parrots: '{{name}} and {{count}} more',
 		together: { lead: 'Welcome back! I spent', tail: 'with {{parrot}}' },
+		withoutParrot: { lead: 'Welcome back! I spent', tail: 'playing your words' },
 		played: { lead: "I played '{{word}}'", tail: 'this session' },
 		wordTime: { lead: "We've practiced '{{word}}' for", tail: 'so far' },
 		allTime: { lead: "We've practiced all words for", tail: 'so far' },

@@ -62,4 +62,5 @@ export const parrot: ParrotMessages = {
 	delete: 'Удалить попугая',
 	deleteError: 'Не получилось удалить попугая. Попробуй ещё раз.',
 	addPhoto: 'Добавить фото',
+	noParrotYet: 'Ещё нет попугая?',
 };

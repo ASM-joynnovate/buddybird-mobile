@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { InlineError } from '@/components/ui/inline-error';
 import { ItemGroup } from '@/components/ui/item/group';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
+import { TextButton } from '@/components/ui/text-button';
 import { TextField } from '@/components/ui/text-field';
 import { Title } from '@/components/ui/title';
 
@@ -54,6 +55,7 @@ interface Props {
 	intro: boolean;
 	onBack?: () => void;
 	onDone: () => void;
+	onSkip?: () => void;
 	photoRef?: AnimatedRef<Animated.View>;
 	flight?: ParrotPhotoFlightParts;
 }
@@ -65,10 +67,11 @@ interface Props {
  * @param intro 안내 말풍선 표시 여부
  * @param onBack 뒤로 가기 버튼을 누를 때 실행할 함수
  * @param onDone 편집 완료 시 실행할 함수
+ * @param onSkip 앵무새 등록을 건너뛸 때 실행할 함수
  * @param photoRef 사진의 화면 위치를 잴 때 쓰는 ref
  * @param flight 사진이 옮겨 가는 애니메이션
  */
-const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, flight }: Props) => {
+const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, onSkip, photoRef, flight }: Props) => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
@@ -303,6 +306,11 @@ const ParrotEditorForm = ({ parrot, canDelete, intro, onBack, onDone, photoRef, 
 								loading={saving}
 								onPress={handleSave}
 							/>
+							{onSkip && (
+								<View style={styles.skipContainer}>
+									<TextButton label={t('parrot.noParrotYet')} disabled={saving} onPress={onSkip} />
+								</View>
+							)}
 						</View>
 					</View>
 				</Animated.View>
@@ -376,6 +384,7 @@ const styles = StyleSheet.create({
 	sheetContent: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 20 },
 	fieldsContainer: { gap: 16 },
 	footerContainer: { gap: 8 },
+	skipContainer: { alignItems: 'flex-end' },
 	photoButtons: { position: 'absolute', left: 16, right: 16, flexDirection: 'row' },
 	photoButtonsSpacer: { flex: 1 },
 	photoButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

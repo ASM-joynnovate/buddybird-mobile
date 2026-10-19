@@ -6,7 +6,7 @@ import { track } from '@/services/telemetry/client';
 
 type StepCompletedParams = Pick<
 	AnalyticsEvents['onboarding_step_completed'],
-	'login_method' | 'microphone_granted' | 'notifications_granted'
+	'login_method' | 'microphone_granted' | 'notifications_granted' | 'parrot_skipped'
 >;
 
 let onboardingStartedAt: number | null = null;
