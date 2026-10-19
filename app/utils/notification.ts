@@ -15,7 +15,7 @@ export const notificationPath = ({ kind, notification_id, data_id, link }: Opene
 		return link;
 	}
 
-	if (kind === 'report') {
+	if (kind === 'report' || kind === 'emergency') {
 		return data_id ? `/sessions/${data_id}?source=notification` : null;
 	}
 

@@ -1,4 +1,4 @@
-import { DAY, HOUR, MIB, MINUTE, SECOND } from '@/config/units';
+import { DAY, GIB, HOUR, MIB, MINUTE, SECOND } from '@/config/units';
 
 export const API_TIMEOUT_MS = 30 * SECOND;
 
@@ -62,6 +62,7 @@ export const UPLOAD_POLL_MAX_INTERVAL_MS = 10 * SECOND;
 export const RECORDING_MAX_SECONDS = 60;
 
 export const MAX_UPLOAD_BYTES = 5 * MIB;
+export const LOW_PERFORMANCE_MEMORY_BYTES = 3 * GIB;
 export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png'];
 
 export const MAX_RECORDINGS = 5;

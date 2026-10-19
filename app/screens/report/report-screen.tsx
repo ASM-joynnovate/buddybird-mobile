@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { usePrefetchQuery } from '@tanstack/react-query';
 
 import { getReportOptions } from '@/hooks/apis/reports';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
 import ReportContent from '@/screens/report/components/report-content';
 import ReportSkeleton from '@/screens/report/components/report-skeleton';
@@ -10,6 +11,7 @@ import { useReportStore } from '@/stores/report';
 import { contentMaxWidth } from '@/theme';
 import { latestStart, shiftedStart } from '@/utils/report-period';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
@@ -21,12 +23,16 @@ const ReportScreen = () => {
 
 	const selectedStart = start ?? latestStart(period);
 
+	const lowPerformance = useIsLowPerformance();
+
 	usePrefetchQuery(getReportOptions({ period, start: selectedStart }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -1) }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -2) }));
 
 	return (
 		<Screen scrollable={false}>
+			<BuddyRefreshHint mascotShown={!lowPerformance} />
+
 			<View style={styles.container}>
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<ReportSkeleton />>
 					<ReportContent />

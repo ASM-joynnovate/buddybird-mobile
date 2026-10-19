@@ -23,6 +23,7 @@ type DeviceSettingsActions = {
 	consumeFeedbackPrompt: () => void;
 	setOnboardingCompleted: (onboardingCompleted: boolean) => void;
 	setUsageGuideSeen: (usageGuideSeen: boolean) => void;
+	setPullToRefreshUsed: (pullToRefreshUsed: boolean) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
 	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
 };
@@ -53,6 +54,7 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		feedbackPrompt: { formatVersion: 1, lastCountedDate: null, dayCount: 0, thresholdIndex: 0 },
 		onboardingCompleted: false,
 		usageGuideSeen: false,
+		pullToRefreshUsed: false,
 		legacyMigration: initialLegacyMigration,
 	};
 };
@@ -118,6 +120,11 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				set((state) => ({ ...state, usageGuideSeen }));
 			},
 
+			/** 당겨서 새로고침 사용 여부 저장 */
+			setPullToRefreshUsed: (pullToRefreshUsed) => {
+				set((state) => ({ ...state, pullToRefreshUsed }));
+			},
+
 			/** v1 앱 설정 반영 */
 			importLegacySettings: (settings) => {
 				set((state) => ({
@@ -144,6 +151,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				feedbackPrompt,
 				onboardingCompleted,
 				usageGuideSeen,
+				pullToRefreshUsed,
 				legacyMigration,
 			}) => ({
 				locale,
@@ -152,6 +160,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				feedbackPrompt,
 				onboardingCompleted,
 				usageGuideSeen,
+				pullToRefreshUsed,
 				legacyMigration,
 			}),
 

@@ -7,3 +7,4 @@ export const MINUTES_PER_HOUR = 60;
 export const MONTHS_PER_YEAR = 12;
 
 export const MIB = 1_048_576;
+export const GIB = 1_073_741_824;

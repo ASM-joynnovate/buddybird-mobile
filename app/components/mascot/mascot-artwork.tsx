@@ -1,3 +1,8 @@
+import type { ReactNode } from 'react';
+
+import { StyleSheet, View } from 'react-native';
+
+import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import Svg, {
 	Circle,
 	ClipPath,
@@ -14,106 +19,207 @@ import Svg, {
 
 import artwork from '@assets/images/mascot-artwork.json';
 
+const VIEW_BOX = '0 0 512 512';
 const BODY_PATH =
 	'M256 90C326 90 382 126 390 200c6 62 6 122-8 162-16 42-62 58-126 58s-110-16-126-58c-14-40-14-100-8-162C130 126 186 90 256 90Z';
 const MIRROR = 'matrix(-1 0 0 1 512 0)';
 
-/** 마스코트 그림 컴포넌트 */
-const MascotArtwork = () => {
+export const MASCOT_FEET_RATIO = 449 / 512;
+
+interface Props {
+	wingAngle?: SharedValue<number>;
+	eyesHappy?: SharedValue<number>;
+}
+
+/**
+ * 마스코트 그림 컴포넌트
+ * @param wingAngle 날개 각도
+ * @param eyesHappy 0에서 1 사이의 눈웃음 정도
+ */
+const MascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
+	// 움직이지 않는 그림은 SVG 하나로 렌더링
+	if (!wingAngle && !eyesHappy) {
+		return (
+			<Svg width="100%" height="100%" viewBox={VIEW_BOX}>
+				<MascotDefs />
+				<MascotBody />
+				<MascotWing />
+				<MascotWing mirrored />
+				<MascotOpenEyes />
+				<MascotFront />
+			</Svg>
+		);
+	}
+
+	return <AnimatedMascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />;
+};
+
+/**
+ * 애니메이션 마스코트 그림 컴포넌트
+ * @param wingAngle 날개 각도
+ * @param eyesHappy 눈웃음 정도
+ */
+const AnimatedMascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
+	const leftWingStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${wingAngle?.get() ?? 0}deg` }] }));
+	const rightWingStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${-(wingAngle?.get() ?? 0)}deg` }] }));
+	const openEyesStyle = useAnimatedStyle(() => ({ opacity: 1 - (eyesHappy?.get() ?? 0) }));
+	const happyEyesStyle = useAnimatedStyle(() => ({ opacity: eyesHappy?.get() ?? 0 }));
+
 	return (
-		<Svg width="100%" height="100%" viewBox="0 0 512 512">
-			<Defs>
-				<ClipPath id="body-clip">
-					<Path d={BODY_PATH} />
-				</ClipPath>
+		<View style={styles.container}>
+			<MascotLayer>
+				<MascotBody />
+			</MascotLayer>
 
-				<RadialGradient id="body" cx="0.48" cy="0.18" r="0.9">
-					<Stop offset="0" stopColor={artwork.body[0]} />
-					<Stop offset="0.55" stopColor={artwork.body[1]} />
-					<Stop offset="1" stopColor={artwork.body[2]} />
-				</RadialGradient>
-				<RadialGradient id="body-edge" cx="0.5" cy="0.42" r="0.62">
-					<Stop offset="0.72" stopColor={artwork.bodyEdge} stopOpacity={0} />
-					<Stop offset="1" stopColor={artwork.bodyEdge} stopOpacity={0.08} />
-				</RadialGradient>
-				<RadialGradient id="sheen" cx="0.5" cy="0.5" r="0.5">
-					<Stop offset="0" stopColor={artwork.highlight} stopOpacity={0.06} />
-					<Stop offset="1" stopColor={artwork.highlight} stopOpacity={0} />
-				</RadialGradient>
-				<LinearGradient id="wing" x1="0" y1="0.2" x2="1" y2="0.6">
-					<Stop offset="0" stopColor={artwork.wing[0]} />
-					<Stop offset="0.6" stopColor={artwork.wing[1]} />
-					<Stop offset="1" stopColor={artwork.wing[2]} />
-				</LinearGradient>
-				<LinearGradient id="belly" x1="0" y1="0" x2="0" y2="1">
-					<Stop offset="0" stopColor={artwork.belly[0]} />
-					<Stop offset="0.5" stopColor={artwork.belly[1]} />
-					<Stop offset="1" stopColor={artwork.belly[2]} />
-				</LinearGradient>
+			<Animated.View style={[StyleSheet.absoluteFill, styles.leftWing, leftWingStyle]}>
+				<MascotLayer>
+					<MascotWing />
+				</MascotLayer>
+			</Animated.View>
+			<Animated.View style={[StyleSheet.absoluteFill, styles.rightWing, rightWingStyle]}>
+				<MascotLayer>
+					<MascotWing mirrored />
+				</MascotLayer>
+			</Animated.View>
 
-				<LinearGradient id="band" x1="0" y1="0" x2="0" y2="1">
-					<Stop offset="0" stopColor={artwork.band[0]} />
-					<Stop offset="1" stopColor={artwork.band[1]} />
-				</LinearGradient>
-				<LinearGradient id="shell" x1="0" y1="0" x2="1" y2="0">
-					<Stop offset="0" stopColor={artwork.shell[0]} />
-					<Stop offset="0.5" stopColor={artwork.shell[1]} />
-					<Stop offset="1" stopColor={artwork.shell[2]} />
-				</LinearGradient>
-				<LinearGradient id="cushion" x1="0" y1="0" x2="1" y2="0">
-					<Stop offset="0" stopColor={artwork.cushion[0]} />
-					<Stop offset="0.45" stopColor={artwork.cushion[1]} />
-					<Stop offset="1" stopColor={artwork.cushion[2]} />
-				</LinearGradient>
-				<RadialGradient id="contact" cx="0.5" cy="0.5" r="0.5">
-					<Stop offset="0" stopColor={artwork.contact} stopOpacity={0.18} />
-					<Stop offset="1" stopColor={artwork.contact} stopOpacity={0} />
-				</RadialGradient>
+			<Animated.View style={[StyleSheet.absoluteFill, openEyesStyle]}>
+				<MascotLayer>
+					<MascotOpenEyes />
+				</MascotLayer>
+			</Animated.View>
+			{eyesHappy && (
+				<Animated.View style={[StyleSheet.absoluteFill, happyEyesStyle]}>
+					<MascotLayer>
+						<MascotHappyEyes />
+					</MascotLayer>
+				</Animated.View>
+			)}
 
-				<RadialGradient id="eye" cx="0.45" cy="0.4" r="0.62">
-					<Stop offset="0.6" stopColor={artwork.eye[0]} />
-					<Stop offset="1" stopColor={artwork.eye[1]} />
-				</RadialGradient>
-				<RadialGradient id="pupil" cx="0.4" cy="0.3" r="0.8">
-					<Stop offset="0" stopColor={artwork.pupil[0]} />
-					<Stop offset="1" stopColor={artwork.pupil[1]} />
-				</RadialGradient>
+			<MascotLayer>
+				<MascotFront />
+			</MascotLayer>
+		</View>
+	);
+};
 
-				<RadialGradient id="beak" cx="0.42" cy="0.22" r="0.85">
-					<Stop offset="0" stopColor={artwork.beak[0]} />
-					<Stop offset="0.55" stopColor={artwork.beak[1]} />
-					<Stop offset="1" stopColor={artwork.beak[2]} />
-				</RadialGradient>
-				<LinearGradient id="tongue" x1="0" y1="0" x2="0" y2="1">
-					<Stop offset="0" stopColor={artwork.tongue[0]} />
-					<Stop offset="1" stopColor={artwork.tongue[1]} />
-				</LinearGradient>
+interface MascotLayerProps {
+	children: ReactNode;
+}
 
-				<RadialGradient id="toe" cx="0.4" cy="0.32" r="0.72">
-					<Stop offset="0" stopColor={artwork.toe[0]} />
-					<Stop offset="0.65" stopColor={artwork.toe[1]} />
-					<Stop offset="1" stopColor={artwork.toe[2]} />
-				</RadialGradient>
-				<RadialGradient id="toe-front" cx="0.34" cy="0.3" r="0.82">
-					<Stop offset="0" stopColor={artwork.toeFront[0]} />
-					<Stop offset="0.55" stopColor={artwork.toeFront[1]} />
-					<Stop offset="1" stopColor={artwork.toeFront[2]} />
-				</RadialGradient>
-				<LinearGradient id="leg" x1="0" y1="0" x2="1" y2="0">
-					<Stop offset="0" stopColor={artwork.leg[0]} />
-					<Stop offset="0.45" stopColor={artwork.leg[1]} />
-					<Stop offset="1" stopColor={artwork.leg[2]} />
-				</LinearGradient>
-				<LinearGradient id="leg-shade" x1="0" y1="0" x2="0" y2="1">
-					<Stop offset="0" stopColor={artwork.legShade} stopOpacity={0.22} />
-					<Stop offset="0.6" stopColor={artwork.legShade} stopOpacity={0} />
-				</LinearGradient>
-				<RadialGradient id="toe-shade" cx="0.5" cy="0.5" r="0.5">
-					<Stop offset="0" stopColor={artwork.toeShade} stopOpacity={0.2} />
-					<Stop offset="1" stopColor={artwork.toeShade} stopOpacity={0} />
-				</RadialGradient>
-			</Defs>
+/**
+ * 마스코트 그림을 겹쳐 그리는 SVG 컴포넌트
+ * @param children 그릴 부위
+ */
+const MascotLayer = ({ children }: MascotLayerProps) => {
+	return (
+		<Svg style={StyleSheet.absoluteFill} viewBox={VIEW_BOX}>
+			<MascotDefs />
+			{children}
+		</Svg>
+	);
+};
 
+/** 마스코트 그림의 그라데이션 정의 컴포넌트 */
+const MascotDefs = () => {
+	return (
+		<Defs>
+			<ClipPath id="body-clip">
+				<Path d={BODY_PATH} />
+			</ClipPath>
+
+			<RadialGradient id="body" cx="0.48" cy="0.18" r="0.9">
+				<Stop offset="0" stopColor={artwork.body[0]} />
+				<Stop offset="0.55" stopColor={artwork.body[1]} />
+				<Stop offset="1" stopColor={artwork.body[2]} />
+			</RadialGradient>
+			<RadialGradient id="body-edge" cx="0.5" cy="0.42" r="0.62">
+				<Stop offset="0.72" stopColor={artwork.bodyEdge} stopOpacity={0} />
+				<Stop offset="1" stopColor={artwork.bodyEdge} stopOpacity={0.08} />
+			</RadialGradient>
+			<RadialGradient id="sheen" cx="0.5" cy="0.5" r="0.5">
+				<Stop offset="0" stopColor={artwork.highlight} stopOpacity={0.06} />
+				<Stop offset="1" stopColor={artwork.highlight} stopOpacity={0} />
+			</RadialGradient>
+			<LinearGradient id="wing" x1="0" y1="0.2" x2="1" y2="0.6">
+				<Stop offset="0" stopColor={artwork.wing[0]} />
+				<Stop offset="0.6" stopColor={artwork.wing[1]} />
+				<Stop offset="1" stopColor={artwork.wing[2]} />
+			</LinearGradient>
+			<LinearGradient id="belly" x1="0" y1="0" x2="0" y2="1">
+				<Stop offset="0" stopColor={artwork.belly[0]} />
+				<Stop offset="0.5" stopColor={artwork.belly[1]} />
+				<Stop offset="1" stopColor={artwork.belly[2]} />
+			</LinearGradient>
+
+			<LinearGradient id="band" x1="0" y1="0" x2="0" y2="1">
+				<Stop offset="0" stopColor={artwork.band[0]} />
+				<Stop offset="1" stopColor={artwork.band[1]} />
+			</LinearGradient>
+			<LinearGradient id="shell" x1="0" y1="0" x2="1" y2="0">
+				<Stop offset="0" stopColor={artwork.shell[0]} />
+				<Stop offset="0.5" stopColor={artwork.shell[1]} />
+				<Stop offset="1" stopColor={artwork.shell[2]} />
+			</LinearGradient>
+			<LinearGradient id="cushion" x1="0" y1="0" x2="1" y2="0">
+				<Stop offset="0" stopColor={artwork.cushion[0]} />
+				<Stop offset="0.45" stopColor={artwork.cushion[1]} />
+				<Stop offset="1" stopColor={artwork.cushion[2]} />
+			</LinearGradient>
+			<RadialGradient id="contact" cx="0.5" cy="0.5" r="0.5">
+				<Stop offset="0" stopColor={artwork.contact} stopOpacity={0.18} />
+				<Stop offset="1" stopColor={artwork.contact} stopOpacity={0} />
+			</RadialGradient>
+
+			<RadialGradient id="eye" cx="0.45" cy="0.4" r="0.62">
+				<Stop offset="0.6" stopColor={artwork.eye[0]} />
+				<Stop offset="1" stopColor={artwork.eye[1]} />
+			</RadialGradient>
+			<RadialGradient id="pupil" cx="0.4" cy="0.3" r="0.8">
+				<Stop offset="0" stopColor={artwork.pupil[0]} />
+				<Stop offset="1" stopColor={artwork.pupil[1]} />
+			</RadialGradient>
+
+			<RadialGradient id="beak" cx="0.42" cy="0.22" r="0.85">
+				<Stop offset="0" stopColor={artwork.beak[0]} />
+				<Stop offset="0.55" stopColor={artwork.beak[1]} />
+				<Stop offset="1" stopColor={artwork.beak[2]} />
+			</RadialGradient>
+			<LinearGradient id="tongue" x1="0" y1="0" x2="0" y2="1">
+				<Stop offset="0" stopColor={artwork.tongue[0]} />
+				<Stop offset="1" stopColor={artwork.tongue[1]} />
+			</LinearGradient>
+
+			<RadialGradient id="toe" cx="0.4" cy="0.32" r="0.72">
+				<Stop offset="0" stopColor={artwork.toe[0]} />
+				<Stop offset="0.65" stopColor={artwork.toe[1]} />
+				<Stop offset="1" stopColor={artwork.toe[2]} />
+			</RadialGradient>
+			<RadialGradient id="toe-front" cx="0.34" cy="0.3" r="0.82">
+				<Stop offset="0" stopColor={artwork.toeFront[0]} />
+				<Stop offset="0.55" stopColor={artwork.toeFront[1]} />
+				<Stop offset="1" stopColor={artwork.toeFront[2]} />
+			</RadialGradient>
+			<LinearGradient id="leg" x1="0" y1="0" x2="1" y2="0">
+				<Stop offset="0" stopColor={artwork.leg[0]} />
+				<Stop offset="0.45" stopColor={artwork.leg[1]} />
+				<Stop offset="1" stopColor={artwork.leg[2]} />
+			</LinearGradient>
+			<LinearGradient id="leg-shade" x1="0" y1="0" x2="0" y2="1">
+				<Stop offset="0" stopColor={artwork.legShade} stopOpacity={0.22} />
+				<Stop offset="0.6" stopColor={artwork.legShade} stopOpacity={0} />
+			</LinearGradient>
+			<RadialGradient id="toe-shade" cx="0.5" cy="0.5" r="0.5">
+				<Stop offset="0" stopColor={artwork.toeShade} stopOpacity={0.2} />
+				<Stop offset="1" stopColor={artwork.toeShade} stopOpacity={0} />
+			</RadialGradient>
+		</Defs>
+	);
+};
+
+/** 마스코트 몸 그림 컴포넌트 */
+const MascotBody = () => {
+	return (
+		<>
 			{/*헤드폰 머리띠*/}
 			<Path
 				d="M124 168C122 102 182 69 256 69s134 33 132 99"
@@ -155,13 +261,54 @@ const MascotArtwork = () => {
 			{/*이어컵이 머리에 닿는 자리의 그림자*/}
 			<Ellipse cx={154} cy={192} rx={12} ry={46} fill="url(#contact)" />
 			<Ellipse cx={358} cy={192} rx={12} ry={46} fill="url(#contact)" />
+		</>
+	);
+};
 
-			{/*날개*/}
-			<G id="wing-left">
-				<Ellipse cx={110} cy={288} rx={24} ry={60} transform="rotate(24 110 288)" fill="url(#wing)" />
-			</G>
-			<Use href="#wing-left" transform={MIRROR} />
+interface MascotWingProps {
+	mirrored?: boolean;
+}
 
+/**
+ * 마스코트 날개 그림 컴포넌트
+ * @param mirrored 오른쪽 날개인지 여부
+ */
+const MascotWing = ({ mirrored = false }: MascotWingProps) => {
+	return (
+		<G transform={mirrored ? MIRROR : undefined}>
+			<Ellipse cx={110} cy={288} rx={24} ry={60} transform="rotate(24 110 288)" fill="url(#wing)" />
+		</G>
+	);
+};
+
+/** 뜬 눈 그림 컴포넌트 */
+const MascotOpenEyes = () => {
+	return (
+		<>
+			<Ellipse cx={198.5} cy={192.5} rx={33.5} ry={46} fill="url(#eye)" />
+			<Ellipse cx={313} cy={192.5} rx={33.5} ry={46} fill="url(#eye)" />
+			<Ellipse cx={204.5} cy={198} rx={16} ry={23} fill="url(#pupil)" />
+			<Ellipse cx={307} cy={198} rx={16} ry={23} fill="url(#pupil)" />
+			<Circle cx={209.5} cy={187.5} r={6.5} fill={artwork.highlight} />
+			<Circle cx={311.5} cy={187.5} r={6.5} fill={artwork.highlight} />
+		</>
+	);
+};
+
+/** 눈웃음 그림 컴포넌트 */
+const MascotHappyEyes = () => {
+	return (
+		<G fill="none" stroke={artwork.pupil[0]} strokeWidth={14} strokeLinecap="round">
+			<Path d="M170 204Q198 168 226 204" />
+			<Path d="M285 204Q313 168 341 204" />
+		</G>
+	);
+};
+
+/** 눈 위에 겹치는 그림 컴포넌트 */
+const MascotFront = () => {
+	return (
+		<>
 			{/*헤드폰 이어컵*/}
 			<G id="cup-left">
 				<Rect x={116} y={145} width={33} height={90} rx={15} fill="url(#cushion)" />
@@ -176,14 +323,6 @@ const MascotArtwork = () => {
 				<Rect x={105} y={158} width={5} height={44} rx={2.5} fill={artwork.highlight} fillOpacity={0.04} />
 			</G>
 			<Use href="#cup-left" transform={MIRROR} />
-
-			{/*눈*/}
-			<Ellipse cx={198.5} cy={192.5} rx={33.5} ry={46} fill="url(#eye)" />
-			<Ellipse cx={313} cy={192.5} rx={33.5} ry={46} fill="url(#eye)" />
-			<Ellipse cx={204.5} cy={198} rx={16} ry={23} fill="url(#pupil)" />
-			<Ellipse cx={307} cy={198} rx={16} ry={23} fill="url(#pupil)" />
-			<Circle cx={209.5} cy={187.5} r={6.5} fill={artwork.highlight} />
-			<Circle cx={311.5} cy={187.5} r={6.5} fill={artwork.highlight} />
 
 			{/*부리와 입*/}
 			<Ellipse cx={257} cy={298} rx={30} ry={13} fill="url(#contact)" />
@@ -201,8 +340,14 @@ const MascotArtwork = () => {
 				strokeWidth={1.6}
 				strokeLinecap="round"
 			/>
-		</Svg>
+		</>
 	);
 };
+
+const styles = StyleSheet.create({
+	container: { width: '100%', height: '100%' },
+	leftWing: { transformOrigin: '26.17% 45.51%' },
+	rightWing: { transformOrigin: '73.83% 45.51%' },
+});
 
 export default MascotArtwork;
