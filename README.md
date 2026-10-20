@@ -24,9 +24,9 @@ Install the Oxc editor plugin for on-save formatting: `oxc.oxc-vscode` for VS Co
 Use the existing dev/prod Firebase configuration and signing identity described in the build guide. Expo Go cannot run the custom native audio engine or Firebase modules. Web is outside this project.
 
 ## Release
-main에 머지된 conventional commit을 읽어 release-please가 `chore(main): release x.y.z` PR을 연다.
-그 PR을 머지하면 태그와 GitHub Release가 생기고 Staging release 워크플로우가 시작된다.
-staging 빌드는 TestFlight와 Play 내부 테스트에 자동 제출되고, Android Maestro E2E가 병렬로 실행된다.
-Production release 워크플로우를 Run workflow로 실행하고 태그를 입력한 뒤 Wait for production approval 잡을 승인하면 production 빌드가 App Store Connect와 Play 콘솔 draft에 제출된다.
-심사 제출과 출시 버튼은 각 콘솔에서 직접 누른다.
-같은 태그로 staging을 다시 빌드하려면 Staging release 워크플로우를 Run workflow로 실행하고 태그를 입력한다.
+main에 병합하면 Development deploy 워크플로우가 실행된다.
+네이티브 변경이 없으면 개발 앱에 OTA가 배포되고, 있으면 staging 빌드가 TestFlight 및 Play 내부 테스트에 제출된다.
+release-please PR은 스토어 릴리스가 필요할 때만 병합한다.
+운영 OTA는 Production OTA 워크플로우를 Run workflow로 실행하고 릴리스 태그를 입력한 뒤 승인한다.
+로컬에서 스토어 빌드를 제출했으면 Record native fingerprint 워크플로우를 실행한다.
+배포한 번들은 `.env.hotupdater`를 채운 뒤 `yarn hot-updater bundle disable <번들 ID>`로 비활성화한다.

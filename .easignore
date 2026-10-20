@@ -6,6 +6,7 @@ node_modules/
 /ios/
 /android/
 dist/
+.hot-updater/
 coverage/
 .env*
 !.env.example

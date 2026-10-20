@@ -33,6 +33,9 @@ jobs:
   staging-release:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/staging-release.yml
     with:
       tag: ${{ needs.release-please.outputs.tag_name }}

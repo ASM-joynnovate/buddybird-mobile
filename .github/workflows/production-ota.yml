@@ -1,0 +1,99 @@
+name: Production OTA
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Release tag to deploy, e.g. v2.11.0
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: production-ota
+  cancel-in-progress: false
+jobs:
+  ota-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.ref }}
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - uses: ./.github/actions/native-fingerprint
+        id: fingerprint
+        with:
+          variant: production
+          ios-firebase-config: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_PROD_BASE64 }}
+          android-firebase-config: ${{ secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 }}
+          github-token: ${{ github.token }}
+      - name: Require a store release
+        if: steps.fingerprint.outputs.expo-changed == 'true'
+        run: |
+          echo "네이티브 fingerprint가 마지막 운영 스토어 빌드와 다릅니다. 스토어 릴리스가 필요합니다."
+          exit 1
+      - name: Require a store build for hot-updater changes
+        if: steps.fingerprint.outputs.hot-updater-changed == 'true'
+        run: |
+          echo "hot-updater fingerprint만 변경되었습니다. 스토어 빌드가 필요합니다."
+          exit 1
+      - name: Write signing key
+        env:
+          SIGNING_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
+        run: |
+          test -n "$SIGNING_PRIVATE_KEY"
+          umask 077
+          mkdir -p "$RUNNER_TEMP/hot-updater-signing"
+          printf '%s' "$SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/hot-updater-signing/private-key.pem"
+      - name: Deploy iOS bundle
+        env:
+          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
+          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: APP_VARIANT=production yarn hot-updater deploy -p ios -c production -o .hot-updater/output/deploy/ios
+      - name: Deploy Android bundle
+        env:
+          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
+          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: APP_VARIANT=production yarn hot-updater deploy -p android -c production -o .hot-updater/output/deploy/android
+      - name: Remove signing key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/hot-updater-signing"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-fingerprint-production
+          path: ${{ runner.temp }}/native-fingerprint/
+          retention-days: 90
+
+  notify-finished:
+    needs: [ota-deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: "${{ needs.ota-deploy.result == 'success' && '✅ buddybird-mobile 운영 OTA 배포 완료' || needs.ota-deploy.result == 'failure' && '❌ buddybird-mobile 운영 OTA 배포 실패' || '⚠️ buddybird-mobile 운영 OTA 배포 취소' }} ${{ inputs.ref }}"
+          fields: |
+            ref=${{ inputs.ref }}
+            실행자=${{ github.actor }}
+          buttons: |
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

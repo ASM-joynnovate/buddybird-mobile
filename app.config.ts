@@ -156,6 +156,10 @@ const config: ExpoConfig = {
 		'expo-asset',
 		'expo-web-browser',
 		'@bacons/apple-targets',
+		[
+			'@hot-updater/expo',
+			{ channel: production ? 'production' : 'development', publicKeyPath: `./keys/${variant}/public-key.pem` },
+		],
 	],
 	extra: {
 		eas: { projectId: 'f00b95df-f52f-4021-8543-47971d4fa55e' },
@@ -163,6 +167,7 @@ const config: ExpoConfig = {
 		supabaseUrl: String(process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim(),
 		supabasePublishableKey: String(process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '').trim(),
 		clarityProjectId: String(process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID ?? '').trim() || 'wre3hgbj48',
+		hotUpdaterApiKey: String(process.env.EXPO_PUBLIC_HOT_UPDATER_API_KEY ?? '').trim(),
 		production,
 	},
 };

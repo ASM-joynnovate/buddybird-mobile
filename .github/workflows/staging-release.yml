@@ -49,10 +49,13 @@ jobs:
           commit-range: ${{ steps.range.outputs.previous }}..${{ inputs.tag }}
 
   staging-build-and-submit:
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/eas-build-and-submit.yml
     with:
       profile: staging
-      tag: ${{ inputs.tag }}
+      ref: refs/tags/${{ inputs.tag }}
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   android-e2e:

@@ -5,7 +5,7 @@ on:
       profile:
         type: string
         required: true
-      tag:
+      ref:
         type: string
         required: true
 permissions:
@@ -13,14 +13,18 @@ permissions:
 jobs:
   package:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     env:
       EAS_PROFILE: ${{ inputs.profile }}
-      RELEASE_REF: ${{ inputs.tag }}
+      RELEASE_REF: ${{ inputs.ref }}
+      NATIVE_VARIANT: ${{ inputs.profile == 'production' && 'production' || 'development' }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: refs/tags/${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - run: corepack enable
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -69,3 +73,14 @@ jobs:
               '.[] | select((.platform | ascii_downcase) == $platform) | .id | select(type == "string" and length > 0)' "$RUNNER_TEMP/builds.json")
             eas submit --platform "$platform" --profile "$EAS_PROFILE" --id "$build_id" --non-interactive --wait
           done
+      - uses: ./.github/actions/native-fingerprint
+        with:
+          variant: ${{ env.NATIVE_VARIANT }}
+          ios-firebase-config: ${{ inputs.profile == 'production' && secrets.GOOGLE_SERVICES_INFO_PLIST_PROD_BASE64 || secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+          android-firebase-config: ${{ inputs.profile == 'production' && secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 || secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+          github-token: ${{ github.token }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-fingerprint-${{ env.NATIVE_VARIANT }}
+          path: ${{ runner.temp }}/native-fingerprint/
+          retention-days: 90

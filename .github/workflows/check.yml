@@ -68,6 +68,8 @@ jobs:
               - ios/**
               - android/**
               - app.config.ts
+              - hot-updater.config.ts
+              - keys/**
               - package.json
               - yarn.lock
               - eas.json

@@ -30,6 +30,6 @@
 			"module": "commonjs"
 		}
 	},
-	"include": ["app/**/*.ts", "app/**/*.tsx", "index.tsx", "app.config.ts"],
+	"include": ["app/**/*.ts", "app/**/*.tsx", "index.tsx", "app.config.ts", "hot-updater.config.ts"],
 	"exclude": ["node_modules"]
 }
