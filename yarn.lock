@@ -7517,7 +7517,7 @@ __metadata:
     husky: "npm:9.1.7"
     i18next: "npm:^26.4.3"
     intl-pluralrules: "npm:^2.0.1"
-    lucide-react-native: "npm:^1.49.0"
+    lucide-react-native: "npm:^1.56.0"
     oxfmt: "npm:0.71.0"
     oxlint: "npm:1.86.0"
     oxlint-config-universe: "npm:0.2.0"
@@ -11960,9 +11960,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react-native@npm:^1.49.0":
-  version: 1.49.0
-  resolution: "lucide-react-native@npm:1.49.0"
+"lucide-react-native@npm:^1.56.0":
+  version: 1.56.0
+  resolution: "lucide-react-native@npm:1.56.0"
   peerDependencies:
     "@types/react": "*"
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -11971,7 +11971,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/1e89fe9c6b9ad265d1762aeb0251887a8d3e31c09b24191bcd2b02d658807e509510e22d4c04f95a77c30c931095ab42ed4628ef9e670d70686959be61ac130f
+  checksum: 10c0/ff5f543b6416026e029de1fd799edf2219eb9ebb51a43f1c2e01ab9709c5dfeadee9fffa02bcb5c77659d765f266504eb5085dd5826be29299882c2e4efe7387
   languageName: node
   linkType: hard
 
