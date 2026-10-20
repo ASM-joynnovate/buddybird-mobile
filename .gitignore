@@ -730,3 +730,8 @@ expo-env.d.ts
 # Impeccable
 
 .impeccable
+
+# hot-updater
+.env.hotupdater
+.hot-updater/
+fingerprint.json

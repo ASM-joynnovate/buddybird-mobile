@@ -5,6 +5,7 @@ import useAppBootstrap from '@/hooks/use-app-bootstrap';
 import * as Sentry from '@sentry/react-native';
 
 import RootProviders from '@/providers';
+import { hotUpdater } from '@/services/hot-updater/client';
 import { useAppStore } from '@/stores/app';
 
 import AppContent from '@/components/app/app-content';
@@ -42,4 +43,4 @@ const App = () => {
 	);
 };
 
-export default Sentry.wrap(App);
+export default Sentry.wrap(hotUpdater.wrap({ updateStrategy: 'fingerprint' })<Record<string, unknown>>(App));

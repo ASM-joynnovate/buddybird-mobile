@@ -1,0 +1,133 @@
+name: Development deploy
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: development-deploy
+  cancel-in-progress: false
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.compare.outputs.version-changed }}
+    steps:
+      - id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          package_version() {
+            gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$1" -H 'Accept: application/vnd.github.raw' | jq -r .version
+          }
+          if [ "$(package_version "$BEFORE_SHA")" = "$(package_version "$GITHUB_SHA")" ]; then
+            echo "version-changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "version-changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  ota-deploy:
+    needs: version-check
+    if: needs.version-check.outputs.version-changed == 'false'
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      expo-changed: ${{ steps.fingerprint.outputs.expo-changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - uses: ./.github/actions/native-fingerprint
+        id: fingerprint
+        with:
+          variant: development
+          ios-firebase-config: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+          android-firebase-config: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+          github-token: ${{ github.token }}
+      - name: Require a native version bump
+        if: steps.fingerprint.outputs.expo-changed == 'true' && steps.fingerprint.outputs.baseline-found == 'true' && steps.fingerprint.outputs.hot-updater-changed == 'false'
+        run: |
+          echo "Expo fingerprint만 변경되었습니다. hot-updater.config.ts의 fingerprint.nativeVersion 값을 증가시켜야 합니다."
+          exit 1
+      - name: Require a store build for hot-updater changes
+        if: steps.fingerprint.outputs.expo-changed == 'false' && steps.fingerprint.outputs.hot-updater-changed == 'true'
+        run: |
+          echo "hot-updater fingerprint만 변경되었습니다. 스토어 빌드가 필요합니다."
+          exit 1
+      - name: Write signing key
+        if: steps.fingerprint.outputs.expo-changed == 'false'
+        env:
+          SIGNING_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
+        run: |
+          test -n "$SIGNING_PRIVATE_KEY"
+          umask 077
+          mkdir -p "$RUNNER_TEMP/hot-updater-signing"
+          printf '%s' "$SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/hot-updater-signing/private-key.pem"
+      - name: Deploy iOS bundle
+        if: steps.fingerprint.outputs.expo-changed == 'false'
+        env:
+          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
+          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: APP_VARIANT=development yarn hot-updater deploy -p ios -c development -o .hot-updater/output/deploy/ios
+      - name: Deploy Android bundle
+        if: steps.fingerprint.outputs.expo-changed == 'false'
+        env:
+          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
+          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: APP_VARIANT=development yarn hot-updater deploy -p android -c development -o .hot-updater/output/deploy/android
+      - name: Remove signing key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/hot-updater-signing"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.fingerprint.outputs.expo-changed == 'false'
+        with:
+          name: native-fingerprint-development
+          path: ${{ runner.temp }}/native-fingerprint/
+          retention-days: 90
+
+  staging-build:
+    needs: ota-deploy
+    if: needs.ota-deploy.outputs.expo-changed == 'true'
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/eas-build-and-submit.yml
+    with:
+      profile: staging
+      ref: ${{ github.sha }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+
+  notify-finished:
+    needs: [version-check, ota-deploy, staging-build]
+    if: always() && needs.version-check.outputs.version-changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: "${{ contains(needs.*.result, 'failure') && '❌ buddybird-mobile 개발 배포 실패' || contains(needs.*.result, 'cancelled') && '⚠️ buddybird-mobile 개발 배포 취소' || '✅ buddybird-mobile 개발 배포 완료' }}"
+          fields: |
+            방식=${{ needs.ota-deploy.outputs.expo-changed == 'true' && 'staging 빌드' || 'OTA' }}
+            실행자=${{ github.actor }}
+          buttons: |
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

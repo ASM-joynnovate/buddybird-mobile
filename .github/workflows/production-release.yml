@@ -23,10 +23,13 @@ jobs:
 
   production-build-and-submit:
     needs: wait-for-production-approval
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/eas-build-and-submit.yml
     with:
       profile: production
-      tag: ${{ inputs.tag }}
+      ref: refs/tags/${{ inputs.tag }}
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   notify-finished:

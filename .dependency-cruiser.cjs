@@ -155,7 +155,7 @@ module.exports = {
       comment: "app.tsx 파일이 허용 목록에 없는 app 폴더를 가져왔다.",
       severity: "error",
       from: { path: "^app/app\\.tsx$" },
-      to: { path: "^app/", pathNot: "^app/(components/app|hooks|providers|stores|config)/" },
+      to: { path: "^app/", pathNot: "^app/(components/app|hooks|providers|stores|config|services)/" },
     },
     {
       name: "mmkv-only-in-storage-adapters",

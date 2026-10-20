@@ -1,0 +1,98 @@
+name: native fingerprint
+description: Compare the native fingerprint with the last store build
+
+inputs:
+  variant:
+    description: development or production
+    required: true
+  ios-firebase-config:
+    description: Base64 GoogleService-Info.plist
+    required: true
+  android-firebase-config:
+    description: Base64 google-services.json
+    required: true
+  github-token:
+    description: Token that reads Actions artifacts
+    required: true
+
+outputs:
+  baseline-found:
+    description: true when the last store build fingerprint exists
+    value: ${{ steps.compare.outputs.baseline-found }}
+  expo-changed:
+    description: true when the Expo hash differs or no baseline exists
+    value: ${{ steps.compare.outputs.expo-changed }}
+  hot-updater-changed:
+    description: true when the iOS or Android hash differs
+    value: ${{ steps.compare.outputs.hot-updater-changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: write firebase config
+      shell: bash
+      env:
+        VARIANT: ${{ inputs.variant }}
+        IOS_CONFIG: ${{ inputs.ios-firebase-config }}
+        ANDROID_CONFIG: ${{ inputs.android-firebase-config }}
+      run: |
+        folder=dev
+        if [ "$VARIANT" = production ]; then
+          folder=prod
+        fi
+        test -n "$IOS_CONFIG"
+        test -n "$ANDROID_CONFIG"
+        mkdir -p "config/$folder/firebase"
+        printf '%s' "$IOS_CONFIG" | base64 -d > "config/$folder/firebase/GoogleService-Info.plist"
+        printf '%s' "$ANDROID_CONFIG" | base64 -d > "config/$folder/firebase/google-services.json"
+
+    - name: create fingerprints
+      shell: bash
+      env:
+        APP_VARIANT: ${{ inputs.variant }}
+      run: |
+        mkdir -p "$RUNNER_TEMP/native-fingerprint"
+        npx --no @expo/fingerprint fingerprint:generate > "$RUNNER_TEMP/native-fingerprint/expo-fingerprint.json"
+        yarn hot-updater fingerprint create
+        cp fingerprint.json "$RUNNER_TEMP/native-fingerprint/"
+
+    - name: compare with last store build
+      id: compare
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        ARTIFACT_NAME: native-fingerprint-${{ inputs.variant }}
+      run: |
+        current="$RUNNER_TEMP/native-fingerprint"
+        baseline="$RUNNER_TEMP/native-fingerprint-baseline"
+        artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$ARTIFACT_NAME&per_page=100" \
+          --jq '[.artifacts[] | select(.expired | not)] | sort_by(.created_at) | last | .id // empty')
+
+        if [ -z "$artifact_id" ]; then
+          {
+            echo "baseline-found=false"
+            echo "expo-changed=true"
+            echo "hot-updater-changed=false"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        mkdir -p "$baseline"
+        gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > "$baseline.zip"
+        unzip -q "$baseline.zip" -d "$baseline"
+
+        expo_changed=false
+        if [ "$(jq -r .hash "$current/expo-fingerprint.json")" != "$(jq -r .hash "$baseline/expo-fingerprint.json")" ]; then
+          expo_changed=true
+        fi
+
+        hot_updater_changed=false
+        if [ "$(jq -c '[.ios.hash, .android.hash]' "$current/fingerprint.json")" != "$(jq -c '[.ios.hash, .android.hash]' "$baseline/fingerprint.json")" ]; then
+          hot_updater_changed=true
+        fi
+
+        {
+          echo "baseline-found=true"
+          echo "expo-changed=$expo_changed"
+          echo "hot-updater-changed=$hot_updater_changed"
+        } >> "$GITHUB_OUTPUT"

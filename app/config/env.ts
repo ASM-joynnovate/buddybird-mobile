@@ -11,6 +11,8 @@ export const env = {
 	supabaseUrl: String(Constants.expoConfig?.extra?.supabaseUrl ?? ''),
 	supabasePublishableKey: String(Constants.expoConfig?.extra?.supabasePublishableKey ?? ''),
 	clarityProjectId: String(Constants.expoConfig?.extra?.clarityProjectId ?? 'wre3hgbj48'),
+	hotUpdaterBaseUrl: 'https://ota.buddybird.xyz',
+	hotUpdaterApiKey: String(Constants.expoConfig?.extra?.hotUpdaterApiKey ?? ''),
 	isProduction,
 	appStoreId: isProduction ? '6783652711' : '6784253530',
 };

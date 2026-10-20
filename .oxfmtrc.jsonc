@@ -58,5 +58,5 @@
 		"newlinesBetween": true,
 		"sortSideEffects": true
 	},
-	"ignorePatterns": ["node_modules", "ios", "android", "dist", ".expo", "docs"]
+	"ignorePatterns": ["node_modules", "ios", "android", "dist", ".expo", "docs", "fingerprint.json"]
 }
