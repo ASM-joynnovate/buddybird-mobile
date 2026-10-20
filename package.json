@@ -1,6 +1,6 @@
 {
 	"name": "buddybird-mobile",
-	"version": "2.10.0",
+	"version": "2.11.0",
 	"private": true,
 	"main": "index.tsx",
 	"scripts": {

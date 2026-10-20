@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.11.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.10.0...v2.11.0) (2026-10-20)
+
+
+### Features
+
+* **app:** add a no-parrot option to onboarding [BB-727] ([#273](https://github.com/ASM-joynnovate/buddybird-mobile/issues/273)) ([2877067](https://github.com/ASM-joynnovate/buddybird-mobile/commit/28770670de73b30ee89bf8bc1e91c6a9e7f9dbb8))
+* **app:** add over-the-air updates with hot-updater [BB-709] ([#274](https://github.com/ASM-joynnovate/buddybird-mobile/issues/274)) ([603ec8e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/603ec8e079e40793b2122f1d6ba82e0e60599baa))
+* **app:** add pull to refresh to the report screens [BB-726] ([#270](https://github.com/ASM-joynnovate/buddybird-mobile/issues/270)) ([a37c47e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/a37c47eb5976b635bb4135e3dab08f95f3e8cfb6))
+* **app:** change the default report period to monthly [BB-717] ([#272](https://github.com/ASM-joynnovate/buddybird-mobile/issues/272)) ([05ca57e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/05ca57ebb633db32495db3a87999c1608fe0014b))
+* **app:** open the session report from emergency notifications [BB-716] ([#271](https://github.com/ASM-joynnovate/buddybird-mobile/issues/271)) ([64e7dbe](https://github.com/ASM-joynnovate/buddybird-mobile/commit/64e7dbe26400e656433dd41c4138c8ca0875cc28))
+* **app:** show the brand name in English on the home header [BB-709] ([#276](https://github.com/ASM-joynnovate/buddybird-mobile/issues/276)) ([9294e19](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9294e19a0e9cb28f1f5660468cf4c5f1617b80eb))
+* **app:** show the usage guide before login [BB-723] ([#261](https://github.com/ASM-joynnovate/buddybird-mobile/issues/261)) ([7f0411b](https://github.com/ASM-joynnovate/buddybird-mobile/commit/7f0411b91d4ff07205443aaf4c2fe273071fe710))
+
+
+### Bug Fixes
+
+* **app:** keep the chevron visible on session log rows [BB-725] ([#263](https://github.com/ASM-joynnovate/buddybird-mobile/issues/263)) ([6589adc](https://github.com/ASM-joynnovate/buddybird-mobile/commit/6589adc39e3ec1b79cd91f2ebf2927b6076924cf))
+
+
+### Reverts
+
+* **app:** show the brand name in English on the home header [BB-709] ([#277](https://github.com/ASM-joynnovate/buddybird-mobile/issues/277)) ([7019b3a](https://github.com/ASM-joynnovate/buddybird-mobile/commit/7019b3ab8929ef401a86583d4f517d4e172c5afc))
+
 ## [2.10.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.9.0...v2.10.0) (2026-10-17)
 
 
