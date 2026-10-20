@@ -1,11 +1,6 @@
 name: Production OTA
 on:
   workflow_dispatch:
-    inputs:
-      ref:
-        description: Release tag to deploy, e.g. v2.11.0
-        type: string
-        required: true
 permissions:
   contents: read
 concurrency:
@@ -21,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: refs/tags/${{ inputs.ref }}
           persist-credentials: false
       - run: corepack enable
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -91,9 +85,10 @@ jobs:
         continue-on-error: true
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: "${{ needs.ota-deploy.result == 'success' && '✅ buddybird-mobile 운영 OTA 배포 완료' || needs.ota-deploy.result == 'failure' && '❌ buddybird-mobile 운영 OTA 배포 실패' || '⚠️ buddybird-mobile 운영 OTA 배포 취소' }} ${{ inputs.ref }}"
+          title: "${{ needs.ota-deploy.result == 'success' && '✅ buddybird-mobile 운영 OTA 배포 완료' || needs.ota-deploy.result == 'failure' && '❌ buddybird-mobile 운영 OTA 배포 실패' || '⚠️ buddybird-mobile 운영 OTA 배포 취소' }} ${{ github.ref_name }}"
           fields: |
-            ref=${{ inputs.ref }}
+            ref=${{ github.ref_name }}
+            커밋=${{ github.sha }}
             실행자=${{ github.actor }}
           buttons: |
             실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
