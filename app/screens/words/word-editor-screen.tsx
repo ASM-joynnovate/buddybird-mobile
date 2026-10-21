@@ -556,6 +556,7 @@ const WordEditorScreen = () => {
 
 			<RecordingSheet
 				visible={recordingSheetOpen}
+				wordName={name.trim()}
 				recordings={recordings}
 				player={player}
 				onAdd={handleAddRecording}

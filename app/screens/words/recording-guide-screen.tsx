@@ -29,7 +29,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
 
 const STEPS: readonly { step: RecordingGuideStep; backgroundColor: string; backgroundDark: boolean }[] = [
-	{ step: 'manyRecordings', backgroundColor: colors.orangeSoft, backgroundDark: false },
+	{ step: 'sameWord', backgroundColor: colors.orangeSoft, backgroundDark: false },
 	{ step: 'quiet', backgroundColor: sessionColors.background, backgroundDark: true },
 	{ step: 'distance', backgroundColor: colors.orange, backgroundDark: true },
 	{ step: 'highVoice', backgroundColor: colors.bluePale, backgroundDark: false },

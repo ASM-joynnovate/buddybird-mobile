@@ -20,6 +20,7 @@ import { MAX_RECORDINGS, MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/confi
 import { SECOND } from '@/config/units';
 import AudioWaveform from '@/screens/words/components/audio-waveform';
 import RecordingStepItem from '@/screens/words/components/recording-sheet/step-item';
+import WordPrompt from '@/screens/words/components/recording-sheet/word-prompt';
 import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
 import { deleteFile, readFileInfo } from '@/services/media/file';
 import { reportError, track } from '@/services/telemetry/client';
@@ -106,6 +107,7 @@ const getRecordingFileError = (uri: string, durationMs: number) => {
 
 interface Props {
 	visible: boolean;
+	wordName: string;
 	recordings: EditorRecording[];
 	player: SoundPlayer;
 	onAdd: (newRecording: NewRecording) => void;
@@ -116,13 +118,14 @@ interface Props {
 /**
  * 녹음 bottom sheet 컴포넌트
  * @param visible bottom sheet 표시 여부
+ * @param wordName 녹음할 단어 이름
  * @param recordings 편집 중인 단어의 녹음 목록
  * @param player useSoundPlayer 결과
  * @param onAdd 빈 단계에서 녹음을 마쳤을 때 실행할 함수
  * @param onReplace 녹음이 있는 단계에서 새로 녹음을 마쳤을 때 실행할 함수
  * @param onClose bottom sheet를 닫을 때 실행할 함수
  */
-const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose }: Props) => {
+const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplace, onClose }: Props) => {
 	const { t } = useTranslation();
 
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -458,6 +461,8 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 					cornerRadius="illustration"
 					contentStyle={styles.recordingBox}
 				>
+					<WordPrompt wordName={wordName} />
+
 					<View style={styles.waveform}>
 						<AudioWaveform
 							levels={waveformLevels}
@@ -498,7 +503,7 @@ const RecordingSheet = ({ visible, recordings, player, onAdd, onReplace, onClose
 const styles = StyleSheet.create({
 	steps: { flexDirection: 'row', gap: 8 },
 	recordingBox: { overflow: 'hidden' },
-	waveform: { paddingHorizontal: 24, paddingVertical: 30 },
+	waveform: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 14 },
 	timeContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
