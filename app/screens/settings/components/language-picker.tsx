@@ -25,6 +25,7 @@ const LANGUAGE_LABEL_KEYS: Record<Locale, keyof SettingsMessages['general']> = {
 	'ja-JP': 'japanese',
 	'ru-RU': 'russian',
 	'es-ES': 'spanish',
+	'th-TH': 'thai',
 };
 
 /** 앱 언어 선택 컴포넌트 */
