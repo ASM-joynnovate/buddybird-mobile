@@ -1,0 +1,66 @@
+import type { WordsMessages } from '@/i18n/types/words';
+
+export const words: WordsMessages = {
+	list: {
+		title: '词语',
+		add: '添加词语',
+		empty: '还没有添加词语',
+		play: '播放{{name}}的录音',
+		delete: '删除{{name}}',
+	},
+	editor: {
+		addTitle: '添加词语',
+		editTitle: '编辑词语',
+		delete: '删除词语',
+		name: '词语名称',
+		nameHint: '例如：你好',
+		nameRequired: '请输入词语名称。',
+		recordings: '录音 {{count}}/5',
+		openGuide: '查看录音指南',
+		recordingName: '录音 {{index}}',
+		play: '播放{{name}}',
+		deleteRecording: '删除{{name}}',
+		addRecording: '添加录音',
+		recordingsHint: '添加 3 段以上录音，报告会更准确',
+		recordingRequired: '请至少添加 1 段录音。',
+		saving: '保存中',
+		uploading: '上传中',
+		processing: '处理中',
+		saveError: '保存失败。录音仍保留在页面上，请重试。',
+	},
+	guide: {
+		word: '你好',
+		manyRecordings: {
+			title: '录音添加得<b>越多</b>，报告就越准确',
+			scene: '每多一段录音就会上涨一截的报告图表',
+			recordingOrder: '第 {{order}} 段',
+			report: '报告',
+		},
+		quiet: {
+			title: '请在<b>安静的地方</b>录音',
+			scene: '在没有噪音的昏暗房间里录音的手机',
+			recording: '录音中',
+		},
+		distance: {
+			title: '让手机<b>底部</b>朝向嘴边，像打电话一样拿近一点',
+			scene: '底部麦克风朝向嘴边的手机将声音记录成波形',
+		},
+		highVoice: {
+			title: '请用<b>较高的音调</b>清楚地发音，让鹦鹉更容易模仿',
+			scene: '不断升高的声音柱状条和“你好”对话气泡',
+			speech: '你好！',
+		},
+	},
+	recorder: {
+		done: '完成',
+		start: '开始录音',
+		stop: '停止录音',
+		play: '试听',
+		rerecord: '重新录制',
+		empty: '录音是空的，请重新录制。',
+		tooLarge: '录音文件超过 5MB，请录得短一点再试。',
+		invalidFormat: '录音文件格式不正确，请重新录制。',
+		recordError: '录音失败。请检查麦克风后重试。',
+	},
+	deleteError: '词语删除失败。请检查网络连接后重试。',
+};

@@ -8,12 +8,16 @@ import { es } from '@/i18n/es-ES';
 import { ja } from '@/i18n/ja-JP';
 import { ko } from '@/i18n/ko-KR';
 import { ru } from '@/i18n/ru-RU';
+import { zhCN } from '@/i18n/zh-CN';
+import { zhTW } from '@/i18n/zh-TW';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/ru';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -30,6 +34,8 @@ const dayjsLocales: Record<Locale, string> = {
 	'ja-JP': 'ja',
 	'ru-RU': 'ru',
 	'es-ES': 'es',
+	'zh-CN': 'zh-cn',
+	'zh-TW': 'zh-tw',
 };
 
 /** 앱 언어 변경 함수 */
@@ -48,6 +54,8 @@ export const changeI18nLocale = async (locale: Locale) => {
 				'ja-JP': { translation: ja },
 				'ru-RU': { translation: ru },
 				'es-ES': { translation: es },
+				'zh-CN': { translation: zhCN },
+				'zh-TW': { translation: zhTW },
 			},
 			interpolation: { escapeValue: false },
 			initAsync: false,

@@ -1,0 +1,66 @@
+import type { WordsMessages } from '@/i18n/types/words';
+
+export const words: WordsMessages = {
+	list: {
+		title: '單字',
+		add: '新增單字',
+		empty: '還沒有新增任何單字',
+		play: '播放{{name}}的錄音',
+		delete: '刪除{{name}}',
+	},
+	editor: {
+		addTitle: '新增單字',
+		editTitle: '編輯單字',
+		delete: '刪除單字',
+		name: '單字名稱',
+		nameHint: '例如：你好',
+		nameRequired: '請輸入單字名稱。',
+		recordings: '錄音 {{count}}/5',
+		openGuide: '查看錄音指南',
+		recordingName: '錄音 {{index}}',
+		play: '播放{{name}}',
+		deleteRecording: '刪除{{name}}',
+		addRecording: '新增錄音',
+		recordingsHint: '錄 3 段以上，報告會更準確',
+		recordingRequired: '請至少新增 1 段錄音。',
+		saving: '儲存中',
+		uploading: '上傳中',
+		processing: '處理中',
+		saveError: '無法儲存。錄音都還留在畫面上，請再試一次。',
+	},
+	guide: {
+		word: '你好',
+		manyRecordings: {
+			title: '錄音<b>越多段</b>，報告就越準確',
+			scene: '每多一段錄音就往上長的報告圖表',
+			recordingOrder: '第 {{order}} 段',
+			report: '報告',
+		},
+		quiet: {
+			title: '請在<b>安靜的地方</b>錄音',
+			scene: '在噪音消失的昏暗房間裡錄音的手機',
+			recording: '錄音中',
+		},
+		distance: {
+			title: '把手機<b>底部</b>朝向嘴巴，像講電話一樣靠近',
+			scene: '底部麥克風朝向嘴巴的手機，把聲音記錄成波形',
+		},
+		highVoice: {
+			title: '用<b>較高的音調</b>清楚發音，鸚鵡會更容易學',
+			scene: '往上升高的聲音長條和「你好」對話框',
+			speech: '你好！',
+		},
+	},
+	recorder: {
+		done: '完成',
+		start: '開始錄音',
+		stop: '停止錄音',
+		play: '試聽',
+		rerecord: '重新錄音',
+		empty: '錄音是空的，請重新錄音。',
+		tooLarge: '錄音檔超過 5MB，請錄短一點。',
+		invalidFormat: '錄音檔格式不正確，請重新錄音。',
+		recordError: '無法錄音。請檢查麥克風後再試一次。',
+	},
+	deleteError: '無法刪除單字。請檢查連線後再試一次。',
+};
