@@ -293,7 +293,6 @@ components:
 ### Neutral
 - **Paper White** (`{colors.paper-white}`): 화면 배경, 카드 면, 다이얼로그 면, GroupedList 면
 - **On Accent** (`{colors.on-accent}`): 오렌지, 블루, 레드, Ink 면 위의 글자와 아이콘
-- **On Accent Soft** (`#ffffff38`, 코드 `onFilledSoft`): 진한 색 면 위에서 흰 글자를 담는 반투명 흰 칩. 녹음 가이드의 좋은 예·나쁜 예 카드 단어 칩에 쓴다
 - **On Brand** (`{colors.on-brand}`): 스플래시와 로그인 화면의 Parrot Red 바탕 위 워드마크, 소개 문구, 건너뛰기와 뒤로 버튼. `onBrand` variant가 이 색을 쓴다
 - **Ink** (`{colors.ink}`): 본문과 제목 글자색, 부재중 띠의 시각 글자와 커서, 오프라인 배너 면
 - **Muted Gray** (`{colors.muted-gray}`): 보조 설명, 필드 라벨, 선택 항목 caption, 행 아이콘, 선택되지 않은 탭과 칩 글자, placeholder

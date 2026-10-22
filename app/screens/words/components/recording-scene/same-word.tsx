@@ -10,13 +10,7 @@ import { colors, font } from '@/theme';
 import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 
-const CARD_TOP = 36;
-const CARD_WIDTH = 156;
-const CARD_HEIGHT = 300;
-const GOOD_CARD_LEFT = 24;
-const BAD_CARD_LEFT = 195;
-const WORD_APPEAR_START = 3;
-const BAD_CARD_APPEAR_ORDER = 4;
+const WORD_CHIP_COLOR = '#ffffff38';
 
 interface ExampleCardProps {
 	scale: number;
@@ -43,12 +37,12 @@ const ExampleCard = ({ scale, left, appearOrder, icon: Icon, label, words, backg
 		<Animated.View
 			entering={popIn(appearOrder)}
 			style={[
-				styles.card,
+				styles.exampleCard,
 				{
 					left: left * scale,
-					top: CARD_TOP * scale,
-					width: CARD_WIDTH * scale,
-					height: CARD_HEIGHT * scale,
+					top: 36 * scale,
+					width: 156 * scale,
+					height: 300 * scale,
 					gap: 10 * scale,
 					padding: 14 * scale,
 					borderRadius: 18 * scale,
@@ -58,20 +52,23 @@ const ExampleCard = ({ scale, left, appearOrder, icon: Icon, label, words, backg
 		>
 			<View style={[styles.labelRow, { gap: 4 * scale }]}>
 				<Icon size={15 * scale} color={colors.onFilled} strokeWidth={3} />
-				<Copy style={[styles.labelText, { fontSize: 14 * scale, lineHeight: 19 * scale }]}>{label}</Copy>
+				<Copy style={[styles.label, { fontSize: 14 * scale, lineHeight: 19 * scale }]}>{label}</Copy>
 			</View>
 
-			<View style={[styles.words, { gap: 8 * scale }]}>
+			<View style={[styles.wordContainer, { gap: 8 * scale }]}>
 				{words.map((word, index) => (
 					<Animated.View
-						key={`${word}-${index}`}
-						entering={popIn(appearOrder + WORD_APPEAR_START + index)}
-						style={[styles.word, { paddingVertical: 7 * scale, borderRadius: 12 * scale }]}
+						key={index}
+						entering={popIn(appearOrder + 3 + index)}
+						style={[
+							styles.wordChip,
+							{ paddingHorizontal: 8 * scale, paddingVertical: 7 * scale, borderRadius: 12 * scale },
+						]}
 					>
 						<Copy
 							numberOfLines={1}
 							adjustsFontSizeToFit
-							style={[styles.wordText, { fontSize: 16 * scale, lineHeight: 22 * scale }]}
+							style={[styles.wordChipText, { fontSize: 16 * scale, lineHeight: 22 * scale }]}
 						>
 							{word}
 						</Copy>
@@ -87,7 +84,7 @@ interface Props {
 }
 
 /**
- * 같은 단어만 담은 좋은 예와 다른 단어가 섞인 나쁜 예를 비교하는 장면 컴포넌트
+ * 한 단어에 그 단어만 녹음하는 장면 컴포넌트
  * @param scale 그림 배율
  */
 const RecordingSceneSameWord = ({ scale }: Props) => {
@@ -99,20 +96,20 @@ const RecordingSceneSameWord = ({ scale }: Props) => {
 		<>
 			<ExampleCard
 				scale={scale}
-				left={GOOD_CARD_LEFT}
+				left={24}
 				appearOrder={0}
 				icon={CheckIcon}
-				label={t('words.guide.sameWord.goodLabel')}
+				label={t('words.guide.goodLabel')}
 				words={[word, word, word]}
 				backgroundColor={colors.greenDark}
 			/>
 			<ExampleCard
 				scale={scale}
-				left={BAD_CARD_LEFT}
-				appearOrder={BAD_CARD_APPEAR_ORDER}
+				left={195}
+				appearOrder={4}
 				icon={XIcon}
-				label={t('words.guide.sameWord.badLabel')}
-				words={[word, t('words.guide.otherWord'), t('words.guide.anotherWord')]}
+				label={t('words.guide.badLabel')}
+				words={[word, ...t('words.guide.otherWords', { returnObjects: true })]}
 				backgroundColor={colors.error}
 			/>
 		</>
@@ -120,12 +117,12 @@ const RecordingSceneSameWord = ({ scale }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	card: { position: 'absolute', alignItems: 'center', borderCurve: 'continuous' },
+	exampleCard: { position: 'absolute', alignItems: 'center', borderCurve: 'continuous' },
 	labelRow: { flexDirection: 'row', alignItems: 'center' },
-	labelText: { fontFamily: font.extraBold, color: colors.onFilled },
-	words: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
-	word: { alignItems: 'center', paddingHorizontal: 8, backgroundColor: colors.onFilledSoft },
-	wordText: { fontFamily: font.black, color: colors.onFilled },
+	label: { fontFamily: font.extraBold, color: colors.onFilled },
+	wordContainer: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
+	wordChip: { alignItems: 'center', backgroundColor: WORD_CHIP_COLOR },
+	wordChipText: { fontFamily: font.black, color: colors.onFilled },
 });
 
 export default RecordingSceneSameWord;

@@ -23,9 +23,7 @@ export const words: WordsMessages = {
 		addRecording: '録音を追加',
 		recordingTips: {
 			intro: 'この録音で、インコがその言葉を言ったかを判定します。\n下のように録音してください',
-			goodLabel: '良い例',
 			goodNote: '1回だけ発音',
-			badLabel: '悪い例',
 			otherNote: '別の言葉',
 			repeatNote: '何度も',
 			recommended: '3つ以上録音するとより正確になります',
@@ -38,14 +36,14 @@ export const words: WordsMessages = {
 		saveError: '保存できませんでした。録音は画面にそのまま残っているので、もう一度試してみてください。',
 	},
 	guide: {
-		word: 'ハロー',
-		otherWord: 'やあ',
-		anotherWord: '大好き',
+		word: 'こんにちは',
+		repeatedWord: 'こんにちは\nこんにちは',
+		otherWords: ['やあ', '大好き'],
+		goodLabel: '良い例',
+		badLabel: '悪い例',
 		sameWord: {
 			title: '1つの言葉には<b>その言葉だけ</b>を録音してください',
 			scene: '同じ言葉だけの良い例と、別の言葉が混ざった悪い例',
-			goodLabel: '良い例',
-			badLabel: '悪い例',
 		},
 		quiet: {
 			title: '<b>静かな場所</b>で録音してください',
@@ -68,7 +66,7 @@ export const words: WordsMessages = {
 		stop: '録音停止',
 		play: '再生',
 		rerecord: '録り直す',
-		onceInstruction: '<b>1回だけ</b>言ってください！',
+		sayOnce: '<b>1回だけ</b>言ってください！',
 		empty: '何も録音されていません。もう一度録音してください。',
 		tooLarge: '録音ファイルが5MBを超えています。もっと短く録り直してください。',
 		invalidFormat: '録音ファイルの形式が正しくありません。もう一度録音してください。',

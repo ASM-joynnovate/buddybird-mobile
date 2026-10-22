@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
+import type { RecordingGuideStep } from '@/types/guide/recording';
+
 import { useTranslation } from 'react-i18next';
 
 import { useIsFocused } from '@react-navigation/native';
@@ -18,8 +20,6 @@ import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/
 
 const STAGE_WIDTH = 375;
 const STAGE_HEIGHT = 400;
-
-export type RecordingGuideStep = 'sameWord' | 'quiet' | 'distance' | 'highVoice';
 
 interface Props {
 	step: RecordingGuideStep;

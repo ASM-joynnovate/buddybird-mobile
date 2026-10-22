@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { BackHandler, type LayoutChangeEvent, StatusBar, Text, View } from 'react-native';
 
-import type { UsageStep } from '@/types/usage-guide';
+import type { UsageStep } from '@/types/guide/usage';
 
 import useStartupLanding from '@/hooks/use-startup-landing';
 

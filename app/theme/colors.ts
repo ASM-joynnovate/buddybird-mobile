@@ -5,7 +5,6 @@ export const colors = {
 	background: '#ffffff',
 	backgroundTransparent: '#ffffff00',
 	onFilled: '#ffffff',
-	onFilledSoft: '#ffffff38',
 	text: '#3c3c3c',
 	textDark: '#1f1f1f',
 	muted: '#777777',

@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 
 import { StatusBar, Text, View } from 'react-native';
 
+import type { RecordingGuideStep } from '@/types/guide/recording';
+
 import useGuideStep from '@/hooks/use-guide-step';
 
 import { Trans, useTranslation } from 'react-i18next';
@@ -17,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import RecordingScene, { type RecordingGuideStep } from '@/screens/words/components/recording-scene';
+import RecordingScene from '@/screens/words/components/recording-scene';
 import { colors, contentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 

@@ -23,9 +23,7 @@ export const words: WordsMessages = {
 		addRecording: 'Añadir grabación',
 		recordingTips: {
 			intro: 'Con esta grabación detectamos si tu loro dijo la palabra.\nGrábala así',
-			goodLabel: 'Así sí',
 			goodNote: 'Una sola vez',
-			badLabel: 'Así no',
 			otherNote: 'Otra palabra',
 			repeatNote: 'Varias veces',
 			recommended: 'Con 3 o más grabaciones es más preciso',
@@ -39,13 +37,13 @@ export const words: WordsMessages = {
 	},
 	guide: {
 		word: 'Hola',
-		otherWord: 'Adiós',
-		anotherWord: 'Te quiero',
+		repeatedWord: 'Hola Hola',
+		otherWords: ['Adiós', 'Te quiero'],
+		goodLabel: 'Así sí',
+		badLabel: 'Así no',
 		sameWord: {
 			title: 'En cada palabra, graba <b>solo esa palabra</b>',
 			scene: 'un ejemplo correcto solo con la misma palabra y uno incorrecto con otras palabras mezcladas',
-			goodLabel: 'Así sí',
-			badLabel: 'Así no',
 		},
 		quiet: {
 			title: 'Graba en un <b>lugar silencioso</b>',
@@ -68,7 +66,7 @@ export const words: WordsMessages = {
 		stop: 'Detener grabación',
 		play: 'Escuchar',
 		rerecord: 'Grabar de nuevo',
-		onceInstruction: '¡Dila <b>solo una vez</b>!',
+		sayOnce: '¡Dila <b>solo una vez</b>!',
 		empty: 'La grabación está vacía. Graba otra vez.',
 		tooLarge: 'La grabación pesa más de 5 MB. Graba una más corta.',
 		invalidFormat: 'El formato de la grabación no vale. Graba otra vez.',

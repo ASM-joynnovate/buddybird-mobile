@@ -23,9 +23,7 @@ export const words: WordsMessages = {
 		addRecording: '녹음 추가',
 		recordingTips: {
 			intro: '이 녹음으로 앵무새가 단어를 말했는지 판별해요.\n아래처럼 녹음해 주세요',
-			goodLabel: '좋은 예',
 			goodNote: '1번만 발음',
-			badLabel: '나쁜 예',
 			otherNote: '다른 단어',
 			repeatNote: '여러 번',
 			recommended: '3개 이상 녹음하면 더 정확해져요',
@@ -39,13 +37,13 @@ export const words: WordsMessages = {
 	},
 	guide: {
 		word: '안녕',
-		otherWord: '하이',
-		anotherWord: '사랑해',
+		repeatedWord: '안녕 안녕',
+		otherWords: ['하이', '사랑해'],
+		goodLabel: '좋은 예',
+		badLabel: '나쁜 예',
 		sameWord: {
 			title: '한 단어에는 <b>그 단어만</b> 녹음해 주세요',
 			scene: '같은 단어만 담은 좋은 예와 다른 단어가 섞인 나쁜 예',
-			goodLabel: '좋은 예',
-			badLabel: '나쁜 예',
 		},
 		quiet: {
 			title: '<b>조용한 곳</b>에서 녹음해 주세요',
@@ -68,7 +66,7 @@ export const words: WordsMessages = {
 		stop: '녹음 중지',
 		play: '듣기',
 		rerecord: '새로 녹음',
-		onceInstruction: '<b>딱 한 번만</b> 말해 주세요!',
+		sayOnce: '<b>딱 한 번만</b> 말해 주세요!',
 		empty: '녹음이 비어 있어요. 다시 녹음해 주세요.',
 		tooLarge: '녹음 파일이 5MB를 넘어요. 더 짧게 다시 녹음해 주세요.',
 		invalidFormat: '녹음 파일 형식이 맞지 않아요. 다시 녹음해 주세요.',

@@ -23,9 +23,7 @@ export const words: WordsMessages = {
 		addRecording: 'Add recording',
 		recordingTips: {
 			intro: 'We use this recording to tell whether your parrot said the word.\nRecord it like this',
-			goodLabel: 'Good',
 			goodNote: 'Said once',
-			badLabel: 'Bad',
 			otherNote: 'Different word',
 			repeatNote: 'Repeated',
 			recommended: 'Record 3 or more for better accuracy',
@@ -39,13 +37,13 @@ export const words: WordsMessages = {
 	},
 	guide: {
 		word: 'Hello',
-		otherWord: 'Hi',
-		anotherWord: 'I love you',
+		repeatedWord: 'Hello Hello',
+		otherWords: ['Hi', 'I love you'],
+		goodLabel: 'Good',
+		badLabel: 'Bad',
 		sameWord: {
 			title: 'Record <b>only that word</b> for each word',
 			scene: 'a good example with only the same word and a bad example mixed with other words',
-			goodLabel: 'Good',
-			badLabel: 'Bad',
 		},
 		quiet: {
 			title: 'Record in a <b>quiet place</b>',
@@ -68,7 +66,7 @@ export const words: WordsMessages = {
 		stop: 'Stop recording',
 		play: 'Listen',
 		rerecord: 'Record again',
-		onceInstruction: 'Say it <b>just once</b>!',
+		sayOnce: 'Say it <b>just once</b>!',
 		empty: 'The recording is empty. Please record again.',
 		tooLarge: 'The recording is over 5 MB. Record a shorter one.',
 		invalidFormat: "The recording format isn't supported. Please record again.",

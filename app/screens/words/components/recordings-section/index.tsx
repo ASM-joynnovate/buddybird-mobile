@@ -63,7 +63,8 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 					onPress={() => navigation.navigate('RecordingGuide')}
 				/>
 			</View>
-			<RecordingTips showRecommended={recordings.length < RECOMMENDED_RECORDINGS} />
+
+			<RecordingTips recommendationVisible={recordings.length < RECOMMENDED_RECORDINGS} />
 
 			{recordings.length > 0 && (
 				<ItemGroup>

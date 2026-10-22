@@ -23,9 +23,7 @@ export const words: WordsMessages = {
 		addRecording: 'Добавить запись',
 		recordingTips: {
 			intro: 'По этой записи мы определяем, сказал ли попугай слово.\nЗаписывай вот так',
-			goodLabel: 'Так',
 			goodNote: 'Один раз',
-			badLabel: 'Не так',
 			otherNote: 'Другое слово',
 			repeatNote: 'Несколько раз',
 			recommended: 'С тремя и более записями точнее',
@@ -38,14 +36,14 @@ export const words: WordsMessages = {
 		saveError: 'Не получилось сохранить. Записи остались на экране. Попробуй ещё раз.',
 	},
 	guide: {
-		word: 'Алло',
-		otherWord: 'Пока',
-		anotherWord: 'Люблю',
+		word: 'Привет',
+		repeatedWord: 'Привет Привет',
+		otherWords: ['Пока', 'Люблю'],
+		goodLabel: 'Так',
+		badLabel: 'Не так',
 		sameWord: {
 			title: 'Для одного слова записывай <b>только это слово</b>',
 			scene: 'правильный пример только с одним словом и неправильный, где смешаны другие слова',
-			goodLabel: 'Так',
-			badLabel: 'Не так',
 		},
 		quiet: {
 			title: 'Записывай в <b>тихом месте</b>',
@@ -68,7 +66,7 @@ export const words: WordsMessages = {
 		stop: 'Остановить запись',
 		play: 'Прослушать',
 		rerecord: 'Записать заново',
-		onceInstruction: 'Скажи <b>только один раз</b>!',
+		sayOnce: 'Скажи <b>только один раз</b>!',
 		empty: 'Запись пустая. Запиши ещё раз.',
 		tooLarge: 'Запись больше 5 МБ. Запиши покороче.',
 		invalidFormat: 'Формат записи не подходит. Запиши ещё раз.',
