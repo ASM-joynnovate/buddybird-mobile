@@ -93,7 +93,7 @@ export const community: CommunityMessages = {
 	block: {
 		action: 'Block',
 		title: 'Block {{nickname}}?',
-		message: "You won't see each other's posts in the feed. You can unblock them in Settings.",
+		message: "You won't see each other's posts in the feed.",
 		done: 'Blocked {{nickname}}',
 		undo: 'Undo',
 	},

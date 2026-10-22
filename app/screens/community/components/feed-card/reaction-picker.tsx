@@ -111,7 +111,7 @@ const FeedCardReactionPicker = ({ feedItem, reactionVerb }: Props) => {
 			</View>
 
 			{anchor && (
-				<ArrowPopover anchor={anchor} align="start" width={POPOVER_WIDTH} onClose={() => setAnchor(null)}>
+				<ArrowPopover anchor={anchor} align="end" width={POPOVER_WIDTH} onClose={() => setAnchor(null)}>
 					<View style={styles.reactionTypeContainer}>
 						{reactionTypesData.map((reactionType) => {
 							const reactionTypeSelected = myReactionTypes.includes(reactionType);

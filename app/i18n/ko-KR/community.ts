@@ -93,7 +93,7 @@ export const community: CommunityMessages = {
 	block: {
 		action: '차단하기',
 		title: '{{nickname}}님을 차단할까요?',
-		message: '서로의 피드가 보이지 않아요. 설정에서 다시 풀 수 있어요.',
+		message: '서로의 피드가 보이지 않아요.',
 		done: '{{nickname}}님을 차단했어요',
 		undo: '되돌리기',
 	},

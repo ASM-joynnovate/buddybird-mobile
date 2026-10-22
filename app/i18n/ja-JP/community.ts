@@ -93,7 +93,7 @@ export const community: CommunityMessages = {
 	block: {
 		action: 'ブロックする',
 		title: '{{nickname}}さんをブロックしますか？',
-		message: 'お互いのフィードが見えなくなります。設定から解除できます。',
+		message: 'お互いのフィードが見えなくなります。',
 		done: '{{nickname}}さんをブロックしました',
 		undo: '元に戻す',
 	},

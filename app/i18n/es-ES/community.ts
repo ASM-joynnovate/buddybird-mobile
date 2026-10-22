@@ -93,7 +93,7 @@ export const community: CommunityMessages = {
 	block: {
 		action: 'Bloquear',
 		title: '¿Bloquear a {{nickname}}?',
-		message: 'No verás sus publicaciones ni verá las tuyas. Puedes desbloquear a esta persona en Ajustes.',
+		message: 'No verás sus publicaciones ni verá las tuyas.',
 		done: 'Has bloqueado a {{nickname}}',
 		undo: 'Deshacer',
 	},

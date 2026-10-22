@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
 	me: { fontFamily: font.extraBold, fontSize: 12, color: colors.orangeDark },
 	time: { marginTop: 1, fontFamily: font.extraBold, fontSize: 13, lineHeight: 17, color: colors.subtle },
 	reactionRow: {
-		flexDirection: 'row',
+		flexDirection: 'row-reverse',
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		gap: 12,

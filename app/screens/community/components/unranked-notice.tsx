@@ -1,5 +1,7 @@
 import { ActivityIndicator, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
+import type { UnrankedReason } from '@/types/apis/leaderboard';
+
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useUpdateCommunitySettings } from '@/hooks/apis/settings';
@@ -10,7 +12,7 @@ import { apiErrorMessage } from '@/lib/api';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ClockIcon, EyeOffIcon, GlobeIcon, LogInIcon, UserPenIcon } from 'lucide-react-native';
+import { ClockIcon, EyeOffIcon, GlobeIcon, LogInIcon, type LucideIcon, UserPenIcon } from 'lucide-react-native';
 
 import { useMessageStore } from '@/stores/message';
 import { colors, font, radius } from '@/theme';
@@ -18,7 +20,7 @@ import { colors, font, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const reasonIcons = {
+const reasonIcons: Record<UnrankedReason, LucideIcon> = {
 	not_participating: EyeOffIcon,
 	no_nickname: UserPenIcon,
 	anonymous: LogInIcon,
@@ -26,10 +28,8 @@ const reasonIcons = {
 	no_record: ClockIcon,
 };
 
-type UnrankedReason = keyof typeof reasonIcons;
-
 interface Props {
-	reason: string | null;
+	reason: UnrankedReason | null;
 	style?: StyleProp<ViewStyle>;
 }
 
@@ -47,12 +47,11 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 
 	const openPopup = useMessageStore((state) => state.openPopup);
 
-	if (!reason || !Object.hasOwn(reasonIcons, reason)) {
+	if (!reason) {
 		return null;
 	}
 
-	const unrankedReason = reason as UnrankedReason;
-	const ReasonIcon = reasonIcons[unrankedReason];
+	const ReasonIcon = reasonIcons[reason];
 
 	const handleJoinLeaderboard = () => {
 		if (isPending) {
@@ -65,7 +64,7 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 		);
 	};
 
-	const unrankedActions = {
+	const unrankedActions: Partial<Record<UnrankedReason, { label: string; onPress: () => void }>> = {
 		not_participating: {
 			label: t('community.leaderboard.unranked.not_participating.action'),
 			onPress: handleJoinLeaderboard,
@@ -79,9 +78,7 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 			onPress: () => navigation.navigate('Login'),
 		},
 	};
-	const unrankedAction = Object.hasOwn(unrankedActions, unrankedReason)
-		? unrankedActions[unrankedReason as keyof typeof unrankedActions]
-		: null;
+	const unrankedAction = unrankedActions[reason];
 
 	return (
 		<View style={[styles.container, style]}>
@@ -90,10 +87,8 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 			</View>
 
 			<View style={styles.textContainer}>
-				<Copy style={styles.title}>{t(`community.leaderboard.unranked.${unrankedReason}.title`)}</Copy>
-				<Copy style={styles.description}>
-					{t(`community.leaderboard.unranked.${unrankedReason}.description`)}
-				</Copy>
+				<Copy style={styles.title}>{t(`community.leaderboard.unranked.${reason}.title`)}</Copy>
+				<Copy style={styles.description}>{t(`community.leaderboard.unranked.${reason}.description`)}</Copy>
 			</View>
 
 			{unrankedAction && (
