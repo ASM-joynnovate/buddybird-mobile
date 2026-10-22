@@ -27,7 +27,7 @@ const mediaTypes: Record<LogItemKind, 'audio' | 'video' | 'image'> = {
 	parrotAppeared: 'image',
 };
 
-export interface PreviewSound {
+interface PreviewSound {
 	progress: number;
 	durationMs: number;
 }

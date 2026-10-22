@@ -7,7 +7,7 @@ export interface PhotoPoint {
 	y: number;
 }
 
-export interface CoverLayout {
+interface CoverLayout {
 	width: number;
 	height: number;
 	left: number;
