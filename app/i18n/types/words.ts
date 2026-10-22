@@ -19,7 +19,14 @@ export type WordsMessages = {
 		play: string;
 		deleteRecording: string;
 		addRecording: string;
-		recordingsHint: string;
+		recordingTips: {
+			intro: string;
+			goodNote: string;
+			otherNote: string;
+			repeatNote: string;
+			recommended: string;
+			label: string;
+		};
 		recordingRequired: string;
 		saving: string;
 		uploading: string;
@@ -28,11 +35,13 @@ export type WordsMessages = {
 	};
 	guide: {
 		word: string;
-		manyRecordings: {
+		repeatedWord: string;
+		otherWords: string[];
+		goodLabel: string;
+		badLabel: string;
+		sameWord: {
 			title: string;
 			scene: string;
-			recordingOrder: string;
-			report: string;
 		};
 		quiet: {
 			title: string;
@@ -55,6 +64,7 @@ export type WordsMessages = {
 		stop: string;
 		play: string;
 		rerecord: string;
+		sayOnce: string;
 		empty: string;
 		tooLarge: string;
 		invalidFormat: string;

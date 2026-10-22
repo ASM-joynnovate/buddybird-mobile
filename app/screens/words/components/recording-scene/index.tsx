@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
+import type { RecordingGuideStep } from '@/types/guide/recording';
+
 import { useTranslation } from 'react-i18next';
 
 import { useIsFocused } from '@react-navigation/native';
@@ -9,8 +11,8 @@ import { useReducedMotion } from 'react-native-reanimated';
 
 import RecordingSceneDistance from '@/screens/words/components/recording-scene/distance';
 import RecordingSceneHighVoice from '@/screens/words/components/recording-scene/high-voice';
-import RecordingSceneManyRecordings from '@/screens/words/components/recording-scene/many-recordings';
 import RecordingSceneQuiet from '@/screens/words/components/recording-scene/quiet';
+import RecordingSceneSameWord from '@/screens/words/components/recording-scene/same-word';
 import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
@@ -18,8 +20,6 @@ import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/
 
 const STAGE_WIDTH = 375;
 const STAGE_HEIGHT = 400;
-
-export type RecordingGuideStep = 'manyRecordings' | 'quiet' | 'distance' | 'highVoice';
 
 interface Props {
 	step: RecordingGuideStep;
@@ -61,7 +61,7 @@ const RecordingScene = ({ step }: Props) => {
 
 			{scale > 0 && (
 				<View key={step} style={[styles.stage, { width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }]}>
-					{step === 'manyRecordings' && <RecordingSceneManyRecordings scale={scale} />}
+					{step === 'sameWord' && <RecordingSceneSameWord scale={scale} />}
 					{step === 'quiet' && <RecordingSceneQuiet scale={scale} animated={animated} />}
 					{step === 'distance' && <RecordingSceneDistance scale={scale} animated={animated} />}
 					{step === 'highVoice' && <RecordingSceneHighVoice scale={scale} animated={animated} />}

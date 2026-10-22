@@ -12,7 +12,8 @@ import { CircleQuestionMarkIcon, MicIcon } from 'lucide-react-native';
 
 import { MAX_RECORDINGS, RECOMMENDED_RECORDINGS } from '@/config';
 import RecordingItem, { type EditorRecording } from '@/screens/words/components/recordings-section/recording-item';
-import { colors, font } from '@/theme';
+import RecordingTips from '@/screens/words/components/recordings-section/recording-tips';
+import { font } from '@/theme';
 
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
@@ -62,9 +63,8 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 					onPress={() => navigation.navigate('RecordingGuide')}
 				/>
 			</View>
-			{recordings.length < RECOMMENDED_RECORDINGS && (
-				<Copy style={styles.hint}>{t('words.editor.recordingsHint')}</Copy>
-			)}
+
+			<RecordingTips recommendationVisible={recordings.length < RECOMMENDED_RECORDINGS} />
 
 			{recordings.length > 0 && (
 				<ItemGroup>
@@ -109,7 +109,6 @@ const RecordingsSection = ({ recordings, recordingMissing, saving, player, onAdd
 const styles = StyleSheet.create({
 	headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
 	title: { flex: 1, fontSize: 18, lineHeight: 24, fontFamily: font.black },
-	hint: { color: colors.muted, marginBottom: 12 },
 	add: { marginTop: 12 },
 });
 

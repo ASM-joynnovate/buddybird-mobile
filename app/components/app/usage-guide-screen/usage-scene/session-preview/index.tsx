@@ -1,6 +1,6 @@
 import { Image, StyleSheet, View } from 'react-native';
 
-import type { UsageStep } from '@/types/usage-guide';
+import type { UsageStep } from '@/types/guide/usage';
 
 import { useTranslation } from 'react-i18next';
 

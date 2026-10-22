@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
-import type { UsageStep } from '@/types/usage-guide';
+import type { UsageStep } from '@/types/guide/usage';
 
 import { useTranslation } from 'react-i18next';
 

@@ -21,7 +21,14 @@ export const words: WordsMessages = {
 		play: 'Play {{name}}',
 		deleteRecording: 'Delete {{name}}',
 		addRecording: 'Add recording',
-		recordingsHint: 'Add 3 or more for a more accurate report',
+		recordingTips: {
+			intro: 'We use this recording to tell whether your parrot said the word.\nRecord it like this',
+			goodNote: 'Said once',
+			otherNote: 'Different word',
+			repeatNote: 'Repeated',
+			recommended: 'Record 3 or more for better accuracy',
+			label: 'Good: {{good}}, said once. Bad: {{other}}, a different word. {{repeat}}, repeated.',
+		},
 		recordingRequired: 'Add at least one recording.',
 		saving: 'Saving',
 		uploading: 'Uploading',
@@ -30,11 +37,13 @@ export const words: WordsMessages = {
 	},
 	guide: {
 		word: 'Hello',
-		manyRecordings: {
-			title: 'The <b>more recordings</b> you add, the more accurate your report',
-			scene: 'a report chart that fills up with each new recording',
-			recordingOrder: '#{{order}}',
-			report: 'Report',
+		repeatedWord: 'Hello Hello',
+		otherWords: ['Hi', 'I love you'],
+		goodLabel: 'Good',
+		badLabel: 'Bad',
+		sameWord: {
+			title: 'Record <b>only that word</b> for each word',
+			scene: 'a good example with only the same word and a bad example mixed with other words',
 		},
 		quiet: {
 			title: 'Record in a <b>quiet place</b>',
@@ -57,6 +66,7 @@ export const words: WordsMessages = {
 		stop: 'Stop recording',
 		play: 'Listen',
 		rerecord: 'Record again',
+		sayOnce: 'Say it <b>just once</b>!',
 		empty: 'The recording is empty. Please record again.',
 		tooLarge: 'The recording is over 5 MB. Record a shorter one.',
 		invalidFormat: "The recording format isn't supported. Please record again.",

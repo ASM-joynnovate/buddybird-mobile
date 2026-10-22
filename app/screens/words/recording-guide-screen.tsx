@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 
 import { StatusBar, Text, View } from 'react-native';
 
+import type { RecordingGuideStep } from '@/types/guide/recording';
+
 import useGuideStep from '@/hooks/use-guide-step';
 
 import { Trans, useTranslation } from 'react-i18next';
@@ -17,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import RecordingScene, { type RecordingGuideStep } from '@/screens/words/components/recording-scene';
+import RecordingScene from '@/screens/words/components/recording-scene';
 import { colors, contentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
@@ -29,7 +31,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
 
 const STEPS: readonly { step: RecordingGuideStep; backgroundColor: string; backgroundDark: boolean }[] = [
-	{ step: 'manyRecordings', backgroundColor: colors.orangeSoft, backgroundDark: false },
+	{ step: 'sameWord', backgroundColor: colors.orangeSoft, backgroundDark: false },
 	{ step: 'quiet', backgroundColor: sessionColors.background, backgroundDark: true },
 	{ step: 'distance', backgroundColor: colors.orange, backgroundDark: true },
 	{ step: 'highVoice', backgroundColor: colors.bluePale, backgroundDark: false },

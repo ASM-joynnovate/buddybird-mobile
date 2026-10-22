@@ -21,7 +21,14 @@ export const words: WordsMessages = {
 		play: '{{name}}を再生',
 		deleteRecording: '{{name}}を削除',
 		addRecording: '録音を追加',
-		recordingsHint: '3つ以上登録するとレポートが正確になります',
+		recordingTips: {
+			intro: 'この録音で、インコがその言葉を言ったかを判定します。\n下のように録音してください',
+			goodNote: '1回だけ発音',
+			otherNote: '別の言葉',
+			repeatNote: '何度も',
+			recommended: '3つ以上録音するとより正確になります',
+			label: '良い例：{{good}}、1回だけ発音。悪い例：{{other}}、別の言葉。{{repeat}}、何度も。',
+		},
 		recordingRequired: '録音を1つ以上追加してください。',
 		saving: '保存中',
 		uploading: 'アップロード中',
@@ -30,11 +37,13 @@ export const words: WordsMessages = {
 	},
 	guide: {
 		word: 'こんにちは',
-		manyRecordings: {
-			title: '録音を<b>たくさん</b>登録するほど、レポートが正確になります',
-			scene: '録音が1つ増えるたびに伸びていくレポートのグラフ',
-			recordingOrder: '{{order}}つ目',
-			report: 'レポート',
+		repeatedWord: 'こんにちは\nこんにちは',
+		otherWords: ['やあ', '大好き'],
+		goodLabel: '良い例',
+		badLabel: '悪い例',
+		sameWord: {
+			title: '1つの言葉には<b>その言葉だけ</b>を録音してください',
+			scene: '同じ言葉だけの良い例と、別の言葉が混ざった悪い例',
 		},
 		quiet: {
 			title: '<b>静かな場所</b>で録音してください',
@@ -57,6 +66,7 @@ export const words: WordsMessages = {
 		stop: '録音停止',
 		play: '再生',
 		rerecord: '録り直す',
+		sayOnce: '<b>1回だけ</b>言ってください！',
 		empty: '何も録音されていません。もう一度録音してください。',
 		tooLarge: '録音ファイルが5MBを超えています。もっと短く録り直してください。',
 		invalidFormat: '録音ファイルの形式が正しくありません。もう一度録音してください。',
