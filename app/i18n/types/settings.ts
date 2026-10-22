@@ -13,6 +13,8 @@ export type SettingsMessages = {
 		japanese: string;
 		russian: string;
 		spanish: string;
+		simplifiedChinese: string;
+		traditionalChinese: string;
 		devices: string;
 	};
 	account: {

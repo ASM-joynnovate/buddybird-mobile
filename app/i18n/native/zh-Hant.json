@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "需要使用麥克風，才能錄製要播給鸚鵡聽的單字，以及學習期間的聲音。",
+		"NSPhotoLibraryUsageDescription": "將你選擇的照片設為鸚鵡的個人檔案照片。",
+		"NSCameraUsageDescription": "拍攝個人檔案照片，以及顯示學習中的鸚鵡畫面時會使用相機。",
+		"NSUserTrackingUsageDescription": "我們會根據 App 使用統計來改善學習體驗。即使不允許追蹤，也能使用學習功能。"
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

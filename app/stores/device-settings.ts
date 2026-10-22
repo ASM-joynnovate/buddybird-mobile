@@ -32,7 +32,15 @@ type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
 
 /** 기기 언어에 맞는 앱 언어를 반환하는 함수 */
 const deviceLocale = () => {
-	for (const { languageTag, languageCode } of getLocales()) {
+	for (const { languageTag, languageCode, languageScriptCode, languageRegionCode } of getLocales()) {
+		// 번체는 지역 대신 문자 체계로 구분 (zh-Hant-HK 등도 zh-TW로)
+		if (
+			languageCode === 'zh' &&
+			(languageScriptCode === 'Hant' || ['TW', 'HK', 'MO'].includes(languageRegionCode ?? ''))
+		) {
+			return 'zh-TW';
+		}
+
 		const exact = locales.find((locale) => locale === languageTag);
 		const sameLanguage = locales.find((locale) => locale.startsWith(`${languageCode}-`));
 		const matched = exact ?? sameLanguage;
