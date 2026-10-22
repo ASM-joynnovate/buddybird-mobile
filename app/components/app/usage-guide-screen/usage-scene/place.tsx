@@ -1,159 +1,101 @@
-import { useEffect } from 'react';
-
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { PlayIcon } from 'lucide-react-native';
-import Animated, {
-	cancelAnimation,
-	Easing,
-	Extrapolation,
-	interpolate,
-	useAnimatedStyle,
-	useSharedValue,
-	withRepeat,
-	withTiming,
-} from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
+import { PlugIcon, TabletIcon } from 'lucide-react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import Svg, { Line } from 'react-native-svg';
 
-import { SECOND } from '@/config/units';
-import { colors, font, radius } from '@/theme';
+import { colors, radius } from '@/theme';
 
-import UsageSceneCage from '@/components/app/usage-guide-screen/usage-scene/cage';
-import Mascot from '@/components/mascot';
-import { popIn } from '@/components/scene-animations';
-import { Copy } from '@/components/ui/copy';
+import UsageSceneCoverPhoto, {
+	getCoverLayout,
+	toScenePoint,
+} from '@/components/app/usage-guide-screen/usage-scene/cover-photo';
+import UsageScenePhotoPin from '@/components/app/usage-guide-screen/usage-scene/photo-pin';
+import UsageScenePhotoTag, { PHOTO_TAG_HEIGHT } from '@/components/app/usage-guide-screen/usage-scene/photo-tag';
+import type { SceneArea } from '@/components/scene-stage';
 
-const FLIGHT_MS = 2.6 * SECOND;
+const photo: number = require('@assets/images/onboarding/usage-place.jpg');
+
+const PHOTO_ASPECT_RATIO = 1080 / 1920;
+const PHOTO_FOCUS_Y = 0.48;
+const TABLET_POINT = { x: 0.6667, y: 0.5506 };
+const CAGE_TOP_Y = 0.7166;
+const LEADER_LENGTH = 60;
+const LEADER_ANGLE = (20 * Math.PI) / 180;
+const CALLOUT_OVERLAP = 4;
+const CALLOUT_RIGHT_PAST_LEADER = 97;
+const SIDE_MARGIN = 14;
+const CHARGER_LEFT = 20;
+const MASCOT_CLEARANCE = 90;
 
 interface Props {
-	scale: number;
+	area: SceneArea;
 	animated: boolean;
 }
 
 /**
- * 새장 앞에 세운 휴대폰이 앵무새에게 단어를 들려주는 장면 컴포넌트
- * @param scale 그림 배율
- * @param animated 단어가 날아가는 움직임 실행 여부
+ * 새장에 둔 기기 사진 장면 컴포넌트
+ * @param area 장면 영역
+ * @param animated 핀 애니메이션 실행 여부
  */
-const UsageScenePlace = ({ scale, animated }: Props) => {
+const UsageScenePlace = ({ area, animated }: Props) => {
 	const { t } = useTranslation();
 
-	const flightProgress = useSharedValue(0);
-
-	const words = t('onboarding.login.words', { returnObjects: true });
-
-	const wordStyle = useAnimatedStyle(() => {
-		if (!animated) {
-			return { opacity: 1 };
-		}
-
-		const progress = flightProgress.get();
-
-		return {
-			opacity: interpolate(progress, [0.1, 0.22, 0.62, 0.78], [0, 1, 1, 0], Extrapolation.CLAMP),
-			transform: [
-				{ translateX: interpolate(progress, [0.1, 0.62, 0.78], [0, 104, 118], Extrapolation.CLAMP) * scale },
-				{ translateY: interpolate(progress, [0.1, 0.62], [0, -20], Extrapolation.CLAMP) * scale },
-			],
-		};
-	});
-
-	/** 움직임이 켜져 있으면 단어가 휴대폰에서 새장으로 날아가기를 반복 */
-	useEffect(() => {
-		if (!animated) {
-			return;
-		}
-
-		flightProgress.set(0);
-		flightProgress.set(withRepeat(withTiming(1, { duration: FLIGHT_MS, easing: Easing.linear }), -1));
-
-		return () => cancelAnimation(flightProgress);
-	}, [animated, flightProgress]);
+	const layout = getCoverLayout(area, PHOTO_ASPECT_RATIO, PHOTO_FOCUS_Y);
+	const tablet = toScenePoint(layout, TABLET_POINT);
+	const chargerTop = Math.min(
+		layout.top + layout.height * CAGE_TOP_Y,
+		area.height - radius.sheet - MASCOT_CLEARANCE - PHOTO_TAG_HEIGHT,
+	);
+	const leaderEnd = {
+		x: tablet.x + LEADER_LENGTH * Math.sin(LEADER_ANGLE),
+		y: tablet.y - LEADER_LENGTH * Math.cos(LEADER_ANGLE),
+	};
+	const calloutRight = Math.max(SIDE_MARGIN, area.width - (leaderEnd.x + CALLOUT_RIGHT_PAST_LEADER));
 
 	return (
 		<>
-			{/*새장과 횃대 위 앵무새*/}
-			<Animated.View entering={popIn(1)} style={[styles.sceneItem, { left: 145 * scale, bottom: 0 }]}>
-				<UsageSceneCage
-					width={240 * scale}
-					barColor={colors.background}
-					trayColor={colors.background}
-					trayEdgeColor={colors.orangeSoft}
-				/>
-			</Animated.View>
-			<Animated.View entering={popIn(2)} style={[styles.sceneItem, { left: 205 * scale, bottom: 70 * scale }]}>
-				<Mascot size={120 * scale} floating={false} />
+			<UsageSceneCoverPhoto source={photo} layout={layout} />
+
+			{/*핀에서 콜아웃까지 잇는 선*/}
+			<Animated.View entering={FadeIn.delay(160)} style={StyleSheet.absoluteFill}>
+				<Svg width="100%" height="100%">
+					<Line
+						x1={tablet.x}
+						y1={tablet.y}
+						x2={leaderEnd.x}
+						y2={leaderEnd.y}
+						stroke={colors.onFilled}
+						strokeWidth={2}
+					/>
+				</Svg>
 			</Animated.View>
 
-			{/*새장 앞에 세운 휴대폰*/}
-			<Animated.View
-				entering={popIn(0)}
-				style={[styles.sceneItem, { left: 34 * scale, bottom: 0, width: 100 * scale, height: 184 * scale }]}
-			>
-				<View style={[styles.phone, { padding: 7 * scale, borderRadius: 22 * scale }]}>
-					<View style={[styles.phoneScreen, { borderRadius: 15 * scale }]}>
-						<View
-							style={[
-								styles.playButtonEdge,
-								{ width: 52 * scale, height: 52 * scale, paddingBottom: 4 * scale },
-							]}
-						>
-							<View style={styles.playButton}>
-								<PlayIcon size={22 * scale} color={colors.onFilled} fill={colors.onFilled} />
-							</View>
-						</View>
-					</View>
-				</View>
-			</Animated.View>
+			<UsageScenePhotoPin x={tablet.x} y={tablet.y} animated={animated} />
 
-			{/*휴대폰에서 나오는 소리*/}
-			<Svg
-				width={46 * scale}
-				height={61 * scale}
-				viewBox="0 0 60 80"
-				style={[styles.sceneItem, { left: 140 * scale, bottom: 62 * scale }]}
-			>
-				<Path
-					d="M8 28Q18 40 8 52M24 18Q42 40 24 62M40 8Q66 40 40 72"
-					fill="none"
-					stroke={colors.background}
-					strokeWidth={6}
-					strokeLinecap="round"
-				/>
-			</Svg>
+			<UsageScenePhotoTag
+				icon={TabletIcon}
+				label={t('onboarding.usage.place.spareDevice')}
+				variant="neutral"
+				order={1}
+				style={{
+					top: leaderEnd.y + CALLOUT_OVERLAP - PHOTO_TAG_HEIGHT,
+					right: calloutRight,
+					maxWidth: area.width - SIDE_MARGIN * 2,
+				}}
+			/>
 
-			{/*새장으로 날아가는 단어*/}
-			<Animated.View style={[styles.sceneItem, { left: 50 * scale, bottom: 200 * scale }, wordStyle]}>
-				<View style={styles.word}>
-					<Copy style={styles.wordText}>{words[0]}</Copy>
-				</View>
-			</Animated.View>
+			<UsageScenePhotoTag
+				icon={PlugIcon}
+				label={t('onboarding.usage.place.charger')}
+				variant="inverse"
+				order={2}
+				style={{ top: chargerTop, left: CHARGER_LEFT, maxWidth: area.width - CHARGER_LEFT * 2 }}
+			/>
 		</>
 	);
 };
-
-const styles = StyleSheet.create({
-	sceneItem: { position: 'absolute' },
-	phone: { flex: 1, transform: [{ rotate: '-4deg' }], backgroundColor: colors.background },
-	phoneScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.orangePale },
-	playButtonEdge: { borderRadius: radius.pill, backgroundColor: colors.orangeDark },
-	playButton: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: radius.pill,
-		backgroundColor: colors.orange,
-	},
-	word: {
-		paddingVertical: 10,
-		paddingHorizontal: 20,
-		borderRadius: radius.pill,
-		transform: [{ rotate: '-5deg' }],
-		backgroundColor: colors.background,
-	},
-	wordText: { fontFamily: font.black, fontSize: 24, lineHeight: 30, color: colors.orangeDark },
-});
 
 export default UsageScenePlace;
