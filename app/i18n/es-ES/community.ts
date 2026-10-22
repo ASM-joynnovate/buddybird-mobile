@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'Comunidad',
+	me: 'Yo',
+	countryScope: {
+		world: 'Todo el mundo',
+		mine: 'Mi país',
+	},
+	leaderboard: {
+		title: 'Ranking de {{month}}',
+		viewAll: 'Ver todo',
+		unranked: {
+			not_participating: {
+				title: 'No participas en el ranking',
+				description: 'Si participas, los demás verán tu apodo, tu foto y tu tiempo de entrenamiento',
+				action: 'Participar',
+			},
+			no_nickname: {
+				title: 'Sin apodo no apareces en el ranking',
+				description: 'Elige un apodo para aparecer en el ranking',
+				action: 'Elegir apodo',
+			},
+			anonymous: {
+				title: 'Inicia sesión para aparecer en el ranking',
+				description: 'No has iniciado sesión',
+				action: 'Iniciar sesión',
+			},
+			country_mismatch: {
+				title: 'No apareces en el ranking de este país',
+				description: 'Solo apareces en el ranking de tu país',
+			},
+			no_record: {
+				title: 'Aún no hay entrenamientos este mes',
+				description: 'Termina un entrenamiento para aparecer en el ranking',
+			},
+		},
+	},
+	feed: {
+		title: 'Feed',
+		more: 'Más opciones',
+		timeAgo: {
+			minutes_one: 'Hace {{count}} minuto',
+			minutes_few: 'Hace {{count}} minutos',
+			minutes_many: 'Hace {{count}} minutos',
+			minutes_other: 'Hace {{count}} minutos',
+			hours_one: 'Hace {{count}} hora',
+			hours_few: 'Hace {{count}} horas',
+			hours_many: 'Hace {{count}} horas',
+			hours_other: 'Hace {{count}} horas',
+			days_one: 'Hace {{count}} día',
+			days_few: 'Hace {{count}} días',
+			days_many: 'Hace {{count}} días',
+			days_other: 'Hace {{count}} días',
+			yesterday: 'Ayer',
+		},
+		mimic: {
+			label: 'Palabra imitada',
+			word: '«{{word}}»',
+			private: 'La grabación no es pública',
+			play: 'Reproducir {{word}}',
+		},
+		totalLearningTime: '¡Ha alcanzado <b>{{duration}}</b> de entrenamiento en total!',
+		monthlyLearningTime: '¡Ha alcanzado <b>{{duration}}</b> de entrenamiento en {{month}}!',
+		wordPlayCount_one: '¡Ha reproducido «{{word}}» <b>{{count, number}} vez</b>!',
+		wordPlayCount_few: '¡Ha reproducido «{{word}}» <b>{{count, number}} veces</b>!',
+		wordPlayCount_many: '¡Ha reproducido «{{word}}» <b>{{count, number}} veces</b>!',
+		wordPlayCount_other: '¡Ha reproducido «{{word}}» <b>{{count, number}} veces</b>!',
+		artHours: 'h',
+		artCount_one: '{{count, number}} vez',
+		artCount_few: '{{count, number}} veces',
+		artCount_many: '{{count, number}} veces',
+		artCount_other: '{{count, number}} veces',
+		reaction: {
+			praise: 'Felicitar',
+			praised: 'Has felicitado',
+			celebrate: 'Celebrar',
+			celebrated: 'Has celebrado',
+		},
+	},
+	report: {
+		action: 'Denunciar',
+		title: 'Elige el motivo de la denuncia',
+		reasons: {
+			spam: 'Spam',
+			inappropriate_content: 'Contenido inapropiado',
+			harassment: 'Acoso',
+			other: 'Otro',
+		},
+		description: 'Detalles (opcional)',
+		sent: 'Denuncia enviada',
+	},
+	block: {
+		action: 'Bloquear',
+		title: '¿Bloquear a {{nickname}}?',
+		message: 'No verás sus publicaciones ni verá las tuyas. Puedes desbloquear a esta persona en Ajustes.',
+		done: 'Has bloqueado a {{nickname}}',
+		undo: 'Deshacer',
+	},
+	gate: {
+		loginTitle: 'Iniciar sesión',
+		loginDescription: 'Inicia sesión para usar la comunidad',
+		nicknameTitle: 'Elige tu apodo',
+		nicknameDescription: 'Es el nombre que se verá en la comunidad',
+		start: 'Empezar',
+	},
+};

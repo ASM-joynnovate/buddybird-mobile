@@ -13,6 +13,7 @@ import {
 	type LucideIcon,
 	MessageSquareTextIcon,
 	UserIcon,
+	UsersRoundIcon,
 } from 'lucide-react-native';
 
 import { colors, font } from '@/theme';
@@ -24,6 +25,7 @@ const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; labelKey: keyof C
 	HomeTab: { icon: HouseIcon, labelKey: 'home' },
 	WordsTab: { icon: MessageSquareTextIcon, labelKey: 'words' },
 	ReportTab: { icon: ChartNoAxesColumnIcon, labelKey: 'report' },
+	CommunityTab: { icon: UsersRoundIcon, labelKey: 'community' },
 	ProfileTab: { icon: UserIcon, labelKey: 'profile' },
 };
 
@@ -67,13 +69,13 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 							accessibilityLabel={tabLabel}
 							accessibilityState={{ selected }}
 							variant={selected ? 'primary' : 'plain'}
-							depth={selected ? 'xhigh' : 'none'}
+							depth={selected ? 'high' : 'none'}
 							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
 							onPress={handleSelectTab}
 						>
-							<TabIcon color={selected ? colors.onFilled : colors.muted} size={25} />
+							<TabIcon color={selected ? colors.onFilled : colors.muted} size={22} />
 							<Copy
 								numberOfLines={1}
 								adjustsFontSizeToFit
@@ -98,22 +100,23 @@ const styles = StyleSheet.create({
 		borderColor: colors.border,
 		backgroundColor: colors.background,
 		paddingTop: 12,
-		paddingHorizontal: 8,
-		gap: 6,
+		paddingHorizontal: 10,
 	},
-	tabContainer: { flex: 1, minWidth: 0, maxWidth: 68 },
-	tabTarget: { width: '100%', aspectRatio: 1 },
+	tabContainer: { flex: 1, minWidth: 0, alignItems: 'center' },
+	tabTarget: { width: 58 },
 	tab: {
+		width: 58,
+		height: 54,
 		borderWidth: 0,
-		paddingHorizontal: 8,
-		paddingVertical: 8,
+		paddingHorizontal: 2,
 		alignItems: 'center',
 		justifyContent: 'center',
-		gap: 4,
+		gap: 3,
 	},
 	tabLabel: {
 		fontFamily: font.extraBold,
-		fontSize: 11,
+		fontSize: 10,
+		lineHeight: 13,
 		color: colors.muted,
 		textAlign: 'center',
 		alignSelf: 'stretch',

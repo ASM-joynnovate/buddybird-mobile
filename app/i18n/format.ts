@@ -28,6 +28,32 @@ export const formatYearMonth = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.yearMonth', { lng: locale }));
 };
 
+/** 날짜를 '10월' 형식으로 변환하는 함수 */
+export const formatMonth = (value: DateInput) => {
+	return dayjs(value).format('MMMM');
+};
+
+/** 지난 시간을 '15분 전', '어제' 형식으로 변환하는 함수 */
+export const formatTimeAgo = (value: DateInput, locale: Locale, now: DateInput = dayjs()) => {
+	const minutes = dayjs(now).diff(value, 'minute');
+
+	if (minutes < 60) {
+		return i18next.t('community.feed.timeAgo.minutes', { count: Math.max(1, minutes), lng: locale });
+	}
+
+	const hours = dayjs(now).diff(value, 'hour');
+
+	if (hours < 24) {
+		return i18next.t('community.feed.timeAgo.hours', { count: hours, lng: locale });
+	}
+
+	const days = dayjs(now).startOf('day').diff(dayjs(value).startOf('day'), 'day');
+
+	return days === 1
+		? i18next.t('community.feed.timeAgo.yesterday', { lng: locale })
+		: i18next.t('community.feed.timeAgo.days', { count: days, lng: locale });
+};
+
 /** 시각을 '오후 3시' 형식으로 변환하는 함수 */
 export const formatHour = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.hour', { lng: locale }));

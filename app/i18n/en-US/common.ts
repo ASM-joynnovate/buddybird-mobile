@@ -13,6 +13,7 @@ export const common: CommonMessages = {
 		home: 'Home',
 		words: 'Words',
 		report: 'Report',
+		community: 'Community',
 		profile: 'Profile',
 	},
 	skip: 'Skip',

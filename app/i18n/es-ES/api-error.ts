@@ -44,4 +44,7 @@ export const apiError: ApiErrorMessages = {
 	CLIENT__TIMEOUT: 'La respuesta está tardando demasiado. Revisa tu conexión a internet.',
 	CLIENT__INVALID_RESPONSE:
 		'No hemos podido leer la respuesta del servidor. Inténtalo de nuevo dentro de un momento.',
+	USER__SELF_TARGET: 'No puedes bloquear ni denunciar tu propia cuenta.',
+	FEED__SAVE_UNAVAILABLE: 'No hemos podido guardar tu reacción. Inténtalo de nuevo dentro de un momento.',
+	ABUSE_REPORT__SAVE_UNAVAILABLE: 'No hemos podido enviar la denuncia. Inténtalo de nuevo dentro de un momento.',
 };

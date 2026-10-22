@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/theme';
@@ -10,6 +12,7 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
+	leading?: ReactNode;
 	value?: string;
 	highlight?: string;
 	selected: boolean;
@@ -17,7 +20,7 @@ interface Props {
 	onPress: () => void;
 }
 
-export const ItemRadio = ({ label, value, highlight, selected, first, onPress }: Props) => {
+export const ItemRadio = ({ label, leading, value, highlight, selected, first, onPress }: Props) => {
 	const highlightStart = highlight ? label.toLowerCase().indexOf(highlight.toLowerCase()) : -1;
 	const highlightEnd = highlightStart + (highlight?.length ?? 0);
 
@@ -33,6 +36,7 @@ export const ItemRadio = ({ label, value, highlight, selected, first, onPress }:
 			style={!first && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
+			{leading}
 			<Copy style={[itemStyles.label, styles.label, selected && styles.labelSelected]}>
 				{highlightStart < 0 ? (
 					label

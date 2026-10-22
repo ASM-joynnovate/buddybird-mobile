@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: '커뮤니티',
+	me: '나',
+	countryScope: {
+		world: '전 세계',
+		mine: '내 국가',
+	},
+	leaderboard: {
+		title: '{{month}} 학습 시간 순위',
+		viewAll: '전체 순위',
+		unranked: {
+			not_participating: {
+				title: '순위에 참여하지 않고 있어요',
+				description: '참여하면 닉네임, 사진, 학습 시간이 다른 사람에게 보여요',
+				action: '참여하기',
+			},
+			no_nickname: {
+				title: '닉네임이 없어서 순위에 없어요',
+				description: '닉네임을 정하면 순위에 올라요',
+				action: '닉네임 정하기',
+			},
+			anonymous: {
+				title: '로그인하면 순위에 올라요',
+				description: '지금은 로그인하지 않은 상태예요',
+				action: '로그인',
+			},
+			country_mismatch: {
+				title: '이 나라의 순위에는 내가 없어요',
+				description: '내 국가로 설정한 나라의 순위에만 올라요',
+			},
+			no_record: {
+				title: '이번 달 학습 기록이 아직 없어요',
+				description: '학습을 마치면 순위에 올라요',
+			},
+		},
+	},
+	feed: {
+		title: '피드',
+		more: '더보기',
+		timeAgo: {
+			minutes_one: '{{count}}분 전',
+			minutes_few: '{{count}}분 전',
+			minutes_many: '{{count}}분 전',
+			minutes_other: '{{count}}분 전',
+			hours_one: '{{count}}시간 전',
+			hours_few: '{{count}}시간 전',
+			hours_many: '{{count}}시간 전',
+			hours_other: '{{count}}시간 전',
+			days_one: '{{count}}일 전',
+			days_few: '{{count}}일 전',
+			days_many: '{{count}}일 전',
+			days_other: '{{count}}일 전',
+			yesterday: '어제',
+		},
+		mimic: {
+			label: '따라 한 단어',
+			word: "'{{word}}'",
+			private: '녹음을 공개하지 않았어요',
+			play: '{{word}} 재생',
+		},
+		totalLearningTime: '총 학습 시간 <b>{{duration}}</b>을 달성했어요!',
+		monthlyLearningTime: '{{month}} 학습 시간 <b>{{duration}}</b>을 달성했어요!',
+		wordPlayCount_one: "'{{word}}' 단어를 <b>{{count, number}}번</b> 들려줬어요!",
+		wordPlayCount_few: "'{{word}}' 단어를 <b>{{count, number}}번</b> 들려줬어요!",
+		wordPlayCount_many: "'{{word}}' 단어를 <b>{{count, number}}번</b> 들려줬어요!",
+		wordPlayCount_other: "'{{word}}' 단어를 <b>{{count, number}}번</b> 들려줬어요!",
+		artHours: '시간',
+		artCount_one: '{{count, number}}번',
+		artCount_few: '{{count, number}}번',
+		artCount_many: '{{count, number}}번',
+		artCount_other: '{{count, number}}번',
+		reaction: {
+			praise: '칭찬하기',
+			praised: '칭찬했어요',
+			celebrate: '축하하기',
+			celebrated: '축하했어요',
+		},
+	},
+	report: {
+		action: '신고하기',
+		title: '신고 사유를 선택해 주세요',
+		reasons: {
+			spam: '스팸',
+			inappropriate_content: '부적절한 내용',
+			harassment: '괴롭힘',
+			other: '기타',
+		},
+		description: '자세한 내용 (선택)',
+		sent: '신고를 보냈어요',
+	},
+	block: {
+		action: '차단하기',
+		title: '{{nickname}}님을 차단할까요?',
+		message: '서로의 피드가 보이지 않아요. 설정에서 다시 풀 수 있어요.',
+		done: '{{nickname}}님을 차단했어요',
+		undo: '되돌리기',
+	},
+	gate: {
+		loginTitle: '로그인',
+		loginDescription: '로그인하면 커뮤니티를 이용할 수 있어요',
+		nicknameTitle: '닉네임 설정',
+		nicknameDescription: '커뮤니티에서 보일 이름이에요',
+		start: '시작하기',
+	},
+};

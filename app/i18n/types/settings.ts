@@ -13,6 +13,11 @@ export type SettingsMessages = {
 		japanese: string;
 		russian: string;
 		spanish: string;
+		country: string;
+		countryChoose: string;
+		countrySearchHint: string;
+		countrySearchClear: string;
+		countryNotFound: string;
 		devices: string;
 	};
 	account: {

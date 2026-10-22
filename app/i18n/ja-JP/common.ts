@@ -13,6 +13,7 @@ export const common: CommonMessages = {
 		home: 'ホーム',
 		words: '言葉',
 		report: 'レポート',
+		community: 'コミュニティ',
 		profile: 'プロフィール',
 	},
 	skip: 'スキップ',

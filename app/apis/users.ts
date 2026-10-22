@@ -16,6 +16,20 @@ export const patchMe = async ({ data }: { data: UpdateUserRequest }): Promise<vo
 	await apiRequest('/api/v1/users/me', z.unknown(), { method: 'PATCH', json: data });
 };
 
+export const putUserBlock = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
+	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'PUT', idempotencyKey });
+};
+
+export const deleteUserBlock = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
+};
+
 export const putUserPhoto = async ({ uri, idempotencyKey }: { uri: string; idempotencyKey: string }): Promise<void> => {
 	await putUploadFile({ upload: await putUserPhotoUpload({ uri, idempotencyKey }), uri });
 };

@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 
-const iconSizes = { medium: 26, large: 34, xlarge: 40 } as const;
+const iconSizes = { xsmall: 18, small: 22, medium: 26, large: 34, xlarge: 40 } as const;
 
 type AvatarSize = keyof typeof iconSizes;
 
@@ -16,7 +16,13 @@ interface Props {
 }
 
 const sizeStyle = (size: AvatarSize) => {
-	return { medium: styles.medium, large: styles.large, xlarge: styles.xlarge }[size];
+	return {
+		xsmall: styles.xsmall,
+		small: styles.small,
+		medium: styles.medium,
+		large: styles.large,
+		xlarge: styles.xlarge,
+	}[size];
 };
 
 export const Avatar = ({ uri, icon: Icon, size, uploading = false }: Props) => {
@@ -43,6 +49,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
+	xsmall: { width: 32, height: 32, borderRadius: 16 },
+	small: { width: 40, height: 40, borderRadius: 20 },
 	medium: { width: 64, height: 64, borderRadius: 32 },
 	large: { width: 80, height: 80, borderRadius: 40 },
 	xlarge: { width: 110, height: 110, borderRadius: 55 },

@@ -2,7 +2,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { BellIcon, ChevronRightIcon, MessageSquareTextIcon, MoonIcon, SmartphoneIcon } from 'lucide-react-native';
+import {
+	BellIcon,
+	ChevronRightIcon,
+	EarthIcon,
+	MessageSquareTextIcon,
+	MoonIcon,
+	SmartphoneIcon,
+} from 'lucide-react-native';
 
 import { colors, radius } from '@/theme';
 
@@ -14,6 +21,7 @@ const ROWS = [
 	{ icon: MoonIcon, label: 'session.sleep.label', valueWidth: 92 },
 	{ icon: BellIcon, label: 'settings.notifications.title', valueWidth: 0 },
 	{ icon: MessageSquareTextIcon, label: 'settings.general.language', valueWidth: 48 },
+	{ icon: EarthIcon, label: 'settings.general.country', valueWidth: 64 },
 	{ icon: SmartphoneIcon, label: 'settings.general.devices', valueWidth: 0 },
 ] as const;
 

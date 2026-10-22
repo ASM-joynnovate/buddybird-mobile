@@ -6,17 +6,14 @@ import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
-import * as AppleAuthentication from 'expo-apple-authentication';
 import Animated, { Easing, FadeInUp, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SECOND } from '@/config/units';
-import LastLoginTag from '@/screens/onboarding/components/last-login-tag';
-import OAuthButton from '@/screens/onboarding/components/oauth-button';
-import { useAccountStore } from '@/stores/account';
-import { colors, contentMaxWidth, font, loginProviderColors, radius } from '@/theme';
+import { colors, contentMaxWidth, font, radius } from '@/theme';
 
 import Mascot from '@/components/mascot';
+import SocialLoginList from '@/components/social-login-list';
 import { Copy } from '@/components/ui/copy';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
 
@@ -50,10 +47,6 @@ const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, intro
 
 	const { buddyRef, sheetRef, buddyStyle } = useStartupLanding();
 
-	const lastLoginProvider = useAccountStore((state) => state.lastLoginProvider);
-
-	const lastLoginHint = t('auth.lastLoginHint');
-
 	return (
 		<Animated.View
 			ref={sheetRef}
@@ -82,63 +75,15 @@ const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, intro
 					<View
 						accessibilityElementsHidden={!!progressLabel}
 						importantForAccessibility={progressLabel ? 'no-hide-descendants' : 'auto'}
-						style={[styles.actionsContainer, !!progressLabel && styles.hidden]}
+						style={!!progressLabel && styles.hidden}
 					>
-						{providers.includes('google') && (
-							<View>
-								{lastLoginProvider === 'google' && <LastLoginTag label={t('auth.lastLogin')} />}
-								<OAuthButton
-									provider="google"
-									loading={loadingProvider === 'google'}
-									disabled={disabled}
-									hint={lastLoginProvider === 'google' ? lastLoginHint : undefined}
-									onPress={() => onSignIn('google')}
-								/>
-							</View>
-						)}
-
-						{providers.includes('kakao') && (
-							<View>
-								{lastLoginProvider === 'kakao' && <LastLoginTag label={t('auth.lastLogin')} />}
-								<OAuthButton
-									provider="kakao"
-									loading={loadingProvider === 'kakao'}
-									disabled={disabled}
-									hint={lastLoginProvider === 'kakao' ? lastLoginHint : undefined}
-									onPress={() => onSignIn('kakao')}
-								/>
-							</View>
-						)}
-
-						{providers.includes('apple') && (
-							<View style={styles.appleButton}>
-								{lastLoginProvider === 'apple' && <LastLoginTag label={t('auth.lastLogin')} />}
-								<AppleAuthentication.AppleAuthenticationButton
-									buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-									buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-									cornerRadius={radius.control}
-									style={styles.appleButton}
-									accessibilityLabel={t(
-										loadingProvider === 'apple' ? 'auth.signingIn.apple' : 'auth.continue.apple',
-									)}
-									accessibilityHint={lastLoginProvider === 'apple' ? lastLoginHint : undefined}
-									accessibilityState={{
-										disabled,
-										busy: loadingProvider === 'apple',
-									}}
-									pointerEvents={disabled ? 'none' : 'auto'}
-									onPress={() => onSignIn('apple')}
-								/>
-								{loadingProvider === 'apple' && (
-									<ActivityIndicator
-										color={colors.onFilled}
-										style={styles.appleProgress}
-										pointerEvents="none"
-										accessible={false}
-									/>
-								)}
-							</View>
-						)}
+						<SocialLoginList
+							providers={providers}
+							loadingProvider={loadingProvider}
+							disabled={disabled}
+							appearance="button"
+							onSignIn={onSignIn}
+						/>
 					</View>
 
 					{/*로그인 중에는 버튼 자리에 진행 표시*/}
@@ -171,15 +116,7 @@ const styles = StyleSheet.create({
 	greetingTitle: { fontFamily: font.black, fontSize: 20, lineHeight: 26 },
 	greetingBody: { fontSize: 14, lineHeight: 20, color: colors.muted },
 	authContainer: { minHeight: 80, justifyContent: 'center' },
-	actionsContainer: { gap: 12 },
 	hidden: { opacity: 0 },
-	appleButton: { width: '100%', height: 56 },
-	appleProgress: {
-		...StyleSheet.absoluteFill,
-		backgroundColor: loginProviderColors.apple.background,
-		borderRadius: radius.control,
-		borderCurve: 'continuous',
-	},
 	progress: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', gap: 16 },
 	progressText: { fontFamily: font.extraBold, fontSize: 16, textAlign: 'center' },
 });

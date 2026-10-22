@@ -34,4 +34,7 @@ export const apiError: ApiErrorMessages = {
 	CLIENT__NETWORK: '네트워크 연결을 확인해 주세요.',
 	CLIENT__TIMEOUT: '응답이 너무 늦어요. 네트워크 연결을 확인해 주세요.',
 	CLIENT__INVALID_RESPONSE: '서버 응답을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.',
+	USER__SELF_TARGET: '자기 자신은 차단하거나 신고할 수 없어요.',
+	FEED__SAVE_UNAVAILABLE: '반응을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
+	ABUSE_REPORT__SAVE_UNAVAILABLE: '신고를 보내지 못했어요. 잠시 후 다시 시도해 주세요.',
 };

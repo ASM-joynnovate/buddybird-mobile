@@ -2,6 +2,7 @@ import { apiError } from '@/i18n/ja-JP/api-error';
 import { app } from '@/i18n/ja-JP/app';
 import { auth } from '@/i18n/ja-JP/auth';
 import { common } from '@/i18n/ja-JP/common';
+import { community } from '@/i18n/ja-JP/community';
 import { home } from '@/i18n/ja-JP/home';
 import { onboarding } from '@/i18n/ja-JP/onboarding';
 import { parrot } from '@/i18n/ja-JP/parrot';
@@ -23,6 +24,7 @@ export const ja: Messages = {
 	home,
 	words,
 	report,
+	community,
 	profile,
 	settings,
 };

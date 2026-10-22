@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'Community',
+	me: 'You',
+	countryScope: {
+		world: 'Worldwide',
+		mine: 'My country',
+	},
+	leaderboard: {
+		title: '{{month}} leaderboard',
+		viewAll: 'View all',
+		unranked: {
+			not_participating: {
+				title: "You're not on the leaderboard",
+				description: 'If you join, others can see your nickname, photo, and learning time',
+				action: 'Join',
+			},
+			no_nickname: {
+				title: "You're not ranked without a nickname",
+				description: 'Set a nickname to appear on the leaderboard',
+				action: 'Set nickname',
+			},
+			anonymous: {
+				title: 'Sign in to appear on the leaderboard',
+				description: "You're not signed in",
+				action: 'Sign in',
+			},
+			country_mismatch: {
+				title: "You're not on this country's leaderboard",
+				description: "You only appear on your own country's leaderboard",
+			},
+			no_record: {
+				title: 'No learning records this month yet',
+				description: 'Finish a session to appear on the leaderboard',
+			},
+		},
+	},
+	feed: {
+		title: 'Feed',
+		more: 'More',
+		timeAgo: {
+			minutes_one: '{{count}} min ago',
+			minutes_few: '{{count}} min ago',
+			minutes_many: '{{count}} min ago',
+			minutes_other: '{{count}} min ago',
+			hours_one: '{{count}} hour ago',
+			hours_few: '{{count}} hours ago',
+			hours_many: '{{count}} hours ago',
+			hours_other: '{{count}} hours ago',
+			days_one: '{{count}} day ago',
+			days_few: '{{count}} days ago',
+			days_many: '{{count}} days ago',
+			days_other: '{{count}} days ago',
+			yesterday: 'Yesterday',
+		},
+		mimic: {
+			label: 'Mimicked word',
+			word: '“{{word}}”',
+			private: 'Recording is private',
+			play: 'Play {{word}}',
+		},
+		totalLearningTime: 'Reached <b>{{duration}}</b> of total learning time!',
+		monthlyLearningTime: 'Reached <b>{{duration}}</b> of learning time in {{month}}!',
+		wordPlayCount_one: 'Played “{{word}}” <b>{{count, number}} time</b>!',
+		wordPlayCount_few: 'Played “{{word}}” <b>{{count, number}} times</b>!',
+		wordPlayCount_many: 'Played “{{word}}” <b>{{count, number}} times</b>!',
+		wordPlayCount_other: 'Played “{{word}}” <b>{{count, number}} times</b>!',
+		artHours: 'h',
+		artCount_one: '{{count, number}}×',
+		artCount_few: '{{count, number}}×',
+		artCount_many: '{{count, number}}×',
+		artCount_other: '{{count, number}}×',
+		reaction: {
+			praise: 'Cheer',
+			praised: 'Cheered',
+			celebrate: 'Celebrate',
+			celebrated: 'Celebrated',
+		},
+	},
+	report: {
+		action: 'Report',
+		title: 'Choose a reason for reporting',
+		reasons: {
+			spam: 'Spam',
+			inappropriate_content: 'Inappropriate content',
+			harassment: 'Harassment',
+			other: 'Other',
+		},
+		description: 'Details (optional)',
+		sent: 'Report sent',
+	},
+	block: {
+		action: 'Block',
+		title: 'Block {{nickname}}?',
+		message: "You won't see each other's posts in the feed. You can unblock them in Settings.",
+		done: 'Blocked {{nickname}}',
+		undo: 'Undo',
+	},
+	gate: {
+		loginTitle: 'Sign in',
+		loginDescription: 'Sign in to use the community',
+		nicknameTitle: 'Set a nickname',
+		nicknameDescription: 'This name is shown in the community',
+		start: 'Start',
+	},
+};

@@ -72,6 +72,7 @@ export const NICKNAME_PATTERN = /^[\p{L}\p{N}_ ]{2,20}$/u;
 export const PARROT_NAME_LIMIT = 20;
 export const WORD_NAME_LIMIT = 50;
 export const FEEDBACK_MESSAGE_LIMIT = 1000;
+export const ABUSE_REPORT_DESCRIPTION_LIMIT = 1000;
 
 export const FEEDBACK_PROMPT_THRESHOLDS = [3, 5, 7, 10] as const;
 

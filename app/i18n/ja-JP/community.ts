@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'コミュニティ',
+	me: '自分',
+	countryScope: {
+		world: '全世界',
+		mine: '自分の国',
+	},
+	leaderboard: {
+		title: '{{month}}の練習時間ランキング',
+		viewAll: 'すべて表示',
+		unranked: {
+			not_participating: {
+				title: 'ランキングに参加していません',
+				description: '参加すると、ニックネーム、写真、練習時間がほかの人に表示されます',
+				action: '参加する',
+			},
+			no_nickname: {
+				title: 'ニックネームがないため、ランキングに表示されません',
+				description: 'ニックネームを決めるとランキングに載ります',
+				action: '設定する',
+			},
+			anonymous: {
+				title: 'ログインするとランキングに載ります',
+				description: '今はログインしていません',
+				action: 'ログイン',
+			},
+			country_mismatch: {
+				title: 'この国のランキングには入っていません',
+				description: '自分の国として設定した国のランキングにだけ載ります',
+			},
+			no_record: {
+				title: '今月の練習記録はまだありません',
+				description: '練習を終えるとランキングに載ります',
+			},
+		},
+	},
+	feed: {
+		title: 'フィード',
+		more: 'その他',
+		timeAgo: {
+			minutes_one: '{{count}}分前',
+			minutes_few: '{{count}}分前',
+			minutes_many: '{{count}}分前',
+			minutes_other: '{{count}}分前',
+			hours_one: '{{count}}時間前',
+			hours_few: '{{count}}時間前',
+			hours_many: '{{count}}時間前',
+			hours_other: '{{count}}時間前',
+			days_one: '{{count}}日前',
+			days_few: '{{count}}日前',
+			days_many: '{{count}}日前',
+			days_other: '{{count}}日前',
+			yesterday: '昨日',
+		},
+		mimic: {
+			label: 'まねした言葉',
+			word: '「{{word}}」',
+			private: '録音は非公開です',
+			play: '{{word}}を再生',
+		},
+		totalLearningTime: '合計練習時間<b>{{duration}}</b>を達成しました！',
+		monthlyLearningTime: '{{month}}の練習時間<b>{{duration}}</b>を達成しました！',
+		wordPlayCount_one: '「{{word}}」を<b>{{count, number}}回</b>聞かせました！',
+		wordPlayCount_few: '「{{word}}」を<b>{{count, number}}回</b>聞かせました！',
+		wordPlayCount_many: '「{{word}}」を<b>{{count, number}}回</b>聞かせました！',
+		wordPlayCount_other: '「{{word}}」を<b>{{count, number}}回</b>聞かせました！',
+		artHours: '時間',
+		artCount_one: '{{count, number}}回',
+		artCount_few: '{{count, number}}回',
+		artCount_many: '{{count, number}}回',
+		artCount_other: '{{count, number}}回',
+		reaction: {
+			praise: 'ほめる',
+			praised: 'ほめました',
+			celebrate: 'お祝いする',
+			celebrated: 'お祝いしました',
+		},
+	},
+	report: {
+		action: '報告する',
+		title: '報告する理由を選択してください',
+		reasons: {
+			spam: 'スパム',
+			inappropriate_content: '不適切な内容',
+			harassment: '嫌がらせ',
+			other: 'その他',
+		},
+		description: '詳しい内容（任意）',
+		sent: '報告を送信しました',
+	},
+	block: {
+		action: 'ブロックする',
+		title: '{{nickname}}さんをブロックしますか？',
+		message: 'お互いのフィードが見えなくなります。設定から解除できます。',
+		done: '{{nickname}}さんをブロックしました',
+		undo: '元に戻す',
+	},
+	gate: {
+		loginTitle: 'ログイン',
+		loginDescription: 'ログインするとコミュニティを使えます',
+		nicknameTitle: 'ニックネーム設定',
+		nicknameDescription: 'コミュニティで表示される名前です',
+		start: 'はじめる',
+	},
+};

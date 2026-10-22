@@ -33,4 +33,7 @@ export const apiError: ApiErrorMessages = {
 	CLIENT__NETWORK: 'Please check your network connection.',
 	CLIENT__TIMEOUT: 'The server took too long to respond. Please check your network connection.',
 	CLIENT__INVALID_RESPONSE: "Couldn't read the server response. Please try again shortly.",
+	USER__SELF_TARGET: "You can't block or report yourself.",
+	FEED__SAVE_UNAVAILABLE: "Couldn't save your reaction. Please try again shortly.",
+	ABUSE_REPORT__SAVE_UNAVAILABLE: "Couldn't send the report. Please try again shortly.",
 };

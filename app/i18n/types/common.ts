@@ -11,6 +11,7 @@ export type CommonMessages = {
 		home: string;
 		words: string;
 		report: string;
+		community: string;
 		profile: string;
 	};
 	skip: string;

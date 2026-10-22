@@ -2,6 +2,7 @@ import { apiError } from '@/i18n/ko-KR/api-error';
 import { app } from '@/i18n/ko-KR/app';
 import { auth } from '@/i18n/ko-KR/auth';
 import { common } from '@/i18n/ko-KR/common';
+import { community } from '@/i18n/ko-KR/community';
 import { home } from '@/i18n/ko-KR/home';
 import { onboarding } from '@/i18n/ko-KR/onboarding';
 import { parrot } from '@/i18n/ko-KR/parrot';
@@ -23,6 +24,7 @@ export const ko: Messages = {
 	home,
 	words,
 	report,
+	community,
 	profile,
 	settings,
 };
