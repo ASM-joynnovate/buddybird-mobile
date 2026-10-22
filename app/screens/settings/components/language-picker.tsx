@@ -27,6 +27,7 @@ const LANGUAGE_LABEL_KEYS: Record<Locale, keyof SettingsMessages['general']> = {
 	'es-ES': 'spanish',
 	'zh-CN': 'simplifiedChinese',
 	'zh-TW': 'traditionalChinese',
+	'th-TH': 'thai',
 };
 
 /** 앱 언어 선택 컴포넌트 */

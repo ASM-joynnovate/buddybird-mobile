@@ -17,6 +17,7 @@ export const settings: SettingsMessages = {
 		spanish: 'Español',
 		simplifiedChinese: '简体中文',
 		traditionalChinese: '繁體中文',
+		thai: 'ไทย',
 		devices: 'Подключённые устройства',
 	},
 	account: {

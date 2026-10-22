@@ -15,6 +15,7 @@ export type SettingsMessages = {
 		spanish: string;
 		simplifiedChinese: string;
 		traditionalChinese: string;
+		thai: string;
 		devices: string;
 	};
 	account: {
