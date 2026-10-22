@@ -6,29 +6,74 @@ import { useTranslation } from 'react-i18next';
 
 import { useReducedMotion } from 'react-native-reanimated';
 
-import { colors } from '@/theme';
-import { sessionColors } from '@/theme/session-colors';
-
-import UsageSceneKeepOn from '@/components/app/usage-guide-screen/usage-scene/keep-on';
+import PhoneFrame from '@/components/app/usage-guide-screen/usage-scene/phone-frame';
 import UsageScenePlace from '@/components/app/usage-guide-screen/usage-scene/place';
 import UsageSceneRecord from '@/components/app/usage-guide-screen/usage-scene/record';
-import UsageSceneReport from '@/components/app/usage-guide-screen/usage-scene/report';
-import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/scene-stage';
+import SessionPreview, { type PreviewHour } from '@/components/app/usage-guide-screen/usage-scene/session-preview';
+import type { SceneArea } from '@/components/scene-stage';
 
-const STAGE_WIDTH = 393;
-const STAGE_HEIGHT = 360;
+const appearedPhoto: number = require('@assets/images/onboarding/usage-appeared.jpg');
 
-export type UsageStep = 'record' | 'place' | 'keepOn' | 'report';
+export type UsageStep = 'record' | 'place' | 'live' | 'sound' | 'motion';
+
+type PreviewStep = Exclude<UsageStep, 'record' | 'place'>;
+
+/** 학습 상세 예시에 보일 단계별 기록 */
+const PREVIEWS: Record<PreviewStep, { overviewShown: boolean; hour: PreviewHour }> = {
+	live: {
+		overviewShown: true,
+		hour: {
+			startedAt: '2025-10-21T15:00:00',
+			items: [
+				{ kind: 'mimic', startedAt: '2025-10-21T15:36:12', score: 0.92 },
+				{ kind: 'parrot', startedAt: '2025-10-21T15:31:04' },
+			],
+		},
+	},
+	sound: {
+		overviewShown: false,
+		hour: {
+			startedAt: '2025-10-21T15:00:00',
+			items: [
+				{
+					kind: 'mimic',
+					startedAt: '2025-10-21T15:36:12',
+					score: 0.92,
+					sound: { progress: 0.38, durationMs: 3000 },
+				},
+				{ kind: 'parrot', startedAt: '2025-10-21T15:31:04' },
+				{
+					kind: 'distressCall',
+					startedAt: '2025-10-21T15:42:10',
+					endedAt: '2025-10-21T15:42:22',
+					durationMs: 12_000,
+				},
+			],
+		},
+	},
+	motion: {
+		overviewShown: false,
+		hour: {
+			startedAt: '2025-10-21T16:00:00',
+			items: [
+				{ kind: 'parrotDisappeared', startedAt: '2025-10-21T16:05:40', endedAt: '2025-10-21T16:11:02' },
+				{ kind: 'parrotAppeared', startedAt: '2025-10-21T16:11:02', photo: appearedPhoto },
+			],
+		},
+	},
+};
 
 interface Props {
 	step: UsageStep;
+	topInset: number;
 }
 
 /**
- * 사용 안내 단계별 장면 컴포넌트
+ * 사용 안내 단계별 장면 컴포넌트. 시트 뒤까지 화면 위쪽을 모두 채운다
  * @param step 현재 안내 단계
+ * @param topInset 상단 헤더가 차지하는 높이
  */
-const UsageScene = ({ step }: Props) => {
+const UsageScene = ({ step, topInset }: Props) => {
 	const { t } = useTranslation();
 
 	const reducedMotion = useReducedMotion();
@@ -36,7 +81,7 @@ const UsageScene = ({ step }: Props) => {
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
 	const animated = !reducedMotion;
-	const scale = getStageScale(area, STAGE_WIDTH, STAGE_HEIGHT);
+	const measured = area.width > 0 && topInset > 0;
 
 	const handleLayout = (event: LayoutChangeEvent) => {
 		const { width, height } = event.nativeEvent.layout;
@@ -52,34 +97,21 @@ const UsageScene = ({ step }: Props) => {
 			onLayout={handleLayout}
 			style={styles.container}
 		>
-			{/*바닥*/}
-			{step === 'place' && <View style={[styles.floor, styles.placeFloor]} />}
-			{step === 'keepOn' && <View style={[styles.floor, styles.keepOnFloor]} />}
-
-			{scale > 0 && (
-				<View key={step} style={[styles.stage, { width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }]}>
-					{step === 'record' && <UsageSceneRecord scale={scale} animated={animated} />}
-					{step === 'place' && <UsageScenePlace scale={scale} animated={animated} />}
-					{step === 'keepOn' && <UsageSceneKeepOn scale={scale} animated={animated} />}
-					{step === 'report' && <UsageSceneReport scale={scale} animated={animated} />}
-				</View>
+			{measured && step === 'record' && (
+				<UsageSceneRecord key={step} area={area} topInset={topInset} animated={animated} />
+			)}
+			{measured && step === 'place' && <UsageScenePlace key={step} area={area} animated={animated} />}
+			{measured && step !== 'record' && step !== 'place' && (
+				<PhoneFrame area={area} topInset={topInset}>
+					<SessionPreview key={step} {...PREVIEWS[step]} />
+				</PhoneFrame>
 			)}
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'flex-end',
-		paddingBottom: SCENE_FLOOR_HEIGHT,
-		overflow: 'hidden',
-	},
-	floor: { position: 'absolute', left: 0, right: 0, bottom: 0, height: SCENE_FLOOR_HEIGHT },
-	placeFloor: { backgroundColor: colors.orangeDark },
-	keepOnFloor: { borderTopWidth: 2, borderTopColor: sessionColors.track },
-	stage: { position: 'relative' },
+	container: { flex: 1, overflow: 'hidden' },
 });
 
 export default UsageScene;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { BackHandler, StatusBar, Text, View } from 'react-native';
+import { BackHandler, type LayoutChangeEvent, StatusBar, Text, View } from 'react-native';
 
 import useStartupLanding from '@/hooks/use-startup-landing';
 
@@ -20,7 +20,6 @@ import { initializeTelemetry, reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, contentMaxWidth } from '@/theme';
-import { sessionColors } from '@/theme/session-colors';
 
 import UsageScene, { type UsageStep } from '@/components/app/usage-guide-screen/usage-scene';
 import Mascot from '@/components/mascot';
@@ -30,11 +29,13 @@ import { PageDots } from '@/components/ui/page-dots';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
 
+const PHOTO_BACKGROUND = '#000000';
 const STEPS: readonly { step: UsageStep; backgroundColor: string; backgroundDark: boolean }[] = [
-	{ step: 'record', backgroundColor: colors.orangeSoft, backgroundDark: false },
-	{ step: 'place', backgroundColor: colors.orange, backgroundDark: true },
-	{ step: 'keepOn', backgroundColor: sessionColors.background, backgroundDark: true },
-	{ step: 'report', backgroundColor: colors.bluePale, backgroundDark: false },
+	{ step: 'record', backgroundColor: PHOTO_BACKGROUND, backgroundDark: false },
+	{ step: 'place', backgroundColor: PHOTO_BACKGROUND, backgroundDark: true },
+	{ step: 'live', backgroundColor: colors.bluePale, backgroundDark: false },
+	{ step: 'sound', backgroundColor: colors.orangeSoft, backgroundDark: false },
+	{ step: 'motion', backgroundColor: colors.orangeSoft, backgroundDark: false },
 ];
 const BACKGROUND_TRANSITION_MS = 420;
 const MASCOT_SIZE = 96;
@@ -51,6 +52,7 @@ const UsageGuideScreen = () => {
 	const mascotY = useSharedValue(0);
 
 	const [stepIndex, setStepIndex] = useState(0);
+	const [headerHeight, setHeaderHeight] = useState(0);
 
 	const { buddyRef, sheetRef, buddyStyle } = useStartupLanding();
 
@@ -112,11 +114,17 @@ const UsageGuideScreen = () => {
 
 	const handleBack = stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined;
 
+	const handleHeaderLayout = (event: LayoutChangeEvent) => {
+		setHeaderHeight(event.nativeEvent.layout.height);
+	};
+
 	return (
 		<Animated.View style={[styles.container, { backgroundColor }, !reducedMotion && styles.backgroundTransition]}>
 			<StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />
 
-			<SafeAreaView edges={['top', 'left', 'right']}>
+			<UsageScene step={step} topInset={headerHeight} />
+
+			<SafeAreaView edges={['top', 'left', 'right']} onLayout={handleHeaderLayout} style={styles.headerArea}>
 				<View style={styles.header}>
 					<ScreenHeader
 						onBack={handleBack}
@@ -129,8 +137,6 @@ const UsageGuideScreen = () => {
 					/>
 				</View>
 			</SafeAreaView>
-
-			<UsageScene step={step} />
 
 			<SceneSheet
 				sheetRef={sheetRef}
@@ -150,7 +156,10 @@ const UsageGuideScreen = () => {
 						/>
 					</View>
 				}
-				footer=<Button label={t('common.next')} onPress={handleNext} />
+				footer=<Button
+					label={isLastStep ? t('onboarding.usage.start') : t('common.next')}
+					onPress={handleNext}
+				/>
 			/>
 		</Animated.View>
 	);
@@ -159,6 +168,7 @@ const UsageGuideScreen = () => {
 const styles = css.create({
 	container: { flex: 1 },
 	backgroundTransition: { transitionProperty: 'backgroundColor', transitionDuration: BACKGROUND_TRANSITION_MS },
+	headerArea: { position: 'absolute', top: 0, right: 0, left: 0 },
 	header: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 20 },
 	sheetTopRow: { minHeight: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
 	mascotContainer: { position: 'absolute', left: -4, top: -82 },

@@ -10,9 +10,9 @@ import { formatDuration } from '@/i18n/format';
 
 import type { SvgProps } from 'react-native-svg';
 
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';

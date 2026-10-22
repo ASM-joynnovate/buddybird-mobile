@@ -11,11 +11,11 @@ import dayjs from 'dayjs';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import { track } from '@/services/telemetry/client';
 import { useMessageStore } from '@/stores/message';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import type { LogItem } from '@/utils/session-log';
 
 import { Copy } from '@/components/ui/copy';

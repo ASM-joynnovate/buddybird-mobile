@@ -8,14 +8,14 @@ import dayjs from 'dayjs';
 import { ChevronDownIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
-import SessionLogKindIcon from '@/screens/report/components/session-log/kind-icon';
 import SessionLogMediaPanel from '@/screens/report/components/session-log/media-panel';
 import SessionLogSoundPanel from '@/screens/report/components/session-log/sound-panel';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { joinLabel } from '@/utils/a11y';
 import type { LogItem, LogItemKind } from '@/utils/session-log';
 
+import SessionLogKindIcon from '@/components/session/log-kind-icon';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 

@@ -12,11 +12,11 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import DashedLine from '@/screens/report/components/dashed-line';
 import { burstEasing } from '@/screens/report/components/session-detail-animations';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
+import DashedLine from '@/components/dashed-line';
 import { Copy } from '@/components/ui/copy';
 
 const FIRST_MARGIN_TOP = 4;
