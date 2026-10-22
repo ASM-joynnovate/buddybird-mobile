@@ -13,6 +13,7 @@ export const common: CommonMessages = {
 		home: '홈',
 		words: '단어',
 		report: '리포트',
+		community: '커뮤니티',
 		profile: '프로필',
 	},
 	skip: '건너뛰기',

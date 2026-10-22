@@ -4,17 +4,15 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { BottomSheetFlatList, type BottomSheetFlatListMethods, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { CircleXIcon, SearchIcon } from 'lucide-react-native';
+import { BottomSheetFlatList, type BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, font } from '@/theme';
 import type { SpeciesGroup, SpeciesId } from '@/utils/species';
 
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
-import { IconButton } from '@/components/ui/icon-button';
 import { ItemRadio } from '@/components/ui/item/radio';
+import { SheetSearchField } from '@/components/ui/sheet/search-field';
 import { TextButton } from '@/components/ui/text-button';
 
 type SpeciesFilter = 'all' | SpeciesGroup;
@@ -60,10 +58,6 @@ const SpeciesList = ({ items, species, listRef, onSelect, onScrollToIndexFailed 
 			? t('parrot.speciesNotFound', { query: query.trim() })
 			: t('parrot.speciesNotFoundInGroup', { group: t(`parrot.speciesGroups.${filter}`), query: query.trim() });
 
-	const handleClearQuery = () => {
-		setQuery('');
-	};
-
 	const handleSearchAll = () => {
 		setFilter('all');
 	};
@@ -71,33 +65,12 @@ const SpeciesList = ({ items, species, listRef, onSelect, onScrollToIndexFailed 
 	return (
 		<View style={styles.container}>
 			<View style={styles.controlsContainer}>
-				<View>
-					<SearchIcon size={20} color={colors.muted} style={styles.searchIcon} />
-					<BottomSheetTextInput
-						value={query}
-						onChangeText={setQuery}
-						accessibilityLabel={t('parrot.speciesSearchHint')}
-						placeholder={t('parrot.speciesSearchHint')}
-						placeholderTextColor={colors.muted}
-						allowFontScaling={false}
-						autoCapitalize="none"
-						autoCorrect={false}
-						returnKeyType="search"
-						style={styles.searchInput}
-					/>
-					{!!query && (
-						<View style={styles.clearButtonContainer}>
-							<IconButton
-								icon={CircleXIcon}
-								iconProps={{ color: colors.onFilled, fill: colors.subtle }}
-								label={t('parrot.speciesSearchClear')}
-								variant="muted"
-								size="small"
-								onPress={handleClearQuery}
-							/>
-						</View>
-					)}
-				</View>
+				<SheetSearchField
+					value={query}
+					placeholder={t('parrot.speciesSearchHint')}
+					clearLabel={t('parrot.speciesSearchClear')}
+					onChangeText={setQuery}
+				/>
 
 				<View style={styles.filtersRow}>
 					{SPECIES_FILTERS.map((speciesFilter) => (
@@ -153,20 +126,6 @@ const SpeciesList = ({ items, species, listRef, onSelect, onScrollToIndexFailed 
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	controlsContainer: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 8, gap: 12 },
-	searchIcon: { position: 'absolute', left: 14, top: 15, zIndex: 1 },
-	searchInput: {
-		minHeight: 50,
-		borderWidth: 2,
-		borderColor: colors.border,
-		borderRadius: 14,
-		paddingLeft: 44,
-		paddingRight: 44,
-		paddingVertical: 10,
-		fontFamily: font.bold,
-		fontSize: 16,
-		color: colors.text,
-	},
-	clearButtonContainer: { position: 'absolute', right: 3, top: 3 },
 	filtersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 	filter: { flexGrow: 1 },
 	list: { paddingHorizontal: 10 },

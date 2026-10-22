@@ -3,6 +3,7 @@ import { type QueryClient, queryOptions, useQueryClient, useSuspenseQuery } from
 import {
 	getNotificationSettings,
 	getSettings,
+	patchCommunitySettings,
 	patchNotificationSettingItem,
 	patchPushSetting,
 	putSleepSettings,
@@ -85,6 +86,22 @@ export const useUpdateSleepSettings = () => {
 				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
 				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
 			]),
+	});
+};
+
+/** 커뮤니티 설정 저장 Hook */
+export const useUpdateCommunitySettings = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'community'),
+		mutationFn: patchCommunitySettings,
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
+				queryClient.invalidateQueries({ queryKey: apiKeys.leaderboard.all() }),
+			]),
+		onError: (error) => reportError(error, 'community_settings_save'),
 	});
 };
 

@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon, SmartphoneIcon } from 'lucide-react-native';
 
+import CountryPicker from '@/screens/settings/components/country-picker';
 import LanguagePicker from '@/screens/settings/components/language-picker';
 import { useAccountStore } from '@/stores/account';
 
@@ -52,6 +53,7 @@ const GeneralGroup = () => {
 					onPress={() => navigation.navigate('NotificationSettings')}
 				/>
 				<LanguagePicker />
+				<CountryPicker />
 				<Item
 					icon={SmartphoneIcon}
 					label={t('settings.general.devices')}

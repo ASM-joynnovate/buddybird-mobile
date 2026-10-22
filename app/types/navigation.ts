@@ -30,6 +30,11 @@ export type ReportStackParamList = {
 	SessionDetail: { sessionId: string; source: 'report' | 'summary' | 'notification' };
 };
 
+export type CommunityStackParamList = {
+	Community: undefined;
+	Leaderboard: undefined;
+};
+
 export type ProfileStackParamList = {
 	Profile: undefined;
 	AccountEditor: undefined;
@@ -39,6 +44,7 @@ export type MainTabParamList = {
 	HomeTab: NavigatorScreenParams<HomeStackParamList> | undefined;
 	WordsTab: NavigatorScreenParams<WordsStackParamList> | undefined;
 	ReportTab: NavigatorScreenParams<ReportStackParamList> | undefined;
+	CommunityTab: NavigatorScreenParams<CommunityStackParamList> | undefined;
 	ProfileTab: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };
 

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 640 480"><defs><clipPath id="duo-round"><rect width="640" height="480" rx="96"/></clipPath></defs><g clip-path="url(#duo-round)"><g >
+  <path fill="#0E80F4" d="M0 0h640v480H0z"/>
+  <path fill="#EBCD26" d="M28.8 96H96l20.8-67.2L137.6 96h67.2l-54.4 41.6 20.8 67.2-54.4-41.6-54.4 41.6 20.8-67.2zM600 0 0 360v120h40l600-360V0z"/>
+  <path fill="#CA1B2A" d="M640 0 0 384v96L640 96z"/>
+</g></g><rect x="3" y="3" width="634" height="474" rx="93" fill="none" stroke="#000" stroke-opacity=".08" stroke-width="6"/></svg>

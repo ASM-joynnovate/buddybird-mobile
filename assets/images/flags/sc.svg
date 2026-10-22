@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 640 480"><defs><clipPath id="duo-round"><rect width="640" height="480" rx="96"/></clipPath></defs><g clip-path="url(#duo-round)"><g >
+  <path fill="#fff" d="M0 0h640v480H0Z"/>
+  <path fill="#D42B2C" d="M0 480V0h640v160z"/>
+  <path fill="#F2D258" d="M0 480V0h426.7z"/>
+  <path fill="#094690" d="M0 480V0h213.3z"/>
+  <path fill="#088542" d="m0 480 640-160v160z"/>
+</g></g><rect x="3" y="3" width="634" height="474" rx="93" fill="none" stroke="#000" stroke-opacity=".08" stroke-width="6"/></svg>

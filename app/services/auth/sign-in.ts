@@ -109,6 +109,13 @@ const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 	return true;
 };
 
+/** Apple 로그인 취소 여부를 반환하는 함수 */
+export const isAppleLoginCanceled = (provider: LoginProvider, e: unknown) =>
+	provider === 'apple' &&
+	e instanceof Error &&
+	'code' in e &&
+	(e.code === 'ERR_REQUEST_CANCELED' || e.code === 'ERR_REQUEST_UNKNOWN');
+
 /** 소셜 로그인 함수 */
 export const signIn = async (provider: LoginProvider) => {
 	if (provider === 'apple') {

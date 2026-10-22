@@ -43,6 +43,15 @@ export const apiKeys = {
 		list: () => [...userKeyPrefix(), 'announcements', 'list'] as const,
 		detail: (id: string) => [...userKeyPrefix(), 'announcements', id] as const,
 	},
+	leaderboard: {
+		all: () => [...userKeyPrefix(), 'leaderboard'] as const,
+		detail: (country: string | null) => [...userKeyPrefix(), 'leaderboard', country] as const,
+	},
+	feed: {
+		all: () => [...userKeyPrefix(), 'feed'] as const,
+		list: (country: string | null) => [...userKeyPrefix(), 'feed', country] as const,
+	},
+	feedReactionTypes: () => [...userKeyPrefix(), 'feed-reaction-types'] as const,
 	recordings: {
 		duration: (id: string) => [...userKeyPrefix(), 'recordings', id, 'duration'] as const,
 	},

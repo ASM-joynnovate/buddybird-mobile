@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'Сообщество',
+	me: 'Я',
+	countryScope: {
+		world: 'Весь мир',
+		mine: 'Моя страна',
+	},
+	leaderboard: {
+		title: 'Рейтинг за {{month}}',
+		viewAll: 'Весь рейтинг',
+		unranked: {
+			not_participating: {
+				title: 'Ты не участвуешь в рейтинге',
+				description: 'Если будешь участвовать, другие пользователи увидят твой никнейм, фото и время занятий',
+				action: 'Участвовать',
+			},
+			no_nickname: {
+				title: 'Без никнейма тебя нет в рейтинге',
+				description: 'Задай никнейм, чтобы попасть в рейтинг',
+				action: 'Задать никнейм',
+			},
+			anonymous: {
+				title: 'Войди, чтобы попасть в рейтинг',
+				description: 'Вход в аккаунт не выполнен',
+				action: 'Войти',
+			},
+			country_mismatch: {
+				title: 'Тебя нет в рейтинге этой страны',
+				description: 'Ты попадаешь только в рейтинг своей страны',
+			},
+			no_record: {
+				title: 'В этом месяце пока нет занятий',
+				description: 'Заверши занятие, чтобы попасть в рейтинг',
+			},
+		},
+	},
+	feed: {
+		title: 'Лента',
+		more: 'Ещё',
+		timeAgo: {
+			minutes_one: '{{count}} минуту назад',
+			minutes_few: '{{count}} минуты назад',
+			minutes_many: '{{count}} минут назад',
+			minutes_other: '{{count}} минуты назад',
+			hours_one: '{{count}} час назад',
+			hours_few: '{{count}} часа назад',
+			hours_many: '{{count}} часов назад',
+			hours_other: '{{count}} часа назад',
+			days_one: '{{count}} день назад',
+			days_few: '{{count}} дня назад',
+			days_many: '{{count}} дней назад',
+			days_other: '{{count}} дня назад',
+			yesterday: 'Вчера',
+		},
+		mimic: {
+			label: 'Попугай повторил',
+			word: '«{{word}}»',
+			private: 'Запись не опубликована',
+			play: 'Прослушать запись «{{word}}»',
+		},
+		totalLearningTime: 'Общее время занятий достигло <b>{{duration}}</b>!',
+		monthlyLearningTime: 'Время занятий за {{month}} достигло <b>{{duration}}</b>!',
+		wordPlayCount_one: 'Слово «{{word}}» прозвучало <b>{{count, number}} раз</b>!',
+		wordPlayCount_few: 'Слово «{{word}}» прозвучало <b>{{count, number}} раза</b>!',
+		wordPlayCount_many: 'Слово «{{word}}» прозвучало <b>{{count, number}} раз</b>!',
+		wordPlayCount_other: 'Слово «{{word}}» прозвучало <b>{{count, number}} раза</b>!',
+		artHours: 'ч',
+		artCount_one: '{{count, number}} раз',
+		artCount_few: '{{count, number}} раза',
+		artCount_many: '{{count, number}} раз',
+		artCount_other: '{{count, number}} раза',
+		reaction: {
+			praise: 'Похвалить',
+			praised: 'Ты похвалил(а)',
+			celebrate: 'Поздравить',
+			celebrated: 'Ты поздравил(а)',
+		},
+	},
+	report: {
+		action: 'Пожаловаться',
+		title: 'Выбери причину жалобы',
+		reasons: {
+			spam: 'Спам',
+			inappropriate_content: 'Неприемлемый контент',
+			harassment: 'Оскорбления',
+			other: 'Другое',
+		},
+		description: 'Подробности (необязательно)',
+		sent: 'Жалоба отправлена',
+	},
+	block: {
+		action: 'Заблокировать',
+		title: 'Заблокировать {{nickname}}?',
+		message: 'Вы перестанете видеть публикации друг друга.',
+		done: 'Пользователь {{nickname}} заблокирован',
+		undo: 'Отменить',
+	},
+	gate: {
+		loginTitle: 'Вход',
+		loginDescription: 'Войди, чтобы пользоваться сообществом',
+		nicknameTitle: 'Никнейм',
+		nicknameDescription: 'Это имя увидят в сообществе',
+		start: 'Начать',
+	},
+};

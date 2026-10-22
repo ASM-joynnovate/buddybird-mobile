@@ -2,6 +2,7 @@ import { apiError } from '@/i18n/ru-RU/api-error';
 import { app } from '@/i18n/ru-RU/app';
 import { auth } from '@/i18n/ru-RU/auth';
 import { common } from '@/i18n/ru-RU/common';
+import { community } from '@/i18n/ru-RU/community';
 import { home } from '@/i18n/ru-RU/home';
 import { onboarding } from '@/i18n/ru-RU/onboarding';
 import { parrot } from '@/i18n/ru-RU/parrot';
@@ -23,6 +24,7 @@ export const ru: Messages = {
 	home,
 	words,
 	report,
+	community,
 	profile,
 	settings,
 };

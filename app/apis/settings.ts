@@ -3,11 +3,14 @@ import {
 	notificationSettingListSchema,
 	type Settings,
 	settingsSchema,
+	type UpdateCommunitySettingsRequest,
 	type UpdateNotificationSettingItemRequest,
 	type UpdatePushSettingRequest,
 } from '@/types/apis/settings';
 
 import { apiRequest } from '@/lib/api';
+
+import { z } from 'zod';
 
 export const getSettings = async (): Promise<Settings> => {
 	const { data: settings } = await apiRequest('/api/v1/users/me/settings', settingsSchema);
@@ -29,6 +32,20 @@ export const putSleepSettings = async ({
 	});
 
 	return settings;
+};
+
+export const patchCommunitySettings = async ({
+	data,
+	idempotencyKey,
+}: {
+	data: UpdateCommunitySettingsRequest;
+	idempotencyKey: string;
+}): Promise<void> => {
+	await apiRequest('/api/v1/users/me/settings/community', z.unknown(), {
+		method: 'PATCH',
+		json: data,
+		idempotencyKey,
+	});
 };
 
 export const getNotificationSettings = async (): Promise<NotificationSettingList> => {
