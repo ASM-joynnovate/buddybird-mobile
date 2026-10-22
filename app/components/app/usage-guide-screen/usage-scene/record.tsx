@@ -8,7 +8,7 @@ import Animated, {
 	FadeIn,
 	interpolate,
 	type SharedValue,
-	useAnimatedStyle,
+	useAnimatedProps,
 	useSharedValue,
 	withRepeat,
 	withTiming,
@@ -18,18 +18,19 @@ import Svg, { Path } from 'react-native-svg';
 import { SECOND } from '@/config/units';
 import { colors } from '@/theme';
 
-import CoverPhoto, { getCoverLayout, toScenePoint } from '@/components/app/usage-guide-screen/usage-scene/cover-photo';
-import PhotoPin from '@/components/app/usage-guide-screen/usage-scene/photo-pin';
-import UsageVoiceCard from '@/components/app/usage-guide-screen/usage-scene/voice-card';
+import UsageSceneCoverPhoto, {
+	getCoverLayout,
+	toScenePoint,
+} from '@/components/app/usage-guide-screen/usage-scene/cover-photo';
+import UsageScenePhotoPin from '@/components/app/usage-guide-screen/usage-scene/photo-pin';
+import UsageSceneVoiceCard from '@/components/app/usage-guide-screen/usage-scene/voice-card';
 import type { SceneArea } from '@/components/scene-stage';
 
 const photo: number = require('@assets/images/onboarding/usage-record.jpg');
 
 const PHOTO_ASPECT_RATIO = 864 / 1536;
 const PHOTO_FOCUS_Y = 0.49;
-/** 태블릿 화면 속 타이머 */
 const TIMER_POINT = { x: 0.2417, y: 0.6175 };
-/** 태블릿과 횃대 사이 */
 const SOUND_POINT = { x: 0.636, y: 0.5388 };
 const SOUND_WIDTH_RATIO = 0.1374;
 const SOUND_ASPECT_RATIO = 60 / 80;
@@ -39,6 +40,8 @@ const CARD_LEFT = 18;
 const CARD_TOP_GAP = 6;
 const LINK_START_X = 41;
 
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+
 interface SoundArcProps {
 	path: string;
 	index: number;
@@ -47,14 +50,14 @@ interface SoundArcProps {
 }
 
 /**
- * 태블릿에서 앵무새 쪽으로 퍼지는 소리 물결 한 겹 컴포넌트
+ * 소리 물결 한 겹 컴포넌트
  * @param path 물결 모양
  * @param index 태블릿에서 가까운 순서
- * @param progress 물결 움직임 진행도
- * @param animated 움직임 실행 여부
+ * @param progress 물결 애니메이션 진행도
+ * @param animated 애니메이션 실행 여부
  */
 const SoundArc = ({ path, index, progress, animated }: SoundArcProps) => {
-	const arcStyle = useAnimatedStyle(() => {
+	const arcProps = useAnimatedProps(() => {
 		if (!animated) {
 			return { opacity: 1 };
 		}
@@ -65,11 +68,14 @@ const SoundArc = ({ path, index, progress, animated }: SoundArcProps) => {
 	});
 
 	return (
-		<Animated.View style={[StyleSheet.absoluteFill, arcStyle]}>
-			<Svg width="100%" height="100%" viewBox="0 0 60 80">
-				<Path d={path} fill="none" stroke={colors.orange} strokeWidth={5} strokeLinecap="round" />
-			</Svg>
-		</Animated.View>
+		<AnimatedPath
+			animatedProps={arcProps}
+			d={path}
+			fill="none"
+			stroke={colors.orange}
+			strokeWidth={5}
+			strokeLinecap="round"
+		/>
 	);
 };
 
@@ -80,10 +86,10 @@ interface Props {
 }
 
 /**
- * 보호자 목소리로 녹음한 단어가 태블릿에서 앵무새에게 들리는 장면 컴포넌트
+ * 녹음한 단어를 들려주는 장면 컴포넌트
  * @param area 장면 영역
- * @param topInset 상단 헤더가 차지하는 높이
- * @param animated 파형, 소리 물결, 핀 움직임 실행 여부
+ * @param topInset 상단 헤더 높이
+ * @param animated 애니메이션 실행 여부
  */
 const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 	const soundProgress = useSharedValue(0);
@@ -104,7 +110,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 		`${timer.x} ${timer.y}`,
 	].join(' ');
 
-	/** 움직임이 켜져 있으면 소리 물결이 안쪽부터 차례로 밝아지기를 반복 */
+	/** 소리 물결 애니메이션 반복 */
 	useEffect(() => {
 		if (!animated) {
 			return;
@@ -121,7 +127,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 
 	return (
 		<>
-			<CoverPhoto source={photo} layout={layout} />
+			<UsageSceneCoverPhoto source={photo} layout={layout} />
 
 			{/*소리 물결*/}
 			<View
@@ -130,9 +136,11 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 					{ left: sound.x, top: sound.y, width: soundWidth, height: soundWidth / SOUND_ASPECT_RATIO },
 				]}
 			>
-				{SOUND_ARCS.map((path, index) => (
-					<SoundArc key={path} path={path} index={index} progress={soundProgress} animated={animated} />
-				))}
+				<Svg width="100%" height="100%" viewBox="0 0 60 80">
+					{SOUND_ARCS.map((path, index) => (
+						<SoundArc key={path} path={path} index={index} progress={soundProgress} animated={animated} />
+					))}
+				</Svg>
 			</View>
 
 			{/*카드에서 태블릿 타이머까지 잇는 점선*/}
@@ -151,9 +159,9 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 				</Animated.View>
 			)}
 
-			<PhotoPin point={timer} animated={animated} />
+			<UsageScenePhotoPin x={timer.x} y={timer.y} animated={animated} />
 
-			<UsageVoiceCard left={CARD_LEFT} top={cardTop} animated={animated} onLayout={handleCardLayout} />
+			<UsageSceneVoiceCard left={CARD_LEFT} top={cardTop} animated={animated} onLayout={handleCardLayout} />
 		</>
 	);
 };

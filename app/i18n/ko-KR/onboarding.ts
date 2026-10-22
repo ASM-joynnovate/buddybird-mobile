@@ -20,7 +20,7 @@ export const onboarding: OnboardingMessages = {
 			voiceOwner: '보호자 목소리',
 		},
 		place: {
-			title: '외출 전, <b>안 쓰는 기기</b>를 새장에 두고 학습을 시작해요.',
+			title: '외출 전, <b>안 쓰는 기기</b>를 새장에 두고 학습을 시작해요',
 			scene: '충전기에 연결한 태블릿이 새장 위 앵무새 옆에서 학습 중인 사진',
 			spareDevice: '안 쓰는 기기(태블릿, 공기계)',
 			charger: '충전기에 연결',
@@ -30,11 +30,11 @@ export const onboarding: OnboardingMessages = {
 			scene: '휴대폰에 보이는 학습 상세. 학습 시간, 가르친 단어, 따라 한 횟수, 응급 상황과 기록',
 		},
 		sound: {
-			title: '<b>앵무새 특화 AI</b>가 우리 앵이의 짹짹, 따라 한 말을 감지해 보여줘요.',
-			scene: '학습 상세의 소리 기록. 따라 한 말 안녕, 짹짹, 신경질적 짹짹',
+			title: '<b>앵무새 특화 AI</b>가 우리 앵이의 짹짹, 따라 한 말을 감지해 보여 줘요',
+			scene: '학습 상세의 소리 기록. 짹짹, 따라 한 말 안녕, 신경질적 짹짹',
 		},
 		motion: {
-			title: '앵무새가 <b>사라지거나 나타난 순간</b>도 기록돼요.',
+			title: '앵무새가 <b>사라지거나 나타난 순간</b>도 기록돼요',
 			scene: '학습 상세의 움직임 기록. 앵무새 사라짐 동영상과 앵무새 나타남 사진',
 		},
 		start: '시작하기',

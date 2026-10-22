@@ -15,25 +15,25 @@ import Animated, {
 import { SECOND } from '@/config/units';
 import { colors, radius } from '@/theme';
 
-import type { PhotoPoint } from '@/components/app/usage-guide-screen/usage-scene/cover-photo';
-
 const PIN_SIZE = 22;
-const DOT_SIZE = 10;
+const DOT_SIZE = 14;
 const PULSE_MS = 1.6 * SECOND;
 const PULSE_MAX_SCALE = 1.9;
 const HALO_COLOR = '#ff960059';
 
 interface Props {
-	point: PhotoPoint;
+	x: number;
+	y: number;
 	animated: boolean;
 }
 
 /**
- * 사진 속 기기 화면을 가리키는 핀 컴포넌트
- * @param point 핀 가운데의 장면 좌표
- * @param animated 맥박 움직임 실행 여부
+ * 사진 속 기기 화면 핀 컴포넌트
+ * @param x 핀 가운데의 가로 위치
+ * @param y 핀 가운데의 세로 위치
+ * @param animated 애니메이션 실행 여부
  */
-const PhotoPin = ({ point, animated }: Props) => {
+const UsageScenePhotoPin = ({ x, y, animated }: Props) => {
 	const pulseProgress = useSharedValue(0);
 
 	const pulseStyle = useAnimatedStyle(() => ({
@@ -41,7 +41,7 @@ const PhotoPin = ({ point, animated }: Props) => {
 		transform: [{ scale: interpolate(pulseProgress.get(), [0, 1], [1, PULSE_MAX_SCALE]) }],
 	}));
 
-	/** 움직임이 켜져 있으면 핀 둘레가 퍼져 나가기를 반복 */
+	/** 핀 둘레가 퍼지는 애니메이션 반복 */
 	useEffect(() => {
 		if (!animated) {
 			return;
@@ -53,7 +53,7 @@ const PhotoPin = ({ point, animated }: Props) => {
 	}, [animated, pulseProgress]);
 
 	return (
-		<View style={[styles.pin, { left: point.x - PIN_SIZE / 2, top: point.y - PIN_SIZE / 2 }]}>
+		<View style={[styles.pin, { left: x - PIN_SIZE / 2, top: y - PIN_SIZE / 2 }]}>
 			{animated && <Animated.View style={[styles.halo, pulseStyle]} />}
 			<View style={styles.halo} />
 			<View style={styles.dot} />
@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
 	},
 	halo: { ...StyleSheet.absoluteFill, borderRadius: radius.pill, backgroundColor: HALO_COLOR },
 	dot: {
-		width: DOT_SIZE + 4,
-		height: DOT_SIZE + 4,
+		width: DOT_SIZE,
+		height: DOT_SIZE,
 		borderWidth: 2,
 		borderColor: colors.onFilled,
 		borderRadius: radius.pill,
@@ -80,4 +80,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default PhotoPin;
+export default UsageScenePhotoPin;

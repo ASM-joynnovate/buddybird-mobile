@@ -2,7 +2,7 @@ import { Image, type ImageSourcePropType, StyleSheet } from 'react-native';
 
 import type { SceneArea } from '@/components/scene-stage';
 
-export interface PhotoPoint {
+interface PhotoPoint {
 	x: number;
 	y: number;
 }
@@ -15,10 +15,10 @@ interface CoverLayout {
 }
 
 /**
- * 사진이 장면 영역을 빈틈없이 덮도록 한 크기와 위치를 반환하는 함수
+ * 장면을 덮는 사진 크기 및 위치 계산 함수
  * @param area 장면 영역
  * @param aspectRatio 사진의 폭 ÷ 높이
- * @param focusY 잘리는 높이를 위아래로 나누는 비율. 0이면 위쪽만, 1이면 아래쪽만 잘린다
+ * @param focusY 위쪽이 잘리는 비율
  */
 export const getCoverLayout = (area: SceneArea, aspectRatio: number, focusY: number): CoverLayout => {
 	const width = Math.max(area.width, area.height * aspectRatio);
@@ -28,9 +28,9 @@ export const getCoverLayout = (area: SceneArea, aspectRatio: number, focusY: num
 };
 
 /**
- * 사진 안의 비율 좌표를 장면 영역의 좌표로 바꾸는 함수
- * @param layout 사진의 크기와 위치
- * @param point 사진 폭과 높이에 대한 비율 좌표
+ * 사진 비율 좌표를 장면 좌표로 변환하는 함수
+ * @param layout 사진의 크기 및 위치
+ * @param point 사진 폭 및 높이에 대한 비율 좌표
  */
 export const toScenePoint = (layout: CoverLayout, point: PhotoPoint): PhotoPoint => ({
 	x: layout.left + layout.width * point.x,
@@ -43,11 +43,11 @@ interface Props {
 }
 
 /**
- * 장면 영역을 덮는 사진 컴포넌트
+ * 장면을 덮는 사진 컴포넌트
  * @param source 사진
- * @param layout 사진의 크기와 위치
+ * @param layout 사진의 크기 및 위치
  */
-const CoverPhoto = ({ source, layout }: Props) => {
+const UsageSceneCoverPhoto = ({ source, layout }: Props) => {
 	return <Image accessibilityIgnoresInvertColors source={source} style={[styles.photo, layout]} />;
 };
 
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
 	photo: { position: 'absolute' },
 });
 
-export default CoverPhoto;
+export default UsageSceneCoverPhoto;

@@ -20,7 +20,7 @@ export const onboarding: OnboardingMessages = {
 			voiceOwner: 'Tu voz',
 		},
 		place: {
-			title: 'Antes de salir, deja <b>un dispositivo que no uses</b> junto a la jaula y empieza el entrenamiento.',
+			title: 'Antes de salir, deja <b>un dispositivo que no uses</b> junto a la jaula y empieza el entrenamiento',
 			scene: 'foto de una tableta cargándose que hace un entrenamiento junto a un loro sobre la jaula',
 			spareDevice: 'Dispositivo que no uses (tableta, móvil viejo)',
 			charger: 'Conéctalo al cargador',
@@ -30,11 +30,11 @@ export const onboarding: OnboardingMessages = {
 			scene: 'detalles del entrenamiento en un móvil: tiempo de entrenamiento, palabra enseñada, imitaciones, emergencias y registro',
 		},
 		sound: {
-			title: 'Una <b>IA especializada en loros</b> detecta los gorjeos de tu loro y las palabras que repite.',
-			scene: 'registro de sonidos en los detalles del entrenamiento: la palabra Hola repetida, un gorjeo y un grito de alarma',
+			title: 'Una <b>IA especializada en loros</b> detecta los gorjeos de tu loro y las palabras que repite',
+			scene: 'registro de sonidos en los detalles del entrenamiento: un gorjeo, la palabra Hola repetida y un grito de alarma',
 		},
 		motion: {
-			title: 'También se registran los momentos en que tu loro <b>sale de cámara o vuelve</b>.',
+			title: 'También se registran los momentos en que tu loro <b>sale de cámara o vuelve</b>',
 			scene: 'registro de movimiento en los detalles del entrenamiento: vídeo del loro saliendo de cámara y foto del loro de vuelta en cámara',
 		},
 		start: 'Empezar',

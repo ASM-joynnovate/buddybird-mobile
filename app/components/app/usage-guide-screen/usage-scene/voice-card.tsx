@@ -28,7 +28,6 @@ const WAVE_BAR_COUNT = 18;
 const WAVE_MS = 1.1 * SECOND;
 const WAVE_MIN_LEVEL = 0.18;
 const STILL_LEVELS = [0.35, 0.7, 0.45, 0.9, 0.55, 1, 0.6, 0.4, 0.8, 0.5, 0.95, 0.55, 0.85, 0.45, 0.7, 0.35, 0.6, 0.3];
-const RECORDING_LENGTH = '0:03';
 
 interface WaveBarProps {
 	index: number;
@@ -37,10 +36,10 @@ interface WaveBarProps {
 }
 
 /**
- * 녹음 소리에 맞춰 높이가 바뀌는 파형 막대 컴포넌트
+ * 파형 막대 컴포넌트
  * @param index 막대 순서
- * @param progress 파형 움직임 진행도
- * @param animated 움직임 실행 여부
+ * @param progress 파형 애니메이션 진행도
+ * @param animated 애니메이션 실행 여부
  */
 const WaveBar = ({ index, progress, animated }: WaveBarProps) => {
 	const phase = ((index * 37) % 11) / 11;
@@ -58,7 +57,7 @@ const WaveBar = ({ index, progress, animated }: WaveBarProps) => {
 	return <Animated.View style={[styles.waveBar, barStyle]} />;
 };
 
-/** 보호자 얼굴 자리를 채우는 사람 모양 아바타 컴포넌트 */
+/** 보호자 아바타 컴포넌트 */
 const VoiceAvatar = () => {
 	return (
 		<Svg width={AVATAR_SIZE} height={AVATAR_SIZE} viewBox="0 0 40 40">
@@ -85,20 +84,20 @@ interface Props {
 }
 
 /**
- * 보호자 목소리로 녹음한 단어 카드 컴포넌트
+ * 녹음한 단어 카드 컴포넌트
  * @param left 카드 왼쪽 위치
  * @param top 카드 위쪽 위치
- * @param animated 파형 움직임 실행 여부
- * @param onLayout 카드 크기가 정해질 때 실행할 함수
+ * @param animated 파형 애니메이션 실행 여부
+ * @param onLayout 카드 크기가 정해지면 실행할 함수
  */
-const UsageVoiceCard = ({ left, top, animated, onLayout }: Props) => {
+const UsageSceneVoiceCard = ({ left, top, animated, onLayout }: Props) => {
 	const { t } = useTranslation();
 
 	const waveProgress = useSharedValue(0);
 
 	const words = t('onboarding.login.words', { returnObjects: true });
 
-	/** 움직임이 켜져 있으면 파형이 반복해서 출렁임 */
+	/** 파형 애니메이션 반복 */
 	useEffect(() => {
 		if (!animated) {
 			return;
@@ -117,7 +116,7 @@ const UsageVoiceCard = ({ left, top, animated, onLayout }: Props) => {
 					<Copy numberOfLines={1} style={styles.headText}>
 						{t('onboarding.usage.record.voiceOwner')}
 					</Copy>
-					<Copy style={[styles.headText, styles.length]}>{RECORDING_LENGTH}</Copy>
+					<Copy style={[styles.headText, styles.length]}>0:03</Copy>
 				</View>
 
 				<Copy numberOfLines={1} adjustsFontSizeToFit style={styles.word}>
@@ -166,4 +165,4 @@ const styles = StyleSheet.create({
 	waveBar: { width: 4, height: WAVE_HEIGHT, borderRadius: 2, backgroundColor: colors.onFilled },
 });
 
-export default UsageVoiceCard;
+export default UsageSceneVoiceCard;

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { BackHandler, type LayoutChangeEvent, StatusBar, Text, View } from 'react-native';
 
+import type { UsageStep } from '@/types/usage-guide';
+
 import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { Trans, useTranslation } from 'react-i18next';
@@ -21,7 +23,7 @@ import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/servi
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, contentMaxWidth } from '@/theme';
 
-import UsageScene, { type UsageStep } from '@/components/app/usage-guide-screen/usage-scene';
+import UsageScene from '@/components/app/usage-guide-screen/usage-scene';
 import Mascot from '@/components/mascot';
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
@@ -30,12 +32,12 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
 
 const PHOTO_BACKGROUND = '#000000';
-const STEPS: readonly { step: UsageStep; backgroundColor: string; backgroundDark: boolean }[] = [
-	{ step: 'record', backgroundColor: PHOTO_BACKGROUND, backgroundDark: false },
-	{ step: 'place', backgroundColor: PHOTO_BACKGROUND, backgroundDark: true },
-	{ step: 'live', backgroundColor: colors.bluePale, backgroundDark: false },
-	{ step: 'sound', backgroundColor: colors.orangeSoft, backgroundDark: false },
-	{ step: 'motion', backgroundColor: colors.orangeSoft, backgroundDark: false },
+const STEPS: readonly { step: UsageStep; backgroundColor: string; headerOnDark: boolean }[] = [
+	{ step: 'record', backgroundColor: PHOTO_BACKGROUND, headerOnDark: false },
+	{ step: 'place', backgroundColor: PHOTO_BACKGROUND, headerOnDark: true },
+	{ step: 'live', backgroundColor: colors.bluePale, headerOnDark: false },
+	{ step: 'sound', backgroundColor: colors.orangeSoft, headerOnDark: false },
+	{ step: 'motion', backgroundColor: colors.orangeSoft, headerOnDark: false },
 ];
 const BACKGROUND_TRANSITION_MS = 420;
 const MASCOT_SIZE = 96;
@@ -58,7 +60,7 @@ const UsageGuideScreen = () => {
 
 	const setUsageGuideSeen = useDeviceSettingsStore((state) => state.setUsageGuideSeen);
 
-	const { step, backgroundColor, backgroundDark } = STEPS[stepIndex];
+	const { step, backgroundColor, headerOnDark } = STEPS[stepIndex];
 	const isLastStep = stepIndex === STEPS.length - 1;
 
 	const mascotHopStyle = useAnimatedStyle(() => ({ transform: [{ translateY: mascotY.get() }] }));
@@ -120,7 +122,7 @@ const UsageGuideScreen = () => {
 
 	return (
 		<Animated.View style={[styles.container, { backgroundColor }, !reducedMotion && styles.backgroundTransition]}>
-			<StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />
+			<StatusBar barStyle={headerOnDark ? 'light-content' : 'dark-content'} />
 
 			<UsageScene step={step} topInset={headerHeight} />
 
@@ -128,10 +130,10 @@ const UsageGuideScreen = () => {
 				<View style={styles.header}>
 					<ScreenHeader
 						onBack={handleBack}
-						backVariant={backgroundDark ? 'onBrand' : 'plain'}
+						backVariant={headerOnDark ? 'onBrand' : 'plain'}
 						trailing=<TextButton
 							label={t('common.skip')}
-							variant={backgroundDark ? 'onBrand' : 'muted'}
+							variant={headerOnDark ? 'onBrand' : 'muted'}
 							onPress={handleFinish}
 						/>
 					/>

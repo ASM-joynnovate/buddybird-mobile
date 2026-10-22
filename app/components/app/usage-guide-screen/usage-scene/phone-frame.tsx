@@ -8,7 +8,6 @@ import { colors, radius } from '@/theme';
 
 import type { SceneArea } from '@/components/scene-stage';
 
-/** 배율 1일 때 휴대폰 화면 크기. 시안 기준 기기와 같다 */
 const SCREEN_WIDTH = 393;
 const SCREEN_HEIGHT = 852;
 const SCREEN_RADIUS = 54;
@@ -20,7 +19,6 @@ const BODY_TOP = 62;
 const BODY_SIDE = 24;
 const FRAME_COLOR = '#1d1d1f';
 const WIDTH_RATIO = 0.87;
-/** 휴대폰 틀 맨 위부터 시트에 가려지기 전까지 보여야 하는 높이 */
 const VISIBLE_SCREEN_HEIGHT = 550;
 const MIN_SCALE = 0.68;
 const MAX_SCALE = 1.25;
@@ -28,7 +26,7 @@ const TOP_GAP = 4;
 const ENTER_MS = 360;
 
 /**
- * 휴대폰 틀의 배율을 반환하는 함수
+ * 휴대폰 틀 배율 계산 함수
  * @param area 장면 영역
  * @param top 휴대폰 틀 위쪽 위치
  */
@@ -46,12 +44,12 @@ interface Props {
 }
 
 /**
- * 실제 비율의 휴대폰 화면을 줄여 담는 틀 컴포넌트
+ * 휴대폰 틀 컴포넌트
  * @param area 장면 영역
- * @param topInset 상단 헤더가 차지하는 높이
- * @param children 휴대폰 화면 안 내용. 배율 1 기준으로 그린다
+ * @param topInset 상단 헤더 높이
+ * @param children 휴대폰 화면 내용
  */
-const PhoneFrame = ({ area, topInset, children }: Props) => {
+const UsageScenePhoneFrame = ({ area, topInset, children }: Props) => {
 	const top = topInset + TOP_GAP;
 	const scale = getFrameScale(area, top);
 
@@ -99,4 +97,4 @@ const styles = StyleSheet.create({
 	body: { position: 'absolute', top: BODY_TOP, right: BODY_SIDE, left: BODY_SIDE },
 });
 
-export default PhoneFrame;
+export default UsageScenePhoneFrame;

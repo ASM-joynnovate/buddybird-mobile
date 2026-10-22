@@ -20,7 +20,7 @@ export const onboarding: OnboardingMessages = {
 			voiceOwner: 'Your voice',
 		},
 		place: {
-			title: 'Before you head out, place <b>a spare device</b> by the cage and start a session.',
+			title: 'Before you head out, place <b>a spare device</b> by the cage and start a session',
 			scene: 'a photo of a charging tablet running a session next to a parrot on top of the cage',
 			spareDevice: 'Spare device (tablet, old phone)',
 			charger: 'Plug into a charger',
@@ -30,11 +30,11 @@ export const onboarding: OnboardingMessages = {
 			scene: 'session details on a phone: learning time, word taught, mimicked count, emergencies, and the log',
 		},
 		sound: {
-			title: "<b>Parrot-trained AI</b> picks up your bird's chirps and the words it repeats.",
-			scene: 'the sound log in session details: the mimicked word Hello, a chirp, and a distress call',
+			title: "<b>Parrot-trained AI</b> picks up your bird's chirps and the words it repeats",
+			scene: 'the sound log in session details: a chirp, the mimicked word Hello, and a distress call',
 		},
 		motion: {
-			title: 'Moments when your parrot <b>goes out of view or comes back</b> are recorded too.',
+			title: 'Moments when your parrot <b>goes out of view or comes back</b> are recorded too',
 			scene: 'the movement log in session details: a video of the parrot going out of view and a photo of it back in view',
 		},
 		start: 'Get started',
