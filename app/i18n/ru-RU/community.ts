@@ -8,12 +8,12 @@ export const community: CommunityMessages = {
 		mine: 'Моя страна',
 	},
 	leaderboard: {
-		title: 'Рейтинг по времени занятий за {{month}}',
+		title: 'Рейтинг за {{month}}',
 		viewAll: 'Весь рейтинг',
 		unranked: {
 			not_participating: {
 				title: 'Ты не участвуешь в рейтинге',
-				description: 'Если участвовать, другие увидят твой никнейм, фото и время занятий',
+				description: 'Если будешь участвовать, другие пользователи увидят твой никнейм, фото и время занятий',
 				action: 'Участвовать',
 			},
 			no_nickname: {
