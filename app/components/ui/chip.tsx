@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 
 import { colors, font } from '@/theme';
@@ -8,13 +10,14 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props {
 	label: string;
+	leading?: ReactNode;
 	selected?: boolean;
 	showDot?: boolean;
 	onPress: () => void;
 	style?: StyleProp<ViewStyle>;
 }
 
-export const Chip = ({ label, selected, showDot, onPress, style }: Props) => {
+export const Chip = ({ label, leading, selected, showDot, onPress, style }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="button"
@@ -28,6 +31,7 @@ export const Chip = ({ label, selected, showDot, onPress, style }: Props) => {
 			style={[styles.shell, style]}
 			contentStyle={styles.chip}
 		>
+			{leading}
 			<Copy numberOfLines={1} style={[styles.chipText, selected && styles.selectedText]}>
 				{label}
 			</Copy>

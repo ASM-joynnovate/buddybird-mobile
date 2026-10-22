@@ -15,6 +15,11 @@ export const settings: SettingsMessages = {
 		japanese: '日本語',
 		russian: 'Русский',
 		spanish: 'Español',
+		country: '국가',
+		countryChoose: '선택해 주세요',
+		countrySearchHint: '국가 이름 검색',
+		countrySearchClear: '검색어 지우기',
+		countryNotFound: '‘{{query}}’에 맞는 국가가 없어요',
 		devices: '연결된 기기',
 	},
 	account: {

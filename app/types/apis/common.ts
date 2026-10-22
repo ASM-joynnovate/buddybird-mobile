@@ -30,6 +30,9 @@ export const apiErrorCodes = [
 	'FEEDBACK__SAVE_UNAVAILABLE',
 	'CONSENT__SAVE_UNAVAILABLE',
 	'NOTIFICATION__READ_FAILED',
+	'USER__SELF_TARGET',
+	'FEED__SAVE_UNAVAILABLE',
+	'ABUSE_REPORT__SAVE_UNAVAILABLE',
 ] as const;
 
 const clientErrorCodes = [
@@ -83,6 +86,8 @@ export const pageMetaSchema = z.object({
 });
 
 export const fileSchema = z.object({ url: z.string(), status: z.string() });
+
+export const publicFileSchema = z.object({ url: z.string() });
 
 type PageMeta = z.infer<typeof pageMetaSchema>;
 

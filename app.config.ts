@@ -105,6 +105,7 @@ const config: ExpoConfig = {
 					],
 					// NotificationService 타깃과 같은 pod 선언
 					extraPods: [{ name: 'GoogleUtilities' }],
+					enableSceneSupport: true,
 				},
 			},
 		],

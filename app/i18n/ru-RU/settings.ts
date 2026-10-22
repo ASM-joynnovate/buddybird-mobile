@@ -15,6 +15,11 @@ export const settings: SettingsMessages = {
 		japanese: '日本語',
 		russian: 'Русский',
 		spanish: 'Español',
+		country: 'Страна',
+		countryChoose: 'Выбери',
+		countrySearchHint: 'Поиск по названию страны',
+		countrySearchClear: 'Очистить поиск',
+		countryNotFound: 'По запросу «{{query}}» ничего не нашлось',
 		devices: 'Подключённые устройства',
 	},
 	account: {

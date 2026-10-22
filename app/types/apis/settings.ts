@@ -29,6 +29,10 @@ export const notificationSettingListSchema = z.object({
 	items: z.array(notificationSettingItemSchema),
 });
 
+const updateCommunitySettingsRequestSchema = z.object({
+	leaderboard_enabled: z.boolean().optional(),
+});
+
 const updatePushSettingRequestSchema = z.object({
 	push_enabled: z.boolean(),
 });
@@ -40,5 +44,6 @@ const updateNotificationSettingItemRequestSchema = z.object({
 export type Settings = z.infer<typeof settingsSchema>;
 export type NotificationSettingItem = z.infer<typeof notificationSettingItemSchema>;
 export type NotificationSettingList = z.infer<typeof notificationSettingListSchema>;
+export type UpdateCommunitySettingsRequest = z.infer<typeof updateCommunitySettingsRequestSchema>;
 export type UpdatePushSettingRequest = z.infer<typeof updatePushSettingRequestSchema>;
 export type UpdateNotificationSettingItemRequest = z.infer<typeof updateNotificationSettingItemRequestSchema>;

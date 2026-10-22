@@ -38,4 +38,7 @@ export const apiError: ApiErrorMessages = {
 	CLIENT__TIMEOUT: '応答に時間がかかっています。ネットワーク接続を確認してください。',
 	CLIENT__INVALID_RESPONSE:
 		'サーバーからの応答を確認できませんでした。しばらくしてから、もう一度試してみてください。',
+	USER__SELF_TARGET: '自分自身をブロックしたり報告したりすることはできません。',
+	FEED__SAVE_UNAVAILABLE: 'リアクションを保存できませんでした。しばらくしてから、もう一度試してみてください。',
+	ABUSE_REPORT__SAVE_UNAVAILABLE: '報告を送信できませんでした。しばらくしてから、もう一度試してみてください。',
 };

@@ -15,22 +15,27 @@ export type OnboardingMessages = {
 		record: {
 			title: string;
 			scene: string;
-			recording: string;
+			voiceOwner: string;
 		};
 		place: {
 			title: string;
 			scene: string;
+			spareDevice: string;
+			charger: string;
 		};
-		keepOn: {
+		live: {
 			title: string;
 			scene: string;
 		};
-		report: {
+		sound: {
 			title: string;
 			scene: string;
-			lastWeek: string;
-			comparedToLastWeek: string;
 		};
+		motion: {
+			title: string;
+			scene: string;
+		};
+		start: string;
 	};
 	permissions: {
 		intro: string;

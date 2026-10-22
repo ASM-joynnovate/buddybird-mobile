@@ -11,19 +11,17 @@ import dayjs from 'dayjs';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import { track } from '@/services/telemetry/client';
 import { useMessageStore } from '@/stores/message';
-import { colors, font } from '@/theme';
+import { colors } from '@/theme';
 import type { LogItem } from '@/utils/session-log';
 
-import { Copy } from '@/components/ui/copy';
+import SessionLogSoundTrack from '@/components/session/log-sound-track';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const SHARED_FILE_TIME_FORMAT = 'YYYYMMDD-HHmmss';
 const PLAY_SIZE = 36;
-const PERCENT = 100;
 
 interface Props {
 	item: LogItem;
@@ -98,20 +96,7 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 	return (
 		<View style={styles.panel}>
 			<View style={styles.player}>
-				<View style={styles.track}>
-					<View style={styles.wave}>
-						<View
-							style={[
-								styles.waveFill,
-								{ width: `${(playing ? progress : 0) * PERCENT}%`, backgroundColor: accent },
-							]}
-						/>
-					</View>
-					<View style={styles.ends}>
-						<Copy style={styles.end}>{t('common.duration.seconds', { value: 0 })}</Copy>
-						{durationText !== null && <Copy style={styles.end}>{durationText}</Copy>}
-					</View>
-				</View>
+				<SessionLogSoundTrack accent={accent} progress={playing ? progress : 0} durationText={durationText} />
 
 				<PressableSurface
 					accessibilityLabel={playing ? t('common.sound.stopNamed', { name: itemName }) : itemName}
@@ -140,17 +125,6 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 const styles = StyleSheet.create({
 	panel: { paddingBottom: 18 },
 	player: { flexDirection: 'row', alignItems: 'center', gap: 24 },
-	track: { flex: 1, minWidth: 0 },
-	wave: { height: 6, overflow: 'hidden', borderRadius: 3, backgroundColor: sessionDetailColors.track },
-	waveFill: { height: '100%', borderRadius: 3 },
-	ends: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-	end: {
-		fontFamily: font.medium,
-		fontSize: 12,
-		lineHeight: 16,
-		color: colors.muted,
-		fontVariant: ['tabular-nums'],
-	},
 	play: { width: PLAY_SIZE, height: PLAY_SIZE },
 	playFace: { flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 0 },
 });

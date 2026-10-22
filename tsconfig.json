@@ -22,8 +22,7 @@
 			"@assets/*": ["./assets/*"],
 			"@modules/*": ["./modules/*"]
 		},
-		"typeRoots": ["./node_modules/@types", "./types"],
-		"types": ["node"]
+		"types": ["node", "expo/types"]
 	},
 	"ts-node": {
 		"compilerOptions": {

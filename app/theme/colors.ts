@@ -30,6 +30,7 @@ export const colors = {
 	backdrop: '#00000066',
 	disabledBackground: '#EBEBEB',
 	error: '#FF4B4B',
+	errorDark: '#D93838',
 	subtle: '#AFAFAF',
 	wheelSelection: '#ff96000f',
 	wheelText: '#3c3c3c59',

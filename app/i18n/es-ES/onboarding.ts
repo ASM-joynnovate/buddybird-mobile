@@ -16,23 +16,28 @@ export const onboarding: OnboardingMessages = {
 	usage: {
 		record: {
 			title: 'Graba con <b>tu propia voz</b> las palabras que quieres enseñarle a tu loro',
-			scene: 'una palabra grabándose y un micrófono',
-			recording: 'Grabando',
+			scene: 'un loro en una percha junto a una tableta y la palabra Hola grabada con la voz de su dueño',
+			voiceOwner: 'Tu voz',
 		},
 		place: {
-			title: 'Deja el móvil <b>delante de la jaula</b> y pulsa «Empezar entrenamiento» para que tu loro escuche las palabras',
-			scene: 'un móvil delante de la jaula que le reproduce una palabra al loro',
+			title: 'Antes de salir, deja <b>un dispositivo que no uses</b> junto a la jaula y empieza el entrenamiento',
+			scene: 'foto de una tableta cargándose que hace un entrenamiento junto a un loro sobre la jaula',
+			spareDevice: 'Dispositivo que no uses (tableta, móvil viejo)',
+			charger: 'Conéctalo al cargador',
 		},
-		keepOn: {
-			title: 'Durante el entrenamiento, deja la app abierta y <b>no apagues la pantalla</b>',
-			scene: 'un móvil cargándose con la pantalla encendida en una habitación a oscuras',
+		live: {
+			title: 'Aunque estés fuera, mira los detalles del entrenamiento <b>en tu móvil</b> en tiempo real',
+			scene: 'detalles del entrenamiento en un móvil: tiempo de entrenamiento, palabra enseñada, imitaciones, emergencias y registro',
 		},
-		report: {
-			title: 'En el <b>informe</b> puedes ver el tiempo de entrenamiento y el historial',
-			scene: 'un informe que compara el tiempo de entrenamiento de esta semana y de la anterior',
-			lastWeek: 'Semana pasada',
-			comparedToLastWeek: '+{{duration}} frente a la semana pasada',
+		sound: {
+			title: 'Una <b>IA especializada en loros</b> detecta los gorjeos de tu loro y las palabras que repite',
+			scene: 'registro de sonidos en los detalles del entrenamiento: un gorjeo, la palabra Hola repetida y un grito de alarma',
 		},
+		motion: {
+			title: 'También se registran los momentos en que tu loro <b>sale de cámara o vuelve</b>',
+			scene: 'registro de movimiento en los detalles del entrenamiento: vídeo del loro saliendo de cámara y foto del loro de vuelta en cámara',
+		},
+		start: 'Empezar',
 	},
 	permissions: {
 		intro: 'Estos son los permisos que necesita BuddyBird',

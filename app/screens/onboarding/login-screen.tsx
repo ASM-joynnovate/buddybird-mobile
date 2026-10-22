@@ -17,7 +17,7 @@ import FloatingWords from '@/screens/onboarding/components/floating-words';
 import LoginSheet from '@/screens/onboarding/components/login-sheet';
 import { availableLoginProviders } from '@/services/auth/providers';
 import { signUpAnonymously } from '@/services/auth/session';
-import { linkAccount, signIn } from '@/services/auth/sign-in';
+import { isAppleLoginCanceled, linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useAccountStore } from '@/stores/account';
@@ -42,13 +42,6 @@ interface LoginAttempt {
 	provider: LoginProvider;
 	pending: boolean;
 }
-
-/** Apple 로그인 취소 여부를 반환하는 함수 */
-const isAppleLoginCanceled = (provider: LoginProvider, e: unknown) =>
-	provider === 'apple' &&
-	e instanceof Error &&
-	'code' in e &&
-	(e.code === 'ERR_REQUEST_CANCELED' || e.code === 'ERR_REQUEST_UNKNOWN');
 
 /** 로그인 화면 */
 const LoginScreen = () => {

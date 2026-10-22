@@ -2,6 +2,7 @@ import type { MainTabParamList } from '@/types/navigation';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import CommunityTab from '@/navigators/main-tabs/community-tab';
 import HomeTab from '@/navigators/main-tabs/home-tab';
 import ProfileTab from '@/navigators/main-tabs/profile-tab';
 import ReportTab from '@/navigators/main-tabs/report-tab';
@@ -26,6 +27,7 @@ const MainTabs = () => {
 			<Tabs.Screen name="HomeTab" component={HomeTab} />
 			<Tabs.Screen name="WordsTab" component={WordsTab} />
 			<Tabs.Screen name="ReportTab" component={ReportTab} />
+			<Tabs.Screen name="CommunityTab" component={CommunityTab} />
 			<Tabs.Screen name="ProfileTab" component={ProfileTab} />
 		</Tabs.Navigator>
 	);

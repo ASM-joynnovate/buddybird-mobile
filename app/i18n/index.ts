@@ -17,12 +17,14 @@ import 'dayjs/locale/ru';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import utc from 'dayjs/plugin/utc';
 import { josa } from 'es-hangul';
 import 'intl-pluralrules';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 dayjs.extend(localizedFormat);
+dayjs.extend(utc);
 
 const dayjsLocales: Record<Locale, string> = {
 	'ko-KR': 'ko',
