@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.13.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.12.0...v2.13.0) (2026-10-22)
+
+
+### Features
+
+* **app:** guide users to record each word only once [BB-662] ([#279](https://github.com/ASM-joynnovate/buddybird-mobile/issues/279)) ([0cd425f](https://github.com/ASM-joynnovate/buddybird-mobile/commit/0cd425f3ccd6d130daca8e64b58093f550bb3dfc))
+
+
+### Bug Fixes
+
+* **app:** adopt the UIScene life cycle required by the iOS 27 SDK [BB-772] ([#287](https://github.com/ASM-joynnovate/buddybird-mobile/issues/287)) ([2d4a3fb](https://github.com/ASM-joynnovate/buddybird-mobile/commit/2d4a3fb0fc4ddc4feb531c6d61cee4dd3807133e))
+
 ## [2.12.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.11.0...v2.12.0) (2026-10-22)
 
 
