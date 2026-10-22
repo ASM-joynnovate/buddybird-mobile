@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.12.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.11.0...v2.12.0) (2026-10-22)
+
+
+### Features
+
+* **app:** add the community tab ([#281](https://github.com/ASM-joynnovate/buddybird-mobile/issues/281)) ([8752278](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8752278c3dfbbbceb9cc9135c7959e8bfad32799))
+* **app:** rebuild the usage guide around the station and viewer devices [BB-710][BB-722] ([#282](https://github.com/ASM-joynnovate/buddybird-mobile/issues/282)) ([bcbcdc9](https://github.com/ASM-joynnovate/buddybird-mobile/commit/bcbcdc9fb94f629e0fbddd2f3e68a11c838f5213))
+
 ## [2.11.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.10.0...v2.11.0) (2026-10-20)
 
 
