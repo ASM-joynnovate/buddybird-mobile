@@ -2,17 +2,15 @@ import { type ComponentType, memo } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import type { Session, SessionSummary } from '@/types/apis/sessions';
-
 import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
 
 import type { SvgProps } from 'react-native-svg';
 
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
@@ -53,33 +51,31 @@ const Stat = ({ icon: Icon, value, label }: StatProps) => {
 };
 
 interface Props {
-	session: Session;
-	sessionSummary: SessionSummary;
+	learningMs: number;
+	wordName: string;
+	mimicCount: number;
 	emergencyCount: number;
 }
 
 /**
  * 이번 학습 요약 컴포넌트
- * @param session 세션
- * @param sessionSummary 세션 요약
+ * @param learningMs 학습 시간
+ * @param wordName 가르친 단어
+ * @param mimicCount 따라 한 횟수
  * @param emergencyCount 응급 상황 수
  */
-const SessionOverview = memo(({ session, sessionSummary, emergencyCount }: Props) => {
+const SessionOverview = memo(({ learningMs, wordName, mimicCount, emergencyCount }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	return (
 		<View style={styles.stats}>
-			<Stat
-				icon={ClockIcon}
-				value={formatDuration(sessionSummary.session.active.duration_ms, locale)}
-				label={t('report.detail.learningTime')}
-			/>
-			<Stat icon={SpeechBubbleIcon} value={sessionSummary.word.name} label={t('report.detail.taughtWord')} />
+			<Stat icon={ClockIcon} value={formatDuration(learningMs, locale)} label={t('report.detail.learningTime')} />
+			<Stat icon={SpeechBubbleIcon} value={wordName} label={t('report.detail.taughtWord')} />
 			<Stat
 				icon={MimicIcon}
-				value={t('report.detail.mimicCountValue', { count: session.sounds.mimic_count })}
+				value={t('report.detail.mimicCountValue', { count: mimicCount })}
 				label={t('report.detail.mimicCount')}
 			/>
 			<Stat

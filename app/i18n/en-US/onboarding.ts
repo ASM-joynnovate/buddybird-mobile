@@ -16,23 +16,28 @@ export const onboarding: OnboardingMessages = {
 	usage: {
 		record: {
 			title: 'Record the words to teach your parrot in <b>your own voice</b>',
-			scene: 'a word being recorded and a microphone',
-			recording: 'Recording',
+			scene: "a parrot on a perch next to a tablet, and the word Hello recorded in the owner's voice",
+			voiceOwner: 'Your voice',
 		},
 		place: {
-			title: 'Place your phone <b>by the cage</b> and tap Start',
-			scene: 'a phone by the cage playing a word to the parrot',
+			title: 'Before you head out, place <b>a spare device</b> by the cage and start a session',
+			scene: 'a photo of a charging tablet running a session next to a parrot on top of the cage',
+			spareDevice: 'Spare device (tablet, old phone)',
+			charger: 'Plug into a charger',
 		},
-		keepOn: {
-			title: 'Keep the app open and <b>the screen on</b> while learning',
-			scene: 'a charging phone by the cage with its screen on in a dark room',
+		live: {
+			title: "Check session details <b>on your phone</b> in real time, even when you're out",
+			scene: 'session details on a phone: learning time, word taught, mimicked count, emergencies, and the log',
 		},
-		report: {
-			title: 'Check your learning time and records in <b>Report</b>',
-			scene: 'a report comparing this week with last week',
-			lastWeek: 'Last week',
-			comparedToLastWeek: '+{{duration}} vs last week',
+		sound: {
+			title: "<b>Parrot-trained AI</b> picks up your bird's chirps and the words it repeats",
+			scene: 'the sound log in session details: a chirp, the mimicked word Hello, and a distress call',
 		},
+		motion: {
+			title: 'Moments when your parrot <b>goes out of view or comes back</b> are recorded too',
+			scene: 'the movement log in session details: a video of the parrot going out of view and a photo of it back in view',
+		},
+		start: 'Get started',
 	},
 	permissions: {
 		intro: 'Permissions BuddyBird needs',

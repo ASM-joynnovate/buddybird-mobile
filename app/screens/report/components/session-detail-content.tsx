@@ -18,7 +18,6 @@ import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 import Animated, { useDerivedValue } from 'react-native-reanimated';
 
 import SessionLog from '@/screens/report/components/session-log';
-import SessionOverview from '@/screens/report/components/session-overview';
 import { shouldShowDistressCall } from '@/services/remote-config/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { getLogItems, type LogItem } from '@/utils/session-log';
@@ -32,6 +31,7 @@ import RopeRefreshIndicator from '@/components/buddy-refresh/rope-indicator';
 import SwingRefreshIndicator from '@/components/buddy-refresh/swing-indicator';
 import ThrobberRefreshIndicator from '@/components/buddy-refresh/throbber-indicator';
 import PullToRefreshContainer from '@/components/pull-to-refresh';
+import SessionOverview from '@/components/session/overview';
 
 const CONTENT_PADDING_BOTTOM = 32;
 
@@ -127,8 +127,9 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 				contentContainerStyle={styles.content}
 			>
 				<SessionOverview
-					session={sessionData}
-					sessionSummary={sessionSummaryData}
+					learningMs={sessionSummaryData.session.active.duration_ms}
+					wordName={sessionSummaryData.word.name}
+					mimicCount={sessionData.sounds.mimic_count}
 					emergencyCount={emergencyCount}
 				/>
 

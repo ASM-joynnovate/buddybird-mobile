@@ -10,13 +10,13 @@ import { MoonIcon } from 'lucide-react-native';
 import Svg, { Defs, Pattern, Rect } from 'react-native-svg';
 
 import { HOUR } from '@/config/units';
-import DashedLine from '@/screens/report/components/dashed-line';
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import SessionLogItem from '@/screens/report/components/session-log/item';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import type { LogItem, LogRow } from '@/utils/session-log';
 
+import DashedLine from '@/components/dashed-line';
 import { Copy } from '@/components/ui/copy';
 
 const SLEEP_COLORS = {

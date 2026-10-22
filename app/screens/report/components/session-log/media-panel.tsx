@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
-import { sessionDetailColors } from '@/screens/report/components/session-detail-colors';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import { useMessageStore } from '@/stores/message';
 import { colors, font } from '@/theme';
+import { sessionDetailColors } from '@/theme/session-detail-colors';
 import type { LogItem } from '@/utils/session-log';
 
 import { Copy } from '@/components/ui/copy';
