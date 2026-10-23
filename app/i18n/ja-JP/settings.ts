@@ -15,6 +15,7 @@ export const settings: SettingsMessages = {
 		japanese: '日本語',
 		russian: 'Русский',
 		spanish: 'Español',
+		thai: 'ภาษาไทย',
 		country: '国',
 		countryChoose: '選択してください',
 		countrySearchHint: '国名で検索',

@@ -13,6 +13,7 @@ export type SettingsMessages = {
 		japanese: string;
 		russian: string;
 		spanish: string;
+		thai: string;
 		country: string;
 		countryChoose: string;
 		countrySearchHint: string;

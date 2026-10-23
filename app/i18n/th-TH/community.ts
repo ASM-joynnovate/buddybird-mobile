@@ -1,0 +1,107 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'ชุมชน',
+	me: 'ฉัน',
+	countryScope: {
+		world: 'ทั่วโลก',
+		mine: 'ประเทศของฉัน',
+	},
+	leaderboard: {
+		title: 'อันดับเวลาฝึกประจำเดือน{{month}}',
+		viewAll: 'ดูอันดับทั้งหมด',
+		unranked: {
+			not_participating: {
+				title: 'คุณยังไม่ได้เข้าร่วมการจัดอันดับ',
+				description: 'เมื่อเข้าร่วม คนอื่นจะเห็นชื่อเล่น รูป และเวลาฝึกของคุณ',
+				action: 'เข้าร่วม',
+			},
+			no_nickname: {
+				title: 'คุณยังไม่ติดอันดับเพราะยังไม่มีชื่อเล่น',
+				description: 'ตั้งชื่อเล่นแล้วจะติดอันดับ',
+				action: 'ตั้งชื่อเล่น',
+			},
+			anonymous: {
+				title: 'เข้าสู่ระบบแล้วจะติดอันดับ',
+				description: 'ตอนนี้คุณยังไม่ได้เข้าสู่ระบบ',
+				action: 'เข้าสู่ระบบ',
+			},
+			country_mismatch: {
+				title: 'คุณไม่อยู่ในอันดับของประเทศนี้',
+				description: 'คุณจะติดอันดับเฉพาะในประเทศที่ตั้งเป็นประเทศของคุณเท่านั้น',
+			},
+			no_record: {
+				title: 'ยังไม่มีบันทึกการฝึกในเดือนนี้',
+				description: 'ฝึกเสร็จแล้วจะติดอันดับ',
+			},
+		},
+	},
+	feed: {
+		title: 'ฟีด',
+		more: 'ดูเพิ่มเติม',
+		timeAgo: {
+			minutes_one: '{{count}} นาทีที่แล้ว',
+			minutes_few: '{{count}} นาทีที่แล้ว',
+			minutes_many: '{{count}} นาทีที่แล้ว',
+			minutes_other: '{{count}} นาทีที่แล้ว',
+			hours_one: '{{count}} ชั่วโมงที่แล้ว',
+			hours_few: '{{count}} ชั่วโมงที่แล้ว',
+			hours_many: '{{count}} ชั่วโมงที่แล้ว',
+			hours_other: '{{count}} ชั่วโมงที่แล้ว',
+			days_one: '{{count}} วันที่แล้ว',
+			days_few: '{{count}} วันที่แล้ว',
+			days_many: '{{count}} วันที่แล้ว',
+			days_other: '{{count}} วันที่แล้ว',
+			yesterday: 'เมื่อวาน',
+		},
+		mimic: {
+			label: 'คำศัพท์ที่พูดตาม',
+			word: "'{{word}}'",
+			private: 'ไม่ได้เปิดเผยเสียงที่อัด',
+			play: 'เล่นเสียง {{word}}',
+		},
+		totalLearningTime: 'เวลาฝึกรวมครบ <b>{{duration}}</b> แล้ว!',
+		monthlyLearningTime: 'ฝึกในเดือน{{month}}ครบ <b>{{duration}}</b> แล้ว!',
+		wordPlayCount_one: "เปิดคำว่า '{{word}}' ให้ฟังไป <b>{{count, number}} ครั้ง</b> แล้ว!",
+		wordPlayCount_few: "เปิดคำว่า '{{word}}' ให้ฟังไป <b>{{count, number}} ครั้ง</b> แล้ว!",
+		wordPlayCount_many: "เปิดคำว่า '{{word}}' ให้ฟังไป <b>{{count, number}} ครั้ง</b> แล้ว!",
+		wordPlayCount_other: "เปิดคำว่า '{{word}}' ให้ฟังไป <b>{{count, number}} ครั้ง</b> แล้ว!",
+		artHours: 'ชั่วโมง',
+		artCount_one: '{{count, number}} ครั้ง',
+		artCount_few: '{{count, number}} ครั้ง',
+		artCount_many: '{{count, number}} ครั้ง',
+		artCount_other: '{{count, number}} ครั้ง',
+		reaction: {
+			praise: 'ชื่นชม',
+			praised: 'ชื่นชมแล้ว',
+			celebrate: 'แสดงความยินดี',
+			celebrated: 'แสดงความยินดีแล้ว',
+		},
+	},
+	report: {
+		action: 'รายงาน',
+		title: 'โปรดเลือกเหตุผลในการรายงาน',
+		reasons: {
+			spam: 'สแปม',
+			inappropriate_content: 'เนื้อหาไม่เหมาะสม',
+			harassment: 'การกลั่นแกล้งหรือคุกคาม',
+			other: 'อื่น ๆ',
+		},
+		description: 'รายละเอียดเพิ่มเติม (ไม่บังคับ)',
+		sent: 'ส่งรายงานแล้ว',
+	},
+	block: {
+		action: 'บล็อก',
+		title: 'บล็อก {{nickname}} ไหม',
+		message: 'คุณทั้งสองจะไม่เห็นฟีดของกันและกัน',
+		done: 'บล็อก {{nickname}} แล้ว',
+		undo: 'เลิกทำ',
+	},
+	gate: {
+		loginTitle: 'เข้าสู่ระบบ',
+		loginDescription: 'เข้าสู่ระบบเพื่อใช้งานชุมชน',
+		nicknameTitle: 'ตั้งชื่อเล่น',
+		nicknameDescription: 'ชื่อที่จะแสดงในชุมชน',
+		start: 'เริ่มต้นใช้งาน',
+	},
+};

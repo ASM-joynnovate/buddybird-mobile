@@ -7,6 +7,7 @@ import es from 'i18n-iso-countries/langs/es.json';
 import ja from 'i18n-iso-countries/langs/ja.json';
 import ko from 'i18n-iso-countries/langs/ko.json';
 import ru from 'i18n-iso-countries/langs/ru.json';
+import th from 'i18n-iso-countries/langs/th.json';
 
 // 앱에서 사용하는 언어만 등록
 registerLocale(ko);
@@ -14,6 +15,7 @@ registerLocale(en);
 registerLocale(ja);
 registerLocale(ru);
 registerLocale(es);
+registerLocale(th);
 
 const countryLanguages: Record<Locale, string> = {
 	'ko-KR': 'ko',
@@ -21,6 +23,7 @@ const countryLanguages: Record<Locale, string> = {
 	'ja-JP': 'ja',
 	'ru-RU': 'ru',
 	'es-ES': 'es',
+	'th-TH': 'th',
 };
 
 /** 앱 언어로 된 국가 코드별 이름 조회 함수 */

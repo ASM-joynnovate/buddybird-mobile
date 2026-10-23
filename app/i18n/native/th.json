@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "ต้องใช้ไมโครโฟนเพื่ออัดเสียงคำศัพท์ที่จะสอนนกแก้ว และบันทึกเสียงระหว่างการฝึก",
+		"NSPhotoLibraryUsageDescription": "ใช้รูปภาพที่คุณเลือกเป็นรูปโปรไฟล์ของนกแก้ว",
+		"NSCameraUsageDescription": "ใช้กล้องเพื่อถ่ายรูปโปรไฟล์ของนกแก้วและของคุณ",
+		"NSUserTrackingUsageDescription": "สถิติการใช้งานแอปช่วยให้เราปรับปรุงประสบการณ์การฝึกให้ดีขึ้น แม้ไม่อนุญาตให้ติดตาม ก็ยังใช้ฟีเจอร์การฝึกได้ตามปกติ"
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

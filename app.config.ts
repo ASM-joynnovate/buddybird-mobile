@@ -38,6 +38,7 @@ const config: ExpoConfig = {
 		ja: nativeLocale('app/i18n/native/ja.json'),
 		ru: nativeLocale('app/i18n/native/ru.json'),
 		es: nativeLocale('app/i18n/native/es.json'),
+		th: nativeLocale('app/i18n/native/th.json'),
 	},
 	icon: './assets/images/icon.png',
 	ios: {
