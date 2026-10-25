@@ -86,7 +86,7 @@
 		"react-native-screens": "~4.28.0",
 		"react-native-svg": "15.15.5",
 		"react-native-volume-manager": "2.2.0",
-		"react-native-webrtc": "124.0.8",
+		"react-native-webrtc": "patch:react-native-webrtc@npm%3A124.0.8#~/.yarn/patches/react-native-webrtc-npm-124.0.8-0e027b2422.patch",
 		"react-native-worklets": "0.12.2",
 		"sonner-native": "^0.27.0",
 		"victory-native": "^42.0.1",

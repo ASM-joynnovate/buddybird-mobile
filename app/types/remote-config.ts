@@ -6,10 +6,12 @@ import {
 	PARROT_CHECK,
 	PARROT_NIGHT_CORRECTION,
 	PARROT_VIDEO,
+	PETCAM_AUDIO_MAX_BITRATE,
 	PETCAM_CAMERA_REQUEST_TIMEOUT_MS,
 	PETCAM_CONNECT_TIMEOUT_MS,
 	PETCAM_STATS_INTERVAL_MS,
 	PETCAM_VIDEO,
+	PETCAM_VIDEO_MAX_BITRATE,
 	VAD,
 	WORD_REPLAY_DELAY_FACTOR,
 } from '@/config/policy';
@@ -21,6 +23,8 @@ export const remoteConfigSchema = z.object({
 	petcam_video_width: z.int().min(160).max(3840).catch(PETCAM_VIDEO.width),
 	petcam_video_height: z.int().min(120).max(2160).catch(PETCAM_VIDEO.height),
 	petcam_video_frame_rate: z.int().min(1).max(240).catch(PETCAM_VIDEO.frameRate),
+	petcam_video_max_bitrate: z.int().min(100_000).max(20_000_000).catch(PETCAM_VIDEO_MAX_BITRATE),
+	petcam_audio_max_bitrate: z.int().min(6_000).max(510_000).catch(PETCAM_AUDIO_MAX_BITRATE),
 	petcam_connect_timeout_ms: z
 		.int()
 		.min(5 * SECOND)

@@ -1,0 +1,46 @@
+diff --git a/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java b/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java
+index 925a84056707d4b206d0d284795c4d3a7f466624..6ff8b154169627743315a6ce71830b11eb13de0c 100644
+--- a/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java
++++ b/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java
+@@ -40,19 +40,39 @@ public class VideoEffectProcessor implements VideoProcessor {
+      */
+     @Override
+     public void onFrameCaptured(VideoFrame frame) {
++        processFrame(frame, mSink);
++    }
++
++    /**
++     * Called with the unadapted frame. Runs the processors on it and applies the adaptation
++     * just before sending it to webrtc, so the processors keep the full camera resolution.
++     */
++    @Override
++    public void onFrameCaptured(VideoFrame frame, FrameAdaptationParameters parameters) {
++        processFrame(frame, processedFrame -> {
++            VideoFrame adaptedFrame = VideoProcessor.applyFrameAdaptationParameters(processedFrame, parameters);
++
++            if (adaptedFrame != null) {
++                mSink.onFrame(adaptedFrame);
++                adaptedFrame.release();
++            }
++        });
++    }
++
++    private void processFrame(VideoFrame frame, VideoSink sink) {
+         frame.retain();
+         VideoFrame outputFrame = frame;
+         for (VideoFrameProcessor processor : this.videoFrameProcessors) {
+             outputFrame = processor.process(outputFrame, textureHelper);
+ 
+             if (outputFrame == null) {
+-                mSink.onFrame(frame);
++                sink.onFrame(frame);
+                 frame.release();
+                 return;
+             }
+         }
+ 
+-        mSink.onFrame(outputFrame);
++        sink.onFrame(outputFrame);
+         outputFrame.release();
+         frame.release();
+     }
