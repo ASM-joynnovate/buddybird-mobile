@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.14.0...v2.15.0) (2026-10-25)
+
+
+### Features
+
+* **app:** show the mascot for users without a profile photo ([#294](https://github.com/ASM-joynnovate/buddybird-mobile/issues/294)) ([44fb743](https://github.com/ASM-joynnovate/buddybird-mobile/commit/44fb743a8ba323358fa96601845492a9c12cc902))
+
 ## [2.14.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.13.0...v2.14.0) (2026-10-25)
 
 
