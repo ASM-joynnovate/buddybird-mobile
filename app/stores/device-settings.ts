@@ -25,6 +25,7 @@ type DeviceSettingsActions = {
 	setOnboardingCompleted: (onboardingCompleted: boolean) => void;
 	setUsageGuideSeen: (usageGuideSeen: boolean) => void;
 	setPullToRefreshUsed: (pullToRefreshUsed: boolean) => void;
+	markPullToRefreshHintShown: (screenName: string) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
 	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
 	setLastLoginProvider: (lastLoginProvider: LoginProvider) => void;
@@ -58,6 +59,7 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		onboardingCompleted: false,
 		usageGuideSeen: false,
 		pullToRefreshUsed: false,
+		pullToRefreshHintShownScreens: [],
 		legacyMigration: initialLegacyMigration,
 		lastLoginProvider: null,
 		clientDeviceId: null,
@@ -130,6 +132,14 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				set((state) => ({ ...state, pullToRefreshUsed }));
 			},
 
+			/** 당겨서 새로고침 안내 표시 화면 저장 */
+			markPullToRefreshHintShown: (screenName) => {
+				set((state) => ({
+					...state,
+					pullToRefreshHintShownScreens: [...state.pullToRefreshHintShownScreens, screenName],
+				}));
+			},
+
 			/** v1 앱 설정 반영 */
 			importLegacySettings: (settings) => {
 				set((state) => ({
@@ -175,6 +185,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				onboardingCompleted,
 				usageGuideSeen,
 				pullToRefreshUsed,
+				pullToRefreshHintShownScreens,
 				legacyMigration,
 				lastLoginProvider,
 				clientDeviceId,
@@ -186,6 +197,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				onboardingCompleted,
 				usageGuideSeen,
 				pullToRefreshUsed,
+				pullToRefreshHintShownScreens,
 				legacyMigration,
 				lastLoginProvider,
 				clientDeviceId,

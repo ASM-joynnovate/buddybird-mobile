@@ -25,7 +25,7 @@ Query 캐시도 기기에 보관하지 않습니다.
 
 | 키 | 버전 | 스토어 | 저장하는 필드 |
 | --- | --- | --- | --- |
-| `device-settings` | 2 | `useDeviceSettingsStore` | `locale`, `analyticsConsent`, `updatePrompt`, `feedbackPrompt`, `onboardingCompleted`, `usageGuideSeen`, `pullToRefreshUsed`, `legacyMigration`, `lastLoginProvider`, `clientDeviceId` |
+| `device-settings` | 2 | `useDeviceSettingsStore` | `locale`, `analyticsConsent`, `updatePrompt`, `feedbackPrompt`, `onboardingCompleted`, `usageGuideSeen`, `pullToRefreshUsed`, `pullToRefreshHintShownScreens`, `legacyMigration`, `lastLoginProvider`, `clientDeviceId` |
 | `auth` | 1 | `useAuthStore` | `authUserId`, `isAnonymous`, `loginScreenSeen`, `loginProvider` |
 | `account` | 3 | `useAccountStore` | `serverUserId` |
 
