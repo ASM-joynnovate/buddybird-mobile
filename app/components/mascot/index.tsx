@@ -16,7 +16,7 @@ import Animated, {
 
 import { SECOND } from '@/config/units';
 
-import MascotArtwork from '@/components/mascot/mascot-artwork';
+import MascotArtwork from '@/components/mascot/artwork';
 
 interface Props {
 	size?: number;
@@ -26,12 +26,12 @@ interface Props {
 /**
  * 마스코트 컴포넌트
  * @param size 그림 크기
- * @param floating 위아래로 움직이는지 여부
+ * @param floating 위아래 애니메이션 실행 여부
  */
 const Mascot = ({ size = 120, floating = true }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const y = useSharedValue(0);
 	const rotation = useSharedValue(0);
@@ -40,9 +40,9 @@ const Mascot = ({ size = 120, floating = true }: Props) => {
 		transform: [{ translateY: y.get() }, { rotate: `${rotation.get()}deg` }],
 	}));
 
-	/** 움직임 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
+	/** 동작 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
 	useEffect(() => {
-		if (reducedMotion || !floating) {
+		if (motionReduced || !floating) {
 			return;
 		}
 
@@ -60,7 +60,7 @@ const Mascot = ({ size = 120, floating = true }: Props) => {
 			cancelAnimation(y);
 			cancelAnimation(rotation);
 		};
-	}, [floating, reducedMotion, rotation, size, y]);
+	}, [floating, motionReduced, rotation, size, y]);
 
 	return (
 		<Animated.View

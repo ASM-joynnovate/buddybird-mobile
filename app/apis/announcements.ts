@@ -1,11 +1,11 @@
 import { type Announcement, announcementSchema } from '@/types/apis/announcements';
-import { type Page, pageMetaSchema } from '@/types/apis/common';
+import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common';
 
 import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
-export const getAnnouncementList = async ({ page }: { page: number }): Promise<Page<Announcement>> => {
+export const getAnnouncementList = async ({ page }: PageParams): Promise<Page<Announcement>> => {
 	const { data, meta } = await apiRequest('/api/v1/announcements', z.array(announcementSchema), {
 		searchParams: { page },
 	});

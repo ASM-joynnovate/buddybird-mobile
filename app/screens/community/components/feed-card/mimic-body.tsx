@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import type { FeedItem } from '@/types/apis/feed';
 
-import type { SoundPlayer } from '@/hooks/use-sound-player';
+import type { SoundPlayer } from '@/types/sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -79,20 +79,20 @@ const FeedCardMimicBody = ({ feedItem, player }: Props) => {
 			</View>
 
 			{/*첫 번째 앵무새 사진*/}
-			<View style={styles.photoContainer}>
-				<View style={styles.photoCircle}>
-					{!!parrotPhotoUrl && (
-						<Image source={{ uri: parrotPhotoUrl }} style={styles.photo} accessibilityIgnoresInvertColors />
-					)}
-				</View>
+			<View style={styles.photoCircle}>
+				{!!parrotPhotoUrl && (
+					<Image source={{ uri: parrotPhotoUrl }} style={styles.photo} accessibilityIgnoresInvertColors />
+				)}
 			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { marginTop: 14, paddingRight: 70 },
+	container: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 14 },
 	bubble: {
+		flex: 1,
+		minWidth: 0,
 		paddingTop: 12,
 		paddingRight: 12,
 		paddingBottom: 10,
@@ -127,19 +127,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 		transform: [{ rotate: '45deg' }],
 	},
-	photoContainer: {
-		position: 'absolute',
-		right: -16,
-		top: '50%',
-		width: 78,
-		height: 88,
-		marginTop: -44,
-		overflow: 'hidden',
-	},
 	photoCircle: {
-		position: 'absolute',
-		left: 6,
-		top: 0,
 		width: 88,
 		height: 88,
 		borderRadius: 44,

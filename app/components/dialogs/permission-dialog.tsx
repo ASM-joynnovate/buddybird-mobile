@@ -1,16 +1,14 @@
 import { Linking, StyleSheet, View } from 'react-native';
 
-import type { PermissionDialogState } from '@/hooks/use-permission';
+import type { PermissionDialogState } from '@/types/permission';
 
 import { useTranslation } from 'react-i18next';
 
 import { reportError } from '@/services/telemetry/client';
 
-import Dialog from '@/components/dialogs/dialog';
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import Mascot from '@/components/mascot';
-import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
-import { ui } from '@/components/ui/styles';
 
 interface Props {
 	state: PermissionDialogState;
@@ -30,38 +28,22 @@ const PermissionDialog = ({ state, notice }: Props) => {
 	};
 
 	return (
-		<Dialog
+		<ConfirmDialog
 			visible={state.visible}
-			title={t('common.permission.title', {
-				name: t(`common.permission.${state.kind}.name`),
-			})}
+			text={{
+				title: t('common.permission.title', { name: t(`common.permission.${state.kind}.name`) }),
+				confirm: t('common.permission.openSettings'),
+				cancel: t('common.close'),
+			}}
+			onConfirm={handleOpenSettings}
 			onClose={state.onClose}
-			footer={
-				<View style={ui.actionsRow}>
-					<Button
-						label={t('common.close')}
-						variant="secondary"
-						size="small"
-						depth="high"
-						onPress={state.onClose}
-						style={ui.action}
-					/>
-					<Button
-						label={t('common.permission.openSettings')}
-						size="small"
-						depth="high"
-						onPress={handleOpenSettings}
-						style={ui.action}
-					/>
-				</View>
-			}
 		>
 			<View style={styles.reasonContainer}>
 				<Mascot size={88} />
 				<Copy style={styles.reason}>{t(`common.permission.${state.kind}.reason`)}</Copy>
 				{!!notice && <Copy style={styles.reason}>{notice}</Copy>}
 			</View>
-		</Dialog>
+		</ConfirmDialog>
 	);
 };
 

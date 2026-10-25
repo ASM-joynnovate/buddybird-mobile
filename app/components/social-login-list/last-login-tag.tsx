@@ -14,7 +14,7 @@ interface Props {
  * 최근 로그인 표시 컴포넌트
  * @param label 표시 문구
  */
-const LastLoginTag = ({ label }: Props) => {
+const SocialLoginListLastLoginTag = ({ label }: Props) => {
 	return (
 		<Animated.View
 			entering={FadeInDown.delay(160).springify().damping(14)}
@@ -57,4 +57,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default LastLoginTag;
+export default SocialLoginListLastLoginTag;

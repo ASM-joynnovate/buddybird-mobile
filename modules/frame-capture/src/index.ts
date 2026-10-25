@@ -4,7 +4,7 @@ export interface ParrotCheckResult {
 	uri: string;
 	capturedAt: number;
 	birdScore: number;
-	/** 사진 기준 0~1 비율, 검출 결과가 없으면 null */
+	/** 검출 영역의 0~1 비율 */
 	birdBox: { x: number; y: number; width: number; height: number } | null;
 	photoWidth: number;
 	photoHeight: number;

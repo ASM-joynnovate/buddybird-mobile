@@ -6,23 +6,34 @@ const { version } = JSON.parse(readFileSync(path.join(__dirname, 'package.json')
 	version: string;
 };
 
-const production = process.env.APP_VARIANT === 'production';
-const variant = production ? 'prod' : 'dev';
-const id = production ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
-const appNameSuffix = production ? '' : ' (DEV)';
+const isProduction = process.env.APP_VARIANT === 'production';
+const variant = isProduction ? 'prod' : 'dev';
+const appId = isProduction ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
+const appNameSuffix = isProduction ? '' : ' (DEV)';
 
-/** 언어별 네이티브 문구를 읽고 앱 이름 뒤에 빌드 구분을 붙이는 함수 */
+/** 언어별 네이티브 문구 생성 함수 */
 const nativeLocale = (file: string) => {
 	const { ios, android } = JSON.parse(readFileSync(path.join(__dirname, file), 'utf8')) as {
 		ios: Record<string, string>;
 		android: Record<string, string>;
 	};
 
-	return {
-		ios: { ...ios, CFBundleDisplayName: `${ios.CFBundleDisplayName}${appNameSuffix}` },
-		android: { ...android, app_name: `${android.app_name}${appNameSuffix}` },
+	const localizedIos: Record<string, string> = {
+		...ios,
+		CFBundleDisplayName: `${ios.CFBundleDisplayName}${appNameSuffix}`,
 	};
+	const localizedAndroid: Record<string, string> = { ...android, app_name: `${android.app_name}${appNameSuffix}` };
+
+	return { ios: localizedIos, android: localizedAndroid };
 };
+
+interface SentryProject {
+	organization: string;
+	project: string;
+}
+
+const englishNative = nativeLocale('app/i18n/native/en.json');
+const sentryProject = JSON.parse(readFileSync(path.join(__dirname, 'sentry.project.json'), 'utf8')) as SentryProject;
 
 const config: ExpoConfig = {
 	name: `BuddyBird${appNameSuffix}`,
@@ -30,38 +41,36 @@ const config: ExpoConfig = {
 	owner: 'joynnovate0410',
 	version,
 	orientation: 'default',
-	scheme: production ? 'buddybird' : 'buddybird-dev',
+	scheme: isProduction ? 'buddybird' : 'buddybird-dev',
 	userInterfaceStyle: 'automatic',
 	locales: {
 		ko: nativeLocale('app/i18n/native/ko.json'),
-		en: nativeLocale('app/i18n/native/en.json'),
+		en: englishNative,
 		ja: nativeLocale('app/i18n/native/ja.json'),
 		ru: nativeLocale('app/i18n/native/ru.json'),
 		es: nativeLocale('app/i18n/native/es.json'),
 	},
 	icon: './assets/images/icon.png',
 	ios: {
-		bundleIdentifier: id,
+		bundleIdentifier: appId,
 		appleTeamId: '73TZC3K2JG',
 		usesAppleSignIn: true,
 		supportsTablet: true,
 		googleServicesFile:
 			process.env.GOOGLE_SERVICES_INFO_PLIST ?? `./config/${variant}/firebase/GoogleService-Info.plist`,
-		entitlements: { 'aps-environment': production ? 'production' : 'development' },
+		entitlements: { 'aps-environment': isProduction ? 'production' : 'development' },
 		infoPlist: {
 			CFBundleName: 'BuddyBird',
 			CFBundleAllowMixedLocalizations: true,
 			ITSAppUsesNonExemptEncryption: false,
 			UIBackgroundModes: ['audio', 'remote-notification'],
-			NSMicrophoneUsageDescription:
-				'Microphone access lets you record words for your parrot and capture sounds during learning.',
-			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
-			NSCameraUsageDescription:
-				'Use the camera to take profile photos and to show your parrot during a learning session.',
+			NSMicrophoneUsageDescription: englishNative.ios.NSMicrophoneUsageDescription,
+			NSPhotoLibraryUsageDescription: englishNative.ios.NSPhotoLibraryUsageDescription,
+			NSCameraUsageDescription: englishNative.ios.NSCameraUsageDescription,
 		},
 	},
 	android: {
-		package: id,
+		package: appId,
 		googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? `./config/${variant}/firebase/google-services.json`,
 		adaptiveIcon: {
 			foregroundImage: './assets/images/android-icon-foreground.png',
@@ -80,12 +89,16 @@ const config: ExpoConfig = {
 		blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW', 'android.permission.BLUETOOTH'],
 	},
 	plugins: [
-		'./plugins/withAndroidBuildMemory',
+		'./plugins/with-android-build-memory',
 		['@react-native-firebase/app', { ios: { disableSPM: true } }],
 		'@react-native-firebase/crashlytics',
 		[
 			'@sentry/react-native/expo',
-			{ url: 'https://sentry.io/', organization: 'joynnovate', project: 'buddybird-mobile', useNativeInit: true },
+			{
+				url: 'https://sentry.io/',
+				...sentryProject,
+				useNativeInit: true,
+			},
 		],
 		[
 			'expo-build-properties',
@@ -142,16 +155,14 @@ const config: ExpoConfig = {
 		[
 			'expo-audio',
 			{
-				microphonePermission:
-					'Microphone access lets you record words for your parrot and capture sounds during learning.',
+				microphonePermission: englishNative.ios.NSMicrophoneUsageDescription,
 			},
 		],
 		['react-native-audio-api', { androidForegroundService: false }],
 		[
 			'expo-tracking-transparency',
 			{
-				userTrackingPermission:
-					'App usage statistics help us improve the learning experience. Learning remains available if you decline tracking.',
+				userTrackingPermission: englishNative.ios.NSUserTrackingUsageDescription,
 			},
 		],
 		'expo-asset',
@@ -159,7 +170,7 @@ const config: ExpoConfig = {
 		'@bacons/apple-targets',
 		[
 			'@hot-updater/expo',
-			{ channel: production ? 'production' : 'development', publicKeyPath: `./keys/${variant}/public-key.pem` },
+			{ channel: isProduction ? 'production' : 'development', publicKeyPath: `./keys/${variant}/public-key.pem` },
 		],
 	],
 	extra: {
@@ -169,7 +180,7 @@ const config: ExpoConfig = {
 		supabasePublishableKey: String(process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '').trim(),
 		clarityProjectId: String(process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID ?? '').trim() || 'wre3hgbj48',
 		hotUpdaterApiKey: String(process.env.EXPO_PUBLIC_HOT_UPDATER_API_KEY ?? '').trim(),
-		production,
+		production: isProduction,
 	},
 };
 

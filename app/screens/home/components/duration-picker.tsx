@@ -9,14 +9,16 @@ import { formatDuration, formatDurationWithDays } from '@/i18n/format';
 import { CheckIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
-import { CUSTOM_SESSION_DEFAULT_MS, MAX_SESSION_MS, SESSION_DURATION_PRESETS } from '@/config';
+import { CUSTOM_SESSION_DEFAULT_MS, MAX_SESSION_MS, SESSION_DURATION_PRESETS } from '@/config/policy';
 import { DAY, HOUR, MINUTE } from '@/config/units';
+import { ChoiceCard } from '@/screens/home/components/choice-card';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useSessionStore } from '@/stores/session';
 import { colors, font, layoutAnimationMs, radius } from '@/theme';
+import { joinLabel } from '@/utils/a11y';
 
 import { Copy } from '@/components/ui/copy';
 import { Card } from '@/components/ui/surface/card';
-import { ChoiceCard } from '@/components/ui/surface/choice-card';
 import { HOURS, MINUTE_STEPS, WheelPicker } from '@/components/ui/wheel-picker';
 
 const DAYS = Array.from({ length: 8 }, (_, day) => day);
@@ -30,41 +32,36 @@ interface DurationChoice {
 	nextDuration: LearningDuration;
 }
 
-interface Props {
-	value: LearningDuration;
-	onChange: (value: LearningDuration) => void;
-}
-
-/**
- * 학습 시간 선택 컴포넌트
- * @param value 선택한 학습 시간
- * @param onChange 학습 시간 변경 시 실행할 함수
- */
-const DurationPicker = ({ value, onChange }: Props) => {
+/** 학습 시간 선택 컴포넌트 */
+const DurationPicker = () => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const totalMs = value.ms ?? 0;
+	const duration = useSessionStore((state) => state.duration);
+
+	const setDuration = useSessionStore((state) => state.setDuration);
+
+	const totalMs = duration.ms ?? 0;
 	const days = Math.floor(totalMs / DAY);
 	const hours = Math.floor((totalMs % DAY) / HOUR);
 	const minutes = Math.floor((totalMs % HOUR) / MINUTE);
-	const atMax = totalMs >= MAX_SESSION_MS;
+	const maxDurationReached = totalMs >= MAX_SESSION_MS;
 	const choices: DurationChoice[] = [
 		...SESSION_DURATION_PRESETS.map((preset) => ({
 			key: preset.id,
 			title: formatDuration(preset.ms, locale),
 			durationText: null,
 			hint: t(`session.start.presetHints.${preset.id}`),
-			selected: !value.custom && value.ms === preset.ms,
+			selected: !duration.custom && duration.ms === preset.ms,
 			nextDuration: { ms: preset.ms, custom: false },
 		})),
 		{
 			key: 'custom',
 			title: t('session.start.custom'),
-			durationText: value.custom && totalMs > 0 ? formatDurationWithDays(totalMs, locale) : null,
+			durationText: duration.custom && totalMs > 0 ? formatDurationWithDays(totalMs, locale) : null,
 			hint: t('session.start.customHint'),
-			selected: value.custom,
+			selected: duration.custom,
 			nextDuration: { ms: CUSTOM_SESSION_DEFAULT_MS, custom: true },
 		},
 		{
@@ -72,25 +69,25 @@ const DurationPicker = ({ value, onChange }: Props) => {
 			title: t('session.start.untilEnd'),
 			durationText: null,
 			hint: t('session.start.untilEndHint'),
-			selected: !value.custom && value.ms === null,
+			selected: !duration.custom && duration.ms === null,
 			nextDuration: { ms: null, custom: false },
 		},
 	];
 
-	/** 직접 설정한 학습 시간 전달 함수 */
-	const change = (nextDays: number, nextHours: number, nextMinutes: number) => {
-		onChange({
+	/** 직접 설정한 학습 시간 저장 함수 */
+	const changeCustomDuration = (nextDays: number, nextHours: number, nextMinutes: number) => {
+		setDuration({
 			ms: Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS),
 			custom: true,
 		});
 	};
 
 	const handleSelectChoice = (nextDuration: LearningDuration) => {
-		if (nextDuration.custom && value.custom) {
+		if (nextDuration.custom && duration.custom) {
 			return;
 		}
 
-		onChange(nextDuration);
+		setDuration(nextDuration);
 	};
 
 	return (
@@ -101,9 +98,7 @@ const DurationPicker = ({ value, onChange }: Props) => {
 					<ChoiceCard
 						selected={choice.selected}
 						onPress={() => handleSelectChoice(choice.nextDuration)}
-						accessibilityLabel={
-							choice.durationText ? `${choice.title}, ${choice.durationText}` : choice.title
-						}
+						accessibilityLabel={joinLabel(choice.title, choice.durationText)}
 						style={styles.choiceCardContainer}
 						contentStyle={styles.choiceCard}
 					>
@@ -122,7 +117,7 @@ const DurationPicker = ({ value, onChange }: Props) => {
 					</ChoiceCard>
 
 					{/*직접 설정한 경우 시간 선택 휠*/}
-					{choice.key === 'custom' && value.custom && (
+					{choice.key === 'custom' && duration.custom && (
 						<Animated.View
 							entering={FadeIn.duration(layoutAnimationMs)}
 							exiting={FadeOut.duration(layoutAnimationMs)}
@@ -138,23 +133,23 @@ const DurationPicker = ({ value, onChange }: Props) => {
 											value: days,
 											values: DAYS,
 											unit: t('session.start.days'),
-											onChange: (nextDays) => change(nextDays, hours, minutes),
+											onChange: (nextDays) => changeCustomDuration(nextDays, hours, minutes),
 										},
 										{
 											key: 'hours',
 											label: t('session.start.hours'),
 											value: hours,
-											values: atMax ? [0] : HOURS,
+											values: maxDurationReached ? [0] : HOURS,
 											unit: t('session.start.hours'),
-											onChange: (nextHours) => change(days, nextHours, minutes),
+											onChange: (nextHours) => changeCustomDuration(days, nextHours, minutes),
 										},
 										{
 											key: 'minutes',
 											label: t('session.start.minutes'),
 											value: minutes,
-											values: atMax ? [0] : MINUTE_STEPS,
+											values: maxDurationReached ? [0] : MINUTE_STEPS,
 											unit: t('session.start.minutes'),
-											onChange: (nextMinutes) => change(days, hours, nextMinutes),
+											onChange: (nextMinutes) => changeCustomDuration(days, hours, nextMinutes),
 										},
 									]}
 								/>

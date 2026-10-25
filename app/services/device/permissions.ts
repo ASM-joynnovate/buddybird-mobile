@@ -1,15 +1,10 @@
+import type { PermissionKind, PermissionState } from '@/types/permission';
+
 import { AudioModule } from 'expo-audio';
 import * as ImagePicker from 'expo-image-picker';
 import notifee, { AuthorizationStatus, type NotificationSettings } from 'react-native-notify-kit';
 
-export type PermissionKind = 'microphone' | 'notifications' | 'photos' | 'camera';
-
-export interface PermissionState {
-	granted: boolean;
-	canAskAgain: boolean;
-}
-
-/** 알림 설정을 권한 상태로 바꾸는 함수 */
+/** 알림 설정을 권한 상태로 변환하는 함수 */
 const notificationPermissionOf = ({ authorizationStatus }: NotificationSettings) => ({
 	granted: authorizationStatus >= AuthorizationStatus.AUTHORIZED,
 	// 한 번이라도 거부하면 설정 안내

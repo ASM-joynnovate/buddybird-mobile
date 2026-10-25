@@ -6,10 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
 
+import { toast } from 'sonner-native';
+
 import { colors } from '@/theme';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Copy } from '@/components/ui/copy';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
 	visible: boolean;
@@ -24,20 +27,20 @@ interface Props {
 const WithdrawDialog = ({ visible, onClose }: Props) => {
 	const { t } = useTranslation();
 
-	const { isPending, error, mutate, reset } = useWithdraw();
+	const { isPending, mutate } = useWithdraw();
 
 	const handleWithdraw = () => {
 		if (isPending) {
 			return;
 		}
 
-		mutate();
-	};
-
-	const handleClose = () => {
-		reset();
-
-		onClose();
+		mutate(undefined, {
+			onError: (error) => {
+				toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />, {
+					toasterId: dialogToasterId,
+				});
+			},
+		});
 	};
 
 	return (
@@ -48,9 +51,9 @@ const WithdrawDialog = ({ visible, onClose }: Props) => {
 				message: t('settings.withdrawDialog.message'),
 				confirm: t('settings.withdrawDialog.confirm'),
 			}}
-			confirmStatus={{ busy: isPending, errorMessage: error ? apiErrorMessage(error, t) : null }}
+			confirmBusy={isPending}
 			onConfirm={handleWithdraw}
-			onClose={handleClose}
+			onClose={onClose}
 		>
 			<Copy style={styles.warning}>{t('settings.withdrawDialog.warning')}</Copy>
 		</ConfirmDialog>

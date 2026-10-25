@@ -1,14 +1,8 @@
-import { type CreateFeedbackRequest, type Feedback, feedbackSchema } from '@/types/apis/feedback';
+import { type Feedback, feedbackSchema, type PostFeedbackParams } from '@/types/apis/feedback';
 
 import { apiRequest } from '@/lib/api';
 
-export const postFeedback = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: CreateFeedbackRequest;
-	idempotencyKey: string;
-}): Promise<Feedback> => {
+export const postFeedback = async ({ data, idempotencyKey }: PostFeedbackParams): Promise<Feedback> => {
 	const { data: feedback } = await apiRequest('/api/v1/feedback', feedbackSchema, {
 		method: 'POST',
 		json: data,

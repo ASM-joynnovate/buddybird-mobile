@@ -2,16 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
 
 import type { RootStackParamList } from '@/types/navigation';
 import type { PetcamState } from '@/types/petcam';
 
-import { apiKeys } from '@/hooks/apis/keys';
+import { homeKeys } from '@/hooks/apis/keys/home';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
-import { getSessionOptions, useFinishSession } from '@/hooks/apis/sessions';
+import { useFinishSession, useGetSessionQuery } from '@/hooks/apis/sessions';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,26 +24,26 @@ import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { type MediaStream, RTCView } from 'react-native-webrtc';
+import { toast } from 'sonner-native';
 
-import { HEARTBEAT_INTERVAL_MS } from '@/config';
-import { SECOND } from '@/config/units';
+import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_FADE_MS } from '@/config/policy';
 import CameraButton from '@/screens/session/components/camera-button';
-import RunInfo from '@/screens/session/components/run-info';
+import SessionEndDialog from '@/screens/session/components/session-end-dialog';
+import SessionRunInfo from '@/screens/session/components/session-run-info';
 import ZoomableView from '@/screens/session/components/zoomable-view';
-import { createPetcamReceiver, type PetcamReceiver } from '@/services/petcam/connection';
+import { createPetcamReceiver, type PetcamReceiver } from '@/screens/session/services/petcam-connection';
+import { recordPetcamVideoStats } from '@/screens/session/services/petcam-telemetry';
 import { getPetcamCameraRequestTimeoutMs, getPetcamConnectTimeoutMs } from '@/services/remote-config/client';
-import { recordPetcamVideoStats, reportError } from '@/services/telemetry/client';
+import { reportError } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
-import ConfirmDialog from '@/components/dialogs/confirm-dialog';
-import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 const ICON_SIZE = 22;
-const FADE_MS = 2 * SECOND;
 
 /** 영상이 없을 때 표시할 안내를 반환하는 함수 */
 const watchStatus = (petcamState: PetcamState | null, stationUnreachable: boolean) => {
@@ -79,31 +80,30 @@ const SessionWatchScreen = () => {
 	const leavingRef = useRef(false);
 	const petcamReceiverRef = useRef<PetcamReceiver | null>(null);
 
-	const { data: sessionData, error: sessionError } = useQuery({
-		...getSessionOptions({ id: params.sessionId }),
-		staleTime: 0,
-		throwOnError: false,
-		refetchInterval: HEARTBEAT_INTERVAL_MS,
-	});
+	const { data: sessionData, error: sessionError } = useGetSessionQuery(
+		{ id: params.sessionId },
+		{ staleTime: 0, refetchInterval: HEARTBEAT_INTERVAL_MS },
+	);
 
 	const { mutate: finishSession, isPending: sessionFinishing, error: finishError } = useFinishSession();
 	const { mutateAsync: issuePetcamTurnCredential } = useIssuePetcamTurnCredential();
 
 	const infoVisible = useSessionStore((state) => state.infoVisible);
+
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
 
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
-	const finishNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
+	const sessionNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
 	const sessionEnded =
 		sessionData?.status === 'finished' ||
 		(sessionError instanceof ApiError && !sessionError.retryable) ||
-		finishNotRunning;
+		sessionNotRunning;
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
-	/** 영상이 바뀌면 학습 정보 표시 */
+	/** 영상 변경 시 학습 정보 표시 */
 	useEffect(() => {
 		showInfo();
 
@@ -112,15 +112,18 @@ const SessionWatchScreen = () => {
 
 	/** 학습 정보 fade 애니메이션 실행 */
 	useEffect(() => {
-		opacity.set(infoShown ? 1 : withTiming(0, { duration: FADE_MS }));
+		opacity.set(infoShown ? 1 : withTiming(0, { duration: SESSION_INFO_FADE_MS }));
 	}, [infoShown, opacity]);
 
-	/** Station과 연결할 채널 열기 */
+	/** Station과 연결할 채널 생성 */
 	useEffect(() => {
 		const receiver = createPetcamReceiver({
 			sessionId: params.sessionId,
 			issueTurnCredential: issuePetcamTurnCredential,
-			onState: setPetcamState,
+			onState: (state) => {
+				setPetcamState(state);
+				setCameraRequestPending(false);
+			},
 			onStream: setStream,
 			onVideoStats: (stats) => recordPetcamVideoStats('receiver', stats),
 			onError: (error) => reportError(error, 'petcam_receiver'),
@@ -146,11 +149,6 @@ const SessionWatchScreen = () => {
 		return () => clearTimeout(timer);
 	}, [petcamState]);
 
-	/** Station이 응답하면 카메라 요청 완료 */
-	useEffect(() => {
-		setCameraRequestPending(false);
-	}, [petcamState]);
-
 	/** 응답이 없으면 카메라 요청 취소 */
 	useEffect(() => {
 		if (!cameraRequestPending) {
@@ -170,8 +168,8 @@ const SessionWatchScreen = () => {
 
 		leavingRef.current = true;
 
-		void queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() });
-		void queryClient.invalidateQueries({ queryKey: apiKeys.home() });
+		void queryClient.invalidateQueries({ queryKey: sessionKeys.all() });
+		void queryClient.invalidateQueries({ queryKey: homeKeys.all() });
 
 		if (params.source === 'notification') {
 			navigation.popTo('Main', {
@@ -220,7 +218,20 @@ const SessionWatchScreen = () => {
 			return;
 		}
 
-		finishSession({ id: params.sessionId });
+		finishSession(
+			{ id: params.sessionId },
+			{
+				onError: (error) => {
+					if (error instanceof ApiError && error.code === 'SESSION__NOT_RUNNING') {
+						return;
+					}
+
+					toast.custom(<Toast variant="error" message={t('session.start.endElsewhereError')} />, {
+						toasterId: dialogToasterId,
+					});
+				},
+			},
+		);
 	};
 
 	const header = (
@@ -256,7 +267,6 @@ const SessionWatchScreen = () => {
 
 	return (
 		<View style={styles.screen}>
-			{/*영상*/}
 			{!!stream && (
 				<ZoomableView onTap={showInfo}>
 					<RTCView streamURL={stream.toURL()} objectFit="cover" style={styles.screen} />
@@ -267,10 +277,11 @@ const SessionWatchScreen = () => {
 			{!stream && (
 				<View style={styles.statusContainer} pointerEvents="none">
 					{status === 'connecting' ? (
-						<>
-							<ActivityIndicator color={sessionColors.text} />
-							<Copy style={styles.statusTitle}>{t('session.watch.connecting')}</Copy>
-						</>
+						<ActivityIndicator
+							accessible
+							accessibilityLabel={t('session.watch.connecting')}
+							color={sessionColors.text}
+						/>
 					) : (
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
@@ -283,9 +294,8 @@ const SessionWatchScreen = () => {
 				</View>
 			)}
 
-			{/*세션 진행 정보*/}
 			<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents={infoShown ? 'box-none' : 'none'}>
-				<RunInfo
+				<SessionRunInfo
 					startedAt={sessionData.period.started_at}
 					endsAt={sessionData.schedule.ends_at ? dayjs(sessionData.schedule.ends_at).valueOf() : null}
 					sleep={sessionData.schedule.sleep}
@@ -295,26 +305,12 @@ const SessionWatchScreen = () => {
 				/>
 			</Animated.View>
 
-			{/*학습 종료 확인 다이얼로그*/}
-			<ConfirmDialog
+			<SessionEndDialog
 				visible={endDialogOpen}
-				text={{
-					title: t('session.end.title'),
-					confirm: t('session.end.button'),
-					cancel: t('session.end.keep'),
-				}}
-				confirmStatus={{
-					busy: sessionFinishing,
-					errorMessage: finishError && !finishNotRunning ? t('session.start.endElsewhereError') : null,
-				}}
+				sessionFinishing={sessionFinishing}
 				onConfirm={handleEnd}
 				onClose={() => setEndDialogOpen(false)}
-			>
-				<View style={styles.endMessageContainer}>
-					<Mascot size={88} />
-					<Copy style={styles.endMessage}>{t('session.end.message')}</Copy>
-				</View>
-			</ConfirmDialog>
+			/>
 		</View>
 	);
 };
@@ -342,8 +338,6 @@ const styles = StyleSheet.create({
 		color: sessionColors.text,
 		textAlign: 'center',
 	},
-	endMessageContainer: { alignItems: 'center', gap: 12 },
-	endMessage: { textAlign: 'center', lineHeight: 22 },
 });
 
 export default SessionWatchScreen;

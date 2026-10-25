@@ -21,10 +21,6 @@ export const SheetBackdrop = ({ pressBehavior = 'close', ...props }: Props) => {
 	);
 };
 
-export const FixedSheetBackdrop = (props: BottomSheetBackdropProps) => {
-	return <SheetBackdrop {...props} pressBehavior="none" />;
-};
-
 const styles = StyleSheet.create({
 	backdrop: { backgroundColor: colors.backdrop },
 });

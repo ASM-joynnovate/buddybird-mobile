@@ -13,7 +13,7 @@ export const useLogin = () => {
 		mutationKey: apiKeys.mutation('auth', 'login'),
 		mutationFn: postLogin,
 		retry: false,
-		meta: { skipUnauthorizedSignOut: true },
+		meta: { unauthorizedSignOutSkipped: true },
 	});
 };
 
@@ -22,15 +22,6 @@ export const useLogout = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'logout'),
 		mutationFn: postLogout,
-		onError: (error) => reportError(error, 'sign_out'),
-	});
-};
-
-/** 이 기기에서 로그아웃하는 Hook */
-export const useSignOutLocally = () => {
-	return useMutation({
-		mutationKey: apiKeys.mutation('auth', 'signOutLocally'),
-		mutationFn: signOutLocally,
 		onError: (error) => reportError(error, 'sign_out'),
 	});
 };

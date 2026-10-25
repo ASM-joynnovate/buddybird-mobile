@@ -6,21 +6,22 @@ import { useIsMutating } from '@tanstack/react-query';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { useGetMe, useUpdateMe, useUploadUserPhoto } from '@/hooks/apis/users';
+import useNicknameError from '@/hooks/use-nickname-error';
 import usePhotoPicker from '@/hooks/use-photo-picker';
 
 import { useTranslation } from 'react-i18next';
 
-import { apiErrorMessage } from '@/lib/api';
+import { toast } from 'sonner-native';
 
-import { NICKNAME_PATTERN } from '@/config';
+import { NICKNAME_MAX_LENGTH } from '@/config/policy';
+import ProfilePhoto from '@/screens/profile/components/profile-photo';
 import { reportError } from '@/services/telemetry/client';
-import { isDuplicateNickname } from '@/utils/duplicate-nickname';
+import { isDuplicateNickname, normalizeNickname } from '@/utils/nickname';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
-import ProfilePhoto from '@/components/profile-photo';
 import { Button } from '@/components/ui/button';
-import { InlineError } from '@/components/ui/inline-error';
 import { TextField } from '@/components/ui/text-field';
+import { Toast } from '@/components/ui/toast';
 
 interface Props {
 	onSaved: () => void;
@@ -33,10 +34,11 @@ interface Props {
 const AccountForm = ({ onSaved }: Props) => {
 	const { t } = useTranslation();
 
+	const [nicknameInvalid, setNicknameInvalid] = useState(false);
+
 	const { data: meData } = useGetMe();
 
 	const [nickname, setNickname] = useState(meData.nickname ?? '');
-	const [nicknameInvalid, setNicknameInvalid] = useState(false);
 
 	const updateMe = useUpdateMe();
 	const uploadUserPhoto = useUploadUserPhoto();
@@ -45,35 +47,30 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	const savedPhotoUrl = meData.photo_file?.url ?? null;
 
-	const photo = usePhotoPicker(savedPhotoUrl);
+	const photoPicker = usePhotoPicker(savedPhotoUrl);
+
+	const nicknameError = useNicknameError(nicknameInvalid, updateMe.error);
 
 	const saving = updateMe.isPending || userPhotoUploading;
-	const photoSaveFailed = uploadUserPhoto.isError;
-	const duplicateNickname = isDuplicateNickname(updateMe.error);
-	let nicknameError: string | null = null;
 
-	if (nicknameInvalid) {
-		nicknameError = t('profile.nicknameInvalid');
-	} else if (duplicateNickname) {
-		nicknameError = apiErrorMessage(updateMe.error, t);
-	}
+	/** 저장 실패를 보고하고 토스트로 표시하는 함수 */
+	const handleSaveError = (error: unknown) => {
+		reportError(error, 'account_save');
 
-	const saveError = (updateMe.isError && !duplicateNickname) || photoSaveFailed ? t('common.saveErrorKept') : null;
+		toast.custom(<Toast variant="error" message={t('common.saveErrorKept')} />);
+	};
 
 	/** 변경한 계정 사진 저장 함수 */
 	const saveUserPhoto = () => {
-		if (photo.photoChanged && photo.photoUri) {
-			uploadUserPhoto.mutate(
-				{ uri: photo.photoUri },
-				{ onSuccess: onSaved, onError: (error) => reportError(error, 'account_save') },
-			);
+		if (photoPicker.photoChanged && photoPicker.photoUri) {
+			uploadUserPhoto.mutate({ uri: photoPicker.photoUri }, { onSuccess: onSaved, onError: handleSaveError });
 		} else {
 			onSaved();
 		}
 	};
 
-	const handleChangeNickname = (value: string) => {
-		setNickname(value);
+	const handleChangeNickname = (nextNickname: string) => {
+		setNickname(nextNickname);
 		setNicknameInvalid(false);
 
 		updateMe.reset();
@@ -84,9 +81,9 @@ const AccountForm = ({ onSaved }: Props) => {
 			return;
 		}
 
-		const normalizedNickname = nickname.normalize('NFC').trim();
+		const normalizedNickname = normalizeNickname(nickname);
 
-		if (!NICKNAME_PATTERN.test(normalizedNickname)) {
+		if (!normalizedNickname) {
 			setNicknameInvalid(true);
 
 			return;
@@ -98,7 +95,7 @@ const AccountForm = ({ onSaved }: Props) => {
 				onSuccess: saveUserPhoto,
 				onError: (error) => {
 					if (!isDuplicateNickname(error)) {
-						reportError(error, 'account_save');
+						handleSaveError(error);
 					}
 				},
 			},
@@ -108,7 +105,11 @@ const AccountForm = ({ onSaved }: Props) => {
 	return (
 		<>
 			<View style={styles.spacer} />
-			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
+			<ProfilePhoto
+				photoPicker={photoPicker}
+				disabled={saving}
+				badgeIcon={photoPicker.photoUri ? 'edit' : 'plus'}
+			/>
 
 			<View style={styles.nicknameContainer}>
 				<TextField
@@ -117,7 +118,7 @@ const AccountForm = ({ onSaved }: Props) => {
 					value={nickname}
 					onChangeText={handleChangeNickname}
 					editable={!saving}
-					maxLength={20}
+					maxLength={NICKNAME_MAX_LENGTH}
 					placeholder={t('profile.nicknameHint')}
 					autoCapitalize="none"
 					returnKeyType="done"
@@ -126,11 +127,10 @@ const AccountForm = ({ onSaved }: Props) => {
 			</View>
 
 			<View style={styles.spacer} />
-			<InlineError message={saveError} />
-			<Button label={t('common.save')} loading={saving} onPress={handleSave} style={styles.save} />
+			<Button label={t('common.save')} loading={saving} onPress={handleSave} style={styles.saveButton} />
 
-			<PermissionDialog state={photo.libraryDialog} />
-			<PermissionDialog state={photo.cameraDialog} />
+			<PermissionDialog state={photoPicker.libraryDialog} />
+			<PermissionDialog state={photoPicker.cameraDialog} />
 		</>
 	);
 };
@@ -138,7 +138,7 @@ const AccountForm = ({ onSaved }: Props) => {
 const styles = StyleSheet.create({
 	nicknameContainer: { marginTop: 32 },
 	spacer: { flexGrow: 1, minHeight: 24 },
-	save: { marginTop: 12 },
+	saveButton: { marginTop: 12 },
 });
 
 export default AccountForm;

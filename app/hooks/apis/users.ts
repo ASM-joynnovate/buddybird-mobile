@@ -1,19 +1,21 @@
-import { type InfiniteData, queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { deleteUserBlock, getMe, patchMe, putUserBlock, putUserPhoto } from '@/apis/users';
 
-import type { FeedPage } from '@/types/apis/feed';
-
+import { updateCachedFeedItems } from '@/hooks/apis/feed';
 import { apiKeys } from '@/hooks/apis/keys';
+import { feedKeys } from '@/hooks/apis/keys/feed';
+import { leaderboardKeys } from '@/hooks/apis/keys/leaderboard';
+import { userKeys } from '@/hooks/apis/keys/users';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
 /** 내 정보 조회 Hook에 사용할 옵션 */
-export const getMeOptions = () => queryOptions({ queryKey: apiKeys.me(), queryFn: getMe });
+export const getMeOptions = () => queryOptions({ queryKey: userKeys.me(), queryFn: getMe });
 /** 내 정보 조회 Hook */
-export const useGetMe = () => {
-	return useSuspenseQuery(getMeOptions());
+export const useGetMe = (options?: Pick<ReturnType<typeof getMeOptions>, 'refetchInterval'>) => {
+	return useSuspenseQuery({ ...getMeOptions(), ...options });
 };
 
 /** 내 정보 수정 Hook */
@@ -25,9 +27,9 @@ export const useUpdateMe = () => {
 		mutationFn: patchMe,
 		onSuccess: () =>
 			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.me() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.leaderboard.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.feed.all() }),
+				queryClient.invalidateQueries({ queryKey: userKeys.me() }),
+				queryClient.invalidateQueries({ queryKey: leaderboardKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: feedKeys.all() }),
 			]),
 	});
 };
@@ -40,19 +42,9 @@ export const useBlockUser = () => {
 		mutationKey: apiKeys.mutation('users', 'me', 'blocks', 'add'),
 		mutationFn: putUserBlock,
 		onSuccess: async (_, { id }) => {
-			await queryClient.cancelQueries({ queryKey: apiKeys.feed.all() });
+			await queryClient.cancelQueries({ queryKey: feedKeys.all() });
 
-			queryClient.setQueriesData<InfiniteData<FeedPage>>(
-				{ queryKey: apiKeys.feed.all() },
-				(feedData) =>
-					feedData && {
-						...feedData,
-						pages: feedData.pages.map((feedPage) => ({
-							...feedPage,
-							data: feedPage.data.filter((feedItem) => feedItem.user.id !== id),
-						})),
-					},
-			);
+			updateCachedFeedItems(queryClient, (feedItems) => feedItems.filter((feedItem) => feedItem.user.id !== id));
 		},
 		onError: (error) => reportError(error, 'user_block'),
 	});
@@ -65,7 +57,7 @@ export const useUnblockUser = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'blocks', 'delete'),
 		mutationFn: deleteUserBlock,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.feed.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: feedKeys.all() }),
 		onError: (error) => reportError(error, 'user_unblock'),
 	});
 };
@@ -77,6 +69,6 @@ export const useUploadUserPhoto = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'photo', 'upload'),
 		mutationFn: putUserPhoto,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.me() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.me() }),
 	});
 };

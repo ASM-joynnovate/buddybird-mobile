@@ -14,7 +14,7 @@ interface Props {
 }
 
 export interface ItemBaseProps extends Props {
-	first?: boolean;
+	isFirstInGroup?: boolean;
 }
 
 export const ItemLabel = ({ label, icon: Icon, detail }: Props) => {

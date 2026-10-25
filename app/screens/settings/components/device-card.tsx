@@ -24,15 +24,15 @@ interface Props {
 }
 
 /**
- * 기기 카드 컴포넌트
+ * 기기 이름 및 마지막 접속 시각 표시 카드 컴포넌트
  * @param device 연결된 기기
  */
 const DeviceCard = ({ device }: Props) => {
 	const { t } = useTranslation();
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	return (
 		<Card contentStyle={styles.card}>

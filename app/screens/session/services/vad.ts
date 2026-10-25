@@ -1,3 +1,5 @@
+import type { SoundSegment } from '@/types/sound-segment';
+
 import { SECOND } from '@/config/units';
 
 interface VadSettings {
@@ -12,16 +14,9 @@ interface VadSettings {
 	maxSegmentMs: number;
 }
 
-export interface SoundSegment {
-	samples: Float32Array;
-	durationMs: number;
-	soundStartMs: number;
-	soundEndMs: number;
-}
-
 const AMPLITUDE_DB_FACTOR = 20;
 const MIN_RMS = 1e-9;
-const EMPTY: Float32Array = new Float32Array(0);
+const EMPTY_SAMPLES: Float32Array = new Float32Array(0);
 
 /** 두 샘플 배열을 이어 붙이는 함수 */
 const concat = (first: Float32Array, second: Float32Array) => {
@@ -47,16 +42,16 @@ const isLoud = (frame: Float32Array, settings: VadSettings) => {
 	return Math.min(1, Math.max(0, level)) > settings.threshold;
 };
 
-/** 마이크 샘플에서 큰 소리가 난 구간을 찾는 객체를 만드는 함수 */
+/** 큰 소리 구간 감지 객체 생성 함수 */
 export const createSoundDetector = (settings: VadSettings) => {
 	const samplesPerMs = settings.sampleRate / SECOND;
-	const frameSamples = samplesPerMs * settings.frameMs;
+	const frameSampleCount = samplesPerMs * settings.frameMs;
 	const padBeforeSampleCount = samplesPerMs * settings.padBeforeMs;
 
-	let leftoverSamples = EMPTY;
-	let padBeforeSamples = EMPTY;
-	let loudCandidate = EMPTY;
-	let segment = EMPTY;
+	let leftoverSamples = EMPTY_SAMPLES;
+	let padBeforeSamples = EMPTY_SAMPLES;
+	let loudCandidate = EMPTY_SAMPLES;
+	let segment = EMPTY_SAMPLES;
 	let soundStartMs = 0;
 	let quietTailMs = 0;
 	let suspendedUntil = 0;
@@ -66,9 +61,9 @@ export const createSoundDetector = (settings: VadSettings) => {
 
 	/** 감지 상태 초기화 함수 */
 	const reset = () => {
-		padBeforeSamples = EMPTY;
-		loudCandidate = EMPTY;
-		segment = EMPTY;
+		padBeforeSamples = EMPTY_SAMPLES;
+		loudCandidate = EMPTY_SAMPLES;
+		segment = EMPTY_SAMPLES;
 		soundStartMs = 0;
 		quietTailMs = 0;
 	};
@@ -97,35 +92,36 @@ export const createSoundDetector = (settings: VadSettings) => {
 
 	/** 프레임 하나를 처리하고 끝난 소리 구간을 반환하는 함수 */
 	const consume = (frame: Float32Array) => {
-		const loud = isLoud(frame, settings);
+		const frameLoud = isLoud(frame, settings);
 
 		if (segment.length > 0) {
 			segment = concat(segment, frame);
-			quietTailMs = loud ? 0 : quietTailMs + settings.frameMs;
-		} else if (loud) {
+			quietTailMs = frameLoud ? 0 : quietTailMs + settings.frameMs;
+		} else if (frameLoud) {
 			loudCandidate = concat(loudCandidate, frame);
 
 			if (msOf(loudCandidate) >= settings.minSoundMs) {
 				segment = tail(concat(padBeforeSamples, loudCandidate), padBeforeSampleCount);
 				soundStartMs = Math.max(0, msOf(segment) - settings.minSoundMs);
-				padBeforeSamples = EMPTY;
-				loudCandidate = EMPTY;
+				padBeforeSamples = EMPTY_SAMPLES;
+				loudCandidate = EMPTY_SAMPLES;
 			}
 		} else {
 			padBeforeSamples = tail(concat(concat(padBeforeSamples, loudCandidate), frame), padBeforeSampleCount);
-			loudCandidate = EMPTY;
+			loudCandidate = EMPTY_SAMPLES;
 		}
 
-		const complete =
+		const segmentComplete =
 			segment.length > 0 && (msOf(segment) >= settings.maxSegmentMs || quietTailMs >= settings.minSilenceMs);
 
-		return complete ? flush() : null;
+		return segmentComplete ? flush() : null;
 	};
 
 	return {
+		/** 마이크 샘플 입력 함수 */
 		push: (samples: Float32Array, now: number) => {
 			if (now < suspendedUntil) {
-				leftoverSamples = EMPTY;
+				leftoverSamples = EMPTY_SAMPLES;
 				reset();
 
 				return [];
@@ -135,10 +131,10 @@ export const createSoundDetector = (settings: VadSettings) => {
 
 			leftoverSamples = concat(leftoverSamples, samples);
 
-			while (leftoverSamples.length >= frameSamples) {
-				const completedSegment = consume(leftoverSamples.slice(0, frameSamples));
+			while (leftoverSamples.length >= frameSampleCount) {
+				const completedSegment = consume(leftoverSamples.slice(0, frameSampleCount));
 
-				leftoverSamples = leftoverSamples.slice(frameSamples);
+				leftoverSamples = leftoverSamples.slice(frameSampleCount);
 
 				if (completedSegment) {
 					completedSegments.push(completedSegment);
@@ -147,9 +143,10 @@ export const createSoundDetector = (settings: VadSettings) => {
 
 			return completedSegments;
 		},
+		/** 감지 일시 중지 함수 */
 		suspend: (untilMs: number) => {
 			suspendedUntil = Math.max(suspendedUntil, untilMs);
-			leftoverSamples = EMPTY;
+			leftoverSamples = EMPTY_SAMPLES;
 			reset();
 		},
 		flush,

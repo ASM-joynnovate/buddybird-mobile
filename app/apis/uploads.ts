@@ -1,7 +1,11 @@
-import type { PetcamEventKind } from '@/types/apis/sessions';
+import type { SessionPetcamVideoParams, SessionSoundParams } from '@/types/apis/sessions';
 import {
+	type FileUploadParams,
+	type IdFileUploadParams,
 	type PetcamEventUpload,
 	petcamEventUploadSchema,
+	type PostSessionPetcamEventUploadParams,
+	type PutUploadFileParams,
 	type Upload,
 	uploadSchema,
 	type WordRecordingUpload,
@@ -12,21 +16,15 @@ import { apiRequest } from '@/lib/api';
 
 import { File } from 'expo-file-system';
 
-import { API_TIMEOUT_MS } from '@/config';
+import { API_TIMEOUT_MS } from '@/config/policy';
 
 const SUCCESS_STATUS_MIN = 200;
 const SUCCESS_STATUS_MAX = 299;
 
-export const putUserPhotoUpload = async ({
-	uri,
-	idempotencyKey,
-}: {
-	uri: string;
-	idempotencyKey: string;
-}): Promise<Upload> => {
+const putPhotoUpload = async ({ path, uri, idempotencyKey }: FileUploadParams & { path: string }): Promise<Upload> => {
 	const file = new File(uri);
 
-	const { data: upload } = await apiRequest('/api/v1/users/me/photo', uploadSchema, {
+	const { data: upload } = await apiRequest(path, uploadSchema, {
 		method: 'PUT',
 		json: { content_type: file.type, file_size: file.size },
 		idempotencyKey,
@@ -35,35 +33,17 @@ export const putUserPhotoUpload = async ({
 	return upload;
 };
 
-export const putParrotPhotoUpload = async ({
-	id,
-	uri,
-	idempotencyKey,
-}: {
-	id: string;
-	uri: string;
-	idempotencyKey: string;
-}): Promise<Upload> => {
-	const file = new File(uri);
+export const putUserPhotoUpload = ({ uri, idempotencyKey }: FileUploadParams): Promise<Upload> =>
+	putPhotoUpload({ path: '/api/v1/users/me/photo', uri, idempotencyKey });
 
-	const { data: upload } = await apiRequest(`/api/v1/parrots/${id}/photo`, uploadSchema, {
-		method: 'PUT',
-		json: { content_type: file.type, file_size: file.size },
-		idempotencyKey,
-	});
-
-	return upload;
-};
+export const putParrotPhotoUpload = ({ id, uri, idempotencyKey }: IdFileUploadParams): Promise<Upload> =>
+	putPhotoUpload({ path: `/api/v1/parrots/${id}/photo`, uri, idempotencyKey });
 
 export const postWordRecordingUpload = async ({
 	id,
 	uri,
 	idempotencyKey,
-}: {
-	id: string;
-	uri: string;
-	idempotencyKey: string;
-}): Promise<WordRecordingUpload> => {
+}: IdFileUploadParams): Promise<WordRecordingUpload> => {
 	const file = new File(uri);
 
 	const { data: upload } = await apiRequest(`/api/v1/words/${id}/recordings`, wordRecordingUploadSchema, {
@@ -80,12 +60,7 @@ export const postSessionSoundUpload = async ({
 	uri,
 	data,
 	idempotencyKey,
-}: {
-	id: string;
-	uri: string;
-	data: { captured_at: string };
-	idempotencyKey: string;
-}): Promise<Upload> => {
+}: SessionSoundParams): Promise<Upload> => {
 	const file = new File(uri);
 
 	const { data: upload } = await apiRequest(`/api/v1/sessions/${id}/sounds`, uploadSchema, {
@@ -102,12 +77,7 @@ export const postSessionPetcamEventUpload = async ({
 	uri,
 	data,
 	idempotencyKey,
-}: {
-	id: string;
-	uri: string;
-	data: { kind: PetcamEventKind; occurred_at: string };
-	idempotencyKey: string;
-}): Promise<PetcamEventUpload> => {
+}: PostSessionPetcamEventUploadParams): Promise<PetcamEventUpload> => {
 	const file = new File(uri);
 
 	const { data: upload } = await apiRequest(`/api/v1/sessions/${id}/petcam-events`, petcamEventUploadSchema, {
@@ -124,12 +94,7 @@ export const postSessionPetcamVideoUpload = async ({
 	eventId,
 	uri,
 	idempotencyKey,
-}: {
-	id: string;
-	eventId: string;
-	uri: string;
-	idempotencyKey: string;
-}): Promise<Upload> => {
+}: SessionPetcamVideoParams): Promise<Upload> => {
 	const file = new File(uri);
 
 	const { data: upload } = await apiRequest(`/api/v1/sessions/${id}/petcam-events/${eventId}/video`, uploadSchema, {
@@ -145,19 +110,15 @@ export const putUploadFile = async ({
 	upload,
 	uri,
 	timeoutMs = API_TIMEOUT_MS,
-}: {
-	upload: Upload;
-	uri: string;
-	timeoutMs?: number;
-}): Promise<void> => {
-	const result = await new File(uri).upload(upload.url, {
+}: PutUploadFileParams): Promise<void> => {
+	const uploadResponse = await new File(uri).upload(upload.url, {
 		httpMethod: 'PUT',
 		headers: upload.headers,
 		sessionType: 'foreground',
 		signal: AbortSignal.timeout(timeoutMs),
 	});
 
-	if (result.status < SUCCESS_STATUS_MIN || result.status > SUCCESS_STATUS_MAX) {
-		throw new Error(`Upload failed (HTTP ${result.status})`);
+	if (uploadResponse.status < SUCCESS_STATUS_MIN || uploadResponse.status > SUCCESS_STATUS_MAX) {
+		throw new Error(`Upload failed (HTTP ${uploadResponse.status})`);
 	}
 };

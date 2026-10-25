@@ -20,7 +20,7 @@ export const ItemGroup = ({ children, title }: Props) => {
 				</Copy>
 			)}
 
-			<View style={styles.list}>{children}</View>
+			<View style={styles.itemList}>{children}</View>
 		</View>
 	);
 };
@@ -28,7 +28,7 @@ export const ItemGroup = ({ children, title }: Props) => {
 const styles = StyleSheet.create({
 	container: { gap: 10 },
 	groupTitle: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
-	list: {
+	itemList: {
 		borderWidth: 2,
 		borderColor: colors.border,
 		borderRadius: radius.card,

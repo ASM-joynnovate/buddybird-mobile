@@ -20,7 +20,13 @@ const FeedCardMilestoneBody = ({ message, art }: Props) => {
 	return (
 		<View style={styles.container}>
 			<Copy style={styles.message}>{message}</Copy>
-			<View style={styles.artContainer}>{art}</View>
+			<View
+				style={styles.artContainer}
+				accessibilityElementsHidden
+				importantForAccessibility="no-hide-descendants"
+			>
+				{art}
+			</View>
 		</View>
 	);
 };

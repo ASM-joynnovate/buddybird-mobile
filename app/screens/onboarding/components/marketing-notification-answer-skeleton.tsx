@@ -4,7 +4,7 @@ import { colors, depths, radius } from '@/theme';
 
 import { ui } from '@/components/ui/styles';
 
-/** 마케팅 알림 동의 버튼을 불러오는 동안 보이는 컴포넌트 */
+/** 마케팅 알림 동의 버튼 스켈레톤 컴포넌트 */
 const MarketingNotificationAnswerSkeleton = () => {
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

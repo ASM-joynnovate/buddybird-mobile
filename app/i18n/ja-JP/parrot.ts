@@ -16,7 +16,7 @@ export const parrot: ParrotMessages = {
 	searchAllSpecies: 'すべてから探す',
 	birthdateQuestion: 'いつ生まれましたか？',
 	nameRequired: '愛鳥の名前を入力してください。',
-	speciesRequired: '愛鳥の種類を選ぶか、直接入力してください。',
+	speciesRequired: '愛鳥の種類を選んでください。',
 	birthdateInFuture: '生年月日は今日より後の日付にできません。',
 	yearPicker: '生まれた年を選択',
 	monthPicker: '生まれた月を選択',

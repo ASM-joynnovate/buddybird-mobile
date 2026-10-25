@@ -25,7 +25,7 @@ interface Props {
  * @param disabled 버튼 비활성 여부
  * @param onPress 버튼을 누를 때 실행할 함수
  */
-const RecordingStepItem = ({ index, selected, recorded, locked, disabled, onPress }: Props) => {
+const RecordingSheetStepItem = ({ index, selected, recorded, locked, disabled, onPress }: Props) => {
 	const { t } = useTranslation();
 
 	let numberColor = colors.subtle;
@@ -65,4 +65,4 @@ const styles = StyleSheet.create({
 	number: { fontFamily: font.black, fontSize: 16, fontVariant: ['tabular-nums'] },
 });
 
-export default RecordingStepItem;
+export default RecordingSheetStepItem;

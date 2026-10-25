@@ -1,8 +1,13 @@
-import { useLogout, useSignOutLocally } from '@/hooks/apis/auth';
+import { useLogout } from '@/hooks/apis/auth';
 
 import { useTranslation } from 'react-i18next';
 
+import { toast } from 'sonner-native';
+
+import useSignOutLocally from '@/screens/settings/hooks/use-sign-out-locally';
+
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
 	visible: boolean;
@@ -27,14 +32,14 @@ const SignOutDialog = ({ visible, onClose }: Props) => {
 			return;
 		}
 
-		logout.mutate(undefined, { onSuccess: () => signOutLocally.mutate() });
-	};
-
-	const handleClose = () => {
-		logout.reset();
-		signOutLocally.reset();
-
-		onClose();
+		logout.mutate(undefined, {
+			onSuccess: () => signOutLocally.mutate(),
+			onError: () => {
+				toast.custom(<Toast variant="error" message={t('auth.signOutError')} />, {
+					toasterId: dialogToasterId,
+				});
+			},
+		});
 	};
 
 	return (
@@ -45,9 +50,9 @@ const SignOutDialog = ({ visible, onClose }: Props) => {
 				message: t('settings.signOutDialog.message'),
 				confirm: t('settings.signOutDialog.confirm'),
 			}}
-			confirmStatus={{ busy: signOutPending, errorMessage: logout.isError ? t('auth.signOutError') : null }}
+			confirmBusy={signOutPending}
 			onConfirm={handleSignOut}
-			onClose={handleClose}
+			onClose={onClose}
 		/>
 	);
 };

@@ -11,11 +11,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import SignOutDialog from '@/screens/settings/components/account-section/sign-out-dialog';
 import WithdrawDialog from '@/screens/settings/components/account-section/withdraw-dialog';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 
 import { TextButton } from '@/components/ui/text-button';
 
-/** 로그아웃과 회원 탈퇴 버튼 컴포넌트 */
+/** 로그아웃 및 회원 탈퇴 버튼 컴포넌트 */
 const AccountSection = () => {
 	const { t } = useTranslation();
 
@@ -23,7 +23,7 @@ const AccountSection = () => {
 
 	const [openedDialog, setOpenedDialog] = useState<'signOut' | 'withdraw' | null>(null);
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
 	return (
 		<>

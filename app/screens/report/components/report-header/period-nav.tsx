@@ -16,13 +16,14 @@ import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 
 /** 리포트 기간 이동 컴포넌트 */
-const PeriodNav = () => {
+const ReportHeaderPeriodNav = () => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
+
 	const movePeriod = useReportStore((state) => state.movePeriod);
 
 	const selectedStart = start ?? latestStart(period);
@@ -59,4 +60,4 @@ const styles = StyleSheet.create({
 	period: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 14.5 },
 });
 
-export default PeriodNav;
+export default ReportHeaderPeriodNav;

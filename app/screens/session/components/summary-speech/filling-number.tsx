@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import type { CountUnit } from '@/types/session-summary';
+
 import Animated, {
 	Easing,
 	type MeasuredDimensions,
@@ -16,11 +18,11 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
-import CountUpText, { type CountUnit } from '@/screens/session/components/count-up-text';
-import { bumpScale, burstEasing, glintSweep } from '@/screens/session/components/summary-animations';
+import CountUpText from '@/screens/session/components/count-up-text';
+import { bumpScale, glintSweep } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
 import SummaryGlint from '@/screens/session/components/summary-glint';
-import { colors, font } from '@/theme';
+import { burstEasing, colors, font } from '@/theme';
 
 const FILL_MS = 1.1 * SECOND;
 const SPARK_MS = 600;
@@ -30,7 +32,7 @@ const SPARK_FADE_MS = 180;
 export interface SummarySentence {
 	lead: string;
 	tail: string;
-	value: number;
+	amount: number;
 	unit: CountUnit;
 	metric: SummaryMetric;
 }
@@ -46,17 +48,18 @@ interface Props {
  * 숫자가 올라가는 동안 배경이 차오르는 숫자 컴포넌트
  * @param sentence 숫자를 담은 문장
  * @param size 글자 크기
- * @param filled 처음부터 다 찬 상태로 보일지 여부
+ * @param filled 처음부터 다 찬 상태 표시 여부
  * @param onFilled 배경이 다 차면 숫자의 화면 위치를 받아 실행할 함수
  */
 const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const pillRef = useAnimatedRef<Animated.View>();
-	const progress = useSharedValue(filled || reducedMotion ? 1 : 0);
-	const bump = useSharedValue(1);
-	const glint = useSharedValue(0);
-	const spark = useSharedValue(0);
+
+	const progress = useSharedValue(filled || motionReduced ? 1 : 0);
+	const numberScale = useSharedValue(1);
+	const glintProgress = useSharedValue(0);
+	const sparkProgress = useSharedValue(0);
 	const sparkOpacity = useSharedValue(1);
 
 	const [pillWidth, setPillWidth] = useState(0);
@@ -64,7 +67,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 	const palette = summaryMetricColors[sentence.metric];
 	const pillSizeStyle = size === 'large' ? styles.pillLarge : styles.pillMedium;
 	const textSizeStyle = size === 'large' ? styles.textLarge : styles.textMedium;
-	const bumpStyle = useAnimatedStyle(() => ({ transform: [{ scale: bump.get() }] }));
+	const bumpStyle = useAnimatedStyle(() => ({ transform: [{ scale: numberScale.get() }] }));
 	const fillStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.get() }] }));
 	const onFillClipStyle = useAnimatedStyle(() => ({
 		opacity: pillWidth === 0 ? 0 : 1,
@@ -73,7 +76,10 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 	const onFillTextStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: (1 - progress.get()) * pillWidth }],
 	}));
-	const sparksStyle = useAnimatedStyle(() => ({ opacity: sparkOpacity.get(), transform: [{ scale: spark.get() }] }));
+	const sparksStyle = useAnimatedStyle(() => ({
+		opacity: sparkOpacity.get(),
+		transform: [{ scale: sparkProgress.get() }],
+	}));
 
 	/** 아직 다 차지 않은 문장이면 숫자 배경 채우기 시작 */
 	useEffect(() => {
@@ -81,7 +87,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 			return;
 		}
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			onFilled(null);
 
 			return;
@@ -95,16 +101,16 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 
 				const position = measure(pillRef);
 
-				bump.set(bumpScale());
-				glint.set(glintSweep());
-				spark.set(withTiming(1, { duration: SPARK_MS, easing: burstEasing }));
+				numberScale.set(bumpScale());
+				glintProgress.set(glintSweep());
+				sparkProgress.set(withTiming(1, { duration: SPARK_MS, easing: burstEasing }));
 				sparkOpacity.set(
 					withDelay(SPARK_FADE_DELAY_MS, withTiming(0, { duration: SPARK_FADE_MS, easing: burstEasing })),
 				);
 				scheduleOnRN(onFilled, position);
 			}),
 		);
-	}, [bump, filled, glint, onFilled, pillRef, progress, reducedMotion, spark, sparkOpacity]);
+	}, [numberScale, filled, glintProgress, onFilled, pillRef, progress, motionReduced, sparkProgress, sparkOpacity]);
 
 	return (
 		<Animated.View style={[styles.container, bumpStyle]}>
@@ -125,7 +131,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 				<CountUpText
 					progress={progress}
 					from={0}
-					to={sentence.value}
+					to={sentence.amount}
 					unit={sentence.unit}
 					style={[styles.text, textSizeStyle]}
 				/>
@@ -140,14 +146,14 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 						<CountUpText
 							progress={progress}
 							from={0}
-							to={sentence.value}
+							to={sentence.amount}
 							unit={sentence.unit}
 							style={[styles.text, styles.textOnFill, textSizeStyle]}
 						/>
 					</Animated.View>
 				</Animated.View>
 
-				<SummaryGlint progress={glint} width={pillWidth} />
+				<SummaryGlint progress={glintProgress} width={pillWidth} />
 			</Animated.View>
 
 			{/*다 차면 튀는 조각*/}

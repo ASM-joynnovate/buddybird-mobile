@@ -1,3 +1,5 @@
+import type { PluralMessages } from '@/i18n/types/plural';
+
 export type SessionMessages = {
 	takeover: {
 		title: string;
@@ -86,10 +88,6 @@ export type SessionMessages = {
 		played: { lead: string; tail: string };
 		wordTime: { lead: string; tail: string };
 		allTime: { lead: string; tail: string };
-		count_one: string;
-		count_few: string;
-		count_many: string;
-		count_other: string;
 		sentenceProgress: string;
 		playCount: string;
 		totalTime: string;
@@ -98,5 +96,5 @@ export type SessionMessages = {
 		added: string;
 		goHome: string;
 		viewDetail: string;
-	};
+	} & PluralMessages<'count'>;
 };

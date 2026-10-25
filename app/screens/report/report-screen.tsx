@@ -23,11 +23,11 @@ const ReportScreen = () => {
 
 	const selectedStart = start ?? latestStart(period);
 
-	const lowPerformance = useIsLowPerformance();
-
 	usePrefetchQuery(getReportOptions({ period, start: selectedStart }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -1) }));
 	usePrefetchQuery(getReportOptions({ period, start: shiftedStart(period, selectedStart, -2) }));
+
+	const lowPerformance = useIsLowPerformance();
 
 	return (
 		<Screen scrollable={false}>

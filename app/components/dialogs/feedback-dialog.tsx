@@ -10,23 +10,30 @@ import { useTranslation } from 'react-i18next';
 
 import { randomUUID } from 'expo-crypto';
 import { SendIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
-import { FEEDBACK_MESSAGE_LIMIT } from '@/config';
+import { FEEDBACK_MESSAGE_LIMIT } from '@/config/policy';
 import { track } from '@/services/telemetry/client';
 import { useFeedbackStore } from '@/stores/feedback';
 import { colors, font } from '@/theme';
 
+import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import Dialog from '@/components/dialogs/dialog';
-import MascotArtwork from '@/components/mascot/mascot-artwork';
+import MascotArtwork from '@/components/mascot/artwork';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
-import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
 import { TextField } from '@/components/ui/text-field';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
+
+interface FeedbackPrompt {
+	onDismiss: () => void;
+	onWrite: () => void;
+}
 
 interface Props {
 	visible: boolean;
-	prompt?: { onDismiss: () => void; onWrite: () => void };
+	prompt?: FeedbackPrompt;
 }
 
 /**
@@ -43,6 +50,7 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 	const { isError, isPending, isSuccess, mutate, reset } = useSendFeedback();
 
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
+
 	const closeFeedback = useFeedbackStore((state) => state.closeFeedback);
 
 	const handleClose = () => {
@@ -76,6 +84,10 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 					setIdempotencyKey(randomUUID());
 				},
 				onError: (error) => {
+					toast.custom(<Toast variant="error" message={t('app.feedback.sendError')} />, {
+						toasterId: dialogToasterId,
+					});
+
 					if (error instanceof ApiError && error.rejected) {
 						setIdempotencyKey(randomUUID());
 					}
@@ -105,35 +117,21 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 
 	if (prompt) {
 		return (
-			<Dialog
+			<ConfirmDialog
 				visible={visible}
+				text={{
+					title: t('app.feedback.promptTitle'),
+					confirm: t('app.feedback.write'),
+					cancel: t('common.close'),
+				}}
+				onConfirm={prompt.onWrite}
 				onClose={prompt.onDismiss}
-				title={t('app.feedback.promptTitle')}
-				footer={
-					<View style={[ui.actionsRow, styles.actionsRow]}>
-						<Button
-							label={t('common.close')}
-							size="small"
-							variant="secondary"
-							depth="high"
-							onPress={prompt.onDismiss}
-							style={ui.action}
-						/>
-						<Button
-							label={t('app.feedback.write')}
-							size="small"
-							depth="high"
-							onPress={prompt.onWrite}
-							style={ui.action}
-						/>
-					</View>
-				}
 			>
 				<View style={styles.promptMascot}>
 					<MascotArtwork />
 				</View>
 				<Copy style={styles.centeredMessage}>{t('app.feedback.promptMessage')}</Copy>
-			</Dialog>
+			</ConfirmDialog>
 		);
 	}
 
@@ -178,8 +176,6 @@ const FeedbackDialog = ({ visible, prompt }: Props) => {
 				style={styles.message}
 			/>
 			<Copy style={styles.privacy}>{t('app.feedback.privacy')}</Copy>
-
-			<InlineError message={isError ? t('app.feedback.sendError') : null} />
 		</Dialog>
 	);
 };

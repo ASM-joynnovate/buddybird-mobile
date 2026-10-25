@@ -1,9 +1,7 @@
 import { type ReactNode, useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { getParrotListOptions } from '@/hooks/apis/parrots';
-import { getWordListOptions } from '@/hooks/apis/words';
+import { useGetParrotListQuery } from '@/hooks/apis/parrots';
+import { useGetWordListQuery } from '@/hooks/apis/words';
 
 import { setTelemetryUserId, syncUserProperties } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
@@ -18,8 +16,8 @@ interface Props {
  * @param children 감싸는 내용
  */
 const AnalyticsProvider = ({ children }: Props) => {
-	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
-	const { data: wordListData } = useQuery({ ...getWordListOptions(), throwOnError: false });
+	const { data: parrotListData } = useGetParrotListQuery();
+	const { data: wordListData } = useGetWordListQuery();
 
 	const serverUserId = useAccountStore((state) => state.serverUserId);
 

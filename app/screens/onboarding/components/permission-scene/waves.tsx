@@ -40,7 +40,7 @@ interface Props {
 /**
  * 앵무새 소리가 휴대폰으로 퍼져 나가는 파동 컴포넌트
  * @param scale 그림 배율
- * @param animated 파동 움직임 실행 여부
+ * @param animated 파동 애니메이션 실행 여부
  * @param style 파동 위치
  */
 const PermissionSceneWaves = ({ scale, animated, style }: Props) => {
@@ -50,7 +50,7 @@ const PermissionSceneWaves = ({ scale, animated, style }: Props) => {
 	const secondWaveStyle = useAnimatedStyle(() => getWaveStyle(waveProgress.get() + 1 / 3));
 	const thirdWaveStyle = useAnimatedStyle(() => getWaveStyle(waveProgress.get() + 2 / 3));
 
-	/** 움직임이 켜져 있으면 파동 반복 */
+	/** 애니메이션이 켜져 있으면 파동 반복 */
 	useEffect(() => {
 		if (!animated) {
 			return;

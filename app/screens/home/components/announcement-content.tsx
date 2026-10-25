@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * 공지 상세 컴포넌트
+ * 공지 내용 표시 컴포넌트
  * @param announcementId 공지 ID
  */
 const AnnouncementContent = ({ announcementId }: Props) => {
@@ -34,7 +34,7 @@ const AnnouncementContent = ({ announcementId }: Props) => {
 
 	const alreadyRead = announcementData.is_read;
 
-	/** 읽지 않은 공지를 열면 읽음 처리 */
+	/** 읽지 않은 공지를 표시하면 읽음 처리 */
 	useEffect(() => {
 		if (!alreadyRead) {
 			mutate({ id: announcementId });

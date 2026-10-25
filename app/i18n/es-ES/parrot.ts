@@ -16,7 +16,7 @@ export const parrot: ParrotMessages = {
 	searchAllSpecies: 'Buscar en todas',
 	birthdateQuestion: '¿Cuándo nació?',
 	nameRequired: 'Escribe el nombre de tu loro.',
-	speciesRequired: 'Elige la especie de tu loro o escríbela.',
+	speciesRequired: 'Elige la especie de tu loro.',
 	birthdateInFuture: 'La fecha de nacimiento no puede ser posterior a hoy.',
 	yearPicker: 'Elegir año de nacimiento',
 	monthPicker: 'Elegir mes de nacimiento',

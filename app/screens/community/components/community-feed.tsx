@@ -1,37 +1,63 @@
-import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
-import { usePrefetchQuery } from '@tanstack/react-query';
+import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getFeedReactionTypeListOptions, useGetFeedItemList } from '@/hooks/apis/feed';
+import type { FeedItem } from '@/types/apis/feed';
+
+import { useGetFeedItemList } from '@/hooks/apis/feed';
+import { feedKeys } from '@/hooks/apis/keys/feed';
+import { leaderboardKeys } from '@/hooks/apis/keys/leaderboard';
 import { getLeaderboardOptions } from '@/hooks/apis/leaderboard';
-import { useGetMe } from '@/hooks/apis/users';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
+import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
-import { useTranslation } from 'react-i18next';
+import Animated from 'react-native-reanimated';
 
 import FeedCard, { feedCardKinds } from '@/screens/community/components/feed-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
-import { useCommunityStore } from '@/stores/community';
-import { colors, font } from '@/theme';
+import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { colors } from '@/theme';
 
-import { Copy } from '@/components/ui/copy';
+import {
+	BUDDY_REFRESH_FINISH_MS,
+	BUDDY_REFRESH_HEIGHT,
+	BUDDY_REFRESH_MIN_MS,
+} from '@/components/buddy-refresh/constants';
+import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
+import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
+import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
+import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 
 /** 순위 카드 및 피드 목록 컴포넌트 */
 const CommunityFeed = () => {
-	const { t } = useTranslation();
+	const queryClient = useQueryClient();
 
-	const player = useSoundPlayer();
-
-	const { data: meData } = useGetMe();
-
-	const countryScope = useCommunityStore((state) => state.countryScope);
-
-	const country = countryScope === 'mine' ? (meData.country ?? null) : null;
+	const country = useSelectedCountry();
 
 	usePrefetchQuery(getLeaderboardOptions({ country }));
-	usePrefetchQuery(getFeedReactionTypeListOptions());
 
 	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
+
+	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
+
+	const player = useSoundPlayer();
+	const lowPerformance = useIsLowPerformance();
+
+	const { pullToRefresh, scrollProps } = usePullToRefresh<Animated.FlatList<FeedItem>>({
+		onRefresh: () => {
+			setPullToRefreshUsed(true);
+
+			return Promise.all([
+				queryClient.invalidateQueries({ queryKey: leaderboardKeys.detail(country) }),
+				queryClient.invalidateQueries({ queryKey: feedKeys.list(country) }),
+			]);
+		},
+		holdHeight: BUDDY_REFRESH_HEIGHT,
+		minRefreshMs: BUDDY_REFRESH_MIN_MS,
+		finishMs: BUDDY_REFRESH_FINISH_MS,
+	});
 
 	const feedItems = feedData.pages
 		.flatMap((feedPage) => feedPage.data)
@@ -44,32 +70,34 @@ const CommunityFeed = () => {
 	};
 
 	return (
-		<FlatList
-			data={feedItems}
-			keyExtractor={(feedItem) => feedItem.id}
-			renderItem={({ item: feedItem }) => <FeedCard feedItem={feedItem} player={player} />}
-			ListHeaderComponent={
-				<>
-					<LeaderboardCard />
-					<Copy accessibilityRole="header" style={styles.sectionTitle}>
-						{t('community.feed.title')}
-					</Copy>
-				</>
+		<PullToRefreshContainer
+			pullToRefresh={pullToRefresh}
+			indicatorComponents={
+				lowPerformance
+					? [BuddyRefreshThrobberIndicator]
+					: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
 			}
-			onEndReachedThreshold={0.4}
-			onEndReached={handleFetchNextPage}
-			ListFooterComponent={
-				isFetchingNextPage ? <ActivityIndicator color={colors.subtle} style={styles.footerLoading} /> : null
-			}
-			contentContainerStyle={styles.list}
-			showsVerticalScrollIndicator={false}
-		/>
+		>
+			<Animated.FlatList
+				{...scrollProps}
+				data={feedItems}
+				keyExtractor={(feedItem) => feedItem.id}
+				renderItem={({ item: feedItem }) => <FeedCard feedItem={feedItem} player={player} />}
+				ListHeaderComponent=<LeaderboardCard />
+				onEndReachedThreshold={0.4}
+				onEndReached={handleFetchNextPage}
+				ListFooterComponent={
+					isFetchingNextPage ? <ActivityIndicator color={colors.subtle} style={styles.footerLoading} /> : null
+				}
+				contentContainerStyle={styles.list}
+				showsVerticalScrollIndicator={false}
+			/>
+		</PullToRefreshContainer>
 	);
 };
 
 const styles = StyleSheet.create({
 	list: { gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 },
-	sectionTitle: { marginTop: 16, marginHorizontal: 8, fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	footerLoading: { paddingTop: 8 },
 });
 

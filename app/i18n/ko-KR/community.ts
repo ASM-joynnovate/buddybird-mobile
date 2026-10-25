@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: '커뮤니티',
+	title: '피드',
 	me: '나',
 	countryScope: {
 		world: '전 세계',
@@ -18,26 +18,21 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: '닉네임이 없어서 순위에 없어요',
-				description: '닉네임을 정하면 순위에 올라요',
 				action: '닉네임 정하기',
 			},
 			anonymous: {
 				title: '로그인하면 순위에 올라요',
-				description: '지금은 로그인하지 않은 상태예요',
 				action: '로그인',
 			},
 			country_mismatch: {
 				title: '이 나라의 순위에는 내가 없어요',
-				description: '내 국가로 설정한 나라의 순위에만 올라요',
 			},
 			no_record: {
 				title: '이번 달 학습 기록이 아직 없어요',
-				description: '학습을 마치면 순위에 올라요',
 			},
 		},
 	},
 	feed: {
-		title: '피드',
 		more: '더보기',
 		timeAgo: {
 			minutes_one: '{{count}}분 전',
@@ -71,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}}번',
 		artCount_many: '{{count, number}}번',
 		artCount_other: '{{count, number}}번',
-		reaction: {
-			praise: '칭찬하기',
-			praised: '칭찬했어요',
-			celebrate: '축하하기',
-			celebrated: '축하했어요',
-		},
+		like: '좋아요',
 	},
 	report: {
 		action: '신고하기',
@@ -99,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: '로그인',
-		loginDescription: '로그인하면 커뮤니티를 이용할 수 있어요',
+		loginDescription: '로그인하면 피드를 이용할 수 있어요',
 		nicknameTitle: '닉네임 설정',
-		nicknameDescription: '커뮤니티에서 보일 이름이에요',
+		nicknameDescription: '피드에서 보일 이름이에요',
 		start: '시작하기',
 	},
 };

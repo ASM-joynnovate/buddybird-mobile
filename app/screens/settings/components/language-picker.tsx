@@ -36,10 +36,12 @@ const LanguagePicker = () => {
 	const { isPending, mutate: updateDevice } = useUpdateDevice();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const setLocale = useDeviceSettingsStore((state) => state.setLocale);
 
-	const handleChangeLanguage = (nextLocale: Locale) => {
+	const handleSelectLanguage = (nextLocale: Locale, close: () => void) => {
 		if (isPending || locale === nextLocale) {
+			close();
 			return;
 		}
 
@@ -58,11 +60,13 @@ const LanguagePicker = () => {
 		} catch (e) {
 			reportError(e, 'change_language');
 		}
+
+		close();
 	};
 
 	return (
 		<ItemPicker
-			item={{
+			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
 				value: t(`settings.general.${LANGUAGE_LABEL_KEYS[locale]}`),
@@ -72,23 +76,15 @@ const LanguagePicker = () => {
 		>
 			{(close) => (
 				<View style={styles.list}>
-					{locales.map((language, index) => {
-						const handleSelectLanguage = () => {
-							handleChangeLanguage(language);
-
-							close();
-						};
-
-						return (
-							<ItemRadio
-								key={language}
-								first={index === 0}
-								label={t(`settings.general.${LANGUAGE_LABEL_KEYS[language]}`)}
-								selected={locale === language}
-								onPress={handleSelectLanguage}
-							/>
-						);
-					})}
+					{locales.map((language, index) => (
+						<ItemRadio
+							key={language}
+							isFirstInGroup={index === 0}
+							label={t(`settings.general.${LANGUAGE_LABEL_KEYS[language]}`)}
+							selected={locale === language}
+							onPress={() => handleSelectLanguage(language, close)}
+						/>
+					))}
 				</View>
 			)}
 		</ItemPicker>

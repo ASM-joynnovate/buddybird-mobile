@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, type ListRenderItemInfo, StyleSheet, View } from 'react-native';
 
 import type { Announcement } from '@/types/apis/announcements';
 
@@ -28,12 +28,12 @@ const AnnouncementList = () => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const { data: announcementListData, fetchNextPage, hasNextPage } = useGetAnnouncementList();
+	const { data: announcementListData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetAnnouncementList();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	/** 공지 항목 렌더링 함수 */
-	const renderItem = ({ item: announcement }: { item: Announcement }) => {
+	const renderItem = ({ item: announcement }: ListRenderItemInfo<Announcement>) => {
 		const dateText = formatMonthDay(announcement.starts_at, locale);
 
 		return (
@@ -60,7 +60,7 @@ const AnnouncementList = () => {
 	};
 
 	const handleFetchNextPage = () => {
-		if (hasNextPage) {
+		if (hasNextPage && !isFetchingNextPage) {
 			void fetchNextPage();
 		}
 	};

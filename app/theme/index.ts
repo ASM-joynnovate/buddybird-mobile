@@ -1,4 +1,6 @@
-export * from '@/theme/colors';
+import { Easing } from 'react-native-reanimated';
+
+export { colors, loginProviderColors } from '@/theme/colors';
 
 export const radius = {
 	none: 0,
@@ -24,8 +26,9 @@ export const contentMaxWidth = 480;
 
 export const layoutAnimationMs = 200;
 
+export const burstEasing = Easing.bezier(0.16, 1, 0.3, 1);
+
 export const font = {
-	regular: 'Pretendard-Regular',
 	medium: 'Pretendard-Medium',
 	semiBold: 'Pretendard-SemiBold',
 	bold: 'Pretendard-Bold',

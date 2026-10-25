@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import type { CommunityUser } from '@/types/apis/users';
+import type { BlockTarget } from '@/types/community';
 
 import { useBlockUser, useUnblockUser } from '@/hooks/apis/users';
 
@@ -11,46 +11,43 @@ import { apiErrorMessage } from '@/lib/api';
 import { toast } from 'sonner-native';
 
 import { useCommunityStore } from '@/stores/community';
-import { useMessageStore } from '@/stores/message';
 
 import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
-import { Toast } from '@/components/ui/toast';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
-	user: CommunityUser;
+	blockTarget: BlockTarget;
 }
 
 /**
  * 사용자 차단 확인 다이얼로그 컴포넌트
- * @param user 차단할 사용자
+ * @param blockTarget 차단할 사용자
  */
-const BlockDialog = ({ user }: Props) => {
+const BlockDialog = ({ blockTarget }: Props) => {
 	const { t } = useTranslation();
 
 	const blockUser = useBlockUser();
 	const unblockUser = useUnblockUser();
 
-	const setUserToBlock = useCommunityStore((state) => state.setUserToBlock);
+	const setBlockTarget = useCommunityStore((state) => state.setBlockTarget);
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
-	const nickname = user.nickname ?? '';
-
-	const handleError = (error: unknown) => openPopup({ title: apiErrorMessage(error, t) });
+	const nickname = blockTarget.nickname ?? '';
 
 	const handleClose = () => {
 		if (blockUser.isPending) {
 			return;
 		}
 
-		setUserToBlock(null);
+		setBlockTarget(null);
 	};
 
 	const handleUndoBlock = () => {
-		unblockUser.mutateAsync({ id: user.id }).catch(handleError);
+		unblockUser.mutateAsync({ id: blockTarget.userId }).catch((error: unknown) => {
+			toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />);
+		});
 	};
 
 	const handleBlock = () => {
@@ -59,10 +56,10 @@ const BlockDialog = ({ user }: Props) => {
 		}
 
 		blockUser.mutate(
-			{ id: user.id },
+			{ id: blockTarget.userId },
 			{
 				onSuccess: () => {
-					setUserToBlock(null);
+					setBlockTarget(null);
 
 					toast.custom(
 						<Toast
@@ -71,7 +68,11 @@ const BlockDialog = ({ user }: Props) => {
 						/>,
 					);
 				},
-				onError: handleError,
+				onError: (error) => {
+					toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />, {
+						toasterId: dialogToasterId,
+					});
+				},
 			},
 		);
 	};

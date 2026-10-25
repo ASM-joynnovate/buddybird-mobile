@@ -13,7 +13,7 @@ interface Props extends ItemBaseProps {
 
 export const ItemSwitch = ({ value, disabled, onChange, ...props }: Props) => {
 	return (
-		<View style={[itemStyles.itemRow, !props.first && itemStyles.divider]}>
+		<View style={[itemStyles.itemRow, !props.isFirstInGroup && itemStyles.divider]}>
 			<ItemLabel {...props} />
 
 			<Switch

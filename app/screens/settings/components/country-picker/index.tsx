@@ -1,19 +1,22 @@
+import type { CountryItem } from '@/types/country';
+
 import { useGetMe, useUpdateMe } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
-import { countryEnglishNames, countryNames, countryNativeNames } from '@/i18n/countries';
+import { countryEnglishNames, countryNamesIn, countryNativeNames } from '@/i18n/countries';
 
 import { apiErrorMessage } from '@/lib/api';
 
 import { EarthIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
-import CountryList, { type CountryItem } from '@/screens/settings/components/country-picker/country-list';
+import CountryPickerList from '@/screens/settings/components/country-picker/list';
 import { reportError } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { useMessageStore } from '@/stores/message';
 
 import { ItemPicker } from '@/components/ui/item/picker';
+import { Toast } from '@/components/ui/toast';
 
 /** 내 국가 선택 컴포넌트 */
 const CountryPicker = () => {
@@ -25,10 +28,8 @@ const CountryPicker = () => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
-	const names = countryNames(locale);
-	const items: CountryItem[] = Object.entries(names)
+	const countryNameByCode = countryNamesIn(locale);
+	const countryItems: CountryItem[] = Object.entries(countryNameByCode)
 		.map(([code, name]) => ({
 			code,
 			name,
@@ -37,8 +38,9 @@ const CountryPicker = () => {
 		.sort((a, b) => a.name.localeCompare(b.name, locale));
 	const country = meData.country ?? null;
 
-	const handleChangeCountry = (nextCountry: string) => {
+	const handleSelectCountry = (nextCountry: string, close: () => void) => {
 		if (isPending || country === nextCountry) {
+			close();
 			return;
 		}
 
@@ -48,31 +50,31 @@ const CountryPicker = () => {
 				onError: (error) => {
 					reportError(error, 'user_country_update');
 
-					openPopup({ title: apiErrorMessage(error, t) });
+					toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />);
 				},
 			},
 		);
+
+		close();
 	};
 
 	return (
 		<ItemPicker
-			item={{
+			itemProps={{
 				icon: EarthIcon,
 				label: t('settings.general.country'),
-				value: country ? (names[country] ?? country) : t('settings.general.countryChoose'),
+				value: country ? (countryNameByCode[country] ?? country) : t('settings.general.countryChoose'),
 				disabled: isPending,
 			}}
 			sheet={{ title: t('settings.general.country'), listLayout: true }}
 		>
-			{(close) => {
-				const handleSelectCountry = (nextCountry: string) => {
-					handleChangeCountry(nextCountry);
-
-					close();
-				};
-
-				return <CountryList items={items} country={country} onSelect={handleSelectCountry} />;
-			}}
+			{(close) => (
+				<CountryPickerList
+					countryItems={countryItems}
+					country={country}
+					onSelect={(nextCountry) => handleSelectCountry(nextCountry, close)}
+				/>
+			)}
 		</ItemPicker>
 	);
 };

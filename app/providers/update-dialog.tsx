@@ -9,18 +9,78 @@ import {
 	useSyncExternalStore,
 } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import type { UpdatePolicy } from '@/types/update';
 
-import { getAppUpdateOptions } from '@/hooks/apis/app-update';
+import { useGetAppUpdateQuery } from '@/hooks/apis/app-update';
 
 import { installedVersion } from '@/services/device/application';
 import { getMinSupportedVersion, subscribeRemoteConfig } from '@/services/remote-config/client';
 import { reportError, track } from '@/services/telemetry/client';
 import { useAppStore } from '@/stores/app';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { evaluateUpdate, higherVersion } from '@/utils/update';
 
 import UpdateDialog from '@/components/dialogs/update-dialog';
+
+const VERSION_PARTS = 3;
+
+/** 버전 문자열을 숫자 배열로 변환하는 함수 */
+const versionParts = (version: string) => {
+	const match = /^[vV]?(\d+(?:\.\d+){0,2})(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(version.trim());
+
+	if (!match) {
+		return null;
+	}
+
+	const parts = match[1].split('.').map(Number);
+
+	return parts.every(Number.isSafeInteger) ? [...parts, 0, 0].slice(0, VERSION_PARTS) : null;
+};
+
+/** 두 버전을 비교하는 함수 */
+const compareVersions = (a: string, b: string) => {
+	const left = versionParts(a);
+	const right = versionParts(b);
+
+	if (!left || !right) {
+		return null;
+	}
+
+	for (let i = 0; i < VERSION_PARTS; i++) {
+		if (left[i] !== right[i]) {
+			return Math.sign(left[i] - right[i]);
+		}
+	}
+
+	return 0;
+};
+
+/** 두 버전 중 높은 버전을 반환하는 함수 */
+const higherVersion = (a: string, b: string) => {
+	return (compareVersions(a, b) ?? 0) < 0 ? b : a;
+};
+
+/** 안내할 업데이트를 결정하는 함수 */
+const evaluateUpdate = (policy: UpdatePolicy, currentVersion: string, dismissedVersion: string | null) => {
+	// 최신 버전을 모르면 강제 업데이트만 판단
+	const comparedToLatest = policy.latestVersion === null ? 0 : compareVersions(currentVersion, policy.latestVersion);
+	const comparedToMinimum = policy.minimumVersion ? compareVersions(currentVersion, policy.minimumVersion) : 0;
+
+	if (comparedToLatest === null || comparedToMinimum === null) {
+		return null;
+	}
+
+	const forced = comparedToMinimum < 0;
+
+	if (!forced && (comparedToLatest >= 0 || dismissedVersion === policy.latestVersion)) {
+		return null;
+	}
+
+	return {
+		latestVersion: policy.latestVersion,
+		forced,
+		notes: policy.notes,
+	};
+};
 
 interface UpdatePromptContextType {
 	updateVisible: boolean;
@@ -42,19 +102,14 @@ const UpdateDialogProvider = ({ children }: Props) => {
 
 	const shownVersionRef = useRef<string | null | undefined>(undefined);
 
-	const {
-		data: appUpdateData,
-		fetchStatus,
-		isError,
-		isFetching,
-		isSuccess,
-	} = useQuery({ ...getAppUpdateOptions(), throwOnError: false });
+	const { data: appUpdateData, fetchStatus, isError, isFetching, isSuccess } = useGetAppUpdateQuery();
 
 	const minSupportedVersion = useSyncExternalStore(subscribeRemoteConfig, getMinSupportedVersion);
 
 	const splashFinished = useAppStore((state) => state.splashFinished);
 
 	const updatePrompt = useDeviceSettingsStore((state) => state.updatePrompt);
+
 	const dismissUpdate = useDeviceSettingsStore((state) => state.dismissUpdate);
 
 	const updateCheckSettled = !isFetching && (isSuccess || isError || fetchStatus === 'paused');

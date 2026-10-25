@@ -3,19 +3,25 @@ import { expo } from '@hot-updater/expo';
 import { withSentry } from '@hot-updater/sentry-plugin';
 import { defineConfig } from 'hot-updater';
 import { apiKeys, insights, remoteConfig } from 'hot-updater/plugins';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 if (existsSync('.env.hotupdater')) {
 	process.loadEnvFile('.env.hotupdater');
 }
 
+interface SentryProject {
+	organization: string;
+	project: string;
+}
+
 const CLOUDFLARE_ACCOUNT_ID = '0c4453da6d81adec04df8132e00660c4';
 const variant = process.env.APP_VARIANT === 'production' ? 'prod' : 'dev';
+const { organization, project } = JSON.parse(readFileSync('sentry.project.json', 'utf8')) as SentryProject;
 
 export default defineConfig({
 	build: withSentry(expo({ sourcemap: true }), {
-		org: 'joynnovate',
-		project: 'buddybird-mobile',
+		org: organization,
+		project,
 		authToken: String(process.env.SENTRY_AUTH_TOKEN ?? ''),
 	}),
 	storage: r2Storage({

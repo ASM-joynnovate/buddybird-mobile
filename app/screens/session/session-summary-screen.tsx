@@ -18,9 +18,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Confetti from '@/screens/session/components/confetti';
 import SummarySpeech from '@/screens/session/components/summary-speech';
-import SummarySpeechSkeleton from '@/screens/session/components/summary-speech/summary-speech-skeleton';
+import SummarySpeechSkeleton from '@/screens/session/components/summary-speech/skeleton';
 import SummaryStats from '@/screens/session/components/summary-stats';
-import SummaryStatsSkeleton from '@/screens/session/components/summary-stats/summary-stats-skeleton';
+import SummaryStatsSkeleton from '@/screens/session/components/summary-stats/skeleton';
 import SummaryTitle from '@/screens/session/components/summary-title';
 import SummaryTitleSkeleton from '@/screens/session/components/summary-title-skeleton';
 import { useReportStore } from '@/stores/report';
@@ -48,6 +48,7 @@ const SessionSummaryScreen = () => {
 	usePrefetchQuery(getParrotListOptions());
 
 	const resetPeriod = useReportStore((state) => state.resetPeriod);
+
 	const resetSessionSummary = useSessionStore((state) => state.resetSessionSummary);
 	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
 

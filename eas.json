@@ -14,8 +14,7 @@
 		"preview": {
 			"distribution": "internal",
 			"env": {
-				"APP_VARIANT": "development",
-				"SENTRY_ENVIRONMENT": "dev"
+				"APP_VARIANT": "development"
 			}
 		},
 		"staging": {
@@ -23,46 +22,49 @@
 			"environment": "preview",
 			"autoIncrement": true,
 			"env": {
-				"APP_VARIANT": "development",
-				"SENTRY_ENVIRONMENT": "dev"
+				"APP_VARIANT": "development"
 			}
 		},
 		"production": {
 			"autoIncrement": true,
 			"env": {
-				"APP_VARIANT": "production"
+				"APP_VARIANT": "production",
+				"SENTRY_ENVIRONMENT": "prod"
 			}
 		}
 	},
 	"submit": {
-		"staging": {
+		"store": {
 			"android": {
-				"serviceAccountKeyPath": "/tmp/play-service-account.json",
+				"serviceAccountKeyPath": "/tmp/play-service-account.json"
+			},
+			"ios": {
+				"appleTeamId": "73TZC3K2JG",
+				"ascApiKeyPath": "/tmp/asc-api-key.p8",
+				"ascApiKeyId": "DDGR4YT335",
+				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466"
+			}
+		},
+		"staging": {
+			"extends": "store",
+			"android": {
 				"track": "internal",
 				"releaseStatus": "completed",
 				"changesNotSentForReview": false
 			},
 			"ios": {
 				"ascAppId": "6784253530",
-				"appleTeamId": "73TZC3K2JG",
-				"ascApiKeyPath": "/tmp/asc-api-key.p8",
-				"ascApiKeyId": "DDGR4YT335",
-				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466",
 				"groups": ["joynnovate"]
 			}
 		},
 		"production": {
+			"extends": "store",
 			"android": {
-				"serviceAccountKeyPath": "/tmp/play-service-account.json",
 				"track": "production",
 				"releaseStatus": "draft"
 			},
 			"ios": {
-				"ascAppId": "6783652711",
-				"appleTeamId": "73TZC3K2JG",
-				"ascApiKeyPath": "/tmp/asc-api-key.p8",
-				"ascApiKeyId": "DDGR4YT335",
-				"ascApiKeyIssuerId": "11e3701a-619c-42b5-acba-e51ce26fc466"
+				"ascAppId": "6783652711"
 			}
 		}
 	}

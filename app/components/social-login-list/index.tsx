@@ -1,18 +1,18 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import type { LoginProvider } from '@/types/account';
+import type { LoginProvider } from '@/types/auth';
 
 import { useTranslation } from 'react-i18next';
 
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { ChevronRightIcon } from 'lucide-react-native';
 
-import { useAccountStore } from '@/stores/account';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, loginProviderColors, radius } from '@/theme';
 
-import LastLoginTag from '@/components/social-login-list/last-login-tag';
-import OAuthButton from '@/components/social-login-list/oauth-button';
-import ProviderLogo from '@/components/social-login-list/provider-logo';
+import SocialLoginListLastLoginTag from '@/components/social-login-list/last-login-tag';
+import SocialLoginListOAuthButton from '@/components/social-login-list/oauth-button';
+import SocialLoginListProviderLogo from '@/components/social-login-list/provider-logo';
 import { Copy } from '@/components/ui/copy';
 import { ItemGroup } from '@/components/ui/item/group';
 import { itemStyles } from '@/components/ui/item/styles';
@@ -37,7 +37,7 @@ interface Props {
 const SocialLoginList = ({ providers, loadingProvider, disabled, appearance, onSignIn }: Props) => {
 	const { t } = useTranslation();
 
-	const lastLoginProvider = useAccountStore((state) => state.lastLoginProvider);
+	const lastLoginProvider = useDeviceSettingsStore((state) => state.lastLoginProvider);
 
 	const lastLoginHint = t('auth.lastLoginHint');
 
@@ -60,7 +60,7 @@ const SocialLoginList = ({ providers, loadingProvider, disabled, appearance, onS
 						contentStyle={itemStyles.pressRow}
 					>
 						<View style={[styles.logoContainer, provider === 'kakao' && styles.logoContainerKakao]}>
-							<ProviderLogo provider={provider} size={provider === 'kakao' ? 14 : 22} />
+							<SocialLoginListProviderLogo provider={provider} size={provider === 'kakao' ? 14 : 22} />
 						</View>
 
 						<Copy style={[itemStyles.label, styles.label]}>{t(`auth.continue.${provider}`)}</Copy>
@@ -80,7 +80,7 @@ const SocialLoginList = ({ providers, loadingProvider, disabled, appearance, onS
 		<View style={styles.buttonContainer}>
 			{providers.map((provider) => (
 				<View key={provider} style={provider === 'apple' && styles.appleButton}>
-					{lastLoginProvider === provider && <LastLoginTag label={t('auth.lastLogin')} />}
+					{lastLoginProvider === provider && <SocialLoginListLastLoginTag label={t('auth.lastLogin')} />}
 
 					{provider === 'apple' ? (
 						<>
@@ -107,7 +107,7 @@ const SocialLoginList = ({ providers, loadingProvider, disabled, appearance, onS
 							)}
 						</>
 					) : (
-						<OAuthButton
+						<SocialLoginListOAuthButton
 							provider={provider}
 							loading={loadingProvider === provider}
 							disabled={disabled}

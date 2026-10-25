@@ -1,4 +1,5 @@
 #import "FrameCaptureVideoBuffer.h"
+#import "FrameCaptureCamera.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <VideoToolbox/VideoToolbox.h>
@@ -31,6 +32,7 @@ static NSMutableArray *sSamples = nil;
 static void (^sClipCompletion)(NSString *, NSError *) = nil;
 static NSUInteger sClipGeneration = 0;
 
+/// 키프레임 여부 반환 함수
 static BOOL FrameCaptureIsKeyframe(CMSampleBufferRef sampleBuffer) {
   CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false);
 
@@ -68,6 +70,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
 @implementation FrameCaptureVideoBuffer
 
+/// 작업 큐 생성 메서드
 + (void)initialize {
   if (self == [FrameCaptureVideoBuffer class]) {
     sQueue = dispatch_queue_create("frame-capture.video", DISPATCH_QUEUE_SERIAL);
@@ -76,10 +79,12 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   }
 }
 
+/// 출력 폴더 설정 메서드
 + (void)setDirectory:(NSString *)directory {
   sDirectory = [directory copy];
 }
 
+/// 영상을 메모리에 유지하기 시작하는 메서드
 + (void)startWithWidth:(double)width
                 height:(double)height
              frameRate:(double)frameRate
@@ -100,6 +105,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   atomic_store(&sRunning, true);
 }
 
+/// 영상 유지를 멈추는 메서드
 + (void)stop {
   atomic_store(&sRunning, false);
 
@@ -110,6 +116,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   });
 }
 
+/// afterMs 뒤에 영상을 MP4로 저장하는 메서드
 + (void)saveClipAfterMs:(double)afterMs completion:(void (^)(NSString *, NSError *))completion {
   if (!atomic_load(&sRunning)) {
     completion(nil, nil);
@@ -134,12 +141,14 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   });
 }
 
+/// 저장 중인 영상을 취소하는 메서드
 + (void)discardClip {
   dispatch_async(sQueue, ^{
     [self cancelClip];
   });
 }
 
+/// 영상을 유지 중일 때 프레임을 넘겨받는 메서드
 + (void)handlePixelBuffer:(CVPixelBufferRef)pixelBuffer rotation:(NSInteger)rotation timeNs:(int64_t)timeNs {
   if (!atomic_load(&sRunning)) {
     return;
@@ -165,6 +174,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   });
 }
 
+/// 프레임 압축 메서드
 + (void)encodePixelBuffer:(CVPixelBufferRef)pixelBuffer rotation:(NSInteger)rotation timeNs:(int64_t)timeNs {
   if (sEncoderFailed) {
     return;
@@ -176,7 +186,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   int32_t width = frameWidth >= frameHeight ? sLongSide : shortSide;
   int32_t height = frameWidth >= frameHeight ? shortSide : sLongSide;
 
-  // 크기가 바뀌면 새 인코더로 다시 시작
+  // 크기 변경 시 새 인코더로 다시 시작
   if (sSession == NULL || width != sWidth || height != sHeight) {
     [self cancelClip];
     [self releaseSession];
@@ -200,6 +210,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   }
 }
 
+/// 인코더 생성 메서드
 + (BOOL)createSessionWithWidth:(int32_t)width height:(int32_t)height {
   OSStatus status = VTCompressionSessionCreate(kCFAllocatorDefault, width, height, kCMVideoCodecType_H264, NULL, NULL,
                                                NULL, FrameCaptureDidEncode, (void *)sSessionGeneration, &sSession);
@@ -227,6 +238,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   return YES;
 }
 
+/// 인코더 해제 메서드
 + (void)releaseSession {
   if (sSession == NULL) {
     return;
@@ -240,6 +252,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   sSessionGeneration += 1;
 }
 
+/// 압축 프레임 추가 메서드
 + (void)addSample:(CMSampleBufferRef)sampleBuffer {
   [sSamples addObject:(__bridge id)sampleBuffer];
 
@@ -263,6 +276,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   }
 }
 
+/// 영상 저장 취소 메서드
 + (void)cancelClip {
   sClipGeneration += 1;
 
@@ -332,7 +346,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
   [writer addInput:input];
 
-  NSError *unknownError = [NSError errorWithDomain:@"FrameCapture"
+  NSError *unknownError = [NSError errorWithDomain:FrameCaptureErrorDomain
                                               code:2
                                           userInfo:@{NSLocalizedDescriptionKey : @"Video clip writing failed"}];
 
@@ -358,12 +372,12 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
   [input markAsFinished];
 
-  dispatch_semaphore_t finished = dispatch_semaphore_create(0);
+  dispatch_semaphore_t finishedSemaphore = dispatch_semaphore_create(0);
 
   [writer finishWritingWithCompletionHandler:^{
-    dispatch_semaphore_signal(finished);
+    dispatch_semaphore_signal(finishedSemaphore);
   }];
-  dispatch_semaphore_wait(finished, DISPATCH_TIME_FOREVER);
+  dispatch_semaphore_wait(finishedSemaphore, DISPATCH_TIME_FOREVER);
 
   if (writer.status != AVAssetWriterStatusCompleted) {
     return writer.error ?: unknownError;

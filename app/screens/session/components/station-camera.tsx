@@ -10,7 +10,7 @@ interface Props {
 
 /**
  * Station 카메라 영상 컴포넌트
- * @param stream 보여 줄 카메라 영상
+ * @param stream 표시할 카메라 영상
  */
 const StationCamera = ({ stream }: Props) => {
 	return (

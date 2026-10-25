@@ -14,13 +14,6 @@ interface Props {
 	onChangeText: (text: string) => void;
 }
 
-/**
- * bottom sheet 안의 검색창 컴포넌트
- * @param value 검색어
- * @param placeholder 검색창 안내 문구
- * @param clearLabel 검색어 지우기 버튼 이름
- * @param onChangeText 검색어 변경 시 실행할 함수
- */
 export const SheetSearchField = ({ value, placeholder, clearLabel, onChangeText }: Props) => {
 	return (
 		<View>

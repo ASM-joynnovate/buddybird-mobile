@@ -13,13 +13,13 @@ export const common: CommonMessages = {
 		home: 'Главная',
 		words: 'Слова',
 		report: 'Отчёт',
-		community: 'Сообщество',
+		community: 'Лента',
 		profile: 'Профиль',
 	},
 	skip: 'Пропустить',
 	next: 'Далее',
 	stepProgress: 'Шаг {{current}} из {{total}}',
-	offline: 'Нет подключения к интернету.\nКогда связь вернётся, всё загрузится само.',
+	offline: 'Нет подключения к интернету.',
 	pullToRefresh: {
 		hint: 'Потяни вверх или вниз, чтобы обновить',
 		messages: [
@@ -107,7 +107,7 @@ export const common: CommonMessages = {
 		take: 'Сделать фото',
 		choose: 'Выбрать из галереи',
 		typeError: 'Подходят только фото JPEG или PNG. Выбери другое.',
-		sizeError: 'Подходят только фото до 5 МБ. Выбери другое.',
+		sizeError: 'Подходят только фото до {{size}} МБ. Выбери другое.',
 		loadError: 'Не получилось загрузить фото. Выбери его ещё раз.',
 	},
 };

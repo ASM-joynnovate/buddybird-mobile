@@ -38,7 +38,7 @@ export const ItemCheckbox = ({
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			style={!props.first && itemStyles.divider}
+			style={!props.isFirstInGroup && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
 			<View style={itemStyles.textContainer}>

@@ -13,13 +13,13 @@ export const common: CommonMessages = {
 		home: '홈',
 		words: '단어',
 		report: '리포트',
-		community: '커뮤니티',
+		community: '피드',
 		profile: '프로필',
 	},
 	skip: '건너뛰기',
 	next: '다음',
 	stepProgress: '{{total}}단계 중 {{current}}단계',
-	offline: '인터넷 연결이 끊겼어요.\n다시 연결되면 자동으로 불러와요.',
+	offline: '인터넷 연결이 끊겼어요.',
 	pullToRefresh: {
 		hint: '위 / 아래로 당겨 새로고침',
 		messages: [
@@ -107,7 +107,7 @@ export const common: CommonMessages = {
 		take: '사진 찍기',
 		choose: '앨범에서 고르기',
 		typeError: 'JPEG 또는 PNG 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
-		sizeError: '5MB 이하 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
+		sizeError: '{{size}}MB 이하 사진만 쓸 수 있어요. 다른 사진을 골라 주세요.',
 		loadError: '사진을 불러오지 못했어요. 다시 골라 주세요.',
 	},
 };

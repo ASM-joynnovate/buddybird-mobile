@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 
 import type { RecordingGuideStep } from '@/types/guide/recording';
+import type { SceneArea } from '@/types/scene';
 
 import { useTranslation } from 'react-i18next';
 
@@ -16,7 +17,7 @@ import RecordingSceneSameWord from '@/screens/words/components/recording-scene/s
 import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
-import { getStageScale, SCENE_FLOOR_HEIGHT, type SceneArea } from '@/components/scene-stage';
+import SceneStage, { getStageScale } from '@/components/scene-stage';
 
 const STAGE_WIDTH = 375;
 const STAGE_HEIGHT = 400;
@@ -34,12 +35,18 @@ const RecordingScene = ({ step }: Props) => {
 
 	const screenFocused = useIsFocused();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
-	const animated = screenFocused && !reducedMotion;
+	const animated = screenFocused && !motionReduced;
 	const scale = getStageScale(area, STAGE_WIDTH, STAGE_HEIGHT);
+	const floorStyles: Record<RecordingGuideStep, StyleProp<ViewStyle>> = {
+		sameWord: styles.hiddenFloor,
+		quiet: styles.quietFloor,
+		distance: styles.distanceFloor,
+		highVoice: styles.hiddenFloor,
+	};
 
 	const handleLayout = (event: LayoutChangeEvent) => {
 		const { width, height } = event.nativeEvent.layout;
@@ -48,41 +55,31 @@ const RecordingScene = ({ step }: Props) => {
 	};
 
 	return (
-		<View
-			accessible
-			accessibilityRole="image"
-			accessibilityLabel={t('common.illustration', { scene: t(`words.guide.${step}.scene`) })}
+		<SceneStage
+			key={step}
+			label={t('common.illustration', { scene: t(`words.guide.${step}.scene`) })}
+			stageWidth={STAGE_WIDTH}
+			stageHeight={STAGE_HEIGHT}
+			scale={scale}
+			floorStyle={floorStyles[step]}
 			onLayout={handleLayout}
-			style={styles.container}
 		>
-			{/*바닥*/}
-			{step === 'quiet' && <View style={[styles.floor, styles.quietFloor]} />}
-			{step === 'distance' && <View style={[styles.floor, styles.distanceFloor]} />}
-
-			{scale > 0 && (
-				<View key={step} style={[styles.stage, { width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }]}>
-					{step === 'sameWord' && <RecordingSceneSameWord scale={scale} />}
-					{step === 'quiet' && <RecordingSceneQuiet scale={scale} animated={animated} />}
-					{step === 'distance' && <RecordingSceneDistance scale={scale} animated={animated} />}
-					{step === 'highVoice' && <RecordingSceneHighVoice scale={scale} animated={animated} />}
-				</View>
-			)}
-		</View>
+			{step === 'sameWord' && <RecordingSceneSameWord scale={scale} />}
+			{step === 'quiet' && <RecordingSceneQuiet scale={scale} animated={animated} />}
+			{step === 'distance' && <RecordingSceneDistance scale={scale} animated={animated} />}
+			{step === 'highVoice' && <RecordingSceneHighVoice scale={scale} animated={animated} />}
+		</SceneStage>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'flex-end',
-		paddingBottom: SCENE_FLOOR_HEIGHT,
-		overflow: 'hidden',
+	hiddenFloor: { backgroundColor: colors.backgroundTransparent },
+	quietFloor: {
+		borderTopWidth: 2,
+		borderTopColor: sessionColors.track,
+		backgroundColor: colors.backgroundTransparent,
 	},
-	floor: { position: 'absolute', left: 0, right: 0, bottom: 0, height: SCENE_FLOOR_HEIGHT },
-	quietFloor: { borderTopWidth: 2, borderTopColor: sessionColors.track },
 	distanceFloor: { backgroundColor: colors.orangeDark },
-	stage: { position: 'relative' },
 });
 
 export default RecordingScene;

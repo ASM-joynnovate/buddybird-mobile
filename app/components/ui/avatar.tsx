@@ -4,9 +4,15 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 
-const iconSizes = { xsmall: 18, small: 22, medium: 26, large: 34, xlarge: 40 } as const;
+const sizes = {
+	xsmall: { icon: 18, box: 32 },
+	small: { icon: 22, box: 40 },
+	medium: { icon: 26, box: 64 },
+	large: { icon: 34, box: 80 },
+	xlarge: { icon: 40, box: 110 },
+} as const;
 
-type AvatarSize = keyof typeof iconSizes;
+type AvatarSize = keyof typeof sizes;
 
 interface Props {
 	uri?: string | null;
@@ -15,23 +21,15 @@ interface Props {
 	uploading?: boolean;
 }
 
-const sizeStyle = (size: AvatarSize) => {
-	return {
-		xsmall: styles.xsmall,
-		small: styles.small,
-		medium: styles.medium,
-		large: styles.large,
-		xlarge: styles.xlarge,
-	}[size];
-};
-
 export const Avatar = ({ uri, icon: Icon, size, uploading = false }: Props) => {
+	const { icon: iconSize, box: boxSize } = sizes[size];
+
 	return (
-		<View style={[styles.container, sizeStyle(size)]}>
+		<View style={[styles.container, { width: boxSize, height: boxSize, borderRadius: boxSize / 2 }]}>
 			{uri ? (
 				<Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors />
 			) : (
-				<Icon size={iconSizes[size]} color={colors.subtle} />
+				<Icon size={iconSize} color={colors.subtle} />
 			)}
 			{uploading && (
 				<View style={styles.progressContainer}>
@@ -49,11 +47,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
-	xsmall: { width: 32, height: 32, borderRadius: 16 },
-	small: { width: 40, height: 40, borderRadius: 20 },
-	medium: { width: 64, height: 64, borderRadius: 32 },
-	large: { width: 80, height: 80, borderRadius: 40 },
-	xlarge: { width: 110, height: 110, borderRadius: 55 },
 	image: { width: '100%', height: '100%' },
 	progressContainer: {
 		...StyleSheet.absoluteFill,

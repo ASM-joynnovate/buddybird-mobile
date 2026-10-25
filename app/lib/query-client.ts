@@ -2,9 +2,7 @@ import { MutationCache, type Query, QueryCache, QueryClient } from '@tanstack/re
 
 import { ApiError, UNAUTHORIZED_STATUS } from '@/types/apis/common';
 
-import { DEFAULT_STALE_TIME_MS } from '@/config';
-
-const MAX_RETRIES = 2;
+import { DEFAULT_STALE_TIME_MS, MAX_RETRIES } from '@/config/policy';
 
 let onUnauthorized: (() => void) | undefined;
 
@@ -13,7 +11,7 @@ export const setUnauthorizedHandler = (handler: () => void) => {
 	onUnauthorized = handler;
 };
 
-/** 쿼리 재시도 여부를 반환하는 함수 */
+/** 요청 재시도 여부를 반환하는 함수 */
 const retryPolicy = (failureCount: number, error: unknown) =>
 	failureCount < MAX_RETRIES && error instanceof ApiError && error.retryable;
 
@@ -32,7 +30,6 @@ export const queryClient = new QueryClient({
 		queries: {
 			staleTime: DEFAULT_STALE_TIME_MS,
 			retry: retryPolicy,
-			throwOnError: true,
 		},
 		mutations: { retry: retryPolicy, networkMode: 'always' },
 	},
@@ -45,7 +42,7 @@ export const queryClient = new QueryClient({
 	}),
 	mutationCache: new MutationCache({
 		onError: (error, _variables, _context, mutation) => {
-			if (!mutation.meta?.skipUnauthorizedSignOut) {
+			if (!mutation.meta?.unauthorizedSignOutSkipped) {
 				handleUnauthorized(error);
 			}
 		},

@@ -21,12 +21,16 @@ import Animated, {
 
 import { colors, radius } from '@/theme';
 
+import {
+	FLAP_ANGLE,
+	FLAP_MS,
+	HOLD_SCENE_HEIGHT,
+	MASCOT_FOOT_Y,
+	MASCOT_SIZE,
+} from '@/components/buddy-refresh/constants';
 import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/components/buddy-refresh/message';
-import { HOLD_SCENE_HEIGHT } from '@/components/buddy-refresh/options';
-import MascotArtwork, { MASCOT_FEET_RATIO } from '@/components/mascot/mascot-artwork';
+import MascotArtwork from '@/components/mascot/artwork';
 
-const MASCOT_SIZE = 80;
-const MASCOT_FOOT_Y = MASCOT_SIZE * MASCOT_FEET_RATIO;
 const PERCH_WIDTH = 84;
 const PERCH_HEIGHT = 8;
 const CORD_INSET = 5;
@@ -39,8 +43,6 @@ const SWING_ANGLE = 14;
 const SWING_HALF_MS = 650;
 const LEAN_RATIO = 0.5;
 const PUMP_WING_ANGLE = 34;
-const FLAP_ANGLE = 48;
-const FLAP_MS = 170;
 
 const swingEasing = Easing.inOut(Easing.sin);
 const stopSpring = { stiffness: 100, damping: 12 };
@@ -57,14 +59,14 @@ interface Props {
  * @param status 당기기 상태
  * @param distance 새로고침 표시 영역의 높이
  */
-const SwingRefreshIndicator = ({ edge, status, distance }: Props) => {
-	const reducedMotion = useReducedMotion();
+const BuddyRefreshSwingIndicator = ({ edge, status, distance }: Props) => {
+	const motionReduced = useReducedMotion();
 
 	const swingAngle = useSharedValue(0);
 	const flapAngle = useSharedValue(0);
-	const eyesHappy = useSharedValue(0);
+	const happyEyesProgress = useSharedValue(0);
 
-	const { message, messageShown } = useRefreshMessage(status);
+	const { message, messageProgress } = useRefreshMessage(status);
 
 	const refreshFinished = status === 'finishing' || status === 'closing';
 
@@ -74,7 +76,7 @@ const SwingRefreshIndicator = ({ edge, status, distance }: Props) => {
 	);
 
 	const perchTop = useDerivedValue(() => {
-		const sceneBottom = edge === 'top' ? distance.get() - MESSAGE_SPACE * messageShown.get() : HOLD_SCENE_HEIGHT;
+		const sceneBottom = edge === 'top' ? distance.get() - MESSAGE_SPACE * messageProgress.get() : HOLD_SCENE_HEIGHT;
 
 		// 새로고침이 끝나면 정해진 만큼만 하강
 		return (refreshFinished ? Math.min(sceneBottom, HOLD_SCENE_HEIGHT + FINISH_DROP) : sceneBottom) - PERCH_HEIGHT;
@@ -91,9 +93,9 @@ const SwingRefreshIndicator = ({ edge, status, distance }: Props) => {
 
 	/** 당기기 상태에 따라 그네 애니메이션 실행 */
 	useEffect(() => {
-		eyesHappy.set(status === 'finishing' ? 1 : 0);
+		happyEyesProgress.set(status === 'finishing' ? 1 : 0);
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			return;
 		}
 
@@ -121,7 +123,7 @@ const SwingRefreshIndicator = ({ edge, status, distance }: Props) => {
 		if (status === 'finishing') {
 			swingAngle.set(withSpring(0, stopSpring));
 		}
-	}, [eyesHappy, flapAngle, reducedMotion, status, swingAngle]);
+	}, [happyEyesProgress, flapAngle, motionReduced, status, swingAngle]);
 
 	return (
 		<>
@@ -133,12 +135,12 @@ const SwingRefreshIndicator = ({ edge, status, distance }: Props) => {
 					<View style={styles.perch} />
 
 					<Animated.View style={[styles.mascot, mascotStyle]}>
-						<MascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />
+						<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
 					</Animated.View>
 				</Animated.View>
 			</Animated.View>
 
-			<BuddyRefreshMessage message={message} messageShown={messageShown} distance={distance} />
+			<BuddyRefreshMessage message={message} progress={messageProgress} distance={distance} />
 		</>
 	);
 };
@@ -183,4 +185,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default SwingRefreshIndicator;
+export default BuddyRefreshSwingIndicator;

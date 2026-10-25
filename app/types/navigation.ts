@@ -3,6 +3,10 @@ import type { SleepSettings } from '@/types/sleep-settings';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { MeasuredDimensions } from 'react-native-reanimated';
 
+export type SessionDetailSource = 'report' | 'summary' | 'notification';
+
+export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'PermissionRequest' | 'Main';
+
 export interface LearningDuration {
 	ms: number | null;
 	custom: boolean;
@@ -27,7 +31,7 @@ export type WordsStackParamList = {
 
 export type ReportStackParamList = {
 	Report: undefined;
-	SessionDetail: { sessionId: string; source: 'report' | 'summary' | 'notification' };
+	SessionDetail: { sessionId: string; source: SessionDetailSource };
 };
 
 export type CommunityStackParamList = {

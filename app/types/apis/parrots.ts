@@ -27,3 +27,14 @@ const updateParrotRequestSchema = z.object({
 export type Parrot = z.infer<typeof parrotSchema>;
 export type CreateParrotRequest = z.infer<typeof createParrotRequestSchema>;
 export type UpdateParrotRequest = z.infer<typeof updateParrotRequestSchema>;
+
+export interface PostParrotParams {
+	data: CreateParrotRequest;
+	idempotencyKey: string;
+}
+
+export interface PatchParrotParams {
+	id: string;
+	data: UpdateParrotRequest;
+	idempotencyKey: string;
+}

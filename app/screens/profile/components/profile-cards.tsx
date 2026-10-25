@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
-
 import type { MainTabParamList, ProfileStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { getParrotListOptions } from '@/hooks/apis/parrots';
-import { getMeOptions } from '@/hooks/apis/users';
+import { useGetParrotList } from '@/hooks/apis/parrots';
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,11 +12,11 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { type CompositeNavigationProp, useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { UPLOAD_POLL_INTERVAL_MS } from '@/config';
-import AccountCard from '@/screens/profile/components/account-card';
+import { UPLOAD_POLL_INTERVAL_MS } from '@/config/policy';
 import AddParrotCard from '@/screens/profile/components/add-parrot-card';
 import ParrotCard from '@/screens/profile/components/parrot-card';
-import { useAccountStore } from '@/stores/account';
+import ProfileCard from '@/screens/profile/components/profile-card';
+import { useAuthStore } from '@/stores/auth';
 
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
@@ -40,26 +37,30 @@ const ProfileCards = () => {
 	const navigation = useNavigation<Navigation>();
 	const screenFocused = useIsFocused();
 
-	const { data: meData } = useSuspenseQuery({
-		...getMeOptions(),
-		refetchInterval: (query) =>
-			screenFocused && query.state.data?.uploading_photo_file?.status === 'pending'
-				? UPLOAD_POLL_INTERVAL_MS
-				: false,
-	});
-	const { data: parrotListData } = useSuspenseQuery({
-		...getParrotListOptions(),
+	const [dropCount, setDropCount] = useState(0);
+
+	const { data: parrotListData } = useGetParrotList({
 		refetchInterval: (query) =>
 			screenFocused && query.state.data?.some((parrot) => parrot.uploading_photo_file?.status === 'pending')
 				? UPLOAD_POLL_INTERVAL_MS
 				: false,
 	});
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
-	const [dropCount, setDropCount] = useState(0);
+	/** 카드 순서별 기울기 반환 함수 */
+	const tiltAt = (index: number) => CARD_TILTS[index % CARD_TILTS.length];
+	const cards = [
+		...parrotListData.map((parrot, index) => (
+			<ParrotCard key={parrot.id} parrot={parrot} tilt={tiltAt(index)} order={index} />
+		)),
+		<AddParrotCard key="add" tilt={tiltAt(parrotListData.length)} order={parrotListData.length} />,
+	];
+	const cardRows = Array.from({ length: Math.ceil(cards.length / CARDS_PER_ROW) }, (_, rowIndex) =>
+		cards.slice(rowIndex * CARDS_PER_ROW, (rowIndex + 1) * CARDS_PER_ROW),
+	);
 
-	/** 다른 탭에서 프로필 탭을 눌러 들어오면 카드를 다시 그려 떨어지는 애니메이션 재생 */
+	/** 프로필 탭 진입 시 카드 애니메이션 재생 */
 	useEffect(() => {
 		const tabNavigation = navigation.getParent<BottomTabNavigationProp<MainTabParamList>>();
 
@@ -70,40 +71,28 @@ const ProfileCards = () => {
 		});
 	}, [navigation]);
 
-	const tiltAt = (index: number) => CARD_TILTS[index % CARD_TILTS.length];
-	const cards = [
-		...parrotListData.map((parrot, index) => (
-			<ParrotCard key={parrot.id} parrot={parrot} tilt={tiltAt(index)} order={index} />
-		)),
-		<AddParrotCard key="add" tilt={tiltAt(parrotListData.length)} order={parrotListData.length} />,
-	];
-	const cardRows = Array.from({ length: Math.ceil(cards.length / CARDS_PER_ROW) }, (_, row) =>
-		cards.slice(row * CARDS_PER_ROW, (row + 1) * CARDS_PER_ROW),
-	);
-
 	return (
 		<>
-			<AccountCard user={meData} />
+			<ProfileCard />
 
 			{isAnonymous && (
 				<Button
 					label={t('auth.signIn')}
 					variant="secondary"
 					onPress={() => navigation.navigate('Login')}
-					style={styles.signIn}
+					style={styles.signInButton}
 				/>
 			)}
 
-			{/*앵무새 목록*/}
 			<View style={ui.sectionContainer}>
 				<Copy accessibilityRole="header" style={ui.sectionTitle}>
 					{t('profile.parrots')}
 				</Copy>
 				<View key={dropCount} style={styles.parrotsContainer}>
-					{cardRows.map((row, index) => (
+					{cardRows.map((rowCards, index) => (
 						<View key={index} style={ui.actionsRow}>
-							{row}
-							{row.length < CARDS_PER_ROW && <View style={ui.equalColumn} />}
+							{rowCards}
+							{rowCards.length < CARDS_PER_ROW && <View style={ui.equalColumn} />}
 						</View>
 					))}
 				</View>
@@ -114,7 +103,7 @@ const ProfileCards = () => {
 
 const styles = StyleSheet.create({
 	parrotsContainer: { gap: 16, paddingTop: 4 },
-	signIn: { marginTop: 12 },
+	signInButton: { marginTop: 12 },
 });
 
 export default ProfileCards;

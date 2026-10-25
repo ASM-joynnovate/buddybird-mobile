@@ -4,8 +4,9 @@ import { StyleSheet, View } from 'react-native';
 
 import type { FeedItem } from '@/types/apis/feed';
 
+import type { SoundPlayer } from '@/types/sound-player';
+
 import { useGetMe } from '@/hooks/apis/users';
-import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -13,11 +14,10 @@ import { formatTimeAgo } from '@/i18n/format';
 
 import { UserRoundIcon } from 'lucide-react-native';
 
+import FeedCardLikeButton from '@/screens/community/components/feed-card/like-button';
 import FeedCardMimicBody from '@/screens/community/components/feed-card/mimic-body';
 import FeedCardMonthlyLearningTimeBody from '@/screens/community/components/feed-card/monthly-learning-time-body';
 import FeedCardMoreMenu from '@/screens/community/components/feed-card/more-menu';
-import FeedCardReactionPicker, { type ReactionVerb } from '@/screens/community/components/feed-card/reaction-picker';
-import FeedCardReceivedReactions from '@/screens/community/components/feed-card/received-reactions';
 import FeedCardTotalLearningTimeBody from '@/screens/community/components/feed-card/total-learning-time-body';
 import FeedCardWordPlayCountBody from '@/screens/community/components/feed-card/word-play-count-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -27,25 +27,20 @@ import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
 
-interface BodyProps {
-	feedItem: FeedItem;
-	player: SoundPlayer;
-}
-
-export const feedCardKinds: Record<string, { Body: ComponentType<BodyProps>; reactionVerb: ReactionVerb }> = {
-	mimic_succeeded: { Body: FeedCardMimicBody, reactionVerb: 'praise' },
-	total_learning_time_reached: { Body: FeedCardTotalLearningTimeBody, reactionVerb: 'celebrate' },
-	monthly_learning_time_reached: { Body: FeedCardMonthlyLearningTimeBody, reactionVerb: 'celebrate' },
-	word_play_count_reached: { Body: FeedCardWordPlayCountBody, reactionVerb: 'celebrate' },
-};
-
 interface Props {
 	feedItem: FeedItem;
 	player: SoundPlayer;
 }
 
+export const feedCardKinds: Record<string, ComponentType<Props>> = {
+	mimic_succeeded: FeedCardMimicBody,
+	total_learning_time_reached: FeedCardTotalLearningTimeBody,
+	monthly_learning_time_reached: FeedCardMonthlyLearningTimeBody,
+	word_play_count_reached: FeedCardWordPlayCountBody,
+};
+
 /**
- * 피드 카드 컴포넌트
+ * 피드 항목 하나를 표시하는 카드 컴포넌트
  * @param feedItem 피드 항목
  * @param player useSoundPlayer 결과
  */
@@ -56,7 +51,7 @@ const FeedCard = ({ feedItem, player }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const { Body: KindBody, reactionVerb } = feedCardKinds[feedItem.kind];
+	const KindBody = feedCardKinds[feedItem.kind];
 	const authorIsMe = feedItem.user.id === meData.id;
 
 	return (
@@ -80,9 +75,8 @@ const FeedCard = ({ feedItem, player }: Props) => {
 
 			<KindBody feedItem={feedItem} player={player} />
 
-			<View style={styles.reactionRow}>
-				<FeedCardReactionPicker feedItem={feedItem} reactionVerb={reactionVerb} />
-				<FeedCardReceivedReactions reactions={feedItem.reactions} />
+			<View style={styles.likeRow}>
+				<FeedCardLikeButton feedItem={feedItem} />
 			</View>
 		</View>
 	);
@@ -105,13 +99,7 @@ const styles = StyleSheet.create({
 	nickname: { flexShrink: 1, fontFamily: font.black, fontSize: 15, lineHeight: 20 },
 	me: { fontFamily: font.extraBold, fontSize: 12, color: colors.orangeDark },
 	time: { marginTop: 1, fontFamily: font.extraBold, fontSize: 13, lineHeight: 17, color: colors.subtle },
-	reactionRow: {
-		flexDirection: 'row-reverse',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		gap: 12,
-		marginTop: 14,
-	},
+	likeRow: { flexDirection: 'row', marginTop: 14 },
 });
 
 export default FeedCard;

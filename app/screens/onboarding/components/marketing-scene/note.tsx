@@ -5,7 +5,6 @@ import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import Animated, {
 	cancelAnimation,
-	Easing,
 	interpolate,
 	useAnimatedStyle,
 	useReducedMotion,
@@ -15,13 +14,11 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SECOND } from '@/config/units';
-import { colors, font, radius } from '@/theme';
+import { burstEasing, colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
 const LAND_MS = 1.1 * SECOND;
-
-const landEasing = Easing.bezier(0.16, 1, 0.3, 1);
 
 interface Props {
 	icon: LucideIcon;
@@ -33,18 +30,18 @@ interface Props {
 }
 
 /**
- * 창문으로 날아와 벽에 붙는 소식 컴포넌트
+ * 벽에 붙는 소식 컴포넌트
  * @param icon 소식 아이콘
  * @param label 소식 이름
  * @param tilt 벽에 붙었을 때의 기울기
  * @param delay 날아오기 전에 기다리는 시간
- * @param animated 날아오는 움직임 실행 여부
+ * @param animated 날아오는 애니메이션 실행 여부
  * @param style 소식 위치
  */
 const MarketingSceneNote = ({ icon: Icon, label, tilt, delay, animated, style }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
-	const landProgress = useSharedValue(reducedMotion ? 1 : 0);
+	const landProgress = useSharedValue(motionReduced ? 1 : 0);
 
 	const noteStyle = useAnimatedStyle(() => {
 		const progress = landProgress.get();
@@ -60,14 +57,14 @@ const MarketingSceneNote = ({ icon: Icon, label, tilt, delay, animated, style }:
 		};
 	});
 
-	/** 움직임이 켜져 있으면 날아와서 벽에 붙음 */
+	/** 애니메이션이 켜져 있으면 벽으로 이동 */
 	useEffect(() => {
 		if (!animated) {
 			return;
 		}
 
 		landProgress.set(0);
-		landProgress.set(withDelay(delay, withTiming(1, { duration: LAND_MS, easing: landEasing })));
+		landProgress.set(withDelay(delay, withTiming(1, { duration: LAND_MS, easing: burstEasing })));
 
 		return () => cancelAnimation(landProgress);
 	}, [animated, delay, landProgress]);

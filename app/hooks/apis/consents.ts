@@ -3,12 +3,13 @@ import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-
 import { getConsentList, postConsent } from '@/apis/consents';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { consentKeys } from '@/hooks/apis/keys/consents';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
 /** 약관 동의 목록 조회 Hook에 사용할 옵션 */
-export const getConsentListOptions = () => queryOptions({ queryKey: apiKeys.consents.all(), queryFn: getConsentList });
+export const getConsentListOptions = () => queryOptions({ queryKey: consentKeys.all(), queryFn: getConsentList });
 /** 약관 동의 목록 조회 Hook */
 export const useGetConsentList = () => {
 	return useSuspenseQuery(getConsentListOptions());
@@ -21,7 +22,7 @@ export const useSaveConsent = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'consents'),
 		mutationFn: postConsent,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.consents.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: consentKeys.all() }),
 		onError: (error) => reportError(error, 'consent_save'),
 	});
 };

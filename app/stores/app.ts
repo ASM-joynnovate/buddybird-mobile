@@ -1,27 +1,21 @@
-import type Animated from 'react-native-reanimated';
-import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
+import type { LandingTarget } from '@/types/startup';
+
 import { create } from 'zustand';
 
-type StartupScreenRequest = {
+interface StartupScreenOptions {
 	onRetry?: () => void;
-};
-
-export type LandingTarget = {
-	buddyRef: AnimatedRef<Animated.View>;
-	sheetRef: AnimatedRef<Animated.View>;
-	buddyHidden: SharedValue<boolean>;
-};
+}
 
 type AppState = {
 	splashFinished: boolean;
-	startupScreen: StartupScreenRequest | null;
+	startupScreen: StartupScreenOptions | null;
 	startupOverlayShown: boolean;
 	landingTarget: LandingTarget | null;
 };
 
 type AppActions = {
 	setSplashFinished: (splashFinished: boolean) => void;
-	setStartupScreen: (startupScreen: StartupScreenRequest | null) => void;
+	setStartupScreen: (startupScreen: StartupScreenOptions | null) => void;
 	hideStartupOverlay: () => void;
 	setLandingTarget: (landingTarget: LandingTarget | null) => void;
 };
@@ -39,7 +33,7 @@ export const useAppStore = create<AppStore>()((set) => ({
 		set((state) => ({ ...state, splashFinished }));
 	},
 
-	/** 시작 화면 요청 변경, 요청이 생기면 시작 화면 표시 */
+	/** 시작 화면 요청 변경 */
 	setStartupScreen: (startupScreen) => {
 		set((state) => ({
 			...state,
@@ -53,7 +47,7 @@ export const useAppStore = create<AppStore>()((set) => ({
 		set((state) => ({ ...state, startupOverlayShown: false }));
 	},
 
-	/** 시작 화면의 버디가 옮겨 갈 목적지 변경 */
+	/** 버디가 이동할 목적지 변경 */
 	setLandingTarget: (landingTarget) => {
 		set((state) => ({ ...state, landingTarget }));
 	},

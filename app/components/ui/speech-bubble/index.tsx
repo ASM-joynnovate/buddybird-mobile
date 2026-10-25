@@ -18,12 +18,11 @@ const keepNumbersWithUnits = (text: string) => {
 interface Props {
 	pointerSide?: 'bottom' | 'left';
 	typing?: boolean;
-	style?: StyleProp<ViewStyle>;
 	contentStyle?: StyleProp<ViewStyle>;
 	children: ReactNode;
 }
 
-export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, style, contentStyle }: Props) => {
+export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, contentStyle }: Props) => {
 	let content = children;
 
 	if (typeof children === 'string') {
@@ -37,9 +36,11 @@ export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false,
 	}
 
 	return (
-		<Card cornerRadius="control" style={style} contentStyle={[styles.bubble, contentStyle]}>
-			{/*말풍선 꼬리*/}
-			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
+		<Card cornerRadius="control" contentStyle={[styles.bubble, contentStyle]}>
+			<View
+				pointerEvents="none"
+				style={[styles.pointer, pointerSide === 'left' ? styles.pointerLeft : styles.pointerBottom]}
+			/>
 
 			{content}
 		</Card>
@@ -61,6 +62,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 2,
 		borderColor: colors.border,
 	},
-	bottom: { bottom: -10, left: '50%', transform: [{ translateX: -8 }, { rotate: '45deg' }] },
-	left: { left: -10, top: 22, transform: [{ rotate: '135deg' }] },
+	pointerBottom: { bottom: -10, left: '50%', transform: [{ translateX: -8 }, { rotate: '45deg' }] },
+	pointerLeft: { left: -10, top: 22, transform: [{ rotate: '135deg' }] },
 });

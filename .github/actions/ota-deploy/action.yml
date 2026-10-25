@@ -1,0 +1,54 @@
+name: ota deploy
+description: Deploy signed iOS and Android bundles with Hot Updater
+
+inputs:
+  variant:
+    description: development or production
+    required: true
+  signing-private-key:
+    description: Hot Updater signing private key
+    required: true
+  cloudflare-api-token:
+    description: Cloudflare API token
+    required: true
+  r2-access-key-id:
+    description: Cloudflare R2 access key ID
+    required: true
+  r2-secret-access-key:
+    description: Cloudflare R2 secret access key
+    required: true
+  sentry-auth-token:
+    description: Sentry auth token for source maps
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: write signing key
+      shell: bash
+      env:
+        SIGNING_PRIVATE_KEY: ${{ inputs.signing-private-key }}
+      run: |
+        test -n "$SIGNING_PRIVATE_KEY"
+        umask 077
+        mkdir -p "$RUNNER_TEMP/hot-updater-signing"
+        printf '%s' "$SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/hot-updater-signing/private-key.pem"
+
+    - name: deploy bundles
+      shell: bash
+      env:
+        APP_VARIANT: ${{ inputs.variant }}
+        HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
+        HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ inputs.r2-access-key-id }}
+        HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
+        SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
+      run: |
+        for platform in ios android; do
+          yarn hot-updater deploy -p "$platform" -c "$APP_VARIANT" -o ".hot-updater/output/deploy/$platform"
+        done
+
+    - name: remove signing key
+      if: always()
+      shell: bash
+      run: rm -rf "$RUNNER_TEMP/hot-updater-signing"

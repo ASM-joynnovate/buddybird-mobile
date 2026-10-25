@@ -4,7 +4,7 @@ import { colors, radius } from '@/theme';
 
 const PLACEHOLDER_ROW_COUNT = 8;
 
-/** 알림 목록을 불러오는 동안 보이는 컴포넌트 */
+/** 알림 목록을 불러오는 동안 표시하는 컴포넌트 */
 const NotificationListSkeleton = () => {
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

@@ -2,6 +2,7 @@ import type { DeviceSettings } from '@/types/device-settings';
 
 import dayjs from 'dayjs';
 
+import { localDate } from '@/utils/date';
 import {
 	readNullableText,
 	readOptionalText,
@@ -10,13 +11,6 @@ import {
 	requireText,
 	type UnknownRecord,
 } from '@/utils/validation';
-
-export interface LegacyProfile {
-	name: string;
-	species: string;
-	birthDate: string | null;
-	photoUri?: string;
-}
 
 /** v1 업데이트 안내 값에서 닫은 버전을 읽는 함수 */
 export const parseLegacyAppUpdate = (appUpdate: UnknownRecord) => {
@@ -40,8 +34,8 @@ export const parseLegacyFeedbackPrompt = (feedbackPrompt: UnknownRecord): Device
 };
 
 /** v1 앵무새 프로필 변환 함수 */
-export const parseLegacyProfile = (value: unknown) => {
-	const profileRecord = requireRecord(value, 'profile');
+export const parseLegacyProfile = (rawProfile: unknown) => {
+	const profileRecord = requireRecord(rawProfile, 'profile');
 	let birthDate =
 		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
 
@@ -55,7 +49,7 @@ export const parseLegacyProfile = (value: unknown) => {
 
 		const birthMonth = createdAt.subtract(ageMonths, 'month');
 
-		birthDate = birthMonth.startOf('month').format('YYYY-MM-DD');
+		birthDate = localDate(birthMonth.startOf('month'));
 	}
 
 	let species = requireText(profileRecord.species, 'species');

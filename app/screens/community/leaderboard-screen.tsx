@@ -1,5 +1,7 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatMonth } from '@/i18n/format';
@@ -11,6 +13,7 @@ import CountryScopeChips from '@/screens/community/components/country-scope-chip
 import LeaderboardRanking from '@/screens/community/components/leaderboard-ranking';
 import { colors } from '@/theme';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
@@ -22,8 +25,12 @@ const LeaderboardScreen = () => {
 
 	const navigation = useNavigation();
 
+	const lowPerformance = useIsLowPerformance();
+
 	return (
 		<Screen scrollable={false}>
+			<BuddyRefreshHint mascotShown={!lowPerformance} />
+
 			<View style={styles.headerContainer}>
 				<ScreenHeader
 					title={t('community.leaderboard.title', { month: formatMonth(dayjs.utc()) })}

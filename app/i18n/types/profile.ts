@@ -1,3 +1,5 @@
+import type { PluralMessages } from '@/i18n/types/plural';
+
 export type ProfileMessages = {
 	title: string;
 	settings: string;
@@ -7,13 +9,9 @@ export type ProfileMessages = {
 	addParrot: string;
 	editParrot: string;
 	ageMonths: string;
-	ageYears_one: string;
-	ageYears_few: string;
-	ageYears_many: string;
-	ageYears_other: string;
 	nickname: string;
 	nicknameHint: string;
 	nicknameInvalid: string;
 	photoUploading: string;
 	photoUploadFailed: string;
-};
+} & PluralMessages<'ageYears'>;

@@ -10,7 +10,7 @@ import { ArrowRightIcon } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 
-import TimePicker from '@/components/time-picker';
+import TimePicker from '@/components/session/sleep-time-picker/time-picker';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
@@ -53,7 +53,7 @@ const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 					<TimePicker
 						value={draft.sleep_at}
 						label={t('session.sleep.bedtime')}
-						onChange={(time) => setDraft((current) => ({ ...current, sleep_at: time }))}
+						onChange={(time) => setDraft((prev) => ({ ...prev, sleep_at: time }))}
 					/>
 				</View>
 				<ArrowRightIcon size={ARROW_SIZE} color={colors.muted} />
@@ -61,7 +61,7 @@ const SleepTimeEditor = ({ value, onChange, onClose }: Props) => {
 					<TimePicker
 						value={draft.wake_at}
 						label={t('session.sleep.wakeTime')}
-						onChange={(time) => setDraft((current) => ({ ...current, wake_at: time }))}
+						onChange={(time) => setDraft((prev) => ({ ...prev, wake_at: time }))}
 					/>
 				</View>
 			</View>

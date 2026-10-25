@@ -4,6 +4,11 @@ import type { ReportPeriod } from '@/types/report-period';
 
 import dayjs, { type ConfigType } from 'dayjs';
 
+/** 기기의 시간대를 반환하는 함수 */
+export const deviceTimeZone = () => {
+	return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
+
 /** 날짜를 'YYYY-MM-DD' 형식으로 변환하는 함수 */
 export const localDate = (date?: ConfigType) => {
 	return dayjs(date).format('YYYY-MM-DD');
@@ -14,7 +19,7 @@ export const periodsBetween = (period: ReportPeriod, from: string, to: string) =
 	return dayjs(to).diff(from, period);
 };
 
-/** 세션이 끝난 시각을 반환하는 함수, 끝난 시각이 없으면 현재 시각 */
+/** 세션 종료 시각 반환 함수 */
 export const sessionEndedAt = (period: Session['period']) => {
 	return period.ended_at ? dayjs(period.ended_at) : dayjs();
 };

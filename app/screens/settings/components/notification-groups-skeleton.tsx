@@ -12,7 +12,7 @@ import { itemStyles } from '@/components/ui/item/styles';
 
 const PLACEHOLDER_ROW_COUNT = 3;
 
-/** 알림 설정을 불러오는 동안 보이는 컴포넌트 */
+/** 알림 설정 스켈레톤 컴포넌트 */
 const NotificationGroupsSkeleton = () => {
 	const { t } = useTranslation();
 

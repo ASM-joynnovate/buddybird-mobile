@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'Community',
+	title: 'Feed',
 	me: 'You',
 	countryScope: {
 		world: 'Worldwide',
@@ -18,26 +18,21 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: "You're not ranked without a nickname",
-				description: 'Set a nickname to appear on the leaderboard',
 				action: 'Set nickname',
 			},
 			anonymous: {
 				title: 'Sign in to appear on the leaderboard',
-				description: "You're not signed in",
 				action: 'Sign in',
 			},
 			country_mismatch: {
 				title: "You're not on this country's leaderboard",
-				description: "You only appear on your own country's leaderboard",
 			},
 			no_record: {
 				title: 'No learning records this month yet',
-				description: 'Finish a session to appear on the leaderboard',
 			},
 		},
 	},
 	feed: {
-		title: 'Feed',
 		more: 'More',
 		timeAgo: {
 			minutes_one: '{{count}} min ago',
@@ -71,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}}×',
 		artCount_many: '{{count, number}}×',
 		artCount_other: '{{count, number}}×',
-		reaction: {
-			praise: 'Cheer',
-			praised: 'Cheered',
-			celebrate: 'Celebrate',
-			celebrated: 'Celebrated',
-		},
+		like: 'Like',
 	},
 	report: {
 		action: 'Report',
@@ -99,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'Sign in',
-		loginDescription: 'Sign in to use the community',
+		loginDescription: 'Sign in to use the feed',
 		nicknameTitle: 'Set a nickname',
-		nicknameDescription: 'This name is shown in the community',
+		nicknameDescription: 'This name is shown in the feed',
 		start: 'Start',
 	},
 };

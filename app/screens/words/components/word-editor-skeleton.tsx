@@ -12,13 +12,13 @@ import { ui } from '@/components/ui/styles';
 
 const PLACEHOLDER_RECORDING_COUNT = 2;
 
-/** 단어 편집 내용을 불러오는 동안 보이는 컴포넌트 */
+/** 단어 편집 스켈레톤 컴포넌트 */
 const WordEditorSkeleton = () => {
 	const { t } = useTranslation();
 
 	return (
 		<View style={styles.container}>
-			{/*단어 이름 입력창*/}
+			{/*단어 이름 입력 필드*/}
 			<Copy style={ui.label}>{t('words.editor.name')}</Copy>
 			<View style={styles.field}>
 				<View style={[styles.block, styles.nameBlock]} />

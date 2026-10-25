@@ -19,13 +19,13 @@ let lastMessageIndex = -1;
 const useRefreshMessage = (status: PullStatus) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [message, setMessage] = useState('');
 
-	const messageShown = useSharedValue(0);
+	const messageProgress = useSharedValue(0);
 
-	/** 이전과 다른 문구 무작위 선택 */
+	/** 이전 문구를 제외하고 무작위 선택 */
 	useEffect(() => {
 		if (status !== 'refreshing') {
 			return;
@@ -40,22 +40,22 @@ const useRefreshMessage = (status: PullStatus) => {
 
 	/** 새로고침하는 동안 문구 표시 */
 	useEffect(() => {
-		const shown = status === 'refreshing';
+		const pullRefreshing = status === 'refreshing';
 
-		if (reducedMotion) {
-			messageShown.set(shown ? 1 : 0);
+		if (motionReduced) {
+			messageProgress.set(pullRefreshing ? 1 : 0);
 
 			return;
 		}
 
-		messageShown.set(
-			shown
+		messageProgress.set(
+			pullRefreshing
 				? withDelay(MESSAGE_SHOW_DELAY_MS, withTiming(1, { duration: MESSAGE_SHOW_MS }))
 				: withTiming(0, { duration: MESSAGE_HIDE_MS }),
 		);
-	}, [messageShown, reducedMotion, status]);
+	}, [messageProgress, motionReduced, status]);
 
-	return { message, messageShown };
+	return { message, messageProgress };
 };
 
 export default useRefreshMessage;

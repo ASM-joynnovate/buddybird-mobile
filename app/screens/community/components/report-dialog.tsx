@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { type AbuseReportReason, abuseReportReasons } from '@/types/apis/abuse-reports';
-import type { FeedItem } from '@/types/apis/feed';
+
+import type { ReportTarget } from '@/types/community';
 
 import { useSendAbuseReport } from '@/hooks/apis/abuse-reports';
 
@@ -13,27 +14,26 @@ import { apiErrorMessage } from '@/lib/api';
 
 import { toast } from 'sonner-native';
 
-import { ABUSE_REPORT_DESCRIPTION_LIMIT } from '@/config';
+import { ABUSE_REPORT_DESCRIPTION_LIMIT } from '@/config/policy';
+import { RadioList } from '@/screens/community/components/radio-list';
 import { useCommunityStore } from '@/stores/community';
-import { useMessageStore } from '@/stores/message';
 import { font } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
-import { RadioList } from '@/components/ui/radio-list';
 import { ui } from '@/components/ui/styles';
 import { TextField } from '@/components/ui/text-field';
-import { Toast } from '@/components/ui/toast';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
-	feedItem: FeedItem;
+	reportTarget: ReportTarget;
 }
 
 /**
  * 신고 다이얼로그 컴포넌트
- * @param feedItem 신고할 피드 항목
+ * @param reportTarget 신고할 피드 항목
  */
-const ReportDialog = ({ feedItem }: Props) => {
+const ReportDialog = ({ reportTarget }: Props) => {
 	const { t } = useTranslation();
 
 	const [reason, setReason] = useState<AbuseReportReason | null>(null);
@@ -41,16 +41,14 @@ const ReportDialog = ({ feedItem }: Props) => {
 
 	const { isPending, mutate } = useSendAbuseReport();
 
-	const setFeedItemToReport = useCommunityStore((state) => state.setFeedItemToReport);
-
-	const openPopup = useMessageStore((state) => state.openPopup);
+	const setReportTarget = useCommunityStore((state) => state.setReportTarget);
 
 	const handleClose = () => {
 		if (isPending) {
 			return;
 		}
 
-		setFeedItemToReport(null);
+		setReportTarget(null);
 	};
 
 	const handleSendReport = () => {
@@ -61,19 +59,23 @@ const ReportDialog = ({ feedItem }: Props) => {
 		mutate(
 			{
 				data: {
-					reported_user_id: feedItem.user.id,
-					feed_item_id: feedItem.id,
+					reported_user_id: reportTarget.userId,
+					feed_item_id: reportTarget.feedItemId,
 					reason,
 					description: description.trim() || undefined,
 				},
 			},
 			{
 				onSuccess: () => {
-					setFeedItemToReport(null);
+					setReportTarget(null);
 
 					toast.custom(<Toast message={t('community.report.sent')} />);
 				},
-				onError: (error) => openPopup({ title: apiErrorMessage(error, t) }),
+				onError: (error) => {
+					toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />, {
+						toasterId: dialogToasterId,
+					});
+				},
 			},
 		);
 	};
@@ -107,7 +109,10 @@ const ReportDialog = ({ feedItem }: Props) => {
 			}
 		>
 			<RadioList
-				options={abuseReportReasons.map((value) => ({ value, label: t(`community.report.reasons.${value}`) }))}
+				options={abuseReportReasons.map((abuseReason) => ({
+					value: abuseReason,
+					label: t(`community.report.reasons.${abuseReason}`),
+				}))}
 				selectedValue={reason}
 				onSelect={setReason}
 			/>

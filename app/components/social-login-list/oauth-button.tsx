@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { font, loginProviderColors } from '@/theme';
 
-import ProviderLogo from '@/components/social-login-list/provider-logo';
+import SocialLoginListProviderLogo from '@/components/social-login-list/provider-logo';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
@@ -24,7 +24,7 @@ interface Props {
  * @param hint 스크린 리더가 읽을 도움말
  * @param onPress 버튼을 누를 때 실행할 함수
  */
-const OAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
+const SocialLoginListOAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
 	const { t } = useTranslation();
 
 	const isGoogle = provider === 'google';
@@ -42,7 +42,7 @@ const OAuthButton = ({ provider, loading, disabled, hint, onPress }: Props) => {
 			edgeColor={isGoogle ? loginProviderColors.google.border : loginProviderColors.kakao.background}
 			contentStyle={styles.button}
 		>
-			<ProviderLogo provider={provider} size={20} hidden={loading} />
+			<SocialLoginListProviderLogo provider={provider} size={20} hidden={loading} />
 
 			<Copy style={[styles.label, isGoogle ? styles.googleLabel : styles.kakaoLabel, loading && styles.hidden]}>
 				{t(`auth.continue.${provider}`)}
@@ -83,4 +83,4 @@ const styles = StyleSheet.create({
 	hidden: { opacity: 0 },
 });
 
-export default OAuthButton;
+export default SocialLoginListOAuthButton;

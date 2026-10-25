@@ -34,3 +34,7 @@ export const communityUserSchema = z.object({
 export type User = z.infer<typeof userSchema>;
 export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>;
 export type CommunityUser = z.infer<typeof communityUserSchema>;
+
+export interface PatchMeParams {
+	data: UpdateUserRequest;
+}

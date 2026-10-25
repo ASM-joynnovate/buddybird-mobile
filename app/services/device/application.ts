@@ -3,12 +3,12 @@ import { Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 
-import { env } from '@/config';
+import { env } from '@/config/env';
 import { reportError } from '@/services/telemetry/client';
 
-export const installedVersion = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.2.0';
+export const installedVersion = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '';
 
-/** 앱 스토어 페이지를 여는 함수 */
+/** 앱 스토어 페이지 이동 함수 */
 export const openAppStore = async () => {
 	const appId = Application.applicationId;
 

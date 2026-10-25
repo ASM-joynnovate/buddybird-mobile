@@ -35,14 +35,14 @@ interface Props {
  * @param onComplete 스플래시가 사라진 뒤 실행할 함수
  */
 const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const eyeOpenness = useSharedValue(1);
-	const enterProgress = useSharedValue(reducedMotion ? 1 : 0);
+	const enterProgress = useSharedValue(motionReduced ? 1 : 0);
 	const exitOpacity = useSharedValue(1);
 
 	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
-	const [blinked, setBlinked] = useState(reducedMotion);
+	const [eyesBlinked, setEyesBlinked] = useState(motionReduced);
 
 	const laidOutRef = useRef(false);
 
@@ -54,7 +54,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 
 	/** 네이티브 스플래시가 사라지면 등장 애니메이션 실행 */
 	useEffect(() => {
-		if (!nativeSplashHidden || reducedMotion) {
+		if (!nativeSplashHidden || motionReduced) {
 			return;
 		}
 
@@ -68,7 +68,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 					withTiming(0.07, { duration: 90, easing: Easing.in(Easing.quad) }),
 					withTiming(1, { duration: 130, easing: Easing.out(Easing.quad) }, (finished) => {
 						if (finished) {
-							scheduleOnRN(setBlinked, true);
+							scheduleOnRN(setEyesBlinked, true);
 						}
 					}),
 				),
@@ -79,16 +79,16 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 			cancelAnimation(enterProgress);
 			cancelAnimation(eyeOpenness);
 		};
-	}, [enterProgress, eyeOpenness, reducedMotion, nativeSplashHidden]);
+	}, [enterProgress, eyeOpenness, motionReduced, nativeSplashHidden]);
 
 	/** 앱 시작 준비가 끝나면 스플래시 숨기기 */
 	useEffect(() => {
-		if (!bootstrapSettled || !nativeSplashHidden || !blinked) {
+		if (!bootstrapSettled || !nativeSplashHidden || !eyesBlinked) {
 			return;
 		}
 
 		exitOpacity.set(
-			withTiming(0, { duration: reducedMotion ? 0 : 200 }, (finished) => {
+			withTiming(0, { duration: motionReduced ? 0 : 200 }, (finished) => {
 				if (finished) {
 					scheduleOnRN(onComplete);
 				}
@@ -96,7 +96,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 		);
 
 		return () => cancelAnimation(exitOpacity);
-	}, [blinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
+	}, [eyesBlinked, onComplete, exitOpacity, bootstrapSettled, motionReduced, nativeSplashHidden]);
 
 	/** 네이티브 스플래시 숨기기 */
 	const handleReveal = () => {

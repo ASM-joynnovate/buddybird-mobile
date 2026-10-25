@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import type { CountUnit } from '@/types/session-summary';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
@@ -15,7 +17,7 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import CountUpText, { type CountUnit } from '@/screens/session/components/count-up-text';
+import CountUpText from '@/screens/session/components/count-up-text';
 import { bounceEasing, bumpScale, glintSweep, popIn } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
 import SummaryGlint from '@/screens/session/components/summary-glint';
@@ -35,10 +37,10 @@ const LAND_SCALE = 1.3;
 export interface SummaryStat {
 	metric: SummaryMetric;
 	label: string;
-	value: number;
-	valueBeforeSession: number | null;
+	amount: number;
+	amountBeforeSession: number | null;
 	unit: CountUnit;
-	revealAt: number;
+	revealSentenceIndex: number;
 }
 
 interface Props {
@@ -48,7 +50,7 @@ interface Props {
 
 /**
  * 학습 결과 칩 컴포넌트
- * @param stat 칩에 보여 줄 값
+ * @param stat 칩에 표시할 값
  * @param revealed 해당 문장의 숫자가 다 찼는지 여부
  */
 const SummaryStatsItem = ({ stat, revealed }: Props) => {
@@ -64,14 +66,15 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 
 	const summarySentenceIndex = useSessionStore((state) => state.summarySentenceIndex);
 	const summaryNumberOrigin = useSessionStore((state) => state.summaryNumberOrigin);
-	const moveSummarySentence = useSessionStore((state) => state.moveSummarySentence);
-	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
+	const moveSummarySentence = useSessionStore((state) => state.moveSummarySentence);
+	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
+
 	const palette = summaryMetricColors[stat.metric];
-	const sentenceShowing = summarySentenceIndex === stat.revealAt;
+	const sentenceShowing = summarySentenceIndex === stat.revealSentenceIndex;
 	const flightOrigin =
-		revealed && !numberLanded && summaryNumberOrigin?.sentenceIndex === stat.revealAt
+		revealed && !numberLanded && summaryNumberOrigin?.sentenceIndex === stat.revealSentenceIndex
 			? summaryNumberOrigin.position
 			: null;
 	const chipScaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: chipScale.get() }] }));
@@ -81,7 +84,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 		setNumberLanded(true);
 	}
 
-	/** 숫자가 내려앉으면 칩과 값 강조 */
+	/** 숫자가 도착하면 칩 강조 */
 	useEffect(() => {
 		if (!numberLanded) {
 			return;
@@ -90,7 +93,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 		chipScale.set(bumpScale());
 		glint.set(glintSweep());
 
-		if (stat.valueBeforeSession === null) {
+		if (stat.amountBeforeSession === null) {
 			valueScale.set(
 				withSequence(
 					withTiming(LAND_SCALE, { duration: 0 }),
@@ -111,7 +114,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				}),
 			),
 		);
-	}, [chipScale, glint, numberLanded, progress, stat.valueBeforeSession, valueScale]);
+	}, [chipScale, glint, numberLanded, progress, stat.amountBeforeSession, valueScale]);
 
 	const handleLand = useCallback(() => {
 		clearSummaryNumberOrigin();
@@ -124,7 +127,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 			return;
 		}
 
-		moveSummarySentence(stat.revealAt);
+		moveSummarySentence(stat.revealSentenceIndex);
 	};
 
 	return (
@@ -154,15 +157,15 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				<Animated.View style={[styles.valueContainer, valueScaleStyle]}>
 					<CountUpText
 						progress={progress}
-						from={stat.valueBeforeSession ?? stat.value}
-						to={stat.value}
+						from={stat.amountBeforeSession ?? stat.amount}
+						to={stat.amount}
 						unit={stat.unit}
 						style={styles.value}
 					/>
 
 					{flightOrigin && (
 						<SummaryStatsFlyingNumber
-							value={stat.value}
+							value={stat.amount}
 							unit={stat.unit}
 							metric={stat.metric}
 							origin={flightOrigin}
@@ -172,11 +175,11 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				</Animated.View>
 
 				{/*이번 세션이 더한 양*/}
-				{numberLanded && stat.valueBeforeSession !== null && (
+				{numberLanded && stat.amountBeforeSession !== null && (
 					<Animated.View entering={popIn()} style={styles.addedBadge}>
 						<Copy style={styles.addedText}>
 							{t('session.summary.added', {
-								duration: formatDuration(stat.value - stat.valueBeforeSession, locale),
+								duration: formatDuration(stat.amount - stat.amountBeforeSession, locale),
 							})}
 						</Copy>
 					</Animated.View>

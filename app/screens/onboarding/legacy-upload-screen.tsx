@@ -1,18 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { useQueryClient } from '@tanstack/react-query';
-
-import { apiKeys } from '@/hooks/apis/keys';
 import { useGetParrotList } from '@/hooks/apis/parrots';
-import useLegacyMigration from '@/hooks/use-legacy-migration';
 import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
 
+import useUploadLegacy from '@/screens/onboarding/hooks/use-upload-legacy';
 import { acceptLegacyUpload, finishLegacyUpload } from '@/services/migration/upload-legacy';
-import { reportError, trackScreen } from '@/services/telemetry/client';
+import { trackScreen } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
@@ -25,21 +22,16 @@ import { ui } from '@/components/ui/styles';
 
 /** v1 데이터 업로드 화면 */
 const LegacyUploadScreen = () => {
-	const queryClient = useQueryClient();
-
 	const { t } = useTranslation();
-
-	const [uploadFailed, setUploadFailed] = useState(false);
-	const [retryCount, setRetryCount] = useState(0);
 
 	const { data: parrotListData } = useGetParrotList();
 
-	const { uploadLegacy } = useLegacyMigration();
-
-	// 버디가 없는 화면이므로 앱 시작 화면의 버디가 횃대와 함께 위로 올라감
-	useStartupLanding();
-
 	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
+
+	const { isError, isIdle, mutate } = useUploadLegacy();
+
+	// 횃대 및 버디를 위로 이동
+	useStartupLanding();
 
 	const askDialogOpen = uploadStatus === 'pending' && parrotListData.length > 0;
 	const canStartUpload = !askDialogOpen;
@@ -52,30 +44,12 @@ const LegacyUploadScreen = () => {
 
 	/** 업로드를 시작할 수 있으면 v1 데이터 업로드 */
 	useEffect(() => {
-		if (!canStartUpload) {
+		if (!canStartUpload || !isIdle) {
 			return;
 		}
 
-		/** v1 데이터 업로드 함수 */
-		const uploadAndFinishLegacy = async () => {
-			await uploadLegacy();
-
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
-			]);
-
-			trackOnboardingStepCompleted('legacy_upload');
-
-			finishLegacyUpload();
-		};
-
-		void uploadAndFinishLegacy().catch((error) => {
-			reportError(error, 'legacy_upload');
-
-			setUploadFailed(true);
-		});
-	}, [canStartUpload, queryClient, retryCount, uploadLegacy]);
+		mutate();
+	}, [canStartUpload, isIdle, mutate]);
 
 	const handleSkip = () => {
 		trackOnboardingStepCompleted('legacy_upload');
@@ -83,22 +57,16 @@ const LegacyUploadScreen = () => {
 		finishLegacyUpload();
 	};
 
-	const handleRetry = () => {
-		setUploadFailed(false);
-		setRetryCount((prev) => prev + 1);
-	};
-
 	return (
 		<Screen scrollable={false}>
-			{/*업로드 상태*/}
 			<View style={styles.container}>
-				{uploadFailed ? (
+				{isError ? (
 					<>
 						<Copy accessibilityRole="alert" style={styles.message}>
 							{t('onboarding.legacy.uploadError')}
 						</Copy>
 
-						<Button label={t('common.retry')} onPress={handleRetry} />
+						<Button label={t('common.retry')} onPress={() => mutate()} />
 						<Button label={t('common.skip')} variant="secondary" onPress={handleSkip} />
 					</>
 				) : (

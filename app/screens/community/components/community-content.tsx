@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { ActivityIndicator, StyleSheet, type View } from 'react-native';
 
 import { useGetMe } from '@/hooks/apis/users';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
 import { useTranslation } from 'react-i18next';
 
@@ -13,10 +14,11 @@ import CommunityFeed from '@/screens/community/components/community-feed';
 import CommunityGate from '@/screens/community/components/community-gate';
 import CountryScopeChips from '@/screens/community/components/country-scope-chips';
 import ReportDialog from '@/screens/community/components/report-dialog';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
 import { colors } from '@/theme';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Title } from '@/components/ui/title';
@@ -29,16 +31,20 @@ const CommunityContent = () => {
 
 	const { data: meData } = useGetMe();
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
-	const feedItemToReport = useCommunityStore((state) => state.feedItemToReport);
-	const userToBlock = useCommunityStore((state) => state.userToBlock);
+	const reportTarget = useCommunityStore((state) => state.reportTarget);
+	const blockTarget = useCommunityStore((state) => state.blockTarget);
+
+	const lowPerformance = useIsLowPerformance();
 
 	const gateShown = isAnonymous || !meData.nickname;
 
 	return (
 		<>
 			<BlurTargetView ref={blurTargetRef} style={styles.container}>
+				{!gateShown && <BuddyRefreshHint mascotShown={!lowPerformance} />}
+
 				<Title style={styles.title}>{t('community.title')}</Title>
 
 				<CountryScopeChips />
@@ -54,8 +60,8 @@ const CommunityContent = () => {
 			{/*익명 및 닉네임 없는 사용자의 입장 팝업*/}
 			{gateShown && <CommunityGate blurTarget={blurTargetRef} />}
 
-			{feedItemToReport && <ReportDialog feedItem={feedItemToReport} />}
-			{userToBlock && <BlockDialog user={userToBlock} />}
+			{reportTarget && <ReportDialog reportTarget={reportTarget} />}
+			{blockTarget && <BlockDialog blockTarget={blockTarget} />}
 		</>
 	);
 };

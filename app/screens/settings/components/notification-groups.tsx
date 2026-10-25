@@ -1,12 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 
+import { useIsMutating } from '@tanstack/react-query';
+
 import type { RootStackParamList } from '@/types/navigation';
 
-import {
-	useGetNotificationSettings,
-	useUpdateNotificationSettingItem,
-	useUpdatePushSetting,
-} from '@/hooks/apis/settings';
+import { apiKeys } from '@/hooks/apis/keys';
+import { useGetNotificationSettings, useUpdatePushSetting } from '@/hooks/apis/settings';
 import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
@@ -14,15 +13,16 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
 import NotificationItemGroup from '@/screens/settings/components/notification-item-group';
 import { reportError } from '@/services/telemetry/client';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
-import { InlineError } from '@/components/ui/inline-error';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
 import { ItemSwitch } from '@/components/ui/item/switch';
+import { Toast } from '@/components/ui/toast';
 
 /** 알림 설정 스위치 컴포넌트 */
 const NotificationGroups = () => {
@@ -32,48 +32,46 @@ const NotificationGroups = () => {
 
 	const { data: notificationSettingsData } = useGetNotificationSettings();
 
-	const updatePushSetting = useUpdatePushSetting();
-	const updateNotificationSettingItem = useUpdateNotificationSettingItem();
+	const { isPending, mutate } = useUpdatePushSetting();
+
+	const settingItemSaving =
+		useIsMutating({ mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications', 'item') }) > 0;
 
 	const notificationPermission = usePermission('notifications');
 
 	const permissionOff = notificationPermission.granted === false;
 	const pushOff = !notificationSettingsData.push_enabled;
-	const settingSaving = updatePushSetting.isPending || updateNotificationSettingItem.isPending;
-	const settingSaveFailed = updatePushSetting.isError || updateNotificationSettingItem.isError;
 
 	const handleRequestPermission = () => {
 		void notificationPermission
-			.run(() => void notificationPermission.refresh())
+			.runWithPermission(() => void notificationPermission.refresh())
 			.catch((error: unknown) => reportError(error, 'permission_notifications'));
 	};
 
 	const handleTogglePush = (enabled: boolean) => {
-		if (settingSaving) {
+		if (isPending || settingItemSaving) {
 			return;
 		}
 
-		updatePushSetting.mutate({ data: { push_enabled: enabled } });
-	};
-
-	const handleToggleItem = (itemId: string, enabled: boolean) => {
-		if (settingSaving) {
-			return;
-		}
-
-		updateNotificationSettingItem.mutate({ id: itemId, data: { enabled } });
+		mutate(
+			{ data: { push_enabled: enabled } },
+			{
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('settings.saveError')} />);
+				},
+			},
+		);
 	};
 
 	return (
 		<View style={styles.container}>
-			{/*전체 알림 스위치. OS 알림 권한이 꺼져 있으면 권한 안내 표시*/}
 			<ItemGroup>
 				<ItemSwitch
-					first
+					isFirstInGroup
 					icon={BellIcon}
 					label={t('settings.notifications.all')}
 					value={notificationSettingsData.push_enabled}
-					disabled={settingSaving}
+					disabled={isPending || settingItemSaving}
 					onChange={handleTogglePush}
 				/>
 				{permissionOff && (
@@ -90,9 +88,8 @@ const NotificationGroups = () => {
 			>
 				{notificationSettingsData.items.length > 0 && (
 					<NotificationItemGroup
-						items={notificationSettingsData.items}
-						disabled={settingSaving}
-						onToggle={handleToggleItem}
+						settingItems={notificationSettingsData.items}
+						pushSettingSaving={isPending}
 					/>
 				)}
 
@@ -101,7 +98,7 @@ const NotificationGroups = () => {
 						{notificationSettingsData.groups.map((group, index) => (
 							<Item
 								key={group.id}
-								first={index === 0}
+								isFirstInGroup={index === 0}
 								label={group.title}
 								detail={group.description ?? undefined}
 								onPress={() => navigation.navigate('NotificationGroupSettings', { groupId: group.id })}
@@ -110,8 +107,6 @@ const NotificationGroups = () => {
 					</ItemGroup>
 				)}
 			</View>
-
-			<InlineError message={settingSaveFailed ? t('settings.saveError') : null} />
 
 			<PermissionDialog state={notificationPermission.dialog} />
 		</View>

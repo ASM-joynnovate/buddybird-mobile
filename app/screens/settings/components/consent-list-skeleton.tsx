@@ -9,7 +9,7 @@ import { itemStyles } from '@/components/ui/item/styles';
 
 const PLACEHOLDER_ROW_COUNT = 3;
 
-/** 약관 동의 목록을 불러오는 동안 보이는 컴포넌트 */
+/** 약관 동의 목록 스켈레톤 컴포넌트 */
 const ConsentListSkeleton = () => {
 	return (
 		<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

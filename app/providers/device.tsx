@@ -8,21 +8,22 @@ import { getMessaging, onTokenRefresh } from '@react-native-firebase/messaging';
 import dayjs from 'dayjs';
 import * as Device from 'expo-device';
 
-import { DEVICE_ACTIVITY_INTERVAL_MS, MAX_DEVICE_MODEL_LENGTH, MAX_DEVICE_OS_VERSION_LENGTH } from '@/config';
+import { DEVICE_ACTIVITY_INTERVAL_MS, MAX_DEVICE_MODEL_LENGTH, MAX_DEVICE_OS_VERSION_LENGTH } from '@/config/policy';
 import { installedVersion } from '@/services/device/application';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { deviceTimeZone } from '@/utils/date';
 
 /** 기기 등록 요청에 보낼 이 기기의 정보 */
-const thisDeviceInfo = () => ({
-	client_device_id: useAccountStore.getState().clientDeviceId ?? '',
+const deviceRegistrationBody = () => ({
+	client_device_id: useDeviceSettingsStore.getState().clientDeviceId ?? '',
 	platform: Platform.OS,
 	os_version: (Device.osVersion ?? '').slice(0, MAX_DEVICE_OS_VERSION_LENGTH),
 	model: (Device.modelName ?? '').slice(0, MAX_DEVICE_MODEL_LENGTH),
 	app_version: installedVersion,
-	timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+	timezone: deviceTimeZone(),
 	locale: useDeviceSettingsStore.getState().locale,
 });
 
@@ -47,7 +48,10 @@ const DeviceProvider = ({ children }: Props) => {
 			return;
 		}
 
-		registerDevice({ data: thisDeviceInfo() }, { onError: (error) => reportError(error, 'device_register') });
+		registerDevice(
+			{ data: deviceRegistrationBody() },
+			{ onError: (error) => reportError(error, 'device_register') },
+		);
 	}, [serverUserId, registerDevice]);
 
 	/** 기기 등록 성공 시 푸시 토큰 저장 */
@@ -56,6 +60,7 @@ const DeviceProvider = ({ children }: Props) => {
 			return;
 		}
 
+		/** 푸시 토큰 저장 함수 */
 		const savePushToken = (scope: string) => {
 			void readPushToken()
 				.then((token) => {
@@ -100,7 +105,7 @@ const DeviceProvider = ({ children }: Props) => {
 		};
 
 		/** 앱이 foreground일 때만 접속 기록 예약 */
-		const toggleActivityRecord = (appState: string) => {
+		const setActivityRecordByAppState = (appState: string) => {
 			clearTimeout(activityTimer);
 
 			if (appState === 'active') {
@@ -108,9 +113,9 @@ const DeviceProvider = ({ children }: Props) => {
 			}
 		};
 
-		toggleActivityRecord(AppState.currentState);
+		setActivityRecordByAppState(AppState.currentState);
 
-		const appStateSubscription = AppState.addEventListener('change', toggleActivityRecord);
+		const appStateSubscription = AppState.addEventListener('change', setActivityRecordByAppState);
 
 		return () => {
 			clearTimeout(activityTimer);

@@ -1,17 +1,22 @@
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { deleteParrot, getParrotList, patchParrot, postParrot, putParrotPhoto } from '@/apis/parrots';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { parrotKeys } from '@/hooks/apis/keys/parrots';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
 /** 앵무새 목록 조회 Hook에 사용할 옵션 */
-export const getParrotListOptions = () => queryOptions({ queryKey: apiKeys.parrots.all(), queryFn: getParrotList });
+export const getParrotListOptions = () => queryOptions({ queryKey: parrotKeys.all(), queryFn: getParrotList });
 /** 앵무새 목록 조회 Hook */
-export const useGetParrotList = () => {
-	return useSuspenseQuery(getParrotListOptions());
+export const useGetParrotList = (options?: Pick<ReturnType<typeof getParrotListOptions>, 'refetchInterval'>) => {
+	return useSuspenseQuery({ ...getParrotListOptions(), ...options });
+};
+/** suspense 없는 앵무새 목록 조회 Hook */
+export const useGetParrotListQuery = () => {
+	return useQuery(getParrotListOptions());
 };
 
 /** 앵무새 등록 Hook */
@@ -21,7 +26,7 @@ export const useCreateParrot = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('parrots', 'save'),
 		mutationFn: postParrot,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: parrotKeys.all() }),
 	});
 };
 
@@ -32,7 +37,7 @@ export const useUpdateParrot = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'save'),
 		mutationFn: patchParrot,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: parrotKeys.all() }),
 	});
 };
 
@@ -43,7 +48,7 @@ export const useDeleteParrot = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'delete'),
 		mutationFn: deleteParrot,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: parrotKeys.all() }),
 		onError: (error) => reportError(error, 'parrot_delete'),
 	});
 };
@@ -55,6 +60,6 @@ export const useUploadParrotPhoto = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
 		mutationFn: putParrotPhoto,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: parrotKeys.all() }),
 	});
 };

@@ -13,3 +13,8 @@ const createAbuseReportRequestSchema = z.object({
 
 export type AbuseReportReason = (typeof abuseReportReasons)[number];
 export type CreateAbuseReportRequest = z.infer<typeof createAbuseReportRequestSchema>;
+
+export interface PostAbuseReportParams {
+	data: CreateAbuseReportRequest;
+	idempotencyKey: string;
+}

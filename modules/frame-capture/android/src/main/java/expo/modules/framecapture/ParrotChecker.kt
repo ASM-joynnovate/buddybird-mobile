@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
+import android.util.Log
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.components.containers.Detection
 import com.google.mediapipe.tasks.core.BaseOptions
@@ -17,6 +18,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+private const val TAG = "FrameCapture"
 private const val MODEL_FILE = "efficientdet_lite2.tflite"
 private const val BIRD_CATEGORY = "bird"
 private const val FRAME_WAIT_MS = 5000L
@@ -25,7 +27,7 @@ private const val LUMA_RANGE = 219f
 private const val CHROMA_CENTER = 128f
 private const val MAX_BRIGHTNESS = 255.0
 
-/** 진행 중인 앵무새 확인 한 번 */
+/** 앵무새 확인 요청 */
 private class ParrotCheck(
   val nightCorrectionEnabled: Boolean,
   val nightStartBrightness: Double,
@@ -95,6 +97,7 @@ private class ParrotCheck(
     return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
   }
 
+  /** 평면 픽셀값 누적 함수 */
   private fun addPlane(plane: ByteBuffer, stride: Int, planeWidth: Int, planeHeight: Int, sum: IntArray) {
     val source = plane.duplicate()
     val row = ByteArray(planeWidth)
@@ -123,6 +126,7 @@ object ParrotChecker {
   @Volatile private var check: ParrotCheck? = null
   private var detector: ObjectDetector? = null
 
+  /** 출력 폴더 설정 함수 */
   fun initialize(context: Context, outputDir: File) {
     this.context = context
     this.outputDir = outputDir
@@ -133,11 +137,11 @@ object ParrotChecker {
     worker.execute {
       check?.promise?.resolve(null)
 
-      val requested = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, promise)
+      val newCheck = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, promise)
 
-      check = requested
+      check = newCheck
 
-      worker.schedule(Runnable { finishLate(requested) }, mergeMs + FRAME_WAIT_MS, TimeUnit.MILLISECONDS)
+      worker.schedule(Runnable { finishLate(newCheck) }, mergeMs + FRAME_WAIT_MS, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -150,6 +154,7 @@ object ParrotChecker {
     val i420 = try {
       frame.buffer.toI420()
     } catch (e: Exception) {
+      Log.e(TAG, "Frame conversion failed", e)
       null
     }
 
@@ -166,10 +171,10 @@ object ParrotChecker {
       try {
         addFrame(i420, rotation)
       } catch (e: Exception) {
-        val failed = check
+        val failedCheck = check
 
         check = null
-        failed?.promise?.reject("ERR_PARROT_CHECK", e.message, e)
+        failedCheck?.promise?.reject("ERR_PARROT_CHECK", e.message, e)
       } finally {
         i420.release()
         frameBusy.set(false)
@@ -177,6 +182,7 @@ object ParrotChecker {
     }
   }
 
+  /** 확인 중인 요청에 프레임 누적 함수 */
   private fun addFrame(i420: VideoFrame.I420Buffer, rotation: Int) {
     val current = check ?: return
 
@@ -206,21 +212,22 @@ object ParrotChecker {
   }
 
   /** 시간이 초과된 확인을 종료하는 함수 */
-  private fun finishLate(requested: ParrotCheck) {
-    if (check !== requested) {
+  private fun finishLate(lateCheck: ParrotCheck) {
+    if (check !== lateCheck) {
       return
     }
 
-    if (requested.frameCount == 0) {
+    if (lateCheck.frameCount == 0) {
       check = null
-      requested.promise.resolve(null)
+      lateCheck.promise.resolve(null)
 
       return
     }
 
-    finish(requested)
+    finish(lateCheck)
   }
 
+  /** 확인 결과 반환 함수 */
   private fun finish(finished: ParrotCheck) {
     check = null
 
@@ -282,13 +289,14 @@ object ParrotChecker {
     return rotated
   }
 
-  /** 사진에서 bird 점수가 가장 높은 검출 결과를 반환하는 함수 */
+  /** bird 점수가 가장 높은 결과 반환 */
   private fun birdDetection(photo: Bitmap): Detection? {
     val result = loadDetector().detect(BitmapImageBuilder(photo).build())
 
     return result.detections().maxByOrNull { detection -> detection.categories().maxOfOrNull { it.score() } ?: 0f }
   }
 
+  /** 검출 모델 생성 함수 */
   private fun loadDetector(): ObjectDetector {
     detector?.let { return it }
 

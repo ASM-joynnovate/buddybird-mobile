@@ -1,17 +1,17 @@
 import { File, Paths } from 'expo-file-system';
 
-/** iOS 앱 폴더가 바뀌어도 저장한 파일을 찾을 수 있는 주소를 반환하는 함수 */
+/** iOS 앱 폴더 변경에도 유지되는 파일 주소 반환 함수 */
 export const resolveFileUri = (uri: string) => {
 	const documentRoot = Paths.document.uri.endsWith('/') ? Paths.document.uri : `${Paths.document.uri}/`;
 
 	/** 문서 폴더 기준 주소를 반환하는 함수 */
 	const resolveDocumentPath = (directory: string, relativePath: string) => {
 		const decodedPath = decodeURIComponent(relativePath);
-		const containsTraversal = decodedPath.split('/').some((part) => part === '..' || part === '.');
+		const isTraversalPath = decodedPath.split('/').some((part) => part === '..' || part === '.');
 		const isInvalidPath =
 			!decodedPath ||
 			decodedPath.startsWith('/') ||
-			containsTraversal ||
+			isTraversalPath ||
 			decodedPath.includes('\\') ||
 			decodedPath.includes('\0');
 
@@ -29,7 +29,7 @@ export const resolveFileUri = (uri: string) => {
 	}
 
 	if (uri.startsWith('photo://')) {
-		// 사진 주소는 % 기호를 포함한 실제 파일 이름 그대로 저장함
+		// % 기호를 포함한 파일 이름 그대로 저장
 		const fileName = uri.slice('photo://'.length);
 
 		return resolveDocumentPath('photos/', encodeURIComponent(fileName));
@@ -72,7 +72,7 @@ export const readFileInfo = (uri: string) => {
 	const file = new File(resolveFileUri(uri));
 
 	if (!file.exists) {
-		// exists가 false여도 부모 폴더 목록에 있으면 접근할 수 없는 파일
+		// 부모 폴더 목록에 있으면 접근할 수 없는 파일
 		if (file.parentDirectory.exists && file.parentDirectory.list().some((entry) => entry.name === file.name)) {
 			throw new Error('File is inaccessible');
 		}

@@ -13,12 +13,13 @@ import { apiErrorMessage } from '@/lib/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ClockIcon, EyeOffIcon, GlobeIcon, LogInIcon, type LucideIcon, UserPenIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
-import { useMessageStore } from '@/stores/message';
 import { colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
+import { Toast } from '@/components/ui/toast';
 
 const reasonIcons: Record<UnrankedReason, LucideIcon> = {
 	not_participating: EyeOffIcon,
@@ -27,6 +28,11 @@ const reasonIcons: Record<UnrankedReason, LucideIcon> = {
 	country_mismatch: GlobeIcon,
 	no_record: ClockIcon,
 };
+
+interface UnrankedAction {
+	label: string;
+	onPress: () => void;
+}
 
 interface Props {
 	reason: UnrankedReason | null;
@@ -45,8 +51,6 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 
 	const { isPending, mutate } = useUpdateCommunitySettings();
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
 	if (!reason) {
 		return null;
 	}
@@ -60,11 +64,15 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 
 		mutate(
 			{ data: { leaderboard_enabled: true } },
-			{ onError: (error) => openPopup({ title: apiErrorMessage(error, t) }) },
+			{
+				onError: (error) => {
+					toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />);
+				},
+			},
 		);
 	};
 
-	const unrankedActions: Partial<Record<UnrankedReason, { label: string; onPress: () => void }>> = {
+	const unrankedActions: Partial<Record<UnrankedReason, UnrankedAction>> = {
 		not_participating: {
 			label: t('community.leaderboard.unranked.not_participating.action'),
 			onPress: handleJoinLeaderboard,
@@ -79,6 +87,10 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 		},
 	};
 	const unrankedAction = unrankedActions[reason];
+	const unrankedDescriptions: Partial<Record<UnrankedReason, string>> = {
+		not_participating: t('community.leaderboard.unranked.not_participating.description'),
+	};
+	const unrankedDescription = unrankedDescriptions[reason];
 
 	return (
 		<View style={[styles.container, style]}>
@@ -88,7 +100,7 @@ const UnrankedNotice = ({ reason, style }: Props) => {
 
 			<View style={styles.textContainer}>
 				<Copy style={styles.title}>{t(`community.leaderboard.unranked.${reason}.title`)}</Copy>
-				<Copy style={styles.description}>{t(`community.leaderboard.unranked.${reason}.description`)}</Copy>
+				{!!unrankedDescription && <Copy style={styles.description}>{unrankedDescription}</Copy>}
 			</View>
 
 			{unrankedAction && (

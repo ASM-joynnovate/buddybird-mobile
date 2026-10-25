@@ -1,4 +1,5 @@
-import type { LoginProvider } from '@/types/account';
+import type { LoginProvider } from '@/types/auth';
+import type { SessionDetailSource } from '@/types/navigation';
 import type { ReportPeriod } from '@/types/report-period';
 
 export type OnboardingStep =
@@ -10,71 +11,151 @@ export type OnboardingStep =
 	| 'permissions'
 	| 'marketing_notification';
 
+export interface OnboardingStepViewedParams {
+	step: OnboardingStep;
+}
+
+export interface OnboardingStepCompletedParams {
+	step: OnboardingStep;
+	duration_ms: number;
+	login_method?: LoginProvider | 'skip';
+	microphone_granted?: boolean;
+	notifications_granted?: boolean;
+	parrot_skipped?: boolean;
+}
+
+export interface OnboardingCompletedParams {
+	total_duration_ms: number;
+}
+
+export interface WordRecordingCountParams {
+	word_id: string;
+	recording_count: number;
+}
+
+export interface WordEditStartedParams {
+	word_id: string;
+}
+
+export interface WordUpdatedParams {
+	word_id: string;
+	recording_count: number;
+	added_count: number;
+	removed_count: number;
+	renamed: boolean;
+}
+
+export interface RecordingFinishedParams {
+	duration_ms: number;
+}
+
+export interface LearningStartedParams {
+	session_id: string;
+	word_id: string;
+	recording_count: number;
+	planned_duration_ms?: number;
+	custom_duration: boolean;
+	sleep_changed: boolean;
+}
+
+export interface SessionIdEventParams {
+	session_id: string;
+}
+
+export interface LearningResumedParams {
+	session_id: string;
+	paused_ms: number;
+}
+
+export interface LearningFinishedParams {
+	session_id: string;
+	reason: 'time_reached' | 'user' | 'server' | 'error';
+	learning_duration_ms: number;
+	total_duration_ms: number;
+	play_count: number;
+	sound_count: number;
+}
+
+export interface ReportViewedParams {
+	period: ReportPeriod;
+	periods_ago: number;
+	session_count: number;
+}
+
+export interface SessionDetailViewedParams {
+	session_id: string;
+	source: SessionDetailSource;
+}
+
+export interface NotificationOpenedParams {
+	kind: string;
+	from: 'push' | 'list';
+}
+
+export interface LanguageChangedParams {
+	from: string;
+	to: string;
+}
+
+export interface UpdatePromptParams {
+	latest_version: string | null;
+	is_forced: boolean;
+}
+
+export interface UpdatePromptDismissedParams {
+	latest_version: string;
+}
+
+export interface FeedbackPromptParams {
+	threshold: number;
+}
+
+export interface FeedbackSubmittedParams {
+	source: 'prompt' | 'profile';
+	message_length: number;
+}
+
+export interface AppErrorParams {
+	error_code: string;
+	screen_name: string | null;
+}
+
+export interface ScreenViewParams {
+	screen_name: string;
+	screen_class: string;
+}
+
 export interface AnalyticsEvents {
-	onboarding_step_viewed: { step: OnboardingStep };
-	onboarding_step_completed: {
-		step: OnboardingStep;
-		duration_ms: number;
-		login_method?: LoginProvider | 'skip';
-		microphone_granted?: boolean;
-		notifications_granted?: boolean;
-		parrot_skipped?: boolean;
-	};
-	onboarding_completed: { total_duration_ms: number };
+	onboarding_step_viewed: OnboardingStepViewedParams;
+	onboarding_step_completed: OnboardingStepCompletedParams;
+	onboarding_completed: OnboardingCompletedParams;
 	word_create_started: Record<string, never>;
-	word_created: { word_id: string; recording_count: number };
-	word_edit_started: { word_id: string };
-	word_updated: {
-		word_id: string;
-		recording_count: number;
-		added_count: number;
-		removed_count: number;
-		renamed: boolean;
-	};
+	word_created: WordRecordingCountParams;
+	word_edit_started: WordEditStartedParams;
+	word_updated: WordUpdatedParams;
 	recording_started: Record<string, never>;
-	recording_finished: { duration_ms: number };
-	word_deleted: { word_id: string; recording_count: number };
-	learning_started: {
-		session_id: string;
-		word_id: string;
-		recording_count: number;
-		planned_duration_ms?: number;
-		custom_duration: boolean;
-		sleep_changed: boolean;
-	};
-	learning_paused: { session_id: string };
-	learning_resumed: { session_id: string; paused_ms: number };
-	learning_finished: {
-		session_id: string;
-		reason: 'time_reached' | 'user' | 'server' | 'error';
-		learning_duration_ms: number;
-		total_duration_ms: number;
-		play_count: number;
-		sound_count: number;
-	};
-	report_viewed: {
-		period: ReportPeriod;
-		periods_ago: number;
-		session_count: number;
-	};
-	session_detail_viewed: { session_id: string; source: 'report' | 'summary' | 'notification' };
-	parrot_sound_played: { session_id: string };
-	parrot_sound_shared: { session_id: string };
-	notification_opened: {
-		kind: string;
-		from: 'push' | 'list';
-	};
-	language_changed: { from: string; to: string };
-	update_prompt_shown: { latest_version: string | null; is_forced: boolean };
-	update_prompt_accepted: { latest_version: string | null; is_forced: boolean };
-	update_prompt_dismissed: { latest_version: string };
-	feedback_prompt_shown: { threshold: number };
-	feedback_prompt_dismissed: { threshold: number };
-	feedback_submitted: { source: 'prompt' | 'profile'; message_length: number };
+	recording_finished: RecordingFinishedParams;
+	word_deleted: WordRecordingCountParams;
+	learning_started: LearningStartedParams;
+	learning_paused: SessionIdEventParams;
+	learning_resumed: LearningResumedParams;
+	learning_finished: LearningFinishedParams;
+	report_viewed: ReportViewedParams;
+	session_detail_viewed: SessionDetailViewedParams;
+	parrot_sound_played: SessionIdEventParams;
+	parrot_sound_shared: SessionIdEventParams;
+	notification_opened: NotificationOpenedParams;
+	language_changed: LanguageChangedParams;
+	update_prompt_shown: UpdatePromptParams;
+	update_prompt_accepted: UpdatePromptParams;
+	update_prompt_dismissed: UpdatePromptDismissedParams;
+	feedback_prompt_shown: FeedbackPromptParams;
+	feedback_prompt_dismissed: FeedbackPromptParams;
+	feedback_submitted: FeedbackSubmittedParams;
 	app_foregrounded: Record<string, never>;
 	app_backgrounded: Record<string, never>;
-	app_error: { error_code: string; screen_name: string | null };
-	screen_view: { screen_name: string; screen_class: string };
+	app_error: AppErrorParams;
+	screen_view: ScreenViewParams;
 }
 
 export type UserProperties = Partial<

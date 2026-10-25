@@ -28,39 +28,21 @@ import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 import { SpeechBubble } from '@/components/ui/speech-bubble';
 
-const LEVEL_BLOCKS = Array.from({ length: 6 }, (_, index) => {
-	const strength = 0.3 + index * 0.14;
-
-	return {
-		widthPercent: 40 + index * 12,
-		faceColor: interpolateColor(strength, [0, 1], [colors.background, colors.blue]),
-		edgeColor: interpolateColor(strength, [0, 1], [colors.background, colors.blueDark]),
-		delayMs: 300 + index * 200,
-	};
-});
-const LEVEL_BLOCK_LIGHT_MS = 160;
-const ARROW_APPEAR_ORDER = 20;
 const WAVE_WIDTH = 210;
 const WAVE_HEIGHT = 60;
-const WAVE_CYCLES = 6;
-const WAVE_AMPLITUDE = 24;
+
 const WAVE_POINTS = Array.from({ length: WAVE_WIDTH / 3 + 1 }, (_, index) => {
 	const x = index * 3;
 	const progress = x / WAVE_WIDTH;
 	const envelope = Math.sin(progress * Math.PI);
 
-	return { x, y: WAVE_HEIGHT / 2 - WAVE_AMPLITUDE * envelope * Math.sin(progress * Math.PI * 2 * WAVE_CYCLES) };
+	return { x, y: WAVE_HEIGHT / 2 - 24 * envelope * Math.sin(progress * Math.PI * 2 * 6) };
 });
-const WAVE_PATH = WAVE_POINTS.map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'}${x} ${y.toFixed(1)}`).join(' ');
+
 const WAVE_LENGTH = WAVE_POINTS.slice(1).reduce(
 	(length, point, index) => length + Math.hypot(point.x - WAVE_POINTS[index].x, point.y - WAVE_POINTS[index].y),
 	0,
 );
-const WAVE_DRAW_DELAY_MS = 500;
-const WAVE_DRAW_MS = 1.6 * SECOND;
-const SPEECH_LIFT_DELAY_MS = 200;
-const SPEECH_LIFT_MS = 1.4 * SECOND;
-const NOTE_RISE_MS = 2.6 * SECOND;
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -71,12 +53,12 @@ const liftUp = () => {
 		30: { opacity: 1 },
 		100: { opacity: 1, transform: [{ translateY: 0 }], easing: Easing.out(Easing.cubic) },
 	})
-		.duration(SPEECH_LIFT_MS)
-		.delay(SPEECH_LIFT_DELAY_MS);
+		.duration(1.4 * SECOND)
+		.delay(200);
 };
 
 /**
- * 진행률에 맞춰 음표가 떠오르며 사라지는 스타일을 반환하는 함수
+ * 음표가 떠오르는 스타일 계산 함수
  * @param progress 음표 한 번이 떠오르는 진행률
  * @param scale 그림 배율
  */
@@ -97,7 +79,7 @@ interface Props {
 /**
  * 높은 목소리로 또렷하게 말하는 장면 컴포넌트
  * @param scale 그림 배율
- * @param animated 파형과 음표 움직임 실행 여부
+ * @param animated 파형 및 음표 애니메이션 실행 여부
  */
 const RecordingSceneHighVoice = ({ scale, animated }: Props) => {
 	const { t } = useTranslation();
@@ -113,19 +95,17 @@ const RecordingSceneHighVoice = ({ scale, animated }: Props) => {
 		animated ? risingNoteStyle((noteProgress.get() + 0.5) % 1, scale) : { opacity: 1 },
 	);
 
-	/** 움직임이 켜져 있으면 파형을 그리고 음표가 떠오르기를 반복 */
+	/** 애니메이션이 켜져 있으면 파형 및 음표 애니메이션 시작 */
 	useEffect(() => {
 		if (!animated) {
 			return;
 		}
 
 		waveProgress.set(0);
-		waveProgress.set(
-			withDelay(WAVE_DRAW_DELAY_MS, withTiming(1, { duration: WAVE_DRAW_MS, easing: Easing.linear })),
-		);
+		waveProgress.set(withDelay(500, withTiming(1, { duration: 1.6 * SECOND, easing: Easing.linear })));
 
 		noteProgress.set(0);
-		noteProgress.set(withRepeat(withTiming(1, { duration: NOTE_RISE_MS, easing: Easing.out(Easing.quad) }), -1));
+		noteProgress.set(withRepeat(withTiming(1, { duration: 2.6 * SECOND, easing: Easing.out(Easing.quad) }), -1));
 
 		return () => {
 			cancelAnimation(waveProgress);
@@ -143,12 +123,21 @@ const RecordingSceneHighVoice = ({ scale, animated }: Props) => {
 					{ left: 28 * scale, top: 26 * scale, width: 64 * scale, height: 300 * scale },
 				]}
 			>
-				<Animated.View entering={popIn(ARROW_APPEAR_ORDER)}>
+				<Animated.View entering={popIn(20)}>
 					<ChevronUpIcon size={28 * scale} color={colors.blueDark} strokeWidth={3} />
 				</Animated.View>
 
 				<View style={[styles.levelBlocks, { gap: 8 * scale, marginTop: 2 * scale }]}>
-					{LEVEL_BLOCKS.map(({ widthPercent, faceColor, edgeColor, delayMs }) => (
+					{Array.from({ length: 6 }, (_, index) => {
+						const strength = 0.3 + index * 0.14;
+
+						return {
+							widthPercent: 40 + index * 12,
+							faceColor: interpolateColor(strength, [0, 1], [colors.background, colors.blue]),
+							edgeColor: interpolateColor(strength, [0, 1], [colors.background, colors.blueDark]),
+							delayMs: 300 + index * 200,
+						};
+					}).map(({ widthPercent, faceColor, edgeColor, delayMs }) => (
 						<View key={delayMs} style={[styles.levelBlock, { width: `${widthPercent}%` }]}>
 							<View
 								style={[
@@ -158,7 +147,7 @@ const RecordingSceneHighVoice = ({ scale, animated }: Props) => {
 								]}
 							/>
 							<Animated.View
-								entering={FadeIn.duration(LEVEL_BLOCK_LIGHT_MS).delay(delayMs)}
+								entering={FadeIn.duration(160).delay(delayMs)}
 								style={[
 									styles.levelBlockFace,
 									{
@@ -196,7 +185,7 @@ const RecordingSceneHighVoice = ({ scale, animated }: Props) => {
 				style={[styles.sceneItem, { left: 104 * scale, top: 216 * scale }]}
 			>
 				<AnimatedPath
-					d={WAVE_PATH}
+					d={WAVE_POINTS.map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'}${x} ${y.toFixed(1)}`).join(' ')}
 					fill="none"
 					stroke={colors.blue}
 					strokeWidth={5}

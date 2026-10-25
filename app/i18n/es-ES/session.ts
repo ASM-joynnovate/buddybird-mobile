@@ -55,10 +55,9 @@ export const session: SessionMessages = {
 		camera: 'Cámara',
 		elapsed: 'Transcurrido',
 		keepOpen: 'Deja la app abierta y no apagues la pantalla.',
-		dimAfter: 'Para cuidar la batería y la pantalla, se oscurecerá sola en {{seconds}} segundos.',
+		dimAfter: 'La pantalla se oscurecerá en {{seconds}} segundos.',
 		engineError: 'No hemos podido reproducir el sonido. Termina el entrenamiento y empieza de nuevo.',
-		learningPaused:
-			'El entrenamiento se pausa mientras lo ven desde otro dispositivo. Se reanuda cuando dejen de verlo.',
+		learningPaused: 'El entrenamiento se pausa mientras lo ven desde otro dispositivo.',
 		cameraSettingsNotice: 'Si cambias el permiso en Ajustes, la app se reinicia y el entrenamiento puede terminar.',
 		remaining: 'Termina en',
 		battery: 'Batería',
@@ -67,7 +66,7 @@ export const session: SessionMessages = {
 	},
 	end: {
 		title: 'Terminar entrenamiento',
-		message: '¿Quieres terminar el entrenamiento? Al terminar te enseñamos los resultados.',
+		message: '¿Quieres terminar el entrenamiento?',
 		button: 'Terminar entrenamiento',
 		keep: 'Seguir',
 	},
@@ -88,7 +87,7 @@ export const session: SessionMessages = {
 			message:
 				'Comprueba que el dispositivo del entrenamiento tiene conexión a internet y la última versión de la app.',
 		},
-		learningPaused: 'El entrenamiento se pausa mientras lo ves. Se reanuda cuando salgas.',
+		learningPaused: 'El entrenamiento se pausa mientras lo ves.',
 		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
 		zoomLevel: '{{zoom}}×',
 	},

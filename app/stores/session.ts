@@ -4,7 +4,7 @@ import type { SleepSettings } from '@/types/sleep-settings';
 import type { MeasuredDimensions } from 'react-native-reanimated';
 import { create } from 'zustand';
 
-import { SESSION_DURATION_PRESETS, SESSION_INFO_HIDE_MS } from '@/config';
+import { SESSION_DURATION_PRESETS, SESSION_INFO_HIDE_MS } from '@/config/policy';
 
 type SessionScreenState = {
 	infoVisible: boolean;
@@ -128,12 +128,12 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 		set((state) => ({ ...state, ...initSessionSetup() }));
 	},
 
-	/** 완료 화면에 보이는 문장 번호 저장 */
+	/** 완료 화면 표시 문장 번호 저장 */
 	setSummarySentenceIndex: (summarySentenceIndex) => {
 		set((state) => ({ ...state, summarySentenceIndex }));
 	},
 
-	/** 완료 화면에서 숫자가 다 찬 문장 번호와 숫자 위치 기록 */
+	/** 숫자가 다 찬 문장 번호 및 숫자 위치 기록 */
 	completeSummarySentence: (sentenceIndex, position) => {
 		set((state) => ({
 			...state,
@@ -144,14 +144,14 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 		}));
 	},
 
-	/** 사용자가 넘긴 완료 화면 문장으로 이동하고 자동 넘김 중지, 떠나는 문장은 숫자가 다 찬 문장으로 기록 */
+	/** 선택한 문장으로 이동 및 자동 넘김 중지 */
 	moveSummarySentence: (sentenceIndex) => {
 		get().completeSummarySentence(get().summarySentenceIndex, null);
 
 		set((state) => ({ ...state, summarySentenceIndex: sentenceIndex, summaryAutoAdvanceStopped: true }));
 	},
 
-	/** 완료 화면에서 날아간 숫자 위치 삭제 */
+	/** 완료 화면 숫자 이동 위치 삭제 */
 	clearSummaryNumberOrigin: () => {
 		set((state) => ({ ...state, summaryNumberOrigin: null }));
 	},

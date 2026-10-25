@@ -47,3 +47,24 @@ export type NotificationSettingList = z.infer<typeof notificationSettingListSche
 export type UpdateCommunitySettingsRequest = z.infer<typeof updateCommunitySettingsRequestSchema>;
 export type UpdatePushSettingRequest = z.infer<typeof updatePushSettingRequestSchema>;
 export type UpdateNotificationSettingItemRequest = z.infer<typeof updateNotificationSettingItemRequestSchema>;
+
+export interface PutSleepSettingsParams {
+	data: Settings['sleep'];
+	idempotencyKey: string;
+}
+
+export interface PatchCommunitySettingsParams {
+	data: UpdateCommunitySettingsRequest;
+	idempotencyKey: string;
+}
+
+export interface PatchPushSettingParams {
+	data: UpdatePushSettingRequest;
+	idempotencyKey: string;
+}
+
+export interface PatchNotificationSettingItemParams {
+	id: string;
+	data: UpdateNotificationSettingItemRequest;
+	idempotencyKey: string;
+}

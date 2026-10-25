@@ -1,11 +1,11 @@
-import { type Page, pageMetaSchema } from '@/types/apis/common';
+import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common';
 import { type AppNotification, notificationSchema } from '@/types/apis/notifications';
 
 import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
-export const getNotificationList = async ({ page }: { page: number }): Promise<Page<AppNotification>> => {
+export const getNotificationList = async ({ page }: PageParams): Promise<Page<AppNotification>> => {
 	const { data, meta } = await apiRequest('/api/v1/notifications', z.array(notificationSchema), {
 		searchParams: { page },
 	});

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { PullStatus } from '@/types/pull-to-refresh';
 
@@ -26,14 +26,17 @@ import Svg, { Path } from 'react-native-svg';
 
 import { colors } from '@/theme';
 
+import {
+	FLAP_ANGLE,
+	FLAP_MS,
+	HOLD_SCENE_HEIGHT,
+	MASCOT_FOOT_Y,
+	MASCOT_SIZE,
+} from '@/components/buddy-refresh/constants';
 import BuddyRefreshMessage from '@/components/buddy-refresh/message';
-import { HOLD_SCENE_HEIGHT } from '@/components/buddy-refresh/options';
-import MascotArtwork, { MASCOT_FEET_RATIO } from '@/components/mascot/mascot-artwork';
+import MascotArtwork from '@/components/mascot/artwork';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-
-const MASCOT_SIZE = 80;
-const MASCOT_FOOT_Y = MASCOT_SIZE * MASCOT_FEET_RATIO;
 
 const ROPE_Y = 10;
 const ROPE_WIDTH = 2.5;
@@ -41,7 +44,7 @@ const KNOT_SIZE = 10;
 const FEET_LIFT = 2;
 const PULL_GAP = 6;
 const MIN_SAG = 6;
-const HOLD_SAG = HOLD_SCENE_HEIGHT - ROPE_Y - FEET_LIFT;
+const HOLD_SAG = 64;
 const CURVE_EDGE = 20;
 const TILT_RATIO = 0.7;
 
@@ -51,8 +54,6 @@ const STEP_MS = 650;
 const HOP_HEIGHT = 5;
 const HOP_MS = 130;
 const HOP_WING_RATIO = 2;
-const FLAP_ANGLE = 48;
-const FLAP_MS = 170;
 const FLUTTER_ANGLE = 56;
 const FLUTTER_MS = 55;
 const FLY_DISTANCE = 160;
@@ -98,21 +99,21 @@ interface Props {
  * @param status 당기기 상태
  * @param distance 새로고침 표시 영역의 높이
  */
-const RopeRefreshIndicator = ({ status, distance }: Props) => {
-	const reducedMotion = useReducedMotion();
+const BuddyRefreshRopeIndicator = ({ status, distance }: Props) => {
+	const motionReduced = useReducedMotion();
 
 	const width = useSharedValue(0);
 	const ropeSag = useSharedValue(MIN_SAG);
 	const stepX = useSharedValue(0);
 	const hopY = useSharedValue(0);
-	const flight = useSharedValue(0);
+	const flightProgress = useSharedValue(0);
 	const flapAngle = useSharedValue(0);
 	const flutterAngle = useSharedValue(0);
-	const eyesHappy = useSharedValue(0);
+	const happyEyesProgress = useSharedValue(0);
 
-	const { message, messageShown } = useRefreshMessage(status);
+	const { message, messageProgress } = useRefreshMessage(status);
 
-	const followingPull = status === 'pulling' || status === 'armed';
+	const isFollowingPull = status === 'pulling' || status === 'armed';
 
 	const rope = useDerivedValue(() => getRopeShape(width.get(), ropeSag.get(), width.get() / 2 + stepX.get()));
 	const wingAngle = useDerivedValue(() =>
@@ -121,8 +122,8 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 
 	const ropeProps = useAnimatedProps(() => ({ d: rope.get().path }));
 	const mascotStyle = useAnimatedStyle(() => {
-		const feetY = rope.get().y + FEET_LIFT + hopY.get() - flight.get() * FLY_DISTANCE;
-		const tilt = flight.get() > 0 ? 0 : (Math.atan(rope.get().slope) * 180 * TILT_RATIO) / Math.PI;
+		const feetY = rope.get().y + FEET_LIFT + hopY.get() - flightProgress.get() * FLY_DISTANCE;
+		const tilt = flightProgress.get() > 0 ? 0 : (Math.atan(rope.get().slope) * 180 * TILT_RATIO) / Math.PI;
 
 		return {
 			transform: [
@@ -137,7 +138,7 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 	useAnimatedReaction(
 		() => Math.max(MIN_SAG, distance.get() - ROPE_Y - PULL_GAP),
 		(pullSag) => {
-			if (followingPull) {
+			if (isFollowingPull) {
 				ropeSag.set(pullSag);
 			}
 		},
@@ -145,13 +146,13 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 
 	/** 당기기 상태에 따라 버디 애니메이션 실행 */
 	useEffect(() => {
-		eyesHappy.set(status === 'finishing' ? 1 : 0);
+		happyEyesProgress.set(status === 'finishing' ? 1 : 0);
 
 		if (status === 'refreshing') {
-			ropeSag.set(reducedMotion ? HOLD_SAG : withSpring(HOLD_SAG, ropeSpring));
+			ropeSag.set(motionReduced ? HOLD_SAG : withSpring(HOLD_SAG, ropeSpring));
 		}
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			return;
 		}
 
@@ -195,7 +196,7 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 			hopY.set(0);
 
 			ropeSag.set(withSpring(MIN_SAG, ropeSpring));
-			flight.set(withTiming(1, { duration: FLY_MS, easing: Easing.in(Easing.quad) }));
+			flightProgress.set(withTiming(1, { duration: FLY_MS, easing: Easing.in(Easing.quad) }));
 			flutterAngle.set(
 				withRepeat(
 					withSequence(
@@ -206,14 +207,10 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 				),
 			);
 		}
-	}, [eyesHappy, flapAngle, flight, flutterAngle, hopY, reducedMotion, ropeSag, status, stepX]);
-
-	const handleLayout = (event: LayoutChangeEvent) => {
-		width.set(event.nativeEvent.layout.width);
-	};
+	}, [happyEyesProgress, flapAngle, flightProgress, flutterAngle, hopY, motionReduced, ropeSag, status, stepX]);
 
 	return (
-		<View style={styles.container} onLayout={handleLayout}>
+		<View style={styles.container} onLayout={(event) => width.set(event.nativeEvent.layout.width)}>
 			<Svg style={styles.rope}>
 				<AnimatedPath
 					animatedProps={ropeProps}
@@ -227,10 +224,10 @@ const RopeRefreshIndicator = ({ status, distance }: Props) => {
 			<View style={[styles.knot, styles.rightKnot]} />
 
 			<Animated.View style={[styles.mascot, mascotStyle]}>
-				<MascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />
+				<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
 			</Animated.View>
 
-			<BuddyRefreshMessage message={message} messageShown={messageShown} distance={distance} />
+			<BuddyRefreshMessage message={message} progress={messageProgress} distance={distance} />
 		</View>
 	);
 };
@@ -258,4 +255,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default RopeRefreshIndicator;
+export default BuddyRefreshRopeIndicator;

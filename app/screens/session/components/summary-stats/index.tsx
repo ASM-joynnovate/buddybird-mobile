@@ -27,39 +27,39 @@ const SummaryStats = ({ sessionId }: Props) => {
 	const { word, session, total } = sessionSummaryData;
 	const { period } = sessionData;
 	const totalTimeStat: SummaryStat = {
-		metric: 'together',
+		metric: 'togetherTime',
 		label: t('session.summary.totalTime'),
-		value: sessionEndedAt(period).diff(period.started_at),
-		valueBeforeSession: null,
+		amount: sessionEndedAt(period).diff(period.started_at),
+		amountBeforeSession: null,
 		unit: 'duration',
-		revealAt: 0,
+		revealSentenceIndex: 0,
 	};
 	const allTimeStat: SummaryStat = {
 		metric: 'allTime',
 		label: t('session.summary.allTotal'),
-		value: total.active.duration_ms,
-		valueBeforeSession: Math.max(0, total.active.duration_ms - session.active.duration_ms),
+		amount: total.active.duration_ms,
+		amountBeforeSession: Math.max(0, total.active.duration_ms - session.active.duration_ms),
 		unit: 'duration',
-		revealAt: 2,
+		revealSentenceIndex: 2,
 	};
 	const stats: SummaryStat[] = [
 		totalTimeStat,
 		{
-			metric: 'played',
+			metric: 'playCount',
 			label: t('session.summary.playCount'),
-			value: session.play_count,
-			valueBeforeSession: null,
+			amount: session.play_count,
+			amountBeforeSession: null,
 			unit: 'count',
-			revealAt: 1,
+			revealSentenceIndex: 1,
 		},
 		allTimeStat,
 		{
 			metric: 'wordTime',
 			label: t('session.summary.wordTotal', { word: word.name }),
-			value: word.active.duration_ms,
-			valueBeforeSession: Math.max(0, word.active.duration_ms - session.active.duration_ms),
+			amount: word.active.duration_ms,
+			amountBeforeSession: Math.max(0, word.active.duration_ms - session.active.duration_ms),
 			unit: 'duration',
-			revealAt: 3,
+			revealSentenceIndex: 3,
 		},
 	];
 
@@ -69,7 +69,7 @@ const SummaryStats = ({ sessionId }: Props) => {
 				<SummaryStatsItem
 					key={stat.metric}
 					stat={stat}
-					revealed={summaryFilledSentenceIndexes.includes(stat.revealAt)}
+					revealed={summaryFilledSentenceIndexes.includes(stat.revealSentenceIndex)}
 				/>
 			))}
 		</View>

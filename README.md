@@ -1,6 +1,6 @@
 # BuddyBird mobile
 
-A fresh Ignite 11.5.0 / Expo 57 implementation of BuddyBird for iOS and Android. React Native 0.86.3, React 19.2, React Navigation, React Context, MMKV, i18next, TanStack Query v5 and native fetch.
+BuddyBird for iOS and Android, started from Ignite 11.5.0. Expo 57, React Native 0.86.3, React 19.2, React Navigation 7, zustand with MMKV persistence, TanStack Query v5 with native fetch, zod, i18next.
 
 ## How to start
 ```sh
@@ -12,16 +12,21 @@ yarn ios
 # or: yarn android
 ```
 
+`.env.hotupdater.example` lists the variables for Hot Updater commands such as `yarn hot-updater bundle`.
+
 ## Lint and format
 ```sh
-yarn lint      # oxlint, type-aware rules included
+yarn lint        # oxlint, type-aware rules included
 yarn lint:fix
-yarn format    # oxfmt, also sorts imports
+yarn format      # oxfmt, also sorts imports
+yarn typecheck
+yarn check:deps  # dependency-cruiser folder rules
+yarn check       # all of the above and expo install --check
 ```
 
 Install the Oxc editor plugin for on-save formatting: `oxc.oxc-vscode` for VS Code, or the Oxc plugin from the JetBrains Marketplace for WebStorm.
 
-Use the existing dev/prod Firebase configuration and signing identity described in the build guide. Expo Go cannot run the custom native audio engine or Firebase modules. Web is outside this project.
+Put the dev and prod Firebase files in `config/dev/firebase` and `config/prod/firebase`. Expo Go cannot run the native modules this app uses, such as Firebase, MMKV, WebRTC, react-native-audio-api and the local `frame-capture` module. Web is outside this project.
 
 ## Release
 main에 병합하면 Development deploy 워크플로우가 실행된다.

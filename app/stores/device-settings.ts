@@ -1,3 +1,4 @@
+import type { LoginProvider } from '@/types/auth';
 import {
 	type DeviceSettings,
 	deviceSettingsSchema,
@@ -7,7 +8,7 @@ import {
 } from '@/types/device-settings';
 import { defaultLocale, type Locale, locales } from '@/types/locale';
 
-import { mmkvStorage, persistKeys, restoreOptions, storageIds } from '@/lib/storage';
+import { accountV2, mmkvStorage, storeStorageKeys, restoreOptions, storageIds } from '@/lib/storage';
 
 import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
@@ -26,6 +27,8 @@ type DeviceSettingsActions = {
 	setPullToRefreshUsed: (pullToRefreshUsed: boolean) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
 	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
+	setLastLoginProvider: (lastLoginProvider: LoginProvider) => void;
+	setClientDeviceId: (clientDeviceId: string) => void;
 };
 
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
@@ -56,6 +59,8 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		usageGuideSeen: false,
 		pullToRefreshUsed: false,
 		legacyMigration: initialLegacyMigration,
+		lastLoginProvider: null,
+		clientDeviceId: null,
 	};
 };
 
@@ -138,11 +143,29 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			updateLegacyMigration: (updater) => {
 				set((state) => ({ ...state, legacyMigration: updater(state.legacyMigration) }));
 			},
+
+			/** 마지막 로그인 방식 저장 */
+			setLastLoginProvider: (lastLoginProvider) => {
+				set((state) => ({ ...state, lastLoginProvider }));
+			},
+
+			/** 이 기기 ID 저장 */
+			setClientDeviceId: (clientDeviceId) => {
+				set((state) => ({ ...state, clientDeviceId }));
+			},
 		}),
 		{
-			name: persistKeys.deviceSettings.name,
-			version: persistKeys.deviceSettings.version,
+			name: storeStorageKeys.deviceSettings.name,
+			version: storeStorageKeys.deviceSettings.version,
 			storage: createJSONStorage(() => mmkvStorage(storageIds.device)),
+			migrate: (persistedState, version) =>
+				version < 2
+					? {
+							...(persistedState as object),
+							lastLoginProvider: accountV2?.state.lastLoginProvider ?? null,
+							clientDeviceId: accountV2?.state.clientDeviceId ?? null,
+						}
+					: persistedState,
 
 			partialize: ({
 				locale,
@@ -153,6 +176,8 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				usageGuideSeen,
 				pullToRefreshUsed,
 				legacyMigration,
+				lastLoginProvider,
+				clientDeviceId,
 			}) => ({
 				locale,
 				analyticsConsent,
@@ -162,11 +187,13 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				usageGuideSeen,
 				pullToRefreshUsed,
 				legacyMigration,
+				lastLoginProvider,
+				clientDeviceId,
 			}),
 
 			...restoreOptions<DeviceSettingsStore>({
 				schema: deviceSettingsSchema,
-				storeName: persistKeys.deviceSettings.name,
+				storeName: storeStorageKeys.deviceSettings.name,
 			}),
 		},
 	),

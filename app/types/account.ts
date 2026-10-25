@@ -1,17 +1,17 @@
+import { authSchema, loginProviderSchema } from '@/types/auth';
+
 import { z } from 'zod';
 
-export const loginProviderSchema = z.enum(['google', 'kakao', 'apple']);
-
 export const accountSchema = z.object({
-	authUserId: z.string().nullable(),
 	serverUserId: z.string().nullable(),
-	isAnonymous: z.boolean(),
-	loginScreenSeen: z.boolean(),
-	loginProvider: loginProviderSchema.nullable(),
+});
+
+export const accountV2Schema = authSchema.extend({
+	serverUserId: z.string().nullable(),
 	lastLoginProvider: loginProviderSchema.nullable(),
 	clientDeviceId: z.string().nullable(),
 });
 
-export type LoginProvider = z.infer<typeof loginProviderSchema>;
-
 export type Account = z.infer<typeof accountSchema>;
+
+export type AccountV2 = z.infer<typeof accountV2Schema>;

@@ -1,11 +1,11 @@
 #import "FrameCaptureParrotChecker.h"
+#import "FrameCaptureCamera.h"
 
 #import <CoreImage/CoreImage.h>
 #import <MediaPipeTasksVision/MediaPipeTasksVision.h>
 #import <UIKit/UIKit.h>
 #import <stdatomic.h>
 
-static NSString *const kErrorDomain = @"FrameCapture";
 static NSString *const kModelName = @"efficientdet_lite2";
 static NSString *const kModelExtension = @"tflite";
 static NSString *const kBirdCategory = @"bird";
@@ -15,7 +15,7 @@ static const float kLumaRange = 219;
 static const float kChromaCenter = 128;
 static const float kMaxBrightness = 255;
 
-/// 진행 중인 앵무새 확인 한 번
+/// 앵무새 확인 요청
 @interface FrameCaptureParrotCheck : NSObject
 @property(nonatomic, assign) BOOL nightCorrectionEnabled;
 @property(nonatomic, assign) double nightStartBrightness;
@@ -81,7 +81,7 @@ static const float kMaxBrightness = 255;
   self.frameCount += 1;
 }
 
-/// 합친 프레임의 평균 밝기를 0~255로 반환하는 메서드
+/// 합친 프레임의 평균 밝기 반환
 - (double)brightness {
   uint64_t total = 0;
   size_t count = self.width * self.height;
@@ -96,14 +96,14 @@ static const float kMaxBrightness = 255;
   return MIN(MAX(brightness, 0), kMaxBrightness);
 }
 
-/// 합친 프레임으로 밝은 CVPixelBuffer를 만드는 메서드
+/// 밝게 만든 CVPixelBuffer 반환
 - (CVPixelBufferRef)createPixelBufferWithGain:(float)gain {
   CVPixelBufferRef output = NULL;
   NSDictionary *attributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-  CVReturn created = CVPixelBufferCreate(kCFAllocatorDefault, self.width, self.height, self.pixelFormat,
+  CVReturn createStatus = CVPixelBufferCreate(kCFAllocatorDefault, self.width, self.height, self.pixelFormat,
                                          (__bridge CFDictionaryRef)attributes, &output);
 
-  if (created != kCVReturnSuccess) {
+  if (createStatus != kCVReturnSuccess) {
     return NULL;
   }
 
@@ -159,6 +159,7 @@ static atomic_bool sFrameBusy = false;
 
 @implementation FrameCaptureParrotChecker
 
+/// 작업 큐 생성 메서드
 + (void)initialize {
   if (self == [FrameCaptureParrotChecker class]) {
     sQueue = dispatch_queue_create("frame-capture.parrot", DISPATCH_QUEUE_SERIAL);
@@ -166,10 +167,12 @@ static atomic_bool sFrameBusy = false;
   }
 }
 
+/// 출력 폴더 설정 메서드
 + (void)setDirectory:(NSString *)directory {
   sDirectory = [directory copy];
 }
 
+/// 다음 프레임으로 앵무새 확인을 요청하는 메서드
 + (void)checkWithNightCorrectionEnabled:(BOOL)nightCorrectionEnabled
             nightStartBrightness:(double)nightStartBrightness
                          mergeMs:(double)mergeMs
@@ -197,6 +200,7 @@ static atomic_bool sFrameBusy = false;
   });
 }
 
+/// 확인 중일 때 프레임을 넘겨받는 메서드
 + (void)handlePixelBuffer:(CVPixelBufferRef)pixelBuffer rotation:(NSInteger)rotation {
   bool idle = false;
 
@@ -215,6 +219,7 @@ static atomic_bool sFrameBusy = false;
   });
 }
 
+/// 프레임 누적 메서드
 + (void)addPixelBuffer:(CVPixelBufferRef)pixelBuffer rotation:(NSInteger)rotation {
   FrameCaptureParrotCheck *check = sCheck;
 
@@ -278,6 +283,7 @@ static atomic_bool sFrameBusy = false;
   [self finish:check error:nil];
 }
 
+/// 확인 결과 반환 메서드
 + (void)finish:(FrameCaptureParrotCheck *)check error:(NSError *)failure {
   sCheck = nil;
   atomic_store(&sChecking, false);
@@ -343,7 +349,7 @@ static atomic_bool sFrameBusy = false;
       nil);
 }
 
-/// 합친 프레임으로 방향을 바로잡은 사진을 만드는 메서드
+/// 방향을 바로잡은 사진 생성
 + (UIImage *)uprightPhotoFromCheck:(FrameCaptureParrotCheck *)check gain:(float)gain {
   CVPixelBufferRef pixelBuffer = [check createPixelBufferWithGain:gain];
 
@@ -362,17 +368,17 @@ static atomic_bool sFrameBusy = false;
   }
 
   CIImage *image = [[CIImage imageWithCVPixelBuffer:pixelBuffer] imageByApplyingCGOrientation:orientation];
-  CGImageRef rendered = [sContext createCGImage:image fromRect:image.extent];
+  CGImageRef renderedImage = [sContext createCGImage:image fromRect:image.extent];
 
   CVPixelBufferRelease(pixelBuffer);
 
-  if (rendered == NULL) {
+  if (renderedImage == NULL) {
     return nil;
   }
 
-  UIImage *photo = [UIImage imageWithCGImage:rendered];
+  UIImage *photo = [UIImage imageWithCGImage:renderedImage];
 
-  CGImageRelease(rendered);
+  CGImageRelease(renderedImage);
 
   return photo;
 }
@@ -388,7 +394,7 @@ static atomic_bool sFrameBusy = false;
   return birdScore;
 }
 
-/// 사진에서 bird 점수가 가장 높은 검출 결과를 반환하는 메서드
+/// bird 점수가 가장 높은 결과 반환
 + (MPPDetection *)birdDetectionInPhoto:(UIImage *)photo error:(NSError **)error {
   MPPObjectDetector *detector = [self loadDetector:error];
   MPPImage *image = detector == nil ? nil : [[MPPImage alloc] initWithUIImage:photo error:error];
@@ -404,6 +410,7 @@ static atomic_bool sFrameBusy = false;
   return birdDetection;
 }
 
+/// 검출 모델 생성 메서드
 + (MPPObjectDetector *)loadDetector:(NSError **)error {
   if (sDetector != nil) {
     return sDetector;
@@ -432,8 +439,9 @@ static atomic_bool sFrameBusy = false;
   return sDetector;
 }
 
+/// 오류 생성 메서드
 + (NSError *)errorWithMessage:(NSString *)message {
-  return [NSError errorWithDomain:kErrorDomain code:1 userInfo:@{NSLocalizedDescriptionKey : message}];
+  return [NSError errorWithDomain:FrameCaptureErrorDomain code:1 userInfo:@{NSLocalizedDescriptionKey : message}];
 }
 
 @end

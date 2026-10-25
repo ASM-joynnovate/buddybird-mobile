@@ -16,15 +16,23 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { PETCAM_MAX_ZOOM, PETCAM_ZOOM_HINT_MS } from '@/config';
+import { PETCAM_MAX_ZOOM, PETCAM_ZOOM_HINT_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
-import { clampOffset } from '@/utils/zoom';
 
 import { Copy } from '@/components/ui/copy';
 
 const ZOOM_LABEL_MS = SECOND;
+
+/** 이동 거리 제한 함수 */
+const clampOffset = (offset: number, scale: number, size: number) => {
+	'worklet';
+
+	const limit = (size * (scale - 1)) / 2;
+
+	return Math.min(limit, Math.max(-limit, offset));
+};
 
 interface Props {
 	children: ReactNode;
@@ -56,6 +64,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }, { scale: scale.get() }],
 	}));
 
+	/** 확대 방법 안내 숨김 함수 */
 	const hideHint = useCallback(() => setHintVisible(false), []);
 
 	const gesture = useMemo(() => {
@@ -79,7 +88,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		const pan = Gesture.Pan()
 			.averageTouches(true)
 			.onUpdate((event) => {
-				// 손가락 수가 바뀌면 기준 위치 갱신
+				// 손가락 수 변경 시 기준 위치 갱신
 				if (event.numberOfPointers !== pointerCount.get()) {
 					pointerCount.set(event.numberOfPointers);
 					savedOffsetX.set(offsetX.get() - event.translationX);
@@ -114,7 +123,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		return Gesture.Simultaneous(pinch, pan, doubleTap, tap);
 	}, [height, hideHint, onTap, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
 
-	/** 배율이 바뀌면 현재 배율을 잠깐 표시 */
+	/** 배율 변경 시 현재 배율 표시 */
 	useAnimatedReaction(
 		() => Math.round(scale.get() * 10) / 10,
 		(current, previous) => {
@@ -131,7 +140,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		return () => clearTimeout(timer);
 	}, [hideHint]);
 
-	/** 배율 표시는 바뀐 뒤 잠시 뒤 숨김 */
+	/** 배율 표시를 잠시 뒤 숨김 */
 	useEffect(() => {
 		if (zoom === null) {
 			return;
@@ -142,7 +151,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		return () => clearTimeout(timer);
 	}, [zoom]);
 
-	const handleLayout = (event: LayoutChangeEvent) => {
+	const handleSaveSize = (event: LayoutChangeEvent) => {
 		width.set(event.nativeEvent.layout.width);
 		height.set(event.nativeEvent.layout.height);
 	};
@@ -150,7 +159,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 	return (
 		<View style={StyleSheet.absoluteFill}>
 			<GestureDetector gesture={gesture}>
-				<View style={styles.fill} onLayout={handleLayout} collapsable={false}>
+				<View style={styles.fill} onLayout={handleSaveSize} collapsable={false}>
 					<Animated.View style={[styles.fill, contentStyle]}>{children}</Animated.View>
 				</View>
 			</GestureDetector>

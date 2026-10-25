@@ -3,5 +3,3 @@ export interface UpdatePolicy {
 	minimumVersion: string;
 	notes: string[];
 }
-
-export type PromptedUpdate = { latestVersion: string | null; forced: boolean; notes: string[] } | null;

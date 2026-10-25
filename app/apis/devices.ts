@@ -1,4 +1,10 @@
-import { type Device, deviceSchema, type RegisterDeviceRequest, type UpdateDeviceRequest } from '@/types/apis/devices';
+import {
+	type Device,
+	deviceSchema,
+	type PatchDeviceParams,
+	type PutDeviceParams,
+	type PutPushTokenParams,
+} from '@/types/apis/devices';
 
 import { apiRequest } from '@/lib/api';
 
@@ -10,13 +16,7 @@ export const getDeviceList = async (): Promise<Device[]> => {
 	return devices;
 };
 
-export const putDevice = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: RegisterDeviceRequest;
-	idempotencyKey: string;
-}): Promise<Device> => {
+export const putDevice = async ({ data, idempotencyKey }: PutDeviceParams): Promise<Device> => {
 	const { data: device } = await apiRequest('/api/v1/devices', deviceSchema, {
 		method: 'PUT',
 		json: data,
@@ -26,13 +26,7 @@ export const putDevice = async ({
 	return device;
 };
 
-export const putPushToken = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: { token: string };
-	idempotencyKey: string;
-}): Promise<Device> => {
+export const putPushToken = async ({ data, idempotencyKey }: PutPushTokenParams): Promise<Device> => {
 	const { data: device } = await apiRequest('/api/v1/devices/me/push-token', deviceSchema, {
 		method: 'PUT',
 		json: data,
@@ -46,13 +40,7 @@ export const putDeviceActivity = async ({ idempotencyKey }: { idempotencyKey: st
 	await apiRequest('/api/v1/devices/me/activity', z.unknown(), { method: 'PUT', idempotencyKey });
 };
 
-export const patchDevice = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: UpdateDeviceRequest;
-	idempotencyKey: string;
-}): Promise<Device> => {
+export const patchDevice = async ({ data, idempotencyKey }: PatchDeviceParams): Promise<Device> => {
 	const { data: device } = await apiRequest('/api/v1/devices/me', deviceSchema, {
 		method: 'PATCH',
 		json: data,

@@ -15,12 +15,12 @@ interface Props {
 }
 
 export const TypedText = ({ text }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [typedCount, setTypedCount] = useState(0);
 
 	const characters = Array.from(text);
-	const shownCount = reducedMotion ? characters.length : typedCount;
+	const shownCount = motionReduced ? characters.length : typedCount;
 	const typingDone = shownCount >= characters.length;
 
 	useEffect(() => {
@@ -35,7 +35,6 @@ export const TypedText = ({ text }: Props) => {
 
 	return (
 		<View>
-			{/*전체 문구만큼 공간을 차지하는 보이지 않는 문구*/}
 			<Copy
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
@@ -45,7 +44,6 @@ export const TypedText = ({ text }: Props) => {
 				{text}
 			</Copy>
 
-			{/*한 글자씩 나타나는 문구*/}
 			<Copy
 				accessibilityLabel={text}
 				lineBreakStrategyIOS="hangul-word"

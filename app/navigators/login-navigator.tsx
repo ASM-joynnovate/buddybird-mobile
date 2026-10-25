@@ -3,11 +3,11 @@ import type { RootStackParamList } from '@/types/navigation';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import LoginScreen from '@/screens/onboarding/login-screen';
+import LoginScreen from '@/screens/auth/login-screen';
 
 const LoginStack = createNativeStackNavigator<RootStackParamList>();
 
-/** 계정이 없을 때 로그인 화면만 보여 주는 navigator 컴포넌트 */
+/** 로그인 화면 navigator 컴포넌트 */
 const LoginNavigator = () => {
 	return (
 		<NavigationContainer>

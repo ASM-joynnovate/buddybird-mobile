@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, contentMaxWidth, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
-import { FixedSheetBackdrop, SheetBackdrop } from '@/components/ui/sheet/backdrop';
+import { SheetBackdrop } from '@/components/ui/sheet/backdrop';
+import { SheetFixedBackdrop } from '@/components/ui/sheet/fixed-backdrop';
 import { Title } from '@/components/ui/title';
 
 const LIST_SNAP_POINTS = ['70%'];
@@ -18,7 +19,7 @@ interface Props {
 	title: string;
 	description?: string;
 	onClose: () => void;
-	listLayout?: boolean;
+	isListLayout?: boolean;
 	onOpened?: () => void;
 	headerAction?: ReactNode;
 	dismissible?: boolean;
@@ -30,7 +31,7 @@ export const Sheet = ({
 	title,
 	description,
 	onClose,
-	listLayout = false,
+	isListLayout = false,
 	onOpened,
 	headerAction,
 	dismissible = true,
@@ -43,7 +44,16 @@ export const Sheet = ({
 	const presentedRef = useRef(false);
 	const mountedRef = useRef(true);
 
-	/** bottom sheet mount 여부 기록 */
+	const header = (
+		<View style={styles.header}>
+			<View style={styles.titleRow}>
+				<Title style={styles.title}>{title}</Title>
+				{headerAction}
+			</View>
+			{!!description && <Copy style={styles.description}>{description}</Copy>}
+		</View>
+	);
+
 	useEffect(() => {
 		mountedRef.current = true;
 
@@ -62,7 +72,6 @@ export const Sheet = ({
 		}
 	}, [visible]);
 
-	/** 안드로이드 뒤로 가기 버튼으로 bottom sheet 닫기 */
 	useEffect(() => {
 		if (!visible) {
 			return undefined;
@@ -93,32 +102,22 @@ export const Sheet = ({
 		}
 	};
 
-	const header = (
-		<View style={styles.header}>
-			<View style={styles.titleRow}>
-				<Title style={styles.title}>{title}</Title>
-				{headerAction}
-			</View>
-			{!!description && <Copy style={styles.description}>{description}</Copy>}
-		</View>
-	);
-
 	return (
 		<BottomSheetModal
 			ref={sheetRef}
 			onDismiss={handleDismiss}
 			onChange={handleSheetChange}
-			enableContentPanningGesture={listLayout}
-			enableDynamicSizing={!listLayout}
+			enableContentPanningGesture={isListLayout}
+			enableDynamicSizing={!isListLayout}
 			enablePanDownToClose={dismissible}
-			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
+			snapPoints={isListLayout ? LIST_SNAP_POINTS : undefined}
 			topInset={insets.top}
-			backdropComponent={dismissible ? SheetBackdrop : FixedSheetBackdrop}
+			backdropComponent={dismissible ? SheetBackdrop : SheetFixedBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
 			style={{ marginHorizontal: Math.max(0, (width - contentMaxWidth) / 2) }}
 		>
-			{listLayout ? (
+			{isListLayout ? (
 				<View accessibilityViewIsModal style={styles.listContainer}>
 					<View style={styles.listHeader}>{header}</View>
 					{children}

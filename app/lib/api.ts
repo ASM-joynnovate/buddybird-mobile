@@ -1,10 +1,12 @@
-import { ApiError, apiErrorCodes, envelopeSchema, errorBodySchema } from '@/types/apis/common';
+import { ApiError, apiErrorCodes, envelopeSchema, errorBodySchema, type Page } from '@/types/apis/common';
 
 import type { TFunction } from 'i18next';
 
 import type { z } from 'zod';
 
-import { API_TIMEOUT_MS, env } from '@/config';
+import { env } from '@/config/env';
+import { API_TIMEOUT_MS } from '@/config/policy';
+import { deviceTimeZone } from '@/utils/date';
 
 interface ApiDependencies {
 	deviceId: () => string;
@@ -64,7 +66,7 @@ export const apiRequest = async <T>(path: string, schema: z.ZodType<T>, options:
 		'X-BuddyBird-Client': 'mobile',
 		'X-Device-Id': dependencies.deviceId(),
 		'Accept-Language': dependencies.locale(),
-		'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+		'X-Timezone': deviceTimeZone(),
 	});
 
 	if (!authorizationOmitted) {
@@ -125,6 +127,11 @@ export const apiErrorMessage = (error: unknown, t: TFunction) => {
 	}
 
 	return error.code === 'CLIENT__UNKNOWN_ERROR' ? error.message : t(`apiError.${error.code}`);
+};
+
+/** 다음 페이지 번호를 반환하는 함수 */
+export const nextPageNumber = (lastPage: Page<unknown>) => {
+	return lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1;
 };
 
 /** 앱이 처리할 수 있는 오류 코드를 반환하는 함수 */

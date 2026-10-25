@@ -1,7 +1,8 @@
 import { FlatList, StyleSheet } from 'react-native';
 
+import type { SoundPlayer } from '@/types/sound-player';
+
 import { useGetWordList } from '@/hooks/apis/words';
-import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 

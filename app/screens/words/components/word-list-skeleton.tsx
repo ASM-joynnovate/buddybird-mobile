@@ -6,7 +6,7 @@ import { colors, depths, radius } from '@/theme';
 
 const PLACEHOLDER_CARD_COUNT = 6;
 
-/** 단어 목록을 불러오는 동안 보이는 컴포넌트 */
+/** 단어 목록 스켈레톤 컴포넌트 */
 const WordListSkeleton = () => {
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -14,7 +14,7 @@ const WordListSkeleton = () => {
 				<View key={index} style={styles.card}>
 					<View style={[styles.block, styles.nameBlock]} />
 
-					{/*삭제 버튼과 재생 버튼 자리*/}
+					{/*삭제 버튼 및 재생 버튼 자리*/}
 					<View style={styles.actionsRow}>
 						<View style={styles.deleteButton}>
 							<TrashIcon size={20} color={colors.muted} />

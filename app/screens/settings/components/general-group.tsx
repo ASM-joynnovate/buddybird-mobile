@@ -8,15 +8,16 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon, SmartphoneIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
 import CountryPicker from '@/screens/settings/components/country-picker';
 import LanguagePicker from '@/screens/settings/components/language-picker';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 
 import SleepTimePicker from '@/components/session/sleep-time-picker';
-import { InlineError } from '@/components/ui/inline-error';
 import { Item } from '@/components/ui/item';
 import { ItemGroup } from '@/components/ui/item/group';
+import { Toast } from '@/components/ui/toast';
 
 /** 일반 설정 컴포넌트 */
 const GeneralGroup = () => {
@@ -26,43 +27,46 @@ const GeneralGroup = () => {
 
 	const { data: settingsData } = useGetSettings();
 
-	const updateSleepSettings = useUpdateSleepSettings();
+	const { isPending, mutate } = useUpdateSleepSettings();
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
 	const handleSaveSleepSettings = (sleep: SleepSettings) => {
-		if (updateSleepSettings.isPending) {
+		if (isPending) {
 			return;
 		}
 
-		updateSleepSettings.mutate({ data: sleep });
+		mutate(
+			{ data: sleep },
+			{
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('settings.saveError')} />);
+				},
+			},
+		);
 	};
 
 	return (
-		<>
-			<ItemGroup>
-				<SleepTimePicker
-					value={settingsData.sleep}
-					first
-					disabled={updateSleepSettings.isPending}
-					onChange={handleSaveSleepSettings}
-				/>
-				<Item
-					icon={BellIcon}
-					label={t('settings.notifications.title')}
-					onPress={() => navigation.navigate('NotificationSettings')}
-				/>
-				<LanguagePicker />
-				<CountryPicker />
-				<Item
-					icon={SmartphoneIcon}
-					label={t('settings.general.devices')}
-					onPress={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}
-				/>
-			</ItemGroup>
-
-			<InlineError message={updateSleepSettings.isError ? t('settings.saveError') : null} />
-		</>
+		<ItemGroup>
+			<SleepTimePicker
+				value={settingsData.sleep}
+				isFirstInGroup
+				disabled={isPending}
+				onChange={handleSaveSleepSettings}
+			/>
+			<Item
+				icon={BellIcon}
+				label={t('settings.notifications.title')}
+				onPress={() => navigation.navigate('NotificationSettings')}
+			/>
+			<LanguagePicker />
+			<CountryPicker />
+			<Item
+				icon={SmartphoneIcon}
+				label={t('settings.general.devices')}
+				onPress={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}
+			/>
+		</ItemGroup>
 	);
 };
 

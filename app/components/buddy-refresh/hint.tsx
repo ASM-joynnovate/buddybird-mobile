@@ -22,31 +22,30 @@ import { SECOND } from '@/config/units';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
-import MascotArtwork, { MASCOT_FEET_RATIO } from '@/components/mascot/mascot-artwork';
+import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/components/buddy-refresh/constants';
+import MascotArtwork from '@/components/mascot/artwork';
 import { Copy } from '@/components/ui/copy';
 
-const MASCOT_SIZE = 80;
-const MASCOT_FOOT_Y = MASCOT_SIZE * MASCOT_FEET_RATIO;
 const CORD_ABOVE = 60;
 const CORD_INSET = 22;
 const SIGN_TOP = 62;
 const SIGN_HEIGHT = 44;
-const HINT_HEIGHT = SIGN_TOP + SIGN_HEIGHT + 4;
+const HINT_HEIGHT = 110;
 const DROP_DISTANCE = 160;
 
-const STAY_SECONDS = 2.9;
-const LEAVE_SECONDS = 0.4;
-const END_SECONDS = STAY_SECONDS + LEAVE_SECONDS;
-const PUSH_SECONDS = 0.35;
-const SWAY_START = 0.12;
+const STAY_MS = 2.9 * SECOND;
+const LEAVE_MS = 400;
+const END_MS = 3.3 * SECOND;
+const PUSH_MS = 350;
+const SWAY_START_MS = 120;
 const SWAY_ANGLE = 6;
 const LEAN_RATIO = 0.6;
-const FLAP_ANGLE = 42;
+const LAND_FLAP_ANGLE = 42;
 const LEAVE_FLAP_ANGLE = 30;
-const FLAP_SECONDS = 0.4;
-const LAND_FLAP_START = 0.18;
-const HAPPY_START = 1.2;
-const HAPPY_END = 2;
+const FLAP_MS = 400;
+const LAND_FLAP_START_MS = 180;
+const HAPPY_START_MS = 1.2 * SECOND;
+const HAPPY_END_MS = 2 * SECOND;
 
 const ARROW_SHIFT = 2;
 const ARROW_MS = 450;
@@ -55,18 +54,18 @@ const easeOut = Easing.out(Easing.cubic);
 const easeIn = Easing.in(Easing.cubic);
 
 /** 낙하 바운스 진행률을 계산하는 함수 */
-const drop = (seconds: number) => {
+const dropProgress = (seconds: number) => {
 	'worklet';
 
 	return seconds <= 0 ? 0 : 1 - Math.exp(-8 * seconds) * Math.cos(12 * seconds);
 };
 
 /** 날개 각도 비율을 계산하는 함수 */
-const flap = (seconds: number, start: number) => {
+const flapRatio = (elapsedMs: number, startMs: number) => {
 	'worklet';
 
-	return seconds > start && seconds < start + FLAP_SECONDS
-		? Math.sin((Math.PI * (seconds - start)) / FLAP_SECONDS)
+	return elapsedMs > startMs && elapsedMs < startMs + FLAP_MS
+		? Math.sin((Math.PI * (elapsedMs - startMs)) / FLAP_MS)
 		: 0;
 };
 
@@ -76,12 +75,12 @@ interface Props {
 
 /**
  * 당겨서 새로고침 안내 컴포넌트
- * @param mascotShown 버디와 줄을 표시할지 여부
+ * @param mascotShown 버디 및 줄 표시 여부
  */
 const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const pullToRefreshUsed = useDeviceSettingsStore((state) => state.pullToRefreshUsed);
 
@@ -92,40 +91,43 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	const arrowShift = useSharedValue(0);
 
 	const wingAngle = useDerivedValue(() =>
-		reducedMotion
+		motionReduced
 			? 0
-			: FLAP_ANGLE * flap(elapsed.get(), LAND_FLAP_START) +
-				LEAVE_FLAP_ANGLE * flap(elapsed.get(), STAY_SECONDS - FLAP_SECONDS / 4),
+			: LAND_FLAP_ANGLE * flapRatio(elapsed.get(), LAND_FLAP_START_MS) +
+				LEAVE_FLAP_ANGLE * flapRatio(elapsed.get(), STAY_MS - FLAP_MS / 4),
 	);
-	const eyesHappy = useDerivedValue<number>(() => (elapsed.get() > HAPPY_START && elapsed.get() < HAPPY_END ? 1 : 0));
+	const happyEyesProgress = useDerivedValue<number>(() =>
+		elapsed.get() > HAPPY_START_MS && elapsed.get() < HAPPY_END_MS ? 1 : 0,
+	);
 	const swayAngle = useDerivedValue(() => {
-		const seconds = elapsed.get() - SWAY_START;
+		const seconds = (elapsed.get() - SWAY_START_MS) / SECOND;
 
-		if (reducedMotion || !mascotShown || seconds <= 0 || elapsed.get() >= STAY_SECONDS) {
+		if (motionReduced || !mascotShown || seconds <= 0 || elapsed.get() >= STAY_MS) {
 			return 0;
 		}
 
 		return SWAY_ANGLE * Math.exp(-3 * seconds) * Math.sin(10 * seconds);
 	});
 
-	// 안내 높이만큼 콘텐츠 위치 이동
 	const containerStyle = useAnimatedStyle(() => {
-		const seconds = elapsed.get();
-		const shown =
-			seconds < STAY_SECONDS
-				? easeOut(Math.min(seconds / PUSH_SECONDS, 1))
-				: 1 - easeIn(Math.min((seconds - STAY_SECONDS) / LEAVE_SECONDS, 1));
+		const elapsedMs = elapsed.get();
+		const heightProgress =
+			elapsedMs < STAY_MS
+				? easeOut(Math.min(elapsedMs / PUSH_MS, 1))
+				: 1 - easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
 
-		return { height: HINT_HEIGHT * (reducedMotion ? Number(seconds < END_SECONDS) : shown) };
+		return { height: HINT_HEIGHT * (motionReduced ? Number(elapsedMs < END_MS) : heightProgress) };
 	});
 	const signStyle = useAnimatedStyle(() => {
-		const seconds = elapsed.get();
-		const hidden =
-			seconds < STAY_SECONDS ? 1 - drop(seconds) : easeIn(Math.min((seconds - STAY_SECONDS) / LEAVE_SECONDS, 1));
+		const elapsedMs = elapsed.get();
+		const hideProgress =
+			elapsedMs < STAY_MS
+				? 1 - dropProgress(elapsedMs / SECOND)
+				: easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
 
 		return {
 			transform: [
-				{ translateY: reducedMotion ? 0 : -hidden * DROP_DISTANCE },
+				{ translateY: motionReduced ? 0 : -hideProgress * DROP_DISTANCE },
 				{ rotate: `${swayAngle.get()}deg` },
 			],
 		};
@@ -143,7 +145,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 		}
 
 		elapsed.set(
-			withTiming(END_SECONDS, { duration: END_SECONDS * SECOND, easing: Easing.linear }, (finished) => {
+			withTiming(END_MS, { duration: END_MS, easing: Easing.linear }, (finished) => {
 				if (finished) {
 					cancelAnimation(arrowShift);
 					scheduleOnRN(setPlaying, false);
@@ -151,7 +153,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 			}),
 		);
 
-		if (!reducedMotion) {
+		if (!motionReduced) {
 			arrowShift.set(
 				withRepeat(
 					withSequence(
@@ -167,7 +169,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 			cancelAnimation(elapsed);
 			cancelAnimation(arrowShift);
 		};
-	}, [arrowShift, elapsed, playing, reducedMotion]);
+	}, [arrowShift, elapsed, playing, motionReduced]);
 
 	// 안내가 끝나면 렌더링하지 않음
 	if (!playing) {
@@ -202,7 +204,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 
 				{mascotShown && (
 					<Animated.View style={[styles.mascot, mascotStyle]}>
-						<MascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />
+						<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
 					</Animated.View>
 				)}
 			</Animated.View>

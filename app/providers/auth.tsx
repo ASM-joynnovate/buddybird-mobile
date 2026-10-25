@@ -16,6 +16,7 @@ import { usesAuthorization } from '@/lib/query-client';
 import { getSupabase } from '@/lib/supabase';
 
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
+import { toast } from 'sonner-native';
 
 import { loginCredential, takeAppleLoginCredential } from '@/services/auth/credential';
 import { type AuthIdentity, getAuthTransition, signOutLocally } from '@/services/auth/session';
@@ -23,9 +24,10 @@ import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { useMessageStore } from '@/stores/message';
 import { useReportStore } from '@/stores/report';
 import { useSessionStore } from '@/stores/session';
+
+import { Toast } from '@/components/ui/toast';
 
 interface Props {
 	children: ReactNode;
@@ -33,13 +35,15 @@ interface Props {
 
 /** 세션의 사용자 정보를 반환하는 함수 */
 const identityOf = (session: Session | null) => {
-	return session ? { id: session.user.id, anonymous: session.user.is_anonymous === true } : null;
+	return session ? { id: session.user.id, isAnonymous: session.user.is_anonymous === true } : null;
 };
 
 /** 같은 사용자인지 비교하는 함수 */
 const sameIdentity = (previous: AuthIdentity | null | undefined, nextIdentity: AuthIdentity | null) => {
 	return (
-		previous !== undefined && previous?.id === nextIdentity?.id && previous?.anonymous === nextIdentity?.anonymous
+		previous !== undefined &&
+		previous?.id === nextIdentity?.id &&
+		previous?.isAnonymous === nextIdentity?.isAnonymous
 	);
 };
 
@@ -61,39 +65,42 @@ const AuthProvider = ({ children }: Props) => {
 
 		let active = true;
 		let currentIdentity: AuthIdentity | null | undefined;
-		let loginAbort: AbortController | undefined;
-		let receivedEvent = false;
+		let loginAbortController: AbortController | undefined;
+		let authEventReceived = false;
 
 		setStatus('loading');
 
-		/** 저장된 로그인 정보를 지우고 로그인 화면으로 돌아가는 함수 */
-		const clearSignedOutState = () => {
-			takeAppleLoginCredential();
-			useAccountStore.getState().clearRegistration();
-
+		/** 이전 사용자의 조회 결과 및 화면 설정 삭제 함수 */
+		const clearUserData = () => {
 			queryClient.removeQueries({ predicate: usesAuthorization });
 			queryClient.getMutationCache().clear();
 
 			useSessionStore.getState().resetSetup();
 			useReportStore.getState().resetPeriod();
+		};
+
+		/** 로그인 정보 삭제 후 로그인 화면 이동 함수 */
+		const resetToSignedOut = () => {
+			takeAppleLoginCredential();
+			useAuthStore.getState().clearRegistration();
+
+			useAccountStore.getState().setServerUserId(null);
+
+			clearUserData();
 
 			setStatus('signedOut');
 		};
 
 		/** 서버 로그인 함수 */
-		const completeLogin = async (identity: AuthIdentity, linked: boolean) => {
+		const completeLogin = async (identity: AuthIdentity, identityLinked: boolean) => {
 			const controller = new AbortController();
 
-			loginAbort = controller;
+			loginAbortController = controller;
 
-			if (!linked) {
+			if (!identityLinked) {
 				setStatus('completing');
 
-				queryClient.removeQueries({ predicate: usesAuthorization });
-				queryClient.getMutationCache().clear();
-
-				useSessionStore.getState().resetSetup();
-				useReportStore.getState().resetPeriod();
+				clearUserData();
 			}
 
 			try {
@@ -112,11 +119,19 @@ const AuthProvider = ({ children }: Props) => {
 					useDeviceSettingsStore.getState().setOnboardingCompleted(false);
 				}
 
-				useAccountStore.getState().setRegistration(identity.id, user_id, identity.anonymous);
+				const { loginProvider, setRegistration } = useAuthStore.getState();
+
+				setRegistration(identity.id, identity.isAnonymous);
+
+				useAccountStore.getState().setServerUserId(user_id);
+
+				if (!identity.isAnonymous && loginProvider) {
+					useDeviceSettingsStore.getState().setLastLoginProvider(loginProvider);
+				}
 
 				setStatus('signedIn');
 
-				if (linked) {
+				if (identityLinked) {
 					void queryClient.invalidateQueries({ queryKey: apiKeys.all() });
 				}
 			} catch (e) {
@@ -130,7 +145,7 @@ const AuthProvider = ({ children }: Props) => {
 					!(e instanceof ApiError) ||
 					e.retryable ||
 					e.code === 'CLIENT__INVALID_RESPONSE' ||
-					(identity.anonymous && e.code !== 'AUTH__INVALID_TOKEN')
+					(identity.isAnonymous && e.code !== 'AUTH__INVALID_TOKEN')
 				) {
 					currentIdentity = undefined;
 
@@ -139,8 +154,8 @@ const AuthProvider = ({ children }: Props) => {
 					return;
 				}
 
-				if (!identity.anonymous) {
-					useMessageStore.getState().openPopup({ title: apiErrorMessage(e, i18next.t) });
+				if (!identity.isAnonymous) {
+					toast.custom(<Toast variant="error" message={apiErrorMessage(e, i18next.t)} />);
 				}
 
 				try {
@@ -165,17 +180,14 @@ const AuthProvider = ({ children }: Props) => {
 
 			currentIdentity = nextIdentity;
 
-			loginAbort?.abort();
+			loginAbortController?.abort();
 			void queryClient.cancelQueries({ predicate: usesAuthorization });
 
-			const { authUserId, isAnonymous } = useAccountStore.getState();
-			const transition = getAuthTransition(
-				authUserId ? { id: authUserId, anonymous: isAnonymous } : null,
-				nextIdentity,
-			);
+			const { authUserId, isAnonymous } = useAuthStore.getState();
+			const transition = getAuthTransition(authUserId ? { id: authUserId, isAnonymous } : null, nextIdentity);
 
 			if (transition === 'signedOut' || nextIdentity === null) {
-				clearSignedOutState();
+				resetToSignedOut();
 
 				return;
 			}
@@ -192,27 +204,27 @@ const AuthProvider = ({ children }: Props) => {
 		const {
 			data: { subscription },
 		} = auth.onAuthStateChange((event, session) => {
-			// INITIAL_SESSION 이벤트는 세션 복원 실패도 null로 전달하므로 아래 getSession 결과를 사용
+			// getSession으로 복원 결과 확인
 			if (event === 'INITIAL_SESSION') {
 				return;
 			}
 
-			receivedEvent = true;
+			authEventReceived = true;
 
-			// 콜백 안에서 SDK 호출을 await하면 인증 잠금이 풀리지 않으므로 await하지 않음
+			// await하면 인증 잠금이 풀리지 않음
 			void acceptSession(session);
 		});
 
 		void auth
 			.getSession()
 			.then(({ data: sessionData, error }) => {
-				if (!active || receivedEvent) {
+				if (!active || authEventReceived) {
 					return;
 				}
 
 				if (!error) {
 					void acceptSession(sessionData.session);
-				} else if (isAuthRetryableFetchError(error) && useAccountStore.getState().authUserId !== null) {
+				} else if (isAuthRetryableFetchError(error) && useAuthStore.getState().authUserId !== null) {
 					setStatus('signedIn');
 				} else {
 					reportError(error, 'auth_restore');
@@ -223,13 +235,13 @@ const AuthProvider = ({ children }: Props) => {
 			.catch((error: unknown) => {
 				reportError(error, 'auth_restore');
 
-				if (active && !receivedEvent) {
+				if (active && !authEventReceived) {
 					setStatus('error');
 				}
 			});
 
 		/** 앱이 foreground일 때만 토큰 자동 갱신 */
-		const toggleAutoRefresh = (appState: string) => {
+		const setAutoRefreshByAppState = (appState: string) => {
 			if (appState === 'active') {
 				void auth.startAutoRefresh();
 			} else {
@@ -237,13 +249,13 @@ const AuthProvider = ({ children }: Props) => {
 			}
 		};
 
-		toggleAutoRefresh(AppState.currentState);
+		setAutoRefreshByAppState(AppState.currentState);
 
-		const appStateSubscription = AppState.addEventListener('change', toggleAutoRefresh);
+		const appStateSubscription = AppState.addEventListener('change', setAutoRefreshByAppState);
 
 		return () => {
 			active = false;
-			loginAbort?.abort();
+			loginAbortController?.abort();
 			subscription.unsubscribe();
 			appStateSubscription.remove();
 			void auth.stopAutoRefresh();

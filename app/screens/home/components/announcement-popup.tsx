@@ -7,6 +7,7 @@ import type { Announcement } from '@/types/apis/announcements';
 import type { RootStackParamList } from '@/types/navigation';
 
 import { useReadAnnouncement } from '@/hooks/apis/announcements';
+import { useGetHomeSummary } from '@/hooks/apis/home';
 
 import { useTranslation } from 'react-i18next';
 
@@ -21,15 +22,8 @@ import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-interface Props {
-	announcements: Announcement[];
-}
-
-/**
- * 읽지 않은 공지 팝업 컴포넌트
- * @param announcements 읽지 않은 공지 목록
- */
-const AnnouncementPopup = ({ announcements }: Props) => {
+/** 읽지 않은 공지 팝업 컴포넌트 */
+const AnnouncementPopup = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -37,11 +31,15 @@ const AnnouncementPopup = ({ announcements }: Props) => {
 
 	const [queue, setQueue] = useState<readonly Announcement[]>([]);
 
+	const { data: homeSummaryData } = useGetHomeSummary();
+
 	const { mutate } = useReadAnnouncement();
 
 	const popupShown = useAnnouncementStore((state) => state.popupShown);
+
 	const setPopupShown = useAnnouncementStore((state) => state.setPopupShown);
 
+	const announcements = homeSummaryData.unread_announcements;
 	const currentAnnouncement =
 		queue.find((announcement) => announcements.some(({ id }) => id === announcement.id)) ?? null;
 	const image = currentAnnouncement?.images[0];

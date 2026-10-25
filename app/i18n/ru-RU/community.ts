@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'Сообщество',
+	title: 'Лента',
 	me: 'Я',
 	countryScope: {
 		world: 'Весь мир',
@@ -18,26 +18,21 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: 'Без никнейма тебя нет в рейтинге',
-				description: 'Задай никнейм, чтобы попасть в рейтинг',
 				action: 'Задать никнейм',
 			},
 			anonymous: {
 				title: 'Войди, чтобы попасть в рейтинг',
-				description: 'Вход в аккаунт не выполнен',
 				action: 'Войти',
 			},
 			country_mismatch: {
 				title: 'Тебя нет в рейтинге этой страны',
-				description: 'Ты попадаешь только в рейтинг своей страны',
 			},
 			no_record: {
 				title: 'В этом месяце пока нет занятий',
-				description: 'Заверши занятие, чтобы попасть в рейтинг',
 			},
 		},
 	},
 	feed: {
-		title: 'Лента',
 		more: 'Ещё',
 		timeAgo: {
 			minutes_one: '{{count}} минуту назад',
@@ -71,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}} раза',
 		artCount_many: '{{count, number}} раз',
 		artCount_other: '{{count, number}} раза',
-		reaction: {
-			praise: 'Похвалить',
-			praised: 'Ты похвалил(а)',
-			celebrate: 'Поздравить',
-			celebrated: 'Ты поздравил(а)',
-		},
+		like: 'Нравится',
 	},
 	report: {
 		action: 'Пожаловаться',
@@ -99,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'Вход',
-		loginDescription: 'Войди, чтобы пользоваться сообществом',
+		loginDescription: 'Войди, чтобы пользоваться лентой',
 		nicknameTitle: 'Никнейм',
-		nicknameDescription: 'Это имя увидят в сообществе',
+		nicknameDescription: 'Это имя увидят в ленте',
 		start: 'Начать',
 	},
 };

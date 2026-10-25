@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { HomeStackParamList } from '@/types/navigation';
 
+import { useGetHomeSummary } from '@/hooks/apis/home';
 import useStartupLanding from '@/hooks/use-startup-landing';
 
 import { useTranslation } from 'react-i18next';
@@ -11,24 +12,21 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
 
-import MascotArtwork from '@/components/mascot/mascot-artwork';
+import MascotArtwork from '@/components/mascot/artwork';
 import { IconButton } from '@/components/ui/icon-button';
 import { Title } from '@/components/ui/title';
 
-interface Props {
-	unreadCount: number;
-}
-
-/**
- * 홈 헤더 컴포넌트
- * @param unreadCount 읽지 않은 알림 개수
- */
-const HomeTopBar = ({ unreadCount }: Props) => {
+/** 알림 버튼이 있는 홈 상단 바 컴포넌트 */
+const HomeTopBar = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
+	const { data: homeSummaryData } = useGetHomeSummary();
+
 	const { buddyRef, buddyStyle } = useStartupLanding();
+
+	const unreadCount = homeSummaryData.unread_notification_count;
 
 	return (
 		<View style={styles.container}>

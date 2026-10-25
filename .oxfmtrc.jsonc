@@ -18,6 +18,7 @@
 			{ "groupName": "i18n", "elementNamePattern": ["@/i18n", "@/i18n/**"] },
 			{ "groupName": "lib", "elementNamePattern": ["@/lib/**"] },
 			{ "groupName": "zod", "elementNamePattern": ["zod"] },
+			{ "groupName": "modules", "elementNamePattern": ["@modules/**"] },
 			{
 				"groupName": "app-folders",
 				"elementNamePattern": [
@@ -51,6 +52,7 @@
 			"lib",
 			"zod",
 			"unknown",
+			"modules",
 			"app-folders",
 			"components",
 			"assets"

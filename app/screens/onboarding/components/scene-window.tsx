@@ -29,7 +29,7 @@ interface Props {
 /**
  * 구름이 지나가는 창문 컴포넌트
  * @param scale 그림 배율
- * @param animated 구름 움직임 실행 여부
+ * @param animated 구름 애니메이션 실행 여부
  * @param style 창문 위치
  */
 const SceneWindow = ({ scale, animated, style }: Props) => {
@@ -39,7 +39,7 @@ const SceneWindow = ({ scale, animated, style }: Props) => {
 		transform: [{ translateX: interpolate(cloudProgress.get(), [0, 1], [-50, 100]) * scale }],
 	}));
 
-	/** 움직임이 켜져 있으면 구름이 창문을 가로질러 지나감 */
+	/** 애니메이션이 켜져 있으면 구름 이동 */
 	useEffect(() => {
 		if (!animated) {
 			return;

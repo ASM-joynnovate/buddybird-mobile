@@ -9,13 +9,14 @@ import { useTranslation } from 'react-i18next';
 import * as Device from 'expo-device';
 import * as ImagePicker from 'expo-image-picker';
 
-import { MAX_UPLOAD_BYTES, PHOTO_MIME_TYPES } from '@/config';
+import { MAX_UPLOAD_BYTES, PHOTO_MIME_TYPES, PHOTO_QUALITY } from '@/config/policy';
+import { MIB } from '@/config/units';
 import { reportError } from '@/services/telemetry/client';
 
 const PHOTO_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
 	mediaTypes: ['images'],
 	allowsEditing: true,
-	quality: 0.85,
+	quality: PHOTO_QUALITY,
 };
 
 /** 사진의 MIME 형식을 반환하는 함수 */
@@ -41,7 +42,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 
 	/** 사진 선택 함수 */
 	const pick = async (source: 'camera' | 'library') => {
-		// 카메라가 없는 iOS 시뮬레이터에서 카메라를 열면 앱이 종료되므로 오류 문구만 표시
+		// 시뮬레이터는 카메라 대신 오류 표시
 		if (Platform.OS === 'ios' && source === 'camera' && !Device.isDevice) {
 			setErrorMessage(t('common.profilePhoto.loadError'));
 
@@ -63,7 +64,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 			if (!PHOTO_MIME_TYPES.includes(photoMimeType(asset))) {
 				setErrorMessage(t('common.profilePhoto.typeError'));
 			} else if ((asset.fileSize ?? 0) > MAX_UPLOAD_BYTES) {
-				setErrorMessage(t('common.profilePhoto.sizeError'));
+				setErrorMessage(t('common.profilePhoto.sizeError', { size: MAX_UPLOAD_BYTES / MIB }));
 			} else {
 				setPhoto({ uri: asset.uri, changed: true });
 				setErrorMessage(null);
@@ -78,7 +79,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 	/** 사진 촬영 함수 */
 	const take = async () => {
 		try {
-			await cameraPermission.run(() => void pick('camera'));
+			await cameraPermission.runWithPermission(() => void pick('camera'));
 		} catch (e) {
 			reportError(e, 'camera_permission');
 
@@ -89,7 +90,7 @@ const usePhotoPicker = (initialPhotoUri: string | null) => {
 	/** 앨범에서 사진 선택 함수 */
 	const choose = async () => {
 		try {
-			await libraryPermission.run(() => void pick('library'));
+			await libraryPermission.runWithPermission(() => void pick('library'));
 		} catch (e) {
 			reportError(e, 'photo_permission');
 

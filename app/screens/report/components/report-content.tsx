@@ -1,12 +1,10 @@
 import { useDeferredValue, useEffect, useRef } from 'react';
 
-import { StyleSheet, View } from 'react-native';
-
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { type ListRenderItemInfo, StyleSheet, View } from 'react-native';
 
 import type { ReportSession } from '@/types/apis/reports';
 
-import { getReportOptions } from '@/hooks/apis/reports';
+import { useGetReport } from '@/hooks/apis/reports';
 import useIsLowPerformance from '@/hooks/use-is-low-performance';
 import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
@@ -32,11 +30,11 @@ import {
 	BUDDY_REFRESH_FINISH_MS,
 	BUDDY_REFRESH_HEIGHT,
 	BUDDY_REFRESH_MIN_MS,
-} from '@/components/buddy-refresh/options';
-import RopeRefreshIndicator from '@/components/buddy-refresh/rope-indicator';
-import SwingRefreshIndicator from '@/components/buddy-refresh/swing-indicator';
-import ThrobberRefreshIndicator from '@/components/buddy-refresh/throbber-indicator';
-import PullToRefreshContainer from '@/components/pull-to-refresh';
+} from '@/components/buddy-refresh/constants';
+import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
+import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
+import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
+import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -46,12 +44,7 @@ const ReportContent = () => {
 
 	const screenFocused = useIsFocused();
 
-	const lowPerformance = useIsLowPerformance();
-
 	const trackedPeriodRef = useRef<string | null>(null);
-
-	const locale = useDeviceSettingsStore((state) => state.locale);
-	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
@@ -61,15 +54,20 @@ const ReportContent = () => {
 	const deferredPeriod = useDeferredValue(period);
 	const deferredStart = useDeferredValue(selectedStart);
 
-	// 같은 기간 단위 안에서 넘길 때는 새 기간을 불러올 때까지 이전 내용을 유지
+	// 같은 기간 단위에서는 이전 내용 유지
 	const shownStart = deferredPeriod === period ? deferredStart : selectedStart;
 
-	const { data: reportData, refetch } = useSuspenseQuery(getReportOptions({ period, start: shownStart }));
+	const { data: reportData, refetch } = useGetReport({ period, start: shownStart });
+	// 바로 전 기간 리포트도 받은 뒤 화면 표시
+	useGetReport({ period, start: shiftedStart(period, shownStart, -1) });
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
+	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
+
+	const isLowPerformance = useIsLowPerformance();
 
 	useRefreshOnFocus(refetch);
-	const { data: previousReportData } = useSuspenseQuery(
-		getReportOptions({ period, start: shiftedStart(period, shownStart, -1) }),
-	);
 
 	const { pullToRefresh, scrollProps } = usePullToRefresh<Animated.FlatList<ReportSession>>({
 		onRefresh: () => {
@@ -85,9 +83,9 @@ const ReportContent = () => {
 	const selectedPeriodShown = shownStart === selectedStart;
 	const periodsAgo = periodsBetween(period, selectedStart, latestStart(period));
 
-	const header = <ReportHeader report={reportData} previousReport={previousReportData} />;
+	const header = <ReportHeader start={shownStart} />;
 
-	/** 리포트 기간별로 report_viewed 이벤트를 한 번 전송 */
+	/** 기간별 report_viewed 이벤트 전송 */
 	useEffect(() => {
 		if (!screenFocused) {
 			trackedPeriodRef.current = null;
@@ -106,11 +104,34 @@ const ReportContent = () => {
 		track('report_viewed', { period, periods_ago: periodsAgo, session_count: reportData.sessions.length });
 	}, [period, selectedStart, screenFocused, selectedPeriodShown, periodsAgo, reportData]);
 
+	/** 학습 항목 렌더링 함수 */
+	const renderSessionItem = ({ item: session, index }: ListRenderItemInfo<ReportSession>) => {
+		const dayStarted =
+			period !== 'day' &&
+			(index === 0 ||
+				!dayjs(session.period.started_at).isSame(reportData.sessions[index - 1].period.started_at, 'day'));
+
+		return (
+			<View style={styles.sessionContainer}>
+				{/*학습 목록의 날짜 소제목*/}
+				{dayStarted && (
+					<Copy accessibilityRole="header" style={[styles.date, index > 0 && styles.laterDate]}>
+						{formatMonthDayWeekday(session.period.started_at, locale)}
+					</Copy>
+				)}
+
+				<SessionItem session={session} period={period} order={index} />
+			</View>
+		);
+	};
+
 	return (
 		<PullToRefreshContainer
 			pullToRefresh={pullToRefresh}
 			indicatorComponents={
-				lowPerformance ? [ThrobberRefreshIndicator] : [SwingRefreshIndicator, RopeRefreshIndicator]
+				isLowPerformance
+					? [BuddyRefreshThrobberIndicator]
+					: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
 			}
 		>
 			<Animated.FlatList
@@ -121,28 +142,7 @@ const ReportContent = () => {
 				showsVerticalScrollIndicator={false}
 				ListHeaderComponent={header}
 				ListEmptyComponent=<EmptyState message={t('report.empty')} />
-				renderItem={({ item: session, index }) => {
-					const dayStarted =
-						period !== 'day' &&
-						(index === 0 ||
-							!dayjs(session.period.started_at).isSame(
-								reportData.sessions[index - 1].period.started_at,
-								'day',
-							));
-
-					return (
-						<View style={styles.sessionContainer}>
-							{/*학습 목록의 날짜 소제목*/}
-							{dayStarted && (
-								<Copy accessibilityRole="header" style={[styles.date, index > 0 && styles.laterDate]}>
-									{formatMonthDayWeekday(session.period.started_at, locale)}
-								</Copy>
-							)}
-
-							<SessionItem session={session} period={period} order={index} />
-						</View>
-					);
-				}}
+				renderItem={renderSessionItem}
 			/>
 		</PullToRefreshContainer>
 	);

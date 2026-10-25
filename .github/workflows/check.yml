@@ -14,7 +14,7 @@ jobs:
         with:
           persist-credentials: false
       - run: corepack enable
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: yarn
@@ -33,20 +33,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: pipx run zizmor==1.30.1 .github/
-      - name: Notify check failure
-        if: failure()
-        uses: ./.github/actions/notify-slack
-        continue-on-error: true
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: ❌ 검사 실패 ${{ github.event.pull_request.title || github.ref_name }}
-          fields: |
-            PR=${{ github.event.pull_request.number && format('#{0}', github.event.pull_request.number) || '' }}
-            브랜치=${{ github.head_ref || github.ref_name }}
-            작성자=${{ github.actor }}
-          buttons: |
-            PR 확인=${{ github.event.pull_request.html_url || '' }}
-            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   changes:
     if: github.event_name == 'pull_request'
@@ -65,8 +51,6 @@ jobs:
               - modules/**
               - plugins/**
               - targets/**
-              - ios/**
-              - android/**
               - app.config.ts
               - hot-updater.config.ts
               - keys/**
@@ -86,7 +70,7 @@ jobs:
         with:
           persist-credentials: false
       - run: corepack enable
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: yarn
@@ -95,20 +79,6 @@ jobs:
         env:
           # 설치된 expo 기준으로 버전 검사
           EXPO_OFFLINE: '1'
-      - name: Notify check failure
-        if: failure()
-        uses: ./.github/actions/notify-slack
-        continue-on-error: true
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: ❌ 검사 실패 ${{ github.event.pull_request.title || github.ref_name }}
-          fields: |
-            PR=${{ github.event.pull_request.number && format('#{0}', github.event.pull_request.number) || '' }}
-            브랜치=${{ github.head_ref || github.ref_name }}
-            작성자=${{ github.actor }}
-          buttons: |
-            PR 확인=${{ github.event.pull_request.html_url || '' }}
-            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   native-ios:
     name: Native (iOS prebuild + pod install)
@@ -121,7 +91,7 @@ jobs:
         with:
           persist-credentials: false
       - run: corepack enable
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: yarn
@@ -141,3 +111,25 @@ jobs:
           APP_VARIANT: development
       - run: pod install
         working-directory: ios
+
+  notify-failure:
+    needs: [check, expo-doctor, native-ios]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Notify check failure
+        uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: ❌ 검사 실패 ${{ github.event.pull_request.title || github.ref_name }}
+          fields: |
+            PR=${{ github.event.pull_request.number && format('#{0}', github.event.pull_request.number) || '' }}
+            브랜치=${{ github.head_ref || github.ref_name }}
+            작성자=${{ github.actor }}
+          buttons: |
+            PR 확인=${{ github.event.pull_request.html_url || '' }}
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

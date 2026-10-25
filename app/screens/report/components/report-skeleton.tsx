@@ -2,9 +2,9 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import PeriodMenu from '@/screens/report/components/report-header/period-menu';
-import PeriodNav from '@/screens/report/components/report-header/period-nav';
-import TrendPaneSkeleton from '@/screens/report/components/report-header/trend-pane-skeleton';
+import ReportHeaderPeriodMenu from '@/screens/report/components/report-header/period-menu';
+import ReportHeaderPeriodNav from '@/screens/report/components/report-header/period-nav';
+import ReportHeaderTrendPaneSkeleton from '@/screens/report/components/report-header/trend-pane-skeleton';
 import { useReportStore } from '@/stores/report';
 import { colors, font, radius } from '@/theme';
 
@@ -14,7 +14,7 @@ import { Surface } from '@/components/ui/surface';
 
 const PLACEHOLDER_ROW_COUNT = 3;
 
-/** 리포트를 불러오는 동안 보이는 컴포넌트 */
+/** 리포트 스켈레톤 컴포넌트 */
 const ReportSkeleton = () => {
 	const { t } = useTranslation();
 
@@ -22,13 +22,13 @@ const ReportSkeleton = () => {
 
 	return (
 		<View style={styles.container}>
-			<ScreenHeader title={t('report.title')} large trailing=<PeriodMenu /> />
+			<ScreenHeader title={t('report.title')} large trailing=<ReportHeaderPeriodMenu /> />
 			<View style={styles.divider} />
 
-			<PeriodNav />
-			<TrendPaneSkeleton />
+			<ReportHeaderPeriodNav />
+			<ReportHeaderTrendPaneSkeleton />
 
-			{/*단어별 학습 시간과 학습 목록 자리*/}
+			{/*단어별 학습 시간 및 학습 목록 자리*/}
 			<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
 				<View style={styles.band} />
 				<Copy style={styles.sectionTitle}>{t('report.learningTimeByWord')}</Copy>
@@ -46,7 +46,7 @@ const ReportSkeleton = () => {
 				<View style={styles.band} />
 				<Copy style={styles.sectionTitle}>{t('report.sessions')}</Copy>
 				<View style={styles.sessionsContainer}>
-					{/*주와 월 기간의 첫 날짜 소제목 자리*/}
+					{/*주 및 월 기간의 첫 날짜 소제목 자리*/}
 					{period !== 'day' && <View style={[styles.block, styles.dateBlock]} />}
 
 					{Array.from({ length: PLACEHOLDER_ROW_COUNT }, (_, index) => (

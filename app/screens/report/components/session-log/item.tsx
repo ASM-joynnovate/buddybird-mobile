@@ -1,114 +1,126 @@
-import { memo } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
 import dayjs from 'dayjs';
 
-import { SECOND } from '@/config/units';
+import { PERCENT, SECOND } from '@/config/units';
 import SessionLogMediaPanel from '@/screens/report/components/session-log/media-panel';
 import SessionLogSoundPanel from '@/screens/report/components/session-log/sound-panel';
+import type { LogItem } from '@/screens/report/utils/session-log';
 import { colors } from '@/theme';
 import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { joinLabel } from '@/utils/a11y';
-import type { LogItem } from '@/utils/session-log';
 
-import SessionLogItemHead, { LOG_ITEM_LINES_INSET, logItemMediaTypes } from '@/components/session/log-item-head';
+import SessionLogItemHead, {
+	LOG_ITEM_LINES_INSET,
+	logItemMediaTypes,
+} from '@/components/session/session-log-item-head';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const TIME_FORMAT = 'HH:mm:ss';
-const PERCENT = 100;
 const SIDE_PADDING = 14;
 
 interface Props {
-	item: LogItem;
+	logItem: LogItem;
 	open: boolean;
 	dividerShown: boolean;
-	sleeping: boolean;
+	isDuringSleep: boolean;
 	sessionId: string;
 	judgmentPending: boolean;
 	wordName: string;
-	onToggle: (item: LogItem) => void;
+	onToggle: (logItem: LogItem) => void;
 }
 
 /**
  * 눌러서 펼치는 기록 행 컴포넌트
- * @param item 기록
+ * @param logItem 기록
  * @param open 펼쳤는지 여부
- * @param dividerShown 위쪽 구분선을 보일지 여부
- * @param sleeping 수면 구간의 기록인지 여부
+ * @param dividerShown 위쪽 구분선 표시 여부
+ * @param isDuringSleep 수면 구간의 기록인지 여부
  * @param sessionId 세션 ID
  * @param judgmentPending 세션을 분석하는 중인지 여부
  * @param wordName 세션에서 학습한 단어
  * @param onToggle 누르면 실행할 함수
  */
-const SessionLogItem = memo(
-	({ item, open, dividerShown, sleeping, sessionId, judgmentPending, wordName, onToggle }: Props) => {
-		const { t } = useTranslation();
+const SessionLogItem = ({
+	logItem,
+	open,
+	dividerShown,
+	isDuringSleep,
+	sessionId,
+	judgmentPending,
+	wordName,
+	onToggle,
+}: Props) => {
+	const { t } = useTranslation();
 
-		const mediaType = logItemMediaTypes[item.kind];
-		const name = item.kind === 'mimic' ? wordName : t(`report.detail.kinds.${item.kind}`);
-		const startTime = dayjs(item.startedAt).format(TIME_FORMAT);
-		const rangeShown = item.kind === 'distressCall' || item.kind === 'parrotDisappeared';
-		let value: string | null = null;
-		let time = startTime;
+	const mediaType = logItemMediaTypes[logItem.kind];
+	const name = logItem.kind === 'mimic' ? wordName : t(`report.detail.kinds.${logItem.kind}`);
+	const startTime = dayjs(logItem.startedAt).format(TIME_FORMAT);
+	const rangeShown = logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared';
+	let statusText: string | null = null;
+	let time = startTime;
 
-		if (item.score !== null) {
-			value = t('report.detail.percent', { value: Math.round(item.score * PERCENT) });
-		} else if (judgmentPending && (item.kind === 'parrot' || item.kind === 'mimic')) {
-			value = t('report.judging');
-		} else if (item.kind === 'distressCall' && item.durationMs !== null) {
-			value = t('common.duration.seconds', { value: Math.round(item.durationMs / SECOND) });
-		}
+	if (logItem.score !== null) {
+		statusText = t('report.detail.percent', { value: Math.round(logItem.score * PERCENT) });
+	} else if (judgmentPending && (logItem.kind === 'parrot' || logItem.kind === 'mimic')) {
+		statusText = t('report.judging');
+	} else if (logItem.kind === 'distressCall' && logItem.durationMs !== null) {
+		statusText = t('common.duration.seconds', { value: Math.round(logItem.durationMs / SECOND) });
+	}
 
-		if (rangeShown) {
-			time = item.endedAt
-				? t('report.detail.timeRange', { start: startTime, end: dayjs(item.endedAt).format(TIME_FORMAT) })
-				: t('report.detail.timeFrom', { start: startTime });
-		}
+	if (rangeShown) {
+		time = logItem.endedAt
+			? t('report.detail.timeRange', { start: startTime, end: dayjs(logItem.endedAt).format(TIME_FORMAT) })
+			: t('report.detail.timeFrom', { start: startTime });
+	}
 
-		const openFace = sleeping ? colors.surface : sessionDetailColors.openFace;
-		const mediaTypeName = t(`report.detail.mediaTypes.${mediaType}`);
-		const itemName = joinLabel(name, time);
+	const openFace = isDuringSleep ? colors.surface : sessionDetailColors.openFace;
+	const mediaTypeName = t(`report.detail.mediaTypes.${mediaType}`);
+	const itemLabel = joinLabel(name, time);
 
-		return (
-			<View style={[styles.item, open && { backgroundColor: openFace }]}>
-				<PressableSurface
-					accessibilityLabel={joinLabel(name, value, time, mediaTypeName)}
-					accessibilityState={{ expanded: open }}
-					onPress={() => onToggle(item)}
-					variant="plain"
-					depth="none"
-					cornerRadius="none"
-					contentStyle={styles.face}
-				>
-					<SessionLogItemHead
-						kind={item.kind}
-						name={name}
-						value={value}
-						time={time}
-						open={open}
-						dividerShown={dividerShown}
-					/>
-				</PressableSurface>
+	return (
+		<View style={[styles.container, open && { backgroundColor: openFace }]}>
+			<PressableSurface
+				accessibilityLabel={joinLabel(name, statusText, time, mediaTypeName)}
+				accessibilityState={{ expanded: open }}
+				onPress={() => onToggle(logItem)}
+				variant="plain"
+				depth="none"
+				cornerRadius="none"
+				contentStyle={styles.face}
+			>
+				<SessionLogItemHead
+					kind={logItem.kind}
+					name={name}
+					value={statusText}
+					time={time}
+					open={open}
+					dividerShown={dividerShown}
+				/>
+			</PressableSurface>
 
-				{open && (
-					<View style={styles.panel}>
-						{mediaType === 'audio' ? (
-							<SessionLogSoundPanel item={item} itemName={itemName} sessionId={sessionId} />
-						) : (
-							<SessionLogMediaPanel item={item} itemName={itemName} mediaType={mediaType} />
-						)}
-					</View>
-				)}
-			</View>
-		);
-	},
-);
+			{open && (
+				<View style={styles.panel}>
+					{mediaType === 'audio' ? (
+						<SessionLogSoundPanel logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
+					) : (
+						<SessionLogMediaPanel
+							logItem={logItem}
+							itemLabel={itemLabel}
+							mediaType={mediaType}
+							sessionId={sessionId}
+						/>
+					)}
+				</View>
+			)}
+		</View>
+	);
+};
 
 const styles = StyleSheet.create({
-	item: { paddingHorizontal: SIDE_PADDING },
+	container: { paddingHorizontal: SIDE_PADDING },
 	face: { borderWidth: 0 },
 	panel: { paddingLeft: LOG_ITEM_LINES_INSET },
 });

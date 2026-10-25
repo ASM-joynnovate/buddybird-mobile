@@ -7,7 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, contentMaxWidth } from '@/theme';
 
-const KEYBOARD_BOTTOM_OFFSET = 36;
+export const KEYBOARD_BOTTOM_OFFSET = 36;
 
 interface Props extends ScrollViewProps {
 	scrollable?: boolean;

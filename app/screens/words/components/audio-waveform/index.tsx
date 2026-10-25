@@ -25,16 +25,16 @@ interface Props {
  * @param activeCount activeColor로 칠할 앞쪽 막대 수
  */
 const AudioWaveform = ({ levels, color, height, activeColor = color, activeCount = 0 }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const heightRatios = useSharedValue<number[]>([...levels]);
 	const duration = useSharedValue(TRANSITION_MS);
 
-	/** 소리 크기가 바뀌면 막대 높이 변경 */
+	/** 소리 크기 변경 시 막대 높이 변경 */
 	useEffect(() => {
-		duration.set(reducedMotion ? 0 : TRANSITION_MS);
+		duration.set(motionReduced ? 0 : TRANSITION_MS);
 		heightRatios.set([...levels]);
-	}, [duration, heightRatios, levels, reducedMotion]);
+	}, [duration, heightRatios, levels, motionReduced]);
 
 	return (
 		<View

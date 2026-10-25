@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'コミュニティ',
+	title: 'フィード',
 	me: '自分',
 	countryScope: {
 		world: '全世界',
@@ -18,26 +18,21 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: 'ニックネームがないため、ランキングに表示されません',
-				description: 'ニックネームを決めるとランキングに載ります',
 				action: '設定する',
 			},
 			anonymous: {
 				title: 'ログインするとランキングに載ります',
-				description: '今はログインしていません',
 				action: 'ログイン',
 			},
 			country_mismatch: {
 				title: 'この国のランキングには入っていません',
-				description: '自分の国として設定した国のランキングにだけ載ります',
 			},
 			no_record: {
 				title: '今月の練習記録はまだありません',
-				description: '練習を終えるとランキングに載ります',
 			},
 		},
 	},
 	feed: {
-		title: 'フィード',
 		more: 'その他',
 		timeAgo: {
 			minutes_one: '{{count}}分前',
@@ -71,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}}回',
 		artCount_many: '{{count, number}}回',
 		artCount_other: '{{count, number}}回',
-		reaction: {
-			praise: 'ほめる',
-			praised: 'ほめました',
-			celebrate: 'お祝いする',
-			celebrated: 'お祝いしました',
-		},
+		like: 'いいね',
 	},
 	report: {
 		action: '報告する',
@@ -99,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'ログイン',
-		loginDescription: 'ログインするとコミュニティを使えます',
+		loginDescription: 'ログインするとフィードを使えます',
 		nicknameTitle: 'ニックネーム設定',
-		nicknameDescription: 'コミュニティで表示される名前です',
+		nicknameDescription: 'フィードで表示される名前です',
 		start: 'はじめる',
 	},
 };

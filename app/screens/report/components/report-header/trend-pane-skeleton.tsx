@@ -2,8 +2,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors, radius } from '@/theme';
 
-/** 학습 시간 영역을 불러오는 동안 보이는 컴포넌트 */
-const TrendPaneSkeleton = () => {
+/** 학습 시간 영역 스켈레톤 컴포넌트 */
+const ReportHeaderTrendPaneSkeleton = () => {
 	return (
 		<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
 			<View style={styles.totalsRow}>
@@ -32,4 +32,4 @@ const styles = StyleSheet.create({
 	axisSpace: { height: 22 },
 });
 
-export default TrendPaneSkeleton;
+export default ReportHeaderTrendPaneSkeleton;

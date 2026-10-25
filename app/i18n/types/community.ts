@@ -1,11 +1,4 @@
-type PluralMessages<Key extends string> = {
-	[Form in `${Key}_${'one' | 'few' | 'many' | 'other'}`]: string;
-};
-
-type UnrankedMessage = {
-	title: string;
-	description: string;
-};
+import type { PluralMessages } from '@/i18n/types/plural';
 
 export type CommunityMessages = {
 	title: string;
@@ -18,15 +11,14 @@ export type CommunityMessages = {
 		title: string;
 		viewAll: string;
 		unranked: {
-			not_participating: UnrankedMessage & { action: string };
-			no_nickname: UnrankedMessage & { action: string };
-			anonymous: UnrankedMessage & { action: string };
-			country_mismatch: UnrankedMessage;
-			no_record: UnrankedMessage;
+			not_participating: { title: string; description: string; action: string };
+			no_nickname: { title: string; action: string };
+			anonymous: { title: string; action: string };
+			country_mismatch: { title: string };
+			no_record: { title: string };
 		};
 	};
 	feed: {
-		title: string;
 		more: string;
 		timeAgo: PluralMessages<'minutes'> & PluralMessages<'hours'> & PluralMessages<'days'> & { yesterday: string };
 		mimic: {
@@ -38,12 +30,7 @@ export type CommunityMessages = {
 		totalLearningTime: string;
 		monthlyLearningTime: string;
 		artHours: string;
-		reaction: {
-			praise: string;
-			praised: string;
-			celebrate: string;
-			celebrated: string;
-		};
+		like: string;
 	} & PluralMessages<'wordPlayCount'> &
 		PluralMessages<'artCount'>;
 	report: {

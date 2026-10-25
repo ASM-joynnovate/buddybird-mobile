@@ -1,18 +1,19 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { Report } from '@/types/apis/reports';
-
-import type { ReportPeriod } from '@/types/report-period';
+import { useGetReport } from '@/hooks/apis/reports';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration } from '@/i18n/format';
+import { formatDuration, formatDurationChange } from '@/i18n/format';
 
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 
+import { PERCENT } from '@/config/units';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
+import { shiftedStart } from '@/utils/report-period';
 
 import { Copy } from '@/components/ui/copy';
 
@@ -27,27 +28,31 @@ const growIn = () => {
 };
 
 interface Props {
-	period: ReportPeriod;
-	words: Report['active']['words'];
-	previousWords: Report['active']['words'];
+	start: string;
 }
 
 /**
  * 단어별 학습 시간 컴포넌트
- * @param period 리포트 기간 단위
- * @param words 단어별 학습 시간
- * @param previousWords 지난 기간의 단어별 학습 시간
+ * @param start 표시할 기간의 시작 날짜
  */
-const WordBars = ({ period, words, previousWords }: Props) => {
+const ReportHeaderWordBars = ({ start }: Props) => {
 	const { t } = useTranslation();
+
+	const period = useReportStore((state) => state.period);
+
+	const { data: reportData } = useGetReport({ period, start });
+	const { data: previousReportData } = useGetReport({ period, start: shiftedStart(period, start, -1) });
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	if (words.length === 0) {
+	const wordDurations = reportData.active.words;
+	const previousWordDurations = previousReportData.active.words;
+
+	if (wordDurations.length === 0) {
 		return null;
 	}
 
-	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.duration_ms));
+	const maxDurationMs = Math.max(1, ...wordDurations.map((wordDuration) => wordDuration.duration_ms));
 
 	return (
 		<View>
@@ -58,16 +63,14 @@ const WordBars = ({ period, words, previousWords }: Props) => {
 				<Copy style={styles.comparedTo}>{t(`report.comparedTo.${period}`)}</Copy>
 			</View>
 
-			{words.map((wordDuration, index) => {
+			{wordDurations.map((wordDuration, index) => {
 				const previousDurationMs =
-					previousWords.find((previousWord) => previousWord.word.id === wordDuration.word.id)?.duration_ms ??
-					0;
+					previousWordDurations.find(
+						(previousWordDuration) => previousWordDuration.word.id === wordDuration.word.id,
+					)?.duration_ms ?? 0;
 				const changeMs = wordDuration.duration_ms - previousDurationMs;
 				const durationLabel = formatDuration(wordDuration.duration_ms, locale);
-				const changeLabel =
-					changeMs === 0
-						? t('report.noChange')
-						: `${changeMs > 0 ? '+' : '-'}${formatDuration(Math.abs(changeMs), locale)}`;
+				const changeLabel = formatDurationChange(changeMs, locale);
 
 				return (
 					<View
@@ -89,7 +92,7 @@ const WordBars = ({ period, words, previousWords }: Props) => {
 								style={[
 									styles.fill,
 									{
-										width: `${Math.max(MIN_FILL_PERCENT, (wordDuration.duration_ms / maxDurationMs) * 100)}%`,
+										width: `${Math.max(MIN_FILL_PERCENT, (wordDuration.duration_ms / maxDurationMs) * PERCENT)}%`,
 									},
 								]}
 							/>
@@ -133,4 +136,4 @@ const styles = StyleSheet.create({
 	increasedText: { color: colors.orangeDark },
 });
 
-export default WordBars;
+export default ReportHeaderWordBars;

@@ -1,4 +1,4 @@
-import type { LoginProvider } from '@/types/account';
+import type { LoginProvider } from '@/types/auth';
 
 import { getSupabase } from '@/lib/supabase';
 
@@ -6,21 +6,18 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 
-import { env } from '@/config';
+import { env } from '@/config/env';
 import { setAppleLoginCredential } from '@/services/auth/credential';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 
 type OAuthProvider = Exclude<LoginProvider, 'apple'>;
 
-/** 로그인 후 앱으로 돌아올 주소 */
-const authRedirectUrl = () => {
-	return `${env.isProduction ? 'buddybird' : 'buddybird-dev'}://auth/callback`;
-};
+const authRedirectUrl = `${env.appScheme}://auth/callback`;
 
 /** 로그인 브라우저 요청 옵션 */
 const oauthOptions = (provider: OAuthProvider) => {
 	return {
-		redirectTo: authRedirectUrl(),
+		redirectTo: authRedirectUrl,
 		skipBrowserRedirect: true,
 		...(provider === 'google' ? { queryParams: { access_type: 'offline', prompt: 'consent' } } : {}),
 	};
@@ -45,10 +42,9 @@ const requestAppleIdToken = async () => {
 	return { provider: 'apple' as const, token: credential.identityToken, nonce };
 };
 
-/** 로그인 브라우저를 열고 돌아온 주소를 반환하는 함수 */
+/** 로그인 브라우저 실행 함수 */
 const openAuthBrowser = async (url: string) => {
-	const redirectUrl = authRedirectUrl();
-	const authSessionResult = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
+	const authSessionResult = await WebBrowser.openAuthSessionAsync(url, authRedirectUrl);
 
 	if (authSessionResult.type === 'cancel' || authSessionResult.type === 'dismiss') {
 		return null;
@@ -59,12 +55,12 @@ const openAuthBrowser = async (url: string) => {
 	}
 
 	const callbackUrl = new URL(authSessionResult.url);
-	const expected = new URL(redirectUrl);
+	const expectedUrl = new URL(authRedirectUrl);
 
 	if (
-		callbackUrl.protocol !== expected.protocol ||
-		callbackUrl.host !== expected.host ||
-		callbackUrl.pathname !== expected.pathname ||
+		callbackUrl.protocol !== expectedUrl.protocol ||
+		callbackUrl.host !== expectedUrl.host ||
+		callbackUrl.pathname !== expectedUrl.pathname ||
 		callbackUrl.username ||
 		callbackUrl.password
 	) {
@@ -79,7 +75,7 @@ const callbackParam = (callbackUrl: URL, name: string) => {
 	return callbackUrl.searchParams.get(name) ?? new URLSearchParams(callbackUrl.hash.slice(1)).get(name);
 };
 
-/** 이미 가입한 계정이 있어 연결하지 못했는지 확인하는 함수 */
+/** 기존 계정 때문에 연결하지 못했는지 확인하는 함수 */
 const isExistingAccountError = (errorCode?: string | null) => {
 	return errorCode === 'identity_already_exists' || errorCode === 'email_exists';
 };
@@ -98,7 +94,7 @@ const exchangeCallback = async (callbackUrl: URL, provider: OAuthProvider) => {
 		throw new Error('Authentication code missing');
 	}
 
-	useAccountStore.getState().setLoginProvider(provider);
+	useAuthStore.getState().setLoginProvider(provider);
 
 	const { error } = await getSupabase().auth.exchangeCodeForSession(code);
 
@@ -121,7 +117,7 @@ export const signIn = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();
 
-		useAccountStore.getState().setLoginProvider(provider);
+		useAuthStore.getState().setLoginProvider(provider);
 
 		const { error } = await getSupabase().auth.signInWithIdToken(idTokenCredentials);
 
@@ -151,7 +147,7 @@ export const linkAccount = async (provider: LoginProvider) => {
 	if (provider === 'apple') {
 		const idTokenCredentials = await requestAppleIdToken();
 
-		useAccountStore.getState().setLoginProvider(provider);
+		useAuthStore.getState().setLoginProvider(provider);
 
 		const { error } = await getSupabase().auth.linkIdentity(idTokenCredentials);
 

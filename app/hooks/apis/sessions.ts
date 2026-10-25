@@ -2,6 +2,7 @@ import {
 	infiniteQueryOptions,
 	queryOptions,
 	useMutation,
+	useQuery,
 	useQueryClient,
 	useSuspenseInfiniteQuery,
 	useSuspenseQuery,
@@ -24,32 +25,49 @@ import {
 import { postSessionPetcamEventUpload, putUploadFile } from '@/apis/uploads';
 
 import { ApiError } from '@/types/apis/common';
+import type { SessionSoundDurationParams } from '@/types/apis/sessions';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { deviceKeys } from '@/hooks/apis/keys/devices';
+import { homeKeys } from '@/hooks/apis/keys/home';
+import { reportKeys } from '@/hooks/apis/keys/reports';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-import { shareFile, shareJoinedWav } from '@/services/media/share';
+import { nextPageNumber } from '@/lib/api';
+
 import { reportError } from '@/services/telemetry/client';
 
 /** 진행 중인 세션 조회 Hook에 사용할 옵션 */
 export const getRunningSessionOptions = () =>
-	queryOptions({ queryKey: apiKeys.sessions.running(), queryFn: getRunningSession });
+	queryOptions({ queryKey: sessionKeys.running(), queryFn: getRunningSession });
 /** 진행 중인 세션 조회 Hook */
 export const useGetRunningSession = () => {
 	return useSuspenseQuery(getRunningSessionOptions());
 };
+/** suspense 없는 진행 중인 세션 조회 Hook */
+export const useGetRunningSessionQuery = () => {
+	return useQuery(getRunningSessionOptions());
+};
 
 /** 세션 상세 조회 Hook에 사용할 옵션 */
 export const getSessionOptions = ({ id }: { id: string }) =>
-	queryOptions({ queryKey: apiKeys.sessions.detail(id), queryFn: () => getSession({ id }) });
+	queryOptions({ queryKey: sessionKeys.detail(id), queryFn: () => getSession({ id }) });
 /** 세션 상세 조회 Hook */
 export const useGetSession = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionOptions({ id }));
 };
+/** suspense 없는 세션 상세 조회 Hook */
+export const useGetSessionQuery = (
+	{ id }: { id: string },
+	options?: Pick<ReturnType<typeof getSessionOptions>, 'staleTime' | 'refetchInterval'>,
+) => {
+	return useQuery({ ...getSessionOptions({ id }), ...options });
+};
 
 /** 세션 요약 조회 Hook에 사용할 옵션 */
 export const getSessionSummaryOptions = ({ id }: { id: string }) =>
-	queryOptions({ queryKey: apiKeys.sessions.summary(id), queryFn: () => getSessionSummary({ id }) });
+	queryOptions({ queryKey: sessionKeys.summary(id), queryFn: () => getSessionSummary({ id }) });
 /** 세션 요약 조회 Hook */
 export const useGetSessionSummary = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionSummaryOptions({ id }));
@@ -58,10 +76,10 @@ export const useGetSessionSummary = ({ id }: { id: string }) => {
 /** 세션 소리 목록 조회 Hook에 사용할 옵션 */
 export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 	infiniteQueryOptions({
-		queryKey: apiKeys.sessions.sounds(id),
+		queryKey: sessionKeys.sounds(id),
 		queryFn: ({ pageParam }) => getSessionSoundList({ id, page: pageParam }),
 		initialPageParam: 1,
-		getNextPageParam: (lastPage) => (lastPage.meta.is_last ? undefined : lastPage.meta.current_page + 1),
+		getNextPageParam: nextPageNumber,
 	});
 /** 세션 소리 목록 조회 Hook */
 export const useGetSessionSoundList = ({ id }: { id: string }) => {
@@ -69,10 +87,10 @@ export const useGetSessionSoundList = ({ id }: { id: string }) => {
 };
 
 /** 세션 소리 재생 길이 조회 Hook에 사용할 옵션 */
-export const getSessionSoundDurationOptions = ({ id, url }: { id: string; url: string }) =>
+export const getSessionSoundDurationOptions = ({ id, url }: SessionSoundDurationParams) =>
 	// oxlint-disable-next-line @tanstack/query/exhaustive-deps
 	queryOptions({
-		queryKey: apiKeys.sessionSounds.duration(id),
+		queryKey: sessionKeys.soundDuration(id),
 		queryFn: () =>
 			getSessionSoundDuration({ url }).catch((error: unknown) => {
 				reportError(error, 'session_sound_duration');
@@ -81,10 +99,17 @@ export const getSessionSoundDurationOptions = ({ id, url }: { id: string; url: s
 			}),
 		staleTime: Infinity,
 	});
+/** suspense 없는 세션 소리 재생 길이 조회 Hook */
+export const useGetSessionSoundDurationQuery = (
+	{ id, url }: SessionSoundDurationParams,
+	options?: Pick<ReturnType<typeof getSessionSoundDurationOptions>, 'enabled'>,
+) => {
+	return useQuery({ ...getSessionSoundDurationOptions({ id, url }), ...options });
+};
 
 /** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
 export const getSessionEventListOptions = ({ id }: { id: string }) =>
-	queryOptions({ queryKey: apiKeys.sessions.events(id), queryFn: () => getSessionEventList({ id }) });
+	queryOptions({ queryKey: sessionKeys.events(id), queryFn: () => getSessionEventList({ id }) });
 /** 세션 이벤트 목록 조회 Hook */
 export const useGetSessionEventList = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionEventListOptions({ id }));
@@ -98,12 +123,12 @@ export const useStartSession = () => {
 		mutationKey: apiKeys.mutation('sessions', 'start'),
 		mutationFn: postSession,
 		onSuccess: (session) => {
-			queryClient.setQueryData(apiKeys.sessions.running(), session);
+			queryClient.setQueryData(sessionKeys.running(), session);
 
 			return Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: deviceKeys.all() }),
 			]);
 		},
 		onError: (error) => {
@@ -124,14 +149,14 @@ export const useFinishSession = () => {
 		mutationKey: apiKeys.mutation('sessions', 'finish'),
 		mutationFn: postSessionFinish,
 		onSuccess: (session) => {
-			queryClient.setQueryData(apiKeys.sessions.running(), null);
-			queryClient.setQueryData(apiKeys.sessions.detail(session.id), session);
+			queryClient.setQueryData(sessionKeys.running(), null);
+			queryClient.setQueryData(sessionKeys.detail(session.id), session);
 
 			return Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: deviceKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: reportKeys.all() }),
 			]);
 		},
 		onError: (error) => {
@@ -152,13 +177,13 @@ export const useFinishRunningSession = () => {
 		mutationKey: apiKeys.mutation('sessions', 'finishRunning'),
 		mutationFn: postRunningSessionFinish,
 		onSuccess: () => {
-			queryClient.setQueryData(apiKeys.sessions.running(), null);
+			queryClient.setQueryData(sessionKeys.running(), null);
 
 			return Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.all() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.reports.all() }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: deviceKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: reportKeys.all() }),
 			]);
 		},
 		onError: (error) => {
@@ -178,7 +203,7 @@ export const useUploadSessionSound = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
-		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.sounds(id) }),
+		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
 	});
 };
 
@@ -209,24 +234,6 @@ export const useUploadPetcamVideo = () => {
 	});
 };
 
-/** 세션 기록 파일 공유 Hook */
-export const useShareSessionFile = () => {
-	return useMutation({
-		mutationKey: apiKeys.mutation('sessions', 'shareFile'),
-		mutationFn: shareFile,
-		onError: (error) => reportError(error, 'session_file_share'),
-	});
-};
-
-/** 이어 붙인 세션 소리 공유 Hook */
-export const useShareSessionJoinedSound = () => {
-	return useMutation({
-		mutationKey: apiKeys.mutation('sessions', 'shareJoinedSound'),
-		mutationFn: shareJoinedWav,
-		onError: (error) => reportError(error, 'parrot_sound_share'),
-	});
-};
-
 /** 하트비트 전송 Hook */
 export const useSendHeartbeat = () => {
 	const queryClient = useQueryClient();
@@ -235,7 +242,7 @@ export const useSendHeartbeat = () => {
 		mutationKey: apiKeys.mutation('sessions', 'heartbeat'),
 		mutationFn: postSessionHeartbeat,
 		retry: false,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: sessionKeys.running() }),
 		onError: (error) => {
 			if (
 				error instanceof ApiError &&

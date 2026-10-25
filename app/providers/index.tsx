@@ -10,6 +10,9 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Toaster } from 'sonner-native';
+
+import { TOAST_DURATION_MS } from '@/components/ui/toast';
 
 interface Props {
 	children: ReactNode;
@@ -27,6 +30,7 @@ const RootProviders = ({ children }: Props) => {
 					<StatusBar barStyle="dark-content" />
 					<QueryClientProvider client={queryClient}>
 						<BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+						<Toaster position="top-center" duration={TOAST_DURATION_MS} />
 					</QueryClientProvider>
 				</SafeAreaProvider>
 			</KeyboardProvider>

@@ -4,10 +4,9 @@ import { communityUserSchema } from '@/types/apis/users';
 
 import { z } from 'zod';
 
-export const feedItemReactionSchema = z.object({
-	reaction_type_id: uuidSchema,
-	count: z.number().int(),
-	is_mine: z.boolean(),
+export const feedItemLikeSchema = z.object({
+	like_count: z.number().int(),
+	is_liked: z.boolean(),
 });
 
 export const feedItemSchema = z.object({
@@ -18,22 +17,21 @@ export const feedItemSchema = z.object({
 	word_name: z.string().nullable(),
 	file: publicFileSchema.nullable(),
 	threshold: z.number().int().nullable(),
-	reactions: z.array(feedItemReactionSchema),
+	like_count: z.number().int(),
+	is_liked: z.boolean(),
 });
 
 export const feedMetaSchema = z.object({ next_cursor: uuidSchema.nullable() });
 
-export const feedReactionTypeSchema = z.object({
-	id: uuidSchema,
-	name: z.string(),
-	image_file: publicFileSchema,
-});
-
 export type FeedItem = z.infer<typeof feedItemSchema>;
-export type FeedItemReaction = z.infer<typeof feedItemReactionSchema>;
-export type FeedReactionType = z.infer<typeof feedReactionTypeSchema>;
+export type FeedItemLike = z.infer<typeof feedItemLikeSchema>;
 
 export interface FeedPage {
 	data: FeedItem[];
 	meta: z.infer<typeof feedMetaSchema>;
+}
+
+export interface GetFeedItemListParams {
+	cursor: string | null;
+	country: string | null;
 }

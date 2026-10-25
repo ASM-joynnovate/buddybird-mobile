@@ -8,8 +8,8 @@ export interface LegacyWord {
 }
 
 /** v1 단어를 업로드할 단어로 변환하는 함수 */
-const parseLegacyWord = (value: unknown, id: string) => {
-	const wordRecord = requireRecord(value, `word ${id}`);
+const parseLegacyWord = (rawWord: unknown, id: string) => {
+	const wordRecord = requireRecord(rawWord, `word ${id}`);
 	const sourceType = requireChoice(wordRecord.sourceType, ['preset', 'recording'] as const, 'sourceType');
 
 	if (sourceType === 'preset' || wordRecord.archived === true) {
@@ -29,9 +29,9 @@ export const parseLegacyWords = (library: UnknownRecord) => {
 		throw new Error('Unsupported word library version');
 	}
 
-	return Object.entries(requireRecord(library.entriesById, 'entriesById')).flatMap(([id, value]) => {
+	return Object.entries(requireRecord(library.entriesById, 'entriesById')).flatMap(([id, rawWord]) => {
 		try {
-			const word = parseLegacyWord(value, id);
+			const word = parseLegacyWord(rawWord, id);
 
 			return word ? [word] : [];
 		} catch (e) {

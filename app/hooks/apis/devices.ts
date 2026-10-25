@@ -5,12 +5,15 @@ import { deleteDevice, getDeviceList, patchDevice, putDevice, putDeviceActivity,
 import { ApiError } from '@/types/apis/common';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { deviceKeys } from '@/hooks/apis/keys/devices';
+import { homeKeys } from '@/hooks/apis/keys/home';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
 /** 기기 목록 조회 Hook에 사용할 옵션 */
-export const getDeviceListOptions = () => queryOptions({ queryKey: apiKeys.devices(), queryFn: getDeviceList });
+export const getDeviceListOptions = () => queryOptions({ queryKey: deviceKeys.all(), queryFn: getDeviceList });
 /** 기기 목록 조회 Hook */
 export const useGetDeviceList = () => {
 	return useSuspenseQuery(getDeviceListOptions());
@@ -64,9 +67,9 @@ export const useDeleteDevice = () => {
 		mutationFn: deleteDevice,
 		onSuccess: () =>
 			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.devices() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+				queryClient.invalidateQueries({ queryKey: deviceKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.running() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
 			]),
 		onError: (error) => reportError(error, 'device_delete'),
 	});

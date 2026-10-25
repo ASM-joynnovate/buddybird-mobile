@@ -1,0 +1,118 @@
+import { useState } from 'react';
+
+import { StyleSheet, View } from 'react-native';
+
+import { useTranslation } from 'react-i18next';
+
+import dayjs, { type Dayjs } from 'dayjs';
+
+import { PARROT_MAX_AGE_YEARS } from '@/config/policy';
+import { localDate } from '@/utils/date';
+
+import { Button } from '@/components/ui/button';
+import { ItemCheckbox } from '@/components/ui/item/checkbox';
+import { ItemGroup } from '@/components/ui/item/group';
+import { ItemPicker } from '@/components/ui/item/picker';
+import { WheelPicker } from '@/components/ui/wheel-picker';
+
+const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
+
+interface Props {
+	value: string | null | undefined;
+	onChange: (value: string | null) => void;
+}
+
+/**
+ * 생일 선택 컴포넌트
+ * @param value 선택한 생일
+ * @param onChange 생일 변경 시 실행할 함수
+ */
+const BirthdatePicker = ({ value, onChange }: Props) => {
+	const { t } = useTranslation();
+
+	const [date, setDate] = useState(() => (value ? dayjs(value) : dayjs().subtract(1, 'year').date(1)));
+
+	const birthdateUnknown = value === null;
+	const thisYear = dayjs().year();
+	const earliestYear = Math.min(thisYear - PARROT_MAX_AGE_YEARS, date.year());
+	const years = Array.from({ length: thisYear - earliestYear + 1 }, (_, index) => earliestYear + index);
+	const days = Array.from({ length: date.daysInMonth() }, (_, index) => index + 1);
+	const birthdateText =
+		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('ll');
+	const dateOrder = t('common.dateFormat.order', { returnObjects: true });
+
+	const handleChangeDate = (nextDate: Dayjs) => {
+		setDate(nextDate);
+
+		onChange(localDate(nextDate));
+	};
+
+	const handleSelect = (close: () => void) => {
+		if (value === undefined) {
+			onChange(localDate(date));
+		}
+
+		close();
+	};
+
+	const dateColumns = {
+		year: {
+			key: 'year',
+			label: t('parrot.yearPicker'),
+			value: date.year(),
+			values: years,
+			unit: t('parrot.year'),
+			onChange: (year: number) => handleChangeDate(date.year(year)),
+		},
+		month: {
+			key: 'month',
+			label: t('parrot.monthPicker'),
+			value: date.month() + 1,
+			values: MONTHS,
+			unit: t('parrot.month'),
+			onChange: (month: number) => handleChangeDate(date.month(month - 1)),
+		},
+		day: {
+			key: 'day',
+			label: t('parrot.dayPicker'),
+			value: date.date(),
+			values: days,
+			unit: t('parrot.day'),
+			onChange: (day: number) => handleChangeDate(date.date(day)),
+		},
+	};
+
+	return (
+		<ItemPicker
+			itemProps={{ label: t('parrot.birthdate'), value: birthdateText }}
+			sheet={{ title: t('parrot.birthdateQuestion') }}
+		>
+			{(close) => (
+				<>
+					<View
+						style={birthdateUnknown && styles.dimmed}
+						pointerEvents={birthdateUnknown ? 'none' : 'auto'}
+						accessibilityElementsHidden={birthdateUnknown}
+					>
+						<WheelPicker columns={dateOrder.map((unit) => dateColumns[unit])} />
+					</View>
+					<ItemGroup>
+						<ItemCheckbox
+							isFirstInGroup
+							label={t('parrot.birthdateUnknown')}
+							checked={birthdateUnknown}
+							onToggle={() => onChange(birthdateUnknown ? localDate(date) : null)}
+						/>
+					</ItemGroup>
+					<Button label={t('common.select')} onPress={() => handleSelect(close)} />
+				</>
+			)}
+		</ItemPicker>
+	);
+};
+
+const styles = StyleSheet.create({
+	dimmed: { opacity: 0.35 },
+});
+
+export default BirthdatePicker;

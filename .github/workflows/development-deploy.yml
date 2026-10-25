@@ -47,53 +47,35 @@ jobs:
           node-version: 24
           cache: yarn
       - run: yarn install --immutable
+      - uses: ./.github/actions/firebase-config
+        with:
+          variant: development
+          ios-config: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+          android-config: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
       - uses: ./.github/actions/native-fingerprint
         id: fingerprint
         with:
           variant: development
-          ios-firebase-config: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
-          android-firebase-config: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
           github-token: ${{ github.token }}
       - name: Require a native version bump
         if: steps.fingerprint.outputs.expo-changed == 'true' && steps.fingerprint.outputs.baseline-found == 'true' && steps.fingerprint.outputs.hot-updater-changed == 'false'
         run: |
-          echo "Expo fingerprint만 변경되었습니다. hot-updater.config.ts의 fingerprint.nativeVersion 값을 증가시켜야 합니다."
+          echo "Expo fingerprint만 변경되었습니다. hot-updater.config.ts에 fingerprint.nativeVersion 값을 추가하거나 1 올려야 합니다."
           exit 1
       - name: Require a store build for hot-updater changes
         if: steps.fingerprint.outputs.expo-changed == 'false' && steps.fingerprint.outputs.hot-updater-changed == 'true'
         run: |
           echo "hot-updater fingerprint만 변경되었습니다. 스토어 빌드가 필요합니다."
           exit 1
-      - name: Write signing key
+      - uses: ./.github/actions/ota-deploy
         if: steps.fingerprint.outputs.expo-changed == 'false'
-        env:
-          SIGNING_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
-        run: |
-          test -n "$SIGNING_PRIVATE_KEY"
-          umask 077
-          mkdir -p "$RUNNER_TEMP/hot-updater-signing"
-          printf '%s' "$SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/hot-updater-signing/private-key.pem"
-      - name: Deploy iOS bundle
-        if: steps.fingerprint.outputs.expo-changed == 'false'
-        env:
-          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
-          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
-          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: APP_VARIANT=development yarn hot-updater deploy -p ios -c development -o .hot-updater/output/deploy/ios
-      - name: Deploy Android bundle
-        if: steps.fingerprint.outputs.expo-changed == 'false'
-        env:
-          HOT_UPDATER_SIGNING_PRIVATE_KEY_PATH: ${{ runner.temp }}/hot-updater-signing/private-key.pem
-          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
-          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: APP_VARIANT=development yarn hot-updater deploy -p android -c development -o .hot-updater/output/deploy/android
-      - name: Remove signing key
-        if: always()
-        run: rm -rf "$RUNNER_TEMP/hot-updater-signing"
+        with:
+          variant: development
+          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
+          cloudflare-api-token: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.fingerprint.outputs.expo-changed == 'false'
         with:

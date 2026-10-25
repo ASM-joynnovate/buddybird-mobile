@@ -10,13 +10,12 @@ import { colors, depths, font, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-/** 프로필을 불러오는 동안 보이는 컴포넌트 */
+/** 프로필 스켈레톤 컴포넌트 */
 const ProfileCardsSkeleton = () => {
 	const { t } = useTranslation();
 
 	return (
 		<View style={styles.container}>
-			{/*계정 카드 자리*/}
 			<View style={[styles.outline, styles.accountCard]}>
 				<View style={[styles.block, styles.avatarBlock]} />
 				<View style={styles.accountText}>
@@ -26,7 +25,6 @@ const ProfileCardsSkeleton = () => {
 				<ChevronRightIcon size={18} color={colors.subtle} />
 			</View>
 
-			{/*앵무새 카드와 추가 카드 자리*/}
 			<View style={ui.sectionContainer}>
 				<Copy style={ui.sectionTitle}>{t('profile.parrots')}</Copy>
 				<View style={[ui.actionsRow, styles.parrotsRow]}>

@@ -1,42 +1,39 @@
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
 import { deleteWord, deleteWordRecording, getWord, getWordList, patchWord, postWord } from '@/apis/words';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { wordKeys } from '@/hooks/apis/keys/words';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
-import { measureAudioDuration } from '@/services/media/audio-duration';
 import { reportError } from '@/services/telemetry/client';
 
 /** 단어 목록 조회 Hook에 사용할 옵션 */
-export const getWordListOptions = () => queryOptions({ queryKey: apiKeys.words.all(), queryFn: getWordList });
+export const getWordListOptions = () => queryOptions({ queryKey: wordKeys.all(), queryFn: getWordList });
 /** 단어 목록 조회 Hook */
 export const useGetWordList = () => {
 	return useSuspenseQuery(getWordListOptions());
 };
+/** suspense 없는 단어 목록 조회 Hook */
+export const useGetWordListQuery = () => {
+	return useQuery(getWordListOptions());
+};
 
 /** 단어 상세 조회 Hook에 사용할 옵션 */
 export const getWordOptions = ({ id }: { id: string }) =>
-	queryOptions({ queryKey: apiKeys.words.detail(id), queryFn: () => getWord({ id }) });
+	queryOptions({ queryKey: wordKeys.detail(id), queryFn: () => getWord({ id }) });
 /** 단어 상세 조회 Hook */
 export const useGetWord = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getWordOptions({ id }));
 };
-
-/** 녹음 재생 길이 조회 Hook에 사용할 옵션 */
-export const getRecordingDurationOptions = ({ id, url }: { id: string; url: string }) =>
-	// oxlint-disable-next-line @tanstack/query/exhaustive-deps
-	queryOptions({
-		queryKey: apiKeys.recordings.duration(id),
-		queryFn: () =>
-			measureAudioDuration(url).catch((error: unknown) => {
-				reportError(error, 'recording_duration');
-
-				throw error;
-			}),
-		staleTime: Infinity,
-	});
+/** suspense 없는 단어 상세 조회 Hook */
+export const useGetWordQuery = (
+	{ id }: { id: string },
+	options?: Pick<ReturnType<typeof getWordOptions>, 'enabled' | 'refetchInterval'>,
+) => {
+	return useQuery({ ...getWordOptions({ id }), ...options });
+};
 
 /** 단어 추가 Hook */
 export const useCreateWord = () => {
@@ -61,7 +58,7 @@ export const useDeleteWord = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'delete'),
 		mutationFn: deleteWord,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: wordKeys.all() }),
 		onError: (error) => reportError(error, 'word_delete'),
 	});
 };
@@ -81,7 +78,7 @@ export const useUploadWordRecording = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'upload'),
 		mutationFn: putUploadFile,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: wordKeys.all() }),
 	});
 };
 
@@ -92,6 +89,6 @@ export const useDeleteWordRecording = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('words', 'recordings', 'delete'),
 		mutationFn: deleteWordRecording,
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.words.all() }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: wordKeys.all() }),
 	});
 };

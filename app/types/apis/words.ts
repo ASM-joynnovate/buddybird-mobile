@@ -13,3 +13,24 @@ export const wordSchema = z.object({
 
 export type Recording = z.infer<typeof recordingSchema>;
 export type Word = z.infer<typeof wordSchema>;
+
+export interface PostWordParams {
+	data: WordNameRequest;
+	idempotencyKey: string;
+}
+
+export interface PatchWordParams {
+	id: string;
+	data: WordNameRequest;
+	idempotencyKey: string;
+}
+
+export interface DeleteWordRecordingParams {
+	id: string;
+	recordingId: string;
+	idempotencyKey: string;
+}
+
+export interface WordNameRequest {
+	name: string;
+}

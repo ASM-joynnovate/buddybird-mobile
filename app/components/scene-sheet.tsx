@@ -22,7 +22,7 @@ interface Props {
  * @param title 제목
  * @param accessory 제목 위에 놓을 요소
  * @param footer 하단 버튼
- * @param sheetRef bottom sheet의 화면 위치를 잴 때 쓰는 ref
+ * @param sheetRef bottom sheet 위치 측정에 사용할 ref
  * @param children 제목 아래 내용
  */
 const SceneSheet = ({ title, accessory, footer, sheetRef, children }: Props) => {

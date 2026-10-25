@@ -32,6 +32,7 @@ export type WordsMessages = {
 		uploading: string;
 		processing: string;
 		saveError: string;
+		deleteRecordingError: string;
 	};
 	guide: {
 		word: string;
