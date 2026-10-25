@@ -78,6 +78,16 @@ export const getPetcamVideo = () => {
 	};
 };
 
+/** 펫캠 최대 비트레이트를 반환하는 함수 */
+export const getPetcamMaxBitrate = () => {
+	const configValues = readConfigValues();
+
+	return {
+		video: configValues.petcam_video_max_bitrate,
+		audio: configValues.petcam_audio_max_bitrate,
+	};
+};
+
 /** 펫캠 연결 제한 시간을 반환하는 함수 */
 export const getPetcamConnectTimeoutMs = () => {
 	return readConfigValues().petcam_connect_timeout_ms;

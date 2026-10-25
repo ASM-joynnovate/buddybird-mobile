@@ -30,12 +30,17 @@ import {
 	type MediaStreamTrack,
 	RTCIceCandidate,
 	RTCPeerConnection,
+	type RTCRtpSender,
 	RTCSessionDescription,
 } from 'react-native-webrtc';
 
 import { PETCAM_ICE_SERVERS } from '@/config/policy';
 import { BITS_PER_BYTE } from '@/config/units';
-import { getPetcamConnectTimeoutMs, getPetcamStatsIntervalMs } from '@/services/remote-config/client';
+import {
+	getPetcamConnectTimeoutMs,
+	getPetcamMaxBitrate,
+	getPetcamStatsIntervalMs,
+} from '@/services/remote-config/client';
 import { reportError } from '@/services/telemetry/client';
 
 const BROADCAST_EVENT = 'petcam';
@@ -177,6 +182,18 @@ const readVideoStats = async <Stats>(connection: RTCPeerConnection, schema: z.Zo
 	);
 };
 
+/** sender 최대 비트레이트 설정 함수 */
+const limitBitrate = (sender: RTCRtpSender, maxBitrate: number) => {
+	const parameters = sender.getParameters();
+
+	// setter 값만 toJSON으로 전송됨
+	parameters.encodings.forEach((encoding) => {
+		encoding.maxBitrate = maxBitrate;
+	});
+
+	return sender.setParameters(parameters);
+};
+
 /** peer 연결을 만드는 함수 */
 const createPeer = (
 	iceServers: PetcamIceServer[],
@@ -235,6 +252,7 @@ export const createPetcamSender = ({
 	onError,
 }: PetcamSenderOptions) => {
 	const connectTimeoutMs = getPetcamConnectTimeoutMs();
+	const maxBitrate = getPetcamMaxBitrate();
 
 	const peers = new Map<string, PetcamSenderPeer>();
 	const sentBytes = new Map<string, SentBytes>();
@@ -335,9 +353,7 @@ export const createPetcamSender = ({
 			onError,
 		);
 
-		stream.getTracks().forEach((track) => {
-			peer.connection.addTrack(track, stream);
-		});
+		const videoSenders = stream.getVideoTracks().map((track) => peer.connection.addTrack(track, stream));
 
 		// 소리 전송용 transceiver
 		const { sender: audioSender } = peer.connection.addTransceiver('audio', {
@@ -368,6 +384,11 @@ export const createPetcamSender = ({
 		if (audioTrack) {
 			void audioSender.replaceTrack(audioTrack).catch(onError);
 		}
+
+		await Promise.all([
+			...videoSenders.map((videoSender) => limitBitrate(videoSender, maxBitrate.video)),
+			limitBitrate(audioSender, maxBitrate.audio),
+		]).catch(onError);
 
 		const description = petcamDescriptionSchema.parse(await peer.connection.createOffer({}));
 
