@@ -2,12 +2,14 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 
 import type { PullEdge, PullStatus } from '@/types/pull-to-refresh';
 
+import useRefreshMessage from '@/hooks/use-refresh-message';
+
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
-import { HOLD_SCENE_HEIGHT } from '@/screens/report/components/buddy-refresh/constants';
-import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/screens/report/components/buddy-refresh/message';
-import useRefreshMessage from '@/screens/report/hooks/use-refresh-message';
 import { colors } from '@/theme';
+
+import { HOLD_SCENE_HEIGHT } from '@/components/buddy-refresh/constants';
+import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/components/buddy-refresh/message';
 
 const THROBBER_SIZE = 20;
 

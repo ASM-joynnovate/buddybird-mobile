@@ -3,15 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import { usePrefetchQuery } from '@tanstack/react-query';
 
 import { getReportOptions } from '@/hooks/apis/reports';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
-import BuddyRefreshHint from '@/screens/report/components/buddy-refresh/hint';
 import ReportContent from '@/screens/report/components/report-content';
 import ReportSkeleton from '@/screens/report/components/report-skeleton';
-import useIsLowPerformance from '@/screens/report/hooks/use-is-low-performance';
 import { useReportStore } from '@/stores/report';
 import { contentMaxWidth } from '@/theme';
 import { latestStart, shiftedStart } from '@/utils/report-period';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';

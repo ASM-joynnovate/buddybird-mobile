@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { ActivityIndicator, StyleSheet, type View } from 'react-native';
 
 import { useGetMe } from '@/hooks/apis/users';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +18,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
 import { colors } from '@/theme';
 
+import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Title } from '@/components/ui/title';
@@ -34,11 +36,15 @@ const CommunityContent = () => {
 	const reportTarget = useCommunityStore((state) => state.reportTarget);
 	const blockTarget = useCommunityStore((state) => state.blockTarget);
 
+	const lowPerformance = useIsLowPerformance();
+
 	const gateShown = isAnonymous || !meData.nickname;
 
 	return (
 		<>
 			<BlurTargetView ref={blurTargetRef} style={styles.container}>
+				{!gateShown && <BuddyRefreshHint mascotShown={!lowPerformance} />}
+
 				<Title style={styles.title}>{t('community.title')}</Title>
 
 				<CountryScopeChips />

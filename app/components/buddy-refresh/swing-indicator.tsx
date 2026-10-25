@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import type { PullEdge, PullStatus } from '@/types/pull-to-refresh';
 
+import useRefreshMessage from '@/hooks/use-refresh-message';
+
 import Animated, {
 	Easing,
 	type SharedValue,
@@ -17,17 +19,16 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
+import { colors, radius } from '@/theme';
+
 import {
 	FLAP_ANGLE,
 	FLAP_MS,
 	HOLD_SCENE_HEIGHT,
 	MASCOT_FOOT_Y,
 	MASCOT_SIZE,
-} from '@/screens/report/components/buddy-refresh/constants';
-import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/screens/report/components/buddy-refresh/message';
-import useRefreshMessage from '@/screens/report/hooks/use-refresh-message';
-import { colors, radius } from '@/theme';
-
+} from '@/components/buddy-refresh/constants';
+import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/components/buddy-refresh/message';
 import MascotArtwork from '@/components/mascot/artwork';
 
 const PERCH_WIDTH = 84;

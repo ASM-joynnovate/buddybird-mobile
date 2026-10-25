@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import type { PullStatus } from '@/types/pull-to-refresh';
 
+import useRefreshMessage from '@/hooks/use-refresh-message';
+
 import Animated, {
 	cancelAnimation,
 	Easing,
@@ -22,17 +24,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
+import { colors } from '@/theme';
+
 import {
 	FLAP_ANGLE,
 	FLAP_MS,
 	HOLD_SCENE_HEIGHT,
 	MASCOT_FOOT_Y,
 	MASCOT_SIZE,
-} from '@/screens/report/components/buddy-refresh/constants';
-import BuddyRefreshMessage from '@/screens/report/components/buddy-refresh/message';
-import useRefreshMessage from '@/screens/report/hooks/use-refresh-message';
-import { colors } from '@/theme';
-
+} from '@/components/buddy-refresh/constants';
+import BuddyRefreshMessage from '@/components/buddy-refresh/message';
 import MascotArtwork from '@/components/mascot/artwork';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);

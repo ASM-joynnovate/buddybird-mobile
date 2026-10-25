@@ -5,6 +5,8 @@ import { type ListRenderItemInfo, StyleSheet, View } from 'react-native';
 import type { ReportSession } from '@/types/apis/reports';
 
 import { useGetReport } from '@/hooks/apis/reports';
+import useIsLowPerformance from '@/hooks/use-is-low-performance';
+import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
 import { useTranslation } from 'react-i18next';
@@ -15,19 +17,8 @@ import { useIsFocused } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Animated from 'react-native-reanimated';
 
-import {
-	BUDDY_REFRESH_FINISH_MS,
-	BUDDY_REFRESH_HEIGHT,
-	BUDDY_REFRESH_MIN_MS,
-} from '@/screens/report/components/buddy-refresh/constants';
-import BuddyRefreshRopeIndicator from '@/screens/report/components/buddy-refresh/rope-indicator';
-import BuddyRefreshSwingIndicator from '@/screens/report/components/buddy-refresh/swing-indicator';
-import BuddyRefreshThrobberIndicator from '@/screens/report/components/buddy-refresh/throbber-indicator';
-import PullToRefreshContainer from '@/screens/report/components/pull-to-refresh-container';
 import ReportHeader from '@/screens/report/components/report-header';
 import SessionItem from '@/screens/report/components/session-item';
-import useIsLowPerformance from '@/screens/report/hooks/use-is-low-performance';
-import usePullToRefresh from '@/screens/report/hooks/use-pull-to-refresh';
 import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useReportStore } from '@/stores/report';
@@ -35,6 +26,15 @@ import { colors, font } from '@/theme';
 import { periodsBetween } from '@/utils/date';
 import { latestStart, shiftedStart } from '@/utils/report-period';
 
+import {
+	BUDDY_REFRESH_FINISH_MS,
+	BUDDY_REFRESH_HEIGHT,
+	BUDDY_REFRESH_MIN_MS,
+} from '@/components/buddy-refresh/constants';
+import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
+import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
+import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
+import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
 

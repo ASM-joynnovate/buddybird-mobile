@@ -150,7 +150,7 @@ export default defineConfig({
 				'app/components/ui/text-field.tsx',
 				'app/components/app/startup/perch.tsx',
 				'app/screens/session/components/zoomable-view.tsx',
-				'app/screens/report/components/pull-to-refresh-container.tsx',
+				'app/components/pull-to-refresh-container.tsx',
 			],
 			rules: {
 				'no-restricted-imports': [

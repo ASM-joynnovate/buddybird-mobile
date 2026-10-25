@@ -19,10 +19,10 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
-import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/screens/report/components/buddy-refresh/constants';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
+import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/components/buddy-refresh/constants';
 import MascotArtwork from '@/components/mascot/artwork';
 import { Copy } from '@/components/ui/copy';
 

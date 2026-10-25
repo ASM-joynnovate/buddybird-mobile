@@ -4,6 +4,8 @@ import type { LayoutChangeEvent } from 'react-native';
 
 import type { PullEdge, PullStatus, PullToRefreshState } from '@/types/pull-to-refresh';
 
+import usePullGesture, { EDGE_EPSILON, isIOS, isBeforeRefresh } from '@/hooks/use-pull-gesture';
+
 import dayjs from 'dayjs';
 import {
 	scrollTo,
@@ -17,7 +19,6 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
-import usePullGesture, { EDGE_EPSILON, isIOS, isBeforeRefresh } from '@/screens/report/hooks/use-pull-gesture';
 import { reportError } from '@/services/telemetry/client';
 import { wait } from '@/utils/wait';
 
