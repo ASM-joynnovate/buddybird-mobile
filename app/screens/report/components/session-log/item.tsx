@@ -102,7 +102,7 @@ const SessionLogItem = ({
 			</PressableSurface>
 
 			{open && (
-				<View style={styles.panel}>
+				<View style={mediaType === 'audio' && styles.panel}>
 					{mediaType === 'audio' ? (
 						<SessionLogSoundPanel logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
 					) : (
