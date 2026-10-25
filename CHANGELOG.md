@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.17.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.16.0...v2.17.0) (2026-10-25)
+
+
+### Features
+
+* **app:** limit the petcam bitrate [BB-782] ([#300](https://github.com/ASM-joynnovate/buddybird-mobile/issues/300)) ([796c94a](https://github.com/ASM-joynnovate/buddybird-mobile/commit/796c94a86e54bbeaa18847b6bf4b13dd9946689c))
+* **app:** show the pull-to-refresh hint once per screen ([#301](https://github.com/ASM-joynnovate/buddybird-mobile/issues/301)) ([f3b7906](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f3b7906831c63d6771b137deaab91ea022c8f7b5))
+* **app:** widen report media and open photos full screen ([#298](https://github.com/ASM-joynnovate/buddybird-mobile/issues/298)) ([987a8f1](https://github.com/ASM-joynnovate/buddybird-mobile/commit/987a8f1521b4f440d0efdf599e0e28b68f9003e9))
+
 ## [2.16.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.15.0...v2.16.0) (2026-10-25)
 
 
