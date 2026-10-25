@@ -24,7 +24,7 @@ interface Props {
 }
 
 /**
- * 학습 완료 제목과 학습한 시간대 컴포넌트
+ * 학습 완료 제목 컴포넌트
  * @param sessionId 세션 ID
  */
 const SummaryTitle = ({ sessionId }: Props) => {

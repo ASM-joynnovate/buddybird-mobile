@@ -61,8 +61,7 @@ export const ScreenError = ({ error, placeholder, size = 'screen', loading, onRe
 
 	return (
 		<View style={placeholder ? styles.overPlaceholder : null}>
-			{/*로딩 중에 보이던 회색 막대*/}
-			{placeholder && <View style={styles.placeholder}>{placeholder}</View>}
+			{!!placeholder && <View style={styles.placeholder}>{placeholder}</View>}
 
 			<View style={styles.card} accessibilityLiveRegion="polite">
 				<View style={styles.message}>

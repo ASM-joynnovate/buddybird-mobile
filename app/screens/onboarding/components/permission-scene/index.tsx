@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
+import type { SceneArea } from '@/types/scene';
+
 import { useTranslation } from 'react-i18next';
 
 import { useIsFocused } from '@react-navigation/native';
@@ -28,7 +30,7 @@ import { colors, font, radius } from '@/theme';
 import { sessionColors, sessionPhaseColors } from '@/theme/session-colors';
 
 import Mascot from '@/components/mascot';
-import SceneStage, { getStageScale, type SceneArea } from '@/components/scene-stage';
+import SceneStage, { getStageScale } from '@/components/scene-stage';
 import { Copy } from '@/components/ui/copy';
 
 const STAGE_WIDTH = 393;
@@ -37,7 +39,7 @@ const CYCLE_MS = 6 * SECOND;
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
-/** 새장 앞 휴대폰이 앵무새 소리를 듣고 알림을 보내는 장면 컴포넌트 */
+/** 알림 권한 안내 장면 컴포넌트 */
 const PermissionScene = () => {
 	const { t } = useTranslation();
 
@@ -71,7 +73,7 @@ const PermissionScene = () => {
 		opacity: reducedMotion ? 0 : interpolate(cycle.get(), [0.45, 0.52, 0.7], [0, 1, 0], Extrapolation.CLAMP),
 	}));
 
-	/** 화면이 보이고 움직임 줄이기 설정이 꺼져 있으면 장면 반복 */
+	/** 화면 포커스 중 장면 반복 */
 	useEffect(() => {
 		if (!animated) {
 			return;

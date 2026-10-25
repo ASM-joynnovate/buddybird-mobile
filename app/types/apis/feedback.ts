@@ -2,7 +2,7 @@ import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
 
-import { FEEDBACK_MESSAGE_LIMIT } from '@/config';
+import { FEEDBACK_MESSAGE_LIMIT } from '@/config/policy';
 
 const createFeedbackRequestSchema = z.object({
 	message: z.string().trim().min(1).max(FEEDBACK_MESSAGE_LIMIT),
@@ -19,3 +19,8 @@ export const feedbackSchema = z.object({
 
 export type CreateFeedbackRequest = z.infer<typeof createFeedbackRequestSchema>;
 export type Feedback = z.infer<typeof feedbackSchema>;
+
+export interface PostFeedbackParams {
+	data: CreateFeedbackRequest;
+	idempotencyKey: string;
+}

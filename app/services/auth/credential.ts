@@ -4,11 +4,11 @@ import { getSupabase } from '@/lib/supabase';
 
 import * as Application from 'expo-application';
 
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 
 let appleLoginCredential: LoginRequest | undefined;
 
-/** 서버 로그인 요청에 보낼 Apple 인증 코드 저장 함수 */
+/** Apple 인증 코드 저장 함수 */
 export const setAppleLoginCredential = (authorizationCode: string) => {
 	const clientId = Application.applicationId;
 
@@ -28,7 +28,7 @@ export const takeAppleLoginCredential = () => {
 
 /** 서버 로그인 요청에 보낼 인증 값을 반환하는 함수 */
 export const loginCredential = async () => {
-	const { loginProvider } = useAccountStore.getState();
+	const { loginProvider } = useAuthStore.getState();
 
 	if (loginProvider === 'apple') {
 		return takeAppleLoginCredential() ?? {};

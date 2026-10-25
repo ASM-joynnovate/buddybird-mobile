@@ -1,10 +1,8 @@
 import { Easing, Keyframe, withSequence, withTiming } from 'react-native-reanimated';
 
-/** 목표를 조금 지나쳤다가 돌아오는 속도 곡선 */
-export const bounceEasing = Easing.bezier(0.34, 1.56, 0.64, 1);
+import { burstEasing } from '@/theme';
 
-/** 빠르게 출발해 부드럽게 멈추는 속도 곡선 */
-export const burstEasing = Easing.bezier(0.16, 1, 0.3, 1);
+export const bounceEasing = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 /** 작게 시작해 커지며 나타나는 애니메이션 */
 export const popIn = () => {
@@ -23,7 +21,7 @@ export const riseIn = () => {
 	}).duration(450);
 };
 
-/** 빛줄기가 왼쪽 밖에서 오른쪽 밖까지 한 번 지나가는 애니메이션 */
+/** 빛줄기가 한 번 지나가는 애니메이션 */
 export const glintSweep = () => {
 	'worklet';
 

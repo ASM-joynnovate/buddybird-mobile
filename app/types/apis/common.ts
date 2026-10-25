@@ -45,6 +45,7 @@ const clientErrorCodes = [
 export type ApiErrorCode = (typeof apiErrorCodes)[number] | (typeof clientErrorCodes)[number];
 
 export const UNAUTHORIZED_STATUS = 401;
+const RETRYABLE_STATUSES = [0, 408, 429, 503];
 
 export class ApiError extends Error {
 	constructor(
@@ -59,7 +60,7 @@ export class ApiError extends Error {
 	}
 
 	get retryable() {
-		return this.status === 0 || this.status === 408 || this.status === 429 || this.status === 503;
+		return RETRYABLE_STATUSES.includes(this.status);
 	}
 
 	get rejected() {
@@ -94,4 +95,25 @@ type PageMeta = z.infer<typeof pageMetaSchema>;
 export interface Page<T> {
 	data: T[];
 	meta: PageMeta;
+}
+
+export interface IdParams {
+	id: string;
+}
+
+export interface IdempotentParams {
+	idempotencyKey: string;
+}
+
+export interface IdempotentIdParams {
+	id: string;
+	idempotencyKey: string;
+}
+
+export interface PageParams {
+	page: number;
+}
+
+export interface CountryParams {
+	country: string | null;
 }

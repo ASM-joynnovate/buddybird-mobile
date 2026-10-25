@@ -9,18 +9,16 @@ import { reportError } from '@/services/telemetry/client';
 /** 앱 시작 준비 Hook */
 const useAppBootstrap = () => {
 	const [bootstrapStatus, setBootstrapStatus] = useState<'loading' | 'ready' | 'failed' | 'headless'>('loading');
-
 	const [retryCount, setRetryCount] = useState(0);
 
 	const settled = bootstrapStatus !== 'loading';
-	const ready = bootstrapStatus === 'ready' && settled;
+	const ready = bootstrapStatus === 'ready';
 
-	/** 앱 시작 시 앱 상태 변화를 TanStack Query에 연결 */
+	/** 앱 상태를 TanStack Query에 연결 */
 	useEffect(connectQueryLifecycle, []);
 
 	/** 앱 시작 시 라이트 모드로 고정 */
 	useEffect(() => {
-		// 기기가 다크 모드여도 시스템 UI를 라이트 모드 색으로 표시
 		Appearance.setColorScheme('light');
 	}, []);
 

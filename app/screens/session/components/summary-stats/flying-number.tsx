@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 
 import { StyleSheet } from 'react-native';
 
+import type { CountUnit } from '@/types/session-summary';
+
 import Animated, {
 	Easing,
 	type MeasuredDimensions,
@@ -15,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
-import CountUpText, { type CountUnit } from '@/screens/session/components/count-up-text';
+import CountUpText from '@/screens/session/components/count-up-text';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
 import { colors, font } from '@/theme';
 
@@ -39,15 +41,16 @@ interface Props {
 }
 
 /**
- * 말풍선 숫자 자리에서 칩 값 자리로 날아와 내려앉는 숫자 컴포넌트
- * @param value 보여 줄 값
+ * 칩 값 자리로 날아오는 숫자 컴포넌트
+ * @param value 표시할 값
  * @param unit 횟수 또는 밀리초 시간
- * @param metric 색을 고를 완료 화면 항목
+ * @param metric 색 선택 기준인 완료 화면 항목
  * @param origin 말풍선 숫자의 화면 위치
  * @param onLanded 내려앉으면 실행할 함수
  */
 const SummaryStatsFlyingNumber = ({ value, unit, metric, origin, onLanded }: Props) => {
 	const tokenRef = useAnimatedRef<Animated.View>();
+
 	const fullProgress = useSharedValue(1);
 	const offsetX = useSharedValue(0);
 	const offsetY = useSharedValue(0);
@@ -60,7 +63,7 @@ const SummaryStatsFlyingNumber = ({ value, unit, metric, origin, onLanded }: Pro
 		transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }, { scale: scale.get() }],
 	}));
 
-	/** 그려진 뒤 말풍선 숫자 자리에서 출발해 칩 값 자리로 날아오기 */
+	/** 말풍선 숫자 자리에서 칩 값 자리로 이동 */
 	useEffect(() => {
 		scheduleOnUI(() => {
 			'worklet';

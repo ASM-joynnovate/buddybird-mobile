@@ -4,7 +4,7 @@ import { focusManager, onlineManager } from '@tanstack/react-query';
 
 import NetInfo from '@react-native-community/netinfo';
 
-/** 앱 상태 변화를 TanStack Query에 연결하는 함수 */
+/** 앱 상태를 TanStack Query에 연결하는 함수 */
 export const connectQueryLifecycle = () => {
 	focusManager.setFocused(AppState.currentState === 'active');
 

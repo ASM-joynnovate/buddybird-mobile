@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { colors, font } from '@/theme';
+import { colors, contentMaxWidth, font } from '@/theme';
 
 export const ui = StyleSheet.create({
 	controlsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -9,6 +9,14 @@ export const ui = StyleSheet.create({
 	action: { flexGrow: 1 },
 	equalColumn: { flex: 1, minWidth: 0 },
 	tabContent: { paddingBottom: 24 },
+	sceneHeader: {
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		paddingHorizontal: 24,
+		paddingTop: 20,
+	},
+	titleHighlight: { color: colors.orangeDark },
 	label: { fontSize: 16, fontFamily: font.extraBold, color: colors.muted, marginBottom: 10 },
 	sectionContainer: { marginTop: 20 },
 	sectionTitle: { fontSize: 18, lineHeight: 24, fontFamily: font.black, marginBottom: 10 },

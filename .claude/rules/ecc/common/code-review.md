@@ -33,8 +33,6 @@ Before marking code complete:
 - [ ] Errors are handled explicitly
 - [ ] No hardcoded secrets or credentials
 - [ ] No console.log or debug statements
-- [ ] Tests exist for new functionality
-- [ ] Test coverage meets 80% minimum
 
 ## Security Review Triggers
 
@@ -77,8 +75,7 @@ Use these agents for code review:
 2. Check security checklist first
 3. Review code quality checklist
 4. Run relevant tests
-5. Verify coverage >= 80%
-6. Use appropriate agent for detailed review
+5. Use appropriate agent for detailed review
 ```
 
 ## Common Issues to Catch
@@ -99,7 +96,6 @@ Use these agents for code review:
 - Deep nesting (>4 levels) - use early returns
 - Missing error handling - handle explicitly
 - Mutation patterns - prefer immutable operations
-- Missing tests - add test coverage
 
 ### Performance
 
@@ -118,7 +114,6 @@ Use these agents for code review:
 
 This rule works with:
 
-- [testing.md](testing.md) - Test coverage requirements
 - [security.md](security.md) - Security checklist
 - [git-workflow.md](git-workflow.md) - Commit standards
 - [agents.md](agents.md) - Agent delegation

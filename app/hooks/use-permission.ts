@@ -2,19 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AppState } from 'react-native';
 
-import {
-	type PermissionKind,
-	type PermissionState,
-	readPermission,
-	requestPermission,
-} from '@/services/device/permissions';
-import { reportError } from '@/services/telemetry/client';
+import type { PermissionDialogState, PermissionKind, PermissionState } from '@/types/permission';
 
-export interface PermissionDialogState {
-	visible: boolean;
-	kind: PermissionKind;
-	onClose: () => void;
-}
+import { readPermission, requestPermission } from '@/services/device/permissions';
+import { reportError } from '@/services/telemetry/client';
 
 /** 권한 확인 후 동작을 실행하는 Hook */
 const usePermission = (kind: PermissionKind) => {
@@ -27,6 +18,7 @@ const usePermission = (kind: PermissionKind) => {
 	const dialog: PermissionDialogState = {
 		visible: dialogOpen,
 		kind,
+		/** 권한 다이얼로그 숨김 */
 		onClose: () => {
 			pendingActionRef.current = null;
 			setDialogOpen(false);
@@ -69,7 +61,7 @@ const usePermission = (kind: PermissionKind) => {
 	}, [kind, refresh]);
 
 	/** 권한 확인 후 동작을 실행하는 함수 */
-	const run = async (action: () => void) => {
+	const runWithPermission = async (action: () => void) => {
 		if (permissionChecking) {
 			return;
 		}
@@ -104,7 +96,13 @@ const usePermission = (kind: PermissionKind) => {
 		}
 	};
 
-	return { granted: permissionState?.granted ?? null, checking: permissionChecking, refresh, run, dialog };
+	return {
+		granted: permissionState?.granted ?? null,
+		checking: permissionChecking,
+		refresh,
+		runWithPermission,
+		dialog,
+	};
 };
 
 export default usePermission;

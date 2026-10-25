@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 
 import { CheckIcon } from 'lucide-react-native';
 
+import { ChoiceCard } from '@/screens/home/components/choice-card';
 import { colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
-import { ChoiceCard } from '@/components/ui/surface/choice-card';
 
 interface Props {
 	word: Word;

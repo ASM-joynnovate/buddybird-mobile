@@ -11,20 +11,22 @@ import MarketingNotificationAnswer from '@/screens/onboarding/components/marketi
 import MarketingNotificationAnswerSkeleton from '@/screens/onboarding/components/marketing-notification-answer-skeleton';
 import MarketingScene from '@/screens/onboarding/components/marketing-scene';
 import { trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
-import { colors, contentMaxWidth } from '@/theme';
+import { colors } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import SceneSheet from '@/components/scene-sheet';
 import { Copy } from '@/components/ui/copy';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
+import { ui } from '@/components/ui/styles';
+
 /** 마케팅 알림 수신 여부를 묻는 화면 */
 const MarketingNotificationScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
 
-	/** 화면 진입 시 onboarding_step_viewed 이벤트 전송 */
+	/** onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			trackOnboardingStepViewed('marketing_notification');
@@ -34,7 +36,7 @@ const MarketingNotificationScreen = () => {
 	return (
 		<View style={styles.container}>
 			<SafeAreaView edges={['top', 'left', 'right']}>
-				<View style={styles.header}>
+				<View style={ui.sceneHeader}>
 					<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
 				</View>
 			</SafeAreaView>
@@ -61,7 +63,6 @@ const MarketingNotificationScreen = () => {
 
 const styles = StyleSheet.create({
 	container: { flex: 1, backgroundColor: colors.orangePale },
-	header: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 20 },
 	hint: { color: colors.muted },
 });
 

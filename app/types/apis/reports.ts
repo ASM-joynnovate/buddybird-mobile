@@ -28,3 +28,8 @@ export const reportSchema = z.object({
 
 export type ReportSession = z.infer<typeof reportSessionSchema>;
 export type Report = z.infer<typeof reportSchema>;
+
+export interface ReportParams {
+	period: Report['period']['unit'];
+	start: string;
+}

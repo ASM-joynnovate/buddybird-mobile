@@ -4,7 +4,7 @@ import { colors, depths, radius } from '@/theme';
 
 const PLACEHOLDER_CARD_COUNT = 8;
 
-/** 공지 목록을 불러오는 동안 보이는 컴포넌트 */
+/** 공지 목록을 불러오는 동안 표시하는 컴포넌트 */
 const AnnouncementListSkeleton = () => {
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

@@ -13,7 +13,7 @@ import CommunityFeed from '@/screens/community/components/community-feed';
 import CommunityGate from '@/screens/community/components/community-gate';
 import CountryScopeChips from '@/screens/community/components/country-scope-chips';
 import ReportDialog from '@/screens/community/components/report-dialog';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
 import { colors } from '@/theme';
 
@@ -29,10 +29,10 @@ const CommunityContent = () => {
 
 	const { data: meData } = useGetMe();
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
-	const feedItemToReport = useCommunityStore((state) => state.feedItemToReport);
-	const userToBlock = useCommunityStore((state) => state.userToBlock);
+	const reportTarget = useCommunityStore((state) => state.reportTarget);
+	const blockTarget = useCommunityStore((state) => state.blockTarget);
 
 	const gateShown = isAnonymous || !meData.nickname;
 
@@ -54,8 +54,8 @@ const CommunityContent = () => {
 			{/*익명 및 닉네임 없는 사용자의 입장 팝업*/}
 			{gateShown && <CommunityGate blurTarget={blurTargetRef} />}
 
-			{feedItemToReport && <ReportDialog feedItem={feedItemToReport} />}
-			{userToBlock && <BlockDialog user={userToBlock} />}
+			{reportTarget && <ReportDialog reportTarget={reportTarget} />}
+			{blockTarget && <BlockDialog blockTarget={blockTarget} />}
 		</>
 	);
 };

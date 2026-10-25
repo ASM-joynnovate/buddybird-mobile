@@ -15,13 +15,12 @@ import { accessToken, installUnauthorizedSignOut } from '@/services/auth/session
 import { loadLegacy } from '@/services/migration/upload-legacy';
 import { getIsHeadless } from '@/services/push/background';
 import { reportError } from '@/services/telemetry/client';
-import { useAccountStore } from '@/stores/account';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-/** 서버 요청의 X-Device-Id 헤더에 넣을 이 기기의 ID */
-const deviceId = () => useAccountStore.getState().clientDeviceId ?? '';
+/** X-Device-Id 헤더 값 */
+const deviceId = () => useDeviceSettingsStore.getState().clientDeviceId ?? '';
 
-/** 서버 요청의 Accept-Language 헤더에 넣을 앱 언어 */
+/** Accept-Language 헤더 값 */
 const locale = () => useDeviceSettingsStore.getState().locale;
 
 configureApi({ deviceId, locale, accessToken, reportError });
@@ -34,7 +33,7 @@ const NOTIFICATION_CHANNEL_ID = 'default';
 const LEGACY_FCM_CHANNEL_ID = 'fcm_fallback_notification_channel';
 const LEGACY_EXPO_CHANNEL_ID = 'expo_notifications_fallback_notification_channel';
 
-// Android는 앱이 앞에 떠 있을 때 받은 FCM 알림을 표시하지 않으므로 같은 내용의 로컬 알림으로 표시
+// Android 포그라운드 FCM 알림 표시
 if (Platform.OS === 'android') {
 	onMessage(getMessaging(), (message) => {
 		if (!message.notification) {
@@ -62,7 +61,7 @@ void notifee
 	.setNotificationConfig({ ios: { handleRemoteNotifications: false } })
 	.catch((error) => reportError(error, 'push_config'));
 
-// 첫 화면이 useTranslation을 호출하기 전에 i18next 초기화 시작
+// 첫 화면 렌더링 전 i18next 초기화 시작
 const i18nReady = changeI18nLocale(useDeviceSettingsStore.getState().locale);
 
 /** 앱 시작 준비 함수 */
@@ -105,7 +104,7 @@ export const bootstrap = async () => {
 		reportError(error, `restore_${storeName}`);
 	}
 
-	const { clientDeviceId, setClientDeviceId } = useAccountStore.getState();
+	const { clientDeviceId, setClientDeviceId } = useDeviceSettingsStore.getState();
 
 	if (!clientDeviceId) {
 		setClientDeviceId(randomUUID());

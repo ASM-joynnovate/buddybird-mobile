@@ -15,7 +15,7 @@ interface Props {
 /**
  * 마스코트 말풍선 컴포넌트
  * @param message 말풍선 문구
- * @param mascotRef 마스코트의 화면 위치를 잴 때 쓰는 ref
+ * @param mascotRef 마스코트 위치 측정용 ref
  * @param mascotStyle 마스코트에 더할 스타일
  * @param bubbleStyle 말풍선에 더할 스타일
  */

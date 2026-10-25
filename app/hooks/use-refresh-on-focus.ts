@@ -9,7 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const useRefreshOnFocus = (refetch: () => Promise<unknown>) => {
 	const focusedBeforeRef = useRef(false);
 
-	/** 처음 열릴 때는 건너뛰고, 다시 포커스될 때마다 새로 불러옴 */
+	/** 다시 포커스될 때마다 새로고침 */
 	useFocusEffect(
 		useCallback(() => {
 			if (focusedBeforeRef.current) {

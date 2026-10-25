@@ -60,6 +60,7 @@ private class Encoder(val width: Int, val height: Int, frameRate: Int, bitrate: 
     }
   }
 
+  /** 인코더 해제 함수 */
   fun release() {
     try {
       drawer.release()
@@ -96,6 +97,7 @@ object VideoBuffer {
   private var encoderFailed = false
   private var clipPromise: Promise? = null
 
+  /** 출력 폴더 설정 함수 */
   fun initialize(outputDir: File) {
     this.outputDir = outputDir
   }
@@ -204,6 +206,7 @@ object VideoBuffer {
     }
   }
 
+  /** 프레임 압축 함수 */
   private fun encode(frame: VideoFrame) {
     if (encoderFailed) {
       return
@@ -217,7 +220,7 @@ object VideoBuffer {
 
     var current = encoder
 
-    // 크기가 바뀌면 새 인코더로 다시 시작
+    // 크기 변경 시 새 인코더로 다시 시작
     if (current == null || current.width != width || current.height != height) {
       handler?.let { cancelClip(it) }
       releaseEncoder()
@@ -261,6 +264,7 @@ object VideoBuffer {
     }
   }
 
+  /** 압축 프레임 추가 함수 */
   private fun addSample(sample: EncodedSample) {
     samples.addLast(sample)
 
@@ -276,6 +280,7 @@ object VideoBuffer {
     repeat(firstKept) { samples.removeFirst() }
   }
 
+  /** 영상 저장 취소 함수 */
   private fun cancelClip(target: Handler) {
     target.removeCallbacks(finishClip)
 
@@ -328,6 +333,7 @@ object VideoBuffer {
     }
   }
 
+  /** 인코더 해제 함수 */
   private fun releaseEncoder() {
     val releasing = encoder ?: return
 

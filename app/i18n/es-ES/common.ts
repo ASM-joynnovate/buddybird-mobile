@@ -19,7 +19,7 @@ export const common: CommonMessages = {
 	skip: 'Omitir',
 	next: 'Siguiente',
 	stepProgress: 'Paso {{current}} de {{total}}',
-	offline: 'Te has quedado sin conexión.\nCuando vuelva, se cargará todo solo.',
+	offline: 'Te has quedado sin conexión.',
 	pullToRefresh: {
 		hint: 'Desliza hacia arriba o abajo para actualizar',
 		messages: [
@@ -107,7 +107,7 @@ export const common: CommonMessages = {
 		take: 'Hacer una foto',
 		choose: 'Elegir de la galería',
 		typeError: 'Solo valen fotos en JPEG o PNG. Elige otra.',
-		sizeError: 'Solo valen fotos de hasta 5 MB. Elige otra.',
+		sizeError: 'Solo valen fotos de hasta {{size}} MB. Elige otra.',
 		loadError: 'No hemos podido cargar la foto. Elígela de nuevo.',
 	},
 };

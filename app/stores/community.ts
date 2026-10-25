@@ -1,5 +1,4 @@
-import type { FeedItem } from '@/types/apis/feed';
-import type { CommunityUser } from '@/types/apis/users';
+import type { BlockTarget, ReportTarget } from '@/types/community';
 
 import { create } from 'zustand';
 
@@ -7,22 +6,22 @@ type CountryScope = 'world' | 'mine';
 
 type CommunityState = {
 	countryScope: CountryScope;
-	feedItemToReport: FeedItem | null;
-	userToBlock: CommunityUser | null;
+	reportTarget: ReportTarget | null;
+	blockTarget: BlockTarget | null;
 };
 
 type CommunityActions = {
 	setCountryScope: (countryScope: CountryScope) => void;
-	setFeedItemToReport: (feedItemToReport: FeedItem | null) => void;
-	setUserToBlock: (userToBlock: CommunityUser | null) => void;
+	setReportTarget: (reportTarget: ReportTarget | null) => void;
+	setBlockTarget: (blockTarget: BlockTarget | null) => void;
 };
 
 type CommunityStore = CommunityState & CommunityActions;
 
 export const useCommunityStore = create<CommunityStore>()((set) => ({
 	countryScope: 'world',
-	feedItemToReport: null,
-	userToBlock: null,
+	reportTarget: null,
+	blockTarget: null,
 
 	/** 순위 및 피드의 국가 범위 변경 */
 	setCountryScope: (countryScope) => {
@@ -30,12 +29,12 @@ export const useCommunityStore = create<CommunityStore>()((set) => ({
 	},
 
 	/** 신고할 피드 항목 변경 */
-	setFeedItemToReport: (feedItemToReport) => {
-		set((state) => ({ ...state, feedItemToReport }));
+	setReportTarget: (reportTarget) => {
+		set((state) => ({ ...state, reportTarget }));
 	},
 
 	/** 차단할 사용자 변경 */
-	setUserToBlock: (userToBlock) => {
-		set((state) => ({ ...state, userToBlock }));
+	setBlockTarget: (blockTarget) => {
+		set((state) => ({ ...state, blockTarget }));
 	},
 }));

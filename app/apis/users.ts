@@ -1,6 +1,8 @@
 import { putUploadFile, putUserPhotoUpload } from '@/apis/uploads';
 
-import { type UpdateUserRequest, type User, userSchema } from '@/types/apis/users';
+import type { IdempotentIdParams } from '@/types/apis/common';
+import type { FileUploadParams } from '@/types/apis/uploads';
+import { type PatchMeParams, type User, userSchema } from '@/types/apis/users';
 
 import { apiRequest } from '@/lib/api';
 
@@ -12,24 +14,18 @@ export const getMe = async (): Promise<User> => {
 	return user;
 };
 
-export const patchMe = async ({ data }: { data: UpdateUserRequest }): Promise<void> => {
+export const patchMe = async ({ data }: PatchMeParams): Promise<void> => {
 	await apiRequest('/api/v1/users/me', z.unknown(), { method: 'PATCH', json: data });
 };
 
-export const putUserBlock = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
+export const putUserBlock = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
 	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'PUT', idempotencyKey });
 };
 
-export const deleteUserBlock = async ({
-	id,
-	idempotencyKey,
-}: {
-	id: string;
-	idempotencyKey: string;
-}): Promise<void> => {
+export const deleteUserBlock = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
 	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };
 
-export const putUserPhoto = async ({ uri, idempotencyKey }: { uri: string; idempotencyKey: string }): Promise<void> => {
+export const putUserPhoto = async ({ uri, idempotencyKey }: FileUploadParams): Promise<void> => {
 	await putUploadFile({ upload: await putUserPhotoUpload({ uri, idempotencyKey }), uri });
 };

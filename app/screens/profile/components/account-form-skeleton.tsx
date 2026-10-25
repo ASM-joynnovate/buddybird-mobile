@@ -7,7 +7,7 @@ import { colors, depths, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
-/** 계정 정보를 불러오는 동안 보이는 컴포넌트 */
+/** 계정 정보 스켈레톤 컴포넌트 */
 const AccountFormSkeleton = () => {
 	const { t } = useTranslation();
 
@@ -15,13 +15,11 @@ const AccountFormSkeleton = () => {
 		<View style={styles.container}>
 			<View style={styles.spacer} />
 
-			{/*프로필 사진 자리*/}
 			<View style={styles.photoContainer}>
 				<View style={[styles.block, styles.photoBlock]} />
 				<View style={styles.badge} />
 			</View>
 
-			{/*닉네임 입력창*/}
 			<View style={styles.nicknameContainer}>
 				<Copy style={ui.label}>{t('profile.nickname')}</Copy>
 				<View style={styles.field}>
@@ -29,7 +27,6 @@ const AccountFormSkeleton = () => {
 				</View>
 			</View>
 
-			{/*저장 버튼 자리*/}
 			<View style={styles.spacer} />
 			<View style={[styles.block, styles.saveBlock]} />
 		</View>

@@ -1,6 +1,6 @@
 import { HotUpdater, insights } from '@hot-updater/react-native';
 
-import { env } from '@/config';
+import { env } from '@/config/env';
 import { reportError } from '@/services/telemetry/client';
 
 export const hotUpdater = HotUpdater.init({

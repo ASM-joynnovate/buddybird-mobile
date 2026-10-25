@@ -67,7 +67,7 @@ const MarketingNotificationAnswer = () => {
 		<View style={styles.container}>
 			<Card contentStyle={styles.nightCard}>
 				<ItemCheckbox
-					first
+					firstInGroup
 					label={t('onboarding.marketing.night')}
 					checked={nightAccepted}
 					disabled={isPending}

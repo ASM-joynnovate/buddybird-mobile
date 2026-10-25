@@ -9,7 +9,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 import CommunityGateLoginForm from '@/screens/community/components/community-gate/login-form';
 import CommunityGateNicknameForm from '@/screens/community/components/community-gate/nickname-form';
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 import { colors, contentMaxWidth, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -27,7 +27,7 @@ interface Props {
 const CommunityGate = ({ blurTarget }: Props) => {
 	const { t } = useTranslation();
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
 	return (
 		<View style={StyleSheet.absoluteFill}>

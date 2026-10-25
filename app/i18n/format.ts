@@ -6,6 +6,8 @@ import { durationText } from '@/i18n/duration';
 
 import dayjs, { type Dayjs } from 'dayjs';
 
+import { HOURS_PER_DAY, MINUTES_PER_HOUR } from '@/config/units';
+
 type DateInput = string | number | Dayjs;
 
 /** 날짜를 '9월 29일' 형식으로 변환하는 함수 */
@@ -33,17 +35,17 @@ export const formatMonth = (value: DateInput) => {
 	return dayjs(value).format('MMMM');
 };
 
-/** 지난 시간을 '15분 전', '어제' 형식으로 변환하는 함수 */
+/** '15분 전' 형식 변환 함수 */
 export const formatTimeAgo = (value: DateInput, locale: Locale, now: DateInput = dayjs()) => {
 	const minutes = dayjs(now).diff(value, 'minute');
 
-	if (minutes < 60) {
+	if (minutes < MINUTES_PER_HOUR) {
 		return i18next.t('community.feed.timeAgo.minutes', { count: Math.max(1, minutes), lng: locale });
 	}
 
 	const hours = dayjs(now).diff(value, 'hour');
 
-	if (hours < 24) {
+	if (hours < HOURS_PER_DAY) {
 		return i18next.t('community.feed.timeAgo.hours', { count: hours, lng: locale });
 	}
 
@@ -59,12 +61,12 @@ export const formatHour = (value: DateInput, locale: Locale) => {
 	return dayjs(value).format(i18next.t('common.dateFormat.hour', { lng: locale }));
 };
 
-/** 날짜를 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
+/** '9월 29일 오후 3:00' 형식 변환 함수 */
 export const formatMonthDayTime = (value: DateInput, locale: Locale) => {
 	return `${formatMonthDay(value, locale)} ${dayjs(value).format('LT')}`;
 };
 
-/** 오늘이면 '오후 3:00', 다른 날이면 '9월 29일 오후 3:00' 형식으로 변환하는 함수 */
+/** 오늘이면 시각만 표시하는 날짜 변환 함수 */
 export const formatTimeOrDateTime = (value: DateInput, locale: Locale, now: DateInput = dayjs()) => {
 	const date = dayjs(value);
 
@@ -78,6 +80,15 @@ export const formatDuration = (ms: number, locale: Locale) => {
 	return duration.asMinutes() < 1
 		? durationText(dayjs.duration(Math.round(duration.asSeconds()), 'seconds'), locale)
 		: durationText(dayjs.duration(Math.floor(duration.asMinutes()), 'minutes'), locale);
+};
+
+/** '+1시간 5분' 형식 변환 함수 */
+export const formatDurationChange = (changeMs: number, locale: Locale) => {
+	if (changeMs === 0) {
+		return i18next.t('report.noChange', { lng: locale });
+	}
+
+	return `${changeMs > 0 ? '+' : '-'}${formatDuration(Math.abs(changeMs), locale)}`;
 };
 
 /** 밀리초를 '2일 1시간 5분' 형식으로 변환하는 함수 */
@@ -95,6 +106,11 @@ export const formatDurationWithDays = (ms: number, locale: Locale) => {
 	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`;
 };
 
+/** 밀리초를 내림한 시간 수 문자열로 변환하는 함수 */
+export const formatWholeHours = (ms: number) => {
+	return String(Math.floor(dayjs.duration(ms).asHours()));
+};
+
 /** 밀리초를 '1:05:30' 형식으로 변환하는 함수 */
 export const formatTimer = (ms: number) => {
 	const duration = dayjs.duration(Math.max(0, ms));
@@ -103,7 +119,7 @@ export const formatTimer = (ms: number) => {
 	return hours > 0 ? `${hours}:${duration.format('mm:ss')}` : duration.format('m:ss');
 };
 
-/** '22:30:00' 형식의 시각을 '오후 10:30' 형식으로 변환하는 함수 */
+/** 시각을 오후 10:30 형식으로 변환 */
 export const formatClock = (time: string) => {
 	return dayjs(time, CLOCK_FORMAT).format('LT');
 };

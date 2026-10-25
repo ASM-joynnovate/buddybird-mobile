@@ -2,17 +2,17 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { CryptoDigestAlgorithm, digest, getRandomValues } from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 
-import { env } from '@/config';
+import { env } from '@/config/env';
 
 let client: SupabaseClient | undefined;
 
-/** Supabase 클라이언트 getter */
+/** Supabase 클라이언트 반환 함수 */
 export const getSupabase = () => {
 	if (!env.supabaseUrl || !env.supabasePublishableKey) {
 		throw new Error('Supabase configuration missing');
 	}
 
-	// Supabase PKCE 로그인에 필요한 WebCrypto 함수를 Hermes에 추가
+	// Hermes에 WebCrypto 함수 추가
 	if (!globalThis.crypto) {
 		Object.defineProperty(globalThis, 'crypto', {
 			value: {

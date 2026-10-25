@@ -9,32 +9,25 @@ import {
 	View,
 } from 'react-native';
 
-import type { Word } from '@/types/apis/words';
-
 import WordChoice from '@/screens/home/components/word-picker/word-choice';
+import useSelectedWord from '@/screens/home/hooks/use-selected-word';
+import { useSessionStore } from '@/stores/session';
 import { colors } from '@/theme';
 
 const LIST_MAX_HEIGHT_RATIO = 0.45;
 const EDGE_TOLERANCE = 8;
 
-interface Props {
-	words: readonly Word[];
-	selectedId: string | null;
-	onSelect: (id: string) => void;
-}
-
-/**
- * 단어 선택 목록 컴포넌트
- * @param words 선택할 수 있는 단어 목록
- * @param selectedId 선택한 단어 ID
- * @param onSelect 단어 선택 시 실행할 함수
- */
-const WordPicker = ({ words, selectedId, onSelect }: Props) => {
+/** 단어 선택 목록 컴포넌트 */
+const WordPicker = () => {
 	const { height } = useWindowDimensions();
 
 	const [scrollEdges, setScrollEdges] = useState({ top: true, bottom: false });
 	const [contentHeight, setContentHeight] = useState(0);
 	const [viewportHeight, setViewportHeight] = useState(0);
+
+	const setSelectedWordId = useSessionStore((state) => state.setSelectedWordId);
+
+	const { wordsWithRecordings, selectedWord } = useSelectedWord();
 
 	const scrollable = contentHeight > viewportHeight + 1;
 
@@ -60,9 +53,9 @@ const WordPicker = ({ words, selectedId, onSelect }: Props) => {
 				style={[styles.listContainer, { maxHeight: height * LIST_MAX_HEIGHT_RATIO }]}
 				contentContainerStyle={styles.wordsRow}
 			>
-				{words.map((word) => (
+				{wordsWithRecordings.map((word) => (
 					<View key={word.id} style={styles.wordContainer}>
-						<WordChoice word={word} selected={word.id === selectedId} onSelect={onSelect} />
+						<WordChoice word={word} selected={word.id === selectedWord?.id} onSelect={setSelectedWordId} />
 					</View>
 				))}
 			</ScrollView>

@@ -12,7 +12,7 @@ import {
 	PETCAM_VIDEO,
 	VAD,
 	WORD_REPLAY_DELAY_FACTOR,
-} from '@/config';
+} from '@/config/policy';
 import { HOUR, MINUTE, SECOND } from '@/config/units';
 
 export const remoteConfigSchema = z.object({

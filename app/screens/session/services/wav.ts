@@ -1,19 +1,19 @@
 import { randomUUID } from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
 
-const HEADER_BYTES = 44;
+import { BITS_PER_BYTE, WAV_HEADER_BYTES } from '@/config/units';
+
 const RIFF_PREAMBLE_BYTES = 8;
 const FMT_CHUNK_BYTES = 16;
 const PCM_FORMAT = 1;
 const CHANNELS = 1;
-const BITS_PER_BYTE = 8;
 const BYTES_PER_SAMPLE = Int16Array.BYTES_PER_ELEMENT;
 const INT16_MAX = 32767;
 
 /** 샘플을 16비트 모노 WAV 바이트로 변환하는 함수 */
 const encodeWav = (samples: Float32Array, sampleRate: number) => {
 	const dataBytes = samples.length * BYTES_PER_SAMPLE;
-	const bytes = new Uint8Array(HEADER_BYTES + dataBytes);
+	const bytes = new Uint8Array(WAV_HEADER_BYTES + dataBytes);
 	const view = new DataView(bytes.buffer);
 
 	let offset = 0;
@@ -39,7 +39,7 @@ const encodeWav = (samples: Float32Array, sampleRate: number) => {
 	};
 
 	writeText('RIFF');
-	writeUint32(HEADER_BYTES - RIFF_PREAMBLE_BYTES + dataBytes);
+	writeUint32(WAV_HEADER_BYTES - RIFF_PREAMBLE_BYTES + dataBytes);
 	writeText('WAVE');
 	writeText('fmt ');
 	writeUint32(FMT_CHUNK_BYTES);

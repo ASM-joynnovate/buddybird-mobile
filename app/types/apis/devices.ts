@@ -34,3 +34,22 @@ const updateDeviceRequestSchema = z.object({ locale: z.enum(locales).optional() 
 export type Device = z.infer<typeof deviceSchema>;
 export type RegisterDeviceRequest = z.infer<typeof registerDeviceRequestSchema>;
 export type UpdateDeviceRequest = z.infer<typeof updateDeviceRequestSchema>;
+
+export interface PutDeviceParams {
+	data: RegisterDeviceRequest;
+	idempotencyKey: string;
+}
+
+export interface PutPushTokenParams {
+	data: PushTokenRequest;
+	idempotencyKey: string;
+}
+
+export interface PatchDeviceParams {
+	data: UpdateDeviceRequest;
+	idempotencyKey: string;
+}
+
+export interface PushTokenRequest {
+	token: string;
+}

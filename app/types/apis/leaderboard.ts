@@ -20,5 +20,10 @@ export const leaderboardSchema = z.object({
 });
 
 export type Leaderboard = z.infer<typeof leaderboardSchema>;
-export type LeaderboardItem = z.infer<typeof leaderboardItemSchema>;
 export type UnrankedReason = (typeof unrankedReasons)[number];
+
+export interface GetLeaderboardParams {
+	period: string;
+	metric: string;
+	country: string | null;
+}

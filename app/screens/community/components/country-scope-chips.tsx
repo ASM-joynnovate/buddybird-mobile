@@ -19,6 +19,7 @@ const CountryScopeChips = () => {
 	const { data: meData } = useGetMe();
 
 	const countryScope = useCommunityStore((state) => state.countryScope);
+
 	const setCountryScope = useCommunityStore((state) => state.setCountryScope);
 
 	return (

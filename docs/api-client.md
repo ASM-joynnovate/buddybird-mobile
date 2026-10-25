@@ -1,217 +1,189 @@
 # BuddyBird API 호출 규칙
 
-버디버드 백엔드를 호출하는 코드가 따르는 계층과 규칙을 정리합니다.
+버디버드 백엔드를 호출하는 코드의 계층 및 규칙을 정리합니다.
 백엔드 계약은 `buddybird-api`의 `app/schemas/base.py`, `app/errors.py`, `app/middlewares.py`, `app/dependencies.py`를 기준으로 합니다.
 
 ## 계층
 
-| 계층          | 위치                          | 역할                                                             |
-| ------------- | ----------------------------- | ---------------------------------------------------------------- |
-| 전송          | `app/lib/api.ts`              | base URL, 기본 헤더, 타임아웃, 봉투 검증, `ApiError` 변환        |
-| 엔드포인트    | `app/apis/<domain>.ts`        | 경로와 본문 조립, zod로 `data` 검증, 타입이 붙은 값 반환         |
-| 쿼리 키       | `app/hooks/apis/keys.ts`      | 계정 단위 계층형 키                                              |
-| 옵션          | `app/hooks/apis/<domain>.ts`  | `queryOptions`, `infiniteQueryOptions`, `mutationOptions` 팩토리 |
-| 화면과 서비스 | `app/screens`, `app/services` | `useQuery`, `useMutation`, `runMutation`으로 옵션을 실행         |
+| 계층 | 위치 | 역할 |
+| --- | --- | --- |
+| 전송 | `app/lib/api.ts` | base URL, 기본 헤더, 타임아웃, 응답 봉투 검사, `ApiError` 생성 |
+| 요청 함수 | `app/apis/<도메인>.ts` | 경로 및 본문 조립, zod 스키마로 `data` 검사 |
+| 응답 타입 | `app/types/apis/<도메인>.ts` | zod 스키마, 응답 타입, 요청 인자 타입 |
+| 쿼리 키 | `app/hooks/apis/keys/<도메인>.ts` | 로그인한 사용자 ID로 시작하는 도메인별 키 |
+| 조회 및 저장 Hook | `app/hooks/apis/<도메인>.ts` | `getXOptions` 및 `useGetX`, 저장 Hook |
+| 화면 및 provider | `app/screens`, `app/providers` | Hook으로 조회 및 저장 실행 |
 
-화면과 서비스는 `fetch`와 `apiRequest`를 직접 부르지 않습니다.
-서버 응답은 TanStack Query 캐시에만 두고 Zustand나 MMKV에 복사하지 않습니다.
+화면은 `fetch` 및 `apiRequest`를 직접 호출하지 않습니다.
+서버 응답은 TanStack Query 캐시에만 두고 zustand 스토어나 MMKV에 복사하지 않습니다.
 
-## 전송 계층이 처리하는 것
+## 전송 계층
 
-`apiRequest(path, schema, options)`는 아래를 모든 요청에 적용합니다.
+`apiRequest(path, schema, options)`는 모든 요청에 다음을 적용합니다.
 
-- `X-BuddyBird-Client: mobile`과 `X-Device-Id`를 항상 붙입니다.
-- Supabase 세션의 access token을 `Authorization`에 붙입니다. 세션이 없으면 서버 왕복 없이 401 `AUTH__INVALID_TOKEN`을 던집니다.
-- `idempotencyKey`가 있으면 `Idempotency-Key`로 보냅니다.
-- `json`은 JSON 본문과 `Content-Type`을 만들고, `body`에 FormData를 주면 `Content-Type`을 붙이지 않습니다.
-- `query`의 `undefined` 값은 제외합니다. 서버는 모르는 키를 422로 거부합니다.
-- 30초 타임아웃과 호출자의 `signal`을 함께 적용합니다.
-- 성공 봉투 `{ message, data, meta }`를 검증한 뒤 `data`를 주어진 스키마로 검증해 `{ data, meta }`를 돌려줍니다.
-- 실패는 `ApiError { status, code, message, requestId, body }`로 던집니다. 네트워크 실패는 `CLIENT__NETWORK`, 타임아웃은 `CLIENT__TIMEOUT`, 봉투나 `data` 검증 실패는 `CLIENT__INVALID_RESPONSE`입니다.
-- `ApiError.retryable`은 상태가 0, 408, 429, 503일 때만 true입니다. 500은 재시도하지 않습니다.
-- 500 이상과 검증 실패는 `reportError`로 보고하고 scope에 `X-Request-ID`를 남깁니다.
+- `X-BuddyBird-Client: mobile`, `X-Device-Id`, `Accept-Language`, `X-Timezone` 헤더를 붙입니다.
+- Supabase 세션의 access token을 `Authorization`에 붙입니다. 로그인 전에 호출하는 앱 업데이트 조회만 `authorizationOmitted: true`로 생략합니다.
+- `idempotencyKey`가 있으면 `Idempotency-Key` 헤더로 보냅니다.
+- `json`은 JSON 본문 및 `Content-Type`을 만들고, `body`의 FormData에는 `Content-Type`을 붙이지 않습니다.
+- `searchParams`의 `undefined` 값은 쿼리 문자열에서 제외합니다.
+- 타임아웃은 기본 `API_TIMEOUT_MS` 30초이고, 호출한 쪽의 `signal`을 함께 적용합니다.
+- 성공 봉투 `{ message, data, meta }`를 검사한 뒤 `data`를 받은 스키마로 검사하고 `{ data, meta }`를 반환합니다.
+
+실패하면 `ApiError { status, code, message, requestId, body }` 예외가 발생합니다.
+
+- 네트워크 실패는 `CLIENT__NETWORK`, 타임아웃은 `CLIENT__TIMEOUT`, 봉투나 `data` 검사 실패는 `CLIENT__INVALID_RESPONSE`입니다.
+- 목록에 없는 서버 오류 코드는 `CLIENT__UNKNOWN_ERROR`입니다.
+- `ApiError.retryable`은 상태가 0, 408, 429, 503일 때만 true입니다.
+- 500 이상, `CLIENT__INVALID_RESPONSE`, `CLIENT__UNKNOWN_ERROR`는 `reportError`로 보고하고 scope에 `X-Request-ID`를 남깁니다.
 
 ## 오류 처리
 
-분기는 HTTP 상태가 아니라 `ApiError.code`로 합니다.
-사용자 문구는 `apiErrorMessage(error, t)`가 `apiError.<code>` 번역 키를 찾고, 없으면 서버 `message`를 씁니다.
+분기는 HTTP 상태 대신 `ApiError.code`로 합니다.
+사용자 문구는 `apiErrorMessage(error, t)`가 `apiError.<code>` 번역 키에서 찾고, `CLIENT__UNKNOWN_ERROR`면 서버 `message`를 사용합니다.
 
-- 401은 `queryClient`의 캐시 콜백이 Supabase 로그아웃을 호출합니다. 로그인 mutation의 401은 AuthProvider가 직접 처리합니다.
-- `DEVICE__NOT_REGISTERED`는 기기 재등록으로 처리합니다.
-- `retryable`인 오류는 `queryClient` 기본값이 최대 2회 재시도합니다.
+- 입력 필드와 관계없는 실패는 Toast로 표시합니다. 다이얼로그 안의 실패는 다이얼로그를 유지한 채 그 위에 Toast를 표시합니다.
+- 401은 `queryClient`의 캐시 `onError`가 `setUnauthorizedHandler`로 등록한 로그아웃을 실행합니다. 로그인 mutation은 `meta.skipUnauthorizedSignOut`으로 이 처리를 건너뜁니다.
+- `DEVICE__NOT_REGISTERED`는 활동 기록 및 하트비트 요청에서 실패로 보고하지 않습니다.
+- `retryable`인 오류는 `queryClient` 기본값이 조회 및 저장 모두 최대 2회 재시도합니다.
 - `COMMON__IDEMPOTENCY_KEY_REQUIRED`는 클라이언트 버그이므로 사용자에게 재시도를 안내하지 않습니다.
 
-## 엔드포인트별 요구 사항
+## 엔드포인트
 
-| 엔드포인트                                            | 인증   | 추가 헤더                        | 비고                                                     |
-| ----------------------------------------------------- | ------ | -------------------------------- | -------------------------------------------------------- |
-| `POST /auth/login`                                    | Bearer |                                  | 본문 없이 보낼 수 있음                                   |
-| `GET /users/me`, `PATCH /users/me`, `/users/me/photo` | Bearer |                                  | 멱등키 불필요                                            |
-| `/users/me/settings/*`, `/users/me/consents` 쓰기     | Bearer | `Idempotency-Key`                |                                                          |
-| `PUT /devices`                                        | Bearer | `Idempotency-Key`                | 기기 등록. 이후 `X-Device-Id`가 유효해짐                 |
-| `/devices/me*`                                        | Bearer | `X-Device-Id`, `Idempotency-Key` | 미등록이면 `DEVICE__NOT_REGISTERED`                      |
-| `/parrots*`, `/words*` 쓰기                           | Bearer | `Idempotency-Key`                |                                                          |
-| `/sessions*` 쓰기                                     | Bearer | `X-Device-Id`, `Idempotency-Key` | 시작, heartbeat, 소리 업로드는 station 기기만            |
-| `GET /sessions`, `GET /sessions/{id}/sounds`          | Bearer |                                  | 페이지네이션                                             |
-| `POST /feedback`                                      | Bearer | `X-Device-Id`, `Idempotency-Key` | 등록된 기기가 필요. 앱 버전은 기기 정보에서 가져감       |
-| `GET /notices`, `GET /notices/{id}`                   | Bearer |                                  | 페이지네이션, `is_read` 포함. 이 두 응답에만 ETag가 붙음 |
-| `POST /notices/{id}/read`                             | Bearer | `Idempotency-Key`                | 이미 읽었어도 성공                                       |
+| 엔드포인트 | 멱등키 | 비고 |
+| --- | --- | --- |
+| `POST /auth/login`, `POST /auth/logout`, `DELETE /auth/withdrawal` | | |
+| `GET /app-updates/{platform}` | | 로그인 전에 호출, `Authorization` 생략 |
+| `GET /users/me`, `PATCH /users/me` | | |
+| `PUT /users/me/blocks/{id}`, `DELETE /users/me/blocks/{id}` | 필요 | |
+| `/users/me/settings/*` 쓰기, `POST /users/me/consents` | 필요 | |
+| `GET /consents` | | |
+| `GET /devices`, `PUT /devices` | `PUT`만 필요 | `PUT /devices`로 등록한 뒤 `X-Device-Id`가 유효해짐 |
+| `PUT /devices/me/push-token`, `PUT /devices/me/activity`, `PATCH /devices/me`, `DELETE /devices/{id}` | 필요 | 등록하지 않은 기기는 `DEVICE__NOT_REGISTERED` |
+| `/parrots*`, `/words*` 쓰기 | 필요 | |
+| `GET /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/summary`, `GET /sessions/{id}/sounds`, `GET /sessions/{id}/events` | | 목록은 페이지네이션 |
+| `POST /sessions`, `POST /sessions/{id}/finish`, `POST /sessions/{id}/heartbeat` | 필요 | |
+| `GET /reports`, `GET /leaderboard` | | |
+| `GET /feed`, `GET /feed/reaction-types` | | 피드는 페이지네이션 |
+| `PUT /feed/{id}/reactions/{reactionTypeId}`, `DELETE /feed/{id}/reactions/{reactionTypeId}` | 필요 | |
+| `GET /notifications`, `GET /notifications/{id}`, `GET /announcements`, `GET /announcements/{id}` | | 목록은 페이지네이션 |
+| `POST /notifications/{id}/read`, `POST /notifications/read-all`, `POST /announcements/{id}/read` | 필요 | |
+| `POST /feedback`, `POST /abuse-reports` | 필요 | |
+| `POST /petcam/turn-credentials` | | |
 
-공지 생성, 수정, 삭제, 사진과 피드백 목록은 백오피스 전용이라 앱이 부르지 않습니다.
+홈 요약은 서버 엔드포인트가 없습니다.
+`apis/home.ts`의 `getHomeSummary`가 진행 중인 학습, 알림 첫 페이지, 공지 첫 페이지를 한 번에 조회해 합칩니다.
 
 ## 쿼리 키
 
-`apiKeys`는 `["api", <서버 user_id>, ...]`로 시작합니다.
-계정이 바뀌면 접두사가 달라져 이전 계정의 캐시가 화면에 나오지 않습니다.
-쓰기 성공 뒤에는 상위 키를 무효화해 하위 키까지 갱신합니다.
+쿼리 키는 `hooks/apis/keys/<도메인>.ts`에 도메인마다 둡니다.
+모든 키는 `userKeyPrefix()`의 `['api', <로그인한 사용자 ID>]`로 시작합니다.
+계정이 바뀌면 앞부분이 달라지므로 이전 계정의 캐시가 화면에 표시되지 않습니다.
+저장 Hook의 `mutationKey`는 `apiKeys.mutation('words', 'create')`처럼 만듭니다.
+쓰기가 성공하면 상위 키를 무효화해 하위 키까지 다시 조회합니다.
 
-## 쓰기 요청과 Idempotency-Key
+## 쓰기 요청 및 Idempotency-Key
 
-settings, consents, devices, parrots, words, sessions의 POST, PUT, PATCH, DELETE는 `Idempotency-Key`가 필수입니다.
-키는 mutation 변수에 넣어 `mutationFn`이 `apiRequest`에 그대로 넘깁니다.
+위 엔드포인트 표에서 멱등키가 필요한 쓰기 요청은 `Idempotency-Key`를 보내야 합니다.
+키는 mutation 변수에 넣고 요청 함수가 `apiRequest`에 그대로 넘깁니다.
 TanStack Query가 재시도하는 동안 변수가 유지되므로 같은 키로 재전송됩니다.
 
-- 화면에서 바로 실행하는 mutation은 `mutate({ ...input, idempotencyKey: randomUUID() })`로 호출마다 새 키를 만듭니다.
-- 전송 대기 데이터는 MMKV에 저장한 `change_id`를 키로 씁니다. 내용이 바뀌면 새 `change_id`를 발급합니다.
-- 서버는 4xx 응답도 같은 키에 재생하므로, 입력을 고친 뒤에는 반드시 새 키로 보냅니다.
+- 화면에서 바로 실행하는 저장은 `useIdempotentMutation`이 `mutate`마다 새 키를 넣습니다.
+- 여러 요청을 잇는 흐름의 첫 요청은 호출한 쪽이 만든 키를 넘겨, 재시도할 때 같은 키를 사용합니다.
+- 서버는 4xx 응답도 같은 키에 재생하므로, 입력을 수정한 뒤에는 새 키로 보냅니다.
 
-PATCH 본문은 `undefined` 키를 제거한 뒤 보냅니다.
-키를 생략하면 유지, `null`을 보내면 비움이며 `null`은 서버가 허용한 필드에만 보냅니다.
-빈 문자열은 보내지 않습니다.
+PATCH 본문에서 키를 빼면 유지, `null`을 보내면 비움입니다.
+`null`은 서버가 허용한 필드에만 보내고 빈 문자열은 보내지 않습니다.
 
-## multipart 업로드
+## 파일 업로드
 
-파일 파트에는 `uri`, `name`, `type`을 모두 넣습니다.
-서버는 파일명 대신 파트의 `Content-Type`으로 형식을 판정합니다.
-5MiB 제한과 허용 형식은 보내기 전에 검사합니다.
-사진은 JPEG와 PNG, 녹음 샘플은 m4a, wav, mp3, 세션 소리는 wav만 허용됩니다.
+파일은 업로드 주소를 먼저 받은 뒤 그 주소에 올립니다.
+
+1. `apis/uploads.ts`의 `...Upload` 함수가 파일 크기 및 형식을 보내고 업로드 주소 `{ url, headers }`를 받습니다.
+2. `putUploadFile`이 그 주소에 파일을 `PUT`으로 올립니다.
+3. 녹음은 서버가 파일 처리를 마칠 때까지 단어를 다시 조회합니다.
+
+| 대상 | 주소를 받는 함수 | 형식 |
+| --- | --- | --- |
+| 사용자 사진 | `putUserPhotoUpload` | JPEG, PNG |
+| 앵무새 사진 | `putParrotPhotoUpload` | JPEG, PNG |
+| 단어 녹음 | `postWordRecordingUpload` | `audio/mp4` |
+| 학습 중 소리 | `postSessionSoundUpload` | `audio/wav` |
+| 펫캠 사진 및 영상 | `postSessionPetcamEventUpload`, `postSessionPetcamVideoUpload` | |
+
+사진 및 녹음은 보내기 전에 `MAX_UPLOAD_BYTES` 5MiB를 넘는지 검사합니다.
 
 ## 미디어 URL
 
-`photo.url`, `recordings[].url`, `audio.url`은 1시간 뒤 만료되는 presigned URL입니다.
-`staleTime`을 그보다 훨씬 짧게 두고, URL을 저장하지 않습니다.
+사진, 녹음, 소리의 `url`은 만료 시간이 있는 presigned URL입니다.
+URL은 저장하지 않고 조회 결과에서만 사용합니다.
 
 ## 패턴별 예시
 
-### 목록 조회
+### 조회
 
 ```ts
 // app/apis/words.ts
-const recordingSchema = z.object({
-	id: z.uuid(),
-	url: z.url(),
-	created_at: z.iso.datetime({ offset: true }),
-})
-const wordSchema = z.object({
-	id: z.uuid(),
-	name: z.string(),
-	recordings: z.array(recordingSchema),
-})
+export const getWordList = async (): Promise<Word[]> => {
+	const { data: words } = await apiRequest('/api/v1/words', z.array(wordSchema));
 
-export type Word = z.infer<typeof wordSchema>
-
-export async function fetchWords() {
-	const { data } = await apiRequest("/api/v1/words", z.array(wordSchema))
-
-	return data
-}
+	return words;
+};
 
 // app/hooks/apis/words.ts
-export const wordsQueryOptions = () =>
-	queryOptions({ queryKey: apiKeys.words.all(), queryFn: fetchWords })
+export const getWordListOptions = () => queryOptions({ queryKey: wordKeys.all(), queryFn: getWordList });
+
+export const useGetWordList = () => {
+	return useSuspenseQuery(getWordListOptions());
+};
+
+// suspense 없이 조회하는 곳에서 사용
+export const useGetWordListQuery = () => {
+	return useQuery(getWordListOptions());
+};
 
 // 화면
-const words = useQuery(wordsQueryOptions())
+const { data: wordListData } = useGetWordList();
 ```
 
 ### 페이지네이션 목록
 
 ```ts
-// app/apis/sessions.ts
-export async function fetchSessions(page: number) {
-	const { data, meta } = await apiRequest("/api/v1/sessions", z.array(sessionSchema), {
-		query: { page, count_by_page: 20 },
-	})
-
-	return { data, meta: pageMetaSchema.parse(meta) }
-}
-
-// app/hooks/apis/sessions.ts
-export const sessionsQueryOptions = () =>
-	infiniteQueryOptions({
-		queryKey: apiKeys.sessions.list(),
-		queryFn: ({ pageParam }) => fetchSessions(pageParam),
-		initialPageParam: 1,
-		getNextPageParam: (last) => (last.meta.is_last ? undefined : last.meta.current_page + 1),
-	})
+// app/hooks/apis/announcements.ts
+infiniteQueryOptions({
+	queryKey: announcementKeys.list(),
+	queryFn: ({ pageParam }) => getAnnouncementList({ page: pageParam }),
+	initialPageParam: 1,
+	getNextPageParam: nextPageNumber,
+});
 ```
 
-### 쓰기 요청
-
-```ts
-// app/apis/parrots.ts
-export type CreateParrotInput = { name: string; species: string; birthdate?: string }
-
-export async function createParrot(input: CreateParrotInput, idempotencyKey: string) {
-	const { data } = await apiRequest("/api/v1/parrots", parrotSchema, {
-		method: "POST",
-		json: input,
-		idempotencyKey,
-	})
-
-	return data
-}
-
-// app/hooks/apis/parrots.ts
-export const createParrotMutationOptions = () =>
-	mutationOptions({
-		mutationKey: apiKeys.mutation("parrots", "create"),
-		mutationFn: ({
-			input,
-			idempotencyKey,
-		}: {
-			input: CreateParrotInput
-			idempotencyKey: string
-		}) => createParrot(input, idempotencyKey),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: apiKeys.parrots.all() }),
-	})
-
-// 화면
-const { mutate } = useMutation(createParrotMutationOptions())
-mutate({ input, idempotencyKey: randomUUID() })
-
-// React 밖의 전송 서비스
-await runMutation(createParrotMutationOptions(), { input, idempotencyKey: change.changeId })
-```
-
-### multipart 업로드
+### 쓰기
 
 ```ts
 // app/apis/words.ts
-type RecordingFile = { uri: string; name: string; type: "audio/m4a" | "audio/wav" | "audio/mpeg" }
-
-export async function addWordRecording(
-	wordId: string,
-	file: RecordingFile,
-	idempotencyKey: string,
-) {
-	const form = new FormData()
-
-	form.append("file", file as unknown as Blob)
-
-	const { data } = await apiRequest(`/api/v1/words/${wordId}/recordings`, wordSchema, {
-		method: "POST",
-		body: form,
+export const patchWord = async ({ id, data, idempotencyKey }: PatchWordParams): Promise<Word> => {
+	const { data: word } = await apiRequest(`/api/v1/words/${id}`, wordSchema, {
+		method: 'PATCH',
+		json: data,
 		idempotencyKey,
-		timeoutMs: 60_000,
-	})
+	});
 
-	return data
-}
+	return word;
+};
+
+// app/hooks/apis/words.ts
+export const useRenameWord = () => {
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('words', 'rename'),
+		mutationFn: patchWord,
+	});
+};
+
+// 화면
+renameWord.mutate({ id, data: { name } }, { onSuccess: handleSaved });
 ```
 
 ## 아직 없는 것
 
-- 오프라인 조회용 Query 캐시 보관. `@tanstack/react-query-persist-client`와 MMKV persister를 계정별로 붙일 때 추가합니다.
-- 기기 등록 호출. `client_device_id`는 `clientDeviceId()`가 만들지만 `PUT /devices`는 아직 부르지 않습니다.
-- 항목 ID와 버전 충돌 처리. 백엔드에 `client_generated_id`와 `version_id`가 추가된 뒤 설계합니다.
+- 오프라인 조회용 Query 캐시 보관
+- 항목 ID 및 버전 충돌 처리

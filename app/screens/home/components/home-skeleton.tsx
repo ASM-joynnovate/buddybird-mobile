@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { BellIcon } from 'lucide-react-native';
 
-import { SESSION_DURATION_PRESETS } from '@/config';
 import { colors, depths, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -13,15 +12,14 @@ import { ui } from '@/components/ui/styles';
 import { Title } from '@/components/ui/title';
 
 const PLACEHOLDER_WORD_COUNT = 3;
-const DURATION_CHOICE_COUNT = SESSION_DURATION_PRESETS.length + 2;
+const DURATION_CHOICE_COUNT = 5;
 
-/** 홈을 불러오는 동안 보이는 컴포넌트 */
+/** 홈을 불러오는 동안 표시하는 컴포넌트 */
 const HomeSkeleton = () => {
 	const { t } = useTranslation();
 
 	return (
 		<>
-			{/*버디 자리, 브랜드 이름, 알림 아이콘*/}
 			<View style={styles.topBar}>
 				<View style={[styles.block, styles.mascotBlock]} />
 				<Title style={styles.brand}>{t('home.brand')}</Title>
@@ -34,7 +32,6 @@ const HomeSkeleton = () => {
 				<ScreenHeader large title={t('session.start.title')} />
 
 				<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-					{/*단어 카드 자리*/}
 					<Copy style={ui.sectionTitle}>{t('session.start.word')}</Copy>
 					<View style={styles.wordsRow}>
 						{Array.from({ length: PLACEHOLDER_WORD_COUNT }, (_, index) => (
@@ -45,7 +42,6 @@ const HomeSkeleton = () => {
 						))}
 					</View>
 
-					{/*학습 시간 카드 자리*/}
 					<Copy style={[ui.sectionTitle, ui.sectionContainer]}>{t('session.start.duration')}</Copy>
 					{Array.from({ length: DURATION_CHOICE_COUNT }, (_, index) => (
 						<View key={index} style={[styles.outline, styles.durationCard]}>

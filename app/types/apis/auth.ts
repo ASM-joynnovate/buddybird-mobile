@@ -11,3 +11,8 @@ export const loginResultSchema = z.object({ user_id: uuidSchema, is_new_user: z.
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type LoginResult = z.infer<typeof loginResultSchema>;
+
+export interface PostLoginParams {
+	data: LoginRequest;
+	signal: AbortSignal;
+}

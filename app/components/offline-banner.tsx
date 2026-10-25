@@ -29,7 +29,7 @@ interface Props {
 }
 
 /**
- * 인터넷 연결이 끊기면 상태 표시줄 아래에 안내를 띄우고 화면을 그 높이만큼 아래로 내리는 컴포넌트
+ * 인터넷 연결 끊김 안내 컴포넌트
  * @param children 안내 아래에 놓이는 화면
  */
 const OfflineBanner = ({ children }: Props) => {
@@ -40,12 +40,13 @@ const OfflineBanner = ({ children }: Props) => {
 	const reducedMotion = useReducedMotion();
 
 	const { isConnected, isInternetReachable } = useNetInfo();
-	const offline = isConnected === false || isInternetReachable === false;
 
 	const [bannerVisible, setBannerVisible] = useState(false);
 	const [bannerHeight, setBannerHeight] = useState(0);
 
 	const progress = useSharedValue(0);
+
+	const networkOffline = isConnected === false || isInternetReachable === false;
 
 	const contentStyle = useAnimatedStyle(() => ({ marginTop: progress.get() * bannerHeight }));
 	const coverStyle = useAnimatedStyle(() => ({
@@ -54,33 +55,33 @@ const OfflineBanner = ({ children }: Props) => {
 	}));
 	const slotStyle = useAnimatedStyle(() => ({ height: progress.get() * bannerHeight }));
 
-	/** 연결이 끊기면 안내 높이를 측정한 뒤 펼치고, 다시 연결되면 접은 다음 안내를 내림 */
+	/** 연결 상태에 따라 안내 펼침 및 접힘 */
 	useEffect(() => {
-		if (offline) {
+		if (networkOffline) {
 			setBannerVisible(true);
 		}
 
-		if (offline && bannerHeight === 0) {
+		if (networkOffline && bannerHeight === 0) {
 			return;
 		}
 
-		const target = offline ? 1 : 0;
+		const target = networkOffline ? 1 : 0;
 
 		if (reducedMotion) {
 			progress.set(target);
-			setBannerVisible(offline);
+			setBannerVisible(networkOffline);
 
 			return;
 		}
 
 		progress.set(
-			withTiming(target, { duration: offline ? SHOW_MS : HIDE_MS, easing: bannerEasing }, (finished) => {
-				if (finished && !offline) {
+			withTiming(target, { duration: networkOffline ? SHOW_MS : HIDE_MS, easing: bannerEasing }, (finished) => {
+				if (finished && !networkOffline) {
 					scheduleOnRN(setBannerVisible, false);
 				}
 			}),
 		);
-	}, [bannerHeight, offline, progress, reducedMotion]);
+	}, [bannerHeight, networkOffline, progress, reducedMotion]);
 
 	return (
 		<View style={styles.container}>

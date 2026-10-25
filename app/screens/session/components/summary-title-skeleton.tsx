@@ -6,7 +6,7 @@ import { colors, radius } from '@/theme';
 
 import { Title } from '@/components/ui/title';
 
-/** 학습 완료 제목을 불러오는 동안 보이는 컴포넌트 */
+/** 학습 완료 제목 스켈레톤 컴포넌트 */
 const SummaryTitleSkeleton = () => {
 	const { t } = useTranslation();
 

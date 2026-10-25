@@ -22,7 +22,7 @@ const SupportGroup = () => {
 	return (
 		<ItemGroup title={t('settings.support.title')}>
 			<Item
-				first
+				firstInGroup
 				icon={SendIcon}
 				label={t('settings.support.feedback')}
 				onPress={() => openFeedback('profile')}

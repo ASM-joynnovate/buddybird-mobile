@@ -30,7 +30,7 @@ const AudioWaveform = ({ levels, color, height, activeColor = color, activeCount
 	const heightRatios = useSharedValue<number[]>([...levels]);
 	const duration = useSharedValue(TRANSITION_MS);
 
-	/** 소리 크기가 바뀌면 막대 높이 변경 */
+	/** 소리 크기 변경 시 막대 높이 변경 */
 	useEffect(() => {
 		duration.set(reducedMotion ? 0 : TRANSITION_MS);
 		heightRatios.set([...levels]);

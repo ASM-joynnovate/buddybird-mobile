@@ -1,82 +1,86 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ChevronRightIcon, type LucideIcon } from 'lucide-react-native';
+import type { ProfileStackParamList } from '@/types/navigation';
 
+import { useGetMe } from '@/hooks/apis/users';
+
+import { useTranslation } from 'react-i18next';
+
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ChevronRightIcon, UserIcon } from 'lucide-react-native';
+
+import { UPLOAD_POLL_INTERVAL_MS } from '@/config/policy';
 import { colors, font } from '@/theme';
+import { joinLabel } from '@/utils/a11y';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { InlineError } from '@/components/ui/inline-error';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-interface Props {
-	avatar: {
-		uri?: string | null;
-		icon: LucideIcon;
-		size: 'medium' | 'large';
-		uploading: boolean;
-		errorMessage: string | null;
-	};
-	title: { text: string; accent?: boolean };
-	details: readonly (string | null)[];
-	label: string;
-	onPress: () => void;
-}
+/** 계정 정보 표시 카드 컴포넌트 */
+const ProfileCard = () => {
+	const { t } = useTranslation();
 
-/**
- * 프로필 카드 컴포넌트
- * @param avatar 카드 사진
- * @param title 카드 제목
- * @param details 제목 아래에 표시할 세부 정보
- * @param label 스크린 리더가 읽을 카드 설명
- * @param onPress 카드를 누를 때 실행할 함수
- */
-const ProfileCard = ({ avatar, title, details, label, onPress }: Props) => {
-	const isLarge = avatar.size === 'large';
+	const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+	const screenFocused = useIsFocused();
+
+	const { data: meData } = useGetMe({
+		refetchInterval: (query) =>
+			screenFocused && query.state.data?.uploading_photo_file?.status === 'pending'
+				? UPLOAD_POLL_INTERVAL_MS
+				: false,
+	});
+
+	const titleText = meData.nickname ?? t('profile.nicknameMissing');
 
 	return (
 		<PressableSurface
-			accessibilityLabel={label}
-			depth={isLarge ? 'medium' : 'low'}
-			onPress={onPress}
-			contentStyle={isLarge ? styles.largeCard : styles.mediumCard}
+			accessibilityLabel={joinLabel(
+				t('profile.editAccount'),
+				titleText,
+				meData.email,
+				meData.uploading_photo_file?.status === 'pending' && t('profile.photoUploading'),
+				meData.uploading_photo_file?.status === 'rejected' && t('profile.photoUploadFailed'),
+			)}
+			depth="medium"
+			onPress={() => navigation.navigate('AccountEditor')}
+			contentStyle={styles.card}
 		>
-			<View style={[styles.contentRow, isLarge && styles.contentRowLarge]}>
-				<Avatar uri={avatar.uri} icon={avatar.icon} size={avatar.size} uploading={avatar.uploading} />
+			<View style={styles.contentRow}>
+				<Avatar
+					uri={meData.photo_file?.url}
+					icon={UserIcon}
+					size="large"
+					uploading={meData.uploading_photo_file?.status === 'pending'}
+				/>
 
-				<View style={[styles.textContainer, isLarge && styles.textContainerLarge]}>
-					<Copy
-						accessibilityRole={isLarge ? 'header' : undefined}
-						numberOfLines={isLarge ? undefined : 1}
-						style={[isLarge ? styles.largeTitle : styles.mediumTitle, title.accent && styles.accent]}
-					>
-						{title.text}
+				<View style={styles.textContainer}>
+					<Copy accessibilityRole="header" style={[styles.title, !meData.nickname && styles.accent]}>
+						{titleText}
 					</Copy>
-					{details.map((detail) =>
-						detail ? (
-							<Copy key={detail} style={styles.detail} numberOfLines={1}>
-								{detail}
-							</Copy>
-						) : null,
+					{!!meData.email && (
+						<Copy style={styles.detail} numberOfLines={1}>
+							{meData.email}
+						</Copy>
 					)}
 				</View>
 
 				<ChevronRightIcon size={18} color={colors.subtle} />
 			</View>
-			<InlineError message={avatar.errorMessage} />
+			<InlineError
+				message={meData.uploading_photo_file?.status === 'rejected' ? t('profile.photoUploadFailed') : null}
+			/>
 		</PressableSurface>
 	);
 };
 
 const styles = StyleSheet.create({
-	mediumCard: { padding: 16 },
-	largeCard: { padding: 20 },
-	contentRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-	contentRowLarge: { gap: 16 },
-	textContainer: { flex: 1, minWidth: 0, gap: 2 },
-	textContainerLarge: { gap: 4 },
-	mediumTitle: { fontFamily: font.black, fontSize: 18, lineHeight: 24 },
-	largeTitle: { fontFamily: font.black, fontSize: 22, lineHeight: 28 },
+	card: { padding: 20 },
+	contentRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+	textContainer: { flex: 1, minWidth: 0, gap: 4 },
+	title: { fontFamily: font.black, fontSize: 22, lineHeight: 28 },
 	accent: { color: colors.orangeDark, fontSize: 18, lineHeight: 24 },
 	detail: { fontSize: 14, color: colors.muted },
 });

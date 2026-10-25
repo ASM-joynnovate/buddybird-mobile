@@ -16,7 +16,7 @@ export const parrot: ParrotMessages = {
 	searchAllSpecies: '전체에서 찾기',
 	birthdateQuestion: '언제 태어났나요?',
 	nameRequired: '반려조 이름을 입력해 주세요.',
-	speciesRequired: '반려조 종류를 선택하거나 직접 입력해 주세요.',
+	speciesRequired: '반려조 종류를 선택해 주세요.',
 	birthdateInFuture: '생년월일은 오늘 이후로 설정할 수 없어요.',
 	yearPicker: '태어난 연도 선택',
 	monthPicker: '태어난 월 선택',

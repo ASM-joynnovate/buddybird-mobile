@@ -24,7 +24,6 @@ interface Props {
 export const WheelPicker = ({ columns }: Props) => {
 	return (
 		<View style={styles.container}>
-			{/*가운데 선택 표시*/}
 			<View pointerEvents="none" style={styles.selection} />
 
 			{columns.map((column) => (

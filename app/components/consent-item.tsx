@@ -14,7 +14,7 @@ import { ItemCheckbox } from '@/components/ui/item/checkbox';
 interface Props {
 	consent: Consent;
 	checked: boolean;
-	first?: boolean;
+	firstInGroup?: boolean;
 	disabled?: boolean;
 	source: RootStackParamList['ConsentDetail']['source'];
 	onToggle: () => void;
@@ -24,19 +24,19 @@ interface Props {
  * 약관 동의 항목 컴포넌트
  * @param consent 약관 동의 항목
  * @param checked 동의 여부
- * @param first 목록의 첫 항목 여부
+ * @param firstInGroup 목록의 첫 항목 여부
  * @param disabled 비활성화 여부
- * @param source 약관 전문 화면을 연 곳
+ * @param source 약관 전문 화면으로 이동한 화면
  * @param onToggle 체크박스를 누를 때 실행할 함수
  */
-const ConsentItem = ({ consent, checked, first, disabled, source, onToggle }: Props) => {
+const ConsentItem = ({ consent, checked, firstInGroup, disabled, source, onToggle }: Props) => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 	return (
 		<ItemCheckbox
-			first={first}
+			firstInGroup={firstInGroup}
 			label={consent.title}
 			caption={t(consent.is_required ? 'common.consent.required' : 'common.consent.optional')}
 			captionVariant={consent.is_required ? 'primary' : 'muted'}

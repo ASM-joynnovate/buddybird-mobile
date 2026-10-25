@@ -37,3 +37,14 @@ export interface FeedPage {
 	data: FeedItem[];
 	meta: z.infer<typeof feedMetaSchema>;
 }
+
+export interface FeedReactionParams {
+	id: string;
+	reactionTypeId: string;
+	idempotencyKey: string;
+}
+
+export interface GetFeedItemListParams {
+	cursor: string | null;
+	country: string | null;
+}

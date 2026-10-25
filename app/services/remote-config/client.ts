@@ -2,7 +2,7 @@ import { remoteConfigSchema } from '@/types/remote-config';
 
 import { activate, fetchAndActivate, getRemoteConfig, getValue } from '@react-native-firebase/remote-config';
 
-import { PETCAM_VIDEO, REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS, VAD } from '@/config';
+import { PETCAM_VIDEO, REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS, VAD } from '@/config/policy';
 import { recordRemoteConfig } from '@/services/telemetry/client';
 
 const configListeners = new Set<() => void>();
@@ -52,7 +52,7 @@ export const initializeRemoteConfig = async () => {
 	}
 };
 
-/** Remote Config 값을 받은 뒤 실행할 함수를 등록하는 함수 */
+/** Remote Config 변경 구독 함수 */
 export const subscribeRemoteConfig = (listener: () => void) => {
 	configListeners.add(listener);
 
@@ -61,7 +61,7 @@ export const subscribeRemoteConfig = (listener: () => void) => {
 	};
 };
 
-/** 신경질적 짹짹을 보여 줄지 반환하는 함수 */
+/** 신경질적 짹짹 표시 여부 반환 함수 */
 export const shouldShowDistressCall = () => {
 	return readConfigValues().show_distress_call_detected;
 };

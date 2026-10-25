@@ -1,7 +1,5 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { LearningDuration } from '@/types/navigation';
-
 import { useTranslation } from 'react-i18next';
 
 import { formatDurationWithDays } from '@/i18n/format';
@@ -9,6 +7,7 @@ import { formatDurationWithDays } from '@/i18n/format';
 import { InfinityIcon } from 'lucide-react-native';
 
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+import { useSessionStore } from '@/stores/session';
 import { colors, font, radius } from '@/theme';
 import { phaseDurations } from '@/utils/phases';
 
@@ -21,24 +20,18 @@ const BREAKDOWN_PHASES = [
 	{ phase: 'stress_care', color: colors.blue },
 ] as const;
 
-interface Props {
-	duration: LearningDuration;
-}
-
-/**
- * 학습 시간 합계 컴포넌트
- * @param duration 선택한 학습 시간
- */
-const DurationBreakdown = ({ duration }: Props) => {
+/** 학습 시간 합계 컴포넌트 */
+const DurationBreakdown = () => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
+
+	const duration = useSessionStore((state) => state.duration);
 
 	const totals = duration.ms === null ? null : phaseDurations(duration.ms);
 
 	return (
 		<Card depth="none" style={styles.cardContainer} contentStyle={styles.card}>
-			{/*총 학습 시간*/}
 			<View style={styles.totalRow}>
 				<Copy style={styles.totalLabel}>{t('session.start.total')}</Copy>
 				<Copy style={styles.total}>
@@ -46,7 +39,6 @@ const DurationBreakdown = ({ duration }: Props) => {
 				</Copy>
 			</View>
 
-			{/*단계별 학습 시간*/}
 			<View style={styles.phasesRow}>
 				{BREAKDOWN_PHASES.map(({ phase, color }, index) => (
 					<View key={phase} style={[styles.phaseContainer, index > 0 && styles.phaseContainerDivided]}>

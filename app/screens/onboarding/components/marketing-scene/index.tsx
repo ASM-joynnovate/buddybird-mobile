@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
+import type { SceneArea } from '@/types/scene';
+
 import { useTranslation } from 'react-i18next';
 
 import { useIsFocused } from '@react-navigation/native';
@@ -9,20 +11,19 @@ import { GiftIcon, SparklesIcon } from 'lucide-react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 
-import { SECOND } from '@/config/units';
 import MarketingSceneNote from '@/screens/onboarding/components/marketing-scene/note';
 import SceneWindow from '@/screens/onboarding/components/scene-window';
 import { colors } from '@/theme';
 
 import Mascot from '@/components/mascot';
-import SceneStage, { getStageScale, type SceneArea } from '@/components/scene-stage';
+import SceneStage, { getStageScale } from '@/components/scene-stage';
 
 const STAGE_WIDTH = 393;
 const STAGE_HEIGHT = 350;
-const FEATURES_NOTE_DELAY_MS = 0.3 * SECOND;
-const EVENTS_NOTE_DELAY_MS = 0.9 * SECOND;
+const FEATURES_NOTE_DELAY_MS = 300;
+const EVENTS_NOTE_DELAY_MS = 900;
 
-/** 횃대 위 버디와 벽에 붙은 새 소식 장면 컴포넌트 */
+/** 횃대 위 버디 및 벽의 소식 장면 컴포넌트 */
 const MarketingScene = () => {
 	const { t } = useTranslation();
 

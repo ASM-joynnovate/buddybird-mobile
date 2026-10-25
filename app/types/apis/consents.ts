@@ -22,3 +22,8 @@ const saveConsentRequestSchema = z.object({
 
 export type Consent = z.infer<typeof consentSchema>;
 export type SaveConsentRequest = z.infer<typeof saveConsentRequestSchema>;
+
+export interface PostConsentParams {
+	data: SaveConsentRequest;
+	idempotencyKey: string;
+}

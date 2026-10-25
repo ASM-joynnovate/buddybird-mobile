@@ -4,7 +4,7 @@ import { colors, radius } from '@/theme';
 
 const PLACEHOLDER_ROW_COUNT = 4;
 
-/** 세션 상세를 불러오는 동안 보이는 컴포넌트 */
+/** 세션 상세 스켈레톤 컴포넌트 */
 const SessionDetailSkeleton = () => {
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

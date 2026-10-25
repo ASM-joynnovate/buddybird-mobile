@@ -15,8 +15,10 @@ import dayjs from 'dayjs';
 import { ChevronRightIcon } from 'lucide-react-native';
 
 import LeaderboardLane from '@/screens/community/components/leaderboard-lane';
+import LeaderboardMyLane from '@/screens/community/components/leaderboard-my-lane';
 import UnrankedNotice from '@/screens/community/components/unranked-notice';
-import { useCommunityStore } from '@/stores/community';
+import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
+import { leaderboardTopScore } from '@/screens/community/utils/leaderboard';
 import { colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -32,14 +34,12 @@ const LeaderboardCard = () => {
 
 	const { data: meData } = useGetMe();
 
-	const countryScope = useCommunityStore((state) => state.countryScope);
-
-	const country = countryScope === 'mine' ? (meData.country ?? null) : null;
+	const country = useSelectedCountry();
 
 	const { data: leaderboardData } = useGetLeaderboard({ country });
 
 	const myRank = leaderboardData.me.rank;
-	const topScore = leaderboardData.items[0]?.score ?? leaderboardData.me.score;
+	const topScore = leaderboardTopScore(leaderboardData);
 	const viewAllLabel = t('community.leaderboard.viewAll');
 
 	return (
@@ -73,7 +73,7 @@ const LeaderboardCard = () => {
 							nickname={item.user.nickname}
 							photoUrl={item.user.photo_file?.url ?? null}
 							country={item.user.country}
-							userIsMe={item.rank === myRank}
+							userIsMe={item.user.id === meData.id}
 						/>
 					))}
 
@@ -86,15 +86,7 @@ const LeaderboardCard = () => {
 									<View style={styles.gapDot} />
 								</View>
 							)}
-							<LeaderboardLane
-								rank={myRank}
-								score={leaderboardData.me.score}
-								topScore={topScore}
-								nickname={meData.nickname}
-								photoUrl={meData.photo_file?.url ?? null}
-								country={null}
-								userIsMe
-							/>
+							<LeaderboardMyLane rank={myRank} score={leaderboardData.me.score} topScore={topScore} />
 						</>
 					)}
 				</View>

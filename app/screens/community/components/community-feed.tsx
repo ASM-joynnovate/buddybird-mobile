@@ -4,14 +4,13 @@ import { usePrefetchQuery } from '@tanstack/react-query';
 
 import { getFeedReactionTypeListOptions, useGetFeedItemList } from '@/hooks/apis/feed';
 import { getLeaderboardOptions } from '@/hooks/apis/leaderboard';
-import { useGetMe } from '@/hooks/apis/users';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
 import FeedCard, { feedCardKinds } from '@/screens/community/components/feed-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
-import { useCommunityStore } from '@/stores/community';
+import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
@@ -20,18 +19,14 @@ import { Copy } from '@/components/ui/copy';
 const CommunityFeed = () => {
 	const { t } = useTranslation();
 
-	const player = useSoundPlayer();
-
-	const { data: meData } = useGetMe();
-
-	const countryScope = useCommunityStore((state) => state.countryScope);
-
-	const country = countryScope === 'mine' ? (meData.country ?? null) : null;
+	const country = useSelectedCountry();
 
 	usePrefetchQuery(getLeaderboardOptions({ country }));
 	usePrefetchQuery(getFeedReactionTypeListOptions());
 
 	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
+
+	const player = useSoundPlayer();
 
 	const feedItems = feedData.pages
 		.flatMap((feedPage) => feedPage.data)

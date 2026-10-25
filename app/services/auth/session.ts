@@ -9,7 +9,7 @@ import { reportError } from '@/services/telemetry/client';
 
 export interface AuthIdentity {
 	id: string;
-	anonymous: boolean;
+	isAnonymous: boolean;
 }
 
 /** 로그인 사용자 변화의 종류를 반환하는 함수 */
@@ -22,7 +22,7 @@ export const getAuthTransition = (registeredIdentity: AuthIdentity | null, nextI
 		return 'userChanged';
 	}
 
-	return registeredIdentity.anonymous && !nextIdentity.anonymous ? 'linked' : 'signedIn';
+	return registeredIdentity.isAnonymous && !nextIdentity.isAnonymous ? 'linked' : 'signedIn';
 };
 
 /** 현재 세션의 액세스 토큰을 반환하는 함수 */

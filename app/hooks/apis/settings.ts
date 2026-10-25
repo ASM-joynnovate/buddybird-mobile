@@ -12,35 +12,45 @@ import {
 import type { NotificationSettingItem, NotificationSettingList, Settings } from '@/types/apis/settings';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { homeKeys } from '@/hooks/apis/keys/home';
+import { leaderboardKeys } from '@/hooks/apis/keys/leaderboard';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
+import { settingKeys } from '@/hooks/apis/keys/settings';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
+interface SettingsMutationContext {
+	previousSettings: Settings | undefined;
+}
+
+interface NotificationSettingsMutationContext {
+	previousNotificationSettings: NotificationSettingList | undefined;
+}
+
 /** 저장 요청 전에 캐시의 설정을 먼저 변경하는 함수 */
 const patchCachedSettings = async (queryClient: QueryClient, patch: Partial<Settings>) => {
-	await queryClient.cancelQueries({ queryKey: apiKeys.settings() });
+	await queryClient.cancelQueries({ queryKey: settingKeys.all() });
 
-	const previousSettings = queryClient.getQueryData<Settings>(apiKeys.settings());
+	const previousSettings = queryClient.getQueryData<Settings>(settingKeys.all());
 
 	if (previousSettings) {
-		queryClient.setQueryData(apiKeys.settings(), { ...previousSettings, ...patch });
+		queryClient.setQueryData(settingKeys.all(), { ...previousSettings, ...patch });
 	}
 
 	return { previousSettings };
 };
 
 /** 저장 실패 시 캐시의 설정을 이전 값으로 되돌리는 함수 */
-const restoreCachedSettings = (
-	queryClient: QueryClient,
-	context: { previousSettings: Settings | undefined } | undefined,
-) => {
+const restoreCachedSettings = (queryClient: QueryClient, context: SettingsMutationContext | undefined) => {
 	if (context?.previousSettings) {
-		queryClient.setQueryData(apiKeys.settings(), context.previousSettings);
+		queryClient.setQueryData(settingKeys.all(), context.previousSettings);
 	}
 };
 
-/** 항목의 켜짐 여부를 바꾸는 함수 */
+/** 항목의 켜짐 여부 변경 함수 */
 const withItemEnabled = (notificationSettings: NotificationSettingList, id: string, enabled: boolean) => {
+	/** 항목 켜짐 여부 변경 함수 */
 	const updateItem = (item: NotificationSettingItem) => (item.id === id ? { ...item, enabled } : item);
 
 	return {
@@ -50,18 +60,25 @@ const withItemEnabled = (notificationSettings: NotificationSettingList, id: stri
 	};
 };
 
-/** 저장 실패 시 캐시의 알림 설정을 이전 값으로 되돌리는 함수 */
+/** 캐시의 알림 설정을 반환하는 함수 */
+const takeCachedNotificationSettings = async (queryClient: QueryClient) => {
+	await queryClient.cancelQueries({ queryKey: settingKeys.notifications() });
+
+	return queryClient.getQueryData<NotificationSettingList>(settingKeys.notifications());
+};
+
+/** 캐시의 알림 설정 복원 함수 */
 const restoreCachedNotificationSettings = (
 	queryClient: QueryClient,
-	context: { previousNotificationSettings: NotificationSettingList | undefined } | undefined,
+	context: NotificationSettingsMutationContext | undefined,
 ) => {
 	if (context?.previousNotificationSettings) {
-		queryClient.setQueryData(apiKeys.notificationSettings(), context.previousNotificationSettings);
+		queryClient.setQueryData(settingKeys.notifications(), context.previousNotificationSettings);
 	}
 };
 
 /** 설정 조회 Hook에 사용할 옵션 */
-export const getSettingsOptions = () => queryOptions({ queryKey: apiKeys.settings(), queryFn: getSettings });
+export const getSettingsOptions = () => queryOptions({ queryKey: settingKeys.all(), queryFn: getSettings });
 /** 설정 조회 Hook */
 export const useGetSettings = () => {
 	return useSuspenseQuery(getSettingsOptions());
@@ -82,9 +99,9 @@ export const useUpdateSleepSettings = () => {
 		},
 		onSettled: () =>
 			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.sessions.running() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.home() }),
+				queryClient.invalidateQueries({ queryKey: settingKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.running() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
 			]),
 	});
 };
@@ -98,8 +115,8 @@ export const useUpdateCommunitySettings = () => {
 		mutationFn: patchCommunitySettings,
 		onSuccess: () =>
 			Promise.all([
-				queryClient.invalidateQueries({ queryKey: apiKeys.settings() }),
-				queryClient.invalidateQueries({ queryKey: apiKeys.leaderboard.all() }),
+				queryClient.invalidateQueries({ queryKey: settingKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: leaderboardKeys.all() }),
 			]),
 		onError: (error) => reportError(error, 'community_settings_save'),
 	});
@@ -107,7 +124,7 @@ export const useUpdateCommunitySettings = () => {
 
 /** 알림 설정 조회 Hook에 사용할 옵션 */
 export const getNotificationSettingsOptions = () =>
-	queryOptions({ queryKey: apiKeys.notificationSettings(), queryFn: getNotificationSettings });
+	queryOptions({ queryKey: settingKeys.notifications(), queryFn: getNotificationSettings });
 /** 알림 설정 조회 Hook */
 export const useGetNotificationSettings = () => {
 	return useSuspenseQuery(getNotificationSettingsOptions());
@@ -121,14 +138,10 @@ export const useUpdatePushSetting = () => {
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications'),
 		mutationFn: patchPushSetting,
 		onMutate: async ({ data }) => {
-			await queryClient.cancelQueries({ queryKey: apiKeys.notificationSettings() });
-
-			const previousNotificationSettings = queryClient.getQueryData<NotificationSettingList>(
-				apiKeys.notificationSettings(),
-			);
+			const previousNotificationSettings = await takeCachedNotificationSettings(queryClient);
 
 			if (previousNotificationSettings) {
-				queryClient.setQueryData(apiKeys.notificationSettings(), {
+				queryClient.setQueryData(settingKeys.notifications(), {
 					...previousNotificationSettings,
 					push_enabled: data.push_enabled,
 				});
@@ -141,7 +154,7 @@ export const useUpdatePushSetting = () => {
 
 			reportError(error, 'push_setting_save');
 		},
-		onSettled: () => queryClient.invalidateQueries({ queryKey: apiKeys.notificationSettings() }),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: settingKeys.notifications() }),
 	});
 };
 
@@ -153,15 +166,11 @@ export const useUpdateNotificationSettingItem = () => {
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications', 'item'),
 		mutationFn: patchNotificationSettingItem,
 		onMutate: async ({ id, data }) => {
-			await queryClient.cancelQueries({ queryKey: apiKeys.notificationSettings() });
-
-			const previousNotificationSettings = queryClient.getQueryData<NotificationSettingList>(
-				apiKeys.notificationSettings(),
-			);
+			const previousNotificationSettings = await takeCachedNotificationSettings(queryClient);
 
 			if (previousNotificationSettings) {
 				queryClient.setQueryData(
-					apiKeys.notificationSettings(),
+					settingKeys.notifications(),
 					withItemEnabled(previousNotificationSettings, id, data.enabled),
 				);
 			}
@@ -173,6 +182,6 @@ export const useUpdateNotificationSettingItem = () => {
 
 			reportError(error, 'notification_setting_item_save');
 		},
-		onSettled: () => queryClient.invalidateQueries({ queryKey: apiKeys.notificationSettings() }),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: settingKeys.notifications() }),
 	});
 };

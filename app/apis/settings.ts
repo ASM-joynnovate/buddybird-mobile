@@ -1,11 +1,12 @@
 import {
 	type NotificationSettingList,
 	notificationSettingListSchema,
+	type PatchCommunitySettingsParams,
+	type PatchNotificationSettingItemParams,
+	type PatchPushSettingParams,
+	type PutSleepSettingsParams,
 	type Settings,
 	settingsSchema,
-	type UpdateCommunitySettingsRequest,
-	type UpdateNotificationSettingItemRequest,
-	type UpdatePushSettingRequest,
 } from '@/types/apis/settings';
 
 import { apiRequest } from '@/lib/api';
@@ -18,13 +19,7 @@ export const getSettings = async (): Promise<Settings> => {
 	return settings;
 };
 
-export const putSleepSettings = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: Settings['sleep'];
-	idempotencyKey: string;
-}): Promise<Settings> => {
+export const putSleepSettings = async ({ data, idempotencyKey }: PutSleepSettingsParams): Promise<Settings> => {
 	const { data: settings } = await apiRequest('/api/v1/users/me/settings/sleep', settingsSchema, {
 		method: 'PUT',
 		json: data,
@@ -34,13 +29,7 @@ export const putSleepSettings = async ({
 	return settings;
 };
 
-export const patchCommunitySettings = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: UpdateCommunitySettingsRequest;
-	idempotencyKey: string;
-}): Promise<void> => {
+export const patchCommunitySettings = async ({ data, idempotencyKey }: PatchCommunitySettingsParams): Promise<void> => {
 	await apiRequest('/api/v1/users/me/settings/community', z.unknown(), {
 		method: 'PATCH',
 		json: data,
@@ -60,10 +49,7 @@ export const getNotificationSettings = async (): Promise<NotificationSettingList
 export const patchPushSetting = async ({
 	data,
 	idempotencyKey,
-}: {
-	data: UpdatePushSettingRequest;
-	idempotencyKey: string;
-}): Promise<NotificationSettingList> => {
+}: PatchPushSettingParams): Promise<NotificationSettingList> => {
 	const { data: notificationSettings } = await apiRequest(
 		'/api/v1/users/me/settings/notifications',
 		notificationSettingListSchema,
@@ -77,11 +63,7 @@ export const patchNotificationSettingItem = async ({
 	id,
 	data,
 	idempotencyKey,
-}: {
-	id: string;
-	data: UpdateNotificationSettingItemRequest;
-	idempotencyKey: string;
-}): Promise<NotificationSettingList> => {
+}: PatchNotificationSettingItemParams): Promise<NotificationSettingList> => {
 	const { data: notificationSettings } = await apiRequest(
 		`/api/v1/users/me/settings/notifications/${id}`,
 		notificationSettingListSchema,

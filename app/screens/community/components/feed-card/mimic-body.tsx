@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import type { FeedItem } from '@/types/apis/feed';
 
-import type { SoundPlayer } from '@/hooks/use-sound-player';
+import type { SoundPlayer } from '@/types/sound-player';
 
 import { useTranslation } from 'react-i18next';
 

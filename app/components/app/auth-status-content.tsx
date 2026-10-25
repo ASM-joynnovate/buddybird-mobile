@@ -3,22 +3,21 @@ import LoginNavigator from '@/navigators/login-navigator';
 import AnalyticsProvider from '@/providers/analytics';
 import DeviceProvider from '@/providers/device';
 import StartupDialogProvider from '@/providers/startup-dialog';
-import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
 
-import StartupScreen from '@/components/app/startup-screen';
+import StartupScreen from '@/components/app/startup';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 
 /** 로그인 상태별 화면 컴포넌트 */
 const AuthStatusContent = () => {
 	const status = useAuthStore((state) => state.status);
+	const authUserId = useAuthStore((state) => state.authUserId);
+
 	const retryAuth = useAuthStore((state) => state.retry);
 
-	const authUserId = useAccountStore((state) => state.authUserId);
+	const userRegistered = authUserId !== null;
 
-	const registered = authUserId !== null;
-
-	if (status === 'signedOut' || (status === 'completing' && !registered)) {
+	if (status === 'signedOut' || (status === 'completing' && !userRegistered)) {
 		return <LoginNavigator />;
 	}
 
@@ -26,7 +25,7 @@ const AuthStatusContent = () => {
 		return status === 'error' ? <StartupScreen onRetry={retryAuth} /> : <StartupScreen />;
 	}
 
-	// 사용자가 바뀌면 다시 마운트
+	// 사용자 변경 시 다시 마운트
 	return (
 		<ErrorHandlingWrapper
 			key={authUserId}

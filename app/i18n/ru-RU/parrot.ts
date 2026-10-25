@@ -16,7 +16,7 @@ export const parrot: ParrotMessages = {
 	searchAllSpecies: 'Искать среди всех',
 	birthdateQuestion: 'Когда родился питомец?',
 	nameRequired: 'Введи имя питомца.',
-	speciesRequired: 'Выбери вид питомца или введи его вручную.',
+	speciesRequired: 'Выбери вид питомца.',
 	birthdateInFuture: 'Дата рождения не может быть позже сегодняшнего дня.',
 	yearPicker: 'Выбор года рождения',
 	monthPicker: 'Выбор месяца рождения',

@@ -1,26 +1,21 @@
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { getSessionSoundDurationOptions, useShareSessionFile, useShareSessionJoinedSound } from '@/hooks/apis/sessions';
+import { useGetSessionSoundDurationQuery } from '@/hooks/apis/sessions';
 import useSoundPlayer from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
-import dayjs from 'dayjs';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
+import type { LogItem } from '@/screens/report/utils/session-log';
 import { track } from '@/services/telemetry/client';
-import { useMessageStore } from '@/stores/message';
 import { colors } from '@/theme';
-import type { LogItem } from '@/utils/session-log';
 
-import SessionLogSoundTrack from '@/components/session/log-sound-track';
+import SessionLogSoundTrack from '@/components/session/session-log-sound-track';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const SHARED_FILE_TIME_FORMAT = 'YYYYMMDD-HHmmss';
 const PLAY_SIZE = 36;
 
 interface Props {
@@ -38,21 +33,16 @@ interface Props {
 const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 	const { t } = useTranslation();
 
-	const { data: soundDurationData } = useQuery({
-		...getSessionSoundDurationOptions({ id: item.id, url: item.sounds.at(0)?.audio_file.url ?? '' }),
-		enabled: item.kind !== 'distressCall' && item.durationMs === null && item.sounds.length > 0,
-		throwOnError: false,
-	});
-	const { isPending: fileSharing, mutate: shareFile } = useShareSessionFile();
-	const { isPending: joinedSoundSharing, mutate: shareJoinedSound } = useShareSessionJoinedSound();
+	const { data: soundDurationData } = useGetSessionSoundDurationQuery(
+		{ id: item.id, url: item.sounds.at(0)?.audio_file.url ?? '' },
+		{ enabled: item.kind !== 'distressCall' && item.durationMs === null && item.sounds.length > 0 },
+	);
 
 	const { playingId, progress, play, stop } = useSoundPlayer();
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
 	const accent = item.kind === 'distressCall' ? colors.error : colors.orange;
 	const playing = playingId === item.id;
-	const soundless = item.sounds.length === 0;
+	const soundMissing = item.sounds.length === 0;
 	const durationMs = item.durationMs ?? soundDurationData ?? null;
 	const PlayStateIcon = playing ? PauseIcon : PlayIcon;
 	let durationText: string | null = null;
@@ -75,24 +65,6 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 		play(item.id, ...item.sounds.map((sound) => sound.audio_file.url));
 	};
 
-	const handleShare = () => {
-		if (fileSharing || joinedSoundSharing) {
-			return;
-		}
-
-		const fileName = `buddybird-${dayjs(item.startedAt).format(SHARED_FILE_TIME_FORMAT)}`;
-		const callbacks = {
-			onSuccess: () => track('parrot_sound_shared', { session_id: sessionId }),
-			onError: () => openPopup({ title: t('report.detail.shareError') }),
-		};
-
-		if (item.kind === 'distressCall') {
-			shareJoinedSound({ urls: item.sounds.map((sound) => sound.audio_file.url), fileName }, callbacks);
-		} else {
-			shareFile({ url: item.sounds[0].audio_file.url, fileName, fileType: 'wav' }, callbacks);
-		}
-	};
-
 	return (
 		<View style={styles.panel}>
 			<View style={styles.player}>
@@ -100,24 +72,24 @@ const SessionLogSoundPanel = ({ item, itemName, sessionId }: Props) => {
 
 				<PressableSurface
 					accessibilityLabel={playing ? t('common.sound.stopNamed', { name: itemName }) : itemName}
-					disabled={soundless}
+					disabled={soundMissing}
 					onPress={handleTogglePlay}
 					depth="none"
 					cornerRadius="pill"
-					faceColor={soundless ? colors.disabledBackground : accent}
-					edgeColor={soundless ? colors.disabledBackground : accent}
+					faceColor={soundMissing ? colors.disabledBackground : accent}
+					edgeColor={soundMissing ? colors.disabledBackground : accent}
 					style={styles.play}
 					contentStyle={styles.playFace}
 				>
 					<PlayStateIcon
 						size={13}
-						color={soundless ? colors.subtle : colors.onFilled}
-						fill={soundless ? colors.subtle : colors.onFilled}
+						color={soundMissing ? colors.subtle : colors.onFilled}
+						fill={soundMissing ? colors.subtle : colors.onFilled}
 					/>
 				</PressableSurface>
 			</View>
 
-			<SessionLogShareButton itemName={itemName} disabled={soundless} onPress={handleShare} />
+			<SessionLogShareButton item={item} itemName={itemName} sessionId={sessionId} />
 		</View>
 	);
 };

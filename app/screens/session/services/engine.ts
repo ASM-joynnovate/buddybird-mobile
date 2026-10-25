@@ -1,6 +1,7 @@
 import type { Heartbeat, HeartbeatLearningSegment, Phase } from '@/types/apis/sessions';
 
 import type { SleepSettings } from '@/types/sleep-settings';
+import type { SoundSegment } from '@/types/sound-segment';
 
 import dayjs from 'dayjs';
 import {
@@ -11,10 +12,10 @@ import {
 	AudioRecorder,
 } from 'react-native-audio-api';
 
-import { LEARNING_TICK_MS } from '@/config';
+import { LEARNING_TICK_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
 import { loadStressCareTracks } from '@/screens/session/services/tracks';
-import { createSoundDetector, type SoundSegment } from '@/screens/session/services/vad';
+import { createSoundDetector } from '@/screens/session/services/vad';
 import { saveWav } from '@/screens/session/services/wav';
 import { getVad, getWordReplayDelayFactor } from '@/services/remote-config/client';
 import { currentSpan, type PhaseSpan } from '@/utils/phases';
@@ -42,18 +43,10 @@ interface LearningEngineOptions {
 	onError: (error: unknown) => void;
 }
 
-export interface LearningEngine {
-	start: () => Promise<void>;
-	pause: () => Promise<void>;
-	resume: () => Promise<void>;
-	stop: () => Promise<void>;
-	unacknowledgedSegments: () => HeartbeatLearningSegment[];
-	acknowledgeSegments: (
-		acknowledgedSegments: Heartbeat['acknowledged'],
-		sentSegments: HeartbeatLearningSegment[],
-	) => void;
-	learningMs: () => number;
-	playCount: () => number;
+interface CareTrackChoice {
+	spanStart: number;
+	buffer: AudioBuffer;
+	offset: number;
 }
 
 /** 학습 엔진을 만드는 함수 */
@@ -73,14 +66,14 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	let phase: Phase | null = null;
 	let clip: AudioBufferSourceNode | null = null;
 	let careSource: AudioBufferSourceNode | null = null;
-	let chosenCareTrack: { spanStart: number; buffer: AudioBuffer; offset: number } | null = null;
+	let chosenCareTrack: CareTrackChoice | null = null;
 	let careStartedAt = 0;
 	let nextClipIndex = 0;
 	let nextPlayAt = 0;
 	let lastTick = 0;
 	let learningSegments: LearningSegment[] = [];
 
-	/** 새 학습 구간을 여는 함수 */
+	/** 학습 구간 시작 함수 */
 	const openLearningSegment = () => {
 		learningSegments = [
 			...learningSegments,
@@ -95,12 +88,12 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		];
 	};
 
-	/** 열린 학습 구간을 현재 시각까지 늘리는 함수 */
+	/** 진행 중인 학습 구간을 현재 시각까지 늘리는 함수 */
 	const extendLearningSegment = (now: number) => {
 		learningSegments = learningSegments.map((segment) => (segment.closed ? segment : { ...segment, endedAt: now }));
 	};
 
-	/** 열린 학습 구간에 재생 기록을 더하는 함수 */
+	/** 진행 중인 학습 구간에 재생 기록을 더하는 함수 */
 	const addPlayToLearningSegment = (durationMs: number) => {
 		learningSegments = learningSegments.map((segment) =>
 			segment.closed
@@ -113,7 +106,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		);
 	};
 
-	/** 열린 학습 구간을 닫는 함수 */
+	/** 학습 구간 종료 함수 */
 	const closeLearningSegment = () => {
 		learningSegments = learningSegments.map((segment) => ({ ...segment, closed: true }));
 	};
@@ -143,7 +136,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		playingSource?.stop();
 	};
 
-	/** 스트레스 케어 음원을 정지하고 이어 재생할 위치를 저장하는 함수 */
+	/** 스트레스 케어 음원 정지 함수 */
 	const stopCare = () => {
 		const playingSource = careSource;
 
@@ -231,7 +224,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		careStartedAt = contextAtStart.currentTime;
 	};
 
-	/** 학습 단계가 바뀌었을 때 실행하는 함수 */
+	/** 새 학습 단계 시작 함수 */
 	const enterPhase = (span: PhaseSpan) => {
 		emitSound(detector.flush());
 
@@ -253,7 +246,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 	};
 
-	/** 학습 타이머가 주기마다 실행하는 함수 */
+	/** 주기마다 단계 확인 및 녹음 재생 함수 */
 	const tick = () => {
 		const now = dayjs().valueOf();
 		const span = currentSpan(options.startedAt, now, options.sleep);
@@ -356,6 +349,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	};
 
 	return {
+		/** 학습 시작 함수 */
 		start: async () => {
 			await activateAudioSession();
 
@@ -371,15 +365,18 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 			await startRunning();
 		},
+		/** 학습 일시정지 함수 */
 		pause: async () => {
 			await stopRunning();
 			await context?.suspend();
 		},
+		/** 학습 재개 함수 */
 		resume: async () => {
 			await activateAudioSession();
 			await context?.resume();
 			await startRunning();
 		},
+		/** 학습 정지 함수 */
 		stop: async () => {
 			stopped = true;
 
@@ -424,8 +421,11 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 				return finalValueSent && startedAtAcknowledged ? { ...segment, acknowledged: true } : segment;
 			});
 		},
+		/** 전체 학습 시간 반환 함수 */
 		learningMs: () => learningSegments.reduce((sum, segment) => sum + segment.endedAt - segment.startedAt, 0),
 		/** 전체 재생 횟수를 반환하는 함수 */
 		playCount: () => learningSegments.reduce((sum, segment) => sum + segment.playCount, 0),
 	};
 };
+
+export type LearningEngine = ReturnType<typeof createLearningEngine>;

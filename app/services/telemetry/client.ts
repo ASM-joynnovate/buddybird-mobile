@@ -5,11 +5,9 @@ import type { Parrot } from '@/types/apis/parrots';
 
 import type { AnalyticsConsent } from '@/types/analytics-consent';
 import type { DeviceSettings } from '@/types/device-settings';
-import type { PetcamVideoSettings, PetcamVideoStats } from '@/types/petcam';
 import type { RemoteConfigValues } from '@/types/remote-config';
 import type { AnalyticsEvents, UserProperties } from '@/types/telemetry';
 
-import type { ParrotCheckResult } from '@modules/frame-capture/src';
 import {
 	getAnalytics,
 	logEvent,
@@ -28,9 +26,10 @@ import * as Sentry from '@sentry/react-native';
 import { getTrackingPermissionsAsync, requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import * as Clarity from 'react-native-clarity';
 
-import { env } from '@/config';
+import { env } from '@/config/env';
 import { FIREBASE_NAME_LIMIT, firebaseParameters, sendTelemetrySafely } from '@/services/telemetry/events';
 import { ageMonths } from '@/utils/date';
+import { isSpeciesId } from '@/utils/species';
 
 type UserPropertyStrings = Record<string, string | null>;
 
@@ -41,14 +40,10 @@ export const navigationIntegration = Sentry.reactNavigationIntegration({
 });
 
 Sentry.init({
-	dsn: 'https://1efbf86681a92ef311ce12e25c1e37c9@o4512127698862080.ingest.de.sentry.io/4512127704498256',
 	enabled: !__DEV__,
 	environment: env.isProduction ? 'prod' : 'dev',
-	// oxlint-disable-next-line typescript/no-deprecated
-	sendDefaultPii: true,
 	enableLogs: true,
 	replaysOnErrorSampleRate: 1.0,
-	tracesSampleRate: 1.0,
 	integrations: [Sentry.mobileReplayIntegration(), navigationIntegration],
 	beforeSend: (event, hint) => {
 		if (hint.originalException instanceof ApiError) {
@@ -112,7 +107,7 @@ const sendUserId = async () => {
 	}
 };
 
-/** 분석 허용 여부에 따라 Clarity 녹화를 정지하거나 다시 시작하는 함수 */
+/** 분석 허용 여부에 따라 Clarity 녹화 제어 함수 */
 const pauseOrResumeClarity = async () => {
 	if (!clarityStarted) {
 		return;
@@ -211,7 +206,7 @@ export const setUserProperties = (nextUserProperties: UserProperties) => {
 /** 사용자 속성 동기화 함수 */
 export const syncUserProperties = (parrot: Parrot | null, wordCount: number, locale: DeviceSettings['locale']) => {
 	setUserProperties({
-		parrot_species: parrot?.species ?? null,
+		parrot_species: parrot ? (isSpeciesId(parrot.species) ? parrot.species : 'custom') : null,
 		parrot_age_months: parrot ? ageMonths(parrot.birthdate) : null,
 		total_words_registered: wordCount,
 		locale,
@@ -270,7 +265,7 @@ export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
 	track('app_error', { error_code: reportedError.name, screen_name: currentScreen });
 };
 
-/** 적용된 Remote Config 값을 Sentry에 기록하는 함수 */
+/** Remote Config 값 Sentry 기록 함수 */
 export const recordRemoteConfig = (configValues: RemoteConfigValues) => {
 	const attributeEntries = Object.entries(configValues).map(
 		([key, value]) => [`remote_config.${key}`, value] as const,
@@ -278,57 +273,4 @@ export const recordRemoteConfig = (configValues: RemoteConfigValues) => {
 
 	Sentry.setTags(Object.fromEntries(attributeEntries.map(([key, value]) => [key, String(value)])));
 	Sentry.setAttributes(Object.fromEntries(attributeEntries));
-};
-
-/** 요청한 영상 설정의 Sentry 속성을 반환하는 함수 */
-const requestedVideoAttributes = (video: PetcamVideoSettings) => ({
-	'petcam.requested_width': video.width,
-	'petcam.requested_height': video.height,
-	'petcam.requested_frame_rate': video.frameRate,
-});
-
-/** 카메라 열기를 span으로 기록하는 함수 */
-export const tracePetcamCamera = <Result>(video: PetcamVideoSettings, openCamera: () => Promise<Result>) => {
-	return Sentry.startSpan({ name: 'petcam.camera', attributes: requestedVideoAttributes(video) }, openCamera);
-};
-
-/** 영상 통계를 metric으로 기록하는 함수 */
-export const recordPetcamVideoStats = (role: 'sender' | 'receiver', stats: PetcamVideoStats) => {
-	const attributes = {
-		role,
-		...(stats.qualityLimitation ? { quality_limitation: stats.qualityLimitation } : {}),
-	};
-
-	Sentry.metrics.distribution('petcam.frame_rate', stats.frameRate, { attributes });
-	Sentry.metrics.distribution('petcam.frame_width', stats.frameWidth, { attributes });
-	Sentry.metrics.distribution('petcam.frame_height', stats.frameHeight, { attributes });
-
-	if (stats.bitrate !== null) {
-		Sentry.metrics.distribution('petcam.bitrate', stats.bitrate, { unit: 'kbps', attributes });
-	}
-};
-
-/** 앵무새 확인 결과를 metric으로 기록하는 함수 */
-export const recordParrotCheck = (checkResult: ParrotCheckResult) => {
-	const attributes = { night_corrected: checkResult.nightCorrected };
-
-	Sentry.metrics.distribution('petcam.bird_score', checkResult.birdScore, { attributes });
-	Sentry.metrics.distribution('petcam.photo_brightness', checkResult.brightness, { attributes });
-	Sentry.metrics.distribution('petcam.inference_duration', checkResult.inferenceMs, {
-		unit: 'millisecond',
-		attributes,
-	});
-};
-
-/** 펫캠 파일 업로드를 metric으로 기록하는 함수 */
-export const recordPetcamUpload = (file: 'photo' | 'video', bytes: number, durationMs: number) => {
-	const attributes = { file };
-
-	Sentry.metrics.distribution('petcam.upload_size', bytes, { unit: 'byte', attributes });
-	Sentry.metrics.distribution('petcam.upload_duration', durationMs, { unit: 'millisecond', attributes });
-};
-
-/** 펫캠 파일 업로드 실패를 metric으로 기록하는 함수 */
-export const recordPetcamUploadFailure = (file: 'photo' | 'video') => {
-	Sentry.metrics.count('petcam.upload_failure', 1, { attributes: { file } });
 };

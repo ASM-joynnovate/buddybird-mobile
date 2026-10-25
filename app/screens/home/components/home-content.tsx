@@ -2,17 +2,14 @@ import { useState } from 'react';
 
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
-
 import { ApiError } from '@/types/apis/common';
 
 import type { RootStackParamList, SessionSetup } from '@/types/navigation';
 
 import { useGetDeviceList } from '@/hooks/apis/devices';
-import { getHomeSummaryOptions } from '@/hooks/apis/home';
+import { useGetHomeSummary } from '@/hooks/apis/home';
 import { useFinishRunningSession, useFinishSession, useStartSession } from '@/hooks/apis/sessions';
 import { useGetSettings } from '@/hooks/apis/settings';
-import { useGetWordList } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
@@ -26,16 +23,18 @@ import * as Device from 'expo-device';
 import { /* EyeIcon, */ MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
+import { toast } from 'sonner-native';
 
 import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
 import WordPicker from '@/screens/home/components/word-picker';
-import { useAccountStore } from '@/stores/account';
+import useSelectedWord from '@/screens/home/hooks/use-selected-word';
+import { reportError } from '@/services/telemetry/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useSessionStore } from '@/stores/session';
 import { colors, font, layoutAnimationMs } from '@/theme';
-import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -48,6 +47,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { ui } from '@/components/ui/styles';
 import { Card } from '@/components/ui/surface/card';
 import { TextButton } from '@/components/ui/text-button';
+import { Toast } from '@/components/ui/toast';
 
 /**
  * 학습 설정 컴포넌트
@@ -62,37 +62,32 @@ const HomeContent = () => {
 	const [volumeChecking, setVolumeChecking] = useState(false);
 	const [lowVolumeDialogOpen, setLowVolumeDialogOpen] = useState(false);
 
-	const { data: homeSummaryData, refetch: refetchHomeSummary } = useSuspenseQuery(getHomeSummaryOptions());
+	const { data: homeSummaryData, refetch: refetchHomeSummary } = useGetHomeSummary();
 	const { data: deviceListData } = useGetDeviceList();
-	const { data: wordListData } = useGetWordList();
 	const { data: settingsData } = useGetSettings();
-
-	useRefreshOnFocus(refetchHomeSummary);
 
 	const startSession = useStartSession();
 	const finishSession = useFinishSession();
 	const finishRunningSession = useFinishRunningSession();
 
-	const clientDeviceId = useAccountStore((state) => state.clientDeviceId);
+	const clientDeviceId = useDeviceSettingsStore((state) => state.clientDeviceId);
 
-	const selectedWordId = useSessionStore((state) => state.selectedWordId);
 	const duration = useSessionStore((state) => state.duration);
 	const editedSleep = useSessionStore((state) => state.editedSleep);
-	const setSelectedWordId = useSessionStore((state) => state.setSelectedWordId);
-	const setDuration = useSessionStore((state) => state.setDuration);
+
 	const setEditedSleep = useSessionStore((state) => state.setEditedSleep);
 	const resetSetup = useSessionStore((state) => state.resetSetup);
 
+	useRefreshOnFocus(refetchHomeSummary);
+
 	const microphonePermission = usePermission('microphone');
+
+	const { selectedWord } = useSelectedWord();
 
 	const runningSession = homeSummaryData.running_session;
 	const runningDevice = deviceListData.find((device) => device.id === runningSession?.station.device_id);
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
-	const unreadCount = homeSummaryData.unread_notification_count;
 
-	const wordsWithRecordings = wordListData.filter((word) => uploadedRecordings(word.recordings).length > 0);
-	const selectedWord =
-		wordsWithRecordings.find((word) => word.id === selectedWordId) ?? wordsWithRecordings[0] ?? null;
 	const untilEnd = duration.ms === null;
 	const durationInvalid = duration.ms === 0;
 	const sleep = editedSleep ?? settingsData.sleep;
@@ -105,7 +100,7 @@ const HomeContent = () => {
 			? { wordId: selectedWord.id, duration, sleep: untilEnd ? sleep : null, sleepChanged }
 			: null;
 
-	const starting =
+	const sessionStarting =
 		volumeChecking ||
 		microphonePermission.checking ||
 		startSession.isPending ||
@@ -155,8 +150,15 @@ const HomeContent = () => {
 		);
 	};
 
+	/** 마이크 권한 확인 뒤 학습 시작 함수 */
+	const startWithPermission = (setupToStart: SessionSetup) => {
+		void microphonePermission
+			.runWithPermission(() => requestStart(setupToStart))
+			.catch((error: unknown) => reportError(error, 'permission_microphone'));
+	};
+
 	const handleStart = async () => {
-		if (starting || !sessionSetup) {
+		if (sessionStarting || !sessionSetup) {
 			return;
 		}
 
@@ -173,31 +175,29 @@ const HomeContent = () => {
 
 				return;
 			}
-
-			void microphonePermission.run(() => requestStart(sessionSetup));
+		} catch (e) {
+			reportError(e, 'volume_check');
 		} finally {
 			setVolumeChecking(false);
 		}
+
+		startWithPermission(sessionSetup);
 	};
 
 	/** 음량이 0인 채로 학습 시작 */
 	const handleConfirmLowVolume = () => {
-		if (starting || !sessionSetup) {
+		if (sessionStarting || !sessionSetup) {
 			return;
 		}
 
 		setLowVolumeDialogOpen(false);
 
-		void microphonePermission.run(() => requestStart(sessionSetup));
-	};
-
-	const handleCloseLowVolumeDialog = () => {
-		setLowVolumeDialogOpen(false);
+		startWithPermission(sessionSetup);
 	};
 
 	/** 다른 기기에서 진행 중인 학습을 이 기기로 가져오기 */
 	const handleConfirmTakeover = () => {
-		if (starting || !requestedSetup) {
+		if (sessionStarting || !requestedSetup) {
 			return;
 		}
 
@@ -207,7 +207,7 @@ const HomeContent = () => {
 	};
 
 	const handleRetryStart = () => {
-		if (starting || !requestedSetup) {
+		if (sessionStarting || !requestedSetup) {
 			return;
 		}
 
@@ -227,11 +227,18 @@ const HomeContent = () => {
 	};
 
 	const handleEndElsewhere = () => {
-		if (starting || !runningSession) {
+		if (sessionStarting || !runningSession) {
 			return;
 		}
 
-		finishSession.mutate({ id: runningSession.id });
+		finishSession.mutate(
+			{ id: runningSession.id },
+			{
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('session.start.endElsewhereError')} />);
+				},
+			},
+		);
 	};
 
 	// TODO: 펫캠 가이드 추가 후 사용
@@ -246,7 +253,7 @@ const HomeContent = () => {
 
 	return (
 		<>
-			<HomeTopBar unreadCount={unreadCount} />
+			<HomeTopBar />
 
 			<ScrollView
 				alwaysBounceVertical={false}
@@ -265,7 +272,7 @@ const HomeContent = () => {
 								<Copy style={styles.elsewhereText}>{t('session.start.elsewhere')}</Copy>
 								<TextButton
 									label={t('session.start.endElsewhere')}
-									disabled={starting}
+									disabled={sessionStarting}
 									onPress={handleEndElsewhere}
 								/>
 							</View>
@@ -279,37 +286,29 @@ const HomeContent = () => {
 								style={styles.watchButton}
 							/>*/}
 						</Card>
-						<InlineError message={finishSession.isError ? t('session.start.endElsewhereError') : null} />
 					</View>
 				)}
 
-				{/*단어 선택*/}
 				<Copy accessibilityRole="header" style={ui.sectionTitle}>
 					{t('session.start.word')}
 				</Copy>
-				<WordPicker
-					words={wordsWithRecordings}
-					selectedId={selectedWord?.id ?? null}
-					onSelect={setSelectedWordId}
-				/>
+				<WordPicker />
 				{!selectedWord && <Copy style={ui.subtitle}>{t('session.start.empty')}</Copy>}
 
-				{/*학습 시간 선택*/}
 				<Copy accessibilityRole="header" style={[ui.sectionTitle, ui.sectionContainer]}>
 					{t('session.start.duration')}
 				</Copy>
-				<DurationPicker value={duration} onChange={setDuration} />
+				<DurationPicker />
 				{!durationInvalid && (
 					<Animated.View
 						entering={FadeIn.duration(layoutAnimationMs)}
 						exiting={FadeOut.duration(layoutAnimationMs)}
 						layout={LinearTransition.duration(layoutAnimationMs)}
 					>
-						<DurationBreakdown duration={duration} />
+						<DurationBreakdown />
 					</Animated.View>
 				)}
 
-				{/*수면 시간 선택*/}
 				{untilEnd && (
 					<Animated.View
 						entering={FadeIn.duration(layoutAnimationMs)}
@@ -318,7 +317,7 @@ const HomeContent = () => {
 						style={styles.sleepContainer}
 					>
 						<ItemGroup>
-							<SleepTimePicker first value={sleep} onChange={setEditedSleep} />
+							<SleepTimePicker firstInGroup value={sleep} onChange={setEditedSleep} />
 						</ItemGroup>
 					</Animated.View>
 				)}
@@ -335,7 +334,7 @@ const HomeContent = () => {
 				icon={PlayIcon}
 				iconProps={{ fill: sessionSetup ? colors.onFilled : colors.subtle }}
 				depth="xhigh"
-				loading={starting}
+				loading={sessionStarting}
 				disabled={!sessionSetup}
 				onPress={() => void handleStart()}
 				style={styles.startButton}
@@ -350,7 +349,7 @@ const HomeContent = () => {
 					confirm: t('session.lowVolume.confirm'),
 				}}
 				onConfirm={handleConfirmLowVolume}
-				onClose={handleCloseLowVolumeDialog}
+				onClose={() => setLowVolumeDialogOpen(false)}
 			/>
 			<ConfirmDialog
 				visible={takeoverDialogOpen}
@@ -359,7 +358,7 @@ const HomeContent = () => {
 					message: t('session.takeover.message'),
 					confirm: t('session.takeover.confirm'),
 				}}
-				confirmStatus={{ busy: starting }}
+				confirmBusy={sessionStarting}
 				onConfirm={handleConfirmTakeover}
 				onClose={handleCloseStartDialog}
 			/>
@@ -371,13 +370,13 @@ const HomeContent = () => {
 					confirm: t('common.retry'),
 					cancel: t('common.close'),
 				}}
-				confirmStatus={{ busy: starting }}
+				confirmBusy={sessionStarting}
 				onConfirm={handleRetryStart}
 				onClose={handleCloseStartDialog}
 			/>
 			<PermissionDialog state={microphonePermission.dialog} />
 
-			<AnnouncementPopup announcements={homeSummaryData.unread_announcements} />
+			<AnnouncementPopup />
 		</>
 	);
 };

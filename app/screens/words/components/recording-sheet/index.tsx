@@ -2,11 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
+import type { EditorRecording, NewRecording } from '@/types/recording';
+import type { SoundPlayer } from '@/types/sound-player';
 
-import { getRecordingDurationOptions } from '@/hooks/apis/words';
 import usePermission from '@/hooks/use-permission';
-import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -16,12 +15,12 @@ import { RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorder
 import { randomUUID } from 'expo-crypto';
 import { MicIcon, PauseIcon, PlayIcon, SquareIcon } from 'lucide-react-native';
 
-import { MAX_RECORDINGS, MAX_UPLOAD_BYTES, RECORDING_MAX_SECONDS } from '@/config';
-import { SECOND } from '@/config/units';
+import { MAX_RECORDINGS, MAX_UPLOAD_BYTES, RECORDING_MAX_MS } from '@/config/policy';
+import { MIB, SECOND } from '@/config/units';
 import AudioWaveform from '@/screens/words/components/audio-waveform';
-import RecordingStepItem from '@/screens/words/components/recording-sheet/step-item';
-import WordPrompt from '@/screens/words/components/recording-sheet/word-prompt';
-import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
+import RecordingSheetStepItem from '@/screens/words/components/recording-sheet/step-item';
+import RecordingSheetWordPrompt from '@/screens/words/components/recording-sheet/word-prompt';
+import useRecordingDuration from '@/screens/words/hooks/use-recording-duration';
 import { deleteFile, readFileInfo } from '@/services/media/file';
 import { reportError, track } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
@@ -34,6 +33,8 @@ import { Sheet } from '@/components/ui/sheet';
 import { ui } from '@/components/ui/styles';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { TextButton } from '@/components/ui/text-button';
+
+const RECORDER_STATE_INTERVAL_MS = 80;
 
 const recordingOptions = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true };
 
@@ -60,7 +61,7 @@ interface RecordingTarget {
 	nextIndex: number;
 }
 
-/** 녹음 데시벨을 0에서 1 사이의 소리 크기로 변환하는 함수 */
+/** 데시벨을 0에서 1 사이 값으로 변환하는 함수 */
 const meteringLevel = (decibels?: number) => {
 	if (decibels === undefined || !Number.isFinite(decibels)) {
 		return 0;
@@ -71,7 +72,7 @@ const meteringLevel = (decibels?: number) => {
 	return normalized < NOISE_FLOOR ? 0 : (normalized - NOISE_FLOOR) / (1 - NOISE_FLOOR);
 };
 
-/** 녹음 중 쌓은 소리 크기 기록을 파형 막대 수만큼 줄이는 함수 */
+/** 소리 크기 기록을 막대 수만큼 줄이는 함수 */
 const summarizeLevels = (levels: readonly number[]) => {
 	return Array.from({ length: WAVEFORM_BAR_COUNT }, (_, index) => {
 		const start = Math.floor((index * levels.length) / WAVEFORM_BAR_COUNT);
@@ -120,9 +121,9 @@ interface Props {
  * @param visible bottom sheet 표시 여부
  * @param wordName 녹음할 단어 이름
  * @param recordings 편집 중인 단어의 녹음 목록
- * @param player useSoundPlayer 결과
+ * @param player 녹음 재생 상태 및 제어 함수
  * @param onAdd 빈 단계에서 녹음을 마쳤을 때 실행할 함수
- * @param onReplace 녹음이 있는 단계에서 새로 녹음을 마쳤을 때 실행할 함수
+ * @param onReplace 녹음이 있는 단계에서 다시 녹음한 뒤 실행할 함수
  * @param onClose bottom sheet를 닫을 때 실행할 함수
  */
 const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplace, onClose }: Props) => {
@@ -140,60 +141,6 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 	const recordedLevelsRef = useRef<number[]>([]);
 	const handleRecordingFinishedRef = useRef<(uri: string, durationMs: number) => void>(() => undefined);
 
-	const currentRecording = recordings[currentIndex] ?? null;
-
-	const { data: currentDurationData } = useQuery({
-		...getRecordingDurationOptions({ id: currentRecording?.id ?? '', url: currentRecording?.url ?? '' }),
-		enabled: currentRecording?.kind === 'server' && !currentRecording.pending,
-		throwOnError: false,
-	});
-
-	/** 녹음이 끝나면 녹음 파일 검사 후 목록에 추가하거나 교체 */
-	const handleRecordingFinished = (uri: string, durationMs: number) => {
-		const target = targetRef.current;
-
-		if (closingRef.current || !target || handledUriRef.current === uri) {
-			return;
-		}
-
-		handledUriRef.current = uri;
-
-		try {
-			const fileError = getRecordingFileError(uri, durationMs);
-
-			setRecordingFileError(fileError);
-
-			if (fileError) {
-				deleteRecordingFile(uri);
-
-				return;
-			}
-
-			const newRecording: NewRecording = {
-				key: randomUUID(),
-				uri,
-				durationMs: Math.min(RECORDING_MAX_SECONDS * SECOND, durationMs),
-				waveformLevels: summarizeLevels(recordedLevelsRef.current),
-				replacedRecordingId: null,
-				recordingId: null,
-			};
-
-			if (target.recording) {
-				onReplace(target.recording, newRecording);
-			} else {
-				onAdd(newRecording);
-			}
-
-			setCurrentIndex(target.nextIndex);
-
-			track('recording_finished', { duration_ms: newRecording.durationMs });
-		} catch (e) {
-			reportError(e, 'recording_inspect');
-
-			setRecordingFileError('recordError');
-		}
-	};
-
 	const recorder = useAudioRecorder(recordingOptions, (status) => {
 		if (status.hasError) {
 			setRecordingFileError('recordError');
@@ -201,7 +148,11 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 			handleRecordingFinishedRef.current(status.url, elapsedRef.current);
 		}
 	});
-	const recorderState = useAudioRecorderState(recorder, 80);
+	const recorderState = useAudioRecorderState(recorder, RECORDER_STATE_INTERVAL_MS);
+
+	const currentRecording = recordings[currentIndex] ?? null;
+
+	const { data: currentDurationData } = useRecordingDuration(currentRecording);
 
 	const microphonePermission = usePermission('microphone');
 
@@ -227,12 +178,58 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 		playedBarCount = Math.round(player.progress * WAVEFORM_BAR_COUNT);
 	}
 
-	/** 녹음 경과 시간을 ref에 저장 */
+	/** 녹음 파일 검사 후 추가 또는 교체 */
+	const handleRecordingFinished = (uri: string, durationMs: number) => {
+		const target = targetRef.current;
+
+		if (closingRef.current || !target || handledUriRef.current === uri) {
+			return;
+		}
+
+		handledUriRef.current = uri;
+
+		try {
+			const fileError = getRecordingFileError(uri, durationMs);
+
+			setRecordingFileError(fileError);
+
+			if (fileError) {
+				deleteRecordingFile(uri);
+
+				return;
+			}
+
+			const newRecording: NewRecording = {
+				key: randomUUID(),
+				uri,
+				durationMs: Math.min(RECORDING_MAX_MS, durationMs),
+				waveformLevels: summarizeLevels(recordedLevelsRef.current),
+				replacedRecordingId: null,
+				recordingId: null,
+			};
+
+			if (target.recording) {
+				onReplace(target.recording, newRecording);
+			} else {
+				onAdd(newRecording);
+			}
+
+			setCurrentIndex(target.nextIndex);
+
+			track('recording_finished', { duration_ms: newRecording.durationMs });
+		} catch (e) {
+			reportError(e, 'recording_inspect');
+
+			setRecordingFileError('recordError');
+		}
+	};
+
+	/** 녹음 경과 시간 저장 */
 	useEffect(() => {
 		elapsedRef.current = recorderState.durationMillis;
 	}, [recorderState.durationMillis]);
 
-	/** 최신 handleRecordingFinished를 ref에 저장 */
+	/** 녹음 완료 함수의 최신 값 저장 */
 	useEffect(() => {
 		handleRecordingFinishedRef.current = handleRecordingFinished;
 	});
@@ -250,14 +247,14 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 		setRecordingLevels((prev) => [...prev.slice(1), level]);
 	}, [isRecording, recorderState]);
 
-	/** bottom sheet가 열려 있는 동안 녹음 수가 바뀌면 다음 빈 단계 선택 */
+	/** 녹음 수 변경 시 다음 빈 단계 선택 */
 	useEffect(() => {
 		if (visible) {
-			setCurrentIndex(Math.min(recordings.length, MAX_RECORDINGS - 1));
+			setCurrentIndex(lastStepIndex);
 		}
-	}, [visible, recordings.length]);
+	}, [visible, lastStepIndex]);
 
-	/** bottom sheet가 열리면 오디오 모드 설정 */
+	/** bottom sheet 표시 시 오디오 모드 설정 */
 	useLayoutEffect(() => {
 		if (!visible) {
 			return undefined;
@@ -313,7 +310,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 
 			handledUriRef.current = null;
 
-			recorder.record({ forDuration: RECORDING_MAX_SECONDS });
+			recorder.record({ forDuration: RECORDING_MAX_MS / SECOND });
 
 			track('recording_started', {});
 		} catch (e) {
@@ -357,7 +354,9 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 
 		player.stop();
 
-		void microphonePermission.run(() => void handleStartRecording());
+		void microphonePermission
+			.runWithPermission(() => void handleStartRecording())
+			.catch((error: unknown) => reportError(error, 'permission_microphone'));
 	};
 
 	const handleSelectStep = (index: number) => {
@@ -416,7 +415,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 					label={t('words.recorder.rerecord')}
 					icon={MicIcon}
 					size="small"
-					disabled={busy || microphonePermission.checking || currentRecording.pending}
+					disabled={busy || microphonePermission.checking || currentRecording.uploadPending}
 					onPress={handleRecord}
 					style={ui.action}
 				/>
@@ -433,10 +432,9 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 				headerAction=<TextButton label={t('words.recorder.done')} disabled={isRecording} onPress={onClose} />
 				dismissible={!isRecording}
 			>
-				{/*녹음 단계*/}
 				<View accessibilityRole="tablist" style={styles.steps}>
 					{Array.from({ length: MAX_RECORDINGS }, (_, index) => (
-						<RecordingStepItem
+						<RecordingSheetStepItem
 							key={index}
 							index={index}
 							selected={index === currentIndex}
@@ -448,7 +446,6 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 					))}
 				</View>
 
-				{/*좌우로 밀면 단계가 바뀌고 누르면 녹음을 재생하는 녹음 상자*/}
 				<PressableSurface
 					accessibilityLabel={
 						currentRecording ? t(playing ? 'common.sound.stop' : 'words.recorder.play') : undefined
@@ -461,7 +458,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 					cornerRadius="illustration"
 					contentStyle={styles.recordingBox}
 				>
-					<WordPrompt wordName={wordName} />
+					<RecordingSheetWordPrompt wordName={wordName} />
 
 					<View style={styles.waveform}>
 						<AudioWaveform
@@ -477,7 +474,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 						{isRecording && <View style={styles.recordingDot} />}
 						<Copy accessibilityRole="timer" style={styles.time}>
 							{formatTimer(shownMs)}
-							<Copy style={styles.timeLimit}>{` / ${formatTimer(RECORDING_MAX_SECONDS * SECOND)}`}</Copy>
+							<Copy style={styles.timeLimit}>{` / ${formatTimer(RECORDING_MAX_MS)}`}</Copy>
 						</Copy>
 					</View>
 				</PressableSurface>
@@ -485,7 +482,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 				<InlineError
 					message={
 						recordingFileError
-							? t(`words.recorder.${recordingFileError}`)
+							? t(`words.recorder.${recordingFileError}`, { size: MAX_UPLOAD_BYTES / MIB })
 							: player.failedId
 								? t('common.sound.playError')
 								: null

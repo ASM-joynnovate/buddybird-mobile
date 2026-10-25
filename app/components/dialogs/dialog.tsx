@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react';
 
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Toaster } from 'sonner-native';
 
 import { colors, contentMaxWidth, radius } from '@/theme';
 
 import { Title } from '@/components/ui/title';
+import { dialogToasterId, TOAST_DURATION_MS } from '@/components/ui/toast';
 
 interface Props {
 	visible: boolean;
@@ -50,6 +52,11 @@ const Dialog = ({ visible, onClose, title, children, footer }: Props) => {
 						{footer}
 					</View>
 				</KeyboardAvoidingView>
+
+				{/*Android에서 다이얼로그 위에 표시할 토스트*/}
+				{Platform.OS === 'android' && (
+					<Toaster id={dialogToasterId} position="top-center" duration={TOAST_DURATION_MS} />
+				)}
 			</GestureHandlerRootView>
 		</Modal>
 	);

@@ -18,7 +18,6 @@ interface PressPoint {
 
 interface Props extends SurfaceProps {
 	onPress: (point: PressPoint) => void;
-	onLongPress?: () => void;
 	onSwipeLeft?: () => void;
 	onSwipeRight?: () => void;
 	disabled?: boolean;
@@ -28,7 +27,6 @@ export type PressableSurfaceProps = Props;
 
 export const PressableSurface = ({
 	onPress,
-	onLongPress,
 	onSwipeLeft,
 	onSwipeRight,
 	disabled = false,
@@ -56,42 +54,26 @@ export const PressableSurface = ({
 		},
 		[disabled, onPress],
 	);
-	const holdActivate = useCallback(() => {
-		if (!disabled) {
-			onLongPress?.();
-		}
-	}, [disabled, onLongPress]);
 
-	const pressGesture = useMemo(() => {
-		const tap = Gesture.Tap()
-			.enabled(!disabled)
-			.maxDuration(10 * SECOND)
-			.maxDistance(10)
-			.onBegin(() => {
-				pressProgress.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));
-			})
-			.onEnd((event, success) => {
-				if (success) {
-					scheduleOnRN(activate, event.x, event.y);
-				}
-			})
-			.onFinalize(() => {
-				pressProgress.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }));
-			});
-
-		if (!onLongPress) {
-			return tap;
-		}
-
-		const longPress = Gesture.LongPress()
-			.enabled(!disabled)
-			.minDuration(500)
-			.onStart(() => {
-				scheduleOnRN(holdActivate);
-			});
-
-		return Gesture.Exclusive(longPress, tap);
-	}, [activate, disabled, holdActivate, onLongPress, pressProgress]);
+	const pressGesture = useMemo(
+		() =>
+			Gesture.Tap()
+				.enabled(!disabled)
+				.maxDuration(10 * SECOND)
+				.maxDistance(10)
+				.onBegin(() => {
+					pressProgress.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));
+				})
+				.onEnd((event, tapSucceeded) => {
+					if (tapSucceeded) {
+						scheduleOnRN(activate, event.x, event.y);
+					}
+				})
+				.onFinalize(() => {
+					pressProgress.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }));
+				}),
+		[activate, disabled, pressProgress],
+	);
 
 	const gesture = useMemo(() => {
 		const swipes = [];
@@ -124,8 +106,6 @@ export const PressableSurface = ({
 	const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
 		if (event.nativeEvent.actionName === 'activate') {
 			activate();
-		} else if (event.nativeEvent.actionName === 'longpress') {
-			holdActivate();
 		}
 	};
 
@@ -138,9 +118,7 @@ export const PressableSurface = ({
 				focusable={!disabled}
 				accessibilityRole={accessibilityRole}
 				accessibilityState={{ ...accessibilityState, disabled }}
-				accessibilityActions={
-					onLongPress ? [{ name: 'activate' }, { name: 'longpress' }] : [{ name: 'activate' }]
-				}
+				accessibilityActions={[{ name: 'activate' }]}
 				onAccessibilityTap={() => activate()}
 				onAccessibilityAction={handleAccessibilityAction}
 				depth={depth}

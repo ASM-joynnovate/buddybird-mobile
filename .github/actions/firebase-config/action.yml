@@ -1,0 +1,33 @@
+name: firebase config
+description: Write the Firebase config files of an app variant
+
+inputs:
+  variant:
+    description: development or production
+    required: true
+  ios-config:
+    description: Base64 GoogleService-Info.plist
+    required: true
+  android-config:
+    description: Base64 google-services.json
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: write firebase config
+      shell: bash
+      env:
+        VARIANT: ${{ inputs.variant }}
+        IOS_CONFIG: ${{ inputs.ios-config }}
+        ANDROID_CONFIG: ${{ inputs.android-config }}
+      run: |
+        folder=dev
+        if [ "$VARIANT" = production ]; then
+          folder=prod
+        fi
+        test -n "$IOS_CONFIG"
+        test -n "$ANDROID_CONFIG"
+        mkdir -p "config/$folder/firebase"
+        printf '%s' "$IOS_CONFIG" | base64 -d > "config/$folder/firebase/GoogleService-Info.plist"
+        printf '%s' "$ANDROID_CONFIG" | base64 -d > "config/$folder/firebase/google-services.json"

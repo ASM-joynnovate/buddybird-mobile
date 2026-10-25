@@ -1,33 +1,36 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { Report } from '@/types/apis/reports';
+import { useGetReport } from '@/hooks/apis/reports';
 
 import { useTranslation } from 'react-i18next';
 
-import PeriodMenu from '@/screens/report/components/report-header/period-menu';
-import PeriodNav from '@/screens/report/components/report-header/period-nav';
+import ReportHeaderPeriodMenu from '@/screens/report/components/report-header/period-menu';
+import ReportHeaderPeriodNav from '@/screens/report/components/report-header/period-nav';
 import ReportHeaderTodayButton from '@/screens/report/components/report-header/today-button';
-import TrendPager from '@/screens/report/components/report-header/trend-pager';
-import WordBars from '@/screens/report/components/report-header/word-bars';
+import ReportHeaderTrendPager from '@/screens/report/components/report-header/trend-pager';
+import ReportHeaderWordBars from '@/screens/report/components/report-header/word-bars';
+import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { ScreenHeader } from '@/components/ui/screen-header';
 
 interface Props {
-	report: Report;
-	previousReport: Report;
+	start: string;
 }
 
 /**
  * 기간별 학습 시간 요약 컴포넌트
- * @param report 선택한 기간의 리포트
- * @param previousReport 선택한 기간 바로 전 기간의 리포트
+ * @param start 표시할 기간의 시작 날짜
  */
-const ReportHeader = ({ report, previousReport }: Props) => {
+const ReportHeader = ({ start }: Props) => {
 	const { t } = useTranslation();
 
-	const hasSessions = report.sessions.length > 0;
+	const period = useReportStore((state) => state.period);
+
+	const { data: reportData } = useGetReport({ period, start });
+
+	const hasSessions = reportData.sessions.length > 0;
 
 	return (
 		<View>
@@ -37,24 +40,19 @@ const ReportHeader = ({ report, previousReport }: Props) => {
 				trailing={
 					<>
 						<ReportHeaderTodayButton />
-						<PeriodMenu />
+						<ReportHeaderPeriodMenu />
 					</>
 				}
 			/>
 			<View style={styles.divider} />
 
-			<PeriodNav />
-			<TrendPager key={report.period.unit} />
+			<ReportHeaderPeriodNav />
+			<ReportHeaderTrendPager key={period} />
 
 			{hasSessions && (
 				<>
 					<View style={styles.band} />
-					<WordBars
-						key={report.period.start}
-						period={report.period.unit}
-						words={report.active.words}
-						previousWords={previousReport.active.words}
-					/>
+					<ReportHeaderWordBars key={start} start={start} />
 
 					<View style={styles.band} />
 					<Copy accessibilityRole="header" style={styles.sessionsTitle}>

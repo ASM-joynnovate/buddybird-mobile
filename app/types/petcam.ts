@@ -84,11 +84,23 @@ export interface PetcamIceServer {
 	credential?: string;
 }
 
-export type PetcamTurnCredentialIssuer = () => Promise<{ ice_servers: PetcamIceServer[] }>;
+export interface PetcamTurnCredential {
+	ice_servers: PetcamIceServer[];
+}
+
+export type PetcamTurnCredentialIssuer = () => Promise<PetcamTurnCredential>;
+
+export interface PetcamIceCandidateEvent {
+	candidate: RTCIceCandidate | null;
+}
+
+export interface PetcamTrackEvent {
+	streams: MediaStream[];
+}
 
 export interface PetcamPeerEvents {
-	icecandidate: { candidate: RTCIceCandidate | null };
-	track: { streams: MediaStream[] };
+	icecandidate: PetcamIceCandidateEvent;
+	track: PetcamTrackEvent;
 	connectionstatechange: object;
 }
 

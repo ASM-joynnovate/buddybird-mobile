@@ -25,7 +25,7 @@ const ROWS = [
 	{ icon: SmartphoneIcon, label: 'settings.general.devices', valueWidth: 0 },
 ] as const;
 
-/** 일반 설정을 불러오는 동안 보이는 컴포넌트 */
+/** 일반 설정 스켈레톤 컴포넌트 */
 const GeneralGroupSkeleton = () => {
 	const { t } = useTranslation();
 

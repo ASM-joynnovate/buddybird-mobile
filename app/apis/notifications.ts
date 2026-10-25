@@ -1,11 +1,18 @@
-import { type Page, pageMetaSchema } from '@/types/apis/common';
+import {
+	type IdempotentIdParams,
+	type IdempotentParams,
+	type IdParams,
+	type Page,
+	pageMetaSchema,
+	type PageParams,
+} from '@/types/apis/common';
 import { type AppNotification, notificationSchema } from '@/types/apis/notifications';
 
 import { apiRequest } from '@/lib/api';
 
 import { z } from 'zod';
 
-export const getNotificationList = async ({ page }: { page: number }): Promise<Page<AppNotification>> => {
+export const getNotificationList = async ({ page }: PageParams): Promise<Page<AppNotification>> => {
 	const { data, meta } = await apiRequest('/api/v1/notifications', z.array(notificationSchema), {
 		searchParams: { page },
 	});
@@ -13,22 +20,16 @@ export const getNotificationList = async ({ page }: { page: number }): Promise<P
 	return { data, meta: pageMetaSchema.parse(meta) };
 };
 
-export const getNotification = async ({ id }: { id: string }): Promise<AppNotification> => {
+export const getNotification = async ({ id }: IdParams): Promise<AppNotification> => {
 	const { data: notification } = await apiRequest(`/api/v1/notifications/${id}`, notificationSchema);
 
 	return notification;
 };
 
-export const postNotificationRead = async ({
-	id,
-	idempotencyKey,
-}: {
-	id: string;
-	idempotencyKey: string;
-}): Promise<void> => {
+export const postNotificationRead = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
 	await apiRequest(`/api/v1/notifications/${id}/read`, z.unknown(), { method: 'POST', idempotencyKey });
 };
 
-export const postAllNotificationsRead = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
+export const postAllNotificationsRead = async ({ idempotencyKey }: IdempotentParams): Promise<void> => {
 	await apiRequest('/api/v1/notifications/read-all', z.unknown(), { method: 'POST', idempotencyKey });
 };

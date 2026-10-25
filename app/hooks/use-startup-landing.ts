@@ -18,7 +18,7 @@ const BUBBLE_SHOW_MS = 300;
 const BUBBLE_START_X = -8;
 const BUBBLE_START_SCALE = 0.94;
 
-/** 앱 시작 화면의 버디가 옮겨 올 목적지를 등록하는 Hook */
+/** 시작 화면 버디의 목적지 등록 Hook */
 const useStartupLanding = () => {
 	const navigation = useContext(NavigationContext);
 
@@ -39,13 +39,13 @@ const useStartupLanding = () => {
 		],
 	}));
 
-	/** 버디가 옮겨 오는 동안 말풍선을 숨기고 도착하면 표시 */
+	/** 버디 이동 중 말풍선 숨김 */
 	useAnimatedReaction(
 		() => buddyHidden.get(),
-		(hidden, previousHidden) => {
-			if (hidden) {
+		(current, previous) => {
+			if (current) {
 				bubbleShown.set(0);
-			} else if (previousHidden) {
+			} else if (previous) {
 				bubbleShown.set(withTiming(1, { duration: BUBBLE_SHOW_MS, easing: Easing.out(Easing.cubic) }));
 			}
 		},

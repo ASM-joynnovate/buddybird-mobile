@@ -9,15 +9,18 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 const variants = {
 	plain: { surfaceVariant: 'plain', color: colors.text, shape: 'square' },
 	muted: { surfaceVariant: 'plain', color: colors.muted, shape: 'square' },
-	accent: { surfaceVariant: 'plain', color: colors.orange, shape: 'square' },
 	primary: { surfaceVariant: 'primary', color: colors.onFilled, shape: 'circle' },
 	onBrand: { surfaceVariant: 'plain', color: colors.onBrand, shape: 'square' },
-	onDark: { surfaceVariant: 'onDark', color: colors.text, shape: 'circle' },
 } as const;
 
 const cornerRadii = { circle: 'pill', square: 'control' } as const;
 
-const iconSizes = { compact: 16, tiny: 15, small: 20, medium: 24, large: 28, xlarge: 34 } as const;
+const sizes = {
+	compact: { icon: 16, box: 36 },
+	tiny: { icon: 15, box: 44 },
+	small: { icon: 20, box: 44 },
+	medium: { icon: 24, box: 48 },
+} as const;
 
 const COMPACT_HIT_SLOP = 4;
 
@@ -25,7 +28,7 @@ type IconButtonVariant = keyof typeof variants;
 
 type IconButtonShape = keyof typeof cornerRadii;
 
-type IconButtonSize = keyof typeof iconSizes;
+type IconButtonSize = keyof typeof sizes;
 
 interface Props {
 	icon: LucideIcon;
@@ -38,17 +41,6 @@ interface Props {
 	size?: IconButtonSize;
 }
 
-const boxStyle = (size: IconButtonSize) => {
-	return {
-		compact: boxes.compact,
-		tiny: boxes.tiny,
-		small: boxes.small,
-		medium: boxes.medium,
-		large: boxes.large,
-		xlarge: boxes.xlarge,
-	}[size];
-};
-
 export const IconButton = ({
 	icon: Icon,
 	iconProps,
@@ -60,8 +52,9 @@ export const IconButton = ({
 	size = 'medium',
 }: Props) => {
 	const { surfaceVariant, color, shape: variantShape } = variants[variant];
-	const surfaceRaised = variant === 'primary' || variant === 'onDark';
+	const surfaceRaised = variant === 'primary';
 	const buttonShape = shape ?? variantShape;
+	const boxStyle = { minWidth: sizes[size].box, minHeight: sizes[size].box };
 
 	return (
 		<PressableSurface
@@ -74,10 +67,10 @@ export const IconButton = ({
 			variant={surfaceRaised && disabled ? 'disabled' : surfaceVariant}
 			depth={surfaceRaised ? 'medium' : 'none'}
 			cornerRadius={cornerRadii[buttonShape]}
-			style={[styles.shell, boxStyle(size)]}
-			contentStyle={[styles.face, boxStyle(size)]}
+			style={[styles.shell, boxStyle]}
+			contentStyle={[styles.face, boxStyle]}
 		>
-			<Icon color={disabled ? colors.subtle : color} size={iconSizes[size]} {...iconProps} />
+			<Icon color={disabled ? colors.subtle : color} size={sizes[size].icon} {...iconProps} />
 		</PressableSurface>
 	);
 };
@@ -85,13 +78,4 @@ export const IconButton = ({
 const styles = StyleSheet.create({
 	shell: { flexShrink: 0 },
 	face: { flexGrow: 0, alignItems: 'center', justifyContent: 'center' },
-});
-
-const boxes = StyleSheet.create({
-	compact: { minWidth: 36, minHeight: 36 },
-	tiny: { minWidth: 44, minHeight: 44 },
-	small: { minWidth: 44, minHeight: 44 },
-	medium: { minWidth: 48, minHeight: 48 },
-	large: { minWidth: 64, minHeight: 64 },
-	xlarge: { minWidth: 80, minHeight: 80 },
 });

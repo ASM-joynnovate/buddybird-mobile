@@ -21,7 +21,14 @@ import { colors, font } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const tabs: Record<keyof MainTabParamList, { icon: LucideIcon; labelKey: keyof CommonMessages['tabs'] }> = {
+type TabRoute = BottomTabBarProps['state']['routes'][number];
+
+interface TabItem {
+	icon: LucideIcon;
+	labelKey: keyof CommonMessages['tabs'];
+}
+
+const tabs: Record<keyof MainTabParamList, TabItem> = {
 	HomeTab: { icon: HouseIcon, labelKey: 'home' },
 	WordsTab: { icon: MessageSquareTextIcon, labelKey: 'words' },
 	ReportTab: { icon: ChartNoAxesColumnIcon, labelKey: 'report' },
@@ -40,6 +47,20 @@ interface Props extends BottomTabBarProps {}
 const TabBar = ({ state, navigation, insets }: Props) => {
 	const { t } = useTranslation();
 
+	const handleSelectTab = (route: TabRoute, selected: boolean) => {
+		const event = navigation.emit({
+			type: 'tabPress',
+			target: route.key,
+			canPreventDefault: true,
+		});
+
+		if (selected || event.defaultPrevented) {
+			return;
+		}
+
+		navigation.navigate(route.name, route.params);
+	};
+
 	return (
 		<View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 30) }]}>
 			{state.routes.map((route, index) => {
@@ -47,20 +68,6 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 				const tab = tabs[route.name as keyof MainTabParamList];
 				const TabIcon = tab.icon;
 				const tabLabel = t(`common.tabs.${tab.labelKey}`);
-
-				const handleSelectTab = () => {
-					const event = navigation.emit({
-						type: 'tabPress',
-						target: route.key,
-						canPreventDefault: true,
-					});
-
-					if (selected || event.defaultPrevented) {
-						return;
-					}
-
-					navigation.navigate(route.name, route.params);
-				};
 
 				return (
 					<View key={route.key} style={styles.tabContainer}>
@@ -73,7 +80,7 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 							cornerRadius="control"
 							style={styles.tabTarget}
 							contentStyle={styles.tab}
-							onPress={handleSelectTab}
+							onPress={() => handleSelectTab(route, selected)}
 						>
 							<TabIcon color={selected ? colors.onFilled : colors.muted} size={22} />
 							<Copy

@@ -2,24 +2,22 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
-
 import type { Report } from '@/types/apis/reports';
 
 import type { Locale } from '@/types/locale';
 import type { ReportPeriod } from '@/types/report-period';
 
-import { getReportOptions } from '@/hooks/apis/reports';
+import { useGetReportQuery } from '@/hooks/apis/reports';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration, formatMonthDay } from '@/i18n/format';
+import { formatDuration, formatDurationChange, formatMonthDay } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 import Svg, { Line } from 'react-native-svg';
 
-import CumulativeChart from '@/screens/report/components/report-header/cumulative-chart';
-import TrendPaneSkeleton from '@/screens/report/components/report-header/trend-pane-skeleton';
+import ReportHeaderCumulativeChart from '@/screens/report/components/report-header/cumulative-chart';
+import ReportHeaderTrendPaneSkeleton from '@/screens/report/components/report-header/trend-pane-skeleton';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useReportStore } from '@/stores/report';
 import { colors, font, radius } from '@/theme';
@@ -29,7 +27,7 @@ import { Copy } from '@/components/ui/copy';
 
 type TrendBucket = Report['active']['trend'][number];
 
-/** 구간별 학습 시간을 0부터 시작하는 누적 학습 시간 목록으로 변환하는 함수 */
+/** 구간별 누적 학습 시간 계산 함수 */
 const cumulativeTotals = (trend: TrendBucket[]) => {
 	return [
 		0,
@@ -62,26 +60,23 @@ interface Props {
 /**
  * 기간별 누적 학습 시간 컴포넌트
  * @param start 기간의 시작 날짜
- * @param lineAnimated 선이 그려지는 움직임 실행 여부
+ * @param lineAnimated 선 그리기 애니메이션 실행 여부
  * @param onScrubChange 그래프를 훑기 시작하거나 멈출 때 실행할 함수
  */
-const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
+const ReportHeaderTrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 	const { t } = useTranslation();
 
 	const [scrubIndex, setScrubIndex] = useState<number | null>(null);
 
-	const locale = useDeviceSettingsStore((state) => state.locale);
-
 	const period = useReportStore((state) => state.period);
 
-	const { data: reportData } = useQuery({ ...getReportOptions({ period, start }), throwOnError: false });
-	const { data: previousReportData } = useQuery({
-		...getReportOptions({ period, start: shiftedStart(period, start, -1) }),
-		throwOnError: false,
-	});
+	const { data: reportData } = useGetReportQuery({ period, start });
+	const { data: previousReportData } = useGetReportQuery({ period, start: shiftedStart(period, start, -1) });
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	if (!reportData || !previousReportData) {
-		return <TrendPaneSkeleton />;
+		return <ReportHeaderTrendPaneSkeleton />;
 	}
 
 	const trend = reportData.active.trend;
@@ -97,10 +92,7 @@ const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 	const previousPeriodName = t(`report.previousPeriods.${period}`);
 	const totalLabel = formatDuration(reportData.active.duration_ms, locale);
 	const previousTotalLabel = formatDuration(previousReportData.active.duration_ms, locale);
-	const changeLabel =
-		changeMs === 0
-			? t('report.noChange')
-			: `${changeMs > 0 ? '+' : '-'}${formatDuration(Math.abs(changeMs), locale)}`;
+	const changeLabel = formatDurationChange(changeMs, locale);
 
 	const handleScrub = (index: number | null) => {
 		setScrubIndex(
@@ -111,7 +103,7 @@ const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 
 	return (
 		<View>
-			{/*이 기간과 지난 기간의 학습 시간*/}
+			{/*이 기간 및 지난 기간의 학습 시간*/}
 			<View style={styles.totalsRow}>
 				<View style={styles.currentContainer}>
 					<View style={styles.legendRow}>
@@ -152,7 +144,7 @@ const TrendPane = ({ start, lineAnimated, onScrubChange }: Props) => {
 				{t(`report.change.${period}`, { change: changeLabel })}
 			</Copy>
 
-			<CumulativeChart
+			<ReportHeaderCumulativeChart
 				period={period}
 				trend={trend}
 				currentTotalsMs={currentTotalsMs}
@@ -205,4 +197,4 @@ const styles = StyleSheet.create({
 	increasedText: { color: colors.orangeDark },
 });
 
-export default TrendPane;
+export default ReportHeaderTrendPane;

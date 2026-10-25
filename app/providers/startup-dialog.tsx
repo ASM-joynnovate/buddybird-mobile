@@ -1,9 +1,9 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import type { DeviceSettings } from '@/types/device-settings';
 
-import { getParrotListOptions } from '@/hooks/apis/parrots';
-import { getRunningSessionOptions } from '@/hooks/apis/sessions';
+import { useGetParrotListQuery } from '@/hooks/apis/parrots';
+import { useGetRunningSessionQuery } from '@/hooks/apis/sessions';
 
 import { useUpdatePrompt } from '@/providers/update-dialog';
 import { getFeedbackPromptThresholds } from '@/services/remote-config/client';
@@ -11,9 +11,15 @@ import { reportError, track } from '@/services/telemetry/client';
 import { useAppStore } from '@/stores/app';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useFeedbackStore } from '@/stores/feedback';
-import { feedbackThreshold } from '@/utils/feedback';
 
 import FeedbackDialog from '@/components/dialogs/feedback-dialog';
+
+/** 피드백 요청을 표시할 접속일 수를 반환하는 함수 */
+const feedbackThreshold = (feedbackPrompt: DeviceSettings['feedbackPrompt'], thresholds: readonly number[]) => {
+	const lastIndex = thresholds.length - 1;
+
+	return thresholds[Math.min(Math.max(feedbackPrompt.thresholdIndex, 0), lastIndex)];
+};
 
 interface Props {
 	children: ReactNode;
@@ -28,22 +34,22 @@ const StartupDialogProvider = ({ children }: Props) => {
 
 	const feedbackPromptOpenRef = useRef(false);
 
-	const { updateVisible, updateCheckSettled } = useUpdatePrompt();
-
-	const { data: parrotListData } = useQuery({ ...getParrotListOptions(), throwOnError: false });
-	const { data: runningSessionData } = useQuery({ ...getRunningSessionOptions(), throwOnError: false });
+	const { data: parrotListData } = useGetParrotListQuery();
+	const { data: runningSessionData } = useGetRunningSessionQuery();
 
 	const splashFinished = useAppStore((state) => state.splashFinished);
 
 	const feedbackPrompt = useDeviceSettingsStore((state) => state.feedbackPrompt);
-	const consumeFeedbackPrompt = useDeviceSettingsStore((state) => state.consumeFeedbackPrompt);
-
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
+
+	const consumeFeedbackPrompt = useDeviceSettingsStore((state) => state.consumeFeedbackPrompt);
 	const openFeedback = useFeedbackStore((state) => state.openFeedback);
+
+	const { updateVisible, updateCheckSettled } = useUpdatePrompt();
 
 	const sessionActive = runningSessionData != null;
 	const threshold = feedbackThreshold(feedbackPrompt, getFeedbackPromptThresholds());
-	const eligible =
+	const feedbackPromptEligible =
 		splashFinished &&
 		(parrotListData?.length ?? 0) > 0 &&
 		updateCheckSettled &&
@@ -54,7 +60,7 @@ const StartupDialogProvider = ({ children }: Props) => {
 
 	/** 조건 충족 시 피드백 요청 표시 */
 	useEffect(() => {
-		if (!eligible || feedbackPromptOpenRef.current) {
+		if (!feedbackPromptEligible || feedbackPromptOpenRef.current) {
 			return;
 		}
 
@@ -62,7 +68,7 @@ const StartupDialogProvider = ({ children }: Props) => {
 		setPromptOpen(true);
 
 		track('feedback_prompt_shown', { threshold });
-	}, [eligible, threshold]);
+	}, [feedbackPromptEligible, threshold]);
 
 	/** 피드백 요청 답변 저장 함수 */
 	const answerFeedbackPrompt = (wantsToWrite: boolean) => {

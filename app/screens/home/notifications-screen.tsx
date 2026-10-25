@@ -2,20 +2,18 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useInfiniteQuery } from '@tanstack/react-query';
-
-import { getAnnouncementListOptions } from '@/hooks/apis/announcements';
+import { useGetAnnouncementListQuery } from '@/hooks/apis/announcements';
 import { useReadAllNotifications } from '@/hooks/apis/notifications';
 
 import { useTranslation } from 'react-i18next';
 
 import { useNavigation } from '@react-navigation/native';
+import { toast } from 'sonner-native';
 
 import AnnouncementList from '@/screens/home/components/announcement-list';
 import AnnouncementListSkeleton from '@/screens/home/components/announcement-list-skeleton';
 import NotificationList from '@/screens/home/components/notification-list';
 import NotificationListSkeleton from '@/screens/home/components/notification-list-skeleton';
-import { useMessageStore } from '@/stores/message';
 import { contentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
@@ -24,6 +22,7 @@ import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextButton } from '@/components/ui/text-button';
+import { Toast } from '@/components/ui/toast';
 
 /** 알림 목록 화면 */
 const NotificationsScreen = () => {
@@ -33,11 +32,9 @@ const NotificationsScreen = () => {
 
 	const [shownList, setShownList] = useState<'notifications' | 'announcements'>('notifications');
 
-	const { data: announcementListData } = useInfiniteQuery({ ...getAnnouncementListOptions(), throwOnError: false });
+	const { data: announcementListData } = useGetAnnouncementListQuery();
 
 	const { isPending, mutate } = useReadAllNotifications();
-
-	const openPopup = useMessageStore((state) => state.openPopup);
 
 	const hasUnreadAnnouncement = Boolean(
 		announcementListData?.pages.some((announcementPage) =>
@@ -50,7 +47,14 @@ const NotificationsScreen = () => {
 			return;
 		}
 
-		mutate({}, { onError: () => openPopup({ title: t('home.notificationList.readAllError') }) });
+		mutate(
+			{},
+			{
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('home.notificationList.readAllError')} />);
+				},
+			},
+		);
 	};
 
 	return (
@@ -70,7 +74,7 @@ const NotificationsScreen = () => {
 					}
 				/>
 
-				{/*알림 목록 및 공지 목록을 바꾸는 Chip*/}
+				{/*알림 목록 및 공지 목록 전환 Chip*/}
 				<View style={styles.chipsRow}>
 					<Chip
 						label={t('home.notificationList.notifications')}

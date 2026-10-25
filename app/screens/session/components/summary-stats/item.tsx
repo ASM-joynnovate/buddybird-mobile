@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
+import type { CountUnit } from '@/types/session-summary';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
@@ -15,7 +17,7 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import CountUpText, { type CountUnit } from '@/screens/session/components/count-up-text';
+import CountUpText from '@/screens/session/components/count-up-text';
 import { bounceEasing, bumpScale, glintSweep, popIn } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
 import SummaryGlint from '@/screens/session/components/summary-glint';
@@ -48,7 +50,7 @@ interface Props {
 
 /**
  * 학습 결과 칩 컴포넌트
- * @param stat 칩에 보여 줄 값
+ * @param stat 칩에 표시할 값
  * @param revealed 해당 문장의 숫자가 다 찼는지 여부
  */
 const SummaryStatsItem = ({ stat, revealed }: Props) => {
@@ -64,9 +66,10 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 
 	const summarySentenceIndex = useSessionStore((state) => state.summarySentenceIndex);
 	const summaryNumberOrigin = useSessionStore((state) => state.summaryNumberOrigin);
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const moveSummarySentence = useSessionStore((state) => state.moveSummarySentence);
 	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
-	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const palette = summaryMetricColors[stat.metric];
 	const sentenceShowing = summarySentenceIndex === stat.revealAt;
@@ -81,7 +84,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 		setNumberLanded(true);
 	}
 
-	/** 숫자가 내려앉으면 칩과 값 강조 */
+	/** 숫자가 도착하면 칩 강조 */
 	useEffect(() => {
 		if (!numberLanded) {
 			return;

@@ -123,3 +123,46 @@ export type SessionEvent = z.infer<typeof sessionEventSchema>;
 export type SessionEventFile = z.infer<typeof sessionEventFileSchema>;
 export type PetcamEventKind = z.infer<typeof petcamEventKindSchema>;
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
+
+export interface SessionPetcamVideoParams {
+	id: string;
+	eventId: string;
+	uri: string;
+	idempotencyKey: string;
+}
+
+export interface SessionSoundParams {
+	id: string;
+	uri: string;
+	data: SessionSoundUploadRequest;
+	idempotencyKey: string;
+}
+
+export interface PostSessionParams {
+	data: StartSessionRequest;
+	idempotencyKey: string;
+}
+
+export interface PostSessionHeartbeatParams {
+	id: string;
+	data: HeartbeatRequest;
+	idempotencyKey: string;
+}
+
+export interface GetSessionSoundListParams {
+	id: string;
+	page: number;
+}
+
+export interface GetSessionSoundDurationParams {
+	url: string;
+}
+
+export interface SessionSoundDurationParams {
+	id: string;
+	url: string;
+}
+
+export interface SessionSoundUploadRequest {
+	captured_at: string;
+}

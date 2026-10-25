@@ -19,7 +19,7 @@ export const common: CommonMessages = {
 	skip: 'Skip',
 	next: 'Next',
 	stepProgress: 'Step {{current}} of {{total}}',
-	offline: "You're offline.\nWe'll reload once you're connected again.",
+	offline: "You're offline.",
 	pullToRefresh: {
 		hint: 'Pull up or down to refresh',
 		messages: [
@@ -107,7 +107,7 @@ export const common: CommonMessages = {
 		take: 'Take photo',
 		choose: 'Choose from album',
 		typeError: 'Only JPEG or PNG photos work. Please choose another photo.',
-		sizeError: 'Photos must be 5MB or smaller. Please choose another photo.',
+		sizeError: 'Photos must be {{size}}MB or smaller. Please choose another photo.',
 		loadError: "We couldn't load the photo. Please choose it again.",
 	},
 };

@@ -1,7 +1,3 @@
-import type { ReactNode } from 'react';
-
-import { StyleSheet, View } from 'react-native';
-
 import { ChevronRightIcon } from 'lucide-react-native';
 
 import { colors } from '@/theme';
@@ -14,13 +10,11 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 interface Props extends ItemBaseProps {
 	value?: string;
-	showDot?: boolean;
 	disabled?: boolean;
-	trailing?: ReactNode;
 	onPress: () => void;
 }
 
-export const Item = ({ value, showDot, onPress, disabled, trailing, ...props }: Props) => {
+export const Item = ({ value, onPress, disabled, ...props }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityLabel={joinLabel(props.label, value)}
@@ -29,18 +23,13 @@ export const Item = ({ value, showDot, onPress, disabled, trailing, ...props }: 
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			style={!props.first && itemStyles.divider}
+			style={!props.firstInGroup && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
 			<ItemLabel {...props} />
 
-			{showDot && <View style={styles.dot} />}
 			{!!value && <Copy style={itemStyles.value}>{value}</Copy>}
-			{trailing ?? <ChevronRightIcon size={18} color={colors.subtle} />}
+			<ChevronRightIcon size={18} color={colors.subtle} />
 		</PressableSurface>
 	);
 };
-
-const styles = StyleSheet.create({
-	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error },
-});

@@ -34,36 +34,34 @@ import { useKeepAwake } from 'expo-keep-awake';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { mediaDevices, type MediaStream } from 'react-native-webrtc';
 
-import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_HIDE_MS } from '@/config';
+import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_FADE_MS, SESSION_INFO_HIDE_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
+import SessionEndDialog from '@/screens/session/components/session-end-dialog';
 // TODO: 펫캠 가이드 추가 후 사용
 // import CameraButton from '@/screens/session/components/camera-button';
-import RunInfo from '@/screens/session/components/run-info';
-import BatteryStatus from '@/screens/session/components/run-info/battery-status';
+import SessionRunInfo from '@/screens/session/components/session-run-info';
+import SessionRunInfoBatteryStatus from '@/screens/session/components/session-run-info/battery-status';
 import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
 // TODO: 펫캠 가이드 추가 후 사용
 // import { readPermission } from '@/services/device/permissions';
-// import { createPetcamSender, type PetcamSender } from '@/services/petcam/connection';
-import { createParrotWatcher, type ParrotWatcher } from '@/services/petcam/parrot-watcher';
-import { getPetcamVideo, shouldCheckParrotDetection } from '@/services/remote-config/client';
+// import { createPetcamSender, type PetcamSender } from '@/screens/session/services/petcam-connection';
+import { createParrotWatcher, type ParrotWatcher } from '@/screens/session/services/parrot-watcher';
 // TODO: 펫캠 가이드 추가 후 사용
-import { /* recordPetcamVideoStats, */ reportError, tracePetcamCamera, track } from '@/services/telemetry/client';
+import { /* recordPetcamVideoStats, */ tracePetcamCamera } from '@/screens/session/services/petcam-telemetry';
+import { getPetcamVideo, shouldCheckParrotDetection } from '@/services/remote-config/client';
+import { reportError, track } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { currentSpan } from '@/utils/phases';
 import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
-import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import PermissionDialog from '@/components/dialogs/permission-dialog';
-import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 type EndReason = 'time_reached' | 'user' | 'server';
-
-const FADE_MS = 2 * SECOND;
 
 /** 하트비트 요청 본문 생성 함수 */
 const createHeartbeatData = (
@@ -106,8 +104,6 @@ const SessionRunScreen = () => {
 	const [viewerConnected /* , setViewerConnected */] = useState(false);
 	const [petcamAudioOn, setPetcamAudioOn] = useState(false);
 
-	const cameraPermission = usePermission('camera');
-
 	const engineRef = useRef<LearningEngine | null>(null);
 	const uploadsRef = useRef<Promise<unknown>[]>([]);
 	const soundCountRef = useRef(0);
@@ -134,10 +130,13 @@ const SessionRunScreen = () => {
 	const infoVisible = useSessionStore((state) => state.infoVisible);
 	const engineFailed = useSessionStore((state) => state.engineFailed);
 	const sessionFinishing = useSessionStore((state) => state.sessionFinishing);
+
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const setEngineFailed = useSessionStore((state) => state.setEngineFailed);
 	const setSessionFinishing = useSessionStore((state) => state.setSessionFinishing);
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
+
+	const cameraPermission = usePermission('camera');
 
 	const { sessionId, wordId, endsAt, sleep, duration, sleepChanged } = params;
 
@@ -161,12 +160,10 @@ const SessionRunScreen = () => {
 
 			try {
 				await engineRef.current?.stop();
-				await Promise.allSettled([
-					sendHeartbeatAsync({
-						id: sessionId,
-						data: createHeartbeatData(startedAt, sleep, engineRef.current?.unacknowledgedSegments() ?? []),
-					}),
-				]);
+				await sendHeartbeatAsync({
+					id: sessionId,
+					data: createHeartbeatData(startedAt, sleep, engineRef.current?.unacknowledgedSegments() ?? []),
+				}).catch(() => undefined);
 				engineRef.current = null;
 
 				await Promise.allSettled(uploadsRef.current);
@@ -201,6 +198,49 @@ const SessionRunScreen = () => {
 
 	const latestInputRef = useRef({ startedAt, sleep, endSession });
 
+	// TODO: 펫캠 가이드 추가 후 사용
+	// const handleToggleCamera = () => {
+	// 	showInfo();
+	//
+	// 	if (cameraOn) {
+	// 		setCameraOn(false);
+	//
+	// 		return;
+	// 	}
+	//
+	// 	cameraPromptRef.current = true;
+	//
+	// 	void cameraPermission
+	// 		.run(() => setCameraOn(true))
+	// 		.finally(() => {
+	// 			cameraPromptRef.current = false;
+	// 		});
+	// };
+
+	const header = (
+		<View style={styles.headerRow}>
+			<View style={styles.noticeContainer}>
+				<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
+					{t('session.run.keepOpen')}
+				</Copy>
+				<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
+					{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
+				</Copy>
+				{engineFailed && (
+					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
+						{t('session.run.engineError')}
+					</Copy>
+				)}
+			</View>
+
+			<View style={styles.statusContainer}>
+				<SessionRunInfoBatteryStatus />
+				{/*TODO: 펫캠 가이드 추가 후 사용*/}
+				{/*<CameraButton cameraOn={cameraOn} onPress={handleToggleCamera} />*/}
+			</View>
+		</View>
+	);
+
 	/** 화면 진입 시 세션 정보 표시 */
 	useEffect(() => {
 		showInfo();
@@ -208,13 +248,13 @@ const SessionRunScreen = () => {
 		return () => resetSessionScreen();
 	}, [resetSessionScreen, showInfo]);
 
-	/** infoVisible 변경 시 세션 정보 fade 애니메이션 실행 */
+	/** infoVisible 변경 시 fade 애니메이션 실행 */
 	useEffect(() => {
-		opacity.set(infoVisible ? 1 : withTiming(0, { duration: FADE_MS }));
+		opacity.set(infoVisible ? 1 : withTiming(0, { duration: SESSION_INFO_FADE_MS }));
 	}, [infoVisible, opacity]);
 
 	// TODO: 펫캠 가이드 추가 후 사용
-	// /** Viewer와 연결할 채널 열기 */
+	// /** Viewer 연결 채널 생성 */
 	// useEffect(() => {
 	// 	const sender: PetcamSender = createPetcamSender({
 	// 		sessionId,
@@ -250,7 +290,7 @@ const SessionRunScreen = () => {
 	// 	};
 	// }, [issuePetcamTurnCredential, sessionId]);
 
-	/** 카메라가 켜진 동안 카메라 영상 열기 */
+	/** 카메라가 켜진 동안 카메라 영상 시작 */
 	useEffect(() => {
 		if (!cameraOn) {
 			return;
@@ -260,11 +300,11 @@ const SessionRunScreen = () => {
 
 		let openedStream: MediaStream | null = null;
 		let parrotWatcher: ParrotWatcher | null = null;
-		let effectActive = true;
+		let active = true;
 
 		void tracePetcamCamera(video, () => mediaDevices.getUserMedia({ audio: false, video }))
 			.then((stream) => {
-				if (!effectActive) {
+				if (!active) {
 					closeMediaStream(stream);
 
 					return;
@@ -299,13 +339,13 @@ const SessionRunScreen = () => {
 			.catch((error: unknown) => {
 				reportError(error, 'petcam_camera');
 
-				if (effectActive) {
+				if (active) {
 					setCameraOn(false);
 				}
 			});
 
 		return () => {
-			effectActive = false;
+			active = false;
 
 			try {
 				parrotWatcher?.close();
@@ -330,12 +370,12 @@ const SessionRunScreen = () => {
 		}
 
 		let openedStream: MediaStream | null = null;
-		let effectActive = true;
+		let active = true;
 
 		void mediaDevices
 			.getUserMedia({ audio: true, video: false })
 			.then((stream) => {
-				if (!effectActive) {
+				if (!active) {
 					closeMediaStream(stream);
 
 					return;
@@ -349,7 +389,7 @@ const SessionRunScreen = () => {
 			.catch((error: unknown) => reportError(error, 'petcam_microphone'));
 
 		return () => {
-			effectActive = false;
+			active = false;
 
 			// TODO: 펫캠 가이드 추가 후 사용
 			// petcamSenderRef.current?.setAudioTrack(null);
@@ -360,7 +400,7 @@ const SessionRunScreen = () => {
 		};
 	}, [petcamAudioOn]);
 
-	/** 안드로이드 뒤로 가기 버튼을 누르면 종료 다이얼로그 열기 */
+	/** Android 뒤로 가기 시 종료 다이얼로그 표시 */
 	useEffect(() => {
 		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
 			showInfo();
@@ -559,53 +599,6 @@ const SessionRunScreen = () => {
 		setEndDialogOpen(true);
 	};
 
-	const handleEnd = () => {
-		void endSession('user');
-	};
-
-	// TODO: 펫캠 가이드 추가 후 사용
-	// const handleToggleCamera = () => {
-	// 	showInfo();
-	//
-	// 	if (cameraOn) {
-	// 		setCameraOn(false);
-	//
-	// 		return;
-	// 	}
-	//
-	// 	cameraPromptRef.current = true;
-	//
-	// 	void cameraPermission
-	// 		.run(() => setCameraOn(true))
-	// 		.finally(() => {
-	// 			cameraPromptRef.current = false;
-	// 		});
-	// };
-
-	const header = (
-		<View style={styles.headerRow}>
-			<View style={styles.noticeContainer}>
-				<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-					{t('session.run.keepOpen')}
-				</Copy>
-				<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-					{t('session.run.dimAfter', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
-				</Copy>
-				{engineFailed && (
-					<Copy lineBreakStrategyIOS="hangul-word" style={styles.noticeText}>
-						{t('session.run.engineError')}
-					</Copy>
-				)}
-			</View>
-
-			<View style={styles.statusContainer}>
-				<BatteryStatus />
-				{/*TODO: 펫캠 가이드 추가 후 사용*/}
-				{/*<CameraButton cameraOn={cameraOn} onPress={handleToggleCamera} />*/}
-			</View>
-		</View>
-	);
-
 	return (
 		<PressableSurface
 			variant="plain"
@@ -617,17 +610,15 @@ const SessionRunScreen = () => {
 			onPress={showInfo}
 			accessibilityLabel={t('session.run.reveal')}
 		>
-			{/*카메라 영상*/}
 			{!!cameraStream && (
 				<Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">
 					<StationCamera stream={cameraStream} />
 				</Animated.View>
 			)}
 
-			{/*세션 진행 정보*/}
 			<Animated.View style={[styles.fill, fadeStyle]} pointerEvents={infoVisible ? 'box-none' : 'none'}>
 				{!!startedAt && (
-					<RunInfo
+					<SessionRunInfo
 						startedAt={startedAt}
 						endsAt={endsAt}
 						sleep={sleep}
@@ -638,25 +629,18 @@ const SessionRunScreen = () => {
 				)}
 			</Animated.View>
 
-			{/*학습 종료 확인 다이얼로그, 화면이 어두워지면 숨김*/}
-			<ConfirmDialog
+			{/*화면이 어두워지면 숨김*/}
+			<SessionEndDialog
 				visible={endDialogOpen && (infoVisible || sessionFinishing)}
-				text={{
-					title: t('session.end.title'),
-					confirm: t('session.end.button'),
-					cancel: t('session.end.keep'),
-				}}
-				confirmStatus={{ busy: sessionFinishing }}
-				onConfirm={handleEnd}
+				sessionFinishing={sessionFinishing}
+				onConfirm={() => void endSession('user')}
 				onClose={() => setEndDialogOpen(false)}
-			>
-				<View style={styles.endMessageContainer}>
-					<Mascot size={88} />
-					<Copy style={styles.endMessage}>{t('session.end.message')}</Copy>
-				</View>
-			</ConfirmDialog>
+			/>
 			<PermissionDialog
-				state={{ ...cameraPermission.dialog, visible: cameraPermission.dialog.visible && infoVisible }}
+				state={{
+					...cameraPermission.dialog,
+					visible: cameraPermission.dialog.visible && infoVisible,
+				}}
 				notice={Platform.OS === 'ios' ? t('session.run.cameraSettingsNotice') : undefined}
 			/>
 		</PressableSurface>
@@ -670,8 +654,6 @@ const styles = StyleSheet.create({
 	noticeContainer: { flex: 1 },
 	noticeText: { fontFamily: font.extraBold, fontSize: 13, lineHeight: 18, color: sessionColors.faint },
 	statusContainer: { alignItems: 'flex-end', gap: 12 },
-	endMessageContainer: { alignItems: 'center', gap: 12 },
-	endMessage: { textAlign: 'center', lineHeight: 22 },
 });
 
 export default SessionRunScreen;

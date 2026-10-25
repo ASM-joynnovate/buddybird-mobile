@@ -4,8 +4,11 @@ import { useDeleteDevice } from '@/hooks/apis/devices';
 
 import { useTranslation } from 'react-i18next';
 
+import { toast } from 'sonner-native';
+
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Copy } from '@/components/ui/copy';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
 	visible: boolean;
@@ -22,20 +25,24 @@ interface Props {
 const DeleteDeviceDialog = ({ visible, device, onClose }: Props) => {
 	const { t } = useTranslation();
 
-	const { isError, isPending, mutate, reset } = useDeleteDevice();
+	const { isPending, mutate } = useDeleteDevice();
 
 	const handleDeleteDevice = () => {
 		if (isPending) {
 			return;
 		}
 
-		mutate({ id: device.id }, { onSuccess: onClose });
-	};
-
-	const handleClose = () => {
-		reset();
-
-		onClose();
+		mutate(
+			{ id: device.id },
+			{
+				onSuccess: onClose,
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('settings.devices.deleteError')} />, {
+						toasterId: dialogToasterId,
+					});
+				},
+			},
+		);
 	};
 
 	return (
@@ -45,12 +52,9 @@ const DeleteDeviceDialog = ({ visible, device, onClose }: Props) => {
 				title: t('common.confirmDelete.title', { name: device.model }),
 				message: t('settings.devices.deleteMessage'),
 			}}
-			confirmStatus={{
-				busy: isPending,
-				errorMessage: isError ? t('settings.devices.deleteError') : null,
-			}}
+			confirmBusy={isPending}
 			onConfirm={handleDeleteDevice}
-			onClose={handleClose}
+			onClose={onClose}
 		>
 			{device.isRunningSession && <Copy>{t('settings.devices.sessionEnds')}</Copy>}
 		</ConfirmDialog>

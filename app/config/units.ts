@@ -4,7 +4,13 @@ export const HOUR = 3_600_000;
 export const DAY = 86_400_000;
 
 export const MINUTES_PER_HOUR = 60;
+export const HOURS_PER_DAY = 24;
 export const MONTHS_PER_YEAR = 12;
 
 export const MIB = 1_048_576;
 export const GIB = 1_073_741_824;
+
+export const BITS_PER_BYTE = 8;
+export const PERCENT = 100;
+
+export const WAV_HEADER_BYTES = 44;

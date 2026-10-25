@@ -21,17 +21,18 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 const MENU_GAP = 8;
 
 /** 기간 단위 선택 메뉴 컴포넌트 */
-const PeriodMenu = () => {
+const ReportHeaderPeriodMenu = () => {
 	const { t } = useTranslation();
+
+	const { width: windowWidth } = useWindowDimensions();
 
 	const buttonRef = useRef<View>(null);
 
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
-	const { width: windowWidth } = useWindowDimensions();
-
 	const period = useReportStore((state) => state.period);
+
 	const selectPeriod = useReportStore((state) => state.selectPeriod);
 
 	const handleOpenMenu = () => {
@@ -41,7 +42,6 @@ const PeriodMenu = () => {
 		});
 	};
 
-	// 닫히며 흐려지는 동안 목록이 제자리에 있도록 위치는 지우지 않음
 	const handleSelectPeriod = (periodOption: ReportPeriod) => {
 		setMenuOpen(false);
 		selectPeriod(periodOption);
@@ -154,4 +154,4 @@ const styles = StyleSheet.create({
 	selectedText: { color: colors.orangeDark },
 });
 
-export default PeriodMenu;
+export default ReportHeaderPeriodMenu;

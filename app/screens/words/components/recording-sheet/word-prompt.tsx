@@ -1,5 +1,3 @@
-import { memo } from 'react';
-
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Trans } from 'react-i18next';
@@ -14,11 +12,6 @@ const WORD_SIZES = [
 ] as const;
 const LONG_WORD_SIZE = { fontSize: 20, lineHeight: 26 } as const;
 
-/** 단어 길이에 맞는 글자 크기를 반환하는 함수 */
-const getWordSize = (wordName: string) => {
-	return WORD_SIZES.find(({ maxLength }) => wordName.length <= maxLength)?.style ?? LONG_WORD_SIZE;
-};
-
 interface Props {
 	wordName: string;
 }
@@ -27,11 +20,13 @@ interface Props {
  * 녹음할 단어 안내 컴포넌트
  * @param wordName 녹음할 단어 이름
  */
-const WordPrompt = memo(({ wordName }: Props) => {
+const RecordingSheetWordPrompt = ({ wordName }: Props) => {
+	const wordSize = WORD_SIZES.find(({ maxLength }) => wordName.length <= maxLength)?.style ?? LONG_WORD_SIZE;
+
 	return (
 		<View style={styles.container}>
 			{!!wordName && (
-				<Copy numberOfLines={2} lineBreakStrategyIOS="hangul-word" style={[styles.word, getWordSize(wordName)]}>
+				<Copy numberOfLines={2} lineBreakStrategyIOS="hangul-word" style={[styles.word, wordSize]}>
 					{wordName}
 				</Copy>
 			)}
@@ -40,7 +35,7 @@ const WordPrompt = memo(({ wordName }: Props) => {
 			</Copy>
 		</View>
 	);
-});
+};
 
 const styles = StyleSheet.create({
 	container: { alignItems: 'center', gap: 2, paddingTop: 18, paddingHorizontal: 16 },
@@ -49,4 +44,4 @@ const styles = StyleSheet.create({
 	highlight: { fontFamily: font.extraBold, color: colors.text, backgroundColor: colors.orangeSoft },
 });
 
-export default WordPrompt;
+export default RecordingSheetWordPrompt;

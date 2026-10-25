@@ -1,17 +1,14 @@
 import type { ReactNode } from 'react';
 
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import type { SceneArea } from '@/types/scene';
 
-export const SCENE_FLOOR_HEIGHT = 36 + radius.sheet;
+import { colors } from '@/theme';
+
+const SCENE_FLOOR_HEIGHT = 64;
 
 const MAX_STAGE_SCALE = 1.25;
-
-export interface SceneArea {
-	width: number;
-	height: number;
-}
 
 /** 장면 영역에 맞춘 그림 배율을 반환하는 함수 */
 export const getStageScale = (area: SceneArea, stageWidth: number, stageHeight: number) =>
@@ -22,20 +19,22 @@ interface Props {
 	stageWidth: number;
 	stageHeight: number;
 	scale: number;
+	floorStyle?: StyleProp<ViewStyle>;
 	onLayout: (event: LayoutChangeEvent) => void;
 	children: ReactNode;
 }
 
 /**
- * 벽과 바닥 위에 그림을 놓는 장면 컴포넌트
+ * 벽 및 바닥 위 그림 장면 컴포넌트
  * @param label 화면 읽기 프로그램이 읽을 장면 설명
  * @param stageWidth 배율 1일 때 그림 영역의 폭
  * @param stageHeight 배율 1일 때 그림 영역의 높이
  * @param scale 그림 배율
+ * @param floorStyle 바닥 모양
  * @param onLayout 장면 크기가 정해질 때 실행할 함수
  * @param children 그림 영역에 놓을 요소
  */
-const SceneStage = ({ label, stageWidth, stageHeight, scale, onLayout, children }: Props) => {
+const SceneStage = ({ label, stageWidth, stageHeight, scale, floorStyle, onLayout, children }: Props) => {
 	return (
 		<View
 			accessible
@@ -44,7 +43,7 @@ const SceneStage = ({ label, stageWidth, stageHeight, scale, onLayout, children 
 			onLayout={onLayout}
 			style={styles.container}
 		>
-			<View style={styles.floor} />
+			<View style={[styles.floor, floorStyle]} />
 
 			{scale > 0 && (
 				<View style={[styles.stage, { width: stageWidth * scale, height: stageHeight * scale }]}>

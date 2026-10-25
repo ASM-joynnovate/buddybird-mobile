@@ -17,6 +17,9 @@ coverage/
 *.p12
 *.mobileprovision
 .e2e/
+.claude/
+.idea/
+.impeccable/
 credentials*.json
 config/*
 !config/dev

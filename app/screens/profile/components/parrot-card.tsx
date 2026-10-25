@@ -55,6 +55,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 				: t('profile.ageYears', { count: Math.floor(ageInMonths / MONTHS_PER_YEAR) });
 	}
 
+	/** 앵무새 수정 화면 이동 함수 */
 	const openEditor = (photoOrigin: MeasuredDimensions | null) => {
 		navigation.navigate('ParrotEditor', {
 			parrotId: parrot.id,
@@ -63,7 +64,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 		});
 	};
 
-	/** 카드 사진의 화면 위치를 재서 수정 화면으로 넘김 */
+	/** 사진 위치를 측정해 수정 화면으로 전달 */
 	const handlePress = () => {
 		scheduleOnUI(() => {
 			'worklet';
@@ -117,7 +118,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 				{/*종 태그가 먼저 줄어들고 나이 태그는 그대로 남음*/}
 				<View style={styles.tags}>
 					<Tag label={speciesName} />
-					{ageText && (
+					{!!ageText && (
 						<View style={styles.ageTag}>
 							<Tag label={ageText} />
 						</View>

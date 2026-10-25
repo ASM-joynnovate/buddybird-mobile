@@ -1,3 +1,5 @@
+import { analyticsConsents } from '@/types/analytics-consent';
+import { loginProviderSchema } from '@/types/auth';
 import { locales } from '@/types/locale';
 
 import { z } from 'zod';
@@ -24,7 +26,7 @@ export const initialLegacyMigration: LegacyMigration = {
 
 export const deviceSettingsSchema = z.object({
 	locale: z.enum(locales),
-	analyticsConsent: z.enum(['unknown', 'granted', 'denied', 'not_applicable']),
+	analyticsConsent: z.enum(analyticsConsents),
 	updatePrompt: z.object({ dismissedVersion: z.string().nullable() }),
 	feedbackPrompt: z.object({
 		formatVersion: z.literal(1),
@@ -36,6 +38,8 @@ export const deviceSettingsSchema = z.object({
 	usageGuideSeen: z.boolean().default(true),
 	pullToRefreshUsed: z.boolean().default(false),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
+	lastLoginProvider: loginProviderSchema.nullable(),
+	clientDeviceId: z.string().nullable(),
 });
 
 export type LegacySettings = Partial<

@@ -1,6 +1,8 @@
 import { ApiError } from '@/types/apis/common';
 
+import { analyticsConsents } from '@/types/analytics-consent';
 import type { LegacyMigration } from '@/types/device-settings';
+import type { LegacyProfile } from '@/types/legacy';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { randomUUID } from 'expo-crypto';
@@ -10,12 +12,7 @@ import { readFileInfo, resolveFileUri } from '@/services/media/file';
 import { type LegacyWord, parseLegacyWords } from '@/services/migration/legacy/words';
 import { reportError } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import {
-	type LegacyProfile,
-	parseLegacyAppUpdate,
-	parseLegacyFeedbackPrompt,
-	parseLegacyProfile,
-} from '@/utils/legacy';
+import { parseLegacyAppUpdate, parseLegacyFeedbackPrompt, parseLegacyProfile } from '@/utils/legacy';
 import { requireChoice, requireRecord } from '@/utils/validation';
 
 type LegacyValueReader = (key: string) => string | undefined;
@@ -41,7 +38,7 @@ export const setLegacyMigration = (updater: (migration: LegacyMigration) => Lega
 	useDeviceSettingsStore.getState().updateLegacyMigration(updater);
 };
 
-/** v1 값을 읽는 함수 */
+/** 실패하면 오류를 보고하는 v1 값 파싱 함수 */
 const tryParseLegacy = <T>(scope: string, parse: () => T) => {
 	try {
 		return parse();
@@ -84,9 +81,7 @@ const readSettings = (read: LegacyValueReader) => {
 	const analyticsConsent = tryParseLegacy('analytics_consent', () => {
 		const raw = read('analytics-consent');
 
-		return raw === undefined
-			? undefined
-			: requireChoice(raw, ['unknown', 'granted', 'denied', 'not_applicable'] as const, 'analytics consent');
+		return raw === undefined ? undefined : requireChoice(raw, analyticsConsents, 'analytics consent');
 	});
 	const appUpdate = tryParseLegacy('app_update', () => {
 		const value = readJson(read, 'app-update');
@@ -157,21 +152,16 @@ export const getPendingLegacyUpload = () => {
 	return pendingUpload;
 };
 
-/** 업로드할 v1 데이터가 있는지 확인하는 함수 */
-export const hasLegacyUpload = () => {
-	return pendingUpload !== null;
-};
-
 /** v1 데이터 업로드 시작 상태 저장 함수 */
 export const acceptLegacyUpload = () => {
-	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'started' }));
+	setLegacyMigration((prev) => ({ ...prev, uploadStatus: 'started' }));
 };
 
 /** v1 데이터 업로드 완료 상태 저장 함수 */
 export const finishLegacyUpload = () => {
 	pendingUpload = null;
 
-	setLegacyMigration((migration) => ({ ...migration, uploadStatus: 'finished' }));
+	setLegacyMigration((prev) => ({ ...prev, uploadStatus: 'finished' }));
 };
 
 /** 주소가 앱 폴더 안에 있는지 확인하는 함수 */
@@ -204,41 +194,41 @@ export const existingFileUri = async (uri: string, scope: string) => {
 	return null;
 };
 
-/** 이름이 같은 idempotency key를 제외하는 함수 */
+/** 이름이 같은 idempotency key 제외 함수 */
 export const withoutIdempotencyKey = (
 	idempotencyKeys: LegacyMigration['idempotencyKeys'],
 	idempotencyKeyName: string,
 ) =>
 	Object.fromEntries(Object.entries(idempotencyKeys).filter(([savedKeyName]) => savedKeyName !== idempotencyKeyName));
 
-/** 저장된 idempotency key를 반환하고, 없으면 새로 만드는 함수 */
+/** idempotency key 조회 및 생성 함수 */
 export const ensureIdempotencyKey = (idempotencyKeyName: string) => {
 	const idempotencyKey = getLegacyMigration().idempotencyKeys[idempotencyKeyName] ?? randomUUID();
 
-	setLegacyMigration((migration) => ({
-		...migration,
-		idempotencyKeys: { ...migration.idempotencyKeys, [idempotencyKeyName]: idempotencyKey },
+	setLegacyMigration((prev) => ({
+		...prev,
+		idempotencyKeys: { ...prev.idempotencyKeys, [idempotencyKeyName]: idempotencyKey },
 	}));
 
 	return idempotencyKey;
 };
 
-/** 서버가 거부한 요청의 idempotency key 삭제 함수 */
+/** 거부된 요청의 idempotency key 삭제 함수 */
 export const removeRejectedIdempotencyKey = (error: unknown, idempotencyKeyName: string) => {
 	if (!(error instanceof ApiError) || !error.rejected) {
 		return;
 	}
 
-	setLegacyMigration((migration) => ({
-		...migration,
-		idempotencyKeys: withoutIdempotencyKey(migration.idempotencyKeys, idempotencyKeyName),
+	setLegacyMigration((prev) => ({
+		...prev,
+		idempotencyKeys: withoutIdempotencyKey(prev.idempotencyKeys, idempotencyKeyName),
 	}));
 };
 
 /** v1 단어 업로드 진행 상태 저장 함수 */
 export const recordWordProgress = (legacyWordId: string, progress: WordProgress) => {
-	setLegacyMigration((migration) => ({
-		...migration,
-		wordProgress: { ...migration.wordProgress, [legacyWordId]: progress },
+	setLegacyMigration((prev) => ({
+		...prev,
+		wordProgress: { ...prev.wordProgress, [legacyWordId]: progress },
 	}));
 };

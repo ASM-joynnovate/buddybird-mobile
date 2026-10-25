@@ -19,7 +19,7 @@ export const common: CommonMessages = {
 	skip: 'スキップ',
 	next: '次へ',
 	stepProgress: '{{total}}ステップ中{{current}}ステップ目',
-	offline: 'インターネット接続が切れました。\nつながったら自動で読み込みます。',
+	offline: 'インターネット接続が切れました。',
 	pullToRefresh: {
 		hint: '上下に引っ張って更新',
 		messages: [
@@ -107,7 +107,7 @@ export const common: CommonMessages = {
 		take: '写真を撮る',
 		choose: 'アルバムから選ぶ',
 		typeError: 'JPEGまたはPNGの写真だけ使えます。別の写真を選んでください。',
-		sizeError: '5MB以下の写真だけ使えます。別の写真を選んでください。',
+		sizeError: '{{size}}MB以下の写真だけ使えます。別の写真を選んでください。',
 		loadError: '写真を読み込めませんでした。もう一度選んでください。',
 	},
 };

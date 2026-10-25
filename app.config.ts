@@ -11,18 +11,29 @@ const variant = production ? 'prod' : 'dev';
 const id = production ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
 const appNameSuffix = production ? '' : ' (DEV)';
 
-/** 언어별 네이티브 문구를 읽고 앱 이름 뒤에 빌드 구분을 붙이는 함수 */
+/** 언어별 네이티브 문구 생성 함수 */
 const nativeLocale = (file: string) => {
 	const { ios, android } = JSON.parse(readFileSync(path.join(__dirname, file), 'utf8')) as {
 		ios: Record<string, string>;
 		android: Record<string, string>;
 	};
 
-	return {
-		ios: { ...ios, CFBundleDisplayName: `${ios.CFBundleDisplayName}${appNameSuffix}` },
-		android: { ...android, app_name: `${android.app_name}${appNameSuffix}` },
+	const localizedIos: Record<string, string> = {
+		...ios,
+		CFBundleDisplayName: `${ios.CFBundleDisplayName}${appNameSuffix}`,
 	};
+	const localizedAndroid: Record<string, string> = { ...android, app_name: `${android.app_name}${appNameSuffix}` };
+
+	return { ios: localizedIos, android: localizedAndroid };
 };
+
+interface SentryProject {
+	organization: string;
+	project: string;
+}
+
+const englishNative = nativeLocale('app/i18n/native/en.json');
+const sentryProject = JSON.parse(readFileSync(path.join(__dirname, 'sentry.project.json'), 'utf8')) as SentryProject;
 
 const config: ExpoConfig = {
 	name: `BuddyBird${appNameSuffix}`,
@@ -34,7 +45,7 @@ const config: ExpoConfig = {
 	userInterfaceStyle: 'automatic',
 	locales: {
 		ko: nativeLocale('app/i18n/native/ko.json'),
-		en: nativeLocale('app/i18n/native/en.json'),
+		en: englishNative,
 		ja: nativeLocale('app/i18n/native/ja.json'),
 		ru: nativeLocale('app/i18n/native/ru.json'),
 		es: nativeLocale('app/i18n/native/es.json'),
@@ -53,11 +64,9 @@ const config: ExpoConfig = {
 			CFBundleAllowMixedLocalizations: true,
 			ITSAppUsesNonExemptEncryption: false,
 			UIBackgroundModes: ['audio', 'remote-notification'],
-			NSMicrophoneUsageDescription:
-				'Microphone access lets you record words for your parrot and capture sounds during learning.',
-			NSPhotoLibraryUsageDescription: "Use a photo you choose as your parrot's profile picture.",
-			NSCameraUsageDescription:
-				'Use the camera to take profile photos and to show your parrot during a learning session.',
+			NSMicrophoneUsageDescription: englishNative.ios.NSMicrophoneUsageDescription,
+			NSPhotoLibraryUsageDescription: englishNative.ios.NSPhotoLibraryUsageDescription,
+			NSCameraUsageDescription: englishNative.ios.NSCameraUsageDescription,
 		},
 	},
 	android: {
@@ -80,12 +89,16 @@ const config: ExpoConfig = {
 		blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW', 'android.permission.BLUETOOTH'],
 	},
 	plugins: [
-		'./plugins/withAndroidBuildMemory',
+		'./plugins/with-android-build-memory',
 		['@react-native-firebase/app', { ios: { disableSPM: true } }],
 		'@react-native-firebase/crashlytics',
 		[
 			'@sentry/react-native/expo',
-			{ url: 'https://sentry.io/', organization: 'joynnovate', project: 'buddybird-mobile', useNativeInit: true },
+			{
+				url: 'https://sentry.io/',
+				...sentryProject,
+				useNativeInit: true,
+			},
 		],
 		[
 			'expo-build-properties',
@@ -142,16 +155,14 @@ const config: ExpoConfig = {
 		[
 			'expo-audio',
 			{
-				microphonePermission:
-					'Microphone access lets you record words for your parrot and capture sounds during learning.',
+				microphonePermission: englishNative.ios.NSMicrophoneUsageDescription,
 			},
 		],
 		['react-native-audio-api', { androidForegroundService: false }],
 		[
 			'expo-tracking-transparency',
 			{
-				userTrackingPermission:
-					'App usage statistics help us improve the learning experience. Learning remains available if you decline tracking.',
+				userTrackingPermission: englishNative.ios.NSUserTrackingUsageDescription,
 			},
 		],
 		'expo-asset',

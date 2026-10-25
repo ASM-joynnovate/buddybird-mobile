@@ -18,12 +18,11 @@ const keepNumbersWithUnits = (text: string) => {
 interface Props {
 	pointerSide?: 'bottom' | 'left';
 	typing?: boolean;
-	style?: StyleProp<ViewStyle>;
 	contentStyle?: StyleProp<ViewStyle>;
 	children: ReactNode;
 }
 
-export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, style, contentStyle }: Props) => {
+export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false, contentStyle }: Props) => {
 	let content = children;
 
 	if (typeof children === 'string') {
@@ -37,8 +36,7 @@ export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false,
 	}
 
 	return (
-		<Card cornerRadius="control" style={style} contentStyle={[styles.bubble, contentStyle]}>
-			{/*말풍선 꼬리*/}
+		<Card cornerRadius="control" contentStyle={[styles.bubble, contentStyle]}>
 			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
 
 			{content}

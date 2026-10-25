@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
-
 import type { MainTabParamList, ProfileStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { getParrotListOptions } from '@/hooks/apis/parrots';
-import { getMeOptions } from '@/hooks/apis/users';
+import { useGetParrotList } from '@/hooks/apis/parrots';
 
 import { useTranslation } from 'react-i18next';
 
@@ -15,11 +12,11 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { type CompositeNavigationProp, useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { UPLOAD_POLL_INTERVAL_MS } from '@/config';
-import AccountCard from '@/screens/profile/components/account-card';
+import { UPLOAD_POLL_INTERVAL_MS } from '@/config/policy';
 import AddParrotCard from '@/screens/profile/components/add-parrot-card';
 import ParrotCard from '@/screens/profile/components/parrot-card';
-import { useAccountStore } from '@/stores/account';
+import ProfileCard from '@/screens/profile/components/profile-card';
+import { useAuthStore } from '@/stores/auth';
 
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
@@ -40,36 +37,18 @@ const ProfileCards = () => {
 	const navigation = useNavigation<Navigation>();
 	const screenFocused = useIsFocused();
 
-	const { data: meData } = useSuspenseQuery({
-		...getMeOptions(),
-		refetchInterval: (query) =>
-			screenFocused && query.state.data?.uploading_photo_file?.status === 'pending'
-				? UPLOAD_POLL_INTERVAL_MS
-				: false,
-	});
-	const { data: parrotListData } = useSuspenseQuery({
-		...getParrotListOptions(),
+	const [dropCount, setDropCount] = useState(0);
+
+	const { data: parrotListData } = useGetParrotList({
 		refetchInterval: (query) =>
 			screenFocused && query.state.data?.some((parrot) => parrot.uploading_photo_file?.status === 'pending')
 				? UPLOAD_POLL_INTERVAL_MS
 				: false,
 	});
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
-	const [dropCount, setDropCount] = useState(0);
-
-	/** 다른 탭에서 프로필 탭을 눌러 들어오면 카드를 다시 그려 떨어지는 애니메이션 재생 */
-	useEffect(() => {
-		const tabNavigation = navigation.getParent<BottomTabNavigationProp<MainTabParamList>>();
-
-		return tabNavigation?.addListener('tabPress', () => {
-			if (!tabNavigation.isFocused()) {
-				setDropCount((prev) => prev + 1);
-			}
-		});
-	}, [navigation]);
-
+	/** 카드 순서별 기울기 반환 함수 */
 	const tiltAt = (index: number) => CARD_TILTS[index % CARD_TILTS.length];
 	const cards = [
 		...parrotListData.map((parrot, index) => (
@@ -81,9 +60,20 @@ const ProfileCards = () => {
 		cards.slice(row * CARDS_PER_ROW, (row + 1) * CARDS_PER_ROW),
 	);
 
+	/** 프로필 탭 진입 시 카드 애니메이션 재생 */
+	useEffect(() => {
+		const tabNavigation = navigation.getParent<BottomTabNavigationProp<MainTabParamList>>();
+
+		return tabNavigation?.addListener('tabPress', () => {
+			if (!tabNavigation.isFocused()) {
+				setDropCount((prev) => prev + 1);
+			}
+		});
+	}, [navigation]);
+
 	return (
 		<>
-			<AccountCard user={meData} />
+			<ProfileCard />
 
 			{isAnonymous && (
 				<Button
@@ -94,7 +84,6 @@ const ProfileCards = () => {
 				/>
 			)}
 
-			{/*앵무새 목록*/}
 			<View style={ui.sectionContainer}>
 				<Copy accessibilityRole="header" style={ui.sectionTitle}>
 					{t('profile.parrots')}

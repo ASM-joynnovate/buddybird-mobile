@@ -5,8 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import type { Word } from '@/types/apis/words';
 
 import type { WordsStackParamList } from '@/types/navigation';
-
-import type { SoundPlayer } from '@/hooks/use-sound-player';
+import type { SoundPlayer } from '@/types/sound-player';
 
 import { useTranslation } from 'react-i18next';
 

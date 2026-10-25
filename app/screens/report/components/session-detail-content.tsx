@@ -4,34 +4,34 @@ import { StyleSheet } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { apiKeys } from '@/hooks/apis/keys';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import {
 	useGetSession,
 	useGetSessionEventList,
 	useGetSessionSoundList,
 	useGetSessionSummary,
 } from '@/hooks/apis/sessions';
-import useIsLowPerformance from '@/hooks/use-is-low-performance';
-import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useRefreshOnFocus from '@/hooks/use-refresh-on-focus';
 
 import Animated, { useDerivedValue } from 'react-native-reanimated';
-
-import SessionLog from '@/screens/report/components/session-log';
-import { shouldShowDistressCall } from '@/services/remote-config/client';
-import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { getLogItems, type LogItem } from '@/utils/session-log';
 
 import {
 	BUDDY_REFRESH_FINISH_MS,
 	BUDDY_REFRESH_HEIGHT,
 	BUDDY_REFRESH_MIN_MS,
-} from '@/components/buddy-refresh/options';
-import RopeRefreshIndicator from '@/components/buddy-refresh/rope-indicator';
-import SwingRefreshIndicator from '@/components/buddy-refresh/swing-indicator';
-import ThrobberRefreshIndicator from '@/components/buddy-refresh/throbber-indicator';
-import PullToRefreshContainer from '@/components/pull-to-refresh';
-import SessionOverview from '@/components/session/overview';
+} from '@/screens/report/components/buddy-refresh/options';
+import BuddyRefreshRopeIndicator from '@/screens/report/components/buddy-refresh/rope-indicator';
+import BuddyRefreshSwingIndicator from '@/screens/report/components/buddy-refresh/swing-indicator';
+import BuddyRefreshThrobberIndicator from '@/screens/report/components/buddy-refresh/throbber-indicator';
+import PullToRefreshContainer from '@/screens/report/components/pull-to-refresh-container';
+import SessionLog from '@/screens/report/components/session-log';
+import useIsLowPerformance from '@/screens/report/hooks/use-is-low-performance';
+import usePullToRefresh from '@/screens/report/hooks/use-pull-to-refresh';
+import { getLogItems, type LogItem } from '@/screens/report/utils/session-log';
+import { shouldShowDistressCall } from '@/services/remote-config/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
+
+import SessionOverview from '@/components/session/session-overview';
 
 const CONTENT_PADDING_BOTTOM = 32;
 
@@ -40,17 +40,13 @@ interface Props {
 }
 
 /**
- * 세션 상세 정보를 보이는 컴포넌트
+ * 세션 상세 정보 컴포넌트
  * @param sessionId 세션 ID
  */
 const SessionDetailContent = ({ sessionId }: Props) => {
 	const queryClient = useQueryClient();
 
-	const lowPerformance = useIsLowPerformance();
-
-	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
-
-	const distressCallShown = shouldShowDistressCall();
+	const [openItemId, setOpenItemId] = useState<string | null>(null);
 
 	const { data: sessionData } = useGetSession({ id: sessionId });
 	const { data: sessionSummaryData } = useGetSessionSummary({ id: sessionId });
@@ -63,22 +59,13 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 	} = useGetSessionSoundList({ id: sessionId });
 	const { data: sessionEventListData } = useGetSessionEventList({ id: sessionId });
 
-	const [openItemId, setOpenItemId] = useState<string | null>(null);
+	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 
-	const items = useMemo(
-		() =>
-			getLogItems(
-				sessionSoundListData.pages.flatMap((soundPage) => soundPage.data),
-				sessionEventListData.filter((event) => distressCallShown || event.kind !== 'distress_call_detected'),
-			),
-		[distressCallShown, sessionEventListData, sessionSoundListData],
-	);
-	const emergencyCount = items.filter(
-		(item) => item.kind === 'distressCall' || item.kind === 'parrotDisappeared',
-	).length;
+	const lowPerformance = useIsLowPerformance();
 
+	/** 세션 상세 새로고침 함수 */
 	const refetchSessionDetail = useCallback(
-		() => queryClient.invalidateQueries({ queryKey: apiKeys.sessions.detail(sessionId) }),
+		() => queryClient.invalidateQueries({ queryKey: sessionKeys.detail(sessionId) }),
 		[queryClient, sessionId],
 	);
 
@@ -95,10 +82,24 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		finishMs: BUDDY_REFRESH_FINISH_MS,
 	});
 
+	const distressCallShown = shouldShowDistressCall();
+
+	const logItems = useMemo(
+		() =>
+			getLogItems(
+				sessionSoundListData.pages.flatMap((soundPage) => soundPage.data),
+				sessionEventListData.filter((event) => distressCallShown || event.kind !== 'distress_call_detected'),
+			),
+		[distressCallShown, sessionEventListData, sessionSoundListData],
+	);
+	const emergencyCount = logItems.filter(
+		(item) => item.kind === 'distressCall' || item.kind === 'parrotDisappeared',
+	).length;
+
 	const { scrollY, viewportHeight, contentHeight } = pullToRefresh;
 	const logBottom = useDerivedValue(() => contentHeight.get() - CONTENT_PADDING_BOTTOM);
 
-	/** 소리 목록의 다음 쪽이 있으면 끝까지 이어서 조회 */
+	/** 소리 목록의 다음 페이지를 끝까지 이어서 조회 */
 	useEffect(() => {
 		if (!hasNextPage || isFetchingNextPage || isFetchNextPageError) {
 			return;
@@ -107,9 +108,9 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		void fetchNextPage();
 	}, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
 
-	const handleToggleItem = useCallback((item: LogItem) => {
-		setOpenItemId((openId) => (openId === item.id ? null : item.id));
-	}, []);
+	const handleToggleItem = (item: LogItem) => {
+		setOpenItemId((prev) => (prev === item.id ? null : item.id));
+	};
 
 	return (
 		<PullToRefreshContainer
@@ -117,7 +118,9 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 			indicatorStyle={styles.refreshIndicator}
 			pullToRefresh={pullToRefresh}
 			indicatorComponents={
-				lowPerformance ? [ThrobberRefreshIndicator] : [SwingRefreshIndicator, RopeRefreshIndicator]
+				lowPerformance
+					? [BuddyRefreshThrobberIndicator]
+					: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
 			}
 		>
 			<Animated.ScrollView
@@ -135,7 +138,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 
 				<SessionLog
 					session={sessionData}
-					items={items}
+					logItems={logItems}
 					openItemId={openItemId}
 					wordName={sessionSummaryData.word.name}
 					scrollY={scrollY}

@@ -2,8 +2,8 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
+import DetailContentSkeleton from '@/screens/home/components/detail-content-skeleton';
 import NotificationContent from '@/screens/home/components/notification-content';
-import NotificationContentSkeleton from '@/screens/home/components/notification-content-skeleton';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
@@ -19,7 +19,7 @@ const NotificationDetailScreen = () => {
 		<Screen>
 			<ScreenHeader onBack={() => navigation.goBack()} />
 
-			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<NotificationContentSkeleton />>
+			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<DetailContentSkeleton />>
 				<NotificationContent notificationId={params.notificationId} />
 			</ErrorHandlingWrapper>
 		</Screen>

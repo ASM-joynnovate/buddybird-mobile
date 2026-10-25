@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import type { FeedItem, FeedReactionType } from '@/types/apis/feed';
 
+import type { PopoverAnchor, ReactionVerb } from '@/types/community';
+
 import { useAddFeedReaction, useDeleteFeedReaction, useGetFeedReactionTypeList } from '@/hooks/apis/feed';
 
 import { useTranslation } from 'react-i18next';
@@ -11,18 +13,17 @@ import { useTranslation } from 'react-i18next';
 import { apiErrorMessage } from '@/lib/api';
 
 import { PartyPopperIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
+import { ArrowPopover } from '@/screens/community/components/arrow-popover';
 import FeedCardReactionImage from '@/screens/community/components/feed-card/reaction-image';
-import { useMessageStore } from '@/stores/message';
 import { colors, font } from '@/theme';
 
-import { ArrowPopover, type PopoverAnchor } from '@/components/ui/arrow-popover';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 const POPOVER_WIDTH = 312;
-
-export type ReactionVerb = 'praise' | 'celebrate';
 
 const reactionButtonLabelKeys = {
 	praise: { action: 'community.feed.reaction.praise', done: 'community.feed.reaction.praised' },
@@ -51,8 +52,6 @@ const FeedCardReactionPicker = ({ feedItem, reactionVerb }: Props) => {
 	const addFeedReaction = useAddFeedReaction();
 	const deleteFeedReaction = useDeleteFeedReaction();
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
 	const reactionPending = addFeedReaction.isPending || deleteFeedReaction.isPending;
 	const myReactionTypes = reactionTypesData.filter((reactionType) =>
 		feedItem.reactions.some((reaction) => reaction.reaction_type_id === reactionType.id && reaction.is_mine),
@@ -71,7 +70,9 @@ const FeedCardReactionPicker = ({ feedItem, reactionVerb }: Props) => {
 			return;
 		}
 
-		const handleError = (error: unknown) => openPopup({ title: apiErrorMessage(error, t) });
+		const handleError = (error: unknown) => {
+			toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />, { toasterId: dialogToasterId });
+		};
 
 		if (myReactionTypes.includes(reactionType)) {
 			deleteFeedReaction.mutate({ id: feedItem.id, reactionTypeId: reactionType.id }, { onError: handleError });

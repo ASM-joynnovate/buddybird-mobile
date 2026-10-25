@@ -12,7 +12,7 @@ type StepCompletedParams = Pick<
 let onboardingStartedAt: number | null = null;
 let stepViewedAt = 0;
 
-/** onboarding_step_viewed 이벤트 전송 함수 */
+/** onboarding_step_viewed 전송 함수 */
 export const trackOnboardingStepViewed = (step: OnboardingStep) => {
 	stepViewedAt = dayjs().valueOf();
 	onboardingStartedAt ??= stepViewedAt;
@@ -20,7 +20,7 @@ export const trackOnboardingStepViewed = (step: OnboardingStep) => {
 	track('onboarding_step_viewed', { step });
 };
 
-/** onboarding_step_completed 이벤트 전송 함수 */
+/** 온보딩 단계 완료 이벤트 전송 함수 */
 export const trackOnboardingStepCompleted = (step: OnboardingStep, stepParams: StepCompletedParams = {}) => {
 	track('onboarding_step_completed', { step, duration_ms: dayjs().diff(stepViewedAt), ...stepParams });
 };

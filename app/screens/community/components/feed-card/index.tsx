@@ -4,8 +4,10 @@ import { StyleSheet, View } from 'react-native';
 
 import type { FeedItem } from '@/types/apis/feed';
 
+import type { ReactionVerb } from '@/types/community';
+import type { SoundPlayer } from '@/types/sound-player';
+
 import { useGetMe } from '@/hooks/apis/users';
-import type { SoundPlayer } from '@/hooks/use-sound-player';
 
 import { useTranslation } from 'react-i18next';
 
@@ -16,7 +18,7 @@ import { UserRoundIcon } from 'lucide-react-native';
 import FeedCardMimicBody from '@/screens/community/components/feed-card/mimic-body';
 import FeedCardMonthlyLearningTimeBody from '@/screens/community/components/feed-card/monthly-learning-time-body';
 import FeedCardMoreMenu from '@/screens/community/components/feed-card/more-menu';
-import FeedCardReactionPicker, { type ReactionVerb } from '@/screens/community/components/feed-card/reaction-picker';
+import FeedCardReactionPicker from '@/screens/community/components/feed-card/reaction-picker';
 import FeedCardReceivedReactions from '@/screens/community/components/feed-card/received-reactions';
 import FeedCardTotalLearningTimeBody from '@/screens/community/components/feed-card/total-learning-time-body';
 import FeedCardWordPlayCountBody from '@/screens/community/components/feed-card/word-play-count-body';
@@ -27,25 +29,25 @@ import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
 
-interface BodyProps {
+interface Props {
 	feedItem: FeedItem;
 	player: SoundPlayer;
 }
 
-export const feedCardKinds: Record<string, { Body: ComponentType<BodyProps>; reactionVerb: ReactionVerb }> = {
+interface FeedCardKind {
+	Body: ComponentType<Props>;
+	reactionVerb: ReactionVerb;
+}
+
+export const feedCardKinds: Record<string, FeedCardKind> = {
 	mimic_succeeded: { Body: FeedCardMimicBody, reactionVerb: 'praise' },
 	total_learning_time_reached: { Body: FeedCardTotalLearningTimeBody, reactionVerb: 'celebrate' },
 	monthly_learning_time_reached: { Body: FeedCardMonthlyLearningTimeBody, reactionVerb: 'celebrate' },
 	word_play_count_reached: { Body: FeedCardWordPlayCountBody, reactionVerb: 'celebrate' },
 };
 
-interface Props {
-	feedItem: FeedItem;
-	player: SoundPlayer;
-}
-
 /**
- * 피드 카드 컴포넌트
+ * 피드 항목 하나를 표시하는 카드 컴포넌트
  * @param feedItem 피드 항목
  * @param player useSoundPlayer 결과
  */

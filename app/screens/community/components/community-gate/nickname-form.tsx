@@ -3,20 +3,23 @@ import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { useUpdateMe } from '@/hooks/apis/users';
+import useNicknameError from '@/hooks/use-nickname-error';
 
 import { useTranslation } from 'react-i18next';
 
 import { apiErrorMessage } from '@/lib/api';
 
-import { NICKNAME_PATTERN } from '@/config';
+import { toast } from 'sonner-native';
+
+import { NICKNAME_MAX_LENGTH } from '@/config/policy';
 import { reportError } from '@/services/telemetry/client';
-import { useMessageStore } from '@/stores/message';
 import { colors, font } from '@/theme';
-import { isDuplicateNickname } from '@/utils/duplicate-nickname';
+import { isDuplicateNickname, normalizeNickname } from '@/utils/nickname';
 
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { TextField } from '@/components/ui/text-field';
+import { Toast } from '@/components/ui/toast';
 
 /** 커뮤니티 입장 팝업의 닉네임 입력 컴포넌트 */
 const CommunityGateNicknameForm = () => {
@@ -25,17 +28,9 @@ const CommunityGateNicknameForm = () => {
 	const [nickname, setNickname] = useState('');
 	const [nicknameInvalid, setNicknameInvalid] = useState(false);
 
-	const { error, isPending, mutateAsync, reset } = useUpdateMe();
+	const { error: updateError, isPending, mutate, reset } = useUpdateMe();
 
-	const openPopup = useMessageStore((state) => state.openPopup);
-
-	let nicknameError: string | null = null;
-
-	if (nicknameInvalid) {
-		nicknameError = t('profile.nicknameInvalid');
-	} else if (isDuplicateNickname(error)) {
-		nicknameError = apiErrorMessage(error, t);
-	}
+	const nicknameError = useNicknameError(nicknameInvalid, updateError);
 
 	const handleChangeNickname = (value: string) => {
 		setNickname(value);
@@ -49,23 +44,28 @@ const CommunityGateNicknameForm = () => {
 			return;
 		}
 
-		const normalizedNickname = nickname.normalize('NFC').trim();
+		const normalizedNickname = normalizeNickname(nickname);
 
-		if (!NICKNAME_PATTERN.test(normalizedNickname)) {
+		if (!normalizedNickname) {
 			setNicknameInvalid(true);
 
 			return;
 		}
 
-		mutateAsync({ data: { nickname: normalizedNickname } }).catch((saveError: unknown) => {
-			if (isDuplicateNickname(saveError)) {
-				return;
-			}
+		mutate(
+			{ data: { nickname: normalizedNickname } },
+			{
+				onError: (error) => {
+					if (isDuplicateNickname(error)) {
+						return;
+					}
 
-			reportError(saveError, 'community_nickname_save');
+					reportError(error, 'community_nickname_save');
 
-			openPopup({ title: apiErrorMessage(saveError, t) });
-		});
+					toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />);
+				},
+			},
+		);
 	};
 
 	return (
@@ -76,7 +76,7 @@ const CommunityGateNicknameForm = () => {
 				value={nickname}
 				onChangeText={handleChangeNickname}
 				editable={!isPending}
-				maxLength={20}
+				maxLength={NICKNAME_MAX_LENGTH}
 				placeholder={t('profile.nickname')}
 				autoCapitalize="none"
 				returnKeyType="done"

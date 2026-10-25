@@ -18,21 +18,17 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: 'ニックネームがないため、ランキングに表示されません',
-				description: 'ニックネームを決めるとランキングに載ります',
 				action: '設定する',
 			},
 			anonymous: {
 				title: 'ログインするとランキングに載ります',
-				description: '今はログインしていません',
 				action: 'ログイン',
 			},
 			country_mismatch: {
 				title: 'この国のランキングには入っていません',
-				description: '自分の国として設定した国のランキングにだけ載ります',
 			},
 			no_record: {
 				title: '今月の練習記録はまだありません',
-				description: '練習を終えるとランキングに載ります',
 			},
 		},
 	},

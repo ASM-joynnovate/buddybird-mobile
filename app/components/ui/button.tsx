@@ -7,11 +7,12 @@ import { colors, depths, font } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface, type PressableSurfaceProps } from '@/components/ui/surface/pressable-surface';
 
-interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant'> {
+interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant' | 'disabled'> {
 	label: string;
 	icon?: LucideIcon;
 	iconProps?: LucideProps;
 	variant?: 'primary' | 'secondary' | 'danger';
+	disabled?: boolean;
 	loading?: boolean;
 	size?: 'small' | 'medium';
 }

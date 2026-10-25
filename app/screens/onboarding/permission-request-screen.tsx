@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { usePrefetchQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '@/types/navigation';
+import type { PermissionKind } from '@/types/permission';
 
 import { useUpdatePushToken } from '@/hooks/apis/devices';
 import { getNotificationSettingsOptions } from '@/hooks/apis/settings';
@@ -17,18 +18,24 @@ import { BellIcon, type LucideIcon, MicIcon } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PermissionScene from '@/screens/onboarding/components/permission-scene';
-import { type PermissionKind, readPermission, requestPermission } from '@/services/device/permissions';
+import { readPermission, requestPermission } from '@/services/device/permissions';
 import { readPushToken } from '@/services/push/registration';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
-import { colors, contentMaxWidth, font } from '@/theme';
+import { colors, font } from '@/theme';
 
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
 import { ScreenHeader } from '@/components/ui/screen-header';
+import { ui } from '@/components/ui/styles';
 
-const PERMISSIONS: readonly { kind: 'microphone' | 'notifications'; icon: LucideIcon }[] = [
+interface RequestedPermission {
+	kind: 'microphone' | 'notifications';
+	icon: LucideIcon;
+}
+
+const PERMISSIONS: readonly RequestedPermission[] = [
 	{ kind: 'microphone', icon: MicIcon },
 	{ kind: 'notifications', icon: BellIcon },
 ];
@@ -50,12 +57,12 @@ const PermissionRequestScreen = () => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+	const [busy, setBusy] = useState(false);
+	const [permissionsChecked, setPermissionsChecked] = useState(false);
+
 	usePrefetchQuery(getNotificationSettingsOptions());
 
 	const { mutate } = useUpdatePushToken();
-
-	const [busy, setBusy] = useState(false);
-	const [permissionsChecked, setPermissionsChecked] = useState(false);
 
 	/** 권한이 모두 허용되어 있으면 다음 화면으로 이동 */
 	useEffect(() => {
@@ -88,7 +95,7 @@ const PermissionRequestScreen = () => {
 		};
 	}, [navigation]);
 
-	/** 화면이 보일 때 onboarding_step_viewed 이벤트 전송 */
+	/** onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
 			if (permissionsChecked) {
@@ -134,7 +141,7 @@ const PermissionRequestScreen = () => {
 	return (
 		<View style={styles.container}>
 			<SafeAreaView edges={['top', 'left', 'right']}>
-				<View style={styles.header}>
+				<View style={ui.sceneHeader}>
 					<ScreenHeader onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
 				</View>
 			</SafeAreaView>
@@ -165,7 +172,6 @@ const PermissionRequestScreen = () => {
 
 const styles = StyleSheet.create({
 	container: { flex: 1, backgroundColor: colors.orangePale },
-	header: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 20 },
 	permissionRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
 	divider: { borderTopWidth: 2, borderTopColor: colors.border },
 	name: { minWidth: 44, fontFamily: font.extraBold, fontSize: 15 },

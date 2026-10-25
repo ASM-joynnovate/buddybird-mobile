@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import type { PromptedUpdate } from '@/types/update';
-
 import { useTranslation } from 'react-i18next';
+
+import { toast } from 'sonner-native';
 
 import { openAppStore } from '@/services/device/application';
 import { reportError, track } from '@/services/telemetry/client';
@@ -12,11 +12,17 @@ import { reportError, track } from '@/services/telemetry/client';
 import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy } from '@/components/ui/copy';
-import { InlineError } from '@/components/ui/inline-error';
 import { ui } from '@/components/ui/styles';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
+
+interface PromptedUpdate {
+	latestVersion: string | null;
+	forced: boolean;
+	notes: string[];
+}
 
 interface Props {
-	promptedUpdate: PromptedUpdate;
+	promptedUpdate: PromptedUpdate | null;
 	visible: boolean;
 	onDismiss: () => void;
 	onStoreOpened: () => void;
@@ -27,13 +33,12 @@ interface Props {
  * @param promptedUpdate 안내할 업데이트 정보
  * @param visible 다이얼로그 표시 여부
  * @param onDismiss 닫기 버튼을 누를 때 실행할 함수
- * @param onStoreOpened 강제가 아닌 업데이트에서 스토어를 연 뒤 실행할 함수
+ * @param onStoreOpened 스토어 페이지 이동 후 실행할 함수
  */
 const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Props) => {
 	const { t } = useTranslation();
 
 	const [appStoreOpening, setAppStoreOpening] = useState(false);
-	const [appStoreOpenFailed, setAppStoreOpenFailed] = useState(false);
 
 	const forced = promptedUpdate?.forced ?? false;
 
@@ -43,7 +48,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 		}
 
 		setAppStoreOpening(true);
-		setAppStoreOpenFailed(false);
 
 		try {
 			track('update_prompt_accepted', {
@@ -59,7 +63,9 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 		} catch (e) {
 			reportError(e, 'open_store');
 
-			setAppStoreOpenFailed(true);
+			toast.custom(<Toast variant="error" message={t('app.update.openStoreError')} />, {
+				toasterId: dialogToasterId,
+			});
 		} finally {
 			setAppStoreOpening(false);
 		}
@@ -110,8 +116,6 @@ const UpdateDialog = ({ promptedUpdate, visible, onDismiss, onStoreOpened }: Pro
 					{note}
 				</Copy>
 			))}
-
-			<InlineError message={appStoreOpenFailed ? t('app.update.openStoreError') : null} />
 		</Dialog>
 	);
 };

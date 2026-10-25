@@ -1,4 +1,4 @@
-import type { Locale } from '@/types/locale';
+import { type Locale, localeLanguages } from '@/types/locale';
 
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -16,6 +16,7 @@ import 'dayjs/locale/ko';
 import 'dayjs/locale/ru';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
 import { josa } from 'es-hangul';
@@ -23,20 +24,17 @@ import 'intl-pluralrules';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(duration);
+dayjs.extend(isoWeek);
 dayjs.extend(localizedFormat);
 dayjs.extend(utc);
 
-const dayjsLocales: Record<Locale, string> = {
-	'ko-KR': 'ko',
-	'en-US': 'en',
-	'ja-JP': 'ja',
-	'ru-RU': 'ru',
-	'es-ES': 'es',
-};
+interface JosaFormatOptions {
+	type: Parameters<typeof josa.pick>[1];
+}
 
 /** 앱 언어 변경 함수 */
 export const changeI18nLocale = async (locale: Locale) => {
-	dayjs.locale(dayjsLocales[locale]);
+	dayjs.locale(localeLanguages[locale]);
 
 	if (i18next.isInitialized) {
 		await i18next.changeLanguage(locale);
@@ -57,8 +55,7 @@ export const changeI18nLocale = async (locale: Locale) => {
 
 		i18next.services.formatter?.add(
 			'josa',
-			(value: string, _lng: string | undefined, { type }: { type: Parameters<typeof josa.pick>[1] }) =>
-				josa.pick(value, type),
+			(value: string, _lng: string | undefined, { type }: JosaFormatOptions) => josa.pick(value, type),
 		);
 	}
 };

@@ -6,7 +6,6 @@ import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
 import { colors, depths, radius } from '@/theme';
 
-// 오렌지 면과 비활성 면은 테두리를 면과 같은 색으로 칠해 아래 두께만 드러냄
 const variants = {
 	neutral: { face: colors.background, edge: colors.border, border: colors.border },
 	primary: { face: colors.orange, edge: colors.orangeDark, border: colors.orange },
@@ -56,13 +55,11 @@ export const Surface = ({
 			collapsable={false}
 			style={[styles.container, { borderRadius, paddingBottom: edgeHeight }, style]}
 		>
-			{/*아래로 드러나는 두께*/}
 			<View
 				pointerEvents="none"
 				style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
 			/>
 
-			{/*윗면*/}
 			<Animated.View
 				style={[
 					styles.face,

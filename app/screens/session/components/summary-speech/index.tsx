@@ -62,6 +62,7 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const summarySentenceIndex = useSessionStore((state) => state.summarySentenceIndex);
 	const summaryFilledSentenceIndexes = useSessionStore((state) => state.summaryFilledSentenceIndexes);
 	const summaryAutoAdvanceStopped = useSessionStore((state) => state.summaryAutoAdvanceStopped);
+
 	const setSummarySentenceIndex = useSessionStore((state) => state.setSummarySentenceIndex);
 	const completeSummarySentence = useSessionStore((state) => state.completeSummarySentence);
 	const moveSummarySentence = useSessionStore((state) => state.moveSummarySentence);
@@ -75,26 +76,18 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 			? t('session.summary.parrots', { name: firstParrotName, count: parrotListData.length - 1 })
 			: firstParrotName;
 	const parrotRegistered = parrotListData.length > 0;
-	const togetherSentence: SummarySentence = {
-		lead: parrotRegistered
-			? t('session.summary.together.lead', { parrot: parrotName })
-			: t('session.summary.withoutParrot.lead'),
-		tail: parrotRegistered
-			? t('session.summary.together.tail', { parrot: parrotName })
-			: t('session.summary.withoutParrot.tail'),
-		value: sessionEndedAt(period).diff(period.started_at),
-		unit: 'duration',
-		metric: 'together',
-	};
-	const allTimeSentence: SummarySentence = {
-		lead: t('session.summary.allTime.lead'),
-		tail: t('session.summary.allTime.tail'),
-		value: total.active.duration_ms,
-		unit: 'duration',
-		metric: 'allTime',
-	};
 	const sentences: SummarySentence[] = [
-		togetherSentence,
+		{
+			lead: parrotRegistered
+				? t('session.summary.together.lead', { parrot: parrotName })
+				: t('session.summary.withoutParrot.lead'),
+			tail: parrotRegistered
+				? t('session.summary.together.tail', { parrot: parrotName })
+				: t('session.summary.withoutParrot.tail'),
+			value: sessionEndedAt(period).diff(period.started_at),
+			unit: 'duration',
+			metric: 'together',
+		},
 		{
 			lead: t('session.summary.played.lead', { word: word.name }),
 			tail: t('session.summary.played.tail'),
@@ -102,7 +95,13 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 			unit: 'count',
 			metric: 'played',
 		},
-		allTimeSentence,
+		{
+			lead: t('session.summary.allTime.lead'),
+			tail: t('session.summary.allTime.tail'),
+			value: total.active.duration_ms,
+			unit: 'duration',
+			metric: 'allTime',
+		},
 		{
 			lead: t('session.summary.wordTime.lead', { word: word.name }),
 			tail: t('session.summary.wordTime.tail'),
@@ -125,7 +124,7 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 		return () => clearTimeout(timer);
 	}, []);
 
-	/** 사용자가 직접 넘기지 않았으면 마지막 문장까지 일정 시간마다 다음 문장 표시 */
+	/** 일정 시간마다 다음 문장 표시 */
 	useEffect(() => {
 		if (!sentenceVisible || summaryAutoAdvanceStopped || summarySentenceIndex >= lastIndex) {
 			return;

@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { type StyleProp, StyleSheet, type TextStyle, View } from 'react-native';
 
+import type { CountUnit } from '@/types/session-summary';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
@@ -14,8 +16,6 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { Copy } from '@/components/ui/copy';
 
 const COUNT_STEPS = 24;
-
-export type CountUnit = 'count' | 'duration';
 
 interface Props {
 	progress: SharedValue<number>;
@@ -42,12 +42,7 @@ const CountUpText = ({ progress, from, to, unit, style }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	/** 값을 표시할 글자로 변환하는 함수 */
-	const toText = (value: number) => {
-		return unit === 'count' ? t('session.summary.count', { count: value }) : formatDuration(value, locale);
-	};
-
-	/** 진행률이 다음 단계로 넘어가면 보이는 값 변경 */
+	/** 진행률 단계마다 표시 값 변경 */
 	useAnimatedReaction(
 		() => Math.round(progress.get() * COUNT_STEPS),
 		(step, previous) => {
@@ -56,6 +51,11 @@ const CountUpText = ({ progress, from, to, unit, style }: Props) => {
 			}
 		},
 	);
+
+	/** 값을 표시할 글자로 변환하는 함수 */
+	const toText = (value: number) => {
+		return unit === 'count' ? t('session.summary.count', { count: value }) : formatDuration(value, locale);
+	};
 
 	return (
 		<View>

@@ -1,4 +1,4 @@
-import type { LoginProvider } from '@/types/account';
+import type { LoginProvider } from '@/types/auth';
 
 import Svg, { Path } from 'react-native-svg';
 
@@ -16,7 +16,7 @@ interface Props {
  * @param size 로고 크기
  * @param hidden 자리는 남기고 로고를 숨길지 여부
  */
-const ProviderLogo = ({ provider, size, hidden = false }: Props) => {
+const SocialLoginListProviderLogo = ({ provider, size, hidden = false }: Props) => {
 	if (provider === 'google') {
 		// Google 브랜드 가이드가 제공한 로고 경로
 		return (
@@ -62,4 +62,4 @@ const ProviderLogo = ({ provider, size, hidden = false }: Props) => {
 	);
 };
 
-export default ProviderLogo;
+export default SocialLoginListProviderLogo;

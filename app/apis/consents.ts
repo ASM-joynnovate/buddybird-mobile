@@ -1,4 +1,4 @@
-import { type Consent, consentSchema, type SaveConsentRequest } from '@/types/apis/consents';
+import { type Consent, consentSchema, type PostConsentParams } from '@/types/apis/consents';
 
 import { apiRequest } from '@/lib/api';
 
@@ -10,12 +10,6 @@ export const getConsentList = async (): Promise<Consent[]> => {
 	return consents;
 };
 
-export const postConsent = async ({
-	data,
-	idempotencyKey,
-}: {
-	data: SaveConsentRequest;
-	idempotencyKey: string;
-}): Promise<void> => {
+export const postConsent = async ({ data, idempotencyKey }: PostConsentParams): Promise<void> => {
 	await apiRequest('/api/v1/users/me/consents', z.unknown(), { method: 'POST', json: data, idempotencyKey });
 };

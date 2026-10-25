@@ -9,7 +9,7 @@ public class FrameCaptureModule: Module {
     OnCreate {
       let directory = (NSTemporaryDirectory() as NSString).appendingPathComponent("frame-capture")
 
-      FrameCaptureState.registerProcessor(name: processorName, directory: directory)
+      FrameCaptureCamera.registerProcessor(name: processorName, directory: directory)
     }
 
     OnDestroy {
@@ -32,7 +32,7 @@ public class FrameCaptureModule: Module {
     }
 
     Function("setLowLight") { (enabled: Bool, frameRate: Double) in
-      FrameCaptureState.setLowLight(enabled, frameRate: frameRate)
+      FrameCaptureCamera.setLowLight(enabled, frameRate: frameRate)
     }
 
     Function("startVideoBuffer") { (width: Double, height: Double, frameRate: Double, bitrate: Double, beforeMs: Double) in

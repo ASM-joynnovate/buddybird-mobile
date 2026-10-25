@@ -1,3 +1,5 @@
+import type { PluralMessages } from '@/i18n/types/plural';
+
 export type ReportMessages = {
 	title: string;
 	unit: string;
@@ -47,15 +49,7 @@ export type ReportMessages = {
 		learningTime: string;
 		taughtWord: string;
 		mimicCount: string;
-		mimicCountValue_one: string;
-		mimicCountValue_few: string;
-		mimicCountValue_many: string;
-		mimicCountValue_other: string;
 		emergencyCount: string;
-		emergencyCountValue_one: string;
-		emergencyCountValue_few: string;
-		emergencyCountValue_many: string;
-		emergencyCountValue_other: string;
 		kinds: {
 			parrot: string;
 			distressCall: string;
@@ -76,5 +70,6 @@ export type ReportMessages = {
 		filePending: string;
 		fileRejected: string;
 		shareError: string;
-	};
+	} & PluralMessages<'mimicCountValue'> &
+		PluralMessages<'emergencyCountValue'>;
 };

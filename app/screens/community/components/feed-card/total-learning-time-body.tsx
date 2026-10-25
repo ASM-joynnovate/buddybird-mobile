@@ -4,11 +4,10 @@ import type { FeedItem } from '@/types/apis/feed';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import { formatDuration } from '@/i18n/format';
+import { formatDuration, formatWholeHours } from '@/i18n/format';
 
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 
-import { HOUR } from '@/config/units';
 import FeedCardMilestoneBody, { milestoneStyles } from '@/screens/community/components/feed-card/milestone-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
@@ -27,7 +26,7 @@ const FeedCardTotalLearningTimeBody = ({ feedItem }: Props) => {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const thresholdMs = feedItem.threshold ?? 0;
-	const thresholdHoursText = String(Math.floor(thresholdMs / HOUR));
+	const thresholdHoursText = formatWholeHours(thresholdMs);
 
 	return (
 		<FeedCardMilestoneBody

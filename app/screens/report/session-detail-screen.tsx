@@ -2,12 +2,9 @@ import { useEffect } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery } from '@tanstack/react-query';
-
 import type { ReportStackParamList, RootStackParamList } from '@/types/navigation';
 
-import { getSessionOptions } from '@/hooks/apis/sessions';
-import useIsLowPerformance from '@/hooks/use-is-low-performance';
+import { useGetSessionQuery } from '@/hooks/apis/sessions';
 
 import { useTranslation } from 'react-i18next';
 
@@ -17,18 +14,20 @@ import { type RouteProp, useNavigation, useRoute } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeftIcon } from 'lucide-react-native';
 
+import BuddyRefreshHint from '@/screens/report/components/buddy-refresh/hint';
 import SessionDetailContent from '@/screens/report/components/session-detail-content';
 import SessionDetailSkeleton from '@/screens/report/components/session-detail-skeleton';
+import useIsLowPerformance from '@/screens/report/hooks/use-is-low-performance';
 import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, contentMaxWidth, font } from '@/theme';
 
-import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Copy } from '@/components/ui/copy';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
+
 /** 세션 상세 화면 */
 const SessionDetailScreen = () => {
 	const { t } = useTranslation();
@@ -36,13 +35,13 @@ const SessionDetailScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<ReportStackParamList, 'SessionDetail'>>();
 
-	const { data: sessionData } = useQuery(getSessionOptions({ id: params.sessionId }));
+	const { data: sessionData } = useGetSessionQuery({ id: params.sessionId });
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const lowPerformance = useIsLowPerformance();
 
-	/** 세션 변경 시 session_detail_viewed 이벤트 전송 */
+	/** session_detail_viewed 이벤트 전송 */
 	useEffect(() => {
 		track('session_detail_viewed', { session_id: params.sessionId, source: params.source });
 	}, [params.sessionId, params.source]);

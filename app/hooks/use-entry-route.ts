@@ -1,19 +1,24 @@
+import type { EntryRoute } from '@/types/navigation';
+
 import { useGetConsentList } from '@/hooks/apis/consents';
 import { useGetParrotList } from '@/hooks/apis/parrots';
 
-import { hasLegacyUpload } from '@/services/migration/upload-legacy';
-import { useAccountStore } from '@/stores/account';
+import { getPendingLegacyUpload } from '@/services/migration/upload-legacy';
+import { useAuthStore } from '@/stores/auth';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
-export type EntryRoute = 'Login' | 'Consent' | 'LegacyUpload' | 'ParrotEditor' | 'PermissionRequest' | 'Main';
+interface EntryRouteResult {
+	entryRoute: EntryRoute;
+	parrotId?: string;
+}
 
 /** 온보딩 진행 상태에 맞는 첫 화면 결정 Hook */
-const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
+const useEntryRoute = (): EntryRouteResult => {
 	const { data: consentListData } = useGetConsentList();
 	const { data: parrotListData } = useGetParrotList();
 
-	const isAnonymous = useAccountStore((state) => state.isAnonymous);
-	const loginScreenSeen = useAccountStore((state) => state.loginScreenSeen);
+	const isAnonymous = useAuthStore((state) => state.isAnonymous);
+	const loginScreenSeen = useAuthStore((state) => state.loginScreenSeen);
 
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
 	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
@@ -29,7 +34,7 @@ const useEntryRoute = (): { entryRoute: EntryRoute; parrotId?: string } => {
 		return { entryRoute: 'Consent' };
 	}
 
-	if (legacyUploadUnfinished && hasLegacyUpload()) {
+	if (legacyUploadUnfinished && getPendingLegacyUpload() !== null) {
 		return { entryRoute: 'LegacyUpload' };
 	}
 

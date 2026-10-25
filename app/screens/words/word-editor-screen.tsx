@@ -2,19 +2,21 @@ import { type ReactElement, useEffect, useRef, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
 import type { Recording } from '@/types/apis/words';
 
 import type { RootStackParamList, WordsStackParamList } from '@/types/navigation';
+import type { EditorRecording, NewRecording } from '@/types/recording';
 
-import { apiKeys } from '@/hooks/apis/keys';
+import { wordKeys } from '@/hooks/apis/keys/words';
 import {
 	getWordOptions,
 	useAddWordRecording,
 	useCreateWord,
 	useDeleteWordRecording,
+	useGetWordQuery,
 	useRenameWord,
 	useUploadWordRecording,
 } from '@/hooks/apis/words';
@@ -27,36 +29,46 @@ import { type RouteProp, useIsFocused, useNavigation, useRoute } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { randomUUID } from 'expo-crypto';
 import { TrashIcon } from 'lucide-react-native';
+import { toast } from 'sonner-native';
 
-import { UPLOAD_POLL_INTERVAL_MS, UPLOAD_POLL_MAX_INTERVAL_MS, WORD_NAME_LIMIT } from '@/config';
+import { UPLOAD_POLL_INTERVAL_MS, WORD_NAME_LIMIT } from '@/config/policy';
 import DeleteWordDialog from '@/screens/words/components/delete-word-dialog';
 import RecordingSheet from '@/screens/words/components/recording-sheet';
 import RecordingsSection from '@/screens/words/components/recordings-section';
-import type { EditorRecording, NewRecording } from '@/screens/words/components/recordings-section/recording-item';
 import WordEditorSkeleton from '@/screens/words/components/word-editor-skeleton';
 import { reportError, track } from '@/services/telemetry/client';
-import { uploadedRecordings } from '@/utils/uploaded-recordings';
-import { wait } from '@/utils/wait';
+import { hasPendingRecording, uploadedRecordings } from '@/utils/uploaded-recordings';
+import { nextUploadPollIntervalMs, wait } from '@/utils/wait';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
-import { InlineError } from '@/components/ui/inline-error';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextField } from '@/components/ui/text-field';
+import { Toast } from '@/components/ui/toast';
 
 type SaveStep = 'saving' | 'uploading' | 'processing';
 
-type DeleteTarget = { kind: 'word' } | { kind: 'recording'; recording: EditorRecording; name: string };
+interface WordDeleteTarget {
+	kind: 'word';
+}
 
-/** 서버 녹음을 편집 화면에서 사용할 녹음으로 변환하는 함수 */
+interface RecordingDeleteTarget {
+	kind: 'recording';
+	recording: EditorRecording;
+	name: string;
+}
+
+type DeleteTarget = WordDeleteTarget | RecordingDeleteTarget;
+
+/** 서버 녹음을 편집용 녹음으로 변환하는 함수 */
 const toEditorRecording = (serverRecording: Recording): EditorRecording => ({
 	kind: 'server',
 	id: serverRecording.id,
 	url: serverRecording.audio_file.url,
-	pending: serverRecording.audio_file.status === 'pending',
+	uploadPending: serverRecording.audio_file.status === 'pending',
 	durationMs: null,
 	waveformLevels: null,
 });
@@ -66,7 +78,7 @@ const toLocalRecording = (newRecording: NewRecording, uploading: boolean): Edito
 	kind: 'local',
 	id: newRecording.key,
 	url: newRecording.uri,
-	pending: uploading,
+	uploadPending: uploading,
 	durationMs: newRecording.durationMs,
 	waveformLevels: newRecording.waveformLevels,
 });
@@ -119,15 +131,17 @@ const WordEditorScreen = () => {
 		error: wordLoadError,
 		isFetching,
 		refetch,
-	} = useQuery({
-		...getWordOptions({ id: wordId ?? '' }),
-		enabled: !!wordId,
-		throwOnError: false,
-		refetchInterval: (query) =>
-			screenFocused && query.state.data?.recordings.some((recording) => recording.audio_file.status === 'pending')
-				? UPLOAD_POLL_INTERVAL_MS
-				: false,
-	});
+	} = useGetWordQuery(
+		{ id: wordId ?? '' },
+		{
+			enabled: !!wordId,
+			refetchInterval: (query) =>
+				screenFocused &&
+				query.state.data?.recordings.some((recording) => recording.audio_file.status === 'pending')
+					? UPLOAD_POLL_INTERVAL_MS
+					: false,
+		},
+	);
 
 	const createWord = useCreateWord();
 	const renameWord = useRenameWord();
@@ -138,7 +152,7 @@ const WordEditorScreen = () => {
 	const player = useSoundPlayer();
 
 	const name = nameInput ?? wordData?.name ?? '';
-	// 로컬 녹음으로 보여 주는 중인 서버 녹음은 제외
+	// 로컬 녹음으로 표시 중인 서버 녹음은 제외
 	const serverRecordings = (wordData?.recordings ?? []).filter(
 		(serverRecording) => !newRecordings.some(({ recordingId }) => recordingId === serverRecording.id),
 	);
@@ -158,12 +172,12 @@ const WordEditorScreen = () => {
 			.filter(({ replacedRecordingId }) => !serverRecordings.some(({ id }) => id === replacedRecordingId))
 			.map((newRecording) => toLocalRecording(newRecording, uploadingRecordingKeys.includes(newRecording.key))),
 	];
-	const nameErrorShown = (saveAttempted || recordingAddBlocked) && !name.trim();
+	const wordName = name.trim();
+	const nameErrorShown = (saveAttempted || recordingAddBlocked) && !wordName;
 	const recordingMissing = saveAttempted && recordings.length === 0;
 	const saving = saveStep !== null;
 	const recordingUploading = uploadingRecordingKeys.length > 0;
 	const wordUpdating = saving || recordingUploading || deleteWordRecording.isPending;
-	const wordName = name.trim();
 	const loading = Boolean(routeWordId) && isPending;
 	const loadFailed = Boolean(routeWordId) && isError;
 
@@ -223,20 +237,20 @@ const WordEditorScreen = () => {
 		deleteWordRecording,
 	]);
 
-	/** pending 녹음이 없을 때까지 단어를 다시 조회하는 함수 */
+	/** pending 녹음이 없을 때까지 단어 조회 함수 */
 	const waitForRecordings = async (savedWordId: string) => {
 		let intervalMs = UPLOAD_POLL_INTERVAL_MS;
 
 		while (mountedRef.current) {
 			const latestWord = await queryClient.query({ ...getWordOptions({ id: savedWordId }), staleTime: 0 });
 
-			if (!latestWord.recordings.some((recording) => recording.audio_file.status === 'pending')) {
+			if (!hasPendingRecording(latestWord.recordings)) {
 				return latestWord;
 			}
 
 			await wait(intervalMs);
 
-			intervalMs = Math.min(intervalMs * 2, UPLOAD_POLL_MAX_INTERVAL_MS);
+			intervalMs = nextUploadPollIntervalMs(intervalMs);
 		}
 
 		return null;
@@ -244,11 +258,9 @@ const WordEditorScreen = () => {
 
 	/** 단어 이름 저장 함수 */
 	const saveWordName = async () => {
-		const trimmedName = name.trim();
-
 		if (!wordId) {
 			const createdWord = await createWord.mutateAsync(
-				{ data: { name: trimmedName }, idempotencyKey: createWordKey },
+				{ data: { name: wordName }, idempotencyKey: createWordKey },
 				{
 					onSuccess: () => setCreateWordKey(randomUUID()),
 					onError: (error) => {
@@ -264,10 +276,10 @@ const WordEditorScreen = () => {
 			return createdWord.id;
 		}
 
-		if (trimmedName !== wordData?.name) {
-			await renameWord.mutateAsync({ id: wordId, data: { name: trimmedName } });
+		if (wordName !== wordData?.name) {
+			await renameWord.mutateAsync({ id: wordId, data: { name: wordName } });
 
-			setNameInput(trimmedName);
+			setNameInput(wordName);
 		}
 
 		return wordId;
@@ -284,7 +296,7 @@ const WordEditorScreen = () => {
 		return wordCreationRef.current;
 	};
 
-	/** 녹음을 단어에 추가하고 파일을 올린 뒤 로컬 녹음을 지우는 함수 */
+	/** 녹음 추가 및 파일 업로드 함수 */
 	const saveRecording = async (savedWordId: string, newRecording: NewRecording) => {
 		const upload = await addWordRecording.mutateAsync({ id: savedWordId, uri: newRecording.uri });
 
@@ -315,7 +327,7 @@ const WordEditorScreen = () => {
 	};
 
 	const handleOpenRecordingSheet = () => {
-		if (!wordId && !name.trim()) {
+		if (!wordId && !wordName) {
 			setRecordingAddBlocked(true);
 
 			return;
@@ -364,14 +376,14 @@ const WordEditorScreen = () => {
 
 		setSaveAttempted(true);
 
-		if (!name.trim() || recordings.length === 0) {
+		if (!wordName || recordings.length === 0) {
 			return;
 		}
 
 		setSaveFailed(false);
 
 		const addedCount = newRecordings.length;
-		const renamed = name.trim() !== wordData?.name;
+		const renamed = wordName !== wordData?.name;
 		let savedWordId = wordId;
 
 		try {
@@ -403,7 +415,7 @@ const WordEditorScreen = () => {
 				await deleteWordRecording.mutateAsync({ id: savedWordId, recordingId });
 			}
 
-			await queryClient.invalidateQueries({ queryKey: apiKeys.words.all() });
+			await queryClient.invalidateQueries({ queryKey: wordKeys.all() });
 
 			const recordingCount = uploadedRecordings(latestWord.recordings).length - recordingIdsToDelete.length;
 
@@ -428,8 +440,10 @@ const WordEditorScreen = () => {
 			if (mountedRef.current) {
 				setSaveFailed(true);
 
+				toast.custom(<Toast variant="error" message={t('words.editor.saveError')} />);
+
 				if (savedWordId) {
-					await queryClient.invalidateQueries({ queryKey: apiKeys.words.detail(savedWordId) });
+					await queryClient.invalidateQueries({ queryKey: wordKeys.detail(savedWordId) });
 				}
 			}
 		} finally {
@@ -453,7 +467,11 @@ const WordEditorScreen = () => {
 				{ id: wordId, recordingId: recording.id },
 				{
 					onSuccess: () => setRemovedBeforeSaveCount((prev) => prev + 1),
-					onError: (error) => reportError(error, 'recording_delete'),
+					onError: (error) => {
+						reportError(error, 'recording_delete');
+
+						toast.custom(<Toast variant="error" message={t('words.editor.deleteRecordingError')} />);
+					},
 					onSettled: () => setDeleteTarget(null),
 				},
 			);
@@ -492,7 +510,7 @@ const WordEditorScreen = () => {
 				<RecordingsSection
 					recordings={recordings}
 					recordingMissing={recordingMissing}
-					saving={saving}
+					wordSaving={saving}
 					player={player}
 					onAdd={handleOpenRecordingSheet}
 					onDelete={(recording, recordingName) =>
@@ -501,7 +519,6 @@ const WordEditorScreen = () => {
 				/>
 
 				<View style={styles.spacer} />
-				<InlineError message={saveFailed ? t('words.editor.saveError') : null} />
 				<Button
 					label={saveLabel(saveStep, saveFailed, t)}
 					loading={wordUpdating}
@@ -518,7 +535,7 @@ const WordEditorScreen = () => {
 				title={t(routeWordId ? 'words.editor.editTitle' : 'words.editor.addTitle')}
 				onBack={() => navigation.goBack()}
 				trailing={
-					routeWordId ? (
+					!!routeWordId && (
 						<IconButton
 							icon={TrashIcon}
 							label={t('words.editor.delete')}
@@ -526,13 +543,12 @@ const WordEditorScreen = () => {
 							disabled={wordUpdating}
 							onPress={() => setDeleteTarget({ kind: 'word' })}
 						/>
-					) : null
+					)
 				}
 			/>
 
 			{body}
 
-			{/*단어 삭제 확인 다이얼로그*/}
 			{!!routeWordId && (
 				<DeleteWordDialog
 					visible={deleteTarget?.kind === 'word'}
@@ -549,7 +565,7 @@ const WordEditorScreen = () => {
 					}),
 					message: t('common.confirmDelete.message'),
 				}}
-				confirmStatus={{ busy: deleteWordRecording.isPending }}
+				confirmBusy={deleteWordRecording.isPending}
 				onConfirm={handleDeleteRecording}
 				onClose={() => setDeleteTarget(null)}
 			/>

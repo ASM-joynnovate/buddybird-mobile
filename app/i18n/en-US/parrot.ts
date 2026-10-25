@@ -16,7 +16,7 @@ export const parrot: ParrotMessages = {
 	searchAllSpecies: 'Search all species',
 	birthdateQuestion: 'When was your parrot born?',
 	nameRequired: 'Enter your bird’s name.',
-	speciesRequired: 'Enter your bird’s species.',
+	speciesRequired: 'Choose your bird’s species.',
 	birthdateInFuture: 'Birth date can’t be in the future.',
 	yearPicker: 'Select birth year',
 	monthPicker: 'Select birth month',

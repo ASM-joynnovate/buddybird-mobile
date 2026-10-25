@@ -18,21 +18,17 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: '닉네임이 없어서 순위에 없어요',
-				description: '닉네임을 정하면 순위에 올라요',
 				action: '닉네임 정하기',
 			},
 			anonymous: {
 				title: '로그인하면 순위에 올라요',
-				description: '지금은 로그인하지 않은 상태예요',
 				action: '로그인',
 			},
 			country_mismatch: {
 				title: '이 나라의 순위에는 내가 없어요',
-				description: '내 국가로 설정한 나라의 순위에만 올라요',
 			},
 			no_record: {
 				title: '이번 달 학습 기록이 아직 없어요',
-				description: '학습을 마치면 순위에 올라요',
 			},
 		},
 	},

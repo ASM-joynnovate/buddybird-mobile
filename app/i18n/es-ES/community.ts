@@ -18,21 +18,17 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: 'Sin apodo no apareces en el ranking',
-				description: 'Elige un apodo para aparecer en el ranking',
 				action: 'Elegir apodo',
 			},
 			anonymous: {
 				title: 'Inicia sesión para aparecer en el ranking',
-				description: 'No has iniciado sesión',
 				action: 'Iniciar sesión',
 			},
 			country_mismatch: {
 				title: 'No apareces en el ranking de este país',
-				description: 'Solo apareces en el ranking de tu país',
 			},
 			no_record: {
 				title: 'Aún no hay entrenamientos este mes',
-				description: 'Termina un entrenamiento para aparecer en el ranking',
 			},
 		},
 	},

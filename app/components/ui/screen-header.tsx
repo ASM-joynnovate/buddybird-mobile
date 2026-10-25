@@ -4,30 +4,20 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { ChevronLeftIcon, XIcon } from 'lucide-react-native';
+import { ChevronLeftIcon } from 'lucide-react-native';
 
 import { IconButton } from '@/components/ui/icon-button';
 import { Title } from '@/components/ui/title';
 
-const backIcons = { back: ChevronLeftIcon, close: XIcon };
-
 interface Props {
 	title?: string;
 	onBack?: () => void;
-	backIcon?: 'back' | 'close';
 	backVariant?: 'plain' | 'onBrand';
 	trailing?: ReactNode;
 	large?: boolean;
 }
 
-export const ScreenHeader = ({
-	title,
-	onBack,
-	backIcon = 'back',
-	backVariant = 'plain',
-	trailing,
-	large = false,
-}: Props) => {
+export const ScreenHeader = ({ title, onBack, backVariant = 'plain', trailing, large = false }: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -35,8 +25,8 @@ export const ScreenHeader = ({
 			<View style={styles.headerRow}>
 				{onBack && (
 					<IconButton
-						icon={backIcons[backIcon]}
-						label={t(backIcon === 'close' ? 'common.close' : 'common.back')}
+						icon={ChevronLeftIcon}
+						label={t('common.back')}
 						variant={backVariant}
 						onPress={onBack}
 					/>

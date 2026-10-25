@@ -18,21 +18,17 @@ export const community: CommunityMessages = {
 			},
 			no_nickname: {
 				title: 'Без никнейма тебя нет в рейтинге',
-				description: 'Задай никнейм, чтобы попасть в рейтинг',
 				action: 'Задать никнейм',
 			},
 			anonymous: {
 				title: 'Войди, чтобы попасть в рейтинг',
-				description: 'Вход в аккаунт не выполнен',
 				action: 'Войти',
 			},
 			country_mismatch: {
 				title: 'Тебя нет в рейтинге этой страны',
-				description: 'Ты попадаешь только в рейтинг своей страны',
 			},
 			no_record: {
 				title: 'В этом месяце пока нет занятий',
-				description: 'Заверши занятие, чтобы попасть в рейтинг',
 			},
 		},
 	},

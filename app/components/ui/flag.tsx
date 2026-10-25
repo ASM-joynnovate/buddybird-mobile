@@ -10,16 +10,15 @@ const sizes = {
 	medium: { width: 20, height: 15 },
 } as const;
 
+interface FlagModule {
+	default: FC<SvgProps>;
+}
+
 interface Props {
 	country: string | null;
 	size?: keyof typeof sizes;
 }
 
-/**
- * 국가 코드에 맞는 국기 컴포넌트
- * @param country 대문자 두 글자 국가 코드
- * @param size 국기 크기
- */
 export const Flag = ({ country, size = 'medium' }: Props) => {
 	const key = `./${country?.toLowerCase()}.svg`;
 
@@ -27,7 +26,7 @@ export const Flag = ({ country, size = 'medium' }: Props) => {
 		return null;
 	}
 
-	const FlagImage = flagImages<{ default: FC<SvgProps> }>(key).default;
+	const FlagImage = flagImages<FlagModule>(key).default;
 
 	return <FlagImage width={sizes[size].width} height={sizes[size].height} accessible={false} />;
 };

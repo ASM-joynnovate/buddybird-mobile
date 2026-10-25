@@ -10,9 +10,11 @@ import {
 
 import { deleteFeedReaction, getFeedItemList, getFeedReactionTypeList, putFeedReaction } from '@/apis/feed';
 
-import type { FeedItemReaction, FeedPage } from '@/types/apis/feed';
+import type { CountryParams } from '@/types/apis/common';
+import type { FeedItem, FeedItemReaction, FeedPage } from '@/types/apis/feed';
 
 import { apiKeys } from '@/hooks/apis/keys';
+import { feedKeys } from '@/hooks/apis/keys/feed';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
@@ -47,43 +49,50 @@ const withoutMyReaction = (reactions: FeedItemReaction[], reactionTypeId: string
 	return reactions.map((item) => (item === reaction ? { ...item, count: item.count - 1, is_mine: false } : item));
 };
 
-/** 피드 목록 캐시에서 피드 항목 하나의 반응 목록을 변경하는 함수 */
+/** 피드 목록 캐시의 피드 항목을 변경하는 함수 */
+export const updateCachedFeedItems = (
+	queryClient: QueryClient,
+	updateFeedItems: (feedItems: FeedItem[]) => FeedItem[],
+) => {
+	queryClient.setQueriesData<InfiniteData<FeedPage>>(
+		{ queryKey: feedKeys.all() },
+		(feedData) =>
+			feedData && {
+				...feedData,
+				pages: feedData.pages.map((feedPage) => ({ ...feedPage, data: updateFeedItems(feedPage.data) })),
+			},
+	);
+};
+
+/** 캐시의 피드 항목 반응 목록 변경 함수 */
 const updateCachedFeedItemReactions = (
 	queryClient: QueryClient,
 	id: string,
 	updateReactions: (reactions: FeedItemReaction[]) => FeedItemReaction[],
 ) => {
-	queryClient.setQueriesData<InfiniteData<FeedPage>>(
-		{ queryKey: apiKeys.feed.all() },
-		(feedData) =>
-			feedData && {
-				...feedData,
-				pages: feedData.pages.map((feedPage) => ({
-					...feedPage,
-					data: feedPage.data.map((feedItem) =>
-						feedItem.id === id ? { ...feedItem, reactions: updateReactions(feedItem.reactions) } : feedItem,
-					),
-				})),
-			},
+	updateCachedFeedItems(queryClient, (feedItems) =>
+		feedItems.map((feedItem) =>
+			feedItem.id === id ? { ...feedItem, reactions: updateReactions(feedItem.reactions) } : feedItem,
+		),
 	);
 };
 
 /** 피드 목록 조회 Hook에 사용할 옵션 */
-export const getFeedItemListOptions = ({ country }: { country: string | null }) =>
+export const getFeedItemListOptions = ({ country }: CountryParams) =>
 	infiniteQueryOptions({
-		queryKey: apiKeys.feed.list(country),
+		queryKey: feedKeys.list(country),
 		queryFn: ({ pageParam }) => getFeedItemList({ cursor: pageParam, country }),
 		initialPageParam: null as string | null,
 		getNextPageParam: (lastPage) => lastPage.meta.next_cursor ?? undefined,
 	});
 /** 피드 목록 조회 Hook */
-export const useGetFeedItemList = ({ country }: { country: string | null }) => {
+export const useGetFeedItemList = ({ country }: CountryParams) => {
 	return useSuspenseInfiniteQuery(getFeedItemListOptions({ country }));
 };
 
 /** 반응 종류 목록 조회 Hook에 사용할 옵션 */
 export const getFeedReactionTypeListOptions = () =>
-	queryOptions({ queryKey: apiKeys.feedReactionTypes(), queryFn: getFeedReactionTypeList });
+	queryOptions({ queryKey: feedKeys.reactionTypes(), queryFn: getFeedReactionTypeList });
 /** 반응 종류 목록 조회 Hook */
 export const useGetFeedReactionTypeList = () => {
 	return useSuspenseQuery(getFeedReactionTypeListOptions());
@@ -97,7 +106,7 @@ export const useAddFeedReaction = () => {
 		mutationKey: apiKeys.mutation('feed', 'reactions', 'add'),
 		mutationFn: putFeedReaction,
 		onMutate: async ({ id, reactionTypeId }) => {
-			await queryClient.cancelQueries({ queryKey: apiKeys.feed.all() });
+			await queryClient.cancelQueries({ queryKey: feedKeys.all() });
 
 			updateCachedFeedItemReactions(queryClient, id, (reactions) => withMyReaction(reactions, reactionTypeId));
 		},
@@ -118,7 +127,7 @@ export const useDeleteFeedReaction = () => {
 		mutationKey: apiKeys.mutation('feed', 'reactions', 'delete'),
 		mutationFn: deleteFeedReaction,
 		onMutate: async ({ id, reactionTypeId }) => {
-			await queryClient.cancelQueries({ queryKey: apiKeys.feed.all() });
+			await queryClient.cancelQueries({ queryKey: feedKeys.all() });
 
 			updateCachedFeedItemReactions(queryClient, id, (reactions) => withoutMyReaction(reactions, reactionTypeId));
 		},

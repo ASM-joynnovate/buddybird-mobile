@@ -1,5 +1,7 @@
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
+import type { StickyLayout } from '@/types/session-log';
+
 import { formatMonthDayLongWeekday } from '@/i18n/format';
 
 import { CalendarIcon } from 'lucide-react-native';
@@ -12,9 +14,8 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import { burstEasing } from '@/screens/report/components/session-detail-animations';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors, font } from '@/theme';
+import { burstEasing, colors, font } from '@/theme';
 
 import DashedLine from '@/components/dashed-line';
 import { Copy } from '@/components/ui/copy';
@@ -26,11 +27,6 @@ const SLIDE_DISTANCE = 12;
 const FADE_MS = 320;
 const SLIDE_MS = 420;
 
-export interface StickyLayout {
-	y: number;
-	height: number;
-}
-
 interface Props {
 	date: number;
 	index: number;
@@ -41,13 +37,13 @@ interface Props {
 }
 
 /**
- * 화면 위에 붙는 날짜 띠 컴포넌트
+ * 스크롤 시 위에 고정되는 날짜 컴포넌트
  * @param date 날짜
  * @param index 기록 안에서의 날짜 순서
  * @param scrollY 화면 스크롤 위치
  * @param viewportHeight 화면 높이
  * @param logBottom 기록 아래쪽 끝 위치
- * @param dayBreakLayouts 날짜 띠 위치를 저장할 값
+ * @param dayBreakLayouts 날짜 구분선 위치를 저장할 값
  */
 const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, dayBreakLayouts }: Props) => {
 	const reducedMotion = useReducedMotion();
@@ -82,7 +78,7 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, d
 		transform: [{ translateX: labelOffset.get() }],
 	}));
 
-	/** 날짜 띠가 35% 넘게 보이면 날짜가 밀려 들어옴 */
+	/** 일정 비율 넘게 표시되면 날짜 애니메이션 실행 */
 	useAnimatedReaction(
 		() => {
 			const own = dayBreakLayouts.get().at(index);
@@ -96,8 +92,8 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, d
 
 			return (visibleBottom - visibleTop) / own.height >= REVEAL_RATIO;
 		},
-		(visible, previouslyVisible) => {
-			if (!visible || previouslyVisible || reducedMotion || labelOpacity.get() > 0) {
+		(current, previous) => {
+			if (!current || previous || reducedMotion || labelOpacity.get() > 0) {
 				return;
 			}
 

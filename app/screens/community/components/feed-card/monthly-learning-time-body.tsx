@@ -4,12 +4,11 @@ import type { FeedItem } from '@/types/apis/feed';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import { formatDuration, formatMonth } from '@/i18n/format';
+import { formatDuration, formatMonth, formatWholeHours } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 import Svg, { Path, Rect, Text as SvgText } from 'react-native-svg';
 
-import { HOUR } from '@/config/units';
 import FeedCardMilestoneBody, { milestoneStyles } from '@/screens/community/components/feed-card/milestone-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
@@ -57,7 +56,7 @@ const FeedCardMonthlyLearningTimeBody = ({ feedItem }: Props) => {
 					{monthLabel}
 				</SvgText>
 				<SvgText x={46} y={66} textAnchor="middle" fontFamily={font.black} fontSize={28} fill={colors.text}>
-					{String(Math.floor(thresholdMs / HOUR))}
+					{formatWholeHours(thresholdMs)}
 				</SvgText>
 				<SvgText
 					x={46}

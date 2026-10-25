@@ -1,24 +1,32 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
-import { CheckIcon } from 'lucide-react-native';
+import { CheckIcon, XIcon } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 
+import { SECOND } from '@/config/units';
 import { colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-interface Props {
-	message: string;
-	action?: { label: string; onPress: () => void };
+export const TOAST_DURATION_MS = 3 * SECOND;
+
+export const dialogToasterId = Platform.OS === 'android' ? 'dialog' : undefined;
+
+interface ToastAction {
+	label: string;
+	onPress: () => void;
 }
 
-/**
- * 진한 회색 토스트 컴포넌트
- * @param message 토스트 문구
- * @param action 오른쪽 버튼의 문구 및 누를 때 실행할 함수
- */
-export const Toast = ({ message, action }: Props) => {
+interface Props {
+	variant?: 'success' | 'error';
+	message: string;
+	action?: ToastAction;
+}
+
+export const Toast = ({ variant = 'success', message, action }: Props) => {
+	const Icon = variant === 'error' ? XIcon : CheckIcon;
+
 	const handlePressAction = () => {
 		toast.dismiss();
 
@@ -27,8 +35,8 @@ export const Toast = ({ message, action }: Props) => {
 
 	return (
 		<View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.container}>
-			<View style={styles.checkCircle}>
-				<CheckIcon size={14} strokeWidth={3.5} color={colors.onFilled} />
+			<View style={[styles.iconCircle, variant === 'error' && styles.errorIconCircle]}>
+				<Icon size={14} strokeWidth={3.5} color={colors.onFilled} />
 			</View>
 
 			<Copy style={styles.message}>{message}</Copy>
@@ -62,7 +70,7 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.text,
 	},
-	checkCircle: {
+	iconCircle: {
 		width: 22,
 		height: 22,
 		borderRadius: 11,
@@ -70,6 +78,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		backgroundColor: colors.green,
 	},
+	errorIconCircle: { backgroundColor: colors.error },
 	message: { flex: 1, fontFamily: font.extraBold, fontSize: 13.5, lineHeight: 19, color: colors.onFilled },
 	actionButton: { minHeight: 32, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 0 },
 	actionLabel: { fontFamily: font.extraBold, fontSize: 13.5, color: colors.orange },

@@ -1,62 +1,9 @@
-import { useAccountStore } from '@/stores/account';
+import { useAuthStore } from '@/stores/auth';
 
 /** 로그인한 사용자 ID를 담은 쿼리 키 앞부분 */
-const userKeyPrefix = () => ['api', useAccountStore.getState().authUserId] as const;
+export const userKeyPrefix = () => ['api', useAuthStore.getState().authUserId] as const;
 
 export const apiKeys = {
 	all: () => ['api'] as const,
-	appUpdate: () => ['api', 'app-update'] as const,
-	me: () => [...userKeyPrefix(), 'users', 'me'] as const,
-	settings: () => [...userKeyPrefix(), 'users', 'me', 'settings'] as const,
-	notificationSettings: () => [...userKeyPrefix(), 'users', 'me', 'settings', 'notifications'] as const,
-	consents: {
-		all: () => [...userKeyPrefix(), 'users', 'me', 'consents'] as const,
-	},
-	devices: () => [...userKeyPrefix(), 'devices'] as const,
-	parrots: {
-		all: () => [...userKeyPrefix(), 'parrots'] as const,
-	},
-	words: {
-		all: () => [...userKeyPrefix(), 'words'] as const,
-		detail: (id: string) => [...userKeyPrefix(), 'words', id] as const,
-	},
-	sessions: {
-		all: () => [...userKeyPrefix(), 'sessions'] as const,
-		running: () => [...userKeyPrefix(), 'sessions', 'running'] as const,
-		detail: (id: string) => [...userKeyPrefix(), 'sessions', id] as const,
-		sounds: (id: string) => [...userKeyPrefix(), 'sessions', id, 'sounds'] as const,
-		events: (id: string) => [...userKeyPrefix(), 'sessions', id, 'events'] as const,
-		summary: (id: string) => [...userKeyPrefix(), 'sessions', id, 'summary'] as const,
-	},
-	home: () => [...userKeyPrefix(), 'home'] as const,
-	notifications: {
-		all: () => [...userKeyPrefix(), 'notifications'] as const,
-		list: () => [...userKeyPrefix(), 'notifications', 'list'] as const,
-		detail: (id: string) => [...userKeyPrefix(), 'notifications', id] as const,
-	},
-	reports: {
-		all: () => [...userKeyPrefix(), 'reports'] as const,
-		detail: (period: string, start: string) => [...userKeyPrefix(), 'reports', period, start] as const,
-	},
-	announcements: {
-		all: () => [...userKeyPrefix(), 'announcements'] as const,
-		list: () => [...userKeyPrefix(), 'announcements', 'list'] as const,
-		detail: (id: string) => [...userKeyPrefix(), 'announcements', id] as const,
-	},
-	leaderboard: {
-		all: () => [...userKeyPrefix(), 'leaderboard'] as const,
-		detail: (country: string | null) => [...userKeyPrefix(), 'leaderboard', country] as const,
-	},
-	feed: {
-		all: () => [...userKeyPrefix(), 'feed'] as const,
-		list: (country: string | null) => [...userKeyPrefix(), 'feed', country] as const,
-	},
-	feedReactionTypes: () => [...userKeyPrefix(), 'feed-reaction-types'] as const,
-	recordings: {
-		duration: (id: string) => [...userKeyPrefix(), 'recordings', id, 'duration'] as const,
-	},
-	sessionSounds: {
-		duration: (id: string) => [...userKeyPrefix(), 'session-sounds', id, 'duration'] as const,
-	},
 	mutation: (...parts: string[]) => ['api', ...parts] as const,
 };

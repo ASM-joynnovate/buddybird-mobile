@@ -42,7 +42,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 	const exitOpacity = useSharedValue(1);
 
 	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
-	const [blinked, setBlinked] = useState(reducedMotion);
+	const [eyesBlinked, setEyesBlinked] = useState(reducedMotion);
 
 	const laidOutRef = useRef(false);
 
@@ -68,7 +68,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 					withTiming(0.07, { duration: 90, easing: Easing.in(Easing.quad) }),
 					withTiming(1, { duration: 130, easing: Easing.out(Easing.quad) }, (finished) => {
 						if (finished) {
-							scheduleOnRN(setBlinked, true);
+							scheduleOnRN(setEyesBlinked, true);
 						}
 					}),
 				),
@@ -83,7 +83,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 
 	/** 앱 시작 준비가 끝나면 스플래시 숨기기 */
 	useEffect(() => {
-		if (!bootstrapSettled || !nativeSplashHidden || !blinked) {
+		if (!bootstrapSettled || !nativeSplashHidden || !eyesBlinked) {
 			return;
 		}
 
@@ -96,7 +96,7 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 		);
 
 		return () => cancelAnimation(exitOpacity);
-	}, [blinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
+	}, [eyesBlinked, onComplete, exitOpacity, bootstrapSettled, reducedMotion, nativeSplashHidden]);
 
 	/** 네이티브 스플래시 숨기기 */
 	const handleReveal = () => {

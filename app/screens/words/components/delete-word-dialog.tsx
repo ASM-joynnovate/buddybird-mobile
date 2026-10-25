@@ -4,10 +4,13 @@ import { useDeleteWord } from '@/hooks/apis/words';
 
 import { useTranslation } from 'react-i18next';
 
+import { toast } from 'sonner-native';
+
 import { track } from '@/services/telemetry/client';
 import { uploadedRecordings } from '@/utils/uploaded-recordings';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
+import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 interface Props {
 	visible: boolean;
@@ -26,7 +29,7 @@ interface Props {
 const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 	const { t } = useTranslation();
 
-	const { isError, isPending, mutate, reset } = useDeleteWord();
+	const { isPending, mutate } = useDeleteWord();
 
 	const handleDeleteWord = () => {
 		if (isPending) {
@@ -44,14 +47,13 @@ const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 
 					onDeleted();
 				},
+				onError: () => {
+					toast.custom(<Toast variant="error" message={t('words.deleteError')} />, {
+						toasterId: dialogToasterId,
+					});
+				},
 			},
 		);
-	};
-
-	const handleClose = () => {
-		reset();
-
-		onClose();
 	};
 
 	return (
@@ -61,12 +63,9 @@ const DeleteWordDialog = ({ visible, word, onClose, onDeleted }: Props) => {
 				title: t('common.confirmDelete.title', { name: word.name }),
 				message: t('common.confirmDelete.message'),
 			}}
-			confirmStatus={{
-				busy: isPending,
-				errorMessage: isError ? t('words.deleteError') : null,
-			}}
+			confirmBusy={isPending}
 			onConfirm={handleDeleteWord}
-			onClose={handleClose}
+			onClose={onClose}
 		/>
 	);
 };
