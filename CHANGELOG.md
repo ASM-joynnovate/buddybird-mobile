@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.15.0...v2.16.0) (2026-10-25)
+
+
+### Features
+
+* **app:** show parrot faces in the species picker ([#296](https://github.com/ASM-joynnovate/buddybird-mobile/issues/296)) ([8ba2502](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8ba2502b5f7d25554eb0f2ac80fce067800d8b2d))
+
 ## [2.15.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.14.0...v2.15.0) (2026-10-25)
 
 
