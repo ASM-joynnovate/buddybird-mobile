@@ -37,6 +37,7 @@ export const deviceSettingsSchema = z.object({
 	onboardingCompleted: z.boolean(),
 	usageGuideSeen: z.boolean().default(true),
 	pullToRefreshUsed: z.boolean().default(false),
+	pullToRefreshHintShownScreens: z.array(z.string()).default([]),
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 	lastLoginProvider: loginProviderSchema.nullable(),
 	clientDeviceId: z.string().nullable(),

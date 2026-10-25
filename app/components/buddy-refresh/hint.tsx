@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
+import { useRoute } from '@react-navigation/native';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
 import Animated, {
 	cancelAnimation,
@@ -79,16 +80,20 @@ interface Props {
  */
 const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	const { t } = useTranslation();
+	const route = useRoute();
 
 	const motionReduced = useReducedMotion();
 
 	const pullToRefreshUsed = useDeviceSettingsStore((state) => state.pullToRefreshUsed);
+	const pullToRefreshHintShownScreens = useDeviceSettingsStore((state) => state.pullToRefreshHintShownScreens);
 
-	// 사용 이력이 있으면 표시하지 않음
-	const [playing, setPlaying] = useState(!pullToRefreshUsed);
+	// 이력이 있으면 표시하지 않음
+	const [playing, setPlaying] = useState(!pullToRefreshUsed && !pullToRefreshHintShownScreens.includes(route.name));
 
 	const elapsed = useSharedValue(0);
 	const arrowShift = useSharedValue(0);
+
+	const markPullToRefreshHintShown = useDeviceSettingsStore((state) => state.markPullToRefreshHintShown);
 
 	const wingAngle = useDerivedValue(() =>
 		motionReduced
@@ -137,6 +142,13 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	}));
 	const upArrowStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -arrowShift.get() }] }));
 	const downArrowStyle = useAnimatedStyle(() => ({ transform: [{ translateY: arrowShift.get() }] }));
+
+	/** 안내 표시 화면 저장 */
+	useEffect(() => {
+		if (playing) {
+			markPullToRefreshHintShown(route.name);
+		}
+	}, [markPullToRefreshHintShown, playing, route.name]);
 
 	/** 화면에 처음 들어올 때 안내 애니메이션 실행 */
 	useEffect(() => {
