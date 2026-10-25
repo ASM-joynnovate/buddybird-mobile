@@ -19,7 +19,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
-import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/screens/report/components/buddy-refresh/options';
+import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/screens/report/components/buddy-refresh/constants';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
@@ -40,7 +40,7 @@ const PUSH_MS = 350;
 const SWAY_START_MS = 120;
 const SWAY_ANGLE = 6;
 const LEAN_RATIO = 0.6;
-const FLAP_ANGLE = 42;
+const LAND_FLAP_ANGLE = 42;
 const LEAVE_FLAP_ANGLE = 30;
 const FLAP_MS = 400;
 const LAND_FLAP_START_MS = 180;
@@ -54,14 +54,14 @@ const easeOut = Easing.out(Easing.cubic);
 const easeIn = Easing.in(Easing.cubic);
 
 /** 낙하 바운스 진행률을 계산하는 함수 */
-const drop = (seconds: number) => {
+const dropProgress = (seconds: number) => {
 	'worklet';
 
 	return seconds <= 0 ? 0 : 1 - Math.exp(-8 * seconds) * Math.cos(12 * seconds);
 };
 
 /** 날개 각도 비율을 계산하는 함수 */
-const flap = (elapsedMs: number, startMs: number) => {
+const flapRatio = (elapsedMs: number, startMs: number) => {
 	'worklet';
 
 	return elapsedMs > startMs && elapsedMs < startMs + FLAP_MS
@@ -80,7 +80,7 @@ interface Props {
 const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const pullToRefreshUsed = useDeviceSettingsStore((state) => state.pullToRefreshUsed);
 
@@ -91,18 +91,18 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	const arrowShift = useSharedValue(0);
 
 	const wingAngle = useDerivedValue(() =>
-		reducedMotion
+		motionReduced
 			? 0
-			: FLAP_ANGLE * flap(elapsed.get(), LAND_FLAP_START_MS) +
-				LEAVE_FLAP_ANGLE * flap(elapsed.get(), STAY_MS - FLAP_MS / 4),
+			: LAND_FLAP_ANGLE * flapRatio(elapsed.get(), LAND_FLAP_START_MS) +
+				LEAVE_FLAP_ANGLE * flapRatio(elapsed.get(), STAY_MS - FLAP_MS / 4),
 	);
-	const eyesHappy = useDerivedValue<number>(() =>
+	const happyEyesProgress = useDerivedValue<number>(() =>
 		elapsed.get() > HAPPY_START_MS && elapsed.get() < HAPPY_END_MS ? 1 : 0,
 	);
 	const swayAngle = useDerivedValue(() => {
 		const seconds = (elapsed.get() - SWAY_START_MS) / SECOND;
 
-		if (reducedMotion || !mascotShown || seconds <= 0 || elapsed.get() >= STAY_MS) {
+		if (motionReduced || !mascotShown || seconds <= 0 || elapsed.get() >= STAY_MS) {
 			return 0;
 		}
 
@@ -111,21 +111,23 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 
 	const containerStyle = useAnimatedStyle(() => {
 		const elapsedMs = elapsed.get();
-		const shown =
+		const heightProgress =
 			elapsedMs < STAY_MS
 				? easeOut(Math.min(elapsedMs / PUSH_MS, 1))
 				: 1 - easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
 
-		return { height: HINT_HEIGHT * (reducedMotion ? Number(elapsedMs < END_MS) : shown) };
+		return { height: HINT_HEIGHT * (motionReduced ? Number(elapsedMs < END_MS) : heightProgress) };
 	});
 	const signStyle = useAnimatedStyle(() => {
 		const elapsedMs = elapsed.get();
-		const hidden =
-			elapsedMs < STAY_MS ? 1 - drop(elapsedMs / SECOND) : easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
+		const hideProgress =
+			elapsedMs < STAY_MS
+				? 1 - dropProgress(elapsedMs / SECOND)
+				: easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
 
 		return {
 			transform: [
-				{ translateY: reducedMotion ? 0 : -hidden * DROP_DISTANCE },
+				{ translateY: motionReduced ? 0 : -hideProgress * DROP_DISTANCE },
 				{ rotate: `${swayAngle.get()}deg` },
 			],
 		};
@@ -151,7 +153,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 			}),
 		);
 
-		if (!reducedMotion) {
+		if (!motionReduced) {
 			arrowShift.set(
 				withRepeat(
 					withSequence(
@@ -167,7 +169,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 			cancelAnimation(elapsed);
 			cancelAnimation(arrowShift);
 		};
-	}, [arrowShift, elapsed, playing, reducedMotion]);
+	}, [arrowShift, elapsed, playing, motionReduced]);
 
 	// 안내가 끝나면 렌더링하지 않음
 	if (!playing) {
@@ -202,7 +204,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 
 				{mascotShown && (
 					<Animated.View style={[styles.mascot, mascotStyle]}>
-						<MascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />
+						<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
 					</Animated.View>
 				)}
 			</Animated.View>

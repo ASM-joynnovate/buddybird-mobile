@@ -25,7 +25,7 @@ const LeaderboardMyLane = ({ rank, score, topScore }: Props) => {
 			nickname={meData.nickname}
 			photoUrl={meData.photo_file?.url ?? null}
 			country={null}
-			userIsMe
+			isMe
 		/>
 	);
 };

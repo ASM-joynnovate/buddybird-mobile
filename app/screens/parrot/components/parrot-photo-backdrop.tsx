@@ -25,8 +25,8 @@ const MIN_HEIGHT = 124;
 const SCROLL_FOLLOW_RATIO = 0.45;
 
 interface Props {
-	photo: ReturnType<typeof usePhotoPicker>;
-	busy: boolean;
+	photoPicker: ReturnType<typeof usePhotoPicker>;
+	disabled: boolean;
 	scrollY: SharedValue<number>;
 	photoRef?: AnimatedRef<Animated.View>;
 	photoStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
@@ -35,19 +35,19 @@ interface Props {
 
 /**
  * 화면 위쪽 앵무새 사진 컴포넌트
- * @param photo usePhotoPicker 결과
- * @param busy 저장 중 여부
+ * @param photoPicker usePhotoPicker 결과
+ * @param disabled 저장 중 여부
  * @param scrollY 화면 스크롤 위치
  * @param photoRef 사진 위치 측정용 ref
  * @param photoStyle 사진에 더할 애니메이션 스타일
  * @param badgeStyle 사진 변경 버튼에 더할 애니메이션 스타일
  */
-const ParrotPhotoBackdrop = ({ photo, busy, scrollY, photoRef, photoStyle, badgeStyle }: Props) => {
+const ParrotPhotoBackdrop = ({ photoPicker, disabled, scrollY, photoRef, photoStyle, badgeStyle }: Props) => {
 	const { t } = useTranslation();
 
 	const [sheetOpen, setSheetOpen] = useState(false);
 
-	const BadgeIcon = photo.photoUri ? PencilIcon : PlusIcon;
+	const BadgeIcon = photoPicker.photoUri ? PencilIcon : PlusIcon;
 
 	const followStyle = useAnimatedStyle(() => ({
 		transform: [{ translateY: scrollY.get() * (1 - SCROLL_FOLLOW_RATIO) }],
@@ -56,9 +56,16 @@ const ParrotPhotoBackdrop = ({ photo, busy, scrollY, photoRef, photoStyle, badge
 	return (
 		<View style={styles.container}>
 			<Animated.View style={[styles.photoContainer, followStyle]}>
-				<Animated.View ref={photoRef} style={[styles.photo, !photo.photoUri && styles.emptyPhoto, photoStyle]}>
-					{photo.photoUri ? (
-						<Image source={{ uri: photo.photoUri }} style={styles.image} accessibilityIgnoresInvertColors />
+				<Animated.View
+					ref={photoRef}
+					style={[styles.photo, !photoPicker.photoUri && styles.emptyPhoto, photoStyle]}
+				>
+					{photoPicker.photoUri ? (
+						<Image
+							source={{ uri: photoPicker.photoUri }}
+							style={styles.image}
+							accessibilityIgnoresInvertColors
+						/>
 					) : (
 						<ParrotPhotoPlaceholder />
 					)}
@@ -67,7 +74,7 @@ const ParrotPhotoBackdrop = ({ photo, busy, scrollY, photoRef, photoStyle, badge
 
 			<PressableSurface
 				accessibilityLabel={t('common.profilePhoto.select')}
-				disabled={busy}
+				disabled={disabled}
 				onPress={() => setSheetOpen(true)}
 				variant="plain"
 				depth="none"
@@ -84,8 +91,8 @@ const ParrotPhotoBackdrop = ({ photo, busy, scrollY, photoRef, photoStyle, badge
 
 			<PhotoSourceSheet
 				visible={sheetOpen}
-				onTake={photo.take}
-				onChoose={photo.choose}
+				onTake={photoPicker.take}
+				onChoose={photoPicker.choose}
 				onClose={() => setSheetOpen(false)}
 			/>
 		</View>

@@ -19,9 +19,9 @@ const EDGE_TOLERANCE = 8;
 
 /** 단어 선택 목록 컴포넌트 */
 const WordPicker = () => {
-	const { height } = useWindowDimensions();
+	const { height: windowHeight } = useWindowDimensions();
 
-	const [scrollEdges, setScrollEdges] = useState({ top: true, bottom: false });
+	const [scrollEdges, setScrollEdges] = useState({ topReached: true, bottomReached: false });
 	const [contentHeight, setContentHeight] = useState(0);
 	const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -35,10 +35,14 @@ const WordPicker = () => {
 	const handleScroll = ({
 		nativeEvent: { contentOffset, contentSize, layoutMeasurement },
 	}: NativeSyntheticEvent<NativeScrollEvent>) => {
-		const top = contentOffset.y <= EDGE_TOLERANCE;
-		const bottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - EDGE_TOLERANCE;
+		const topReached = contentOffset.y <= EDGE_TOLERANCE;
+		const bottomReached = contentOffset.y + layoutMeasurement.height >= contentSize.height - EDGE_TOLERANCE;
 
-		setScrollEdges((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }));
+		setScrollEdges((prev) =>
+			prev.topReached === topReached && prev.bottomReached === bottomReached
+				? prev
+				: { topReached, bottomReached },
+		);
 	};
 
 	return (
@@ -50,7 +54,7 @@ const WordPicker = () => {
 				onScroll={handleScroll}
 				onLayout={({ nativeEvent }) => setViewportHeight(nativeEvent.layout.height)}
 				onContentSizeChange={(_width, nextHeight) => setContentHeight(nextHeight)}
-				style={[styles.listContainer, { maxHeight: height * LIST_MAX_HEIGHT_RATIO }]}
+				style={[styles.listContainer, { maxHeight: windowHeight * LIST_MAX_HEIGHT_RATIO }]}
 				contentContainerStyle={styles.wordsRow}
 			>
 				{wordsWithRecordings.map((word) => (
@@ -61,8 +65,10 @@ const WordPicker = () => {
 			</ScrollView>
 
 			{/*위아래 흐림 효과*/}
-			{scrollable && !scrollEdges.top && <View pointerEvents="none" style={[styles.fade, styles.fadeTop]} />}
-			{scrollable && !scrollEdges.bottom && (
+			{scrollable && !scrollEdges.topReached && (
+				<View pointerEvents="none" style={[styles.fade, styles.fadeTop]} />
+			)}
+			{scrollable && !scrollEdges.bottomReached && (
 				<View pointerEvents="none" style={[styles.fade, styles.fadeBottom]} />
 			)}
 		</View>

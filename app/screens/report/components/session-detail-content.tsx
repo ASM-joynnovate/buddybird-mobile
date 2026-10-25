@@ -19,7 +19,7 @@ import {
 	BUDDY_REFRESH_FINISH_MS,
 	BUDDY_REFRESH_HEIGHT,
 	BUDDY_REFRESH_MIN_MS,
-} from '@/screens/report/components/buddy-refresh/options';
+} from '@/screens/report/components/buddy-refresh/constants';
 import BuddyRefreshRopeIndicator from '@/screens/report/components/buddy-refresh/rope-indicator';
 import BuddyRefreshSwingIndicator from '@/screens/report/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/screens/report/components/buddy-refresh/throbber-indicator';
@@ -93,7 +93,7 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		[distressCallShown, sessionEventListData, sessionSoundListData],
 	);
 	const emergencyCount = logItems.filter(
-		(item) => item.kind === 'distressCall' || item.kind === 'parrotDisappeared',
+		(logItem) => logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared',
 	).length;
 
 	const { scrollY, viewportHeight, contentHeight } = pullToRefresh;
@@ -108,8 +108,8 @@ const SessionDetailContent = ({ sessionId }: Props) => {
 		void fetchNextPage();
 	}, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
 
-	const handleToggleItem = (item: LogItem) => {
-		setOpenItemId((prev) => (prev === item.id ? null : item.id));
+	const handleToggleItem = (logItem: LogItem) => {
+		setOpenItemId((prev) => (prev === logItem.id ? null : logItem.id));
 	};
 
 	return (

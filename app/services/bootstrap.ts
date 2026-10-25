@@ -62,11 +62,11 @@ void notifee
 	.catch((error) => reportError(error, 'push_config'));
 
 // 첫 화면 렌더링 전 i18next 초기화 시작
-const i18nReady = changeI18nLocale(useDeviceSettingsStore.getState().locale);
+const i18nInitialization = changeI18nLocale(useDeviceSettingsStore.getState().locale);
 
 /** 앱 시작 준비 함수 */
 export const bootstrap = async () => {
-	await i18nReady;
+	await i18nInitialization;
 
 	// 기존 설정을 옮겨 알림 채널 생성
 	if (Platform.OS === 'android') {

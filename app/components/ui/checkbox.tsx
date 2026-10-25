@@ -24,7 +24,7 @@ interface Props {
 }
 
 export const Checkbox = ({ checked, disabled, onPress }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const markScale = useSharedValue(1);
 
@@ -37,11 +37,11 @@ export const Checkbox = ({ checked, disabled, onPress }: Props) => {
 	}
 
 	useEffect(() => {
-		if (checked && !reducedMotion) {
+		if (checked && !motionReduced) {
 			markScale.set(0.7);
 			markScale.set(withTiming(1, { duration: 160, easing: Easing.out(Easing.cubic) }));
 		}
-	}, [checked, reducedMotion, markScale]);
+	}, [checked, motionReduced, markScale]);
 
 	return (
 		<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

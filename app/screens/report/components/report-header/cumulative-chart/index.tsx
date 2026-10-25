@@ -76,7 +76,7 @@ const createGuideLabel = (text: string, fontProvider: SkTypefaceFontProvider) =>
 
 interface ChartTooltip {
 	title: string;
-	detail: string;
+	durationText: string;
 }
 
 interface Props {
@@ -277,7 +277,7 @@ const ReportHeaderCumulativeChart = ({
 						onLayout={(event) => setTooltipWidth(event.nativeEvent.layout.width)}
 					>
 						<Copy style={styles.tooltipTitle}>{tooltip.title}</Copy>
-						<Copy style={styles.tooltipDetail}>{tooltip.detail}</Copy>
+						<Copy style={styles.tooltipDetail}>{tooltip.durationText}</Copy>
 					</View>
 				)}
 			</View>

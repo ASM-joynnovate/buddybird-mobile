@@ -17,7 +17,7 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
-import usePullGesture, { EDGE_EPSILON, isIOS, isPulling } from '@/screens/report/hooks/use-pull-gesture';
+import usePullGesture, { EDGE_EPSILON, isIOS, isBeforeRefresh } from '@/screens/report/hooks/use-pull-gesture';
 import { reportError } from '@/services/telemetry/client';
 import { wait } from '@/utils/wait';
 
@@ -45,7 +45,7 @@ interface Options {
  * @param finishMs 새로고침 완료 표시 시간
  */
 const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefreshMs, finishMs }: Options) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const scrollRef = useAnimatedRef<T>();
 
@@ -67,14 +67,14 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 	const contentHeight = useSharedValue(0);
 
 	/** 당기기 상태 변경 */
-	const moveTo = useCallback(
+	const changeStatus = useCallback(
 		(nextStatus: PullStatus) => {
 			'worklet';
 
-			const holdingOpen = !isPulling(nextStatus);
+			const holdingOpen = !isBeforeRefresh(nextStatus);
 
 			// 표시 영역 유지 여부가 변경될 때만 화면 렌더링
-			if (holdingOpen !== !isPulling(status.get())) {
+			if (holdingOpen !== !isBeforeRefresh(status.get())) {
 				const bottomGap = Math.max(0, viewportHeight.get() - contentHeight.get());
 
 				// UI 스레드에서 iOS contentInset 변경
@@ -91,49 +91,49 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 	);
 
 	/** 당긴 거리 반영 */
-	const track = useCallback(
+	const updateDistance = useCallback(
 		(nextDistance: number) => {
 			'worklet';
 
-			if (!isPulling(status.get())) {
+			if (!isBeforeRefresh(status.get())) {
 				return;
 			}
 
 			distance.set(nextDistance);
 
-			const next = nextDistance <= 0 ? 'idle' : nextDistance >= PULL_REFRESH_DISTANCE ? 'armed' : 'pulling';
+			const nextStatus = nextDistance <= 0 ? 'idle' : nextDistance >= PULL_REFRESH_DISTANCE ? 'armed' : 'pulling';
 
-			if (next !== status.get()) {
-				moveTo(next);
+			if (nextStatus !== status.get()) {
+				changeStatus(nextStatus);
 			}
 		},
-		[distance, moveTo, status],
+		[distance, changeStatus, status],
 	);
 
 	/** 목록을 원래 위치로 이동 */
 	const close = useCallback(() => {
 		'worklet';
 
-		moveTo('closing');
+		changeStatus('closing');
 
 		if (isIOS) {
 			if (distance.get() <= EDGE_EPSILON) {
 				distance.set(0);
-				moveTo('idle');
+				changeStatus('idle');
 
 				return;
 			}
 
 			const endY = distanceEdge.get() === 'top' ? 0 : Math.max(0, contentHeight.get() - viewportHeight.get());
 
-			scrollTo(scrollRef, 0, endY, !reducedMotion);
+			scrollTo(scrollRef, 0, endY, !motionReduced);
 
 			return;
 		}
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			distance.set(0);
-			moveTo('idle');
+			changeStatus('idle');
 
 			return;
 		}
@@ -141,18 +141,18 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		distance.set(
 			withTiming(0, { duration: CLOSE_MS }, (finished) => {
 				if (finished) {
-					moveTo('idle');
+					changeStatus('idle');
 				}
 			}),
 		);
-	}, [contentHeight, distance, distanceEdge, moveTo, reducedMotion, scrollRef, viewportHeight]);
+	}, [contentHeight, distance, distanceEdge, changeStatus, motionReduced, scrollRef, viewportHeight]);
 
 	/** 새로고침 실행 */
 	const refresh = useCallback(async () => {
 		const startedAt = dayjs();
 
 		if (!isIOS) {
-			distance.set(reducedMotion ? holdHeight : withTiming(holdHeight, { duration: CLOSE_MS }));
+			distance.set(motionReduced ? holdHeight : withTiming(holdHeight, { duration: CLOSE_MS }));
 		}
 
 		try {
@@ -174,7 +174,7 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		scheduleOnUI(() => {
 			'worklet';
 
-			moveTo('finishing');
+			changeStatus('finishing');
 		});
 
 		await wait(finishMs);
@@ -184,7 +184,7 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		}
 
 		scheduleOnUI(close);
-	}, [close, distance, finishMs, holdHeight, minRefreshMs, moveTo, reducedMotion]);
+	}, [close, distance, finishMs, holdHeight, minRefreshMs, changeStatus, motionReduced]);
 
 	/** 손을 떼면 새로고침 실행 또는 원래 위치 복귀 */
 	const release = useCallback(() => {
@@ -193,7 +193,7 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		panStart.set(null);
 
 		if (status.get() === 'armed') {
-			moveTo('refreshing');
+			changeStatus('refreshing');
 			scheduleOnRN(refresh);
 
 			return;
@@ -203,7 +203,7 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		if (status.get() === 'pulling' && !isIOS) {
 			close();
 		}
-	}, [close, moveTo, panStart, refresh, status]);
+	}, [close, changeStatus, panStart, refresh, status]);
 
 	const gesture = usePullGesture({
 		status,
@@ -212,8 +212,8 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		scrollY,
 		viewportHeight,
 		contentHeight,
-		track,
-		release,
+		onPull: updateDistance,
+		onRelease: release,
 	});
 
 	// Android는 목록 이동으로 표시 영역 확보
@@ -251,12 +251,12 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 
 			const overscroll = distanceEdge.get() === 'top' ? topOverscroll : bottomOverscroll;
 
-			if (!isPulling(status.get())) {
+			if (!isBeforeRefresh(status.get())) {
 				distance.set(overscroll);
 
 				if (status.get() === 'closing' && overscroll <= EDGE_EPSILON) {
 					distance.set(0);
-					moveTo('idle');
+					changeStatus('idle');
 				}
 
 				return;
@@ -264,7 +264,7 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 
 			// 관성 스크롤의 바운스는 당기기로 처리하지 않음
 			if (dragging.get() || status.get() !== 'idle') {
-				track(overscroll);
+				updateDistance(overscroll);
 			} else {
 				distance.set(overscroll);
 			}
@@ -314,10 +314,10 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		};
 	}, []);
 
-	const handleLayout = (event: LayoutChangeEvent) => {
+	const handleSaveViewportHeight = (event: LayoutChangeEvent) => {
 		viewportHeight.set(event.nativeEvent.layout.height);
 	};
-	const handleContentSizeChange = (_width: number, height: number) => {
+	const handleSaveContentHeight = (_width: number, height: number) => {
 		contentHeight.set(height);
 	};
 
@@ -326,8 +326,8 @@ const usePullToRefresh = <T extends Component>({ onRefresh, holdHeight, minRefre
 		style: listStyle,
 		onScroll: scrollHandler,
 		scrollEventThrottle: SCROLL_THROTTLE_MS,
-		onLayout: handleLayout,
-		onContentSizeChange: handleContentSizeChange,
+		onLayout: handleSaveViewportHeight,
+		onContentSizeChange: handleSaveContentHeight,
 		overScrollMode: 'never' as const,
 		// 아래쪽 새로고침 시 항목 위치 유지
 		maintainVisibleContentPosition:

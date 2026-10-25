@@ -2,7 +2,7 @@ import AppNavigator from '@/navigators/app-navigator';
 import LoginNavigator from '@/navigators/login-navigator';
 import AnalyticsProvider from '@/providers/analytics';
 import DeviceProvider from '@/providers/device';
-import StartupDialogProvider from '@/providers/startup-dialog';
+import FeedbackDialogProvider from '@/providers/feedback-dialog';
 import { useAuthStore } from '@/stores/auth';
 
 import StartupScreen from '@/components/app/startup';
@@ -35,9 +35,9 @@ const AuthStatusContent = () => {
 		>
 			<DeviceProvider>
 				<AnalyticsProvider>
-					<StartupDialogProvider>
+					<FeedbackDialogProvider>
 						<AppNavigator />
-					</StartupDialogProvider>
+					</FeedbackDialogProvider>
 				</AnalyticsProvider>
 			</DeviceProvider>
 		</ErrorHandlingWrapper>

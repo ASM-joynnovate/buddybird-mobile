@@ -106,7 +106,7 @@ object VideoBuffer {
   fun start(width: Int, height: Int, frameRate: Int, bitrate: Int, beforeMs: Long) {
     stop()
 
-    val started = HandlerThread("frame-capture-video").apply { start() }
+    val videoThread = HandlerThread("frame-capture-video").apply { start() }
 
     this.longSide = maxOf(width, height)
     this.frameRate = frameRate
@@ -116,23 +116,23 @@ object VideoBuffer {
     this.lastFrameNs = 0L
     this.encoderFailed = false
 
-    thread = started
-    handler = Handler(started.looper)
+    thread = videoThread
+    handler = Handler(videoThread.looper)
   }
 
   /** 영상 유지를 멈추는 함수 */
   fun stop() {
-    val stopping = handler ?: return
+    val stoppingHandler = handler ?: return
     val stoppingThread = thread
 
     handler = null
     thread = null
 
-    stopping.post {
+    stoppingHandler.post {
       // 대기 중인 프레임이 인코더를 다시 생성하지 않게 함
       encoderFailed = true
 
-      cancelClip(stopping)
+      cancelClip(stoppingHandler)
       releaseEncoder()
       samples.clear()
     }
@@ -335,12 +335,12 @@ object VideoBuffer {
 
   /** 인코더 해제 함수 */
   private fun releaseEncoder() {
-    val releasing = encoder ?: return
+    val releasingEncoder = encoder ?: return
 
     encoder = null
 
     try {
-      releasing.release()
+      releasingEncoder.release()
     } catch (e: Exception) {
       Log.e(TAG, "Video buffer encoder release failed", e)
     }

@@ -27,11 +27,11 @@ interface Props {
 const UsageScene = ({ step, topInset }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
-	const animated = !reducedMotion;
+	const animated = !motionReduced;
 	const areaMeasured = area.width > 0 && topInset > 0;
 
 	const handleLayout = (event: LayoutChangeEvent) => {

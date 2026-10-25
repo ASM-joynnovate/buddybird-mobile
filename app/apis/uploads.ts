@@ -111,14 +111,14 @@ export const putUploadFile = async ({
 	uri,
 	timeoutMs = API_TIMEOUT_MS,
 }: PutUploadFileParams): Promise<void> => {
-	const result = await new File(uri).upload(upload.url, {
+	const uploadResponse = await new File(uri).upload(upload.url, {
 		httpMethod: 'PUT',
 		headers: upload.headers,
 		sessionType: 'foreground',
 		signal: AbortSignal.timeout(timeoutMs),
 	});
 
-	if (result.status < SUCCESS_STATUS_MIN || result.status > SUCCESS_STATUS_MAX) {
-		throw new Error(`Upload failed (HTTP ${result.status})`);
+	if (uploadResponse.status < SUCCESS_STATUS_MIN || uploadResponse.status > SUCCESS_STATUS_MAX) {
+		throw new Error(`Upload failed (HTTP ${uploadResponse.status})`);
 	}
 };

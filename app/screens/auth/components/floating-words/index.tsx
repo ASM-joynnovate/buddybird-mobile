@@ -35,7 +35,7 @@ interface Props {
  * @param riseHeight 떠오르는 높이
  */
 const FloatingWords = ({ words, active, riseHeight }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [areaWidth, setAreaWidth] = useState(0);
 
@@ -43,7 +43,7 @@ const FloatingWords = ({ words, active, riseHeight }: Props) => {
 		return null;
 	}
 
-	const shownWords = words.slice(0, reducedMotion ? STILL_WORD_COUNT : PATHS.length);
+	const shownWords = words.slice(0, motionReduced ? STILL_WORD_COUNT : PATHS.length);
 
 	const handleLayout = (event: LayoutChangeEvent) => {
 		setAreaWidth(event.nativeEvent.layout.width);

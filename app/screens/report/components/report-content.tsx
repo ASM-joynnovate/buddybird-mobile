@@ -19,7 +19,7 @@ import {
 	BUDDY_REFRESH_FINISH_MS,
 	BUDDY_REFRESH_HEIGHT,
 	BUDDY_REFRESH_MIN_MS,
-} from '@/screens/report/components/buddy-refresh/options';
+} from '@/screens/report/components/buddy-refresh/constants';
 import BuddyRefreshRopeIndicator from '@/screens/report/components/buddy-refresh/rope-indicator';
 import BuddyRefreshSwingIndicator from '@/screens/report/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/screens/report/components/buddy-refresh/throbber-indicator';
@@ -33,7 +33,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useReportStore } from '@/stores/report';
 import { colors, font } from '@/theme';
 import { periodsBetween } from '@/utils/date';
-import { latestStart } from '@/utils/report-period';
+import { latestStart, shiftedStart } from '@/utils/report-period';
 
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -58,12 +58,14 @@ const ReportContent = () => {
 	const shownStart = deferredPeriod === period ? deferredStart : selectedStart;
 
 	const { data: reportData, refetch } = useGetReport({ period, start: shownStart });
+	// 바로 전 기간 리포트도 받은 뒤 화면 표시
+	useGetReport({ period, start: shiftedStart(period, shownStart, -1) });
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 
-	const lowPerformance = useIsLowPerformance();
+	const isLowPerformance = useIsLowPerformance();
 
 	useRefreshOnFocus(refetch);
 
@@ -127,7 +129,7 @@ const ReportContent = () => {
 		<PullToRefreshContainer
 			pullToRefresh={pullToRefresh}
 			indicatorComponents={
-				lowPerformance
+				isLowPerformance
 					? [BuddyRefreshThrobberIndicator]
 					: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
 			}

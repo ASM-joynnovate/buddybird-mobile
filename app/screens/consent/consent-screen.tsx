@@ -124,7 +124,7 @@ const ConsentScreen = () => {
 			<View style={styles.consentsContainer}>
 				<Card contentStyle={styles.allCard}>
 					<ItemCheckbox
-						firstInGroup
+						isFirstInGroup
 						label={t('onboarding.consent.all')}
 						checked={allChecked}
 						disabled={isPending}
@@ -136,7 +136,7 @@ const ConsentScreen = () => {
 					{consents.map((consent, index) => (
 						<ConsentItem
 							key={consent.id}
-							firstInGroup={index === 0}
+							isFirstInGroup={index === 0}
 							consent={consent}
 							checked={isChecked(consent)}
 							disabled={isPending}

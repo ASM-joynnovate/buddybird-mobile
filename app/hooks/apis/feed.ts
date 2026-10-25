@@ -21,7 +21,7 @@ import { reportError } from '@/services/telemetry/client';
 
 /** 내 반응을 더한 반응 목록을 반환하는 함수 */
 const withMyReaction = (reactions: FeedItemReaction[], reactionTypeId: string) => {
-	const reaction = reactions.find((item) => item.reaction_type_id === reactionTypeId);
+	const reaction = reactions.find((feedReaction) => feedReaction.reaction_type_id === reactionTypeId);
 
 	if (!reaction) {
 		return [...reactions, { reaction_type_id: reactionTypeId, count: 1, is_mine: true }];
@@ -31,22 +31,28 @@ const withMyReaction = (reactions: FeedItemReaction[], reactionTypeId: string) =
 		return reactions;
 	}
 
-	return reactions.map((item) => (item === reaction ? { ...item, count: item.count + 1, is_mine: true } : item));
+	return reactions.map((feedReaction) =>
+		feedReaction === reaction ? { ...feedReaction, count: feedReaction.count + 1, is_mine: true } : feedReaction,
+	);
 };
 
 /** 내 반응을 뺀 반응 목록을 반환하는 함수 */
 const withoutMyReaction = (reactions: FeedItemReaction[], reactionTypeId: string) => {
-	const reaction = reactions.find((item) => item.reaction_type_id === reactionTypeId && item.is_mine);
+	const reaction = reactions.find(
+		(feedReaction) => feedReaction.reaction_type_id === reactionTypeId && feedReaction.is_mine,
+	);
 
 	if (!reaction) {
 		return reactions;
 	}
 
 	if (reaction.count === 1) {
-		return reactions.filter((item) => item !== reaction);
+		return reactions.filter((feedReaction) => feedReaction !== reaction);
 	}
 
-	return reactions.map((item) => (item === reaction ? { ...item, count: item.count - 1, is_mine: false } : item));
+	return reactions.map((feedReaction) =>
+		feedReaction === reaction ? { ...feedReaction, count: feedReaction.count - 1, is_mine: false } : feedReaction,
+	);
 };
 
 /** 피드 목록 캐시의 피드 항목을 변경하는 함수 */

@@ -4,7 +4,7 @@ import { useGetMe, useUpdateMe } from '@/hooks/apis/users';
 
 import { useTranslation } from 'react-i18next';
 
-import { countryEnglishNames, countryNames, countryNativeNames } from '@/i18n/countries';
+import { countryEnglishNames, countryNamesIn, countryNativeNames } from '@/i18n/countries';
 
 import { apiErrorMessage } from '@/lib/api';
 
@@ -28,8 +28,8 @@ const CountryPicker = () => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const names = countryNames(locale);
-	const countryItems: CountryItem[] = Object.entries(names)
+	const countryNameByCode = countryNamesIn(locale);
+	const countryItems: CountryItem[] = Object.entries(countryNameByCode)
 		.map(([code, name]) => ({
 			code,
 			name,
@@ -60,10 +60,10 @@ const CountryPicker = () => {
 
 	return (
 		<ItemPicker
-			item={{
+			itemProps={{
 				icon: EarthIcon,
 				label: t('settings.general.country'),
-				value: country ? (names[country] ?? country) : t('settings.general.countryChoose'),
+				value: country ? (countryNameByCode[country] ?? country) : t('settings.general.countryChoose'),
 				disabled: isPending,
 			}}
 			sheet={{ title: t('settings.general.country'), listLayout: true }}

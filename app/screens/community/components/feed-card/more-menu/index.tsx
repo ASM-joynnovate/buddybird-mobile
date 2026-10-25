@@ -66,7 +66,7 @@ const FeedCardMoreMenu = ({ feedItem }: Props) => {
 				<ArrowPopover anchor={anchor} align="end" width={MENU_WIDTH} onClose={() => setAnchor(null)}>
 					<View accessibilityRole="menu" style={styles.menuContainer}>
 						<FeedCardMoreMenuItem
-							firstInGroup
+							isFirstInGroup
 							icon={FlagIcon}
 							label={t('community.report.action')}
 							onPress={handleReport}

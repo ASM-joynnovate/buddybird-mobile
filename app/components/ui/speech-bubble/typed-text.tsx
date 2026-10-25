@@ -15,12 +15,12 @@ interface Props {
 }
 
 export const TypedText = ({ text }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [typedCount, setTypedCount] = useState(0);
 
 	const characters = Array.from(text);
-	const shownCount = reducedMotion ? characters.length : typedCount;
+	const shownCount = motionReduced ? characters.length : typedCount;
 	const typingDone = shownCount >= characters.length;
 
 	useEffect(() => {

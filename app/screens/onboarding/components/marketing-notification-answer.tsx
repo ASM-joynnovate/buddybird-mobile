@@ -30,8 +30,8 @@ const MarketingNotificationAnswer = () => {
 	const setOnboardingCompleted = useDeviceSettingsStore((state) => state.setOnboardingCompleted);
 
 	const notificationSettingItems = allNotificationSettingItems(notificationSettingsData);
-	const marketingItem = notificationSettingItems.find((item) => item.kind === 'marketing');
-	const marketingNightItem = notificationSettingItems.find((item) => item.kind === 'marketing_night');
+	const marketingItem = notificationSettingItems.find((settingItem) => settingItem.kind === 'marketing');
+	const marketingNightItem = notificationSettingItems.find((settingItem) => settingItem.kind === 'marketing_night');
 	const isPending = updateMarketing.isPending || updateMarketingNight.isPending;
 
 	/** 온보딩 완료 함수 */
@@ -67,7 +67,7 @@ const MarketingNotificationAnswer = () => {
 		<View style={styles.container}>
 			<Card contentStyle={styles.nightCard}>
 				<ItemCheckbox
-					firstInGroup
+					isFirstInGroup
 					label={t('onboarding.marketing.night')}
 					checked={nightAccepted}
 					disabled={isPending}

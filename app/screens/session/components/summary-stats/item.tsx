@@ -37,10 +37,10 @@ const LAND_SCALE = 1.3;
 export interface SummaryStat {
 	metric: SummaryMetric;
 	label: string;
-	value: number;
-	valueBeforeSession: number | null;
+	amount: number;
+	amountBeforeSession: number | null;
 	unit: CountUnit;
-	revealAt: number;
+	revealSentenceIndex: number;
 }
 
 interface Props {
@@ -72,9 +72,9 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
 
 	const palette = summaryMetricColors[stat.metric];
-	const sentenceShowing = summarySentenceIndex === stat.revealAt;
+	const sentenceShowing = summarySentenceIndex === stat.revealSentenceIndex;
 	const flightOrigin =
-		revealed && !numberLanded && summaryNumberOrigin?.sentenceIndex === stat.revealAt
+		revealed && !numberLanded && summaryNumberOrigin?.sentenceIndex === stat.revealSentenceIndex
 			? summaryNumberOrigin.position
 			: null;
 	const chipScaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: chipScale.get() }] }));
@@ -93,7 +93,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 		chipScale.set(bumpScale());
 		glint.set(glintSweep());
 
-		if (stat.valueBeforeSession === null) {
+		if (stat.amountBeforeSession === null) {
 			valueScale.set(
 				withSequence(
 					withTiming(LAND_SCALE, { duration: 0 }),
@@ -114,7 +114,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				}),
 			),
 		);
-	}, [chipScale, glint, numberLanded, progress, stat.valueBeforeSession, valueScale]);
+	}, [chipScale, glint, numberLanded, progress, stat.amountBeforeSession, valueScale]);
 
 	const handleLand = useCallback(() => {
 		clearSummaryNumberOrigin();
@@ -127,7 +127,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 			return;
 		}
 
-		moveSummarySentence(stat.revealAt);
+		moveSummarySentence(stat.revealSentenceIndex);
 	};
 
 	return (
@@ -157,15 +157,15 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				<Animated.View style={[styles.valueContainer, valueScaleStyle]}>
 					<CountUpText
 						progress={progress}
-						from={stat.valueBeforeSession ?? stat.value}
-						to={stat.value}
+						from={stat.amountBeforeSession ?? stat.amount}
+						to={stat.amount}
 						unit={stat.unit}
 						style={styles.value}
 					/>
 
 					{flightOrigin && (
 						<SummaryStatsFlyingNumber
-							value={stat.value}
+							value={stat.amount}
 							unit={stat.unit}
 							metric={stat.metric}
 							origin={flightOrigin}
@@ -175,11 +175,11 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 				</Animated.View>
 
 				{/*이번 세션이 더한 양*/}
-				{numberLanded && stat.valueBeforeSession !== null && (
+				{numberLanded && stat.amountBeforeSession !== null && (
 					<Animated.View entering={popIn()} style={styles.addedBadge}>
 						<Copy style={styles.addedText}>
 							{t('session.summary.added', {
-								duration: formatDuration(stat.value - stat.valueBeforeSession, locale),
+								duration: formatDuration(stat.amount - stat.amountBeforeSession, locale),
 							})}
 						</Copy>
 					</Animated.View>

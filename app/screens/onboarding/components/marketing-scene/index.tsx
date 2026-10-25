@@ -29,11 +29,11 @@ const MarketingScene = () => {
 
 	const screenFocused = useIsFocused();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
-	const animated = screenFocused && !reducedMotion;
+	const animated = screenFocused && !motionReduced;
 	const scale = getStageScale(area, STAGE_WIDTH, STAGE_HEIGHT);
 
 	const handleLayout = (event: LayoutChangeEvent) => {

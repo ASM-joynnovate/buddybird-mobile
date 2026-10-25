@@ -19,27 +19,27 @@ import { Toast } from '@/components/ui/toast';
 const sharedFileTypes = { video: 'mp4', image: 'jpg' } as const;
 
 interface Props {
-	item: LogItem;
-	itemName: string;
+	logItem: LogItem;
+	itemLabel: string;
 	sessionId: string;
 }
 
 /**
  * 펼친 기록의 공유 버튼 컴포넌트
- * @param item 기록
- * @param itemName 기록 이름
+ * @param logItem 기록
+ * @param itemLabel 기록 이름
  * @param sessionId 세션 ID
  */
-const SessionLogShareButton = ({ item, itemName, sessionId }: Props) => {
+const SessionLogShareButton = ({ logItem, itemLabel, sessionId }: Props) => {
 	const { t } = useTranslation();
 
 	const shareSessionFile = useShareSessionFile();
 	const shareSessionJoinedSound = useShareSessionJoinedSound();
 
-	const mediaType = logItemMediaTypes[item.kind];
-	const uploadedFile = item.file?.status === 'uploaded' ? item.file : null;
+	const mediaType = logItemMediaTypes[logItem.kind];
+	const uploadedFile = logItem.file?.status === 'uploaded' ? logItem.file : null;
 	const fileSharing = shareSessionFile.isPending || shareSessionJoinedSound.isPending;
-	const shareDisabled = mediaType === 'audio' ? item.sounds.length === 0 : !uploadedFile;
+	const shareDisabled = mediaType === 'audio' ? logItem.sounds.length === 0 : !uploadedFile;
 	const foregroundColor = shareDisabled ? colors.subtle : colors.text;
 
 	const handleShare = () => {
@@ -47,7 +47,7 @@ const SessionLogShareButton = ({ item, itemName, sessionId }: Props) => {
 			return;
 		}
 
-		const fileName = sharedLogFileName(item.startedAt);
+		const fileName = sharedLogFileName(logItem.startedAt);
 		const callbacks = {
 			onSuccess: () => {
 				if (mediaType === 'audio') {
@@ -59,13 +59,13 @@ const SessionLogShareButton = ({ item, itemName, sessionId }: Props) => {
 			},
 		};
 
-		if (item.kind === 'distressCall') {
+		if (logItem.kind === 'distressCall') {
 			shareSessionJoinedSound.mutate(
-				{ urls: item.sounds.map((sound) => sound.audio_file.url), fileName },
+				{ urls: logItem.sounds.map((sound) => sound.audio_file.url), fileName },
 				callbacks,
 			);
 		} else if (mediaType === 'audio') {
-			shareSessionFile.mutate({ url: item.sounds[0].audio_file.url, fileName, fileType: 'wav' }, callbacks);
+			shareSessionFile.mutate({ url: logItem.sounds[0].audio_file.url, fileName, fileType: 'wav' }, callbacks);
 		} else if (uploadedFile) {
 			shareSessionFile.mutate(
 				{ url: uploadedFile.url, fileName, fileType: sharedFileTypes[mediaType] },
@@ -76,7 +76,7 @@ const SessionLogShareButton = ({ item, itemName, sessionId }: Props) => {
 
 	return (
 		<PressableSurface
-			accessibilityLabel={t('report.detail.share', { name: itemName })}
+			accessibilityLabel={t('report.detail.share', { name: itemLabel })}
 			accessibilityState={{ busy: fileSharing }}
 			disabled={shareDisabled || fileSharing}
 			onPress={handleShare}

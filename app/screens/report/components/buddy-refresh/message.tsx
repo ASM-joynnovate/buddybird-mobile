@@ -14,21 +14,21 @@ export const MESSAGE_SPACE = 42;
 
 interface Props {
 	message: string;
-	shown: SharedValue<number>;
+	progress: SharedValue<number>;
 	distance: SharedValue<number>;
 }
 
 /**
  * 새로고침 문구 컴포넌트
  * @param message 표시할 문구
- * @param shown 문구 표시 진행률
+ * @param progress 문구 표시 진행률
  * @param distance 새로고침 표시 영역의 높이
  */
-const BuddyRefreshMessage = ({ message, shown, distance }: Props) => {
+const BuddyRefreshMessage = ({ message, progress, distance }: Props) => {
 	const messageStyle = useAnimatedStyle(() => ({
-		opacity: shown.get(),
+		opacity: progress.get(),
 		transform: [
-			{ translateY: distance.get() - MESSAGE_BOTTOM - MESSAGE_HEIGHT + (1 - shown.get()) * MESSAGE_RISE },
+			{ translateY: distance.get() - MESSAGE_BOTTOM - MESSAGE_HEIGHT + (1 - progress.get()) * MESSAGE_RISE },
 		],
 	}));
 

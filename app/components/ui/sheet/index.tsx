@@ -19,7 +19,7 @@ interface Props {
 	title: string;
 	description?: string;
 	onClose: () => void;
-	listLayout?: boolean;
+	isListLayout?: boolean;
 	onOpened?: () => void;
 	headerAction?: ReactNode;
 	dismissible?: boolean;
@@ -31,7 +31,7 @@ export const Sheet = ({
 	title,
 	description,
 	onClose,
-	listLayout = false,
+	isListLayout = false,
 	onOpened,
 	headerAction,
 	dismissible = true,
@@ -107,17 +107,17 @@ export const Sheet = ({
 			ref={sheetRef}
 			onDismiss={handleDismiss}
 			onChange={handleSheetChange}
-			enableContentPanningGesture={listLayout}
-			enableDynamicSizing={!listLayout}
+			enableContentPanningGesture={isListLayout}
+			enableDynamicSizing={!isListLayout}
 			enablePanDownToClose={dismissible}
-			snapPoints={listLayout ? LIST_SNAP_POINTS : undefined}
+			snapPoints={isListLayout ? LIST_SNAP_POINTS : undefined}
 			topInset={insets.top}
 			backdropComponent={dismissible ? SheetBackdrop : SheetFixedBackdrop}
 			backgroundStyle={styles.background}
 			handleIndicatorStyle={styles.handle}
 			style={{ marginHorizontal: Math.max(0, (width - contentMaxWidth) / 2) }}
 		>
-			{listLayout ? (
+			{isListLayout ? (
 				<View accessibilityViewIsModal style={styles.listContainer}>
 					<View style={styles.listHeader}>{header}</View>
 					{children}

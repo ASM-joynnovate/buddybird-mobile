@@ -84,27 +84,27 @@ const dipEasing = Easing.bezier(0.34, 1.8, 0.64, 1);
 /**
  * 구간별 값으로 이어지는 애니메이션 생성 함수
  * @param start 시작 값
- * @param values 구간이 끝날 때의 값 목록
+ * @param segmentEndValues 구간이 끝날 때의 값 목록
  * @param portions 전체 시간에서 각 구간이 차지하는 비율 목록
  * @param easing 구간마다 쓰는 속도 곡선
  */
 const keyframes = (
 	start: number,
-	values: readonly number[],
+	segmentEndValues: readonly number[],
 	portions: readonly number[],
 	easing: EasingFunctionFactory,
 ) => {
 	return withSequence(
 		withTiming(start, { duration: 0 }),
-		...values.map((value, index) =>
-			withTiming(value, { duration: (portions[index] ?? 0) * BUDDY_MOVE_MS, easing }),
+		...segmentEndValues.map((endValue, index) =>
+			withTiming(endValue, { duration: (portions[index] ?? 0) * BUDDY_MOVE_MS, easing }),
 		),
 	);
 };
 
 /**
  * 막대가 눌렸다가 튀어 돌아오는 애니메이션을 만드는 함수
- * @param dip 막대가 눌리는 애니메이션 값
+ * @param depth 막대가 눌리는 애니메이션 값
  */
 const dipMotion = ({ depth, delay, duration }: typeof LAND_DIP) => {
 	return withDelay(
@@ -172,7 +172,7 @@ const createFeatherDrop = (id: string, x: number, y: number, delay: number) => {
 };
 
 interface Props {
-	size: number;
+	buddySize: number;
 	barBottom: number;
 	buddySeated: boolean;
 	dragEnabled: boolean;
@@ -183,7 +183,7 @@ interface Props {
 
 /**
  * 화면 위에 매달려 흔들리는 횃대 컴포넌트
- * @param size 버디 크기
+ * @param buddySize 버디 크기
  * @param barBottom 화면 위에서 막대 아래까지의 거리
  * @param buddySeated 버디가 횃대에 앉아 있는지 여부
  * @param dragEnabled 손가락으로 끌 수 있는지 여부
@@ -191,12 +191,12 @@ interface Props {
  * @param buddyStyle 앉은 버디에 더할 스타일
  * @param style 횃대 전체에 더할 스타일
  */
-const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRef, buddyStyle, style }: Props) => {
+const StartupScreenPerch = ({ buddySize, barBottom, buddySeated, dragEnabled, buddyRef, buddyStyle, style }: Props) => {
 	const { width } = useWindowDimensions();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
-	const angle = useSharedValue(reducedMotion ? 0 : START_ANGLE);
+	const angle = useSharedValue(motionReduced ? 0 : START_ANGLE);
 	const speed = useSharedValue(0);
 	const dragging = useSharedValue(false);
 	const dip = useSharedValue(0);
@@ -209,10 +209,10 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 
 	const [featherDrops, setFeatherDrops] = useState<FeatherDrop[]>([]);
 
-	const seatedRef = useRef(buddySeated);
+	const buddySeatedRef = useRef(buddySeated);
 	const featherIdRef = useRef(0);
 
-	const scale = size / DRAWN_BUDDY_SIZE;
+	const scale = buddySize / DRAWN_BUDDY_SIZE;
 	const perchWidth = PERCH_WIDTH * scale;
 	const pivotX = width / 2;
 
@@ -226,7 +226,7 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 	const dragGesture = useMemo(
 		() =>
 			Gesture.Pan()
-				.enabled(dragEnabled && !reducedMotion)
+				.enabled(dragEnabled && !motionReduced)
 				.onBegin((event) => {
 					dragging.set(true);
 					speed.set(0);
@@ -243,7 +243,7 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 				.onFinalize(() => {
 					dragging.set(false);
 				}),
-		[angle, dragEnabled, dragging, pivotX, reducedMotion, speed],
+		[angle, dragEnabled, dragging, pivotX, motionReduced, speed],
 	);
 
 	/** 프레임마다 횃대의 흔들림 계산 */
@@ -257,17 +257,17 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 
 		speed.set(nextSpeed);
 		angle.set(angle.get() + nextSpeed * seconds);
-	}, !reducedMotion);
+	}, !motionReduced);
 
 	/** 버디가 횃대에 내려앉거나 떠날 때 애니메이션 실행 */
 	useEffect(() => {
-		if (seatedRef.current === buddySeated) {
+		if (buddySeatedRef.current === buddySeated) {
 			return;
 		}
 
-		seatedRef.current = buddySeated;
+		buddySeatedRef.current = buddySeated;
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			buddyY.set(buddySeated ? 0 : -ropeLength);
 
 			return;
@@ -302,7 +302,7 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 		const timer = setTimeout(() => scheduleOnUI(pushAgainstTilt, angle, speed, LAND_KICK), LAND_KICK_DELAY_MS);
 
 		return () => clearTimeout(timer);
-	}, [angle, buddyScaleX, buddyScaleY, buddySeated, buddyY, dip, pivotX, reducedMotion, ropeLength, speed]);
+	}, [angle, buddyScaleX, buddyScaleY, buddySeated, buddyY, dip, pivotX, motionReduced, ropeLength, speed]);
 
 	const handleFeatherEnd = useCallback((id: string) => {
 		setFeatherDrops((prev) => prev.filter((drop) => drop.id !== id));
@@ -345,10 +345,10 @@ const StartupScreenPerch = ({ size, barBottom, buddySeated, dragEnabled, buddyRe
 							style={[
 								styles.buddy,
 								{
-									left: (perchWidth - size) / 2,
-									bottom: BAR_HEIGHT * scale - size * (1 - MASCOT_FEET_RATIO),
-									width: size,
-									height: size,
+									left: (perchWidth - buddySize) / 2,
+									bottom: BAR_HEIGHT * scale - buddySize * (1 - MASCOT_FEET_RATIO),
+									width: buddySize,
+									height: buddySize,
 								},
 								buddyMoveStyle,
 								buddyStyle,

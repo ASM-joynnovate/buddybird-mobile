@@ -14,7 +14,7 @@ import {
 
 import { LEARNING_TICK_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
-import { loadStressCareTracks } from '@/screens/session/services/tracks';
+import { loadStressCareTracks } from '@/screens/session/services/stress-care-tracks';
 import { createSoundDetector } from '@/screens/session/services/vad';
 import { saveWav } from '@/screens/session/services/wav';
 import { getVad, getWordReplayDelayFactor } from '@/services/remote-config/client';
@@ -51,13 +51,13 @@ interface CareTrackChoice {
 
 /** 학습 엔진을 만드는 함수 */
 export const createLearningEngine = (options: LearningEngineOptions) => {
-	const vad = getVad();
+	const vadSettings = getVad();
 	const wordReplayDelayFactor = getWordReplayDelayFactor();
 
-	const detector = createSoundDetector(vad);
+	const detector = createSoundDetector(vadSettings);
 	const recorder = new AudioRecorder();
 
-	let context: AudioContext | null = null;
+	let audioContext: AudioContext | null = null;
 	let recordings: AudioBuffer[] = [];
 	let careTracks: string[] = [];
 	let timer: ReturnType<typeof setInterval> | null = null;
@@ -119,7 +119,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 		try {
 			options.onSound({
-				uri: saveWav(segment.samples, vad.sampleRate),
+				uri: saveWav(segment.samples, vadSettings.sampleRate),
 				capturedAt: dayjs().subtract(segment.durationMs, 'ms').toISOString(),
 			});
 		} catch (e) {
@@ -142,11 +142,12 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 		careSource = null;
 
-		if (playingSource && context && chosenCareTrack) {
+		if (playingSource && audioContext && chosenCareTrack) {
 			chosenCareTrack = {
 				...chosenCareTrack,
 				offset:
-					(chosenCareTrack.offset + context.currentTime - careStartedAt) % chosenCareTrack.buffer.duration,
+					(chosenCareTrack.offset + audioContext.currentTime - careStartedAt) %
+					chosenCareTrack.buffer.duration,
 			};
 		}
 
@@ -157,17 +158,17 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	const playClip = (now: number) => {
 		const buffer = recordings[nextClipIndex % recordings.length];
 
-		if (!context || !buffer) {
+		if (!audioContext || !buffer) {
 			return;
 		}
 
 		emitSound(detector.flush());
 
-		const source = context.createBufferSource();
+		const source = audioContext.createBufferSource();
 		const durationMs = buffer.duration * SECOND;
 
 		source.buffer = buffer;
-		source.connect(context.destination);
+		source.connect(audioContext.destination);
 		source.onEnded = () => {
 			if (clip === source) {
 				clip = null;
@@ -182,14 +183,14 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		nextClipIndex += 1;
 		nextPlayAt = Number.POSITIVE_INFINITY;
 
-		detector.suspend(now + durationMs + vad.ignoreAfterPlaybackMs);
+		detector.suspend(now + durationMs + vadSettings.ignoreAfterPlaybackMs);
 
 		addPlayToLearningSegment(durationMs);
 	};
 
 	/** 스트레스 케어 음원 반복 재생 함수 */
 	const playCare = async (span: PhaseSpan) => {
-		const contextAtStart = context;
+		const contextAtStart = audioContext;
 
 		if (!contextAtStart) {
 			return;
@@ -209,7 +210,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 			};
 		}
 
-		if (context !== contextAtStart || phase !== 'stress_care' || !running || careSource) {
+		if (audioContext !== contextAtStart || phase !== 'stress_care' || !running || careSource) {
 			return;
 		}
 
@@ -240,7 +241,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		}
 
 		if (span.phase === 'stress_care') {
-			detector.suspend(span.end + vad.ignoreAfterPlaybackMs);
+			detector.suspend(span.end + vadSettings.ignoreAfterPlaybackMs);
 
 			playCare(span).catch(options.onError);
 		}
@@ -270,8 +271,8 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 	const startRecorder = async () => {
 		recorder.onAudioReady(
 			{
-				sampleRate: vad.sampleRate,
-				bufferLength: (vad.sampleRate * vad.frameMs) / SECOND,
+				sampleRate: vadSettings.sampleRate,
+				bufferLength: (vadSettings.sampleRate * vadSettings.frameMs) / SECOND,
 				channelCount: 1,
 			},
 			({ buffer }) => {
@@ -280,12 +281,12 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 				}
 			},
 		);
-		recorder.onError((event) => options.onError(new Error(event.message)));
+		recorder.onError((error) => options.onError(new Error(error.message)));
 
-		const result = await recorder.start();
+		const startResult = await recorder.start();
 
-		if (result.status === 'error') {
-			throw new Error(result.message);
+		if (startResult.status === 'error') {
+			throw new Error(startResult.message);
 		}
 	};
 
@@ -359,7 +360,7 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 
 			const createdContext = new AudioContext();
 
-			context = createdContext;
+			audioContext = createdContext;
 			recordings = await Promise.all(options.recordingUrls.map((url) => createdContext.decodeAudioData(url)));
 			careTracks = await loadStressCareTracks();
 
@@ -368,12 +369,12 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 		/** 학습 일시정지 함수 */
 		pause: async () => {
 			await stopRunning();
-			await context?.suspend();
+			await audioContext?.suspend();
 		},
 		/** 학습 재개 함수 */
 		resume: async () => {
 			await activateAudioSession();
-			await context?.resume();
+			await audioContext?.resume();
 			await startRunning();
 		},
 		/** 학습 정지 함수 */
@@ -385,8 +386,8 @@ export const createLearningEngine = (options: LearningEngineOptions) => {
 			recorder.clearOnAudioReady();
 			recorder.clearOnError();
 
-			await context?.close();
-			context = null;
+			await audioContext?.close();
+			audioContext = null;
 
 			await AudioManager.setAudioSessionActivity(false);
 		},

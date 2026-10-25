@@ -372,12 +372,12 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
   [input markAsFinished];
 
-  dispatch_semaphore_t finished = dispatch_semaphore_create(0);
+  dispatch_semaphore_t finishedSemaphore = dispatch_semaphore_create(0);
 
   [writer finishWritingWithCompletionHandler:^{
-    dispatch_semaphore_signal(finished);
+    dispatch_semaphore_signal(finishedSemaphore);
   }];
-  dispatch_semaphore_wait(finished, DISPATCH_TIME_FOREVER);
+  dispatch_semaphore_wait(finishedSemaphore, DISPATCH_TIME_FOREVER);
 
   if (writer.status != AVAssetWriterStatusCompleted) {
     return writer.error ?: unknownError;

@@ -58,7 +58,7 @@ export const SheetSearchList = <Item,>({
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="on-drag"
 				onScrollToIndexFailed={onScrollToIndexFailed}
-				contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
+				contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 20 }]}
 				renderItem={({ item, index }: ListRenderItemInfo<Item>) => renderItem(item, index)}
 				ListEmptyComponent={emptyContent}
 			/>
@@ -69,5 +69,5 @@ export const SheetSearchList = <Item,>({
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	controlsContainer: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 8, gap: 12 },
-	list: { paddingHorizontal: 10 },
+	listContent: { paddingHorizontal: 10 },
 });

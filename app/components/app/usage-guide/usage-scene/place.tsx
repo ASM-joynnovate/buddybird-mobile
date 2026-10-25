@@ -39,14 +39,14 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 	const { t } = useTranslation();
 
 	const layout = getCoverLayout(area, 1080 / 1920, 0.48);
-	const tablet = toScenePoint(layout, { x: 0.6667, y: 0.5506 });
+	const tabletPoint = toScenePoint(layout, { x: 0.6667, y: 0.5506 });
 	const chargerTop = Math.min(
 		layout.top + layout.height * 0.7166,
 		area.height - radius.sheet - 90 - PHOTO_TAG_HEIGHT,
 	);
 	const leaderEnd = {
-		x: tablet.x + LEADER_LENGTH * Math.sin(LEADER_ANGLE),
-		y: tablet.y - LEADER_LENGTH * Math.cos(LEADER_ANGLE),
+		x: tabletPoint.x + LEADER_LENGTH * Math.sin(LEADER_ANGLE),
+		y: tabletPoint.y - LEADER_LENGTH * Math.cos(LEADER_ANGLE),
 	};
 	const calloutRight = Math.max(SIDE_MARGIN, area.width - (leaderEnd.x + 97));
 
@@ -58,8 +58,8 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 			<Animated.View entering={FadeIn.delay(160)} style={StyleSheet.absoluteFill}>
 				<Svg width="100%" height="100%">
 					<Line
-						x1={tablet.x}
-						y1={tablet.y}
+						x1={tabletPoint.x}
+						y1={tabletPoint.y}
 						x2={leaderEnd.x}
 						y2={leaderEnd.y}
 						stroke={colors.onFilled}
@@ -68,7 +68,7 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 				</Svg>
 			</Animated.View>
 
-			<UsageScenePhotoPin x={tablet.x} y={tablet.y} animated={animated} />
+			<UsageScenePhotoPin x={tabletPoint.x} y={tabletPoint.y} animated={animated} />
 
 			<UsageScenePhotoTag
 				icon={TabletIcon}

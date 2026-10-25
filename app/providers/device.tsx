@@ -17,7 +17,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { deviceTimeZone } from '@/utils/date';
 
 /** 기기 등록 요청에 보낼 이 기기의 정보 */
-const thisDeviceInfo = () => ({
+const deviceRegistrationBody = () => ({
 	client_device_id: useDeviceSettingsStore.getState().clientDeviceId ?? '',
 	platform: Platform.OS,
 	os_version: (Device.osVersion ?? '').slice(0, MAX_DEVICE_OS_VERSION_LENGTH),
@@ -48,7 +48,10 @@ const DeviceProvider = ({ children }: Props) => {
 			return;
 		}
 
-		registerDevice({ data: thisDeviceInfo() }, { onError: (error) => reportError(error, 'device_register') });
+		registerDevice(
+			{ data: deviceRegistrationBody() },
+			{ onError: (error) => reportError(error, 'device_register') },
+		);
 	}, [serverUserId, registerDevice]);
 
 	/** 기기 등록 성공 시 푸시 토큰 저장 */

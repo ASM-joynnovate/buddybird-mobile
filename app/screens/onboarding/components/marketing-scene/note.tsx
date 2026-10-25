@@ -39,9 +39,9 @@ interface Props {
  * @param style 소식 위치
  */
 const MarketingSceneNote = ({ icon: Icon, label, tilt, delay, animated, style }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
-	const landProgress = useSharedValue(reducedMotion ? 1 : 0);
+	const landProgress = useSharedValue(motionReduced ? 1 : 0);
 
 	const noteStyle = useAnimatedStyle(() => {
 		const progress = landProgress.get();

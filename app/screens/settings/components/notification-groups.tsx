@@ -67,7 +67,7 @@ const NotificationGroups = () => {
 		<View style={styles.container}>
 			<ItemGroup>
 				<ItemSwitch
-					firstInGroup
+					isFirstInGroup
 					icon={BellIcon}
 					label={t('settings.notifications.all')}
 					value={notificationSettingsData.push_enabled}
@@ -98,7 +98,7 @@ const NotificationGroups = () => {
 						{notificationSettingsData.groups.map((group, index) => (
 							<Item
 								key={group.id}
-								firstInGroup={index === 0}
+								isFirstInGroup={index === 0}
 								label={group.title}
 								detail={group.description ?? undefined}
 								onPress={() => navigation.navigate('NotificationGroupSettings', { groupId: group.id })}

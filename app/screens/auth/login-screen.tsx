@@ -17,7 +17,7 @@ import { toast } from 'sonner-native';
 import FloatingWords from '@/screens/auth/components/floating-words';
 import LoginSheet from '@/screens/auth/components/login-sheet';
 import { availableLoginProviders } from '@/services/auth/providers';
-import { signUpAnonymously } from '@/services/auth/session';
+import { signInAnonymously } from '@/services/auth/session';
 import { isAppleLoginCanceled, linkAccount, signIn } from '@/services/auth/sign-in';
 import { reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
@@ -54,7 +54,7 @@ const LoginScreen = () => {
 	const [providers, setProviders] = useState<LoginProvider[] | null>(null);
 	const [loginAttempt, setLoginAttempt] = useState<LoginAttempt | null>(null);
 	const [existingAccountProvider, setExistingAccountProvider] = useState<LoginProvider | null>(null);
-	const [wordSpace, setWordSpace] = useState(0);
+	const [wordSpaceHeight, setWordSpaceHeight] = useState(0);
 	const [appActive, setAppActive] = useState(AppState.currentState === 'active');
 	const [anonymousSignUpPending, setAnonymousSignUpPending] = useState(false);
 
@@ -68,8 +68,8 @@ const LoginScreen = () => {
 	const setAuthStatus = useAuthStore((state) => state.setStatus);
 	const setLoginScreenSeen = useAuthStore((state) => state.setLoginScreenSeen);
 
-	const fromOnboarding = params?.source === 'onboarding';
-	const introReady = !fromOnboarding || splashFinished;
+	const isFromOnboarding = params?.source === 'onboarding';
+	const introReady = !isFromOnboarding || splashFinished;
 	const completing = authStatus === 'completing';
 	const disabled = loginAttempt?.pending === true || completing || anonymousSignUpPending;
 	const loadingProvider = disabled ? loginAttempt?.provider : undefined;
@@ -78,7 +78,7 @@ const LoginScreen = () => {
 		: completing
 			? t('auth.completing')
 			: null;
-	const riseHeight = Math.min(wordSpace + WORD_OVERLAP, MAX_RISE_HEIGHT);
+	const riseHeight = Math.min(wordSpaceHeight + WORD_OVERLAP, MAX_RISE_HEIGHT);
 	const wordsActive = screenFocused && appActive && !progressLabel && riseHeight >= MIN_RISE_HEIGHT;
 
 	/** 화면 진입 시 사용할 수 있는 로그인 방식 조회 */
@@ -106,10 +106,10 @@ const LoginScreen = () => {
 	/** onboarding_step_viewed 이벤트 전송 */
 	useFocusEffect(
 		useCallback(() => {
-			if (fromOnboarding) {
+			if (isFromOnboarding) {
 				trackOnboardingStepViewed('login');
 			}
-		}, [fromOnboarding]),
+		}, [isFromOnboarding]),
 	);
 
 	const handleSignIn = async (provider: LoginProvider) => {
@@ -122,7 +122,7 @@ const LoginScreen = () => {
 		setLoginAttempt({ provider, pending: true });
 
 		try {
-			if (fromOnboarding) {
+			if (isFromOnboarding) {
 				if (await signIn(provider)) {
 					trackOnboardingStepCompleted('login', { login_method: provider });
 				}
@@ -193,7 +193,7 @@ const LoginScreen = () => {
 
 		setAnonymousSignUpPending(true);
 
-		const error = await signUpAnonymously();
+		const error = await signInAnonymously();
 
 		signingInRef.current = false;
 
@@ -208,7 +208,7 @@ const LoginScreen = () => {
 
 	/** 소개 문구 아래 빈 높이 저장 */
 	const handleLayoutWordSpace = (event: LayoutChangeEvent) => {
-		setWordSpace(event.nativeEvent.layout.height);
+		setWordSpaceHeight(event.nativeEvent.layout.height);
 	};
 
 	return (
@@ -219,12 +219,12 @@ const LoginScreen = () => {
 			<SafeAreaView edges={['top', 'left', 'right']} style={styles.stageContainer}>
 				{introReady && (
 					<View style={styles.stage}>
-						<Animated.View entering={fromOnboarding ? FadeIn.delay(HEADER_DELAY_MS) : undefined}>
+						<Animated.View entering={isFromOnboarding ? FadeIn.delay(HEADER_DELAY_MS) : undefined}>
 							<ScreenHeader
-								onBack={fromOnboarding ? undefined : () => navigation.goBack()}
+								onBack={isFromOnboarding ? undefined : () => navigation.goBack()}
 								backVariant="onBrand"
 								trailing={
-									fromOnboarding && (
+									isFromOnboarding && (
 										<TextButton
 											label={t('common.skip')}
 											variant="onBrand"
@@ -237,13 +237,13 @@ const LoginScreen = () => {
 						</Animated.View>
 
 						<View style={styles.introContainer}>
-							<Animated.View entering={fromOnboarding ? FadeInUp.delay(WORDMARK_DELAY_MS) : undefined}>
+							<Animated.View entering={isFromOnboarding ? FadeInUp.delay(WORDMARK_DELAY_MS) : undefined}>
 								<Copy accessibilityRole="header" style={styles.wordmark}>
 									BuddyBird
 								</Copy>
 							</Animated.View>
 
-							<Animated.View entering={fromOnboarding ? FadeInUp.delay(TAGLINE_DELAY_MS) : undefined}>
+							<Animated.View entering={isFromOnboarding ? FadeInUp.delay(TAGLINE_DELAY_MS) : undefined}>
 								<Copy style={styles.tagline}>{t('onboarding.login.tagline')}</Copy>
 							</Animated.View>
 						</View>
@@ -267,7 +267,7 @@ const LoginScreen = () => {
 						loadingProvider={loadingProvider}
 						disabled={disabled}
 						progressLabel={progressLabel}
-						introAnimated={fromOnboarding}
+						introAnimated={isFromOnboarding}
 						onSignIn={(provider) => void handleSignIn(provider)}
 					/>
 				</View>

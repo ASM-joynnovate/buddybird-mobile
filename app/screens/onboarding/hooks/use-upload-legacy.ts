@@ -114,9 +114,9 @@ const useUploadLegacy = () => {
 				idempotencyKeys: withoutIdempotencyKey(prev.idempotencyKeys, idempotencyKeyName),
 			}));
 
-			const upload = await addWordRecording({ id: wordId, uri: recordingUri });
+			const recordingUpload = await addWordRecording({ id: wordId, uri: recordingUri });
 
-			await uploadWordRecording({ upload, uri: recordingUri });
+			await uploadWordRecording({ upload: recordingUpload, uri: recordingUri });
 
 			recordWordProgress(word.id, { wordId, done: true });
 		};
@@ -170,6 +170,7 @@ const useUploadLegacy = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('legacy', 'upload'),
 		mutationFn: uploadLegacy,
+		retry: false,
 		onSuccess: async () => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: parrotKeys.all() }),

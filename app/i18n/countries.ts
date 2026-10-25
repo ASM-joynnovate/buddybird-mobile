@@ -16,7 +16,7 @@ registerLocale(ru);
 registerLocale(es);
 
 /** 앱 언어로 된 국가 코드별 이름 조회 함수 */
-export const countryNames = (locale: Locale) => getNames(localeLanguages[locale]);
+export const countryNamesIn = (locale: Locale) => getNames(localeLanguages[locale]);
 
 export const countryNativeNames: Record<string, string> = nativeNames;
 

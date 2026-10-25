@@ -15,10 +15,10 @@ interface Props {
  * @param children 배경 위에 놓을 내용
  */
 const GuideBackground = ({ backgroundColor, children }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	return (
-		<Animated.View style={[styles.container, { backgroundColor }, !reducedMotion && styles.backgroundTransition]}>
+		<Animated.View style={[styles.container, { backgroundColor }, !motionReduced && styles.backgroundTransition]}>
 			{children}
 		</Animated.View>
 	);

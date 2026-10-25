@@ -37,7 +37,10 @@ export const SpeechBubble = ({ children, pointerSide = 'bottom', typing = false,
 
 	return (
 		<Card cornerRadius="control" contentStyle={[styles.bubble, contentStyle]}>
-			<View pointerEvents="none" style={[styles.pointer, pointerSide === 'left' ? styles.left : styles.bottom]} />
+			<View
+				pointerEvents="none"
+				style={[styles.pointer, pointerSide === 'left' ? styles.pointerLeft : styles.pointerBottom]}
+			/>
 
 			{content}
 		</Card>
@@ -59,6 +62,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 2,
 		borderColor: colors.border,
 	},
-	bottom: { bottom: -10, left: '50%', transform: [{ translateX: -8 }, { rotate: '45deg' }] },
-	left: { left: -10, top: 22, transform: [{ rotate: '135deg' }] },
+	pointerBottom: { bottom: -10, left: '50%', transform: [{ translateX: -8 }, { rotate: '45deg' }] },
+	pointerLeft: { left: -10, top: 22, transform: [{ rotate: '135deg' }] },
 });

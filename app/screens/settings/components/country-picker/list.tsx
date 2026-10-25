@@ -27,8 +27,8 @@ const CountryPickerList = ({ countryItems, country, onSelect }: Props) => {
 	const [query, setQuery] = useState('');
 
 	const keyword = query.trim().toLowerCase();
-	const filteredItems = countryItems.filter((item) =>
-		item.searchNames.some((searchName) => searchName.toLowerCase().includes(keyword)),
+	const filteredCountries = countryItems.filter((countryItem) =>
+		countryItem.searchNames.some((searchName) => searchName.toLowerCase().includes(keyword)),
 	);
 
 	return (
@@ -36,17 +36,17 @@ const CountryPickerList = ({ countryItems, country, onSelect }: Props) => {
 			query={query}
 			placeholder={t('settings.general.countrySearchHint')}
 			clearLabel={t('settings.general.countrySearchClear')}
-			items={filteredItems}
+			items={filteredCountries}
 			emptyContent=<EmptyState message={t('settings.general.countryNotFound', { query: query.trim() })} />
-			keyExtractor={(item) => item.code}
-			renderItem={(item, index) => (
+			keyExtractor={(countryItem) => countryItem.code}
+			renderItem={(countryItem, index) => (
 				<ItemRadio
-					firstInGroup={index === 0}
-					leading=<Flag country={item.code} />
-					label={item.name}
+					isFirstInGroup={index === 0}
+					leading=<Flag country={countryItem.code} />
+					label={countryItem.name}
 					highlight={keyword}
-					selected={country === item.code}
-					onPress={() => onSelect(item.code)}
+					selected={country === countryItem.code}
+					onPress={() => onSelect(countryItem.code)}
 				/>
 			)}
 			onChangeQuery={setQuery}

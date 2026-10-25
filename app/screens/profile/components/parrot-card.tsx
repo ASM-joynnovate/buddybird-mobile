@@ -65,7 +65,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 	};
 
 	/** 사진 위치를 측정해 수정 화면으로 전달 */
-	const handlePress = () => {
+	const handleOpenEditor = () => {
 		scheduleOnUI(() => {
 			'worklet';
 
@@ -87,7 +87,7 @@ const ParrotCard = ({ parrot, tilt, order }: Props) => {
 					parrot.uploading_photo_file?.status === 'rejected' && t('profile.photoUploadFailed'),
 				)}
 				depth="low"
-				onPress={handlePress}
+				onPress={handleOpenEditor}
 				style={styles.card}
 				contentStyle={styles.cardContent}
 			>

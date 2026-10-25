@@ -34,7 +34,7 @@ const durationParts = (duration: Duration) => {
 };
 
 /** '1시간 5분 3초' 형식 변환 함수 */
-export const durationText = (duration: Duration, locale: Locale) =>
+export const formatDurationParts = (duration: Duration, locale: Locale) =>
 	durationParts(duration)
 		.map(({ value, unit }) => i18next.t(`common.duration.${unit}`, { value, lng: locale }))
 		.join(' ');

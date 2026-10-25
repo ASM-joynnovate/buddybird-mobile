@@ -15,47 +15,47 @@ import { Avatar } from '@/components/ui/avatar';
 import { InlineError } from '@/components/ui/inline-error';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const actionIcons = { plus: PlusIcon, edit: PencilIcon };
+const badgeIcons = { plus: PlusIcon, edit: PencilIcon };
 
 interface Props {
-	photo: ReturnType<typeof usePhotoPicker>;
-	busy: boolean;
-	action?: 'plus' | 'edit';
+	photoPicker: ReturnType<typeof usePhotoPicker>;
+	disabled: boolean;
+	badgeIcon?: 'plus' | 'edit';
 }
 
 /**
  * 프로필 사진 선택 컴포넌트
- * @param photo usePhotoPicker 결과
- * @param busy 저장 중 여부
- * @param action 사진에 표시할 아이콘 종류
+ * @param photoPicker usePhotoPicker 결과
+ * @param disabled 저장 중 여부
+ * @param badgeIcon 사진에 표시할 아이콘 종류
  */
-const ProfilePhoto = ({ photo, busy, action = 'edit' }: Props) => {
+const ProfilePhoto = ({ photoPicker, disabled, badgeIcon = 'edit' }: Props) => {
 	const { t } = useTranslation();
 
 	const [sheetOpen, setSheetOpen] = useState(false);
 
-	const ActionIcon = actionIcons[action];
+	const BadgeIcon = badgeIcons[badgeIcon];
 
 	return (
 		<View style={styles.container}>
 			<PressableSurface
 				accessibilityLabel={t('common.profilePhoto.select')}
-				disabled={busy}
+				disabled={disabled}
 				onPress={() => setSheetOpen(true)}
 				cornerRadius="pill"
 				depth="none"
 			>
-				<Avatar uri={photo.photoUri} icon={ImageIcon} size="xlarge" />
+				<Avatar uri={photoPicker.photoUri} icon={ImageIcon} size="xlarge" />
 				<View style={styles.photoBadge}>
-					<ActionIcon size={20} color={colors.onFilled} />
+					<BadgeIcon size={20} color={colors.onFilled} />
 				</View>
 			</PressableSurface>
-			<InlineError message={photo.errorMessage} />
+			<InlineError message={photoPicker.errorMessage} />
 
 			<PhotoSourceSheet
 				visible={sheetOpen}
-				onTake={photo.take}
-				onChoose={photo.choose}
+				onTake={photoPicker.take}
+				onChoose={photoPicker.choose}
 				onClose={() => setSheetOpen(false)}
 			/>
 		</View>

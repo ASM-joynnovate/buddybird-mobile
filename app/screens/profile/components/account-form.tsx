@@ -47,7 +47,7 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	const savedPhotoUrl = meData.photo_file?.url ?? null;
 
-	const photo = usePhotoPicker(savedPhotoUrl);
+	const photoPicker = usePhotoPicker(savedPhotoUrl);
 
 	const nicknameError = useNicknameError(nicknameInvalid, updateMe.error);
 
@@ -62,15 +62,15 @@ const AccountForm = ({ onSaved }: Props) => {
 
 	/** 변경한 계정 사진 저장 함수 */
 	const saveUserPhoto = () => {
-		if (photo.photoChanged && photo.photoUri) {
-			uploadUserPhoto.mutate({ uri: photo.photoUri }, { onSuccess: onSaved, onError: handleSaveError });
+		if (photoPicker.photoChanged && photoPicker.photoUri) {
+			uploadUserPhoto.mutate({ uri: photoPicker.photoUri }, { onSuccess: onSaved, onError: handleSaveError });
 		} else {
 			onSaved();
 		}
 	};
 
-	const handleChangeNickname = (value: string) => {
-		setNickname(value);
+	const handleChangeNickname = (nextNickname: string) => {
+		setNickname(nextNickname);
 		setNicknameInvalid(false);
 
 		updateMe.reset();
@@ -105,7 +105,11 @@ const AccountForm = ({ onSaved }: Props) => {
 	return (
 		<>
 			<View style={styles.spacer} />
-			<ProfilePhoto photo={photo} busy={saving} action={photo.photoUri ? 'edit' : 'plus'} />
+			<ProfilePhoto
+				photoPicker={photoPicker}
+				disabled={saving}
+				badgeIcon={photoPicker.photoUri ? 'edit' : 'plus'}
+			/>
 
 			<View style={styles.nicknameContainer}>
 				<TextField
@@ -123,10 +127,10 @@ const AccountForm = ({ onSaved }: Props) => {
 			</View>
 
 			<View style={styles.spacer} />
-			<Button label={t('common.save')} loading={saving} onPress={handleSave} style={styles.save} />
+			<Button label={t('common.save')} loading={saving} onPress={handleSave} style={styles.saveButton} />
 
-			<PermissionDialog state={photo.libraryDialog} />
-			<PermissionDialog state={photo.cameraDialog} />
+			<PermissionDialog state={photoPicker.libraryDialog} />
+			<PermissionDialog state={photoPicker.cameraDialog} />
 		</>
 	);
 };
@@ -134,7 +138,7 @@ const AccountForm = ({ onSaved }: Props) => {
 const styles = StyleSheet.create({
 	nicknameContainer: { marginTop: 32 },
 	spacer: { flexGrow: 1, minHeight: 24 },
-	save: { marginTop: 12 },
+	saveButton: { marginTop: 12 },
 });
 
 export default AccountForm;

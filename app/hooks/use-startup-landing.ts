@@ -26,16 +26,16 @@ const useStartupLanding = () => {
 	const sheetRef = useAnimatedRef<Animated.View>();
 
 	const buddyHidden = useSharedValue(false);
-	const bubbleShown = useSharedValue(1);
+	const bubbleProgress = useSharedValue(1);
 
 	const setLandingTarget = useAppStore((state) => state.setLandingTarget);
 
 	const buddyStyle = useAnimatedStyle(() => ({ opacity: buddyHidden.get() ? 0 : 1 }));
 	const bubbleStyle = useAnimatedStyle(() => ({
-		opacity: bubbleShown.get(),
+		opacity: bubbleProgress.get(),
 		transform: [
-			{ translateX: interpolate(bubbleShown.get(), [0, 1], [BUBBLE_START_X, 0]) },
-			{ scale: interpolate(bubbleShown.get(), [0, 1], [BUBBLE_START_SCALE, 1]) },
+			{ translateX: interpolate(bubbleProgress.get(), [0, 1], [BUBBLE_START_X, 0]) },
+			{ scale: interpolate(bubbleProgress.get(), [0, 1], [BUBBLE_START_SCALE, 1]) },
 		],
 	}));
 
@@ -44,9 +44,9 @@ const useStartupLanding = () => {
 		() => buddyHidden.get(),
 		(current, previous) => {
 			if (current) {
-				bubbleShown.set(0);
+				bubbleProgress.set(0);
 			} else if (previous) {
-				bubbleShown.set(withTiming(1, { duration: BUBBLE_SHOW_MS, easing: Easing.out(Easing.cubic) }));
+				bubbleProgress.set(withTiming(1, { duration: BUBBLE_SHOW_MS, easing: Easing.out(Easing.cubic) }));
 			}
 		},
 	);

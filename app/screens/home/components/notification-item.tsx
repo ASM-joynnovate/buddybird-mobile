@@ -30,7 +30,7 @@ import { Copy } from '@/components/ui/copy';
 import { DotBadge } from '@/components/ui/dot-badge';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const icons: Partial<Record<string, LucideIcon>> = {
+const kindIcons: Partial<Record<string, LucideIcon>> = {
 	announcement: MegaphoneIcon,
 	urgent: TriangleAlertIcon,
 	marketing: GiftIcon,
@@ -56,7 +56,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 
 	const unread = !notification.read_at;
 	const sentAtLabel = formatTimeOrDateTime(notification.sent_at, locale);
-	const KindIcon = icons[notification.kind] ?? BellIcon;
+	const KindIcon = kindIcons[notification.kind] ?? BellIcon;
 
 	const handleOpen = () => {
 		if (unread && !isPending) {
@@ -82,7 +82,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			style={styles.item}
+			style={styles.bottomDivider}
 			contentStyle={styles.notificationRow}
 			accessibilityLabel={joinLabel(
 				unread && t('home.notificationList.unread'),
@@ -119,7 +119,7 @@ const NotificationItem = memo(({ notification }: Props) => {
 });
 
 const styles = StyleSheet.create({
-	item: { borderBottomWidth: 2, borderBottomColor: colors.border },
+	bottomDivider: { borderBottomWidth: 2, borderBottomColor: colors.border },
 	notificationRow: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',

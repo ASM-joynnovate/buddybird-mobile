@@ -56,8 +56,8 @@ const ProfileCards = () => {
 		)),
 		<AddParrotCard key="add" tilt={tiltAt(parrotListData.length)} order={parrotListData.length} />,
 	];
-	const cardRows = Array.from({ length: Math.ceil(cards.length / CARDS_PER_ROW) }, (_, row) =>
-		cards.slice(row * CARDS_PER_ROW, (row + 1) * CARDS_PER_ROW),
+	const cardRows = Array.from({ length: Math.ceil(cards.length / CARDS_PER_ROW) }, (_, rowIndex) =>
+		cards.slice(rowIndex * CARDS_PER_ROW, (rowIndex + 1) * CARDS_PER_ROW),
 	);
 
 	/** 프로필 탭 진입 시 카드 애니메이션 재생 */
@@ -80,7 +80,7 @@ const ProfileCards = () => {
 					label={t('auth.signIn')}
 					variant="secondary"
 					onPress={() => navigation.navigate('Login')}
-					style={styles.signIn}
+					style={styles.signInButton}
 				/>
 			)}
 
@@ -89,10 +89,10 @@ const ProfileCards = () => {
 					{t('profile.parrots')}
 				</Copy>
 				<View key={dropCount} style={styles.parrotsContainer}>
-					{cardRows.map((row, index) => (
+					{cardRows.map((rowCards, index) => (
 						<View key={index} style={ui.actionsRow}>
-							{row}
-							{row.length < CARDS_PER_ROW && <View style={ui.equalColumn} />}
+							{rowCards}
+							{rowCards.length < CARDS_PER_ROW && <View style={ui.equalColumn} />}
 						</View>
 					))}
 				</View>
@@ -103,7 +103,7 @@ const ProfileCards = () => {
 
 const styles = StyleSheet.create({
 	parrotsContainer: { gap: 16, paddingTop: 4 },
-	signIn: { marginTop: 12 },
+	signInButton: { marginTop: 12 },
 });
 
 export default ProfileCards;

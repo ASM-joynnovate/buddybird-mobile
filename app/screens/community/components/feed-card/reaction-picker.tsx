@@ -70,14 +70,20 @@ const FeedCardReactionPicker = ({ feedItem, reactionVerb }: Props) => {
 			return;
 		}
 
-		const handleError = (error: unknown) => {
+		const showReactionErrorToast = (error: unknown) => {
 			toast.custom(<Toast variant="error" message={apiErrorMessage(error, t)} />, { toasterId: dialogToasterId });
 		};
 
 		if (myReactionTypes.includes(reactionType)) {
-			deleteFeedReaction.mutate({ id: feedItem.id, reactionTypeId: reactionType.id }, { onError: handleError });
+			deleteFeedReaction.mutate(
+				{ id: feedItem.id, reactionTypeId: reactionType.id },
+				{ onError: showReactionErrorToast },
+			);
 		} else {
-			addFeedReaction.mutate({ id: feedItem.id, reactionTypeId: reactionType.id }, { onError: handleError });
+			addFeedReaction.mutate(
+				{ id: feedItem.id, reactionTypeId: reactionType.id },
+				{ onError: showReactionErrorToast },
+			);
 		}
 	};
 

@@ -51,17 +51,18 @@ const restoreCachedSettings = (queryClient: QueryClient, context: SettingsMutati
 /** 항목의 켜짐 여부 변경 함수 */
 const withItemEnabled = (notificationSettings: NotificationSettingList, id: string, enabled: boolean) => {
 	/** 항목 켜짐 여부 변경 함수 */
-	const updateItem = (item: NotificationSettingItem) => (item.id === id ? { ...item, enabled } : item);
+	const updateSettingItem = (settingItem: NotificationSettingItem) =>
+		settingItem.id === id ? { ...settingItem, enabled } : settingItem;
 
 	return {
 		...notificationSettings,
-		groups: notificationSettings.groups.map((group) => ({ ...group, items: group.items.map(updateItem) })),
-		items: notificationSettings.items.map(updateItem),
+		groups: notificationSettings.groups.map((group) => ({ ...group, items: group.items.map(updateSettingItem) })),
+		items: notificationSettings.items.map(updateSettingItem),
 	};
 };
 
 /** 캐시의 알림 설정을 반환하는 함수 */
-const takeCachedNotificationSettings = async (queryClient: QueryClient) => {
+const cancelAndReadCachedNotificationSettings = async (queryClient: QueryClient) => {
 	await queryClient.cancelQueries({ queryKey: settingKeys.notifications() });
 
 	return queryClient.getQueryData<NotificationSettingList>(settingKeys.notifications());
@@ -138,7 +139,7 @@ export const useUpdatePushSetting = () => {
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications'),
 		mutationFn: patchPushSetting,
 		onMutate: async ({ data }) => {
-			const previousNotificationSettings = await takeCachedNotificationSettings(queryClient);
+			const previousNotificationSettings = await cancelAndReadCachedNotificationSettings(queryClient);
 
 			if (previousNotificationSettings) {
 				queryClient.setQueryData(settingKeys.notifications(), {
@@ -166,7 +167,7 @@ export const useUpdateNotificationSettingItem = () => {
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'notifications', 'item'),
 		mutationFn: patchNotificationSettingItem,
 		onMutate: async ({ id, data }) => {
-			const previousNotificationSettings = await takeCachedNotificationSettings(queryClient);
+			const previousNotificationSettings = await cancelAndReadCachedNotificationSettings(queryClient);
 
 			if (previousNotificationSettings) {
 				queryClient.setQueryData(

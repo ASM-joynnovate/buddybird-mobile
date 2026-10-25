@@ -60,9 +60,9 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 	const checkSettings = getParrotCheck();
 	const clipSettings = getParrotVideo();
 	const nightSettings = getParrotNightCorrection();
-	const cameraVideo = getPetcamVideo();
+	const videoSettings = getPetcamVideo();
 
-	const [track] = options.stream.getVideoTracks();
+	const [videoTrack] = options.stream.getVideoTracks();
 
 	let watcherClosed = false;
 	let parrotChecking = false;
@@ -124,7 +124,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 	const syncLowLight = async (brightness: number) => {
 		const photoDark = nightSettings.correctionEnabled && brightness < nightSettings.startBrightness;
 
-		if (!track || photoDark === lowLightEnabled) {
+		if (!videoTrack || photoDark === lowLightEnabled) {
 			return;
 		}
 
@@ -132,9 +132,9 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 			FrameCapture.setLowLight(photoDark, nightSettings.frameRate);
 		} else {
 			// Android는 프레임 수를 낮추면 노출이 길어짐
-			await track.applyConstraints({
-				...cameraVideo,
-				frameRate: photoDark ? nightSettings.frameRate : cameraVideo.frameRate,
+			await videoTrack.applyConstraints({
+				...videoSettings,
+				frameRate: photoDark ? nightSettings.frameRate : videoSettings.frameRate,
 			});
 		}
 
@@ -408,7 +408,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		}
 	};
 
-	track?._setVideoEffect(FRAME_CAPTURE_PROCESSOR);
+	videoTrack?._setVideoEffect(FRAME_CAPTURE_PROCESSOR);
 
 	FrameCapture.startVideoBuffer(
 		clipSettings.width,

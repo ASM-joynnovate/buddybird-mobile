@@ -66,7 +66,7 @@ const LanguagePicker = () => {
 
 	return (
 		<ItemPicker
-			item={{
+			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
 				value: t(`settings.general.${LANGUAGE_LABEL_KEYS[locale]}`),
@@ -79,7 +79,7 @@ const LanguagePicker = () => {
 					{locales.map((language, index) => (
 						<ItemRadio
 							key={language}
-							firstInGroup={index === 0}
+							isFirstInGroup={index === 0}
 							label={t(`settings.general.${LANGUAGE_LABEL_KEYS[language]}`)}
 							selected={locale === language}
 							onPress={() => handleSelectLanguage(language, close)}

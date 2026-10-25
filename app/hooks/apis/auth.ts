@@ -13,7 +13,7 @@ export const useLogin = () => {
 		mutationKey: apiKeys.mutation('auth', 'login'),
 		mutationFn: postLogin,
 		retry: false,
-		meta: { skipUnauthorizedSignOut: true },
+		meta: { unauthorizedSignOutSkipped: true },
 	});
 };
 

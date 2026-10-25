@@ -34,8 +34,8 @@ export const parseLegacyFeedbackPrompt = (feedbackPrompt: UnknownRecord): Device
 };
 
 /** v1 앵무새 프로필 변환 함수 */
-export const parseLegacyProfile = (value: unknown) => {
-	const profileRecord = requireRecord(value, 'profile');
+export const parseLegacyProfile = (rawProfile: unknown) => {
+	const profileRecord = requireRecord(rawProfile, 'profile');
 	let birthDate =
 		profileRecord.birthDate === undefined ? null : readNullableText(profileRecord.birthDate, 'birthDate');
 

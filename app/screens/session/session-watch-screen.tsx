@@ -96,11 +96,11 @@ const SessionWatchScreen = () => {
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
-	const finishNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
+	const sessionNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
 	const sessionEnded =
 		sessionData?.status === 'finished' ||
 		(sessionError instanceof ApiError && !sessionError.retryable) ||
-		finishNotRunning;
+		sessionNotRunning;
 	const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
 
 	/** 영상 변경 시 학습 정보 표시 */

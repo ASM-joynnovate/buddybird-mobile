@@ -36,9 +36,9 @@ interface Props {
 const CountUpText = ({ progress, from, to, unit, style }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
-	const [shownValue, setShownValue] = useState(reducedMotion ? to : from);
+	const [shownValue, setShownValue] = useState(motionReduced ? to : from);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -60,14 +60,14 @@ const CountUpText = ({ progress, from, to, unit, style }: Props) => {
 	return (
 		<View>
 			<Copy
-				style={[style, styles.hidden]}
+				style={[style, styles.finalTextSpacer]}
 				accessibilityElementsHidden
 				importantForAccessibility="no-hide-descendants"
 			>
 				{toText(to)}
 			</Copy>
 
-			<Copy style={[styles.shown, style]} accessibilityLabel={toText(to)}>
+			<Copy style={[styles.countingText, style]} accessibilityLabel={toText(to)}>
 				{toText(shownValue)}
 			</Copy>
 		</View>
@@ -75,8 +75,8 @@ const CountUpText = ({ progress, from, to, unit, style }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	hidden: { opacity: 0 },
-	shown: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
+	finalTextSpacer: { opacity: 0 },
+	countingText: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
 });
 
 export default CountUpText;

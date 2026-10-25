@@ -48,7 +48,7 @@ const PhotoSourceSheet = ({ visible, onTake, onChoose, onClose }: Props) => {
 	return (
 		<Sheet visible={visible} title={t('common.profilePhoto.title')} onClose={handleClose}>
 			<ItemGroup>
-				<Item firstInGroup label={t('common.profilePhoto.take')} onPress={handleTakePhoto} />
+				<Item isFirstInGroup label={t('common.profilePhoto.take')} onPress={handleTakePhoto} />
 				<Item label={t('common.profilePhoto.choose')} onPress={handleChoosePhoto} />
 			</ItemGroup>
 		</Sheet>

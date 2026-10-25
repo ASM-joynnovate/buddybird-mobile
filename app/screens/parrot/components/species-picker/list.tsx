@@ -47,8 +47,9 @@ const SpeciesPickerList = ({ speciesItems, species, listRef, onSelect, onScrollT
 	const [filter, setFilter] = useState<SpeciesFilter>('all');
 
 	const keyword = query.trim().toLowerCase();
-	const filteredItems = speciesItems.filter(
-		(item) => (filter === 'all' || item.group === filter) && item.name.toLowerCase().includes(keyword),
+	const filteredSpecies = speciesItems.filter(
+		(speciesItem) =>
+			(filter === 'all' || speciesItem.group === filter) && speciesItem.name.toLowerCase().includes(keyword),
 	);
 	const emptyMessage =
 		filter === 'all'
@@ -77,7 +78,7 @@ const SpeciesPickerList = ({ speciesItems, species, listRef, onSelect, onScrollT
 					))}
 				</View>
 			}
-			items={filteredItems}
+			items={filteredSpecies}
 			listRef={listRef}
 			initialNumToRender={speciesItems.length}
 			emptyContent={
@@ -90,15 +91,15 @@ const SpeciesPickerList = ({ speciesItems, species, listRef, onSelect, onScrollT
 					)}
 				</View>
 			}
-			keyExtractor={(item) => item.id}
-			renderItem={(item, index) => (
+			keyExtractor={(speciesItem) => speciesItem.id}
+			renderItem={(speciesItem, index) => (
 				<ItemRadio
-					firstInGroup={index === 0}
-					label={item.name}
-					value={filter === 'all' ? t(`parrot.speciesGroups.${item.group}`) : undefined}
+					isFirstInGroup={index === 0}
+					label={speciesItem.name}
+					value={filter === 'all' ? t(`parrot.speciesGroups.${speciesItem.group}`) : undefined}
 					highlight={keyword}
-					selected={species === item.id}
-					onPress={() => onSelect(item.id)}
+					selected={species === speciesItem.id}
+					onPress={() => onSelect(speciesItem.id)}
 				/>
 			)}
 			onChangeQuery={setQuery}

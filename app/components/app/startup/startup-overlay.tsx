@@ -132,7 +132,7 @@ const StartupOverlay = () => {
 
 	const insets = useSafeAreaInsets();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const [sceneBottom, setSceneBottom] = useState(0);
 
@@ -141,7 +141,7 @@ const StartupOverlay = () => {
 	const [buddySeated, setBuddySeated] = useState(startupScreen?.onRetry === undefined);
 	const [buddyArriving, setBuddyArriving] = useState(false);
 	const [retryShown, setRetryShown] = useState(startupScreen?.onRetry !== undefined);
-	const [landing, setLanding] = useState<LandingRequest | null>(null);
+	const [landingRequest, setLandingRequest] = useState<LandingRequest | null>(null);
 
 	const perchBuddyRef = useAnimatedRef<Animated.View>();
 
@@ -151,7 +151,7 @@ const StartupOverlay = () => {
 	const sheetFrom = useSharedValue<MeasuredDimensions | null>(null);
 	const flightProgress = useSharedValue(0);
 	const perchExit = useSharedValue(0);
-	const wordsHidden = useSharedValue(0);
+	const wordsHideProgress = useSharedValue(0);
 	const backgroundFade = useSharedValue(0);
 	const sheetMorph = useSharedValue(0);
 
@@ -165,13 +165,13 @@ const StartupOverlay = () => {
 	const failureShown = failed && !buddyArriving;
 	const buddySize = Math.min(BUDDY_MAX_SIZE, Math.max(BUDDY_MIN_SIZE, sceneBottom * BUDDY_SIZE_RATIO));
 	const barBottom = sceneBottom * BAR_POSITION;
-	const targetBuddyRef = landing?.target?.buddyRef;
-	const targetSheetRef = landing?.target?.sheetRef;
+	const targetBuddyRef = landingRequest?.target?.buddyRef;
+	const targetSheetRef = landingRequest?.target?.sheetRef;
 
 	// 다시 시도 시 버디가 앉은 뒤 실패 반영
 	if (starting && !failed && !buddySeated) {
 		setBuddySeated(true);
-		setBuddyArriving(!reducedMotion);
+		setBuddyArriving(!motionReduced);
 	}
 
 	if (failureShown && buddySeated) {
@@ -183,8 +183,8 @@ const StartupOverlay = () => {
 	}
 
 	// 이동 중 시작 화면 요청 시 횃대 장면으로 복귀
-	if (starting && landing) {
-		setLanding(null);
+	if (starting && landingRequest) {
+		setLandingRequest(null);
 	}
 
 	// bottom sheet 위치를 프레임마다 측정
@@ -203,8 +203,8 @@ const StartupOverlay = () => {
 	});
 
 	const wordsStyle = useAnimatedStyle(() => ({
-		opacity: 1 - wordsHidden.get(),
-		transform: [{ translateY: WORDS_DROP * wordsHidden.get() }],
+		opacity: 1 - wordsHideProgress.get(),
+		transform: [{ translateY: WORDS_DROP * wordsHideProgress.get() }],
 	}));
 
 	const perchExitStyle = useAnimatedStyle(() => ({
@@ -271,39 +271,39 @@ const StartupOverlay = () => {
 
 	/** 시작 화면 요청이 없으면 목적지 버디 대기 */
 	useEffect(() => {
-		if (starting || landing || buddyArriving) {
+		if (starting || landingRequest || buddyArriving) {
 			return;
 		}
 
-		if (!splashFinished || reducedMotion) {
+		if (!splashFinished || motionReduced) {
 			hideStartupOverlay();
 
 			return;
 		}
 
 		if (landingTarget) {
-			setLanding({ target: landingTarget });
+			setLandingRequest({ target: landingTarget });
 
 			return;
 		}
 
-		const timer = setTimeout(() => setLanding({ target: null }), LANDING_WAIT_MS);
+		const timer = setTimeout(() => setLandingRequest({ target: null }), LANDING_WAIT_MS);
 
 		return () => clearTimeout(timer);
-	}, [buddyArriving, hideStartupOverlay, landing, landingTarget, reducedMotion, splashFinished, starting]);
+	}, [buddyArriving, hideStartupOverlay, landingRequest, landingTarget, motionReduced, splashFinished, starting]);
 
 	/** 목적지가 정해지면 버디를 목적지로 이동 */
 	useEffect(() => {
-		if (!landing) {
+		if (!landingRequest) {
 			return;
 		}
 
-		const { target } = landing;
+		const { target } = landingRequest;
 
 		scheduleOnUI(() => {
 			'worklet';
 
-			wordsHidden.set(withTiming(1, { duration: WORDS_HIDE_MS, easing: wordsHideEasing }));
+			wordsHideProgress.set(withTiming(1, { duration: WORDS_HIDE_MS, easing: wordsHideEasing }));
 
 			const from = measureAttached(perchBuddyRef);
 			const to = target ? measureAttached(target.buddyRef) : null;
@@ -374,7 +374,7 @@ const StartupOverlay = () => {
 				landingMotion.set('none');
 				flightProgress.set(0);
 				perchExit.set(0);
-				wordsHidden.set(0);
+				wordsHideProgress.set(0);
 				backgroundFade.set(0);
 				sheetMorph.set(0);
 				target?.buddyHidden.set(false);
@@ -387,13 +387,13 @@ const StartupOverlay = () => {
 		flightProgress,
 		flightTo,
 		hideStartupOverlay,
-		landing,
+		landingRequest,
 		landingMotion,
 		perchBuddyRef,
 		perchExit,
 		sheetFrom,
 		sheetMorph,
-		wordsHidden,
+		wordsHideProgress,
 	]);
 
 	/** 제목 위에 남은 높이 저장 */
@@ -404,7 +404,7 @@ const StartupOverlay = () => {
 	};
 
 	return (
-		<View accessibilityViewIsModal pointerEvents={landing ? 'none' : 'auto'} style={StyleSheet.absoluteFill}>
+		<View accessibilityViewIsModal pointerEvents={landingRequest ? 'none' : 'auto'} style={StyleSheet.absoluteFill}>
 			<Animated.View style={[styles.background, backgroundStyle]} />
 
 			<View
@@ -459,10 +459,10 @@ const StartupOverlay = () => {
 
 			{sceneBottom > 0 && (
 				<StartupScreenPerch
-					size={buddySize}
+					buddySize={buddySize}
 					barBottom={barBottom}
 					buddySeated={buddySeated}
-					dragEnabled={!landing}
+					dragEnabled={!landingRequest}
 					buddyRef={perchBuddyRef}
 					buddyStyle={perchBuddyStyle}
 					style={perchExitStyle}

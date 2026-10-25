@@ -137,7 +137,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 	const elapsedRef = useRef(0);
 	const handledUriRef = useRef<string | null>(null);
 	const closingRef = useRef(true);
-	const targetRef = useRef<RecordingTarget | null>(null);
+	const recordingTargetRef = useRef<RecordingTarget | null>(null);
 	const recordedLevelsRef = useRef<number[]>([]);
 	const handleRecordingFinishedRef = useRef<(uri: string, durationMs: number) => void>(() => undefined);
 
@@ -180,7 +180,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 
 	/** 녹음 파일 검사 후 추가 또는 교체 */
 	const handleRecordingFinished = (uri: string, durationMs: number) => {
-		const target = targetRef.current;
+		const target = recordingTargetRef.current;
 
 		if (closingRef.current || !target || handledUriRef.current === uri) {
 			return;
@@ -286,7 +286,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 		};
 	}, [visible, recorder]);
 
-	const handleStartRecording = async () => {
+	const startRecording = async () => {
 		if (busy) {
 			return;
 		}
@@ -299,7 +299,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 
 		const recordedCount = currentRecording ? recordings.length : recordings.length + 1;
 
-		targetRef.current = {
+		recordingTargetRef.current = {
 			recording: currentRecording,
 			nextIndex: recordedCount < MAX_RECORDINGS ? recordedCount : currentIndex,
 		};
@@ -355,7 +355,7 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 		player.stop();
 
 		void microphonePermission
-			.runWithPermission(() => void handleStartRecording())
+			.runWithPermission(() => void startRecording())
 			.catch((error: unknown) => reportError(error, 'permission_microphone'));
 	};
 

@@ -68,7 +68,7 @@ const RecordingsSection = ({ recordings, recordingMissing, wordSaving, player, o
 			{recordings.length > 0 && (
 				<ItemGroup>
 					{recordings.map((recording, index) => {
-						const deletable =
+						const canDelete =
 							!wordSaving &&
 							!recording.uploadPending &&
 							!(recording.kind === 'server' && uploadedRecordingCount <= 1);
@@ -80,7 +80,7 @@ const RecordingsSection = ({ recordings, recordingMissing, wordSaving, player, o
 								player={player}
 								index={index}
 								uploading={(wordSaving && recording.kind === 'local') || recording.uploadPending}
-								onDelete={deletable ? (name) => onDelete(recording, name) : undefined}
+								onDelete={canDelete ? (name) => onDelete(recording, name) : undefined}
 							/>
 						);
 					})}
@@ -98,7 +98,7 @@ const RecordingsSection = ({ recordings, recordingMissing, wordSaving, player, o
 					size="small"
 					disabled={wordSaving}
 					onPress={onAdd}
-					style={styles.add}
+					style={styles.addButton}
 				/>
 			)}
 		</View>
@@ -108,7 +108,7 @@ const RecordingsSection = ({ recordings, recordingMissing, wordSaving, player, o
 const styles = StyleSheet.create({
 	headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
 	title: { flex: 1, fontSize: 18, lineHeight: 24, fontFamily: font.black },
-	add: { marginTop: 12 },
+	addButton: { marginTop: 12 },
 });
 
 export default RecordingsSection;

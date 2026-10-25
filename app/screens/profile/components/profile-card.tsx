@@ -61,7 +61,7 @@ const ProfileCard = () => {
 						{titleText}
 					</Copy>
 					{!!meData.email && (
-						<Copy style={styles.detail} numberOfLines={1}>
+						<Copy style={styles.email} numberOfLines={1}>
 							{meData.email}
 						</Copy>
 					)}
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 	textContainer: { flex: 1, minWidth: 0, gap: 4 },
 	title: { fontFamily: font.black, fontSize: 22, lineHeight: 28 },
 	accent: { color: colors.orangeDark, fontSize: 18, lineHeight: 24 },
-	detail: { fontSize: 14, color: colors.muted },
+	email: { fontSize: 14, color: colors.muted },
 });
 
 export default ProfileCard;

@@ -50,7 +50,7 @@ const GeneralGroup = () => {
 		<ItemGroup>
 			<SleepTimePicker
 				value={settingsData.sleep}
-				firstInGroup
+				isFirstInGroup
 				disabled={isPending}
 				onChange={handleSaveSleepSettings}
 			/>

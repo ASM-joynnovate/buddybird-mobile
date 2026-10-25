@@ -45,8 +45,8 @@ export const recordParrotCheck = (checkResult: ParrotCheckResult) => {
 };
 
 /** 펫캠 파일 업로드를 metric으로 기록하는 함수 */
-export const recordPetcamUpload = (file: 'photo' | 'video', bytes: number, durationMs: number) => {
-	const attributes = { file };
+export const recordPetcamUpload = (fileKind: 'photo' | 'video', bytes: number, durationMs: number) => {
+	const attributes = { fileKind };
 
 	Sentry.metrics.distribution('petcam.upload_size', bytes, { unit: 'byte', attributes });
 	Sentry.metrics.distribution('petcam.upload_duration', durationMs, { unit: 'millisecond', attributes });

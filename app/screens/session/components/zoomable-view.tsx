@@ -151,7 +151,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		return () => clearTimeout(timer);
 	}, [zoom]);
 
-	const handleLayout = (event: LayoutChangeEvent) => {
+	const handleSaveSize = (event: LayoutChangeEvent) => {
 		width.set(event.nativeEvent.layout.width);
 		height.set(event.nativeEvent.layout.height);
 	};
@@ -159,7 +159,7 @@ const ZoomableView = ({ children, onTap }: Props) => {
 	return (
 		<View style={StyleSheet.absoluteFill}>
 			<GestureDetector gesture={gesture}>
-				<View style={styles.fill} onLayout={handleLayout} collapsable={false}>
+				<View style={styles.fill} onLayout={handleSaveSize} collapsable={false}>
 					<Animated.View style={[styles.fill, contentStyle]}>{children}</Animated.View>
 				</View>
 			</GestureDetector>

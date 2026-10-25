@@ -4,8 +4,8 @@ import type { PullEdge, PullStatus } from '@/types/pull-to-refresh';
 
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
+import { HOLD_SCENE_HEIGHT } from '@/screens/report/components/buddy-refresh/constants';
 import BuddyRefreshMessage, { MESSAGE_SPACE } from '@/screens/report/components/buddy-refresh/message';
-import { HOLD_SCENE_HEIGHT } from '@/screens/report/components/buddy-refresh/options';
 import useRefreshMessage from '@/screens/report/hooks/use-refresh-message';
 import { colors } from '@/theme';
 
@@ -24,10 +24,10 @@ interface Props {
  * @param distance 새로고침 표시 영역의 높이
  */
 const BuddyRefreshThrobberIndicator = ({ edge, status, distance }: Props) => {
-	const { message, shown } = useRefreshMessage(status);
+	const { message, messageProgress } = useRefreshMessage(status);
 
 	const throbberStyle = useAnimatedStyle(() => {
-		const sceneHeight = edge === 'top' ? distance.get() - MESSAGE_SPACE * shown.get() : HOLD_SCENE_HEIGHT;
+		const sceneHeight = edge === 'top' ? distance.get() - MESSAGE_SPACE * messageProgress.get() : HOLD_SCENE_HEIGHT;
 
 		return { transform: [{ translateY: (sceneHeight - THROBBER_SIZE) / 2 }] };
 	});
@@ -38,7 +38,7 @@ const BuddyRefreshThrobberIndicator = ({ edge, status, distance }: Props) => {
 				<ActivityIndicator color={colors.orange} />
 			</Animated.View>
 
-			<BuddyRefreshMessage message={message} shown={shown} distance={distance} />
+			<BuddyRefreshMessage message={message} progress={messageProgress} distance={distance} />
 		</>
 	);
 };

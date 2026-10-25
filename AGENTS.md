@@ -35,7 +35,7 @@
 ## 이름
 
 - 이름만 보고 담긴 값이나 하는 일을 알 수 있게 짓습니다. `items`, `rows`, `data`, `run`, `apply`처럼 뜻이 넓은 이름 대신 `logItems`, `runWithPermission`처럼 대상을 붙입니다.
-- 불리언은 `isLandscape`, `canGoBack`처럼 `is`, `can`으로 시작하거나 `sessionFinishing`, `infoVisible`처럼 대상 뒤에 상태를 붙입니다. 컴포넌트 prop도 같습니다.
+- 불리언은 `isLandscape`, `canGoBack`, `hasSessions`, `shouldPause`, `showKakao`처럼 `is`, `can`, `has`, `should`, `show`로 시작하거나 `sessionFinishing`, `infoVisible`처럼 대상 뒤에 상태를 붙입니다. 컴포넌트 prop도 같습니다.
 - `disabled`, `visible`, `selected`, `checked`, `loading`, `value`처럼 React Native 기본 컴포넌트와 같은 뜻의 prop은 그 이름을 그대로 씁니다.
 - 컴포넌트나 타입이 다루는 대상이 하나면 대상 이름을 붙이지 않습니다. 예: `Dialog`의 `visible`, `PlayButton`의 `playing`
 - 컴포넌트가 이벤트에 넘기는 함수는 `handle` 뒤에 하는 일을 붙이고 return 앞에 둡니다. 함수 하나만 호출하는 한 줄 함수는 JSX에 둡니다.

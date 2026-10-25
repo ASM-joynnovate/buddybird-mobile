@@ -45,14 +45,14 @@ const ReportHeaderWordBars = ({ start }: Props) => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const words = reportData.active.words;
-	const previousWords = previousReportData.active.words;
+	const wordDurations = reportData.active.words;
+	const previousWordDurations = previousReportData.active.words;
 
-	if (words.length === 0) {
+	if (wordDurations.length === 0) {
 		return null;
 	}
 
-	const maxDurationMs = Math.max(1, ...words.map((wordDuration) => wordDuration.duration_ms));
+	const maxDurationMs = Math.max(1, ...wordDurations.map((wordDuration) => wordDuration.duration_ms));
 
 	return (
 		<View>
@@ -63,10 +63,11 @@ const ReportHeaderWordBars = ({ start }: Props) => {
 				<Copy style={styles.comparedTo}>{t(`report.comparedTo.${period}`)}</Copy>
 			</View>
 
-			{words.map((wordDuration, index) => {
+			{wordDurations.map((wordDuration, index) => {
 				const previousDurationMs =
-					previousWords.find((previousWord) => previousWord.word.id === wordDuration.word.id)?.duration_ms ??
-					0;
+					previousWordDurations.find(
+						(previousWordDuration) => previousWordDuration.word.id === wordDuration.word.id,
+					)?.duration_ms ?? 0;
 				const changeMs = wordDuration.duration_ms - previousDurationMs;
 				const durationLabel = formatDuration(wordDuration.duration_ms, locale);
 				const changeLabel = formatDurationChange(changeMs, locale);

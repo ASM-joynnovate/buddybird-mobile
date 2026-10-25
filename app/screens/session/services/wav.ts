@@ -6,7 +6,7 @@ import { BITS_PER_BYTE, WAV_HEADER_BYTES } from '@/config/units';
 const RIFF_PREAMBLE_BYTES = 8;
 const FMT_CHUNK_BYTES = 16;
 const PCM_FORMAT = 1;
-const CHANNELS = 1;
+const CHANNEL_COUNT = 1;
 const BYTES_PER_SAMPLE = Int16Array.BYTES_PER_ELEMENT;
 const INT16_MAX = 32767;
 
@@ -19,22 +19,22 @@ const encodeWav = (samples: Float32Array, sampleRate: number) => {
 	let offset = 0;
 
 	/** 문자열을 한 글자에 1바이트씩 기록하는 함수 */
-	const writeText = (value: string) => {
-		for (const character of value) {
+	const writeText = (text: string) => {
+		for (const character of text) {
 			view.setUint8(offset, character.charCodeAt(0));
 			offset += Uint8Array.BYTES_PER_ELEMENT;
 		}
 	};
 
 	/** 32비트 정수를 리틀 엔디언으로 기록하는 함수 */
-	const writeUint32 = (value: number) => {
-		view.setUint32(offset, value, true);
+	const writeUint32 = (uint32: number) => {
+		view.setUint32(offset, uint32, true);
 		offset += Uint32Array.BYTES_PER_ELEMENT;
 	};
 
 	/** 16비트 정수를 리틀 엔디언으로 기록하는 함수 */
-	const writeUint16 = (value: number) => {
-		view.setUint16(offset, value, true);
+	const writeUint16 = (uint16: number) => {
+		view.setUint16(offset, uint16, true);
 		offset += Uint16Array.BYTES_PER_ELEMENT;
 	};
 
@@ -44,10 +44,10 @@ const encodeWav = (samples: Float32Array, sampleRate: number) => {
 	writeText('fmt ');
 	writeUint32(FMT_CHUNK_BYTES);
 	writeUint16(PCM_FORMAT);
-	writeUint16(CHANNELS);
+	writeUint16(CHANNEL_COUNT);
 	writeUint32(sampleRate);
-	writeUint32(sampleRate * CHANNELS * BYTES_PER_SAMPLE);
-	writeUint16(CHANNELS * BYTES_PER_SAMPLE);
+	writeUint32(sampleRate * CHANNEL_COUNT * BYTES_PER_SAMPLE);
+	writeUint16(CHANNEL_COUNT * BYTES_PER_SAMPLE);
 	writeUint16(BYTES_PER_SAMPLE * BITS_PER_BYTE);
 	writeText('data');
 	writeUint32(dataBytes);

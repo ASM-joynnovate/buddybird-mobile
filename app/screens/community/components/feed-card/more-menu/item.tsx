@@ -11,7 +11,7 @@ interface Props {
 	icon: LucideIcon;
 	label: string;
 	actionDestructive?: boolean;
-	firstInGroup?: boolean;
+	isFirstInGroup?: boolean;
 	onPress: () => void;
 }
 
@@ -20,14 +20,14 @@ interface Props {
  * @param icon 항목 아이콘
  * @param label 항목 이름
  * @param actionDestructive 위험한 동작인지 여부
- * @param firstInGroup 첫 항목인지 여부
+ * @param isFirstInGroup 첫 항목인지 여부
  * @param onPress 누르면 실행할 함수
  */
 const FeedCardMoreMenuItem = ({
 	icon: Icon,
 	label,
 	actionDestructive = false,
-	firstInGroup = false,
+	isFirstInGroup = false,
 	onPress,
 }: Props) => {
 	return (
@@ -38,7 +38,7 @@ const FeedCardMoreMenuItem = ({
 			variant="plain"
 			depth="none"
 			cornerRadius="small"
-			style={!firstInGroup && styles.divider}
+			style={!isFirstInGroup && styles.divider}
 			contentStyle={styles.menuItem}
 		>
 			<Icon size={17} color={actionDestructive ? colors.error : colors.muted} />

@@ -15,26 +15,26 @@ import { appIconImage, colors, font, radius } from '@/theme';
 import { Copy } from '@/components/ui/copy';
 
 interface Props {
-	cycle: SharedValue<number>;
+	cycleProgress: SharedValue<number>;
 	style?: StyleProp<ViewStyle>;
 }
 
 /**
  * 학습이 끝나면 위에서 내려오는 알림 컴포넌트
- * @param cycle 0에서 1 사이의 장면 반복 진행도
+ * @param cycleProgress 0에서 1 사이의 장면 반복 진행도
  * @param style 알림 위치
  */
-const PermissionSceneAlert = ({ cycle, style }: Props) => {
+const PermissionSceneAlert = ({ cycleProgress, style }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const alertStyle = useAnimatedStyle(() => {
-		if (reducedMotion) {
+		if (motionReduced) {
 			return { opacity: 1 };
 		}
 
-		const progress = cycle.get();
+		const progress = cycleProgress.get();
 
 		return {
 			opacity: interpolate(progress, [0.5, 0.58, 0.92, 1], [0, 1, 1, 0], Extrapolation.CLAMP),

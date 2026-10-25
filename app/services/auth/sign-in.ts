@@ -55,12 +55,12 @@ const openAuthBrowser = async (url: string) => {
 	}
 
 	const callbackUrl = new URL(authSessionResult.url);
-	const expected = new URL(authRedirectUrl);
+	const expectedUrl = new URL(authRedirectUrl);
 
 	if (
-		callbackUrl.protocol !== expected.protocol ||
-		callbackUrl.host !== expected.host ||
-		callbackUrl.pathname !== expected.pathname ||
+		callbackUrl.protocol !== expectedUrl.protocol ||
+		callbackUrl.host !== expectedUrl.host ||
+		callbackUrl.pathname !== expectedUrl.pathname ||
 		callbackUrl.username ||
 		callbackUrl.password
 	) {

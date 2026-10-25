@@ -51,7 +51,7 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 
 	const { width, height } = useWindowDimensions();
 
-	const hop = useSharedValue(0);
+	const hopProgress = useSharedValue(0);
 
 	const [sentenceVisible, setSentenceVisible] = useState(false);
 
@@ -84,28 +84,28 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 			tail: parrotRegistered
 				? t('session.summary.together.tail', { parrot: parrotName })
 				: t('session.summary.withoutParrot.tail'),
-			value: sessionEndedAt(period).diff(period.started_at),
+			amount: sessionEndedAt(period).diff(period.started_at),
 			unit: 'duration',
-			metric: 'together',
+			metric: 'togetherTime',
 		},
 		{
 			lead: t('session.summary.played.lead', { word: word.name }),
 			tail: t('session.summary.played.tail'),
-			value: session.play_count,
+			amount: session.play_count,
 			unit: 'count',
-			metric: 'played',
+			metric: 'playCount',
 		},
 		{
 			lead: t('session.summary.allTime.lead'),
 			tail: t('session.summary.allTime.tail'),
-			value: total.active.duration_ms,
+			amount: total.active.duration_ms,
 			unit: 'duration',
 			metric: 'allTime',
 		},
 		{
 			lead: t('session.summary.wordTime.lead', { word: word.name }),
 			tail: t('session.summary.wordTime.tail'),
-			value: word.active.duration_ms,
+			amount: word.active.duration_ms,
 			unit: 'duration',
 			metric: 'wordTime',
 		},
@@ -114,7 +114,10 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const sentence = sentences[summarySentenceIndex];
 	const sentenceFilled = summaryFilledSentenceIndexes.includes(summarySentenceIndex);
 	const hopStyle = useAnimatedStyle(() => ({
-		transform: [{ translateY: -mascotSize * HOP_RATIO * hop.get() }, { scale: 1 + HOP_SCALE * hop.get() }],
+		transform: [
+			{ translateY: -mascotSize * HOP_RATIO * hopProgress.get() },
+			{ scale: 1 + HOP_SCALE * hopProgress.get() },
+		],
 	}));
 
 	/** 말풍선이 나타난 뒤 첫 문장 표시 */
@@ -139,14 +142,14 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 		(position: MeasuredDimensions | null) => {
 			completeSummarySentence(summarySentenceIndex, position);
 
-			hop.set(
+			hopProgress.set(
 				withSequence(
 					withTiming(1, { duration: 180, easing: bounceEasing }),
 					withTiming(0, { duration: 270, easing: bounceEasing }),
 				),
 			);
 		},
-		[completeSummarySentence, hop, summarySentenceIndex],
+		[completeSummarySentence, hopProgress, summarySentenceIndex],
 	);
 
 	const handleShowNextSentence = () => {

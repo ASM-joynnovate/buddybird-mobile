@@ -29,7 +29,7 @@ const SLIDE_MS = 420;
 
 interface Props {
 	date: number;
-	index: number;
+	dayIndex: number;
 	scrollY: SharedValue<number>;
 	viewportHeight: SharedValue<number>;
 	logBottom: SharedValue<number>;
@@ -39,37 +39,40 @@ interface Props {
 /**
  * 스크롤 시 위에 고정되는 날짜 컴포넌트
  * @param date 날짜
- * @param index 기록 안에서의 날짜 순서
+ * @param dayIndex 기록 안에서의 날짜 순서
  * @param scrollY 화면 스크롤 위치
  * @param viewportHeight 화면 높이
  * @param logBottom 기록 아래쪽 끝 위치
  * @param dayBreakLayouts 날짜 구분선 위치를 저장할 값
  */
-const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, dayBreakLayouts }: Props) => {
-	const reducedMotion = useReducedMotion();
+const SessionLogDayBreak = ({ date, dayIndex, scrollY, viewportHeight, logBottom, dayBreakLayouts }: Props) => {
+	const motionReduced = useReducedMotion();
 
-	const labelOpacity = useSharedValue(reducedMotion ? 1 : 0);
-	const labelOffset = useSharedValue(reducedMotion ? 0 : -SLIDE_DISTANCE);
+	const labelOpacity = useSharedValue(motionReduced ? 1 : 0);
+	const labelOffset = useSharedValue(motionReduced ? 0 : -SLIDE_DISTANCE);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const stickyStyle = useAnimatedStyle(() => {
 		const layouts = dayBreakLayouts.get();
-		const own = layouts.at(index);
+		const dayBreakLayout = layouts.at(dayIndex);
 
-		if (!own) {
+		if (!dayBreakLayout) {
 			return {};
 		}
 
-		const nextTop = layouts.at(index + 1)?.y;
+		const nextTop = layouts.at(dayIndex + 1)?.y;
 		const end = nextTop === undefined ? logBottom.get() : nextTop - MARGIN_TOP;
-		const translateY = Math.min(Math.max(scrollY.get() - own.y, 0), Math.max(end - own.y - own.height, 0));
+		const translateY = Math.min(
+			Math.max(scrollY.get() - dayBreakLayout.y, 0),
+			Math.max(end - dayBreakLayout.y - dayBreakLayout.height, 0),
+		);
 
 		return { transform: [{ translateY }] };
 	});
 	const stuckLineStyle = useAnimatedStyle(() => {
-		const own = dayBreakLayouts.get().at(index);
-		const stuck = own !== undefined && own.y - scrollY.get() <= 0.5;
+		const dayBreakLayout = dayBreakLayouts.get().at(dayIndex);
+		const stuck = dayBreakLayout !== undefined && dayBreakLayout.y - scrollY.get() <= 0.5;
 
 		return { opacity: stuck ? 1 : 0 };
 	});
@@ -81,19 +84,22 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, d
 	/** 일정 비율 넘게 표시되면 날짜 애니메이션 실행 */
 	useAnimatedReaction(
 		() => {
-			const own = dayBreakLayouts.get().at(index);
+			const dayBreakLayout = dayBreakLayouts.get().at(dayIndex);
 
-			if (!own || own.height === 0) {
+			if (!dayBreakLayout || dayBreakLayout.height === 0) {
 				return false;
 			}
 
-			const visibleTop = Math.max(own.y, scrollY.get());
-			const visibleBottom = Math.min(own.y + own.height, scrollY.get() + viewportHeight.get());
+			const visibleTop = Math.max(dayBreakLayout.y, scrollY.get());
+			const visibleBottom = Math.min(
+				dayBreakLayout.y + dayBreakLayout.height,
+				scrollY.get() + viewportHeight.get(),
+			);
 
-			return (visibleBottom - visibleTop) / own.height >= REVEAL_RATIO;
+			return (visibleBottom - visibleTop) / dayBreakLayout.height >= REVEAL_RATIO;
 		},
 		(current, previous) => {
-			if (!current || previous || reducedMotion || labelOpacity.get() > 0) {
+			if (!current || previous || motionReduced || labelOpacity.get() > 0) {
 				return;
 			}
 
@@ -102,13 +108,13 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, d
 		},
 	);
 
-	const handleLayout = (event: LayoutChangeEvent) => {
+	const handleSaveLayout = (event: LayoutChangeEvent) => {
 		const { y, height } = event.nativeEvent.layout;
 
 		dayBreakLayouts.modify((layouts) => {
 			'worklet';
 
-			layouts[index] = { y, height };
+			layouts[dayIndex] = { y, height };
 
 			return layouts;
 		});
@@ -116,8 +122,8 @@ const SessionLogDayBreak = ({ date, index, scrollY, viewportHeight, logBottom, d
 
 	return (
 		<Animated.View
-			style={[styles.dayBreak, index === 0 && styles.firstDayBreak, stickyStyle]}
-			onLayout={handleLayout}
+			style={[styles.dayBreak, dayIndex === 0 && styles.firstDayBreak, stickyStyle]}
+			onLayout={handleSaveLayout}
 		>
 			<Animated.View style={[styles.date, labelStyle]}>
 				<CalendarIcon size={14} color={colors.onFilled} />

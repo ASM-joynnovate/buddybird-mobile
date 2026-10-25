@@ -28,17 +28,17 @@ export const MASCOT_FEET_RATIO = 449 / 512;
 
 interface Props {
 	wingAngle?: SharedValue<number>;
-	eyesHappy?: SharedValue<number>;
+	happyEyesProgress?: SharedValue<number>;
 }
 
 /**
  * 마스코트 그림 컴포넌트
  * @param wingAngle 날개 각도
- * @param eyesHappy 0에서 1 사이의 눈웃음 정도
+ * @param happyEyesProgress 0에서 1 사이의 눈웃음 정도
  */
-const MascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
+const MascotArtwork = ({ wingAngle, happyEyesProgress }: Props) => {
 	// 애니메이션 없는 그림은 SVG 하나로 렌더링
-	if (!wingAngle && !eyesHappy) {
+	if (!wingAngle && !happyEyesProgress) {
 		return (
 			<Svg width="100%" height="100%" viewBox={VIEW_BOX}>
 				<MascotDefs />
@@ -51,19 +51,19 @@ const MascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
 		);
 	}
 
-	return <AnimatedMascotArtwork wingAngle={wingAngle} eyesHappy={eyesHappy} />;
+	return <AnimatedMascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />;
 };
 
 /**
  * 애니메이션 마스코트 그림 컴포넌트
  * @param wingAngle 날개 각도
- * @param eyesHappy 눈웃음 정도
+ * @param happyEyesProgress 눈웃음 정도
  */
-const AnimatedMascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
+const AnimatedMascotArtwork = ({ wingAngle, happyEyesProgress }: Props) => {
 	const leftWingStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${wingAngle?.get() ?? 0}deg` }] }));
 	const rightWingStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${-(wingAngle?.get() ?? 0)}deg` }] }));
-	const openEyesStyle = useAnimatedStyle(() => ({ opacity: 1 - (eyesHappy?.get() ?? 0) }));
-	const happyEyesStyle = useAnimatedStyle(() => ({ opacity: eyesHappy?.get() ?? 0 }));
+	const openEyesStyle = useAnimatedStyle(() => ({ opacity: 1 - (happyEyesProgress?.get() ?? 0) }));
+	const happyEyesStyle = useAnimatedStyle(() => ({ opacity: happyEyesProgress?.get() ?? 0 }));
 
 	return (
 		<View style={styles.container}>
@@ -87,7 +87,7 @@ const AnimatedMascotArtwork = ({ wingAngle, eyesHappy }: Props) => {
 					<MascotOpenEyes />
 				</MascotLayer>
 			</Animated.View>
-			{eyesHappy && (
+			{happyEyesProgress && (
 				<Animated.View style={[StyleSheet.absoluteFill, happyEyesStyle]}>
 					<MascotLayer>
 						<MascotHappyEyes />

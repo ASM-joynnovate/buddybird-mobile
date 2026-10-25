@@ -69,12 +69,12 @@ const PermissionRequestScreen = () => {
 		let active = true;
 
 		void Promise.all(PERMISSIONS.map(({ kind }) => readPermission(kind)))
-			.then((states) => {
+			.then((permissionStates) => {
 				if (!active) {
 					return;
 				}
 
-				if (states.every(({ granted }) => granted)) {
+				if (permissionStates.every(({ granted }) => granted)) {
 					navigation.replace('MarketingNotification');
 
 					return;

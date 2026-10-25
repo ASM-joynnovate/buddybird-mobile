@@ -37,13 +37,13 @@ export const PressableSurface = ({
 	style,
 	...props
 }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const pressProgress = useSharedValue(0);
 
 	const pressDistance = Math.max(0, depths[depth] - 1);
 	const faceStyle = useAnimatedStyle(() => ({
-		transform: [{ translateY: reducedMotion ? 0 : pressProgress.get() * pressDistance }],
+		transform: [{ translateY: motionReduced ? 0 : pressProgress.get() * pressDistance }],
 	}));
 
 	const activate = useCallback(

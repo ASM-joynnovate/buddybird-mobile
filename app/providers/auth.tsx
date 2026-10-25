@@ -65,8 +65,8 @@ const AuthProvider = ({ children }: Props) => {
 
 		let active = true;
 		let currentIdentity: AuthIdentity | null | undefined;
-		let loginAbort: AbortController | undefined;
-		let receivedEvent = false;
+		let loginAbortController: AbortController | undefined;
+		let authEventReceived = false;
 
 		setStatus('loading');
 
@@ -80,7 +80,7 @@ const AuthProvider = ({ children }: Props) => {
 		};
 
 		/** 로그인 정보 삭제 후 로그인 화면 이동 함수 */
-		const clearSignedOutState = () => {
+		const resetToSignedOut = () => {
 			takeAppleLoginCredential();
 			useAuthStore.getState().clearRegistration();
 
@@ -95,7 +95,7 @@ const AuthProvider = ({ children }: Props) => {
 		const completeLogin = async (identity: AuthIdentity, identityLinked: boolean) => {
 			const controller = new AbortController();
 
-			loginAbort = controller;
+			loginAbortController = controller;
 
 			if (!identityLinked) {
 				setStatus('completing');
@@ -180,14 +180,14 @@ const AuthProvider = ({ children }: Props) => {
 
 			currentIdentity = nextIdentity;
 
-			loginAbort?.abort();
+			loginAbortController?.abort();
 			void queryClient.cancelQueries({ predicate: usesAuthorization });
 
 			const { authUserId, isAnonymous } = useAuthStore.getState();
 			const transition = getAuthTransition(authUserId ? { id: authUserId, isAnonymous } : null, nextIdentity);
 
 			if (transition === 'signedOut' || nextIdentity === null) {
-				clearSignedOutState();
+				resetToSignedOut();
 
 				return;
 			}
@@ -209,7 +209,7 @@ const AuthProvider = ({ children }: Props) => {
 				return;
 			}
 
-			receivedEvent = true;
+			authEventReceived = true;
 
 			// await하면 인증 잠금이 풀리지 않음
 			void acceptSession(session);
@@ -218,7 +218,7 @@ const AuthProvider = ({ children }: Props) => {
 		void auth
 			.getSession()
 			.then(({ data: sessionData, error }) => {
-				if (!active || receivedEvent) {
+				if (!active || authEventReceived) {
 					return;
 				}
 
@@ -235,7 +235,7 @@ const AuthProvider = ({ children }: Props) => {
 			.catch((error: unknown) => {
 				reportError(error, 'auth_restore');
 
-				if (active && !receivedEvent) {
+				if (active && !authEventReceived) {
 					setStatus('error');
 				}
 			});
@@ -255,7 +255,7 @@ const AuthProvider = ({ children }: Props) => {
 
 		return () => {
 			active = false;
-			loginAbort?.abort();
+			loginAbortController?.abort();
 			subscription.unsubscribe();
 			appStateSubscription.remove();
 			void auth.stopAutoRefresh();

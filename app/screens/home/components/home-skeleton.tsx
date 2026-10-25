@@ -46,7 +46,7 @@ const HomeSkeleton = () => {
 					{Array.from({ length: DURATION_CHOICE_COUNT }, (_, index) => (
 						<View key={index} style={[styles.outline, styles.durationCard]}>
 							<View style={styles.radio} />
-							<View style={styles.durationText}>
+							<View style={styles.durationTextContainer}>
 								<View style={[styles.block, styles.durationTitleBlock]} />
 								<View style={[styles.block, styles.durationHintBlock]} />
 							</View>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 		marginBottom: 8,
 	},
 	radio: { width: 25, height: 25, borderRadius: radius.pill, borderWidth: 3, borderColor: colors.border },
-	durationText: { flex: 1, minWidth: 0, gap: 8 },
+	durationTextContainer: { flex: 1, minWidth: 0, gap: 8 },
 	durationTitleBlock: { width: 72, height: 16 },
 	durationHintBlock: { width: 160, height: 12 },
 	startBlock: { height: 64, marginTop: 12 + depths.xhigh, borderRadius: radius.control },

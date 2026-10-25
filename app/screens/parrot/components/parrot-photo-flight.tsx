@@ -60,10 +60,10 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 	const [photoLanded, setPhotoLanded] = useState(false);
 
 	const progress = useSharedValue(0);
-	const target = useSharedValue<MeasuredDimensions | null>(null);
+	const targetLayout = useSharedValue<MeasuredDimensions | null>(null);
 	const flying = useSharedValue(false);
-	const sheetShown = useSharedValue(0);
-	const buttonsShown = useSharedValue(0);
+	const sheetProgress = useSharedValue(0);
+	const buttonsProgress = useSharedValue(0);
 
 	const closingRef = useRef(false);
 
@@ -72,12 +72,12 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 	const originSide = origin.width / (Math.cos(tiltRadians) + Math.sin(tiltRadians));
 
 	const sheetStyle = useAnimatedStyle(() => ({
-		transform: [{ translateY: interpolate(sheetShown.get(), [0, 1], [windowHeight, 0]) }],
+		transform: [{ translateY: interpolate(sheetProgress.get(), [0, 1], [windowHeight, 0]) }],
 	}));
 
 	const buttonsStyle = useAnimatedStyle(() => ({
-		opacity: buttonsShown.get(),
-		transform: [{ scale: interpolate(buttonsShown.get(), [0, 1], [BUTTONS_START_SCALE, 1]) }],
+		opacity: buttonsProgress.get(),
+		transform: [{ scale: interpolate(buttonsProgress.get(), [0, 1], [BUTTONS_START_SCALE, 1]) }],
 	}));
 
 	// 사진이 옮겨 가는 동안 수정 화면의 사진을 비워 둠
@@ -89,7 +89,7 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 			return { opacity: 0 };
 		}
 
-		const to = measure(targetRef) ?? target.get();
+		const to = measure(targetRef) ?? targetLayout.get();
 
 		if (!to) {
 			return { opacity: 0 };
@@ -151,32 +151,32 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 		scheduleOnUI(() => {
 			'worklet';
 
-			sheetShown.set(
+			sheetProgress.set(
 				withDelay(SHEET_OPEN_DELAY_MS, withTiming(1, { duration: SHEET_OPEN_MS, easing: burstEasing })),
 			);
 
 			const to = measure(targetRef);
 
 			if (!to) {
-				buttonsShown.set(1);
+				buttonsProgress.set(1);
 				scheduleOnRN(setPhotoLanded, true);
 
 				return;
 			}
 
-			target.set(to);
+			targetLayout.set(to);
 			flying.set(true);
 			progress.set(
 				withTiming(1, { duration: OPEN_MS, easing: flightEasing }, (finished) => {
 					if (finished) {
 						flying.set(false);
-						buttonsShown.set(withTiming(1, { duration: BUTTONS_SHOW_MS, easing: flightEasing }));
+						buttonsProgress.set(withTiming(1, { duration: BUTTONS_SHOW_MS, easing: flightEasing }));
 						scheduleOnRN(setPhotoLanded, true);
 					}
 				}),
 			);
 		});
-	}, [buttonsShown, flying, progress, sheetShown, target, targetRef]);
+	}, [buttonsProgress, flying, progress, sheetProgress, targetLayout, targetRef]);
 
 	/** 닫을 때 사진을 카드 자리로 돌려보낸 뒤 화면 닫기 */
 	useEffect(() => {
@@ -196,16 +196,16 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 			scheduleOnUI(() => {
 				'worklet';
 
-				buttonsShown.set(
+				buttonsProgress.set(
 					withTiming(0, { duration: BUTTONS_HIDE_MS }, () => {
 						const to = measure(targetRef);
 
 						if (to) {
-							target.set(to);
+							targetLayout.set(to);
 							flying.set(true);
 						}
 
-						sheetShown.set(withTiming(0, { duration: CLOSE_MS, easing: sheetCloseEasing }));
+						sheetProgress.set(withTiming(0, { duration: CLOSE_MS, easing: sheetCloseEasing }));
 						progress.set(
 							withDelay(
 								CLOSE_MS / 2,
@@ -220,7 +220,7 @@ const ParrotPhotoFlight = ({ origin, tilt, targetRef, photoUri, children }: Prop
 				);
 			});
 		});
-	}, [buttonsShown, flying, navigation, progress, sheetShown, target, targetRef]);
+	}, [buttonsProgress, flying, navigation, progress, sheetProgress, targetLayout, targetRef]);
 
 	return children({
 		photoStyle: targetPhotoStyle,

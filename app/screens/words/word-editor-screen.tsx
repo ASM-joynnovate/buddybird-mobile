@@ -114,7 +114,7 @@ const WordEditorScreen = () => {
 	const [saveFailed, setSaveFailed] = useState(false);
 	const [saveAttempted, setSaveAttempted] = useState(false);
 	const [recordingAddBlocked, setRecordingAddBlocked] = useState(false);
-	const [createWordKey, setCreateWordKey] = useState(() => randomUUID());
+	const [createWordIdempotencyKey, setCreateWordKey] = useState(() => randomUUID());
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 	const [recordingSheetOpen, setRecordingSheetOpen] = useState(false);
 
@@ -260,7 +260,7 @@ const WordEditorScreen = () => {
 	const saveWordName = async () => {
 		if (!wordId) {
 			const createdWord = await createWord.mutateAsync(
-				{ data: { name: wordName }, idempotencyKey: createWordKey },
+				{ data: { name: wordName }, idempotencyKey: createWordIdempotencyKey },
 				{
 					onSuccess: () => setCreateWordKey(randomUUID()),
 					onError: (error) => {
@@ -301,7 +301,11 @@ const WordEditorScreen = () => {
 		const upload = await addWordRecording.mutateAsync({ id: savedWordId, uri: newRecording.uri });
 
 		setNewRecordings((prev) =>
-			prev.map((item) => (item.key === newRecording.key ? { ...item, recordingId: upload.recording_id } : item)),
+			prev.map((listedRecording) =>
+				listedRecording.key === newRecording.key
+					? { ...listedRecording, recordingId: upload.recording_id }
+					: listedRecording,
+			),
 		);
 
 		await uploadWordRecording.mutateAsync({ upload, uri: newRecording.uri });
@@ -353,10 +357,10 @@ const WordEditorScreen = () => {
 	const handleReplaceRecording = (recording: EditorRecording, newRecording: NewRecording) => {
 		if (recording.kind === 'local') {
 			setNewRecordings((prev) =>
-				prev.map((item) =>
-					item.key === recording.id
-						? { ...newRecording, replacedRecordingId: item.replacedRecordingId }
-						: item,
+				prev.map((listedRecording) =>
+					listedRecording.key === recording.id
+						? { ...newRecording, replacedRecordingId: listedRecording.replacedRecordingId }
+						: listedRecording,
 				),
 			);
 		} else {
@@ -523,7 +527,7 @@ const WordEditorScreen = () => {
 					label={saveLabel(saveStep, saveFailed, t)}
 					loading={wordUpdating}
 					onPress={() => void handleSave()}
-					style={styles.save}
+					style={styles.saveButton}
 				/>
 			</>
 		);
@@ -585,7 +589,7 @@ const WordEditorScreen = () => {
 
 const styles = StyleSheet.create({
 	spacer: { flex: 1, minHeight: 24 },
-	save: { marginTop: 12 },
+	saveButton: { marginTop: 12 },
 });
 
 export default WordEditorScreen;

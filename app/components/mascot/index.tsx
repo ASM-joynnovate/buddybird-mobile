@@ -31,7 +31,7 @@ interface Props {
 const Mascot = ({ size = 120, floating = true }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const y = useSharedValue(0);
 	const rotation = useSharedValue(0);
@@ -42,7 +42,7 @@ const Mascot = ({ size = 120, floating = true }: Props) => {
 
 	/** 동작 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
 	useEffect(() => {
-		if (reducedMotion || !floating) {
+		if (motionReduced || !floating) {
 			return;
 		}
 
@@ -60,7 +60,7 @@ const Mascot = ({ size = 120, floating = true }: Props) => {
 			cancelAnimation(y);
 			cancelAnimation(rotation);
 		};
-	}, [floating, reducedMotion, rotation, size, y]);
+	}, [floating, motionReduced, rotation, size, y]);
 
 	return (
 		<Animated.View

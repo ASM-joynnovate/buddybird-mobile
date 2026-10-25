@@ -9,7 +9,7 @@ interface ItemPickerItem {
 	label: string;
 	value?: string;
 	icon?: LucideIcon;
-	firstInGroup?: boolean;
+	isFirstInGroup?: boolean;
 	disabled?: boolean;
 }
 
@@ -21,25 +21,25 @@ interface ItemPickerSheet {
 }
 
 interface Props {
-	item: ItemPickerItem;
+	itemProps: ItemPickerItem;
 	sheet: ItemPickerSheet;
 	children: (close: () => void) => ReactNode;
 }
 
-export const ItemPicker = ({ item, sheet, children }: Props) => {
+export const ItemPicker = ({ itemProps, sheet, children }: Props) => {
 	const [sheetOpen, setSheetOpen] = useState(false);
 
 	const handleClose = () => setSheetOpen(false);
 
 	return (
 		<>
-			<Item {...item} onPress={() => setSheetOpen(true)} />
+			<Item {...itemProps} onPress={() => setSheetOpen(true)} />
 
 			<Sheet
 				visible={sheetOpen}
 				title={sheet.title}
 				description={sheet.description}
-				listLayout={sheet.listLayout}
+				isListLayout={sheet.listLayout}
 				onOpened={sheet.onOpened}
 				onClose={handleClose}
 			>

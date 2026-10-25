@@ -11,7 +11,7 @@ import { ItemPicker } from '@/components/ui/item/picker';
 
 interface Props {
 	value: SleepSettings | undefined;
-	firstInGroup?: boolean;
+	isFirstInGroup?: boolean;
 	disabled?: boolean;
 	onChange: (value: SleepSettings) => void;
 }
@@ -19,17 +19,17 @@ interface Props {
 /**
  * 수면 시간 선택 컴포넌트
  * @param value 수면 시간
- * @param firstInGroup 목록의 첫 항목 여부
+ * @param isFirstInGroup 목록의 첫 항목 여부
  * @param disabled 비활성화 여부
  * @param onChange 수면 시간 변경 시 실행할 함수
  */
-const SleepTimePicker = ({ value, firstInGroup, disabled, onChange }: Props) => {
+const SleepTimePicker = ({ value, isFirstInGroup, disabled, onChange }: Props) => {
 	const { t } = useTranslation();
 
 	return (
 		<ItemPicker
-			item={{
-				firstInGroup,
+			itemProps={{
+				isFirstInGroup,
 				icon: MoonIcon,
 				label: t('session.sleep.label'),
 				value: value

@@ -23,34 +23,42 @@ const SLEEP_COLORS = {
 };
 
 interface Props {
-	row: LogRow;
-	firstInDay: boolean;
+	logRow: LogRow;
+	isFirstInDay: boolean;
 	openItemId: string | null;
 	sessionId: string;
 	judgmentPending: boolean;
 	wordName: string;
-	onToggleItem: (item: LogItem) => void;
+	onToggleItem: (logItem: LogItem) => void;
 }
 
 /**
  * 한 시간의 기록 컴포넌트
- * @param row 행의 시각 범위 및 기록
- * @param firstInDay 그 날짜의 첫 행인지 여부
+ * @param logRow 행의 시각 범위 및 기록
+ * @param isFirstInDay 그 날짜의 첫 행인지 여부
  * @param openItemId 이 행에서 펼친 기록 ID
  * @param sessionId 세션 ID
  * @param judgmentPending 세션을 분석하는 중인지 여부
  * @param wordName 세션에서 학습한 단어
  * @param onToggleItem 기록을 누르면 실행할 함수
  */
-const SessionLogRow = ({ row, firstInDay, openItemId, sessionId, judgmentPending, wordName, onToggleItem }: Props) => {
+const SessionLogRow = ({
+	logRow,
+	isFirstInDay,
+	openItemId,
+	sessionId,
+	judgmentPending,
+	wordName,
+	onToggleItem,
+}: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	if (row.logItems.length === 0 && !row.duringSleep) {
+	if (logRow.logItems.length === 0 && !logRow.isDuringSleep) {
 		return (
-			<View style={[styles.row, firstInDay && styles.firstRow, styles.quietRow]}>
-				<Copy style={styles.quietHour}>{formatHour(row.start, locale)}</Copy>
+			<View style={[styles.row, isFirstInDay && styles.firstRow, styles.quietRow]}>
+				<Copy style={styles.quietHour}>{formatHour(logRow.start, locale)}</Copy>
 				<View style={styles.quietLine}>
 					<DashedLine color={colors.border} />
 				</View>
@@ -59,9 +67,9 @@ const SessionLogRow = ({ row, firstInDay, openItemId, sessionId, judgmentPending
 	}
 
 	return (
-		<View style={[styles.row, firstInDay && styles.firstRow, row.duringSleep && styles.sleepRow]}>
+		<View style={[styles.row, isFirstInDay && styles.firstRow, logRow.isDuringSleep && styles.sleepRow]}>
 			{/*수면 구간의 빗금 바탕*/}
-			{row.duringSleep && (
+			{logRow.isDuringSleep && (
 				<View style={StyleSheet.absoluteFill}>
 					<Svg width="100%" height="100%">
 						<Defs>
@@ -82,31 +90,33 @@ const SessionLogRow = ({ row, firstInDay, openItemId, sessionId, judgmentPending
 			)}
 
 			<View style={styles.head}>
-				{row.duringSleep ? (
+				{logRow.isDuringSleep ? (
 					<>
 						<MoonIcon size={18} color={colors.muted} />
 						<Copy style={[styles.hour, styles.sleepHours]}>
-							{t('common.duration.hours', { value: Math.round((row.end - row.start) / HOUR) })}
+							{t('common.duration.hours', { value: Math.round((logRow.end - logRow.start) / HOUR) })}
 						</Copy>
 					</>
 				) : (
 					<Copy accessibilityRole="header" style={styles.hour}>
-						{formatHour(row.start, locale)}
+						{formatHour(logRow.start, locale)}
 					</Copy>
 				)}
 			</View>
 
-			{row.logItems.length > 0 && (
-				<View style={[styles.itemList, row.duringSleep && styles.sleepItems]}>
-					{row.logItems.map((item, itemIndex) => (
+			{logRow.logItems.length > 0 && (
+				<View style={[styles.itemList, logRow.isDuringSleep && styles.sleepItems]}>
+					{logRow.logItems.map((logItem, itemIndex) => (
 						<SessionLogItem
-							key={item.id}
-							item={item}
-							open={item.id === openItemId}
+							key={logItem.id}
+							logItem={logItem}
+							open={logItem.id === openItemId}
 							dividerShown={
-								itemIndex > 0 && item.id !== openItemId && row.logItems[itemIndex - 1].id !== openItemId
+								itemIndex > 0 &&
+								logItem.id !== openItemId &&
+								logRow.logItems[itemIndex - 1].id !== openItemId
 							}
-							duringSleep={row.duringSleep}
+							isDuringSleep={logRow.isDuringSleep}
 							sessionId={sessionId}
 							judgmentPending={judgmentPending}
 							wordName={wordName}

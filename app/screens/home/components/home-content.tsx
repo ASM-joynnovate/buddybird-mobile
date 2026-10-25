@@ -88,16 +88,16 @@ const HomeContent = () => {
 	const runningDevice = deviceListData.find((device) => device.id === runningSession?.station.device_id);
 	const runningElsewhere = runningDevice !== undefined && runningDevice.client_device_id !== clientDeviceId;
 
-	const untilEnd = duration.ms === null;
+	const untilEndSelected = duration.ms === null;
 	const durationInvalid = duration.ms === 0;
 	const sleep = editedSleep ?? settingsData.sleep;
 	const sleepChanged =
-		untilEnd &&
+		untilEndSelected &&
 		editedSleep !== null &&
 		(editedSleep.sleep_at !== settingsData.sleep.sleep_at || editedSleep.wake_at !== settingsData.sleep.wake_at);
 	const sessionSetup =
 		selectedWord && !durationInvalid
-			? { wordId: selectedWord.id, duration, sleep: untilEnd ? sleep : null, sleepChanged }
+			? { wordId: selectedWord.id, duration, sleep: untilEndSelected ? sleep : null, sleepChanged }
 			: null;
 
 	const sessionStarting =
@@ -168,9 +168,9 @@ const HomeContent = () => {
 			const { volume } = await VolumeManager.getVolume();
 
 			// iOS 시뮬레이터는 음량이 항상 0
-			const iosSimulator = Platform.OS === 'ios' && !Device.isDevice;
+			const isIosSimulator = Platform.OS === 'ios' && !Device.isDevice;
 
-			if (volume === 0 && !iosSimulator) {
+			if (volume === 0 && !isIosSimulator) {
 				setLowVolumeDialogOpen(true);
 
 				return;
@@ -309,7 +309,7 @@ const HomeContent = () => {
 					</Animated.View>
 				)}
 
-				{untilEnd && (
+				{untilEndSelected && (
 					<Animated.View
 						entering={FadeIn.duration(layoutAnimationMs)}
 						exiting={FadeOut.duration(layoutAnimationMs)}
@@ -317,7 +317,7 @@ const HomeContent = () => {
 						style={styles.sleepContainer}
 					>
 						<ItemGroup>
-							<SleepTimePicker firstInGroup value={sleep} onChange={setEditedSleep} />
+							<SleepTimePicker isFirstInGroup value={sleep} onChange={setEditedSleep} />
 						</ItemGroup>
 					</Animated.View>
 				)}

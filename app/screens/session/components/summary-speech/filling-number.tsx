@@ -32,7 +32,7 @@ const SPARK_FADE_MS = 180;
 export interface SummarySentence {
 	lead: string;
 	tail: string;
-	value: number;
+	amount: number;
 	unit: CountUnit;
 	metric: SummaryMetric;
 }
@@ -52,14 +52,14 @@ interface Props {
  * @param onFilled 배경이 다 차면 숫자의 화면 위치를 받아 실행할 함수
  */
 const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const pillRef = useAnimatedRef<Animated.View>();
 
-	const progress = useSharedValue(filled || reducedMotion ? 1 : 0);
-	const bump = useSharedValue(1);
-	const glint = useSharedValue(0);
-	const spark = useSharedValue(0);
+	const progress = useSharedValue(filled || motionReduced ? 1 : 0);
+	const numberScale = useSharedValue(1);
+	const glintProgress = useSharedValue(0);
+	const sparkProgress = useSharedValue(0);
 	const sparkOpacity = useSharedValue(1);
 
 	const [pillWidth, setPillWidth] = useState(0);
@@ -67,7 +67,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 	const palette = summaryMetricColors[sentence.metric];
 	const pillSizeStyle = size === 'large' ? styles.pillLarge : styles.pillMedium;
 	const textSizeStyle = size === 'large' ? styles.textLarge : styles.textMedium;
-	const bumpStyle = useAnimatedStyle(() => ({ transform: [{ scale: bump.get() }] }));
+	const bumpStyle = useAnimatedStyle(() => ({ transform: [{ scale: numberScale.get() }] }));
 	const fillStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.get() }] }));
 	const onFillClipStyle = useAnimatedStyle(() => ({
 		opacity: pillWidth === 0 ? 0 : 1,
@@ -76,7 +76,10 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 	const onFillTextStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: (1 - progress.get()) * pillWidth }],
 	}));
-	const sparksStyle = useAnimatedStyle(() => ({ opacity: sparkOpacity.get(), transform: [{ scale: spark.get() }] }));
+	const sparksStyle = useAnimatedStyle(() => ({
+		opacity: sparkOpacity.get(),
+		transform: [{ scale: sparkProgress.get() }],
+	}));
 
 	/** 아직 다 차지 않은 문장이면 숫자 배경 채우기 시작 */
 	useEffect(() => {
@@ -84,7 +87,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 			return;
 		}
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			onFilled(null);
 
 			return;
@@ -98,16 +101,16 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 
 				const position = measure(pillRef);
 
-				bump.set(bumpScale());
-				glint.set(glintSweep());
-				spark.set(withTiming(1, { duration: SPARK_MS, easing: burstEasing }));
+				numberScale.set(bumpScale());
+				glintProgress.set(glintSweep());
+				sparkProgress.set(withTiming(1, { duration: SPARK_MS, easing: burstEasing }));
 				sparkOpacity.set(
 					withDelay(SPARK_FADE_DELAY_MS, withTiming(0, { duration: SPARK_FADE_MS, easing: burstEasing })),
 				);
 				scheduleOnRN(onFilled, position);
 			}),
 		);
-	}, [bump, filled, glint, onFilled, pillRef, progress, reducedMotion, spark, sparkOpacity]);
+	}, [numberScale, filled, glintProgress, onFilled, pillRef, progress, motionReduced, sparkProgress, sparkOpacity]);
 
 	return (
 		<Animated.View style={[styles.container, bumpStyle]}>
@@ -128,7 +131,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 				<CountUpText
 					progress={progress}
 					from={0}
-					to={sentence.value}
+					to={sentence.amount}
 					unit={sentence.unit}
 					style={[styles.text, textSizeStyle]}
 				/>
@@ -143,14 +146,14 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 						<CountUpText
 							progress={progress}
 							from={0}
-							to={sentence.value}
+							to={sentence.amount}
 							unit={sentence.unit}
 							style={[styles.text, styles.textOnFill, textSizeStyle]}
 						/>
 					</Animated.View>
 				</Animated.View>
 
-				<SummaryGlint progress={glint} width={pillWidth} />
+				<SummaryGlint progress={glintProgress} width={pillWidth} />
 			</Animated.View>
 
 			{/*다 차면 튀는 조각*/}

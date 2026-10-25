@@ -113,7 +113,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 
 	const savedPhotoUrl = parrot?.photo_file?.url ?? null;
 
-	const photo = usePhotoPicker(savedPhotoUrl);
+	const photoPicker = usePhotoPicker(savedPhotoUrl);
 
 	const { buddyRef, sheetRef, buddyStyle, bubbleStyle } = useStartupLanding();
 
@@ -125,7 +125,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
 	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
 	// 사진이 도착한 뒤에만 상태 표시줄 글자를 밝게 함
-	const photoUnderStatusBar = !!photo.photoUri && (flight?.photoLanded ?? true);
+	const photoUnderStatusBar = !!photoPicker.photoUri && (flight?.photoLanded ?? true);
 
 	const handleScroll = useAnimatedScrollHandler((event) => {
 		scrollY.set(event.contentOffset.y);
@@ -145,9 +145,9 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 
 	/** 변경한 앵무새 사진 저장 함수 */
 	const saveParrotPhoto = (savedParrot: Parrot) => {
-		if (photo.photoChanged && photo.photoUri) {
+		if (photoPicker.photoChanged && photoPicker.photoUri) {
 			uploadParrotPhoto.mutate(
-				{ id: savedParrot.id, uri: photo.photoUri },
+				{ id: savedParrot.id, uri: photoPicker.photoUri },
 				{ onSuccess: onDone, onError: handleSaveError },
 			);
 		} else {
@@ -155,18 +155,18 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 		}
 	};
 
-	const handleChangeName = (value: string) => {
-		setName(value);
+	const handleChangeName = (nextName: string) => {
+		setName(nextName);
 		clearInvalidField('name');
 	};
 
-	const handleChangeSpecies = (value: string) => {
-		setSpecies(value);
+	const handleChangeSpecies = (nextSpecies: string) => {
+		setSpecies(nextSpecies);
 		clearInvalidField('species');
 	};
 
-	const handleChangeBirthdate = (value: string | null) => {
-		setBirthdate(value);
+	const handleChangeBirthdate = (nextBirthdate: string | null) => {
+		setBirthdate(nextBirthdate);
 		clearInvalidField('birthdate');
 	};
 
@@ -188,11 +188,11 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 			return;
 		}
 
-		const parrotInfo = { name: trimmedName, species, birthdate: birthdate ?? null };
+		const parrotFields = { name: trimmedName, species, birthdate: birthdate ?? null };
 
 		if (parrotId) {
 			updateParrot.mutate(
-				{ id: parrotId, data: parrotInfo },
+				{ id: parrotId, data: parrotFields },
 				{ onSuccess: saveParrotPhoto, onError: handleSaveError },
 			);
 
@@ -200,7 +200,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 		}
 
 		createParrot.mutate(
-			{ data: parrotInfo, idempotencyKey },
+			{ data: parrotFields, idempotencyKey },
 			{
 				onSuccess: (savedParrot) => {
 					setIdempotencyKey(randomUUID());
@@ -256,8 +256,8 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 				contentContainerStyle={styles.scrollContent}
 			>
 				<ParrotPhotoBackdrop
-					photo={photo}
-					busy={saving}
+					photoPicker={photoPicker}
+					disabled={saving}
 					scrollY={scrollY}
 					photoRef={photoRef}
 					photoStyle={flight?.photoStyle}
@@ -280,7 +280,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 							/>
 						)}
 
-						<InlineError message={photo.errorMessage} />
+						<InlineError message={photoPicker.errorMessage} />
 
 						<View style={styles.fieldsContainer}>
 							<TextField
@@ -297,7 +297,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 							<View>
 								<ItemGroup>
 									<SpeciesPicker
-										firstInGroup
+										isFirstInGroup
 										species={species}
 										onChange={handleChangeSpecies}
 										disabled={saving}
@@ -357,8 +357,8 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 				)}
 			</Animated.View>
 
-			<PermissionDialog state={photo.libraryDialog} />
-			<PermissionDialog state={photo.cameraDialog} />
+			<PermissionDialog state={photoPicker.libraryDialog} />
+			<PermissionDialog state={photoPicker.cameraDialog} />
 
 			{parrot && (
 				<ConfirmDialog

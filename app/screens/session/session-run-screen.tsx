@@ -42,7 +42,7 @@ import SessionEndDialog from '@/screens/session/components/session-end-dialog';
 import SessionRunInfo from '@/screens/session/components/session-run-info';
 import SessionRunInfoBatteryStatus from '@/screens/session/components/session-run-info/battery-status';
 import StationCamera from '@/screens/session/components/station-camera';
-import { createLearningEngine, type LearningEngine } from '@/screens/session/services/engine';
+import { createLearningEngine, type LearningEngine } from '@/screens/session/services/learning-engine';
 // TODO: 펫캠 가이드 추가 후 사용
 // import { readPermission } from '@/services/device/permissions';
 // import { createPetcamSender, type PetcamSender } from '@/screens/session/services/petcam-connection';
@@ -105,14 +105,14 @@ const SessionRunScreen = () => {
 	const [petcamAudioOn, setPetcamAudioOn] = useState(false);
 
 	const engineRef = useRef<LearningEngine | null>(null);
-	const uploadsRef = useRef<Promise<unknown>[]>([]);
+	const soundUploadsRef = useRef<Promise<unknown>[]>([]);
 	const soundCountRef = useRef(0);
 	const pausedAtRef = useRef<number | null>(null);
 	const appActiveRef = useRef(true);
 	const viewerConnectedRef = useRef(false);
 	const syncEngineRef = useRef<() => void>(() => undefined);
 	const endingRef = useRef(false);
-	const cameraPromptRef = useRef(false);
+	const cameraPromptShownRef = useRef(false);
 	// TODO: 펫캠 가이드 추가 후 사용
 	// const petcamSenderRef = useRef<PetcamSender | null>(null);
 
@@ -120,7 +120,7 @@ const SessionRunScreen = () => {
 
 	const { mutate: finishSession } = useFinishSession();
 	const { mutateAsync: uploadSessionSound } = useUploadSessionSound();
-	const { mutateAsync: sendHeartbeatAsync } = useSendHeartbeat();
+	const { mutateAsync: sendHeartbeat } = useSendHeartbeat();
 	// TODO: 펫캠 가이드 추가 후 사용
 	// const { mutateAsync: issuePetcamTurnCredential } = useIssuePetcamTurnCredential();
 	const { mutateAsync: issuePetcamEventUpload } = useIssuePetcamEventUpload();
@@ -160,13 +160,13 @@ const SessionRunScreen = () => {
 
 			try {
 				await engineRef.current?.stop();
-				await sendHeartbeatAsync({
+				await sendHeartbeat({
 					id: sessionId,
 					data: createHeartbeatData(startedAt, sleep, engineRef.current?.unacknowledgedSegments() ?? []),
 				}).catch(() => undefined);
 				engineRef.current = null;
 
-				await Promise.allSettled(uploadsRef.current);
+				await Promise.allSettled(soundUploadsRef.current);
 			} catch (e) {
 				reportError(e, 'learning_end');
 			}
@@ -193,10 +193,10 @@ const SessionRunScreen = () => {
 
 			finishSession({ id: sessionId }, { onSettled: showSummary });
 		},
-		[finishSession, navigation, sendHeartbeatAsync, sessionId, setSessionFinishing, sleep, startedAt],
+		[finishSession, navigation, sendHeartbeat, sessionId, setSessionFinishing, sleep, startedAt],
 	);
 
-	const latestInputRef = useRef({ startedAt, sleep, endSession });
+	const heartbeatInputRef = useRef({ startedAt, sleep, endSession });
 
 	// TODO: 펫캠 가이드 추가 후 사용
 	// const handleToggleCamera = () => {
@@ -208,12 +208,12 @@ const SessionRunScreen = () => {
 	// 		return;
 	// 	}
 	//
-	// 	cameraPromptRef.current = true;
+	// 	cameraPromptShownRef.current = true;
 	//
 	// 	void cameraPermission
 	// 		.run(() => setCameraOn(true))
 	// 		.finally(() => {
-	// 			cameraPromptRef.current = false;
+	// 			cameraPromptShownRef.current = false;
 	// 		});
 	// };
 
@@ -436,10 +436,12 @@ const SessionRunScreen = () => {
 						})
 							.catch((error: unknown) => reportError(error, 'session_sound_upload'))
 							.finally(() => {
-								uploadsRef.current = uploadsRef.current.filter((upload) => upload !== uploadPromise);
+								soundUploadsRef.current = soundUploadsRef.current.filter(
+									(upload) => upload !== uploadPromise,
+								);
 							});
 
-						uploadsRef.current = [...uploadsRef.current, uploadPromise];
+						soundUploadsRef.current = [...soundUploadsRef.current, uploadPromise];
 					},
 					onError: (error) => reportError(error, 'learning_engine'),
 				});
@@ -501,7 +503,7 @@ const SessionRunScreen = () => {
 
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
 			// iOS 권한 요청 중에는 학습 유지
-			if (cameraPromptRef.current && appState === 'inactive') {
+			if (cameraPromptShownRef.current && appState === 'inactive') {
 				return;
 			}
 
@@ -551,17 +553,17 @@ const SessionRunScreen = () => {
 
 	/** 하트비트 전송에 사용할 최신 값 저장 */
 	useEffect(() => {
-		latestInputRef.current = { startedAt, sleep, endSession };
+		heartbeatInputRef.current = { startedAt, sleep, endSession };
 	}, [endSession, sleep, startedAt]);
 
 	/** 주기마다 하트비트 전송 */
 	useEffect(() => {
 		/** 하트비트 전송 함수 */
-		const beat = () => {
-			const { startedAt: sessionStartedAt, sleep: sleepSettings } = latestInputRef.current;
+		const sendLatestHeartbeat = () => {
+			const { startedAt: sessionStartedAt, sleep: sleepSettings } = heartbeatInputRef.current;
 			const learningSegments = engineRef.current?.unacknowledgedSegments() ?? [];
 
-			sendHeartbeatAsync({
+			sendHeartbeat({
 				id: sessionId,
 				data: createHeartbeatData(sessionStartedAt, sleepSettings, learningSegments),
 			})
@@ -571,17 +573,17 @@ const SessionRunScreen = () => {
 						error instanceof ApiError &&
 						(error.code === 'SESSION__NOT_RUNNING' || error.code === 'DEVICE__NOT_REGISTERED')
 					) {
-						void latestInputRef.current.endSession('server');
+						void heartbeatInputRef.current.endSession('server');
 					}
 				});
 		};
 
-		beat();
+		sendLatestHeartbeat();
 
-		const timer = setInterval(beat, HEARTBEAT_INTERVAL_MS);
+		const timer = setInterval(sendLatestHeartbeat, HEARTBEAT_INTERVAL_MS);
 
 		return () => clearInterval(timer);
-	}, [sendHeartbeatAsync, sessionId]);
+	}, [sendHeartbeat, sessionId]);
 
 	/** 종료 시각이 되면 학습 종료 */
 	useEffect(() => {

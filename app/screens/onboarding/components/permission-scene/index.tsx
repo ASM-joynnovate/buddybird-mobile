@@ -45,17 +45,17 @@ const PermissionScene = () => {
 
 	const screenFocused = useIsFocused();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const cycle = useSharedValue(0);
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
-	const animated = screenFocused && !reducedMotion;
+	const animated = screenFocused && !motionReduced;
 	const scale = getStageScale(area, STAGE_WIDTH, STAGE_HEIGHT);
 
 	const wordStyle = useAnimatedStyle(() => {
-		if (reducedMotion) {
+		if (motionReduced) {
 			return { opacity: 1 };
 		}
 
@@ -70,7 +70,7 @@ const PermissionScene = () => {
 		transform: [{ translateY: interpolate(cycle.get(), [0, 0.25, 0.5, 0.75, 1], [0, -6, 0, -6, 0]) }],
 	}));
 	const glowProps = useAnimatedProps(() => ({
-		opacity: reducedMotion ? 0 : interpolate(cycle.get(), [0.45, 0.52, 0.7], [0, 1, 0], Extrapolation.CLAMP),
+		opacity: motionReduced ? 0 : interpolate(cycle.get(), [0.45, 0.52, 0.7], [0, 1, 0], Extrapolation.CLAMP),
 	}));
 
 	/** 화면 포커스 중 장면 반복 */
@@ -151,7 +151,7 @@ const PermissionScene = () => {
 				<Copy style={styles.tagText}>{t('onboarding.permissions.listening')}</Copy>
 			</Animated.View>
 
-			<PermissionSceneAlert cycle={cycle} style={{ right: 14 * scale, top: 8 * scale }} />
+			<PermissionSceneAlert cycleProgress={cycle} style={{ right: 14 * scale, top: 8 * scale }} />
 		</SceneStage>
 	);
 };

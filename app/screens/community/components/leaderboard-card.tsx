@@ -64,16 +64,16 @@ const LeaderboardCard = () => {
 
 			{leaderboardData.items.length > 0 && (
 				<View style={styles.laneContainer}>
-					{leaderboardData.items.slice(0, TOP_RANK_COUNT).map((item) => (
+					{leaderboardData.items.slice(0, TOP_RANK_COUNT).map((rankEntry) => (
 						<LeaderboardLane
-							key={item.user.id}
-							rank={item.rank}
-							score={item.score}
+							key={rankEntry.user.id}
+							rank={rankEntry.rank}
+							score={rankEntry.score}
 							topScore={topScore}
-							nickname={item.user.nickname}
-							photoUrl={item.user.photo_file?.url ?? null}
-							country={item.user.country}
-							userIsMe={item.user.id === meData.id}
+							nickname={rankEntry.user.nickname}
+							photoUrl={rankEntry.user.photo_file?.url ?? null}
+							country={rankEntry.user.country}
+							isMe={rankEntry.user.id === meData.id}
 						/>
 					))}
 

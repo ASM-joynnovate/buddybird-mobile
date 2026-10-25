@@ -46,7 +46,7 @@ const DurationPicker = () => {
 	const days = Math.floor(totalMs / DAY);
 	const hours = Math.floor((totalMs % DAY) / HOUR);
 	const minutes = Math.floor((totalMs % HOUR) / MINUTE);
-	const atMax = totalMs >= MAX_SESSION_MS;
+	const maxDurationReached = totalMs >= MAX_SESSION_MS;
 	const choices: DurationChoice[] = [
 		...SESSION_DURATION_PRESETS.map((preset) => ({
 			key: preset.id,
@@ -75,7 +75,7 @@ const DurationPicker = () => {
 	];
 
 	/** 직접 설정한 학습 시간 저장 함수 */
-	const change = (nextDays: number, nextHours: number, nextMinutes: number) => {
+	const changeCustomDuration = (nextDays: number, nextHours: number, nextMinutes: number) => {
 		setDuration({
 			ms: Math.min(nextDays * DAY + nextHours * HOUR + nextMinutes * MINUTE, MAX_SESSION_MS),
 			custom: true,
@@ -133,23 +133,23 @@ const DurationPicker = () => {
 											value: days,
 											values: DAYS,
 											unit: t('session.start.days'),
-											onChange: (nextDays) => change(nextDays, hours, minutes),
+											onChange: (nextDays) => changeCustomDuration(nextDays, hours, minutes),
 										},
 										{
 											key: 'hours',
 											label: t('session.start.hours'),
 											value: hours,
-											values: atMax ? [0] : HOURS,
+											values: maxDurationReached ? [0] : HOURS,
 											unit: t('session.start.hours'),
-											onChange: (nextHours) => change(days, nextHours, minutes),
+											onChange: (nextHours) => changeCustomDuration(days, nextHours, minutes),
 										},
 										{
 											key: 'minutes',
 											label: t('session.start.minutes'),
 											value: minutes,
-											values: atMax ? [0] : MINUTE_STEPS,
+											values: maxDurationReached ? [0] : MINUTE_STEPS,
 											unit: t('session.start.minutes'),
-											onChange: (nextMinutes) => change(days, hours, nextMinutes),
+											onChange: (nextMinutes) => changeCustomDuration(days, hours, nextMinutes),
 										},
 									]}
 								/>

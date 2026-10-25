@@ -32,8 +32,8 @@ export const ScreenError = ({ error, placeholder, size = 'screen', loading, onRe
 		!(error instanceof ApiError) || error.code === 'CLIENT__NETWORK' || error.code === 'CLIENT__TIMEOUT';
 	const Icon = connectionFailed ? WifiOffIcon : ServerCrashIcon;
 
-	const texts = (
-		<View style={styles.texts}>
+	const errorTexts = (
+		<View style={styles.errorTexts}>
 			<Copy style={styles.title}>{t('common.loadError')}</Copy>
 			<Copy style={styles.reason}>{apiErrorMessage(error, t)}</Copy>
 		</View>
@@ -53,7 +53,7 @@ export const ScreenError = ({ error, placeholder, size = 'screen', loading, onRe
 		return (
 			<View style={[styles.card, styles.inlineCard]} accessibilityLiveRegion="polite">
 				<Icon size={22} color={colors.muted} />
-				{texts}
+				{errorTexts}
 				{retryButton}
 			</View>
 		);
@@ -66,7 +66,7 @@ export const ScreenError = ({ error, placeholder, size = 'screen', loading, onRe
 			<View style={styles.card} accessibilityLiveRegion="polite">
 				<View style={styles.message}>
 					<Icon size={22} color={colors.muted} style={styles.icon} />
-					{texts}
+					{errorTexts}
 				</View>
 
 				{retryButton}
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 	inlineCard: { flexDirection: 'row', alignItems: 'center' },
 	message: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 	icon: { marginTop: 1 },
-	texts: { flex: 1, minWidth: 0, gap: 2 },
+	errorTexts: { flex: 1, minWidth: 0, gap: 2 },
 	title: { fontFamily: font.extraBold, fontSize: 16, lineHeight: 22 },
 	reason: { fontSize: 14, lineHeight: 20, color: colors.muted },
 	retry: { alignSelf: 'flex-end' },

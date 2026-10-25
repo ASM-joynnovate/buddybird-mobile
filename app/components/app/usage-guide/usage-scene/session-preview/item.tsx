@@ -38,7 +38,7 @@ const UsageSceneSessionPreviewItem = ({ kind, name, value, time, dividerShown = 
 	const open = children !== undefined;
 
 	return (
-		<View style={[styles.item, open && styles.openItem]}>
+		<View style={[styles.container, open && styles.containerOpen]}>
 			<SessionLogItemHead
 				kind={kind}
 				name={name}
@@ -63,8 +63,8 @@ const UsageSceneSessionPreviewItem = ({ kind, name, value, time, dividerShown = 
 };
 
 const styles = StyleSheet.create({
-	item: { paddingHorizontal: 14 },
-	openItem: { backgroundColor: sessionDetailColors.openFace },
+	container: { paddingHorizontal: 14 },
+	containerOpen: { backgroundColor: sessionDetailColors.openFace },
 	panel: { paddingLeft: LOG_ITEM_LINES_INSET, paddingBottom: 18 },
 	share: {
 		height: 44,

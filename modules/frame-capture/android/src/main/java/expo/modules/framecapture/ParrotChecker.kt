@@ -137,11 +137,11 @@ object ParrotChecker {
     worker.execute {
       check?.promise?.resolve(null)
 
-      val requested = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, promise)
+      val newCheck = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, promise)
 
-      check = requested
+      check = newCheck
 
-      worker.schedule(Runnable { finishLate(requested) }, mergeMs + FRAME_WAIT_MS, TimeUnit.MILLISECONDS)
+      worker.schedule(Runnable { finishLate(newCheck) }, mergeMs + FRAME_WAIT_MS, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -171,10 +171,10 @@ object ParrotChecker {
       try {
         addFrame(i420, rotation)
       } catch (e: Exception) {
-        val failed = check
+        val failedCheck = check
 
         check = null
-        failed?.promise?.reject("ERR_PARROT_CHECK", e.message, e)
+        failedCheck?.promise?.reject("ERR_PARROT_CHECK", e.message, e)
       } finally {
         i420.release()
         frameBusy.set(false)
@@ -212,19 +212,19 @@ object ParrotChecker {
   }
 
   /** 시간이 초과된 확인을 종료하는 함수 */
-  private fun finishLate(requested: ParrotCheck) {
-    if (check !== requested) {
+  private fun finishLate(lateCheck: ParrotCheck) {
+    if (check !== lateCheck) {
       return
     }
 
-    if (requested.frameCount == 0) {
+    if (lateCheck.frameCount == 0) {
       check = null
-      requested.promise.resolve(null)
+      lateCheck.promise.resolve(null)
 
       return
     }
 
-    finish(requested)
+    finish(lateCheck)
   }
 
   /** 확인 결과 반환 함수 */

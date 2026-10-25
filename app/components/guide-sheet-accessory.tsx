@@ -39,7 +39,7 @@ interface Props {
 const GuideSheetAccessory = ({ stepIndex, stepCount, buddyRef, buddyStyle }: Props) => {
 	const { t } = useTranslation();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const mascotY = useSharedValue(0);
 
@@ -47,14 +47,14 @@ const GuideSheetAccessory = ({ stepIndex, stepCount, buddyRef, buddyStyle }: Pro
 
 	/** 단계 변경 시 버디가 한 번 점프 */
 	useEffect(() => {
-		if (reducedMotion) {
+		if (motionReduced) {
 			return;
 		}
 
 		mascotY.set(
 			withSequence(withTiming(-HOP_HEIGHT, { duration: HOP_UP_MS }), withTiming(0, { duration: HOP_DOWN_MS })),
 		);
-	}, [mascotY, reducedMotion, stepIndex]);
+	}, [mascotY, motionReduced, stepIndex]);
 
 	return (
 		<View style={styles.container}>

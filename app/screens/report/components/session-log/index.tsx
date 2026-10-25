@@ -27,7 +27,7 @@ interface Props {
 	scrollY: SharedValue<number>;
 	viewportHeight: SharedValue<number>;
 	logBottom: SharedValue<number>;
-	onToggleItem: (item: LogItem) => void;
+	onToggleItem: (logItem: LogItem) => void;
 }
 
 /**
@@ -76,19 +76,21 @@ const SessionLog = ({
 				<Fragment key={day.date}>
 					<SessionLogDayBreak
 						date={day.date}
-						index={dayIndex}
+						dayIndex={dayIndex}
 						scrollY={scrollY}
 						viewportHeight={viewportHeight}
 						logBottom={logBottom}
 						dayBreakLayouts={dayBreakLayouts}
 					/>
 
-					{day.logRows.map((row, rowIndexInDay) => (
+					{day.logRows.map((logRow, rowIndexInDay) => (
 						<SessionLogRow
-							key={row.start}
-							row={row}
-							firstInDay={rowIndexInDay === 0}
-							openItemId={row.logItems.some((item) => item.id === openItemId) ? openItemId : null}
+							key={logRow.start}
+							logRow={logRow}
+							isFirstInDay={rowIndexInDay === 0}
+							openItemId={
+								logRow.logItems.some((logItem) => logItem.id === openItemId) ? openItemId : null
+							}
 							sessionId={session.id}
 							judgmentPending={judgmentPending}
 							wordName={wordName}

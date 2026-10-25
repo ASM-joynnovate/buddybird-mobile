@@ -11,23 +11,23 @@ import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { Copy } from '@/components/ui/copy';
 
 interface Props {
-	item: LogItem;
-	itemName: string;
+	logItem: LogItem;
+	itemLabel: string;
 	mediaType: 'video' | 'image';
 	sessionId: string;
 }
 
 /**
  * 펫캠 파일 컴포넌트
- * @param item 기록
- * @param itemName 기록 이름
+ * @param logItem 기록
+ * @param itemLabel 기록 이름
  * @param mediaType 파일 종류
  * @param sessionId 세션 ID
  */
-const SessionLogMediaPanel = ({ item, itemName, mediaType, sessionId }: Props) => {
+const SessionLogMediaPanel = ({ logItem, itemLabel, mediaType, sessionId }: Props) => {
 	const { t } = useTranslation();
 
-	const uploadedFile = item.file?.status === 'uploaded' ? item.file : null;
+	const uploadedFile = logItem.file?.status === 'uploaded' ? logItem.file : null;
 
 	return (
 		<View style={styles.panel}>
@@ -38,7 +38,7 @@ const SessionLogMediaPanel = ({ item, itemName, mediaType, sessionId }: Props) =
 					) : (
 						<Image
 							accessibilityIgnoresInvertColors
-							accessibilityLabel={itemName}
+							accessibilityLabel={itemLabel}
 							source={{ uri: uploadedFile.url }}
 							resizeMode="cover"
 							style={StyleSheet.absoluteFill}
@@ -48,14 +48,14 @@ const SessionLogMediaPanel = ({ item, itemName, mediaType, sessionId }: Props) =
 			) : (
 				<View style={[styles.media, styles.emptyMedia]}>
 					<Copy style={styles.status}>
-						{item.file?.status === 'rejected'
+						{logItem.file?.status === 'rejected'
 							? t('report.detail.fileRejected')
 							: t('report.detail.filePending')}
 					</Copy>
 				</View>
 			)}
 
-			<SessionLogShareButton item={item} itemName={itemName} sessionId={sessionId} />
+			<SessionLogShareButton logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
 		</View>
 	);
 };

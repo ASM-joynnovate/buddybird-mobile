@@ -118,7 +118,7 @@ export interface PetcamSignaling {
 
 export interface PetcamPeer {
 	connection: RTCPeerConnection;
-	setRemote: (description: PetcamDescription) => Promise<void>;
+	setRemoteDescription: (description: PetcamDescription) => Promise<void>;
 	addCandidate: (candidate: PetcamCandidate) => void;
 	close: () => void;
 }

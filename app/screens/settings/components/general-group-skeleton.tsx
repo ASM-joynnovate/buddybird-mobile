@@ -17,12 +17,12 @@ import { Copy } from '@/components/ui/copy';
 import { ItemGroup } from '@/components/ui/item/group';
 import { itemStyles } from '@/components/ui/item/styles';
 
-const ROWS = [
-	{ icon: MoonIcon, label: 'session.sleep.label', valueWidth: 92 },
-	{ icon: BellIcon, label: 'settings.notifications.title', valueWidth: 0 },
-	{ icon: MessageSquareTextIcon, label: 'settings.general.language', valueWidth: 48 },
-	{ icon: EarthIcon, label: 'settings.general.country', valueWidth: 64 },
-	{ icon: SmartphoneIcon, label: 'settings.general.devices', valueWidth: 0 },
+const GENERAL_ITEMS = [
+	{ icon: MoonIcon, labelKey: 'session.sleep.label', valueWidth: 92 },
+	{ icon: BellIcon, labelKey: 'settings.notifications.title', valueWidth: 0 },
+	{ icon: MessageSquareTextIcon, labelKey: 'settings.general.language', valueWidth: 48 },
+	{ icon: EarthIcon, labelKey: 'settings.general.country', valueWidth: 64 },
+	{ icon: SmartphoneIcon, labelKey: 'settings.general.devices', valueWidth: 0 },
 ] as const;
 
 /** 일반 설정 스켈레톤 컴포넌트 */
@@ -31,11 +31,11 @@ const GeneralGroupSkeleton = () => {
 
 	return (
 		<ItemGroup>
-			{ROWS.map(({ icon: Icon, label, valueWidth }, index) => (
-				<View key={label} style={[itemStyles.pressRow, index > 0 && itemStyles.divider]}>
+			{GENERAL_ITEMS.map(({ icon: Icon, labelKey, valueWidth }, index) => (
+				<View key={labelKey} style={[itemStyles.pressRow, index > 0 && itemStyles.divider]}>
 					<Icon size={22} color={colors.muted} />
 					<View style={itemStyles.textContainer}>
-						<Copy style={itemStyles.label}>{t(label)}</Copy>
+						<Copy style={itemStyles.label}>{t(labelKey)}</Copy>
 					</View>
 					{valueWidth > 0 && <View style={[styles.valueBlock, { width: valueWidth }]} />}
 					<ChevronRightIcon size={18} color={colors.subtle} />

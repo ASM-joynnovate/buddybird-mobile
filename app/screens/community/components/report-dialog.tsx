@@ -109,7 +109,10 @@ const ReportDialog = ({ reportTarget }: Props) => {
 			}
 		>
 			<RadioList
-				options={abuseReportReasons.map((value) => ({ value, label: t(`community.report.reasons.${value}`) }))}
+				options={abuseReportReasons.map((abuseReason) => ({
+					value: abuseReason,
+					label: t(`community.report.reasons.${abuseReason}`),
+				}))}
 				selectedValue={reason}
 				onSelect={setReason}
 			/>

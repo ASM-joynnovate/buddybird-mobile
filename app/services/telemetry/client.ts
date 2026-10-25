@@ -188,15 +188,15 @@ export const setTelemetryUserId = (nextUserId: string | null) => {
 
 /** 사용자 속성 설정 함수 */
 export const setUserProperties = (nextUserProperties: UserProperties) => {
-	const values = Object.fromEntries(
+	const propertyStrings = Object.fromEntries(
 		Object.entries(nextUserProperties).map(([key, value]) => [key, value == null ? null : String(value)]),
 	);
 
-	if (Object.entries(values).every(([key, value]) => userProperties[key] === value)) {
+	if (Object.entries(propertyStrings).every(([key, value]) => userProperties[key] === value)) {
 		return;
 	}
 
-	userProperties = { ...userProperties, ...values };
+	userProperties = { ...userProperties, ...propertyStrings };
 
 	if (telemetryAllowed === true) {
 		void sendTelemetrySafely(sendUserProperties);
@@ -248,12 +248,12 @@ export const trackScreen = (name: string, screenClass = name) => {
 };
 
 /** 오류 보고 함수 */
-export const reportError = (error: unknown, scope: string, fatal?: boolean) => {
+export const reportError = (error: unknown, scope: string, isFatal?: boolean) => {
 	const reportedError = error instanceof Error ? error : new Error('UnknownError');
 	const attributes = {
 		scope,
 		...(currentScreen ? { screen_name: currentScreen } : {}),
-		...(fatal === undefined ? {} : { is_fatal: String(fatal) }),
+		...(isFatal === undefined ? {} : { is_fatal: String(isFatal) }),
 	};
 
 	void sendTelemetrySafely(() =>

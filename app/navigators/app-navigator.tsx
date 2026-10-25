@@ -71,20 +71,20 @@ const parrotEditorOptions = ({ route }: ParrotEditorOptionsParams): NativeStackN
 const linkPrefix = `${env.appScheme}://`;
 
 /** navigation 초기 상태 생성 함수 */
-const initialStateOf = (route: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: string) => {
-	if (route === 'Main') {
+const initialStateOf = (entryRoute: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: string) => {
+	if (entryRoute === 'Main') {
 		return undefined;
 	}
 
-	if (route === 'Login') {
+	if (entryRoute === 'Login') {
 		return { index: 0, routes: [{ name: 'Login', params: { source: 'onboarding' } }] };
 	}
 
-	if (route === 'Consent') {
+	if (entryRoute === 'Consent') {
 		return { index: 0, routes: [{ name: 'Consent' }] };
 	}
 
-	if (route === 'ParrotEditor') {
+	if (entryRoute === 'ParrotEditor') {
 		return { index: 0, routes: [{ name: 'ParrotEditor', params: { source: 'onboarding' } }] };
 	}
 

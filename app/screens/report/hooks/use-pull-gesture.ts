@@ -20,8 +20,8 @@ interface Options {
 	scrollY: SharedValue<number>;
 	viewportHeight: SharedValue<number>;
 	contentHeight: SharedValue<number>;
-	track: (distance: number) => void;
-	release: () => void;
+	onPull: (distance: number) => void;
+	onRelease: () => void;
 }
 
 /** 당긴 거리에 저항을 적용하는 함수 */
@@ -32,7 +32,7 @@ const resist = (drag: number) => {
 };
 
 /** 새로고침이 시작되기 전 상태인지 확인하는 함수 */
-export const isPulling = (status: PullStatus) => {
+export const isBeforeRefresh = (status: PullStatus) => {
 	'worklet';
 
 	return status === 'idle' || status === 'pulling' || status === 'armed';
@@ -46,8 +46,8 @@ export const isPulling = (status: PullStatus) => {
  * @param scrollY 목록 스크롤 위치
  * @param viewportHeight 목록 높이
  * @param contentHeight 목록 콘텐츠 높이
- * @param track 당긴 거리를 반영할 함수
- * @param release 손을 뗄 때 실행할 함수
+ * @param onPull 당긴 거리를 반영할 함수
+ * @param onRelease 손을 뗄 때 실행할 함수
  */
 const usePullGesture = ({
 	status,
@@ -56,22 +56,22 @@ const usePullGesture = ({
 	scrollY,
 	viewportHeight,
 	contentHeight,
-	track,
-	release,
+	onPull,
+	onRelease,
 }: Options) => {
 	return useMemo(() => {
-		const native = Gesture.Native();
+		const nativeGesture = Gesture.Native();
 
 		// iOS는 기본 바운스로 당긴 거리 계산
 		if (isIOS) {
-			return native;
+			return nativeGesture;
 		}
 
-		const pan = Gesture.Pan()
+		const panGesture = Gesture.Pan()
 			.activeOffsetY([-PAN_ACTIVE_OFFSET, PAN_ACTIVE_OFFSET])
-			.simultaneousWithExternalGesture(native)
+			.simultaneousWithExternalGesture(nativeGesture)
 			.onUpdate((event) => {
-				if (!isPulling(status.get())) {
+				if (!isBeforeRefresh(status.get())) {
 					return;
 				}
 
@@ -95,7 +95,7 @@ const usePullGesture = ({
 
 				const drag = distanceEdge.get() === 'top' ? event.translationY - start : start - event.translationY;
 
-				track(resist(drag));
+				onPull(resist(drag));
 
 				// 반대로 당기면 시작점 다시 계산
 				if (drag < 0) {
@@ -103,11 +103,11 @@ const usePullGesture = ({
 				}
 			})
 			.onEnd(() => {
-				release();
+				onRelease();
 			});
 
-		return Gesture.Simultaneous(pan, native);
-	}, [contentHeight, distanceEdge, panStart, release, scrollY, status, track, viewportHeight]);
+		return Gesture.Simultaneous(panGesture, nativeGesture);
+	}, [contentHeight, distanceEdge, panStart, onRelease, scrollY, status, onPull, viewportHeight]);
 };
 
 export default usePullGesture;

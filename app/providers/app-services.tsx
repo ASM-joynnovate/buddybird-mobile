@@ -14,7 +14,7 @@ interface Props {
  * 앱 서비스 시작 provider
  * @param children 감싸는 내용
  */
-const SystemProvider = ({ children }: Props) => {
+const AppServicesProvider = ({ children }: Props) => {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	/** 앱 서비스 시작 */
@@ -28,4 +28,4 @@ const SystemProvider = ({ children }: Props) => {
 	return <>{children}</>;
 };
 
-export default SystemProvider;
+export default AppServicesProvider;

@@ -84,7 +84,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 
 	return (
 		<ItemPicker
-			item={{ label: t('parrot.birthdate'), value: birthdateText }}
+			itemProps={{ label: t('parrot.birthdate'), value: birthdateText }}
 			sheet={{ title: t('parrot.birthdateQuestion') }}
 		>
 			{(close) => (
@@ -98,7 +98,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 					</View>
 					<ItemGroup>
 						<ItemCheckbox
-							firstInGroup
+							isFirstInGroup
 							label={t('parrot.birthdateUnknown')}
 							checked={birthdateUnknown}
 							onToggle={() => onChange(birthdateUnknown ? localDate(date) : null)}

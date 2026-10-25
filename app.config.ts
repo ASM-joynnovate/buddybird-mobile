@@ -6,10 +6,10 @@ const { version } = JSON.parse(readFileSync(path.join(__dirname, 'package.json')
 	version: string;
 };
 
-const production = process.env.APP_VARIANT === 'production';
-const variant = production ? 'prod' : 'dev';
-const id = production ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
-const appNameSuffix = production ? '' : ' (DEV)';
+const isProduction = process.env.APP_VARIANT === 'production';
+const variant = isProduction ? 'prod' : 'dev';
+const appId = isProduction ? 'com.joynnovate.buddybird' : 'com.joynnovate.buddybird.dev';
+const appNameSuffix = isProduction ? '' : ' (DEV)';
 
 /** 언어별 네이티브 문구 생성 함수 */
 const nativeLocale = (file: string) => {
@@ -41,7 +41,7 @@ const config: ExpoConfig = {
 	owner: 'joynnovate0410',
 	version,
 	orientation: 'default',
-	scheme: production ? 'buddybird' : 'buddybird-dev',
+	scheme: isProduction ? 'buddybird' : 'buddybird-dev',
 	userInterfaceStyle: 'automatic',
 	locales: {
 		ko: nativeLocale('app/i18n/native/ko.json'),
@@ -52,13 +52,13 @@ const config: ExpoConfig = {
 	},
 	icon: './assets/images/icon.png',
 	ios: {
-		bundleIdentifier: id,
+		bundleIdentifier: appId,
 		appleTeamId: '73TZC3K2JG',
 		usesAppleSignIn: true,
 		supportsTablet: true,
 		googleServicesFile:
 			process.env.GOOGLE_SERVICES_INFO_PLIST ?? `./config/${variant}/firebase/GoogleService-Info.plist`,
-		entitlements: { 'aps-environment': production ? 'production' : 'development' },
+		entitlements: { 'aps-environment': isProduction ? 'production' : 'development' },
 		infoPlist: {
 			CFBundleName: 'BuddyBird',
 			CFBundleAllowMixedLocalizations: true,
@@ -70,7 +70,7 @@ const config: ExpoConfig = {
 		},
 	},
 	android: {
-		package: id,
+		package: appId,
 		googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? `./config/${variant}/firebase/google-services.json`,
 		adaptiveIcon: {
 			foregroundImage: './assets/images/android-icon-foreground.png',
@@ -170,7 +170,7 @@ const config: ExpoConfig = {
 		'@bacons/apple-targets',
 		[
 			'@hot-updater/expo',
-			{ channel: production ? 'production' : 'development', publicKeyPath: `./keys/${variant}/public-key.pem` },
+			{ channel: isProduction ? 'production' : 'development', publicKeyPath: `./keys/${variant}/public-key.pem` },
 		],
 	],
 	extra: {
@@ -180,7 +180,7 @@ const config: ExpoConfig = {
 		supabasePublishableKey: String(process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '').trim(),
 		clarityProjectId: String(process.env.EXPO_PUBLIC_CLARITY_PROJECT_ID ?? '').trim() || 'wre3hgbj48',
 		hotUpdaterApiKey: String(process.env.EXPO_PUBLIC_HOT_UPDATER_API_KEY ?? '').trim(),
-		production,
+		production: isProduction,
 	},
 };
 

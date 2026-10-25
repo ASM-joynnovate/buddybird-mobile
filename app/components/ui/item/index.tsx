@@ -23,7 +23,7 @@ export const Item = ({ value, onPress, disabled, ...props }: Props) => {
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			style={!props.firstInGroup && itemStyles.divider}
+			style={!props.isFirstInGroup && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
 			<ItemLabel {...props} />

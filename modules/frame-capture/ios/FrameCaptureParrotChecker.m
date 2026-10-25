@@ -100,10 +100,10 @@ static const float kMaxBrightness = 255;
 - (CVPixelBufferRef)createPixelBufferWithGain:(float)gain {
   CVPixelBufferRef output = NULL;
   NSDictionary *attributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-  CVReturn created = CVPixelBufferCreate(kCFAllocatorDefault, self.width, self.height, self.pixelFormat,
+  CVReturn createStatus = CVPixelBufferCreate(kCFAllocatorDefault, self.width, self.height, self.pixelFormat,
                                          (__bridge CFDictionaryRef)attributes, &output);
 
-  if (created != kCVReturnSuccess) {
+  if (createStatus != kCVReturnSuccess) {
     return NULL;
   }
 
@@ -368,17 +368,17 @@ static atomic_bool sFrameBusy = false;
   }
 
   CIImage *image = [[CIImage imageWithCVPixelBuffer:pixelBuffer] imageByApplyingCGOrientation:orientation];
-  CGImageRef rendered = [sContext createCGImage:image fromRect:image.extent];
+  CGImageRef renderedImage = [sContext createCGImage:image fromRect:image.extent];
 
   CVPixelBufferRelease(pixelBuffer);
 
-  if (rendered == NULL) {
+  if (renderedImage == NULL) {
     return nil;
   }
 
-  UIImage *photo = [UIImage imageWithCGImage:rendered];
+  UIImage *photo = [UIImage imageWithCGImage:renderedImage];
 
-  CGImageRelease(rendered);
+  CGImageRelease(renderedImage);
 
   return photo;
 }

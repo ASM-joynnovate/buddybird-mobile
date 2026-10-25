@@ -16,11 +16,11 @@ interface Props {
 	value?: string;
 	highlight?: string;
 	selected: boolean;
-	firstInGroup?: boolean;
+	isFirstInGroup?: boolean;
 	onPress: () => void;
 }
 
-export const ItemRadio = ({ label, leading, value, highlight, selected, firstInGroup, onPress }: Props) => {
+export const ItemRadio = ({ label, leading, value, highlight, selected, isFirstInGroup, onPress }: Props) => {
 	const highlightStart = highlight ? label.toLowerCase().indexOf(highlight.toLowerCase()) : -1;
 	const highlightEnd = highlightStart + (highlight?.length ?? 0);
 
@@ -33,7 +33,7 @@ export const ItemRadio = ({ label, leading, value, highlight, selected, firstInG
 			variant="plain"
 			depth="none"
 			cornerRadius="none"
-			style={!firstInGroup && itemStyles.divider}
+			style={!isFirstInGroup && itemStyles.divider}
 			contentStyle={itemStyles.pressRow}
 		>
 			{leading}

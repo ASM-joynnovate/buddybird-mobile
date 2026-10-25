@@ -10,7 +10,7 @@ import { reportError } from '@/services/telemetry/client';
 
 const LOW_RAM_FEATURE = 'android.hardware.ram.low';
 
-const lowMemoryDevice = Device.totalMemory !== null && Device.totalMemory < LOW_PERFORMANCE_MEMORY_BYTES;
+const isLowMemoryDevice = Device.totalMemory !== null && Device.totalMemory < LOW_PERFORMANCE_MEMORY_BYTES;
 
 let lowRamFeatureCheck: Promise<boolean> | null = null;
 
@@ -30,16 +30,16 @@ const checkLowRamFeature = () => {
 
 /** 성능이 낮은 상태인지 확인하는 Hook */
 const useIsLowPerformance = () => {
-	const lowPowerMode = useLowPowerMode();
+	const isLowPowerMode = useLowPowerMode();
 
-	const [lowRamDevice, setLowRamDevice] = useState(false);
+	const [isLowRamDevice, setIsLowRamDevice] = useState(false);
 
 	/** Android 저메모리 기기 여부 조회 */
 	useEffect(() => {
-		void checkLowRamFeature().then(setLowRamDevice);
+		void checkLowRamFeature().then(setIsLowRamDevice);
 	}, []);
 
-	return lowMemoryDevice || lowRamDevice || lowPowerMode;
+	return isLowMemoryDevice || isLowRamDevice || isLowPowerMode;
 };
 
 export default useIsLowPerformance;

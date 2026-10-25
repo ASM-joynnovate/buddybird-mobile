@@ -16,7 +16,7 @@ import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
 
 const MIN_BAR_PERCENT = 8;
-const MINUTES_HIDDEN_FROM_HOURS = 10 * HOUR;
+const MINUTES_HIDDEN_FROM_MS = 10 * HOUR;
 
 interface Props {
 	rank: number;
@@ -25,7 +25,7 @@ interface Props {
 	nickname: string | null;
 	photoUrl: string | null;
 	country: string | null;
-	userIsMe: boolean;
+	isMe: boolean;
 }
 
 /**
@@ -36,30 +36,27 @@ interface Props {
  * @param nickname 닉네임
  * @param photoUrl 사용자 사진 주소
  * @param country 국가 코드
- * @param userIsMe 내 순위인지 여부
+ * @param isMe 내 순위인지 여부
  */
-const LeaderboardLane = ({ rank, score, topScore, nickname, photoUrl, country, userIsMe }: Props) => {
+const LeaderboardLane = ({ rank, score, topScore, nickname, photoUrl, country, isMe }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const barPercent = Math.max(MIN_BAR_PERCENT, topScore > 0 ? (score / topScore) * PERCENT : 0);
-	const scoreText = formatDuration(
-		score >= MINUTES_HIDDEN_FROM_HOURS ? Math.floor(score / HOUR) * HOUR : score,
-		locale,
-	);
+	const scoreText = formatDuration(score >= MINUTES_HIDDEN_FROM_MS ? Math.floor(score / HOUR) * HOUR : score, locale);
 
 	return (
 		<View accessible accessibilityLabel={joinLabel(String(rank), nickname, scoreText)}>
 			<View style={styles.topRow}>
-				<Copy style={[styles.rank, userIsMe && styles.rankMine]}>{rank}</Copy>
+				<Copy style={[styles.rank, isMe && styles.rankMine]}>{rank}</Copy>
 				{rank === 1 && <CrownIcon size={16} color={colors.orange} style={styles.crown} />}
 
 				<View style={styles.nameRow}>
 					<Copy numberOfLines={1} style={styles.nickname}>
 						{nickname}
 					</Copy>
-					{userIsMe ? (
+					{isMe ? (
 						<Copy style={styles.me}>{t('community.me')}</Copy>
 					) : (
 						<Flag country={country} size="small" />
@@ -71,7 +68,7 @@ const LeaderboardLane = ({ rank, score, topScore, nickname, photoUrl, country, u
 
 			{/*학습 시간 막대*/}
 			<View style={styles.track}>
-				<View style={[styles.fill, userIsMe && styles.fillMine, { width: `${barPercent}%` }]} />
+				<View style={[styles.fill, isMe && styles.fillMine, { width: `${barPercent}%` }]} />
 				<View style={[styles.avatarContainer, { left: `${barPercent}%` }]}>
 					<Avatar uri={photoUrl} icon={UserRoundIcon} size="xsmall" />
 				</View>

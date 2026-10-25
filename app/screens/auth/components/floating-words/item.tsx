@@ -43,54 +43,54 @@ interface Props {
  * @param areaWidth 단어 애니메이션 영역의 폭
  */
 const FloatingWordsItem = ({ word, path, delay, riseHeight, areaWidth }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const progress = useSharedValue(0);
 
 	const [wordWidth, setWordWidth] = useState(0);
 
 	const measured = wordWidth > 0;
-	const range = Math.max(areaWidth - wordWidth, 0);
+	const travelWidth = Math.max(areaWidth - wordWidth, 0);
 	const stillStyle = path.still && {
 		opacity: measured ? 1 : 0,
 		transform: [
-			{ translateX: path.still.x * range },
+			{ translateX: path.still.x * travelWidth },
 			{ translateY: -path.still.rise * riseHeight },
 			{ rotate: `${path.tilt}deg` },
 		],
 	};
 
 	const riseStyle = useAnimatedStyle(() => {
-		const value = progress.get();
+		const currentProgress = progress.get();
 
 		return {
-			opacity: measured ? interpolate(value, [0, 0.02, 0.7, 1], [0, 1, 1, 0], Extrapolation.CLAMP) : 0,
+			opacity: measured ? interpolate(currentProgress, [0, 0.02, 0.7, 1], [0, 1, 1, 0], Extrapolation.CLAMP) : 0,
 			transform: [
 				{
 					translateX:
 						interpolate(
-							value,
+							currentProgress,
 							[0, 0.18, 1],
 							[path.start, path.start + (path.end - path.start) * 0.3, path.end],
-						) * range,
+						) * travelWidth,
 				},
-				{ translateY: interpolate(value, [0, 0.18, 1], [0, -0.35, -1]) * riseHeight },
-				{ rotate: `${interpolate(value, [0, 0.18, 1], [0, path.tilt, -path.tilt])}deg` },
-				{ scale: interpolate(value, [0, 0.18, 1], [0.9, 1, 0.96]) },
+				{ translateY: interpolate(currentProgress, [0, 0.18, 1], [0, -0.35, -1]) * riseHeight },
+				{ rotate: `${interpolate(currentProgress, [0, 0.18, 1], [0, path.tilt, -path.tilt])}deg` },
+				{ scale: interpolate(currentProgress, [0, 0.18, 1], [0.9, 1, 0.96]) },
 			],
 		};
 	});
 
 	/** 동작 줄이기 설정이 꺼져 있으면 애니메이션 반복 */
 	useEffect(() => {
-		if (reducedMotion) {
+		if (motionReduced) {
 			return;
 		}
 
 		progress.set(withDelay(delay, withRepeat(withTiming(1, { duration: RISE_MS, easing: riseEasing }), -1, false)));
 
 		return () => cancelAnimation(progress);
-	}, [delay, progress, reducedMotion]);
+	}, [delay, progress, motionReduced]);
 
 	const handleLayout = (event: LayoutChangeEvent) => {
 		setWordWidth(event.nativeEvent.layout.width);
@@ -101,7 +101,7 @@ const FloatingWordsItem = ({ word, path, delay, riseHeight, areaWidth }: Props) 
 			renderToHardwareTextureAndroid
 			shouldRasterizeIOS
 			onLayout={handleLayout}
-			style={[styles.bubble, reducedMotion && stillStyle ? stillStyle : riseStyle]}
+			style={[styles.bubble, motionReduced && stillStyle ? stillStyle : riseStyle]}
 		>
 			<Copy style={styles.word}>{word}</Copy>
 		</Animated.View>

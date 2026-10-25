@@ -17,7 +17,7 @@ interface Props {
 	species: string;
 	onChange: (value: string) => void;
 	disabled: boolean;
-	firstInGroup?: boolean;
+	isFirstInGroup?: boolean;
 }
 
 /**
@@ -25,9 +25,9 @@ interface Props {
  * @param species 선택한 종 ID
  * @param onChange 종 선택 시 실행할 함수
  * @param disabled 비활성화 여부
- * @param firstInGroup 첫 항목 여부
+ * @param isFirstInGroup 첫 항목 여부
  */
-const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => {
+const SpeciesPicker = ({ species, onChange, disabled, isFirstInGroup }: Props) => {
 	const { t } = useTranslation();
 
 	const listRef = useRef<BottomSheetFlatListMethods>(null);
@@ -43,7 +43,7 @@ const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => 
 
 	/** 선택한 종이 목록 가운데에 오도록 스크롤하는 함수 */
 	const scrollToSelected = () => {
-		const index = speciesItems.findIndex((item) => item.id === species);
+		const index = speciesItems.findIndex((speciesItem) => speciesItem.id === species);
 
 		if (index < 0) {
 			return;
@@ -53,14 +53,14 @@ const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => 
 	};
 
 	/** bottom sheet 표시 후 선택한 종으로 스크롤 */
-	const handleSheetOpened = () => {
+	const handleScrollToSelected = () => {
 		scrollRetriesRef.current = 0;
 
 		setTimeout(scrollToSelected, SCROLL_DELAY_MS);
 	};
 
 	/** 항목이 아직 렌더링되지 않았으면 다시 스크롤 */
-	const handleScrollToIndexFailed = () => {
+	const handleRetryScroll = () => {
 		if (scrollRetriesRef.current < MAX_SCROLL_RETRIES) {
 			scrollRetriesRef.current += 1;
 
@@ -76,8 +76,8 @@ const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => 
 
 	return (
 		<ItemPicker
-			item={{
-				firstInGroup,
+			itemProps={{
+				isFirstInGroup,
 				label: t('parrot.species'),
 				value: isSpeciesId(species) ? t(`parrot.speciesNames.${species}`) : t('parrot.choose'),
 				disabled,
@@ -85,7 +85,7 @@ const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => 
 			sheet={{
 				title: t('parrot.speciesQuestion'),
 				listLayout: true,
-				onOpened: handleSheetOpened,
+				onOpened: handleScrollToSelected,
 			}}
 		>
 			{(close) => (
@@ -94,7 +94,7 @@ const SpeciesPicker = ({ species, onChange, disabled, firstInGroup }: Props) => 
 					species={species}
 					listRef={listRef}
 					onSelect={(speciesId) => handleSelectSpecies(speciesId, close)}
-					onScrollToIndexFailed={handleScrollToIndexFailed}
+					onScrollToIndexFailed={handleRetryScroll}
 				/>
 			)}
 		</ItemPicker>

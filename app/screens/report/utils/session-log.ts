@@ -24,40 +24,40 @@ export interface LogItem {
 }
 
 export interface LogRow extends TimeSpan {
-	duringSleep: boolean;
+	isDuringSleep: boolean;
 	logItems: LogItem[];
 }
 
 /** 소리의 녹음 시각을 비교하는 함수 */
-const _compareCapturedAt = (a: SessionSound, b: SessionSound) => {
+const compareCapturedAt = (a: SessionSound, b: SessionSound) => {
 	return dayjs(a.captured_at).diff(b.captured_at);
 };
 
 /** 다음 날 자정 시각을 반환하는 함수 */
-const _nextMidnight = (time: number) => {
+const nextMidnight = (time: number) => {
 	return dayjs(time).add(1, 'day').startOf('day').valueOf();
 };
 
 /** 구간을 자정마다 나누는 함수 */
-const _splitAtMidnight = ({ start, end }: TimeSpan) => {
+const splitAtMidnight = ({ start, end }: TimeSpan) => {
 	const spans: TimeSpan[] = [];
 
-	for (let spanStart = start; spanStart < end; spanStart = _nextMidnight(spanStart)) {
-		spans.push({ start: spanStart, end: Math.min(_nextMidnight(spanStart), end) });
+	for (let spanStart = start; spanStart < end; spanStart = nextMidnight(spanStart)) {
+		spans.push({ start: spanStart, end: Math.min(nextMidnight(spanStart), end) });
 	}
 
 	return spans;
 };
 
 /** 구간을 한 시간마다 나누는 함수 */
-const _hourRows = ({ start, end }: TimeSpan) => {
+const hourRows = ({ start, end }: TimeSpan) => {
 	const logRows: LogRow[] = [];
 
 	for (let hour = dayjs(start).startOf('hour').valueOf(); hour < end; hour += HOUR) {
 		logRows.push({
 			start: Math.max(hour, start),
 			end: Math.min(hour + HOUR, end),
-			duringSleep: false,
+			isDuringSleep: false,
 			logItems: [],
 		});
 	}
@@ -121,7 +121,7 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 		kind: 'distressCall',
 		startedAt: event.occurred_at,
 		endedAt: event.ended_at,
-		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(_compareCapturedAt),
+		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(compareCapturedAt),
 		score: null,
 		durationMs: event.ended_at ? dayjs(event.ended_at).diff(event.occurred_at) : null,
 		file: null,
@@ -147,36 +147,39 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 };
 
 /** 날짜별 행에 기록을 담는 함수 */
-export const getLogDays = (session: TimeSpan, sleepSpans: TimeSpan[], logItems: LogItem[]) => {
-	const awakeSpans = [...sleepSpans, { start: session.end, end: session.end }].map((sleepSpan, index) => ({
-		start: index === 0 ? session.start : sleepSpans[index - 1].end,
+export const getLogDays = (sessionSpan: TimeSpan, sleepSpans: TimeSpan[], logItems: LogItem[]) => {
+	const awakeSpans = [...sleepSpans, { start: sessionSpan.end, end: sessionSpan.end }].map((sleepSpan, index) => ({
+		start: index === 0 ? sessionSpan.start : sleepSpans[index - 1].end,
 		end: sleepSpan.start,
 	}));
 	const logRows = awakeSpans.flatMap((awakeSpan, index) => [
-		..._splitAtMidnight(awakeSpan).flatMap(_hourRows),
+		...splitAtMidnight(awakeSpan).flatMap(hourRows),
 		...(index < sleepSpans.length
-			? _splitAtMidnight(sleepSpans[index]).map((sleepSpan) => ({
+			? splitAtMidnight(sleepSpans[index]).map((sleepSpan) => ({
 					...sleepSpan,
-					duringSleep: true,
+					isDuringSleep: true,
 					logItems: [],
 				}))
 			: []),
 	]);
 
 	// 세션 밖 시각의 소리는 가장 가까운 행에 둠
-	const rowsWithItems = logRows.map((row) => ({
-		...row,
-		logItems: logItems.filter((item) => {
-			const at = Math.min(Math.max(dayjs(item.startedAt).valueOf(), session.start), session.end - 1);
+	const logRowsWithItems = logRows.map((logRow) => ({
+		...logRow,
+		logItems: logItems.filter((logItem) => {
+			const itemTime = Math.min(
+				Math.max(dayjs(logItem.startedAt).valueOf(), sessionSpan.start),
+				sessionSpan.end - 1,
+			);
 
-			return at >= row.start && at < row.end;
+			return itemTime >= logRow.start && itemTime < logRow.end;
 		}),
 	}));
-	const dates = [...new Set(rowsWithItems.map((row) => dayjs(row.start).startOf('day').valueOf()))];
+	const dates = [...new Set(logRowsWithItems.map((logRow) => dayjs(logRow.start).startOf('day').valueOf()))];
 
 	return dates.map((date) => ({
 		date,
-		logRows: rowsWithItems.filter((row) => dayjs(row.start).startOf('day').valueOf() === date),
+		logRows: logRowsWithItems.filter((logRow) => dayjs(logRow.start).startOf('day').valueOf() === date),
 	}));
 };
 

@@ -20,13 +20,13 @@ interface Props {
 }
 
 export const Flag = ({ country, size = 'medium' }: Props) => {
-	const key = `./${country?.toLowerCase()}.svg`;
+	const flagKey = `./${country?.toLowerCase()}.svg`;
 
-	if (!flagKeys.has(key)) {
+	if (!flagKeys.has(flagKey)) {
 		return null;
 	}
 
-	const FlagImage = flagImages<FlagModule>(key).default;
+	const FlagImage = flagImages<FlagModule>(flagKey).default;
 
 	return <FlagImage width={sizes[size].width} height={sizes[size].height} accessible={false} />;
 };

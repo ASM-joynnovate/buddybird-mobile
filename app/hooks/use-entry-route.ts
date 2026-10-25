@@ -23,10 +23,10 @@ const useEntryRoute = (): EntryRouteResult => {
 	const onboardingCompleted = useDeviceSettingsStore((state) => state.onboardingCompleted);
 	const uploadStatus = useDeviceSettingsStore((state) => state.legacyMigration.uploadStatus);
 
-	const needsLoginScreen = isAnonymous && !loginScreenSeen;
+	const shouldShowLoginScreen = isAnonymous && !loginScreenSeen;
 	const legacyUploadUnfinished = uploadStatus !== 'finished';
 
-	if (needsLoginScreen) {
+	if (shouldShowLoginScreen) {
 		return { entryRoute: 'Login' };
 	}
 

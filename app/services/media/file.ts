@@ -7,11 +7,11 @@ export const resolveFileUri = (uri: string) => {
 	/** 문서 폴더 기준 주소를 반환하는 함수 */
 	const resolveDocumentPath = (directory: string, relativePath: string) => {
 		const decodedPath = decodeURIComponent(relativePath);
-		const containsTraversal = decodedPath.split('/').some((part) => part === '..' || part === '.');
+		const isTraversalPath = decodedPath.split('/').some((part) => part === '..' || part === '.');
 		const isInvalidPath =
 			!decodedPath ||
 			decodedPath.startsWith('/') ||
-			containsTraversal ||
+			isTraversalPath ||
 			decodedPath.includes('\\') ||
 			decodedPath.includes('\0');
 

@@ -37,7 +37,7 @@ const OfflineBanner = ({ children }: Props) => {
 
 	const insets = useSafeAreaInsets();
 
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	const { isConnected, isInternetReachable } = useNetInfo();
 
@@ -67,7 +67,7 @@ const OfflineBanner = ({ children }: Props) => {
 
 		const target = networkOffline ? 1 : 0;
 
-		if (reducedMotion) {
+		if (motionReduced) {
 			progress.set(target);
 			setBannerVisible(networkOffline);
 
@@ -81,7 +81,7 @@ const OfflineBanner = ({ children }: Props) => {
 				}
 			}),
 		);
-	}, [bannerHeight, networkOffline, progress, reducedMotion]);
+	}, [bannerHeight, networkOffline, progress, motionReduced]);
 
 	return (
 		<View style={styles.container}>

@@ -42,7 +42,7 @@
 사용자 문구는 `apiErrorMessage(error, t)`가 `apiError.<code>` 번역 키에서 찾고, `CLIENT__UNKNOWN_ERROR`면 서버 `message`를 사용합니다.
 
 - 입력 필드와 관계없는 실패는 Toast로 표시합니다. 다이얼로그 안의 실패는 다이얼로그를 유지한 채 그 위에 Toast를 표시합니다.
-- 401은 `queryClient`의 캐시 `onError`가 `setUnauthorizedHandler`로 등록한 로그아웃을 실행합니다. 로그인 mutation은 `meta.skipUnauthorizedSignOut`으로 이 처리를 건너뜁니다.
+- 401은 `queryClient`의 캐시 `onError`가 `setUnauthorizedHandler`로 등록한 로그아웃을 실행합니다. 로그인 mutation은 `meta.unauthorizedSignOutSkipped`으로 이 처리를 건너뜁니다.
 - `DEVICE__NOT_REGISTERED`는 활동 기록 및 하트비트 요청에서 실패로 보고하지 않습니다.
 - `retryable`인 오류는 `queryClient` 기본값이 조회 및 저장 모두 최대 2회 재시도합니다.
 - `COMMON__IDEMPOTENCY_KEY_REQUIRED`는 클라이언트 버그이므로 사용자에게 재시도를 안내하지 않습니다.

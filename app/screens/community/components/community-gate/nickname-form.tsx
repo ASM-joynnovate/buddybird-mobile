@@ -32,8 +32,8 @@ const CommunityGateNicknameForm = () => {
 
 	const nicknameError = useNicknameError(nicknameInvalid, updateError);
 
-	const handleChangeNickname = (value: string) => {
-		setNickname(value);
+	const handleChangeNickname = (nextNickname: string) => {
+		setNickname(nextNickname);
 		setNicknameInvalid(false);
 
 		reset();

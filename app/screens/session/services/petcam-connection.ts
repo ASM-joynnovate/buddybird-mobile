@@ -116,9 +116,9 @@ const openSignaling = (
 		send: (message) => {
 			void channel
 				?.send({ type: 'broadcast', event: BROADCAST_EVENT, payload: message })
-				.then((result) => {
-					if (result !== 'ok') {
-						onError(new Error(`Petcam message ${result}`));
+				.then((sendStatus) => {
+					if (sendStatus !== 'ok') {
+						onError(new Error(`Petcam message ${sendStatus}`));
 					}
 				})
 				.catch((error: unknown) => onError(error));
@@ -203,7 +203,7 @@ const createPeer = (
 	return {
 		connection,
 		/** 원격 description 적용 함수 */
-		setRemote: async (description) => {
+		setRemoteDescription: async (description) => {
 			await connection.setRemoteDescription(new RTCSessionDescription(description));
 
 			remoteDescriptionSet = true;
@@ -393,7 +393,7 @@ export const createPetcamSender = ({
 				const senderPeer = peers.get(message.viewerId);
 
 				if (senderPeer?.offerId === message.offerId) {
-					void senderPeer.peer.setRemote(message.description).catch(onError);
+					void senderPeer.peer.setRemoteDescription(message.description).catch(onError);
 				}
 			} else if (message.type === 'candidate' && message.from === 'viewer') {
 				const senderPeer = peers.get(message.viewerId);
@@ -547,7 +547,7 @@ export const createPetcamReceiver = ({
 			}
 		});
 
-		await createdPeer.setRemote(description);
+		await createdPeer.setRemoteDescription(description);
 
 		const localDescription = petcamDescriptionSchema.parse(await createdPeer.connection.createAnswer());
 

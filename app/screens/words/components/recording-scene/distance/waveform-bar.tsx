@@ -27,14 +27,14 @@ const RecordingSceneDistanceWaveformBar = ({ index, level, scale, animated, cycl
 		}
 
 		const start = 0.28 + index * 0.042;
-		const recorded = interpolate(
+		const recordedProgress = interpolate(
 			cycleProgress.get(),
 			[start, start + 0.05, 0.88, 0.96],
 			[0, 1, 1, 0],
 			Extrapolation.CLAMP,
 		);
 
-		return { opacity: 0.35 + recorded * 0.65, transform: [{ scaleY: 0.12 + recorded * 0.88 }] };
+		return { opacity: 0.35 + recordedProgress * 0.65, transform: [{ scaleY: 0.12 + recordedProgress * 0.88 }] };
 	});
 
 	return <Animated.View style={[styles.waveformBar, { width: 3 * scale, height: level * 40 * scale }, barStyle]} />;

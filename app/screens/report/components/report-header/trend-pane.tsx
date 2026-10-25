@@ -153,7 +153,7 @@ const ReportHeaderTrendPane = ({ start, lineAnimated, onScrubChange }: Props) =>
 				tooltip={
 					scrubbedBucket && {
 						title: formatBucket(period, scrubbedBucket, locale),
-						detail: t('report.bucketDuration', {
+						durationText: t('report.bucketDuration', {
 							duration: formatDuration(scrubbedBucket.duration_ms, locale),
 						}),
 					}

@@ -28,7 +28,7 @@ const DurationBreakdown = () => {
 
 	const duration = useSessionStore((state) => state.duration);
 
-	const totals = duration.ms === null ? null : phaseDurations(duration.ms);
+	const phaseTotals = duration.ms === null ? null : phaseDurations(duration.ms);
 
 	return (
 		<Card depth="none" style={styles.cardContainer} contentStyle={styles.card}>
@@ -48,9 +48,9 @@ const DurationBreakdown = () => {
 								{t(`common.phases.${phase}`)}
 							</Copy>
 						</View>
-						{totals ? (
+						{phaseTotals ? (
 							<Copy style={[styles.phaseTime, { color }]}>
-								{formatDurationWithDays(totals[phase], locale)}
+								{formatDurationWithDays(phaseTotals[phase], locale)}
 							</Copy>
 						) : (
 							<InfinityIcon size={22} color={color} style={styles.infinity} />

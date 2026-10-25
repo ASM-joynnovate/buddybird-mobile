@@ -29,8 +29,8 @@ interface Props {
  * 앱 시작 다이얼로그 provider
  * @param children 감싸는 내용
  */
-const StartupDialogProvider = ({ children }: Props) => {
-	const [promptOpen, setPromptOpen] = useState(false);
+const FeedbackDialogProvider = ({ children }: Props) => {
+	const [feedbackPromptOpen, setFeedbackPromptOpen] = useState(false);
 
 	const feedbackPromptOpenRef = useRef(false);
 
@@ -65,13 +65,13 @@ const StartupDialogProvider = ({ children }: Props) => {
 		}
 
 		feedbackPromptOpenRef.current = true;
-		setPromptOpen(true);
+		setFeedbackPromptOpen(true);
 
 		track('feedback_prompt_shown', { threshold });
 	}, [feedbackPromptEligible, threshold]);
 
 	/** 피드백 요청 답변 저장 함수 */
-	const answerFeedbackPrompt = (wantsToWrite: boolean) => {
+	const answerFeedbackPrompt = (shouldWrite: boolean) => {
 		if (!feedbackPromptOpenRef.current) {
 			return;
 		}
@@ -81,7 +81,7 @@ const StartupDialogProvider = ({ children }: Props) => {
 		try {
 			consumeFeedbackPrompt();
 
-			if (wantsToWrite) {
+			if (shouldWrite) {
 				openFeedback('prompt');
 			} else {
 				track('feedback_prompt_dismissed', { threshold });
@@ -89,7 +89,7 @@ const StartupDialogProvider = ({ children }: Props) => {
 		} catch (e) {
 			reportError(e, 'feedback_prompt');
 		} finally {
-			setPromptOpen(false);
+			setFeedbackPromptOpen(false);
 		}
 	};
 
@@ -98,9 +98,9 @@ const StartupDialogProvider = ({ children }: Props) => {
 			{children}
 
 			<FeedbackDialog
-				visible={(openedFrom !== null || promptOpen) && !updateVisible}
+				visible={(openedFrom !== null || feedbackPromptOpen) && !updateVisible}
 				prompt={
-					promptOpen
+					feedbackPromptOpen
 						? { onDismiss: () => answerFeedbackPrompt(false), onWrite: () => answerFeedbackPrompt(true) }
 						: undefined
 				}
@@ -109,4 +109,4 @@ const StartupDialogProvider = ({ children }: Props) => {
 	);
 };
 
-export default StartupDialogProvider;
+export default FeedbackDialogProvider;

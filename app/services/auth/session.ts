@@ -45,7 +45,7 @@ export const accessToken = async () => {
 };
 
 /** 익명 로그인 함수 */
-export const signUpAnonymously = async () => {
+export const signInAnonymously = async () => {
 	const { error } = await getSupabase().auth.signInAnonymously();
 
 	return error;

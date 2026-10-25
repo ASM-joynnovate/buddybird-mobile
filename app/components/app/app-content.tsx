@@ -1,5 +1,5 @@
+import AppServicesProvider from '@/providers/app-services';
 import AuthProvider from '@/providers/auth';
-import SystemProvider from '@/providers/system';
 import UpdateDialogProvider from '@/providers/update-dialog';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
@@ -11,14 +11,14 @@ const AppContent = () => {
 	const usageGuideSeen = useDeviceSettingsStore((state) => state.usageGuideSeen);
 
 	return (
-		<SystemProvider>
+		<AppServicesProvider>
 			<AuthProvider>
 				<UpdateDialogProvider>
 					{/*처음 설치한 기기는 사용 안내 먼저 표시*/}
 					{usageGuideSeen ? <AuthStatusContent /> : <UsageGuideScreen />}
 				</UpdateDialogProvider>
 			</AuthProvider>
-		</SystemProvider>
+		</AppServicesProvider>
 	);
 };
 

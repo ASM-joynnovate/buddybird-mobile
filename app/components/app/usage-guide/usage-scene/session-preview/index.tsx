@@ -35,7 +35,7 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const wordName = t('onboarding.login.words', { returnObjects: true })[0];
-	const parrotName = t('report.detail.kinds.parrot');
+	const parrotKindLabel = t('report.detail.kinds.parrot');
 	const mimicScore = t('report.detail.percent', { value: 92 });
 
 	return (
@@ -84,7 +84,7 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 			<View style={styles.itemList}>
 				{step === 'live' && (
 					<>
-						<UsageSceneSessionPreviewItem kind="parrot" name={parrotName} time="15:31:04" />
+						<UsageSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
 						<UsageSceneSessionPreviewItem
 							kind="mimic"
 							name={wordName}
@@ -97,7 +97,7 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 
 				{step === 'sound' && (
 					<>
-						<UsageSceneSessionPreviewItem kind="parrot" name={parrotName} time="15:31:04" />
+						<UsageSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
 						<UsageSceneSessionPreviewItem kind="mimic" name={wordName} value={mimicScore} time="15:36:12">
 							<View style={styles.player}>
 								<SessionLogSoundTrack

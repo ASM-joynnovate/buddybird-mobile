@@ -47,17 +47,17 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 	const [cardHeight, setCardHeight] = useState(0);
 
 	const layout = getCoverLayout(area, 864 / 1536, 0.49);
-	const timer = toScenePoint(layout, { x: 0.2417, y: 0.6175 });
-	const sound = toScenePoint(layout, { x: 0.636, y: 0.5388 });
+	const timerPoint = toScenePoint(layout, { x: 0.2417, y: 0.6175 });
+	const soundPoint = toScenePoint(layout, { x: 0.636, y: 0.5388 });
 	const soundWidth = layout.width * 0.1374;
 	const cardTop = topInset + 6;
 	const linkStart = { x: CARD_LEFT + 41, y: cardTop + cardHeight };
-	const linkDistance = { x: timer.x - linkStart.x, y: timer.y - linkStart.y };
+	const linkDistance = { x: timerPoint.x - linkStart.x, y: timerPoint.y - linkStart.y };
 	const linkPath = [
 		`M${linkStart.x} ${linkStart.y}`,
 		`C${linkStart.x} ${linkStart.y + linkDistance.y * 0.5}`,
 		`${linkStart.x + linkDistance.x * 0.72} ${linkStart.y + linkDistance.y * 0.58}`,
-		`${timer.x} ${timer.y}`,
+		`${timerPoint.x} ${timerPoint.y}`,
 	].join(' ');
 
 	/** 소리 물결 애니메이션 반복 */
@@ -79,7 +79,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 			<View
 				style={[
 					styles.sound,
-					{ left: sound.x, top: sound.y, width: soundWidth, height: soundWidth / (60 / 80) },
+					{ left: soundPoint.x, top: soundPoint.y, width: soundWidth, height: soundWidth / (60 / 80) },
 				]}
 			>
 				<Svg width="100%" height="100%" viewBox="0 0 60 80">
@@ -96,7 +96,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 			</View>
 
 			{/*카드에서 태블릿 타이머까지 잇는 점선*/}
-			{cardHeight > 0 && timer.y > linkStart.y && (
+			{cardHeight > 0 && timerPoint.y > linkStart.y && (
 				<Animated.View entering={FadeIn.delay(240)} style={StyleSheet.absoluteFill}>
 					<Svg width="100%" height="100%">
 						<Path
@@ -111,7 +111,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 				</Animated.View>
 			)}
 
-			<UsageScenePhotoPin x={timer.x} y={timer.y} animated={animated} />
+			<UsageScenePhotoPin x={timerPoint.x} y={timerPoint.y} animated={animated} />
 
 			<UsageSceneVoiceCard
 				left={CARD_LEFT}

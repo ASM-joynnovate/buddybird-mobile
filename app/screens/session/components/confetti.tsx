@@ -35,9 +35,9 @@ const PIECES = [
 
 /** 학습 완료를 축하하는 조각이 한 번 떨어지는 컴포넌트 */
 const Confetti = () => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
-	if (reducedMotion) {
+	if (motionReduced) {
 		return null;
 	}
 

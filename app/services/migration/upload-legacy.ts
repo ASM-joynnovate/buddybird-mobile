@@ -54,23 +54,25 @@ const readLegacyValues = async () => {
 	const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
 		LEGACY_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
 	);
-	const values = new Map(await AsyncStorage.multiGet(keys));
+	const legacyValues = new Map(await AsyncStorage.multiGet(keys));
 
 	return (key: string) =>
-		LEGACY_KEY_PREFIXES.map((prefix) => values.get(`${prefix}${key}`)).find((value) => typeof value === 'string');
+		LEGACY_KEY_PREFIXES.map((prefix) => legacyValues.get(`${prefix}${key}`)).find(
+			(legacyValue) => typeof legacyValue === 'string',
+		);
 };
 
 /** v1 값을 JSON으로 읽는 함수 */
-const readJson = (read: LegacyValueReader, key: string) => {
-	const raw = read(key);
+const readJson = (readLegacyValue: LegacyValueReader, key: string) => {
+	const raw = readLegacyValue(key);
 
 	return raw === undefined ? undefined : (JSON.parse(raw) as unknown);
 };
 
 /** v1 설정 값을 읽는 함수 */
-const readSettings = (read: LegacyValueReader) => {
+const readSettings = (readLegacyValue: LegacyValueReader) => {
 	const locale = tryParseLegacy('locale', () => {
-		const raw = read('locale');
+		const raw = readLegacyValue('locale');
 
 		if (raw === undefined) {
 			return undefined;
@@ -79,19 +81,23 @@ const readSettings = (read: LegacyValueReader) => {
 		return requireChoice(raw, ['ko', 'en'] as const, 'locale') === 'ko' ? ('ko-KR' as const) : ('en-US' as const);
 	});
 	const analyticsConsent = tryParseLegacy('analytics_consent', () => {
-		const raw = read('analytics-consent');
+		const raw = readLegacyValue('analytics-consent');
 
 		return raw === undefined ? undefined : requireChoice(raw, analyticsConsents, 'analytics consent');
 	});
 	const appUpdate = tryParseLegacy('app_update', () => {
-		const value = readJson(read, 'app-update');
+		const appUpdateJson = readJson(readLegacyValue, 'app-update');
 
-		return value === undefined ? undefined : parseLegacyAppUpdate(requireRecord(value, 'app-update'));
+		return appUpdateJson === undefined
+			? undefined
+			: parseLegacyAppUpdate(requireRecord(appUpdateJson, 'app-update'));
 	});
 	const feedbackPrompt = tryParseLegacy('feedback', () => {
-		const value = readJson(read, 'feedback-prompt');
+		const feedbackPromptJson = readJson(readLegacyValue, 'feedback-prompt');
 
-		return value === undefined ? undefined : parseLegacyFeedbackPrompt(requireRecord(value, 'feedback-prompt'));
+		return feedbackPromptJson === undefined
+			? undefined
+			: parseLegacyFeedbackPrompt(requireRecord(feedbackPromptJson, 'feedback-prompt'));
 	});
 
 	return {
@@ -103,16 +109,16 @@ const readSettings = (read: LegacyValueReader) => {
 };
 
 /** 서버에 업로드할 v1 데이터를 읽는 함수 */
-const readUpload = (read: LegacyValueReader) => {
+const readUpload = (readLegacyValue: LegacyValueReader) => {
 	const profile = tryParseLegacy('profile', () => {
-		const value = readJson(read, 'parrot-profile');
+		const profileJson = readJson(readLegacyValue, 'parrot-profile');
 
-		return value == null ? null : parseLegacyProfile(value);
+		return profileJson == null ? null : parseLegacyProfile(profileJson);
 	});
 	const words = tryParseLegacy('words', () => {
-		const value = readJson(read, 'wordLibrary');
+		const wordLibraryJson = readJson(readLegacyValue, 'wordLibrary');
 
-		return value == null ? [] : parseLegacyWords(requireRecord(value, 'wordLibrary'));
+		return wordLibraryJson == null ? [] : parseLegacyWords(requireRecord(wordLibraryJson, 'wordLibrary'));
 	});
 
 	return { profile: profile ?? null, words: words ?? [] };
@@ -126,17 +132,17 @@ export const loadLegacy = async () => {
 		return;
 	}
 
-	const read = await readLegacyValues();
+	const readLegacyValue = await readLegacyValues();
 
 	if (!migration.settingsImported) {
-		useDeviceSettingsStore.getState().importLegacySettings(readSettings(read));
+		useDeviceSettingsStore.getState().importLegacySettings(readSettings(readLegacyValue));
 	}
 
 	if (migration.uploadStatus === 'finished') {
 		return;
 	}
 
-	const legacyUpload = readUpload(read);
+	const legacyUpload = readUpload(readLegacyValue);
 
 	if (legacyUpload.profile === null && legacyUpload.words.length === 0) {
 		finishLegacyUpload();
@@ -172,9 +178,9 @@ const isInsideApp = (uri: string) => {
 /** 업로드할 수 있는 v1 파일의 주소를 반환하는 함수 */
 export const existingFileUri = async (uri: string, scope: string) => {
 	try {
-		const resolved = resolveFileUri(uri);
+		const resolvedUri = resolveFileUri(uri);
 
-		if (!isInsideApp(resolved)) {
+		if (!isInsideApp(resolvedUri)) {
 			reportError(new Error('Legacy file is outside the app'), scope);
 
 			return null;
@@ -183,7 +189,7 @@ export const existingFileUri = async (uri: string, scope: string) => {
 		const fileInfo = readFileInfo(uri);
 
 		if (fileInfo.exists && fileInfo.size > 0) {
-			return resolved;
+			return resolvedUri;
 		}
 
 		reportError(new Error('Legacy file is missing'), scope);

@@ -30,7 +30,7 @@ const NotificationItemGroup = ({ settingItems, pushSettingSaving = false }: Prop
 	const { isPending, mutate } = useUpdateNotificationSettingItem();
 
 	const marketingOff = allNotificationSettingItems(notificationSettingsData).some(
-		(item) => item.kind === 'marketing' && !item.enabled,
+		(settingItem) => settingItem.kind === 'marketing' && !settingItem.enabled,
 	);
 
 	const handleToggleItem = (itemId: string, enabled: boolean) => {
@@ -50,15 +50,17 @@ const NotificationItemGroup = ({ settingItems, pushSettingSaving = false }: Prop
 
 	return (
 		<ItemGroup>
-			{settingItems.map((item, index) => (
+			{settingItems.map((settingItem, index) => (
 				<ItemSwitch
-					key={item.id}
-					firstInGroup={index === 0}
-					label={item.title}
-					detail={item.description ?? undefined}
-					value={item.enabled}
-					disabled={isPending || pushSettingSaving || (item.kind === 'marketing_night' && marketingOff)}
-					onChange={(enabled) => handleToggleItem(item.id, enabled)}
+					key={settingItem.id}
+					isFirstInGroup={index === 0}
+					label={settingItem.title}
+					detail={settingItem.description ?? undefined}
+					value={settingItem.enabled}
+					disabled={
+						isPending || pushSettingSaving || (settingItem.kind === 'marketing_night' && marketingOff)
+					}
+					onChange={(enabled) => handleToggleItem(settingItem.id, enabled)}
 				/>
 			))}
 		</ItemGroup>

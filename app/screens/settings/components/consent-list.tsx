@@ -45,7 +45,7 @@ const ConsentList = () => {
 			{latestConsents(consentListData).map((consent, index) => (
 				<ConsentItem
 					key={consent.id}
-					firstInGroup={index === 0}
+					isFirstInGroup={index === 0}
 					consent={consent}
 					checked={consent.is_required || consent.status === 'granted'}
 					disabled={consent.is_required || isPending}

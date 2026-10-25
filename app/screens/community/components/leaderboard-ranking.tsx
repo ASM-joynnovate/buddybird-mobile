@@ -24,16 +24,16 @@ const LeaderboardRanking = () => {
 	return (
 		<>
 			<ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-				{leaderboardData.items.map((item) => (
+				{leaderboardData.items.map((rankEntry) => (
 					<LeaderboardLane
-						key={item.user.id}
-						rank={item.rank}
-						score={item.score}
+						key={rankEntry.user.id}
+						rank={rankEntry.rank}
+						score={rankEntry.score}
 						topScore={topScore}
-						nickname={item.user.nickname}
-						photoUrl={item.user.photo_file?.url ?? null}
-						country={item.user.country}
-						userIsMe={item.user.id === meData.id}
+						nickname={rankEntry.user.nickname}
+						photoUrl={rankEntry.user.photo_file?.url ?? null}
+						country={rankEntry.user.country}
+						isMe={rankEntry.user.id === meData.id}
 					/>
 				))}
 			</ScrollView>

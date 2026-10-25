@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const PageDots = ({ count, currentIndex, label }: Props) => {
-	const reducedMotion = useReducedMotion();
+	const motionReduced = useReducedMotion();
 
 	if (count < 2) {
 		return null;
@@ -24,7 +24,7 @@ export const PageDots = ({ count, currentIndex, label }: Props) => {
 					key={dotIndex}
 					style={[
 						styles.dot,
-						!reducedMotion && styles.dotTransition,
+						!motionReduced && styles.dotTransition,
 						dotIndex === currentIndex && styles.dotCurrent,
 					]}
 				/>
