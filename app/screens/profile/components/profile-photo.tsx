@@ -45,7 +45,11 @@ const ProfilePhoto = ({ photoPicker, disabled, badgeIcon = 'edit' }: Props) => {
 				cornerRadius="pill"
 				depth="none"
 			>
-				<Avatar uri={photoPicker.photoUri} icon={ImageIcon} size="xlarge" />
+				<Avatar
+					uri={photoPicker.photoUri}
+					placeholder=<ImageIcon size={40} color={colors.subtle} />
+					size="xlarge"
+				/>
 				<View style={styles.photoBadge}>
 					<BadgeIcon size={20} color={colors.onFilled} />
 				</View>
