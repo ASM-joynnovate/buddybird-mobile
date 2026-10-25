@@ -1,36 +1,32 @@
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import type { ReactNode } from 'react';
 
-import type { LucideIcon } from 'lucide-react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 
 import { colors } from '@/theme';
 
 const sizes = {
-	xsmall: { icon: 18, box: 32 },
-	small: { icon: 22, box: 40 },
-	medium: { icon: 26, box: 64 },
-	large: { icon: 34, box: 80 },
-	xlarge: { icon: 40, box: 110 },
+	xsmall: 32,
+	small: 40,
+	medium: 64,
+	large: 80,
+	xlarge: 110,
 } as const;
 
 type AvatarSize = keyof typeof sizes;
 
 interface Props {
 	uri?: string | null;
-	icon: LucideIcon;
+	placeholder: ReactNode;
 	size: AvatarSize;
 	uploading?: boolean;
 }
 
-export const Avatar = ({ uri, icon: Icon, size, uploading = false }: Props) => {
-	const { icon: iconSize, box: boxSize } = sizes[size];
+export const Avatar = ({ uri, placeholder, size, uploading = false }: Props) => {
+	const boxSize = sizes[size];
 
 	return (
 		<View style={[styles.container, { width: boxSize, height: boxSize, borderRadius: boxSize / 2 }]}>
-			{uri ? (
-				<Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors />
-			) : (
-				<Icon size={iconSize} color={colors.subtle} />
-			)}
+			{uri ? <Image source={{ uri }} style={styles.image} accessibilityIgnoresInvertColors /> : placeholder}
 			{uploading && (
 				<View style={styles.progressContainer}>
 					<ActivityIndicator color={colors.onFilled} />

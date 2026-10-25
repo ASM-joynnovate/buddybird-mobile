@@ -51,7 +51,7 @@ const ProfileCard = () => {
 			<View style={styles.contentRow}>
 				<Avatar
 					uri={meData.photo_file?.url}
-					icon={UserIcon}
+					placeholder=<UserIcon size={34} color={colors.subtle} />
 					size="large"
 					uploading={meData.uploading_photo_file?.status === 'pending'}
 				/>

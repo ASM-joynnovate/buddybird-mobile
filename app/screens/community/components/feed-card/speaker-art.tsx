@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, G, Path } from 'react-native-svg';
 
 import { colors, font } from '@/theme';
 
@@ -20,20 +20,22 @@ const FeedCardSpeakerArt = ({ countText }: Props) => {
 			<Svg width={44} height={48} viewBox="22 0 60 66">
 				<Circle cx={52} cy={34} r={30} fill={colors.orangeDark} />
 				<Circle cx={52} cy={31} r={30} fill={colors.orange} />
-				<Path
-					d="M38 24h8l10-8v30l-10-8h-8Z"
-					fill={colors.onFilled}
-					stroke={colors.onFilled}
-					strokeWidth={3}
-					strokeLinejoin="round"
-				/>
-				<Path
-					d="M62 22c4 5 4 13 0 18M68 17c7 8 7 20 0 28"
-					fill="none"
-					stroke={colors.onFilled}
-					strokeWidth={3.5}
-					strokeLinecap="round"
-				/>
+				<G transform="translate(50.6 31) scale(0.8) translate(-52 -31)">
+					<Path
+						d="M38 24h8l10-8v30l-10-8h-8Z"
+						fill={colors.onFilled}
+						stroke={colors.onFilled}
+						strokeWidth={3}
+						strokeLinejoin="round"
+					/>
+					<Path
+						d="M62 22c4 5 4 13 0 18M68 17c7 8 7 20 0 28"
+						fill="none"
+						stroke={colors.onFilled}
+						strokeWidth={3.5}
+						strokeLinecap="round"
+					/>
+				</G>
 			</Svg>
 
 			<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.count}>

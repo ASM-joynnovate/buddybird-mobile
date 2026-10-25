@@ -2,11 +2,15 @@ import { StyleSheet } from 'react-native';
 
 import Animated, { Extrapolation, interpolate, type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
-const FLY_MS = 380;
-const FALL_DISTANCE = 6;
+import { seedColors } from '@/theme/seed-colors';
+
+const PEAK_MS = 120;
+const SQUASH_MS = 60;
+const FLOOR_Y = 22;
 
 interface Props {
 	elapsed: SharedValue<number>;
+	closeProgress: SharedValue<number>;
 	startAt: number;
 	x: number;
 	y: number;
@@ -14,49 +18,44 @@ interface Props {
 	dy: number;
 	size: number;
 	color: string;
-	shape: 'chip' | 'crumb';
 }
 
 /**
- * 껍질 조각 및 부스러기 컴포넌트
+ * 속씨 부스러기 컴포넌트
  * @param elapsed 애니메이션 경과 시간
+ * @param closeProgress 껍질이 닫히는 진행률
  * @param startAt 튀어 오르기 시작하는 시간
  * @param x 시작 가로 위치
  * @param y 시작 세로 위치
  * @param dx 가로 이동 거리
- * @param dy 세로 이동 거리
+ * @param dy 튀어 오르는 세로 거리
  * @param size 지름
  * @param color 색
- * @param shape 껍질 조각 또는 속씨 부스러기
  */
-const FeedCardLikeButtonCrumb = ({ elapsed, startAt, x, y, dx, dy, size, color, shape }: Props) => {
+const FeedCardLikeButtonCrumb = ({ elapsed, closeProgress, startAt, x, y, dx, dy, size, color }: Props) => {
+	const floorDistance = FLOOR_Y - size / 2 - y;
+	const landMs = PEAK_MS * (1 + Math.sqrt(1 - floorDistance / dy));
+
 	const crumbStyle = useAnimatedStyle(() => {
-		const range = [startAt, startAt + FLY_MS * 0.45, startAt + FLY_MS];
+		const flightMs = Math.min(Math.max(elapsed.get() - startAt, 0), landMs);
+		const squash = interpolate(
+			elapsed.get(),
+			[startAt + landMs, startAt + landMs + SQUASH_MS * 0.4, startAt + landMs + SQUASH_MS],
+			[0, 1, 0.6],
+			Extrapolation.CLAMP,
+		);
+		const scale = interpolate(elapsed.get(), [startAt, startAt + PEAK_MS], [0.4, 1], Extrapolation.CLAMP);
+		const scaleY = scale * (1 - 0.35 * squash);
 
 		return {
-			opacity: interpolate(
-				elapsed.get(),
-				[startAt - 1, startAt, startAt + FLY_MS],
-				[0, 1, 0],
-				Extrapolation.CLAMP,
-			),
+			opacity:
+				interpolate(elapsed.get(), [startAt - 1, startAt], [0, 1], Extrapolation.CLAMP) *
+				interpolate(closeProgress.get(), [0, 0.5], [1, 0], Extrapolation.CLAMP),
 			transform: [
-				{ translateX: interpolate(elapsed.get(), range, [0, dx * 0.7, dx], Extrapolation.CLAMP) },
-				{
-					translateY: interpolate(
-						elapsed.get(),
-						range,
-						[0, dy * 0.7, dy + FALL_DISTANCE],
-						Extrapolation.CLAMP,
-					),
-				},
-				{
-					rotate:
-						shape === 'chip'
-							? `${interpolate(elapsed.get(), range, [45, 90, 180], Extrapolation.CLAMP)}deg`
-							: '0deg',
-				},
-				{ scale: interpolate(elapsed.get(), range, [0.4, 1, 0.7], Extrapolation.CLAMP) },
+				{ translateX: (dx * flightMs) / landMs },
+				{ translateY: dy * (1 - (1 - flightMs / PEAK_MS) ** 2) + (size * (scale - scaleY)) / 2 },
+				{ scaleX: scale * (1 + 0.25 * squash) },
+				{ scaleY },
 			],
 		};
 	});
@@ -65,7 +64,7 @@ const FeedCardLikeButtonCrumb = ({ elapsed, startAt, x, y, dx, dy, size, color, 
 		<Animated.View
 			pointerEvents="none"
 			style={[
-				shape === 'chip' ? styles.chip : styles.crumb,
+				styles.crumb,
 				{ left: x - size / 2, top: y - size / 2, width: size, height: size, backgroundColor: color },
 				crumbStyle,
 			]}
@@ -74,8 +73,7 @@ const FeedCardLikeButtonCrumb = ({ elapsed, startAt, x, y, dx, dy, size, color, 
 };
 
 const styles = StyleSheet.create({
-	chip: { position: 'absolute', borderRadius: 0.5 },
-	crumb: { position: 'absolute', borderRadius: 1 },
+	crumb: { position: 'absolute', borderRadius: 2.1, borderWidth: 0.6, borderColor: seedColors.kernelEdge },
 });
 
 export default FeedCardLikeButtonCrumb;

@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from '@/i18n/format';
 
-import { CrownIcon, UserRoundIcon } from 'lucide-react-native';
+import { CrownIcon } from 'lucide-react-native';
 
 import { HOUR, PERCENT } from '@/config/units';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 import { joinLabel } from '@/utils/a11y';
 
+import MascotArtwork from '@/components/mascot/artwork';
 import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
@@ -70,7 +71,7 @@ const LeaderboardLane = ({ rank, score, topScore, nickname, photoUrl, country, i
 			<View style={styles.track}>
 				<View style={[styles.fill, isMe && styles.fillMine, { width: `${barPercent}%` }]} />
 				<View style={[styles.avatarContainer, { left: `${barPercent}%` }]}>
-					<Avatar uri={photoUrl} icon={UserRoundIcon} size="xsmall" />
+					<Avatar uri={photoUrl} placeholder=<MascotArtwork /> size="xsmall" />
 				</View>
 			</View>
 		</View>

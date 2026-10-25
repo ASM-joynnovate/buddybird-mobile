@@ -12,8 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 import { formatTimeAgo } from '@/i18n/format';
 
-import { UserRoundIcon } from 'lucide-react-native';
-
 import FeedCardLikeButton from '@/screens/community/components/feed-card/like-button';
 import FeedCardMimicBody from '@/screens/community/components/feed-card/mimic-body';
 import FeedCardMonthlyLearningTimeBody from '@/screens/community/components/feed-card/monthly-learning-time-body';
@@ -23,6 +21,7 @@ import FeedCardWordPlayCountBody from '@/screens/community/components/feed-card/
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
+import MascotArtwork from '@/components/mascot/artwork';
 import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
@@ -57,7 +56,7 @@ const FeedCard = ({ feedItem, player }: Props) => {
 	return (
 		<View style={styles.card}>
 			<View style={styles.authorRow}>
-				<Avatar uri={feedItem.user.photo_file?.url} icon={UserRoundIcon} size="small" />
+				<Avatar uri={feedItem.user.photo_file?.url} placeholder=<MascotArtwork /> size="small" />
 
 				<View style={styles.textContainer}>
 					<View style={styles.nameRow}>

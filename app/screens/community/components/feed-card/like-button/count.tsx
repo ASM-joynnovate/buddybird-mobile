@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import Animated, { Easing, Keyframe, LayoutAnimationConfig } from 'react-native-reanimated';
@@ -49,7 +51,7 @@ interface Props {
  * @param countText 표시할 좋아요 수
  * @param liked 좋아요 여부
  */
-const FeedCardLikeButtonCount = ({ countText, liked }: Props) => {
+const FeedCardLikeButtonCount = memo(({ countText, liked }: Props) => {
 	return (
 		<LayoutAnimationConfig skipEntering>
 			<View style={styles.container}>
@@ -63,7 +65,7 @@ const FeedCardLikeButtonCount = ({ countText, liked }: Props) => {
 			</View>
 		</LayoutAnimationConfig>
 	);
-};
+});
 
 const styles = StyleSheet.create({
 	container: { height: 20, overflow: 'hidden' },
