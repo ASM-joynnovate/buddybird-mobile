@@ -2,6 +2,8 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
+import { Galeria } from '@nandorojo/galeria';
+
 import SessionLogMediaPanelPetcamVideo from '@/screens/report/components/session-log/media-panel/petcam-video';
 import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import type { LogItem } from '@/screens/report/utils/session-log';
@@ -36,13 +38,19 @@ const SessionLogMediaPanel = ({ logItem, itemLabel, mediaType, sessionId }: Prop
 					{mediaType === 'video' ? (
 						<SessionLogMediaPanelPetcamVideo url={uploadedFile.url} />
 					) : (
-						<Image
-							accessibilityIgnoresInvertColors
-							accessibilityLabel={itemLabel}
-							source={{ uri: uploadedFile.url }}
-							resizeMode="cover"
-							style={StyleSheet.absoluteFill}
-						/>
+						<Galeria urls={[uploadedFile.url]} theme="light">
+							<Galeria.Image style={StyleSheet.absoluteFill}>
+								<Image
+									accessible
+									accessibilityRole="imagebutton"
+									accessibilityIgnoresInvertColors
+									accessibilityLabel={itemLabel}
+									source={{ uri: uploadedFile.url }}
+									resizeMode="cover"
+									style={StyleSheet.absoluteFill}
+								/>
+							</Galeria.Image>
+						</Galeria>
 					)}
 				</View>
 			) : (
