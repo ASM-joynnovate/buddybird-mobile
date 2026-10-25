@@ -63,8 +63,8 @@
 | `GET /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/summary`, `GET /sessions/{id}/sounds`, `GET /sessions/{id}/events` | | 목록은 페이지네이션 |
 | `POST /sessions`, `POST /sessions/{id}/finish`, `POST /sessions/{id}/heartbeat` | 필요 | |
 | `GET /reports`, `GET /leaderboard` | | |
-| `GET /feed`, `GET /feed/reaction-types` | | 피드는 페이지네이션 |
-| `PUT /feed/{id}/reactions/{reactionTypeId}`, `DELETE /feed/{id}/reactions/{reactionTypeId}` | 필요 | |
+| `GET /feed` | | 피드는 페이지네이션 |
+| `PUT /feed/{id}/like`, `DELETE /feed/{id}/like` | 필요 | |
 | `GET /notifications`, `GET /notifications/{id}`, `GET /announcements`, `GET /announcements/{id}` | | 목록은 페이지네이션 |
 | `POST /notifications/{id}/read`, `POST /notifications/read-all`, `POST /announcements/{id}/read` | 필요 | |
 | `POST /feedback`, `POST /abuse-reports` | 필요 | |

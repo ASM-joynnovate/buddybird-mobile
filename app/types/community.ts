@@ -14,5 +14,3 @@ export interface PopoverAnchor {
 	width: number;
 	height: number;
 }
-
-export type ReactionVerb = 'praise' | 'celebrate';

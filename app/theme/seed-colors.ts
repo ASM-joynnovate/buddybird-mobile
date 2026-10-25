@@ -1,0 +1,16 @@
+export const seedColors = {
+	hull: '#2F2F2F',
+	stripe: '#EDEDED',
+	stripeSide: '#BDBDBD',
+	stripeEdge: '#7A7A7A',
+	lining: '#F2F0EB',
+	liningShade: '#DFDBD2',
+	liningShine: '#FBFAF8',
+	seam: '#F4F4F4',
+	kernel: '#D3C7AA',
+	kernelEdge: '#A3957A',
+	kernelSeam: '#B3A688',
+	kernelShine: '#E6DECB',
+	kernelWrinkle: '#C1B597',
+	kernelTip: '#8C7B5C',
+};

@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'コミュニティ',
+	title: 'フィード',
 	me: '自分',
 	countryScope: {
 		world: '全世界',
@@ -33,7 +33,6 @@ export const community: CommunityMessages = {
 		},
 	},
 	feed: {
-		title: 'フィード',
 		more: 'その他',
 		timeAgo: {
 			minutes_one: '{{count}}分前',
@@ -67,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}}回',
 		artCount_many: '{{count, number}}回',
 		artCount_other: '{{count, number}}回',
-		reaction: {
-			praise: 'ほめる',
-			praised: 'ほめました',
-			celebrate: 'お祝いする',
-			celebrated: 'お祝いしました',
-		},
+		like: 'いいね',
 	},
 	report: {
 		action: '報告する',
@@ -95,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'ログイン',
-		loginDescription: 'ログインするとコミュニティを使えます',
+		loginDescription: 'ログインするとフィードを使えます',
 		nicknameTitle: 'ニックネーム設定',
-		nicknameDescription: 'コミュニティで表示される名前です',
+		nicknameDescription: 'フィードで表示される名前です',
 		start: 'はじめる',
 	},
 };

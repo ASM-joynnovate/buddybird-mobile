@@ -1,12 +1,9 @@
 import {
-	type FeedItemReaction,
-	feedItemReactionSchema,
+	type FeedItemLike,
+	feedItemLikeSchema,
 	feedItemSchema,
 	feedMetaSchema,
 	type FeedPage,
-	type FeedReactionParams,
-	type FeedReactionType,
-	feedReactionTypeSchema,
 	type GetFeedItemListParams,
 } from '@/types/apis/feed';
 
@@ -22,36 +19,32 @@ export const getFeedItemList = async ({ cursor, country }: GetFeedItemListParams
 	return { data, meta: feedMetaSchema.parse(meta) };
 };
 
-export const getFeedReactionTypeList = async (): Promise<FeedReactionType[]> => {
-	const { data: reactionTypes } = await apiRequest('/api/v1/feed/reaction-types', z.array(feedReactionTypeSchema));
+export const putFeedItemLike = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<FeedItemLike> => {
+	const { data: like } = await apiRequest(`/api/v1/feed/${id}/like`, feedItemLikeSchema, {
+		method: 'PUT',
+		idempotencyKey,
+	});
 
-	return reactionTypes;
+	return like;
 };
 
-export const putFeedReaction = async ({
+export const deleteFeedItemLike = async ({
 	id,
-	reactionTypeId,
 	idempotencyKey,
-}: FeedReactionParams): Promise<FeedItemReaction[]> => {
-	const { data: reactions } = await apiRequest(
-		`/api/v1/feed/${id}/reactions/${reactionTypeId}`,
-		z.array(feedItemReactionSchema),
-		{ method: 'PUT', idempotencyKey },
-	);
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<FeedItemLike> => {
+	const { data: like } = await apiRequest(`/api/v1/feed/${id}/like`, feedItemLikeSchema, {
+		method: 'DELETE',
+		idempotencyKey,
+	});
 
-	return reactions;
-};
-
-export const deleteFeedReaction = async ({
-	id,
-	reactionTypeId,
-	idempotencyKey,
-}: FeedReactionParams): Promise<FeedItemReaction[]> => {
-	const { data: reactions } = await apiRequest(
-		`/api/v1/feed/${id}/reactions/${reactionTypeId}`,
-		z.array(feedItemReactionSchema),
-		{ method: 'DELETE', idempotencyKey },
-	);
-
-	return reactions;
+	return like;
 };

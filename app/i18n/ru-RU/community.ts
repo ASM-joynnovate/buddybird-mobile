@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'Сообщество',
+	title: 'Лента',
 	me: 'Я',
 	countryScope: {
 		world: 'Весь мир',
@@ -33,7 +33,6 @@ export const community: CommunityMessages = {
 		},
 	},
 	feed: {
-		title: 'Лента',
 		more: 'Ещё',
 		timeAgo: {
 			minutes_one: '{{count}} минуту назад',
@@ -67,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}} раза',
 		artCount_many: '{{count, number}} раз',
 		artCount_other: '{{count, number}} раза',
-		reaction: {
-			praise: 'Похвалить',
-			praised: 'Ты похвалил(а)',
-			celebrate: 'Поздравить',
-			celebrated: 'Ты поздравил(а)',
-		},
+		like: 'Нравится',
 	},
 	report: {
 		action: 'Пожаловаться',
@@ -95,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'Вход',
-		loginDescription: 'Войди, чтобы пользоваться сообществом',
+		loginDescription: 'Войди, чтобы пользоваться лентой',
 		nicknameTitle: 'Никнейм',
-		nicknameDescription: 'Это имя увидят в сообществе',
+		nicknameDescription: 'Это имя увидят в ленте',
 		start: 'Начать',
 	},
 };

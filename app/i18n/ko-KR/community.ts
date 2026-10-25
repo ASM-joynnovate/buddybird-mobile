@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: '커뮤니티',
+	title: '피드',
 	me: '나',
 	countryScope: {
 		world: '전 세계',
@@ -33,7 +33,6 @@ export const community: CommunityMessages = {
 		},
 	},
 	feed: {
-		title: '피드',
 		more: '더보기',
 		timeAgo: {
 			minutes_one: '{{count}}분 전',
@@ -67,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}}번',
 		artCount_many: '{{count, number}}번',
 		artCount_other: '{{count, number}}번',
-		reaction: {
-			praise: '칭찬하기',
-			praised: '칭찬했어요',
-			celebrate: '축하하기',
-			celebrated: '축하했어요',
-		},
+		like: '좋아요',
 	},
 	report: {
 		action: '신고하기',
@@ -95,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: '로그인',
-		loginDescription: '로그인하면 커뮤니티를 이용할 수 있어요',
+		loginDescription: '로그인하면 피드를 이용할 수 있어요',
 		nicknameTitle: '닉네임 설정',
-		nicknameDescription: '커뮤니티에서 보일 이름이에요',
+		nicknameDescription: '피드에서 보일 이름이에요',
 		start: '시작하기',
 	},
 };

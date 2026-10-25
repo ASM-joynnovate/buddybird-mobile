@@ -63,7 +63,7 @@
 - 조회는 `getXOptions` 옵션 함수 및 `useGetX` Hook 한 쌍으로 만들고, 쿼리 키는 `app/hooks/apis/keys/<도메인>.ts`에 둡니다.
 - suspense 없이 조회하는 곳은 같은 파일에 `useGetXQuery` Hook을 추가해 사용합니다. 화면에서 `useQuery`를 직접 호출하지 않습니다.
 - 저장은 서버 요청 하나에 저장 Hook 하나이고, 화면에서 `mutate(variables, { onSuccess })`로 실행합니다. 여러 요청을 잇는 흐름 및 컴포넌트가 사라진 뒤에 결과를 받는 요청만 `mutateAsync`를 사용합니다.
-- 입력 필드와 관계없는 요청 실패는 `Toast`로 표시합니다. 다이얼로그 및 팝오버 안에서는 `dialogToasterId`로 그 위에 표시합니다.
+- 입력 필드와 관계없는 요청 실패는 `Toast`로 표시합니다. 다이얼로그 안에서는 `dialogToasterId`로 그 위에 표시합니다.
 - 사용자가 할 일이 없는 실패는 `reportError`로 보고만 합니다.
 - 자세한 계층 및 규칙은 `docs/api-client.md`에 있습니다.
 

@@ -12,8 +12,8 @@ import {
 	HouseIcon,
 	type LucideIcon,
 	MessageSquareTextIcon,
+	NewspaperIcon,
 	UserIcon,
-	UsersRoundIcon,
 } from 'lucide-react-native';
 
 import { colors, font } from '@/theme';
@@ -32,7 +32,7 @@ const tabs: Record<keyof MainTabParamList, TabItem> = {
 	HomeTab: { icon: HouseIcon, labelKey: 'home' },
 	WordsTab: { icon: MessageSquareTextIcon, labelKey: 'words' },
 	ReportTab: { icon: ChartNoAxesColumnIcon, labelKey: 'report' },
-	CommunityTab: { icon: UsersRoundIcon, labelKey: 'community' },
+	CommunityTab: { icon: NewspaperIcon, labelKey: 'community' },
 	ProfileTab: { icon: UserIcon, labelKey: 'profile' },
 };
 

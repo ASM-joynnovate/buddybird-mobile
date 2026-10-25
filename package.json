@@ -56,6 +56,7 @@
 		"expo-device": "~57.0.2",
 		"expo-file-system": "~57.0.7",
 		"expo-font": "~57.0.4",
+		"expo-haptics": "~57.0.3",
 		"expo-image-picker": "patch:expo-image-picker@npm%3A57.0.20#~/.yarn/patches/expo-image-picker-npm-57.0.20-b36f96d5eb.patch",
 		"expo-keep-awake": "~57.0.2",
 		"expo-localization": "~57.0.2",

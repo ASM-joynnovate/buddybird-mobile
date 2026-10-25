@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react';
 
-import { Modal, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Modal, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { PopoverAnchor } from '@/types/community';
 
@@ -9,12 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { Keyframe } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Toaster } from 'sonner-native';
 
 import { burstEasing, colors, radius } from '@/theme';
 
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
-import { dialogToasterId, TOAST_DURATION_MS } from '@/components/ui/toast';
 
 const ARROW_SIZE = 11;
 const ANCHOR_GAP = 14;
@@ -109,11 +107,6 @@ export const ArrowPopover = ({ anchor, align, width, onClose, children }: Props)
 
 						{children}
 					</Animated.View>
-				)}
-
-				{/*Android에서 팝오버 위에 표시할 토스트*/}
-				{Platform.OS === 'android' && (
-					<Toaster id={dialogToasterId} position="top-center" duration={TOAST_DURATION_MS} />
 				)}
 			</GestureHandlerRootView>
 		</Modal>

@@ -1,7 +1,7 @@
 import type { CommunityMessages } from '@/i18n/types/community';
 
 export const community: CommunityMessages = {
-	title: 'Comunidad',
+	title: 'Feed',
 	me: 'Yo',
 	countryScope: {
 		world: 'Todo el mundo',
@@ -33,7 +33,6 @@ export const community: CommunityMessages = {
 		},
 	},
 	feed: {
-		title: 'Feed',
 		more: 'Más opciones',
 		timeAgo: {
 			minutes_one: 'Hace {{count}} minuto',
@@ -67,12 +66,7 @@ export const community: CommunityMessages = {
 		artCount_few: '{{count, number}} veces',
 		artCount_many: '{{count, number}} veces',
 		artCount_other: '{{count, number}} veces',
-		reaction: {
-			praise: 'Felicitar',
-			praised: 'Has felicitado',
-			celebrate: 'Celebrar',
-			celebrated: 'Has celebrado',
-		},
+		like: 'Me gusta',
 	},
 	report: {
 		action: 'Denunciar',
@@ -95,9 +89,9 @@ export const community: CommunityMessages = {
 	},
 	gate: {
 		loginTitle: 'Iniciar sesión',
-		loginDescription: 'Inicia sesión para usar la comunidad',
+		loginDescription: 'Inicia sesión para usar el feed',
 		nicknameTitle: 'Elige tu apodo',
-		nicknameDescription: 'Es el nombre que se verá en la comunidad',
+		nicknameDescription: 'Es el nombre que se verá en el feed',
 		start: 'Empezar',
 	},
 };

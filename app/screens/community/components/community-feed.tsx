@@ -2,27 +2,20 @@ import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
 
 import { usePrefetchQuery } from '@tanstack/react-query';
 
-import { getFeedReactionTypeListOptions, useGetFeedItemList } from '@/hooks/apis/feed';
+import { useGetFeedItemList } from '@/hooks/apis/feed';
 import { getLeaderboardOptions } from '@/hooks/apis/leaderboard';
 import useSoundPlayer from '@/hooks/use-sound-player';
-
-import { useTranslation } from 'react-i18next';
 
 import FeedCard, { feedCardKinds } from '@/screens/community/components/feed-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
-import { colors, font } from '@/theme';
-
-import { Copy } from '@/components/ui/copy';
+import { colors } from '@/theme';
 
 /** 순위 카드 및 피드 목록 컴포넌트 */
 const CommunityFeed = () => {
-	const { t } = useTranslation();
-
 	const country = useSelectedCountry();
 
 	usePrefetchQuery(getLeaderboardOptions({ country }));
-	usePrefetchQuery(getFeedReactionTypeListOptions());
 
 	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
 
@@ -43,14 +36,7 @@ const CommunityFeed = () => {
 			data={feedItems}
 			keyExtractor={(feedItem) => feedItem.id}
 			renderItem={({ item: feedItem }) => <FeedCard feedItem={feedItem} player={player} />}
-			ListHeaderComponent={
-				<>
-					<LeaderboardCard />
-					<Copy accessibilityRole="header" style={styles.sectionTitle}>
-						{t('community.feed.title')}
-					</Copy>
-				</>
-			}
+			ListHeaderComponent=<LeaderboardCard />
 			onEndReachedThreshold={0.4}
 			onEndReached={handleFetchNextPage}
 			ListFooterComponent={
@@ -64,7 +50,6 @@ const CommunityFeed = () => {
 
 const styles = StyleSheet.create({
 	list: { gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 },
-	sectionTitle: { marginTop: 16, marginHorizontal: 8, fontFamily: font.black, fontSize: 18, lineHeight: 24 },
 	footerLoading: { paddingTop: 8 },
 });
 

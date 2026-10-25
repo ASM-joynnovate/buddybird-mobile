@@ -19,7 +19,6 @@ export type CommunityMessages = {
 		};
 	};
 	feed: {
-		title: string;
 		more: string;
 		timeAgo: PluralMessages<'minutes'> & PluralMessages<'hours'> & PluralMessages<'days'> & { yesterday: string };
 		mimic: {
@@ -31,12 +30,7 @@ export type CommunityMessages = {
 		totalLearningTime: string;
 		monthlyLearningTime: string;
 		artHours: string;
-		reaction: {
-			praise: string;
-			praised: string;
-			celebrate: string;
-			celebrated: string;
-		};
+		like: string;
 	} & PluralMessages<'wordPlayCount'> &
 		PluralMessages<'artCount'>;
 	report: {
