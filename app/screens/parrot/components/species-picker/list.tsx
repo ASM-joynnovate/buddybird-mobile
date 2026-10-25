@@ -1,6 +1,6 @@
 import { type RefObject, useState } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +17,33 @@ import { TextButton } from '@/components/ui/text-button';
 type SpeciesFilter = 'all' | SpeciesGroup;
 
 const SPECIES_FILTERS: readonly SpeciesFilter[] = ['all', 'small', 'medium', 'large'];
+
+const speciesImages: Record<SpeciesId, number> = {
+	'african-grey': require('@assets/images/species/african-grey.webp'),
+	alexandrine: require('@assets/images/species/alexandrine.webp'),
+	amazon: require('@assets/images/species/amazon.webp'),
+	bourke: require('@assets/images/species/bourke.webp'),
+	budgie: require('@assets/images/species/budgie.webp'),
+	caique: require('@assets/images/species/caique.webp'),
+	cockatiel: require('@assets/images/species/cockatiel.webp'),
+	cockatoo: require('@assets/images/species/cockatoo.webp'),
+	conure: require('@assets/images/species/conure.webp'),
+	eclectus: require('@assets/images/species/eclectus.webp'),
+	galah: require('@assets/images/species/galah.webp'),
+	jardine: require('@assets/images/species/jardine.webp'),
+	kakariki: require('@assets/images/species/kakariki.webp'),
+	'lineolated-parakeet': require('@assets/images/species/lineolated-parakeet.webp'),
+	lory: require('@assets/images/species/lory.webp'),
+	lovebird: require('@assets/images/species/lovebird.webp'),
+	macaw: require('@assets/images/species/macaw.webp'),
+	parrotlet: require('@assets/images/species/parrotlet.webp'),
+	pionus: require('@assets/images/species/pionus.webp'),
+	quaker: require('@assets/images/species/quaker.webp'),
+	ringneck: require('@assets/images/species/ringneck.webp'),
+	senegal: require('@assets/images/species/senegal.webp'),
+	'sun-conure': require('@assets/images/species/sun-conure.webp'),
+	vasa: require('@assets/images/species/vasa.webp'),
+};
 
 export interface SpeciesItem {
 	id: SpeciesId;
@@ -95,6 +122,11 @@ const SpeciesPickerList = ({ speciesItems, species, listRef, onSelect, onScrollT
 			renderItem={(speciesItem, index) => (
 				<ItemRadio
 					isFirstInGroup={index === 0}
+					leading=<Image
+						source={speciesImages[speciesItem.id]}
+						style={styles.speciesImage}
+						accessibilityIgnoresInvertColors
+					/>
 					label={speciesItem.name}
 					value={filter === 'all' ? t(`parrot.speciesGroups.${speciesItem.group}`) : undefined}
 					highlight={keyword}
@@ -112,6 +144,7 @@ const styles = StyleSheet.create({
 	filtersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 	filter: { flexGrow: 1 },
 	searchAllContainer: { alignItems: 'flex-end' },
+	speciesImage: { width: 28, height: 28 },
 });
 
 export default SpeciesPickerList;
