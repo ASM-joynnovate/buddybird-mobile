@@ -1,6 +1,5 @@
 import { putParrotPhotoUpload, putUploadFile } from '@/apis/uploads';
 
-import type { IdempotentIdParams } from '@/types/apis/common';
 import { type Parrot, parrotSchema, type PatchParrotParams, type PostParrotParams } from '@/types/apis/parrots';
 import type { IdFileUploadParams } from '@/types/apis/uploads';
 
@@ -34,7 +33,7 @@ export const patchParrot = async ({ id, data, idempotencyKey }: PatchParrotParam
 	return parrot;
 };
 
-export const deleteParrot = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
+export const deleteParrot = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
 	await apiRequest(`/api/v1/parrots/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };
 

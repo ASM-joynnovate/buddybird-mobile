@@ -9,8 +9,6 @@ import {
 
 import { getAnnouncement, getAnnouncementList, postAnnouncementRead } from '@/apis/announcements';
 
-import type { IdParams } from '@/types/apis/common';
-
 import { apiKeys } from '@/hooks/apis/keys';
 import { announcementKeys } from '@/hooks/apis/keys/announcements';
 import { homeKeys } from '@/hooks/apis/keys/home';
@@ -38,10 +36,10 @@ export const useGetAnnouncementListQuery = () => {
 };
 
 /** 공지 상세 조회 Hook에 사용할 옵션 */
-export const getAnnouncementOptions = ({ id }: IdParams) =>
+export const getAnnouncementOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: announcementKeys.detail(id), queryFn: () => getAnnouncement({ id }) });
 /** 공지 상세 조회 Hook */
-export const useGetAnnouncement = ({ id }: IdParams) => {
+export const useGetAnnouncement = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getAnnouncementOptions({ id }));
 };
 

@@ -13,8 +13,6 @@ import {
 	postNotificationRead,
 } from '@/apis/notifications';
 
-import type { IdParams } from '@/types/apis/common';
-
 import { apiKeys } from '@/hooks/apis/keys';
 import { homeKeys } from '@/hooks/apis/keys/home';
 import { notificationKeys } from '@/hooks/apis/keys/notifications';
@@ -38,10 +36,10 @@ export const useGetNotificationList = () => {
 };
 
 /** 알림 상세 조회 Hook에 사용할 옵션 */
-export const getNotificationOptions = ({ id }: IdParams) =>
+export const getNotificationOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: notificationKeys.detail(id), queryFn: () => getNotification({ id }) });
 /** 알림 상세 조회 Hook */
-export const useGetNotification = ({ id }: IdParams) => {
+export const useGetNotification = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getNotificationOptions({ id }));
 };
 

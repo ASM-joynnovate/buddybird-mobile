@@ -18,6 +18,6 @@ export const postLogout = async (): Promise<void> => {
 	await apiRequest('/api/v1/auth/logout', z.unknown(), { method: 'POST' });
 };
 
-export const deleteWithdrawal = async (): Promise<void> => {
+export const withdrawal = async (): Promise<void> => {
 	await apiRequest('/api/v1/auth/withdrawal', z.unknown(), { method: 'DELETE' });
 };

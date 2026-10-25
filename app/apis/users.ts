@@ -1,6 +1,5 @@
 import { putUploadFile, putUserPhotoUpload } from '@/apis/uploads';
 
-import type { IdempotentIdParams } from '@/types/apis/common';
 import type { FileUploadParams } from '@/types/apis/uploads';
 import { type PatchMeParams, type User, userSchema } from '@/types/apis/users';
 
@@ -18,11 +17,17 @@ export const patchMe = async ({ data }: PatchMeParams): Promise<void> => {
 	await apiRequest('/api/v1/users/me', z.unknown(), { method: 'PATCH', json: data });
 };
 
-export const putUserBlock = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
+export const putUserBlock = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
 	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'PUT', idempotencyKey });
 };
 
-export const deleteUserBlock = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
+export const deleteUserBlock = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<void> => {
 	await apiRequest(`/api/v1/users/me/blocks/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };
 

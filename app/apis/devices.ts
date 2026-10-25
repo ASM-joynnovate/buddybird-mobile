@@ -1,4 +1,3 @@
-import type { IdempotentIdParams, IdempotentParams } from '@/types/apis/common';
 import {
 	type Device,
 	deviceSchema,
@@ -37,7 +36,7 @@ export const putPushToken = async ({ data, idempotencyKey }: PutPushTokenParams)
 	return device;
 };
 
-export const putDeviceActivity = async ({ idempotencyKey }: IdempotentParams): Promise<void> => {
+export const putDeviceActivity = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
 	await apiRequest('/api/v1/devices/me/activity', z.unknown(), { method: 'PUT', idempotencyKey });
 };
 
@@ -51,6 +50,6 @@ export const patchDevice = async ({ data, idempotencyKey }: PatchDeviceParams): 
 	return device;
 };
 
-export const deleteDevice = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<void> => {
+export const deleteDevice = async ({ id, idempotencyKey }: { id: string; idempotencyKey: string }): Promise<void> => {
 	await apiRequest(`/api/v1/devices/${id}`, z.unknown(), { method: 'DELETE', idempotencyKey });
 };

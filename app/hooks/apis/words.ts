@@ -3,8 +3,6 @@ import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery }
 import { postWordRecordingUpload, putUploadFile } from '@/apis/uploads';
 import { deleteWord, deleteWordRecording, getWord, getWordList, patchWord, postWord } from '@/apis/words';
 
-import type { IdParams } from '@/types/apis/common';
-
 import { apiKeys } from '@/hooks/apis/keys';
 import { wordKeys } from '@/hooks/apis/keys/words';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -23,15 +21,15 @@ export const useGetWordListQuery = () => {
 };
 
 /** 단어 상세 조회 Hook에 사용할 옵션 */
-export const getWordOptions = ({ id }: IdParams) =>
+export const getWordOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: wordKeys.detail(id), queryFn: () => getWord({ id }) });
 /** 단어 상세 조회 Hook */
-export const useGetWord = ({ id }: IdParams) => {
+export const useGetWord = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getWordOptions({ id }));
 };
 /** suspense 없는 단어 상세 조회 Hook */
 export const useGetWordQuery = (
-	{ id }: IdParams,
+	{ id }: { id: string },
 	options?: Pick<ReturnType<typeof getWordOptions>, 'enabled' | 'refetchInterval'>,
 ) => {
 	return useQuery({ ...getWordOptions({ id }), ...options });

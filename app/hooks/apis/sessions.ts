@@ -24,7 +24,7 @@ import {
 } from '@/apis/sessions';
 import { postSessionPetcamEventUpload, putUploadFile } from '@/apis/uploads';
 
-import { ApiError, type IdParams } from '@/types/apis/common';
+import { ApiError } from '@/types/apis/common';
 import type { SessionSoundDurationParams } from '@/types/apis/sessions';
 
 import { apiKeys } from '@/hooks/apis/keys';
@@ -51,30 +51,30 @@ export const useGetRunningSessionQuery = () => {
 };
 
 /** 세션 상세 조회 Hook에 사용할 옵션 */
-export const getSessionOptions = ({ id }: IdParams) =>
+export const getSessionOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: sessionKeys.detail(id), queryFn: () => getSession({ id }) });
 /** 세션 상세 조회 Hook */
-export const useGetSession = ({ id }: IdParams) => {
+export const useGetSession = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionOptions({ id }));
 };
 /** suspense 없는 세션 상세 조회 Hook */
 export const useGetSessionQuery = (
-	{ id }: IdParams,
+	{ id }: { id: string },
 	options?: Pick<ReturnType<typeof getSessionOptions>, 'staleTime' | 'refetchInterval'>,
 ) => {
 	return useQuery({ ...getSessionOptions({ id }), ...options });
 };
 
 /** 세션 요약 조회 Hook에 사용할 옵션 */
-export const getSessionSummaryOptions = ({ id }: IdParams) =>
+export const getSessionSummaryOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: sessionKeys.summary(id), queryFn: () => getSessionSummary({ id }) });
 /** 세션 요약 조회 Hook */
-export const useGetSessionSummary = ({ id }: IdParams) => {
+export const useGetSessionSummary = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionSummaryOptions({ id }));
 };
 
 /** 세션 소리 목록 조회 Hook에 사용할 옵션 */
-export const getSessionSoundListOptions = ({ id }: IdParams) =>
+export const getSessionSoundListOptions = ({ id }: { id: string }) =>
 	infiniteQueryOptions({
 		queryKey: sessionKeys.sounds(id),
 		queryFn: ({ pageParam }) => getSessionSoundList({ id, page: pageParam }),
@@ -82,7 +82,7 @@ export const getSessionSoundListOptions = ({ id }: IdParams) =>
 		getNextPageParam: nextPageNumber,
 	});
 /** 세션 소리 목록 조회 Hook */
-export const useGetSessionSoundList = ({ id }: IdParams) => {
+export const useGetSessionSoundList = ({ id }: { id: string }) => {
 	return useSuspenseInfiniteQuery(getSessionSoundListOptions({ id }));
 };
 
@@ -108,10 +108,10 @@ export const useGetSessionSoundDurationQuery = (
 };
 
 /** 세션 이벤트 목록 조회 Hook에 사용할 옵션 */
-export const getSessionEventListOptions = ({ id }: IdParams) =>
+export const getSessionEventListOptions = ({ id }: { id: string }) =>
 	queryOptions({ queryKey: sessionKeys.events(id), queryFn: () => getSessionEventList({ id }) });
 /** 세션 이벤트 목록 조회 Hook */
-export const useGetSessionEventList = ({ id }: IdParams) => {
+export const useGetSessionEventList = ({ id }: { id: string }) => {
 	return useSuspenseQuery(getSessionEventListOptions({ id }));
 };
 

@@ -97,19 +97,6 @@ export interface Page<T> {
 	meta: PageMeta;
 }
 
-export interface IdParams {
-	id: string;
-}
-
-export interface IdempotentParams {
-	idempotencyKey: string;
-}
-
-export interface IdempotentIdParams {
-	id: string;
-	idempotencyKey: string;
-}
-
 export interface PageParams {
 	page: number;
 }

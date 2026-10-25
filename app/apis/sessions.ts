@@ -1,13 +1,6 @@
 import { postSessionPetcamVideoUpload, postSessionSoundUpload, putUploadFile } from '@/apis/uploads';
 
-import {
-	type IdempotentIdParams,
-	type IdempotentParams,
-	type IdParams,
-	type Page,
-	pageMetaSchema,
-	type PageParams,
-} from '@/types/apis/common';
+import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common';
 import {
 	type GetSessionSoundDurationParams,
 	type GetSessionSoundListParams,
@@ -49,13 +42,13 @@ export const getRunningSession = async (): Promise<Session | null> => {
 	return sessions.find((session) => session.status === 'running') ?? null;
 };
 
-export const getSession = async ({ id }: IdParams): Promise<Session> => {
+export const getSession = async ({ id }: { id: string }): Promise<Session> => {
 	const { data: session } = await apiRequest(`/api/v1/sessions/${id}`, sessionSchema);
 
 	return session;
 };
 
-export const getSessionSummary = async ({ id }: IdParams): Promise<SessionSummary> => {
+export const getSessionSummary = async ({ id }: { id: string }): Promise<SessionSummary> => {
 	const { data: sessionSummary } = await apiRequest(`/api/v1/sessions/${id}/summary`, sessionSummarySchema);
 
 	return sessionSummary;
@@ -71,7 +64,13 @@ export const postSession = async ({ data, idempotencyKey }: PostSessionParams): 
 	return session;
 };
 
-export const postSessionFinish = async ({ id, idempotencyKey }: IdempotentIdParams): Promise<Session> => {
+export const postSessionFinish = async ({
+	id,
+	idempotencyKey,
+}: {
+	id: string;
+	idempotencyKey: string;
+}): Promise<Session> => {
 	const { data: session } = await apiRequest(`/api/v1/sessions/${id}/finish`, sessionSchema, {
 		method: 'POST',
 		idempotencyKey,
@@ -80,7 +79,7 @@ export const postSessionFinish = async ({ id, idempotencyKey }: IdempotentIdPara
 	return session;
 };
 
-export const postRunningSessionFinish = async ({ idempotencyKey }: IdempotentParams): Promise<void> => {
+export const postRunningSessionFinish = async ({ idempotencyKey }: { idempotencyKey: string }): Promise<void> => {
 	const runningSession = await getRunningSession();
 
 	if (runningSession) {
@@ -114,7 +113,7 @@ export const getSessionSoundList = async ({ id, page }: GetSessionSoundListParam
 	return { data, meta: pageMetaSchema.parse(meta) };
 };
 
-export const getSessionEventList = async ({ id }: IdParams): Promise<SessionEvent[]> => {
+export const getSessionEventList = async ({ id }: { id: string }): Promise<SessionEvent[]> => {
 	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionEventListSchema, {
 		searchParams: { petcam: true, distress_call: true },
 	});

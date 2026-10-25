@@ -5,7 +5,6 @@ import { StatusBar, StyleSheet, View } from 'react-native';
 import { useIsMutating } from '@tanstack/react-query';
 
 import { ApiError } from '@/types/apis/common';
-import type { IdParams } from '@/types/apis/common';
 import type { Parrot } from '@/types/apis/parrots';
 
 import type { ParrotPhotoFlightParts } from '@/types/parrot-photo-flight';
@@ -109,7 +108,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 	const parrotPhotoUploading =
 		useIsMutating({
 			mutationKey: apiKeys.mutation('parrots', 'photo', 'upload'),
-			predicate: (mutation) => (mutation.state.variables as IdParams).id === parrot?.id,
+			predicate: (mutation) => (mutation.state.variables as { id: string }).id === parrot?.id,
 		}) > 0;
 
 	const savedPhotoUrl = parrot?.photo_file?.url ?? null;

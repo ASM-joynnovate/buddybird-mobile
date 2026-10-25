@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { postLogin, postLogout, deleteWithdrawal } from '@/apis/auth';
+import { postLogin, postLogout, withdrawal } from '@/apis/auth';
 
 import { apiKeys } from '@/hooks/apis/keys';
 
@@ -30,7 +30,7 @@ export const useLogout = () => {
 export const useWithdraw = () => {
 	return useMutation({
 		mutationKey: apiKeys.mutation('auth', 'withdraw'),
-		mutationFn: deleteWithdrawal,
+		mutationFn: withdrawal,
 		onSuccess: () => signOutLocally().catch((error: unknown) => reportError(error, 'withdraw')),
 		onError: (error) => reportError(error, 'withdraw'),
 	});
