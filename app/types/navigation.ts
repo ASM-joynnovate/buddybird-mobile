@@ -76,6 +76,8 @@ export type RootStackParamList = {
 	SessionWatch: { sessionId: string; source?: 'notification' };
 	RecordingGuide: undefined;
 	Settings: undefined;
+	LanguageCountrySettings: undefined;
+	PrivacySettings: undefined;
 	ConsentSettings: undefined;
 	Devices: undefined;
 	NotificationSettings: undefined;

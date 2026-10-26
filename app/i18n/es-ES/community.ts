@@ -3,6 +3,11 @@ import type { CommunityMessages } from '@/i18n/types/community';
 export const community: CommunityMessages = {
 	title: 'Feed',
 	me: 'Yo',
+	feedConsent: {
+		title: '¿Mostrar tu actividad en el feed?',
+		message: 'Los demás verán tu entrenamiento y los sonidos imitados.',
+		confirm: 'Mostrar',
+	},
 	countryScope: {
 		world: 'Todo el mundo',
 		mine: 'Mi país',

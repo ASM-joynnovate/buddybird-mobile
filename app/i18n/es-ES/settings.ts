@@ -9,6 +9,8 @@ export const settings: SettingsMessages = {
 		permissionOff: 'El permiso de notificaciones está desactivado, así que no recibirás ninguna',
 	},
 	general: {
+		title: 'General',
+		languageAndCountry: 'Idioma y país',
 		language: 'Idioma de la app',
 		korean: '한국어',
 		english: 'English',
@@ -22,6 +24,14 @@ export const settings: SettingsMessages = {
 		countryNotFound: 'Ningún país coincide con «{{query}}»',
 		devices: 'Dispositivos conectados',
 	},
+	privacy: {
+		title: 'Privacidad',
+		feed: 'Mostrar en el feed',
+		feedDetail: 'Los demás verán tu entrenamiento y los sonidos imitados',
+		leaderboard: 'Participar en el ranking',
+		leaderboardDetail: 'Los demás verán tu apodo, tu foto y tu tiempo de entrenamiento',
+		consents: 'Condiciones y consentimientos',
+	},
 	account: {
 		signOut: 'Cerrar sesión',
 		withdraw: 'Eliminar cuenta',
@@ -29,7 +39,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: 'Ayuda',
 		feedback: 'Enviar comentarios',
-		consents: 'Condiciones y consentimientos',
 		version: 'Versión de la app {{version}}',
 	},
 	signOutDialog: {

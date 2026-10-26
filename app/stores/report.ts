@@ -7,6 +7,7 @@ import { latestStart, shiftedStart } from '@/utils/report-period';
 type ReportState = {
 	period: ReportPeriod;
 	start: string | null;
+	pendingFeedShareSoundId: string | null;
 };
 
 type ReportActions = {
@@ -14,15 +15,17 @@ type ReportActions = {
 	movePeriod: (step: number) => void;
 	moveToLatestPeriod: () => void;
 	resetPeriod: () => void;
+	setPendingFeedShareSoundId: (pendingFeedShareSoundId: string | null) => void;
 };
 
 type ReportStore = ReportState & ReportActions;
 
 /** 리포트 기간 초기값 */
-const initReportStore = (): ReportState => ({ period: 'month', start: null });
+const initReportStore = (): Pick<ReportState, 'period' | 'start'> => ({ period: 'month', start: null });
 
 export const useReportStore = create<ReportStore>()((set, get) => ({
 	...initReportStore(),
+	pendingFeedShareSoundId: null,
 
 	/** 기간 단위 선택 */
 	selectPeriod: (period) => {
@@ -50,5 +53,10 @@ export const useReportStore = create<ReportStore>()((set, get) => ({
 	/** 리포트 기간 초기화 */
 	resetPeriod: () => {
 		set((state) => ({ ...state, ...initReportStore() }));
+	},
+
+	/** 피드 공유를 기다리는 소리 변경 */
+	setPendingFeedShareSoundId: (pendingFeedShareSoundId) => {
+		set((state) => ({ ...state, pendingFeedShareSoundId }));
 	},
 }));

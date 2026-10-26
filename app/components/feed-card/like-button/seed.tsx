@@ -6,9 +6,10 @@ import * as Haptics from 'expo-haptics';
 import { Easing, useReducedMotion, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import FeedCardLikeButtonHull from '@/screens/community/components/feed-card/like-button/hull';
-import FeedCardLikeButtonSeedLayers from '@/screens/community/components/feed-card/like-button/seed-layers';
 import { burstEasing } from '@/theme';
+
+import FeedCardLikeButtonHull from '@/components/feed-card/like-button/hull';
+import FeedCardLikeButtonSeedLayers from '@/components/feed-card/like-button/seed-layers';
 
 const LIKE_MS = 1170;
 const CRACK_AT_MS = 200;

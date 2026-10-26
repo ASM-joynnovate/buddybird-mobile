@@ -8,9 +8,10 @@ import { formatDuration, formatMonth, formatWholeHours } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 
-import FeedCardCalendarArt from '@/screens/community/components/feed-card/calendar-art';
-import FeedCardMilestoneBody, { milestoneStyles } from '@/screens/community/components/feed-card/milestone-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+
+import FeedCardCalendarArt from '@/components/feed-card/calendar-art';
+import FeedCardMilestoneBody, { milestoneStyles } from '@/components/feed-card/milestone-body';
 
 interface Props {
 	feedItem: FeedItem;

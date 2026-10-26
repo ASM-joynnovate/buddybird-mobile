@@ -10,23 +10,25 @@ import { apiErrorMessage } from '@/lib/api';
 
 import { toast } from 'sonner-native';
 
-import FeedCardLikeButtonCount from '@/screens/community/components/feed-card/like-button/count';
-import FeedCardLikeButtonSeed from '@/screens/community/components/feed-card/like-button/seed';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { joinLabel } from '@/utils/a11y';
 
+import FeedCardLikeButtonCount from '@/components/feed-card/like-button/count';
+import FeedCardLikeButtonSeed from '@/components/feed-card/like-button/seed';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { Toast } from '@/components/ui/toast';
 
 interface Props {
 	feedItem: FeedItem;
+	disabled: boolean;
 }
 
 /**
  * 좋아요 버튼 및 좋아요 수 컴포넌트
  * @param feedItem 피드 항목
+ * @param disabled 비활성 여부
  */
-const FeedCardLikeButton = ({ feedItem }: Props) => {
+const FeedCardLikeButton = ({ feedItem, disabled }: Props) => {
 	const { t } = useTranslation();
 
 	const likeFeedItem = useLikeFeedItem();
@@ -58,6 +60,7 @@ const FeedCardLikeButton = ({ feedItem }: Props) => {
 		<PressableSurface
 			accessibilityLabel={joinLabel(t('community.feed.like'), likeCountText)}
 			accessibilityState={{ selected: feedItem.is_liked, busy: likePending }}
+			disabled={disabled}
 			onPress={handleToggleLike}
 			variant="neutral"
 			depth="medium"

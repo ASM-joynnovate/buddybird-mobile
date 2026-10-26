@@ -5,6 +5,7 @@ import {
 	feedMetaSchema,
 	type FeedPage,
 	type GetFeedItemListParams,
+	type PostFeedItemParams,
 } from '@/types/apis/feed';
 
 import { apiRequest } from '@/lib/api';
@@ -17,6 +18,10 @@ export const getFeedItemList = async ({ cursor, country }: GetFeedItemListParams
 	});
 
 	return { data, meta: feedMetaSchema.parse(meta) };
+};
+
+export const postFeedItem = async ({ data, idempotencyKey }: PostFeedItemParams): Promise<void> => {
+	await apiRequest('/api/v1/feed', z.unknown(), { method: 'POST', json: data, idempotencyKey });
 };
 
 export const putFeedItemLike = async ({

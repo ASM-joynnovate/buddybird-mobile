@@ -12,7 +12,7 @@ import { sessionDetailColors } from '@/theme/session-detail-colors';
 import SessionLogKindIcon from '@/components/session/session-log-kind-icon';
 import { Copy } from '@/components/ui/copy';
 
-export const LOG_ITEM_LINES_INSET = 48;
+const LOG_ITEM_LINES_INSET = 48;
 
 export const logItemMediaTypes: Record<LogItemKind, 'audio' | 'video' | 'image'> = {
 	parrot: 'audio',

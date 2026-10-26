@@ -7,6 +7,8 @@ export type SettingsMessages = {
 		permissionOff: string;
 	};
 	general: {
+		title: string;
+		languageAndCountry: string;
 		language: string;
 		korean: string;
 		english: string;
@@ -20,6 +22,14 @@ export type SettingsMessages = {
 		countryNotFound: string;
 		devices: string;
 	};
+	privacy: {
+		title: string;
+		feed: string;
+		feedDetail: string;
+		leaderboard: string;
+		leaderboardDetail: string;
+		consents: string;
+	};
 	account: {
 		signOut: string;
 		withdraw: string;
@@ -27,7 +37,6 @@ export type SettingsMessages = {
 	support: {
 		title: string;
 		feedback: string;
-		consents: string;
 		version: string;
 	};
 	signOutDialog: {

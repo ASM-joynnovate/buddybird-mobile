@@ -3,6 +3,11 @@ import type { CommunityMessages } from '@/i18n/types/community';
 export const community: CommunityMessages = {
 	title: 'Лента',
 	me: 'Я',
+	feedConsent: {
+		title: 'Показывать тебя в ленте?',
+		message: 'Другие увидят твои занятия и звуки, которые повторяет попугай.',
+		confirm: 'Показывать',
+	},
 	countryScope: {
 		world: 'Весь мир',
 		mine: 'Моя страна',

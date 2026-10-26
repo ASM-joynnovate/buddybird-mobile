@@ -6,9 +6,10 @@ import { Trans } from 'react-i18next';
 
 import { formatDuration, formatWholeHours } from '@/i18n/format';
 
-import FeedCardMedalArt from '@/screens/community/components/feed-card/medal-art';
-import FeedCardMilestoneBody, { milestoneStyles } from '@/screens/community/components/feed-card/milestone-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
+
+import FeedCardMedalArt from '@/components/feed-card/medal-art';
+import FeedCardMilestoneBody, { milestoneStyles } from '@/components/feed-card/milestone-body';
 
 interface Props {
 	feedItem: FeedItem;

@@ -60,6 +60,8 @@ export const heartbeatSchema = z.object({
 
 const scoreSchema = z.number().min(0).max(1);
 
+const sessionUserReviewSchema = z.object({ is_correct: z.boolean() });
+
 export const sessionSoundSchema = z.object({
 	id: uuidSchema,
 	session_id: uuidSchema,
@@ -68,6 +70,8 @@ export const sessionSoundSchema = z.object({
 	duration_ms: z.number().int().nonnegative().nullish(),
 	analysis: z.object({ score: scoreSchema }).nullish(),
 	judgment: z.object({ word_id: uuidSchema.nullable(), score: scoreSchema.nullish() }).nullable(),
+	user_review: sessionUserReviewSchema.nullish(),
+	is_feed_shared: z.boolean().default(false),
 });
 
 const sessionEventKindSchema = z.enum([
@@ -95,6 +99,7 @@ export const sessionEventSchema = z.object({
 	sound_ids: z.array(uuidSchema),
 	image: sessionEventFileSchema.nullable(),
 	video: sessionEventFileSchema.nullable(),
+	user_review: sessionUserReviewSchema.nullish(),
 });
 
 export const sessionEventListSchema = z
@@ -119,6 +124,7 @@ export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatLearningSegment = HeartbeatRequest['learning_segments'][number];
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 export type SessionSound = z.infer<typeof sessionSoundSchema>;
+export type SessionUserReview = z.infer<typeof sessionUserReviewSchema>;
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
 export type SessionEventFile = z.infer<typeof sessionEventFileSchema>;
 export type PetcamEventKind = z.infer<typeof petcamEventKindSchema>;
@@ -152,6 +158,32 @@ export interface PostSessionHeartbeatParams {
 export interface GetSessionSoundListParams {
 	id: string;
 	page: number;
+}
+
+export interface PutSessionSoundUserReviewParams {
+	id: string;
+	soundId: string;
+	data: SessionUserReview;
+	idempotencyKey: string;
+}
+
+export interface DeleteSessionSoundUserReviewParams {
+	id: string;
+	soundId: string;
+	idempotencyKey: string;
+}
+
+export interface PutSessionEventUserReviewParams {
+	id: string;
+	eventId: string;
+	data: SessionUserReview;
+	idempotencyKey: string;
+}
+
+export interface DeleteSessionEventUserReviewParams {
+	id: string;
+	eventId: string;
+	idempotencyKey: string;
 }
 
 export interface GetSessionSoundDurationParams {

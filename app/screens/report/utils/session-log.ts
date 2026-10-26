@@ -1,4 +1,4 @@
-import type { SessionEvent, SessionEventFile, SessionSound } from '@/types/apis/sessions';
+import type { SessionEvent, SessionEventFile, SessionSound, SessionUserReview } from '@/types/apis/sessions';
 
 import type { LogItemKind } from '@/types/session-log';
 import { CLOCK_FORMAT, type SleepSettings } from '@/types/sleep-settings';
@@ -21,6 +21,7 @@ export interface LogItem {
 	score: number | null;
 	durationMs: number | null;
 	file: SessionEventFile | null;
+	userReview: SessionUserReview | null;
 }
 
 export interface LogRow extends TimeSpan {
@@ -100,8 +101,9 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 	const distressCallEvents = events.filter((event) => event.kind === 'distress_call_detected');
 	const distressCallSoundIds = new Set(distressCallEvents.flatMap((event) => event.sound_ids));
 
+	// 신경질적 짹짹에 묶인 모사는 모사 항목으로도 표시
 	const soundItems = sounds
-		.filter((sound) => !distressCallSoundIds.has(sound.id))
+		.filter((sound) => Boolean(sound.judgment?.word_id) || !distressCallSoundIds.has(sound.id))
 		.map((sound): LogItem => {
 			const soundMimicked = Boolean(sound.judgment?.word_id);
 
@@ -114,6 +116,7 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 				score: (soundMimicked ? sound.judgment?.score : sound.analysis?.score) ?? null,
 				durationMs: sound.duration_ms ?? null,
 				file: null,
+				userReview: sound.user_review ?? null,
 			};
 		});
 	const distressCallItems = distressCallEvents.map((event): LogItem => ({
@@ -125,6 +128,7 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 		score: null,
 		durationMs: event.ended_at ? dayjs(event.ended_at).diff(event.occurred_at) : null,
 		file: null,
+		userReview: event.user_review ?? null,
 	}));
 	const petcamItems = events
 		.filter((event) => event.kind === 'parrot_disappeared' || event.kind === 'parrot_appeared')
@@ -140,6 +144,7 @@ export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
 				score: null,
 				durationMs: null,
 				file: parrotDisappeared ? event.video : event.image,
+				userReview: event.user_review ?? null,
 			};
 		});
 

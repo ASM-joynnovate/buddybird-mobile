@@ -98,7 +98,13 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 				{step === 'sound' && (
 					<>
 						<UsageSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
-						<UsageSceneSessionPreviewItem kind="mimic" name={wordName} value={mimicScore} time="15:36:12">
+						<UsageSceneSessionPreviewItem
+							kind="mimic"
+							name={wordName}
+							value={mimicScore}
+							time="15:36:12"
+							feedShareShown
+						>
 							<View style={styles.player}>
 								<SessionLogSoundTrack
 									accent={colors.orange}

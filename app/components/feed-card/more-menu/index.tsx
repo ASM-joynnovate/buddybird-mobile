@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 
 import { BanIcon, EllipsisIcon, FlagIcon } from 'lucide-react-native';
 
-import { ArrowPopover } from '@/screens/community/components/arrow-popover';
-import FeedCardMoreMenuItem from '@/screens/community/components/feed-card/more-menu/item';
 import { useCommunityStore } from '@/stores/community';
 
+import { ArrowPopover } from '@/components/arrow-popover';
+import FeedCardMoreMenuItem from '@/components/feed-card/more-menu/item';
 import { IconButton } from '@/components/ui/icon-button';
 
 const MENU_WIDTH = 168;

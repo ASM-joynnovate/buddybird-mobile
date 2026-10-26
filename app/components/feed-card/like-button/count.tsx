@@ -15,7 +15,7 @@ const LIKE_ROLL_DELAY_MS = 560;
 
 /**
  * 새 숫자가 들어오는 애니메이션
- * @param direction 위로 넘기면 1, 아래로 넘기면 -1
+ * @param direction 숫자 이동 방향
  * @param delay 시작 지연 시간
  */
 const rollIn = (direction: number, delay: number) => {
@@ -29,7 +29,7 @@ const rollIn = (direction: number, delay: number) => {
 
 /**
  * 이전 숫자가 나가는 애니메이션
- * @param direction 위로 넘기면 1, 아래로 넘기면 -1
+ * @param direction 숫자 이동 방향
  * @param delay 시작 지연 시간
  */
 const rollOut = (direction: number, delay: number) => {

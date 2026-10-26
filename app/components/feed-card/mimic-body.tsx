@@ -10,6 +10,7 @@ import { LockIcon } from 'lucide-react-native';
 
 import { colors, font, radius } from '@/theme';
 
+import MascotArtwork from '@/components/mascot/artwork';
 import { Copy } from '@/components/ui/copy';
 import { PlayButton } from '@/components/ui/play-button';
 
@@ -78,12 +79,16 @@ const FeedCardMimicBody = ({ feedItem, player }: Props) => {
 				<View style={styles.tail} />
 			</View>
 
-			{/*첫 번째 앵무새 사진*/}
-			<View style={styles.photoCircle}>
-				{!!parrotPhotoUrl && (
+			{/*첫 번째 앵무새 사진, 없으면 마스코트*/}
+			{parrotPhotoUrl ? (
+				<View style={styles.photoCircle}>
 					<Image source={{ uri: parrotPhotoUrl }} style={styles.photo} accessibilityIgnoresInvertColors />
-				)}
-			</View>
+				</View>
+			) : (
+				<View style={styles.mascot}>
+					<MascotArtwork />
+				</View>
+			)}
 		</View>
 	);
 };
@@ -135,6 +140,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 	},
 	photo: { width: '100%', height: '100%' },
+	mascot: { width: 88, height: 88 },
 });
 
 export default FeedCardMimicBody;

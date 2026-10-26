@@ -11,7 +11,7 @@ import { BlurTargetView } from 'expo-blur';
 
 import BlockDialog from '@/screens/community/components/block-dialog';
 import CommunityFeed from '@/screens/community/components/community-feed';
-import CommunityGate from '@/screens/community/components/community-gate';
+import CommunityFeedConsent from '@/screens/community/components/community-feed-consent';
 import CountryScopeChips from '@/screens/community/components/country-scope-chips';
 import ReportDialog from '@/screens/community/components/report-dialog';
 import { useAuthStore } from '@/stores/auth';
@@ -19,6 +19,7 @@ import { useCommunityStore } from '@/stores/community';
 import { colors } from '@/theme';
 
 import BuddyRefreshHint from '@/components/buddy-refresh/hint';
+import CommunityGate from '@/components/community-gate';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { ScreenError } from '@/components/ui/screen-error';
 import { Title } from '@/components/ui/title';
@@ -59,6 +60,7 @@ const CommunityContent = () => {
 
 			{/*익명 및 닉네임 없는 사용자의 입장 팝업*/}
 			{gateShown && <CommunityGate blurTarget={blurTargetRef} />}
+			{!gateShown && <CommunityFeedConsent />}
 
 			{reportTarget && <ReportDialog reportTarget={reportTarget} />}
 			{blockTarget && <BlockDialog blockTarget={blockTarget} />}

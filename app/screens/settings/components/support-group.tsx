@@ -1,10 +1,6 @@
-import type { RootStackParamList } from '@/types/navigation';
-
 import { useTranslation } from 'react-i18next';
 
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BookOpenIcon, SendIcon } from 'lucide-react-native';
+import { SendIcon } from 'lucide-react-native';
 
 import { useFeedbackStore } from '@/stores/feedback';
 
@@ -15,8 +11,6 @@ import { ItemGroup } from '@/components/ui/item/group';
 const SupportGroup = () => {
 	const { t } = useTranslation();
 
-	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
 	const openFeedback = useFeedbackStore((state) => state.openFeedback);
 
 	return (
@@ -26,11 +20,6 @@ const SupportGroup = () => {
 				icon={SendIcon}
 				label={t('settings.support.feedback')}
 				onPress={() => openFeedback('profile')}
-			/>
-			<Item
-				icon={BookOpenIcon}
-				label={t('settings.support.consents')}
-				onPress={() => navigation.navigate('ConsentSettings')}
 			/>
 		</ItemGroup>
 	);
