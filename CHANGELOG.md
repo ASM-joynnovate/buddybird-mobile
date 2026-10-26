@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.18.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.17.0...v2.18.0) (2026-10-26)
+
+
+### Features
+
+* **app:** add judgment reviews and feed sharing to session details ([#302](https://github.com/ASM-joynnovate/buddybird-mobile/issues/302)) ([f785cc2](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f785cc230a65bfed055e138699fa55ed2f123baa))
+
+
+### Bug Fixes
+
+* **app:** keep the usage and recording guides in portrait ([#304](https://github.com/ASM-joynnovate/buddybird-mobile/issues/304)) ([b2ef0a2](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b2ef0a26efc8fbc23f611f55d0da9def183ed2d1))
+
 ## [2.17.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.16.0...v2.17.0) (2026-10-25)
 
 
