@@ -327,11 +327,7 @@ const AppNavigator = () => {
 								options={{ animation: 'fade', orientation: 'default' }}
 							/>
 
-							<RootStack.Screen
-								name="RecordingGuide"
-								component={RecordingGuideScreen}
-								options={{ orientation: 'default' }}
-							/>
+							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
 
 							<RootStack.Screen name="Settings" component={SettingsScreen} />
 							<RootStack.Screen

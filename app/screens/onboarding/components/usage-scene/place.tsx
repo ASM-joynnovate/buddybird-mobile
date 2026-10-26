@@ -8,14 +8,13 @@ import { PlugIcon, TabletIcon } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Svg, { Line } from 'react-native-svg';
 
-import { colors, radius } from '@/theme';
-
 import UsageSceneCoverPhoto, {
 	getCoverLayout,
 	toScenePoint,
-} from '@/components/app/usage-guide/usage-scene/cover-photo';
-import UsageScenePhotoPin from '@/components/app/usage-guide/usage-scene/photo-pin';
-import UsageScenePhotoTag, { PHOTO_TAG_HEIGHT } from '@/components/app/usage-guide/usage-scene/photo-tag';
+} from '@/screens/onboarding/components/usage-scene/cover-photo';
+import UsageScenePhotoPin from '@/screens/onboarding/components/usage-scene/photo-pin';
+import UsageScenePhotoTag, { PHOTO_TAG_HEIGHT } from '@/screens/onboarding/components/usage-scene/photo-tag';
+import { colors, radius } from '@/theme';
 
 const photo: number = require('@assets/images/usage-guide/place.jpg');
 

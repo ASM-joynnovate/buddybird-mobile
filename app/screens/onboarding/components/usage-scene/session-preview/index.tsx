@@ -9,11 +9,11 @@ import { formatHour, formatMonthDayLongWeekday, formatMonthDayTime } from '@/i18
 import { CalendarIcon, ChevronLeftIcon, PlayIcon } from 'lucide-react-native';
 
 import { HOUR, MINUTE } from '@/config/units';
+import UsageSceneSessionPreviewItem from '@/screens/onboarding/components/usage-scene/session-preview/item';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 import { sessionDetailColors } from '@/theme/session-detail-colors';
 
-import UsageSceneSessionPreviewItem from '@/components/app/usage-guide/usage-scene/session-preview/item';
 import DashedLine from '@/components/dashed-line';
 import SessionLogSoundTrack from '@/components/session/session-log-sound-track';
 import SessionOverview from '@/components/session/session-overview';

@@ -19,6 +19,10 @@ export interface SessionSetup {
 	sleepChanged: boolean;
 }
 
+export type UsageGuideStackParamList = {
+	UsageGuide: undefined;
+};
+
 export type HomeStackParamList = {
 	Home: undefined;
 	Notifications: undefined;

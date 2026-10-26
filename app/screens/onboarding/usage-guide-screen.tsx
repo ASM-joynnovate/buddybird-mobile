@@ -8,12 +8,12 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import UsageScene from '@/screens/onboarding/components/usage-scene';
 import { initializeTelemetry, reportError } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
-import UsageScene from '@/components/app/usage-guide/usage-scene';
 import GuideBackground from '@/components/guide-background';
 import GuideSheetAccessory from '@/components/guide-sheet-accessory';
 import SceneSheet from '@/components/scene-sheet';
