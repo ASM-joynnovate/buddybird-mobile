@@ -65,11 +65,19 @@ export type ReportMessages = {
 		timeRange: string;
 		timeFrom: string;
 		share: string;
-		shareButton: string;
 		percent: string;
 		filePending: string;
 		fileRejected: string;
 		shareError: string;
+		reviewWrong: string;
+		reviewCorrect: string;
+		shareToFeed: string;
+		sharedToFeed: string;
+		feedShareSucceeded: string;
+		goToFeed: string;
+		feedShareConfirmTitle: string;
+		feedShareConfirmMessage: string;
 	} & PluralMessages<'mimicCountValue'> &
-		PluralMessages<'emergencyCountValue'>;
+		PluralMessages<'emergencyCountValue'> &
+		PluralMessages<'feedShareConfirmMessageWithOthers'>;
 };

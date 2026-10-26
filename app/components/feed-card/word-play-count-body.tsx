@@ -4,8 +4,8 @@ import type { FeedItem } from '@/types/apis/feed';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import FeedCardMilestoneBody, { milestoneStyles } from '@/screens/community/components/feed-card/milestone-body';
-import FeedCardSpeakerArt from '@/screens/community/components/feed-card/speaker-art';
+import FeedCardMilestoneBody, { milestoneStyles } from '@/components/feed-card/milestone-body';
+import FeedCardSpeakerArt from '@/components/feed-card/speaker-art';
 
 interface Props {
 	feedItem: FeedItem;

@@ -9,6 +9,8 @@ export const settings: SettingsMessages = {
 		permissionOff: '알림 권한이 꺼져 있어 알림을 받을 수 없어요',
 	},
 	general: {
+		title: '일반',
+		languageAndCountry: '언어 및 국가',
 		language: '앱 언어',
 		korean: '한국어',
 		english: 'English',
@@ -22,6 +24,14 @@ export const settings: SettingsMessages = {
 		countryNotFound: '‘{{query}}’에 맞는 국가가 없어요',
 		devices: '연결된 기기',
 	},
+	privacy: {
+		title: '개인정보 설정',
+		feed: '피드 공개',
+		feedDetail: '학습 기록과 따라 한 소리가 다른 사람에게 보여요',
+		leaderboard: '리더보드 참여',
+		leaderboardDetail: '닉네임, 사진, 학습 시간이 다른 사람에게 보여요',
+		consents: '약관 동의',
+	},
 	account: {
 		signOut: '로그아웃',
 		withdraw: '회원 탈퇴',
@@ -29,7 +39,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: '지원',
 		feedback: '피드백 보내기',
-		consents: '약관 동의',
 		version: '앱 버전 {{version}}',
 	},
 	signOutDialog: {

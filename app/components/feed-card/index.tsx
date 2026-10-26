@@ -12,26 +12,30 @@ import { useTranslation } from 'react-i18next';
 
 import { formatTimeAgo } from '@/i18n/format';
 
-import FeedCardLikeButton from '@/screens/community/components/feed-card/like-button';
-import FeedCardMimicBody from '@/screens/community/components/feed-card/mimic-body';
-import FeedCardMonthlyLearningTimeBody from '@/screens/community/components/feed-card/monthly-learning-time-body';
-import FeedCardMoreMenu from '@/screens/community/components/feed-card/more-menu';
-import FeedCardTotalLearningTimeBody from '@/screens/community/components/feed-card/total-learning-time-body';
-import FeedCardWordPlayCountBody from '@/screens/community/components/feed-card/word-play-count-body';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 
+import FeedCardLikeButton from '@/components/feed-card/like-button';
+import FeedCardMimicBody from '@/components/feed-card/mimic-body';
+import FeedCardMonthlyLearningTimeBody from '@/components/feed-card/monthly-learning-time-body';
+import FeedCardMoreMenu from '@/components/feed-card/more-menu';
+import FeedCardTotalLearningTimeBody from '@/components/feed-card/total-learning-time-body';
+import FeedCardWordPlayCountBody from '@/components/feed-card/word-play-count-body';
 import MascotArtwork from '@/components/mascot/artwork';
 import { Avatar } from '@/components/ui/avatar';
 import { Copy } from '@/components/ui/copy';
 import { Flag } from '@/components/ui/flag';
 
-interface Props {
+interface KindBodyProps {
 	feedItem: FeedItem;
 	player: SoundPlayer;
 }
 
-export const feedCardKinds: Record<string, ComponentType<Props>> = {
+interface Props extends KindBodyProps {
+	likeDisabled?: boolean;
+}
+
+export const feedCardKinds: Record<string, ComponentType<KindBodyProps>> = {
 	mimic_succeeded: FeedCardMimicBody,
 	total_learning_time_reached: FeedCardTotalLearningTimeBody,
 	monthly_learning_time_reached: FeedCardMonthlyLearningTimeBody,
@@ -42,8 +46,9 @@ export const feedCardKinds: Record<string, ComponentType<Props>> = {
  * 피드 항목 하나를 표시하는 카드 컴포넌트
  * @param feedItem 피드 항목
  * @param player useSoundPlayer 결과
+ * @param likeDisabled 좋아요 버튼 비활성 여부
  */
-const FeedCard = ({ feedItem, player }: Props) => {
+const FeedCard = ({ feedItem, player, likeDisabled = false }: Props) => {
 	const { t } = useTranslation();
 
 	const { data: meData } = useGetMe();
@@ -56,7 +61,14 @@ const FeedCard = ({ feedItem, player }: Props) => {
 	return (
 		<View style={styles.card}>
 			<View style={styles.authorRow}>
-				<Avatar uri={feedItem.user.photo_file?.url} placeholder=<MascotArtwork /> size="small" />
+				{/*프로필 사진, 없으면 배경 없는 마스코트*/}
+				{feedItem.user.photo_file ? (
+					<Avatar uri={feedItem.user.photo_file.url} placeholder={null} size="small" />
+				) : (
+					<View style={styles.mascot}>
+						<MascotArtwork />
+					</View>
+				)}
 
 				<View style={styles.textContainer}>
 					<View style={styles.nameRow}>
@@ -75,7 +87,7 @@ const FeedCard = ({ feedItem, player }: Props) => {
 			<KindBody feedItem={feedItem} player={player} />
 
 			<View style={styles.likeRow}>
-				<FeedCardLikeButton feedItem={feedItem} />
+				<FeedCardLikeButton feedItem={feedItem} disabled={likeDisabled} />
 			</View>
 		</View>
 	);
@@ -93,6 +105,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 	},
 	authorRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+	mascot: { width: 40, height: 40 },
 	textContainer: { flex: 1, minWidth: 0 },
 	nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
 	nickname: { flexShrink: 1, fontFamily: font.black, fontSize: 15, lineHeight: 20 },

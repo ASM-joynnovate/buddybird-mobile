@@ -9,8 +9,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useReducedMotion } from 'react-native-reanimated';
 
-import UsageScenePlace from '@/components/app/usage-guide/usage-scene/place';
-import UsageSceneRecord from '@/components/app/usage-guide/usage-scene/record';
+import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
+import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
+
 import GuideScenePhoneFrame from '@/components/guide-scene/phone-frame';
 import GuideSceneSessionPreview from '@/components/guide-scene/session-preview';
 

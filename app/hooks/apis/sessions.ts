@@ -1,5 +1,7 @@
 import {
+	type InfiniteData,
 	infiniteQueryOptions,
+	type QueryClient,
 	queryOptions,
 	useMutation,
 	useQuery,
@@ -9,6 +11,8 @@ import {
 } from '@tanstack/react-query';
 
 import {
+	deleteSessionEventUserReview,
+	deleteSessionSoundUserReview,
 	getRunningSession,
 	getSession,
 	getSessionEventList,
@@ -21,11 +25,13 @@ import {
 	postSessionHeartbeat,
 	postSessionPetcamVideo,
 	postSessionSound,
+	putSessionEventUserReview,
+	putSessionSoundUserReview,
 } from '@/apis/sessions';
 import { postSessionPetcamEventUpload, putUploadFile } from '@/apis/uploads';
 
-import { ApiError } from '@/types/apis/common';
-import type { SessionSoundDurationParams } from '@/types/apis/sessions';
+import { ApiError, type Page } from '@/types/apis/common';
+import type { SessionEvent, SessionSound, SessionSoundDurationParams, SessionUserReview } from '@/types/apis/sessions';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { deviceKeys } from '@/hooks/apis/keys/devices';
@@ -37,6 +43,74 @@ import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 import { nextPageNumber } from '@/lib/api';
 
 import { reportError } from '@/services/telemetry/client';
+
+/** 캐시의 세션 소리 리뷰 변경 함수 */
+const setCachedSessionSoundReview = (
+	queryClient: QueryClient,
+	{ id, soundId }: { id: string; soundId: string },
+	userReview: SessionUserReview | null,
+) => {
+	queryClient.setQueryData<InfiniteData<Page<SessionSound>>>(
+		sessionKeys.sounds(id),
+		(soundListData) =>
+			soundListData && {
+				...soundListData,
+				pages: soundListData.pages.map((soundPage) => ({
+					...soundPage,
+					data: soundPage.data.map((sound) =>
+						sound.id === soundId ? { ...sound, user_review: userReview } : sound,
+					),
+				})),
+			},
+	);
+};
+
+/** 저장 요청 전에 캐시의 소리 리뷰를 먼저 변경하는 함수 */
+const patchCachedSessionSoundReview = async (
+	queryClient: QueryClient,
+	{ id, soundId }: { id: string; soundId: string },
+	userReview: SessionUserReview | null,
+) => {
+	await queryClient.cancelQueries({ queryKey: sessionKeys.sounds(id) });
+
+	const previousReview =
+		queryClient
+			.getQueryData<InfiniteData<Page<SessionSound>>>(sessionKeys.sounds(id))
+			?.pages.flatMap((soundPage) => soundPage.data)
+			.find((sound) => sound.id === soundId)?.user_review ?? null;
+
+	setCachedSessionSoundReview(queryClient, { id, soundId }, userReview);
+
+	return { previousReview };
+};
+
+/** 캐시의 세션 이벤트 리뷰 변경 함수 */
+const setCachedSessionEventReview = (
+	queryClient: QueryClient,
+	{ id, eventId }: { id: string; eventId: string },
+	userReview: SessionUserReview | null,
+) => {
+	queryClient.setQueryData<SessionEvent[]>(sessionKeys.events(id), (sessionEvents) =>
+		sessionEvents?.map((event) => (event.id === eventId ? { ...event, user_review: userReview } : event)),
+	);
+};
+
+/** 저장 요청 전에 캐시의 이벤트 리뷰를 먼저 변경하는 함수 */
+const patchCachedSessionEventReview = async (
+	queryClient: QueryClient,
+	{ id, eventId }: { id: string; eventId: string },
+	userReview: SessionUserReview | null,
+) => {
+	await queryClient.cancelQueries({ queryKey: sessionKeys.events(id) });
+
+	const previousReview =
+		queryClient.getQueryData<SessionEvent[]>(sessionKeys.events(id))?.find((event) => event.id === eventId)
+			?.user_review ?? null;
+
+	setCachedSessionEventReview(queryClient, { id, eventId }, userReview);
+
+	return { previousReview };
+};
 
 /** 진행 중인 세션 조회 Hook에 사용할 옵션 */
 export const getRunningSessionOptions = () =>
@@ -204,6 +278,90 @@ export const useUploadSessionSound = () => {
 		mutationKey: apiKeys.mutation('sessions', 'sounds'),
 		mutationFn: postSessionSound,
 		onSuccess: (_data, { id }) => queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
+	});
+};
+
+/** 세션 소리 리뷰 Hook */
+export const useReviewSessionSound = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'soundReview', 'update'),
+		mutationFn: putSessionSoundUserReview,
+		onMutate: ({ id, soundId, data }) => patchCachedSessionSoundReview(queryClient, { id, soundId }, data),
+		onSuccess: (_data, { id }) =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.events(id) }),
+			]),
+		onError: (_error, { id, soundId }, context) => {
+			if (context) {
+				setCachedSessionSoundReview(queryClient, { id, soundId }, context.previousReview);
+			}
+		},
+	});
+};
+
+/** 세션 소리 리뷰 취소 Hook */
+export const useCancelSessionSoundReview = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'soundReview', 'delete'),
+		mutationFn: deleteSessionSoundUserReview,
+		onMutate: ({ id, soundId }) => patchCachedSessionSoundReview(queryClient, { id, soundId }, null),
+		onSuccess: (_data, { id }) =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.events(id) }),
+			]),
+		onError: (_error, { id, soundId }, context) => {
+			if (context) {
+				setCachedSessionSoundReview(queryClient, { id, soundId }, context.previousReview);
+			}
+		},
+	});
+};
+
+/** 세션 이벤트 리뷰 Hook */
+export const useReviewSessionEvent = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'eventReview', 'update'),
+		mutationFn: putSessionEventUserReview,
+		onMutate: ({ id, eventId, data }) => patchCachedSessionEventReview(queryClient, { id, eventId }, data),
+		onSuccess: (_data, { id }) =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.events(id) }),
+			]),
+		onError: (_error, { id, eventId }, context) => {
+			if (context) {
+				setCachedSessionEventReview(queryClient, { id, eventId }, context.previousReview);
+			}
+		},
+	});
+};
+
+/** 세션 이벤트 리뷰 취소 Hook */
+export const useCancelSessionEventReview = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('sessions', 'eventReview', 'delete'),
+		mutationFn: deleteSessionEventUserReview,
+		onMutate: ({ id, eventId }) => patchCachedSessionEventReview(queryClient, { id, eventId }, null),
+		onSuccess: (_data, { id }) =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: sessionKeys.sounds(id) }),
+				queryClient.invalidateQueries({ queryKey: sessionKeys.events(id) }),
+			]),
+		onError: (_error, { id, eventId }, context) => {
+			if (context) {
+				setCachedSessionEventReview(queryClient, { id, eventId }, context.previousReview);
+			}
+		},
 	});
 };
 

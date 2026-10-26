@@ -70,6 +70,7 @@ const LanguagePicker = () => {
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
 				value: t(`settings.general.${LANGUAGE_LABEL_KEYS[locale]}`),
+				isFirstInGroup: true,
 				disabled: isPending,
 			}}
 			sheet={{ title: t('settings.general.language') }}

@@ -3,6 +3,11 @@ import type { CommunityMessages } from '@/i18n/types/community';
 export const community: CommunityMessages = {
 	title: 'Feed',
 	me: 'You',
+	feedConsent: {
+		title: 'Show your posts on the feed?',
+		message: 'Others will see your learning records and mimicked sounds.',
+		confirm: 'Show on the feed',
+	},
 	countryScope: {
 		world: 'Worldwide',
 		mine: 'My country',

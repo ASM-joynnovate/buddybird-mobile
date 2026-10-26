@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 export const settingsSchema = z.object({
 	sleep: sleepSettingsSchema,
+	community: z.object({ leaderboard_enabled: z.boolean(), feed_enabled: z.boolean() }),
 });
 
 const notificationSettingItemSchema = z.object({
@@ -31,6 +32,7 @@ export const notificationSettingListSchema = z.object({
 
 const updateCommunitySettingsRequestSchema = z.object({
 	leaderboard_enabled: z.boolean().optional(),
+	feed_enabled: z.boolean().optional(),
 });
 
 const updatePushSettingRequestSchema = z.object({

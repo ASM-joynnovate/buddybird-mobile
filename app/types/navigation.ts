@@ -19,6 +19,10 @@ export interface SessionSetup {
 	sleepChanged: boolean;
 }
 
+export type UsageGuideStackParamList = {
+	UsageGuide: undefined;
+};
+
 export type HomeStackParamList = {
 	Home: undefined;
 	Notifications: undefined;
@@ -77,6 +81,8 @@ export type RootStackParamList = {
 	RecordingGuide: undefined;
 	PetcamGuide: { source?: 'help' } | undefined;
 	Settings: undefined;
+	LanguageCountrySettings: undefined;
+	PrivacySettings: undefined;
 	ConsentSettings: undefined;
 	Devices: undefined;
 	NotificationSettings: undefined;

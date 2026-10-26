@@ -9,10 +9,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, Mask, Path, Rect } from 'react-native-svg';
 
-import FeedCardLikeButtonChip from '@/screens/community/components/feed-card/like-button/chip';
-import FeedCardLikeButtonCrumb from '@/screens/community/components/feed-card/like-button/crumb';
-import FeedCardLikeButtonHull, { SEED_OUTLINE } from '@/screens/community/components/feed-card/like-button/hull';
 import { seedColors } from '@/theme/seed-colors';
+
+import FeedCardLikeButtonChip from '@/components/feed-card/like-button/chip';
+import FeedCardLikeButtonCrumb from '@/components/feed-card/like-button/crumb';
+import FeedCardLikeButtonHull, { SEED_OUTLINE } from '@/components/feed-card/like-button/hull';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedPath = Animated.createAnimatedComponent(Path);

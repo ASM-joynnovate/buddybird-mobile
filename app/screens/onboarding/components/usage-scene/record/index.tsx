@@ -15,10 +15,10 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
+import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/screens/onboarding/components/usage-scene/record/sound-arc';
+import UsageSceneVoiceCard from '@/screens/onboarding/components/usage-scene/voice-card';
 import { colors } from '@/theme';
 
-import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/components/app/usage-guide/usage-scene/record/sound-arc';
-import UsageSceneVoiceCard from '@/components/app/usage-guide/usage-scene/voice-card';
 import GuideSceneCoverPhoto, { getCoverLayout, toScenePoint } from '@/components/guide-scene/cover-photo';
 import GuideScenePhotoPin from '@/components/guide-scene/photo-pin';
 

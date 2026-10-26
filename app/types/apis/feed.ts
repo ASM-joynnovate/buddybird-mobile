@@ -35,3 +35,12 @@ export interface GetFeedItemListParams {
 	cursor: string | null;
 	country: string | null;
 }
+
+export interface CreateFeedItemRequest {
+	session_sound_id: string;
+}
+
+export interface PostFeedItemParams {
+	data: CreateFeedItemRequest;
+	idempotencyKey: string;
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -18,10 +18,12 @@ import { formatMonthDayTime } from '@/i18n/format';
 
 import { type RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BlurTargetView } from 'expo-blur';
 import { ChevronLeftIcon } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
 
 import SessionDetailContent, { CONTENT_PADDING_BOTTOM } from '@/screens/report/components/session-detail-content';
+import SessionDetailFeedShare from '@/screens/report/components/session-detail-feed-share';
 import SessionDetailSkeleton from '@/screens/report/components/session-detail-skeleton';
 import { track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -50,6 +52,8 @@ const SessionDetailScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<ReportStackParamList, 'SessionDetail'>>();
 	const queryClient = useQueryClient();
+
+	const blurTargetRef = useRef<View>(null);
 
 	const { data: sessionData } = useGetSessionQuery({ id: params.sessionId });
 
@@ -85,58 +89,66 @@ const SessionDetailScreen = () => {
 
 	return (
 		<Screen scrollable={false}>
-			<BuddyRefreshHint mascotShown={!lowPerformance} />
+			<BlurTargetView ref={blurTargetRef} style={styles.blurTarget}>
+				<BuddyRefreshHint mascotShown={!lowPerformance} />
 
-			<PullToRefreshContainer
-				style={styles.container}
-				indicatorStyle={styles.refreshIndicator}
-				pullToRefresh={pullToRefresh}
-				indicatorComponents={
-					lowPerformance
-						? [BuddyRefreshThrobberIndicator]
-						: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
-				}
-			>
-				<Animated.ScrollView
-					{...scrollProps}
-					showsVerticalScrollIndicator={false}
-					style={[styles.page, scrollProps.style]}
-					contentContainerStyle={styles.content}
+				<PullToRefreshContainer
+					style={styles.container}
+					indicatorStyle={styles.refreshIndicator}
+					pullToRefresh={pullToRefresh}
+					indicatorComponents={
+						lowPerformance
+							? [BuddyRefreshThrobberIndicator]
+							: [BuddyRefreshSwingIndicator, BuddyRefreshRopeIndicator]
+					}
 				>
-					<View style={styles.header}>
-						<IconButton
-							icon={ChevronLeftIcon}
-							label={t('common.back')}
-							onPress={() => navigation.goBack()}
-						/>
+					<Animated.ScrollView
+						{...scrollProps}
+						showsVerticalScrollIndicator={false}
+						style={[styles.page, scrollProps.style]}
+						contentContainerStyle={styles.content}
+					>
+						<View style={styles.header}>
+							<IconButton
+								icon={ChevronLeftIcon}
+								label={t('common.back')}
+								onPress={() => navigation.goBack()}
+							/>
 
-						<View style={styles.headText}>
-							<Copy accessibilityRole="header" style={styles.title}>
-								{t('report.detail.title')}
-							</Copy>
-							{sessionData && (
-								<Copy numberOfLines={1} style={styles.period}>
-									{t('report.detail.period', {
-										start: formatMonthDayTime(sessionData.period.started_at, locale),
-										end: sessionData.period.ended_at
-											? formatMonthDayTime(sessionData.period.ended_at, locale)
-											: t('report.detail.now'),
-									})}
+							<View style={styles.headText}>
+								<Copy accessibilityRole="header" style={styles.title}>
+									{t('report.detail.title')}
 								</Copy>
-							)}
+								{sessionData && (
+									<Copy numberOfLines={1} style={styles.period}>
+										{t('report.detail.period', {
+											start: formatMonthDayTime(sessionData.period.started_at, locale),
+											end: sessionData.period.ended_at
+												? formatMonthDayTime(sessionData.period.ended_at, locale)
+												: t('report.detail.now'),
+										})}
+									</Copy>
+								)}
+							</View>
 						</View>
-					</View>
 
-					<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<SessionDetailSkeleton />>
-						<SessionDetailContent sessionId={params.sessionId} pullToRefresh={pullToRefresh} />
-					</ErrorHandlingWrapper>
-				</Animated.ScrollView>
-			</PullToRefreshContainer>
+						<ErrorHandlingWrapper
+							fallbackComponent={ScreenError}
+							suspenseFallback=<SessionDetailSkeleton />
+						>
+							<SessionDetailContent sessionId={params.sessionId} pullToRefresh={pullToRefresh} />
+						</ErrorHandlingWrapper>
+					</Animated.ScrollView>
+				</PullToRefreshContainer>
+			</BlurTargetView>
+
+			<SessionDetailFeedShare blurTarget={blurTargetRef} />
 		</Screen>
 	);
 };
 
 const styles = StyleSheet.create({
+	blurTarget: { flex: 1 },
 	container: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	refreshIndicator: { right: 24, left: 24 },
 	page: { flex: 1 },

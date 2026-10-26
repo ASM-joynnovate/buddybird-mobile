@@ -11,6 +11,7 @@ const variants = {
 	primary: { face: colors.orange, edge: colors.orangeDark, border: colors.orange },
 	selected: { face: colors.orangePale, edge: colors.orange, border: colors.orange },
 	danger: { face: colors.error, edge: colors.errorDark, border: colors.error },
+	success: { face: colors.green, edge: colors.greenDark, border: colors.green },
 	onDark: { face: colors.background, edge: colors.textDark, border: colors.background },
 	plain: { face: 'transparent', edge: 'transparent', border: 'transparent' },
 	disabled: { face: colors.disabledBackground, edge: colors.disabledBackground, border: colors.disabledBackground },

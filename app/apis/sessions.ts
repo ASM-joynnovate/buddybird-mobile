@@ -2,12 +2,16 @@ import { postSessionPetcamVideoUpload, postSessionSoundUpload, putUploadFile } f
 
 import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common';
 import {
+	type DeleteSessionEventUserReviewParams,
+	type DeleteSessionSoundUserReviewParams,
 	type GetSessionSoundDurationParams,
 	type GetSessionSoundListParams,
 	type Heartbeat,
 	heartbeatSchema,
 	type PostSessionHeartbeatParams,
 	type PostSessionParams,
+	type PutSessionEventUserReviewParams,
+	type PutSessionSoundUserReviewParams,
 	type Session,
 	type SessionEvent,
 	sessionEventListSchema,
@@ -119,6 +123,54 @@ export const getSessionEventList = async ({ id }: { id: string }): Promise<Sessi
 	});
 
 	return sessionEvents;
+};
+
+export const putSessionSoundUserReview = async ({
+	id,
+	soundId,
+	data,
+	idempotencyKey,
+}: PutSessionSoundUserReviewParams): Promise<void> => {
+	await apiRequest(`/api/v1/sessions/${id}/sounds/${soundId}/user-review`, z.unknown(), {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+};
+
+export const deleteSessionSoundUserReview = async ({
+	id,
+	soundId,
+	idempotencyKey,
+}: DeleteSessionSoundUserReviewParams): Promise<void> => {
+	await apiRequest(`/api/v1/sessions/${id}/sounds/${soundId}/user-review`, z.unknown(), {
+		method: 'DELETE',
+		idempotencyKey,
+	});
+};
+
+export const putSessionEventUserReview = async ({
+	id,
+	eventId,
+	data,
+	idempotencyKey,
+}: PutSessionEventUserReviewParams): Promise<void> => {
+	await apiRequest(`/api/v1/sessions/${id}/events/${eventId}/user-review`, z.unknown(), {
+		method: 'PUT',
+		json: data,
+		idempotencyKey,
+	});
+};
+
+export const deleteSessionEventUserReview = async ({
+	id,
+	eventId,
+	idempotencyKey,
+}: DeleteSessionEventUserReviewParams): Promise<void> => {
+	await apiRequest(`/api/v1/sessions/${id}/events/${eventId}/user-review`, z.unknown(), {
+		method: 'DELETE',
+		idempotencyKey,
+	});
 };
 
 export const postSessionPetcamVideo = async ({

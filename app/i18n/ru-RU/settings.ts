@@ -9,6 +9,8 @@ export const settings: SettingsMessages = {
 		permissionOff: 'Уведомления запрещены, поэтому они не приходят',
 	},
 	general: {
+		title: 'Основные',
+		languageAndCountry: 'Язык и страна',
 		language: 'Язык приложения',
 		korean: '한국어',
 		english: 'English',
@@ -22,6 +24,14 @@ export const settings: SettingsMessages = {
 		countryNotFound: 'По запросу «{{query}}» ничего не нашлось',
 		devices: 'Подключённые устройства',
 	},
+	privacy: {
+		title: 'Конфиденциальность',
+		feed: 'Показывать в ленте',
+		feedDetail: 'Другие увидят твои занятия и звуки, которые повторяет попугай',
+		leaderboard: 'Участвовать в рейтинге',
+		leaderboardDetail: 'Другие пользователи увидят твой никнейм, фото и время занятий',
+		consents: 'Условия и согласия',
+	},
 	account: {
 		signOut: 'Выйти',
 		withdraw: 'Удалить аккаунт',
@@ -29,7 +39,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: 'Поддержка',
 		feedback: 'Отправить отзыв',
-		consents: 'Условия и согласия',
 		version: 'Версия приложения {{version}}',
 	},
 	signOutDialog: {
