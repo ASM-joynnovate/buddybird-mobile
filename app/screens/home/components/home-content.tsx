@@ -19,8 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import * as Device from 'expo-device';
-// TODO: 펫캠 가이드 추가 후 사용
-import { /* EyeIcon, */ MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
+import { EyeIcon, MonitorSmartphoneIcon, PlayIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { VolumeManager } from 'react-native-volume-manager';
 import { toast } from 'sonner-native';
@@ -241,15 +240,14 @@ const HomeContent = () => {
 		);
 	};
 
-	// TODO: 펫캠 가이드 추가 후 사용
-	// /** 다른 기기에서 진행 중인 학습 보기 */
-	// const handleWatchElsewhere = () => {
-	// 	if (!runningSession) {
-	// 		return;
-	// 	}
-	//
-	// 	navigation.navigate('SessionWatch', { sessionId: runningSession.id });
-	// };
+	/** 다른 기기에서 진행 중인 학습 보기 */
+	const handleWatchElsewhere = () => {
+		if (!runningSession) {
+			return;
+		}
+
+		navigation.navigate('SessionWatch', { sessionId: runningSession.id });
+	};
 
 	return (
 		<>
@@ -276,15 +274,14 @@ const HomeContent = () => {
 									onPress={handleEndElsewhere}
 								/>
 							</View>
-							{/*TODO: 펫캠 가이드 추가 후 사용*/}
-							{/*<Button
+							<Button
 								label={t('session.start.watch')}
 								icon={EyeIcon}
 								size="small"
-								disabled={starting}
+								disabled={sessionStarting}
 								onPress={handleWatchElsewhere}
 								style={styles.watchButton}
-							/>*/}
+							/>
 						</Card>
 					</View>
 				)}
@@ -387,8 +384,7 @@ const styles = StyleSheet.create({
 	elsewhereContainer: { marginBottom: 20 },
 	elsewhereCard: { padding: 4, paddingLeft: 14 },
 	elsewhereRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-	// TODO: 펫캠 가이드 추가 후 사용
-	// watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
+	watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
 	elsewhereText: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 15, lineHeight: 21 },
 	sleepContainer: { marginTop: 16 },
 	startButton: { marginTop: 12 },

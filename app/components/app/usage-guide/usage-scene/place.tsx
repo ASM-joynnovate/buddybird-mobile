@@ -10,12 +10,9 @@ import Svg, { Line } from 'react-native-svg';
 
 import { colors, radius } from '@/theme';
 
-import UsageSceneCoverPhoto, {
-	getCoverLayout,
-	toScenePoint,
-} from '@/components/app/usage-guide/usage-scene/cover-photo';
-import UsageScenePhotoPin from '@/components/app/usage-guide/usage-scene/photo-pin';
-import UsageScenePhotoTag, { PHOTO_TAG_HEIGHT } from '@/components/app/usage-guide/usage-scene/photo-tag';
+import GuideSceneCoverPhoto, { getCoverLayout, toScenePoint } from '@/components/guide-scene/cover-photo';
+import GuideScenePhotoPin from '@/components/guide-scene/photo-pin';
+import GuideScenePhotoTag, { PHOTO_TAG_HEIGHT } from '@/components/guide-scene/photo-tag';
 
 const photo: number = require('@assets/images/usage-guide/place.jpg');
 
@@ -52,7 +49,7 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 
 	return (
 		<>
-			<UsageSceneCoverPhoto source={photo} layout={layout} />
+			<GuideSceneCoverPhoto source={photo} layout={layout} />
 
 			{/*핀에서 태그까지 잇는 선*/}
 			<Animated.View entering={FadeIn.delay(160)} style={StyleSheet.absoluteFill}>
@@ -68,9 +65,9 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 				</Svg>
 			</Animated.View>
 
-			<UsageScenePhotoPin x={tabletPoint.x} y={tabletPoint.y} animated={animated} />
+			<GuideScenePhotoPin x={tabletPoint.x} y={tabletPoint.y} animated={animated} />
 
-			<UsageScenePhotoTag
+			<GuideScenePhotoTag
 				icon={TabletIcon}
 				label={t('onboarding.usage.place.spareDevice')}
 				variant="neutral"
@@ -82,7 +79,7 @@ const UsageScenePlace = ({ area, animated }: Props) => {
 				}}
 			/>
 
-			<UsageScenePhotoTag
+			<GuideScenePhotoTag
 				icon={PlugIcon}
 				label={t('onboarding.usage.place.charger')}
 				variant="inverse"

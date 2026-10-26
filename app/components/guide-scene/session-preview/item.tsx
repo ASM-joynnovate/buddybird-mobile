@@ -32,7 +32,7 @@ interface Props {
  * @param dividerShown 위쪽 구분선 표시 여부
  * @param children 공유 버튼 위에 표시할 펼친 행의 내용
  */
-const UsageSceneSessionPreviewItem = ({ kind, name, value, time, dividerShown = false, children }: Props) => {
+const GuideSceneSessionPreviewItem = ({ kind, name, value, time, dividerShown = false, children }: Props) => {
 	const { t } = useTranslation();
 
 	const open = children !== undefined;
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
 	shareLabel: { fontFamily: font.semiBold, fontSize: 15, lineHeight: 20, color: colors.text },
 });
 
-export default UsageSceneSessionPreviewItem;
+export default GuideSceneSessionPreviewItem;

@@ -17,13 +17,10 @@ import Svg, { Path } from 'react-native-svg';
 import { SECOND } from '@/config/units';
 import { colors } from '@/theme';
 
-import UsageSceneCoverPhoto, {
-	getCoverLayout,
-	toScenePoint,
-} from '@/components/app/usage-guide/usage-scene/cover-photo';
-import UsageScenePhotoPin from '@/components/app/usage-guide/usage-scene/photo-pin';
 import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/components/app/usage-guide/usage-scene/record/sound-arc';
 import UsageSceneVoiceCard from '@/components/app/usage-guide/usage-scene/voice-card';
+import GuideSceneCoverPhoto, { getCoverLayout, toScenePoint } from '@/components/guide-scene/cover-photo';
+import GuideScenePhotoPin from '@/components/guide-scene/photo-pin';
 
 const photo: number = require('@assets/images/usage-guide/record.jpg');
 
@@ -73,7 +70,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 
 	return (
 		<>
-			<UsageSceneCoverPhoto source={photo} layout={layout} />
+			<GuideSceneCoverPhoto source={photo} layout={layout} />
 
 			{/*소리 물결*/}
 			<View
@@ -111,7 +108,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 				</Animated.View>
 			)}
 
-			<UsageScenePhotoPin x={timerPoint.x} y={timerPoint.y} animated={animated} />
+			<GuideScenePhotoPin x={timerPoint.x} y={timerPoint.y} animated={animated} />
 
 			<UsageSceneVoiceCard
 				left={CARD_LEFT}

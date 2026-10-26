@@ -52,6 +52,7 @@ export type SessionMessages = {
 	run: {
 		reveal: string;
 		camera: string;
+		openGuide: string;
 		elapsed: string;
 		keepOpen: string;
 		dimAfter: string;
@@ -78,6 +79,13 @@ export type SessionMessages = {
 		learningPaused: string;
 		zoomHint: { title: string; message: string };
 		zoomLevel: string;
+	};
+	petcamGuide: {
+		alert: { title: string; scene: string; message: string };
+		place: { title: string; scene: string; wholeCage: string };
+		watch: { title: string; scene: string; spareDevice: string; myPhone: string };
+		dim: { title: string; scene: string; after: string };
+		cameraOn: string;
 	};
 	summary: {
 		title: string;

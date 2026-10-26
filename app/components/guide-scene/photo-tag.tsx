@@ -15,6 +15,7 @@ export const PHOTO_TAG_HEIGHT = 28;
 const variants = {
 	neutral: { background: colors.background, text: colors.text },
 	inverse: { background: colors.text, text: colors.onFilled },
+	accent: { background: colors.orange, text: colors.onFilled },
 } as const;
 
 type PhotoTagVariant = keyof typeof variants;
@@ -35,7 +36,7 @@ interface Props {
  * @param order 나타나는 순서
  * @param style 태그 위치
  */
-const UsageScenePhotoTag = ({ icon: Icon, label, variant, order, style }: Props) => {
+const GuideScenePhotoTag = ({ icon: Icon, label, variant, order, style }: Props) => {
 	const palette = variants[variant];
 
 	return (
@@ -61,4 +62,4 @@ const styles = StyleSheet.create({
 	label: { flexShrink: 1, fontFamily: font.extraBold, fontSize: 13, lineHeight: 16 },
 });
 
-export default UsageScenePhotoTag;
+export default GuideScenePhotoTag;
