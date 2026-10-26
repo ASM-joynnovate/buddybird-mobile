@@ -3,6 +3,11 @@ import type { PluralMessages } from '@/i18n/types/plural';
 export type CommunityMessages = {
 	title: string;
 	me: string;
+	feedConsent: {
+		title: string;
+		message: string;
+		confirm: string;
+	};
 	countryScope: {
 		world: string;
 		mine: string;

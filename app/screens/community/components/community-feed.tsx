@@ -14,7 +14,6 @@ import useSoundPlayer from '@/hooks/use-sound-player';
 
 import Animated from 'react-native-reanimated';
 
-import FeedCard, { feedCardKinds } from '@/screens/community/components/feed-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -28,6 +27,7 @@ import {
 import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
 import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
+import FeedCard, { feedCardKinds } from '@/components/feed-card';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 
 /** 순위 카드 및 피드 목록 컴포넌트 */

@@ -9,10 +9,9 @@ import useShareSessionFile from '@/screens/report/hooks/use-share-session-file';
 import useShareSessionJoinedSound from '@/screens/report/hooks/use-share-session-joined-sound';
 import { type LogItem, sharedLogFileName } from '@/screens/report/utils/session-log';
 import { track } from '@/services/telemetry/client';
-import { colors, font } from '@/theme';
+import { colors, depths } from '@/theme';
 
 import { logItemMediaTypes } from '@/components/session/session-log-item-head';
-import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { Toast } from '@/components/ui/toast';
 
@@ -40,7 +39,7 @@ const SessionLogShareButton = ({ logItem, itemLabel, sessionId }: Props) => {
 	const uploadedFile = logItem.file?.status === 'uploaded' ? logItem.file : null;
 	const fileSharing = shareSessionFile.isPending || shareSessionJoinedSound.isPending;
 	const shareDisabled = mediaType === 'audio' ? logItem.sounds.length === 0 : !uploadedFile;
-	const foregroundColor = shareDisabled ? colors.subtle : colors.text;
+	const shareInactive = shareDisabled || fileSharing;
 
 	const handleShare = () => {
 		if (fileSharing || shareDisabled) {
@@ -78,36 +77,26 @@ const SessionLogShareButton = ({ logItem, itemLabel, sessionId }: Props) => {
 		<PressableSurface
 			accessibilityLabel={t('report.detail.share', { name: itemLabel })}
 			accessibilityState={{ busy: fileSharing }}
-			disabled={shareDisabled || fileSharing}
+			disabled={shareInactive}
 			onPress={handleShare}
-			depth="none"
-			faceColor={colors.background}
-			edgeColor={colors.background}
-			style={styles.button}
+			variant={shareInactive ? 'disabled' : 'neutral'}
+			depth={shareInactive ? 'none' : 'medium'}
+			cornerRadius="control"
+			style={shareInactive && styles.inactiveButton}
 			contentStyle={styles.face}
 		>
 			{fileSharing ? (
-				<ActivityIndicator color={colors.muted} />
+				<ActivityIndicator color={colors.subtle} />
 			) : (
-				<ShareIcon size={17} strokeWidth={2.2} color={foregroundColor} />
+				<ShareIcon size={20} color={shareDisabled ? colors.subtle : colors.text} />
 			)}
-			<Copy style={[styles.label, { color: foregroundColor }]}>{t('report.detail.shareButton')}</Copy>
 		</PressableSurface>
 	);
 };
 
 const styles = StyleSheet.create({
-	button: { marginTop: 14, borderRadius: 12 },
-	face: {
-		height: 44,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 6,
-		borderWidth: 0,
-		borderRadius: 12,
-	},
-	label: { fontFamily: font.semiBold, fontSize: 15, lineHeight: 20 },
+	inactiveButton: { marginTop: depths.medium },
+	face: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default SessionLogShareButton;

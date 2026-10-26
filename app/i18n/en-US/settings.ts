@@ -9,6 +9,8 @@ export const settings: SettingsMessages = {
 		permissionOff: "Notifications are off, so you won't get alerts",
 	},
 	general: {
+		title: 'General',
+		languageAndCountry: 'Language and country',
 		language: 'App language',
 		korean: '한국어',
 		english: 'English',
@@ -22,6 +24,14 @@ export const settings: SettingsMessages = {
 		countryNotFound: 'No countries match “{{query}}”',
 		devices: 'Connected devices',
 	},
+	privacy: {
+		title: 'Privacy',
+		feed: 'Show on the feed',
+		feedDetail: 'Others can see your learning records and mimicked sounds',
+		leaderboard: 'Join the leaderboard',
+		leaderboardDetail: 'Others can see your nickname, photo, and learning time',
+		consents: 'Terms and consents',
+	},
 	account: {
 		signOut: 'Sign out',
 		withdraw: 'Delete account',
@@ -29,7 +39,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: 'Support',
 		feedback: 'Send feedback',
-		consents: 'Terms and consents',
 		version: 'App version {{version}}',
 	},
 	signOutDialog: {

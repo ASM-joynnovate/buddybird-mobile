@@ -9,6 +9,8 @@ export const settings: SettingsMessages = {
 		permissionOff: '通知の許可がオフのため、通知を受け取れません',
 	},
 	general: {
+		title: '一般',
+		languageAndCountry: '言語と国',
 		language: 'アプリの言語',
 		korean: '한국어',
 		english: 'English',
@@ -22,6 +24,14 @@ export const settings: SettingsMessages = {
 		countryNotFound: '「{{query}}」に合う国がありません',
 		devices: 'ログイン中の端末',
 	},
+	privacy: {
+		title: 'プライバシー設定',
+		feed: 'フィードに公開',
+		feedDetail: '練習記録とまねした声がほかの人に表示されます',
+		leaderboard: 'ランキングに参加',
+		leaderboardDetail: 'ニックネーム、写真、練習時間がほかの人に表示されます',
+		consents: '規約への同意',
+	},
 	account: {
 		signOut: 'ログアウト',
 		withdraw: '退会',
@@ -29,7 +39,6 @@ export const settings: SettingsMessages = {
 	support: {
 		title: 'サポート',
 		feedback: 'フィードバックを送る',
-		consents: '規約への同意',
 		version: 'アプリのバージョン {{version}}',
 	},
 	signOutDialog: {

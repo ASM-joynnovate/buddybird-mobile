@@ -60,6 +60,7 @@ export const Toast = ({ variant = 'success', message, action }: Props) => {
 const styles = StyleSheet.create({
 	container: {
 		minHeight: 48,
+		marginHorizontal: 16,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 10,

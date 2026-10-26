@@ -11,7 +11,7 @@ interface Props extends Omit<PressableSurfaceProps, 'children' | 'variant' | 'di
 	label: string;
 	icon?: LucideIcon;
 	iconProps?: LucideProps;
-	variant?: 'primary' | 'secondary' | 'danger';
+	variant?: 'primary' | 'secondary' | 'danger' | 'success';
 	disabled?: boolean;
 	loading?: boolean;
 	size?: 'small' | 'medium';
@@ -30,7 +30,7 @@ export const Button = ({
 	...props
 }: Props) => {
 	const inactive = disabled || loading;
-	let surfaceVariant: 'primary' | 'neutral' | 'danger' | 'disabled' = 'primary';
+	let surfaceVariant: 'primary' | 'neutral' | 'danger' | 'success' | 'disabled' = 'primary';
 	let foregroundColor = colors.onFilled;
 
 	if (variant === 'secondary') {
@@ -40,6 +40,10 @@ export const Button = ({
 
 	if (variant === 'danger') {
 		surfaceVariant = 'danger';
+	}
+
+	if (variant === 'success') {
+		surfaceVariant = 'success';
 	}
 
 	if (inactive) {

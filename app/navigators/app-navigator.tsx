@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { AppState, Platform } from 'react-native';
 
@@ -11,8 +11,10 @@ import useEntryRoute from '@/hooks/use-entry-route';
 
 import { getInitialNotification, getMessaging, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import {
+	type InitialState,
 	type LinkingOptions,
 	NavigationContainer,
+	type NavigationState,
 	type RouteProp,
 	useNavigationContainerRef,
 } from '@react-navigation/native';
@@ -35,8 +37,10 @@ import SessionSummaryScreen from '@/screens/session/session-summary-screen';
 import SessionWatchScreen from '@/screens/session/session-watch-screen';
 import ConsentSettingsScreen from '@/screens/settings/consent-settings-screen';
 import DevicesScreen from '@/screens/settings/devices-screen';
+import LanguageCountrySettingsScreen from '@/screens/settings/language-country-settings-screen';
 import NotificationGroupSettingsScreen from '@/screens/settings/notification-group-settings-screen';
 import NotificationSettingsScreen from '@/screens/settings/notification-settings-screen';
+import PrivacySettingsScreen from '@/screens/settings/privacy-settings-screen';
 import SettingsScreen from '@/screens/settings/settings-screen';
 import RecordingGuideScreen from '@/screens/words/recording-guide-screen';
 import { navigationIntegration, reportError, track, trackScreen } from '@/services/telemetry/client';
@@ -70,12 +74,34 @@ const parrotEditorOptions = ({ route }: ParrotEditorOptionsParams): NativeStackN
 
 const linkPrefix = `${env.appScheme}://`;
 
-/** navigation 초기 상태 생성 함수 */
-const initialStateOf = (entryRoute: Exclude<EntryRoute, 'LegacyUpload'>, parrotId?: string) => {
-	if (entryRoute === 'Main') {
-		return undefined;
-	}
+let savedNavigationState: NavigationState | undefined;
 
+const routeNamesClosedOnAccountChange = new Set([
+	'Login',
+	'SessionDetail',
+	'SessionRun',
+	'SessionSummary',
+	'SessionWatch',
+	'NotificationDetail',
+]);
+
+/** 계정이 바뀌면 닫는 화면인지 확인하는 함수 */
+const closesOnAccountChange = ({ name, params }: InitialState['routes'][number]) =>
+	routeNamesClosedOnAccountChange.has(name) ||
+	(name === 'WordEditor' && params !== undefined && 'wordId' in params && params.wordId !== undefined) ||
+	(name === 'ParrotEditor' && params !== undefined && 'parrotId' in params && params.parrotId !== undefined);
+
+/** 계정이 바뀐 뒤 복원할 navigation 상태 생성 함수 */
+const restorableStateOf = (state: InitialState): InitialState => {
+	const routes = state.routes
+		.filter((route) => !closesOnAccountChange(route))
+		.map((route) => (route.state ? { ...route, state: restorableStateOf(route.state) } : route));
+
+	return { ...state, routes, index: state.type === 'stack' ? routes.length - 1 : state.index };
+};
+
+/** navigation 초기 상태 생성 함수 */
+const initialStateOf = (entryRoute: Exclude<EntryRoute, 'LegacyUpload' | 'Main'>, parrotId?: string) => {
 	if (entryRoute === 'Login') {
 		return { index: 0, routes: [{ name: 'Login', params: { source: 'onboarding' } }] };
 	}
@@ -103,6 +129,9 @@ const AppNavigator = () => {
 	const { mutate: readNotification } = useReadNotification();
 
 	const { entryRoute, parrotId } = useEntryRoute();
+	const [restoredNavigationState] = useState(() =>
+		entryRoute === 'Main' && savedNavigationState ? restorableStateOf(savedNavigationState) : undefined,
+	);
 
 	const linking = useMemo<LinkingOptions<RootStackParamList>>(() => {
 		/** 푸시를 읽음 처리하고 앱 링크를 반환하는 함수 */
@@ -219,6 +248,14 @@ const AppNavigator = () => {
 		handleTrackScreen();
 	};
 
+	const handleChangeNavigationState = (navigationState: NavigationState | undefined) => {
+		if (entryRoute === 'Main') {
+			savedNavigationState = navigationState;
+		}
+
+		handleTrackScreen();
+	};
+
 	if (entryRoute === 'LegacyUpload') {
 		return <LegacyUploadScreen />;
 	}
@@ -228,10 +265,10 @@ const AppNavigator = () => {
 			<NavigationContainer
 				key={entryRoute}
 				ref={navigationRef}
-				initialState={initialStateOf(entryRoute, parrotId)}
+				initialState={entryRoute === 'Main' ? restoredNavigationState : initialStateOf(entryRoute, parrotId)}
 				linking={entryRoute === 'Main' ? linking : undefined}
 				onReady={handleReady}
-				onStateChange={handleTrackScreen}
+				onStateChange={handleChangeNavigationState}
 			>
 				<RootStack.Navigator
 					screenOptions={{
@@ -290,9 +327,18 @@ const AppNavigator = () => {
 								options={{ animation: 'fade', orientation: 'default' }}
 							/>
 
-							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
+							<RootStack.Screen
+								name="RecordingGuide"
+								component={RecordingGuideScreen}
+								options={{ orientation: 'default' }}
+							/>
 
 							<RootStack.Screen name="Settings" component={SettingsScreen} />
+							<RootStack.Screen
+								name="LanguageCountrySettings"
+								component={LanguageCountrySettingsScreen}
+							/>
+							<RootStack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
 							<RootStack.Screen name="ConsentSettings" component={ConsentSettingsScreen} />
 							<RootStack.Screen name="Devices" component={DevicesScreen} />
 							<RootStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />

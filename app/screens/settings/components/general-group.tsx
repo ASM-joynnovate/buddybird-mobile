@@ -7,11 +7,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BellIcon, SmartphoneIcon } from 'lucide-react-native';
+import { BellIcon, LanguagesIcon, ShieldCheckIcon, SmartphoneIcon } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 
-import CountryPicker from '@/screens/settings/components/country-picker';
-import LanguagePicker from '@/screens/settings/components/language-picker';
 import { useAuthStore } from '@/stores/auth';
 
 import SleepTimePicker from '@/components/session/sleep-time-picker';
@@ -47,7 +45,7 @@ const GeneralGroup = () => {
 	};
 
 	return (
-		<ItemGroup>
+		<ItemGroup title={t('settings.general.title')}>
 			<SleepTimePicker
 				value={settingsData.sleep}
 				isFirstInGroup
@@ -59,12 +57,20 @@ const GeneralGroup = () => {
 				label={t('settings.notifications.title')}
 				onPress={() => navigation.navigate('NotificationSettings')}
 			/>
-			<LanguagePicker />
-			<CountryPicker />
+			<Item
+				icon={LanguagesIcon}
+				label={t('settings.general.languageAndCountry')}
+				onPress={() => navigation.navigate('LanguageCountrySettings')}
+			/>
 			<Item
 				icon={SmartphoneIcon}
 				label={t('settings.general.devices')}
 				onPress={() => navigation.navigate(isAnonymous ? 'Login' : 'Devices')}
+			/>
+			<Item
+				icon={ShieldCheckIcon}
+				label={t('settings.privacy.title')}
+				onPress={() => navigation.navigate('PrivacySettings')}
 			/>
 		</ItemGroup>
 	);

@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 
 import { SECOND } from '@/config/units';
-import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import type { LogItem } from '@/screens/report/utils/session-log';
 import { track } from '@/services/telemetry/client';
 import { colors } from '@/theme';
@@ -66,36 +65,31 @@ const SessionLogSoundPanel = ({ logItem, itemLabel, sessionId }: Props) => {
 	};
 
 	return (
-		<View style={styles.panel}>
-			<View style={styles.player}>
-				<SessionLogSoundTrack accent={accent} progress={playing ? progress : 0} durationText={durationText} />
+		<View style={styles.player}>
+			<SessionLogSoundTrack accent={accent} progress={playing ? progress : 0} durationText={durationText} />
 
-				<PressableSurface
-					accessibilityLabel={playing ? t('common.sound.stopNamed', { name: itemLabel }) : itemLabel}
-					disabled={soundMissing}
-					onPress={handleTogglePlay}
-					depth="none"
-					cornerRadius="pill"
-					faceColor={soundMissing ? colors.disabledBackground : accent}
-					edgeColor={soundMissing ? colors.disabledBackground : accent}
-					style={styles.playButton}
-					contentStyle={styles.playFace}
-				>
-					<PlayStateIcon
-						size={13}
-						color={soundMissing ? colors.subtle : colors.onFilled}
-						fill={soundMissing ? colors.subtle : colors.onFilled}
-					/>
-				</PressableSurface>
-			</View>
-
-			<SessionLogShareButton logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
+			<PressableSurface
+				accessibilityLabel={playing ? t('common.sound.stopNamed', { name: itemLabel }) : itemLabel}
+				disabled={soundMissing}
+				onPress={handleTogglePlay}
+				depth="none"
+				cornerRadius="pill"
+				faceColor={soundMissing ? colors.disabledBackground : accent}
+				edgeColor={soundMissing ? colors.disabledBackground : accent}
+				style={styles.playButton}
+				contentStyle={styles.playFace}
+			>
+				<PlayStateIcon
+					size={13}
+					color={soundMissing ? colors.subtle : colors.onFilled}
+					fill={soundMissing ? colors.subtle : colors.onFilled}
+				/>
+			</PressableSurface>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	panel: { paddingBottom: 18 },
 	player: { flexDirection: 'row', alignItems: 'center', gap: 24 },
 	playButton: { width: PLAY_SIZE, height: PLAY_SIZE },
 	playFace: { flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 0 },

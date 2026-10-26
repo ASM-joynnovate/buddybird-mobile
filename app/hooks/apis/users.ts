@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import { deleteUserBlock, getMe, patchMe, putUserBlock, putUserPhoto } from '@/apis/users';
 
@@ -16,6 +16,10 @@ export const getMeOptions = () => queryOptions({ queryKey: userKeys.me(), queryF
 /** 내 정보 조회 Hook */
 export const useGetMe = (options?: Pick<ReturnType<typeof getMeOptions>, 'refetchInterval'>) => {
 	return useSuspenseQuery({ ...getMeOptions(), ...options });
+};
+/** suspense 없는 내 정보 조회 Hook */
+export const useGetMeQuery = () => {
+	return useQuery(getMeOptions());
 };
 
 /** 내 정보 수정 Hook */

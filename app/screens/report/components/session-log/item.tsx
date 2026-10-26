@@ -5,17 +5,17 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
 import { PERCENT, SECOND } from '@/config/units';
+import SessionLogFeedShareButton from '@/screens/report/components/session-log/feed-share-button';
 import SessionLogMediaPanel from '@/screens/report/components/session-log/media-panel';
+import SessionLogReview from '@/screens/report/components/session-log/review';
+import SessionLogShareButton from '@/screens/report/components/session-log/share-button';
 import SessionLogSoundPanel from '@/screens/report/components/session-log/sound-panel';
 import type { LogItem } from '@/screens/report/utils/session-log';
 import { colors } from '@/theme';
 import { sessionDetailColors } from '@/theme/session-detail-colors';
 import { joinLabel } from '@/utils/a11y';
 
-import SessionLogItemHead, {
-	LOG_ITEM_LINES_INSET,
-	logItemMediaTypes,
-} from '@/components/session/session-log-item-head';
+import SessionLogItemHead, { logItemMediaTypes } from '@/components/session/session-log-item-head';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const TIME_FORMAT = 'HH:mm:ss';
@@ -59,6 +59,7 @@ const SessionLogItem = ({
 	const name = logItem.kind === 'mimic' ? wordName : t(`report.detail.kinds.${logItem.kind}`);
 	const startTime = dayjs(logItem.startedAt).format(TIME_FORMAT);
 	const rangeShown = logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared';
+	const reviewShown = logItem.score !== null || (logItem.kind !== 'parrot' && logItem.kind !== 'mimic');
 	let statusText: string | null = null;
 	let time = startTime;
 
@@ -102,17 +103,21 @@ const SessionLogItem = ({
 			</PressableSurface>
 
 			{open && (
-				<View style={mediaType === 'audio' && styles.panel}>
+				<View style={styles.body}>
 					{mediaType === 'audio' ? (
 						<SessionLogSoundPanel logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
 					) : (
-						<SessionLogMediaPanel
-							logItem={logItem}
-							itemLabel={itemLabel}
-							mediaType={mediaType}
-							sessionId={sessionId}
-						/>
+						<SessionLogMediaPanel logItem={logItem} itemLabel={itemLabel} mediaType={mediaType} />
 					)}
+
+					{reviewShown && <SessionLogReview logItem={logItem} sessionId={sessionId} />}
+
+					<View style={styles.shares}>
+						<SessionLogShareButton logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
+						{logItem.kind === 'mimic' && (
+							<SessionLogFeedShareButton sound={logItem.sounds[0]} wordName={wordName} />
+						)}
+					</View>
 				</View>
 			)}
 		</View>
@@ -122,7 +127,8 @@ const SessionLogItem = ({
 const styles = StyleSheet.create({
 	container: { paddingHorizontal: SIDE_PADDING },
 	face: { borderWidth: 0 },
-	panel: { paddingLeft: LOG_ITEM_LINES_INSET },
+	body: { paddingBottom: 18 },
+	shares: { flexDirection: 'row', gap: 10, marginTop: 12 },
 });
 
 export default SessionLogItem;

@@ -1,4 +1,4 @@
-import { type QueryClient, queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { type QueryClient, queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 
 import {
 	getNotificationSettings,
@@ -84,6 +84,10 @@ export const getSettingsOptions = () => queryOptions({ queryKey: settingKeys.all
 export const useGetSettings = () => {
 	return useSuspenseQuery(getSettingsOptions());
 };
+/** suspense 없는 설정 조회 Hook */
+export const useGetSettingsQuery = () => {
+	return useQuery(getSettingsOptions());
+};
 
 /** 수면 설정 저장 Hook */
 export const useUpdateSleepSettings = () => {
@@ -114,12 +118,21 @@ export const useUpdateCommunitySettings = () => {
 	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('users', 'me', 'settings', 'community'),
 		mutationFn: patchCommunitySettings,
+		onMutate: ({ data }) => {
+			const community = queryClient.getQueryData<Settings>(settingKeys.all())?.community;
+
+			return patchCachedSettings(queryClient, community ? { community: { ...community, ...data } } : {});
+		},
 		onSuccess: () =>
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: settingKeys.all() }),
 				queryClient.invalidateQueries({ queryKey: leaderboardKeys.all() }),
 			]),
-		onError: (error) => reportError(error, 'community_settings_save'),
+		onError: (error, _variables, context) => {
+			restoreCachedSettings(queryClient, context);
+
+			reportError(error, 'community_settings_save');
+		},
 	});
 };
 

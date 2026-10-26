@@ -6,13 +6,14 @@ import {
 	useSuspenseInfiniteQuery,
 } from '@tanstack/react-query';
 
-import { deleteFeedItemLike, getFeedItemList, putFeedItemLike } from '@/apis/feed';
+import { deleteFeedItemLike, getFeedItemList, postFeedItem, putFeedItemLike } from '@/apis/feed';
 
 import type { CountryParams } from '@/types/apis/common';
 import type { FeedItem, FeedItemLike, FeedPage } from '@/types/apis/feed';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { feedKeys } from '@/hooks/apis/keys/feed';
+import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
@@ -61,6 +62,17 @@ export const getFeedItemListOptions = ({ country }: CountryParams) =>
 /** 피드 목록 조회 Hook */
 export const useGetFeedItemList = ({ country }: CountryParams) => {
 	return useSuspenseInfiniteQuery(getFeedItemListOptions({ country }));
+};
+
+/** 피드에 공유 Hook */
+export const useShareToFeed = () => {
+	const queryClient = useQueryClient();
+
+	return useIdempotentMutation({
+		mutationKey: apiKeys.mutation('feed', 'create'),
+		mutationFn: postFeedItem,
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: sessionKeys.all() }),
+	});
 };
 
 /** 좋아요 Hook */

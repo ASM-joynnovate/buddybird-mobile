@@ -3,6 +3,11 @@ import type { CommunityMessages } from '@/i18n/types/community';
 export const community: CommunityMessages = {
 	title: 'フィード',
 	me: '自分',
+	feedConsent: {
+		title: 'フィードに公開しますか？',
+		message: '公開すると、練習記録とまねした声がほかの人に表示されます。',
+		confirm: '公開する',
+	},
 	countryScope: {
 		world: '全世界',
 		mine: '自分の国',

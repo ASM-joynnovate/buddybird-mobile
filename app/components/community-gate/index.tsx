@@ -7,11 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { BlurView } from 'expo-blur';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
-import CommunityGateLoginForm from '@/screens/community/components/community-gate/login-form';
-import CommunityGateNicknameForm from '@/screens/community/components/community-gate/nickname-form';
 import { useAuthStore } from '@/stores/auth';
 import { colors, contentMaxWidth, font, radius } from '@/theme';
 
+import CommunityGateLoginForm from '@/components/community-gate/login-form';
+import CommunityGateNicknameForm from '@/components/community-gate/nickname-form';
 import { Copy } from '@/components/ui/copy';
 
 const BLUR_INTENSITY = 20;
