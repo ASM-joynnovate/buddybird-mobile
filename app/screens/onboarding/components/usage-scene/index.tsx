@@ -9,10 +9,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useReducedMotion } from 'react-native-reanimated';
 
-import UsageScenePhoneFrame from '@/components/app/usage-guide/usage-scene/phone-frame';
-import UsageScenePlace from '@/components/app/usage-guide/usage-scene/place';
-import UsageSceneRecord from '@/components/app/usage-guide/usage-scene/record';
-import UsageSceneSessionPreview from '@/components/app/usage-guide/usage-scene/session-preview';
+import UsageScenePhoneFrame from '@/screens/onboarding/components/usage-scene/phone-frame';
+import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
+import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
+import UsageSceneSessionPreview from '@/screens/onboarding/components/usage-scene/session-preview';
 
 interface Props {
 	step: UsageStep;

@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import Animated, { cancelAnimation, Easing, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 import { SECOND } from '@/config/units';
+import UsageSceneVoiceCardAvatar from '@/screens/onboarding/components/usage-scene/voice-card/avatar';
+import UsageSceneVoiceCardWaveBar from '@/screens/onboarding/components/usage-scene/voice-card/wave-bar';
 import { colors, font } from '@/theme';
 
-import UsageSceneVoiceCardAvatar from '@/components/app/usage-guide/usage-scene/voice-card/avatar';
-import UsageSceneVoiceCardWaveBar from '@/components/app/usage-guide/usage-scene/voice-card/wave-bar';
 import { popIn } from '@/components/scene-animations';
 import { Copy } from '@/components/ui/copy';
 

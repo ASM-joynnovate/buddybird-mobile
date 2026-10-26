@@ -15,15 +15,14 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
-import { colors } from '@/theme';
-
 import UsageSceneCoverPhoto, {
 	getCoverLayout,
 	toScenePoint,
-} from '@/components/app/usage-guide/usage-scene/cover-photo';
-import UsageScenePhotoPin from '@/components/app/usage-guide/usage-scene/photo-pin';
-import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/components/app/usage-guide/usage-scene/record/sound-arc';
-import UsageSceneVoiceCard from '@/components/app/usage-guide/usage-scene/voice-card';
+} from '@/screens/onboarding/components/usage-scene/cover-photo';
+import UsageScenePhotoPin from '@/screens/onboarding/components/usage-scene/photo-pin';
+import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/screens/onboarding/components/usage-scene/record/sound-arc';
+import UsageSceneVoiceCard from '@/screens/onboarding/components/usage-scene/voice-card';
+import { colors } from '@/theme';
 
 const photo: number = require('@assets/images/usage-guide/record.jpg');
 
