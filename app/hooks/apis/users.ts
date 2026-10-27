@@ -4,7 +4,9 @@ import { deleteUserBlock, getMe, patchMe, putUserBlock, putUserPhoto } from '@/a
 
 import { updateCachedFeedItems } from '@/hooks/apis/feed';
 import { apiKeys } from '@/hooks/apis/keys';
+import { announcementKeys } from '@/hooks/apis/keys/announcements';
 import { feedKeys } from '@/hooks/apis/keys/feed';
+import { homeKeys } from '@/hooks/apis/keys/home';
 import { leaderboardKeys } from '@/hooks/apis/keys/leaderboard';
 import { userKeys } from '@/hooks/apis/keys/users';
 import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
@@ -34,6 +36,8 @@ export const useUpdateMe = () => {
 				queryClient.invalidateQueries({ queryKey: userKeys.me() }),
 				queryClient.invalidateQueries({ queryKey: leaderboardKeys.all() }),
 				queryClient.invalidateQueries({ queryKey: feedKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: announcementKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: homeKeys.all() }),
 			]),
 	});
 };
