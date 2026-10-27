@@ -19,7 +19,7 @@ interface Props {
  * 펫캠 안내 열기 버튼 컴포넌트
  * @param onPress 버튼을 누를 때 실행할 함수
  */
-const CameraGuideButton = ({ onPress }: Props) => {
+const PetcamGuideButton = ({ onPress }: Props) => {
 	const { t } = useTranslation();
 
 	return (
@@ -42,4 +42,4 @@ const styles = StyleSheet.create({
 	face: { width: BUTTON_SIZE, height: BUTTON_SIZE, alignItems: 'center', justifyContent: 'center' },
 });
 
-export default CameraGuideButton;
+export default PetcamGuideButton;

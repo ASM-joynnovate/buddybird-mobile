@@ -57,25 +57,22 @@ const PetcamGuideScreen = () => {
 	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
 	useFocusEffect(
 		useCallback(() => {
+			if (stepIndex === 0) {
+				return;
+			}
+
 			const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-				if (stepIndex === 0) {
-					navigation.goBack();
-				} else {
-					setStepIndex(stepIndex - 1);
-				}
+				setStepIndex(stepIndex - 1);
 
 				return true;
 			});
 
 			return () => subscription.remove();
-		}, [navigation, stepIndex]),
+		}, [stepIndex]),
 	);
 
 	const handleFinish = () => {
-		if (!openedFromHelp) {
-			setPetcamGuideSeen(true);
-		}
-
+		setPetcamGuideSeen(true);
 		navigation.goBack();
 	};
 

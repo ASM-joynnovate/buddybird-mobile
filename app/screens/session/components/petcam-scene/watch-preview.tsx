@@ -15,15 +15,18 @@ import { Copy } from '@/components/ui/copy';
 
 const feedPhoto: number = require('@assets/images/petcam-guide/watch-feed.jpg');
 
-const ARC_WIDTH = 345;
-
 /** 내 폰의 학습 보기 화면 예시 컴포넌트 */
 const PetcamSceneWatchPreview = () => {
 	const { t } = useTranslation();
 
 	return (
 		<>
-			<Image accessibilityIgnoresInvertColors source={feedPhoto} resizeMode="cover" style={styles.feed} />
+			<Image
+				accessibilityIgnoresInvertColors
+				source={feedPhoto}
+				resizeMode="cover"
+				style={StyleSheet.absoluteFill}
+			/>
 
 			<View style={styles.header}>
 				<View style={styles.leave}>
@@ -40,7 +43,7 @@ const PetcamSceneWatchPreview = () => {
 			</View>
 
 			<View style={styles.bottom}>
-				<SessionRunInfoProgressArc width={ARC_WIDTH} variant="half" phase="learning" progressRatio={0.32}>
+				<SessionRunInfoProgressArc width={345} variant="half" phase="learning" progressRatio={0.32}>
 					<View style={styles.time}>
 						<Copy style={styles.timeLabel}>{t('session.run.remaining')}</Copy>
 						<Copy style={styles.timeText}>{formatTimer(95 * MINUTE)}</Copy>
@@ -55,7 +58,6 @@ const PetcamSceneWatchPreview = () => {
 };
 
 const styles = StyleSheet.create({
-	feed: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
 	header: {
 		position: 'absolute',
 		top: 71,

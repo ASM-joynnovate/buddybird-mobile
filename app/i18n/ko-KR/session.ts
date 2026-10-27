@@ -88,7 +88,7 @@ export const session: SessionMessages = {
 	},
 	petcamGuide: {
 		alert: {
-			title: '<b>카메라를 활성화</b>하면,\n앵무새 상태를 알려드려요',
+			title: '<b>카메라를 켜면</b>,\n앵무새 상태를 알려드려요',
 			scene: '학습 상세의 움직임 기록. 앵무새 사라짐 동영상과 펼쳐진 앵무새 나타남 사진',
 			message: '앵무새가 새장을 탈출하면 알림을 보내줘요',
 		},

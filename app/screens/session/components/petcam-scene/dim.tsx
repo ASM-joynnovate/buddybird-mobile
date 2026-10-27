@@ -18,7 +18,6 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 
-import { SESSION_INFO_HIDE_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
 import { colors, radius } from '@/theme';
 
@@ -29,8 +28,7 @@ const brightPhoto: number = require('@assets/images/petcam-guide/place-far.jpg')
 const dimPhoto: number = require('@assets/images/petcam-guide/dimmed.jpg');
 
 const PHOTO_RATIO = 787 / 1400;
-const HANDLE_SIZE = 34;
-const SIDE_MARGIN = 16;
+const KNOB_SIZE = 34;
 const WIPE_HOLD_MS = 700;
 
 interface Props {
@@ -40,17 +38,17 @@ interface Props {
 }
 
 /**
- * 밝은 화면이 어두운 화면으로 바뀌는 장면 컴포넌트
+ * 화면이 어두워지는 장면 컴포넌트
  * @param area 장면 영역
  * @param topInset 상단 헤더 높이
- * @param animated 가로지르기 애니메이션 실행 여부
+ * @param animated 애니메이션 실행 여부
  */
 const PetcamSceneDim = ({ area, topInset, animated }: Props) => {
 	const { t } = useTranslation();
 
 	const dimProgress = useSharedValue(0.5);
 
-	// 두 사진의 기기 화면이 겹치도록 밝은 사진 크기 및 위치 계산
+	// 밝은 사진 크기 및 위치 계산
 	const dimLayout = getCoverLayout(area, PHOTO_RATIO, 0.48);
 	const brightWidth = (dimLayout.width * 0.66) / 0.49;
 	const brightHeight = brightWidth / PHOTO_RATIO;
@@ -68,11 +66,11 @@ const PetcamSceneDim = ({ area, topInset, animated }: Props) => {
 	};
 
 	const dimClipStyle = useAnimatedStyle(() => ({ width: area.width * dimProgress.get() }));
-	const handleStyle = useAnimatedStyle(() => ({
+	const dividerStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: area.width * (1 - dimProgress.get()) }],
 	}));
 
-	/** 밝은 화면에서 어두운 화면으로 가로지르기 반복 */
+	/** 화면이 어두워지는 애니메이션 반복 */
 	useEffect(() => {
 		if (!animated) {
 			dimProgress.set(0.5);
@@ -104,17 +102,17 @@ const PetcamSceneDim = ({ area, topInset, animated }: Props) => {
 				<Image accessibilityIgnoresInvertColors source={dimPhoto} style={[styles.photo, dimPhotoStyle]} />
 			</Animated.View>
 
-			<Animated.View style={[styles.handle, handleStyle]}>
-				<View style={styles.handleLine} />
-				<View style={styles.handleKnob} />
+			<Animated.View style={[styles.divider, dividerStyle]}>
+				<View style={styles.dividerLine} />
+				<View style={styles.dividerKnob} />
 			</Animated.View>
 
 			<GuideScenePhotoTag
 				icon={MoonIcon}
-				label={t('session.petcamGuide.dim.after', { seconds: SESSION_INFO_HIDE_MS / SECOND })}
+				label={t('session.petcamGuide.dim.after', { seconds: 10 })}
 				variant="inverse"
 				order={1}
-				style={{ top: topInset + 12, right: SIDE_MARGIN }}
+				style={{ top: topInset + 12, right: 16 }}
 			/>
 		</>
 	);
@@ -123,19 +121,19 @@ const PetcamSceneDim = ({ area, topInset, animated }: Props) => {
 const styles = StyleSheet.create({
 	photo: { position: 'absolute' },
 	dimClip: { position: 'absolute', top: 0, right: 0, bottom: 0, overflow: 'hidden' },
-	handle: {
+	divider: {
 		position: 'absolute',
 		top: 0,
 		bottom: 0,
-		left: -HANDLE_SIZE / 2,
-		width: HANDLE_SIZE,
+		left: -KNOB_SIZE / 2,
+		width: KNOB_SIZE,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
-	handleLine: { position: 'absolute', top: 0, bottom: 0, width: 3, backgroundColor: colors.onFilled },
-	handleKnob: {
-		width: HANDLE_SIZE,
-		height: HANDLE_SIZE,
+	dividerLine: { position: 'absolute', top: 0, bottom: 0, width: 3, backgroundColor: colors.onFilled },
+	dividerKnob: {
+		width: KNOB_SIZE,
+		height: KNOB_SIZE,
 		borderWidth: 3,
 		borderColor: colors.orange,
 		borderRadius: radius.pill,

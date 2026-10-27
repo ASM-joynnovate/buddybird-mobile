@@ -36,7 +36,7 @@ import { mediaDevices, type MediaStream } from 'react-native-webrtc';
 import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_FADE_MS, SESSION_INFO_HIDE_MS } from '@/config/policy';
 import { SECOND } from '@/config/units';
 import CameraButton from '@/screens/session/components/camera-button';
-import CameraGuideButton from '@/screens/session/components/camera-guide-button';
+import PetcamGuideButton from '@/screens/session/components/petcam-guide-button';
 import SessionEndDialog from '@/screens/session/components/session-end-dialog';
 import SessionRunInfo from '@/screens/session/components/session-run-info';
 import SessionRunInfoBatteryStatus from '@/screens/session/components/session-run-info/battery-status';
@@ -253,19 +253,24 @@ const SessionRunScreen = () => {
 			<View style={styles.statusContainer}>
 				<SessionRunInfoBatteryStatus />
 				<View style={styles.cameraRow}>
-					<CameraGuideButton onPress={handleOpenPetcamGuide} />
+					<PetcamGuideButton onPress={handleOpenPetcamGuide} />
 					<CameraButton cameraOn={cameraOn} onPress={handleToggleCamera} />
 				</View>
 			</View>
 		</View>
 	);
 
-	/** 화면 진입 시 세션 정보 표시 */
+	/** 화면 unmount 시 세션 화면 값 초기화 */
 	useEffect(() => {
-		showInfo();
-
 		return () => resetSessionScreen();
-	}, [resetSessionScreen, showInfo]);
+	}, [resetSessionScreen]);
+
+	/** 화면 포커스 시 세션 정보 표시 */
+	useEffect(() => {
+		if (screenFocused) {
+			showInfo();
+		}
+	}, [screenFocused, showInfo]);
 
 	/** 펫캠 안내를 마치고 돌아오면 카메라 켜기 */
 	useFocusEffect(
@@ -580,7 +585,7 @@ const SessionRunScreen = () => {
 		syncEngineRef.current();
 	}, [viewerConnected]);
 
-	/** 펫캠 안내처럼 다른 화면이 위에 있으면 학습 정지 */
+	/** 화면 포커스 해제 시 학습 정지 */
 	useEffect(() => {
 		screenFocusedRef.current = screenFocused;
 
