@@ -70,6 +70,7 @@ export const report: ReportMessages = {
 			image: 'Фото',
 		},
 		sessionLog: 'Журнал',
+		empty: 'Записей нет',
 		timeRange: '{{start}} – {{end}}',
 		timeFrom: 'с {{start}}',
 		share: 'Поделиться: {{name}}',

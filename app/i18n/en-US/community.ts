@@ -39,6 +39,7 @@ export const community: CommunityMessages = {
 	},
 	feed: {
 		more: 'More',
+		empty: 'There is nothing in the feed yet',
 		timeAgo: {
 			minutes_one: '{{count}} min ago',
 			minutes_few: '{{count}} min ago',

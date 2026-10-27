@@ -62,6 +62,7 @@ export type ReportMessages = {
 			image: string;
 		};
 		sessionLog: string;
+		empty: string;
 		timeRange: string;
 		timeFrom: string;
 		share: string;

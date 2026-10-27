@@ -39,6 +39,7 @@ export const community: CommunityMessages = {
 	},
 	feed: {
 		more: '더보기',
+		empty: '아직 피드가 없어요',
 		timeAgo: {
 			minutes_one: '{{count}}분 전',
 			minutes_few: '{{count}}분 전',

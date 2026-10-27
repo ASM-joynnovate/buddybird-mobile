@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from 'react';
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { Session } from '@/types/apis/sessions';
 
@@ -14,10 +14,11 @@ import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import SessionLogDayBreak from '@/screens/report/components/session-log/day-break';
 import SessionLogRow from '@/screens/report/components/session-log/row';
 import { getSleepSpans, getLogDays, type LogItem } from '@/screens/report/utils/session-log';
-import { font } from '@/theme';
+import { colors, font } from '@/theme';
 import { sessionEndedAt } from '@/utils/date';
 
 import { Copy } from '@/components/ui/copy';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Props {
 	session: Session;
@@ -71,40 +72,46 @@ const SessionLog = ({
 			<Copy accessibilityRole="header" style={styles.title}>
 				{t('report.detail.sessionLog')}
 			</Copy>
+			<View style={styles.divider} />
 
-			{days.map((day, dayIndex) => (
-				<Fragment key={day.date}>
-					<SessionLogDayBreak
-						date={day.date}
-						dayIndex={dayIndex}
-						scrollY={scrollY}
-						viewportHeight={viewportHeight}
-						logBottom={logBottom}
-						dayBreakLayouts={dayBreakLayouts}
-					/>
-
-					{day.logRows.map((logRow, rowIndexInDay) => (
-						<SessionLogRow
-							key={logRow.start}
-							logRow={logRow}
-							isFirstInDay={rowIndexInDay === 0}
-							openItemId={
-								logRow.logItems.some((logItem) => logItem.id === openItemId) ? openItemId : null
-							}
-							sessionId={session.id}
-							judgmentPending={judgmentPending}
-							wordName={wordName}
-							onToggleItem={onToggleItem}
+			{logItems.length === 0 ? (
+				<EmptyState message={t('report.detail.empty')} />
+			) : (
+				days.map((day, dayIndex) => (
+					<Fragment key={day.date}>
+						<SessionLogDayBreak
+							date={day.date}
+							dayIndex={dayIndex}
+							scrollY={scrollY}
+							viewportHeight={viewportHeight}
+							logBottom={logBottom}
+							dayBreakLayouts={dayBreakLayouts}
 						/>
-					))}
-				</Fragment>
-			))}
+
+						{day.logRows.map((logRow, rowIndexInDay) => (
+							<SessionLogRow
+								key={logRow.start}
+								logRow={logRow}
+								isFirstInDay={rowIndexInDay === 0}
+								openItemId={
+									logRow.logItems.some((logItem) => logItem.id === openItemId) ? openItemId : null
+								}
+								sessionId={session.id}
+								judgmentPending={judgmentPending}
+								wordName={wordName}
+								onToggleItem={onToggleItem}
+							/>
+						))}
+					</Fragment>
+				))
+			)}
 		</>
 	);
 };
 
 const styles = StyleSheet.create({
-	title: { marginTop: 32, marginBottom: 4, fontFamily: font.bold, fontSize: 18, lineHeight: 24 },
+	title: { marginTop: 32, marginBottom: 16, fontFamily: font.bold, fontSize: 18, lineHeight: 24 },
+	divider: { height: 2, marginBottom: 8, marginHorizontal: -24, backgroundColor: colors.border },
 });
 
 export default SessionLog;

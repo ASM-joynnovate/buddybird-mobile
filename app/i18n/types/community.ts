@@ -25,6 +25,7 @@ export type CommunityMessages = {
 	};
 	feed: {
 		more: string;
+		empty: string;
 		timeAgo: PluralMessages<'minutes'> & PluralMessages<'hours'> & PluralMessages<'days'> & { yesterday: string };
 		mimic: {
 			label: string;
