@@ -15,14 +15,12 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 
 import { SECOND } from '@/config/units';
-import UsageSceneCoverPhoto, {
-	getCoverLayout,
-	toScenePoint,
-} from '@/screens/onboarding/components/usage-scene/cover-photo';
-import UsageScenePhotoPin from '@/screens/onboarding/components/usage-scene/photo-pin';
 import UsageSceneRecordSoundArc, { SOUND_ARCS } from '@/screens/onboarding/components/usage-scene/record/sound-arc';
 import UsageSceneVoiceCard from '@/screens/onboarding/components/usage-scene/voice-card';
 import { colors } from '@/theme';
+
+import GuideSceneCoverPhoto, { getCoverLayout, toScenePoint } from '@/components/guide-scene/cover-photo';
+import GuideScenePhotoPin from '@/components/guide-scene/photo-pin';
 
 const photo: number = require('@assets/images/usage-guide/record.jpg');
 
@@ -72,7 +70,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 
 	return (
 		<>
-			<UsageSceneCoverPhoto source={photo} layout={layout} />
+			<GuideSceneCoverPhoto source={photo} layout={layout} />
 
 			{/*소리 물결*/}
 			<View
@@ -110,7 +108,7 @@ const UsageSceneRecord = ({ area, topInset, animated }: Props) => {
 				</Animated.View>
 			)}
 
-			<UsageScenePhotoPin x={timerPoint.x} y={timerPoint.y} animated={animated} />
+			<GuideScenePhotoPin x={timerPoint.x} y={timerPoint.y} animated={animated} />
 
 			<UsageSceneVoiceCard
 				left={CARD_LEFT}

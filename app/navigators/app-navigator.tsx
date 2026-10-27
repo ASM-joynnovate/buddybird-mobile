@@ -32,6 +32,7 @@ import LegacyUploadScreen from '@/screens/onboarding/legacy-upload-screen';
 import MarketingNotificationScreen from '@/screens/onboarding/marketing-notification-screen';
 import PermissionRequestScreen from '@/screens/onboarding/permission-request-screen';
 import ParrotEditorScreen from '@/screens/parrot/parrot-editor-screen';
+import PetcamGuideScreen from '@/screens/session/petcam-guide-screen';
 import SessionRunScreen from '@/screens/session/session-run-screen';
 import SessionSummaryScreen from '@/screens/session/session-summary-screen';
 import SessionWatchScreen from '@/screens/session/session-watch-screen';
@@ -328,6 +329,7 @@ const AppNavigator = () => {
 							/>
 
 							<RootStack.Screen name="RecordingGuide" component={RecordingGuideScreen} />
+							<RootStack.Screen name="PetcamGuide" component={PetcamGuideScreen} />
 
 							<RootStack.Screen name="Settings" component={SettingsScreen} />
 							<RootStack.Screen

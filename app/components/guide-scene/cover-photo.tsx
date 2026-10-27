@@ -47,7 +47,7 @@ interface Props {
  * @param source 사진
  * @param layout 사진의 크기 및 위치
  */
-const UsageSceneCoverPhoto = ({ source, layout }: Props) => {
+const GuideSceneCoverPhoto = ({ source, layout }: Props) => {
 	return <Image accessibilityIgnoresInvertColors source={source} style={[styles.photo, layout]} />;
 };
 
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
 	photo: { position: 'absolute' },
 });
 
-export default UsageSceneCoverPhoto;
+export default GuideSceneCoverPhoto;

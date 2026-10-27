@@ -79,6 +79,7 @@ export type RootStackParamList = {
 	SessionSummary: { sessionId: string };
 	SessionWatch: { sessionId: string; source?: 'notification' };
 	RecordingGuide: undefined;
+	PetcamGuide: { source?: 'help' } | undefined;
 	Settings: undefined;
 	LanguageCountrySettings: undefined;
 	PrivacySettings: undefined;

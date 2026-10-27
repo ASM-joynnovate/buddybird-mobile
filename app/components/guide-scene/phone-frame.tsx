@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type { SceneArea } from '@/types/scene';
 
@@ -28,9 +28,21 @@ const getFrameScale = (area: SceneArea, top: number) => {
 	return Math.min(widthScale, 1.25, Math.max(0.68, visibleHeight / 630));
 };
 
+/**
+ * 휴대폰 틀 크기 계산 함수
+ * @param scale 휴대폰 틀 배율
+ */
+export const getPhoneFrameSize = (scale: number) => ({
+	width: (SCREEN_WIDTH + BEZEL * 2) * scale,
+	height: (SCREEN_HEIGHT + BEZEL * 2) * scale,
+});
+
 interface Props {
 	area: SceneArea;
 	topInset: number;
+	scale?: number;
+	isFullScreen?: boolean;
+	style?: StyleProp<ViewStyle>;
 	children: ReactNode;
 }
 
@@ -38,11 +50,14 @@ interface Props {
  * 휴대폰 틀 컴포넌트
  * @param area 장면 영역
  * @param topInset 상단 헤더 높이
+ * @param scale 휴대폰 틀 배율
+ * @param isFullScreen 내용을 화면 전체에 표시할지 여부
+ * @param style 휴대폰 틀 위치
  * @param children 휴대폰 화면 내용
  */
-const UsageScenePhoneFrame = ({ area, topInset, children }: Props) => {
+const GuideScenePhoneFrame = ({ area, topInset, scale: fixedScale, isFullScreen = false, style, children }: Props) => {
 	const top = topInset + 4;
-	const scale = getFrameScale(area, top);
+	const scale = fixedScale ?? getFrameScale(area, top);
 
 	return (
 		<Animated.View
@@ -51,10 +66,11 @@ const UsageScenePhoneFrame = ({ area, topInset, children }: Props) => {
 				styles.frame,
 				{
 					top,
-					left: (area.width - (SCREEN_WIDTH + BEZEL * 2) * scale) / 2,
+					left: (area.width - getPhoneFrameSize(scale).width) / 2,
 					padding: BEZEL * scale,
 					borderRadius: (SCREEN_RADIUS + BEZEL) * scale,
 				},
+				style,
 			]}
 		>
 			<View
@@ -64,8 +80,8 @@ const UsageScenePhoneFrame = ({ area, topInset, children }: Props) => {
 				]}
 			>
 				<View style={[styles.content, { transform: [{ scale }] }]}>
+					<View style={isFullScreen ? StyleSheet.absoluteFill : styles.body}>{children}</View>
 					<View style={styles.island} />
-					<View style={styles.body}>{children}</View>
 				</View>
 			</View>
 		</Animated.View>
@@ -88,4 +104,4 @@ const styles = StyleSheet.create({
 	body: { position: 'absolute', top: 62, right: BODY_SIDE, left: BODY_SIDE },
 });
 
-export default UsageScenePhoneFrame;
+export default GuideScenePhoneFrame;

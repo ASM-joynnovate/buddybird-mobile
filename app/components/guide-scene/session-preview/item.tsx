@@ -35,7 +35,7 @@ interface Props {
  * @param feedShareShown 피드에 공유 버튼 표시 여부
  * @param children 리뷰 버튼 위에 표시할 펼친 행의 내용
  */
-const UsageSceneSessionPreviewItem = ({
+const GuideSceneSessionPreviewItem = ({
 	kind,
 	name,
 	value,
@@ -115,4 +115,4 @@ const styles = StyleSheet.create({
 	shareFace: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
 });
 
-export default UsageSceneSessionPreviewItem;
+export default GuideSceneSessionPreviewItem;

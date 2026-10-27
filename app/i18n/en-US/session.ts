@@ -52,6 +52,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: 'Tap the screen to see session info',
 		camera: 'Camera',
+		openGuide: 'Open camera guide',
 		elapsed: 'Elapsed',
 		keepOpen: 'Keep the app open and the screen on.',
 		dimAfter: 'The screen dims after {{seconds}} seconds.',
@@ -84,6 +85,30 @@ export const session: SessionMessages = {
 		learningPaused: 'Learning pauses while you watch.',
 		zoomHint: { title: 'Pinch to zoom in', message: 'Double-tap to reset' },
 		zoomLevel: '{{zoom}}×',
+	},
+	petcamGuide: {
+		alert: {
+			title: 'Once you <b>turn on the camera</b>,\nwe’ll let you know how your parrot is doing',
+			scene: 'motion log in session details: a parrot out of view video and an expanded parrot back in view photo',
+			message: 'Get an alert if your parrot escapes its cage',
+		},
+		place: {
+			title: 'Place the device so it <b>captures the whole cage</b>',
+			scene: 'a tablet standing sideways in front of the cage, showing the whole cage on screen',
+			wholeCage: 'Whole cage in view',
+		},
+		watch: {
+			title: 'Watch <b>in real time</b> on your phone, like a CCTV',
+			scene: "the spare device's camera feed shown on the watch screen of your phone",
+			spareDevice: 'Spare device',
+			myPhone: 'My phone',
+		},
+		dim: {
+			title: 'During a session, the screen dims to <b>save battery</b>',
+			scene: 'a tablet screen during a session changing from bright to dim',
+			after: 'After {{seconds}} s',
+		},
+		cameraOn: 'Turn on camera',
 	},
 	summary: {
 		title: 'All done!',

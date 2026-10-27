@@ -52,6 +52,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: '화면을 누르면 학습 정보가 보여요',
 		camera: '카메라',
+		openGuide: '카메라 가이드 보기',
 		elapsed: '경과',
 		keepOpen: '앱을 켠 상태로 두고 화면을 끄지 마세요.',
 		dimAfter: '{{seconds}}초 후 화면이 어두워져요.',
@@ -84,6 +85,30 @@ export const session: SessionMessages = {
 		learningPaused: '보는 동안에는 학습이 잠시 멈춰요.',
 		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 누르면 원래대로 돌아와요' },
 		zoomLevel: '{{zoom}}×',
+	},
+	petcamGuide: {
+		alert: {
+			title: '<b>카메라를 켜면</b>,\n앵무새 상태를 알려드려요',
+			scene: '학습 상세의 움직임 기록. 앵무새 사라짐 동영상과 펼쳐진 앵무새 나타남 사진',
+			message: '앵무새가 새장을 탈출하면 알림을 보내줘요',
+		},
+		place: {
+			title: '<b>새장 전체가 찍히도록</b> 기기를 배치해주세요',
+			scene: '새장 앞에 가로로 세운 태블릿 화면에 새장 전체가 보이는 사진',
+			wholeCage: '새장 전체가 보이게',
+		},
+		watch: {
+			title: '내 폰에서 <b>실시간으로</b> CCTV처럼 확인 가능해요',
+			scene: '새장 앞 공기계의 카메라 영상을 내 폰의 학습 보기 화면에서 보는 장면',
+			spareDevice: '공기계',
+			myPhone: '내 폰',
+		},
+		dim: {
+			title: '학습 중에는 <b>배터리 절약</b>을 위해 화면이 어두워져요',
+			scene: '학습 중인 태블릿 화면이 밝은 상태에서 어두운 상태로 바뀌는 사진',
+			after: '{{seconds}}초 뒤',
+		},
+		cameraOn: '카메라 켜기',
 	},
 	summary: {
 		title: '학습 완료!',

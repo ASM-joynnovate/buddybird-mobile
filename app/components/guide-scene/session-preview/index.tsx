@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, type ImageSourcePropType, StyleSheet, View } from 'react-native';
 
 import type { UsageStep } from '@/types/guide/usage';
 
@@ -9,27 +9,31 @@ import { formatHour, formatMonthDayLongWeekday, formatMonthDayTime } from '@/i18
 import { CalendarIcon, ChevronLeftIcon, PlayIcon } from 'lucide-react-native';
 
 import { HOUR, MINUTE } from '@/config/units';
-import UsageSceneSessionPreviewItem from '@/screens/onboarding/components/usage-scene/session-preview/item';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font, radius } from '@/theme';
 import { sessionDetailColors } from '@/theme/session-detail-colors';
 
 import DashedLine from '@/components/dashed-line';
+import GuideSceneSessionPreviewItem from '@/components/guide-scene/session-preview/item';
 import SessionLogSoundTrack from '@/components/session/session-log-sound-track';
 import SessionOverview from '@/components/session/session-overview';
 import { Copy } from '@/components/ui/copy';
 
-const appearedPhoto: number = require('@assets/images/usage-guide/appeared.jpg');
+const defaultAppearedPhoto: number = require('@assets/images/usage-guide/appeared.jpg');
 
 interface Props {
 	step: UsageStep;
+	appearedPhoto?: ImageSourcePropType;
+	showLogHeader?: boolean;
 }
 
 /**
  * 리포트 학습 상세 예시 컴포넌트
  * @param step 현재 안내 단계
+ * @param appearedPhoto 앵무새 나타남 기록의 사진
+ * @param showLogHeader 기록 제목 및 날짜 표시 여부
  */
-const UsageSceneSessionPreview = ({ step }: Props) => {
+const GuideSceneSessionPreview = ({ step, appearedPhoto = defaultAppearedPhoto, showLogHeader = true }: Props) => {
 	const { t } = useTranslation();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
@@ -65,27 +69,33 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 				/>
 			)}
 
-			<Copy style={[styles.logTitle, step !== 'live' && styles.logTitleBelowHeader]}>
-				{t('report.detail.sessionLog')}
-			</Copy>
+			{showLogHeader && (
+				<>
+					<Copy style={[styles.logTitle, step !== 'live' && styles.logTitleBelowHeader]}>
+						{t('report.detail.sessionLog')}
+					</Copy>
 
-			<View style={styles.dayBreak}>
-				<View style={styles.date}>
-					<CalendarIcon size={14} color={colors.onFilled} />
-					<Copy style={styles.dateText}>{formatMonthDayLongWeekday('2025-10-21T08:52:00', locale)}</Copy>
-				</View>
-				<View style={styles.dayLine}>
-					<DashedLine color={colors.border} />
-				</View>
-			</View>
+					<View style={styles.dayBreak}>
+						<View style={styles.date}>
+							<CalendarIcon size={14} color={colors.onFilled} />
+							<Copy style={styles.dateText}>
+								{formatMonthDayLongWeekday('2025-10-21T08:52:00', locale)}
+							</Copy>
+						</View>
+						<View style={styles.dayLine}>
+							<DashedLine color={colors.border} />
+						</View>
+					</View>
+				</>
+			)}
 
 			<Copy style={styles.hour}>{formatHour('2025-10-21T15:00:00', locale)}</Copy>
 
 			<View style={styles.itemList}>
 				{step === 'live' && (
 					<>
-						<UsageSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
-						<UsageSceneSessionPreviewItem
+						<GuideSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
+						<GuideSceneSessionPreviewItem
 							kind="mimic"
 							name={wordName}
 							value={mimicScore}
@@ -97,8 +107,8 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 
 				{step === 'sound' && (
 					<>
-						<UsageSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
-						<UsageSceneSessionPreviewItem
+						<GuideSceneSessionPreviewItem kind="parrot" name={parrotKindLabel} time="15:31:04" />
+						<GuideSceneSessionPreviewItem
 							kind="mimic"
 							name={wordName}
 							value={mimicScore}
@@ -115,8 +125,8 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 									<PlayIcon size={13} color={colors.onFilled} fill={colors.onFilled} />
 								</View>
 							</View>
-						</UsageSceneSessionPreviewItem>
-						<UsageSceneSessionPreviewItem
+						</GuideSceneSessionPreviewItem>
+						<GuideSceneSessionPreviewItem
 							kind="distressCall"
 							name={t('report.detail.kinds.distressCall')}
 							value={t('common.duration.seconds', { value: 12 })}
@@ -127,12 +137,12 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 
 				{step === 'motion' && (
 					<>
-						<UsageSceneSessionPreviewItem
+						<GuideSceneSessionPreviewItem
 							kind="parrotDisappeared"
 							name={t('report.detail.kinds.parrotDisappeared')}
 							time={t('report.detail.timeRange', { start: '15:45:40', end: '15:51:02' })}
 						/>
-						<UsageSceneSessionPreviewItem
+						<GuideSceneSessionPreviewItem
 							kind="parrotAppeared"
 							name={t('report.detail.kinds.parrotAppeared')}
 							time="15:51:02"
@@ -144,7 +154,7 @@ const UsageSceneSessionPreview = ({ step }: Props) => {
 									style={styles.mediaImage}
 								/>
 							</View>
-						</UsageSceneSessionPreviewItem>
+						</GuideSceneSessionPreviewItem>
 					</>
 				)}
 			</View>
@@ -201,4 +211,4 @@ const styles = StyleSheet.create({
 	mediaImage: { width: '100%', height: '100%' },
 });
 
-export default UsageSceneSessionPreview;
+export default GuideSceneSessionPreview;

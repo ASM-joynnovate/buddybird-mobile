@@ -32,7 +32,7 @@ interface Props {
  * @param y 핀 가운데의 세로 위치
  * @param animated 애니메이션 실행 여부
  */
-const UsageScenePhotoPin = ({ x, y, animated }: Props) => {
+const GuideScenePhotoPin = ({ x, y, animated }: Props) => {
 	const pulseProgress = useSharedValue(0);
 
 	const pulseStyle = useAnimatedStyle(() => ({
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default UsageScenePhotoPin;
+export default GuideScenePhotoPin;

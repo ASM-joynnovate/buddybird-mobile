@@ -53,6 +53,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: 'Toca la pantalla para ver los datos del entrenamiento',
 		camera: 'Cámara',
+		openGuide: 'Ver la guía de la cámara',
 		elapsed: 'Transcurrido',
 		keepOpen: 'Deja la app abierta y no apagues la pantalla.',
 		dimAfter: 'La pantalla se oscurecerá en {{seconds}} segundos.',
@@ -90,6 +91,30 @@ export const session: SessionMessages = {
 		learningPaused: 'El entrenamiento se pausa mientras lo ves.',
 		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
 		zoomLevel: '{{zoom}}×',
+	},
+	petcamGuide: {
+		alert: {
+			title: 'Si <b>activas la cámara</b>,\nte avisamos de cómo está tu loro',
+			scene: 'registro de movimiento en los detalles del entrenamiento: vídeo de loro fuera de cámara y foto abierta de loro en cámara',
+			message: 'Te avisamos si tu loro se escapa de la jaula',
+		},
+		place: {
+			title: 'Coloca el dispositivo para que <b>se vea toda la jaula</b>',
+			scene: 'una tableta en horizontal frente a la jaula, con toda la jaula en pantalla',
+			wholeCage: 'Toda la jaula a la vista',
+		},
+		watch: {
+			title: 'Míralo <b>en tiempo real</b> desde tu móvil, como una cámara de vigilancia',
+			scene: 'la imagen de la cámara del dispositivo junto a la jaula en la pantalla de visualización de tu móvil',
+			spareDevice: 'Dispositivo que no uses',
+			myPhone: 'Mi móvil',
+		},
+		dim: {
+			title: 'Durante el entrenamiento, la pantalla se oscurece para <b>ahorrar batería</b>',
+			scene: 'la pantalla de una tableta durante el entrenamiento pasando de clara a oscura',
+			after: 'En {{seconds}} s',
+		},
+		cameraOn: 'Activar cámara',
 	},
 	summary: {
 		title: '¡Entrenamiento completado!',

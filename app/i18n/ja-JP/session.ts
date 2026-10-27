@@ -52,6 +52,7 @@ export const session: SessionMessages = {
 	run: {
 		reveal: '画面をタップすると練習情報が表示されます',
 		camera: 'カメラ',
+		openGuide: 'カメラガイドを見る',
 		elapsed: '経過',
 		keepOpen: 'アプリを開いたまま、画面を消さないでください。',
 		dimAfter: '{{seconds}}秒後に画面が暗くなります。',
@@ -84,6 +85,30 @@ export const session: SessionMessages = {
 		learningPaused: '見ている間は、練習が一時停止します。',
 		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
 		zoomLevel: '{{zoom}}×',
+	},
+	petcamGuide: {
+		alert: {
+			title: '<b>カメラをオン</b>にすると、\nインコの様子をお知らせします',
+			scene: '練習の詳細の動きの記録。インコが画面外の動画と、開いたインコが画面内の写真',
+			message: 'インコがケージから脱走したら通知でお知らせします',
+		},
+		place: {
+			title: '<b>ケージ全体が映るように</b>端末を置いてください',
+			scene: 'ケージの前に横向きに置いたタブレットの画面にケージ全体が映っている写真',
+			wholeCage: 'ケージ全体が見えるように',
+		},
+		watch: {
+			title: '自分のスマホで<b>リアルタイムに</b>防犯カメラのように確認できます',
+			scene: 'ケージの前の端末のカメラ映像を自分のスマホの視聴画面で見ている様子',
+			spareDevice: '使っていない端末',
+			myPhone: '自分のスマホ',
+		},
+		dim: {
+			title: '練習中は<b>バッテリー節約</b>のため画面が暗くなります',
+			scene: '練習中のタブレット画面が明るい状態から暗い状態に変わる写真',
+			after: '{{seconds}}秒後',
+		},
+		cameraOn: 'カメラをオン',
 	},
 	summary: {
 		title: '練習完了！',

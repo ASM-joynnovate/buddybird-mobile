@@ -9,10 +9,11 @@ import { useTranslation } from 'react-i18next';
 
 import { useReducedMotion } from 'react-native-reanimated';
 
-import UsageScenePhoneFrame from '@/screens/onboarding/components/usage-scene/phone-frame';
 import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
 import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
-import UsageSceneSessionPreview from '@/screens/onboarding/components/usage-scene/session-preview';
+
+import GuideScenePhoneFrame from '@/components/guide-scene/phone-frame';
+import GuideSceneSessionPreview from '@/components/guide-scene/session-preview';
 
 interface Props {
 	step: UsageStep;
@@ -53,9 +54,9 @@ const UsageScene = ({ step, topInset }: Props) => {
 					{step === 'record' && <UsageSceneRecord area={area} topInset={topInset} animated={animated} />}
 					{step === 'place' && <UsageScenePlace area={area} animated={animated} />}
 					{step !== 'record' && step !== 'place' && (
-						<UsageScenePhoneFrame area={area} topInset={topInset}>
-							<UsageSceneSessionPreview step={step} />
-						</UsageScenePhoneFrame>
+						<GuideScenePhoneFrame area={area} topInset={topInset}>
+							<GuideSceneSessionPreview step={step} />
+						</GuideScenePhoneFrame>
 					)}
 				</>
 			)}
