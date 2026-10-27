@@ -70,6 +70,7 @@ export const report: ReportMessages = {
 			image: 'Imagen',
 		},
 		sessionLog: 'Historial',
+		empty: 'No hay registros',
 		timeRange: '{{start}} – {{end}}',
 		timeFrom: 'Desde {{start}}',
 		share: 'Compartir {{name}}',

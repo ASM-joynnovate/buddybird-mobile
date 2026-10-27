@@ -1,4 +1,4 @@
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -11,6 +11,8 @@ import { getLeaderboardOptions } from '@/hooks/apis/leaderboard';
 import useIsLowPerformance from '@/hooks/use-is-low-performance';
 import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 import useSoundPlayer from '@/hooks/use-sound-player';
+
+import { useTranslation } from 'react-i18next';
 
 import Animated from 'react-native-reanimated';
 
@@ -29,9 +31,12 @@ import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicat
 import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
 import FeedCard, { feedCardKinds } from '@/components/feed-card';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
+import { EmptyState } from '@/components/ui/empty-state';
 
 /** 순위 카드 및 피드 목록 컴포넌트 */
 const CommunityFeed = () => {
+	const { t } = useTranslation();
+
 	const queryClient = useQueryClient();
 
 	const country = useSelectedCountry();
@@ -83,7 +88,13 @@ const CommunityFeed = () => {
 				data={feedItems}
 				keyExtractor={(feedItem) => feedItem.id}
 				renderItem={({ item: feedItem }) => <FeedCard feedItem={feedItem} player={player} />}
-				ListHeaderComponent=<LeaderboardCard />
+				ListHeaderComponent={
+					<>
+						<LeaderboardCard />
+						<View style={styles.divider} />
+					</>
+				}
+				ListEmptyComponent=<EmptyState message={t('community.feed.empty')} />
 				onEndReachedThreshold={0.4}
 				onEndReached={handleFetchNextPage}
 				ListFooterComponent={
@@ -97,7 +108,8 @@ const CommunityFeed = () => {
 };
 
 const styles = StyleSheet.create({
-	list: { gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 },
+	list: { flexGrow: 1, gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 },
+	divider: { height: 2, marginTop: 20, marginBottom: 8, marginHorizontal: -16, backgroundColor: colors.border },
 	footerLoading: { paddingTop: 8 },
 });
 

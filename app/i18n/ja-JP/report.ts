@@ -70,6 +70,7 @@ export const report: ReportMessages = {
 			image: '画像',
 		},
 		sessionLog: '記録',
+		empty: '記録はありません',
 		timeRange: '{{start}}～{{end}}',
 		timeFrom: '{{start}}～',
 		share: '{{name}}を共有',

@@ -39,6 +39,7 @@ export const community: CommunityMessages = {
 	},
 	feed: {
 		more: 'その他',
+		empty: 'フィードにはまだ何もありません',
 		timeAgo: {
 			minutes_one: '{{count}}分前',
 			minutes_few: '{{count}}分前',
