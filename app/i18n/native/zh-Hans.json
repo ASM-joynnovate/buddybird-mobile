@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "需要访问麦克风，才能录制要播放给鹦鹉听的词语，并录下学习期间的声音。",
+		"NSPhotoLibraryUsageDescription": "所选照片将用作鹦鹉的头像。",
+		"NSCameraUsageDescription": "拍摄头像或查看学习中的鹦鹉时会使用相机。",
+		"NSUserTrackingUsageDescription": "App使用统计数据用于改善学习体验。即使不允许跟踪，也可以使用学习功能。"
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

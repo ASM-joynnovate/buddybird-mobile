@@ -9,6 +9,8 @@ import { ja } from '@/i18n/ja-JP';
 import { ko } from '@/i18n/ko-KR';
 import { ru } from '@/i18n/ru-RU';
 import { th } from '@/i18n/th-TH';
+import { zhHans } from '@/i18n/zh-Hans';
+import { zhHant } from '@/i18n/zh-Hant';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -16,6 +18,8 @@ import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/th';
+import 'dayjs/locale/zh';
+import 'dayjs/locale/zh-tw';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
@@ -55,6 +59,8 @@ export const changeI18nLocale = async (locale: Locale) => {
 				'ru-RU': { translation: ru },
 				'es-ES': { translation: es },
 				'th-TH': { translation: th },
+				'zh-Hans': { translation: zhHans },
+				'zh-Hant': { translation: zhHant },
 			},
 			interpolation: { escapeValue: false },
 			initAsync: false,
