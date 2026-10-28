@@ -1,5 +1,7 @@
 import { type Locale, localeDefinitions } from '@/types/locale';
 
+import zhHant from '@/i18n/zh-Hant/countries.json';
+
 import nativeNames from 'countries-list/minimal/countries.native.min.json';
 import { getNames, registerLocale } from 'i18n-iso-countries';
 import en from 'i18n-iso-countries/langs/en.json';
@@ -8,6 +10,7 @@ import ja from 'i18n-iso-countries/langs/ja.json';
 import ko from 'i18n-iso-countries/langs/ko.json';
 import ru from 'i18n-iso-countries/langs/ru.json';
 import th from 'i18n-iso-countries/langs/th.json';
+import zh from 'i18n-iso-countries/langs/zh.json';
 
 // 앱에서 사용하는 언어만 등록
 registerLocale(ko);
@@ -16,6 +19,8 @@ registerLocale(ja);
 registerLocale(ru);
 registerLocale(es);
 registerLocale(th);
+registerLocale(zh);
+registerLocale({ locale: 'zh-tw', countries: zhHant });
 
 /** 앱 언어로 된 국가 코드별 이름 조회 함수 */
 export const countryNamesIn = (locale: Locale) => getNames(localeDefinitions[locale].countryNamesLocale);
