@@ -3,21 +3,27 @@ import { type Locale, localeDefinitions } from '@/types/locale';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { bn } from '@/i18n/bn-BD';
 import { en } from '@/i18n/en-US';
 import { es } from '@/i18n/es-ES';
+import { hi } from '@/i18n/hi-IN';
 import { ja } from '@/i18n/ja-JP';
 import { ko } from '@/i18n/ko-KR';
 import { ru } from '@/i18n/ru-RU';
 import { th } from '@/i18n/th-TH';
+import { vi } from '@/i18n/vi-VN';
 import { zhHans } from '@/i18n/zh-Hans';
 import { zhHant } from '@/i18n/zh-Hant';
 
 import dayjs from 'dayjs';
+import 'dayjs/locale/bn-bd';
 import 'dayjs/locale/es';
+import 'dayjs/locale/hi';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/th';
+import 'dayjs/locale/vi';
 import 'dayjs/locale/zh';
 import 'dayjs/locale/zh-tw';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
@@ -61,6 +67,9 @@ export const changeI18nLocale = async (locale: Locale) => {
 				'th-TH': { translation: th },
 				'zh-Hans': { translation: zhHans },
 				'zh-Hant': { translation: zhHant },
+				'vi-VN': { translation: vi },
+				'hi-IN': { translation: hi },
+				'bn-BD': { translation: bn },
 			},
 			interpolation: { escapeValue: false },
 			initAsync: false,

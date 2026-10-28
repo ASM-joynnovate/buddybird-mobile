@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "টিয়াকে শোনানোর শব্দ আর শেখার সময়ের আওয়াজ রেকর্ড করতে মাইক্রোফোন অ্যাক্সেস দরকার।",
+		"NSPhotoLibraryUsageDescription": "আপনার বেছে নেওয়া ছবিটি টিয়ার প্রোফাইল ছবি হিসেবে ব্যবহার করা হবে।",
+		"NSCameraUsageDescription": "প্রোফাইল ছবি তুলতে বা শেখার সময় টিয়াকে দেখাতে ক্যামেরা ব্যবহার করা হয়।",
+		"NSUserTrackingUsageDescription": "অ্যাপ ব্যবহারের পরিসংখ্যান দিয়ে আমরা শেখার অভিজ্ঞতা আরও ভালো করি। ট্র্যাকিংয়ের অনুমতি না দিলেও শেখার ফিচার ব্যবহার করতে পারবেন।"
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

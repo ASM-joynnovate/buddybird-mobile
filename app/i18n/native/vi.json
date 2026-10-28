@@ -1,0 +1,12 @@
+{
+	"ios": {
+		"CFBundleDisplayName": "BuddyBird",
+		"NSMicrophoneUsageDescription": "BuddyBird cần quyền truy cập micrô để ghi âm từ cho vẹt nghe và ghi lại âm thanh trong buổi học.",
+		"NSPhotoLibraryUsageDescription": "Ảnh bạn chọn sẽ được dùng làm ảnh hồ sơ của vẹt.",
+		"NSCameraUsageDescription": "Camera được dùng để chụp ảnh hồ sơ hoặc cho bạn xem vẹt trong buổi học.",
+		"NSUserTrackingUsageDescription": "Thống kê sử dụng ứng dụng giúp chúng tôi cải thiện trải nghiệm học. Bạn vẫn dùng được các tính năng học dù không cho phép theo dõi."
+	},
+	"android": {
+		"app_name": "BuddyBird"
+	}
+}

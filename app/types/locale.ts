@@ -1,4 +1,16 @@
-export const locales = ['ko-KR', 'en-US', 'ja-JP', 'ru-RU', 'es-ES', 'th-TH', 'zh-Hans', 'zh-Hant'] as const;
+export const locales = [
+	'ko-KR',
+	'en-US',
+	'ja-JP',
+	'ru-RU',
+	'es-ES',
+	'th-TH',
+	'zh-Hans',
+	'zh-Hant',
+	'vi-VN',
+	'hi-IN',
+	'bn-BD',
+] as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -19,4 +31,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 	'th-TH': { nativeName: 'ไทย', dateLocale: 'th', countryNamesLocale: 'th' },
 	'zh-Hans': { nativeName: '简体中文', dateLocale: 'zh', countryNamesLocale: 'zh' },
 	'zh-Hant': { nativeName: '繁體中文', dateLocale: 'zh-tw', countryNamesLocale: 'zh-tw' },
+	'vi-VN': { nativeName: 'Tiếng Việt', dateLocale: 'vi', countryNamesLocale: 'vi' },
+	'hi-IN': { nativeName: 'हिन्दी', dateLocale: 'hi', countryNamesLocale: 'hi' },
+	'bn-BD': { nativeName: 'বাংলা', dateLocale: 'bn-bd', countryNamesLocale: 'bn' },
 };

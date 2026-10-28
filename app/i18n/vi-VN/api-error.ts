@@ -1,0 +1,42 @@
+import type { ApiErrorMessages } from '@/i18n/types/api-error';
+
+export const apiError: ApiErrorMessages = {
+	COMMON__BAD_REQUEST: 'Không xử lý được yêu cầu. Vui lòng kiểm tra lại nội dung bạn đã nhập.',
+	COMMON__RESOURCE_NOT_FOUND: 'Không tìm thấy thông tin. Có thể thông tin này đã bị xóa.',
+	COMMON__FILE_SIZE_EXCEEDED: 'Tệp quá lớn. Bạn chỉ có thể tải lên tệp từ 5 MB trở xuống.',
+	COMMON__IDEMPOTENCY_KEY_REQUIRED:
+		'Không xử lý được yêu cầu. Nếu lỗi vẫn tiếp diễn, vui lòng cập nhật ứng dụng lên phiên bản mới nhất.',
+	COMMON__REQUEST_VALIDATION_ERROR:
+		'Không kiểm tra được nội dung yêu cầu. Nếu lỗi vẫn tiếp diễn, vui lòng cập nhật ứng dụng lên phiên bản mới nhất.',
+	COMMON__RESPONSE_VALIDATION_ERROR: 'Phản hồi từ máy chủ có lỗi. Vui lòng thử lại sau.',
+	COMMON__INTERNAL_SERVER_ERROR: 'Máy chủ đang gặp lỗi. Vui lòng thử lại sau.',
+	AUTH__INVALID_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+	AUTH__SERVICE_UNAVAILABLE: 'Dịch vụ đăng nhập tạm thời không khả dụng. Vui lòng thử lại sau.',
+	AUTH__INVALID_PROVIDER_CREDENTIAL: 'Không xác minh được thông tin đăng nhập mạng xã hội. Vui lòng đăng nhập lại.',
+	AUTH__PROVIDER_CREDENTIAL_REQUIRED: 'Cần có thông tin đăng nhập mạng xã hội. Vui lòng đăng nhập lại.',
+	AUTH__WITHDRAWAL_SAVE_UNAVAILABLE:
+		'Không xác nhận được yêu cầu xóa tài khoản đã được tiếp nhận hay chưa. Vui lòng gửi lại yêu cầu.',
+	USER__SAVE_UNAVAILABLE: 'Không lưu được thông tin tài khoản. Vui lòng thử lại sau.',
+	USER__DUPLICATE_NICKNAME: 'Biệt danh này đã có người dùng. Vui lòng nhập biệt danh khác.',
+	USER__INVALID_PROFILE_PHOTO: 'Bạn chỉ có thể tải lên ảnh JPEG hoặc PNG.',
+	DEVICE__NOT_REGISTERED: 'Không xác nhận được thông tin đăng ký của thiết bị này. Vui lòng mở lại ứng dụng.',
+	DEVICE__NOT_STATION: 'Bạn chỉ có thể làm việc này trên thiết bị đặt trước lồng.',
+	DEVICE__SAVE_UNAVAILABLE: 'Không lưu được thông tin thiết bị. Vui lòng thử lại sau.',
+	PARROT__SAVE_UNAVAILABLE: 'Không lưu được thông tin vẹt. Vui lòng thử lại sau.',
+	WORD__SAVE_UNAVAILABLE: 'Không lưu được từ. Vui lòng thử lại sau.',
+	WORD__RECORDING_REQUIRED: 'Mỗi từ cần có ít nhất 1 bản ghi âm.',
+	WORD__INVALID_RECORDING: 'Bạn chỉ có thể tải lên tệp ghi âm m4a, wav hoặc mp3.',
+	SESSION__SAVE_UNAVAILABLE: 'Không lưu được thông tin buổi học. Vui lòng thử lại sau.',
+	SESSION__ALREADY_RUNNING: 'Đang có một buổi học diễn ra.',
+	SESSION__NOT_RUNNING: 'Không có buổi học nào đang diễn ra.',
+	SESSION__INVALID_SOUND: 'Bạn chỉ có thể tải lên tệp âm thanh wav.',
+	FEEDBACK__SAVE_UNAVAILABLE: 'Không lưu được góp ý. Vui lòng thử lại sau.',
+	CONSENT__SAVE_UNAVAILABLE: 'Không lưu được nội dung đồng ý. Vui lòng thử lại sau.',
+	NOTIFICATION__READ_FAILED: 'Không đánh dấu được thông báo là đã đọc. Vui lòng thử lại sau.',
+	CLIENT__NETWORK: 'Vui lòng kiểm tra kết nối mạng.',
+	CLIENT__TIMEOUT: 'Phản hồi quá chậm. Vui lòng kiểm tra kết nối mạng.',
+	CLIENT__INVALID_RESPONSE: 'Không đọc được phản hồi từ máy chủ. Vui lòng thử lại sau.',
+	USER__SELF_TARGET: 'Bạn không thể chặn hoặc báo cáo chính mình.',
+	FEED__SAVE_UNAVAILABLE: 'Không lưu được lượt thích. Vui lòng thử lại sau.',
+	ABUSE_REPORT__SAVE_UNAVAILABLE: 'Không gửi được báo cáo. Vui lòng thử lại sau.',
+};
