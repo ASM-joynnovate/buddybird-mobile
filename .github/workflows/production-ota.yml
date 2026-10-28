@@ -8,8 +8,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   ota-deploy:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    environment: production
     permissions:
       contents: read
       actions: read
@@ -46,7 +46,7 @@ jobs:
       - uses: ./.github/actions/ota-deploy
         with:
           variant: production
-          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
+          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY_PRODUCTION }}
           cloudflare-api-token: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
           r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}

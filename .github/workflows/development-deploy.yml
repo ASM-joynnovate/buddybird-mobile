@@ -31,7 +31,6 @@ jobs:
     needs: version-check
     if: needs.version-check.outputs.version-changed == 'false'
     runs-on: ubuntu-latest
-    environment: staging
     permissions:
       contents: read
       actions: read
@@ -71,7 +70,7 @@ jobs:
         if: steps.fingerprint.outputs.expo-changed == 'false'
         with:
           variant: development
-          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY }}
+          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY_STAGING }}
           cloudflare-api-token: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
           r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
