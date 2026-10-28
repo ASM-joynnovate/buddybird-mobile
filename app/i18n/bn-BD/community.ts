@@ -1,0 +1,103 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'ফিড',
+	me: 'আমি',
+	feedConsent: {
+		title: 'ফিডে সবার জন্য দেখাবেন?',
+		message: 'দেখালে আপনার শেখার রেকর্ড আর নকল করা আওয়াজ অন্যরা দেখতে পাবেন।',
+		confirm: 'দেখান',
+	},
+	countryScope: {
+		world: 'সারা বিশ্ব',
+		mine: 'আমার দেশ',
+	},
+	leaderboard: {
+		title: '{{month}}-এর শেখার সময়ের লিডারবোর্ড',
+		viewAll: 'পুরো লিডারবোর্ড',
+		unranked: {
+			not_participating: {
+				title: 'আপনি লিডারবোর্ডে যোগ দেননি',
+				description: 'যোগ দিলে আপনার ডাকনাম, ছবি আর শেখার সময় অন্যরা দেখতে পাবেন',
+				action: 'যোগ দিন',
+			},
+			no_nickname: {
+				title: 'ডাকনাম না থাকায় লিডারবোর্ডে আপনি নেই',
+				action: 'ডাকনাম ঠিক করুন',
+			},
+			anonymous: {
+				title: 'সাইন-ইন করলে লিডারবোর্ডে আসবেন',
+				action: 'সাইন-ইন',
+			},
+			country_mismatch: {
+				title: 'এই দেশের লিডারবোর্ডে আপনি নেই',
+			},
+			no_record: {
+				title: 'এই মাসে এখনো শেখার কোনো রেকর্ড নেই',
+			},
+		},
+	},
+	feed: {
+		more: 'আরও দেখুন',
+		empty: 'ফিডে এখনো কিছু নেই',
+		timeAgo: {
+			minutes_one: '{{count, number}} মিনিট আগে',
+			minutes_few: '{{count, number}} মিনিট আগে',
+			minutes_many: '{{count, number}} মিনিট আগে',
+			minutes_other: '{{count, number}} মিনিট আগে',
+			hours_one: '{{count, number}} ঘণ্টা আগে',
+			hours_few: '{{count, number}} ঘণ্টা আগে',
+			hours_many: '{{count, number}} ঘণ্টা আগে',
+			hours_other: '{{count, number}} ঘণ্টা আগে',
+			days_one: '{{count, number}} দিন আগে',
+			days_few: '{{count, number}} দিন আগে',
+			days_many: '{{count, number}} দিন আগে',
+			days_other: '{{count, number}} দিন আগে',
+			yesterday: 'গতকাল',
+		},
+		mimic: {
+			label: 'নকল করা শব্দ',
+			word: "'{{word}}'",
+			private: 'রেকর্ডিংটি সবার জন্য খোলা নয়',
+			play: '{{word}} চালান',
+		},
+		totalLearningTime: 'মোট <b>{{duration}}</b> শেখা পূর্ণ হয়েছে!',
+		monthlyLearningTime: '{{month}}-এ <b>{{duration}}</b> শেখা পূর্ণ হয়েছে!',
+		wordPlayCount_one: "'{{word}}' শব্দটি <b>{{count, number}} বার</b> শোনানো হয়েছে!",
+		wordPlayCount_few: "'{{word}}' শব্দটি <b>{{count, number}} বার</b> শোনানো হয়েছে!",
+		wordPlayCount_many: "'{{word}}' শব্দটি <b>{{count, number}} বার</b> শোনানো হয়েছে!",
+		wordPlayCount_other: "'{{word}}' শব্দটি <b>{{count, number}} বার</b> শোনানো হয়েছে!",
+		artHours: 'ঘণ্টা',
+		artCount_one: '{{count, number}} বার',
+		artCount_few: '{{count, number}} বার',
+		artCount_many: '{{count, number}} বার',
+		artCount_other: '{{count, number}} বার',
+		like: 'লাইক',
+	},
+	report: {
+		action: 'রিপোর্ট করুন',
+		title: 'রিপোর্ট করার কারণ বেছে নিন',
+		reasons: {
+			spam: 'স্প্যাম',
+			inappropriate_content: 'অনুপযুক্ত কন্টেন্ট',
+			harassment: 'হয়রানি',
+			other: 'অন্যান্য',
+		},
+		description: 'বিস্তারিত (ঐচ্ছিক)',
+		sent: 'রিপোর্ট পাঠানো হয়েছে',
+	},
+	block: {
+		action: 'ব্লক করুন',
+		title: '{{nickname}}-কে ব্লক করবেন?',
+		message: 'আপনারা কেউ কারও ফিড দেখতে পাবেন না।',
+		done: '{{nickname}}-কে ব্লক করা হয়েছে',
+		undo: 'পূর্বাবস্থায় ফিরুন',
+	},
+	gate: {
+		loginTitle: 'সাইন-ইন',
+		loginDescription: 'সাইন-ইন করলে ফিড ব্যবহার করতে পারবেন',
+		nicknameTitle: 'ডাকনাম ঠিক করুন',
+		nicknameDescription: 'ফিডে এই নামটি দেখা যাবে',
+		start: 'শুরু করুন',
+	},
+};

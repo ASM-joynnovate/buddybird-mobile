@@ -52,6 +52,9 @@ const config: ExpoConfig = {
 		th: nativeLocale('app/i18n/native/th.json'),
 		'zh-Hans': nativeLocale('app/i18n/native/zh-Hans.json'),
 		'zh-Hant': nativeLocale('app/i18n/native/zh-Hant.json'),
+		vi: nativeLocale('app/i18n/native/vi.json'),
+		hi: nativeLocale('app/i18n/native/hi.json'),
+		bn: nativeLocale('app/i18n/native/bn.json'),
 	},
 	icon: './assets/images/icon.png',
 	ios: {

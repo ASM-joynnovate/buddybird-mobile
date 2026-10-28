@@ -1,0 +1,103 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'Bảng tin',
+	me: 'Bạn',
+	feedConsent: {
+		title: 'Công khai trên bảng tin?',
+		message: 'Khi công khai, người khác sẽ thấy lịch sử học và âm thanh vẹt đã bắt chước của bạn.',
+		confirm: 'Công khai',
+	},
+	countryScope: {
+		world: 'Toàn thế giới',
+		mine: 'Quốc gia của tôi',
+	},
+	leaderboard: {
+		title: 'Xếp hạng thời gian học {{month}}',
+		viewAll: 'Xem tất cả',
+		unranked: {
+			not_participating: {
+				title: 'Bạn chưa tham gia bảng xếp hạng',
+				description: 'Khi tham gia, người khác sẽ thấy biệt danh, ảnh và thời gian học của bạn',
+				action: 'Tham gia',
+			},
+			no_nickname: {
+				title: 'Bạn chưa có biệt danh nên chưa có tên trên bảng xếp hạng',
+				action: 'Đặt biệt danh',
+			},
+			anonymous: {
+				title: 'Đăng nhập để có tên trên bảng xếp hạng',
+				action: 'Đăng nhập',
+			},
+			country_mismatch: {
+				title: 'Bạn không có trong bảng xếp hạng của quốc gia này',
+			},
+			no_record: {
+				title: 'Tháng này bạn chưa có lịch sử học',
+			},
+		},
+	},
+	feed: {
+		more: 'Xem thêm',
+		empty: 'Chưa có bài đăng nào trên bảng tin',
+		timeAgo: {
+			minutes_one: '{{count}} phút trước',
+			minutes_few: '{{count}} phút trước',
+			minutes_many: '{{count}} phút trước',
+			minutes_other: '{{count}} phút trước',
+			hours_one: '{{count}} giờ trước',
+			hours_few: '{{count}} giờ trước',
+			hours_many: '{{count}} giờ trước',
+			hours_other: '{{count}} giờ trước',
+			days_one: '{{count}} ngày trước',
+			days_few: '{{count}} ngày trước',
+			days_many: '{{count}} ngày trước',
+			days_other: '{{count}} ngày trước',
+			yesterday: 'Hôm qua',
+		},
+		mimic: {
+			label: 'Từ đã bắt chước',
+			word: '“{{word}}”',
+			private: 'Bản ghi âm không được công khai',
+			play: 'Phát {{word}}',
+		},
+		totalLearningTime: 'Đã đạt <b>{{duration}}</b> tổng thời gian học!',
+		monthlyLearningTime: 'Đã đạt <b>{{duration}}</b> thời gian học trong {{month}}!',
+		wordPlayCount_one: 'Đã cho nghe từ “{{word}}” <b>{{count, number}} lần</b>!',
+		wordPlayCount_few: 'Đã cho nghe từ “{{word}}” <b>{{count, number}} lần</b>!',
+		wordPlayCount_many: 'Đã cho nghe từ “{{word}}” <b>{{count, number}} lần</b>!',
+		wordPlayCount_other: 'Đã cho nghe từ “{{word}}” <b>{{count, number}} lần</b>!',
+		artHours: 'giờ',
+		artCount_one: '{{count, number}} lần',
+		artCount_few: '{{count, number}} lần',
+		artCount_many: '{{count, number}} lần',
+		artCount_other: '{{count, number}} lần',
+		like: 'Thích',
+	},
+	report: {
+		action: 'Báo cáo',
+		title: 'Chọn lý do báo cáo',
+		reasons: {
+			spam: 'Spam',
+			inappropriate_content: 'Nội dung không phù hợp',
+			harassment: 'Quấy rối',
+			other: 'Khác',
+		},
+		description: 'Chi tiết (không bắt buộc)',
+		sent: 'Đã gửi báo cáo',
+	},
+	block: {
+		action: 'Chặn',
+		title: 'Chặn {{nickname}}?',
+		message: 'Hai bạn sẽ không thấy bài đăng của nhau trên bảng tin.',
+		done: 'Đã chặn {{nickname}}',
+		undo: 'Hoàn tác',
+	},
+	gate: {
+		loginTitle: 'Đăng nhập',
+		loginDescription: 'Đăng nhập để dùng bảng tin',
+		nicknameTitle: 'Đặt biệt danh',
+		nicknameDescription: 'Tên này sẽ hiển thị trên bảng tin',
+		start: 'Bắt đầu',
+	},
+};
