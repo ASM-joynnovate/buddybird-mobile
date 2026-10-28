@@ -60,7 +60,7 @@
 | `GET /devices`, `PUT /devices` | `PUT`만 필요 | `PUT /devices`로 등록한 뒤 `X-Device-Id`가 유효해짐 |
 | `PUT /devices/me/push-token`, `PUT /devices/me/activity`, `PATCH /devices/me`, `DELETE /devices/{id}` | 필요 | 등록하지 않은 기기는 `DEVICE__NOT_REGISTERED` |
 | `/parrots*`, `/words*` 쓰기 | 필요 | |
-| `GET /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/summary`, `GET /sessions/{id}/sounds`, `GET /sessions/{id}/events` | | 목록은 페이지네이션 |
+| `GET /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/summary`, `GET /sessions/{id}/log` | | 목록은 페이지네이션, 기록은 `kind` 반복 파라미터로 종류 선택 |
 | `POST /sessions`, `POST /sessions/{id}/finish`, `POST /sessions/{id}/heartbeat` | 필요 | |
 | `GET /reports`, `GET /leaderboard` | | |
 | `GET /feed` | | 피드는 페이지네이션 |

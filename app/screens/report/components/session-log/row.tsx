@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { formatHour } from '@/i18n/format';
 
+import dayjs from 'dayjs';
 import { MoonIcon } from 'lucide-react-native';
 import Svg, { Defs, Pattern, Rect } from 'react-native-svg';
 
@@ -58,7 +59,14 @@ const SessionLogRow = ({
 	if (logRow.logItems.length === 0 && !logRow.isDuringSleep) {
 		return (
 			<View style={[styles.row, isFirstInDay && styles.firstRow, styles.quietRow]}>
-				<Copy style={styles.quietHour}>{formatHour(logRow.start, locale)}</Copy>
+				<Copy style={styles.quietHour}>
+					{dayjs(logRow.start).isSame(logRow.end - 1, 'hour')
+						? formatHour(logRow.start, locale)
+						: t('report.detail.timeRange', {
+								start: formatHour(logRow.start, locale),
+								end: formatHour(logRow.end, locale),
+							})}
+				</Copy>
 				<View style={styles.quietLine}>
 					<DashedLine color={colors.border} />
 				</View>

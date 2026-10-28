@@ -13,11 +13,12 @@ interface Props {
 	leading?: ReactNode;
 	selected?: boolean;
 	showDot?: boolean;
+	size?: 'small' | 'medium';
 	onPress: () => void;
 	style?: StyleProp<ViewStyle>;
 }
 
-export const Chip = ({ label, leading, selected, showDot, onPress, style }: Props) => {
+export const Chip = ({ label, leading, selected, showDot, size = 'medium', onPress, style }: Props) => {
 	return (
 		<PressableSurface
 			accessibilityRole="button"
@@ -27,9 +28,9 @@ export const Chip = ({ label, leading, selected, showDot, onPress, style }: Prop
 			variant={selected ? 'primary' : 'neutral'}
 			depth="low"
 			hitSlop={6}
-			cornerRadius="pill"
+			cornerRadius={size === 'small' ? 'toggle' : 'pill'}
 			style={[styles.shell, style]}
-			contentStyle={styles.chip}
+			contentStyle={[styles.chip, size === 'small' && styles.chipSmall]}
 		>
 			{leading}
 			<Copy numberOfLines={1} style={[styles.chipText, selected && styles.selectedText]}>
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 14,
 		paddingVertical: 4,
 	},
-	chipText: { fontSize: 13.5, color: colors.muted, fontFamily: font.extraBold },
+	chipSmall: { paddingHorizontal: 10 },
+	chipText: { flexShrink: 1, fontSize: 13.5, color: colors.muted, fontFamily: font.extraBold },
 	selectedText: { color: colors.onFilled },
 });

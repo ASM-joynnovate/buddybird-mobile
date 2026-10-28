@@ -64,6 +64,16 @@ export const report: ReportMessages = {
 			parrotDisappeared: '앵무새 사라짐',
 			parrotAppeared: '앵무새 나타남',
 		},
+		filters: {
+			all: '전체',
+			sound: '짹짹 소리',
+			emergency: '응급 상황',
+		},
+		filterEmpty: {
+			sound: '짹짹 소리 기록이 없어요',
+			word: "'{{word}}' 기록이 없어요",
+			emergency: '응급 상황 기록이 없어요',
+		},
 		mediaTypes: {
 			audio: '오디오',
 			video: '동영상',

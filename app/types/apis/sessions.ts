@@ -29,6 +29,10 @@ export const sessionSchema = z.object({
 		parrot_count: z.number().int().nonnegative(),
 		mimic_count: z.number().int().nonnegative(),
 	}),
+	events: z.object({
+		distress_call_count: z.number().int().nonnegative(),
+		parrot_disappeared_count: z.number().int().nonnegative(),
+	}),
 });
 
 const startSessionRequestSchema = z.object({
@@ -62,50 +66,59 @@ const scoreSchema = z.number().min(0).max(1);
 
 const sessionUserReviewSchema = z.object({ is_correct: z.boolean() });
 
-export const sessionSoundSchema = z.object({
-	id: uuidSchema,
-	session_id: uuidSchema,
-	captured_at: timestampSchema,
-	audio_file: fileSchema,
-	duration_ms: z.number().int().nonnegative().nullish(),
-	analysis: z.object({ score: scoreSchema }).nullish(),
-	judgment: z.object({ word_id: uuidSchema.nullable(), score: scoreSchema.nullish() }).nullable(),
-	user_review: sessionUserReviewSchema.nullish(),
-	is_feed_shared: z.boolean().default(false),
-});
-
-const sessionEventKindSchema = z.enum([
-	'session_started',
-	'learning_started',
-	'learning_toggled',
-	'learning_finished',
-	'word_changed',
-	'station_disconnected',
-	'station_reconnected',
+const sessionLogKindSchema = z.enum([
+	'parrot',
+	'mimic',
 	'distress_call_detected',
-	'session_finished',
 	'parrot_disappeared',
 	'parrot_appeared',
 ]);
 
 const sessionEventFileSchema = fileSchema.extend({ status: z.enum(['pending', 'uploaded', 'rejected']) });
 
-export const sessionEventSchema = z.object({
+const sessionLogSoundSchema = z.object({
 	id: uuidSchema,
-	kind: sessionEventKindSchema,
-	occurred_at: timestampSchema,
-	ended_at: timestampSchema.nullable(),
-	word: z.object({ id: uuidSchema }).nullable(),
-	sound_ids: z.array(uuidSchema),
-	image: sessionEventFileSchema.nullable(),
-	video: sessionEventFileSchema.nullable(),
-	user_review: sessionUserReviewSchema.nullish(),
+	captured_at: timestampSchema,
+	audio_file: fileSchema,
+	duration_ms: z.number().int().nonnegative().nullable(),
 });
 
-export const sessionEventListSchema = z
+const sessionLogItemBaseSchema = z.object({
+	id: uuidSchema,
+	occurred_at: timestampSchema,
+	user_review: sessionUserReviewSchema.nullable(),
+});
+
+const sessionLogSoundItemSchema = sessionLogItemBaseSchema.extend({
+	audio_file: fileSchema,
+	duration_ms: z.number().int().nonnegative().nullable(),
+	score: scoreSchema.nullable(),
+});
+
+const sessionLogItemSchema = z.discriminatedUnion('kind', [
+	sessionLogSoundItemSchema.extend({ kind: z.literal('parrot') }),
+	sessionLogSoundItemSchema.extend({ kind: z.literal('mimic'), is_feed_shared: z.boolean() }),
+	sessionLogItemBaseSchema.extend({
+		kind: z.literal('distress_call_detected'),
+		ended_at: timestampSchema.nullable(),
+		sounds: z.array(sessionLogSoundSchema),
+	}),
+	sessionLogItemBaseSchema.extend({
+		kind: z.literal('parrot_disappeared'),
+		ended_at: timestampSchema.nullable(),
+		image: sessionEventFileSchema.nullable(),
+		video: sessionEventFileSchema.nullable(),
+	}),
+	sessionLogItemBaseSchema.extend({
+		kind: z.literal('parrot_appeared'),
+		image: sessionEventFileSchema.nullable(),
+	}),
+]);
+
+export const sessionLogListSchema = z
 	.array(z.looseObject({ kind: z.string() }))
-	.transform((events) => events.filter((event) => sessionEventKindSchema.safeParse(event.kind).success))
-	.pipe(z.array(sessionEventSchema));
+	.transform((logItems) => logItems.filter((logItem) => sessionLogKindSchema.safeParse(logItem.kind).success))
+	.pipe(z.array(sessionLogItemSchema));
 
 const petcamEventKindSchema = z.enum(['parrot_disappeared', 'parrot_appeared']);
 
@@ -123,9 +136,10 @@ export type StartSessionRequest = z.infer<typeof startSessionRequestSchema>;
 export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatLearningSegment = HeartbeatRequest['learning_segments'][number];
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
-export type SessionSound = z.infer<typeof sessionSoundSchema>;
 export type SessionUserReview = z.infer<typeof sessionUserReviewSchema>;
-export type SessionEvent = z.infer<typeof sessionEventSchema>;
+export type SessionLogKind = z.infer<typeof sessionLogKindSchema>;
+export type SessionLogSound = z.infer<typeof sessionLogSoundSchema>;
+export type SessionLogItem = z.infer<typeof sessionLogItemSchema>;
 export type SessionEventFile = z.infer<typeof sessionEventFileSchema>;
 export type PetcamEventKind = z.infer<typeof petcamEventKindSchema>;
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
@@ -155,8 +169,9 @@ export interface PostSessionHeartbeatParams {
 	idempotencyKey: string;
 }
 
-export interface GetSessionSoundListParams {
+export interface GetSessionLogParams {
 	id: string;
+	kinds: SessionLogKind[];
 	page: number;
 }
 

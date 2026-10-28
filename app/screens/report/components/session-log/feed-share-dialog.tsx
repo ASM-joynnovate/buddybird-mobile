@@ -5,7 +5,6 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import type { FeedItem } from '@/types/apis/feed';
-import type { SessionSound } from '@/types/apis/sessions';
 
 import type { RootStackParamList } from '@/types/navigation';
 
@@ -24,6 +23,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import { toast } from 'sonner-native';
 
+import type { LogItem } from '@/screens/report/utils/session-log';
 import { useCommunityStore } from '@/stores/community';
 import { colors } from '@/theme';
 
@@ -36,7 +36,7 @@ const FEED_LIST_PADDING = 16;
 
 interface Props {
 	visible: boolean;
-	sound: SessionSound;
+	logItem: LogItem;
 	wordName: string;
 	onClose: () => void;
 }
@@ -44,11 +44,11 @@ interface Props {
 /**
  * 피드 카드 미리보기 및 공유 확인 다이얼로그 컴포넌트
  * @param visible 다이얼로그 표시 여부
- * @param sound 공유할 소리
+ * @param logItem 공유할 모사 기록
  * @param wordName 세션에서 학습한 단어
  * @param onClose 다이얼로그를 닫을 때 실행할 함수
  */
-const SessionLogFeedShareDialog = ({ visible, sound, wordName, onClose }: Props) => {
+const SessionLogFeedShareDialog = ({ visible, logItem, wordName, onClose }: Props) => {
 	const { t } = useTranslation();
 	const { width: windowWidth } = useWindowDimensions();
 
@@ -79,7 +79,7 @@ const SessionLogFeedShareDialog = ({ visible, sound, wordName, onClose }: Props)
 			: t('report.detail.feedShareConfirmMessage', { parrot: firstParrot.name }));
 	const previewFeedItem: FeedItem | null = meData
 		? {
-				id: sound.id,
+				id: logItem.id,
 				kind: 'mimic_succeeded',
 				created_at: dayjs().toISOString(),
 				user: {
@@ -90,7 +90,7 @@ const SessionLogFeedShareDialog = ({ visible, sound, wordName, onClose }: Props)
 					parrots: parrotListData ?? [],
 				},
 				word_name: wordName,
-				file: sound.audio_file,
+				file: logItem.sounds[0].audio_file,
 				threshold: null,
 				like_count: 0,
 				is_liked: false,
@@ -118,7 +118,7 @@ const SessionLogFeedShareDialog = ({ visible, sound, wordName, onClose }: Props)
 		player.stop();
 
 		mutate(
-			{ data: { session_sound_id: sound.id } },
+			{ data: { session_sound_id: logItem.id } },
 			{
 				onSuccess: () => {
 					onClose();

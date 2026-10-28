@@ -64,6 +64,16 @@ export const report: ReportMessages = {
 			parrotDisappeared: 'Parrot out of view',
 			parrotAppeared: 'Parrot back in view',
 		},
+		filters: {
+			all: 'All',
+			sound: 'Chirps',
+			emergency: 'Emergencies',
+		},
+		filterEmpty: {
+			sound: 'No chirps recorded',
+			word: 'No “{{word}}” recorded',
+			emergency: 'No emergencies recorded',
+		},
 		mediaTypes: {
 			audio: 'Audio',
 			video: 'Video',

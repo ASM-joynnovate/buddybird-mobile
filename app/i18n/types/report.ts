@@ -56,6 +56,16 @@ export type ReportMessages = {
 			parrotDisappeared: string;
 			parrotAppeared: string;
 		};
+		filters: {
+			all: string;
+			sound: string;
+			emergency: string;
+		};
+		filterEmpty: {
+			sound: string;
+			word: string;
+			emergency: string;
+		};
 		mediaTypes: {
 			audio: string;
 			video: string;
