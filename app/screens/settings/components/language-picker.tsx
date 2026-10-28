@@ -17,6 +17,13 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { ItemPicker } from '@/components/ui/item/picker';
 import { ItemRadio } from '@/components/ui/item/radio';
 
+/** 언어 이름과 영어 이름을 잇는 함수 */
+const languageLabel = (locale: Locale) => {
+	const { nativeName, englishName } = localeDefinitions[locale];
+
+	return nativeName === englishName ? nativeName : `${nativeName} – ${englishName}`;
+};
+
 /** 앱 언어 선택 컴포넌트 */
 const LanguagePicker = () => {
 	const queryClient = useQueryClient();
@@ -59,7 +66,7 @@ const LanguagePicker = () => {
 			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
-				value: localeDefinitions[locale].nativeName,
+				value: languageLabel(locale),
 				isFirstInGroup: true,
 				disabled: isPending,
 			}}
@@ -71,7 +78,7 @@ const LanguagePicker = () => {
 						<ItemRadio
 							key={language}
 							isFirstInGroup={index === 0}
-							label={localeDefinitions[language].nativeName}
+							label={languageLabel(language)}
 							selected={locale === language}
 							onPress={() => handleSelectLanguage(language, close)}
 						/>
