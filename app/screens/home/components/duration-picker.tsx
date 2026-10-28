@@ -4,7 +4,7 @@ import type { LearningDuration } from '@/types/navigation';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration, formatDurationWithDays } from '@/i18n/format';
+import { formatDuration, formatDurationWithDays, formatNumber } from '@/i18n/format';
 
 import { CheckIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -133,6 +133,7 @@ const DurationPicker = () => {
 											value: days,
 											values: DAYS,
 											unit: t('session.start.days'),
+											formatValue: (value) => formatNumber(value, locale),
 											onChange: (nextDays) => changeCustomDuration(nextDays, hours, minutes),
 										},
 										{
@@ -141,6 +142,7 @@ const DurationPicker = () => {
 											value: hours,
 											values: maxDurationReached ? [0] : HOURS,
 											unit: t('session.start.hours'),
+											formatValue: (value) => formatNumber(value, locale),
 											onChange: (nextHours) => changeCustomDuration(days, nextHours, minutes),
 										},
 										{
@@ -149,6 +151,7 @@ const DurationPicker = () => {
 											value: minutes,
 											values: maxDurationReached ? [0] : MINUTE_STEPS,
 											unit: t('session.start.minutes'),
+											formatValue: (value) => formatNumber(value, locale),
 											onChange: (nextMinutes) => changeCustomDuration(days, hours, nextMinutes),
 										},
 									]}

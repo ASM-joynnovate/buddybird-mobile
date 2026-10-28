@@ -86,7 +86,7 @@ export const session: SessionMessages = {
 		},
 		learningPaused: 'Занятие приостанавливается, пока ты смотришь.',
 		zoomHint: { title: 'Разведи два пальца, чтобы приблизить', message: 'Двойное касание вернёт исходный масштаб' },
-		zoomLevel: '{{zoom}}×',
+		zoomLevel: '{{zoom, number}}×',
 	},
 	petcamGuide: {
 		alert: {

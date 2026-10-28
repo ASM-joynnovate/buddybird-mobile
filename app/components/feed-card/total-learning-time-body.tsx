@@ -31,7 +31,7 @@ const FeedCardTotalLearningTimeBody = ({ feedItem }: Props) => {
 				values={{ duration: formatDuration(thresholdMs, locale) }}
 				components={{ b: <Text style={milestoneStyles.emphasis} /> }}
 			/>
-			art=<FeedCardMedalArt hoursText={formatWholeHours(thresholdMs)} />
+			art=<FeedCardMedalArt hoursText={formatWholeHours(thresholdMs, locale)} />
 		/>
 	);
 };

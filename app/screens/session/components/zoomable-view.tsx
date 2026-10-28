@@ -166,7 +166,12 @@ const ZoomableView = ({ children, onTap }: Props) => {
 
 			{zoom !== null && (
 				<Animated.View entering={FadeIn} exiting={FadeOut} style={styles.zoomLabel} pointerEvents="none">
-					<Copy style={styles.zoomText}>{t('session.watch.zoomLevel', { zoom: zoom.toFixed(1) })}</Copy>
+					<Copy style={styles.zoomText}>
+						{t('session.watch.zoomLevel', {
+							zoom,
+							formatParams: { zoom: { minimumFractionDigits: 1, maximumFractionDigits: 1 } },
+						})}
+					</Copy>
 				</Animated.View>
 			)}
 

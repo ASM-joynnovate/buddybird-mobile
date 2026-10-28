@@ -35,7 +35,7 @@ const FeedCardMonthlyLearningTimeBody = ({ feedItem }: Props) => {
 				values={{ month, duration: formatDuration(thresholdMs, locale) }}
 				components={{ b: <Text style={milestoneStyles.emphasis} /> }}
 			/>
-			art=<FeedCardCalendarArt monthLabel={monthLabel} hoursText={formatWholeHours(thresholdMs)} />
+			art=<FeedCardCalendarArt monthLabel={monthLabel} hoursText={formatWholeHours(thresholdMs, locale)} />
 		/>
 	);
 };

@@ -2,7 +2,11 @@ import { CLOCK_FORMAT } from '@/types/sleep-settings';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatNumber } from '@/i18n/format';
+
 import dayjs from 'dayjs';
+
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { HOURS, MINUTE_STEPS, WheelPicker } from '@/components/ui/wheel-picker';
 
@@ -21,6 +25,8 @@ interface Props {
 const TimePicker = ({ value, label, onChange }: Props) => {
 	const { t } = useTranslation();
 
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const time = dayjs(value, CLOCK_FORMAT);
 	const minutes = MINUTE_STEPS.includes(time.minute())
 		? MINUTE_STEPS
@@ -35,7 +41,8 @@ const TimePicker = ({ value, label, onChange }: Props) => {
 					value: time.hour(),
 					values: HOURS,
 					unit: t('common.time.hour'),
-					onChange: (hour) => onChange(time.hour(hour).format(CLOCK_FORMAT)),
+					formatValue: (hour) => formatNumber(hour, locale),
+					onChange: (hour) => onChange(time.hour(hour).locale('en').format(CLOCK_FORMAT)),
 				},
 				{
 					key: 'minute',
@@ -43,7 +50,8 @@ const TimePicker = ({ value, label, onChange }: Props) => {
 					value: time.minute(),
 					values: minutes,
 					unit: t('common.time.minute'),
-					onChange: (minute) => onChange(time.minute(minute).format(CLOCK_FORMAT)),
+					formatValue: (minute) => formatNumber(minute, locale),
+					onChange: (minute) => onChange(time.minute(minute).locale('en').format(CLOCK_FORMAT)),
 				},
 			]}
 		/>

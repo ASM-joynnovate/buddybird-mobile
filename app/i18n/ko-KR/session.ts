@@ -84,7 +84,7 @@ export const session: SessionMessages = {
 		},
 		learningPaused: '보는 동안에는 학습이 잠시 멈춰요.',
 		zoomHint: { title: '두 손가락으로 벌려 확대해 보세요', message: '두 번 누르면 원래대로 돌아와요' },
-		zoomLevel: '{{zoom}}×',
+		zoomLevel: '{{zoom, number}}×',
 	},
 	petcamGuide: {
 		alert: {

@@ -4,9 +4,12 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatNumber } from '@/i18n/format';
+
 import dayjs, { type Dayjs } from 'dayjs';
 
 import { PARROT_MAX_AGE_YEARS } from '@/config/policy';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { localDate } from '@/utils/date';
 
 import { Button } from '@/components/ui/button';
@@ -32,13 +35,19 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 
 	const [date, setDate] = useState(() => (value ? dayjs(value) : dayjs().subtract(1, 'year').date(1)));
 
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const birthdateUnknown = value === null;
 	const thisYear = dayjs().year();
 	const earliestYear = Math.min(thisYear - PARROT_MAX_AGE_YEARS, date.year());
 	const years = Array.from({ length: thisYear - earliestYear + 1 }, (_, index) => earliestYear + index);
 	const days = Array.from({ length: date.daysInMonth() }, (_, index) => index + 1);
 	const birthdateText =
-		value === undefined ? t('parrot.choose') : birthdateUnknown ? t('common.unknown') : date.format('ll');
+		value === undefined
+			? t('parrot.choose')
+			: birthdateUnknown
+				? t('common.unknown')
+				: date.format(t('common.dateFormat.yearMonthDay'));
 	const dateOrder = t('common.dateFormat.order', { returnObjects: true });
 
 	const handleChangeDate = (nextDate: Dayjs) => {
@@ -62,6 +71,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			value: date.year(),
 			values: years,
 			unit: t('parrot.year'),
+			formatValue: (year: number) => date.year(year).format(t('common.dateFormat.year')),
 			onChange: (year: number) => handleChangeDate(date.year(year)),
 		},
 		month: {
@@ -70,6 +80,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			value: date.month() + 1,
 			values: MONTHS,
 			unit: t('parrot.month'),
+			formatValue: (month: number) => formatNumber(month, locale),
 			onChange: (month: number) => handleChangeDate(date.month(month - 1)),
 		},
 		day: {
@@ -78,6 +89,7 @@ const BirthdatePicker = ({ value, onChange }: Props) => {
 			value: date.date(),
 			values: days,
 			unit: t('parrot.day'),
+			formatValue: (day: number) => formatNumber(day, locale),
 			onChange: (day: number) => handleChangeDate(date.date(day)),
 		},
 	};

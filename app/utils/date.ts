@@ -11,7 +11,7 @@ export const deviceTimeZone = () => {
 
 /** 날짜를 'YYYY-MM-DD' 형식으로 변환하는 함수 */
 export const localDate = (date?: ConfigType) => {
-	return dayjs(date).format('YYYY-MM-DD');
+	return dayjs(date).locale('en').format('YYYY-MM-DD');
 };
 
 /** 두 날짜 사이의 기간 수를 반환하는 함수 */
