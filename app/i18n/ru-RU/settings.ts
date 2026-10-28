@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: 'Основные',
 		languageAndCountry: 'Язык и страна',
 		language: 'Язык приложения',
+		languageSearchHint: 'Поиск по названию языка',
+		languageNotFound: 'По запросу «{{query}}» ничего не нашлось',
 		country: 'Страна',
 		countryChoose: 'Выбери',
 		countrySearchHint: 'Поиск по названию страны',

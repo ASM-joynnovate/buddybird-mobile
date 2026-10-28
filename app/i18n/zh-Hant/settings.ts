@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: '一般',
 		languageAndCountry: '語言與國家或地區',
 		language: 'App 語言',
+		languageSearchHint: '搜尋語言名稱',
+		languageNotFound: '找不到符合「{{query}}」的語言',
 		country: '國家或地區',
 		countryChoose: '請選擇',
 		countrySearchHint: '搜尋國家或地區名稱',

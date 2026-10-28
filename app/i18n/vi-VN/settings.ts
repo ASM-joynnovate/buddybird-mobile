@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: 'Chung',
 		languageAndCountry: 'Ngôn ngữ và quốc gia',
 		language: 'Ngôn ngữ ứng dụng',
+		languageSearchHint: 'Tìm tên ngôn ngữ',
+		languageNotFound: 'Không có ngôn ngữ nào khớp với “{{query}}”',
 		country: 'Quốc gia',
 		countryChoose: 'Vui lòng chọn',
 		countrySearchHint: 'Tìm tên quốc gia',

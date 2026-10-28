@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: '一般',
 		languageAndCountry: '言語と国',
 		language: 'アプリの言語',
+		languageSearchHint: '言語名で検索',
+		languageNotFound: '「{{query}}」に合う言語がありません',
 		country: '国',
 		countryChoose: '選択してください',
 		countrySearchHint: '国名で検索',

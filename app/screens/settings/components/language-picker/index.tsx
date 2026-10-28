@@ -1,28 +1,21 @@
-import { StyleSheet, View } from 'react-native';
-
 import { useQueryClient } from '@tanstack/react-query';
 
-import { type Locale, localeDefinitions, locales } from '@/types/locale';
+import type { Locale } from '@/types/locale';
 
 import { useUpdateDevice } from '@/hooks/apis/devices';
 import { apiKeys } from '@/hooks/apis/keys';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatLanguageName } from '@/i18n/format';
+
 import { MessageSquareTextIcon } from 'lucide-react-native';
 
+import LanguagePickerList from '@/screens/settings/components/language-picker/list';
 import { reportError, setUserProperties, track } from '@/services/telemetry/client';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { ItemPicker } from '@/components/ui/item/picker';
-import { ItemRadio } from '@/components/ui/item/radio';
-
-/** 언어 이름과 영어 이름을 잇는 함수 */
-const languageLabel = (locale: Locale) => {
-	const { nativeName, englishName } = localeDefinitions[locale];
-
-	return nativeName === englishName ? nativeName : `${nativeName} – ${englishName}`;
-};
 
 /** 앱 언어 선택 컴포넌트 */
 const LanguagePicker = () => {
@@ -66,31 +59,20 @@ const LanguagePicker = () => {
 			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
-				value: languageLabel(locale),
+				value: formatLanguageName(locale),
 				isFirstInGroup: true,
 				disabled: isPending,
 			}}
-			sheet={{ title: t('settings.general.language') }}
+			sheet={{ title: t('settings.general.language'), listLayout: true }}
 		>
 			{(close) => (
-				<View style={styles.list}>
-					{locales.map((language, index) => (
-						<ItemRadio
-							key={language}
-							isFirstInGroup={index === 0}
-							label={languageLabel(language)}
-							selected={locale === language}
-							onPress={() => handleSelectLanguage(language, close)}
-						/>
-					))}
-				</View>
+				<LanguagePickerList
+					locale={locale}
+					onSelect={(nextLocale) => handleSelectLanguage(nextLocale, close)}
+				/>
 			)}
 		</ItemPicker>
 	);
 };
-
-const styles = StyleSheet.create({
-	list: { marginHorizontal: -14 },
-});
 
 export default LanguagePicker;

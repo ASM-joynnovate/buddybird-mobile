@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: '일반',
 		languageAndCountry: '언어 및 국가',
 		language: '앱 언어',
+		languageSearchHint: '언어 이름 검색',
+		languageNotFound: '‘{{query}}’에 맞는 언어가 없어요',
 		country: '국가',
 		countryChoose: '선택해 주세요',
 		countrySearchHint: '국가 이름 검색',

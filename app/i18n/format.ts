@@ -1,4 +1,4 @@
-import type { Locale } from '@/types/locale';
+import { type Locale, localeDefinitions } from '@/types/locale';
 import { CLOCK_FORMAT } from '@/types/sleep-settings';
 
 import i18next from '@/i18n';
@@ -132,4 +132,11 @@ export const formatTimer = (ms: number, locale: Locale) => {
 /** 시각을 오후 10:30 형식으로 변환 */
 export const formatClock = (time: string) => {
 	return dayjs(time, CLOCK_FORMAT).format('LT');
+};
+
+/** 언어 이름과 영어 이름을 잇는 함수 */
+export const formatLanguageName = (locale: Locale) => {
+	const { nativeName, englishName } = localeDefinitions[locale];
+
+	return nativeName === englishName ? nativeName : `${nativeName} – ${englishName}`;
 };

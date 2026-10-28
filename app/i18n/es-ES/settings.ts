@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: 'General',
 		languageAndCountry: 'Idioma y país',
 		language: 'Idioma de la app',
+		languageSearchHint: 'Buscar idioma por nombre',
+		languageNotFound: 'Ningún idioma coincide con «{{query}}»',
 		country: 'País',
 		countryChoose: 'Seleccionar',
 		countrySearchHint: 'Buscar país por nombre',

@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: 'ทั่วไป',
 		languageAndCountry: 'ภาษาและประเทศ',
 		language: 'ภาษาของแอป',
+		languageSearchHint: 'ค้นหาชื่อภาษา',
+		languageNotFound: 'ไม่พบภาษาที่ตรงกับ “{{query}}”',
 		country: 'ประเทศ',
 		countryChoose: 'โปรดเลือก',
 		countrySearchHint: 'ค้นหาชื่อประเทศ',

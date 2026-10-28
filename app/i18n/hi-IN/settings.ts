@@ -12,6 +12,8 @@ export const settings: SettingsMessages = {
 		title: 'सामान्य',
 		languageAndCountry: 'भाषा और देश',
 		language: 'ऐप की भाषा',
+		languageSearchHint: 'भाषा का नाम खोजें',
+		languageNotFound: '‘{{query}}’ से मेल खाने वाली कोई भाषा नहीं मिली',
 		country: 'देश',
 		countryChoose: 'चुनें',
 		countrySearchHint: 'देश का नाम खोजें',
