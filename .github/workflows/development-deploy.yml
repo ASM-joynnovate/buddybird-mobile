@@ -34,8 +34,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-    outputs:
-      expo-changed: ${{ steps.fingerprint.outputs.expo-changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,18 +54,12 @@ jobs:
         with:
           variant: development
           github-token: ${{ github.token }}
-      - name: Require a native version bump
-        if: steps.fingerprint.outputs.expo-changed == 'true' && steps.fingerprint.outputs.baseline-found == 'true' && steps.fingerprint.outputs.hot-updater-changed == 'false'
+      - name: Require a store build
+        if: steps.fingerprint.outputs.changed == 'true'
         run: |
-          echo "Expo fingerprint만 변경되었습니다. hot-updater.config.ts에 fingerprint.nativeVersion 값을 추가하거나 1 올려야 합니다."
-          exit 1
-      - name: Require a store build for hot-updater changes
-        if: steps.fingerprint.outputs.expo-changed == 'false' && steps.fingerprint.outputs.hot-updater-changed == 'true'
-        run: |
-          echo "hot-updater fingerprint만 변경되었습니다. 스토어 빌드가 필요합니다."
+          echo "네이티브 fingerprint가 마지막 staging 스토어 빌드와 다릅니다. release-please PR을 병합해 스토어 빌드를 제출해야 합니다."
           exit 1
       - uses: ./.github/actions/ota-deploy
-        if: steps.fingerprint.outputs.expo-changed == 'false'
         with:
           variant: development
           signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY_STAGING }}
@@ -76,26 +68,13 @@ jobs:
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: steps.fingerprint.outputs.expo-changed == 'false'
         with:
           name: native-fingerprint-development
           path: ${{ runner.temp }}/native-fingerprint/
-          retention-days: 90
-
-  staging-build:
-    needs: ota-deploy
-    if: needs.ota-deploy.outputs.expo-changed == 'true'
-    permissions:
-      contents: read
-      actions: read
-    uses: ./.github/workflows/eas-build-and-submit.yml
-    with:
-      profile: staging
-      ref: ${{ github.sha }}
-    secrets: inherit # zizmor: ignore[secrets-inherit]
+          retention-days: 400
 
   notify-finished:
-    needs: [version-check, ota-deploy, staging-build]
+    needs: [version-check, ota-deploy]
     if: always() && needs.version-check.outputs.version-changed == 'false'
     runs-on: ubuntu-latest
     steps:
@@ -108,7 +87,6 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           title: "${{ contains(needs.*.result, 'failure') && '❌ buddybird-mobile 개발 배포 실패' || contains(needs.*.result, 'cancelled') && '⚠️ buddybird-mobile 개발 배포 취소' || '✅ buddybird-mobile 개발 배포 완료' }}"
           fields: |
-            방식=${{ needs.ota-deploy.outputs.expo-changed == 'true' && 'staging 빌드' || 'OTA' }}
             실행자=${{ github.actor }}
           buttons: |
             실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

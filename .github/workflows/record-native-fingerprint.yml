@@ -43,4 +43,4 @@ jobs:
         with:
           name: native-fingerprint-${{ inputs.variant }}
           path: ${{ runner.temp }}/native-fingerprint/
-          retention-days: 90
+          retention-days: 400

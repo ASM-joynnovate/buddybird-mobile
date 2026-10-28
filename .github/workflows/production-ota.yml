@@ -34,14 +34,9 @@ jobs:
           variant: production
           github-token: ${{ github.token }}
       - name: Require a store release
-        if: steps.fingerprint.outputs.expo-changed == 'true'
+        if: steps.fingerprint.outputs.changed == 'true'
         run: |
           echo "네이티브 fingerprint가 마지막 운영 스토어 빌드와 다릅니다. 스토어 릴리스가 필요합니다."
-          exit 1
-      - name: Require a store build for hot-updater changes
-        if: steps.fingerprint.outputs.hot-updater-changed == 'true'
-        run: |
-          echo "hot-updater fingerprint만 변경되었습니다. 스토어 빌드가 필요합니다."
           exit 1
       - uses: ./.github/actions/ota-deploy
         with:
@@ -55,7 +50,7 @@ jobs:
         with:
           name: native-fingerprint-production
           path: ${{ runner.temp }}/native-fingerprint/
-          retention-days: 90
+          retention-days: 400
 
   notify-finished:
     needs: [ota-deploy]
