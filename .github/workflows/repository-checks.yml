@@ -10,7 +10,6 @@ concurrency:
 jobs:
   title:
     name: PR Title (Semantic)
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
