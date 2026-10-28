@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.19.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.18.0...v2.19.0) (2026-10-28)
+
+
+### Features
+
+* **app:** add Simplified and Traditional Chinese [BB-707] ([#280](https://github.com/ASM-joynnovate/buddybird-mobile/issues/280)) ([79b03ce](https://github.com/ASM-joynnovate/buddybird-mobile/commit/79b03ce2b28d07f9fec930b8ac002d2274ec7d79))
+* **app:** add Thai [BB-704] ([#286](https://github.com/ASM-joynnovate/buddybird-mobile/issues/286)) ([3fe3d6d](https://github.com/ASM-joynnovate/buddybird-mobile/commit/3fe3d6d129e2d353afe89814b96c194f4e07f79d))
+* **app:** add Vietnamese, Hindi and Bengali [BB-705][BB-706][BB-708] ([#314](https://github.com/ASM-joynnovate/buddybird-mobile/issues/314)) ([2c4f423](https://github.com/ASM-joynnovate/buddybird-mobile/commit/2c4f423dda52fea11e30e76c9fa197a2f477bb4e))
+* **app:** filter the session detail log by event kind [BB-532] ([#309](https://github.com/ASM-joynnovate/buddybird-mobile/issues/309)) ([d705a8e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/d705a8ef4231a322ec6de6766edd2c3d8d71c71c))
+* **app:** show empty states on the session detail and feed screens [BB-790] ([#308](https://github.com/ASM-joynnovate/buddybird-mobile/issues/308)) ([f03d662](https://github.com/ASM-joynnovate/buddybird-mobile/commit/f03d662fd545b55e4ecf249c2c3a0c29c73fe6f2))
+* **app:** show English names in the language list ([#316](https://github.com/ASM-joynnovate/buddybird-mobile/issues/316)) ([5681a85](https://github.com/ASM-joynnovate/buddybird-mobile/commit/5681a856d5fd93232136334b16923d630c316294))
+* **app:** show the camera guide before turning on the petcam [BB-777] ([#305](https://github.com/ASM-joynnovate/buddybird-mobile/issues/305)) ([e66b618](https://github.com/ASM-joynnovate/buddybird-mobile/commit/e66b6186aa72c087c7b3f433dd6ce3a9d460e5a4))
+
+
+### Bug Fixes
+
+* **app:** refetch home and announcements after updating the profile ([#306](https://github.com/ASM-joynnovate/buddybird-mobile/issues/306)) ([b563a7d](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b563a7d10697c0fc00edf918d809ae6b3849e907))
+
 ## [2.18.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.17.0...v2.18.0) (2026-10-26)
 
 
