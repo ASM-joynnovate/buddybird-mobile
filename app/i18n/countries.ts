@@ -23,7 +23,7 @@ registerLocale(ru);
 registerLocale(es);
 registerLocale(th);
 registerLocale(zh);
-registerLocale({ locale: 'zh-tw', countries: zhHant });
+registerLocale({ locale: 'zh-hant', countries: zhHant });
 registerLocale(vi);
 registerLocale(hi);
 registerLocale(bn);
