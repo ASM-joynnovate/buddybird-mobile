@@ -35,7 +35,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		nativeName: '繁體中文',
 		englishName: 'Chinese (Traditional)',
 		dateLocale: 'zh-tw',
-		countryNamesLocale: 'zh-tw',
+		countryNamesLocale: 'zh-hant',
 	},
 	'en-US': { nativeName: 'English', englishName: 'English', dateLocale: 'en', countryNamesLocale: 'en' },
 	'hi-IN': { nativeName: 'हिन्दी', englishName: 'Hindi', dateLocale: 'hi', countryNamesLocale: 'hi' },
