@@ -10,15 +10,9 @@ inputs:
     required: true
 
 outputs:
-  baseline-found:
-    description: true when the last store build fingerprint exists
-    value: ${{ steps.compare.outputs.baseline-found }}
-  expo-changed:
-    description: true when the Expo hash differs or no baseline exists
-    value: ${{ steps.compare.outputs.expo-changed }}
-  hot-updater-changed:
-    description: true when the iOS or Android hash differs
-    value: ${{ steps.compare.outputs.hot-updater-changed }}
+  changed:
+    description: true when the iOS or Android hash differs from the last store build or no baseline exists
+    value: ${{ steps.compare.outputs.changed }}
 
 runs:
   using: composite
@@ -29,7 +23,6 @@ runs:
         APP_VARIANT: ${{ inputs.variant }}
       run: |
         mkdir -p "$RUNNER_TEMP/native-fingerprint"
-        npx --no @expo/fingerprint fingerprint:generate > "$RUNNER_TEMP/native-fingerprint/expo-fingerprint.json"
         yarn hot-updater fingerprint create
         cp fingerprint.json "$RUNNER_TEMP/native-fingerprint/"
 
@@ -46,11 +39,7 @@ runs:
           --jq '[.artifacts[] | select(.expired | not)] | sort_by(.created_at) | last | .id // empty')
 
         if [ -z "$artifact_id" ]; then
-          {
-            echo "baseline-found=false"
-            echo "expo-changed=true"
-            echo "hot-updater-changed=false"
-          } >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -58,18 +47,9 @@ runs:
         gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > "$baseline.zip"
         unzip -q "$baseline.zip" -d "$baseline"
 
-        expo_changed=false
-        if [ "$(jq -r .hash "$current/expo-fingerprint.json")" != "$(jq -r .hash "$baseline/expo-fingerprint.json")" ]; then
-          expo_changed=true
-        fi
-
-        hot_updater_changed=false
+        changed=false
         if [ "$(jq -c '[.ios.hash, .android.hash]' "$current/fingerprint.json")" != "$(jq -c '[.ios.hash, .android.hash]' "$baseline/fingerprint.json")" ]; then
-          hot_updater_changed=true
+          changed=true
         fi
 
-        {
-          echo "baseline-found=true"
-          echo "expo-changed=$expo_changed"
-          echo "hot-updater-changed=$hot_updater_changed"
-        } >> "$GITHUB_OUTPUT"
+        echo "changed=$changed" >> "$GITHUB_OUTPUT"
