@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'Country',
 		countryChoose: 'Select',
 		countrySearchHint: 'Search countries',
-		countrySearchClear: 'Clear search',
+		searchClear: 'Clear search',
 		countryNotFound: 'No countries match “{{query}}”',
 		devices: 'Connected devices',
 	},

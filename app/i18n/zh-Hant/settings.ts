@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: '國家或地區',
 		countryChoose: '請選擇',
 		countrySearchHint: '搜尋國家或地區名稱',
-		countrySearchClear: '清除搜尋內容',
+		searchClear: '清除搜尋內容',
 		countryNotFound: '找不到符合「{{query}}」的國家或地區',
 		devices: '已連結的裝置',
 	},

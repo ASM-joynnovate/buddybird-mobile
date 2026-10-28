@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'ประเทศ',
 		countryChoose: 'โปรดเลือก',
 		countrySearchHint: 'ค้นหาชื่อประเทศ',
-		countrySearchClear: 'ล้างคำค้นหา',
+		searchClear: 'ล้างคำค้นหา',
 		countryNotFound: 'ไม่พบประเทศที่ตรงกับ “{{query}}”',
 		devices: 'อุปกรณ์ที่เชื่อมต่อ',
 	},

@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'देश',
 		countryChoose: 'चुनें',
 		countrySearchHint: 'देश का नाम खोजें',
-		countrySearchClear: 'खोज साफ़ करें',
+		searchClear: 'खोज साफ़ करें',
 		countryNotFound: '‘{{query}}’ से मेल खाने वाला कोई देश नहीं मिला',
 		devices: 'कनेक्ट किए गए डिवाइस',
 	},

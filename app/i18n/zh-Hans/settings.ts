@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: '国家/地区',
 		countryChoose: '请选择',
 		countrySearchHint: '搜索国家/地区名称',
-		countrySearchClear: '清除搜索内容',
+		searchClear: '清除搜索内容',
 		countryNotFound: '没有与“{{query}}”匹配的国家/地区',
 		devices: '已连接的设备',
 	},

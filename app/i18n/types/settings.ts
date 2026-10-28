@@ -15,7 +15,7 @@ export type SettingsMessages = {
 		country: string;
 		countryChoose: string;
 		countrySearchHint: string;
-		countrySearchClear: string;
+		searchClear: string;
 		countryNotFound: string;
 		devices: string;
 	};

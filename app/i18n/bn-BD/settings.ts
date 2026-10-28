@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'দেশ',
 		countryChoose: 'বেছে নিন',
 		countrySearchHint: 'দেশের নাম খুঁজুন',
-		countrySearchClear: 'সার্চ মুছুন',
+		searchClear: 'সার্চ মুছুন',
 		countryNotFound: '‘{{query}}’-এর সাথে মেলে এমন কোনো দেশ নেই',
 		devices: 'কানেক্ট করা ডিভাইস',
 	},

@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'Quốc gia',
 		countryChoose: 'Vui lòng chọn',
 		countrySearchHint: 'Tìm tên quốc gia',
-		countrySearchClear: 'Xóa nội dung tìm kiếm',
+		searchClear: 'Xóa nội dung tìm kiếm',
 		countryNotFound: 'Không có quốc gia nào khớp với “{{query}}”',
 		devices: 'Thiết bị đã kết nối',
 	},

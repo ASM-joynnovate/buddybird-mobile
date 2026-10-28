@@ -17,7 +17,7 @@ export const settings: SettingsMessages = {
 		country: 'País',
 		countryChoose: 'Seleccionar',
 		countrySearchHint: 'Buscar país por nombre',
-		countrySearchClear: 'Borrar búsqueda',
+		searchClear: 'Borrar búsqueda',
 		countryNotFound: 'Ningún país coincide con «{{query}}»',
 		devices: 'Dispositivos conectados',
 	},

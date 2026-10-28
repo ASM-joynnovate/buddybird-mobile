@@ -32,7 +32,7 @@ const LanguagePickerList = ({ locale, onSelect }: Props) => {
 		<SheetSearchList
 			query={query}
 			placeholder={t('settings.general.languageSearchHint')}
-			clearLabel={t('settings.general.countrySearchClear')}
+			clearLabel={t('settings.general.searchClear')}
 			items={filteredLocales}
 			emptyContent=<EmptyState message={t('settings.general.languageNotFound', { query: query.trim() })} />
 			keyExtractor={(language) => language}
