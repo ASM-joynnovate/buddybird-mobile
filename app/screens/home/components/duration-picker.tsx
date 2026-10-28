@@ -133,7 +133,7 @@ const DurationPicker = () => {
 											value: days,
 											values: DAYS,
 											unit: t('session.start.days'),
-											formatValue: (value) => formatNumber(value, locale),
+											formatValue: (dayCount) => formatNumber(dayCount, locale),
 											onChange: (nextDays) => changeCustomDuration(nextDays, hours, minutes),
 										},
 										{
@@ -142,7 +142,7 @@ const DurationPicker = () => {
 											value: hours,
 											values: maxDurationReached ? [0] : HOURS,
 											unit: t('session.start.hours'),
-											formatValue: (value) => formatNumber(value, locale),
+											formatValue: (hourCount) => formatNumber(hourCount, locale),
 											onChange: (nextHours) => changeCustomDuration(days, nextHours, minutes),
 										},
 										{
@@ -151,7 +151,7 @@ const DurationPicker = () => {
 											value: minutes,
 											values: maxDurationReached ? [0] : MINUTE_STEPS,
 											unit: t('session.start.minutes'),
-											formatValue: (value) => formatNumber(value, locale),
+											formatValue: (minuteCount) => formatNumber(minuteCount, locale),
 											onChange: (nextMinutes) => changeCustomDuration(days, hours, nextMinutes),
 										},
 									]}

@@ -10,10 +10,12 @@ export type SettingsMessages = {
 		title: string;
 		languageAndCountry: string;
 		language: string;
+		languageSearchHint: string;
+		languageNotFound: string;
 		country: string;
 		countryChoose: string;
 		countrySearchHint: string;
-		countrySearchClear: string;
+		searchClear: string;
 		countryNotFound: string;
 		devices: string;
 	};

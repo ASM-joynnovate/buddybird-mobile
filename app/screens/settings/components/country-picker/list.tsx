@@ -35,7 +35,7 @@ const CountryPickerList = ({ countryItems, country, onSelect }: Props) => {
 		<SheetSearchList
 			query={query}
 			placeholder={t('settings.general.countrySearchHint')}
-			clearLabel={t('settings.general.countrySearchClear')}
+			clearLabel={t('settings.general.searchClear')}
 			items={filteredCountries}
 			emptyContent=<EmptyState message={t('settings.general.countryNotFound', { query: query.trim() })} />
 			keyExtractor={(countryItem) => countryItem.code}
