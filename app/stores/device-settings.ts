@@ -10,6 +10,8 @@ import { defaultLocale, type Locale, locales } from '@/types/locale';
 
 import { accountV2, mmkvStorage, storeStorageKeys, restoreOptions, storageIds } from '@/lib/storage';
 
+import '@formatjs/intl-locale/polyfill.js';
+import { match } from '@formatjs/intl-localematcher';
 import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -36,19 +38,12 @@ type DeviceSettingsActions = {
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
 
 /** 기기 언어에 맞는 앱 언어를 반환하는 함수 */
-const deviceLocale = () => {
-	for (const { languageTag, languageCode } of getLocales()) {
-		const exact = locales.find((locale) => locale === languageTag);
-		const sameLanguage = locales.find((locale) => locale.startsWith(`${languageCode}-`));
-		const matched = exact ?? sameLanguage;
-
-		if (matched) {
-			return matched;
-		}
-	}
-
-	return defaultLocale;
-};
+const deviceLocale = () =>
+	match(
+		getLocales().map(({ languageTag }) => languageTag),
+		locales,
+		defaultLocale,
+	) as Locale;
 
 /** 기기 설정 초기값 */
 const defaultDeviceSettings = (): DeviceSettings => {

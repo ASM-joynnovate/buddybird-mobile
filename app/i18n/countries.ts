@@ -1,4 +1,4 @@
-import { type Locale, localeLanguages } from '@/types/locale';
+import { type Locale, localeDefinitions } from '@/types/locale';
 
 import nativeNames from 'countries-list/minimal/countries.native.min.json';
 import { getNames, registerLocale } from 'i18n-iso-countries';
@@ -16,7 +16,7 @@ registerLocale(ru);
 registerLocale(es);
 
 /** 앱 언어로 된 국가 코드별 이름 조회 함수 */
-export const countryNamesIn = (locale: Locale) => getNames(localeLanguages[locale]);
+export const countryNamesIn = (locale: Locale) => getNames(localeDefinitions[locale].countryNamesLocale);
 
 export const countryNativeNames: Record<string, string> = nativeNames;
 
