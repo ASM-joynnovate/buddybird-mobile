@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatDuration } from '@/i18n/format';
+import { formatDuration, formatNumber } from '@/i18n/format';
 
 import { CrownIcon } from 'lucide-react-native';
 
@@ -46,11 +46,12 @@ const LeaderboardLane = ({ rank, score, topScore, nickname, photoUrl, country, i
 
 	const barPercent = Math.max(MIN_BAR_PERCENT, topScore > 0 ? (score / topScore) * PERCENT : 0);
 	const scoreText = formatDuration(score >= MINUTES_HIDDEN_FROM_MS ? Math.floor(score / HOUR) * HOUR : score, locale);
+	const rankText = formatNumber(rank, locale);
 
 	return (
-		<View accessible accessibilityLabel={joinLabel(String(rank), nickname, scoreText)}>
+		<View accessible accessibilityLabel={joinLabel(rankText, nickname, scoreText)}>
 			<View style={styles.topRow}>
-				<Copy style={[styles.rank, isMe && styles.rankMine]}>{rank}</Copy>
+				<Copy style={[styles.rank, isMe && styles.rankMine]}>{rankText}</Copy>
 				{rank === 1 && <CrownIcon size={16} color={colors.orange} style={styles.crown} />}
 
 				<View style={styles.nameRow}>

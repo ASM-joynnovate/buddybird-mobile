@@ -23,6 +23,7 @@ import RecordingSheetWordPrompt from '@/screens/words/components/recording-sheet
 import useRecordingDuration from '@/screens/words/hooks/use-recording-duration';
 import { deleteFile, readFileInfo } from '@/services/media/file';
 import { reportError, track } from '@/services/telemetry/client';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -149,6 +150,8 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 		}
 	});
 	const recorderState = useAudioRecorderState(recorder, RECORDER_STATE_INTERVAL_MS);
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const currentRecording = recordings[currentIndex] ?? null;
 
@@ -473,8 +476,8 @@ const RecordingSheet = ({ visible, wordName, recordings, player, onAdd, onReplac
 					<View style={styles.timeContainer}>
 						{isRecording && <View style={styles.recordingDot} />}
 						<Copy accessibilityRole="timer" style={styles.time}>
-							{formatTimer(shownMs)}
-							<Copy style={styles.timeLimit}>{` / ${formatTimer(RECORDING_MAX_MS)}`}</Copy>
+							{formatTimer(shownMs, locale)}
+							<Copy style={styles.timeLimit}>{` / ${formatTimer(RECORDING_MAX_MS, locale)}`}</Copy>
 						</Copy>
 					</View>
 				</PressableSurface>

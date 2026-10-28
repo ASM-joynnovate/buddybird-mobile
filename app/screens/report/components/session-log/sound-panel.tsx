@@ -47,8 +47,11 @@ const SessionLogSoundPanel = ({ logItem, itemLabel, sessionId }: Props) => {
 	let durationText: string | null = null;
 
 	if (durationMs !== null) {
+		const fractionDigits = logItem.kind === 'distressCall' ? 0 : 1;
+
 		durationText = t('common.duration.seconds', {
-			value: logItem.kind === 'distressCall' ? Math.round(durationMs / SECOND) : (durationMs / SECOND).toFixed(1),
+			value: durationMs / SECOND,
+			formatParams: { value: { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits } },
 		});
 	}
 

@@ -213,5 +213,5 @@ export const mergeEmptyLogRows = (logRows: LogRow[]) => {
 
 /** 공유할 기록 파일의 이름을 반환하는 함수 */
 export const sharedLogFileName = (startedAt: string) => {
-	return `buddybird-${dayjs(startedAt).format('YYYYMMDD-HHmmss')}`;
+	return `buddybird-${dayjs(startedAt).locale('en').format('YYYYMMDD-HHmmss')}`;
 };

@@ -14,18 +14,22 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/ru';
+import buddhistEra from 'dayjs/plugin/buddhistEra';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import preParsePostFormat from 'dayjs/plugin/preParsePostFormat';
 import utc from 'dayjs/plugin/utc';
 import { josa } from 'es-hangul';
 import 'intl-pluralrules';
 
+dayjs.extend(buddhistEra);
 dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 dayjs.extend(isoWeek);
 dayjs.extend(localizedFormat);
+dayjs.extend(preParsePostFormat);
 dayjs.extend(utc);
 
 interface JosaFormatOptions {

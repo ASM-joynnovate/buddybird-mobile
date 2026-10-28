@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SECOND } from '@/config/units';
 import SessionRunInfoProgressArc from '@/screens/session/components/session-run-info/progress-arc';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { runStatus } from '@/utils/phases';
@@ -49,6 +50,8 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }
 
 	const [now, setNow] = useState(() => dayjs().valueOf());
 
+	const locale = useDeviceSettingsStore((state) => state.locale);
+
 	const status = runStatus(startedAt, endsAt, sleep, now);
 	const isLandscape = width > height;
 	const arcWidth = Math.min(width - SCREEN_PADDING * 2, ARC_MAX_WIDTH);
@@ -69,7 +72,9 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }
 			<Copy style={styles.sessionTimeLabel}>
 				{status.remainingMs === null ? t('session.run.elapsed') : t('session.run.remaining')}
 			</Copy>
-			<Copy style={styles.sessionTimeText}>{formatTimer(status.remainingMs ?? dayjs(now).diff(startedAt))}</Copy>
+			<Copy style={styles.sessionTimeText}>
+				{formatTimer(status.remainingMs ?? dayjs(now).diff(startedAt), locale)}
+			</Copy>
 		</View>
 	);
 	const endButton = (

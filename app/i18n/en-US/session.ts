@@ -84,7 +84,7 @@ export const session: SessionMessages = {
 		},
 		learningPaused: 'Learning pauses while you watch.',
 		zoomHint: { title: 'Pinch to zoom in', message: 'Double-tap to reset' },
-		zoomLevel: '{{zoom}}×',
+		zoomLevel: '{{zoom, number}}×',
 	},
 	petcamGuide: {
 		alert: {

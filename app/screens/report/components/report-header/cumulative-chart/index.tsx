@@ -58,7 +58,7 @@ const formatAxisLabel = (period: ReportPeriod, date: Dayjs, t: TFunction) => {
 		return date.hour() % 6 === 0 ? t('report.chartHour', { hour: date.hour() }) : '';
 	}
 
-	return (date.date() - 1) % 7 === 0 ? String(date.date()) : '';
+	return (date.date() - 1) % 7 === 0 ? date.format('D') : '';
 };
 
 /** 기준선 라벨을 만드는 함수 */

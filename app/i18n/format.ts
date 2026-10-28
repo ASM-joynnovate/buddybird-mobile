@@ -106,17 +106,27 @@ export const formatDurationWithDays = (ms: number, locale: Locale) => {
 	return remainderMs === 0 ? dayText : `${dayText} ${formatDuration(remainderMs, locale)}`;
 };
 
+/** 숫자를 앱 언어의 숫자로 변환하는 함수 */
+export const formatNumber = (value: number, locale: Locale, options?: Intl.NumberFormatOptions) => {
+	return new Intl.NumberFormat(locale, { useGrouping: false, ...options }).format(value);
+};
+
 /** 밀리초를 내림한 시간 수 문자열로 변환하는 함수 */
-export const formatWholeHours = (ms: number) => {
-	return String(Math.floor(dayjs.duration(ms).asHours()));
+export const formatWholeHours = (ms: number, locale: Locale) => {
+	return formatNumber(Math.floor(dayjs.duration(ms).asHours()), locale);
 };
 
 /** 밀리초를 '1:05:30' 형식으로 변환하는 함수 */
-export const formatTimer = (ms: number) => {
+export const formatTimer = (ms: number, locale: Locale) => {
 	const duration = dayjs.duration(Math.max(0, ms));
 	const hours = Math.floor(duration.asHours());
+	const seconds = formatNumber(duration.seconds(), locale, { minimumIntegerDigits: 2 });
 
-	return hours > 0 ? `${hours}:${duration.format('mm:ss')}` : duration.format('m:ss');
+	if (hours === 0) {
+		return `${formatNumber(duration.minutes(), locale)}:${seconds}`;
+	}
+
+	return `${formatNumber(hours, locale)}:${formatNumber(duration.minutes(), locale, { minimumIntegerDigits: 2 })}:${seconds}`;
 };
 
 /** 시각을 오후 10:30 형식으로 변환 */

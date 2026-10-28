@@ -14,6 +14,7 @@ interface WheelColumn {
 	value: number;
 	values: readonly number[];
 	unit?: string;
+	formatValue: (value: number) => string;
 	onChange: (value: number) => void;
 }
 
@@ -32,6 +33,7 @@ export const WheelPicker = ({ columns }: Props) => {
 						label={column.label}
 						value={column.value}
 						values={column.values}
+						formatValue={column.formatValue}
 						onChange={column.onChange}
 					/>
 					{!!column.unit && <Copy style={styles.unit}>{column.unit}</Copy>}

@@ -20,10 +20,11 @@ interface Props {
 	value: number;
 	values: readonly number[];
 	label: string;
+	formatValue: (value: number) => string;
 	onChange: (value: number) => void;
 }
 
-export const WheelPickerWheel = ({ value, values, label, onChange }: Props) => {
+export const WheelPickerWheel = ({ value, values, label, formatValue, onChange }: Props) => {
 	const scrollRef = useRef<ScrollView>(null);
 	const draggingRef = useRef(false);
 
@@ -105,7 +106,9 @@ export const WheelPickerWheel = ({ value, values, label, onChange }: Props) => {
 		>
 			{values.map((itemValue, index) => (
 				<View key={itemValue} style={styles.itemContainer}>
-					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>{itemValue}</Copy>
+					<Copy style={index === centeredIndex ? styles.selectedText : styles.text}>
+						{formatValue(itemValue)}
+					</Copy>
 				</View>
 			))}
 		</ScrollView>

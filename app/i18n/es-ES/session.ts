@@ -90,7 +90,7 @@ export const session: SessionMessages = {
 		},
 		learningPaused: 'El entrenamiento se pausa mientras lo ves.',
 		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
-		zoomLevel: '{{zoom}}×',
+		zoomLevel: '{{zoom, number}}×',
 	},
 	petcamGuide: {
 		alert: {

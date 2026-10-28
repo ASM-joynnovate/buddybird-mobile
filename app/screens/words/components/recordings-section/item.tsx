@@ -47,7 +47,10 @@ const RecordingsSectionItem = ({ recording, player, index, uploading, onDelete }
 				<Copy style={[styles.name, playing && styles.playingName]}>{name}</Copy>
 				{durationMs !== null && (
 					<Copy style={styles.duration}>
-						{t('common.duration.seconds', { value: (durationMs / SECOND).toFixed(2) })}
+						{t('common.duration.seconds', {
+							value: durationMs / SECOND,
+							formatParams: { value: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+						})}
 					</Copy>
 				)}
 			</View>

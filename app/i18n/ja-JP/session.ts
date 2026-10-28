@@ -84,7 +84,7 @@ export const session: SessionMessages = {
 		},
 		learningPaused: '見ている間は、練習が一時停止します。',
 		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
-		zoomLevel: '{{zoom}}×',
+		zoomLevel: '{{zoom, number}}×',
 	},
 	petcamGuide: {
 		alert: {

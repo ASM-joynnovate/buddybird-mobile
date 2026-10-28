@@ -8,6 +8,7 @@ import { CameraIcon, ChevronLeftIcon } from 'lucide-react-native';
 
 import { MINUTE } from '@/config/units';
 import SessionRunInfoProgressArc from '@/screens/session/components/session-run-info/progress-arc';
+import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { font, radius } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
@@ -18,6 +19,8 @@ const feedPhoto: number = require('@assets/images/petcam-guide/watch-feed.jpg');
 /** 내 폰의 학습 보기 화면 예시 컴포넌트 */
 const PetcamSceneWatchPreview = () => {
 	const { t } = useTranslation();
+
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	return (
 		<>
@@ -46,7 +49,7 @@ const PetcamSceneWatchPreview = () => {
 				<SessionRunInfoProgressArc width={345} variant="half" phase="learning" progressRatio={0.32}>
 					<View style={styles.time}>
 						<Copy style={styles.timeLabel}>{t('session.run.remaining')}</Copy>
-						<Copy style={styles.timeText}>{formatTimer(95 * MINUTE)}</Copy>
+						<Copy style={styles.timeText}>{formatTimer(95 * MINUTE, locale)}</Copy>
 					</View>
 				</SessionRunInfoProgressArc>
 				<View style={styles.endButton}>
