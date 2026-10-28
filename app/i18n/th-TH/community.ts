@@ -1,0 +1,103 @@
+import type { CommunityMessages } from '@/i18n/types/community';
+
+export const community: CommunityMessages = {
+	title: 'ฟีด',
+	me: 'ฉัน',
+	feedConsent: {
+		title: 'แสดงบนฟีดไหม',
+		message: 'เมื่อแสดงบนฟีด คนอื่นจะเห็นบันทึกการฝึกพูดและเสียงที่นกแก้วพูดตาม',
+		confirm: 'แสดงบนฟีด',
+	},
+	countryScope: {
+		world: 'ทั่วโลก',
+		mine: 'ประเทศของฉัน',
+	},
+	leaderboard: {
+		title: 'อันดับเวลาฝึกพูดเดือน{{month}}',
+		viewAll: 'ดูอันดับทั้งหมด',
+		unranked: {
+			not_participating: {
+				title: 'คุณยังไม่ได้เข้าร่วมการจัดอันดับ',
+				description: 'เมื่อเข้าร่วม คนอื่นจะเห็นชื่อเล่น รูป และเวลาฝึกพูดของคุณ',
+				action: 'เข้าร่วม',
+			},
+			no_nickname: {
+				title: 'คุณยังไม่มีชื่อเล่นจึงไม่อยู่ในอันดับ',
+				action: 'ตั้งชื่อเล่น',
+			},
+			anonymous: {
+				title: 'เข้าสู่ระบบเพื่อขึ้นอันดับ',
+				action: 'เข้าสู่ระบบ',
+			},
+			country_mismatch: {
+				title: 'คุณไม่อยู่ในอันดับของประเทศนี้',
+			},
+			no_record: {
+				title: 'ยังไม่มีบันทึกการฝึกพูดในเดือนนี้',
+			},
+		},
+	},
+	feed: {
+		more: 'เพิ่มเติม',
+		empty: 'ยังไม่มีโพสต์ในฟีด',
+		timeAgo: {
+			minutes_one: '{{count}} นาทีที่แล้ว',
+			minutes_few: '{{count}} นาทีที่แล้ว',
+			minutes_many: '{{count}} นาทีที่แล้ว',
+			minutes_other: '{{count}} นาทีที่แล้ว',
+			hours_one: '{{count}} ชั่วโมงที่แล้ว',
+			hours_few: '{{count}} ชั่วโมงที่แล้ว',
+			hours_many: '{{count}} ชั่วโมงที่แล้ว',
+			hours_other: '{{count}} ชั่วโมงที่แล้ว',
+			days_one: '{{count}} วันที่แล้ว',
+			days_few: '{{count}} วันที่แล้ว',
+			days_many: '{{count}} วันที่แล้ว',
+			days_other: '{{count}} วันที่แล้ว',
+			yesterday: 'เมื่อวาน',
+		},
+		mimic: {
+			label: 'คำที่พูดตาม',
+			word: '“{{word}}”',
+			private: 'ไม่ได้เผยแพร่เสียงที่อัดไว้',
+			play: 'เล่น {{word}}',
+		},
+		totalLearningTime: 'เวลาฝึกพูดรวมครบ <b>{{duration}}</b> แล้ว!',
+		monthlyLearningTime: 'เวลาฝึกพูดเดือน{{month}}ครบ <b>{{duration}}</b> แล้ว!',
+		wordPlayCount_one: 'เปิดคำว่า “{{word}}” ให้ฟังครบ <b>{{count, number}} ครั้ง</b> แล้ว!',
+		wordPlayCount_few: 'เปิดคำว่า “{{word}}” ให้ฟังครบ <b>{{count, number}} ครั้ง</b> แล้ว!',
+		wordPlayCount_many: 'เปิดคำว่า “{{word}}” ให้ฟังครบ <b>{{count, number}} ครั้ง</b> แล้ว!',
+		wordPlayCount_other: 'เปิดคำว่า “{{word}}” ให้ฟังครบ <b>{{count, number}} ครั้ง</b> แล้ว!',
+		artHours: 'ชม.',
+		artCount_one: '{{count, number}} ครั้ง',
+		artCount_few: '{{count, number}} ครั้ง',
+		artCount_many: '{{count, number}} ครั้ง',
+		artCount_other: '{{count, number}} ครั้ง',
+		like: 'ถูกใจ',
+	},
+	report: {
+		action: 'รายงาน',
+		title: 'โปรดเลือกเหตุผลในการรายงาน',
+		reasons: {
+			spam: 'สแปม',
+			inappropriate_content: 'เนื้อหาไม่เหมาะสม',
+			harassment: 'การคุกคาม',
+			other: 'อื่น ๆ',
+		},
+		description: 'รายละเอียด (ไม่บังคับ)',
+		sent: 'ส่งรายงานแล้ว',
+	},
+	block: {
+		action: 'บล็อก',
+		title: 'บล็อก {{nickname}} ไหม',
+		message: 'คุณทั้งสองจะไม่เห็นฟีดของกันและกัน',
+		done: 'บล็อก {{nickname}} แล้ว',
+		undo: 'เลิกทำ',
+	},
+	gate: {
+		loginTitle: 'เข้าสู่ระบบ',
+		loginDescription: 'เข้าสู่ระบบเพื่อใช้ฟีด',
+		nicknameTitle: 'ตั้งชื่อเล่น',
+		nicknameDescription: 'ชื่อที่จะแสดงในฟีด',
+		start: 'เริ่มเลย',
+	},
+};

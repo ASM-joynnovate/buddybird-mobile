@@ -1,4 +1,4 @@
-export const locales = ['ko-KR', 'en-US', 'ja-JP', 'ru-RU', 'es-ES'] as const;
+export const locales = ['ko-KR', 'en-US', 'ja-JP', 'ru-RU', 'es-ES', 'th-TH'] as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -16,4 +16,5 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 	'ja-JP': { nativeName: '日本語', dateLocale: 'ja', countryNamesLocale: 'ja' },
 	'ru-RU': { nativeName: 'Русский', dateLocale: 'ru', countryNamesLocale: 'ru' },
 	'es-ES': { nativeName: 'Español', dateLocale: 'es', countryNamesLocale: 'es' },
+	'th-TH': { nativeName: 'ไทย', dateLocale: 'th', countryNamesLocale: 'th' },
 };
