@@ -22,6 +22,8 @@
 	"dependencies": {
 		"@bacons/apple-targets": "^5.0.0",
 		"@config-plugins/react-native-webrtc": "15.0.2",
+		"@formatjs/intl-locale": "^5.3.12",
+		"@formatjs/intl-localematcher": "^0.9.0",
 		"@gorhom/bottom-sheet": "^5.2.14",
 		"@hot-updater/react-native": "1.1.0",
 		"@nandorojo/galeria": "^3.0.3",

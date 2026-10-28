@@ -2,14 +2,12 @@ import { StyleSheet, View } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { type Locale, locales } from '@/types/locale';
+import { type Locale, localeDefinitions, locales } from '@/types/locale';
 
 import { useUpdateDevice } from '@/hooks/apis/devices';
 import { apiKeys } from '@/hooks/apis/keys';
 
 import { useTranslation } from 'react-i18next';
-
-import type { SettingsMessages } from '@/i18n/types/settings';
 
 import { MessageSquareTextIcon } from 'lucide-react-native';
 
@@ -18,14 +16,6 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 
 import { ItemPicker } from '@/components/ui/item/picker';
 import { ItemRadio } from '@/components/ui/item/radio';
-
-const LANGUAGE_LABEL_KEYS: Record<Locale, keyof SettingsMessages['general']> = {
-	'ko-KR': 'korean',
-	'en-US': 'english',
-	'ja-JP': 'japanese',
-	'ru-RU': 'russian',
-	'es-ES': 'spanish',
-};
 
 /** 앱 언어 선택 컴포넌트 */
 const LanguagePicker = () => {
@@ -69,7 +59,7 @@ const LanguagePicker = () => {
 			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
-				value: t(`settings.general.${LANGUAGE_LABEL_KEYS[locale]}`),
+				value: localeDefinitions[locale].name,
 				isFirstInGroup: true,
 				disabled: isPending,
 			}}
@@ -81,7 +71,7 @@ const LanguagePicker = () => {
 						<ItemRadio
 							key={language}
 							isFirstInGroup={index === 0}
-							label={t(`settings.general.${LANGUAGE_LABEL_KEYS[language]}`)}
+							label={localeDefinitions[language].name}
 							selected={locale === language}
 							onPress={() => handleSelectLanguage(language, close)}
 						/>

@@ -2904,6 +2904,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formatjs/fast-memoize@npm:3.1.7":
+  version: 3.1.7
+  resolution: "@formatjs/fast-memoize@npm:3.1.7"
+  checksum: 10c0/dee801f82eda1f6fdc166b0c907e8750c15e409e20b2006c215d9247fe0db720d84d53fcb2fb7559cec21a24932b69dda326c81ee2885aad2cde31bc25449fd0
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-getcanonicallocales@npm:3.2.12":
+  version: 3.2.12
+  resolution: "@formatjs/intl-getcanonicallocales@npm:3.2.12"
+  checksum: 10c0/355adbf5830e62e8d2f36d59cbd227480680458d2da7e5795dc047da4afc81fa7b76389e9645b5561f3a3481a7f8921c5f95c13c372d47e2ea00080cf6c3c93d
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-locale@npm:^5.3.12":
+  version: 5.3.12
+  resolution: "@formatjs/intl-locale@npm:5.3.12"
+  dependencies:
+    "@formatjs/intl-getcanonicallocales": "npm:3.2.12"
+    "@formatjs/intl-supportedvaluesof": "npm:2.3.11"
+  checksum: 10c0/09e34f62f4f3ebb8d9cbaf593190ea2cfcf6e507e073b9ca90007b5da2c36aff4d1d09efcdd0b9818d8f8efc66b5b544a4cc75d3e3f445ffc42eb792287251f3
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-localematcher@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@formatjs/intl-localematcher@npm:0.9.0"
+  dependencies:
+    "@formatjs/fast-memoize": "npm:3.1.7"
+  checksum: 10c0/02020d68e9295ac4fdde953f34b1496c030ac8e8a712779c1112257a3b90d0cd2dd44de0cba6719884133a64ff1bcb23cce71086473f2fb4778d8a690be0f343
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-supportedvaluesof@npm:2.3.11":
+  version: 2.3.11
+  resolution: "@formatjs/intl-supportedvaluesof@npm:2.3.11"
+  dependencies:
+    "@formatjs/fast-memoize": "npm:3.1.7"
+  checksum: 10c0/0b8ad5da1f84b429ebe78e8f5a6cc882cd98870545da4b894d8cfff1bdf00044ccd6e02a180f8169d2f35152837a0adeb330df8bc3cd393b2f4d39451cc362f6
+  languageName: node
+  linkType: hard
+
 "@gorhom/bottom-sheet@npm:^5.2.14":
   version: 5.2.14
   resolution: "@gorhom/bottom-sheet@npm:5.2.14"
@@ -7461,6 +7503,8 @@ __metadata:
     "@babel/core": "npm:^7.20.0"
     "@bacons/apple-targets": "npm:^5.0.0"
     "@config-plugins/react-native-webrtc": "npm:15.0.2"
+    "@formatjs/intl-locale": "npm:^5.3.12"
+    "@formatjs/intl-localematcher": "npm:^0.9.0"
     "@gorhom/bottom-sheet": "npm:^5.2.14"
     "@hot-updater/cloudflare": "npm:1.1.0"
     "@hot-updater/expo": "npm:1.1.0"

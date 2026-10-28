@@ -1,4 +1,4 @@
-import { type Locale, localeLanguages } from '@/types/locale';
+import { type Locale, localeDefinitions } from '@/types/locale';
 
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -34,7 +34,7 @@ interface JosaFormatOptions {
 
 /** 앱 언어 변경 함수 */
 export const changeI18nLocale = async (locale: Locale) => {
-	dayjs.locale(localeLanguages[locale]);
+	dayjs.locale(localeDefinitions[locale].dateLocale);
 
 	if (i18next.isInitialized) {
 		await i18next.changeLanguage(locale);
