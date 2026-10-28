@@ -38,15 +38,12 @@ type DeviceSettingsActions = {
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
 
 /** 기기 언어에 맞는 앱 언어를 반환하는 함수 */
-const deviceLocale = () => {
-	const matchedLocale = match(
+const deviceLocale = () =>
+	match(
 		getLocales().map(({ languageTag }) => languageTag),
 		locales,
 		defaultLocale,
-	);
-
-	return locales.find((locale) => locale === matchedLocale) ?? defaultLocale;
-};
+	) as Locale;
 
 /** 기기 설정 초기값 */
 const defaultDeviceSettings = (): DeviceSettings => {

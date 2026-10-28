@@ -59,7 +59,7 @@ const LanguagePicker = () => {
 			itemProps={{
 				icon: MessageSquareTextIcon,
 				label: t('settings.general.language'),
-				value: localeDefinitions[locale].name,
+				value: localeDefinitions[locale].nativeName,
 				isFirstInGroup: true,
 				disabled: isPending,
 			}}
@@ -71,7 +71,7 @@ const LanguagePicker = () => {
 						<ItemRadio
 							key={language}
 							isFirstInGroup={index === 0}
-							label={localeDefinitions[language].name}
+							label={localeDefinitions[language].nativeName}
 							selected={locale === language}
 							onPress={() => handleSelectLanguage(language, close)}
 						/>
