@@ -4,8 +4,8 @@ import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common'
 import {
 	type DeleteSessionEventUserReviewParams,
 	type DeleteSessionSoundUserReviewParams,
+	type GetSessionLogParams,
 	type GetSessionSoundDurationParams,
-	type GetSessionSoundListParams,
 	type Heartbeat,
 	heartbeatSchema,
 	type PostSessionHeartbeatParams,
@@ -13,13 +13,11 @@ import {
 	type PutSessionEventUserReviewParams,
 	type PutSessionSoundUserReviewParams,
 	type Session,
-	type SessionEvent,
-	sessionEventListSchema,
+	type SessionLogItem,
+	sessionLogListSchema,
 	type SessionPetcamVideoParams,
 	sessionSchema,
-	type SessionSound,
 	type SessionSoundParams,
-	sessionSoundSchema,
 	type SessionSummary,
 	sessionSummarySchema,
 } from '@/types/apis/sessions';
@@ -31,7 +29,7 @@ import { z } from 'zod';
 import { API_TIMEOUT_MS, PETCAM_VIDEO_UPLOAD_TIMEOUT_MS } from '@/config/policy';
 import { SECOND, WAV_HEADER_BYTES } from '@/config/units';
 
-const SOUND_PAGE_SIZE = 50;
+const LOG_PAGE_SIZE = 50;
 const WAV_BYTE_RATE_OFFSET = 28;
 
 const getSessionList = async ({ page }: PageParams): Promise<Page<Session>> => {
@@ -109,20 +107,12 @@ export const postSessionSound = async ({ id, uri, data, idempotencyKey }: Sessio
 	await putUploadFile({ upload: await postSessionSoundUpload({ id, uri, data, idempotencyKey }), uri });
 };
 
-export const getSessionSoundList = async ({ id, page }: GetSessionSoundListParams): Promise<Page<SessionSound>> => {
-	const { data, meta } = await apiRequest(`/api/v1/sessions/${id}/sounds`, z.array(sessionSoundSchema), {
-		searchParams: { page, count_by_page: SOUND_PAGE_SIZE },
+export const getSessionLog = async ({ id, kinds, page }: GetSessionLogParams): Promise<Page<SessionLogItem>> => {
+	const { data, meta } = await apiRequest(`/api/v1/sessions/${id}/log`, sessionLogListSchema, {
+		searchParams: { kind: kinds, page, count_by_page: LOG_PAGE_SIZE },
 	});
 
 	return { data, meta: pageMetaSchema.parse(meta) };
-};
-
-export const getSessionEventList = async ({ id }: { id: string }): Promise<SessionEvent[]> => {
-	const { data: sessionEvents } = await apiRequest(`/api/v1/sessions/${id}/events`, sessionEventListSchema, {
-		searchParams: { petcam: true, distress_call: true },
-	});
-
-	return sessionEvents;
 };
 
 export const putSessionSoundUserReview = async ({

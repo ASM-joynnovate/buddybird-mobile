@@ -1,19 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 
 import type { PullToRefreshState } from '@/types/pull-to-refresh';
+import type { LogFilter } from '@/types/session-log';
 
-import {
-	useGetSession,
-	useGetSessionEventList,
-	useGetSessionSoundList,
-	useGetSessionSummary,
-} from '@/hooks/apis/sessions';
+import { useGetSession, useGetSessionLog, useGetSessionSummary } from '@/hooks/apis/sessions';
 
 import { useDerivedValue } from 'react-native-reanimated';
 
 import SessionLog from '@/screens/report/components/session-log';
-import { getLogItems, type LogItem } from '@/screens/report/utils/session-log';
-import { shouldShowDistressCall } from '@/services/remote-config/client';
+import { type LogItem, logFilterKinds, toLogItem } from '@/screens/report/utils/session-log';
 
 import SessionOverview from '@/components/session/session-overview';
 
@@ -30,37 +25,31 @@ interface Props {
  * @param pullToRefresh 화면 스크롤의 당기기 상태
  */
 const SessionDetailContent = ({ sessionId, pullToRefresh }: Props) => {
+	const [, startFilterTransition] = useTransition();
+
 	const [openItemId, setOpenItemId] = useState<string | null>(null);
+	const [logFilter, setLogFilter] = useState<LogFilter>('all');
 
 	const { data: sessionData } = useGetSession({ id: sessionId });
 	const { data: sessionSummaryData } = useGetSessionSummary({ id: sessionId });
 	const {
-		data: sessionSoundListData,
+		data: sessionLogData,
 		hasNextPage,
 		isFetchingNextPage,
 		isFetchNextPageError,
 		fetchNextPage,
-	} = useGetSessionSoundList({ id: sessionId });
-	const { data: sessionEventListData } = useGetSessionEventList({ id: sessionId });
-
-	const distressCallShown = shouldShowDistressCall();
+	} = useGetSessionLog({ id: sessionId, kinds: logFilterKinds[logFilter] });
 
 	const logItems = useMemo(
-		() =>
-			getLogItems(
-				sessionSoundListData.pages.flatMap((soundPage) => soundPage.data),
-				sessionEventListData.filter((event) => distressCallShown || event.kind !== 'distress_call_detected'),
-			),
-		[distressCallShown, sessionEventListData, sessionSoundListData],
+		() => sessionLogData.pages.flatMap((logPage) => logPage.data).map(toLogItem),
+		[sessionLogData],
 	);
-	const emergencyCount = logItems.filter(
-		(logItem) => logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared',
-	).length;
+	const emergencyCount = sessionData.events.distress_call_count + sessionData.events.parrot_disappeared_count;
 
 	const { scrollY, viewportHeight, contentHeight } = pullToRefresh;
 	const logBottom = useDerivedValue(() => contentHeight.get() - CONTENT_PADDING_BOTTOM);
 
-	/** 소리 목록의 다음 페이지를 끝까지 이어서 조회 */
+	/** 기록의 다음 페이지를 끝까지 이어서 조회 */
 	useEffect(() => {
 		if (!hasNextPage || isFetchingNextPage || isFetchNextPageError) {
 			return;
@@ -68,6 +57,11 @@ const SessionDetailContent = ({ sessionId, pullToRefresh }: Props) => {
 
 		void fetchNextPage();
 	}, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
+
+	/** 필터 변경 중 이전 기록 유지 */
+	const handleSelectFilter = (selectedFilter: LogFilter) => {
+		startFilterTransition(() => setLogFilter(selectedFilter));
+	};
 
 	const handleToggleItem = (logItem: LogItem) => {
 		setOpenItemId((prev) => (prev === logItem.id ? null : logItem.id));
@@ -85,11 +79,13 @@ const SessionDetailContent = ({ sessionId, pullToRefresh }: Props) => {
 			<SessionLog
 				session={sessionData}
 				logItems={logItems}
+				logFilter={logFilter}
 				openItemId={openItemId}
 				wordName={sessionSummaryData.word.name}
 				scrollY={scrollY}
 				viewportHeight={viewportHeight}
 				logBottom={logBottom}
+				onSelectFilter={handleSelectFilter}
 				onToggleItem={handleToggleItem}
 			/>
 		</>

@@ -64,6 +64,16 @@ export const report: ReportMessages = {
 			parrotDisappeared: 'Попугай не в кадре',
 			parrotAppeared: 'Попугай в кадре',
 		},
+		filters: {
+			all: 'Все',
+			sound: 'Щебет',
+			emergency: 'Тревоги',
+		},
+		filterEmpty: {
+			sound: 'Записей щебета нет',
+			word: 'Записей «{{word}}» нет',
+			emergency: 'Записей тревог нет',
+		},
 		mediaTypes: {
 			audio: 'Аудио',
 			video: 'Видео',

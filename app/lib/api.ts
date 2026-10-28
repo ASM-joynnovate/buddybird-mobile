@@ -22,7 +22,7 @@ export const configureApi = (next: ApiDependencies) => {
 	dependencies = next;
 };
 
-type SearchParamValue = string | number | boolean | undefined;
+type SearchParamValue = string | number | boolean | string[] | undefined;
 
 interface ApiOptions {
 	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -144,7 +144,11 @@ const queryString = (searchParams: Record<string, SearchParamValue> | undefined)
 	const params = new URLSearchParams();
 
 	for (const [name, value] of Object.entries(searchParams ?? {})) {
-		if (value !== undefined) {
+		if (Array.isArray(value)) {
+			for (const paramValue of value) {
+				params.append(name, paramValue);
+			}
+		} else if (value !== undefined) {
 			params.set(name, String(value));
 		}
 	}

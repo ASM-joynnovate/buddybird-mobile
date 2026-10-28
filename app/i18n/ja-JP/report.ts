@@ -64,6 +64,16 @@ export const report: ReportMessages = {
 			parrotDisappeared: 'インコが画面外',
 			parrotAppeared: 'インコが画面内',
 		},
+		filters: {
+			all: 'すべて',
+			sound: '鳴き声',
+			emergency: '緊急',
+		},
+		filterEmpty: {
+			sound: '鳴き声の記録はありません',
+			word: '「{{word}}」の記録はありません',
+			emergency: '緊急の記録はありません',
+		},
 		mediaTypes: {
 			audio: 'オーディオ',
 			video: '動画',

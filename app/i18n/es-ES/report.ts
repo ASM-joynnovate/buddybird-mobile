@@ -64,6 +64,16 @@ export const report: ReportMessages = {
 			parrotDisappeared: 'Loro fuera de cámara',
 			parrotAppeared: 'Loro en cámara',
 		},
+		filters: {
+			all: 'Todo',
+			sound: 'Gorjeos',
+			emergency: 'Emergencias',
+		},
+		filterEmpty: {
+			sound: 'No hay registros de gorjeos',
+			word: 'No hay registros de «{{word}}»',
+			emergency: 'No hay registros de emergencias',
+		},
 		mediaTypes: {
 			audio: 'Audio',
 			video: 'Vídeo',

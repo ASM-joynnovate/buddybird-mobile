@@ -61,11 +61,6 @@ export const subscribeRemoteConfig = (listener: () => void) => {
 	};
 };
 
-/** 신경질적 짹짹 표시 여부 반환 함수 */
-export const shouldShowDistressCall = () => {
-	return readConfigValues().show_distress_call_detected;
-};
-
 /** 펫캠 영상 설정을 반환하는 함수 */
 export const getPetcamVideo = () => {
 	const configValues = readConfigValues();

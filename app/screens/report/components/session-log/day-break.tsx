@@ -34,6 +34,7 @@ interface Props {
 	viewportHeight: SharedValue<number>;
 	logBottom: SharedValue<number>;
 	dayBreakLayouts: SharedValue<StickyLayout[]>;
+	filterLayout: SharedValue<StickyLayout>;
 }
 
 /**
@@ -44,8 +45,17 @@ interface Props {
  * @param viewportHeight 화면 높이
  * @param logBottom 기록 아래쪽 끝 위치
  * @param dayBreakLayouts 날짜 구분선 위치를 저장할 값
+ * @param filterLayout 위에 고정되는 필터 위치
  */
-const SessionLogDayBreak = ({ date, dayIndex, scrollY, viewportHeight, logBottom, dayBreakLayouts }: Props) => {
+const SessionLogDayBreak = ({
+	date,
+	dayIndex,
+	scrollY,
+	viewportHeight,
+	logBottom,
+	dayBreakLayouts,
+	filterLayout,
+}: Props) => {
 	const motionReduced = useReducedMotion();
 
 	const labelOpacity = useSharedValue(motionReduced ? 1 : 0);
@@ -64,7 +74,7 @@ const SessionLogDayBreak = ({ date, dayIndex, scrollY, viewportHeight, logBottom
 		const nextTop = layouts.at(dayIndex + 1)?.y;
 		const end = nextTop === undefined ? logBottom.get() : nextTop - MARGIN_TOP;
 		const translateY = Math.min(
-			Math.max(scrollY.get() - dayBreakLayout.y, 0),
+			Math.max(scrollY.get() + filterLayout.get().height - dayBreakLayout.y, 0),
 			Math.max(end - dayBreakLayout.y - dayBreakLayout.height, 0),
 		);
 
@@ -72,7 +82,8 @@ const SessionLogDayBreak = ({ date, dayIndex, scrollY, viewportHeight, logBottom
 	});
 	const stuckLineStyle = useAnimatedStyle(() => {
 		const dayBreakLayout = dayBreakLayouts.get().at(dayIndex);
-		const stuck = dayBreakLayout !== undefined && dayBreakLayout.y - scrollY.get() <= 0.5;
+		const stuck =
+			dayBreakLayout !== undefined && dayBreakLayout.y - scrollY.get() - filterLayout.get().height <= 0.5;
 
 		return { opacity: stuck ? 1 : 0 };
 	});

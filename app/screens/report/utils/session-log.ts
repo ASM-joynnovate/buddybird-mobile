@@ -1,6 +1,12 @@
-import type { SessionEvent, SessionEventFile, SessionSound, SessionUserReview } from '@/types/apis/sessions';
+import type {
+	SessionEventFile,
+	SessionLogItem,
+	SessionLogKind,
+	SessionLogSound,
+	SessionUserReview,
+} from '@/types/apis/sessions';
 
-import type { LogItemKind } from '@/types/session-log';
+import type { LogFilter, LogItemKind } from '@/types/session-log';
 import { CLOCK_FORMAT, type SleepSettings } from '@/types/sleep-settings';
 
 import dayjs from 'dayjs';
@@ -17,11 +23,12 @@ export interface LogItem {
 	kind: LogItemKind;
 	startedAt: string;
 	endedAt: string | null;
-	sounds: SessionSound[];
+	sounds: Pick<SessionLogSound, 'audio_file'>[];
 	score: number | null;
 	durationMs: number | null;
 	file: SessionEventFile | null;
 	userReview: SessionUserReview | null;
+	isFeedShared: boolean;
 }
 
 export interface LogRow extends TimeSpan {
@@ -29,9 +36,11 @@ export interface LogRow extends TimeSpan {
 	logItems: LogItem[];
 }
 
-/** 소리의 녹음 시각을 비교하는 함수 */
-const compareCapturedAt = (a: SessionSound, b: SessionSound) => {
-	return dayjs(a.captured_at).diff(b.captured_at);
+export const logFilterKinds: Record<LogFilter, SessionLogKind[]> = {
+	all: ['parrot', 'mimic', 'distress_call_detected', 'parrot_disappeared', 'parrot_appeared'],
+	sound: ['parrot'],
+	word: ['mimic'],
+	emergency: ['distress_call_detected', 'parrot_disappeared', 'parrot_appeared'],
 };
 
 /** 다음 날 자정 시각을 반환하는 함수 */
@@ -66,6 +75,11 @@ const hourRows = ({ start, end }: TimeSpan) => {
 	return logRows;
 };
 
+/** 수면 구간이 아닌 빈 행인지 확인하는 함수 */
+const isEmptyLogRow = (logRow: LogRow) => {
+	return logRow.logItems.length === 0 && !logRow.isDuringSleep;
+};
+
 /** 수면 구간 목록을 반환하는 함수 */
 export const getSleepSpans = ({ start, end }: TimeSpan, sleep: SleepSettings | null) => {
 	if (!sleep || sleep.sleep_at === sleep.wake_at) {
@@ -96,59 +110,51 @@ export const getSleepSpans = ({ start, end }: TimeSpan, sleep: SleepSettings | n
 	return spans;
 };
 
-/** 시각순 기록 목록을 반환하는 함수 */
-export const getLogItems = (sounds: SessionSound[], events: SessionEvent[]) => {
-	const distressCallEvents = events.filter((event) => event.kind === 'distress_call_detected');
-	const distressCallSoundIds = new Set(distressCallEvents.flatMap((event) => event.sound_ids));
-
-	// 신경질적 짹짹에 묶인 모사는 모사 항목으로도 표시
-	const soundItems = sounds
-		.filter((sound) => Boolean(sound.judgment?.word_id) || !distressCallSoundIds.has(sound.id))
-		.map((sound): LogItem => {
-			const soundMimicked = Boolean(sound.judgment?.word_id);
-
-			return {
-				id: sound.id,
-				kind: soundMimicked ? 'mimic' : 'parrot',
-				startedAt: sound.captured_at,
-				endedAt: null,
-				sounds: [sound],
-				score: (soundMimicked ? sound.judgment?.score : sound.analysis?.score) ?? null,
-				durationMs: sound.duration_ms ?? null,
-				file: null,
-				userReview: sound.user_review ?? null,
-			};
-		});
-	const distressCallItems = distressCallEvents.map((event): LogItem => ({
-		id: event.id,
-		kind: 'distressCall',
-		startedAt: event.occurred_at,
-		endedAt: event.ended_at,
-		sounds: sounds.filter((sound) => event.sound_ids.includes(sound.id)).sort(compareCapturedAt),
+/** 서버 기록 항목을 화면 기록으로 변환하는 함수 */
+export const toLogItem = (sessionLogItem: SessionLogItem): LogItem => {
+	const baseLogItem = {
+		id: sessionLogItem.id,
+		startedAt: sessionLogItem.occurred_at,
+		endedAt: null,
+		sounds: [],
 		score: null,
-		durationMs: event.ended_at ? dayjs(event.ended_at).diff(event.occurred_at) : null,
+		durationMs: null,
 		file: null,
-		userReview: event.user_review ?? null,
-	}));
-	const petcamItems = events
-		.filter((event) => event.kind === 'parrot_disappeared' || event.kind === 'parrot_appeared')
-		.map((event): LogItem => {
-			const parrotDisappeared = event.kind === 'parrot_disappeared';
+		userReview: sessionLogItem.user_review,
+		isFeedShared: false,
+	};
 
+	switch (sessionLogItem.kind) {
+		case 'parrot':
+		case 'mimic':
 			return {
-				id: event.id,
-				kind: parrotDisappeared ? 'parrotDisappeared' : 'parrotAppeared',
-				startedAt: event.occurred_at,
-				endedAt: event.ended_at,
-				sounds: [],
-				score: null,
-				durationMs: null,
-				file: parrotDisappeared ? event.video : event.image,
-				userReview: event.user_review ?? null,
+				...baseLogItem,
+				kind: sessionLogItem.kind,
+				sounds: [{ audio_file: sessionLogItem.audio_file }],
+				score: sessionLogItem.score,
+				durationMs: sessionLogItem.duration_ms,
+				isFeedShared: sessionLogItem.kind === 'mimic' && sessionLogItem.is_feed_shared,
 			};
-		});
-
-	return [...soundItems, ...distressCallItems, ...petcamItems].sort((a, b) => dayjs(a.startedAt).diff(b.startedAt));
+		case 'distress_call_detected':
+			return {
+				...baseLogItem,
+				kind: 'distressCall',
+				endedAt: sessionLogItem.ended_at,
+				sounds: sessionLogItem.sounds,
+				durationMs: sessionLogItem.ended_at
+					? dayjs(sessionLogItem.ended_at).diff(sessionLogItem.occurred_at)
+					: null,
+			};
+		case 'parrot_disappeared':
+			return {
+				...baseLogItem,
+				kind: 'parrotDisappeared',
+				endedAt: sessionLogItem.ended_at,
+				file: sessionLogItem.video,
+			};
+		case 'parrot_appeared':
+			return { ...baseLogItem, kind: 'parrotAppeared', file: sessionLogItem.image };
+	}
 };
 
 /** 날짜별 행에 기록을 담는 함수 */
@@ -186,6 +192,23 @@ export const getLogDays = (sessionSpan: TimeSpan, sleepSpans: TimeSpan[], logIte
 		date,
 		logRows: logRowsWithItems.filter((logRow) => dayjs(logRow.start).startOf('day').valueOf() === date),
 	}));
+};
+
+/** 기록 없는 연속 행을 하나로 합치는 함수 */
+export const mergeEmptyLogRows = (logRows: LogRow[]) => {
+	const mergedRows: LogRow[] = [];
+
+	for (const logRow of logRows) {
+		const lastRow = mergedRows.at(-1);
+
+		if (lastRow && isEmptyLogRow(lastRow) && isEmptyLogRow(logRow)) {
+			mergedRows[mergedRows.length - 1] = { ...lastRow, end: logRow.end };
+		} else {
+			mergedRows.push(logRow);
+		}
+	}
+
+	return mergedRows;
 };
 
 /** 공유할 기록 파일의 이름을 반환하는 함수 */

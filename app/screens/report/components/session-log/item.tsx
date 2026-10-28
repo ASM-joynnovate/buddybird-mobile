@@ -115,7 +115,7 @@ const SessionLogItem = ({
 					<View style={styles.shares}>
 						<SessionLogShareButton logItem={logItem} itemLabel={itemLabel} sessionId={sessionId} />
 						{logItem.kind === 'mimic' && (
-							<SessionLogFeedShareButton sound={logItem.sounds[0]} wordName={wordName} />
+							<SessionLogFeedShareButton logItem={logItem} wordName={wordName} />
 						)}
 					</View>
 				</View>

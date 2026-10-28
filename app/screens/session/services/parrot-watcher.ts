@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import type { PetcamEventKind, SessionEvent, SessionPetcamVideoParams } from '@/types/apis/sessions';
+import type { PetcamEventKind, SessionLogItem, SessionPetcamVideoParams } from '@/types/apis/sessions';
 import type { PetcamEventUpload, PostSessionPetcamEventUploadParams, PutUploadFileParams } from '@/types/apis/uploads';
 
 import dayjs from 'dayjs';
@@ -48,7 +48,7 @@ interface PendingVideo {
 interface ParrotWatcherOptions {
 	sessionId: string;
 	stream: MediaStream;
-	loadSessionEvents: () => Promise<SessionEvent[]>;
+	loadPetcamLog: () => Promise<SessionLogItem[]>;
 	issuePetcamEventUpload: (variables: PostSessionPetcamEventUploadParams) => Promise<PetcamEventUpload>;
 	uploadPetcamPhoto: (variables: PutUploadFileParams) => Promise<void>;
 	uploadPetcamVideo: (variables: Omit<SessionPetcamVideoParams, 'idempotencyKey'>) => Promise<void>;
@@ -87,8 +87,14 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 
 	/** 마지막 이벤트가 앵무새 미검출인지 반환하는 함수 */
 	const loadParrotUndetected = async () => {
-		const sessionEvents = await options.loadSessionEvents();
-		const lastUploaded = sessionEvents.filter((event) => event.image?.status === 'uploaded').at(-1);
+		const petcamLog = await options.loadPetcamLog();
+		const lastUploaded = petcamLog
+			.filter(
+				(logItem) =>
+					(logItem.kind === 'parrot_disappeared' || logItem.kind === 'parrot_appeared') &&
+					logItem.image?.status === 'uploaded',
+			)
+			.at(-1);
 
 		return lastUploaded?.kind === 'parrot_disappeared';
 	};
