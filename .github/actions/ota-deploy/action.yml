@@ -20,6 +20,9 @@ inputs:
   sentry-auth-token:
     description: Sentry auth token for source maps
     required: true
+  force-update:
+    description: Deploy the bundles as force updates
+    default: "false"
 
 runs:
   using: composite
@@ -43,9 +46,14 @@ runs:
         HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ inputs.r2-access-key-id }}
         HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
         SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
+        FORCE_UPDATE: ${{ inputs.force-update }}
       run: |
+        force_update_flag=()
+        if [ "$FORCE_UPDATE" = "true" ]; then
+          force_update_flag=(-f)
+        fi
         for platform in ios android; do
-          yarn hot-updater deploy -p "$platform" -c "$APP_VARIANT" -o ".hot-updater/output/deploy/$platform"
+          yarn hot-updater deploy -p "$platform" -c "$APP_VARIANT" -o ".hot-updater/output/deploy/$platform" "${force_update_flag[@]}"
         done
 
     - name: remove signing key

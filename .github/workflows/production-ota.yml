@@ -1,6 +1,11 @@
 name: Production OTA
 on:
   workflow_dispatch:
+    inputs:
+      force-update:
+        description: Install the bundle as soon as the app opens and restart
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -46,6 +51,7 @@ jobs:
           r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          force-update: ${{ inputs.force-update }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: native-fingerprint-production
