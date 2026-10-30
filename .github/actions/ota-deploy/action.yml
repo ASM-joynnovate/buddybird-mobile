@@ -23,6 +23,9 @@ inputs:
   force-update:
     description: Deploy the bundles as force updates
     default: "false"
+  platform:
+    description: all, ios or android
+    default: all
 
 runs:
   using: composite
@@ -47,12 +50,17 @@ runs:
         HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
         SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
         FORCE_UPDATE: ${{ inputs.force-update }}
+        PLATFORM: ${{ inputs.platform }}
       run: |
         force_update_flag=()
         if [ "$FORCE_UPDATE" = "true" ]; then
           force_update_flag=(-f)
         fi
-        for platform in ios android; do
+        platforms=(ios android)
+        if [ "$PLATFORM" != "all" ]; then
+          platforms=("$PLATFORM")
+        fi
+        for platform in "${platforms[@]}"; do
           yarn hot-updater deploy -p "$platform" -c "$APP_VARIANT" -o ".hot-updater/output/deploy/$platform" "${force_update_flag[@]}"
         done
 
