@@ -45,7 +45,11 @@ const HomeBanner = () => {
 	/** 현재 배너 노출 기록 */
 	useEffect(() => {
 		if (currentBannerAd && screenFocused && appActive) {
-			addAdImpression(currentBannerAd, currentBannerIndex);
+			addAdImpression({
+				ad_id: currentBannerAd.id,
+				serve_id: currentBannerAd.serve_id,
+				position: currentBannerIndex,
+			});
 		}
 	}, [currentBannerAd, currentBannerIndex, screenFocused, appActive, addAdImpression]);
 
@@ -62,6 +66,7 @@ const HomeBanner = () => {
 					<HomeBannerSlide
 						bannerAd={bannerAd}
 						position={index}
+						counterVisible={canSlide}
 						onImageError={() => setFailedServeIds((prev) => [...prev, bannerAd.serve_id])}
 					/>
 				)}

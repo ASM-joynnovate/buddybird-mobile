@@ -1,5 +1,4 @@
-import type { AdClickTarget, AdEvent, BannerAd } from '@/types/apis/ads';
-import type { FeedAdItem } from '@/types/apis/feed';
+import type { AdEvent } from '@/types/apis/ads';
 
 import dayjs from 'dayjs';
 import { create } from 'zustand';
@@ -10,8 +9,8 @@ type AdState = {
 };
 
 type AdActions = {
-	addAdImpression: (ad: BannerAd | FeedAdItem, position: number) => void;
-	addAdClick: (ad: BannerAd | FeedAdItem, position: number, clickTarget: AdClickTarget) => void;
+	addAdImpression: (adEvent: Pick<AdEvent, 'ad_id' | 'serve_id' | 'position'>) => void;
+	addAdClick: (adEvent: Pick<AdEvent, 'ad_id' | 'serve_id' | 'position' | 'click_target'>) => void;
 	removeAdEvents: (sentAdEvents: AdEvent[]) => void;
 };
 
@@ -22,41 +21,36 @@ export const useAdStore = create<AdStore>()((set) => ({
 	impressionServeIds: [],
 
 	/** serve_id마다 한 번 노출 기록 */
-	addAdImpression: (ad, position) => {
+	addAdImpression: (adEvent) => {
 		set((state) =>
-			state.impressionServeIds.includes(ad.serve_id)
+			state.impressionServeIds.includes(adEvent.serve_id)
 				? state
 				: {
 						...state,
 						adEvents: [
 							...state.adEvents,
 							{
-								ad_id: ad.id,
-								serve_id: ad.serve_id,
+								...adEvent,
 								kind: 'impression',
-								position,
 								click_target: null,
 								visible_duration_ms: null,
 								occurred_at: dayjs().toISOString(),
 							},
 						],
-						impressionServeIds: [...state.impressionServeIds, ad.serve_id],
+						impressionServeIds: [...state.impressionServeIds, adEvent.serve_id],
 					},
 		);
 	},
 
 	/** 클릭 기록 */
-	addAdClick: (ad, position, clickTarget) => {
+	addAdClick: (adEvent) => {
 		set((state) => ({
 			...state,
 			adEvents: [
 				...state.adEvents,
 				{
-					ad_id: ad.id,
-					serve_id: ad.serve_id,
+					...adEvent,
 					kind: 'click',
-					position,
-					click_target: clickTarget,
 					visible_duration_ms: null,
 					occurred_at: dayjs().toISOString(),
 				},

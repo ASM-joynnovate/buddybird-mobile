@@ -34,7 +34,7 @@ const FeedAdCard = ({ feedAdItem, position, onImageError }: Props) => {
 	const addAdClick = useAdStore((state) => state.addAdClick);
 
 	const handleOpenAd = (clickTarget: AdClickTarget) => {
-		addAdClick(feedAdItem, position, clickTarget);
+		addAdClick({ ad_id: feedAdItem.id, serve_id: feedAdItem.serve_id, position, click_target: clickTarget });
 
 		void WebBrowser.openBrowserAsync(feedAdItem.link_url).catch((error) => reportError(error, 'ad_link'));
 	};
