@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, View, type ViewToken } from 'react-nativ
 
 import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { FeedListItem } from '@/types/apis/feed';
+import type { PositionedFeedItem } from '@/types/apis/feed';
 
 import { useGetFeedItemList } from '@/hooks/apis/feed';
 import { feedKeys } from '@/hooks/apis/keys/feed';
@@ -36,11 +36,6 @@ import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-i
 import FeedCard from '@/components/feed-card';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { EmptyState } from '@/components/ui/empty-state';
-
-interface PositionedFeedItem {
-	feedItem: FeedListItem;
-	position: number;
-}
 
 interface ViewableItemsChangedInfo {
 	changed: ViewToken<PositionedFeedItem>[];
@@ -81,7 +76,7 @@ const CommunityFeed = () => {
 	});
 
 	const positionedFeedItems = feedData.pages
-		.flatMap((feedPage) => feedPage.data.map((feedItem, position) => ({ feedItem, position })))
+		.flatMap((feedPage) => feedPage.data)
 		.filter(({ feedItem }) => feedItem.kind !== 'ad' || !failedAdServeIds.includes(feedItem.serve_id));
 
 	const handleFetchNextPage = () => {
@@ -94,7 +89,7 @@ const CommunityFeed = () => {
 	const handleViewableItemsChanged = ({ changed }: ViewableItemsChangedInfo) => {
 		for (const { item, isViewable } of changed) {
 			if (isViewable && item.feedItem.kind === 'ad') {
-				addAdImpression(item.feedItem, item.position);
+				addAdImpression({ ad_id: item.feedItem.id, serve_id: item.feedItem.serve_id, position: item.position });
 			}
 		}
 	};

@@ -53,20 +53,30 @@ const feedAdItemSchema = z.object({
 
 const feedListItemSchema = z.discriminatedUnion('kind', [feedItemSchema, feedAdItemSchema]);
 
+const positionedFeedItemSchema = z.object({ feedItem: feedListItemSchema, position: z.number().int().nonnegative() });
+
 export const feedItemListSchema = z
 	.array(z.looseObject({ kind: z.string() }))
-	.transform((feedItems) => feedItems.filter((feedItem) => feedItemKindSchema.safeParse(feedItem.kind).success))
-	.pipe(z.array(feedListItemSchema));
+	.transform((feedItems) =>
+		feedItems
+			.map((feedItem, position) => ({ feedItem, position }))
+			.filter(
+				({ feedItem }) =>
+					feedItemKindSchema.safeParse(feedItem.kind).success &&
+					(feedItem.kind !== 'ad' || feedAdItemSchema.safeParse(feedItem).success),
+			),
+	)
+	.pipe(z.array(positionedFeedItemSchema));
 
 export const feedMetaSchema = z.object({ next_cursor: uuidSchema.nullable() });
 
 export type FeedItem = z.infer<typeof feedItemSchema>;
 export type FeedAdItem = z.infer<typeof feedAdItemSchema>;
-export type FeedListItem = z.infer<typeof feedListItemSchema>;
+export type PositionedFeedItem = z.infer<typeof positionedFeedItemSchema>;
 export type FeedItemLike = z.infer<typeof feedItemLikeSchema>;
 
 export interface FeedPage {
-	data: FeedListItem[];
+	data: PositionedFeedItem[];
 	meta: z.infer<typeof feedMetaSchema>;
 }
 

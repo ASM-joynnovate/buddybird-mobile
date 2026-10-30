@@ -52,8 +52,8 @@ export const useBlockUser = () => {
 		onSuccess: async (_, { id }) => {
 			await queryClient.cancelQueries({ queryKey: feedKeys.all() });
 
-			updateCachedFeedItems(queryClient, (feedItems) =>
-				feedItems.filter((feedItem) => feedItem.kind === 'ad' || feedItem.user.id !== id),
+			updateCachedFeedItems(queryClient, (positionedFeedItems) =>
+				positionedFeedItems.filter(({ feedItem }) => feedItem.kind === 'ad' || feedItem.user.id !== id),
 			);
 		},
 		onError: (error) => reportError(error, 'user_block'),
