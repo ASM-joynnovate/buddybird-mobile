@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { ActivityIndicator, StyleSheet, View, type ViewToken } from 'react-native';
 
 import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,11 +42,17 @@ interface PositionedFeedItem {
 	position: number;
 }
 
+interface ViewableItemsChangedInfo {
+	changed: ViewToken<PositionedFeedItem>[];
+}
+
 /** 순위 카드 및 피드 목록 컴포넌트 */
 const CommunityFeed = () => {
 	const { t } = useTranslation();
 
 	const queryClient = useQueryClient();
+
+	const [failedAdServeIds, setFailedAdServeIds] = useState<string[]>([]);
 
 	const country = useSelectedCountry();
 
@@ -72,9 +80,9 @@ const CommunityFeed = () => {
 		finishMs: BUDDY_REFRESH_FINISH_MS,
 	});
 
-	const positionedFeedItems = feedData.pages.flatMap((feedPage) =>
-		feedPage.data.map((feedItem, position) => ({ feedItem, position })),
-	);
+	const positionedFeedItems = feedData.pages
+		.flatMap((feedPage) => feedPage.data.map((feedItem, position) => ({ feedItem, position })))
+		.filter(({ feedItem }) => feedItem.kind !== 'ad' || !failedAdServeIds.includes(feedItem.serve_id));
 
 	const handleFetchNextPage = () => {
 		if (hasNextPage && !isFetchingNextPage) {
@@ -82,8 +90,8 @@ const CommunityFeed = () => {
 		}
 	};
 
-	/** 광고 카드가 보이면 노출 기록 */
-	const handleViewableItemsChanged = ({ changed }: { changed: ViewToken<PositionedFeedItem>[] }) => {
+	/** 화면에 표시된 광고 카드 노출 기록 */
+	const handleViewableItemsChanged = ({ changed }: ViewableItemsChangedInfo) => {
 		for (const { item, isViewable } of changed) {
 			if (isViewable && item.feedItem.kind === 'ad') {
 				addAdImpression(item.feedItem, item.position);
@@ -106,7 +114,11 @@ const CommunityFeed = () => {
 				keyExtractor={({ feedItem }) => (feedItem.kind === 'ad' ? feedItem.serve_id : feedItem.id)}
 				renderItem={({ item: { feedItem, position } }) =>
 					feedItem.kind === 'ad' ? (
-						<FeedAdCard feedAdItem={feedItem} position={position} />
+						<FeedAdCard
+							feedAdItem={feedItem}
+							position={position}
+							onImageError={() => setFailedAdServeIds((prev) => [...prev, feedItem.serve_id])}
+						/>
 					) : (
 						<FeedCard feedItem={feedItem} player={player} />
 					)

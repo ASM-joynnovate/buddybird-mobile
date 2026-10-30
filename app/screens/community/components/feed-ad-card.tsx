@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { Image, StyleSheet, View } from 'react-native';
 
 import type { AdClickTarget } from '@/types/apis/ads';
@@ -21,17 +19,17 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 interface Props {
 	feedAdItem: FeedAdItem;
 	position: number;
+	onImageError: () => void;
 }
 
 /**
  * 피드 광고 카드 컴포넌트
  * @param feedAdItem 피드 광고 항목
  * @param position 응답 페이지 data 배열 index
+ * @param onImageError 사진 로드 실패 시 호출
  */
-const FeedAdCard = ({ feedAdItem, position }: Props) => {
+const FeedAdCard = ({ feedAdItem, position, onImageError }: Props) => {
 	const { t } = useTranslation();
-
-	const [imageFailed, setImageFailed] = useState(false);
 
 	const addAdClick = useAdStore((state) => state.addAdClick);
 
@@ -40,10 +38,6 @@ const FeedAdCard = ({ feedAdItem, position }: Props) => {
 
 		void WebBrowser.openBrowserAsync(feedAdItem.link_url).catch((error) => reportError(error, 'ad_link'));
 	};
-
-	if (imageFailed) {
-		return null;
-	}
 
 	return (
 		<PressableSurface
@@ -110,7 +104,7 @@ const FeedAdCard = ({ feedAdItem, position }: Props) => {
 						source={{ uri: feedAdItem.image_file.url }}
 						resizeMode="cover"
 						accessibilityIgnoresInvertColors
-						onError={() => setImageFailed(true)}
+						onError={onImageError}
 						style={styles.image}
 					/>
 				</PressableSurface>

@@ -42,7 +42,7 @@ const HomeBanner = () => {
 		return () => appStateSubscription.remove();
 	}, []);
 
-	/** 현재 배너가 보이면 노출 기록 */
+	/** 현재 배너 노출 기록 */
 	useEffect(() => {
 		if (currentBannerAd && screenFocused && appActive) {
 			addAdImpression(currentBannerAd, currentBannerIndex);
