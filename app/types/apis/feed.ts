@@ -9,14 +9,6 @@ export const feedItemLikeSchema = z.object({
 	is_liked: z.boolean(),
 });
 
-const feedItemKindSchema = z.enum([
-	'mimic_succeeded',
-	'total_learning_time_reached',
-	'monthly_learning_time_reached',
-	'word_play_count_reached',
-	'ad',
-]);
-
 const feedItemBaseSchema = z.object({
 	id: uuidSchema,
 	created_at: timestampSchema,
@@ -53,6 +45,10 @@ const feedAdItemSchema = z.object({
 
 const feedListItemSchema = z.discriminatedUnion('kind', [feedItemSchema, feedAdItemSchema]);
 
+const knownFeedItemKinds: string[] = [...feedItemSchema.options, feedAdItemSchema].map(
+	(option) => option.shape.kind.value,
+);
+
 const positionedFeedItemSchema = z.object({ feedItem: feedListItemSchema, position: z.number().int().nonnegative() });
 
 export const feedItemListSchema = z
@@ -62,7 +58,7 @@ export const feedItemListSchema = z
 			.map((feedItem, position) => ({ feedItem, position }))
 			.filter(
 				({ feedItem }) =>
-					feedItemKindSchema.safeParse(feedItem.kind).success &&
+					knownFeedItemKinds.includes(feedItem.kind) &&
 					(feedItem.kind !== 'ad' || feedAdItemSchema.safeParse(feedItem).success),
 			),
 	)
