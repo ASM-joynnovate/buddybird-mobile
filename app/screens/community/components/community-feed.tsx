@@ -1,8 +1,8 @@
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, type ViewToken } from 'react-native';
 
 import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { FeedItem } from '@/types/apis/feed';
+import type { FeedListItem } from '@/types/apis/feed';
 
 import { useGetFeedItemList } from '@/hooks/apis/feed';
 import { feedKeys } from '@/hooks/apis/keys/feed';
@@ -16,8 +16,10 @@ import { useTranslation } from 'react-i18next';
 
 import Animated from 'react-native-reanimated';
 
+import FeedAdCard from '@/screens/community/components/feed-ad-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
+import { useAdStore } from '@/stores/ad';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
@@ -29,9 +31,14 @@ import {
 import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
 import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
-import FeedCard, { feedCardKinds } from '@/components/feed-card';
+import FeedCard from '@/components/feed-card';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { EmptyState } from '@/components/ui/empty-state';
+
+interface PositionedFeedItem {
+	feedItem: FeedListItem;
+	position: number;
+}
 
 /** 순위 카드 및 피드 목록 컴포넌트 */
 const CommunityFeed = () => {
@@ -46,11 +53,12 @@ const CommunityFeed = () => {
 	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
 
 	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
+	const addAdImpression = useAdStore((state) => state.addAdImpression);
 
 	const player = useSoundPlayer();
 	const lowPerformance = useIsLowPerformance();
 
-	const { pullToRefresh, scrollProps } = usePullToRefresh<Animated.FlatList<FeedItem>>({
+	const { pullToRefresh, scrollProps } = usePullToRefresh<Animated.FlatList<PositionedFeedItem>>({
 		onRefresh: () => {
 			setPullToRefreshUsed(true);
 
@@ -64,13 +72,22 @@ const CommunityFeed = () => {
 		finishMs: BUDDY_REFRESH_FINISH_MS,
 	});
 
-	const feedItems = feedData.pages
-		.flatMap((feedPage) => feedPage.data)
-		.filter((feedItem) => Object.hasOwn(feedCardKinds, feedItem.kind));
+	const positionedFeedItems = feedData.pages.flatMap((feedPage) =>
+		feedPage.data.map((feedItem, position) => ({ feedItem, position })),
+	);
 
 	const handleFetchNextPage = () => {
 		if (hasNextPage && !isFetchingNextPage) {
 			void fetchNextPage();
+		}
+	};
+
+	/** 광고 카드가 보이면 노출 기록 */
+	const handleViewableItemsChanged = ({ changed }: { changed: ViewToken<PositionedFeedItem>[] }) => {
+		for (const { item, isViewable } of changed) {
+			if (isViewable && item.feedItem.kind === 'ad') {
+				addAdImpression(item.feedItem, item.position);
+			}
 		}
 	};
 
@@ -85,9 +102,16 @@ const CommunityFeed = () => {
 		>
 			<Animated.FlatList
 				{...scrollProps}
-				data={feedItems}
-				keyExtractor={(feedItem) => feedItem.id}
-				renderItem={({ item: feedItem }) => <FeedCard feedItem={feedItem} player={player} />}
+				data={positionedFeedItems}
+				keyExtractor={({ feedItem }) => (feedItem.kind === 'ad' ? feedItem.serve_id : feedItem.id)}
+				renderItem={({ item: { feedItem, position } }) =>
+					feedItem.kind === 'ad' ? (
+						<FeedAdCard feedAdItem={feedItem} position={position} />
+					) : (
+						<FeedCard feedItem={feedItem} player={player} />
+					)
+				}
+				onViewableItemsChanged={handleViewableItemsChanged}
 				ListHeaderComponent={
 					<>
 						<LeaderboardCard />

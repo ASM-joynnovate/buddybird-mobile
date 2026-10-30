@@ -7,6 +7,7 @@ export type CommonMessages = {
 	close: string;
 	select: string;
 	unknown: string;
+	ad: string;
 	tabs: {
 		home: string;
 		words: string;

@@ -1,0 +1,85 @@
+import { Image, StyleSheet, View } from 'react-native';
+
+import type { BannerAd } from '@/types/apis/ads';
+
+import { useTranslation } from 'react-i18next';
+
+import * as WebBrowser from 'expo-web-browser';
+
+import { reportError } from '@/services/telemetry/client';
+import { useAdStore } from '@/stores/ad';
+import { colors, font, radius } from '@/theme';
+
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
+
+interface Props {
+	bannerAd: BannerAd;
+	position: number;
+	onImageError: () => void;
+}
+
+/**
+ * 홈 배너 광고 한 장 컴포넌트
+ * @param bannerAd 배너 광고
+ * @param position 캐러셀 슬라이드 index
+ * @param onImageError 이미지 로드 실패 시 호출
+ */
+const HomeBannerSlide = ({ bannerAd, position, onImageError }: Props) => {
+	const { t } = useTranslation();
+
+	const addAdClick = useAdStore((state) => state.addAdClick);
+
+	const handleOpenAd = () => {
+		addAdClick(bannerAd, position, 'image');
+
+		void WebBrowser.openBrowserAsync(bannerAd.link_url).catch((error) => reportError(error, 'ad_link'));
+	};
+
+	return (
+		<PressableSurface
+			accessibilityRole="link"
+			accessibilityLabel={bannerAd.advertiser_name}
+			onPress={handleOpenAd}
+			variant="plain"
+			depth="none"
+			cornerRadius="none"
+			contentStyle={styles.face}
+		>
+			<Image
+				source={{ uri: bannerAd.image_file.url }}
+				resizeMode="cover"
+				accessibilityIgnoresInvertColors
+				onError={onImageError}
+				style={styles.image}
+			/>
+
+			{bannerAd.is_ad && (
+				<View style={[styles.adTag, { borderColor: bannerAd.ad_tag_color ?? undefined }]}>
+					<Copy style={[styles.adTagText, { color: bannerAd.ad_tag_color ?? undefined }]}>
+						{t('common.ad')}
+					</Copy>
+				</View>
+			)}
+		</PressableSurface>
+	);
+};
+
+const styles = StyleSheet.create({
+	face: { borderWidth: 0 },
+	image: { width: '100%', aspectRatio: 3, backgroundColor: colors.surface },
+	adTag: {
+		position: 'absolute',
+		top: 10.5,
+		right: 52,
+		height: 15,
+		justifyContent: 'center',
+		paddingHorizontal: 4,
+		borderWidth: 1,
+		borderRadius: radius.xsmall,
+		opacity: 0.55,
+	},
+	adTagText: { fontFamily: font.extraBold, fontSize: 10, lineHeight: 12, letterSpacing: 0.4 },
+});
+
+export default HomeBannerSlide;

@@ -9,7 +9,7 @@ import {
 import { deleteFeedItemLike, getFeedItemList, postFeedItem, putFeedItemLike } from '@/apis/feed';
 
 import type { CountryParams } from '@/types/apis/common';
-import type { FeedItem, FeedItemLike, FeedPage } from '@/types/apis/feed';
+import type { FeedItemLike, FeedListItem, FeedPage } from '@/types/apis/feed';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { feedKeys } from '@/hooks/apis/keys/feed';
@@ -21,7 +21,7 @@ import { reportError } from '@/services/telemetry/client';
 /** 피드 목록 캐시의 피드 항목을 변경하는 함수 */
 export const updateCachedFeedItems = (
 	queryClient: QueryClient,
-	updateFeedItems: (feedItems: FeedItem[]) => FeedItem[],
+	updateFeedItems: (feedItems: FeedListItem[]) => FeedListItem[],
 ) => {
 	queryClient.setQueriesData<InfiniteData<FeedPage>>(
 		{ queryKey: feedKeys.all() },
@@ -37,7 +37,7 @@ export const updateCachedFeedItems = (
 const setCachedFeedItemLiked = (queryClient: QueryClient, id: string, isLiked: boolean) => {
 	updateCachedFeedItems(queryClient, (feedItems) =>
 		feedItems.map((feedItem) =>
-			feedItem.id === id && feedItem.is_liked !== isLiked
+			feedItem.kind !== 'ad' && feedItem.id === id && feedItem.is_liked !== isLiked
 				? { ...feedItem, is_liked: isLiked, like_count: feedItem.like_count + (isLiked ? 1 : -1) }
 				: feedItem,
 		),
@@ -47,7 +47,9 @@ const setCachedFeedItemLiked = (queryClient: QueryClient, id: string, isLiked: b
 /** 캐시의 피드 항목 좋아요 상태를 응답으로 교체하는 함수 */
 const replaceCachedFeedItemLike = (queryClient: QueryClient, id: string, like: FeedItemLike) => {
 	updateCachedFeedItems(queryClient, (feedItems) =>
-		feedItems.map((feedItem) => (feedItem.id === id ? { ...feedItem, ...like } : feedItem)),
+		feedItems.map((feedItem) =>
+			feedItem.kind !== 'ad' && feedItem.id === id ? { ...feedItem, ...like } : feedItem,
+		),
 	);
 };
 

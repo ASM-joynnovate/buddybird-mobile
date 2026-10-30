@@ -90,6 +90,10 @@ export const DEVICE_ACTIVITY_INTERVAL_MS = HOUR;
 export const MAX_DEVICE_MODEL_LENGTH = 100;
 export const MAX_DEVICE_OS_VERSION_LENGTH = 20;
 
+export const AD_EVENT_BATCH_SIZE = 20;
+export const AD_EVENT_MAX_BATCH_SIZE = 500;
+export const AD_AUTO_SLIDE_MS = 4 * SECOND;
+
 export const PHASE_CYCLE = [
 	{ phase: 'learning', durationMs: 10 * MINUTE },
 	{ phase: 'rest', durationMs: 5 * MINUTE },

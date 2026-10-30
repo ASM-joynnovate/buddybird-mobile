@@ -27,6 +27,7 @@ import { toast } from 'sonner-native';
 import AnnouncementPopup from '@/screens/home/components/announcement-popup';
 import DurationBreakdown from '@/screens/home/components/duration-breakdown';
 import DurationPicker from '@/screens/home/components/duration-picker';
+import HomeBanner from '@/screens/home/components/home-banner';
 import HomeTopBar from '@/screens/home/components/home-top-bar';
 import WordPicker from '@/screens/home/components/word-picker';
 import useSelectedWord from '@/screens/home/hooks/use-selected-word';
@@ -260,6 +261,8 @@ const HomeContent = () => {
 				contentContainerStyle={styles.content}
 			>
 				<ScreenHeader large title={t('session.start.title')} />
+
+				<HomeBanner />
 
 				{/*다른 기기에서 진행 중인 학습 안내*/}
 				{runningSession && runningElsewhere && (

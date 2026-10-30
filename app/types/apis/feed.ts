@@ -14,6 +14,7 @@ const feedItemKindSchema = z.enum([
 	'total_learning_time_reached',
 	'monthly_learning_time_reached',
 	'word_play_count_reached',
+	'ad',
 ]);
 
 const feedItemBaseSchema = z.object({
@@ -34,18 +35,38 @@ const feedItemSchema = z.discriminatedUnion('kind', [
 	feedItemBaseSchema.extend({ kind: z.literal('word_play_count_reached') }),
 ]);
 
+const feedAdItemSchema = z.object({
+	id: uuidSchema,
+	kind: z.literal('ad'),
+	serve_id: uuidSchema,
+	is_ad: z.boolean(),
+	advertiser_name: z.string(),
+	advertiser_description: z.string().nullable(),
+	advertiser_photo_file: publicFileSchema,
+	link_url: z.string(),
+	body: z.string(),
+	image_file: publicFileSchema,
+	button_text: z.string(),
+	button_color: z.string(),
+	button_text_color: z.string(),
+});
+
+const feedListItemSchema = z.discriminatedUnion('kind', [feedItemSchema, feedAdItemSchema]);
+
 export const feedItemListSchema = z
 	.array(z.looseObject({ kind: z.string() }))
 	.transform((feedItems) => feedItems.filter((feedItem) => feedItemKindSchema.safeParse(feedItem.kind).success))
-	.pipe(z.array(feedItemSchema));
+	.pipe(z.array(feedListItemSchema));
 
 export const feedMetaSchema = z.object({ next_cursor: uuidSchema.nullable() });
 
 export type FeedItem = z.infer<typeof feedItemSchema>;
+export type FeedAdItem = z.infer<typeof feedAdItemSchema>;
+export type FeedListItem = z.infer<typeof feedListItemSchema>;
 export type FeedItemLike = z.infer<typeof feedItemLikeSchema>;
 
 export interface FeedPage {
-	data: FeedItem[];
+	data: FeedListItem[];
 	meta: z.infer<typeof feedMetaSchema>;
 }
 

@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: 'Đóng',
 	select: 'Chọn',
 	unknown: 'Không rõ',
+	ad: 'AD',
 	tabs: {
 		home: 'Trang chủ',
 		words: 'Từ vựng',
