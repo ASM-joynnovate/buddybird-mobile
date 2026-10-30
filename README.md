@@ -34,5 +34,6 @@ staging OTA는 Staging OTA 워크플로우를 main에서 Run workflow로 실행�
 권한 문구처럼 네이티브 모듈과 관계없는 설정 변경은 OTA로 배포되고 다음 스토어 빌드에 포함된다.
 JavaScript가 fingerprint에 들어가지 않는 네이티브 변경에 의존하기 시작하면 `hot-updater.config.ts`의 `fingerprint.nativeVersion`을 변경한다.
 운영 OTA는 Production OTA 워크플로우를 main에서 Run workflow로 실행한다.
+한 플랫폼의 배포만 실패했으면 `platform`에 그 플랫폼을 선택해 다시 실행한다.
 로컬에서 스토어 빌드를 제출했으면 Record native fingerprint 워크플로우를 실행한다.
 배포한 번들은 `.env.hotupdater`를 채운 뒤 `yarn hot-updater bundle disable <번들 ID>`로 비활성화한다.

@@ -6,6 +6,11 @@ on:
         description: Install the bundle as soon as the app opens and restart
         type: boolean
         default: false
+      platform:
+        description: Platform to deploy
+        type: choice
+        options: [all, ios, android]
+        default: all
 permissions:
   contents: read
 concurrency:
@@ -52,6 +57,7 @@ jobs:
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
           force-update: ${{ inputs.force-update }}
+          platform: ${{ inputs.platform }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: native-fingerprint-production
