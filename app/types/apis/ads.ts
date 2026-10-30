@@ -7,7 +7,7 @@ const adKindSchema = z.enum(['home_banner']);
 
 const adClickTargetSchema = z.enum(['image', 'button', 'profile', 'background']);
 
-export const bannerAdSchema = z.object({
+const bannerAdSchema = z.object({
 	id: uuidSchema,
 	serve_id: uuidSchema,
 	is_ad: z.boolean(),
@@ -16,6 +16,11 @@ export const bannerAdSchema = z.object({
 	image_file: publicFileSchema,
 	ad_tag_color: z.string().nullable(),
 });
+
+export const bannerAdListSchema = z
+	.array(z.looseObject({}))
+	.transform((bannerAds) => bannerAds.filter((bannerAd) => bannerAdSchema.safeParse(bannerAd).success))
+	.pipe(z.array(bannerAdSchema));
 
 const createAdEventsRequestSchema = z.object({
 	events: z
