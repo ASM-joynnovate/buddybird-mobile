@@ -9,9 +9,15 @@ export const feedItemLikeSchema = z.object({
 	is_liked: z.boolean(),
 });
 
-export const feedItemSchema = z.object({
+const feedItemKindSchema = z.enum([
+	'mimic_succeeded',
+	'total_learning_time_reached',
+	'monthly_learning_time_reached',
+	'word_play_count_reached',
+]);
+
+const feedItemBaseSchema = z.object({
 	id: uuidSchema,
-	kind: z.string(),
 	created_at: timestampSchema,
 	user: communityUserSchema,
 	word_name: z.string().nullable(),
@@ -20,6 +26,18 @@ export const feedItemSchema = z.object({
 	like_count: z.number().int(),
 	is_liked: z.boolean(),
 });
+
+const feedItemSchema = z.discriminatedUnion('kind', [
+	feedItemBaseSchema.extend({ kind: z.literal('mimic_succeeded') }),
+	feedItemBaseSchema.extend({ kind: z.literal('total_learning_time_reached') }),
+	feedItemBaseSchema.extend({ kind: z.literal('monthly_learning_time_reached') }),
+	feedItemBaseSchema.extend({ kind: z.literal('word_play_count_reached') }),
+]);
+
+export const feedItemListSchema = z
+	.array(z.looseObject({ kind: z.string() }))
+	.transform((feedItems) => feedItems.filter((feedItem) => feedItemKindSchema.safeParse(feedItem.kind).success))
+	.pipe(z.array(feedItemSchema));
 
 export const feedMetaSchema = z.object({ next_cursor: uuidSchema.nullable() });
 

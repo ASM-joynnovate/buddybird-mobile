@@ -29,7 +29,7 @@ Install the Oxc editor plugin for on-save formatting: `oxc.oxc-vscode` for VS Co
 Put the dev and prod Firebase files in `config/dev/firebase` and `config/prod/firebase`. Expo Go cannot run the native modules this app uses, such as Firebase, MMKV, WebRTC, react-native-audio-api and the local `frame-capture` module. Web is outside this project.
 
 ## Release
-main에 병합하면 Development deploy 워크플로우가 개발 앱에 OTA를 배포한다.
+staging OTA는 Staging OTA 워크플로우를 main에서 Run workflow로 실행한다.
 네이티브 모듈이 마지막 staging 스토어 빌드와 다르면 OTA 배포가 실패한다. 이때 release-please PR을 병합해 staging 빌드를 TestFlight 및 Play 내부 테스트에 제출한다.
 권한 문구처럼 네이티브 모듈과 관계없는 설정 변경은 OTA로 배포되고 다음 스토어 빌드에 포함된다.
 JavaScript가 fingerprint에 들어가지 않는 네이티브 변경에 의존하기 시작하면 `hot-updater.config.ts`의 `fingerprint.nativeVersion`을 변경한다.

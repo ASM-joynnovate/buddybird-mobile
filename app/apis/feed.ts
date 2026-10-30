@@ -1,7 +1,7 @@
 import {
 	type FeedItemLike,
 	feedItemLikeSchema,
-	feedItemSchema,
+	feedItemListSchema,
 	feedMetaSchema,
 	type FeedPage,
 	type GetFeedItemListParams,
@@ -13,7 +13,7 @@ import { apiRequest } from '@/lib/api';
 import { z } from 'zod';
 
 export const getFeedItemList = async ({ cursor, country }: GetFeedItemListParams): Promise<FeedPage> => {
-	const { data, meta } = await apiRequest('/api/v1/feed', z.array(feedItemSchema), {
+	const { data, meta } = await apiRequest('/api/v1/feed', feedItemListSchema, {
 		searchParams: { cursor: cursor ?? undefined, country: country ?? undefined },
 	});
 
