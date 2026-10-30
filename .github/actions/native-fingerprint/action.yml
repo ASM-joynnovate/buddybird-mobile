@@ -8,10 +8,13 @@ inputs:
   github-token:
     description: Token that reads Actions artifacts
     required: true
+  platform:
+    description: all, ios or android
+    default: all
 
 outputs:
   changed:
-    description: true when the iOS or Android hash differs from the last store build or no baseline exists
+    description: true when the selected platform's hash differs from the last store build or no baseline exists
     value: ${{ steps.compare.outputs.changed }}
 
 runs:
@@ -32,6 +35,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         ARTIFACT_NAME: native-fingerprint-${{ inputs.variant }}
+        PLATFORM: ${{ inputs.platform }}
       run: |
         current="$RUNNER_TEMP/native-fingerprint"
         baseline="$RUNNER_TEMP/native-fingerprint-baseline"
@@ -47,8 +51,13 @@ runs:
         gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > "$baseline.zip"
         unzip -q "$baseline.zip" -d "$baseline"
 
+        hash_filter='[.ios.hash, .android.hash]'
+        if [ "$PLATFORM" != "all" ]; then
+          hash_filter=".$PLATFORM.hash"
+        fi
+
         changed=false
-        if [ "$(jq -c '[.ios.hash, .android.hash]' "$current/fingerprint.json")" != "$(jq -c '[.ios.hash, .android.hash]' "$baseline/fingerprint.json")" ]; then
+        if [ "$(jq -c "$hash_filter" "$current/fingerprint.json")" != "$(jq -c "$hash_filter" "$baseline/fingerprint.json")" ]; then
           changed=true
         fi
 

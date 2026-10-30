@@ -1,0 +1,111 @@
+name: OTA
+on:
+  workflow_call:
+    inputs:
+      variant:
+        description: development or production
+        type: string
+        required: true
+      environment-name:
+        description: Environment name in messages, e.g. 운영 or staging
+        type: string
+        required: true
+      force-update:
+        description: Install the bundle as soon as the app opens and restart
+        type: boolean
+        default: false
+      platform:
+        description: all, ios or android
+        type: string
+        default: all
+    secrets:
+      google-services-info-plist:
+        required: true
+      google-services-json:
+        required: true
+      signing-private-key:
+        required: true
+      cloudflare-api-token:
+        required: true
+      r2-access-key-id:
+        required: true
+      r2-secret-access-key:
+        required: true
+      sentry-auth-token:
+        required: true
+      slack-webhook-url:
+        required: true
+permissions:
+  contents: read
+jobs:
+  ota-deploy:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --immutable
+      - uses: ./.github/actions/firebase-config
+        with:
+          variant: ${{ inputs.variant }}
+          ios-config: ${{ secrets.google-services-info-plist }}
+          android-config: ${{ secrets.google-services-json }}
+      - uses: ./.github/actions/native-fingerprint
+        id: fingerprint
+        with:
+          variant: ${{ inputs.variant }}
+          platform: ${{ inputs.platform }}
+          github-token: ${{ github.token }}
+      - name: Require a store release
+        if: steps.fingerprint.outputs.changed == 'true'
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment-name }}
+        run: |
+          echo "네이티브 fingerprint가 마지막 ${ENVIRONMENT_NAME} 스토어 빌드와 다릅니다. 스토어 릴리스가 필요합니다."
+          exit 1
+      - uses: ./.github/actions/ota-deploy
+        with:
+          variant: ${{ inputs.variant }}
+          signing-private-key: ${{ secrets.signing-private-key }}
+          cloudflare-api-token: ${{ secrets.cloudflare-api-token }}
+          r2-access-key-id: ${{ secrets.r2-access-key-id }}
+          r2-secret-access-key: ${{ secrets.r2-secret-access-key }}
+          sentry-auth-token: ${{ secrets.sentry-auth-token }}
+          force-update: ${{ inputs.force-update }}
+          platform: ${{ inputs.platform }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.platform == 'all'
+        with:
+          name: native-fingerprint-${{ inputs.variant }}
+          path: ${{ runner.temp }}/native-fingerprint/
+          retention-days: 400
+
+  notify-finished:
+    needs: [ota-deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/notify-slack
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.slack-webhook-url }}
+          title: "${{ needs.ota-deploy.result == 'success' && format('✅ buddybird-mobile {0} OTA 배포 완료', inputs.environment-name) || needs.ota-deploy.result == 'failure' && format('❌ buddybird-mobile {0} OTA 배포 실패', inputs.environment-name) || format('⚠️ buddybird-mobile {0} OTA 배포 취소', inputs.environment-name) }} ${{ github.ref_name }}"
+          fields: |
+            ref=${{ github.ref_name }}
+            플랫폼=${{ inputs.platform }}
+            커밋=${{ github.sha }}
+            실행자=${{ github.actor }}
+          buttons: |
+            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

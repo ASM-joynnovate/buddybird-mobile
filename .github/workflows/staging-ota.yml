@@ -17,69 +17,22 @@ concurrency:
   group: staging-ota
   cancel-in-progress: false
 jobs:
-  ota-deploy:
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+  ota:
     permissions:
       contents: read
       actions: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - run: corepack enable
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: yarn
-      - run: yarn install --immutable
-      - uses: ./.github/actions/firebase-config
-        with:
-          variant: development
-          ios-config: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
-          android-config: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
-      - uses: ./.github/actions/native-fingerprint
-        id: fingerprint
-        with:
-          variant: development
-          github-token: ${{ github.token }}
-      - name: Require a store build
-        if: steps.fingerprint.outputs.changed == 'true'
-        run: |
-          echo "네이티브 fingerprint가 마지막 staging 스토어 빌드와 다릅니다. release-please PR을 병합해 스토어 빌드를 제출해야 합니다."
-          exit 1
-      - uses: ./.github/actions/ota-deploy
-        with:
-          variant: development
-          signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY_STAGING }}
-          cloudflare-api-token: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
-          r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          force-update: ${{ inputs.force-update }}
-          platform: ${{ inputs.platform }}
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: native-fingerprint-development
-          path: ${{ runner.temp }}/native-fingerprint/
-          retention-days: 400
-
-  notify-finished:
-    needs: [ota-deploy]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/notify-slack
-        continue-on-error: true
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: "${{ needs.ota-deploy.result == 'success' && '✅ buddybird-mobile staging OTA 배포 완료' || needs.ota-deploy.result == 'failure' && '❌ buddybird-mobile staging OTA 배포 실패' || '⚠️ buddybird-mobile staging OTA 배포 취소' }} ${{ github.ref_name }}"
-          fields: |
-            ref=${{ github.ref_name }}
-            커밋=${{ github.sha }}
-            실행자=${{ github.actor }}
-          buttons: |
-            실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    uses: ./.github/workflows/ota.yml
+    with:
+      variant: development
+      environment-name: staging
+      force-update: ${{ inputs.force-update }}
+      platform: ${{ inputs.platform }}
+    secrets:
+      google-services-info-plist: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_DEV_BASE64 }}
+      google-services-json: ${{ secrets.GOOGLE_SERVICES_JSON_DEV_BASE64 }}
+      signing-private-key: ${{ secrets.HOT_UPDATER_SIGNING_PRIVATE_KEY_STAGING }}
+      cloudflare-api-token: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+      r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+      r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
