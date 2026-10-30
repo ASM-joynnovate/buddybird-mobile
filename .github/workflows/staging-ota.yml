@@ -1,35 +1,19 @@
-name: Development deploy
+name: Staging OTA
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force-update:
+        description: Install the bundle as soon as the app opens and restart
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
-  group: development-deploy
+  group: staging-ota
   cancel-in-progress: false
 jobs:
-  version-check:
-    runs-on: ubuntu-latest
-    outputs:
-      version-changed: ${{ steps.compare.outputs.version-changed }}
-    steps:
-      - id: compare
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BEFORE_SHA: ${{ github.event.before }}
-        run: |
-          package_version() {
-            gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$1" -H 'Accept: application/vnd.github.raw' | jq -r .version
-          }
-          if [ "$(package_version "$BEFORE_SHA")" = "$(package_version "$GITHUB_SHA")" ]; then
-            echo "version-changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "version-changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
   ota-deploy:
-    needs: version-check
-    if: needs.version-check.outputs.version-changed == 'false'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,6 +51,7 @@ jobs:
           r2-access-key-id: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          force-update: ${{ inputs.force-update }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: native-fingerprint-development
@@ -74,8 +59,8 @@ jobs:
           retention-days: 400
 
   notify-finished:
-    needs: [version-check, ota-deploy]
-    if: always() && needs.version-check.outputs.version-changed == 'false'
+    needs: [ota-deploy]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -85,8 +70,10 @@ jobs:
         continue-on-error: true
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: "${{ contains(needs.*.result, 'failure') && '❌ buddybird-mobile 개발 배포 실패' || contains(needs.*.result, 'cancelled') && '⚠️ buddybird-mobile 개발 배포 취소' || '✅ buddybird-mobile 개발 배포 완료' }}"
+          title: "${{ needs.ota-deploy.result == 'success' && '✅ buddybird-mobile staging OTA 배포 완료' || needs.ota-deploy.result == 'failure' && '❌ buddybird-mobile staging OTA 배포 실패' || '⚠️ buddybird-mobile staging OTA 배포 취소' }} ${{ github.ref_name }}"
           fields: |
+            ref=${{ github.ref_name }}
+            커밋=${{ github.sha }}
             실행자=${{ github.actor }}
           buttons: |
             실행 로그=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
