@@ -65,6 +65,7 @@
 | `GET /reports`, `GET /leaderboard` | | |
 | `GET /feed` | | 피드는 페이지네이션 |
 | `PUT /feed/{id}/like`, `DELETE /feed/{id}/like` | 필요 | |
+| `GET /ads`, `POST /ads/events` | | 목록은 `kind=home_banner`처럼 광고 게재위치 지정, 이벤트는 한 번에 최대 500건 |
 | `GET /notifications`, `GET /notifications/{id}`, `GET /announcements`, `GET /announcements/{id}` | | 목록은 페이지네이션 |
 | `POST /notifications/{id}/read`, `POST /notifications/read-all`, `POST /announcements/{id}/read` | 필요 | |
 | `POST /feedback`, `POST /abuse-reports` | 필요 | |

@@ -1,5 +1,6 @@
 import AppNavigator from '@/navigators/app-navigator';
 import LoginNavigator from '@/navigators/login-navigator';
+import AdEventsProvider from '@/providers/ad-events';
 import AnalyticsProvider from '@/providers/analytics';
 import DeviceProvider from '@/providers/device';
 import FeedbackDialogProvider from '@/providers/feedback-dialog';
@@ -35,9 +36,11 @@ const AuthStatusContent = () => {
 		>
 			<DeviceProvider>
 				<AnalyticsProvider>
-					<FeedbackDialogProvider>
-						<AppNavigator />
-					</FeedbackDialogProvider>
+					<AdEventsProvider>
+						<FeedbackDialogProvider>
+							<AppNavigator />
+						</FeedbackDialogProvider>
+					</AdEventsProvider>
 				</AnalyticsProvider>
 			</DeviceProvider>
 		</ErrorHandlingWrapper>

@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: '閉じる',
 	select: '選択',
 	unknown: 'わからない',
+	ad: 'AD',
 	tabs: {
 		home: 'ホーム',
 		words: '言葉',

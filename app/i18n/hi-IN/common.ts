@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: 'बंद करें',
 	select: 'चुनें',
 	unknown: 'पता नहीं',
+	ad: 'AD',
 	tabs: {
 		home: 'होम',
 		words: 'शब्द',

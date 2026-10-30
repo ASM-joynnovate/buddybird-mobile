@@ -9,13 +9,6 @@ export const feedItemLikeSchema = z.object({
 	is_liked: z.boolean(),
 });
 
-const feedItemKindSchema = z.enum([
-	'mimic_succeeded',
-	'total_learning_time_reached',
-	'monthly_learning_time_reached',
-	'word_play_count_reached',
-]);
-
 const feedItemBaseSchema = z.object({
 	id: uuidSchema,
 	created_at: timestampSchema,
@@ -34,18 +27,52 @@ const feedItemSchema = z.discriminatedUnion('kind', [
 	feedItemBaseSchema.extend({ kind: z.literal('word_play_count_reached') }),
 ]);
 
+const feedAdItemSchema = z.object({
+	id: uuidSchema,
+	kind: z.literal('ad'),
+	serve_id: uuidSchema,
+	is_ad: z.boolean(),
+	advertiser_name: z.string(),
+	advertiser_description: z.string().nullable(),
+	advertiser_photo_file: publicFileSchema,
+	link_url: z.string(),
+	body: z.string(),
+	image_file: publicFileSchema,
+	button_text: z.string(),
+	button_color: z.string(),
+	button_text_color: z.string(),
+});
+
+const feedListItemSchema = z.discriminatedUnion('kind', [feedItemSchema, feedAdItemSchema]);
+
+const knownFeedItemKinds: string[] = [...feedItemSchema.options, feedAdItemSchema].map(
+	(option) => option.shape.kind.value,
+);
+
+const positionedFeedItemSchema = z.object({ feedItem: feedListItemSchema, position: z.number().int().nonnegative() });
+
 export const feedItemListSchema = z
 	.array(z.looseObject({ kind: z.string() }))
-	.transform((feedItems) => feedItems.filter((feedItem) => feedItemKindSchema.safeParse(feedItem.kind).success))
-	.pipe(z.array(feedItemSchema));
+	.transform((feedItems) =>
+		feedItems
+			.map((feedItem, position) => ({ feedItem, position }))
+			.filter(
+				({ feedItem }) =>
+					knownFeedItemKinds.includes(feedItem.kind) &&
+					(feedItem.kind !== 'ad' || feedAdItemSchema.safeParse(feedItem).success),
+			),
+	)
+	.pipe(z.array(positionedFeedItemSchema));
 
 export const feedMetaSchema = z.object({ next_cursor: uuidSchema.nullable() });
 
 export type FeedItem = z.infer<typeof feedItemSchema>;
+export type FeedAdItem = z.infer<typeof feedAdItemSchema>;
+export type PositionedFeedItem = z.infer<typeof positionedFeedItemSchema>;
 export type FeedItemLike = z.infer<typeof feedItemLikeSchema>;
 
 export interface FeedPage {
-	data: FeedItem[];
+	data: PositionedFeedItem[];
 	meta: z.infer<typeof feedMetaSchema>;
 }
 

@@ -9,6 +9,7 @@ export const common: CommonMessages = {
 	close: '닫기',
 	select: '선택',
 	unknown: '모름',
+	ad: 'AD',
 	tabs: {
 		home: '홈',
 		words: '단어',
