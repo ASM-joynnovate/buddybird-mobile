@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * 홈 배너 광고 한 장 컴포넌트
+ * 홈 배너 슬라이드 컴포넌트
  * @param bannerAd 배너 광고
  * @param position 캐러셀 슬라이드 index
  * @param onImageError 이미지 로드 실패 시 호출

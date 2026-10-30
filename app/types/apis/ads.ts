@@ -1,7 +1,11 @@
 import { publicFileSchema } from '@/types/apis/common';
-import { uuidSchema } from '@/types/apis/primitives';
+import { timestampSchema, uuidSchema } from '@/types/apis/primitives';
 
 import { z } from 'zod';
+
+const adKindSchema = z.enum(['home_banner']);
+
+const adClickTargetSchema = z.enum(['image', 'button', 'profile', 'background']);
 
 export const bannerAdSchema = z.object({
 	id: uuidSchema,
@@ -13,25 +17,32 @@ export const bannerAdSchema = z.object({
 	ad_tag_color: z.string().nullable(),
 });
 
-export type AdKind = 'home_banner';
-export type AdEventKind = 'impression' | 'click';
-export type AdClickTarget = 'image' | 'button' | 'profile' | 'background';
-export type BannerAd = z.infer<typeof bannerAdSchema>;
+const createAdEventsRequestSchema = z.object({
+	events: z
+		.array(
+			z.object({
+				ad_id: uuidSchema,
+				serve_id: uuidSchema,
+				kind: z.enum(['impression', 'click']),
+				position: z.number().int().nonnegative(),
+				click_target: adClickTargetSchema.nullable(),
+				visible_duration_ms: z.number().int().nonnegative().nullable(),
+				occurred_at: timestampSchema,
+			}),
+		)
+		.max(500),
+});
 
-export interface AdEvent {
-	ad_id: string;
-	serve_id: string;
-	kind: AdEventKind;
-	position: number;
-	click_target: AdClickTarget | null;
-	visible_duration_ms: number | null;
-	occurred_at: string;
-}
+export type AdKind = z.infer<typeof adKindSchema>;
+export type AdClickTarget = z.infer<typeof adClickTargetSchema>;
+export type BannerAd = z.infer<typeof bannerAdSchema>;
+export type CreateAdEventsRequest = z.infer<typeof createAdEventsRequestSchema>;
+export type AdEvent = CreateAdEventsRequest['events'][number];
 
 export interface GetAdListParams {
 	kind: AdKind;
 }
 
 export interface PostAdEventsParams {
-	data: { events: AdEvent[] };
+	data: CreateAdEventsRequest;
 }

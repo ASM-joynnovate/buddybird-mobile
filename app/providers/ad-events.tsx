@@ -4,7 +4,7 @@ import { AppState } from 'react-native';
 
 import { useSendAdEvents } from '@/hooks/apis/ads';
 
-import { AD_EVENT_BATCH_SIZE, AD_EVENT_MAX_BATCH_SIZE } from '@/config/policy';
+import { AD_EVENT_FLUSH_AT, AD_EVENT_MAX_BATCH_SIZE } from '@/config/policy';
 import { useAdStore } from '@/stores/ad';
 
 interface Props {
@@ -35,12 +35,12 @@ const AdEventsProvider = ({ children }: Props) => {
 
 	/** 이벤트가 일정 개수 쌓이면 전송 */
 	useEffect(() => {
-		if (adEventCount >= AD_EVENT_BATCH_SIZE) {
+		if (adEventCount >= AD_EVENT_FLUSH_AT) {
 			sendAdEventBatch();
 		}
 	}, [adEventCount, sendAdEventBatch]);
 
-	/** 앱이 background로 가면 전송 */
+	/** background 전환 시 전송 */
 	useEffect(() => {
 		const appStateSubscription = AppState.addEventListener('change', (appState) => {
 			if (appState === 'background') {

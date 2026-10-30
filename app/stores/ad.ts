@@ -1,4 +1,5 @@
 import type { AdClickTarget, AdEvent, BannerAd } from '@/types/apis/ads';
+import type { FeedAdItem } from '@/types/apis/feed';
 
 import dayjs from 'dayjs';
 import { create } from 'zustand';
@@ -9,8 +10,8 @@ type AdState = {
 };
 
 type AdActions = {
-	addAdImpression: (ad: Pick<BannerAd, 'id' | 'serve_id'>, position: number) => void;
-	addAdClick: (ad: Pick<BannerAd, 'id' | 'serve_id'>, position: number, clickTarget: AdClickTarget) => void;
+	addAdImpression: (ad: BannerAd | FeedAdItem, position: number) => void;
+	addAdClick: (ad: BannerAd | FeedAdItem, position: number, clickTarget: AdClickTarget) => void;
 	removeAdEvents: (sentAdEvents: AdEvent[]) => void;
 };
 
