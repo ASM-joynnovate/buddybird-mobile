@@ -35,7 +35,7 @@ interface Props extends KindBodyProps {
 	likeDisabled?: boolean;
 }
 
-const feedCardKinds: Record<string, ComponentType<KindBodyProps>> = {
+const feedCardKinds: Record<FeedItem['kind'], ComponentType<KindBodyProps>> = {
 	mimic_succeeded: FeedCardMimicBody,
 	total_learning_time_reached: FeedCardTotalLearningTimeBody,
 	monthly_learning_time_reached: FeedCardMonthlyLearningTimeBody,
