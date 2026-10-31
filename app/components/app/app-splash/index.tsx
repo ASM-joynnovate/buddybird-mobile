@@ -20,26 +20,30 @@ import { SECOND } from '@/config/units';
 import { reportError } from '@/services/telemetry/client';
 import { colors, font } from '@/theme';
 
+import AppSplashProgressBar from '@/components/app/app-splash/progress-bar';
 import SplashEye from '@/components/app/app-splash/splash-eye';
 
 import artwork from '@assets/images/splash-artwork.json';
 
 interface Props {
-	bootstrapSettled: boolean;
-	onComplete: () => void;
+	bootstrapSettled?: boolean;
+	downloadProgress?: number;
+	onComplete?: () => void;
 }
 
 /**
  * 앱 시작 스플래시 컴포넌트
  * @param bootstrapSettled 앱 시작 준비 완료 여부
+ * @param downloadProgress 0에서 1 사이의 긴급 업데이트 다운로드 진행률
  * @param onComplete 스플래시가 사라진 뒤 실행할 함수
  */
-const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
+const AppSplash = ({ bootstrapSettled, downloadProgress, onComplete }: Props) => {
 	const motionReduced = useReducedMotion();
 
 	const eyeOpenness = useSharedValue(1);
 	const enterProgress = useSharedValue(motionReduced ? 1 : 0);
 	const exitOpacity = useSharedValue(1);
+	const downloadFill = useSharedValue(downloadProgress ?? 0);
 
 	const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 	const [eyesBlinked, setEyesBlinked] = useState(motionReduced);
@@ -81,9 +85,18 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 		};
 	}, [enterProgress, eyeOpenness, motionReduced, nativeSplashHidden]);
 
+	/** 다운로드 진행률만큼 막대 채우기 */
+	useEffect(() => {
+		if (downloadProgress === undefined) {
+			return;
+		}
+
+		downloadFill.set(withTiming(downloadProgress, { duration: motionReduced ? 0 : 200 }));
+	}, [downloadFill, downloadProgress, motionReduced]);
+
 	/** 앱 시작 준비가 끝나면 스플래시 숨기기 */
 	useEffect(() => {
-		if (!bootstrapSettled || !nativeSplashHidden || !eyesBlinked) {
+		if (!bootstrapSettled || !nativeSplashHidden || !eyesBlinked || !onComplete) {
 			return;
 		}
 
@@ -154,6 +167,11 @@ const AppSplash = ({ bootstrapSettled, onComplete }: Props) => {
 					>
 						BuddyBird
 					</SvgText>
+
+					{/*눈을 깜빡인 뒤에도 다운로드가 남아 있으면 진행률 표시*/}
+					{downloadProgress !== undefined && eyesBlinked && (
+						<AppSplashProgressBar progress={downloadFill} percent={Math.round(downloadProgress * 100)} />
+					)}
 				</Svg>
 			</Animated.View>
 		</Animated.View>
