@@ -42,6 +42,7 @@ export const deviceSettingsSchema = z.object({
 	legacyMigration: legacyMigrationSchema.default(initialLegacyMigration),
 	lastLoginProvider: loginProviderSchema.nullable(),
 	clientDeviceId: z.string().nullable(),
+	splashShown: z.boolean().default(false),
 });
 
 export type LegacySettings = Partial<

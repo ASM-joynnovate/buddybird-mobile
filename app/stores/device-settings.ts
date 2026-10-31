@@ -33,6 +33,7 @@ type DeviceSettingsActions = {
 	updateLegacyMigration: (updater: (migration: LegacyMigration) => LegacyMigration) => void;
 	setLastLoginProvider: (lastLoginProvider: LoginProvider) => void;
 	setClientDeviceId: (clientDeviceId: string) => void;
+	setSplashShown: (splashShown: boolean) => void;
 };
 
 type DeviceSettingsStore = DeviceSettings & DeviceSettingsActions;
@@ -60,6 +61,7 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		legacyMigration: initialLegacyMigration,
 		lastLoginProvider: null,
 		clientDeviceId: null,
+		splashShown: false,
 	};
 };
 
@@ -165,6 +167,11 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 			setClientDeviceId: (clientDeviceId) => {
 				set((state) => ({ ...state, clientDeviceId }));
 			},
+
+			/** 업데이트 재실행 전 스플래시 표시 여부 저장 */
+			setSplashShown: (splashShown) => {
+				set((state) => ({ ...state, splashShown }));
+			},
 		}),
 		{
 			name: storeStorageKeys.deviceSettings.name,
@@ -192,6 +199,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				legacyMigration,
 				lastLoginProvider,
 				clientDeviceId,
+				splashShown,
 			}) => ({
 				locale,
 				analyticsConsent,
@@ -205,6 +213,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				legacyMigration,
 				lastLoginProvider,
 				clientDeviceId,
+				splashShown,
 			}),
 
 			...restoreOptions<DeviceSettingsStore>({
