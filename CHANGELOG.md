@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.20.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.19.0...v2.20.0) (2026-10-31)
+
+
+### Features
+
+* **app:** keep the splash with download progress during forced OTA [BB-823] ([#323](https://github.com/ASM-joynnovate/buddybird-mobile/issues/323)) ([9463b95](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9463b9505ac3c46f34b1b6609023155828524d4e))
+* **app:** link URLs in notice and notification bodies ([#322](https://github.com/ASM-joynnovate/buddybird-mobile/issues/322)) ([46f584e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/46f584eb0a668012ddec0bb549d7e6b5617c02ae))
+* **app:** show home banner and feed ads ([#319](https://github.com/ASM-joynnovate/buddybird-mobile/issues/319)) ([2773344](https://github.com/ASM-joynnovate/buddybird-mobile/commit/27733446a11d25afb0bf916a6c2d2c1a4a2bc028))
+
 ## [2.19.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.18.0...v2.19.0) (2026-10-28)
 
 
