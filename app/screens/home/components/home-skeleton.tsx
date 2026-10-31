@@ -12,7 +12,7 @@ import { ui } from '@/components/ui/styles';
 import { Title } from '@/components/ui/title';
 
 const PLACEHOLDER_WORD_COUNT = 3;
-const DURATION_CHOICE_COUNT = 5;
+const DURATION_CHOICE_COUNT = 4;
 
 /** 홈을 불러오는 동안 표시하는 컴포넌트 */
 const HomeSkeleton = () => {

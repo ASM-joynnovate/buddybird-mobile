@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { BackHandler, StatusBar, Text, View } from 'react-native';
+import { StatusBar, Text, View } from 'react-native';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import RecordingScene from '@/screens/words/components/recording-scene';
@@ -12,6 +12,7 @@ import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
 import GuideBackground from '@/components/guide-background';
+import GuidePager from '@/components/guide-pager';
 import GuideSheetAccessory from '@/components/guide-sheet-accessory';
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
@@ -44,23 +45,6 @@ const RecordingGuideScreen = () => {
 		navigation.setOptions({ gestureEnabled: stepIndex === 0 });
 	}, [stepIndex, navigation]);
 
-	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
-	useFocusEffect(
-		useCallback(() => {
-			if (stepIndex === 0) {
-				return;
-			}
-
-			const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-				setStepIndex(stepIndex - 1);
-
-				return true;
-			});
-
-			return () => subscription.remove();
-		}, [stepIndex]),
-	);
-
 	const handleNext = () => {
 		if (isLastStep) {
 			navigation.goBack();
@@ -74,34 +58,36 @@ const RecordingGuideScreen = () => {
 	const handleBack = stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined;
 
 	return (
-		<GuideBackground backgroundColor={backgroundColor}>
-			{screenFocused && <StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />}
+		<GuidePager stepIndex={stepIndex} stepCount={STEPS.length} onStepChange={setStepIndex}>
+			<GuideBackground backgroundColor={backgroundColor}>
+				{screenFocused && <StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />}
 
-			<SafeAreaView edges={['top', 'left', 'right']}>
-				<View style={ui.sceneHeader}>
-					<ScreenHeader
-						onBack={handleBack}
-						backVariant={backgroundDark ? 'onBrand' : 'plain'}
-						trailing=<TextButton
-							label={t('common.skip')}
-							variant={backgroundDark ? 'onBrand' : 'muted'}
-							onPress={() => navigation.goBack()}
+				<SafeAreaView edges={['top', 'left', 'right']}>
+					<View style={ui.sceneHeader}>
+						<ScreenHeader
+							onBack={handleBack}
+							backVariant={backgroundDark ? 'onBrand' : 'plain'}
+							trailing=<TextButton
+								label={t('common.skip')}
+								variant={backgroundDark ? 'onBrand' : 'muted'}
+								onPress={() => navigation.goBack()}
+							/>
 						/>
+					</View>
+				</SafeAreaView>
+
+				<RecordingScene step={step} />
+
+				<SceneSheet
+					title=<Trans
+						i18nKey={`words.guide.${step}.title`}
+						components={{ b: <Text style={ui.titleHighlight} /> }}
 					/>
-				</View>
-			</SafeAreaView>
-
-			<RecordingScene step={step} />
-
-			<SceneSheet
-				title=<Trans
-					i18nKey={`words.guide.${step}.title`}
-					components={{ b: <Text style={ui.titleHighlight} /> }}
+					accessory=<GuideSheetAccessory stepIndex={stepIndex} stepCount={STEPS.length} />
+					footer=<Button label={isLastStep ? t('common.done') : t('common.next')} onPress={handleNext} />
 				/>
-				accessory=<GuideSheetAccessory stepIndex={stepIndex} stepCount={STEPS.length} />
-				footer=<Button label={isLastStep ? t('common.done') : t('common.next')} onPress={handleNext} />
-			/>
-		</GuideBackground>
+			</GuideBackground>
+		</GuidePager>
 	);
 };
 

@@ -1,13 +1,4 @@
-import {
-	type ReactNode,
-	createContext,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from 'react';
+import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import type { UpdatePolicy } from '@/types/update';
 
@@ -82,13 +73,6 @@ const evaluateUpdate = (policy: UpdatePolicy, currentVersion: string, dismissedV
 	};
 };
 
-interface UpdatePromptContextType {
-	updateVisible: boolean;
-	updateCheckSettled: boolean;
-}
-
-const UpdatePromptContext = createContext<UpdatePromptContextType | undefined>(undefined);
-
 interface Props {
 	children: ReactNode;
 }
@@ -107,9 +91,11 @@ const UpdateDialogProvider = ({ children }: Props) => {
 	const minSupportedVersion = useSyncExternalStore(subscribeRemoteConfig, getMinSupportedVersion);
 
 	const splashFinished = useAppStore((state) => state.splashFinished);
+	const startupOverlayShown = useAppStore((state) => state.startupOverlayShown);
 
 	const updatePrompt = useDeviceSettingsStore((state) => state.updatePrompt);
 
+	const setUpdatePromptFinished = useAppStore((state) => state.setUpdatePromptFinished);
 	const dismissUpdate = useDeviceSettingsStore((state) => state.dismissUpdate);
 
 	const updateCheckSettled = !isFetching && (isSuccess || isError || fetchStatus === 'paused');
@@ -126,15 +112,15 @@ const UpdateDialogProvider = ({ children }: Props) => {
 		appUpdateData || updateCheckSettled
 			? evaluateUpdate(updatePolicy, installedVersion, updatePrompt.dismissedVersion)
 			: null;
-	const updateVisible =
-		splashFinished &&
-		!!promptedUpdate &&
-		(promptedUpdate.forced || acceptedVersion !== promptedUpdate.latestVersion);
+	const updatePending =
+		!!promptedUpdate && (promptedUpdate.forced || acceptedVersion !== promptedUpdate.latestVersion);
+	const updateVisible = splashFinished && !startupOverlayShown && updatePending;
+	const updatePromptFinished = updateCheckSettled && !updatePending;
 
-	const updatePromptState = useMemo(
-		() => ({ updateVisible, updateCheckSettled }),
-		[updateVisible, updateCheckSettled],
-	);
+	/** 업데이트 안내 종료 여부 저장 */
+	useEffect(() => {
+		setUpdatePromptFinished(updatePromptFinished);
+	}, [setUpdatePromptFinished, updatePromptFinished]);
 
 	/** 업데이트 안내 표시 시 이벤트 전송 */
 	useEffect(() => {
@@ -163,7 +149,7 @@ const UpdateDialogProvider = ({ children }: Props) => {
 	};
 
 	return (
-		<UpdatePromptContext.Provider value={updatePromptState}>
+		<>
 			{children}
 
 			<UpdateDialog
@@ -172,19 +158,8 @@ const UpdateDialogProvider = ({ children }: Props) => {
 				onDismiss={handleDismissUpdate}
 				onStoreOpened={() => setAcceptedVersion(promptedUpdate?.latestVersion ?? null)}
 			/>
-		</UpdatePromptContext.Provider>
+		</>
 	);
-};
-
-/** 업데이트 안내 표시 상태를 사용하는 Hook */
-export const useUpdatePrompt = () => {
-	const context = useContext(UpdatePromptContext);
-
-	if (!context) {
-		throw new Error('useUpdatePrompt must be used within an UpdateDialogProvider');
-	}
-
-	return context;
 };
 
 export default UpdateDialogProvider;

@@ -16,7 +16,6 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 interface Props {
 	bannerAd: BannerAd;
 	position: number;
-	counterVisible: boolean;
 	onImageError: () => void;
 }
 
@@ -24,10 +23,9 @@ interface Props {
  * 홈 배너 슬라이드 컴포넌트
  * @param bannerAd 배너 광고
  * @param position 캐러셀 슬라이드 index
- * @param counterVisible 순서 표시 여부
  * @param onImageError 이미지 로드 실패 시 호출
  */
-const HomeBannerSlide = ({ bannerAd, position, counterVisible, onImageError }: Props) => {
+const HomeBannerSlide = ({ bannerAd, position, onImageError }: Props) => {
 	const { t } = useTranslation();
 
 	const addAdClick = useAdStore((state) => state.addAdClick);
@@ -57,16 +55,8 @@ const HomeBannerSlide = ({ bannerAd, position, counterVisible, onImageError }: P
 			/>
 
 			{bannerAd.is_ad && (
-				<View
-					style={[
-						styles.adTag,
-						counterVisible && styles.adTagBesideCounter,
-						{ borderColor: bannerAd.ad_tag_color ?? undefined },
-					]}
-				>
-					<Copy style={[styles.adTagText, { color: bannerAd.ad_tag_color ?? undefined }]}>
-						{t('common.ad')}
-					</Copy>
+				<View style={styles.adTag}>
+					<Copy style={styles.adTagText}>{t('common.ad')}</Copy>
 				</View>
 			)}
 		</PressableSurface>
@@ -78,17 +68,15 @@ const styles = StyleSheet.create({
 	image: { width: '100%', aspectRatio: 3, backgroundColor: colors.surface },
 	adTag: {
 		position: 'absolute',
-		top: 10.5,
+		top: 8,
 		right: 8,
 		height: 15,
 		justifyContent: 'center',
 		paddingHorizontal: 4,
-		borderWidth: 1,
 		borderRadius: radius.xsmall,
-		opacity: 0.55,
+		backgroundColor: colors.backdrop,
 	},
-	adTagBesideCounter: { right: 52 },
-	adTagText: { fontFamily: font.extraBold, fontSize: 10, lineHeight: 12, letterSpacing: 0.4 },
+	adTagText: { fontFamily: font.extraBold, fontSize: 10, lineHeight: 12, letterSpacing: 0.4, color: colors.onFilled },
 });
 
 export default HomeBannerSlide;

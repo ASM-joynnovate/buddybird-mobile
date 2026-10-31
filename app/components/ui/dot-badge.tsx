@@ -1,11 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { colors, radius } from '@/theme';
 
-export const DotBadge = () => {
-	return <View style={styles.dot} />;
+const sizes = { small: 4, medium: 8 } as const;
+
+interface Props {
+	size?: keyof typeof sizes;
+}
+
+export const DotBadge = ({ size = 'medium' }: Props) => {
+	return <View style={[styles.dot, { width: sizes[size], height: sizes[size] }]} />;
 };
 
 const styles = StyleSheet.create({
-	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error },
+	dot: { borderRadius: radius.pill, backgroundColor: colors.error },
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { BackHandler, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import useStartupLanding from '@/hooks/use-startup-landing';
 
@@ -15,6 +15,7 @@ import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
 import GuideBackground from '@/components/guide-background';
+import GuidePager from '@/components/guide-pager';
 import GuideSheetAccessory from '@/components/guide-sheet-accessory';
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
@@ -52,21 +53,6 @@ const UsageGuideScreen = () => {
 			.catch((error) => reportError(error, 'usage_guide_viewed'));
 	}, []);
 
-	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
-	useEffect(() => {
-		if (stepIndex === 0) {
-			return;
-		}
-
-		const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-			setStepIndex(stepIndex - 1);
-
-			return true;
-		});
-
-		return () => subscription.remove();
-	}, [stepIndex]);
-
 	const handleFinish = () => {
 		trackOnboardingStepCompleted('usage_guide');
 
@@ -84,47 +70,49 @@ const UsageGuideScreen = () => {
 	};
 
 	return (
-		<GuideBackground backgroundColor={backgroundColor}>
-			<StatusBar barStyle={headerOnDark ? 'light-content' : 'dark-content'} />
+		<GuidePager stepIndex={stepIndex} stepCount={STEPS.length} onStepChange={setStepIndex}>
+			<GuideBackground backgroundColor={backgroundColor}>
+				<StatusBar barStyle={headerOnDark ? 'light-content' : 'dark-content'} />
 
-			<UsageScene step={step} topInset={headerHeight} />
+				<UsageScene step={step} topInset={headerHeight} />
 
-			<SafeAreaView
-				edges={['top', 'left', 'right']}
-				onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
-				style={styles.headerArea}
-			>
-				<View style={ui.sceneHeader}>
-					<ScreenHeader
-						onBack={stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined}
-						backVariant={headerOnDark ? 'onBrand' : 'plain'}
-						trailing=<TextButton
-							label={t('common.skip')}
-							variant={headerOnDark ? 'onBrand' : 'muted'}
-							onPress={handleFinish}
+				<SafeAreaView
+					edges={['top', 'left', 'right']}
+					onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
+					style={styles.headerArea}
+				>
+					<View style={ui.sceneHeader}>
+						<ScreenHeader
+							onBack={stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined}
+							backVariant={headerOnDark ? 'onBrand' : 'plain'}
+							trailing=<TextButton
+								label={t('common.skip')}
+								variant={headerOnDark ? 'onBrand' : 'muted'}
+								onPress={handleFinish}
+							/>
 						/>
-					/>
-				</View>
-			</SafeAreaView>
+					</View>
+				</SafeAreaView>
 
-			<SceneSheet
-				sheetRef={sheetRef}
-				title=<Trans
-					i18nKey={`onboarding.usage.${step}.title`}
-					components={{ b: <Text style={ui.titleHighlight} /> }}
+				<SceneSheet
+					sheetRef={sheetRef}
+					title=<Trans
+						i18nKey={`onboarding.usage.${step}.title`}
+						components={{ b: <Text style={ui.titleHighlight} /> }}
+					/>
+					accessory=<GuideSheetAccessory
+						stepIndex={stepIndex}
+						stepCount={STEPS.length}
+						buddyRef={buddyRef}
+						buddyStyle={buddyStyle}
+					/>
+					footer=<Button
+						label={isLastStep ? t('onboarding.usage.start') : t('common.next')}
+						onPress={handleNext}
+					/>
 				/>
-				accessory=<GuideSheetAccessory
-					stepIndex={stepIndex}
-					stepCount={STEPS.length}
-					buddyRef={buddyRef}
-					buddyStyle={buddyStyle}
-				/>
-				footer=<Button
-					label={isLastStep ? t('onboarding.usage.start') : t('common.next')}
-					onPress={handleNext}
-				/>
-			/>
-		</GuideBackground>
+			</GuideBackground>
+		</GuidePager>
 	);
 };
 

@@ -1,26 +1,16 @@
 import { useState } from 'react';
 
-import {
-	type NativeScrollEvent,
-	type NativeSyntheticEvent,
-	ScrollView,
-	StyleSheet,
-	useWindowDimensions,
-	View,
-} from 'react-native';
+import { type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, StyleSheet, View } from 'react-native';
 
 import WordChoice from '@/screens/home/components/word-picker/word-choice';
 import useSelectedWord from '@/screens/home/hooks/use-selected-word';
 import { useSessionStore } from '@/stores/session';
 import { colors } from '@/theme';
 
-const LIST_MAX_HEIGHT_RATIO = 0.45;
 const EDGE_TOLERANCE = 8;
 
 /** 단어 선택 목록 컴포넌트 */
 const WordPicker = () => {
-	const { height: windowHeight } = useWindowDimensions();
-
 	const [scrollEdges, setScrollEdges] = useState({ topReached: true, bottomReached: false });
 	const [contentHeight, setContentHeight] = useState(0);
 	const [viewportHeight, setViewportHeight] = useState(0);
@@ -54,7 +44,7 @@ const WordPicker = () => {
 				onScroll={handleScroll}
 				onLayout={({ nativeEvent }) => setViewportHeight(nativeEvent.layout.height)}
 				onContentSizeChange={(_width, nextHeight) => setContentHeight(nextHeight)}
-				style={[styles.listContainer, { maxHeight: windowHeight * LIST_MAX_HEIGHT_RATIO }]}
+				style={styles.listContainer}
 				contentContainerStyle={styles.wordsRow}
 			>
 				{wordsWithRecordings.map((word) => (
@@ -76,7 +66,7 @@ const WordPicker = () => {
 };
 
 const styles = StyleSheet.create({
-	listContainer: { marginHorizontal: -4 },
+	listContainer: { maxHeight: 184, marginHorizontal: -4 },
 	wordsRow: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 },
 	wordContainer: { width: '33.333333%', paddingHorizontal: 4 },
 	fade: { position: 'absolute', left: 0, right: 0, height: '18%', maxHeight: 56 },

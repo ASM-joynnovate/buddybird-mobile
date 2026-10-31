@@ -151,6 +151,7 @@ export default defineConfig({
 				'app/components/app/startup/perch.tsx',
 				'app/screens/session/components/zoomable-view.tsx',
 				'app/components/pull-to-refresh-container.tsx',
+				'app/components/guide-pager.tsx',
 			],
 			rules: {
 				'no-restricted-imports': [

@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: 'Đến khi tôi kết thúc',
 		untilEndHint: 'Tiếp tục cho đến khi bạn kết thúc trên màn hình học',
 		presetHints: {
-			short: 'Khi đi tắm hoặc vắng mặt một lát',
-			medium: 'Khi ra ngoài một chút',
-			long: 'Khi vắng nhà lâu, như đi du lịch',
+			short: 'Khi ra ngoài một chút',
+			long: 'Khi đi làm hoặc đi học cả ngày',
 		},
 		custom: 'Tự đặt',
 		customHint: 'Tự chọn thời gian bạn muốn',

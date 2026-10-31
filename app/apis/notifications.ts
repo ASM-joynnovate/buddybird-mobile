@@ -1,5 +1,10 @@
 import { type Page, pageMetaSchema, type PageParams } from '@/types/apis/common';
-import { type AppNotification, notificationSchema } from '@/types/apis/notifications';
+import {
+	type AppNotification,
+	notificationSchema,
+	type NotificationUnreadCount,
+	notificationUnreadCountSchema,
+} from '@/types/apis/notifications';
 
 import { apiRequest } from '@/lib/api';
 
@@ -11,6 +16,12 @@ export const getNotificationList = async ({ page }: PageParams): Promise<Page<Ap
 	});
 
 	return { data, meta: pageMetaSchema.parse(meta) };
+};
+
+export const getNotificationUnreadCount = async (): Promise<NotificationUnreadCount> => {
+	const { data: unreadCount } = await apiRequest('/api/v1/notifications/unread-count', notificationUnreadCountSchema);
+
+	return unreadCount;
 };
 
 export const getNotification = async ({ id }: { id: string }): Promise<AppNotification> => {

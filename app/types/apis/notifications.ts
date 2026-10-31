@@ -14,6 +14,8 @@ export const notificationSchema = z.object({
 	read_at: timestampSchema.nullable(),
 });
 
+export const notificationUnreadCountSchema = z.object({ count: z.number().int() });
+
 export const pushDataSchema = z.object({
 	kind: z.string(),
 	notification_id: uuidSchema.optional(),
@@ -23,3 +25,4 @@ export const pushDataSchema = z.object({
 });
 
 export type AppNotification = z.infer<typeof notificationSchema>;
+export type NotificationUnreadCount = z.infer<typeof notificationUnreadCountSchema>;

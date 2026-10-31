@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: '끝낼 때까지',
 		untilEndHint: '학습 화면에서 끝낼 때까지 계속해요',
 		presetHints: {
-			short: '샤워하거나 잠시 자리를 비울 때',
-			medium: '짧은 외출로 자리를 비울 때',
-			long: '여행 등으로 인해 길게 자리를 비울 때',
+			short: '짧은 외출로 자리를 비울 때',
+			long: '출근이나 등교로 오래 자리를 비울 때',
 		},
 		custom: '직접 설정',
 		customHint: '원하는 시간을 직접 정해요',

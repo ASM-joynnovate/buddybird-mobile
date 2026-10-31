@@ -5,9 +5,9 @@ import type { DeviceSettings } from '@/types/device-settings';
 import { useGetParrotListQuery } from '@/hooks/apis/parrots';
 import { useGetRunningSessionQuery } from '@/hooks/apis/sessions';
 
-import { useUpdatePrompt } from '@/providers/update-dialog';
 import { getFeedbackPromptThresholds } from '@/services/remote-config/client';
 import { reportError, track } from '@/services/telemetry/client';
+import { useAnnouncementStore } from '@/stores/announcement';
 import { useAppStore } from '@/stores/app';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useFeedbackStore } from '@/stores/feedback';
@@ -38,22 +38,24 @@ const FeedbackDialogProvider = ({ children }: Props) => {
 	const { data: runningSessionData } = useGetRunningSessionQuery();
 
 	const splashFinished = useAppStore((state) => state.splashFinished);
+	const startupOverlayShown = useAppStore((state) => state.startupOverlayShown);
+	const updatePromptFinished = useAppStore((state) => state.updatePromptFinished);
 
 	const feedbackPrompt = useDeviceSettingsStore((state) => state.feedbackPrompt);
 	const openedFrom = useFeedbackStore((state) => state.openedFrom);
+	const announcementPopupClosed = useAnnouncementStore((state) => state.popupClosed);
 
 	const consumeFeedbackPrompt = useDeviceSettingsStore((state) => state.consumeFeedbackPrompt);
 	const openFeedback = useFeedbackStore((state) => state.openFeedback);
-
-	const { updateVisible, updateCheckSettled } = useUpdatePrompt();
 
 	const sessionActive = runningSessionData != null;
 	const threshold = feedbackThreshold(feedbackPrompt, getFeedbackPromptThresholds());
 	const feedbackPromptEligible =
 		splashFinished &&
+		!startupOverlayShown &&
+		announcementPopupClosed &&
 		(parrotListData?.length ?? 0) > 0 &&
-		updateCheckSettled &&
-		!updateVisible &&
+		updatePromptFinished &&
 		!sessionActive &&
 		!openedFrom &&
 		feedbackPrompt.dayCount >= threshold;
@@ -98,7 +100,7 @@ const FeedbackDialogProvider = ({ children }: Props) => {
 			{children}
 
 			<FeedbackDialog
-				visible={(openedFrom !== null || feedbackPromptOpen) && !updateVisible}
+				visible={(openedFrom !== null || feedbackPromptOpen) && updatePromptFinished}
 				prompt={
 					feedbackPromptOpen
 						? { onDismiss: () => answerFeedbackPrompt(false), onWrite: () => answerFeedbackPrompt(true) }

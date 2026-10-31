@@ -46,7 +46,7 @@ interface Props {
 const PetcamSceneDim = ({ area, topInset, animated }: Props) => {
 	const { t } = useTranslation();
 
-	const dimProgress = useSharedValue(0.5);
+	const dimProgress = useSharedValue(animated ? 0 : 0.5);
 
 	// 밝은 사진 크기 및 위치 계산
 	const dimLayout = getCoverLayout(area, PHOTO_RATIO, 0.48);

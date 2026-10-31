@@ -14,7 +14,6 @@ const bannerAdSchema = z.object({
 	advertiser_name: z.string(),
 	link_url: z.string(),
 	image_file: publicFileSchema,
-	ad_tag_color: z.string().nullable(),
 });
 
 export const bannerAdListSchema = z
