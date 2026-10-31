@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { formatTimeOrDateTime } from '@/i18n/format';
 
 import AttachedImages from '@/screens/home/components/attached-images';
+import LinkedCopy from '@/screens/home/components/linked-copy';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
@@ -40,7 +41,7 @@ const NotificationContent = ({ notificationId }: Props) => {
 					images={[{ uri: notificationData.image.url, label: t('home.notification.viewImage') }]}
 				/>
 			)}
-			<Copy style={styles.text}>{notificationData.body}</Copy>
+			<LinkedCopy text={notificationData.body} style={styles.text} />
 		</View>
 	);
 };
