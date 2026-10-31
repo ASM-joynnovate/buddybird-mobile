@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: '終了するまで',
 		untilEndHint: '練習画面で終了するまで続けます',
 		presetHints: {
-			short: 'シャワー中や、少しそばを離れるとき',
-			medium: '短いお出かけのとき',
-			long: '旅行などで長く家を空けるとき',
+			short: '短いお出かけのとき',
+			long: '仕事や学校で長く家を空けるとき',
 		},
 		custom: '自分で設定',
 		customHint: '好きな時間を自分で決めます',

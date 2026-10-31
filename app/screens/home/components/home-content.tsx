@@ -299,16 +299,6 @@ const HomeContent = () => {
 					{t('session.start.duration')}
 				</Copy>
 				<DurationPicker />
-				{!durationInvalid && (
-					<Animated.View
-						entering={FadeIn.duration(layoutAnimationMs)}
-						exiting={FadeOut.duration(layoutAnimationMs)}
-						layout={LinearTransition.duration(layoutAnimationMs)}
-					>
-						<DurationBreakdown />
-					</Animated.View>
-				)}
-
 				{untilEndSelected && (
 					<Animated.View
 						entering={FadeIn.duration(layoutAnimationMs)}
@@ -319,6 +309,15 @@ const HomeContent = () => {
 						<ItemGroup>
 							<SleepTimePicker isFirstInGroup value={sleep} onChange={setEditedSleep} />
 						</ItemGroup>
+					</Animated.View>
+				)}
+				{!durationInvalid && (
+					<Animated.View
+						entering={FadeIn.duration(layoutAnimationMs)}
+						exiting={FadeOut.duration(layoutAnimationMs)}
+						layout={LinearTransition.duration(layoutAnimationMs)}
+					>
+						<DurationBreakdown />
 					</Animated.View>
 				)}
 
@@ -389,7 +388,7 @@ const styles = StyleSheet.create({
 	elsewhereRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 	watchButton: { marginTop: 4, marginRight: 10, marginBottom: 10 },
 	elsewhereText: { flex: 1, minWidth: 0, fontFamily: font.extraBold, fontSize: 15, lineHeight: 21 },
-	sleepContainer: { marginTop: 16 },
+	sleepContainer: { marginBottom: 8 },
 	startButton: { marginTop: 12 },
 });
 

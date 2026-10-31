@@ -66,7 +66,6 @@ const HomeBanner = () => {
 					<HomeBannerSlide
 						bannerAd={bannerAd}
 						position={index}
-						counterVisible={canSlide}
 						onImageError={() => setFailedServeIds((prev) => [...prev, bannerAd.serve_id])}
 					/>
 				)}
@@ -99,13 +98,13 @@ const styles = StyleSheet.create({
 	carousel: { width: '100%', aspectRatio: 3 },
 	counter: {
 		position: 'absolute',
-		top: 8,
 		right: 8,
+		bottom: 8,
 		height: 20,
 		justifyContent: 'center',
 		paddingHorizontal: 8,
 		borderRadius: radius.pill,
-		backgroundColor: colors.text,
+		backgroundColor: colors.backdrop,
 	},
 	counterText: { fontFamily: font.extraBold, fontSize: 11, color: colors.onFilled, fontVariant: ['tabular-nums'] },
 });

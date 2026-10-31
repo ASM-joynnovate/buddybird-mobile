@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: 'Until I end it',
 		untilEndHint: 'Keeps going until you end it on the learning screen',
 		presetHints: {
-			short: 'For a shower or a quick break',
-			medium: 'For a short outing',
-			long: 'For longer time away, like a trip',
+			short: 'For a short outing',
+			long: 'For a long day at work or school',
 		},
 		custom: 'Set my own',
 		customHint: 'Set your own duration',

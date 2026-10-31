@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: '直到手动结束',
 		untilEndHint: '一直进行，直到你在学习画面中结束',
 		presetHints: {
-			short: '洗澡或短暂离开时',
-			medium: '短时间外出时',
-			long: '旅行等长时间离开时',
+			short: '短时间外出时',
+			long: '上班或上学等长时间离开时',
 		},
 		custom: '自定义',
 		customHint: '自己设定想要的时长',

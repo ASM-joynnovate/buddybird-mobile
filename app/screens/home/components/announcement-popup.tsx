@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import LinkedCopy from '@/screens/home/components/linked-copy';
 import { useAnnouncementStore } from '@/stores/announcement';
+import { useAppStore } from '@/stores/app';
 import { colors, radius } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
@@ -29,31 +30,35 @@ const AnnouncementPopup = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const screenFocused = useIsFocused();
 
-	const [queue, setQueue] = useState<readonly Announcement[]>([]);
-
 	const { data: homeSummaryData } = useGetHomeSummary();
+
+	const popupClosed = useAnnouncementStore((state) => state.popupClosed);
+
+	const [queue, setQueue] = useState<readonly Announcement[]>(() =>
+		popupClosed ? [] : homeSummaryData.unread_announcements,
+	);
 
 	const { mutate } = useReadAnnouncement();
 
-	const popupShown = useAnnouncementStore((state) => state.popupShown);
+	const splashFinished = useAppStore((state) => state.splashFinished);
+	const startupOverlayShown = useAppStore((state) => state.startupOverlayShown);
+	const updatePromptFinished = useAppStore((state) => state.updatePromptFinished);
 
-	const setPopupShown = useAnnouncementStore((state) => state.setPopupShown);
+	const setPopupClosed = useAnnouncementStore((state) => state.setPopupClosed);
 
 	const announcements = homeSummaryData.unread_announcements;
 	const currentAnnouncement =
 		queue.find((announcement) => announcements.some(({ id }) => id === announcement.id)) ?? null;
 	const image = currentAnnouncement?.images[0];
+	const popupVisible =
+		splashFinished && !startupOverlayShown && updatePromptFinished && screenFocused && currentAnnouncement !== null;
 
-	/** 앱 시작 후 처음 한 번 표시할 공지 목록 설정 */
+	/** 남은 공지가 없으면 팝업 닫힘 기록 */
 	useEffect(() => {
-		if (popupShown) {
-			return;
+		if (!currentAnnouncement) {
+			setPopupClosed(true);
 		}
-
-		setPopupShown(true);
-
-		setQueue(announcements);
-	}, [announcements, popupShown, setPopupShown]);
+	}, [currentAnnouncement, setPopupClosed]);
 
 	const handleClose = () => {
 		if (!currentAnnouncement) {
@@ -77,7 +82,7 @@ const AnnouncementPopup = () => {
 
 	return (
 		<Dialog
-			visible={screenFocused && currentAnnouncement !== null}
+			visible={popupVisible}
 			title={currentAnnouncement?.title ?? ''}
 			onClose={handleClose}
 			footer={

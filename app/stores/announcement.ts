@@ -1,20 +1,20 @@
 import { create } from 'zustand';
 
 type AnnouncementState = {
-	popupShown: boolean;
+	popupClosed: boolean;
 };
 
 type AnnouncementActions = {
-	setPopupShown: (popupShown: boolean) => void;
+	setPopupClosed: (popupClosed: boolean) => void;
 };
 
 type AnnouncementStore = AnnouncementState & AnnouncementActions;
 
 export const useAnnouncementStore = create<AnnouncementStore>()((set) => ({
-	popupShown: false,
+	popupClosed: false,
 
-	/** 공지 팝업 표시 여부 저장 */
-	setPopupShown: (popupShown) => {
-		set((state) => ({ ...state, popupShown }));
+	/** 공지 팝업 닫힘 여부 저장 */
+	setPopupClosed: (popupClosed) => {
+		set((state) => ({ ...state, popupClosed }));
 	},
 }));

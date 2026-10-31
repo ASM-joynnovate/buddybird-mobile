@@ -11,6 +11,7 @@ type AppState = {
 	startupScreen: StartupScreenOptions | null;
 	startupOverlayShown: boolean;
 	landingTarget: LandingTarget | null;
+	updatePromptFinished: boolean;
 };
 
 type AppActions = {
@@ -18,6 +19,7 @@ type AppActions = {
 	setStartupScreen: (startupScreen: StartupScreenOptions | null) => void;
 	hideStartupOverlay: () => void;
 	setLandingTarget: (landingTarget: LandingTarget | null) => void;
+	setUpdatePromptFinished: (updatePromptFinished: boolean) => void;
 };
 
 type AppStore = AppState & AppActions;
@@ -27,6 +29,7 @@ export const useAppStore = create<AppStore>()((set) => ({
 	startupScreen: {},
 	startupOverlayShown: true,
 	landingTarget: null,
+	updatePromptFinished: false,
 
 	/** 스플래시 종료 여부 변경 */
 	setSplashFinished: (splashFinished) => {
@@ -50,5 +53,10 @@ export const useAppStore = create<AppStore>()((set) => ({
 	/** 버디가 이동할 목적지 변경 */
 	setLandingTarget: (landingTarget) => {
 		set((state) => ({ ...state, landingTarget }));
+	},
+
+	/** 업데이트 안내 종료 여부 변경 */
+	setUpdatePromptFinished: (updatePromptFinished) => {
+		set((state) => ({ ...state, updatePromptFinished }));
 	},
 }));

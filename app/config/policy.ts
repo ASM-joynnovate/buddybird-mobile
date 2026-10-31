@@ -38,9 +38,8 @@ export const PARROT_VIDEO = {
 export const PARROT_NIGHT_CORRECTION = { startBrightness: 80, frameRate: 5, mergeMs: 2 * SECOND } as const;
 
 export const SESSION_DURATION_PRESETS = [
-	{ id: 'short', ms: 40 * MINUTE },
-	{ id: 'medium', ms: 80 * MINUTE },
-	{ id: 'long', ms: 4 * HOUR },
+	{ id: 'short', ms: HOUR },
+	{ id: 'long', ms: 8 * HOUR },
 ] as const;
 export const CUSTOM_SESSION_DEFAULT_MS = 25 * MINUTE;
 export const MAX_SESSION_MS = 7 * DAY;

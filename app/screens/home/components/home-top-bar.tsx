@@ -13,6 +13,7 @@ import { BellIcon } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
 
 import MascotArtwork from '@/components/mascot/artwork';
+import { DotBadge } from '@/components/ui/dot-badge';
 import { IconButton } from '@/components/ui/icon-button';
 import { Title } from '@/components/ui/title';
 
@@ -36,13 +37,22 @@ const HomeTopBar = () => {
 			</Animated.View>
 			<Title style={styles.brand}>{t('home.brand')}</Title>
 
-			<IconButton
-				icon={BellIcon}
-				label={
-					unreadCount > 0 ? t('home.notificationsUnread', { count: unreadCount }) : t('home.notifications')
-				}
-				onPress={() => navigation.navigate('Notifications')}
-			/>
+			<View>
+				<IconButton
+					icon={BellIcon}
+					label={
+						unreadCount > 0
+							? t('home.notificationsUnread', { count: unreadCount })
+							: t('home.notifications')
+					}
+					onPress={() => navigation.navigate('Notifications')}
+				/>
+				{unreadCount > 0 && (
+					<View pointerEvents="none" style={styles.unreadDot}>
+						<DotBadge size="small" />
+					</View>
+				)}
+			</View>
 		</View>
 	);
 };
@@ -51,6 +61,7 @@ const styles = StyleSheet.create({
 	container: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 6 },
 	mascot: { width: 34, height: 34 },
 	brand: { flex: 1, minWidth: 0, fontSize: 20, lineHeight: 26 },
+	unreadDot: { position: 'absolute', top: 11, right: 11 },
 });
 
 export default HomeTopBar;

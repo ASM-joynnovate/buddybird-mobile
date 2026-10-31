@@ -31,7 +31,6 @@ export type SessionMessages = {
 		untilEndHint: string;
 		presetHints: {
 			short: string;
-			medium: string;
 			long: string;
 		};
 		custom: string;

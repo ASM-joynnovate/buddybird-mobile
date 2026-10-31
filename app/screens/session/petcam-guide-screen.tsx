@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { BackHandler, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import type { RootStackParamList } from '@/types/navigation';
 
 import { Trans, useTranslation } from 'react-i18next';
 
-import { type RouteProp, useFocusEffect, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import { type RouteProp, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PetcamScene from '@/screens/session/components/petcam-scene';
@@ -15,6 +15,7 @@ import { colors } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
 import GuideBackground from '@/components/guide-background';
+import GuidePager from '@/components/guide-pager';
 import GuideSheetAccessory from '@/components/guide-sheet-accessory';
 import SceneSheet from '@/components/scene-sheet';
 import { Button } from '@/components/ui/button';
@@ -54,23 +55,6 @@ const PetcamGuideScreen = () => {
 		navigation.setOptions({ gestureEnabled: stepIndex === 0 });
 	}, [stepIndex, navigation]);
 
-	/** 안드로이드 뒤로 가기 버튼으로 이전 단계 이동 */
-	useFocusEffect(
-		useCallback(() => {
-			if (stepIndex === 0) {
-				return;
-			}
-
-			const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-				setStepIndex(stepIndex - 1);
-
-				return true;
-			});
-
-			return () => subscription.remove();
-		}, [stepIndex]),
-	);
-
 	const handleFinish = () => {
 		setPetcamGuideSeen(true);
 		navigation.goBack();
@@ -89,44 +73,46 @@ const PetcamGuideScreen = () => {
 	const handleBack = stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined;
 
 	return (
-		<GuideBackground backgroundColor={backgroundColor}>
-			{screenFocused && <StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />}
+		<GuidePager stepIndex={stepIndex} stepCount={STEPS.length} onStepChange={setStepIndex}>
+			<GuideBackground backgroundColor={backgroundColor}>
+				{screenFocused && <StatusBar barStyle={backgroundDark ? 'light-content' : 'dark-content'} />}
 
-			<PetcamScene step={step} topInset={headerHeight} />
+				<PetcamScene step={step} topInset={headerHeight} />
 
-			<SafeAreaView
-				edges={['top', 'left', 'right']}
-				onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
-				style={styles.headerArea}
-			>
-				<View style={ui.sceneHeader}>
-					<ScreenHeader
-						onBack={handleBack}
-						backVariant={backgroundDark ? 'onBrand' : 'plain'}
-						trailing=<TextButton
-							label={t('common.skip')}
-							variant={backgroundDark ? 'onBrand' : 'muted'}
-							onPress={handleFinish}
+				<SafeAreaView
+					edges={['top', 'left', 'right']}
+					onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
+					style={styles.headerArea}
+				>
+					<View style={ui.sceneHeader}>
+						<ScreenHeader
+							onBack={handleBack}
+							backVariant={backgroundDark ? 'onBrand' : 'plain'}
+							trailing=<TextButton
+								label={t('common.skip')}
+								variant={backgroundDark ? 'onBrand' : 'muted'}
+								onPress={handleFinish}
+							/>
 						/>
-					/>
-				</View>
-			</SafeAreaView>
+					</View>
+				</SafeAreaView>
 
-			<SceneSheet
-				title=<Trans
-					i18nKey={`session.petcamGuide.${step}.title`}
-					components={{ b: <Text style={ui.titleHighlight} /> }}
-				/>
-				accessory=<GuideSheetAccessory stepIndex={stepIndex} stepCount={STEPS.length} />
-				footer=<Button label={isLastStep ? lastButtonLabel : t('common.next')} onPress={handleNext} />
-			>
-				{step === 'alert' && (
-					<Copy lineBreakStrategyIOS="hangul-word" style={styles.message}>
-						{t('session.petcamGuide.alert.message')}
-					</Copy>
-				)}
-			</SceneSheet>
-		</GuideBackground>
+				<SceneSheet
+					title=<Trans
+						i18nKey={`session.petcamGuide.${step}.title`}
+						components={{ b: <Text style={ui.titleHighlight} /> }}
+					/>
+					accessory=<GuideSheetAccessory stepIndex={stepIndex} stepCount={STEPS.length} />
+					footer=<Button label={isLastStep ? lastButtonLabel : t('common.next')} onPress={handleNext} />
+				>
+					{step === 'alert' && (
+						<Copy lineBreakStrategyIOS="hangul-word" style={styles.message}>
+							{t('session.petcamGuide.alert.message')}
+						</Copy>
+					)}
+				</SceneSheet>
+			</GuideBackground>
+		</GuidePager>
 	);
 };
 

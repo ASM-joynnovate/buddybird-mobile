@@ -66,13 +66,13 @@
 | `GET /feed` | | 피드는 페이지네이션 |
 | `PUT /feed/{id}/like`, `DELETE /feed/{id}/like` | 필요 | |
 | `GET /ads`, `POST /ads/events` | | 목록은 `kind=home_banner`처럼 광고 게재위치 지정, 이벤트는 한 번에 최대 500건 |
-| `GET /notifications`, `GET /notifications/{id}`, `GET /announcements`, `GET /announcements/{id}` | | 목록은 페이지네이션 |
+| `GET /notifications`, `GET /notifications/unread-count`, `GET /notifications/{id}`, `GET /announcements`, `GET /announcements/{id}` | | 목록은 페이지네이션 |
 | `POST /notifications/{id}/read`, `POST /notifications/read-all`, `POST /announcements/{id}/read` | 필요 | |
 | `POST /feedback`, `POST /abuse-reports` | 필요 | |
 | `POST /petcam/turn-credentials` | | |
 
 홈 요약은 서버 엔드포인트가 없습니다.
-`apis/home.ts`의 `getHomeSummary`가 진행 중인 학습, 알림 첫 페이지, 공지 첫 페이지를 한 번에 조회해 합칩니다.
+`apis/home.ts`의 `getHomeSummary`가 진행 중인 학습, 읽지 않은 알림 개수, 공지 첫 페이지를 한 번에 조회해 합칩니다.
 
 ## 쿼리 키
 

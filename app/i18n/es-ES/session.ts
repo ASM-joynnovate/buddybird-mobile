@@ -30,9 +30,8 @@ export const session: SessionMessages = {
 		untilEnd: 'Sin límite',
 		untilEndHint: 'Sigue hasta que lo termines desde la pantalla de entrenamiento',
 		presetHints: {
-			short: 'Para una ducha o un rato fuera',
-			medium: 'Para una salida corta',
-			long: 'Para ausencias largas, como un viaje',
+			short: 'Para una salida corta',
+			long: 'Para una jornada de trabajo o de clases',
 		},
 		custom: 'Personalizar',
 		customHint: 'Elige tú la duración',
