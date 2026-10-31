@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { formatMonthDay } from '@/i18n/format';
 
 import AttachedImages from '@/screens/home/components/attached-images';
+import LinkedCopy from '@/screens/home/components/linked-copy';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
 
@@ -54,7 +55,7 @@ const AnnouncementContent = ({ announcementId }: Props) => {
 					label: t('home.announcement.image', { index: index + 1 }),
 				}))}
 			/>
-			{!!announcementData.body && <Copy style={styles.text}>{announcementData.body}</Copy>}
+			{!!announcementData.body && <LinkedCopy text={announcementData.body} style={styles.text} />}
 		</View>
 	);
 };

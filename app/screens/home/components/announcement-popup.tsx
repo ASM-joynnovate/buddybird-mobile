@@ -14,12 +14,12 @@ import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import LinkedCopy from '@/screens/home/components/linked-copy';
 import { useAnnouncementStore } from '@/stores/announcement';
 import { colors, radius } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
-import { Copy } from '@/components/ui/copy';
 import { ui } from '@/components/ui/styles';
 
 /** 읽지 않은 공지 팝업 컴포넌트 */
@@ -109,7 +109,7 @@ const AnnouncementPopup = () => {
 				/>
 			)}
 
-			{!!currentAnnouncement?.body && <Copy numberOfLines={4}>{currentAnnouncement.body}</Copy>}
+			{!!currentAnnouncement?.body && <LinkedCopy text={currentAnnouncement.body} numberOfLines={4} />}
 		</Dialog>
 	);
 };
