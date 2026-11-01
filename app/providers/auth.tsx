@@ -20,6 +20,7 @@ import { toast } from 'sonner-native';
 
 import { loginCredential, takeAppleLoginCredential } from '@/services/auth/credential';
 import { type AuthIdentity, getAuthTransition, signOutLocally } from '@/services/auth/session';
+import { setBadgeCount } from '@/services/push/badge';
 import { reportError } from '@/services/telemetry/client';
 import { useAccountStore } from '@/stores/account';
 import { useAuthStore } from '@/stores/auth';
@@ -87,6 +88,8 @@ const AuthProvider = ({ children }: Props) => {
 			useAccountStore.getState().setServerUserId(null);
 
 			clearUserData();
+
+			void setBadgeCount(0);
 
 			setStatus('signedOut');
 		};
