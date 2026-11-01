@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import type { HomeStackParamList } from '@/types/navigation';
@@ -11,6 +13,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BellIcon } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
+
+import { setBadgeCount } from '@/services/push/badge';
 
 import MascotArtwork from '@/components/mascot/artwork';
 import { DotBadge } from '@/components/ui/dot-badge';
@@ -28,6 +32,11 @@ const HomeTopBar = () => {
 	const { buddyRef, buddyStyle } = useStartupLanding();
 
 	const unreadCount = homeSummaryData.unread_notification_count;
+
+	/** 읽지 않은 알림 개수를 아이콘 배지에 표시 */
+	useEffect(() => {
+		void setBadgeCount(unreadCount);
+	}, [unreadCount]);
 
 	return (
 		<View style={styles.container}>
