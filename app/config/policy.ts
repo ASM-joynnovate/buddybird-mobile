@@ -98,3 +98,6 @@ export const PHASE_CYCLE = [
 	{ phase: 'rest', durationMs: 5 * MINUTE },
 	{ phase: 'stress_care', durationMs: 5 * MINUTE },
 ] as const;
+
+export const LEADERBOARD_RANK_LIMIT = 10;
+export const LEADERBOARD_PODIUM_RANK_COUNT = 3;

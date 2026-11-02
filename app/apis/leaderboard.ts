@@ -2,9 +2,11 @@ import { type GetLeaderboardParams, type Leaderboard, leaderboardSchema } from '
 
 import { apiRequest } from '@/lib/api';
 
-export const getLeaderboard = async ({ period, metric, country }: GetLeaderboardParams): Promise<Leaderboard> => {
+import { LEADERBOARD_RANK_LIMIT } from '@/config/policy';
+
+export const getLeaderboard = async ({ period, start }: GetLeaderboardParams): Promise<Leaderboard> => {
 	const { data: leaderboard } = await apiRequest('/api/v1/leaderboard', leaderboardSchema, {
-		searchParams: { period, metric, country: country ?? undefined },
+		searchParams: { period, metric: 'learning_time', start: start ?? undefined, limit: LEADERBOARD_RANK_LIMIT },
 	});
 
 	return leaderboard;

@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}}學習時間排名',
 		viewAll: '完整排名',
+		rankingTitle: '學習時間排名',
+		periods: {
+			all: '全部',
+			monthly: '每月',
+		},
+		previousMonth: '上個月',
+		nextMonth: '下個月',
+		rankLimit: '只顯示前{{rank}}名',
 		unranked: {
 			not_participating: {
 				title: '你目前沒有參加排名',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: '登入後就能加入排名',
 				action: '登入',
 			},
-			country_mismatch: {
-				title: '這個國家或地區的排名中沒有你',
-			},
 			no_record: {
-				title: '這個月還沒有學習記錄',
+				title: '還沒有學習記錄',
 			},
 		},
 	},

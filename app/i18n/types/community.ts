@@ -15,11 +15,15 @@ export type CommunityMessages = {
 	leaderboard: {
 		title: string;
 		viewAll: string;
+		rankingTitle: string;
+		periods: { all: string; monthly: string };
+		previousMonth: string;
+		nextMonth: string;
+		rankLimit: string;
 		unranked: {
 			not_participating: { title: string; description: string; action: string };
 			no_nickname: { title: string; action: string };
 			anonymous: { title: string; action: string };
-			country_mismatch: { title: string };
 			no_record: { title: string };
 		};
 	};

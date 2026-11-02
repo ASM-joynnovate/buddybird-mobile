@@ -12,7 +12,7 @@ import { colors } from '@/theme';
 import { Chip } from '@/components/ui/chip';
 import { Flag } from '@/components/ui/flag';
 
-/** 순위 및 피드의 국가 필터 칩 컴포넌트 */
+/** 피드의 국가 필터 칩 컴포넌트 */
 const CountryScopeChips = () => {
 	const { t } = useTranslation();
 

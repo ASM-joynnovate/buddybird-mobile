@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: 'Xếp hạng thời gian học {{month}}',
 		viewAll: 'Xem tất cả',
+		rankingTitle: 'Xếp hạng thời gian học',
+		periods: {
+			all: 'Tất cả',
+			monthly: 'Theo tháng',
+		},
+		previousMonth: 'Tháng trước',
+		nextMonth: 'Tháng sau',
+		rankLimit: 'Chỉ hiển thị top {{rank}}',
 		unranked: {
 			not_participating: {
 				title: 'Bạn chưa tham gia bảng xếp hạng',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'Đăng nhập để có tên trên bảng xếp hạng',
 				action: 'Đăng nhập',
 			},
-			country_mismatch: {
-				title: 'Bạn không có trong bảng xếp hạng của quốc gia này',
-			},
 			no_record: {
-				title: 'Tháng này bạn chưa có lịch sử học',
+				title: 'Bạn chưa có lịch sử học',
 			},
 		},
 	},

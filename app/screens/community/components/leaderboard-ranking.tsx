@@ -1,19 +1,27 @@
+import { Fragment } from 'react';
+
 import { StyleSheet, View } from 'react-native';
+
+import type { LeaderboardPeriod } from '@/types/apis/leaderboard';
 
 import { useGetLeaderboard } from '@/hooks/apis/leaderboard';
 import { useGetMe } from '@/hooks/apis/users';
 import useIsLowPerformance from '@/hooks/use-is-low-performance';
 import usePullToRefresh from '@/hooks/use-pull-to-refresh';
 
+import { useTranslation } from 'react-i18next';
+
+import { formatNumber } from '@/i18n/format';
+
 import Animated from 'react-native-reanimated';
 
-import LeaderboardLane from '@/screens/community/components/leaderboard-lane';
-import LeaderboardMyLane from '@/screens/community/components/leaderboard-my-lane';
+import { LEADERBOARD_PODIUM_RANK_COUNT, LEADERBOARD_RANK_LIMIT } from '@/config/policy';
+import LeaderboardMyRank from '@/screens/community/components/leaderboard-my-rank';
+import LeaderboardPodium from '@/screens/community/components/leaderboard-podium';
+import LeaderboardRankRow from '@/screens/community/components/leaderboard-rank-row';
 import UnrankedNotice from '@/screens/community/components/unranked-notice';
-import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
-import { leaderboardTopScore } from '@/screens/community/utils/leaderboard';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors } from '@/theme';
+import { colors, font } from '@/theme';
 
 import {
 	BUDDY_REFRESH_FINISH_MS,
@@ -24,14 +32,25 @@ import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator
 import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
+import { Copy } from '@/components/ui/copy';
 
-/** 전체 순위 목록 컴포넌트 */
-const LeaderboardRanking = () => {
+interface Props {
+	period: LeaderboardPeriod;
+	start: string | null;
+}
+
+/**
+ * 기간별 전체 순위 컴포넌트
+ * @param period 순위 기간
+ * @param start 월별 순위의 달 1일 날짜
+ */
+const LeaderboardRanking = ({ period, start }: Props) => {
+	const { t } = useTranslation();
+
 	const { data: meData } = useGetMe();
+	const { data: leaderboardData, refetch } = useGetLeaderboard({ period, start });
 
-	const country = useSelectedCountry();
-
-	const { data: leaderboardData, refetch } = useGetLeaderboard({ country });
+	const locale = useDeviceSettingsStore((state) => state.locale);
 
 	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 
@@ -49,7 +68,7 @@ const LeaderboardRanking = () => {
 	});
 
 	const myRank = leaderboardData.me.rank;
-	const topScore = leaderboardTopScore(leaderboardData);
+	const listedRankEntries = leaderboardData.items.slice(LEADERBOARD_PODIUM_RANK_COUNT);
 
 	return (
 		<>
@@ -63,21 +82,35 @@ const LeaderboardRanking = () => {
 			>
 				<Animated.ScrollView
 					{...scrollProps}
-					contentContainerStyle={styles.list}
+					contentContainerStyle={styles.content}
 					showsVerticalScrollIndicator={false}
 				>
-					{leaderboardData.items.map((rankEntry) => (
-						<LeaderboardLane
-							key={rankEntry.user.id}
-							rank={rankEntry.rank}
-							score={rankEntry.score}
-							topScore={topScore}
-							nickname={rankEntry.user.nickname}
-							photoUrl={rankEntry.user.photo_file?.url ?? null}
-							country={rankEntry.user.country}
-							isMe={rankEntry.user.id === meData.id}
-						/>
-					))}
+					<LeaderboardPodium rankEntries={leaderboardData.items} myUserId={meData.id} />
+
+					{listedRankEntries.length > 0 && (
+						<>
+							<View style={styles.list}>
+								{listedRankEntries.map((rankEntry, index) => (
+									<Fragment key={rankEntry.user.id}>
+										{index > 0 && <View style={styles.separator} />}
+										<LeaderboardRankRow
+											rank={rankEntry.rank}
+											score={rankEntry.score}
+											nickname={rankEntry.user.nickname}
+											photoUrl={rankEntry.user.photo_file?.url ?? null}
+											country={rankEntry.user.country}
+											isMe={rankEntry.user.id === meData.id}
+										/>
+									</Fragment>
+								))}
+							</View>
+							<Copy style={styles.rankLimit}>
+								{t('community.leaderboard.rankLimit', {
+									rank: formatNumber(LEADERBOARD_RANK_LIMIT, locale),
+								})}
+							</Copy>
+						</>
+					)}
 				</Animated.ScrollView>
 			</PullToRefreshContainer>
 
@@ -86,7 +119,7 @@ const LeaderboardRanking = () => {
 				{myRank === null ? (
 					<UnrankedNotice reason={leaderboardData.me.unranked_reason} />
 				) : (
-					<LeaderboardMyLane rank={myRank} score={leaderboardData.me.score} topScore={topScore} />
+					<LeaderboardMyRank rank={myRank} score={leaderboardData.me.score} />
 				)}
 			</View>
 		</>
@@ -94,7 +127,10 @@ const LeaderboardRanking = () => {
 };
 
 const styles = StyleSheet.create({
-	list: { gap: 14, padding: 16 },
+	content: { padding: 16 },
+	list: { marginTop: 16 },
+	separator: { height: 2, backgroundColor: colors.surface },
+	rankLimit: { paddingTop: 20, textAlign: 'center', fontFamily: font.extraBold, fontSize: 13, color: colors.muted },
 	myRankContainer: {
 		paddingHorizontal: 16,
 		paddingVertical: 10,

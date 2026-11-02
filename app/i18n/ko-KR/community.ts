@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}} 학습 시간 순위',
 		viewAll: '전체 순위',
+		rankingTitle: '학습 시간 순위',
+		periods: {
+			all: '전체',
+			monthly: '월별',
+		},
+		previousMonth: '이전 달',
+		nextMonth: '다음 달',
+		rankLimit: '순위는 {{rank}}위까지 보여요',
 		unranked: {
 			not_participating: {
 				title: '순위에 참여하지 않고 있어요',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: '로그인하면 순위에 올라요',
 				action: '로그인',
 			},
-			country_mismatch: {
-				title: '이 나라의 순위에는 내가 없어요',
-			},
 			no_record: {
-				title: '이번 달 학습 기록이 아직 없어요',
+				title: '학습 기록이 아직 없어요',
 			},
 		},
 	},

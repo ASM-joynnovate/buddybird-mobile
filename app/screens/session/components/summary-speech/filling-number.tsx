@@ -19,10 +19,11 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
 import CountUpText from '@/screens/session/components/count-up-text';
-import { bumpScale, glintSweep } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
-import SummaryGlint from '@/screens/session/components/summary-glint';
 import { burstEasing, colors, font } from '@/theme';
+
+import { bumpScale, glintSweep } from '@/components/burst-animations';
+import Glint from '@/components/glint';
 
 const FILL_MS = 1.1 * SECOND;
 const SPARK_MS = 600;
@@ -153,7 +154,7 @@ const SummarySpeechFillingNumber = ({ sentence, size, filled, onFilled }: Props)
 					</Animated.View>
 				</Animated.View>
 
-				<SummaryGlint progress={glintProgress} width={pillWidth} />
+				<Glint progress={glintProgress} width={pillWidth} />
 			</Animated.View>
 
 			{/*다 차면 튀는 조각*/}

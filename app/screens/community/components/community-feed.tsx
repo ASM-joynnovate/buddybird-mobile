@@ -21,6 +21,7 @@ import Animated from 'react-native-reanimated';
 import FeedAdCard from '@/screens/community/components/feed-ad-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
+import { leaderboardMonthStart } from '@/screens/community/utils/leaderboard';
 import { useAdStore } from '@/stores/ad';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors } from '@/theme';
@@ -51,7 +52,9 @@ const CommunityFeed = () => {
 
 	const country = useSelectedCountry();
 
-	usePrefetchQuery(getLeaderboardOptions({ country }));
+	const leaderboardStart = leaderboardMonthStart();
+
+	usePrefetchQuery(getLeaderboardOptions({ period: 'monthly', start: leaderboardStart }));
 
 	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
 
@@ -66,7 +69,7 @@ const CommunityFeed = () => {
 			setPullToRefreshUsed(true);
 
 			return Promise.all([
-				queryClient.invalidateQueries({ queryKey: leaderboardKeys.detail(country) }),
+				queryClient.invalidateQueries({ queryKey: leaderboardKeys.detail('monthly', leaderboardStart) }),
 				queryClient.invalidateQueries({ queryKey: feedKeys.list(country) }),
 			]);
 		},

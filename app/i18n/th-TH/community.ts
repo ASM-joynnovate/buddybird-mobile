@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: 'อันดับเวลาฝึกพูดเดือน{{month}}',
 		viewAll: 'ดูอันดับทั้งหมด',
+		rankingTitle: 'อันดับเวลาฝึกพูด',
+		periods: {
+			all: 'ทั้งหมด',
+			monthly: 'รายเดือน',
+		},
+		previousMonth: 'เดือนก่อน',
+		nextMonth: 'เดือนถัดไป',
+		rankLimit: 'แสดงถึงอันดับที่ {{rank}}',
 		unranked: {
 			not_participating: {
 				title: 'คุณยังไม่ได้เข้าร่วมการจัดอันดับ',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'เข้าสู่ระบบเพื่อขึ้นอันดับ',
 				action: 'เข้าสู่ระบบ',
 			},
-			country_mismatch: {
-				title: 'คุณไม่อยู่ในอันดับของประเทศนี้',
-			},
 			no_record: {
-				title: 'ยังไม่มีบันทึกการฝึกพูดในเดือนนี้',
+				title: 'ยังไม่มีบันทึกการฝึกพูด',
 			},
 		},
 	},

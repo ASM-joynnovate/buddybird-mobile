@@ -1,31 +1,44 @@
+import { useState } from 'react';
+
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+
+import type { LeaderboardPeriod } from '@/types/apis/leaderboard';
 
 import useIsLowPerformance from '@/hooks/use-is-low-performance';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatMonth } from '@/i18n/format';
-
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 
-import CountryScopeChips from '@/screens/community/components/country-scope-chips';
+import LeaderboardMonthNav from '@/screens/community/components/leaderboard-month-nav';
+import LeaderboardMonthPager from '@/screens/community/components/leaderboard-month-pager';
 import LeaderboardRanking from '@/screens/community/components/leaderboard-ranking';
+import { leaderboardMonthStart } from '@/screens/community/utils/leaderboard';
 import { colors } from '@/theme';
+import { localDate } from '@/utils/date';
 
 import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
+import { Chip } from '@/components/ui/chip';
 import { Screen } from '@/components/ui/screen';
 import { ScreenError } from '@/components/ui/screen-error';
 import { ScreenHeader } from '@/components/ui/screen-header';
 
-/** 이번 달 학습 시간 전체 순위 화면 */
+/** 학습 시간 전체 순위 화면 */
 const LeaderboardScreen = () => {
 	const { t } = useTranslation();
 
 	const navigation = useNavigation();
 
+	const [period, setPeriod] = useState<LeaderboardPeriod>('monthly');
+	const [monthStart, setMonthStart] = useState(leaderboardMonthStart);
+
 	const lowPerformance = useIsLowPerformance();
+
+	const handleMoveMonth = (step: number) => {
+		setMonthStart((prev) => localDate(dayjs(prev).add(step, 'month')));
+	};
 
 	return (
 		<Screen scrollable={false}>
@@ -33,24 +46,38 @@ const LeaderboardScreen = () => {
 
 			<View style={styles.headerContainer}>
 				<ScreenHeader
-					title={t('community.leaderboard.title', { month: formatMonth(dayjs.utc()) })}
+					title={t('community.leaderboard.rankingTitle')}
 					onBack={() => navigation.goBack()}
+					trailing={
+						<>
+							<Chip
+								label={t('community.leaderboard.periods.all')}
+								selected={period === 'all'}
+								onPress={() => setPeriod('all')}
+							/>
+							<Chip
+								label={t('community.leaderboard.periods.monthly')}
+								selected={period === 'monthly'}
+								onPress={() => setPeriod('monthly')}
+							/>
+						</>
+					}
 				/>
 			</View>
 
-			<ErrorHandlingWrapper
-				fallbackComponent={ScreenError}
-				suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
-			>
-				<CountryScopeChips />
-
+			{period === 'all' ? (
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}
 					suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
 				>
-					<LeaderboardRanking />
+					<LeaderboardRanking period="all" start={null} />
 				</ErrorHandlingWrapper>
-			</ErrorHandlingWrapper>
+			) : (
+				<>
+					<LeaderboardMonthNav start={monthStart} onMove={handleMoveMonth} />
+					<LeaderboardMonthPager start={monthStart} onMove={handleMoveMonth} />
+				</>
+			)}
 		</Screen>
 	);
 };
