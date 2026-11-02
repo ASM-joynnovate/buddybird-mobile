@@ -43,7 +43,7 @@ import SessionRunInfoBatteryStatus from '@/screens/session/components/session-ru
 import StationCamera from '@/screens/session/components/station-camera';
 import { createLearningEngine, type LearningEngine } from '@/screens/session/services/learning-engine';
 import { createParrotWatcher, type ParrotWatcher } from '@/screens/session/services/parrot-watcher';
-import { createPetcamSender, type PetcamSender } from '@/screens/session/services/petcam-connection';
+import { closeMediaStream, createPetcamSender, type PetcamSender } from '@/screens/session/services/petcam-connection';
 import { recordPetcamVideoStats, tracePetcamCamera } from '@/screens/session/services/petcam-telemetry';
 import { readPermission } from '@/services/device/permissions';
 import { getPetcamVideo, shouldCheckParrotDetection } from '@/services/remote-config/client';
@@ -74,12 +74,6 @@ const createHeartbeatData = (
 		phase_started_at: span ? dayjs(span.start).toISOString() : null,
 		learning_segments: learningSegments,
 	};
-};
-
-/** MediaStream 닫기 함수 */
-const closeMediaStream = (stream: MediaStream) => {
-	stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
-	stream.release();
 };
 
 /** 학습 진행 화면 */

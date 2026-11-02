@@ -76,6 +76,9 @@ export type SessionMessages = {
 		permission: { title: string; message: string };
 		unreachable: { title: string; message: string };
 		learningPaused: string;
+		talk: string;
+		talking: string;
+		talkingNotice: string;
 		zoomHint: { title: string; message: string };
 		zoomLevel: string;
 	};

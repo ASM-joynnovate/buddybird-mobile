@@ -30,6 +30,7 @@ interface Props {
 	endsAt: number | null;
 	sleep: SleepSettings | null;
 	pauseNotice: string | null;
+	bottomInset?: number;
 	onEnd: () => void;
 	header: ReactNode;
 }
@@ -40,10 +41,11 @@ interface Props {
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
  * @param pauseNotice 학습 단계 대신 표시할 문구
+ * @param bottomInset 아래쪽에 비워 둘 높이
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  * @param header 위쪽에 표시할 헤더
  */
-const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }: Props) => {
+const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0, onEnd, header }: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -99,7 +101,11 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, onEnd, header }
 	}, []);
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']} pointerEvents="box-none">
+		<SafeAreaView
+			style={[styles.container, { paddingBottom: bottomInset }]}
+			edges={['top', 'bottom', 'left', 'right']}
+			pointerEvents="box-none"
+		>
 			{header}
 
 			{isLandscape ? (

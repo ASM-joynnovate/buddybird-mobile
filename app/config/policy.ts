@@ -17,6 +17,7 @@ export const PETCAM_AUDIO_MAX_BITRATE = 32_000;
 export const PETCAM_CONNECT_TIMEOUT_MS = 30 * SECOND;
 export const PETCAM_CAMERA_REQUEST_TIMEOUT_MS = 5 * SECOND;
 export const PETCAM_STATS_INTERVAL_MS = 30 * SECOND;
+export const PETCAM_AUDIO_LEVEL_INTERVAL_MS = 100;
 export const PETCAM_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }] as const;
 export const PETCAM_VIDEO_UPLOAD_TIMEOUT_MS = 5 * MINUTE;
 

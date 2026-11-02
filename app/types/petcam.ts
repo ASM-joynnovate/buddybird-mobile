@@ -55,6 +55,12 @@ export const petcamReceivedVideoStatsSchema = z.object({
 	frameHeight: z.number(),
 });
 
+export const petcamAudioSourceStatsSchema = z.object({
+	type: z.literal('media-source'),
+	kind: z.literal('audio'),
+	audioLevel: z.number(),
+});
+
 export type PetcamDescription = z.infer<typeof petcamDescriptionSchema>;
 export type PetcamCandidate = z.infer<typeof petcamCandidateSchema>;
 export type PetcamMessage = z.infer<typeof petcamMessageSchema>;
@@ -145,5 +151,6 @@ export interface PetcamReceiverOptions {
 	onState: (state: PetcamState) => void;
 	onStream: (stream: MediaStream | null) => void;
 	onVideoStats: (stats: PetcamVideoStats) => void;
+	onAudioLevel: (audioLevel: number) => void;
 	onError: (error: unknown) => void;
 }
