@@ -101,4 +101,22 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: 'Похвастайся, как {{parrot}} и ещё {{count}} попугаев повторяют слова!',
 		feedShareConfirmMessageWithOthers_other: 'Похвастайся, как {{parrot}} и ещё {{count}} попугая повторяют слова!',
 	},
+	guide: {
+		chart: { title: 'Зажми график и веди пальцем', detail: 'Увидишь общее время занятий на каждую дату' },
+		wordBars: {
+			title: 'Время занятий по каждому слову',
+			detail: 'Оранжевым показан прирост к прошлому месяцу',
+		},
+		session: 'Нажми на занятие',
+		logKinds: {
+			mimic: 'Повторённые слова',
+			mimicDetail: 'Когда попугай повторяет слово',
+			parrotDetail: 'Когда попугай щебечет',
+			emergencyDetail: 'Когда поднимается тревога',
+		},
+		logItem: 'Нажми на запись, чтобы развернуть её',
+		play: 'Нажми на кнопку, чтобы послушать',
+		review: 'Отметь, верно ли он повторил',
+		share: { title: 'Получилось похоже? Поделись', detail: 'А ещё можно похвастаться в ленте' },
+	},
 };

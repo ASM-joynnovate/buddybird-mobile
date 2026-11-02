@@ -101,4 +101,22 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '{{parrot}} और {{count}} दूसरे तोतों ने जो नकल की है, उसे सबको दिखाएँ!',
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} और {{count}} दूसरे तोतों ने जो नकल की है, उसे सबको दिखाएँ!',
 	},
+	guide: {
+		chart: {
+			title: 'ग्राफ़ को दबाकर रखें और उंगली स्लाइड करें',
+			detail: 'हर तारीख तक का कुल ट्रेनिंग समय दिखेगा',
+		},
+		wordBars: { title: 'हर शब्द को सिखाने का समय', detail: 'नारंगी अक्षर पिछले महीने से बढ़ा समय दिखाते हैं' },
+		session: 'किसी ट्रेनिंग पर टैप करें',
+		logKinds: {
+			mimic: 'नकल किए गए शब्द',
+			mimicDetail: 'जब तोता किसी शब्द की नकल करे',
+			parrotDetail: 'जब तोता चहचहाए',
+			emergencyDetail: 'जब इमरजेंसी हो',
+		},
+		logItem: 'खोलने के लिए किसी रिकॉर्ड पर टैप करें',
+		play: 'सुनने के लिए प्ले बटन पर टैप करें',
+		review: 'चुनें कि नकल सही है या गलत',
+		share: { title: 'नकल अच्छी हो तो शेयर करें', detail: 'फ़ीड पर शेयर करके सबको दिखा भी सकते हैं' },
+	},
 };

@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: 'อวดเสียงที่ {{parrot}} และอีก {{count}} ตัวพูดตามกันเลย!',
 		feedShareConfirmMessageWithOthers_other: 'อวดเสียงที่ {{parrot}} และอีก {{count}} ตัวพูดตามกันเลย!',
 	},
+	guide: {
+		chart: { title: 'แตะกราฟค้างไว้แล้วเลื่อนนิ้ว', detail: 'ดูเวลาฝึกพูดสะสมถึงแต่ละวันได้' },
+		wordBars: { title: 'เวลาที่สอนแต่ละคำ', detail: 'ตัวอักษรสีส้มคือเวลาที่เพิ่มขึ้นจากเดือนที่แล้ว' },
+		session: 'ลองแตะรายการฝึกพูด',
+		logKinds: {
+			mimic: 'คำที่พูดตาม',
+			mimicDetail: 'เมื่อนกแก้วเลียนเสียงคำ',
+			parrotDetail: 'เมื่อนกแก้วส่งเสียงร้อง',
+			emergencyDetail: 'เมื่อเกิดเหตุฉุกเฉิน',
+		},
+		logItem: 'แตะบันทึกเพื่อเปิดดู',
+		play: 'แตะปุ่มเล่นเพื่อฟังเสียง',
+		review: 'เลือกว่าพูดตามถูกหรือผิด',
+		share: { title: 'ถ้าพูดตามได้ดี ลองแชร์ดูสิ', detail: 'แชร์ไปที่ฟีดเพื่ออวดได้ด้วย' },
+	},
 };

@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: 'Show off what {{parrot}} and {{count}} others mimicked!',
 		feedShareConfirmMessageWithOthers_other: 'Show off what {{parrot}} and {{count}} others mimicked!',
 	},
+	guide: {
+		chart: { title: 'Touch and hold the graph, then drag', detail: 'See total learning time up to each date' },
+		wordBars: { title: 'Time spent teaching each word', detail: 'Orange text shows the increase vs last month' },
+		session: 'Tap a session',
+		logKinds: {
+			mimic: 'Mimicked words',
+			mimicDetail: 'When your parrot mimics a word',
+			parrotDetail: 'When your parrot chirps',
+			emergencyDetail: 'When an emergency occurs',
+		},
+		logItem: 'Tap a record to expand it',
+		play: 'Tap play to listen',
+		review: 'Choose whether it mimicked correctly',
+		share: { title: 'If it mimicked well, share it', detail: 'You can also show it off in the feed' },
+	},
 };

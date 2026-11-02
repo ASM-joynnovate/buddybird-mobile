@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '{{parrot}} ও আরও {{count, number}}টি টিয়ার নকল করা আওয়াজ সবাইকে শোনান!',
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} ও আরও {{count, number}}টি টিয়ার নকল করা আওয়াজ সবাইকে শোনান!',
 	},
+	guide: {
+		chart: { title: 'গ্রাফ টাচ করে ধরে রেখে আঙুল সরান', detail: 'প্রতিটি তারিখ পর্যন্ত মোট শেখার সময় দেখা যাবে' },
+		wordBars: { title: 'প্রতিটি শব্দ শেখানোর সময়', detail: 'কমলা লেখায় গত মাসের চেয়ে বাড়তি সময়' },
+		session: 'শেখার তালিকার একটিতে ট্যাপ করুন',
+		logKinds: {
+			mimic: 'নকল করা কথা',
+			mimicDetail: 'টিয়া কোনো শব্দ নকল করলে',
+			parrotDetail: 'টিয়া কিচিরমিচির করলে',
+			emergencyDetail: 'জরুরি অবস্থা দেখা দিলে',
+		},
+		logItem: 'রেকর্ডে ট্যাপ করে খুলে দেখুন',
+		play: 'শুনতে প্লে বাটনে ট্যাপ করুন',
+		review: 'ঠিকমতো নকল করেছে কি না বেছে নিন',
+		share: { title: 'ভালো নকল করলে শেয়ার করুন', detail: 'ফিডে শেয়ার করে সবাইকে শোনাতেও পারেন' },
+	},
 };

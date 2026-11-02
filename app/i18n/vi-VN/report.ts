@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: 'Khoe âm thanh {{parrot}} và {{count}} bé vẹt khác đã bắt chước nào!',
 		feedShareConfirmMessageWithOthers_other: 'Khoe âm thanh {{parrot}} và {{count}} bé vẹt khác đã bắt chước nào!',
 	},
+	guide: {
+		chart: { title: 'Chạm và giữ biểu đồ rồi kéo thử', detail: 'Xem tổng thời gian học đến từng ngày' },
+		wordBars: { title: 'Thời gian dạy từng từ', detail: 'Chữ màu cam là thời gian tăng so với tháng trước' },
+		session: 'Thử chạm vào một buổi học',
+		logKinds: {
+			mimic: 'Lời bắt chước',
+			mimicDetail: 'Khi vẹt bắt chước từ',
+			parrotDetail: 'Khi vẹt kêu',
+			emergencyDetail: 'Khi có tình huống khẩn cấp',
+		},
+		logItem: 'Chạm vào ghi nhận để mở rộng',
+		play: 'Chạm vào nút phát để nghe',
+		review: 'Chọn xem bé có bắt chước đúng không',
+		share: { title: 'Bắt chước giỏi thì chia sẻ nhé', detail: 'Bạn cũng có thể chia sẻ lên bảng tin để khoe' },
+	},
 };

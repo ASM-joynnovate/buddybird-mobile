@@ -101,4 +101,22 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '¡Presume de lo que han imitado {{parrot}} y {{count}} más!',
 		feedShareConfirmMessageWithOthers_other: '¡Presume de lo que han imitado {{parrot}} y {{count}} más!',
 	},
+	guide: {
+		chart: { title: 'Mantén pulsada la gráfica y desliza', detail: 'Verás el tiempo acumulado hasta cada día' },
+		wordBars: {
+			title: 'Tiempo dedicado a enseñar cada palabra',
+			detail: 'En naranja, el aumento frente al mes pasado',
+		},
+		session: 'Toca un entrenamiento',
+		logKinds: {
+			mimic: 'Palabras imitadas',
+			mimicDetail: 'Cuando tu loro imita una palabra',
+			parrotDetail: 'Cuando tu loro gorjea',
+			emergencyDetail: 'Cuando ocurre una emergencia',
+		},
+		logItem: 'Toca un registro para desplegarlo',
+		play: 'Toca reproducir para escucharlo',
+		review: 'Indica si lo ha imitado bien',
+		share: { title: 'Si lo ha imitado bien, compártelo', detail: 'También puedes presumir en el feed' },
+	},
 };

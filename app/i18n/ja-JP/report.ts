@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '{{parrot}}ほか{{count}}羽がまねした声を自慢しましょう！',
 		feedShareConfirmMessageWithOthers_other: '{{parrot}}ほか{{count}}羽がまねした声を自慢しましょう！',
 	},
+	guide: {
+		chart: { title: 'グラフを長押ししたまま指を動かしましょう', detail: '日付ごとの累計練習時間がわかります' },
+		wordBars: { title: '言葉ごとの練習時間です', detail: 'オレンジの文字は先月より増えた時間' },
+		session: '練習をタップしてみましょう',
+		logKinds: {
+			mimic: 'まねした言葉',
+			mimicDetail: 'インコが言葉をまねしたとき',
+			parrotDetail: 'インコが鳴いたとき',
+			emergencyDetail: '緊急事態が起きたとき',
+		},
+		logItem: '記録をタップして開いてみましょう',
+		play: '再生ボタンをタップして聞いてみましょう',
+		review: '正しくまねできたか選んでください',
+		share: { title: '上手にまねできたら共有しましょう', detail: 'フィードに共有して自慢できます' },
+	},
 };
