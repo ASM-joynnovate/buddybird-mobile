@@ -13,18 +13,20 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import { ChevronRightIcon } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
 
-import LeaderboardLane from '@/screens/community/components/leaderboard-lane';
-import LeaderboardMyLane from '@/screens/community/components/leaderboard-my-lane';
+import { LEADERBOARD_PODIUM_RANK_COUNT } from '@/config/policy';
+import LeaderboardMyRank from '@/screens/community/components/leaderboard-my-rank';
+import LeaderboardPodium from '@/screens/community/components/leaderboard-podium';
 import UnrankedNotice from '@/screens/community/components/unranked-notice';
-import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
-import { leaderboardTopScore } from '@/screens/community/utils/leaderboard';
+import { leaderboardMonthStart } from '@/screens/community/utils/leaderboard';
 import { colors, font, radius } from '@/theme';
 
+import { riseIn } from '@/components/burst-animations';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const TOP_RANK_COUNT = 5;
+const MY_RANK_DELAY_MS = 1100;
 
 /** 이번 달 순위 카드 컴포넌트 */
 const LeaderboardCard = () => {
@@ -34,12 +36,9 @@ const LeaderboardCard = () => {
 
 	const { data: meData } = useGetMe();
 
-	const country = useSelectedCountry();
-
-	const { data: leaderboardData } = useGetLeaderboard({ country });
+	const { data: leaderboardData } = useGetLeaderboard({ period: 'monthly', start: leaderboardMonthStart() });
 
 	const myRank = leaderboardData.me.rank;
-	const topScore = leaderboardTopScore(leaderboardData);
 	const viewAllLabel = t('community.leaderboard.viewAll');
 
 	return (
@@ -62,38 +61,18 @@ const LeaderboardCard = () => {
 				</PressableSurface>
 			</View>
 
-			{leaderboardData.items.length > 0 && (
-				<View style={styles.laneContainer}>
-					{leaderboardData.items.slice(0, TOP_RANK_COUNT).map((rankEntry) => (
-						<LeaderboardLane
-							key={rankEntry.user.id}
-							rank={rankEntry.rank}
-							score={rankEntry.score}
-							topScore={topScore}
-							nickname={rankEntry.user.nickname}
-							photoUrl={rankEntry.user.photo_file?.url ?? null}
-							country={rankEntry.user.country}
-							isMe={rankEntry.user.id === meData.id}
-						/>
-					))}
+			<LeaderboardPodium rankEntries={leaderboardData.items} myUserId={meData.id} />
 
-					{myRank !== null && myRank > TOP_RANK_COUNT && (
-						<>
-							{myRank > TOP_RANK_COUNT + 1 && (
-								<View style={styles.gapDotRow}>
-									<View style={styles.gapDot} />
-									<View style={styles.gapDot} />
-									<View style={styles.gapDot} />
-								</View>
-							)}
-							<LeaderboardMyLane rank={myRank} score={leaderboardData.me.score} topScore={topScore} />
-						</>
-					)}
-				</View>
+			{myRank !== null && myRank > LEADERBOARD_PODIUM_RANK_COUNT && (
+				<Animated.View entering={riseIn().delay(MY_RANK_DELAY_MS)}>
+					<LeaderboardMyRank rank={myRank} score={leaderboardData.me.score} />
+				</Animated.View>
 			)}
 
 			{myRank === null && (
-				<UnrankedNotice reason={leaderboardData.me.unranked_reason} style={styles.unrankedNotice} />
+				<Animated.View entering={riseIn().delay(MY_RANK_DELAY_MS)}>
+					<UnrankedNotice reason={leaderboardData.me.unranked_reason} />
+				</Animated.View>
 			)}
 		</View>
 	);
@@ -101,9 +80,8 @@ const LeaderboardCard = () => {
 
 const styles = StyleSheet.create({
 	card: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		paddingBottom: 14,
+		gap: 16,
+		padding: 16,
 		borderWidth: 2,
 		borderColor: colors.border,
 		borderRadius: radius.card,
@@ -121,10 +99,6 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 	},
 	viewAllLabel: { fontFamily: font.extraBold, fontSize: 14, color: colors.orangeDark },
-	laneContainer: { gap: 10, marginTop: 16 },
-	gapDotRow: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginVertical: 2 },
-	gapDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.border },
-	unrankedNotice: { marginTop: 14 },
 });
 
 export default LeaderboardCard;

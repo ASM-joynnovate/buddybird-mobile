@@ -12,7 +12,7 @@ import { apiErrorMessage } from '@/lib/api';
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ClockIcon, EyeOffIcon, GlobeIcon, LogInIcon, type LucideIcon, UserPenIcon } from 'lucide-react-native';
+import { ClockIcon, EyeOffIcon, LogInIcon, type LucideIcon, UserPenIcon } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 
 import { colors, font, radius } from '@/theme';
@@ -25,7 +25,6 @@ const reasonIcons: Record<UnrankedReason, LucideIcon> = {
 	not_participating: EyeOffIcon,
 	no_nickname: UserPenIcon,
 	anonymous: LogInIcon,
-	country_mismatch: GlobeIcon,
 	no_record: ClockIcon,
 };
 

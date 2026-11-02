@@ -16,7 +16,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SECOND } from '@/config/units';
-import { bounceEasing, popIn, riseIn } from '@/screens/session/components/summary-animations';
 import SummarySpeechFillingNumber, {
 	type SummarySentence,
 } from '@/screens/session/components/summary-speech/filling-number';
@@ -24,6 +23,7 @@ import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionEndedAt } from '@/utils/date';
 
+import { bounceEasing, popIn, riseIn } from '@/components/burst-animations';
 import Mascot from '@/components/mascot';
 import { Copy } from '@/components/ui/copy';
 import { PageDots } from '@/components/ui/page-dots';

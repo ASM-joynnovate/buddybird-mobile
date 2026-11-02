@@ -2,7 +2,7 @@ import { communityUserSchema } from '@/types/apis/users';
 
 import { z } from 'zod';
 
-const unrankedReasons = ['not_participating', 'no_nickname', 'anonymous', 'country_mismatch', 'no_record'] as const;
+const unrankedReasons = ['not_participating', 'no_nickname', 'anonymous', 'no_record'] as const;
 
 const leaderboardItemSchema = z.object({
 	rank: z.number().int(),
@@ -20,10 +20,12 @@ export const leaderboardSchema = z.object({
 });
 
 export type Leaderboard = z.infer<typeof leaderboardSchema>;
+export type LeaderboardItem = z.infer<typeof leaderboardItemSchema>;
 export type UnrankedReason = (typeof unrankedReasons)[number];
 
+export type LeaderboardPeriod = 'all' | 'monthly';
+
 export interface GetLeaderboardParams {
-	period: string;
-	metric: string;
-	country: string | null;
+	period: LeaderboardPeriod;
+	start: string | null;
 }

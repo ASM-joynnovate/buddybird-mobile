@@ -18,7 +18,7 @@ interface Props {
  * @param progress 0이면 왼쪽 밖, 1이면 오른쪽 밖에 있는 진행률
  * @param width 빛줄기가 지나갈 칸의 폭
  */
-const SummaryGlint = ({ progress, width }: Props) => {
+const Glint = ({ progress, width }: Props) => {
 	const glintStyle = useAnimatedStyle(() => ({
 		transform: [
 			{ translateX: width * (GLINT_START_RATIO + (GLINT_END_RATIO - GLINT_START_RATIO) * progress.get()) },
@@ -35,4 +35,4 @@ const styles = StyleSheet.create({
 	glint: { position: 'absolute', top: -4, bottom: -4, left: 0, backgroundColor: colors.onFilled, opacity: 0.6 },
 });
 
-export default SummaryGlint;
+export default Glint;

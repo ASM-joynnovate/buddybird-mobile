@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}}の練習時間ランキング',
 		viewAll: 'すべて表示',
+		rankingTitle: '練習時間ランキング',
+		periods: {
+			all: '全期間',
+			monthly: '月別',
+		},
+		previousMonth: '前の月',
+		nextMonth: '次の月',
+		rankLimit: '{{rank}}位まで表示しています',
 		unranked: {
 			not_participating: {
 				title: 'ランキングに参加していません',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'ログインするとランキングに載ります',
 				action: 'ログイン',
 			},
-			country_mismatch: {
-				title: 'この国のランキングには入っていません',
-			},
 			no_record: {
-				title: '今月の練習記録はまだありません',
+				title: 'まだ練習記録はありません',
 			},
 		},
 	},

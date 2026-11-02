@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}}-এর শেখার সময়ের লিডারবোর্ড',
 		viewAll: 'পুরো লিডারবোর্ড',
+		rankingTitle: 'শেখার সময়ের লিডারবোর্ড',
+		periods: {
+			all: 'সব সময়',
+			monthly: 'মাসিক',
+		},
+		previousMonth: 'আগের মাস',
+		nextMonth: 'পরের মাস',
+		rankLimit: 'শীর্ষ {{rank}} জন দেখানো হচ্ছে',
 		unranked: {
 			not_participating: {
 				title: 'আপনি লিডারবোর্ডে যোগ দেননি',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'সাইন-ইন করলে লিডারবোর্ডে আসবেন',
 				action: 'সাইন-ইন',
 			},
-			country_mismatch: {
-				title: 'এই দেশের লিডারবোর্ডে আপনি নেই',
-			},
 			no_record: {
-				title: 'এই মাসে এখনো শেখার কোনো রেকর্ড নেই',
+				title: 'এখনো শেখার কোনো রেকর্ড নেই',
 			},
 		},
 	},

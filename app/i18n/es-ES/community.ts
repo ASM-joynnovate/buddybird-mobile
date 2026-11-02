@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: 'Ranking de {{month}}',
 		viewAll: 'Ver todo',
+		rankingTitle: 'Ranking',
+		periods: {
+			all: 'Todo',
+			monthly: 'Mensual',
+		},
+		previousMonth: 'Mes anterior',
+		nextMonth: 'Mes siguiente',
+		rankLimit: 'Se muestra el top {{rank}}',
 		unranked: {
 			not_participating: {
 				title: 'No participas en el ranking',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'Inicia sesión para aparecer en el ranking',
 				action: 'Iniciar sesión',
 			},
-			country_mismatch: {
-				title: 'No apareces en el ranking de este país',
-			},
 			no_record: {
-				title: 'Aún no hay entrenamientos este mes',
+				title: 'Aún no hay entrenamientos',
 			},
 		},
 	},

@@ -23,7 +23,7 @@ export const useCommunityStore = create<CommunityStore>()((set) => ({
 	reportTarget: null,
 	blockTarget: null,
 
-	/** 순위 및 피드의 국가 범위 변경 */
+	/** 피드의 국가 범위 변경 */
 	setCountryScope: (countryScope) => {
 		set((state) => ({ ...state, countryScope }));
 	},

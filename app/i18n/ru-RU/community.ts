@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: 'Рейтинг за {{month}}',
 		viewAll: 'Весь рейтинг',
+		rankingTitle: 'Рейтинг',
+		periods: {
+			all: 'За всё время',
+			monthly: 'По месяцам',
+		},
+		previousMonth: 'Предыдущий месяц',
+		nextMonth: 'Следующий месяц',
+		rankLimit: 'Показан топ-{{rank}}',
 		unranked: {
 			not_participating: {
 				title: 'Ты не участвуешь в рейтинге',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'Войди, чтобы попасть в рейтинг',
 				action: 'Войти',
 			},
-			country_mismatch: {
-				title: 'Тебя нет в рейтинге этой страны',
-			},
 			no_record: {
-				title: 'В этом месяце пока нет занятий',
+				title: 'Пока нет занятий',
 			},
 		},
 	},

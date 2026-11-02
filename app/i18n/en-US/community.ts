@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}} leaderboard',
 		viewAll: 'View all',
+		rankingTitle: 'Leaderboard',
+		periods: {
+			all: 'All time',
+			monthly: 'Monthly',
+		},
+		previousMonth: 'Previous month',
+		nextMonth: 'Next month',
+		rankLimit: 'Showing the top {{rank}}',
 		unranked: {
 			not_participating: {
 				title: "You're not on the leaderboard",
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'Sign in to appear on the leaderboard',
 				action: 'Sign in',
 			},
-			country_mismatch: {
-				title: "You're not on this country's leaderboard",
-			},
 			no_record: {
-				title: 'No learning records this month yet',
+				title: 'No learning records yet',
 			},
 		},
 	},

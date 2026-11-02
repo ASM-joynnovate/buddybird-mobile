@@ -15,6 +15,14 @@ export const community: CommunityMessages = {
 	leaderboard: {
 		title: '{{month}} की ट्रेनिंग रैंकिंग',
 		viewAll: 'पूरी रैंकिंग',
+		rankingTitle: 'ट्रेनिंग रैंकिंग',
+		periods: {
+			all: 'अब तक',
+			monthly: 'मासिक',
+		},
+		previousMonth: 'पिछला महीना',
+		nextMonth: 'अगला महीना',
+		rankLimit: 'टॉप {{rank}} दिखाए जा रहे हैं',
 		unranked: {
 			not_participating: {
 				title: 'आप रैंकिंग में शामिल नहीं हैं',
@@ -29,11 +37,8 @@ export const community: CommunityMessages = {
 				title: 'साइन इन करने पर आप रैंकिंग में दिखेंगे',
 				action: 'साइन इन करें',
 			},
-			country_mismatch: {
-				title: 'इस देश की रैंकिंग में आप नहीं हैं',
-			},
 			no_record: {
-				title: 'इस महीने अभी तक कोई ट्रेनिंग रिकॉर्ड नहीं है',
+				title: 'अभी तक कोई ट्रेनिंग रिकॉर्ड नहीं है',
 			},
 		},
 	},

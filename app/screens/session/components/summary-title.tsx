@@ -8,11 +8,11 @@ import { formatTimeOrDateTime } from '@/i18n/format';
 
 import Animated from 'react-native-reanimated';
 
-import { popIn, riseIn } from '@/screens/session/components/summary-animations';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, font } from '@/theme';
 import { sessionEndedAt } from '@/utils/date';
 
+import { popIn, riseIn } from '@/components/burst-animations';
 import { Copy } from '@/components/ui/copy';
 import { Title } from '@/components/ui/title';
 

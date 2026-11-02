@@ -18,14 +18,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import CountUpText from '@/screens/session/components/count-up-text';
-import { bounceEasing, bumpScale, glintSweep, popIn } from '@/screens/session/components/summary-animations';
 import { type SummaryMetric, summaryMetricColors } from '@/screens/session/components/summary-colors';
-import SummaryGlint from '@/screens/session/components/summary-glint';
 import SummaryStatsFlyingNumber from '@/screens/session/components/summary-stats/flying-number';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { useSessionStore } from '@/stores/session';
 import { colors, font, radius } from '@/theme';
 
+import { bounceEasing, bumpScale, glintSweep, popIn } from '@/components/burst-animations';
+import Glint from '@/components/glint';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
@@ -147,7 +147,7 @@ const SummaryStatsItem = ({ stat, revealed }: Props) => {
 					style={styles.glintContainer}
 					onLayout={(event) => setChipWidth(event.nativeEvent.layout.width)}
 				>
-					<SummaryGlint progress={glint} width={chipWidth} />
+					<Glint progress={glint} width={chipWidth} />
 				</View>
 
 				<Copy numberOfLines={1} style={styles.label}>
