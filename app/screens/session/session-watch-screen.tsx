@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -13,6 +13,7 @@ import { homeKeys } from '@/hooks/apis/keys/home';
 import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
 import { useFinishSession, useGetSessionQuery } from '@/hooks/apis/sessions';
+import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
 
@@ -22,16 +23,21 @@ import dayjs from 'dayjs';
 import { useKeepAwake } from 'expo-keep-awake';
 import { CameraOffIcon, ChevronLeftIcon } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { type MediaStream, RTCView } from 'react-native-webrtc';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mediaDevices, type MediaStream, RTCView } from 'react-native-webrtc';
 import { toast } from 'sonner-native';
 
 import { HEARTBEAT_INTERVAL_MS, SESSION_INFO_FADE_MS } from '@/config/policy';
 import CameraButton from '@/screens/session/components/camera-button';
 import SessionEndDialog from '@/screens/session/components/session-end-dialog';
 import SessionRunInfo from '@/screens/session/components/session-run-info';
+import TalkButton from '@/screens/session/components/talk-button';
 import ZoomableView from '@/screens/session/components/zoomable-view';
-import { createPetcamReceiver, type PetcamReceiver } from '@/screens/session/services/petcam-connection';
+import {
+	closeMediaStream,
+	createPetcamReceiver,
+	type PetcamReceiver,
+} from '@/screens/session/services/petcam-connection';
 import { recordPetcamVideoStats } from '@/screens/session/services/petcam-telemetry';
 import { getPetcamCameraRequestTimeoutMs, getPetcamConnectTimeoutMs } from '@/services/remote-config/client';
 import { reportError } from '@/services/telemetry/client';
@@ -39,11 +45,15 @@ import { useSessionStore } from '@/stores/session';
 import { font } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
+import PermissionDialog from '@/components/dialogs/permission-dialog';
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 import { dialogToasterId, Toast } from '@/components/ui/toast';
 
 const ICON_SIZE = 22;
+const SCREEN_PADDING = 24;
+const TALK_BUTTON_BOTTOM = 16;
+const TALK_BUTTON_INSET = 72;
 
 /** 영상이 없을 때 표시할 안내를 반환하는 함수 */
 const watchStatus = (petcamState: PetcamState | null, stationUnreachable: boolean) => {
@@ -68,16 +78,20 @@ const SessionWatchScreen = () => {
 
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
+	const insets = useSafeAreaInsets();
 
 	const opacity = useSharedValue(1);
+	const microphoneLevel = useSharedValue(0);
 
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 	const [petcamState, setPetcamState] = useState<PetcamState | null>(null);
 	const [stream, setStream] = useState<MediaStream | null>(null);
 	const [stationUnreachable, setStationUnreachable] = useState(false);
 	const [cameraRequestPending, setCameraRequestPending] = useState(false);
+	const [microphoneOn, setMicrophoneOn] = useState(false);
 
 	const leavingRef = useRef(false);
+	const talkButtonPressedRef = useRef(false);
 	const petcamReceiverRef = useRef<PetcamReceiver | null>(null);
 
 	const { data: sessionData, error: sessionError } = useGetSessionQuery(
@@ -92,6 +106,8 @@ const SessionWatchScreen = () => {
 
 	const showInfo = useSessionStore((state) => state.showInfo);
 	const resetSessionScreen = useSessionStore((state) => state.resetSessionScreen);
+
+	const microphonePermission = usePermission('microphone');
 
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
@@ -126,6 +142,7 @@ const SessionWatchScreen = () => {
 			},
 			onStream: setStream,
 			onVideoStats: (stats) => recordPetcamVideoStats('receiver', stats),
+			onAudioLevel: (audioLevel) => microphoneLevel.set(audioLevel),
 			onError: (error) => reportError(error, 'petcam_receiver'),
 		});
 
@@ -136,7 +153,7 @@ const SessionWatchScreen = () => {
 
 			receiver.close();
 		};
-	}, [issuePetcamTurnCredential, params.sessionId]);
+	}, [issuePetcamTurnCredential, microphoneLevel, params.sessionId]);
 
 	/** Station 응답이 없으면 안내 표시 */
 	useEffect(() => {
@@ -148,6 +165,59 @@ const SessionWatchScreen = () => {
 
 		return () => clearTimeout(timer);
 	}, [petcamState]);
+
+	/** 누르는 동안 마이크 소리 전송 */
+	useEffect(() => {
+		if (!microphoneOn) {
+			return;
+		}
+
+		let openedStream: MediaStream | null = null;
+		let active = true;
+
+		void mediaDevices
+			.getUserMedia({ audio: true, video: false })
+			.then((microphoneStream) => {
+				if (!active) {
+					closeMediaStream(microphoneStream);
+
+					return;
+				}
+
+				openedStream = microphoneStream;
+
+				petcamReceiverRef.current?.setAudioTrack(microphoneStream.getAudioTracks()[0] ?? null);
+			})
+			.catch((error: unknown) => reportError(error, 'petcam_viewer_microphone'));
+
+		return () => {
+			active = false;
+
+			petcamReceiverRef.current?.setAudioTrack(null);
+
+			if (openedStream) {
+				closeMediaStream(openedStream);
+			}
+		};
+	}, [microphoneOn]);
+
+	/** 영상이 없으면 말하기 종료 */
+	useEffect(() => {
+		if (!stream) {
+			setMicrophoneOn(false);
+		}
+	}, [stream]);
+
+	/** 앱 비활성 시 말하기 종료 */
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', (appState) => {
+			if (appState !== 'active') {
+				setMicrophoneOn(false);
+			}
+		});
+
+		return () => subscription.remove();
+	}, []);
 
 	/** 응답이 없으면 카메라 요청 취소 */
 	useEffect(() => {
@@ -206,6 +276,23 @@ const SessionWatchScreen = () => {
 		setCameraRequestPending(true);
 
 		petcamReceiverRef.current?.setCamera(!cameraOn);
+	};
+
+	const handleStartTalking = () => {
+		talkButtonPressedRef.current = true;
+
+		// 누름이 끝났으면 시작하지 않음
+		void microphonePermission.runWithPermission(() => {
+			if (talkButtonPressedRef.current) {
+				showInfo();
+				setMicrophoneOn(true);
+			}
+		});
+	};
+
+	const handleStopTalking = () => {
+		talkButtonPressedRef.current = false;
+		setMicrophoneOn(false);
 	};
 
 	const handleOpenEndDialog = () => {
@@ -299,11 +386,32 @@ const SessionWatchScreen = () => {
 					startedAt={sessionData.period.started_at}
 					endsAt={sessionData.schedule.ends_at ? dayjs(sessionData.schedule.ends_at).valueOf() : null}
 					sleep={sessionData.schedule.sleep}
-					pauseNotice={stream ? t('session.watch.learningPaused') : null}
+					pauseNotice={
+						stream ? t(microphoneOn ? 'session.watch.talkingNotice' : 'session.watch.learningPaused') : null
+					}
+					bottomInset={stream ? TALK_BUTTON_INSET : 0}
 					onEnd={handleOpenEndDialog}
 					header={header}
 				/>
 			</Animated.View>
+
+			{!!stream && (
+				<View
+					style={{
+						position: 'absolute',
+						left: SCREEN_PADDING + insets.left,
+						right: SCREEN_PADDING + insets.right,
+						bottom: TALK_BUTTON_BOTTOM + insets.bottom,
+					}}
+				>
+					<TalkButton
+						talking={microphoneOn}
+						audioLevel={microphoneLevel}
+						onTalkStart={handleStartTalking}
+						onTalkEnd={handleStopTalking}
+					/>
+				</View>
+			)}
 
 			<SessionEndDialog
 				visible={endDialogOpen}
@@ -311,6 +419,7 @@ const SessionWatchScreen = () => {
 				onConfirm={handleEnd}
 				onClose={() => setEndDialogOpen(false)}
 			/>
+			<PermissionDialog state={microphonePermission.dialog} />
 		</View>
 	);
 };

@@ -11,6 +11,7 @@ import {
 	type PetcamSenderPeer,
 	type PetcamSignaling,
 	type PetcamTurnCredentialIssuer,
+	petcamAudioSourceStatsSchema,
 	petcamCandidateSchema,
 	petcamDescriptionSchema,
 	petcamMessageSchema,
@@ -24,6 +25,7 @@ import type { z } from 'zod';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import dayjs from 'dayjs';
+import { setAudioModeAsync } from 'expo-audio';
 import { randomUUID } from 'expo-crypto';
 import {
 	type MediaStream,
@@ -34,7 +36,7 @@ import {
 	RTCSessionDescription,
 } from 'react-native-webrtc';
 
-import { PETCAM_ICE_SERVERS } from '@/config/policy';
+import { PETCAM_AUDIO_LEVEL_INTERVAL_MS, PETCAM_ICE_SERVERS } from '@/config/policy';
 import { BITS_PER_BYTE } from '@/config/units';
 import {
 	getPetcamConnectTimeoutMs,
@@ -56,6 +58,12 @@ interface EarlyCandidate {
 	offerId: string;
 	candidate: PetcamCandidate;
 }
+
+/** MediaStream 닫기 함수 */
+export const closeMediaStream = (stream: MediaStream) => {
+	stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
+	stream.release();
+};
 
 /** signaling 채널 연결 함수 */
 const openSignaling = (
@@ -173,8 +181,8 @@ const addPeerListener = <Type extends keyof PetcamPeerEvents>(
 	(connection as unknown as PetcamPeerEventTarget).addEventListener(type, listener);
 };
 
-/** peer의 영상 통계를 반환하는 함수 */
-const readVideoStats = async <Stats>(connection: RTCPeerConnection, schema: z.ZodType<Stats>) => {
+/** peer의 통계를 반환하는 함수 */
+const readStats = async <Stats>(connection: RTCPeerConnection, schema: z.ZodType<Stats>) => {
 	const reports: Map<string, unknown> = await connection.getStats();
 
 	return (
@@ -214,6 +222,16 @@ const createPeer = (
 	addPeerListener(connection, 'icecandidate', (event) => {
 		if (event.candidate) {
 			onCandidate(petcamCandidateSchema.parse(event.candidate.toJSON()));
+		}
+	});
+	addPeerListener(connection, 'connectionstatechange', () => {
+		// 출력을 스피커로 변경
+		if (connection.connectionState === 'connected') {
+			void setAudioModeAsync({
+				playsInSilentMode: true,
+				allowsRecording: true,
+				shouldRouteThroughEarpiece: false,
+			}).catch(onError);
 		}
 	});
 
@@ -297,7 +315,7 @@ export const createPetcamSender = ({
 			[...peers]
 				.filter(([, { peer }]) => peer.connection.connectionState === 'connected')
 				.map(async ([viewerId, { peer }]) => {
-					const stats = await readVideoStats(peer.connection, petcamSentVideoStatsSchema);
+					const stats = await readStats(peer.connection, petcamSentVideoStatsSchema);
 
 					if (!stats) {
 						return;
@@ -355,9 +373,9 @@ export const createPetcamSender = ({
 
 		const videoSenders = stream.getVideoTracks().map((track) => peer.connection.addTrack(track, stream));
 
-		// 소리 전송용 transceiver
+		// 소리 송수신 transceiver
 		const { sender: audioSender } = peer.connection.addTransceiver('audio', {
-			direction: 'sendonly',
+			direction: 'sendrecv',
 			streams: [stream],
 		});
 
@@ -482,6 +500,7 @@ export const createPetcamReceiver = ({
 	onState,
 	onStream,
 	onVideoStats,
+	onAudioLevel,
 	onError,
 }: PetcamReceiverOptions) => {
 	const viewerId = randomUUID();
@@ -490,11 +509,15 @@ export const createPetcamReceiver = ({
 	let offerId: string | null = null;
 	// peer보다 먼저 도착한 candidate
 	let earlyCandidates: EarlyCandidate[] = [];
+	let audioTrack: MediaStreamTrack | null = null;
+	let audioSender: RTCRtpSender | null = null;
+	let audioLevelTimer: ReturnType<typeof setInterval> | null = null;
 
 	/** 수신 중인 peer 닫기 함수 */
 	const closePeer = () => {
 		offerId = null;
 		earlyCandidates = [];
+		audioSender = null;
 
 		peer?.close();
 		peer = null;
@@ -508,7 +531,7 @@ export const createPetcamReceiver = ({
 			return;
 		}
 
-		const stats = await readVideoStats(peer.connection, petcamReceivedVideoStatsSchema);
+		const stats = await readStats(peer.connection, petcamReceivedVideoStatsSchema);
 
 		if (stats) {
 			onVideoStats({
@@ -522,6 +545,27 @@ export const createPetcamReceiver = ({
 	};
 
 	const statsTimer = setInterval(() => void reportVideoStats().catch(onError), getPetcamStatsIntervalMs());
+
+	/** 보내는 마이크 소리 크기 전달 함수 */
+	const reportAudioLevel = async () => {
+		if (peer?.connection.connectionState !== 'connected') {
+			return;
+		}
+
+		const stats = await readStats(peer.connection, petcamAudioSourceStatsSchema);
+
+		if (stats) {
+			onAudioLevel(stats.audioLevel);
+		}
+	};
+
+	/** 소리 크기 폴링 중지 함수 */
+	const stopAudioLevelPolling = () => {
+		if (audioLevelTimer) {
+			clearInterval(audioLevelTimer);
+			audioLevelTimer = null;
+		}
+	};
 
 	/** offer에 answer를 보내는 함수 */
 	const sendAnswer = async (acceptedOfferId: string, description: PetcamDescription) => {
@@ -570,6 +614,20 @@ export const createPetcamReceiver = ({
 
 		await createdPeer.setRemoteDescription(description);
 
+		// answer 전에 송신 방향 설정
+		const audioTransceiver = createdPeer.connection
+			.getTransceivers()
+			.find((transceiver) => transceiver.receiver.track?.kind === 'audio');
+
+		if (audioTransceiver && peer === createdPeer) {
+			audioTransceiver.direction = 'sendrecv';
+			audioSender = audioTransceiver.sender;
+
+			if (audioTrack) {
+				void audioSender.replaceTrack(audioTrack).catch(onError);
+			}
+		}
+
 		const localDescription = petcamDescriptionSchema.parse(await createdPeer.connection.createAnswer());
 
 		await createdPeer.connection.setLocalDescription(localDescription);
@@ -607,9 +665,25 @@ export const createPetcamReceiver = ({
 	return {
 		/** Station 카메라 상태 요청 함수 */
 		setCamera: (cameraOn: boolean) => signaling.send({ type: 'camera-set', cameraOn }),
+		/** 보낼 마이크 소리 변경 함수 */
+		setAudioTrack: (track: MediaStreamTrack | null) => {
+			audioTrack = track;
+
+			void audioSender?.replaceTrack(track).catch(onError);
+
+			stopAudioLevelPolling();
+
+			if (track) {
+				audioLevelTimer = setInterval(
+					() => void reportAudioLevel().catch(onError),
+					PETCAM_AUDIO_LEVEL_INTERVAL_MS,
+				);
+			}
+		},
 		/** 영상 수신 종료 함수 */
 		close: () => {
 			clearInterval(statsTimer);
+			stopAudioLevelPolling();
 
 			signaling.send({ type: 'viewer-leave', viewerId });
 

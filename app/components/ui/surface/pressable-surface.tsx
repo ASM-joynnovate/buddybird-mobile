@@ -6,10 +6,12 @@ import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handl
 import { ReduceMotion, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { SECOND } from '@/config/units';
+import { MINUTE, SECOND } from '@/config/units';
 import { depths } from '@/theme';
 
 import { Surface, type SurfaceProps } from '@/components/ui/surface';
+
+const HOLD_MAX_DISTANCE = 100;
 
 interface PressPoint {
 	x: number;
@@ -17,7 +19,9 @@ interface PressPoint {
 }
 
 interface Props extends SurfaceProps {
-	onPress: (point: PressPoint) => void;
+	onPress?: (point: PressPoint) => void;
+	onPressIn?: () => void;
+	onPressOut?: () => void;
 	onSwipeLeft?: () => void;
 	onSwipeRight?: () => void;
 	disabled?: boolean;
@@ -27,6 +31,8 @@ export type PressableSurfaceProps = Props;
 
 export const PressableSurface = ({
 	onPress,
+	onPressIn,
+	onPressOut,
 	onSwipeLeft,
 	onSwipeRight,
 	disabled = false,
@@ -49,7 +55,7 @@ export const PressableSurface = ({
 	const activate = useCallback(
 		(x = 0, y = 0) => {
 			if (!disabled) {
-				onPress({ x, y });
+				onPress?.({ x, y });
 			}
 		},
 		[disabled, onPress],
@@ -59,10 +65,15 @@ export const PressableSurface = ({
 		() =>
 			Gesture.Tap()
 				.enabled(!disabled)
-				.maxDuration(10 * SECOND)
-				.maxDistance(10)
+				// 누르는 동안 유지
+				.maxDuration(onPressIn ? 10 * MINUTE : 10 * SECOND)
+				.maxDistance(onPressIn ? HOLD_MAX_DISTANCE : 10)
 				.onBegin(() => {
 					pressProgress.set(withTiming(1, { duration: 60, reduceMotion: ReduceMotion.System }));
+
+					if (onPressIn) {
+						scheduleOnRN(onPressIn);
+					}
 				})
 				.onEnd((event, tapSucceeded) => {
 					if (tapSucceeded) {
@@ -71,8 +82,12 @@ export const PressableSurface = ({
 				})
 				.onFinalize(() => {
 					pressProgress.set(withTiming(0, { duration: 60, reduceMotion: ReduceMotion.System }));
+
+					if (onPressOut) {
+						scheduleOnRN(onPressOut);
+					}
 				}),
-		[activate, disabled, pressProgress],
+		[activate, disabled, onPressIn, onPressOut, pressProgress],
 	);
 
 	const gesture = useMemo(() => {
