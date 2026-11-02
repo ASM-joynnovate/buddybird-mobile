@@ -27,6 +27,7 @@ type DeviceSettingsActions = {
 	setOnboardingCompleted: (onboardingCompleted: boolean) => void;
 	setUsageGuideSeen: (usageGuideSeen: boolean) => void;
 	setPetcamGuideSeen: (petcamGuideSeen: boolean) => void;
+	setReportGuideSeen: (reportGuideSeen: boolean) => void;
 	setPullToRefreshUsed: (pullToRefreshUsed: boolean) => void;
 	markPullToRefreshHintShown: (screenName: string) => void;
 	importLegacySettings: (settings: LegacySettings) => void;
@@ -56,6 +57,7 @@ const defaultDeviceSettings = (): DeviceSettings => {
 		onboardingCompleted: false,
 		usageGuideSeen: false,
 		petcamGuideSeen: false,
+		reportGuideSeen: false,
 		pullToRefreshUsed: false,
 		pullToRefreshHintShownScreens: [],
 		legacyMigration: initialLegacyMigration,
@@ -131,6 +133,11 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				set((state) => ({ ...state, petcamGuideSeen }));
 			},
 
+			/** 리포트 안내 확인 여부 저장 */
+			setReportGuideSeen: (reportGuideSeen) => {
+				set((state) => ({ ...state, reportGuideSeen }));
+			},
+
 			/** 당겨서 새로고침 사용 여부 저장 */
 			setPullToRefreshUsed: (pullToRefreshUsed) => {
 				set((state) => ({ ...state, pullToRefreshUsed }));
@@ -194,6 +201,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				onboardingCompleted,
 				usageGuideSeen,
 				petcamGuideSeen,
+				reportGuideSeen,
 				pullToRefreshUsed,
 				pullToRefreshHintShownScreens,
 				legacyMigration,
@@ -208,6 +216,7 @@ export const useDeviceSettingsStore = create<DeviceSettingsStore>()(
 				onboardingCompleted,
 				usageGuideSeen,
 				petcamGuideSeen,
+				reportGuideSeen,
 				pullToRefreshUsed,
 				pullToRefreshHintShownScreens,
 				legacyMigration,

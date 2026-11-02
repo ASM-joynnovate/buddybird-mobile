@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '來炫耀{{parrot}}和其他 {{count}} 隻鸚鵡模仿的聲音吧！',
 		feedShareConfirmMessageWithOthers_other: '來炫耀{{parrot}}和其他 {{count}} 隻鸚鵡模仿的聲音吧！',
 	},
+	guide: {
+		chart: { title: '按住圖表滑動看看', detail: '可以看到每個日期的累計學習時間' },
+		wordBars: { title: '每個單字的學習時間', detail: '橘色文字是比上個月增加的時間' },
+		session: '點一下這次學習看看',
+		logKinds: {
+			mimic: '模仿的話',
+			mimicDetail: '鸚鵡模仿詞語時',
+			parrotDetail: '鸚鵡啾啾叫時',
+			emergencyDetail: '發生緊急狀況時',
+		},
+		logItem: '點一下記錄展開看看',
+		play: '點一下播放按鈕聽聽看',
+		review: '請選擇模仿得對不對',
+		share: { title: '模仿得好就分享吧', detail: '也可以分享到動態炫耀一下' },
+	},
 };

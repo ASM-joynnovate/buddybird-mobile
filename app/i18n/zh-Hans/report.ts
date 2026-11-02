@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '来炫耀一下{{parrot}}和另外{{count}}只鹦鹉模仿的声音吧！',
 		feedShareConfirmMessageWithOthers_other: '来炫耀一下{{parrot}}和另外{{count}}只鹦鹉模仿的声音吧！',
 	},
+	guide: {
+		chart: { title: '按住图表滑动试试', detail: '可以看到每个日期的累计学习时长' },
+		wordBars: { title: '每个词语的学习时长', detail: '橙色文字是比上月增加的时长' },
+		session: '轻点这条学习记录试试',
+		logKinds: {
+			mimic: '模仿的话',
+			mimicDetail: '鹦鹉模仿词语时',
+			parrotDetail: '鹦鹉鸣叫时',
+			emergencyDetail: '发生紧急情况时',
+		},
+		logItem: '轻点记录展开看看',
+		play: '轻点播放按钮听一听',
+		review: '请选择模仿得对不对',
+		share: { title: '模仿得好就分享吧', detail: '还可以分享到动态炫耀一下' },
+	},
 };

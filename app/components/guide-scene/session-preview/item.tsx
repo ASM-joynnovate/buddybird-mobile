@@ -6,11 +6,12 @@ import type { LogItemKind } from '@/types/session-log';
 
 import { useTranslation } from 'react-i18next';
 
-import { CheckIcon, ShareIcon, XIcon } from 'lucide-react-native';
+import { CheckIcon, XIcon } from 'lucide-react-native';
 
 import { colors, font } from '@/theme';
 import { sessionDetailColors } from '@/theme/session-detail-colors';
 
+import GuideSceneSessionPreviewShares from '@/components/guide-scene/session-preview/shares';
 import SessionLogItemHead from '@/components/session/session-log-item-head';
 import { Copy } from '@/components/ui/copy';
 import { Surface } from '@/components/ui/surface';
@@ -74,16 +75,7 @@ const GuideSceneSessionPreviewItem = ({
 						</Surface>
 					</View>
 
-					<View style={styles.shares}>
-						<Surface cornerRadius="control" contentStyle={styles.shareFace}>
-							<ShareIcon size={20} color={colors.text} />
-						</Surface>
-						{feedShareShown && (
-							<Surface cornerRadius="control" style={styles.button} contentStyle={styles.buttonFace}>
-								<Copy style={styles.buttonLabel}>{t('report.detail.shareToFeed')}</Copy>
-							</Surface>
-						)}
-					</View>
+					<GuideSceneSessionPreviewShares feedShareShown={feedShareShown} />
 				</View>
 			)}
 		</View>
@@ -95,7 +87,6 @@ const styles = StyleSheet.create({
 	containerOpen: { backgroundColor: sessionDetailColors.openFace },
 	panel: { paddingBottom: 18 },
 	review: { flexDirection: 'row', gap: 10, marginTop: 14 },
-	shares: { flexDirection: 'row', gap: 10, marginTop: 12 },
 	button: { flex: 1 },
 	buttonFace: {
 		minHeight: 52,
@@ -112,7 +103,6 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase',
 		color: colors.text,
 	},
-	shareFace: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default GuideSceneSessionPreviewItem;

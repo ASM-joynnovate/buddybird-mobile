@@ -101,4 +101,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_many: '{{parrot}} 외 {{count}}마리가 따라 한 소리를 자랑해 보세요!',
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} 외 {{count}}마리가 따라 한 소리를 자랑해 보세요!',
 	},
+	guide: {
+		chart: { title: '그래프를 꾹 누른 채 밀어 보세요', detail: '날짜별로 쌓인 학습 시간이 보여요' },
+		wordBars: { title: '단어마다 가르친 시간이에요', detail: '주황 글자는 지난달보다 늘어난 시간' },
+		session: '학습을 눌러 보세요',
+		logKinds: {
+			mimic: '따라 한 말',
+			mimicDetail: '앵무새가 단어를 따라 할 경우',
+			parrotDetail: '앵무새가 짹짹거릴 경우',
+			emergencyDetail: '응급 상황이 발생했을 경우',
+		},
+		logItem: '기록을 눌러 펼쳐 보세요',
+		play: '재생을 눌러 들어 보세요',
+		review: '따라 했는지 골라 주세요',
+		share: { title: '잘 따라 했으면 공유해 보세요', detail: '피드에 올려 자랑할 수도 있어요' },
+	},
 };

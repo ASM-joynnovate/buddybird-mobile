@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+
 import { StyleSheet, View } from 'react-native';
 
 import type { MainTabParamList } from '@/types/navigation';
@@ -6,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CommonMessages } from '@/i18n/types/common';
 
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BottomTabBarHeightCallbackContext, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import {
 	ChartNoAxesColumnIcon,
 	HouseIcon,
@@ -46,6 +48,7 @@ interface Props extends BottomTabBarProps {}
  */
 const TabBar = ({ state, navigation, insets }: Props) => {
 	const { t } = useTranslation();
+	const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
 
 	const handleSelectTab = (route: TabRoute, selected: boolean) => {
 		const event = navigation.emit({
@@ -62,7 +65,10 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 	};
 
 	return (
-		<View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 30) }]}>
+		<View
+			onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
+			style={[styles.container, { paddingBottom: Math.max(insets.bottom, 30) }]}
+		>
 			{state.routes.map((route, index) => {
 				const selected = state.index === index;
 				const tab = tabs[route.name as keyof MainTabParamList];

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -75,14 +75,29 @@ const ReportHeaderTrendPane = ({ start, lineAnimated, onScrubChange }: Props) =>
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	if (!reportData || !previousReportData) {
+	// 그래프 누름 상태 초기화 방지
+	const currentTotalsMs = useMemo(() => {
+		if (!reportData) {
+			return null;
+		}
+
+		const startedBucketCount = reportData.active.trend.filter((bucket) =>
+			dayjs(bucket.start).isBefore(dayjs()),
+		).length;
+
+		return cumulativeTotals(reportData.active.trend).slice(0, startedBucketCount + 1);
+	}, [reportData]);
+	const previousTotalsMs = useMemo(
+		() => (previousReportData ? cumulativeTotals(previousReportData.active.trend) : null),
+		[previousReportData],
+	);
+
+	if (!reportData || !currentTotalsMs || !previousReportData || !previousTotalsMs) {
 		return <ReportHeaderTrendPaneSkeleton />;
 	}
 
 	const trend = reportData.active.trend;
-	const startedBucketCount = trend.filter((bucket) => dayjs(bucket.start).isBefore(dayjs())).length;
-	const currentTotalsMs = cumulativeTotals(trend).slice(0, startedBucketCount + 1);
-	const previousTotalsMs = cumulativeTotals(previousReportData.active.trend);
+	const startedBucketCount = currentTotalsMs.length - 1;
 	const shownIndex = scrubIndex ?? startedBucketCount;
 	const previousShownMs = previousTotalsMs[Math.min(shownIndex, previousTotalsMs.length - 1)];
 	const changeMs = currentTotalsMs[shownIndex] - previousShownMs;

@@ -21,18 +21,18 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors, font, radius } from '@/theme';
+import { colors, font } from '@/theme';
+import { signDropProgress } from '@/utils/buddy-sign';
 
 import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/components/buddy-refresh/constants';
+import BuddySign from '@/components/buddy-sign';
+import { SIGN_DROP_DISTANCE } from '@/components/buddy-sign/constants';
 import MascotArtwork from '@/components/mascot/artwork';
 import { Copy } from '@/components/ui/copy';
 
 const CORD_ABOVE = 60;
-const CORD_INSET = 22;
 const SIGN_TOP = 62;
-const SIGN_HEIGHT = 44;
 const HINT_HEIGHT = 110;
-const DROP_DISTANCE = 160;
 
 const STAY_MS = 2.9 * SECOND;
 const LEAVE_MS = 400;
@@ -53,13 +53,6 @@ const ARROW_MS = 450;
 
 const easeOut = Easing.out(Easing.cubic);
 const easeIn = Easing.in(Easing.cubic);
-
-/** 낙하 바운스 진행률을 계산하는 함수 */
-const dropProgress = (seconds: number) => {
-	'worklet';
-
-	return seconds <= 0 ? 0 : 1 - Math.exp(-8 * seconds) * Math.cos(12 * seconds);
-};
 
 /** 날개 각도 비율을 계산하는 함수 */
 const flapRatio = (elapsedMs: number, startMs: number) => {
@@ -127,12 +120,12 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 		const elapsedMs = elapsed.get();
 		const hideProgress =
 			elapsedMs < STAY_MS
-				? 1 - dropProgress(elapsedMs / SECOND)
+				? 1 - signDropProgress(elapsedMs / SECOND)
 				: easeIn(Math.min((elapsedMs - STAY_MS) / LEAVE_MS, 1));
 
 		return {
 			transform: [
-				{ translateY: motionReduced ? 0 : -hideProgress * DROP_DISTANCE },
+				{ translateY: motionReduced ? 0 : -hideProgress * SIGN_DROP_DISTANCE },
 				{ rotate: `${swayAngle.get()}deg` },
 			],
 		};
@@ -191,16 +184,16 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 	return (
 		<Animated.View pointerEvents="none" style={[styles.container, containerStyle]}>
 			<Animated.View style={[styles.signContainer, signStyle]}>
-				<View style={styles.cords}>
-					{mascotShown && (
-						<>
-							<View style={[styles.cord, styles.leftCord]} />
-							<View style={[styles.cord, styles.rightCord]} />
-						</>
-					)}
-				</View>
-
-				<View style={styles.sign}>
+				<BuddySign
+					cordLength={CORD_ABOVE + SIGN_TOP}
+					mascot={
+						mascotShown ? (
+							<Animated.View style={[styles.mascot, mascotStyle]}>
+								<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
+							</Animated.View>
+						) : undefined
+					}
+				>
 					<View style={styles.arrows}>
 						<Animated.View style={upArrowStyle}>
 							<ChevronUpIcon size={16} strokeWidth={3} color={colors.orangeDark} />
@@ -212,13 +205,7 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 					<Copy numberOfLines={1} style={styles.text}>
 						{t('common.pullToRefresh.hint')}
 					</Copy>
-				</View>
-
-				{mascotShown && (
-					<Animated.View style={[styles.mascot, mascotStyle]}>
-						<MascotArtwork wingAngle={wingAngle} happyEyesProgress={happyEyesProgress} />
-					</Animated.View>
-				)}
+				</BuddySign>
 			</Animated.View>
 		</Animated.View>
 	);
@@ -226,31 +213,11 @@ const BuddyRefreshHint = ({ mascotShown }: Props) => {
 
 const styles = StyleSheet.create({
 	container: { overflow: 'hidden', alignItems: 'center' },
-	signContainer: { marginTop: -CORD_ABOVE, transformOrigin: 'top' },
-	cords: { height: CORD_ABOVE + SIGN_TOP },
-	cord: { position: 'absolute', top: 0, bottom: 0, width: 2, borderRadius: 1, backgroundColor: colors.text },
-	leftCord: { left: CORD_INSET },
-	rightCord: { right: CORD_INSET },
-	sign: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 6,
-		height: SIGN_HEIGHT,
-		paddingRight: 16,
-		paddingLeft: 12,
-		borderWidth: 2,
-		borderColor: colors.border,
-		borderRadius: radius.tile,
-		borderCurve: 'continuous',
-		backgroundColor: colors.background,
-	},
+	signContainer: { marginTop: -CORD_ABOVE, paddingTop: CORD_ABOVE + SIGN_TOP, transformOrigin: 'top' },
 	arrows: { alignItems: 'center' },
 	downArrow: { marginTop: -8 },
 	text: { fontFamily: font.extraBold, fontSize: 14 },
 	mascot: {
-		position: 'absolute',
-		top: CORD_ABOVE + SIGN_TOP + 1 - MASCOT_FOOT_Y,
-		alignSelf: 'center',
 		width: MASCOT_SIZE,
 		height: MASCOT_SIZE,
 		transformOrigin: [MASCOT_SIZE / 2, MASCOT_FOOT_Y, 0],

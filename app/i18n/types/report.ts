@@ -91,4 +91,28 @@ export type ReportMessages = {
 	} & PluralMessages<'mimicCountValue'> &
 		PluralMessages<'emergencyCountValue'> &
 		PluralMessages<'feedShareConfirmMessageWithOthers'>;
+	guide: {
+		chart: {
+			title: string;
+			detail: string;
+		};
+		wordBars: {
+			title: string;
+			detail: string;
+		};
+		session: string;
+		logKinds: {
+			mimic: string;
+			mimicDetail: string;
+			parrotDetail: string;
+			emergencyDetail: string;
+		};
+		logItem: string;
+		play: string;
+		review: string;
+		share: {
+			title: string;
+			detail: string;
+		};
+	};
 };

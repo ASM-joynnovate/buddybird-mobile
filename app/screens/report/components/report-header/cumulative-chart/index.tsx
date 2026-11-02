@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -138,11 +138,16 @@ const ReportHeaderCumulativeChart = ({
 	const guideStepMs =
 		GUIDE_STEPS_MS.find((stepMs) => topMs / stepMs <= MAX_GUIDE_COUNT) ?? GUIDE_STEPS_MS[GUIDE_STEPS_MS.length - 1];
 	const guidesMs = Array.from({ length: Math.floor(topMs / guideStepMs) }, (_, index) => (index + 1) * guideStepMs);
-	const points = Array.from({ length: bucketCount + 1 }, (_, index) => ({
-		index,
-		current: index <= lastIndex ? currentTotalsMs[index] : null,
-		previous: index < previousTotalsMs.length ? previousTotalsMs[index] : null,
-	}));
+	// data 변경 시 누름 상태 초기화 방지
+	const points = useMemo(
+		() =>
+			Array.from({ length: bucketCount + 1 }, (_, index) => ({
+				index,
+				current: index <= lastIndex ? currentTotalsMs[index] : null,
+				previous: index < previousTotalsMs.length ? previousTotalsMs[index] : null,
+			})),
+		[bucketCount, currentTotalsMs, lastIndex, previousTotalsMs],
+	);
 	const plotWidth = chartWidth - CHART_PADDING.left - CHART_PADDING.right;
 	const cursorX = CHART_PADDING.left + ((scrubIndex ?? 0) / bucketCount) * plotWidth;
 	const tooltipLeft =
