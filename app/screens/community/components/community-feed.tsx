@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 
 import { ActivityIndicator, StyleSheet, View, type ViewToken } from 'react-native';
 
@@ -18,8 +18,10 @@ import { useTranslation } from 'react-i18next';
 
 import Animated from 'react-native-reanimated';
 
+import CountryScopeToggle from '@/screens/community/components/country-scope-toggle';
 import FeedAdCard from '@/screens/community/components/feed-ad-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
+import LeaderboardCardSkeleton from '@/screens/community/components/leaderboard-card-skeleton';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
 import { leaderboardMonthStart } from '@/screens/community/utils/leaderboard';
 import { useAdStore } from '@/stores/ad';
@@ -34,9 +36,11 @@ import {
 import BuddyRefreshRopeIndicator from '@/components/buddy-refresh/rope-indicator';
 import BuddyRefreshSwingIndicator from '@/components/buddy-refresh/swing-indicator';
 import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-indicator';
+import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import FeedCard from '@/components/feed-card';
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ScreenError } from '@/components/ui/screen-error';
 
 interface ViewableItemsChangedInfo {
 	changed: ViewToken<PositionedFeedItem>[];
@@ -51,12 +55,19 @@ const CommunityFeed = () => {
 	const [failedAdServeIds, setFailedAdServeIds] = useState<string[]>([]);
 
 	const country = useSelectedCountry();
+	// 국가 변경 중 이전 피드 표시
+	const deferredCountry = useDeferredValue(country);
 
 	const leaderboardStart = leaderboardMonthStart();
 
 	usePrefetchQuery(getLeaderboardOptions({ period: 'monthly', start: leaderboardStart }));
 
-	const { data: feedData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFeedItemList({ country });
+	const {
+		data: feedData,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useGetFeedItemList({ country: deferredCountry });
 
 	const setPullToRefreshUsed = useDeviceSettingsStore((state) => state.setPullToRefreshUsed);
 	const addAdImpression = useAdStore((state) => state.addAdImpression);
@@ -70,7 +81,7 @@ const CommunityFeed = () => {
 
 			return Promise.all([
 				queryClient.invalidateQueries({ queryKey: leaderboardKeys.detail('monthly', leaderboardStart) }),
-				queryClient.invalidateQueries({ queryKey: feedKeys.list(country) }),
+				queryClient.invalidateQueries({ queryKey: feedKeys.list(deferredCountry) }),
 			]);
 		},
 		holdHeight: BUDDY_REFRESH_HEIGHT,
@@ -78,6 +89,7 @@ const CommunityFeed = () => {
 		finishMs: BUDDY_REFRESH_FINISH_MS,
 	});
 
+	const feedStale = country !== deferredCountry;
 	const positionedFeedItems = feedData.pages
 		.flatMap((feedPage) => feedPage.data)
 		.filter(({ feedItem }) => feedItem.kind !== 'ad' || !failedAdServeIds.includes(feedItem.serve_id));
@@ -110,22 +122,31 @@ const CommunityFeed = () => {
 				{...scrollProps}
 				data={positionedFeedItems}
 				keyExtractor={({ feedItem }) => (feedItem.kind === 'ad' ? feedItem.serve_id : feedItem.id)}
-				renderItem={({ item: { feedItem, position } }) =>
-					feedItem.kind === 'ad' ? (
-						<FeedAdCard
-							feedAdItem={feedItem}
-							position={position}
-							onImageError={() => setFailedAdServeIds((prev) => [...prev, feedItem.serve_id])}
-						/>
-					) : (
-						<FeedCard feedItem={feedItem} player={player} />
-					)
-				}
+				renderItem={({ item: { feedItem, position } }) => (
+					<View style={feedStale && styles.staleFeedItem}>
+						{feedItem.kind === 'ad' ? (
+							<FeedAdCard
+								feedAdItem={feedItem}
+								position={position}
+								onImageError={() => setFailedAdServeIds((prev) => [...prev, feedItem.serve_id])}
+							/>
+						) : (
+							<FeedCard feedItem={feedItem} player={player} />
+						)}
+					</View>
+				)}
 				onViewableItemsChanged={handleViewableItemsChanged}
 				ListHeaderComponent={
 					<>
-						<LeaderboardCard />
+						<ErrorHandlingWrapper
+							fallbackComponent={ScreenError}
+							errorSize="inline"
+							suspenseFallback=<LeaderboardCardSkeleton />
+						>
+							<LeaderboardCard />
+						</ErrorHandlingWrapper>
 						<View style={styles.divider} />
+						<CountryScopeToggle />
 					</>
 				}
 				ListEmptyComponent=<EmptyState message={t('community.feed.empty')} />
@@ -145,6 +166,7 @@ const styles = StyleSheet.create({
 	list: { flexGrow: 1, gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 },
 	divider: { height: 2, marginTop: 20, marginBottom: 8, marginHorizontal: -16, backgroundColor: colors.border },
 	footerLoading: { paddingTop: 8 },
+	staleFeedItem: { opacity: 0.5 },
 });
 
 export default CommunityFeed;

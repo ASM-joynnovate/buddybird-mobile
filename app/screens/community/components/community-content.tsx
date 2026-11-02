@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import { ActivityIndicator, StyleSheet, type View } from 'react-native';
+import { StyleSheet, type View } from 'react-native';
 
 import { useGetMe } from '@/hooks/apis/users';
 import useIsLowPerformance from '@/hooks/use-is-low-performance';
@@ -12,7 +12,7 @@ import { BlurTargetView } from 'expo-blur';
 import BlockDialog from '@/screens/community/components/block-dialog';
 import CommunityFeed from '@/screens/community/components/community-feed';
 import CommunityFeedConsent from '@/screens/community/components/community-feed-consent';
-import CountryScopeChips from '@/screens/community/components/country-scope-chips';
+import CommunityFeedSkeleton from '@/screens/community/components/community-feed-skeleton';
 import ReportDialog from '@/screens/community/components/report-dialog';
 import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
@@ -48,12 +48,7 @@ const CommunityContent = () => {
 
 				<Title style={styles.title}>{t('community.title')}</Title>
 
-				<CountryScopeChips />
-
-				<ErrorHandlingWrapper
-					fallbackComponent={ScreenError}
-					suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
-				>
+				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<CommunityFeedSkeleton />>
 					<CommunityFeed />
 				</ErrorHandlingWrapper>
 			</BlurTargetView>
@@ -71,7 +66,6 @@ const CommunityContent = () => {
 const styles = StyleSheet.create({
 	container: { flex: 1, backgroundColor: colors.background },
 	title: { minHeight: 56, paddingHorizontal: 24, paddingTop: 12 },
-	loading: { flex: 1 },
 });
 
 export default CommunityContent;
