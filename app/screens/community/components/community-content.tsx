@@ -12,7 +12,6 @@ import { BlurTargetView } from 'expo-blur';
 import BlockDialog from '@/screens/community/components/block-dialog';
 import CommunityFeed from '@/screens/community/components/community-feed';
 import CommunityFeedConsent from '@/screens/community/components/community-feed-consent';
-import CountryScopeChips from '@/screens/community/components/country-scope-chips';
 import ReportDialog from '@/screens/community/components/report-dialog';
 import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
@@ -47,8 +46,6 @@ const CommunityContent = () => {
 				{!gateShown && <BuddyRefreshHint mascotShown={!lowPerformance} />}
 
 				<Title style={styles.title}>{t('community.title')}</Title>
-
-				<CountryScopeChips />
 
 				<ErrorHandlingWrapper
 					fallbackComponent={ScreenError}

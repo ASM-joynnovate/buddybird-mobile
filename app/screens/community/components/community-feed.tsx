@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 import Animated from 'react-native-reanimated';
 
+import CountryScopeToggle from '@/screens/community/components/country-scope-toggle';
 import FeedAdCard from '@/screens/community/components/feed-ad-card';
 import LeaderboardCard from '@/screens/community/components/leaderboard-card';
 import useSelectedCountry from '@/screens/community/hooks/use-selected-country';
@@ -126,6 +127,7 @@ const CommunityFeed = () => {
 					<>
 						<LeaderboardCard />
 						<View style={styles.divider} />
+						<CountryScopeToggle />
 					</>
 				}
 				ListEmptyComponent=<EmptyState message={t('community.feed.empty')} />
