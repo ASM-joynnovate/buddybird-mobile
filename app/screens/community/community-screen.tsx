@@ -1,7 +1,5 @@
-import { ActivityIndicator, StyleSheet } from 'react-native';
-
 import CommunityContent from '@/screens/community/components/community-content';
-import { colors } from '@/theme';
+import CommunitySkeleton from '@/screens/community/components/community-skeleton';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Screen } from '@/components/ui/screen';
@@ -11,18 +9,11 @@ import { ScreenError } from '@/components/ui/screen-error';
 const CommunityScreen = () => {
 	return (
 		<Screen scrollable={false}>
-			<ErrorHandlingWrapper
-				fallbackComponent={ScreenError}
-				suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
-			>
+			<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<CommunitySkeleton />>
 				<CommunityContent />
 			</ErrorHandlingWrapper>
 		</Screen>
 	);
 };
-
-const styles = StyleSheet.create({
-	loading: { flex: 1 },
-});
 
 export default CommunityScreen;

@@ -65,9 +65,11 @@ export const ToggleGroup = <T extends string>({ options, value, onChange }: Prop
 						accessibilityLabel={option.label}
 						accessibilityState={{ selected }}
 						onPress={() => onChange(option.value)}
-						onLayout={(event) =>
-							setOptionLayouts((prev) => ({ ...prev, [option.value]: event.nativeEvent.layout }))
-						}
+						onLayout={(event) => {
+							const { layout } = event.nativeEvent;
+
+							setOptionLayouts((prev) => ({ ...prev, [option.value]: layout }));
+						}}
 						variant="plain"
 						depth="none"
 						cornerRadius="pill"
