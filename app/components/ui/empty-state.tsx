@@ -8,13 +8,15 @@ import { ui } from '@/components/ui/styles';
 interface Props {
 	message: string;
 	illustration?: ReactNode;
+	action?: ReactNode;
 }
 
-export const EmptyState = ({ message, illustration }: Props) => {
+export const EmptyState = ({ message, illustration, action }: Props) => {
 	return (
 		<View style={ui.messageContainer}>
 			{illustration}
 			<Copy style={ui.messageText}>{message}</Copy>
+			{action}
 		</View>
 	);
 };

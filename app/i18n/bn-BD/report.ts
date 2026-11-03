@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'শেখার তালিকা',
 	judging: 'বিশ্লেষণ চলছে',
 	empty: 'এই সময়কালে শেখার কোনো রেকর্ড নেই',
+	openGuide: 'রিপোর্ট গাইড দেখুন',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'এখন',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'অস্থির কিচিরমিচির',
 			parrotDisappeared: 'টিয়া উধাও',
 			parrotAppeared: 'টিয়া দেখা গেছে',
-			parrotMotionless: 'টিয়া নড়াচড়া করছে না',
-			parrotMoved: 'টিয়া আবার নড়াচড়া করছে',
+			parrotMotionless: 'নড়াচড়া করছে না',
+			parrotMoved: 'আবার নড়াচড়া করছে',
 		},
 		filters: {
 			all: 'সব',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} ও আরও {{count, number}}টি টিয়ার নকল করা আওয়াজ সবাইকে শোনান!',
 	},
 	guide: {
-		chart: { title: 'গ্রাফ টাচ করে ধরে রেখে আঙুল সরান', detail: 'প্রতিটি তারিখ পর্যন্ত মোট শেখার সময় দেখা যাবে' },
-		wordBars: { title: 'প্রতিটি শব্দ শেখানোর সময়', detail: 'কমলা লেখায় গত মাসের চেয়ে বাড়তি সময়' },
 		session: 'শেখার তালিকার একটিতে ট্যাপ করুন',
-		logKinds: {
+		soundKinds: {
 			mimic: 'নকল করা কথা',
 			mimicDetail: 'টিয়া কোনো শব্দ নকল করলে',
 			parrotDetail: 'টিয়া কিচিরমিচির করলে',
-			emergencyDetail: 'জরুরি অবস্থা দেখা দিলে',
+			distressCallDetail: 'টিয়া অল্প সময়ে বারবার কিচিরমিচির করলে',
+		},
+		petcamKinds: {
+			title: 'ক্যামেরা চালু করলে শনাক্ত হয়',
+			parrotDisappearedDetail: 'কয়েক মিনিট দেখা না গেলে',
+			parrotAppearedDetail: 'উধাও হওয়ার পর আবার দেখা গেলে',
+			parrotMotionlessDetail: 'অনেকক্ষণ একই জায়গায় থাকলে',
+			parrotMovedDetail: 'থেমে থাকার পর আবার নড়াচড়া করলে',
 		},
 		logItem: 'রেকর্ডে ট্যাপ করে খুলে দেখুন',
 		play: 'শুনতে প্লে বাটনে ট্যাপ করুন',

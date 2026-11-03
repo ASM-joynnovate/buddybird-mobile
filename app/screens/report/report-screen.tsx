@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Modal, StyleSheet, View } from 'react-native';
 
 import { usePrefetchQuery } from '@tanstack/react-query';
@@ -25,6 +27,8 @@ import { ScreenError } from '@/components/ui/screen-error';
 const ReportScreen = () => {
 	const screenFocused = useIsFocused();
 
+	const [guideVisible, setGuideVisible] = useState(false);
+
 	const period = useReportStore((state) => state.period);
 	const start = useReportStore((state) => state.start);
 	const reportGuideSeen = useDeviceSettingsStore((state) => state.reportGuideSeen);
@@ -39,27 +43,32 @@ const ReportScreen = () => {
 
 	const lowPerformance = useIsLowPerformance();
 
+	const handleCloseGuide = () => {
+		setReportGuideSeen(true);
+		setGuideVisible(false);
+	};
+
 	return (
 		<Screen scrollable={false}>
 			{reportGuideSeen && <BuddyRefreshHint mascotShown={!lowPerformance} />}
 
 			<View style={styles.container}>
 				<ErrorHandlingWrapper fallbackComponent={ScreenError} suspenseFallback=<ReportSkeleton />>
-					<ReportContent />
+					<ReportContent onOpenGuide={() => setGuideVisible(true)} />
 				</ErrorHandlingWrapper>
 			</View>
 
-			{/*첫 진입 시 예시 리포트로 사용 방법 안내*/}
+			{/*예시 리포트로 사용 방법 안내*/}
 			<Modal
 				statusBarTranslucent
 				navigationBarTranslucent
-				visible={!reportGuideSeen && screenFocused}
+				visible={(!reportGuideSeen || guideVisible) && screenFocused}
 				transparent
 				animationType="fade"
-				onRequestClose={() => setReportGuideSeen(true)}
+				onRequestClose={handleCloseGuide}
 			>
 				<SafeAreaProvider initialMetrics={initialWindowMetrics}>
-					<ReportGuide />
+					<ReportGuide onClose={handleCloseGuide} />
 				</SafeAreaProvider>
 			</Modal>
 		</Screen>

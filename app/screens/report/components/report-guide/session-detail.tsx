@@ -8,7 +8,7 @@ import { formatMonthDayTime } from '@/i18n/format';
 
 import Animated, { type AnimatedRef, type SharedValue, useScrollOffset } from 'react-native-reanimated';
 
-import { MINUTE } from '@/config/units';
+import { HOUR } from '@/config/units';
 import ReportGuideLogItem from '@/screens/report/components/report-guide/log-item';
 import ReportGuideTarget from '@/screens/report/components/report-guide/target';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -71,67 +71,20 @@ const ReportGuideSessionDetail = ({
 		>
 			<GuideSceneSessionPreviewHeader
 				period={t('report.detail.period', {
-					start: formatMonthDayTime('2025-10-31T15:22:00', locale),
-					end: formatMonthDayTime('2025-10-31T15:35:00', locale),
+					start: formatMonthDayTime('2025-10-31T22:00:00', locale),
+					end: formatMonthDayTime('2025-11-01T06:00:00', locale),
 				})}
 			/>
 
-			<SessionOverview learningMs={13 * MINUTE} wordName={wordName} mimicCount={2} emergencyCount={2} />
+			<SessionOverview learningMs={8 * HOUR} wordName={wordName} mimicCount={1} emergencyCount={3} />
 
 			<Copy style={styles.logTitle}>{t('report.detail.sessionLog')}</Copy>
 			<View style={styles.divider} />
 
-			<GuideSceneSessionPreviewDayBreak date="2025-10-31T15:22:00" />
+			<GuideSceneSessionPreviewDayBreak date="2025-10-31T22:00:00" />
 
-			<ReportGuideTarget step="logKinds" onRegister={onRegisterTarget}>
-				<GuideSceneSessionPreviewItemList hour="2025-10-31T15:00:00">
-					<View style={styles.item}>
-						<SessionLogItemHead
-							kind="mimic"
-							name={wordName}
-							value={t('report.detail.percent', { value: 90 })}
-							time="15:22:45"
-							open={false}
-							dividerShown={false}
-						/>
-					</View>
-					<View style={styles.item}>
-						<SessionLogItemHead
-							kind="distressCall"
-							name={t('report.detail.kinds.distressCall')}
-							value={t('common.duration.seconds', { value: 19 })}
-							time={t('report.detail.timeRange', { start: '15:22:45', end: '15:23:04' })}
-							open={false}
-							dividerShown
-						/>
-					</View>
-					<View style={styles.item}>
-						<SessionLogItemHead
-							kind="parrot"
-							name={t('report.detail.kinds.parrot')}
-							time="15:24:10"
-							open={false}
-							dividerShown
-						/>
-					</View>
-					<View style={styles.item}>
-						<SessionLogItemHead
-							kind="parrotDisappeared"
-							name={t('report.detail.kinds.parrotDisappeared')}
-							time={t('report.detail.timeRange', { start: '15:28:20', end: '15:31:40' })}
-							open={false}
-							dividerShown
-						/>
-					</View>
-					<View style={styles.item}>
-						<SessionLogItemHead
-							kind="parrotAppeared"
-							name={t('report.detail.kinds.parrotAppeared')}
-							time="15:31:40"
-							open={false}
-							dividerShown
-						/>
-					</View>
+			<ReportGuideTarget step="soundKinds" onRegister={onRegisterTarget}>
+				<GuideSceneSessionPreviewItemList hour="2025-10-31T22:00:00">
 					<ReportGuideTarget step="logItem" onRegister={onRegisterTarget}>
 						<ReportGuideLogItem
 							wordName={wordName}
@@ -143,6 +96,68 @@ const ReportGuideSessionDetail = ({
 							onReview={onReview}
 						/>
 					</ReportGuideTarget>
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="distressCall"
+							name={t('report.detail.kinds.distressCall')}
+							value={t('common.duration.seconds', { value: 19 })}
+							time={t('report.detail.timeRange', { start: '22:40:12', end: '22:40:31' })}
+							open={false}
+							dividerShown
+						/>
+					</View>
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="parrot"
+							name={t('report.detail.kinds.parrot')}
+							time="22:52:48"
+							open={false}
+							dividerShown
+						/>
+					</View>
+				</GuideSceneSessionPreviewItemList>
+			</ReportGuideTarget>
+
+			<GuideSceneSessionPreviewDayBreak date="2025-11-01T03:00:00" />
+
+			<ReportGuideTarget step="petcamKinds" onRegister={onRegisterTarget}>
+				<GuideSceneSessionPreviewItemList hour="2025-11-01T03:00:00">
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="parrotDisappeared"
+							name={t('report.detail.kinds.parrotDisappeared')}
+							time={t('report.detail.timeRange', { start: '03:12:20', end: '03:16:40' })}
+							open={false}
+							dividerShown={false}
+						/>
+					</View>
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="parrotAppeared"
+							name={t('report.detail.kinds.parrotAppeared')}
+							time="03:16:40"
+							open={false}
+							dividerShown
+						/>
+					</View>
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="parrotMotionless"
+							name={t('report.detail.kinds.parrotMotionless')}
+							time={t('report.detail.timeRange', { start: '03:40:05', end: '04:25:10' })}
+							open={false}
+							dividerShown
+						/>
+					</View>
+					<View style={styles.item}>
+						<SessionLogItemHead
+							kind="parrotMoved"
+							name={t('report.detail.kinds.parrotMoved')}
+							time="04:25:10"
+							open={false}
+							dividerShown
+						/>
+					</View>
 				</GuideSceneSessionPreviewItemList>
 			</ReportGuideTarget>
 		</Animated.ScrollView>

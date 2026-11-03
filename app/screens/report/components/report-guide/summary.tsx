@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -6,20 +6,14 @@ import type { ReportGuideTargetRegister } from '@/types/guide/report';
 
 import { useTranslation } from 'react-i18next';
 
-import {
-	formatDuration,
-	formatDurationChange,
-	formatMonthDay,
-	formatMonthDayWeekday,
-	formatYearMonth,
-} from '@/i18n/format';
+import { formatDuration, formatDurationChange, formatMonthDayWeekday, formatYearMonth } from '@/i18n/format';
 
 import dayjs from 'dayjs';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
 import Animated, { type AnimatedRef, type SharedValue, useScrollOffset } from 'react-native-reanimated';
 import Svg, { Line, Path, Rect } from 'react-native-svg';
 
-import { MINUTE } from '@/config/units';
+import { HOUR, MINUTE } from '@/config/units';
 import ReportGuideTarget from '@/screens/report/components/report-guide/target';
 import ReportHeaderCumulativeChart from '@/screens/report/components/report-header/cumulative-chart';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
@@ -32,10 +26,10 @@ import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const CALENDAR_SIZE = 26;
 const OCTOBER_MINUTES = [
-	0, 0, 0, 0, 0, 0, 5, 2.5, 0, 0, 0, 0.5, 6, 15.5, 87, 36, 2, 3, 0, 0, 0, 0.5, 0, 0, 1, 0, 18, 1, 0, 2, 25,
+	0, 0, 0, 0, 0, 0, 300, 120, 0, 0, 0, 0, 420, 480, 360, 0, 0, 0, 0, 240, 0, 0, 0, 0, 0, 300, 0, 450, 0, 360, 730,
 ];
 const SEPTEMBER_MINUTES = [
-	0, 0, 3, 0, 5, 0, 0, 12, 0, 8, 0, 0, 15, 0, 0, 20, 0, 0, 6, 0, 10, 0, 0, 9, 0, 0, 14, 0, 0, 8,
+	0, 0, 180, 0, 0, 0, 0, 300, 0, 0, 0, 240, 0, 0, 0, 360, 0, 0, 0, 0, 300, 0, 0, 420, 0, 0, 240, 0, 0, 0,
 ];
 
 /** 날짜별 누적 학습 시간 계산 함수 */
@@ -53,7 +47,6 @@ interface Props {
 	scrollY: SharedValue<number>;
 	wordName: string;
 	onRegisterTarget: ReportGuideTargetRegister;
-	onScrubEnd: () => void;
 	onOpenSession: () => void;
 }
 
@@ -63,13 +56,10 @@ interface Props {
  * @param scrollY 화면 스크롤 위치
  * @param wordName 예시 단어
  * @param onRegisterTarget 강조 영역 등록 함수
- * @param onScrubEnd 그래프에서 손을 떼면 실행할 함수
  * @param onOpenSession 학습 항목을 누르면 실행할 함수
  */
-const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, onScrubEnd, onOpenSession }: Props) => {
+const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, onOpenSession }: Props) => {
 	const { t } = useTranslation();
-
-	const [scrubIndex, setScrubIndex] = useState<number | null>(null);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -85,21 +75,11 @@ const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, on
 	);
 	const currentTotalsMs = useMemo(() => cumulativeTotalsMs(OCTOBER_MINUTES), []);
 	const previousTotalsMs = useMemo(() => cumulativeTotalsMs(SEPTEMBER_MINUTES), []);
-	const shownIndex = scrubIndex ?? trend.length;
-	const previousShownMs = previousTotalsMs[Math.min(shownIndex, previousTotalsMs.length - 1)];
-	const changeMs = currentTotalsMs[shownIndex] - previousShownMs;
-	const scrubbedBucket = scrubIndex === null ? null : trend[scrubIndex - 1];
-	const totalLabel = formatDuration(currentTotalsMs[trend.length], locale);
-	const previousTotalLabel = formatDuration(previousTotalsMs[SEPTEMBER_MINUTES.length], locale);
-	const wordChangeMs = currentTotalsMs[trend.length] - previousTotalsMs[SEPTEMBER_MINUTES.length];
-
-	const handleScrub = (index: number | null) => {
-		if (index === null && scrubIndex !== null) {
-			onScrubEnd();
-		}
-
-		setScrubIndex(index === null ? null : Math.min(Math.max(index, 1), trend.length));
-	};
+	const totalMs = currentTotalsMs[trend.length];
+	const previousTotalMs = previousTotalsMs[SEPTEMBER_MINUTES.length];
+	const changeMs = totalMs - previousTotalMs;
+	const totalLabel = formatDuration(totalMs, locale);
+	const previousTotalLabel = formatDuration(previousTotalMs, locale);
 
 	return (
 		<View style={styles.container}>
@@ -142,118 +122,105 @@ const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, on
 					/>
 					<View style={styles.divider} />
 
-					<ReportGuideTarget step="chart" onRegister={onRegisterTarget}>
-						<View style={styles.navRow}>
-							<Copy numberOfLines={1} style={styles.period}>
-								{formatYearMonth('2025-10-01', locale)}
-							</Copy>
-							<View style={styles.navIcon}>
-								<ChevronLeftIcon size={24} color={colors.text} />
-							</View>
-							<View style={styles.navIcon}>
-								<ChevronRightIcon size={24} color={colors.text} />
-							</View>
+					<View style={styles.navRow}>
+						<Copy numberOfLines={1} style={styles.period}>
+							{formatYearMonth('2025-10-01', locale)}
+						</Copy>
+						<View style={styles.navIcon}>
+							<ChevronLeftIcon size={24} color={colors.text} />
 						</View>
+						<View style={styles.navIcon}>
+							<ChevronRightIcon size={24} color={colors.text} />
+						</View>
+					</View>
 
-						<View style={styles.totalsRow}>
-							<View style={styles.currentContainer}>
-								<View style={styles.legendRow}>
-									<View style={styles.currentSwatch} />
-									<Copy numberOfLines={1} style={styles.legendText}>
-										{scrubbedBucket
-											? t('report.until', { label: formatMonthDay(scrubbedBucket.start, locale) })
-											: t('report.selectedPeriod')}
-									</Copy>
-								</View>
-								<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.currentTotal}>
-									{formatDuration(currentTotalsMs[shownIndex], locale)}
+					<View style={styles.totalsRow}>
+						<View style={styles.currentContainer}>
+							<View style={styles.legendRow}>
+								<View style={styles.currentSwatch} />
+								<Copy numberOfLines={1} style={styles.legendText}>
+									{t('report.selectedPeriod')}
 								</Copy>
 							</View>
-
-							<View style={styles.previousContainer}>
-								<View style={styles.legendRow}>
-									<Svg width={18} height={4}>
-										<Line
-											x1={2}
-											x2={16}
-											y1={2}
-											y2={2}
-											stroke={colors.subtle}
-											strokeWidth={4}
-											strokeLinecap="round"
-											strokeDasharray="0.1 6"
-										/>
-									</Svg>
-									<Copy style={styles.legendText}>{t('report.previousPeriods.month')}</Copy>
-								</View>
-								<Copy style={styles.previousTotal}>{formatDuration(previousShownMs, locale)}</Copy>
-							</View>
+							<Copy adjustsFontSizeToFit numberOfLines={1} style={styles.currentTotal}>
+								{totalLabel}
+							</Copy>
 						</View>
-						<Copy style={[styles.changeText, changeMs > 0 && styles.increasedText]}>
-							{t('report.change.month', { change: formatDurationChange(changeMs, locale) })}
-						</Copy>
 
-						<ReportHeaderCumulativeChart
-							period="month"
-							trend={trend}
-							currentTotalsMs={currentTotalsMs}
-							previousTotalsMs={previousTotalsMs}
-							scrubIndex={scrubbedBucket ? shownIndex : null}
-							tooltip={
-								scrubbedBucket && {
-									title: formatMonthDay(scrubbedBucket.start, locale),
-									durationText: t('report.bucketDuration', {
-										duration: formatDuration(scrubbedBucket.duration_ms, locale),
-									}),
-								}
-							}
-							lineAnimated
-							accessibilityLabel={t('report.chartLabel', {
-								period: t('report.selectedPeriod'),
-								duration: totalLabel,
-								previousPeriod: t('report.previousPeriods.month'),
-								previousDuration: previousTotalLabel,
-							})}
-							onScrub={handleScrub}
-						/>
-					</ReportGuideTarget>
+						<View style={styles.previousContainer}>
+							<View style={styles.legendRow}>
+								<Svg width={18} height={4}>
+									<Line
+										x1={2}
+										x2={16}
+										y1={2}
+										y2={2}
+										stroke={colors.subtle}
+										strokeWidth={4}
+										strokeLinecap="round"
+										strokeDasharray="0.1 6"
+									/>
+								</Svg>
+								<Copy style={styles.legendText}>{t('report.previousPeriods.month')}</Copy>
+							</View>
+							<Copy style={styles.previousTotal}>{previousTotalLabel}</Copy>
+						</View>
+					</View>
+					<Copy style={[styles.changeText, changeMs > 0 && styles.increasedText]}>
+						{t('report.change.month', { change: formatDurationChange(changeMs, locale) })}
+					</Copy>
+
+					<ReportHeaderCumulativeChart
+						period="month"
+						trend={trend}
+						currentTotalsMs={currentTotalsMs}
+						previousTotalsMs={previousTotalsMs}
+						scrubIndex={null}
+						tooltip={null}
+						lineAnimated
+						accessibilityLabel={t('report.chartLabel', {
+							period: t('report.selectedPeriod'),
+							duration: totalLabel,
+							previousPeriod: t('report.previousPeriods.month'),
+							previousDuration: previousTotalLabel,
+						})}
+						onScrub={() => {}}
+					/>
 
 					<View style={styles.band} />
-					<ReportGuideTarget step="wordBars" onRegister={onRegisterTarget}>
-						<View style={styles.titleRow}>
-							<Copy style={styles.wordBarsTitle}>{t('report.learningTimeByWord')}</Copy>
-							<Copy style={styles.comparedTo}>{t('report.comparedTo.month')}</Copy>
+					<View style={styles.titleRow}>
+						<Copy style={styles.wordBarsTitle}>{t('report.learningTimeByWord')}</Copy>
+						<Copy style={styles.comparedTo}>{t('report.comparedTo.month')}</Copy>
+					</View>
+					<View style={styles.wordRow}>
+						<Copy numberOfLines={1} style={styles.wordName}>
+							{wordName}
+						</Copy>
+						<View style={styles.track}>
+							<View style={styles.fill} />
 						</View>
-						<View style={styles.wordRow}>
-							<Copy numberOfLines={1} style={styles.wordName}>
-								{wordName}
+						<View style={styles.durationContainer}>
+							<Copy style={styles.wordDuration}>{totalLabel}</Copy>
+							<Copy style={[styles.wordChange, changeMs > 0 && styles.increasedText]}>
+								{formatDurationChange(changeMs, locale)}
 							</Copy>
-							<View style={styles.track}>
-								<View style={styles.fill} />
-							</View>
-							<View style={styles.durationContainer}>
-								<Copy style={styles.wordDuration}>{totalLabel}</Copy>
-								<Copy style={[styles.wordChange, wordChangeMs > 0 && styles.increasedText]}>
-									{formatDurationChange(wordChangeMs, locale)}
-								</Copy>
-							</View>
 						</View>
-					</ReportGuideTarget>
+					</View>
 
 					<View style={styles.band} />
 					<Copy style={styles.sessionsTitle}>{t('report.sessions')}</Copy>
 				</View>
 
-				<Copy style={styles.date}>{formatMonthDayWeekday('2025-10-31T15:22:00', locale)}</Copy>
+				<Copy style={styles.date}>{formatMonthDayWeekday('2025-10-31T22:00:00', locale)}</Copy>
 				<ReportGuideTarget step="session" onRegister={onRegisterTarget}>
 					<PressableSurface depth="low" onPress={onOpenSession} contentStyle={styles.sessionRow}>
 						<View style={styles.textContainer}>
 							<Copy numberOfLines={1} style={styles.sessionWord}>
 								{wordName}
 							</Copy>
-							<Copy style={styles.time}>{dayjs('2025-10-31T15:22:00').format('LT')}</Copy>
+							<Copy style={styles.time}>{dayjs('2025-10-31T22:00:00').format('LT')}</Copy>
 						</View>
-						<Copy style={styles.sessionDuration}>{formatDuration(13 * MINUTE, locale)}</Copy>
+						<Copy style={styles.sessionDuration}>{formatDuration(8 * HOUR, locale)}</Copy>
 					</PressableSurface>
 				</ReportGuideTarget>
 				<Surface depth="low" contentStyle={styles.sessionRow}>
@@ -261,35 +228,35 @@ const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, on
 						<Copy numberOfLines={1} style={styles.sessionWord}>
 							{wordName}
 						</Copy>
-						<Copy style={styles.time}>{dayjs('2025-10-31T13:10:00').format('LT')}</Copy>
+						<Copy style={styles.time}>{dayjs('2025-10-31T13:20:00').format('LT')}</Copy>
 					</View>
-					<Copy style={styles.sessionDuration}>{formatDuration(12 * MINUTE, locale)}</Copy>
+					<Copy style={styles.sessionDuration}>{formatDuration(4 * HOUR + 10 * MINUTE, locale)}</Copy>
 				</Surface>
 
 				<Copy style={[styles.date, styles.laterDate]}>
-					{formatMonthDayWeekday('2025-10-30T16:05:00', locale)}
+					{formatMonthDayWeekday('2025-10-30T21:00:00', locale)}
 				</Copy>
 				<Surface depth="low" contentStyle={styles.sessionRow}>
 					<View style={styles.textContainer}>
 						<Copy numberOfLines={1} style={styles.sessionWord}>
 							{wordName}
 						</Copy>
-						<Copy style={styles.time}>{dayjs('2025-10-30T16:05:00').format('LT')}</Copy>
+						<Copy style={styles.time}>{dayjs('2025-10-30T21:00:00').format('LT')}</Copy>
 					</View>
-					<Copy style={styles.sessionDuration}>{formatDuration(2 * MINUTE, locale)}</Copy>
+					<Copy style={styles.sessionDuration}>{formatDuration(6 * HOUR, locale)}</Copy>
 				</Surface>
 
 				<Copy style={[styles.date, styles.laterDate]}>
-					{formatMonthDayWeekday('2025-10-28T14:40:00', locale)}
+					{formatMonthDayWeekday('2025-10-28T22:30:00', locale)}
 				</Copy>
 				<Surface depth="low" contentStyle={styles.sessionRow}>
 					<View style={styles.textContainer}>
 						<Copy numberOfLines={1} style={styles.sessionWord}>
 							{wordName}
 						</Copy>
-						<Copy style={styles.time}>{dayjs('2025-10-28T14:40:00').format('LT')}</Copy>
+						<Copy style={styles.time}>{dayjs('2025-10-28T22:30:00').format('LT')}</Copy>
 					</View>
-					<Copy style={styles.sessionDuration}>{formatDuration(MINUTE, locale)}</Copy>
+					<Copy style={styles.sessionDuration}>{formatDuration(7 * HOUR + 30 * MINUTE, locale)}</Copy>
 				</Surface>
 			</Animated.ScrollView>
 		</View>

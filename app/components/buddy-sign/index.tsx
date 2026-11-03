@@ -2,10 +2,11 @@ import type { ReactNode } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { colors, font, radius } from '@/theme';
 
 import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/components/buddy-refresh/constants';
-import { TextButton } from '@/components/ui/text-button';
+import { Copy } from '@/components/ui/copy';
+import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
 const CORD_INSET = 22;
 
@@ -37,9 +38,17 @@ const BuddySign = ({ cordLength, mascot, action, children }: Props) => {
 				<View style={styles.body}>{children}</View>
 
 				{action && (
-					<View style={styles.action}>
-						<TextButton label={action.label} onPress={action.onPress} />
-					</View>
+					<PressableSurface
+						accessibilityLabel={action.label}
+						onPress={action.onPress}
+						variant="plain"
+						depth="none"
+						cornerRadius="none"
+						style={styles.action}
+						contentStyle={styles.actionFace}
+					>
+						<Copy style={styles.actionLabel}>{action.label}</Copy>
+					</PressableSurface>
 				)}
 			</View>
 
@@ -74,7 +83,9 @@ const styles = StyleSheet.create({
 		paddingRight: 16,
 		paddingLeft: 12,
 	},
-	action: { justifyContent: 'center', paddingHorizontal: 6, borderLeftWidth: 2, borderLeftColor: colors.border },
+	action: { borderLeftWidth: 2, borderLeftColor: colors.border },
+	actionFace: { flex: 1, minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderWidth: 0 },
+	actionLabel: { fontFamily: font.extraBold, fontSize: 15, color: colors.orangeDark },
 	mascot: {
 		position: 'absolute',
 		top: 1 - MASCOT_FOOT_Y,

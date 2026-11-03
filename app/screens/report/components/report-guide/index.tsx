@@ -3,7 +3,6 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { type LayoutRectangle, StyleSheet, View } from 'react-native';
 
 import {
-	type ReportGuideGesture,
 	type ReportGuideSample,
 	type ReportGuideSound,
 	type ReportGuideStep,
@@ -31,10 +30,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import ReportGuideCoachMark from '@/screens/report/components/report-guide/coach-mark';
-import ReportGuideLogKinds from '@/screens/report/components/report-guide/log-kinds';
+import ReportGuidePetcamKinds from '@/screens/report/components/report-guide/petcam-kinds';
 import ReportGuideSessionDetail from '@/screens/report/components/report-guide/session-detail';
 import ReportGuideSign from '@/screens/report/components/report-guide/sign';
 import ReportGuideSignMessage from '@/screens/report/components/report-guide/sign-message';
+import ReportGuideSoundKinds from '@/screens/report/components/report-guide/sound-kinds';
 import ReportGuideSummary from '@/screens/report/components/report-guide/summary';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
 import { colors, radius } from '@/theme';
@@ -45,22 +45,21 @@ const REVIEW_HOLD_MS = 700;
 const REVEAL_MARGIN = 24;
 
 const guideSamples: Record<ReportGuideSample, { word: string; sound: ReportGuideSound }> = {
-	annyeong: { word: '안녕', sound: { file: require('@assets/audio/report-guide/annyeong.wav'), durationMs: 800 } },
+	annyeong: { word: '안녕', sound: { file: require('@assets/audio/report-guide/annyeong.wav'), durationMs: 584 } },
 	hello: { word: 'Hello', sound: { file: require('@assets/audio/report-guide/hello.wav'), durationMs: 510 } },
 };
 
 const stepDefinitions: Record<
 	ReportGuideStep,
-	{ page: 'summary' | 'sessionDetail'; radius: number; gesture: ReportGuideGesture | null }
+	{ page: 'summary' | 'sessionDetail'; radius: number; tappable: boolean }
 > = {
-	chart: { page: 'summary', radius: radius.card, gesture: 'scrub' },
-	wordBars: { page: 'summary', radius: radius.card, gesture: null },
-	session: { page: 'summary', radius: radius.card, gesture: 'tap' },
-	logKinds: { page: 'sessionDetail', radius: radius.control, gesture: null },
-	logItem: { page: 'sessionDetail', radius: radius.control, gesture: 'tap' },
-	play: { page: 'sessionDetail', radius: radius.pill, gesture: 'tap' },
-	review: { page: 'sessionDetail', radius: radius.control, gesture: 'tap' },
-	share: { page: 'sessionDetail', radius: radius.control, gesture: null },
+	session: { page: 'summary', radius: radius.card, tappable: true },
+	soundKinds: { page: 'sessionDetail', radius: radius.control, tappable: false },
+	petcamKinds: { page: 'sessionDetail', radius: radius.control, tappable: false },
+	logItem: { page: 'sessionDetail', radius: radius.control, tappable: true },
+	play: { page: 'sessionDetail', radius: radius.pill, tappable: true },
+	review: { page: 'sessionDetail', radius: radius.control, tappable: true },
+	share: { page: 'sessionDetail', radius: radius.control, tappable: false },
 };
 
 /** 측정 값을 강조 영역으로 변환하는 함수 */
@@ -75,8 +74,15 @@ const toTarget = (targetLayout: MeasuredDimensions, rootLayout: MeasuredDimensio
 	};
 };
 
-/** 리포트 사용 방법 Coach Mark 컴포넌트 */
-const ReportGuide = () => {
+interface Props {
+	onClose: () => void;
+}
+
+/**
+ * 리포트 사용 방법 Coach Mark 컴포넌트
+ * @param onClose 안내를 끝내거나 건너뛸 때 실행할 함수
+ */
+const ReportGuide = ({ onClose }: Props) => {
 	const { t } = useTranslation();
 	const tabBarHeight = useBottomTabBarHeight();
 	const insets = useSafeAreaInsets();
@@ -100,8 +106,6 @@ const ReportGuide = () => {
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
-	const setReportGuideSeen = useDeviceSettingsStore((state) => state.setReportGuideSeen);
-
 	const step = reportGuideSteps[stepIndex];
 	const stepDefinition = stepDefinitions[step];
 	const lastStepShown = stepIndex === reportGuideSteps.length - 1;
@@ -111,15 +115,9 @@ const ReportGuide = () => {
 	const target = measuredTarget?.step === step ? measuredTarget.layout : null;
 	const targetRef = targetRefs[step];
 	const signMessages: Record<ReportGuideStep, ReactNode> = {
-		chart: <ReportGuideSignMessage title={t('report.guide.chart.title')} detail={t('report.guide.chart.detail')} />,
-		wordBars: (
-			<ReportGuideSignMessage
-				title={t('report.guide.wordBars.title')}
-				detail={t('report.guide.wordBars.detail')}
-			/>
-		),
 		session: <ReportGuideSignMessage title={t('report.guide.session')} />,
-		logKinds: <ReportGuideLogKinds />,
+		soundKinds: <ReportGuideSoundKinds />,
+		petcamKinds: <ReportGuidePetcamKinds />,
 		logItem: <ReportGuideSignMessage title={t('report.guide.logItem')} />,
 		play: <ReportGuideSignMessage title={t('report.guide.play')} />,
 		review: <ReportGuideSignMessage title={t('report.guide.review')} />,
@@ -169,13 +167,13 @@ const ReportGuide = () => {
 				return;
 			}
 
-			// 강조 영역 위쪽까지만 스크롤
-			const revealScrollDistance = Math.min(
-				targetLayout.pageY + targetLayout.height + REVEAL_MARGIN - (scrollLayout.pageY + scrollLayout.height),
-				targetLayout.pageY - scrollLayout.pageY - REVEAL_MARGIN,
-			);
+			const targetBottomOverflow =
+				targetLayout.pageY + targetLayout.height + REVEAL_MARGIN - (scrollLayout.pageY + scrollLayout.height);
+			const targetTopOffset = targetLayout.pageY - scrollLayout.pageY - REVEAL_MARGIN;
+			// 강조 영역 위쪽이 보이는 위치로 스크롤
+			const revealScrollDistance = Math.min(Math.max(targetBottomOverflow, 0), targetTopOffset);
 
-			if (revealScrollDistance <= 0) {
+			if (revealScrollDistance === 0) {
 				scheduleOnRN(setMeasuredTarget, { step, layout: toTarget(targetLayout, rootLayout) });
 
 				return;
@@ -238,8 +236,6 @@ const ReportGuide = () => {
 		}
 	};
 
-	const handleFinish = () => setReportGuideSeen(true);
-
 	return (
 		<GestureHandlerRootView style={styles.container}>
 			<Animated.View ref={rootRef} collapsable={false} style={styles.container}>
@@ -261,7 +257,6 @@ const ReportGuide = () => {
 								scrollY={summaryScrollY}
 								wordName={guideSample.word}
 								onRegisterTarget={registerTarget}
-								onScrubEnd={() => completeStep('chart')}
 								onOpenSession={handleOpenSession}
 							/>
 
@@ -296,14 +291,14 @@ const ReportGuide = () => {
 				<ReportGuideCoachMark
 					target={target}
 					targetRadius={stepDefinition.radius}
-					targetGesture={stepDefinition.gesture}
-					onSkip={handleFinish}
+					targetTappable={stepDefinition.tappable}
+					onSkip={onClose}
 				>
 					<ReportGuideSign
 						key={step}
 						action={{
 							label: t(lastStepShown ? 'common.done' : 'common.next'),
-							onPress: lastStepShown ? handleFinish : handleNext,
+							onPress: lastStepShown ? onClose : handleNext,
 						}}
 					>
 						{signMessages[step]}

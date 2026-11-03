@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: '학습 목록',
 	judging: '분석 중',
 	empty: '이 기간에는 학습 기록이 없어요',
+	openGuide: '리포트 가이드 보기',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '지금',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: '신경질적 짹짹',
 			parrotDisappeared: '앵무새 사라짐',
 			parrotAppeared: '앵무새 나타남',
-			parrotMotionless: '앵무새 움직임 없음',
-			parrotMoved: '앵무새 다시 움직임',
+			parrotMotionless: '움직임 없음',
+			parrotMoved: '다시 움직임',
 		},
 		filters: {
 			all: '전체',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} 외 {{count}}마리가 따라 한 소리를 자랑해 보세요!',
 	},
 	guide: {
-		chart: { title: '그래프를 꾹 누른 채 밀어 보세요', detail: '날짜별로 쌓인 학습 시간이 보여요' },
-		wordBars: { title: '단어마다 가르친 시간이에요', detail: '주황 글자는 지난달보다 늘어난 시간' },
 		session: '학습을 눌러 보세요',
-		logKinds: {
+		soundKinds: {
 			mimic: '따라 한 말',
 			mimicDetail: '앵무새가 단어를 따라 할 경우',
 			parrotDetail: '앵무새가 짹짹거릴 경우',
-			emergencyDetail: '응급 상황이 발생했을 경우',
+			distressCallDetail: '짧은 시간에 여러 번 짹짹거릴 경우',
+		},
+		petcamKinds: {
+			title: '펫캠을 켜면 감지해요',
+			parrotDisappearedDetail: '몇 분 동안 안 보일 경우',
+			parrotAppearedDetail: '사라진 뒤 다시 보일 경우',
+			parrotMotionlessDetail: '오랫동안 같은 자리에 있을 경우',
+			parrotMovedDetail: '멈춘 뒤 다시 움직일 경우',
 		},
 		logItem: '기록을 눌러 펼쳐 보세요',
 		play: '재생을 눌러 들어 보세요',

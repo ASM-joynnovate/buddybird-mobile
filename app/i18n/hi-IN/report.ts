@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'ट्रेनिंग की सूची',
 	judging: 'विश्लेषण जारी है',
 	empty: 'इस अवधि में कोई ट्रेनिंग रिकॉर्ड नहीं है',
+	openGuide: 'रिपोर्ट गाइड देखें',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'अभी',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'घबराहट वाली चीख',
 			parrotDisappeared: 'तोता गायब हुआ',
 			parrotAppeared: 'तोता दिखाई दिया',
-			parrotMotionless: 'तोता हिल-डुल नहीं रहा',
-			parrotMoved: 'तोता फिर से हिल-डुल रहा है',
+			parrotMotionless: 'हिल-डुल नहीं रहा',
+			parrotMoved: 'फिर से हिल-डुल रहा है',
 		},
 		filters: {
 			all: 'सभी',
@@ -104,17 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '{{parrot}} और {{count}} दूसरे तोतों ने जो नकल की है, उसे सबको दिखाएँ!',
 	},
 	guide: {
-		chart: {
-			title: 'ग्राफ़ को दबाकर रखें और उंगली स्लाइड करें',
-			detail: 'हर तारीख तक का कुल ट्रेनिंग समय दिखेगा',
-		},
-		wordBars: { title: 'हर शब्द को सिखाने का समय', detail: 'नारंगी अक्षर पिछले महीने से बढ़ा समय दिखाते हैं' },
 		session: 'किसी ट्रेनिंग पर टैप करें',
-		logKinds: {
+		soundKinds: {
 			mimic: 'नकल किए गए शब्द',
 			mimicDetail: 'जब तोता किसी शब्द की नकल करे',
 			parrotDetail: 'जब तोता चहचहाए',
-			emergencyDetail: 'जब इमरजेंसी हो',
+			distressCallDetail: 'जब तोता थोड़ी देर में कई बार चहचहाए',
+		},
+		petcamKinds: {
+			title: 'पेट कैमरा चालू होने पर पहचाना जाता है',
+			parrotDisappearedDetail: 'जब कुछ मिनट तक न दिखे',
+			parrotAppearedDetail: 'जब गायब होने के बाद फिर दिखे',
+			parrotMotionlessDetail: 'जब काफ़ी देर तक एक ही जगह रहे',
+			parrotMovedDetail: 'जब रुकने के बाद फिर हिले-डुले',
 		},
 		logItem: 'खोलने के लिए किसी रिकॉर्ड पर टैप करें',
 		play: 'सुनने के लिए प्ले बटन पर टैप करें',

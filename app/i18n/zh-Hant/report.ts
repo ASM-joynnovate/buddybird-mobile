@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: '學習列表',
 	judging: '分析中',
 	empty: '這段期間沒有學習記錄',
+	openGuide: '查看報告指南',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '現在',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: '驚叫',
 			parrotDisappeared: '鸚鵡消失',
 			parrotAppeared: '鸚鵡出現',
-			parrotMotionless: '鸚鵡一直沒有動作',
-			parrotMoved: '鸚鵡又有動作了',
+			parrotMotionless: '一直沒有動作',
+			parrotMoved: '又有動作了',
 		},
 		filters: {
 			all: '全部',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '來炫耀{{parrot}}和其他 {{count}} 隻鸚鵡模仿的聲音吧！',
 	},
 	guide: {
-		chart: { title: '按住圖表滑動看看', detail: '可以看到每個日期的累計學習時間' },
-		wordBars: { title: '每個單字的學習時間', detail: '橘色文字是比上個月增加的時間' },
 		session: '點一下這次學習看看',
-		logKinds: {
+		soundKinds: {
 			mimic: '模仿的話',
 			mimicDetail: '鸚鵡模仿詞語時',
 			parrotDetail: '鸚鵡啾啾叫時',
-			emergencyDetail: '發生緊急狀況時',
+			distressCallDetail: '鸚鵡短時間內多次啾啾叫時',
+		},
+		petcamKinds: {
+			title: '開啟寵物攝影機後即可偵測',
+			parrotDisappearedDetail: '好幾分鐘都看不到時',
+			parrotAppearedDetail: '消失後再次出現時',
+			parrotMotionlessDetail: '長時間待在同一個位置時',
+			parrotMovedDetail: '停下後又開始動時',
 		},
 		logItem: '點一下記錄展開看看',
 		play: '點一下播放按鈕聽聽看',
