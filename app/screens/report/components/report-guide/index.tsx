@@ -45,7 +45,7 @@ const REVIEW_HOLD_MS = 700;
 const REVEAL_MARGIN = 24;
 
 const guideSamples: Record<ReportGuideSample, { word: string; sound: ReportGuideSound }> = {
-	annyeong: { word: '안녕', sound: { file: require('@assets/audio/report-guide/annyeong.wav'), durationMs: 800 } },
+	annyeong: { word: '안녕', sound: { file: require('@assets/audio/report-guide/annyeong.wav'), durationMs: 584 } },
 	hello: { word: 'Hello', sound: { file: require('@assets/audio/report-guide/hello.wav'), durationMs: 510 } },
 };
 
