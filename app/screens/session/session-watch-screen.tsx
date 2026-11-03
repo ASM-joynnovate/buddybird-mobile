@@ -89,6 +89,7 @@ const SessionWatchScreen = () => {
 	const [stationUnreachable, setStationUnreachable] = useState(false);
 	const [cameraRequestPending, setCameraRequestPending] = useState(false);
 	const [microphoneOn, setMicrophoneOn] = useState(false);
+	const [appBackgrounded, setAppBackgrounded] = useState(AppState.currentState === 'background');
 
 	const leavingRef = useRef(false);
 	const talkButtonPressedRef = useRef(false);
@@ -131,8 +132,21 @@ const SessionWatchScreen = () => {
 		opacity.set(infoShown ? 1 : withTiming(0, { duration: SESSION_INFO_FADE_MS }));
 	}, [infoShown, opacity]);
 
-	/** Station과 연결할 채널 생성 */
+	/** 앱의 background 여부 변경 */
 	useEffect(() => {
+		const appStateSubscription = AppState.addEventListener('change', (appState) =>
+			setAppBackgrounded(appState === 'background'),
+		);
+
+		return () => appStateSubscription.remove();
+	}, []);
+
+	/** background가 아닌 동안 Station과 연결 */
+	useEffect(() => {
+		if (appBackgrounded) {
+			return;
+		}
+
 		const receiver = createPetcamReceiver({
 			sessionId: params.sessionId,
 			issueTurnCredential: issuePetcamTurnCredential,
@@ -152,8 +166,10 @@ const SessionWatchScreen = () => {
 			petcamReceiverRef.current = null;
 
 			receiver.close();
+
+			setStream(null);
 		};
-	}, [issuePetcamTurnCredential, microphoneLevel, params.sessionId]);
+	}, [appBackgrounded, issuePetcamTurnCredential, microphoneLevel, params.sessionId]);
 
 	/** Station 응답이 없으면 안내 표시 */
 	useEffect(() => {
