@@ -110,6 +110,8 @@ const ReportGuide = ({ onClose }: Props) => {
 	const stepDefinition = stepDefinitions[step];
 	const lastStepShown = stepIndex === reportGuideSteps.length - 1;
 	const summaryShown = stepDefinition.page === 'summary';
+	const scrollRef = summaryShown ? summaryScrollRef : sessionDetailScrollRef;
+	const scrollY = summaryShown ? summaryScrollY : sessionDetailScrollY;
 	const guideSample = guideSamples[localeDefinitions[locale].reportGuideSample];
 	// 이전 단계에서 측정한 강조 영역은 표시하지 않음
 	const target = measuredTarget?.step === step ? measuredTarget.layout : null;
@@ -137,12 +139,39 @@ const ReportGuide = ({ onClose }: Props) => {
 		setTargetRefs((prev) => (prev[targetStep] === laidOutRef ? prev : { ...prev, [targetStep]: laidOutRef }));
 	}, []);
 
+	/** 스크롤 후 강조 영역 측정 함수 */
+	const revealTarget = useCallback(
+		(laidOutRef: AnimatedRef<Animated.View>, scrollDistance: number) => {
+			'worklet';
+
+			const rootLayout = measure(rootRef);
+
+			if (!rootLayout) {
+				return;
+			}
+
+			revealScrollY.set(scrollY.get());
+			revealScrollY.set(
+				withTiming(scrollY.get() + scrollDistance, { duration: SCROLL_MS }, (finished) => {
+					const revealedLayout = measure(laidOutRef);
+
+					revealScrollY.set(null);
+
+					if (finished && revealedLayout) {
+						scheduleOnRN(setMeasuredTarget, { step, layout: toTarget(revealedLayout, rootLayout) });
+					}
+				}),
+			);
+		},
+		[revealScrollY, rootRef, scrollY, step],
+	);
+
 	/** 강조 영역 표시를 위한 스크롤 위치 변경 */
 	useAnimatedReaction(
 		() => revealScrollY.get(),
-		(scrollY) => {
-			if (scrollY !== null) {
-				scrollTo(summaryShown ? summaryScrollRef : sessionDetailScrollRef, 0, scrollY, false);
+		(revealY) => {
+			if (revealY !== null) {
+				scrollTo(scrollRef, 0, revealY, false);
 			}
 		},
 	);
@@ -152,9 +181,6 @@ const ReportGuide = ({ onClose }: Props) => {
 		if (!targetRef) {
 			return;
 		}
-
-		const scrollRef = summaryShown ? summaryScrollRef : sessionDetailScrollRef;
-		const scrollY = summaryShown ? summaryScrollY : sessionDetailScrollY;
 
 		scheduleOnUI(() => {
 			'worklet';
@@ -179,30 +205,9 @@ const ReportGuide = ({ onClose }: Props) => {
 				return;
 			}
 
-			revealScrollY.set(scrollY.get());
-			revealScrollY.set(
-				withTiming(scrollY.get() + revealScrollDistance, { duration: SCROLL_MS }, (finished) => {
-					const revealedLayout = measure(targetRef);
-
-					revealScrollY.set(null);
-
-					if (finished && revealedLayout) {
-						scheduleOnRN(setMeasuredTarget, { step, layout: toTarget(revealedLayout, rootLayout) });
-					}
-				}),
-			);
+			revealTarget(targetRef, revealScrollDistance);
 		});
-	}, [
-		revealScrollY,
-		rootRef,
-		sessionDetailScrollRef,
-		sessionDetailScrollY,
-		step,
-		summaryScrollRef,
-		summaryScrollY,
-		summaryShown,
-		targetRef,
-	]);
+	}, [revealTarget, rootRef, scrollRef, step, targetRef]);
 
 	/** 선택한 리뷰 버튼 표시 후 다음 단계로 이동 */
 	useEffect(() => {
@@ -234,6 +239,17 @@ const ReportGuide = ({ onClose }: Props) => {
 		} else {
 			completeStep(step);
 		}
+	};
+
+	// 건너뛰기 아래로 강조 영역 스크롤
+	const handleTargetMove = (scrollDistance: number) => {
+		if (!target || !targetRef) {
+			return;
+		}
+
+		// 스크롤과 함께 강조 위치 이동
+		setMeasuredTarget({ step, layout: { ...target, y: target.y - scrollDistance } });
+		scheduleOnUI(revealTarget, targetRef, scrollDistance);
 	};
 
 	return (
@@ -292,6 +308,7 @@ const ReportGuide = ({ onClose }: Props) => {
 					target={target}
 					targetRadius={stepDefinition.radius}
 					targetTappable={stepDefinition.tappable}
+					onTargetMove={handleTargetMove}
 					onSkip={onClose}
 				>
 					<ReportGuideSign

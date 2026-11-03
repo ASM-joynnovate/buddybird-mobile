@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { ReportGuideSound, ReportGuideTargetRegister } from '@/types/guide/report';
 
@@ -57,6 +57,7 @@ const ReportGuideSessionDetail = ({
 	onReview,
 }: Props) => {
 	const { t } = useTranslation();
+	const { height } = useWindowDimensions();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -67,7 +68,11 @@ const ReportGuideSessionDetail = ({
 			ref={scrollRef}
 			scrollEnabled={false}
 			showsVerticalScrollIndicator={false}
-			contentContainerStyle={styles.content}
+			contentContainerStyle={[
+				styles.content,
+				// 마지막 강조 영역도 위로 올릴 여백
+				{ paddingBottom: height },
+			]}
 		>
 			<GuideSceneSessionPreviewHeader
 				period={t('report.detail.period', {
@@ -172,7 +177,6 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		paddingHorizontal: 24,
 		paddingTop: 20,
-		paddingBottom: 32,
 	},
 	logTitle: { marginTop: 32, marginBottom: 16, fontFamily: font.bold, fontSize: 18, lineHeight: 24 },
 	divider: { height: 2, marginHorizontal: -24, backgroundColor: colors.border },
