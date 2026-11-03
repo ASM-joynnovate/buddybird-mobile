@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: '激しい鳴き声',
 			parrotDisappeared: 'インコが画面外',
 			parrotAppeared: 'インコが画面内',
+			parrotMotionless: 'インコが動かない',
+			parrotMoved: 'インコがまた動き出した',
 		},
 		filters: {
 			all: 'すべて',

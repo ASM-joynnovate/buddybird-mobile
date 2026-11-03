@@ -44,7 +44,10 @@ const SessionDetailContent = ({ sessionId, pullToRefresh }: Props) => {
 		() => sessionLogData.pages.flatMap((logPage) => logPage.data).map(toLogItem),
 		[sessionLogData],
 	);
-	const emergencyCount = sessionData.events.distress_call_count + sessionData.events.parrot_disappeared_count;
+	const emergencyCount =
+		sessionData.events.distress_call_count +
+		sessionData.events.parrot_disappeared_count +
+		sessionData.events.parrot_motionless_count;
 
 	const { scrollY, viewportHeight, contentHeight } = pullToRefresh;
 	const logBottom = useDerivedValue(() => contentHeight.get() - CONTENT_PADDING_BOTTOM);

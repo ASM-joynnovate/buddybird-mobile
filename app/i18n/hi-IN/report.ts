@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'घबराहट वाली चीख',
 			parrotDisappeared: 'तोता गायब हुआ',
 			parrotAppeared: 'तोता दिखाई दिया',
+			parrotMotionless: 'तोता हिल-डुल नहीं रहा',
+			parrotMoved: 'तोता फिर से हिल-डुल रहा है',
 		},
 		filters: {
 			all: 'सभी',

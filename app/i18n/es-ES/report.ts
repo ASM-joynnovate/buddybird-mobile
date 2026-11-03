@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'Grito de alarma',
 			parrotDisappeared: 'Loro fuera de cámara',
 			parrotAppeared: 'Loro en cámara',
+			parrotMotionless: 'Loro no se mueve',
+			parrotMoved: 'Loro vuelve a moverse',
 		},
 		filters: {
 			all: 'Todo',

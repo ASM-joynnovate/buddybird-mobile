@@ -32,6 +32,7 @@ export const sessionSchema = z.object({
 	events: z.object({
 		distress_call_count: z.number().int().nonnegative(),
 		parrot_disappeared_count: z.number().int().nonnegative(),
+		parrot_motionless_count: z.number().int().nonnegative(),
 	}),
 });
 
@@ -72,6 +73,8 @@ const sessionLogKindSchema = z.enum([
 	'distress_call_detected',
 	'parrot_disappeared',
 	'parrot_appeared',
+	'parrot_motionless',
+	'parrot_moved',
 ]);
 
 const sessionEventFileSchema = fileSchema.extend({ status: z.enum(['pending', 'uploaded', 'rejected']) });
@@ -113,6 +116,16 @@ const sessionLogItemSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('parrot_appeared'),
 		image: sessionEventFileSchema.nullable(),
 	}),
+	sessionLogItemBaseSchema.extend({
+		kind: z.literal('parrot_motionless'),
+		ended_at: timestampSchema.nullable(),
+		image: sessionEventFileSchema.nullable(),
+		video: sessionEventFileSchema.nullable(),
+	}),
+	sessionLogItemBaseSchema.extend({
+		kind: z.literal('parrot_moved'),
+		image: sessionEventFileSchema.nullable(),
+	}),
 ]);
 
 export const sessionLogListSchema = z
@@ -120,7 +133,7 @@ export const sessionLogListSchema = z
 	.transform((logItems) => logItems.filter((logItem) => sessionLogKindSchema.safeParse(logItem.kind).success))
 	.pipe(z.array(sessionLogItemSchema));
 
-const petcamEventKindSchema = z.enum(['parrot_disappeared', 'parrot_appeared']);
+const petcamEventKindSchema = z.enum(['parrot_disappeared', 'parrot_appeared', 'parrot_motionless', 'parrot_moved']);
 
 const activeSchema = z.object({ duration_ms: z.number().int().nonnegative() });
 

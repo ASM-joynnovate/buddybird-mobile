@@ -55,6 +55,8 @@ export type ReportMessages = {
 			distressCall: string;
 			parrotDisappeared: string;
 			parrotAppeared: string;
+			parrotMotionless: string;
+			parrotMoved: string;
 		};
 		filters: {
 			all: string;

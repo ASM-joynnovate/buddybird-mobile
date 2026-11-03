@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'Тревожный крик',
 			parrotDisappeared: 'Попугай не в кадре',
 			parrotAppeared: 'Попугай в кадре',
+			parrotMotionless: 'Попугай не двигается',
+			parrotMoved: 'Попугай снова двигается',
 		},
 		filters: {
 			all: 'Все',

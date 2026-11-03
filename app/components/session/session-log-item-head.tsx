@@ -20,6 +20,8 @@ export const logItemMediaTypes: Record<LogItemKind, 'audio' | 'video' | 'image'>
 	distressCall: 'audio',
 	parrotDisappeared: 'video',
 	parrotAppeared: 'image',
+	parrotMotionless: 'video',
+	parrotMoved: 'image',
 };
 
 interface Props {

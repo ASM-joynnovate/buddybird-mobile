@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'Distress calls',
 			parrotDisappeared: 'Parrot out of view',
 			parrotAppeared: 'Parrot back in view',
+			parrotMotionless: 'Parrot not moving',
+			parrotMoved: 'Parrot moving again',
 		},
 		filters: {
 			all: 'All',

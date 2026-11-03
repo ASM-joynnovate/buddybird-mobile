@@ -9,6 +9,8 @@ import type { SvgProps } from 'react-native-svg';
 import AppearedIcon from '@assets/images/icons/report/events/appeared.svg';
 import DisappearedIcon from '@assets/images/icons/report/events/disappeared.svg';
 import MimicIcon from '@assets/images/icons/report/events/mimic.svg';
+import MovementIcon from '@assets/images/icons/report/events/movement.svg';
+import NoMovementIcon from '@assets/images/icons/report/events/no-movement.svg';
 import SoundIcon from '@assets/images/icons/report/events/sound.svg';
 
 const ICON_SIZE = 36;
@@ -20,6 +22,8 @@ const kindIcons: Record<Exclude<LogItemKind, 'distressCall'>, ComponentType<SvgP
 	mimic: MimicIcon,
 	parrotDisappeared: DisappearedIcon,
 	parrotAppeared: AppearedIcon,
+	parrotMotionless: NoMovementIcon,
+	parrotMoved: MovementIcon,
 };
 
 interface Props {
