@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: '学习记录',
 	judging: '分析中',
 	empty: '此时段没有学习记录',
+	openGuide: '查看报告指南',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '现在',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: '焦躁鸣叫',
 			parrotDisappeared: '鹦鹉消失',
 			parrotAppeared: '鹦鹉出现',
-			parrotMotionless: '鹦鹉一直没有动弹',
-			parrotMoved: '鹦鹉又动起来了',
+			parrotMotionless: '一直没有动弹',
+			parrotMoved: '又动起来了',
 		},
 		filters: {
 			all: '全部',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '来炫耀一下{{parrot}}和另外{{count}}只鹦鹉模仿的声音吧！',
 	},
 	guide: {
-		chart: { title: '按住图表滑动试试', detail: '可以看到每个日期的累计学习时长' },
-		wordBars: { title: '每个词语的学习时长', detail: '橙色文字是比上月增加的时长' },
 		session: '轻点这条学习记录试试',
-		logKinds: {
+		soundKinds: {
 			mimic: '模仿的话',
 			mimicDetail: '鹦鹉模仿词语时',
 			parrotDetail: '鹦鹉鸣叫时',
-			emergencyDetail: '发生紧急情况时',
+			distressCallDetail: '鹦鹉短时间内多次鸣叫时',
+		},
+		petcamKinds: {
+			title: '打开宠物摄像机后即可识别',
+			parrotDisappearedDetail: '几分钟都看不到时',
+			parrotAppearedDetail: '消失后再次出现时',
+			parrotMotionlessDetail: '长时间待在同一位置时',
+			parrotMovedDetail: '停下后又动起来时',
 		},
 		logItem: '轻点记录展开看看',
 		play: '轻点播放按钮听一听',

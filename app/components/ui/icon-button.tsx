@@ -10,6 +10,7 @@ const variants = {
 	plain: { surfaceVariant: 'plain', color: colors.text, shape: 'square' },
 	muted: { surfaceVariant: 'plain', color: colors.muted, shape: 'square' },
 	primary: { surfaceVariant: 'primary', color: colors.onFilled, shape: 'circle' },
+	outline: { surfaceVariant: 'neutral', color: colors.text, shape: 'circle' },
 	onBrand: { surfaceVariant: 'plain', color: colors.onBrand, shape: 'square' },
 } as const;
 

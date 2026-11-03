@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'Danh sách buổi học',
 	judging: 'Đang phân tích',
 	empty: 'Không có buổi học nào trong khoảng thời gian này',
+	openGuide: 'Xem hướng dẫn báo cáo',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Hiện tại',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'Tiếng kêu hoảng sợ',
 			parrotDisappeared: 'Vẹt biến mất',
 			parrotAppeared: 'Vẹt xuất hiện',
-			parrotMotionless: 'Vẹt không di chuyển',
-			parrotMoved: 'Vẹt di chuyển trở lại',
+			parrotMotionless: 'Không di chuyển',
+			parrotMoved: 'Di chuyển trở lại',
 		},
 		filters: {
 			all: 'Tất cả',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: 'Khoe âm thanh {{parrot}} và {{count}} bé vẹt khác đã bắt chước nào!',
 	},
 	guide: {
-		chart: { title: 'Chạm và giữ biểu đồ rồi kéo thử', detail: 'Xem tổng thời gian học đến từng ngày' },
-		wordBars: { title: 'Thời gian dạy từng từ', detail: 'Chữ màu cam là thời gian tăng so với tháng trước' },
 		session: 'Thử chạm vào một buổi học',
-		logKinds: {
+		soundKinds: {
 			mimic: 'Lời bắt chước',
 			mimicDetail: 'Khi vẹt bắt chước từ',
 			parrotDetail: 'Khi vẹt kêu',
-			emergencyDetail: 'Khi có tình huống khẩn cấp',
+			distressCallDetail: 'Khi vẹt kêu nhiều lần trong thời gian ngắn',
+		},
+		petcamKinds: {
+			title: 'Nhận biết khi bật camera thú cưng',
+			parrotDisappearedDetail: 'Khi không thấy vẹt trong vài phút',
+			parrotAppearedDetail: 'Khi vẹt xuất hiện trở lại',
+			parrotMotionlessDetail: 'Khi vẹt ở yên một chỗ quá lâu',
+			parrotMovedDetail: 'Khi vẹt di chuyển trở lại',
 		},
 		logItem: 'Chạm vào ghi nhận để mở rộng',
 		play: 'Chạm vào nút phát để nghe',

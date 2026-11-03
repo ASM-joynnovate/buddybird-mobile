@@ -17,6 +17,7 @@ import { useIsFocused } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Animated from 'react-native-reanimated';
 
+import QuestionMarkIcon from '@/screens/report/components/question-mark-icon';
 import ReportHeader from '@/screens/report/components/report-header';
 import SessionItem from '@/screens/report/components/session-item';
 import { track } from '@/services/telemetry/client';
@@ -37,9 +38,17 @@ import BuddyRefreshThrobberIndicator from '@/components/buddy-refresh/throbber-i
 import PullToRefreshContainer from '@/components/pull-to-refresh-container';
 import { Copy } from '@/components/ui/copy';
 import { EmptyState } from '@/components/ui/empty-state';
+import { IconButton } from '@/components/ui/icon-button';
 
-/** 리포트 목록 컴포넌트 */
-const ReportContent = () => {
+interface Props {
+	onOpenGuide: () => void;
+}
+
+/**
+ * 리포트 목록 컴포넌트
+ * @param onOpenGuide 물음표 버튼을 누를 때 실행할 함수
+ */
+const ReportContent = ({ onOpenGuide }: Props) => {
 	const { t } = useTranslation();
 
 	const screenFocused = useIsFocused();
@@ -141,7 +150,15 @@ const ReportContent = () => {
 				contentContainerStyle={styles.content}
 				showsVerticalScrollIndicator={false}
 				ListHeaderComponent={header}
-				ListEmptyComponent=<EmptyState message={t('report.empty')} />
+				ListEmptyComponent=<EmptyState
+					message={t('report.empty')}
+					action=<IconButton
+						icon={QuestionMarkIcon}
+						label={t('report.openGuide')}
+						variant="outline"
+						onPress={onOpenGuide}
+					/>
+				/>
 				renderItem={renderSessionItem}
 			/>
 		</PullToRefreshContainer>

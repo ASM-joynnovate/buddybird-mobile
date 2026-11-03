@@ -7,6 +7,7 @@ import { Copy } from '@/components/ui/copy';
 const variants = {
 	primary: { background: colors.orangePale, border: colors.orange, text: colors.orangeDark },
 	muted: { background: colors.surface, border: colors.border, text: colors.muted },
+	danger: { background: colors.errorDark, border: colors.errorDark, text: colors.onFilled },
 } as const;
 
 type TagVariant = keyof typeof variants;

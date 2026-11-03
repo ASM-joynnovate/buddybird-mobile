@@ -42,6 +42,7 @@ export type ReportMessages = {
 	sessions: string;
 	judging: string;
 	empty: string;
+	openGuide: string;
 	detail: {
 		period: string;
 		now: string;
@@ -94,20 +95,19 @@ export type ReportMessages = {
 		PluralMessages<'emergencyCountValue'> &
 		PluralMessages<'feedShareConfirmMessageWithOthers'>;
 	guide: {
-		chart: {
-			title: string;
-			detail: string;
-		};
-		wordBars: {
-			title: string;
-			detail: string;
-		};
 		session: string;
-		logKinds: {
+		soundKinds: {
 			mimic: string;
 			mimicDetail: string;
 			parrotDetail: string;
-			emergencyDetail: string;
+			distressCallDetail: string;
+		};
+		petcamKinds: {
+			title: string;
+			parrotDisappearedDetail: string;
+			parrotAppearedDetail: string;
+			parrotMotionlessDetail: string;
+			parrotMovedDetail: string;
 		};
 		logItem: string;
 		play: string;

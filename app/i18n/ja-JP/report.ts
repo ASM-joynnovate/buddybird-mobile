@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: '練習一覧',
 	judging: '分析中',
 	empty: 'この期間の練習記録はありません',
+	openGuide: 'レポートガイドを見る',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: '今',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: '激しい鳴き声',
 			parrotDisappeared: 'インコが画面外',
 			parrotAppeared: 'インコが画面内',
-			parrotMotionless: 'インコが動かない',
-			parrotMoved: 'インコがまた動き出した',
+			parrotMotionless: '動かない',
+			parrotMoved: 'また動き出した',
 		},
 		filters: {
 			all: 'すべて',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '{{parrot}}ほか{{count}}羽がまねした声を自慢しましょう！',
 	},
 	guide: {
-		chart: { title: 'グラフを長押ししたまま指を動かしましょう', detail: '日付ごとの累計練習時間がわかります' },
-		wordBars: { title: '言葉ごとの練習時間です', detail: 'オレンジの文字は先月より増えた時間' },
 		session: '練習をタップしてみましょう',
-		logKinds: {
+		soundKinds: {
 			mimic: 'まねした言葉',
 			mimicDetail: 'インコが言葉をまねしたとき',
 			parrotDetail: 'インコが鳴いたとき',
-			emergencyDetail: '緊急事態が起きたとき',
+			distressCallDetail: '短い時間に何度も鳴いたとき',
+		},
+		petcamKinds: {
+			title: 'ペットカメラをオンにすると見つけます',
+			parrotDisappearedDetail: '数分間見えなくなったとき',
+			parrotAppearedDetail: 'いなくなった後にまた見えたとき',
+			parrotMotionlessDetail: '長い間同じ場所にいたとき',
+			parrotMovedDetail: '止まった後にまた動いたとき',
 		},
 		logItem: '記録をタップして開いてみましょう',
 		play: '再生ボタンをタップして聞いてみましょう',

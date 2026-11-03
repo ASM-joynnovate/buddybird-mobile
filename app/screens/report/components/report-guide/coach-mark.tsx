@@ -2,8 +2,6 @@ import { type ReactNode, useEffect, useState } from 'react';
 
 import { type LayoutRectangle, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import type { ReportGuideGesture } from '@/types/guide/report';
-
 import { useTranslation } from 'react-i18next';
 
 import { Canvas, FillType, Path, Skia, usePathValue } from '@shopify/react-native-skia';
@@ -23,7 +21,7 @@ const SIGN_GAP = 12;
 interface Props {
 	target: LayoutRectangle | null;
 	targetRadius: number;
-	targetGesture: ReportGuideGesture | null;
+	targetTappable: boolean;
 	children: ReactNode;
 	onSkip: () => void;
 }
@@ -32,16 +30,17 @@ interface Props {
  * 강조 영역 밖을 어둡게 표시하는 컴포넌트
  * @param target 강조 영역
  * @param targetRadius 강조 영역 모서리 반지름
- * @param targetGesture 강조 영역에서 할 동작
+ * @param targetTappable 강조 영역을 누를 수 있는지 여부
  * @param children 안내 팻말
  * @param onSkip 건너뛰기를 누르면 실행할 함수
  */
-const ReportGuideCoachMark = ({ target, targetRadius, targetGesture, children, onSkip }: Props) => {
+const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, onSkip }: Props) => {
 	const { t } = useTranslation();
 	const { width, height } = useWindowDimensions();
 	const insets = useSafeAreaInsets();
 
 	const [signHeight, setSignHeight] = useState(0);
+	const [skipBottom, setSkipBottom] = useState(insets.top);
 
 	const highlightX = useSharedValue(0);
 	const highlightY = useSharedValue(0);
@@ -77,7 +76,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetGesture, children, o
 		height: highlightHeight.get(),
 	}));
 
-	const signAbove = !!target && target.y - HIGHLIGHT_PADDING - SIGN_GAP - signHeight - MASCOT_SIZE >= insets.top;
+	const signAbove = !!target && target.y - HIGHLIGHT_PADDING - SIGN_GAP - signHeight - MASCOT_SIZE >= skipBottom;
 
 	/** 강조 영역 변경 시 강조 위치 이동 */
 	useEffect(() => {
@@ -105,11 +104,11 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetGesture, children, o
 			<Animated.View onStartShouldSetResponder={() => true} style={[styles.bottomBlocker, bottomBlockerStyle]} />
 			<Animated.View onStartShouldSetResponder={() => true} style={[styles.leftBlocker, leftBlockerStyle]} />
 			<Animated.View onStartShouldSetResponder={() => true} style={[styles.rightBlocker, rightBlockerStyle]} />
-			{(!target || !targetGesture) && (
+			{(!target || !targetTappable) && (
 				<View onStartShouldSetResponder={() => true} style={StyleSheet.absoluteFill} />
 			)}
 
-			{target && targetGesture && <ReportGuideTouchHint target={target} gesture={targetGesture} />}
+			{target && targetTappable && <ReportGuideTouchHint target={target} />}
 
 			{target && (
 				<View
@@ -131,7 +130,10 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetGesture, children, o
 				</View>
 			)}
 
-			<View style={[styles.skip, { bottom: insets.bottom + 12 }]}>
+			<View
+				onLayout={(event) => setSkipBottom(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}
+				style={[styles.skip, { top: insets.top + 8 }]}
+			>
 				<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
 			</View>
 		</View>
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
 	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center', paddingHorizontal: 16 },
 	sign: { maxWidth: '100%' },
 	signBelow: { overflow: 'hidden', paddingTop: SIGN_GAP + MASCOT_FOOT_Y },
-	skip: { position: 'absolute', right: 24 },
+	skip: { position: 'absolute', left: 24 },
 });
 
 export default ReportGuideCoachMark;

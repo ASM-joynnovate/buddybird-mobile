@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'Sessions',
 	judging: 'Analyzing',
 	empty: 'No learning records in this period',
+	openGuide: 'Open report guide',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Now',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'Distress calls',
 			parrotDisappeared: 'Parrot out of view',
 			parrotAppeared: 'Parrot back in view',
-			parrotMotionless: 'Parrot not moving',
-			parrotMoved: 'Parrot moving again',
+			parrotMotionless: 'Not moving',
+			parrotMoved: 'Moving again',
 		},
 		filters: {
 			all: 'All',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: 'Show off what {{parrot}} and {{count}} others mimicked!',
 	},
 	guide: {
-		chart: { title: 'Touch and hold the graph, then drag', detail: 'See total learning time up to each date' },
-		wordBars: { title: 'Time spent teaching each word', detail: 'Orange text shows the increase vs last month' },
 		session: 'Tap a session',
-		logKinds: {
+		soundKinds: {
 			mimic: 'Mimicked words',
 			mimicDetail: 'When your parrot mimics a word',
 			parrotDetail: 'When your parrot chirps',
-			emergencyDetail: 'When an emergency occurs',
+			distressCallDetail: 'When your parrot chirps many times in a short time',
+		},
+		petcamKinds: {
+			title: 'Picked up while the pet cam is on',
+			parrotDisappearedDetail: 'When your parrot is out of sight for a few minutes',
+			parrotAppearedDetail: 'When it comes back into view',
+			parrotMotionlessDetail: 'When it stays in one spot for a long time',
+			parrotMovedDetail: 'When it starts moving again',
 		},
 		logItem: 'Tap a record to expand it',
 		play: 'Tap play to listen',

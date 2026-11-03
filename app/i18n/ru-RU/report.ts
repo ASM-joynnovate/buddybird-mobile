@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'Занятия',
 	judging: 'Анализируем',
 	empty: 'За этот период занятий нет',
+	openGuide: 'Открыть советы по отчёту',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Сейчас',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'Тревожный крик',
 			parrotDisappeared: 'Попугай не в кадре',
 			parrotAppeared: 'Попугай в кадре',
-			parrotMotionless: 'Попугай не двигается',
-			parrotMoved: 'Попугай снова двигается',
+			parrotMotionless: 'Не двигается',
+			parrotMoved: 'Снова двигается',
 		},
 		filters: {
 			all: 'Все',
@@ -104,17 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: 'Похвастайся, как {{parrot}} и ещё {{count}} попугая повторяют слова!',
 	},
 	guide: {
-		chart: { title: 'Зажми график и веди пальцем', detail: 'Увидишь общее время занятий на каждую дату' },
-		wordBars: {
-			title: 'Время занятий по каждому слову',
-			detail: 'Оранжевым показан прирост к прошлому месяцу',
-		},
 		session: 'Нажми на занятие',
-		logKinds: {
+		soundKinds: {
 			mimic: 'Повторённые слова',
 			mimicDetail: 'Когда попугай повторяет слово',
 			parrotDetail: 'Когда попугай щебечет',
-			emergencyDetail: 'Когда поднимается тревога',
+			distressCallDetail: 'Когда попугай часто щебечет за короткое время',
+		},
+		petcamKinds: {
+			title: 'Замечаем, когда включена камера для питомца',
+			parrotDisappearedDetail: 'Когда его не видно несколько минут',
+			parrotAppearedDetail: 'Когда он снова появился в кадре',
+			parrotMotionlessDetail: 'Когда он долго сидит на одном месте',
+			parrotMovedDetail: 'Когда он снова начал двигаться',
 		},
 		logItem: 'Нажми на запись, чтобы развернуть её',
 		play: 'Нажми на кнопку, чтобы послушать',

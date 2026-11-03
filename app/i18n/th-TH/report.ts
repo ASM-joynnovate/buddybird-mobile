@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'รายการฝึกพูด',
 	judging: 'กำลังวิเคราะห์',
 	empty: 'ไม่มีบันทึกการฝึกพูดในช่วงเวลานี้',
+	openGuide: 'ดูคู่มือรายงาน',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'ขณะนี้',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'เสียงร้องตื่นตกใจ',
 			parrotDisappeared: 'นกแก้วหายไป',
 			parrotAppeared: 'นกแก้วกลับมา',
-			parrotMotionless: 'นกแก้วไม่ขยับ',
-			parrotMoved: 'นกแก้วขยับอีกครั้ง',
+			parrotMotionless: 'ไม่ขยับ',
+			parrotMoved: 'ขยับอีกครั้ง',
 		},
 		filters: {
 			all: 'ทั้งหมด',
@@ -104,14 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: 'อวดเสียงที่ {{parrot}} และอีก {{count}} ตัวพูดตามกันเลย!',
 	},
 	guide: {
-		chart: { title: 'แตะกราฟค้างไว้แล้วเลื่อนนิ้ว', detail: 'ดูเวลาฝึกพูดสะสมถึงแต่ละวันได้' },
-		wordBars: { title: 'เวลาที่สอนแต่ละคำ', detail: 'ตัวอักษรสีส้มคือเวลาที่เพิ่มขึ้นจากเดือนที่แล้ว' },
 		session: 'ลองแตะรายการฝึกพูด',
-		logKinds: {
+		soundKinds: {
 			mimic: 'คำที่พูดตาม',
 			mimicDetail: 'เมื่อนกแก้วเลียนเสียงคำ',
 			parrotDetail: 'เมื่อนกแก้วส่งเสียงร้อง',
-			emergencyDetail: 'เมื่อเกิดเหตุฉุกเฉิน',
+			distressCallDetail: 'เมื่อนกแก้วร้องหลายครั้งในเวลาสั้น ๆ',
+		},
+		petcamKinds: {
+			title: 'จับได้เมื่อเปิดกล้องดูสัตว์เลี้ยง',
+			parrotDisappearedDetail: 'เมื่อมองไม่เห็นนกแก้วหลายนาที',
+			parrotAppearedDetail: 'เมื่อกลับมาให้เห็นอีกครั้ง',
+			parrotMotionlessDetail: 'เมื่ออยู่ที่เดิมเป็นเวลานาน',
+			parrotMovedDetail: 'เมื่อกลับมาขยับอีกครั้ง',
 		},
 		logItem: 'แตะบันทึกเพื่อเปิดดู',
 		play: 'แตะปุ่มเล่นเพื่อฟังเสียง',

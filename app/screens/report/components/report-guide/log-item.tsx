@@ -99,9 +99,9 @@ const ReportGuideLogItem = ({ wordName, sound, open, onRegisterTarget, onOpen, o
 					kind="mimic"
 					name={wordName}
 					value={t('report.detail.percent', { value: 92 })}
-					time="15:33:05"
+					time="22:14:05"
 					open={open}
-					dividerShown
+					dividerShown={false}
 				/>
 			</PressableSurface>
 

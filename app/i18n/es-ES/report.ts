@@ -42,6 +42,7 @@ export const report: ReportMessages = {
 	sessions: 'Entrenamientos',
 	judging: 'Analizando',
 	empty: 'No hay entrenamientos en este periodo',
+	openGuide: 'Ver la guía del informe',
 	detail: {
 		period: '{{start}} → {{end}}',
 		now: 'Ahora',
@@ -63,8 +64,8 @@ export const report: ReportMessages = {
 			distressCall: 'Grito de alarma',
 			parrotDisappeared: 'Loro fuera de cámara',
 			parrotAppeared: 'Loro en cámara',
-			parrotMotionless: 'Loro no se mueve',
-			parrotMoved: 'Loro vuelve a moverse',
+			parrotMotionless: 'No se mueve',
+			parrotMoved: 'Vuelve a moverse',
 		},
 		filters: {
 			all: 'Todo',
@@ -104,17 +105,19 @@ export const report: ReportMessages = {
 		feedShareConfirmMessageWithOthers_other: '¡Presume de lo que han imitado {{parrot}} y {{count}} más!',
 	},
 	guide: {
-		chart: { title: 'Mantén pulsada la gráfica y desliza', detail: 'Verás el tiempo acumulado hasta cada día' },
-		wordBars: {
-			title: 'Tiempo dedicado a enseñar cada palabra',
-			detail: 'En naranja, el aumento frente al mes pasado',
-		},
 		session: 'Toca un entrenamiento',
-		logKinds: {
+		soundKinds: {
 			mimic: 'Palabras imitadas',
 			mimicDetail: 'Cuando tu loro imita una palabra',
 			parrotDetail: 'Cuando tu loro gorjea',
-			emergencyDetail: 'Cuando ocurre una emergencia',
+			distressCallDetail: 'Cuando tu loro gorjea muchas veces en poco tiempo',
+		},
+		petcamKinds: {
+			title: 'Se detecta con la cámara para mascotas encendida',
+			parrotDisappearedDetail: 'Cuando no se ve durante unos minutos',
+			parrotAppearedDetail: 'Cuando vuelve a verse',
+			parrotMotionlessDetail: 'Cuando se queda mucho tiempo en el mismo sitio',
+			parrotMovedDetail: 'Cuando vuelve a moverse tras quedarse quieto',
 		},
 		logItem: 'Toca un registro para desplegarlo',
 		play: 'Toca reproducir para escucharlo',
