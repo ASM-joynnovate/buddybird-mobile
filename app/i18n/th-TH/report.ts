@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'เสียงร้องตื่นตกใจ',
 			parrotDisappeared: 'นกแก้วหายไป',
 			parrotAppeared: 'นกแก้วกลับมา',
+			parrotMotionless: 'นกแก้วไม่ขยับ',
+			parrotMoved: 'นกแก้วขยับอีกครั้ง',
 		},
 		filters: {
 			all: 'ทั้งหมด',

@@ -361,12 +361,26 @@ const SessionRunScreen = () => {
 								.infiniteQuery({
 									...getSessionLogOptions({
 										id: sessionId,
-										kinds: ['parrot_disappeared', 'parrot_appeared'],
+										kinds: [
+											'parrot_disappeared',
+											'parrot_appeared',
+											'parrot_motionless',
+											'parrot_moved',
+										],
 									}),
 									staleTime: 0,
 									pages: Infinity,
 								})
 								.then((petcamLogData) => petcamLogData.pages.flatMap((logPage) => logPage.data)),
+						isSleeping: () => {
+							const { startedAt: sessionStartedAt, sleep: sleepSettings } = heartbeatInputRef.current;
+
+							return (
+								!!sessionStartedAt &&
+								currentSpan(dayjs(sessionStartedAt).valueOf(), dayjs().valueOf(), sleepSettings)
+									.phase === 'sleeping'
+							);
+						},
 						issuePetcamEventUpload,
 						uploadPetcamPhoto,
 						uploadPetcamVideo,

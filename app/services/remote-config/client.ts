@@ -142,6 +142,21 @@ export const getParrotNightCorrection = () => {
 	};
 };
 
+/** 앵무새 움직임 없음 검출을 사용할지 반환하는 함수 */
+export const shouldCheckParrotMotion = () => {
+	return readConfigValues().check_parrot_motion;
+};
+
+/** 앵무새 움직임 판정 설정을 반환하는 함수 */
+export const getParrotMotion = () => {
+	const configValues = readConfigValues();
+
+	return {
+		motionlessCount: configValues.parrot_motionless_count,
+		iouThreshold: configValues.parrot_motion_iou_threshold,
+	};
+};
+
 /** 소리 감지 설정을 반환하는 함수 */
 export const getVad = () => {
 	const configValues = readConfigValues();

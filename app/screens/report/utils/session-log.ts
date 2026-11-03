@@ -37,10 +37,18 @@ export interface LogRow extends TimeSpan {
 }
 
 export const logFilterKinds: Record<LogFilter, SessionLogKind[]> = {
-	all: ['parrot', 'mimic', 'distress_call_detected', 'parrot_disappeared', 'parrot_appeared'],
+	all: [
+		'parrot',
+		'mimic',
+		'distress_call_detected',
+		'parrot_disappeared',
+		'parrot_appeared',
+		'parrot_motionless',
+		'parrot_moved',
+	],
 	sound: ['parrot'],
 	word: ['mimic'],
-	emergency: ['distress_call_detected', 'parrot_disappeared', 'parrot_appeared'],
+	emergency: ['distress_call_detected', 'parrot_disappeared', 'parrot_appeared', 'parrot_motionless', 'parrot_moved'],
 };
 
 /** 다음 날 자정 시각을 반환하는 함수 */
@@ -154,6 +162,15 @@ export const toLogItem = (sessionLogItem: SessionLogItem): LogItem => {
 			};
 		case 'parrot_appeared':
 			return { ...baseLogItem, kind: 'parrotAppeared', file: sessionLogItem.image };
+		case 'parrot_motionless':
+			return {
+				...baseLogItem,
+				kind: 'parrotMotionless',
+				endedAt: sessionLogItem.ended_at,
+				file: sessionLogItem.video,
+			};
+		case 'parrot_moved':
+			return { ...baseLogItem, kind: 'parrotMoved', file: sessionLogItem.image };
 	}
 };
 

@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: '焦躁鸣叫',
 			parrotDisappeared: '鹦鹉消失',
 			parrotAppeared: '鹦鹉出现',
+			parrotMotionless: '鹦鹉一直没有动弹',
+			parrotMoved: '鹦鹉又动起来了',
 		},
 		filters: {
 			all: '全部',

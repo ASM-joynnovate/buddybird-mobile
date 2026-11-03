@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'অস্থির কিচিরমিচির',
 			parrotDisappeared: 'টিয়া উধাও',
 			parrotAppeared: 'টিয়া দেখা গেছে',
+			parrotMotionless: 'টিয়া নড়াচড়া করছে না',
+			parrotMoved: 'টিয়া আবার নড়াচড়া করছে',
 		},
 		filters: {
 			all: 'সব',

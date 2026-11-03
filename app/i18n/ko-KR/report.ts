@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: '신경질적 짹짹',
 			parrotDisappeared: '앵무새 사라짐',
 			parrotAppeared: '앵무새 나타남',
+			parrotMotionless: '앵무새 움직임 없음',
+			parrotMoved: '앵무새 다시 움직임',
 		},
 		filters: {
 			all: '전체',

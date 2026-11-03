@@ -13,18 +13,22 @@ import { FRAME_CAPTURE_PROCESSOR, FrameCapture, type ParrotCheckResult } from '@
 import { SECOND } from '@/config/units';
 import {
 	recordParrotCheck,
+	recordParrotMotionIou,
 	recordPetcamUpload,
 	recordPetcamUploadFailure,
 } from '@/screens/session/services/petcam-telemetry';
 import { deleteFile } from '@/services/media/file';
 import {
 	getParrotCheck,
+	getParrotMotion,
 	getParrotNightCorrection,
 	getParrotVideo,
 	getPetcamVideo,
+	shouldCheckParrotMotion,
 } from '@/services/remote-config/client';
 
 type ClipUriPromise = Promise<string | null>;
+type BirdBox = NonNullable<ParrotCheckResult['birdBox']>;
 
 interface IssuedUpload {
 	upload: PetcamEventUpload;
@@ -49,18 +53,37 @@ interface ParrotWatcherOptions {
 	sessionId: string;
 	stream: MediaStream;
 	loadPetcamLog: () => Promise<SessionLogItem[]>;
+	isSleeping: () => boolean;
 	issuePetcamEventUpload: (variables: PostSessionPetcamEventUploadParams) => Promise<PetcamEventUpload>;
 	uploadPetcamPhoto: (variables: PutUploadFileParams) => Promise<void>;
 	uploadPetcamVideo: (variables: Omit<SessionPetcamVideoParams, 'idempotencyKey'>) => Promise<void>;
 	onError: (error: unknown) => void;
 }
 
+/** 두 box의 IoU를 반환하는 함수 */
+const boxIou = (box: BirdBox, otherBox: BirdBox) => {
+	const overlapWidth = Math.max(
+		0,
+		Math.min(box.x + box.width, otherBox.x + otherBox.width) - Math.max(box.x, otherBox.x),
+	);
+	const overlapHeight = Math.max(
+		0,
+		Math.min(box.y + box.height, otherBox.y + otherBox.height) - Math.max(box.y, otherBox.y),
+	);
+	const overlapArea = overlapWidth * overlapHeight;
+	const unionArea = box.width * box.height + otherBox.width * otherBox.height - overlapArea;
+
+	return unionArea > 0 ? overlapArea / unionArea : 0;
+};
+
 /** 앵무새 검출을 시작하는 함수 */
 export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 	const checkSettings = getParrotCheck();
 	const clipSettings = getParrotVideo();
 	const nightSettings = getParrotNightCorrection();
+	const motionSettings = getParrotMotion();
 	const videoSettings = getPetcamVideo();
+	const motionCheckEnabled = shouldCheckParrotMotion();
 
 	const [videoTrack] = options.stream.getVideoTracks();
 
@@ -69,8 +92,13 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 	let videoSending = false;
 	let lowLightEnabled = false;
 	let parrotUndetected: boolean | null = null;
+	let parrotMotionless = false;
+	let sessionSleeping = false;
 	let undetectedStreak = 0;
+	let motionlessStreak = 0;
 	let firstUndetectedAt: string | null = null;
+	let firstMotionlessAt: string | null = null;
+	let referenceBox: BirdBox | null = null;
 	let clip: ClipUriPromise | null = null;
 	let latestClip: ClipUriPromise | null = null;
 	let pendingEvent: PendingEvent | null = null;
@@ -85,18 +113,19 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		}
 	};
 
-	/** 마지막 이벤트가 앵무새 미검출인지 반환하는 함수 */
-	const loadParrotUndetected = async () => {
+	/** 마지막 펫캠 이벤트로 검출 상태를 반환하는 함수 */
+	const loadPetcamState = async () => {
 		const petcamLog = await options.loadPetcamLog();
-		const lastUploaded = petcamLog
-			.filter(
-				(logItem) =>
-					(logItem.kind === 'parrot_disappeared' || logItem.kind === 'parrot_appeared') &&
-					logItem.image?.status === 'uploaded',
-			)
-			.at(-1);
+		const uploadedKinds = petcamLog
+			.filter((logItem) => 'image' in logItem && logItem.image?.status === 'uploaded')
+			.map((logItem) => logItem.kind);
 
-		return lastUploaded?.kind === 'parrot_disappeared';
+		return {
+			parrotUndetected:
+				uploadedKinds.filter((kind) => kind === 'parrot_disappeared' || kind === 'parrot_appeared').at(-1) ===
+				'parrot_disappeared',
+			parrotMotionless: uploadedKinds.filter((kind) => kind !== 'parrot_appeared').at(-1) === 'parrot_motionless',
+		};
 	};
 
 	/** 현재 시점의 앞뒤 영상 저장을 시작하는 함수 */
@@ -147,6 +176,21 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		lowLightEnabled = photoDark;
 	};
 
+	/** 업로드 전 이벤트를 취소하는 함수 */
+	const cancelPendingEvent = (kind: PetcamEventKind) => {
+		if (pendingEvent?.kind !== kind) {
+			return;
+		}
+
+		deleteFileSafely(pendingEvent.photoUri);
+
+		if (pendingEvent.clip) {
+			deleteClip(pendingEvent.clip);
+		}
+
+		pendingEvent = null;
+	};
+
 	/** 앵무새 검출을 반영하는 함수 */
 	const recordParrotDetected = (photoUri: string, occurredAt: string) => {
 		undetectedStreak = 0;
@@ -159,20 +203,10 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		}
 
 		// 미검출 사진 업로드 전에 검출되면 취소
-		if (pendingEvent?.kind === 'parrot_disappeared') {
-			deleteFileSafely(pendingEvent.photoUri);
-
-			if (pendingEvent.clip) {
-				deleteClip(pendingEvent.clip);
-			}
-
-			pendingEvent = null;
-		}
+		cancelPendingEvent('parrot_disappeared');
 
 		if (!parrotUndetected || pendingEvent) {
-			deleteFileSafely(photoUri);
-
-			return;
+			return false;
 		}
 
 		pendingEvent = {
@@ -183,15 +217,15 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 			idempotencyKey: randomUUID(),
 			issuedUpload: null,
 		};
+
+		return true;
 	};
 
 	/** 앵무새 미검출을 반영하는 함수 */
 	const recordParrotUndetected = (photoUri: string, occurredAt: string) => {
 		// 앵무새 미검출을 보낸 뒤에는 카운트하지 않음
 		if (parrotUndetected && !pendingEvent) {
-			deleteFileSafely(photoUri);
-
-			return;
+			return false;
 		}
 
 		undetectedStreak += 1;
@@ -207,9 +241,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 			pendingEvent ||
 			!firstUndetectedAt
 		) {
-			deleteFileSafely(photoUri);
-
-			return;
+			return false;
 		}
 
 		pendingEvent = {
@@ -221,19 +253,115 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 			issuedUpload: null,
 		};
 		clip = null;
+
+		return true;
+	};
+
+	/** 움직임 판정을 초기화하는 함수 */
+	const resetMotionJudgment = () => {
+		motionlessStreak = 0;
+
+		// 움직임 없음 상태면 기준 box 유지
+		if (!parrotMotionless) {
+			referenceBox = null;
+		}
+
+		cancelPendingEvent('parrot_motionless');
+	};
+
+	/** 검출 box를 움직임 판정에 반영하는 함수 */
+	const recordParrotBox = (birdBox: BirdBox, photoUri: string, occurredAt: string) => {
+		const iou = referenceBox ? boxIou(referenceBox, birdBox) : null;
+		const parrotMoved = iou !== null && iou < motionSettings.iouThreshold;
+
+		if (iou !== null) {
+			recordParrotMotionIou(iou);
+		}
+
+		if (parrotMoved && parrotMotionless) {
+			if (pendingEvent) {
+				return false;
+			}
+
+			pendingEvent = {
+				kind: 'parrot_moved',
+				photoUri,
+				occurredAt,
+				clip: null,
+				idempotencyKey: randomUUID(),
+				issuedUpload: null,
+			};
+			referenceBox = null;
+			motionlessStreak = 0;
+
+			return true;
+		}
+
+		if (iou === null || parrotMoved) {
+			cancelPendingEvent('parrot_motionless');
+
+			referenceBox = birdBox;
+			firstMotionlessAt = occurredAt;
+			motionlessStreak = 1;
+		} else if (!parrotMotionless) {
+			motionlessStreak += 1;
+		}
+
+		if (
+			parrotMotionless ||
+			pendingEvent ||
+			motionlessStreak < motionSettings.motionlessCount ||
+			!firstMotionlessAt
+		) {
+			return false;
+		}
+
+		pendingEvent = {
+			kind: 'parrot_motionless',
+			photoUri,
+			occurredAt: firstMotionlessAt,
+			clip: startClip(),
+			idempotencyKey: randomUUID(),
+			issuedUpload: null,
+		};
+		motionlessStreak = 0;
+
+		return true;
 	};
 
 	/** 확인 결과를 반영하는 함수 */
 	const recordCheckResult = (checkResult: ParrotCheckResult) => {
 		const occurredAt = dayjs(checkResult.capturedAt).toISOString();
+		const shouldCheckMotion = motionCheckEnabled && !sessionSleeping;
 
 		// 너무 어두운 사진은 카운트하지 않음
 		if (checkResult.brightness < checkSettings.minBrightness) {
 			deleteFileSafely(checkResult.uri);
-		} else if (checkResult.birdScore >= checkSettings.scoreThreshold) {
-			recordParrotDetected(checkResult.uri, occurredAt);
+
+			return;
+		}
+
+		let photoKept: boolean;
+
+		if (checkResult.birdScore >= checkSettings.scoreThreshold) {
+			const appearedPhotoKept = recordParrotDetected(checkResult.uri, occurredAt);
+			const motionPhotoKept =
+				shouldCheckMotion &&
+				checkResult.birdBox !== null &&
+				recordParrotBox(checkResult.birdBox, checkResult.uri, occurredAt);
+
+			photoKept = appearedPhotoKept || motionPhotoKept;
 		} else {
-			recordParrotUndetected(checkResult.uri, occurredAt);
+			if (shouldCheckMotion) {
+				resetMotionJudgment();
+			}
+
+			photoKept = recordParrotUndetected(checkResult.uri, occurredAt);
+		}
+
+		// 이벤트에 사용하지 않는 사진만 삭제
+		if (!photoKept) {
+			deleteFileSafely(checkResult.uri);
 		}
 	};
 
@@ -350,7 +478,23 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		deleteFileSafely(photoUri);
 
 		pendingEvent = null;
-		parrotUndetected = sentEvent.kind === 'parrot_disappeared';
+
+		switch (sentEvent.kind) {
+			case 'parrot_disappeared':
+				parrotUndetected = true;
+				parrotMotionless = false;
+				referenceBox = null;
+				break;
+			case 'parrot_appeared':
+				parrotUndetected = false;
+				break;
+			case 'parrot_motionless':
+				parrotMotionless = true;
+				break;
+			case 'parrot_moved':
+				parrotMotionless = false;
+				break;
+		}
 
 		if (!sentEvent.clip) {
 			return;
@@ -372,10 +516,24 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		parrotChecking = true;
 
 		try {
-			parrotUndetected ??= await loadParrotUndetected();
+			if (parrotUndetected === null) {
+				const petcamState = await loadPetcamState();
+
+				parrotUndetected = petcamState.parrotUndetected;
+				parrotMotionless = petcamState.parrotMotionless;
+			}
 
 			if (watcherClosed) {
 				return;
+			}
+
+			const sessionWasSleeping = sessionSleeping;
+
+			sessionSleeping = motionCheckEnabled && options.isSleeping();
+
+			// 수면 단계 진입 시 움직임 판정 초기화
+			if (sessionSleeping && !sessionWasSleeping) {
+				resetMotionJudgment();
 			}
 
 			const checkResult = await FrameCapture.checkParrot(

@@ -44,6 +44,11 @@ export const recordParrotCheck = (checkResult: ParrotCheckResult) => {
 	});
 };
 
+/** 앵무새 box IoU를 metric으로 기록하는 함수 */
+export const recordParrotMotionIou = (iou: number) => {
+	Sentry.metrics.distribution('petcam.bird_box_iou', iou);
+};
+
 /** 펫캠 파일 업로드를 metric으로 기록하는 함수 */
 export const recordPetcamUpload = (fileKind: 'photo' | 'video', bytes: number, durationMs: number) => {
 	const attributes = { fileKind };

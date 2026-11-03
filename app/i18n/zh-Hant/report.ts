@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: '驚叫',
 			parrotDisappeared: '鸚鵡消失',
 			parrotAppeared: '鸚鵡出現',
+			parrotMotionless: '鸚鵡一直沒有動作',
+			parrotMoved: '鸚鵡又有動作了',
 		},
 		filters: {
 			all: '全部',

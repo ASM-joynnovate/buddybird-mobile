@@ -63,6 +63,8 @@ export const report: ReportMessages = {
 			distressCall: 'Tiếng kêu hoảng sợ',
 			parrotDisappeared: 'Vẹt biến mất',
 			parrotAppeared: 'Vẹt xuất hiện',
+			parrotMotionless: 'Vẹt không di chuyển',
+			parrotMoved: 'Vẹt di chuyển trở lại',
 		},
 		filters: {
 			all: 'Tất cả',

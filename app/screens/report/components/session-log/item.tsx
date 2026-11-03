@@ -58,7 +58,8 @@ const SessionLogItem = ({
 	const mediaType = logItemMediaTypes[logItem.kind];
 	const name = logItem.kind === 'mimic' ? wordName : t(`report.detail.kinds.${logItem.kind}`);
 	const startTime = dayjs(logItem.startedAt).format(TIME_FORMAT);
-	const rangeShown = logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared';
+	const rangeShown =
+		logItem.kind === 'distressCall' || logItem.kind === 'parrotDisappeared' || logItem.kind === 'parrotMotionless';
 	const reviewShown = logItem.score !== null || (logItem.kind !== 'parrot' && logItem.kind !== 'mimic');
 	let statusText: string | null = null;
 	let time = startTime;

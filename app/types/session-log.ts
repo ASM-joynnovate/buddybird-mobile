@@ -1,4 +1,11 @@
-export type LogItemKind = 'parrot' | 'mimic' | 'distressCall' | 'parrotDisappeared' | 'parrotAppeared';
+export type LogItemKind =
+	| 'parrot'
+	| 'mimic'
+	| 'distressCall'
+	| 'parrotDisappeared'
+	| 'parrotAppeared'
+	| 'parrotMotionless'
+	| 'parrotMoved';
 
 export type LogFilter = 'all' | 'sound' | 'word' | 'emergency';
 

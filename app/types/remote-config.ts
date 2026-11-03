@@ -4,6 +4,7 @@ import {
 	FEEDBACK_PROMPT_THRESHOLDS,
 	MIN_SUPPORTED_VERSION,
 	PARROT_CHECK,
+	PARROT_MOTION,
 	PARROT_NIGHT_CORRECTION,
 	PARROT_VIDEO,
 	PETCAM_AUDIO_MAX_BITRATE,
@@ -69,6 +70,10 @@ export const remoteConfigSchema = z.object({
 		.min(0)
 		.max(10 * SECOND)
 		.catch(PARROT_NIGHT_CORRECTION.mergeMs),
+
+	check_parrot_motion: z.boolean().catch(false),
+	parrot_motionless_count: z.int().min(1).max(180).catch(PARROT_MOTION.motionlessCount),
+	parrot_motion_iou_threshold: z.number().gt(0).max(1).catch(PARROT_MOTION.iouThreshold),
 
 	vad_threshold: z.number().gt(0).lt(1).catch(VAD.threshold),
 	vad_min_sound_ms: z.int().min(100).max(500).catch(VAD.minSoundMs),
