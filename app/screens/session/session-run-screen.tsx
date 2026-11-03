@@ -96,6 +96,7 @@ const SessionRunScreen = () => {
 	const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 	const [viewerConnected, setViewerConnected] = useState(false);
 	const [petcamAudioOn, setPetcamAudioOn] = useState(false);
+	const [appBackgrounded, setAppBackgrounded] = useState(AppState.currentState === 'background');
 
 	const engineRef = useRef<LearningEngine | null>(null);
 	const soundUploadsRef = useRef<Promise<unknown>[]>([]);
@@ -286,6 +287,15 @@ const SessionRunScreen = () => {
 		opacity.set(infoVisible ? 1 : withTiming(0, { duration: SESSION_INFO_FADE_MS }));
 	}, [infoVisible, opacity]);
 
+	/** 앱의 background 여부 변경 */
+	useEffect(() => {
+		const appStateSubscription = AppState.addEventListener('change', (appState) =>
+			setAppBackgrounded(appState === 'background'),
+		);
+
+		return () => appStateSubscription.remove();
+	}, []);
+
 	/** Viewer 연결 채널 생성 */
 	useEffect(() => {
 		const sender: PetcamSender = createPetcamSender({
@@ -345,7 +355,6 @@ const SessionRunScreen = () => {
 				openedStream = stream;
 
 				setCameraStream(stream);
-				petcamSenderRef.current?.setStream(stream);
 
 				if (!shouldCheckParrotDetection()) {
 					return;
@@ -412,9 +421,19 @@ const SessionRunScreen = () => {
 			}
 
 			setCameraStream(null);
-			petcamSenderRef.current?.setStream(null);
 		};
 	}, [cameraOn, issuePetcamEventUpload, queryClient, sessionId, uploadPetcamPhoto, uploadPetcamVideo]);
+
+	/** background가 아닌 동안 카메라 영상 전송 */
+	useEffect(() => {
+		if (appBackgrounded || !cameraStream) {
+			return;
+		}
+
+		petcamSenderRef.current?.setStream(cameraStream);
+
+		return () => petcamSenderRef.current?.setStream(null);
+	}, [appBackgrounded, cameraStream]);
 
 	/** 학습이 멈춘 동안 마이크 소리 전송 */
 	useEffect(() => {
