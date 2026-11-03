@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 
-import { type LayoutRectangle, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { type LayoutChangeEvent, type LayoutRectangle, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
@@ -23,6 +23,7 @@ interface Props {
 	targetRadius: number;
 	targetTappable: boolean;
 	children: ReactNode;
+	onTargetMove: (scrollDistance: number) => void;
 	onSkip: () => void;
 }
 
@@ -32,9 +33,10 @@ interface Props {
  * @param targetRadius 강조 영역 모서리 반지름
  * @param targetTappable 강조 영역을 누를 수 있는지 여부
  * @param children 안내 팻말
+ * @param onTargetMove 강조 영역 이동이 필요할 때 실행할 함수
  * @param onSkip 건너뛰기를 누르면 실행할 함수
  */
-const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, onSkip }: Props) => {
+const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, onTargetMove, onSkip }: Props) => {
 	const { t } = useTranslation();
 	const { width, height } = useWindowDimensions();
 	const insets = useSafeAreaInsets();
@@ -77,6 +79,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 	}));
 
 	const signAbove = !!target && target.y - HIGHLIGHT_PADDING - SIGN_GAP - signHeight - MASCOT_SIZE >= skipBottom;
+	const signBottomLimit = height - insets.bottom - SIGN_GAP;
 
 	/** 강조 영역 변경 시 강조 위치 이동 */
 	useEffect(() => {
@@ -92,6 +95,27 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 		highlightHeight.set(withTiming(target.height + HIGHLIGHT_PADDING * 2, { duration: HIGHLIGHT_MOVE_MS }));
 		highlightRadius.set(withTiming(targetRadius + HIGHLIGHT_PADDING, { duration: HIGHLIGHT_MOVE_MS }));
 	}, [highlightHeight, highlightRadius, highlightWidth, highlightX, highlightY, scrimOpacity, target, targetRadius]);
+
+	// 팻말 측정 후 강조 영역 이동 요청
+	const handleSignLayout = (event: LayoutChangeEvent) => {
+		const measuredSignHeight = event.nativeEvent.layout.height;
+
+		setSignHeight(measuredSignHeight);
+
+		if (!target) {
+			return;
+		}
+
+		const highlightTop = target.y - HIGHLIGHT_PADDING;
+		const signTop = highlightTop - SIGN_GAP - measuredSignHeight - MASCOT_SIZE;
+		const signBottom = target.y + target.height + HIGHLIGHT_PADDING + SIGN_GAP + MASCOT_FOOT_Y + measuredSignHeight;
+		const targetCovered = highlightTop < skipBottom;
+		const signOverflowing = signTop < skipBottom && signBottom > signBottomLimit;
+
+		if (targetCovered || signOverflowing) {
+			onTargetMove(highlightTop - SIGN_GAP - skipBottom);
+		}
+	};
 
 	return (
 		<View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -117,14 +141,19 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 						styles.signContainer,
 						signAbove
 							? { bottom: height - target.y + HIGHLIGHT_PADDING + SIGN_GAP }
-							: [styles.signBelow, { top: target.y + target.height + HIGHLIGHT_PADDING }],
+							: [
+									styles.signBelow,
+									// 화면을 넘는 팻말은 화면 안으로 이동
+									{
+										top: Math.min(
+											target.y + target.height + HIGHLIGHT_PADDING,
+											signBottomLimit - signHeight - MASCOT_FOOT_Y - SIGN_GAP,
+										),
+									},
+								],
 					]}
 				>
-					<View
-						pointerEvents="box-none"
-						onLayout={(event) => setSignHeight(event.nativeEvent.layout.height)}
-						style={styles.sign}
-					>
+					<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
 						{children}
 					</View>
 				</View>
