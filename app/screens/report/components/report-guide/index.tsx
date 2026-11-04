@@ -43,6 +43,7 @@ const PUSH_MS = 350;
 const SCROLL_MS = 400;
 const REVIEW_HOLD_MS = 700;
 const REVEAL_MARGIN = 24;
+const SCROLL_SETTLE_DISTANCE = 1;
 
 const guideSamples: Record<ReportGuideSample, { word: string; sound: ReportGuideSound }> = {
 	annyeong: { word: '안녕', sound: { file: require('@assets/audio/report-guide/annyeong.wav'), durationMs: 584 } },
@@ -103,6 +104,12 @@ const ReportGuide = ({ onClose }: Props) => {
 	const summaryScrollY = useSharedValue(0);
 	const sessionDetailScrollY = useSharedValue(0);
 	const revealScrollY = useSharedValue<number | null>(null);
+	const pendingReveal = useSharedValue<{
+		step: ReportGuideStep;
+		layout: LayoutRectangle;
+		startScrollY: number;
+		endScrollY: number;
+	} | null>(null);
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -139,31 +146,28 @@ const ReportGuide = ({ onClose }: Props) => {
 		setTargetRefs((prev) => (prev[targetStep] === laidOutRef ? prev : { ...prev, [targetStep]: laidOutRef }));
 	}, []);
 
-	/** 스크롤 후 강조 영역 측정 함수 */
+	/** 강조 영역 표시를 위한 스크롤 함수 */
 	const revealTarget = useCallback(
-		(laidOutRef: AnimatedRef<Animated.View>, scrollDistance: number) => {
+		(layout: LayoutRectangle, scrollDistance: number) => {
 			'worklet';
 
-			const rootLayout = measure(rootRef);
+			const startScrollY = scrollY.get();
+			const endScrollY = startScrollY + scrollDistance;
 
-			if (!rootLayout) {
-				return;
-			}
-
-			revealScrollY.set(scrollY.get());
+			pendingReveal.set({ step, layout, startScrollY, endScrollY });
+			revealScrollY.set(startScrollY);
 			revealScrollY.set(
-				withTiming(scrollY.get() + scrollDistance, { duration: SCROLL_MS }, (finished) => {
-					const revealedLayout = measure(laidOutRef);
-
+				withTiming(endScrollY, { duration: SCROLL_MS }, (finished) => {
 					revealScrollY.set(null);
 
-					if (finished && revealedLayout) {
-						scheduleOnRN(setMeasuredTarget, { step, layout: toTarget(revealedLayout, rootLayout) });
+					// 건너뛴 프레임과 관계없이 목표 위치로 스크롤
+					if (finished) {
+						scrollTo(scrollRef, 0, endScrollY, false);
 					}
 				}),
 			);
 		},
-		[revealScrollY, rootRef, scrollY, step],
+		[pendingReveal, revealScrollY, scrollRef, scrollY, step],
 	);
 
 	/** 강조 영역 표시를 위한 스크롤 위치 변경 */
@@ -173,6 +177,24 @@ const ReportGuide = ({ onClose }: Props) => {
 			if (revealY !== null) {
 				scrollTo(scrollRef, 0, revealY, false);
 			}
+		},
+	);
+
+	/** 스크롤이 목표에 닿으면 강조 영역 표시 */
+	useAnimatedReaction(
+		() => ({ currentScrollY: scrollY.get(), scrolling: revealScrollY.get() !== null }),
+		({ currentScrollY, scrolling }) => {
+			const reveal = pendingReveal.get();
+
+			if (!reveal || scrolling || Math.abs(currentScrollY - reveal.endScrollY) >= SCROLL_SETTLE_DISTANCE) {
+				return;
+			}
+
+			pendingReveal.set(null);
+			scheduleOnRN(setMeasuredTarget, {
+				step: reveal.step,
+				layout: { ...reveal.layout, y: reveal.layout.y - (currentScrollY - reveal.startScrollY) },
+			});
 		},
 	);
 
@@ -199,13 +221,15 @@ const ReportGuide = ({ onClose }: Props) => {
 			// 강조 영역 위쪽이 보이는 위치로 스크롤
 			const revealScrollDistance = Math.min(Math.max(targetBottomOverflow, 0), targetTopOffset);
 
+			const targetRect = toTarget(targetLayout, rootLayout);
+
 			if (revealScrollDistance === 0) {
-				scheduleOnRN(setMeasuredTarget, { step, layout: toTarget(targetLayout, rootLayout) });
+				scheduleOnRN(setMeasuredTarget, { step, layout: targetRect });
 
 				return;
 			}
 
-			revealTarget(targetRef, revealScrollDistance);
+			revealTarget(targetRect, revealScrollDistance);
 		});
 	}, [revealTarget, rootRef, scrollRef, step, targetRef]);
 
@@ -243,13 +267,14 @@ const ReportGuide = ({ onClose }: Props) => {
 
 	// 건너뛰기 아래로 강조 영역 스크롤
 	const handleTargetMove = (scrollDistance: number) => {
-		if (!target || !targetRef) {
+		// 이동이 없으면 진행 중인 스크롤 유지
+		if (!target || scrollDistance === 0) {
 			return;
 		}
 
 		// 스크롤과 함께 강조 위치 이동
 		setMeasuredTarget({ step, layout: { ...target, y: target.y - scrollDistance } });
-		scheduleOnUI(revealTarget, targetRef, scrollDistance);
+		scheduleOnUI(revealTarget, target, scrollDistance);
 	};
 
 	return (
@@ -311,15 +336,18 @@ const ReportGuide = ({ onClose }: Props) => {
 					onTargetMove={handleTargetMove}
 					onSkip={onClose}
 				>
-					<ReportGuideSign
-						key={step}
-						action={{
-							label: t(lastStepShown ? 'common.done' : 'common.next'),
-							onPress: lastStepShown ? onClose : handleNext,
-						}}
-					>
-						{signMessages[step]}
-					</ReportGuideSign>
+					{(mascotShown) => (
+						<ReportGuideSign
+							key={step}
+							action={{
+								label: t(lastStepShown ? 'common.done' : 'common.next'),
+								onPress: lastStepShown ? onClose : handleNext,
+							}}
+							mascotShown={mascotShown}
+						>
+							{signMessages[step]}
+						</ReportGuideSign>
+					)}
 				</ReportGuideCoachMark>
 			</Animated.View>
 		</GestureHandlerRootView>
