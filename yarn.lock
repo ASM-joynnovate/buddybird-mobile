@@ -7593,7 +7593,7 @@ __metadata:
     react-native-reanimated: "npm:4.7.1"
     react-native-reanimated-carousel: "npm:^5.2.0"
     react-native-safe-area-context: "npm:~5.10.1"
-    react-native-screens: "patch:react-native-screens@npm%3A4.28.0#~/.yarn/patches/react-native-screens-npm-4.28.0-d1d273aa4e.patch"
+    react-native-screens: "patch:react-native-screens@npm%3A4.30.1#~/.yarn/patches/react-native-screens-npm-4.30.1-d1d273aa4e.patch"
     react-native-svg: "npm:15.15.5"
     react-native-svg-transformer: "npm:1.5.3"
     react-native-volume-manager: "npm:2.2.0"
@@ -14360,29 +14360,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:4.28.0":
-  version: 4.28.0
-  resolution: "react-native-screens@npm:4.28.0"
+"react-native-screens@npm:4.30.1":
+  version: 4.30.1
+  resolution: "react-native-screens@npm:4.30.1"
   dependencies:
     react-freeze: "npm:^1.0.0"
     warn-once: "npm:^0.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10c0/5bd57be437b1966e50f71917c26b80cac38e73d2e23bfa7fb093d8613d2d80a38ffedeb77a5ea6e2664787fba2f1ede58ced9ed2c79af786f67272b114683b59
+  checksum: 10c0/e5ded425ece1819d56fa84dacffa30178a9b9af1e9350ae99f3b78a9cb21795886c6f74ca1fe1b89e7bb65a56733246c40bf57d5b470d9d7bbf10ad0fa117690
   languageName: node
   linkType: hard
 
-"react-native-screens@patch:react-native-screens@npm%3A4.28.0#~/.yarn/patches/react-native-screens-npm-4.28.0-d1d273aa4e.patch":
-  version: 4.28.0
-  resolution: "react-native-screens@patch:react-native-screens@npm%3A4.28.0#~/.yarn/patches/react-native-screens-npm-4.28.0-d1d273aa4e.patch::version=4.28.0&hash=5bf6bd"
+"react-native-screens@patch:react-native-screens@npm%3A4.30.1#~/.yarn/patches/react-native-screens-npm-4.30.1-d1d273aa4e.patch":
+  version: 4.30.1
+  resolution: "react-native-screens@patch:react-native-screens@npm%3A4.30.1#~/.yarn/patches/react-native-screens-npm-4.30.1-d1d273aa4e.patch::version=4.30.1&hash=5bf6bd"
   dependencies:
     react-freeze: "npm:^1.0.0"
     warn-once: "npm:^0.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10c0/ad59b51001495e907ace198df49e23a30d31d0e927f56c03c4aa045670da71776b576d4063de1bf129ca7efcb2ec4139e5ebcc0bf4aec344f5c371fac300ab2e
+  checksum: 10c0/0f8ad18832d6fd38825ca4b2291e3c729b6cc49fba4f881f6f4cf1bd53a4d1c3ace0f4d6b96315af0eee056564057f65a590557dc499e0ba3f39425a6f3a969b
   languageName: node
   linkType: hard
 
