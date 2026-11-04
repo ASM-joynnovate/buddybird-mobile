@@ -1,4 +1,4 @@
-import { FlatList, type ListRenderItemInfo, StyleSheet, View } from 'react-native';
+import { FlatList, type ListRenderItemInfo, Platform, StyleSheet, View } from 'react-native';
 
 import type { Announcement } from '@/types/apis/announcements';
 
@@ -69,6 +69,7 @@ const AnnouncementList = () => {
 		<FlatList
 			data={announcementListData.pages.flatMap((announcementPage) => announcementPage.data)}
 			keyExtractor={(announcement) => announcement.id}
+			removeClippedSubviews={Platform.OS === 'ios'}
 			renderItem={renderItem}
 			onEndReached={handleFetchNextPage}
 			contentContainerStyle={styles.list}

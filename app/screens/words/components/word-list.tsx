@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, Platform, StyleSheet } from 'react-native';
 
 import type { SoundPlayer } from '@/types/sound-player';
 
@@ -27,6 +27,7 @@ const WordList = ({ player }: Props) => {
 		<FlatList
 			data={wordListData}
 			keyExtractor={(word) => word.id}
+			removeClippedSubviews={Platform.OS === 'ios'}
 			contentContainerStyle={styles.list}
 			showsVerticalScrollIndicator={false}
 			renderItem={({ item: word }) => <WordCard word={word} player={player} />}

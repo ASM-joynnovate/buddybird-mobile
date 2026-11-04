@@ -1,0 +1,357 @@
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
+index 2389f94a28fe4543c2737c1b8de379dcfaa8947f..5bf8d06cb0fe4781d03b90f364744f99ba261ae6 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
+@@ -36,11 +36,6 @@ class RNSScreenComponentDescriptor final
+     react_native_assert(dynamic_cast<RNSScreenShadowNode *>(&shadowNode));
+     auto &screenShadowNode = static_cast<RNSScreenShadowNode &>(shadowNode);
+ 
+-    react_native_assert(
+-        dynamic_cast<YogaLayoutableShadowNode *>(&screenShadowNode));
+-    auto &layoutableShadowNode =
+-        static_cast<YogaLayoutableShadowNode &>(screenShadowNode);
+-
+     auto state =
+         std::static_pointer_cast<const RNSScreenShadowNode::ConcreteState>(
+             shadowNode.getState());
+@@ -99,19 +94,21 @@ class RNSScreenComponentDescriptor final
+           FrameCorrectionModes::Mode::FrameHeightCorrection);
+       screenShadowNode.getFrameCorrectionModes().unset(
+           FrameCorrectionModes::Mode::FrameOriginCorrection);
+-      layoutableShadowNode.setSize(
++      screenShadowNode.setSizeIfChanged(
+           Size{stateData.frameSize.width, stateData.frameSize.height});
+     } else if (
+         stateData.frameSize.width == 0 && stateData.frameSize.height == 0) {
+       // Reset YogaNode so it recalculates its layout. Useful for the case
+       // when native orientation changes and react has not been notified yet.
+       // The if condition holds true on first render and when it is reset inside
+-      // RNSScreenShadowNodeCommitHook.
+-      layoutableShadowNode.setSize({YGUndefined, YGUndefined});
++      // RNSScreenShadowNodeCommitHook. It also holds for as long as native
++      // never reports a frame, which is the case for screens outside a native
++      // stack (e.g. tabs), so the reset must not dirty the node on every clone.
++      screenShadowNode.setSizeIfChanged({YGUndefined, YGUndefined});
+     }
+ #else
+     if (stateData.frameSize.width != 0 && stateData.frameSize.height != 0) {
+-      layoutableShadowNode.setSize(
++      screenShadowNode.setSizeIfChanged(
+           Size{stateData.frameSize.width, stateData.frameSize.height});
+     }
+ #endif // ANDROID
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenShadowNode.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenShadowNode.h
+index 93c9f4ba6c6199d3194be6ecd1e69dcbcd372b2b..d93a612a69e25d307f6097694c71808c6cd30f2f 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenShadowNode.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenShadowNode.h
+@@ -7,6 +7,7 @@
+ #include <react/renderer/core/LayoutContext.h>
+ #include "FrameCorrectionModes.h"
+ #include "RNSScreenState.h"
++#include "utils/LayoutFromState.h"
+ 
+ namespace facebook {
+ namespace react {
+@@ -15,13 +16,14 @@ using namespace rnscreens;
+ 
+ JSI_EXPORT extern const char RNSScreenComponentName[];
+ 
+-class JSI_EXPORT RNSScreenShadowNode final : public ConcreteViewShadowNode<
+-                                                 RNSScreenComponentName,
+-                                                 RNSScreenProps,
+-                                                 RNSScreenEventEmitter,
+-                                                 RNSScreenState> {
++class JSI_EXPORT RNSScreenShadowNode final
++    : public rnscreens::SizeFromStateShadowNode<ConcreteViewShadowNode<
++          RNSScreenComponentName,
++          RNSScreenProps,
++          RNSScreenEventEmitter,
++          RNSScreenState>> {
+  public:
+-  using ConcreteViewShadowNode::ConcreteViewShadowNode;
++  using SizeFromStateShadowNode::SizeFromStateShadowNode;
+   using StateData = ConcreteViewShadowNode::ConcreteStateData;
+ 
+ #pragma mark - ShadowNode overrides
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigComponentDescriptor.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigComponentDescriptor.h
+index e9c97bd332bf673ab16d19a9c5a8ed685bd101e6..eeaed963fca0c8681ce2453c743293d4287e329b 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigComponentDescriptor.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigComponentDescriptor.h
+@@ -36,7 +36,8 @@ class RNSScreenStackHeaderConfigComponentDescriptor final
+ 
+ #ifdef ANDROID
+     if (stateData.frameSize.width != 0) {
+-      layoutableShadowNode.setSize({stateData.frameSize.width, YGUndefined});
++      configShadowNode.setSizeIfChanged(
++          {stateData.frameSize.width, YGUndefined});
+       layoutableShadowNode.setPadding({
+           stateData.paddingStart,
+           0,
+@@ -46,11 +47,15 @@ class RNSScreenStackHeaderConfigComponentDescriptor final
+     }
+ #else
+     if (stateData.frameSize.width != 0 && stateData.frameSize.height != 0) {
+-      layoutableShadowNode.setSize(stateData.frameSize);
++      configShadowNode.setSizeIfChanged(stateData.frameSize);
+       layoutableShadowNode.setPadding(stateData.edgeInsets);
+     }
+ #endif // ANDROID
+ 
++    // `layout()` takes the frame origin from state (on Android, the Y origin
++    // from the toolbar height), so re-run it when that origin changes.
++    rnscreens::dirtyLayoutIfFrameOriginStale(configShadowNode);
++
+     ConcreteComponentDescriptor::adopt(shadowNode);
+ #if !defined(ANDROID)
+     std::weak_ptr<void> imageLoader =
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.cpp b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.cpp
+index b321b087d06fab16a226ee4cba8cb0881896e75d..f7fefdeb605f650d672d68f1dcd13290bdea6dd0 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.cpp
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.cpp
+@@ -7,7 +7,11 @@ extern const char RNSScreenStackHeaderConfigComponentName[] =
+ 
+ void RNSScreenStackHeaderConfigShadowNode::layout(LayoutContext layoutContext) {
+   YogaLayoutableShadowNode::layout(layoutContext);
++  applyFrameCorrections();
++}
+ 
++Point RNSScreenStackHeaderConfigShadowNode::correctFrameOrigin(
++    Point origin) const {
+ #if defined(ANDROID)
+   const auto &headerProps =
+       *std::static_pointer_cast<const RNSScreenStackHeaderConfigProps>(
+@@ -16,22 +20,23 @@ void RNSScreenStackHeaderConfigShadowNode::layout(LayoutContext layoutContext) {
+     // On Android, when header is translucent, the Screen is laid out underneath
+     // the native header view, therefore HeaderConfig origin already matches
+     // the toolbar & the correction is not needed.
+-    return;
++    return origin;
+   }
+ #endif // defined(ANDROID)
+-  applyFrameCorrections();
+-}
+-
+-void RNSScreenStackHeaderConfigShadowNode::applyFrameCorrections() {
+-  ensureUnsealed();
+ 
+   const auto &stateData = getStateData();
+ #if defined(ANDROID)
+-  layoutMetrics_.frame.origin.y = -stateData.frameSize.height;
++  origin.y = -stateData.frameSize.height;
+ #else // defined(ANDROID)
+-  layoutMetrics_.frame.origin.x = stateData.frameOrigin.x;
+-  layoutMetrics_.frame.origin.y = stateData.frameOrigin.y;
++  origin.x = stateData.frameOrigin.x;
++  origin.y = stateData.frameOrigin.y;
+ #endif // defined(ANDROID)
++  return origin;
++}
++
++void RNSScreenStackHeaderConfigShadowNode::applyFrameCorrections() {
++  ensureUnsealed();
++  layoutMetrics_.frame.origin = correctFrameOrigin(layoutMetrics_.frame.origin);
+ }
+ 
+ #if !defined(ANDROID)
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.h
+index 4586ad2309da7a86748149fdb934f6a434f1d627..e5ab148141ac242a862853a9b6a291b1278e98ab 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderConfigShadowNode.h
+@@ -7,6 +7,7 @@
+ #include <react/renderer/core/LayoutContext.h>
+ #include "FrameCorrectionModes.h"
+ #include "RNSScreenStackHeaderConfigState.h"
++#include "utils/LayoutFromState.h"
+ 
+ namespace facebook::react {
+ 
+@@ -15,13 +16,13 @@ using namespace rnscreens;
+ JSI_EXPORT extern const char RNSScreenStackHeaderConfigComponentName[];
+ 
+ class JSI_EXPORT RNSScreenStackHeaderConfigShadowNode final
+-    : public ConcreteViewShadowNode<
++    : public rnscreens::SizeFromStateShadowNode<ConcreteViewShadowNode<
+           RNSScreenStackHeaderConfigComponentName,
+           RNSScreenStackHeaderConfigProps,
+           RNSScreenStackHeaderConfigEventEmitter,
+-          RNSScreenStackHeaderConfigState> {
++          RNSScreenStackHeaderConfigState>> {
+  public:
+-  using ConcreteViewShadowNode::ConcreteViewShadowNode;
++  using SizeFromStateShadowNode::SizeFromStateShadowNode;
+   using StateData = ConcreteViewShadowNode::ConcreteStateData;
+ 
+ #pragma mark - ShadowNode overrides
+@@ -29,6 +30,12 @@ class JSI_EXPORT RNSScreenStackHeaderConfigShadowNode final
+ 
+ #pragma mark - Custom interface
+ 
++  /**
++   * The frame origin `layout()` sets, given the one computed by Yoga. The
++   * component descriptor compares it with the current layout metrics.
++   */
++  Point correctFrameOrigin(Point origin) const;
++
+ #if !defined(ANDROID)
+   void setImageLoader(std::weak_ptr<void> imageLoader);
+ #endif // !ANDROID && !NDEBUG
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewComponentDescriptor.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewComponentDescriptor.h
+index b92b85aecef56ff5a30cbbbd5d23c4da33551af7..29c6df317bf995019a2ee3d5b7d454bea3b01f16 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewComponentDescriptor.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewComponentDescriptor.h
+@@ -8,6 +8,7 @@
+ #include <react/renderer/components/rnscreens/utils/RectUtil.h>
+ #include <react/renderer/core/ConcreteComponentDescriptor.h>
+ #include "RNSScreenStackHeaderSubviewShadowNode.h"
++#include "utils/LayoutFromState.h"
+ 
+ namespace facebook::react {
+ 
+@@ -20,10 +21,19 @@ class RNSScreenStackHeaderSubviewComponentDescriptor final
+   using ConcreteComponentDescriptor::ConcreteComponentDescriptor;
+ 
+   void adopt(ShadowNode &shadowNode) const override {
++    react_native_assert(
++        dynamic_cast<RNSScreenStackHeaderSubviewShadowNode *>(&shadowNode));
++    auto &subviewShadowNode =
++        static_cast<RNSScreenStackHeaderSubviewShadowNode &>(shadowNode);
++
+     // Note: Be very careful with calling `shadowNode.setSize` here. By doing
+     // that, you are likely to introduce a regressions on both platforms. See:
+     // https://github.com/software-mansion/react-native-screens/pull/2905
+ 
++    // `layout()` takes the frame origin from state. Marking the layout dirty
++    // doesn't touch the Yoga style, so the subview still sizes to its content.
++    rnscreens::dirtyLayoutIfFrameOriginStale(subviewShadowNode);
++
+     ConcreteComponentDescriptor::adopt(shadowNode);
+   }
+ };
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.cpp b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.cpp
+index bcb52121204add2f9a2a84a9dc9cbd43a9601863..c17b7a076f856ec9093fa0294dc2243418aaae42 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.cpp
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.cpp
+@@ -11,12 +11,14 @@ void RNSScreenStackHeaderSubviewShadowNode::layout(
+   applyFrameCorrections();
+ }
+ 
++Point RNSScreenStackHeaderSubviewShadowNode::correctFrameOrigin(
++    Point /*origin*/) const {
++  return getStateData().contentOffset;
++}
++
+ void RNSScreenStackHeaderSubviewShadowNode::applyFrameCorrections() {
+   ensureUnsealed();
+-
+-  const auto &stateData = getStateData();
+-  layoutMetrics_.frame.origin.x = stateData.contentOffset.x;
+-  layoutMetrics_.frame.origin.y = stateData.contentOffset.y;
++  layoutMetrics_.frame.origin = correctFrameOrigin(layoutMetrics_.frame.origin);
+ }
+ 
+ } // namespace facebook::react
+diff --git a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.h b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.h
+index c50a6295c30b058b3ca16be4411f917faa0fc808..b568bbb5d83a13518d39722681c2a199420577b1 100644
+--- a/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.h
++++ b/common/cpp/react/renderer/components/rnscreens/RNSScreenStackHeaderSubviewShadowNode.h
+@@ -27,6 +27,13 @@ class JSI_EXPORT RNSScreenStackHeaderSubviewShadowNode final
+   void layout(LayoutContext layoutContext) override;
+ 
+ #pragma mark - Custom interface
++  /**
++   * The frame origin `layout()` sets, given the one computed by Yoga: native
++   * positions the subview in the navigation bar / toolbar and reports where.
++   * The component descriptor compares it with the current layout metrics.
++   */
++  Point correctFrameOrigin(Point origin) const;
++
+   void applyFrameCorrections();
+ };
+ 
+diff --git a/common/cpp/react/renderer/components/rnscreens/utils/LayoutFromState.h b/common/cpp/react/renderer/components/rnscreens/utils/LayoutFromState.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..59811e93edfc2ef4e15453dfe3fb8ada6f3f01ac
+--- /dev/null
++++ b/common/cpp/react/renderer/components/rnscreens/utils/LayoutFromState.h
+@@ -0,0 +1,81 @@
++#pragma once
++
++#include <react/renderer/core/LayoutPrimitives.h>
++#include <react/renderer/graphics/Point.h>
++#include <react/renderer/graphics/Size.h>
++#include <yoga/style/Style.h>
++
++namespace rnscreens {
++
++namespace react = facebook::react;
++namespace yoga = facebook::yoga;
++
++/**
++ * Base for shadow nodes whose component descriptor sets their Yoga size from
++ * native state in `adopt()`. It goes between the node and its concrete base:
++ * `SizeFromStateShadowNode<ConcreteViewShadowNode<...>>`.
++ */
++template <typename BaseShadowNodeT>
++class SizeFromStateShadowNode : public BaseShadowNodeT {
++ public:
++  using BaseShadowNodeT::BaseShadowNodeT;
++
++  /**
++   * Like `setSize`, but leaves the Yoga node clean when its style already has
++   * the given width and height.
++   *
++   * `setSize` marks the Yoga node dirty even when the size is unchanged, and
++   * `adopt()` runs on every clone. Every commit clones the path from the
++   * changed node to the root, so calling `setSize` there unconditionally makes
++   * the root re-run layout and pixel-grid rounding over the whole tree on every
++   * commit, including ones that change nothing layout-related (scroll offset
++   * state updates, animated transforms).
++   *
++   * An undefined size (NaN) maps to an undefined `StyleSizeLength`, and
++   * undefined values compare equal, so resetting the size to undefined only
++   * dirties the node the first time.
++   */
++  void setSizeIfChanged(react::Size size) const {
++    const yoga::Style &style = this->yogaNode_.style();
++    const bool hasSize = style.dimension(yoga::Dimension::Width) ==
++            yoga::StyleSizeLength::points(size.width) &&
++        style.dimension(yoga::Dimension::Height) ==
++            yoga::StyleSizeLength::points(size.height);
++    if (!hasSize) {
++      this->setSize(size);
++    }
++  }
++};
++
++/**
++ * Marks the node's layout dirty when the frame origin its `layout()` override
++ * would set differs from the one in its current layout metrics.
++ *
++ * Some nodes overwrite the frame origin computed by Yoga with one that native
++ * reports through state, in `layout()`. Fabric only calls `layout()` on a node
++ * that has new layout from Yoga, and a state update doesn't dirty the Yoga
++ * node, so a state update that only moves the node would otherwise leave its
++ * shadow tree origin stale. That's what `measure()` and Pressability's
++ * press-rect checks read.
++ *
++ * A clone inherits the layout metrics of its source, with the correction
++ * already applied, so a clone whose state origin didn't change stays clean.
++ *
++ * Call it from the component descriptor's `adopt()`. `ShadowNodeT` must have a
++ * `Point correctFrameOrigin(Point origin) const` method, which `layout()` uses
++ * to correct the origin too.
++ */
++template <typename ShadowNodeT>
++void dirtyLayoutIfFrameOriginStale(ShadowNodeT &shadowNode) {
++  const auto layoutMetrics = shadowNode.getLayoutMetrics();
++  if (layoutMetrics.displayType == react::DisplayType::None) {
++    // `layout()` isn't called on hidden nodes, so this couldn't correct it.
++    return;
++  }
++  const auto origin = layoutMetrics.frame.origin;
++  if (shadowNode.correctFrameOrigin(origin) != origin) {
++    shadowNode.dirtyLayout();
++  }
++}
++
++} // namespace rnscreens

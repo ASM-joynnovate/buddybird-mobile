@@ -51,15 +51,13 @@ export const Surface = ({
 	const edgeHeight = depths[depth];
 
 	return (
-		<View
-			{...props}
-			collapsable={false}
-			style={[styles.container, { borderRadius, paddingBottom: edgeHeight }, style]}
-		>
-			<View
-				pointerEvents="none"
-				style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
-			/>
+		<View {...props} style={[styles.container, { borderRadius, paddingBottom: edgeHeight }, style]}>
+			{edgeHeight > 0 && (
+				<View
+					pointerEvents="none"
+					style={[StyleSheet.absoluteFill, { top: edgeHeight, backgroundColor: palette.edge, borderRadius }]}
+				/>
+			)}
 
 			<Animated.View
 				style={[

@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useRef } from 'react';
 
-import { type ListRenderItemInfo, StyleSheet, View } from 'react-native';
+import { type ListRenderItemInfo, Platform, StyleSheet, View } from 'react-native';
 
 import type { ReportSession } from '@/types/apis/reports';
 
@@ -147,6 +147,7 @@ const ReportContent = ({ onOpenGuide }: Props) => {
 				{...scrollProps}
 				data={reportData.sessions}
 				keyExtractor={(session) => session.id}
+				removeClippedSubviews={Platform.OS === 'ios'}
 				contentContainerStyle={styles.content}
 				showsVerticalScrollIndicator={false}
 				ListHeaderComponent={header}

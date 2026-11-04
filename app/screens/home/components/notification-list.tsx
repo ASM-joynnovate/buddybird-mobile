@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, StyleSheet } from 'react-native';
 
 import { useGetNotificationList } from '@/hooks/apis/notifications';
 
@@ -27,6 +27,7 @@ const NotificationList = () => {
 		<FlatList
 			data={notifications}
 			keyExtractor={(notification) => notification.id}
+			removeClippedSubviews={Platform.OS === 'ios'}
 			renderItem={({ item: notification }) => <NotificationItem notification={notification} />}
 			ListEmptyComponent=<EmptyState message={t('home.notificationList.empty')} />
 			onEndReachedThreshold={0.4}

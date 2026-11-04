@@ -1,6 +1,6 @@
 import { useDeferredValue, useState } from 'react';
 
-import { ActivityIndicator, StyleSheet, View, type ViewToken } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, View, type ViewToken } from 'react-native';
 
 import { usePrefetchQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -122,6 +122,7 @@ const CommunityFeed = () => {
 				{...scrollProps}
 				data={positionedFeedItems}
 				keyExtractor={({ feedItem }) => (feedItem.kind === 'ad' ? feedItem.serve_id : feedItem.id)}
+				removeClippedSubviews={Platform.OS === 'ios'}
 				renderItem={({ item: { feedItem, position } }) => (
 					<View style={feedStale && styles.staleFeedItem}>
 						{feedItem.kind === 'ad' ? (

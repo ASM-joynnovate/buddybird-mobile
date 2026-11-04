@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, Platform, StyleSheet } from 'react-native';
 
 import type { Device } from '@/types/apis/devices';
 import type { Session } from '@/types/apis/sessions';
@@ -33,6 +33,7 @@ const DeviceList = () => {
 		<FlatList
 			data={linkedDevices}
 			keyExtractor={(device) => device.id}
+			removeClippedSubviews={Platform.OS === 'ios'}
 			contentContainerStyle={styles.list}
 			renderItem={({ item: device }) => <DeviceCard device={device} />}
 		/>
