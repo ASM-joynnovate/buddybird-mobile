@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode, RefObject } from 'react';
 
-import { type ListRenderItemInfo, StyleSheet, View } from 'react-native';
+import { type ListRenderItemInfo, Platform, StyleSheet, View } from 'react-native';
 
 import { BottomSheetFlatList, type BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,6 +54,7 @@ export const SheetSearchList = <Item,>({
 				ref={listRef}
 				data={items}
 				keyExtractor={keyExtractor}
+				removeClippedSubviews={Platform.OS === 'ios'}
 				initialNumToRender={initialNumToRender}
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="on-drag"

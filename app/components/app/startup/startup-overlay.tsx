@@ -20,7 +20,7 @@ import Animated, {
 	withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
+import { scheduleOnRN, scheduleOnUI, type ShareableHost } from 'react-native-worklets';
 
 import { SECOND } from '@/config/units';
 import { useAppStore } from '@/stores/app';
@@ -109,7 +109,7 @@ const flightFrameOf = (motion: 'flyUp' | 'dropDown', progress: number, dx: numbe
 const measureAttached = (ref: AnimatedRef<Animated.View>) => {
 	'worklet';
 
-	return ref() ? measure(ref) : null;
+	return (ref as unknown as ShareableHost).value ? measure(ref) : null;
 };
 
 /** 흰 바탕이 사라지는 애니메이션을 만드는 함수 */
