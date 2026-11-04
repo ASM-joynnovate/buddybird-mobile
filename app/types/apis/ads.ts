@@ -49,4 +49,5 @@ export interface GetAdListParams {
 
 export interface PostAdEventsParams {
 	data: CreateAdEventsRequest;
+	idempotencyKey: string;
 }

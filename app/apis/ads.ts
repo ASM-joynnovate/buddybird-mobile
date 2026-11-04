@@ -10,6 +10,6 @@ export const getAdList = async ({ kind }: GetAdListParams): Promise<BannerAd[]> 
 	return bannerAds;
 };
 
-export const postAdEvents = async ({ data }: PostAdEventsParams): Promise<void> => {
-	await apiRequest('/api/v1/ads/events', z.unknown(), { method: 'POST', json: data });
+export const postAdEvents = async ({ data, idempotencyKey }: PostAdEventsParams): Promise<void> => {
+	await apiRequest('/api/v1/ads/events', z.unknown(), { method: 'POST', json: data, idempotencyKey });
 };

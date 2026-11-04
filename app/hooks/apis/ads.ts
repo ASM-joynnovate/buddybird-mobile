@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 import { getAdList, postAdEvents } from '@/apis/ads';
 
@@ -6,6 +6,7 @@ import type { GetAdListParams } from '@/types/apis/ads';
 
 import { apiKeys } from '@/hooks/apis/keys';
 import { adKeys } from '@/hooks/apis/keys/ads';
+import { useIdempotentMutation } from '@/hooks/apis/use-idempotent-mutation';
 
 import { reportError } from '@/services/telemetry/client';
 
@@ -23,7 +24,7 @@ export const useGetAdListQuery = ({ kind }: GetAdListParams) => {
 
 /** 광고 이벤트 전송 Hook */
 export const useSendAdEvents = () => {
-	return useMutation({
+	return useIdempotentMutation({
 		mutationKey: apiKeys.mutation('ads', 'events', 'create'),
 		mutationFn: postAdEvents,
 		onError: (error) => reportError(error, 'ad_events'),
