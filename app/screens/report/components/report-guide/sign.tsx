@@ -22,14 +22,16 @@ const DROP_MS = SECOND;
 interface Props {
 	children: ReactNode;
 	action: { label: string; onPress: () => void };
+	mascotShown: boolean;
 }
 
 /**
  * 단계별 안내 팻말 컴포넌트
  * @param children 팻말 문구
  * @param action 팻말 오른쪽 버튼
+ * @param mascotShown 팻말 위 버디 및 줄 표시 여부
  */
-const ReportGuideSign = ({ children, action }: Props) => {
+const ReportGuideSign = ({ children, action, mascotShown }: Props) => {
 	const { height } = useWindowDimensions();
 
 	const motionReduced = useReducedMotion();
@@ -49,7 +51,7 @@ const ReportGuideSign = ({ children, action }: Props) => {
 
 	return (
 		<Animated.View style={signStyle}>
-			<BuddySign cordLength={height} mascot=<MascotArtwork /> action={action}>
+			<BuddySign cordLength={height} mascot={mascotShown && <MascotArtwork />} action={action}>
 				<View style={styles.message}>{children}</View>
 			</BuddySign>
 		</Animated.View>

@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ReportGuideTouchHint from '@/screens/report/components/report-guide/touch-hint';
 import { colors } from '@/theme';
 
-import { MASCOT_FOOT_Y, MASCOT_SIZE } from '@/components/buddy-refresh/constants';
+import { MASCOT_FOOT_Y } from '@/components/buddy-refresh/constants';
 import { Button } from '@/components/ui/button';
 
 const HIGHLIGHT_PADDING = 10;
@@ -22,7 +22,7 @@ interface Props {
 	target: LayoutRectangle | null;
 	targetRadius: number;
 	targetTappable: boolean;
-	children: ReactNode;
+	children: (mascotShown: boolean) => ReactNode;
 	onTargetMove: (scrollDistance: number) => void;
 	onSkip: () => void;
 }
@@ -32,7 +32,7 @@ interface Props {
  * @param target 강조 영역
  * @param targetRadius 강조 영역 모서리 반지름
  * @param targetTappable 강조 영역을 누를 수 있는지 여부
- * @param children 안내 팻말
+ * @param children 버디 표시 여부를 받는 안내 팻말
  * @param onTargetMove 강조 영역 이동이 필요할 때 실행할 함수
  * @param onSkip 건너뛰기를 누르면 실행할 함수
  */
@@ -78,8 +78,15 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 		height: highlightHeight.get(),
 	}));
 
-	const signAbove = !!target && target.y - HIGHLIGHT_PADDING - SIGN_GAP - signHeight - MASCOT_SIZE >= skipBottom;
+	const highlightTop = target ? target.y - HIGHLIGHT_PADDING : 0;
+	const highlightBottom = target ? target.y + target.height + HIGHLIGHT_PADDING : 0;
 	const signBottomLimit = height - insets.bottom - SIGN_GAP;
+	const spaceAbove = highlightTop - skipBottom;
+	const spaceBelow = signBottomLimit - highlightBottom;
+	const signAbove = spaceAbove > spaceBelow;
+	// 위나 아래에 들어가지 않으면 버디 숨김
+	const mascotShown = Math.max(spaceAbove, spaceBelow) >= SIGN_GAP + MASCOT_FOOT_Y + signHeight;
+	const mascotHeight = mascotShown ? MASCOT_FOOT_Y : 0;
 
 	/** 강조 영역 변경 시 강조 위치 이동 */
 	useEffect(() => {
@@ -106,11 +113,8 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 			return;
 		}
 
-		const highlightTop = target.y - HIGHLIGHT_PADDING;
-		const signTop = highlightTop - SIGN_GAP - measuredSignHeight - MASCOT_SIZE;
-		const signBottom = target.y + target.height + HIGHLIGHT_PADDING + SIGN_GAP + MASCOT_FOOT_Y + measuredSignHeight;
 		const targetCovered = highlightTop < skipBottom;
-		const signOverflowing = signTop < skipBottom && signBottom > signBottomLimit;
+		const signOverflowing = Math.max(spaceAbove, spaceBelow) < SIGN_GAP + MASCOT_FOOT_Y + measuredSignHeight;
 
 		if (targetCovered || signOverflowing) {
 			onTargetMove(highlightTop - SIGN_GAP - skipBottom);
@@ -140,21 +144,22 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 					style={[
 						styles.signContainer,
 						signAbove
-							? { bottom: height - target.y + HIGHLIGHT_PADDING + SIGN_GAP }
+							? { bottom: height - highlightTop + SIGN_GAP }
 							: [
 									styles.signBelow,
 									// 화면을 넘는 팻말은 화면 안으로 이동
 									{
 										top: Math.min(
-											target.y + target.height + HIGHLIGHT_PADDING,
-											signBottomLimit - signHeight - MASCOT_FOOT_Y - SIGN_GAP,
+											highlightBottom,
+											signBottomLimit - signHeight - mascotHeight - SIGN_GAP,
 										),
+										paddingTop: SIGN_GAP + mascotHeight,
 									},
 								],
 					]}
 				>
 					<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
-						{children}
+						{children(mascotShown)}
 					</View>
 				</View>
 			)}
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
 	rightBlocker: { position: 'absolute', right: 0 },
 	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center', paddingHorizontal: 16 },
 	sign: { maxWidth: '100%' },
-	signBelow: { overflow: 'hidden', paddingTop: SIGN_GAP + MASCOT_FOOT_Y },
+	signBelow: { overflow: 'hidden' },
 	skip: { position: 'absolute', left: 24 },
 });
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { ReportGuideTargetRegister } from '@/types/guide/report';
 
@@ -60,6 +60,7 @@ interface Props {
  */
 const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, onOpenSession }: Props) => {
 	const { t } = useTranslation();
+	const { height } = useWindowDimensions();
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
@@ -87,7 +88,11 @@ const ReportGuideSummary = ({ scrollRef, scrollY, wordName, onRegisterTarget, on
 				ref={scrollRef}
 				scrollEnabled={false}
 				showsVerticalScrollIndicator={false}
-				contentContainerStyle={styles.content}
+				contentContainerStyle={[
+					styles.content,
+					// 강조 영역을 건너뛰기 아래까지 올릴 여백
+					{ paddingBottom: height },
+				]}
 			>
 				<View>
 					<ScreenHeader
