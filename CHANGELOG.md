@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.21.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.20.0...v2.21.0) (2026-11-05)
+
+
+### Features
+
+* **app:** add toggle group for leaderboard period and feed country scope ([#329](https://github.com/ASM-joynnovate/buddybird-mobile/issues/329)) ([dc5cd77](https://github.com/ASM-joynnovate/buddybird-mobile/commit/dc5cd77267c8cea139e23bde3d2e6e30c01c97dd))
+* **app:** detect when the parrot stops moving on the petcam [BB-831] ([#332](https://github.com/ASM-joynnovate/buddybird-mobile/issues/332)) ([b1d8c29](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b1d8c2968702a81481886928616b040bf07b5699))
+* **app:** guide first-time users through the report with coach marks [BB-837] ([#331](https://github.com/ASM-joynnovate/buddybird-mobile/issues/331)) ([3840e11](https://github.com/ASM-joynnovate/buddybird-mobile/commit/3840e11dc07fde3791d29780b05134bc6077b2e4))
+* **app:** reopen the report guide from empty periods and split log kinds into sound and petcam ([#333](https://github.com/ASM-joynnovate/buddybird-mobile/issues/333)) ([8a37690](https://github.com/ASM-joynnovate/buddybird-mobile/commit/8a3769033b7ef80b123ca0d5dd26f72924ea10a7))
+* **app:** send the viewer's voice to the station speaker while watching [BB-848] ([#330](https://github.com/ASM-joynnovate/buddybird-mobile/issues/330)) ([9e589ff](https://github.com/ASM-joynnovate/buddybird-mobile/commit/9e589ffd117d8c02df339202eee27564866e5081))
+* **app:** show leaderboard podium with all-time and monthly rankings ([#328](https://github.com/ASM-joynnovate/buddybird-mobile/issues/328)) ([0842d12](https://github.com/ASM-joynnovate/buddybird-mobile/commit/0842d123631088e3580e5ca613c3e86222769082))
+* **app:** show unread notification count on the iOS app icon badge [BB-841] ([#325](https://github.com/ASM-joynnovate/buddybird-mobile/issues/325)) ([003cad8](https://github.com/ASM-joynnovate/buddybird-mobile/commit/003cad854cc57cc513c1bb643981b1c8df67b9a1))
+
+
+### Bug Fixes
+
+* **app:** keep the report guide sign on screen on short displays ([#334](https://github.com/ASM-joynnovate/buddybird-mobile/issues/334)) ([98e0674](https://github.com/ASM-joynnovate/buddybird-mobile/commit/98e0674d4c2ef0bd557d697f53440d23a8a82857))
+* **app:** send an idempotency key with ad events ([#338](https://github.com/ASM-joynnovate/buddybird-mobile/issues/338)) ([b4c0971](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b4c0971e188165744de8d193825a2f498bee35b7))
+* **app:** stop full-tree layout on every commit and press animations at scroll start ([#337](https://github.com/ASM-joynnovate/buddybird-mobile/issues/337)) ([e1c5d52](https://github.com/ASM-joynnovate/buddybird-mobile/commit/e1c5d522784d9559de57e7fab2b8fdb54d5592b0))
+* **app:** stop petcam video and audio while the app is in the background ([#335](https://github.com/ASM-joynnovate/buddybird-mobile/issues/335)) ([022f23c](https://github.com/ASM-joynnovate/buddybird-mobile/commit/022f23c9dd06c0689fb92cfa0587c1cfde661756))
+* **app:** wait for the report guide scroll to finish and hide the mascot when the sign does not fit ([#336](https://github.com/ASM-joynnovate/buddybird-mobile/issues/336)) ([923bdbb](https://github.com/ASM-joynnovate/buddybird-mobile/commit/923bdbb9af57e642fdd5eb82d27a484de340b5f6))
+
 ## [2.20.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.19.0...v2.20.0) (2026-10-31)
 
 
