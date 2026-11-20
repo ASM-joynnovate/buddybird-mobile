@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.22.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.21.0...v2.22.0) (2026-11-20)
+
+
+### Features
+
+* **app:** add terms and privacy policy links to settings ([#351](https://github.com/ASM-joynnovate/buddybird-mobile/issues/351)) ([1a6b60e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/1a6b60e8af875471b2eb82b4bb10c83271c87bef))
+* **app:** replace the stress care tracks with new nature sounds ([#340](https://github.com/ASM-joynnovate/buddybird-mobile/issues/340)) ([c0a118e](https://github.com/ASM-joynnovate/buddybird-mobile/commit/c0a118eb283ab76062b6fa941f71fccc38d43e31))
+
+
+### Bug Fixes
+
+* **app:** lower the stress care track volume to -32 LUFS ([#342](https://github.com/ASM-joynnovate/buddybird-mobile/issues/342)) ([d6c4cf2](https://github.com/ASM-joynnovate/buddybird-mobile/commit/d6c4cf2fc936f4fbfd640e36b3c9f0ccc8d8fbdc))
+
 ## [2.21.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.20.0...v2.21.0) (2026-11-05)
 
 
