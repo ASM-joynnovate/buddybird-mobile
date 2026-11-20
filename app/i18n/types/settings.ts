@@ -36,6 +36,11 @@ export type SettingsMessages = {
 		feedback: string;
 		version: string;
 	};
+	legal: {
+		title: string;
+		terms: string;
+		privacy: string;
+	};
 	signOutDialog: {
 		title: string;
 		message: string;

@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: '发送反馈',
 		version: 'App版本{{version}}',
 	},
+	legal: {
+		title: '隐私权和条款',
+		terms: '服务条款',
+		privacy: '隐私政策',
+	},
 	signOutDialog: {
 		title: '退出登录',
 		message: '要在此设备上退出登录吗？',

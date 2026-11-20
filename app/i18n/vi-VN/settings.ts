@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'Gửi góp ý',
 		version: 'Phiên bản ứng dụng {{version}}',
 	},
+	legal: {
+		title: 'Bảo mật và Điều khoản',
+		terms: 'Điều khoản sử dụng',
+		privacy: 'Chính sách quyền riêng tư',
+	},
 	signOutDialog: {
 		title: 'Đăng xuất',
 		message: 'Đăng xuất khỏi thiết bị này?',

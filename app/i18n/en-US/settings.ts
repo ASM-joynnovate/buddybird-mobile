@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'Send feedback',
 		version: 'App version {{version}}',
 	},
+	legal: {
+		title: 'Privacy & Terms',
+		terms: 'Terms of Service',
+		privacy: 'Privacy Policy',
+	},
 	signOutDialog: {
 		title: 'Sign out',
 		message: 'Sign out on this device?',

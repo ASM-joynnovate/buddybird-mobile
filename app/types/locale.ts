@@ -21,6 +21,7 @@ interface LocaleDefinition {
 	englishName: string;
 	dateLocale: string;
 	countryNamesLocale: string;
+	websiteLocale: string;
 	reportGuideSample: ReportGuideSample;
 }
 
@@ -32,6 +33,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Bangla',
 		dateLocale: 'bn-bd',
 		countryNamesLocale: 'bn',
+		websiteLocale: 'bn',
 		reportGuideSample: 'hello',
 	},
 	'zh-Hans': {
@@ -39,6 +41,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Chinese (Simplified)',
 		dateLocale: 'zh',
 		countryNamesLocale: 'zh',
+		websiteLocale: 'zh-cn',
 		reportGuideSample: 'hello',
 	},
 	'zh-Hant': {
@@ -46,6 +49,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Chinese (Traditional)',
 		dateLocale: 'zh-tw',
 		countryNamesLocale: 'zh-hant',
+		websiteLocale: 'zh-tw',
 		reportGuideSample: 'hello',
 	},
 	'en-US': {
@@ -53,6 +57,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'English',
 		dateLocale: 'en',
 		countryNamesLocale: 'en',
+		websiteLocale: 'en',
 		reportGuideSample: 'hello',
 	},
 	'hi-IN': {
@@ -60,6 +65,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Hindi',
 		dateLocale: 'hi',
 		countryNamesLocale: 'hi',
+		websiteLocale: 'hi',
 		reportGuideSample: 'hello',
 	},
 	'ja-JP': {
@@ -67,6 +73,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Japanese',
 		dateLocale: 'ja',
 		countryNamesLocale: 'ja',
+		websiteLocale: 'ja',
 		reportGuideSample: 'hello',
 	},
 	'ko-KR': {
@@ -74,6 +81,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Korean',
 		dateLocale: 'ko',
 		countryNamesLocale: 'ko',
+		websiteLocale: 'ko',
 		reportGuideSample: 'annyeong',
 	},
 	'ru-RU': {
@@ -81,6 +89,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Russian',
 		dateLocale: 'ru',
 		countryNamesLocale: 'ru',
+		websiteLocale: 'ru',
 		reportGuideSample: 'hello',
 	},
 	'es-ES': {
@@ -88,6 +97,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Spanish',
 		dateLocale: 'es',
 		countryNamesLocale: 'es',
+		websiteLocale: 'es',
 		reportGuideSample: 'hello',
 	},
 	'th-TH': {
@@ -95,6 +105,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Thai',
 		dateLocale: 'th',
 		countryNamesLocale: 'th',
+		websiteLocale: 'th',
 		reportGuideSample: 'hello',
 	},
 	'vi-VN': {
@@ -102,6 +113,7 @@ export const localeDefinitions: Record<Locale, LocaleDefinition> = {
 		englishName: 'Vietnamese',
 		dateLocale: 'vi',
 		countryNamesLocale: 'vi',
+		websiteLocale: 'vi',
 		reportGuideSample: 'hello',
 	},
 };

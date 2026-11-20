@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: '傳送意見回饋',
 		version: 'App 版本 {{version}}',
 	},
+	legal: {
+		title: '隱私權與條款',
+		terms: '服務條款',
+		privacy: '隱私權政策',
+	},
 	signOutDialog: {
 		title: '登出',
 		message: '要在這部裝置上登出嗎？',

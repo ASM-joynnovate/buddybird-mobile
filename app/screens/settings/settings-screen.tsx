@@ -10,6 +10,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AccountSection from '@/screens/settings/components/account-section';
 import GeneralGroup from '@/screens/settings/components/general-group';
 import GeneralGroupSkeleton from '@/screens/settings/components/general-group-skeleton';
+import LegalGroup from '@/screens/settings/components/legal-group';
 import SupportGroup from '@/screens/settings/components/support-group';
 import { installedVersion } from '@/services/device/application';
 import { colors } from '@/theme';
@@ -38,8 +39,10 @@ const SettingsScreen = () => {
 					<GeneralGroup />
 				</ErrorHandlingWrapper>
 
-				<View style={styles.supportContainer}>
-					<SupportGroup />
+				<SupportGroup />
+
+				<View style={styles.bottomContainer}>
+					<LegalGroup />
 
 					{/*로그아웃, 회원 탈퇴 버튼 및 앱 버전*/}
 					<View>
@@ -57,7 +60,7 @@ const SettingsScreen = () => {
 
 const styles = StyleSheet.create({
 	sectionsContainer: { gap: 28 },
-	supportContainer: { gap: 12 },
+	bottomContainer: { gap: 12 },
 	version: { fontSize: 13, color: colors.muted, textAlign: 'center' },
 });
 

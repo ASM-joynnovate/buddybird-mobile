@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'फ़ीडबैक भेजें',
 		version: 'ऐप वर्शन {{version}}',
 	},
+	legal: {
+		title: 'निजता और शर्तें',
+		terms: 'सेवा की शर्तें',
+		privacy: 'गोपनीयता नीति',
+	},
 	signOutDialog: {
 		title: 'साइन आउट करें',
 		message: 'इस डिवाइस से साइन आउट करना है?',
