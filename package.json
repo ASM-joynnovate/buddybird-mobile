@@ -103,7 +103,7 @@
 		"@hot-updater/sentry-plugin": "1.1.0",
 		"@tanstack/eslint-plugin-query": "5.104.5",
 		"@types/d3-scale": "^4.0.3",
-		"@types/node": "^22.0.0",
+		"@types/node": "^26.6.6",
 		"@types/react": "~19.2.10",
 		"dependency-cruiser": "^18.7.0",
 		"eslint": "10.13.0",
