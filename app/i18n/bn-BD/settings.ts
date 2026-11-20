@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'মতামত পাঠান',
 		version: 'অ্যাপ ভার্সন {{version}}',
 	},
+	legal: {
+		title: 'গোপনীয়তা এবং শর্তাদি',
+		terms: 'ব্যবহারের শর্তাবলি',
+		privacy: 'গোপনীয়তা নীতি',
+	},
 	signOutDialog: {
 		title: 'সাইন-আউট',
 		message: 'এই ডিভাইস থেকে সাইন-আউট করবেন?',

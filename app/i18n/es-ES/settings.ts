@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'Enviar comentarios',
 		version: 'Versión de la app {{version}}',
 	},
+	legal: {
+		title: 'Privacidad y Condiciones',
+		terms: 'Condiciones de uso',
+		privacy: 'Política de privacidad',
+	},
 	signOutDialog: {
 		title: 'Cerrar sesión',
 		message: '¿Quieres cerrar sesión en este dispositivo?',

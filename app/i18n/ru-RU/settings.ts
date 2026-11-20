@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'Отправить отзыв',
 		version: 'Версия приложения {{version}}',
 	},
+	legal: {
+		title: 'Политика конфиденциальности и Условия использования',
+		terms: 'Условия использования',
+		privacy: 'Политика конфиденциальности',
+	},
 	signOutDialog: {
 		title: 'Выход',
 		message: 'Выйти из аккаунта на этом устройстве?',

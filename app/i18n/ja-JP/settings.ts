@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'フィードバックを送る',
 		version: 'アプリのバージョン {{version}}',
 	},
+	legal: {
+		title: 'ポリシーと規約',
+		terms: '利用規約',
+		privacy: 'プライバシーポリシー',
+	},
 	signOutDialog: {
 		title: 'ログアウト',
 		message: 'この端末からログアウトしますか？',

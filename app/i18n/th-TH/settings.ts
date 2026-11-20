@@ -38,6 +38,11 @@ export const settings: SettingsMessages = {
 		feedback: 'ส่งความคิดเห็น',
 		version: 'แอปเวอร์ชัน {{version}}',
 	},
+	legal: {
+		title: 'ข้อมูลส่วนบุคคลและข้อกำหนด',
+		terms: 'ข้อกำหนดการให้บริการ',
+		privacy: 'นโยบายความเป็นส่วนตัว',
+	},
 	signOutDialog: {
 		title: 'ออกจากระบบ',
 		message: 'ออกจากระบบในอุปกรณ์นี้ไหม',
