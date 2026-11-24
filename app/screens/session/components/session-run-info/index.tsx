@@ -52,7 +52,7 @@ const SessionRunInfo = ({
 	endsAt,
 	sleep,
 	pauseNotice,
-	pauseHint = null,
+	pauseHint,
 	bottomInset = 0,
 	onEnd,
 	header,

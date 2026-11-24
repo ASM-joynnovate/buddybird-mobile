@@ -96,21 +96,21 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 			})
 			.onUpdate((event) => {
 				const nextScale = clamp(savedScale.get() * event.scale, 1, PETCAM_MAX_ZOOM);
-				const ratio = nextScale / scale.get();
-				const content = fitContentSize(width.get(), height.get(), contentAspectRatio);
+				const scaleRatio = nextScale / scale.get();
+				const contentSize = fitContentSize(width.get(), height.get(), contentAspectRatio);
 				const focusX = event.focalX - width.get() / 2;
 				const focusY = event.focalY - height.get() / 2;
 				const nextOffsetX = clampOffset(
-					zoomOffset(offsetX.get(), focusX, ratio),
+					zoomOffset(offsetX.get(), focusX, scaleRatio),
 					nextScale,
 					width.get(),
-					content.width,
+					contentSize.width,
 				);
 				const nextOffsetY = clampOffset(
-					zoomOffset(offsetY.get(), focusY, ratio),
+					zoomOffset(offsetY.get(), focusY, scaleRatio),
 					nextScale,
 					height.get(),
-					content.height,
+					contentSize.height,
 				);
 
 				// 손가락 사이 지점 기준 확대를 이동 기준 위치에 반영
@@ -137,13 +137,13 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 					savedOffsetY.set(offsetY.get() - event.translationY);
 				}
 
-				const content = fitContentSize(width.get(), height.get(), contentAspectRatio);
+				const contentSize = fitContentSize(width.get(), height.get(), contentAspectRatio);
 
 				offsetX.set(
-					clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get(), content.width),
+					clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get(), contentSize.width),
 				);
 				offsetY.set(
-					clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get(), content.height),
+					clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get(), contentSize.height),
 				);
 			})
 			.onEnd(() => {
@@ -183,6 +183,18 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 		scale,
 		width,
 	]);
+
+	/** 화면 크기 및 영상 비율 변경 시 이동 위치 재조정 */
+	useAnimatedReaction(
+		() => fitContentSize(width.get(), height.get(), contentAspectRatio),
+		(contentSize) => {
+			offsetX.set(clampOffset(offsetX.get(), scale.get(), width.get(), contentSize.width));
+			offsetY.set(clampOffset(offsetY.get(), scale.get(), height.get(), contentSize.height));
+			savedOffsetX.set(offsetX.get());
+			savedOffsetY.set(offsetY.get());
+		},
+		[contentAspectRatio],
+	);
 
 	/** 배율 변경 시 현재 배율 표시 */
 	useAnimatedReaction(
