@@ -25,6 +25,7 @@ import SummaryTitle from '@/screens/session/components/summary-title';
 import SummaryTitleSkeleton from '@/screens/session/components/summary-title-skeleton';
 import { useReportStore } from '@/stores/report';
 import { useSessionStore } from '@/stores/session';
+import { landscapeContentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Button } from '@/components/ui/button';
@@ -176,7 +177,16 @@ const styles = StyleSheet.create({
 	portraitContent: { gap: 16 },
 	portraitSkeleton: { flex: 1, overflow: 'hidden', gap: 16 },
 	titleSpeechContainer: { flexGrow: 1, justifyContent: 'center', gap: 40, paddingTop: 16 },
-	landscapeContainer: { flex: 1, flexDirection: 'row', gap: 32, paddingTop: 20, paddingHorizontal: 24 },
+	landscapeContainer: {
+		flex: 1,
+		width: '100%',
+		maxWidth: landscapeContentMaxWidth,
+		alignSelf: 'center',
+		flexDirection: 'row',
+		gap: 32,
+		paddingTop: 20,
+		paddingHorizontal: 24,
+	},
 	sideColumn: { width: 280, justifyContent: 'center' },
 	mainColumn: { flex: 1, gap: 16 },
 	mainContent: { flex: 1, justifyContent: 'flex-end', gap: 12 },

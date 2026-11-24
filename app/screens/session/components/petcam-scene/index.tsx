@@ -13,6 +13,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 import PetcamSceneDim from '@/screens/session/components/petcam-scene/dim';
 import PetcamScenePlace from '@/screens/session/components/petcam-scene/place';
 import PetcamSceneWatch from '@/screens/session/components/petcam-scene/watch';
+import { contentMaxWidth } from '@/theme';
 
 import GuideScenePhoneFrame from '@/components/guide-scene/phone-frame';
 import GuideSceneSessionPreview from '@/components/guide-scene/session-preview';
@@ -76,7 +77,7 @@ const PetcamScene = ({ step, topInset }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, overflow: 'hidden' },
+	container: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', overflow: 'hidden' },
 });
 
 export default PetcamScene;

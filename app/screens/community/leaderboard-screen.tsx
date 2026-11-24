@@ -16,7 +16,7 @@ import LeaderboardMonthNav from '@/screens/community/components/leaderboard-mont
 import LeaderboardMonthPager from '@/screens/community/components/leaderboard-month-pager';
 import LeaderboardRanking from '@/screens/community/components/leaderboard-ranking';
 import { leaderboardMonthStart } from '@/screens/community/utils/leaderboard';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 import { localDate } from '@/utils/date';
 
 import BuddyRefreshHint from '@/components/buddy-refresh/hint';
@@ -83,8 +83,14 @@ const LeaderboardScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	headerContainer: { paddingHorizontal: 12, paddingTop: 4 },
-	periodContent: { flex: 1 },
+	headerContainer: {
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		paddingHorizontal: 12,
+		paddingTop: 4,
+	},
+	periodContent: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	loading: { flex: 1 },
 });
 

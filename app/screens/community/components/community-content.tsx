@@ -16,7 +16,7 @@ import CommunityFeedSkeleton from '@/screens/community/components/community-feed
 import ReportDialog from '@/screens/community/components/report-dialog';
 import { useAuthStore } from '@/stores/auth';
 import { useCommunityStore } from '@/stores/community';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
 import BuddyRefreshHint from '@/components/buddy-refresh/hint';
 import CommunityGate from '@/components/community-gate';
@@ -64,7 +64,13 @@ const CommunityContent = () => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: colors.background },
+	container: {
+		flex: 1,
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		backgroundColor: colors.background,
+	},
 	title: { minHeight: 56, paddingHorizontal: 24, paddingTop: 12 },
 });
 

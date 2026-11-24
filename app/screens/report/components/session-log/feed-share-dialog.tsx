@@ -25,7 +25,7 @@ import { toast } from 'sonner-native';
 
 import type { LogItem } from '@/screens/report/utils/session-log';
 import { useCommunityStore } from '@/stores/community';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import FeedCard from '@/components/feed-card';
@@ -67,7 +67,7 @@ const SessionLogFeedShareDialog = ({ visible, logItem, wordName, onClose }: Prop
 	const player = useSoundPlayer();
 
 	const [firstParrot, ...otherParrots] = parrotListData ?? [];
-	const feedCardWidth = windowWidth - FEED_LIST_PADDING * 2;
+	const feedCardWidth = Math.min(windowWidth, contentMaxWidth) - FEED_LIST_PADDING * 2;
 	const previewScale = previewLayout.width / feedCardWidth;
 	const shareMessage =
 		firstParrot &&

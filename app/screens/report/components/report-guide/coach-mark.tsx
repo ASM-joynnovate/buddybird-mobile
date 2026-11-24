@@ -9,7 +9,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ReportGuideTouchHint from '@/screens/report/components/report-guide/touch-hint';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
 import { MASCOT_FOOT_Y } from '@/components/buddy-refresh/constants';
 import { Button } from '@/components/ui/button';
@@ -158,17 +158,22 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 								],
 					]}
 				>
-					<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
-						{children(mascotShown)}
+					<View pointerEvents="box-none" style={styles.signColumn}>
+						<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
+							{children(mascotShown)}
+						</View>
 					</View>
 				</View>
 			)}
 
 			<View
+				pointerEvents="box-none"
 				onLayout={(event) => setSkipBottom(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}
-				style={[styles.skip, { top: insets.top + 8 }]}
+				style={[styles.skipContainer, { top: insets.top + 8 }]}
 			>
-				<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
+				<View pointerEvents="box-none" style={styles.skipColumn}>
+					<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
+				</View>
 			</View>
 		</View>
 	);
@@ -180,9 +185,17 @@ const styles = StyleSheet.create({
 	leftBlocker: { position: 'absolute', left: 0 },
 	rightBlocker: { position: 'absolute', right: 0 },
 	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center', paddingHorizontal: 16 },
+	signColumn: { width: '100%', maxWidth: contentMaxWidth, alignItems: 'center' },
 	sign: { maxWidth: '100%' },
 	signBelow: { overflow: 'hidden' },
-	skip: { position: 'absolute', left: 24 },
+	skipContainer: { position: 'absolute', right: 0, left: 0 },
+	skipColumn: {
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		alignItems: 'flex-start',
+		paddingHorizontal: 24,
+	},
 });
 
 export default ReportGuideCoachMark;

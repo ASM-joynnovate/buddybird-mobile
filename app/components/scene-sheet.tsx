@@ -47,6 +47,9 @@ const SceneSheet = ({ title, accessory, footer, sheetRef, children }: Props) => 
 
 const styles = StyleSheet.create({
 	sheet: {
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
 		marginTop: -radius.sheet,
 		paddingTop: 28,
 		paddingHorizontal: 24,
@@ -55,7 +58,7 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.background,
 	},
-	content: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 12 },
+	content: { gap: 12 },
 	title: { fontFamily: font.extraBold, fontSize: 20, lineHeight: 28 },
 	footer: { marginTop: 12 },
 });

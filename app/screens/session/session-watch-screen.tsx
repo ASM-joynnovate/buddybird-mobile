@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -42,7 +42,7 @@ import { recordPetcamVideoStats } from '@/screens/session/services/petcam-teleme
 import { getPetcamCameraRequestTimeoutMs, getPetcamConnectTimeoutMs } from '@/services/remote-config/client';
 import { reportError } from '@/services/telemetry/client';
 import { useSessionStore } from '@/stores/session';
-import { font } from '@/theme';
+import { contentMaxWidth, font, landscapeContentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 
 import PermissionDialog from '@/components/dialogs/permission-dialog';
@@ -79,6 +79,7 @@ const SessionWatchScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
 	const insets = useSafeAreaInsets();
+	const { width, height } = useWindowDimensions();
 
 	const opacity = useSharedValue(1);
 	const microphoneLevel = useSharedValue(0);
@@ -113,6 +114,7 @@ const SessionWatchScreen = () => {
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
+	const columnMaxWidth = width > height ? landscapeContentMaxWidth : contentMaxWidth;
 	const sessionNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
 	const sessionEnded =
 		sessionData?.status === 'finished' ||
@@ -360,7 +362,7 @@ const SessionWatchScreen = () => {
 	if (!sessionData || sessionEnded) {
 		return (
 			<SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
-				<View style={styles.loadingHeader}>{header}</View>
+				<View style={[styles.loadingHeader, { maxWidth: columnMaxWidth }]}>{header}</View>
 				<View style={styles.loading}>
 					<ActivityIndicator color={sessionColors.text} />
 				</View>
@@ -389,7 +391,10 @@ const SessionWatchScreen = () => {
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
 							<Copy style={styles.statusTitle}>{t(`session.watch.${status}.title`)}</Copy>
-							<Copy lineBreakStrategyIOS="hangul-word" style={styles.statusMessage}>
+							<Copy
+								lineBreakStrategyIOS="hangul-word"
+								style={[styles.statusMessage, { maxWidth: columnMaxWidth }]}
+							>
 								{t(`session.watch.${status}.message`)}
 							</Copy>
 						</>
@@ -415,17 +420,19 @@ const SessionWatchScreen = () => {
 				<View
 					style={{
 						position: 'absolute',
-						left: SCREEN_PADDING + insets.left,
-						right: SCREEN_PADDING + insets.right,
+						left: insets.left,
+						right: insets.right,
 						bottom: TALK_BUTTON_BOTTOM + insets.bottom,
 					}}
 				>
-					<TalkButton
-						talking={microphoneOn}
-						audioLevel={microphoneLevel}
-						onTalkStart={handleStartTalking}
-						onTalkEnd={handleStopTalking}
-					/>
+					<View style={[styles.talkContainer, { maxWidth: columnMaxWidth }]}>
+						<TalkButton
+							talking={microphoneOn}
+							audioLevel={microphoneLevel}
+							onTalkStart={handleStartTalking}
+							onTalkEnd={handleStopTalking}
+						/>
+					</View>
 				</View>
 			)}
 
@@ -442,9 +449,15 @@ const SessionWatchScreen = () => {
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: sessionColors.background },
-	loadingHeader: { paddingHorizontal: 24, paddingTop: 12 },
+	loadingHeader: {
+		width: '100%',
+		alignSelf: 'center',
+		paddingHorizontal: 24,
+		paddingTop: 12,
+	},
 	loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 	header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+	talkContainer: { width: '100%', alignSelf: 'center', paddingHorizontal: SCREEN_PADDING },
 	leaveFace: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 2, paddingRight: 8, marginLeft: -6 },
 	leaveText: { fontFamily: font.extraBold, fontSize: 16, color: sessionColors.overlayText },
 	statusContainer: {

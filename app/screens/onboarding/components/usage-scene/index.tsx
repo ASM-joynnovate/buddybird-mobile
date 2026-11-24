@@ -11,6 +11,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 
 import UsageScenePlace from '@/screens/onboarding/components/usage-scene/place';
 import UsageSceneRecord from '@/screens/onboarding/components/usage-scene/record';
+import { contentMaxWidth } from '@/theme';
 
 import GuideScenePhoneFrame from '@/components/guide-scene/phone-frame';
 import GuideSceneSessionPreview from '@/components/guide-scene/session-preview';
@@ -65,7 +66,7 @@ const UsageScene = ({ step, topInset }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, overflow: 'hidden' },
+	container: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', overflow: 'hidden' },
 });
 
 export default UsageScene;

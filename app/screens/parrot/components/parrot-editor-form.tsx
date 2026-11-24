@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useIsMutating } from '@tanstack/react-query';
 
@@ -81,6 +81,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
+	const { width: windowWidth } = useWindowDimensions();
 
 	const scrollY = useSharedValue(0);
 
@@ -125,7 +126,9 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
 	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
 	// 사진이 도착한 뒤에만 상태 표시줄 글자를 밝게 함
-	const photoUnderStatusBar = !!photoPicker.photoUri && (flight?.photoLanded ?? true);
+	// 태블릿은 사진이 가운데 열에만 있어 상태 표시줄 밑에 닿지 않음
+	const photoUnderStatusBar =
+		!!photoPicker.photoUri && (flight?.photoLanded ?? true) && windowWidth <= contentMaxWidth;
 
 	const handleScroll = useAnimatedScrollHandler((event) => {
 		scrollY.set(event.contentOffset.y);
@@ -253,6 +256,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="on-drag"
 				onScroll={handleScroll}
+				style={styles.scroll}
 				contentContainerStyle={styles.scrollContent}
 			>
 				<ParrotPhotoBackdrop
@@ -331,30 +335,32 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 				pointerEvents="box-none"
 				style={[styles.photoButtons, { top: insets.top + 4 }, flight?.buttonsStyle]}
 			>
-				{onBack && (
-					<PressableSurface
-						accessibilityLabel={t('common.back')}
-						depth="low"
-						cornerRadius="pill"
-						onPress={onBack}
-						contentStyle={styles.photoButton}
-					>
-						<ChevronLeftIcon size={24} color={colors.text} />
-					</PressableSurface>
-				)}
-				<View style={styles.photoButtonsSpacer} />
-				{parrot && parrotListData.length > 1 && (
-					<PressableSurface
-						accessibilityLabel={t('parrot.delete')}
-						disabled={saving}
-						depth="low"
-						cornerRadius="pill"
-						onPress={() => setDeleteDialogOpen(true)}
-						contentStyle={styles.photoButton}
-					>
-						<TrashIcon size={24} color={saving ? colors.subtle : colors.text} />
-					</PressableSurface>
-				)}
+				<View pointerEvents="box-none" style={styles.photoButtonsRow}>
+					{onBack && (
+						<PressableSurface
+							accessibilityLabel={t('common.back')}
+							depth="low"
+							cornerRadius="pill"
+							onPress={onBack}
+							contentStyle={styles.photoButton}
+						>
+							<ChevronLeftIcon size={24} color={colors.text} />
+						</PressableSurface>
+					)}
+					<View style={styles.photoButtonsSpacer} />
+					{parrot && parrotListData.length > 1 && (
+						<PressableSurface
+							accessibilityLabel={t('parrot.delete')}
+							disabled={saving}
+							depth="low"
+							cornerRadius="pill"
+							onPress={() => setDeleteDialogOpen(true)}
+							contentStyle={styles.photoButton}
+						>
+							<TrashIcon size={24} color={saving ? colors.subtle : colors.text} />
+						</PressableSurface>
+					)}
+				</View>
 			</Animated.View>
 
 			<PermissionDialog state={photoPicker.libraryDialog} />
@@ -378,6 +384,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 
 const styles = StyleSheet.create({
 	container: { flex: 1 },
+	scroll: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	scrollContent: { flexGrow: 1 },
 	sheet: {
 		paddingTop: 28,
@@ -387,11 +394,18 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.background,
 	},
-	sheetContent: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 20 },
+	sheetContent: { gap: 20 },
 	fieldsContainer: { gap: 16 },
 	footerContainer: { gap: 8 },
 	skipContainer: { alignItems: 'flex-end' },
-	photoButtons: { position: 'absolute', left: 16, right: 16, flexDirection: 'row' },
+	photoButtons: { position: 'absolute', left: 0, right: 0 },
+	photoButtonsRow: {
+		flexDirection: 'row',
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		paddingHorizontal: 16,
+	},
 	photoButtonsSpacer: { flex: 1 },
 	photoButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });
