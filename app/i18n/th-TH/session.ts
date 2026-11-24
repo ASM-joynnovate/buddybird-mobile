@@ -87,6 +87,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'เสียงของคุณกำลังดังจากอุปกรณ์ที่กำลังฝึกพูด',
 		zoomHint: { title: 'ใช้สองนิ้วถ่างออกเพื่อซูมเข้า', message: 'แตะสองครั้งเพื่อกลับเป็นขนาดเดิม' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'หมุนอุปกรณ์เพื่อดูภาพที่ใหญ่ขึ้น',
 	},
 	petcamGuide: {
 		alert: {

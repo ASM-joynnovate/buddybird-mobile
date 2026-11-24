@@ -30,6 +30,7 @@ interface Props {
 	endsAt: number | null;
 	sleep: SleepSettings | null;
 	pauseNotice: string | null;
+	pauseHint?: string | null;
 	bottomInset?: number;
 	onEnd: () => void;
 	header: ReactNode;
@@ -41,11 +42,21 @@ interface Props {
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
  * @param pauseNotice 학습 단계 대신 표시할 문구
+ * @param pauseHint 문구 아래에 표시할 안내
  * @param bottomInset 아래쪽에 비워 둘 높이
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  * @param header 위쪽에 표시할 헤더
  */
-const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0, onEnd, header }: Props) => {
+const SessionRunInfo = ({
+	startedAt,
+	endsAt,
+	sleep,
+	pauseNotice,
+	pauseHint = null,
+	bottomInset = 0,
+	onEnd,
+	header,
+}: Props) => {
 	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
@@ -61,9 +72,18 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0
 	const currentPhase = (
 		<View style={styles.phaseContainer} pointerEvents="none">
 			{pauseNotice ? (
-				<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNotice}>
-					{pauseNotice}
-				</Copy>
+				<>
+					<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNotice}>
+						{pauseNotice}
+					</Copy>
+					{!!pauseHint && (
+						<View style={styles.pauseHint}>
+							<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseHintText}>
+								{pauseHint}
+							</Copy>
+						</View>
+					)}
+				</>
 			) : (
 				<Copy style={styles.phaseText}>{t(`common.phases.${status.phase}`)}</Copy>
 			)}
@@ -166,6 +186,20 @@ const styles = StyleSheet.create({
 		lineHeight: 26,
 		textAlign: 'center',
 		color: sessionColors.text,
+	},
+	pauseHint: {
+		marginTop: 8,
+		paddingHorizontal: 12,
+		paddingVertical: 4,
+		borderRadius: 999,
+		backgroundColor: sessionColors.overlay,
+	},
+	pauseHintText: {
+		fontFamily: font.bold,
+		fontSize: 14,
+		lineHeight: 20,
+		textAlign: 'center',
+		color: sessionColors.overlayText,
 	},
 	sessionTimeContainer: { alignItems: 'center', gap: 2 },
 	sessionTimeLabel: { fontFamily: font.extraBold, fontSize: 15, color: sessionColors.faint },

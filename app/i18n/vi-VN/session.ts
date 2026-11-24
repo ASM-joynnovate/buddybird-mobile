@@ -92,6 +92,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'Giọng của bạn đang phát trên thiết bị đang học',
 		zoomHint: { title: 'Mở rộng hai ngón tay để phóng to', message: 'Chạm hai lần để trở về như cũ' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'Xoay thiết bị để xem lớn hơn',
 	},
 	petcamGuide: {
 		alert: {

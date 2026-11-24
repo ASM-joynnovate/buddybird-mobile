@@ -1,3 +1,19 @@
+diff --git a/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java b/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
+index bdc9ffc9564995694f199312d9365554b3c54ccd..c420e8b9a4f3cd9b1345228f3cb51ff5041ef3d0 100644
+--- a/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
++++ b/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
+@@ -299,8 +299,9 @@ public class WebRTCView extends ViewGroup {
+                     try {
+                         ReactContext reactContext = (ReactContext) getContext();
+                         WritableMap params = Arguments.createMap();
+-                        params.putInt("width", videoWidth);
+-                        params.putInt("height", videoHeight);
++                        boolean rotated = rotation % 180 != 0;
++                        params.putInt("width", rotated ? videoHeight : videoWidth);
++                        params.putInt("height", rotated ? videoWidth : videoHeight);
+ 
+                         // Send the event through React Native's event system
+                         reactContext.getJSModule(RCTEventEmitter.class)
 diff --git a/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java b/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java
 index 925a84056707d4b206d0d284795c4d3a7f466624..6ff8b154169627743315a6ce71830b11eb13de0c 100644
 --- a/android/src/main/java/com/oney/WebRTCModule/videoEffects/VideoEffectProcessor.java

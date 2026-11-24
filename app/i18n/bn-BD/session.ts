@@ -90,6 +90,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'আপনার কণ্ঠ শেখা চলছে এমন ডিভাইসে বাজছে',
 		zoomHint: { title: 'জুম করতে দুই আঙুল দিয়ে ছড়িয়ে দিন', message: 'দুবার ট্যাপ করলে আগের অবস্থায় ফিরবে' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'বড় করে দেখতে ডিভাইস ঘোরান',
 	},
 	petcamGuide: {
 		alert: {

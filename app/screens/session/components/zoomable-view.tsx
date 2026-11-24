@@ -26,25 +26,47 @@ import { Copy } from '@/components/ui/copy';
 const ZOOM_LABEL_MS = SECOND;
 
 /** 이동 거리 제한 함수 */
-const clampOffset = (offset: number, scale: number, size: number) => {
+const clampOffset = (offset: number, scale: number, viewSize: number, contentSize: number) => {
 	'worklet';
 
-	const limit = (size * (scale - 1)) / 2;
+	const limit = Math.max(0, (contentSize * scale - viewSize) / 2);
 
 	return Math.min(limit, Math.max(-limit, offset));
 };
 
+/** 기준점을 유지하는 확대 위치 계산 함수 */
+const zoomOffset = (offset: number, focus: number, ratio: number) => {
+	'worklet';
+
+	return focus - (focus - offset) * ratio;
+};
+
+/** 화면에 맞춘 내용 크기 계산 함수 */
+const fitContentSize = (viewWidth: number, viewHeight: number, aspectRatio: number | null) => {
+	'worklet';
+
+	if (!aspectRatio) {
+		return { width: viewWidth, height: viewHeight };
+	}
+
+	const width = Math.min(viewWidth, viewHeight * aspectRatio);
+
+	return { width, height: width / aspectRatio };
+};
+
 interface Props {
 	children: ReactNode;
+	contentAspectRatio: number | null;
 	onTap: () => void;
 }
 
 /**
  * 확대할 수 있는 영상 컴포넌트
  * @param children 확대할 내용
+ * @param contentAspectRatio 화면에 맞춰 표시한 내용의 가로세로 비율
  * @param onTap 화면을 누를 때 실행할 함수
  */
-const ZoomableView = ({ children, onTap }: Props) => {
+const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 	const { t } = useTranslation();
 
 	const [hintVisible, setHintVisible] = useState(true);
@@ -74,10 +96,30 @@ const ZoomableView = ({ children, onTap }: Props) => {
 			})
 			.onUpdate((event) => {
 				const nextScale = clamp(savedScale.get() * event.scale, 1, PETCAM_MAX_ZOOM);
+				const ratio = nextScale / scale.get();
+				const content = fitContentSize(width.get(), height.get(), contentAspectRatio);
+				const focusX = event.focalX - width.get() / 2;
+				const focusY = event.focalY - height.get() / 2;
+				const nextOffsetX = clampOffset(
+					zoomOffset(offsetX.get(), focusX, ratio),
+					nextScale,
+					width.get(),
+					content.width,
+				);
+				const nextOffsetY = clampOffset(
+					zoomOffset(offsetY.get(), focusY, ratio),
+					nextScale,
+					height.get(),
+					content.height,
+				);
+
+				// 손가락 사이 지점 기준 확대를 이동 기준 위치에 반영
+				savedOffsetX.set(savedOffsetX.get() + nextOffsetX - offsetX.get());
+				savedOffsetY.set(savedOffsetY.get() + nextOffsetY - offsetY.get());
 
 				scale.set(nextScale);
-				offsetX.set(clampOffset(offsetX.get(), nextScale, width.get()));
-				offsetY.set(clampOffset(offsetY.get(), nextScale, height.get()));
+				offsetX.set(nextOffsetX);
+				offsetY.set(nextOffsetY);
 			})
 			.onEnd(() => {
 				savedScale.set(scale.get());
@@ -95,8 +137,14 @@ const ZoomableView = ({ children, onTap }: Props) => {
 					savedOffsetY.set(offsetY.get() - event.translationY);
 				}
 
-				offsetX.set(clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get()));
-				offsetY.set(clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get()));
+				const content = fitContentSize(width.get(), height.get(), contentAspectRatio);
+
+				offsetX.set(
+					clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get(), content.width),
+				);
+				offsetY.set(
+					clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get(), content.height),
+				);
 			})
 			.onEnd(() => {
 				pointerCount.set(0);
@@ -121,7 +169,20 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		});
 
 		return Gesture.Simultaneous(pinch, pan, doubleTap, tap);
-	}, [height, hideHint, onTap, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
+	}, [
+		contentAspectRatio,
+		height,
+		hideHint,
+		onTap,
+		offsetX,
+		offsetY,
+		pointerCount,
+		savedOffsetX,
+		savedOffsetY,
+		savedScale,
+		scale,
+		width,
+	]);
 
 	/** 배율 변경 시 현재 배율 표시 */
 	useAnimatedReaction(

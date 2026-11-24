@@ -87,6 +87,7 @@ export const session: SessionMessages = {
 		talkingNotice: '練習中の端末からあなたの声が流れています',
 		zoomHint: { title: '2本の指で広げて拡大できます', message: 'ダブルタップで元に戻ります' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: '端末を回転すると大きく見られます',
 	},
 	petcamGuide: {
 		alert: {
