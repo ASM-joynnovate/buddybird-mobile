@@ -23,9 +23,5 @@ export const notificationPath = ({ kind, notification_id, data_id, link }: Opene
 		return `/announcements/${data_id}`;
 	}
 
-	if (kind === 'marketing') {
-		return '/settings/notifications';
-	}
-
 	return notification_id ? `/notifications/${notification_id}` : null;
 };
