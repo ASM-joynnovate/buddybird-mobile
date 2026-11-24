@@ -47,50 +47,47 @@ const LeaderboardScreen = () => {
 		<Screen scrollable={false}>
 			<BuddyRefreshHint mascotShown={!lowPerformance} />
 
-			<View style={styles.headerContainer}>
-				<ScreenHeader
-					title={t('community.leaderboard.rankingTitle')}
-					onBack={() => navigation.goBack()}
-					trailing=<ToggleGroup
-						options={[
-							{ value: 'all', label: t('community.leaderboard.periods.all') },
-							{ value: 'monthly', label: t('community.leaderboard.periods.monthly') },
-						]}
-						value={period}
-						onChange={setPeriod}
+			<View style={styles.container}>
+				<View style={styles.headerContainer}>
+					<ScreenHeader
+						title={t('community.leaderboard.rankingTitle')}
+						onBack={() => navigation.goBack()}
+						trailing=<ToggleGroup
+							options={[
+								{ value: 'all', label: t('community.leaderboard.periods.all') },
+								{ value: 'monthly', label: t('community.leaderboard.periods.monthly') },
+							]}
+							value={period}
+							onChange={setPeriod}
+						/>
 					/>
-				/>
-			</View>
+				</View>
 
-			{/*기간 변경 시 순위 영역 fade in*/}
-			<Animated.View key={period} entering={FadeIn.duration(PERIOD_FADE_MS)} style={styles.periodContent}>
-				{period === 'all' ? (
-					<ErrorHandlingWrapper
-						fallbackComponent={ScreenError}
-						suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
-					>
-						<LeaderboardRanking period="all" start={null} />
-					</ErrorHandlingWrapper>
-				) : (
-					<>
-						<LeaderboardMonthNav start={monthStart} onMove={handleMoveMonth} />
-						<LeaderboardMonthPager start={monthStart} onMove={handleMoveMonth} />
-					</>
-				)}
-			</Animated.View>
+				{/*기간 변경 시 순위 영역 fade in*/}
+				<Animated.View key={period} entering={FadeIn.duration(PERIOD_FADE_MS)} style={styles.periodContent}>
+					{period === 'all' ? (
+						<ErrorHandlingWrapper
+							fallbackComponent={ScreenError}
+							suspenseFallback=<ActivityIndicator color={colors.orange} style={styles.loading} />
+						>
+							<LeaderboardRanking period="all" start={null} />
+						</ErrorHandlingWrapper>
+					) : (
+						<>
+							<LeaderboardMonthNav start={monthStart} onMove={handleMoveMonth} />
+							<LeaderboardMonthPager start={monthStart} onMove={handleMoveMonth} />
+						</>
+					)}
+				</Animated.View>
+			</View>
 		</Screen>
 	);
 };
 
 const styles = StyleSheet.create({
-	headerContainer: {
-		width: '100%',
-		maxWidth: contentMaxWidth,
-		alignSelf: 'center',
-		paddingHorizontal: 12,
-		paddingTop: 4,
-	},
-	periodContent: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
+	container: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
+	headerContainer: { paddingHorizontal: 12, paddingTop: 4 },
+	periodContent: { flex: 1 },
 	loading: { flex: 1 },
 });
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import useStartupLanding from '@/hooks/use-startup-landing';
 
@@ -35,7 +35,6 @@ const STEPS = [
 /** 사용 안내 화면 */
 const UsageGuideScreen = () => {
 	const { t } = useTranslation();
-	const { width, height } = useWindowDimensions();
 
 	const [stepIndex, setStepIndex] = useState(0);
 	const [headerHeight, setHeaderHeight] = useState(0);
@@ -96,7 +95,6 @@ const UsageGuideScreen = () => {
 				</SafeAreaView>
 
 				<SceneSheet
-					isFullWidth={width <= height}
 					sheetRef={sheetRef}
 					title=<Trans
 						i18nKey={`onboarding.usage.${step}.title`}

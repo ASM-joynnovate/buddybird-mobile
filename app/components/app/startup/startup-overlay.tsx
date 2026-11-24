@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { type LayoutChangeEvent, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
 import type { LandingTarget } from '@/types/startup';
 
@@ -131,7 +131,6 @@ const StartupOverlay = () => {
 	const { t } = useTranslation();
 
 	const insets = useSafeAreaInsets();
-	const { width: windowWidth } = useWindowDimensions();
 
 	const motionReduced = useReducedMotion();
 
@@ -197,9 +196,6 @@ const StartupOverlay = () => {
 
 		return {
 			opacity: 1 - backgroundFade.get(),
-			// 태블릿의 좁은 bottom sheet 폭에 맞춤
-			left: (sheet?.pageX ?? 0) * sheetMorph.get(),
-			right: (sheet ? windowWidth - sheet.pageX - sheet.width : 0) * sheetMorph.get(),
 			borderTopLeftRadius: radius.sheet * sheetMorph.get(),
 			borderTopRightRadius: radius.sheet * sheetMorph.get(),
 			transform: [{ translateY: (sheet?.pageY ?? 0) * sheetMorph.get() }],

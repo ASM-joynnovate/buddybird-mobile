@@ -78,6 +78,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 		height: highlightHeight.get(),
 	}));
 
+	const columnInset = Math.max(0, (width - contentMaxWidth) / 2);
 	const highlightTop = target ? target.y - HIGHLIGHT_PADDING : 0;
 	const highlightBottom = target ? target.y + target.height + HIGHLIGHT_PADDING : 0;
 	const signBottomLimit = height - insets.bottom - SIGN_GAP;
@@ -143,6 +144,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 					pointerEvents="box-none"
 					style={[
 						styles.signContainer,
+						{ paddingHorizontal: columnInset + 16 },
 						signAbove
 							? { bottom: height - highlightTop + SIGN_GAP }
 							: [
@@ -158,22 +160,17 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 								],
 					]}
 				>
-					<View pointerEvents="box-none" style={styles.signColumn}>
-						<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
-							{children(mascotShown)}
-						</View>
+					<View pointerEvents="box-none" onLayout={handleSignLayout} style={styles.sign}>
+						{children(mascotShown)}
 					</View>
 				</View>
 			)}
 
 			<View
-				pointerEvents="box-none"
 				onLayout={(event) => setSkipBottom(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}
-				style={[styles.skipContainer, { top: insets.top + 8 }]}
+				style={[styles.skip, { top: insets.top + 8, left: columnInset + 24 }]}
 			>
-				<View pointerEvents="box-none" style={styles.skipColumn}>
-					<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
-				</View>
+				<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
 			</View>
 		</View>
 	);
@@ -184,18 +181,10 @@ const styles = StyleSheet.create({
 	bottomBlocker: { position: 'absolute', right: 0, bottom: 0, left: 0 },
 	leftBlocker: { position: 'absolute', left: 0 },
 	rightBlocker: { position: 'absolute', right: 0 },
-	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center', paddingHorizontal: 16 },
-	signColumn: { width: '100%', maxWidth: contentMaxWidth, alignItems: 'center' },
+	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center' },
 	sign: { maxWidth: '100%' },
 	signBelow: { overflow: 'hidden' },
-	skipContainer: { position: 'absolute', right: 0, left: 0 },
-	skipColumn: {
-		width: '100%',
-		maxWidth: contentMaxWidth,
-		alignSelf: 'center',
-		alignItems: 'flex-start',
-		paddingHorizontal: 24,
-	},
+	skip: { position: 'absolute' },
 });
 
 export default ReportGuideCoachMark;

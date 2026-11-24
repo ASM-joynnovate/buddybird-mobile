@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import type { RootStackParamList } from '@/types/navigation';
 
@@ -34,7 +34,6 @@ const STEPS = [
 /** 펫캠 안내 화면 */
 const PetcamGuideScreen = () => {
 	const { t } = useTranslation();
-	const { width, height } = useWindowDimensions();
 
 	const navigation = useNavigation();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'PetcamGuide'>>();
@@ -99,7 +98,6 @@ const PetcamGuideScreen = () => {
 				</SafeAreaView>
 
 				<SceneSheet
-					isFullWidth={width <= height}
 					title=<Trans
 						i18nKey={`session.petcamGuide.${step}.title`}
 						components={{ b: <Text style={ui.titleHighlight} /> }}

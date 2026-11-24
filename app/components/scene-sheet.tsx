@@ -14,7 +14,6 @@ interface Props {
 	accessory?: ReactNode;
 	footer: ReactNode;
 	sheetRef?: AnimatedRef<Animated.View>;
-	isFullWidth?: boolean;
 	children?: ReactNode;
 }
 
@@ -24,17 +23,13 @@ interface Props {
  * @param accessory 제목 위에 놓을 요소
  * @param footer 하단 버튼
  * @param sheetRef bottom sheet 위치 측정에 사용할 ref
- * @param isFullWidth 시트 면을 화면 전체 폭으로 표시할지 여부
  * @param children 제목 아래 내용
  */
-const SceneSheet = ({ title, accessory, footer, sheetRef, isFullWidth = false, children }: Props) => {
+const SceneSheet = ({ title, accessory, footer, sheetRef, children }: Props) => {
 	const insets = useSafeAreaInsets();
 
 	return (
-		<Animated.View
-			ref={sheetRef}
-			style={[styles.sheet, !isFullWidth && styles.column, { paddingBottom: insets.bottom + 20 }]}
-		>
+		<Animated.View ref={sheetRef} style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
 			<View style={styles.content}>
 				{accessory}
 
@@ -60,7 +55,6 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.background,
 	},
-	column: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 	content: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 12 },
 	title: { fontFamily: font.extraBold, fontSize: 20, lineHeight: 28 },
 	footer: { marginTop: 12 },

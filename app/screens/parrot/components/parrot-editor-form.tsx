@@ -125,8 +125,7 @@ const ParrotEditorForm = ({ parrot, introBubbleShown, onBack, onDone, onSkip, ph
 	const speciesError = invalidFields.species ? t('parrot.speciesRequired') : null;
 	const birthdateError = invalidFields.birthdate ? t('parrot.birthdateInFuture') : null;
 	const requiredFilled = name.trim().length > 0 && isSpeciesId(species) && birthdate !== undefined;
-	// 사진이 도착한 뒤에만 상태 표시줄 글자를 밝게 함
-	// 태블릿은 사진이 가운데 열에만 있어 상태 표시줄 밑에 닿지 않음
+	// 도착한 사진이 화면 폭을 채울 때만 밝은 글자 표시
 	const photoUnderStatusBar =
 		!!photoPicker.photoUri && (flight?.photoLanded ?? true) && windowWidth <= contentMaxWidth;
 

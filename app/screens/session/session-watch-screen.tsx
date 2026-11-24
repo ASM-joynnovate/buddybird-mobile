@@ -393,10 +393,7 @@ const SessionWatchScreen = () => {
 						<>
 							<CameraOffIcon size={28} color={sessionColors.text} />
 							<Copy style={styles.statusTitle}>{t(`session.watch.${status}.title`)}</Copy>
-							<Copy
-								lineBreakStrategyIOS="hangul-word"
-								style={[styles.statusMessage, { maxWidth: columnMaxWidth }]}
-							>
+							<Copy lineBreakStrategyIOS="hangul-word" style={styles.statusMessage}>
 								{t(`session.watch.${status}.message`)}
 							</Copy>
 						</>
@@ -472,6 +469,7 @@ const styles = StyleSheet.create({
 	},
 	statusTitle: { fontFamily: font.extraBold, fontSize: 16, color: sessionColors.overlayText, textAlign: 'center' },
 	statusMessage: {
+		maxWidth: contentMaxWidth,
 		fontFamily: font.bold,
 		fontSize: 14,
 		lineHeight: 20,

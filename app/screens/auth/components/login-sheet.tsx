@@ -103,8 +103,6 @@ const LoginSheet = ({ providers, loadingProvider, disabled, progressLabel, intro
 const styles = StyleSheet.create({
 	sheet: {
 		width: '100%',
-		maxWidth: contentMaxWidth,
-		alignSelf: 'center',
 		paddingTop: 28,
 		paddingHorizontal: 24,
 		borderTopLeftRadius: radius.sheet,
@@ -112,7 +110,7 @@ const styles = StyleSheet.create({
 		borderCurve: 'continuous',
 		backgroundColor: colors.background,
 	},
-	content: { gap: 24 },
+	content: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', gap: 24 },
 	greetingContainer: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 	mascot: { marginLeft: -8 },
 	bubbleContainer: { flex: 1, minWidth: 0 },
