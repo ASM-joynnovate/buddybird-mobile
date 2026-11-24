@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { PetcamGuideStep } from '@/types/guide/petcam';
 import type { SceneArea } from '@/types/scene';
@@ -32,6 +32,7 @@ interface Props {
  */
 const PetcamScene = ({ step, topInset }: Props) => {
 	const { t } = useTranslation();
+	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
 	const screenFocused = useIsFocused();
 
@@ -39,6 +40,7 @@ const PetcamScene = ({ step, topInset }: Props) => {
 
 	const [area, setArea] = useState<SceneArea>({ width: 0, height: 0 });
 
+	const isLandscape = windowWidth > windowHeight;
 	const animated = screenFocused && !motionReduced;
 	const areaMeasured = area.width > 0 && topInset > 0;
 
@@ -54,7 +56,7 @@ const PetcamScene = ({ step, topInset }: Props) => {
 			accessibilityRole="image"
 			accessibilityLabel={t('common.illustration', { scene: t(`session.petcamGuide.${step}.scene`) })}
 			onLayout={handleLayout}
-			style={styles.container}
+			style={[styles.container, isLandscape && styles.column]}
 		>
 			{areaMeasured && (
 				<>
@@ -77,7 +79,8 @@ const PetcamScene = ({ step, topInset }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center', overflow: 'hidden' },
+	container: { flex: 1, overflow: 'hidden' },
+	column: { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' },
 });
 
 export default PetcamScene;
