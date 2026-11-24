@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { usePrefetchQuery } from '@tanstack/react-query';
 
@@ -8,6 +8,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { getParrotListOptions } from '@/hooks/apis/parrots';
 import { getSessionOptions, getSessionSummaryOptions } from '@/hooks/apis/sessions';
+import useIsLandscape from '@/hooks/use-is-landscape';
 
 import { useTranslation } from 'react-i18next';
 
@@ -40,8 +41,6 @@ const SessionSummaryScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionSummary'>>();
 
-	const { width, height } = useWindowDimensions();
-
 	const insets = useSafeAreaInsets();
 
 	usePrefetchQuery(getSessionSummaryOptions({ id: params.sessionId }));
@@ -53,7 +52,7 @@ const SessionSummaryScreen = () => {
 	const resetSessionSummary = useSessionStore((state) => state.resetSessionSummary);
 	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
 
-	const isLandscape = width > height;
+	const isLandscape = useIsLandscape();
 
 	/** 화면을 떠나면 완료 화면 값 초기화 */
 	useEffect(() => {

@@ -4,6 +4,8 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
+import useIsLandscape from '@/hooks/use-is-landscape';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatTimer } from '@/i18n/format';
@@ -47,14 +49,15 @@ interface Props {
 const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0, onEnd, header }: Props) => {
 	const { t } = useTranslation();
 
-	const { width, height } = useWindowDimensions();
+	const { width } = useWindowDimensions();
 
 	const [now, setNow] = useState(() => dayjs().valueOf());
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
+	const isLandscape = useIsLandscape();
+
 	const status = runStatus(startedAt, endsAt, sleep, now);
-	const isLandscape = width > height;
 	const arcWidth = Math.min(width, contentMaxWidth) - SCREEN_PADDING * 2;
 
 	const currentPhase = (

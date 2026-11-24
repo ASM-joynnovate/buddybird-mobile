@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ActivityIndicator, AppState, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -13,6 +13,7 @@ import { homeKeys } from '@/hooks/apis/keys/home';
 import { sessionKeys } from '@/hooks/apis/keys/sessions';
 import { useIssuePetcamTurnCredential } from '@/hooks/apis/petcam';
 import { useFinishSession, useGetSessionQuery } from '@/hooks/apis/sessions';
+import useIsLandscape from '@/hooks/use-is-landscape';
 import usePermission from '@/hooks/use-permission';
 
 import { useTranslation } from 'react-i18next';
@@ -79,7 +80,6 @@ const SessionWatchScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionWatch'>>();
 	const insets = useSafeAreaInsets();
-	const { width, height } = useWindowDimensions();
 
 	const opacity = useSharedValue(1);
 	const microphoneLevel = useSharedValue(0);
@@ -111,10 +111,12 @@ const SessionWatchScreen = () => {
 
 	const microphonePermission = usePermission('microphone');
 
+	const isLandscape = useIsLandscape();
+
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
-	const columnMaxWidth = width > height ? landscapeContentMaxWidth : contentMaxWidth;
+	const columnMaxWidth = isLandscape ? landscapeContentMaxWidth : contentMaxWidth;
 	const sessionNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
 	const sessionEnded =
 		sessionData?.status === 'finished' ||
