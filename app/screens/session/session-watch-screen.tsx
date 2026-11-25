@@ -87,7 +87,7 @@ const SessionWatchScreen = () => {
 	const [endDialogOpen, setEndDialogOpen] = useState(false);
 	const [petcamState, setPetcamState] = useState<PetcamState | null>(null);
 	const [stream, setStream] = useState<MediaStream | null>(null);
-	const [measuredVideo, setMeasuredVideo] = useState<{ streamURL: string; aspectRatio: number } | null>(null);
+	const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
 	const [stationUnreachable, setStationUnreachable] = useState(false);
 	const [cameraRequestPending, setCameraRequestPending] = useState(false);
 	const [microphoneOn, setMicrophoneOn] = useState(false);
@@ -115,9 +115,8 @@ const SessionWatchScreen = () => {
 	const cameraOn = petcamState?.cameraOn ?? false;
 	const status = watchStatus(petcamState, stationUnreachable);
 	const infoShown = infoVisible || !stream;
-	const videoAspectRatio = stream && measuredVideo?.streamURL === stream.toURL() ? measuredVideo.aspectRatio : null;
 	const isLandscape = screenWidth > screenHeight;
-	const shouldRotate = videoAspectRatio !== null && videoAspectRatio > 1 !== isLandscape;
+	const showRotateHint = videoAspectRatio !== null && videoAspectRatio > 1 !== isLandscape;
 	const sessionNotRunning = finishError instanceof ApiError && finishError.code === 'SESSION__NOT_RUNNING';
 	const sessionEnded =
 		sessionData?.status === 'finished' ||
@@ -279,8 +278,8 @@ const SessionWatchScreen = () => {
 	}, [navigation, params.sessionId, params.source, queryClient, sessionEnded]);
 
 	const handleMeasureVideo = ({ nativeEvent }: { nativeEvent: { width: number; height: number } }) => {
-		if (stream && nativeEvent.width > 0 && nativeEvent.height > 0) {
-			setMeasuredVideo({ streamURL: stream.toURL(), aspectRatio: nativeEvent.width / nativeEvent.height });
+		if (nativeEvent.width > 0 && nativeEvent.height > 0) {
+			setVideoAspectRatio(nativeEvent.width / nativeEvent.height);
 		}
 	};
 
@@ -421,7 +420,7 @@ const SessionWatchScreen = () => {
 					pauseNotice={
 						stream ? t(microphoneOn ? 'session.watch.talkingNotice' : 'session.watch.learningPaused') : null
 					}
-					pauseHint={shouldRotate ? t('session.watch.rotateHint') : null}
+					pauseNoticeHint={showRotateHint ? t('session.watch.rotateHint') : undefined}
 					bottomInset={stream ? TALK_BUTTON_INSET : 0}
 					onEnd={handleOpenEndDialog}
 					header={header}

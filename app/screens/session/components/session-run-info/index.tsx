@@ -30,7 +30,7 @@ interface Props {
 	endsAt: number | null;
 	sleep: SleepSettings | null;
 	pauseNotice: string | null;
-	pauseHint?: string | null;
+	pauseNoticeHint?: string;
 	bottomInset?: number;
 	onEnd: () => void;
 	header: ReactNode;
@@ -42,7 +42,7 @@ interface Props {
  * @param endsAt 학습 종료 시각
  * @param sleep 수면 시간 설정
  * @param pauseNotice 학습 단계 대신 표시할 문구
- * @param pauseHint 문구 아래에 표시할 안내
+ * @param pauseNoticeHint pauseNotice 아래에 표시할 안내
  * @param bottomInset 아래쪽에 비워 둘 높이
  * @param onEnd 종료 버튼을 누를 때 실행할 함수
  * @param header 위쪽에 표시할 헤더
@@ -52,7 +52,7 @@ const SessionRunInfo = ({
 	endsAt,
 	sleep,
 	pauseNotice,
-	pauseHint,
+	pauseNoticeHint,
 	bottomInset = 0,
 	onEnd,
 	header,
@@ -76,10 +76,10 @@ const SessionRunInfo = ({
 					<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNotice}>
 						{pauseNotice}
 					</Copy>
-					{!!pauseHint && (
-						<View style={styles.pauseHint}>
-							<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseHintText}>
-								{pauseHint}
+					{!!pauseNoticeHint && (
+						<View style={styles.pauseNoticeHint}>
+							<Copy lineBreakStrategyIOS="hangul-word" style={styles.pauseNoticeHintText}>
+								{pauseNoticeHint}
 							</Copy>
 						</View>
 					)}
@@ -187,14 +187,14 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: sessionColors.text,
 	},
-	pauseHint: {
+	pauseNoticeHint: {
 		marginTop: 8,
 		paddingHorizontal: 12,
 		paddingVertical: 4,
 		borderRadius: 999,
 		backgroundColor: sessionColors.overlay,
 	},
-	pauseHintText: {
+	pauseNoticeHintText: {
 		fontFamily: font.bold,
 		fontSize: 14,
 		lineHeight: 20,

@@ -11,6 +11,7 @@ import Animated, {
 	FadeOut,
 	useAnimatedReaction,
 	useAnimatedStyle,
+	useDerivedValue,
 	useSharedValue,
 	withTiming,
 } from 'react-native-reanimated';
@@ -34,11 +35,11 @@ const clampOffset = (offset: number, scale: number, viewSize: number, contentSiz
 	return Math.min(limit, Math.max(-limit, offset));
 };
 
-/** 기준점을 유지하는 확대 위치 계산 함수 */
-const zoomOffset = (offset: number, focus: number, ratio: number) => {
+/** 기준점 중심 확대 위치 계산 함수 */
+const scaleOffset = (offset: number, focus: number, scaleRatio: number) => {
 	'worklet';
 
-	return focus - (focus - offset) * ratio;
+	return focus - (focus - offset) * scaleRatio;
 };
 
 /** 화면에 맞춘 내용 크기 계산 함수 */
@@ -63,7 +64,7 @@ interface Props {
 /**
  * 확대할 수 있는 영상 컴포넌트
  * @param children 확대할 내용
- * @param contentAspectRatio 화면에 맞춰 표시한 내용의 가로세로 비율
+ * @param contentAspectRatio 내용의 가로세로 비율
  * @param onTap 화면을 누를 때 실행할 함수
  */
 const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
@@ -82,6 +83,11 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 	const savedOffsetY = useSharedValue(0);
 	const pointerCount = useSharedValue(0);
 
+	const contentSize = useDerivedValue(
+		() => fitContentSize(width.get(), height.get(), contentAspectRatio),
+		[contentAspectRatio],
+	);
+
 	const contentStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }, { scale: scale.get() }],
 	}));
@@ -97,23 +103,20 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 			.onUpdate((event) => {
 				const nextScale = clamp(savedScale.get() * event.scale, 1, PETCAM_MAX_ZOOM);
 				const scaleRatio = nextScale / scale.get();
-				const contentSize = fitContentSize(width.get(), height.get(), contentAspectRatio);
-				const focusX = event.focalX - width.get() / 2;
-				const focusY = event.focalY - height.get() / 2;
 				const nextOffsetX = clampOffset(
-					zoomOffset(offsetX.get(), focusX, scaleRatio),
+					scaleOffset(offsetX.get(), event.focalX - width.get() / 2, scaleRatio),
 					nextScale,
 					width.get(),
-					contentSize.width,
+					contentSize.get().width,
 				);
 				const nextOffsetY = clampOffset(
-					zoomOffset(offsetY.get(), focusY, scaleRatio),
+					scaleOffset(offsetY.get(), event.focalY - height.get() / 2, scaleRatio),
 					nextScale,
 					height.get(),
-					contentSize.height,
+					contentSize.get().height,
 				);
 
-				// 손가락 사이 지점 기준 확대를 이동 기준 위치에 반영
+				// 확대로 이동한 만큼 기준 위치 이동
 				savedOffsetX.set(savedOffsetX.get() + nextOffsetX - offsetX.get());
 				savedOffsetY.set(savedOffsetY.get() + nextOffsetY - offsetY.get());
 
@@ -137,13 +140,21 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 					savedOffsetY.set(offsetY.get() - event.translationY);
 				}
 
-				const contentSize = fitContentSize(width.get(), height.get(), contentAspectRatio);
-
 				offsetX.set(
-					clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get(), contentSize.width),
+					clampOffset(
+						savedOffsetX.get() + event.translationX,
+						scale.get(),
+						width.get(),
+						contentSize.get().width,
+					),
 				);
 				offsetY.set(
-					clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get(), contentSize.height),
+					clampOffset(
+						savedOffsetY.get() + event.translationY,
+						scale.get(),
+						height.get(),
+						contentSize.get().height,
+					),
 				);
 			})
 			.onEnd(() => {
@@ -170,7 +181,7 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 
 		return Gesture.Simultaneous(pinch, pan, doubleTap, tap);
 	}, [
-		contentAspectRatio,
+		contentSize,
 		height,
 		hideHint,
 		onTap,
@@ -184,16 +195,15 @@ const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 		width,
 	]);
 
-	/** 화면 크기 및 영상 비율 변경 시 이동 위치 재조정 */
+	/** 내용 크기 변경 시 이동 거리 제한 */
 	useAnimatedReaction(
-		() => fitContentSize(width.get(), height.get(), contentAspectRatio),
-		(contentSize) => {
-			offsetX.set(clampOffset(offsetX.get(), scale.get(), width.get(), contentSize.width));
-			offsetY.set(clampOffset(offsetY.get(), scale.get(), height.get(), contentSize.height));
+		() => contentSize.get(),
+		(currentSize) => {
+			offsetX.set(clampOffset(offsetX.get(), scale.get(), width.get(), currentSize.width));
+			offsetY.set(clampOffset(offsetY.get(), scale.get(), height.get(), currentSize.height));
 			savedOffsetX.set(offsetX.get());
 			savedOffsetY.set(offsetY.get());
 		},
-		[contentAspectRatio],
 	);
 
 	/** 배율 변경 시 현재 배율 표시 */
