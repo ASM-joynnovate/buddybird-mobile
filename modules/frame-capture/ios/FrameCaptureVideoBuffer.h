@@ -1,6 +1,8 @@
 #import <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
 
+@class FrameCapturePersonMaskSettings;
+
 NS_ASSUME_NONNULL_BEGIN
 
 /// 최근 영상을 압축해 유지하는 클래스
@@ -11,7 +13,9 @@ NS_ASSUME_NONNULL_BEGIN
                 height:(double)height
              frameRate:(double)frameRate
                bitrate:(double)bitrate
-              beforeMs:(double)beforeMs NS_SWIFT_NAME(start(width:height:frameRate:bitrate:beforeMs:));
+              beforeMs:(double)beforeMs
+            personMask:(FrameCapturePersonMaskSettings *)personMask
+    NS_SWIFT_NAME(start(width:height:frameRate:bitrate:beforeMs:personMask:));
 + (void)stop;
 + (void)saveClipAfterMs:(double)afterMs
              completion:(void (^)(NSString *_Nullable uri, NSError *_Nullable error))completion

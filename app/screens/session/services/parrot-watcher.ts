@@ -23,6 +23,7 @@ import {
 	getParrotMotion,
 	getParrotNightCorrection,
 	getParrotVideo,
+	getPersonMask,
 	getPetcamVideo,
 	shouldCheckParrotMotion,
 } from '@/services/remote-config/client';
@@ -82,6 +83,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 	const clipSettings = getParrotVideo();
 	const nightSettings = getParrotNightCorrection();
 	const motionSettings = getParrotMotion();
+	const maskSettings = getPersonMask();
 	const videoSettings = getPetcamVideo();
 	const motionCheckEnabled = shouldCheckParrotMotion();
 
@@ -541,6 +543,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 				nightSettings.startBrightness,
 				nightSettings.mergeMs,
 				checkSettings.photoQuality,
+				maskSettings,
 			);
 
 			// 프레임을 수신하지 못한 확인은 카운트하지 않음
@@ -580,6 +583,7 @@ export const createParrotWatcher = (options: ParrotWatcherOptions) => {
 		clipSettings.frameRate,
 		clipSettings.bitrate,
 		clipSettings.beforeMs,
+		maskSettings,
 	);
 
 	const timer = setInterval(() => void checkParrot(), checkSettings.intervalMs);

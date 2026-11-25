@@ -7,8 +7,6 @@ import android.net.Uri
 import android.util.Log
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.components.containers.Detection
-import com.google.mediapipe.tasks.core.BaseOptions
-import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import expo.modules.kotlin.Promise
 import org.webrtc.VideoFrame
@@ -33,6 +31,7 @@ private class ParrotCheck(
   val nightStartBrightness: Double,
   val mergeMs: Long,
   val quality: Int,
+  val personMask: PersonMaskSettings,
   val promise: Promise,
 ) {
   var width = 0
@@ -133,11 +132,18 @@ object ParrotChecker {
   }
 
   /** 다음 프레임으로 앵무새 확인을 요청하는 함수 */
-  fun request(nightCorrectionEnabled: Boolean, nightStartBrightness: Double, mergeMs: Long, quality: Int, promise: Promise) {
+  fun request(
+    nightCorrectionEnabled: Boolean,
+    nightStartBrightness: Double,
+    mergeMs: Long,
+    quality: Int,
+    personMask: PersonMaskSettings,
+    promise: Promise,
+  ) {
     worker.execute {
       check?.promise?.resolve(null)
 
-      val newCheck = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, promise)
+      val newCheck = ParrotCheck(nightCorrectionEnabled, nightStartBrightness, mergeMs, quality, personMask, promise)
 
       check = newCheck
 
@@ -236,43 +242,67 @@ object ParrotChecker {
       val gain = if (finished.framesMerging) maxOf(1.0, finished.nightStartBrightness / maxOf(brightness, 1.0)).toFloat() else 1f
       val photo = upright(finished.toBitmap(gain), finished.rotation)
 
-      val startedAt = System.nanoTime()
-      val detection = birdDetection(photo)
-      val inferenceMs = (System.nanoTime() - startedAt) / 1_000_000.0
-      val birdScore = detection?.categories()?.maxOfOrNull { it.score() } ?: 0f
-      val birdBox = detection?.boundingBox()?.let {
-        mapOf(
-          "x" to (it.left / photo.width).toDouble(),
-          "y" to (it.top / photo.height).toDouble(),
-          "width" to (it.width() / photo.width).toDouble(),
-          "height" to (it.height() / photo.height).toDouble(),
-        )
+      try {
+        resolvePhoto(finished, photo, brightness)
+      } finally {
+        photo.recycle()
       }
-      val photoWidth = photo.width
-      val photoHeight = photo.height
-
-      val file = File(outputDir, "photo-${finished.firstFrameAt}.jpg")
-
-      file.outputStream().use { photo.compress(Bitmap.CompressFormat.JPEG, finished.quality, it) }
-      photo.recycle()
-
-      finished.promise.resolve(
-        mapOf(
-          "uri" to Uri.fromFile(file).toString(),
-          "capturedAt" to finished.firstFrameAt.toDouble(),
-          "birdScore" to birdScore.toDouble(),
-          "birdBox" to birdBox,
-          "photoWidth" to photoWidth,
-          "photoHeight" to photoHeight,
-          "brightness" to brightness,
-          "nightCorrected" to finished.framesMerging,
-          "inferenceMs" to inferenceMs,
-        ),
-      )
     } catch (e: Throwable) {
       // Error도 JS에 전달
       finished.promise.reject("ERR_PARROT_CHECK", e.message, e)
     }
+  }
+
+  /** 사진 확인 결과 반환 함수 */
+  private fun resolvePhoto(finished: ParrotCheck, photo: Bitmap, brightness: Double) {
+    val startedAt = System.nanoTime()
+    val detection = birdDetection(photo)
+    val inferenceMs = (System.nanoTime() - startedAt) / 1_000_000.0
+    val birdScore = detection?.categories()?.maxOfOrNull { it.score() } ?: 0f
+    val birdBox = detection?.boundingBox()?.let {
+      mapOf(
+        "x" to (it.left / photo.width).toDouble(),
+        "y" to (it.top / photo.height).toDouble(),
+        "width" to (it.width() / photo.width).toDouble(),
+        "height" to (it.height() / photo.height).toDouble(),
+      )
+    }
+
+    // 앵무새 검출 후 저장 전에 사람 영역을 가림
+    val maskedPhoto = try {
+      val personBoxes = PersonMasker.detect(photo, finished.personMask.scoreThreshold.toFloat())
+
+      PersonMasker.maskedPhoto(photo, personBoxes, finished.personMask.margin.toFloat())
+    } catch (e: Throwable) {
+      // 가림 실패를 다른 확인 오류와 구분해 보고
+      finished.promise.reject("ERR_PERSON_MASK", e.message, e)
+
+      return
+    }
+
+    val file = File(outputDir, "photo-${finished.firstFrameAt}.jpg")
+
+    try {
+      file.outputStream().use { maskedPhoto.compress(Bitmap.CompressFormat.JPEG, finished.quality, it) }
+    } finally {
+      if (maskedPhoto !== photo) {
+        maskedPhoto.recycle()
+      }
+    }
+
+    finished.promise.resolve(
+      mapOf(
+        "uri" to Uri.fromFile(file).toString(),
+        "capturedAt" to finished.firstFrameAt.toDouble(),
+        "birdScore" to birdScore.toDouble(),
+        "birdBox" to birdBox,
+        "photoWidth" to photo.width,
+        "photoHeight" to photo.height,
+        "brightness" to brightness,
+        "nightCorrected" to finished.framesMerging,
+        "inferenceMs" to inferenceMs,
+      ),
+    )
   }
 
   /** 사진 방향을 바로잡는 함수 */
@@ -300,15 +330,8 @@ object ParrotChecker {
   private fun loadDetector(): ObjectDetector {
     detector?.let { return it }
 
-    val options = ObjectDetector.ObjectDetectorOptions.builder()
-      .setBaseOptions(BaseOptions.builder().setModelAssetPath(MODEL_FILE).build())
-      .setRunningMode(RunningMode.IMAGE)
-      .setCategoryAllowlist(listOf(BIRD_CATEGORY))
-      // 기준 점수는 JS에서 비교
-      .setScoreThreshold(0f)
-      .setMaxResults(1)
-      .build()
-
-    return ObjectDetector.createFromOptions(context, options).also { detector = it }
+    // 기준 점수는 JS에서 비교
+    return createObjectDetector(context, MODEL_FILE, BIRD_CATEGORY, scoreThreshold = 0f, maxResults = 1)
+      .also { detector = it }
   }
 }

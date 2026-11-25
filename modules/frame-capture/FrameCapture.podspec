@@ -18,5 +18,5 @@ Pod::Spec.new do |s|
 
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.source_files = 'ios/**/*.{h,m,swift}'
-  s.resources = 'assets/efficientdet_lite2.tflite'
+  s.resources = ['assets/efficientdet_lite2.tflite', 'assets/deim_n_person.tflite']
 end

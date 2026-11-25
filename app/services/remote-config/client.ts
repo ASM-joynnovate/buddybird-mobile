@@ -2,7 +2,7 @@ import { remoteConfigSchema } from '@/types/remote-config';
 
 import { activate, fetchAndActivate, getRemoteConfig, getValue } from '@react-native-firebase/remote-config';
 
-import { PETCAM_VIDEO, REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS, VAD } from '@/config/policy';
+import { PERSON_MASK, PETCAM_VIDEO, REMOTE_CONFIG_MIN_FETCH_INTERVAL_MS, VAD } from '@/config/policy';
 import { recordRemoteConfig } from '@/services/telemetry/client';
 
 const configListeners = new Set<() => void>();
@@ -154,6 +154,16 @@ export const getParrotMotion = () => {
 	return {
 		motionlessCount: configValues.parrot_motionless_count,
 		iouThreshold: configValues.parrot_motion_iou_threshold,
+	};
+};
+
+/** 사람 가림 설정을 반환하는 함수 */
+export const getPersonMask = () => {
+	const configValues = readConfigValues();
+
+	return {
+		...PERSON_MASK,
+		scoreThreshold: configValues.person_mask_score_threshold,
 	};
 };
 

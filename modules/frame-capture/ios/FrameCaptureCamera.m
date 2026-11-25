@@ -41,6 +41,16 @@ NSString *const FrameCaptureErrorDomain = @"FrameCapture";
 
 @implementation FrameCaptureCamera
 
+/// 이전 실행에서 남은 파일 삭제 메서드
++ (void)removeLeftoverFilesInDirectory:(NSString *)directory {
+  // JS를 다시 불러와도 프로세스당 한 번만 정리
+  static dispatch_once_t cleanOnce;
+
+  dispatch_once(&cleanOnce, ^{
+    [[NSFileManager defaultManager] removeItemAtPath:directory error:nil];
+  });
+}
+
 /// 프레임 처리기 등록 메서드
 + (void)registerProcessorWithName:(NSString *)name directory:(NSString *)directory {
   NSError *directoryError = nil;

@@ -13,19 +13,35 @@ export interface ParrotCheckResult {
 	inferenceMs: number;
 }
 
+export interface PersonMaskSettings {
+	scoreThreshold: number;
+	/** 사방으로 넓힐 박스 크기 비율 */
+	margin: number;
+	intervalMs: number;
+	mergeMs: number;
+}
+
 interface FrameCaptureNative {
-	/** 프레임을 수신하지 못하면 null */
+	/** 프레임을 수신하지 못하면 null, 사람 영역을 가리지 못하면 reject */
 	checkParrot: (
 		nightCorrectionEnabled: boolean,
 		nightStartBrightness: number,
 		mergeMs: number,
 		quality: number,
+		personMask: PersonMaskSettings,
 	) => Promise<ParrotCheckResult | null>;
 	/** iOS에만 있음 */
 	setLowLight: (enabled: boolean, frameRate: number) => void;
-	startVideoBuffer: (width: number, height: number, frameRate: number, bitrate: number, beforeMs: number) => void;
+	startVideoBuffer: (
+		width: number,
+		height: number,
+		frameRate: number,
+		bitrate: number,
+		beforeMs: number,
+		personMask: PersonMaskSettings,
+	) => void;
 	stopVideoBuffer: () => void;
-	/** 저장하기 전에 취소하면 null */
+	/** 저장하기 전에 취소하면 null, 사람 영역을 가리지 못하면 reject */
 	saveVideoClip: (afterMs: number) => Promise<string | null>;
 	discardVideoClip: () => void;
 }

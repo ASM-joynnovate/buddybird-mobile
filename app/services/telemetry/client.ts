@@ -250,17 +250,30 @@ export const trackScreen = (name: string, screenClass = name) => {
 /** 오류 보고 함수 */
 export const reportError = (error: unknown, scope: string, isFatal?: boolean) => {
 	const reportedError = error instanceof Error ? error : new Error('UnknownError');
+	const errorCode =
+		'code' in reportedError && typeof reportedError.code === 'string' ? reportedError.code : undefined;
 	const attributes = {
 		scope,
 		...(currentScreen ? { screen_name: currentScreen } : {}),
 		...(isFatal === undefined ? {} : { is_fatal: String(isFatal) }),
 	};
+	// Crashlytics 값은 다음 보고까지 남으므로 코드가 없으면 비움
+	const crashlyticsAttributes = { ...attributes, error_code: errorCode ?? '' };
 
 	void sendTelemetrySafely(() =>
-		setAttributes(getCrashlytics(), attributes).then(() => recordError(getCrashlytics(), reportedError)),
+		setAttributes(getCrashlytics(), crashlyticsAttributes).then(() => recordError(getCrashlytics(), reportedError)),
 	);
 
-	Sentry.captureException(reportedError, { tags: attributes });
+	Sentry.captureException(
+		reportedError,
+		errorCode
+			? {
+					tags: { ...attributes, error_code: errorCode },
+					// 호출 위치가 같은 오류도 코드별 이슈로 나눔
+					fingerprint: ['{{ default }}', errorCode],
+				}
+			: { tags: attributes },
+	);
 
 	track('app_error', { error_code: reportedError.name, screen_name: currentScreen });
 };
