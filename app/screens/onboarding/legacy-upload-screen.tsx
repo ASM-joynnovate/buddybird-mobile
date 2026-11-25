@@ -12,7 +12,7 @@ import { acceptLegacyUpload, finishLegacyUpload } from '@/services/migration/upl
 import { trackScreen } from '@/services/telemetry/client';
 import { trackOnboardingStepCompleted, trackOnboardingStepViewed } from '@/services/telemetry/onboarding';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
 import Dialog from '@/components/dialogs/dialog';
 import { Button } from '@/components/ui/button';
@@ -107,7 +107,15 @@ const LegacyUploadScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: 'center', gap: 16, padding: 24 },
+	container: {
+		flex: 1,
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
+		justifyContent: 'center',
+		gap: 16,
+		padding: 24,
+	},
 	message: { textAlign: 'center' },
 });
 

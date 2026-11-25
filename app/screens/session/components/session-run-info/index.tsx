@@ -4,6 +4,8 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { SleepSettings } from '@/types/sleep-settings';
 
+import useIsLandscape from '@/hooks/use-is-landscape';
+
 import { useTranslation } from 'react-i18next';
 
 import { formatTimer } from '@/i18n/format';
@@ -14,14 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SECOND } from '@/config/units';
 import SessionRunInfoProgressArc from '@/screens/session/components/session-run-info/progress-arc';
 import { useDeviceSettingsStore } from '@/stores/device-settings';
-import { font } from '@/theme';
+import { contentMaxWidth, font, landscapeContentMaxWidth } from '@/theme';
 import { sessionColors } from '@/theme/session-colors';
 import { runStatus } from '@/utils/phases';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
 
-const ARC_MAX_WIDTH = 460;
 const RING_WIDTH = 240;
 const SCREEN_PADDING = 24;
 
@@ -48,15 +49,16 @@ interface Props {
 const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0, onEnd, header }: Props) => {
 	const { t } = useTranslation();
 
-	const { width, height } = useWindowDimensions();
+	const { width } = useWindowDimensions();
 
 	const [now, setNow] = useState(() => dayjs().valueOf());
 
 	const locale = useDeviceSettingsStore((state) => state.locale);
 
+	const isLandscape = useIsLandscape();
+
 	const status = runStatus(startedAt, endsAt, sleep, now);
-	const isLandscape = width > height;
-	const arcWidth = Math.min(width - SCREEN_PADDING * 2, ARC_MAX_WIDTH);
+	const arcWidth = Math.min(width, contentMaxWidth) - SCREEN_PADDING * 2;
 
 	const currentPhase = (
 		<View style={styles.phaseContainer} pointerEvents="none">
@@ -102,7 +104,10 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0
 
 	return (
 		<SafeAreaView
-			style={[styles.container, { paddingBottom: bottomInset }]}
+			style={[
+				styles.container,
+				{ maxWidth: isLandscape ? landscapeContentMaxWidth : contentMaxWidth, paddingBottom: bottomInset },
+			]}
 			edges={['top', 'bottom', 'left', 'right']}
 			pointerEvents="box-none"
 		>
@@ -152,7 +157,14 @@ const SessionRunInfo = ({ startedAt, endsAt, sleep, pauseNotice, bottomInset = 0
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SCREEN_PADDING, paddingTop: 12 },
+	container: {
+		flex: 1,
+		width: '100%',
+		alignSelf: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: SCREEN_PADDING,
+		paddingTop: 12,
+	},
 	phaseContainer: {
 		...StyleSheet.absoluteFill,
 		alignItems: 'center',

@@ -9,7 +9,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ReportGuideTouchHint from '@/screens/report/components/report-guide/touch-hint';
-import { colors } from '@/theme';
+import { colors, contentMaxWidth } from '@/theme';
 
 import { MASCOT_FOOT_Y } from '@/components/buddy-refresh/constants';
 import { Button } from '@/components/ui/button';
@@ -78,6 +78,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 		height: highlightHeight.get(),
 	}));
 
+	const columnInset = Math.max(0, (width - contentMaxWidth) / 2);
 	const highlightTop = target ? target.y - HIGHLIGHT_PADDING : 0;
 	const highlightBottom = target ? target.y + target.height + HIGHLIGHT_PADDING : 0;
 	const signBottomLimit = height - insets.bottom - SIGN_GAP;
@@ -143,6 +144,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 					pointerEvents="box-none"
 					style={[
 						styles.signContainer,
+						{ paddingHorizontal: columnInset + 16 },
 						signAbove
 							? { bottom: height - highlightTop + SIGN_GAP }
 							: [
@@ -166,7 +168,7 @@ const ReportGuideCoachMark = ({ target, targetRadius, targetTappable, children, 
 
 			<View
 				onLayout={(event) => setSkipBottom(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}
-				style={[styles.skip, { top: insets.top + 8 }]}
+				style={[styles.skip, { top: insets.top + 8, left: columnInset + 24 }]}
 			>
 				<Button label={t('common.skip')} variant="secondary" size="small" onPress={onSkip} />
 			</View>
@@ -179,10 +181,10 @@ const styles = StyleSheet.create({
 	bottomBlocker: { position: 'absolute', right: 0, bottom: 0, left: 0 },
 	leftBlocker: { position: 'absolute', left: 0 },
 	rightBlocker: { position: 'absolute', right: 0 },
-	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center', paddingHorizontal: 16 },
+	signContainer: { position: 'absolute', right: 0, left: 0, alignItems: 'center' },
 	sign: { maxWidth: '100%' },
 	signBelow: { overflow: 'hidden' },
-	skip: { position: 'absolute', left: 24 },
+	skip: { position: 'absolute' },
 });
 
 export default ReportGuideCoachMark;

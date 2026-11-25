@@ -25,6 +25,8 @@ export const depths = {
 
 export const contentMaxWidth = 480;
 
+export const landscapeContentMaxWidth = 960;
+
 export const layoutAnimationMs = 200;
 
 export const burstEasing = Easing.bezier(0.16, 1, 0.3, 1);
