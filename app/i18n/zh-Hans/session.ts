@@ -87,6 +87,7 @@ export const session: SessionMessages = {
 		talkingNotice: '你的声音正在学习中的设备上播放',
 		zoomHint: { title: '双指张开即可放大', message: '轻点两下即可恢复原状' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: '旋转设备即可放大查看',
 	},
 	petcamGuide: {
 		alert: {

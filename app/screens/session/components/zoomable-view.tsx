@@ -11,6 +11,7 @@ import Animated, {
 	FadeOut,
 	useAnimatedReaction,
 	useAnimatedStyle,
+	useDerivedValue,
 	useSharedValue,
 	withTiming,
 } from 'react-native-reanimated';
@@ -26,25 +27,47 @@ import { Copy } from '@/components/ui/copy';
 const ZOOM_LABEL_MS = SECOND;
 
 /** 이동 거리 제한 함수 */
-const clampOffset = (offset: number, scale: number, size: number) => {
+const clampOffset = (offset: number, scale: number, viewSize: number, contentSize: number) => {
 	'worklet';
 
-	const limit = (size * (scale - 1)) / 2;
+	const limit = Math.max(0, (contentSize * scale - viewSize) / 2);
 
 	return Math.min(limit, Math.max(-limit, offset));
 };
 
+/** 기준점 중심 확대 위치 계산 함수 */
+const scaleOffset = (offset: number, focus: number, scaleRatio: number) => {
+	'worklet';
+
+	return focus - (focus - offset) * scaleRatio;
+};
+
+/** 화면에 맞춘 내용 크기 계산 함수 */
+const fitContentSize = (viewWidth: number, viewHeight: number, aspectRatio: number | null) => {
+	'worklet';
+
+	if (!aspectRatio) {
+		return { width: viewWidth, height: viewHeight };
+	}
+
+	const width = Math.min(viewWidth, viewHeight * aspectRatio);
+
+	return { width, height: width / aspectRatio };
+};
+
 interface Props {
 	children: ReactNode;
+	contentAspectRatio: number | null;
 	onTap: () => void;
 }
 
 /**
  * 확대할 수 있는 영상 컴포넌트
  * @param children 확대할 내용
+ * @param contentAspectRatio 내용의 가로세로 비율
  * @param onTap 화면을 누를 때 실행할 함수
  */
-const ZoomableView = ({ children, onTap }: Props) => {
+const ZoomableView = ({ children, contentAspectRatio, onTap }: Props) => {
 	const { t } = useTranslation();
 
 	const [hintVisible, setHintVisible] = useState(true);
@@ -60,6 +83,11 @@ const ZoomableView = ({ children, onTap }: Props) => {
 	const savedOffsetY = useSharedValue(0);
 	const pointerCount = useSharedValue(0);
 
+	const contentSize = useDerivedValue(
+		() => fitContentSize(width.get(), height.get(), contentAspectRatio),
+		[contentAspectRatio],
+	);
+
 	const contentStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }, { scale: scale.get() }],
 	}));
@@ -74,10 +102,27 @@ const ZoomableView = ({ children, onTap }: Props) => {
 			})
 			.onUpdate((event) => {
 				const nextScale = clamp(savedScale.get() * event.scale, 1, PETCAM_MAX_ZOOM);
+				const scaleRatio = nextScale / scale.get();
+				const nextOffsetX = clampOffset(
+					scaleOffset(offsetX.get(), event.focalX - width.get() / 2, scaleRatio),
+					nextScale,
+					width.get(),
+					contentSize.get().width,
+				);
+				const nextOffsetY = clampOffset(
+					scaleOffset(offsetY.get(), event.focalY - height.get() / 2, scaleRatio),
+					nextScale,
+					height.get(),
+					contentSize.get().height,
+				);
+
+				// 확대로 이동한 만큼 기준 위치 이동
+				savedOffsetX.set(savedOffsetX.get() + nextOffsetX - offsetX.get());
+				savedOffsetY.set(savedOffsetY.get() + nextOffsetY - offsetY.get());
 
 				scale.set(nextScale);
-				offsetX.set(clampOffset(offsetX.get(), nextScale, width.get()));
-				offsetY.set(clampOffset(offsetY.get(), nextScale, height.get()));
+				offsetX.set(nextOffsetX);
+				offsetY.set(nextOffsetY);
 			})
 			.onEnd(() => {
 				savedScale.set(scale.get());
@@ -95,8 +140,22 @@ const ZoomableView = ({ children, onTap }: Props) => {
 					savedOffsetY.set(offsetY.get() - event.translationY);
 				}
 
-				offsetX.set(clampOffset(savedOffsetX.get() + event.translationX, scale.get(), width.get()));
-				offsetY.set(clampOffset(savedOffsetY.get() + event.translationY, scale.get(), height.get()));
+				offsetX.set(
+					clampOffset(
+						savedOffsetX.get() + event.translationX,
+						scale.get(),
+						width.get(),
+						contentSize.get().width,
+					),
+				);
+				offsetY.set(
+					clampOffset(
+						savedOffsetY.get() + event.translationY,
+						scale.get(),
+						height.get(),
+						contentSize.get().height,
+					),
+				);
 			})
 			.onEnd(() => {
 				pointerCount.set(0);
@@ -121,7 +180,31 @@ const ZoomableView = ({ children, onTap }: Props) => {
 		});
 
 		return Gesture.Simultaneous(pinch, pan, doubleTap, tap);
-	}, [height, hideHint, onTap, offsetX, offsetY, pointerCount, savedOffsetX, savedOffsetY, savedScale, scale, width]);
+	}, [
+		contentSize,
+		height,
+		hideHint,
+		onTap,
+		offsetX,
+		offsetY,
+		pointerCount,
+		savedOffsetX,
+		savedOffsetY,
+		savedScale,
+		scale,
+		width,
+	]);
+
+	/** 내용 크기 변경 시 이동 거리 제한 */
+	useAnimatedReaction(
+		() => contentSize.get(),
+		(currentSize) => {
+			offsetX.set(clampOffset(offsetX.get(), scale.get(), width.get(), currentSize.width));
+			offsetY.set(clampOffset(offsetY.get(), scale.get(), height.get(), currentSize.height));
+			savedOffsetX.set(offsetX.get());
+			savedOffsetY.set(offsetY.get());
+		},
+	);
 
 	/** 배율 변경 시 현재 배율 표시 */
 	useAnimatedReaction(

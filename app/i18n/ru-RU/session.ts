@@ -89,6 +89,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'Твой голос звучит на устройстве с занятием',
 		zoomHint: { title: 'Разведи два пальца, чтобы приблизить', message: 'Двойное касание вернёт исходный масштаб' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'Поверни устройство, чтобы увидеть крупнее',
 	},
 	petcamGuide: {
 		alert: {

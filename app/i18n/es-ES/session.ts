@@ -93,6 +93,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'Tu voz suena en el dispositivo del entrenamiento',
 		zoomHint: { title: 'Pellizca para ampliar', message: 'Toca dos veces para restablecer' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'Gira el dispositivo para verlo más grande',
 	},
 	petcamGuide: {
 		alert: {

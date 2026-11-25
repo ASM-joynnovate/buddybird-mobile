@@ -81,6 +81,7 @@ export type SessionMessages = {
 		talkingNotice: string;
 		zoomHint: { title: string; message: string };
 		zoomLevel: string;
+		rotateHint: string;
 	};
 	petcamGuide: {
 		alert: { title: string; scene: string; message: string };

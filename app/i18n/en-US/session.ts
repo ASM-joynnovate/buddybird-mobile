@@ -87,6 +87,7 @@ export const session: SessionMessages = {
 		talkingNotice: 'Your voice is playing on the learning device',
 		zoomHint: { title: 'Pinch to zoom in', message: 'Double-tap to reset' },
 		zoomLevel: '{{zoom, number}}×',
+		rotateHint: 'Rotate your device to see it larger',
 	},
 	petcamGuide: {
 		alert: {
