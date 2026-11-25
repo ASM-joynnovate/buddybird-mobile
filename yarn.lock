@@ -3464,9 +3464,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nandorojo/galeria@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "@nandorojo/galeria@npm:3.0.3"
+"@nandorojo/galeria@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@nandorojo/galeria@npm:3.1.0"
   dependencies:
     framer-motion: "npm:^10.9.1"
     react-native-is-edge-to-edge: "npm:^1.1.6"
@@ -3478,7 +3478,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/cfa7f8d9a5c1a898d5fdae333e4382e41d71bdf6571f8b3145e5c38bc84f03b2b11b020462af8bb0076582cf85e1c6b10ac55309dae66fff654b073a2cdb5dda
+  checksum: 10c0/982dda802a12d3ba379c1de3c26987bd7807f95a5c4acb63f09496a9eb02a8698545f82bd9d36f8448e33cf423666d37a68de242dde2d161b3c1afa382f41584
   languageName: node
   linkType: hard
 
@@ -7519,7 +7519,7 @@ __metadata:
     "@hot-updater/expo": "npm:1.1.0"
     "@hot-updater/react-native": "npm:1.1.0"
     "@hot-updater/sentry-plugin": "npm:1.1.0"
-    "@nandorojo/galeria": "npm:^3.0.3"
+    "@nandorojo/galeria": "npm:^3.1.0"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/netinfo": "npm:12.0.1"
     "@react-native-firebase/analytics": "npm:26.4.0"
