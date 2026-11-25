@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.23.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.22.0...v2.23.0) (2026-11-25)
+
+
+### Features
+
+* **app:** show the full petcam video and a rotate hint when orientations differ [BB-778] ([#355](https://github.com/ASM-joynnovate/buddybird-mobile/issues/355)) ([b4f2c36](https://github.com/ASM-joynnovate/buddybird-mobile/commit/b4f2c36755095442985b9c7a2e0dfd2348b50231))
+
+
+### Bug Fixes
+
+* **app:** keep tablet layouts in the centered content column [BB-262] ([#352](https://github.com/ASM-joynnovate/buddybird-mobile/issues/352)) ([df17277](https://github.com/ASM-joynnovate/buddybird-mobile/commit/df17277630b4527ca346b065ff8d59754328bea6))
+* **app:** open the notification detail for marketing notifications [BB-876] ([#353](https://github.com/ASM-joynnovate/buddybird-mobile/issues/353)) ([c7f248c](https://github.com/ASM-joynnovate/buddybird-mobile/commit/c7f248c37c1079608091cec05a057555890aea12))
+
 ## [2.22.0](https://github.com/ASM-joynnovate/buddybird-mobile/compare/v2.21.0...v2.22.0) (2026-11-20)
 
 
