@@ -1,4 +1,6 @@
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+import useIsLandscape from '@/hooks/use-is-landscape';
 
 import { colors, depths, radius } from '@/theme';
 
@@ -13,9 +15,7 @@ interface Props {
  * @param mascotSize 마스코트 크기
  */
 const SummarySpeechSkeleton = ({ mascotSize }: Props) => {
-	const { width, height } = useWindowDimensions();
-
-	const isLandscape = width > height;
+	const isLandscape = useIsLandscape();
 
 	return (
 		<View style={styles.container} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useGetParrotList } from '@/hooks/apis/parrots';
 import { useGetSession, useGetSessionSummary } from '@/hooks/apis/sessions';
+import useIsLandscape from '@/hooks/use-is-landscape';
 
 import { useTranslation } from 'react-i18next';
 
@@ -49,8 +50,6 @@ interface Props {
 const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const { t } = useTranslation();
 
-	const { width, height } = useWindowDimensions();
-
 	const hopProgress = useSharedValue(0);
 
 	const [sentenceVisible, setSentenceVisible] = useState(false);
@@ -67,7 +66,8 @@ const SummarySpeech = ({ sessionId, mascotSize }: Props) => {
 	const completeSummarySentence = useSessionStore((state) => state.completeSummarySentence);
 	const moveSummarySentence = useSessionStore((state) => state.moveSummarySentence);
 
-	const isLandscape = width > height;
+	const isLandscape = useIsLandscape();
+
 	const { word, session, total } = sessionSummaryData;
 	const { period } = sessionData;
 	const firstParrotName = parrotListData[0]?.name ?? '';

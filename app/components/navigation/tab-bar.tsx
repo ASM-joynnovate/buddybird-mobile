@@ -18,7 +18,7 @@ import {
 	UserIcon,
 } from 'lucide-react-native';
 
-import { colors, font } from '@/theme';
+import { colors, contentMaxWidth, font } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
@@ -69,51 +69,58 @@ const TabBar = ({ state, navigation, insets }: Props) => {
 			onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
 			style={[styles.container, { paddingBottom: Math.max(insets.bottom, 30) }]}
 		>
-			{state.routes.map((route, index) => {
-				const selected = state.index === index;
-				const tab = tabs[route.name as keyof MainTabParamList];
-				const TabIcon = tab.icon;
-				const tabLabel = t(`common.tabs.${tab.labelKey}`);
+			<View style={styles.tabRow}>
+				{state.routes.map((route, index) => {
+					const selected = state.index === index;
+					const tab = tabs[route.name as keyof MainTabParamList];
+					const TabIcon = tab.icon;
+					const tabLabel = t(`common.tabs.${tab.labelKey}`);
 
-				return (
-					<View key={route.key} style={styles.tabContainer}>
-						<PressableSurface
-							accessibilityRole="tab"
-							accessibilityLabel={tabLabel}
-							accessibilityState={{ selected }}
-							variant={selected ? 'primary' : 'plain'}
-							depth={selected ? 'high' : 'none'}
-							cornerRadius="control"
-							style={styles.tabTarget}
-							contentStyle={styles.tab}
-							onPress={() => handleSelectTab(route, selected)}
-						>
-							<TabIcon color={selected ? colors.onFilled : colors.muted} size={22} />
-							<Copy
-								numberOfLines={1}
-								adjustsFontSizeToFit
-								style={[styles.tabLabel, selected && { color: colors.onFilled }]}
+					return (
+						<View key={route.key} style={styles.tabContainer}>
+							<PressableSurface
+								accessibilityRole="tab"
+								accessibilityLabel={tabLabel}
+								accessibilityState={{ selected }}
+								variant={selected ? 'primary' : 'plain'}
+								depth={selected ? 'high' : 'none'}
+								cornerRadius="control"
+								style={styles.tabTarget}
+								contentStyle={styles.tab}
+								onPress={() => handleSelectTab(route, selected)}
 							>
-								{tabLabel}
-							</Copy>
-						</PressableSurface>
-					</View>
-				);
-			})}
+								<TabIcon color={selected ? colors.onFilled : colors.muted} size={22} />
+								<Copy
+									numberOfLines={1}
+									adjustsFontSizeToFit
+									style={[styles.tabLabel, selected && { color: colors.onFilled }]}
+								>
+									{tabLabel}
+								</Copy>
+							</PressableSurface>
+						</View>
+					);
+				})}
+			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flexDirection: 'row',
-		justifyContent: 'space-around',
-		alignItems: 'center',
 		borderTopWidth: 2,
 		borderColor: colors.border,
 		backgroundColor: colors.background,
 		paddingTop: 12,
 		paddingHorizontal: 10,
+	},
+	tabRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		alignItems: 'center',
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
 	},
 	tabContainer: { flex: 1, minWidth: 0, alignItems: 'center' },
 	tabTarget: { width: 58 },

@@ -4,7 +4,7 @@ import { CheckIcon, XIcon } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 
 import { SECOND } from '@/config/units';
-import { colors, font, radius } from '@/theme';
+import { colors, contentMaxWidth, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 import { PressableSurface } from '@/components/ui/surface/pressable-surface';
@@ -34,33 +34,38 @@ export const Toast = ({ variant = 'success', message, action }: Props) => {
 	};
 
 	return (
-		<View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.container}>
-			<View style={[styles.iconCircle, variant === 'error' && styles.errorIconCircle]}>
-				<Icon size={14} strokeWidth={3.5} color={colors.onFilled} />
+		<View style={styles.frame}>
+			<View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.container}>
+				<View style={[styles.iconCircle, variant === 'error' && styles.errorIconCircle]}>
+					<Icon size={14} strokeWidth={3.5} color={colors.onFilled} />
+				</View>
+
+				<Copy style={styles.message}>{message}</Copy>
+
+				{action && (
+					<PressableSurface
+						accessibilityLabel={action.label}
+						onPress={handlePressAction}
+						variant="plain"
+						depth="none"
+						cornerRadius="small"
+						contentStyle={styles.actionButton}
+					>
+						<Copy style={styles.actionLabel}>{action.label}</Copy>
+					</PressableSurface>
+				)}
 			</View>
-
-			<Copy style={styles.message}>{message}</Copy>
-
-			{action && (
-				<PressableSurface
-					accessibilityLabel={action.label}
-					onPress={handlePressAction}
-					variant="plain"
-					depth="none"
-					cornerRadius="small"
-					contentStyle={styles.actionButton}
-				>
-					<Copy style={styles.actionLabel}>{action.label}</Copy>
-				</PressableSurface>
-			)}
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
+	frame: { paddingHorizontal: 16 },
 	container: {
+		width: '100%',
+		maxWidth: contentMaxWidth,
+		alignSelf: 'center',
 		minHeight: 48,
-		marginHorizontal: 16,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 10,

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { usePrefetchQuery } from '@tanstack/react-query';
 
@@ -8,6 +8,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 import { getParrotListOptions } from '@/hooks/apis/parrots';
 import { getSessionOptions, getSessionSummaryOptions } from '@/hooks/apis/sessions';
+import useIsLandscape from '@/hooks/use-is-landscape';
 
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +26,7 @@ import SummaryTitle from '@/screens/session/components/summary-title';
 import SummaryTitleSkeleton from '@/screens/session/components/summary-title-skeleton';
 import { useReportStore } from '@/stores/report';
 import { useSessionStore } from '@/stores/session';
+import { landscapeContentMaxWidth } from '@/theme';
 
 import ErrorHandlingWrapper from '@/components/error-handling-wrapper';
 import { Button } from '@/components/ui/button';
@@ -39,8 +41,6 @@ const SessionSummaryScreen = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { params } = useRoute<RouteProp<RootStackParamList, 'SessionSummary'>>();
 
-	const { width, height } = useWindowDimensions();
-
 	const insets = useSafeAreaInsets();
 
 	usePrefetchQuery(getSessionSummaryOptions({ id: params.sessionId }));
@@ -52,7 +52,7 @@ const SessionSummaryScreen = () => {
 	const resetSessionSummary = useSessionStore((state) => state.resetSessionSummary);
 	const clearSummaryNumberOrigin = useSessionStore((state) => state.clearSummaryNumberOrigin);
 
-	const isLandscape = width > height;
+	const isLandscape = useIsLandscape();
 
 	/** 화면을 떠나면 완료 화면 값 초기화 */
 	useEffect(() => {
@@ -176,7 +176,16 @@ const styles = StyleSheet.create({
 	portraitContent: { gap: 16 },
 	portraitSkeleton: { flex: 1, overflow: 'hidden', gap: 16 },
 	titleSpeechContainer: { flexGrow: 1, justifyContent: 'center', gap: 40, paddingTop: 16 },
-	landscapeContainer: { flex: 1, flexDirection: 'row', gap: 32, paddingTop: 20, paddingHorizontal: 24 },
+	landscapeContainer: {
+		flex: 1,
+		width: '100%',
+		maxWidth: landscapeContentMaxWidth,
+		alignSelf: 'center',
+		flexDirection: 'row',
+		gap: 32,
+		paddingTop: 20,
+		paddingHorizontal: 24,
+	},
 	sideColumn: { width: 280, justifyContent: 'center' },
 	mainColumn: { flex: 1, gap: 16 },
 	mainContent: { flex: 1, justifyContent: 'flex-end', gap: 12 },
