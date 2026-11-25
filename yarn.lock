@@ -4350,18 +4350,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/crashlytics@npm:26.4.0":
-  version: 26.4.0
-  resolution: "@react-native-firebase/crashlytics@npm:26.4.0"
+"@react-native-firebase/crashlytics@npm:27.1.1":
+  version: 27.1.1
+  resolution: "@react-native-firebase/crashlytics@npm:27.1.1"
   dependencies:
     stacktrace-js: "npm:^2.0.2"
   peerDependencies:
-    "@react-native-firebase/app": 26.4.0
+    "@react-native-firebase/app": 27.1.1
     expo: ">=47.0.0"
   peerDependenciesMeta:
     expo:
       optional: true
-  checksum: 10c0/cdb046acf3bacca814c276215be25c0b97e10e39eede31e6d08790176cbc510d52f9dbd40f39ad47a19ade0bfc1b67569e712227807079244bce5961b91535fd
+  checksum: 10c0/6a0efc1880dc230b2a6f9830420dfa7f9e0620a02eeba5a6c702b997aba4f5c2f4326de82774fa4663bb93623bb0cbe3386364c72cd5cfb61018b916f8066c55
   languageName: node
   linkType: hard
 
@@ -7524,7 +7524,7 @@ __metadata:
     "@react-native-community/netinfo": "npm:12.0.1"
     "@react-native-firebase/analytics": "npm:26.4.0"
     "@react-native-firebase/app": "npm:26.4.0"
-    "@react-native-firebase/crashlytics": "npm:26.4.0"
+    "@react-native-firebase/crashlytics": "npm:27.1.1"
     "@react-native-firebase/messaging": "npm:26.4.0"
     "@react-native-firebase/remote-config": "npm:26.4.0"
     "@react-navigation/bottom-tabs": "npm:^7.20.0"
