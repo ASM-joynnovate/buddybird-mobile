@@ -1,6 +1,8 @@
 #import <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
 
+@class FrameCapturePersonMaskSettings;
+
 NS_ASSUME_NONNULL_BEGIN
 
 /// 카메라 프레임에서 앵무새를 검출하는 클래스
@@ -11,9 +13,10 @@ NS_ASSUME_NONNULL_BEGIN
             nightStartBrightness:(double)nightStartBrightness
                          mergeMs:(double)mergeMs
                          quality:(double)quality
+                      personMask:(FrameCapturePersonMaskSettings *)personMask
                       completion:(void (^)(NSDictionary<NSString *, id> *_Nullable result,
                                            NSError *_Nullable error))completion
-    NS_SWIFT_NAME(check(nightCorrectionEnabled:nightStartBrightness:mergeMs:quality:completion:));
+    NS_SWIFT_NAME(check(nightCorrectionEnabled:nightStartBrightness:mergeMs:quality:personMask:completion:));
 + (void)handlePixelBuffer:(CVPixelBufferRef)pixelBuffer rotation:(NSInteger)rotation;
 
 @end

@@ -38,6 +38,7 @@ export const PARROT_VIDEO = {
 } as const;
 export const PARROT_NIGHT_CORRECTION = { startBrightness: 80, frameRate: 5, mergeMs: 2 * SECOND } as const;
 export const PARROT_MOTION = { motionlessCount: 30, iouThreshold: 0.7 } as const;
+export const PERSON_MASK = { scoreThreshold: 0.2, margin: 0.15, intervalMs: SECOND, mergeMs: 3 * SECOND } as const;
 
 export const SESSION_DURATION_PRESETS = [
 	{ id: 'short', ms: HOUR },

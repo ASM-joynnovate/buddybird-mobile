@@ -1,13 +1,21 @@
 #import "FrameCaptureVideoBuffer.h"
 #import "FrameCaptureCamera.h"
+#import "FrameCaptureClipMasker.h"
+#import "FrameCaptureMedia.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <VideoToolbox/VideoToolbox.h>
 #import <stdatomic.h>
 
-static const int32_t kKeyframeIntervalSeconds = 2;
 static const int kMaxPendingFrames = 2;
-static const NSTimeInterval kWriterWaitSeconds = 0.005;
+
+/// 영상 저장 취소 표시
+@interface FrameCaptureClipCancellation : NSObject
+@property(atomic, assign) BOOL cancelled;
+@end
+
+@implementation FrameCaptureClipCancellation
+@end
 
 static dispatch_queue_t sQueue = nil;
 static dispatch_queue_t sWriterQueue = nil;
@@ -16,12 +24,14 @@ static atomic_bool sRunning = false;
 static atomic_int sPendingFrames = 0;
 static atomic_llong sLastFrameNs = 0;
 static atomic_llong sFrameIntervalNs = 0;
+static atomic_int sStopGeneration = 0;
 
 // sQueue에서만 사용
 static int32_t sLongSide = 0;
 static int32_t sFrameRate = 0;
 static int32_t sBitrate = 0;
 static double sBeforeSeconds = 0;
+static FrameCapturePersonMaskSettings *sPersonMask = nil;
 static VTCompressionSessionRef sSession = NULL;
 static uintptr_t sSessionGeneration = 0;
 static int32_t sWidth = 0;
@@ -31,6 +41,7 @@ static NSInteger sRotation = 0;
 static NSMutableArray *sSamples = nil;
 static void (^sClipCompletion)(NSString *, NSError *) = nil;
 static NSUInteger sClipGeneration = 0;
+static FrameCaptureClipCancellation *sClipCancellation = nil;
 
 /// 키프레임 여부 반환 함수
 static BOOL FrameCaptureIsKeyframe(CMSampleBufferRef sampleBuffer) {
@@ -89,7 +100,8 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
                 height:(double)height
              frameRate:(double)frameRate
                bitrate:(double)bitrate
-              beforeMs:(double)beforeMs {
+              beforeMs:(double)beforeMs
+            personMask:(FrameCapturePersonMaskSettings *)personMask {
   [self stop];
 
   dispatch_sync(sQueue, ^{
@@ -97,6 +109,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
     sFrameRate = (int32_t)frameRate;
     sBitrate = (int32_t)bitrate;
     sBeforeSeconds = beforeMs / 1000;
+    sPersonMask = personMask;
     sEncoderFailed = NO;
   });
 
@@ -108,6 +121,8 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 /// 영상 유지를 멈추는 메서드
 + (void)stop {
   atomic_store(&sRunning, false);
+  // 가림 처리 중인 영상도 중단
+  atomic_fetch_add(&sStopGeneration, 1);
 
   dispatch_sync(sQueue, ^{
     [self cancelClip];
@@ -130,6 +145,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
     sClipCompletion = [completion copy];
     sClipGeneration += 1;
+    sClipCancellation = [[FrameCaptureClipCancellation alloc] init];
 
     NSUInteger generation = sClipGeneration;
 
@@ -144,6 +160,9 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 /// 저장 중인 영상을 취소하는 메서드
 + (void)discardClip {
   dispatch_async(sQueue, ^{
+    // 가림 처리 중인 마지막 영상도 중단
+    sClipCancellation.cancelled = YES;
+
     [self cancelClip];
   });
 }
@@ -229,7 +248,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   VTSessionSetProperty(sSession, kVTCompressionPropertyKey_AverageBitRate, (__bridge CFTypeRef) @(sBitrate));
   VTSessionSetProperty(sSession, kVTCompressionPropertyKey_ExpectedFrameRate, (__bridge CFTypeRef) @(sFrameRate));
   VTSessionSetProperty(sSession, kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration,
-                       (__bridge CFTypeRef) @(kKeyframeIntervalSeconds));
+                       (__bridge CFTypeRef) @(FrameCaptureKeyframeIntervalSeconds));
   VTCompressionSessionPrepareToEncodeFrames(sSession);
 
   sWidth = width;
@@ -309,19 +328,61 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
   NSArray *clip = [sSamples subarrayWithRange:NSMakeRange(firstKeyframe, sSamples.count - firstKeyframe)];
   NSInteger rotation = sRotation;
-  NSString *fileName =
-      [NSString stringWithFormat:@"clip-%lld.mp4", (long long)([NSDate date].timeIntervalSince1970 * 1000)];
+  FrameCapturePersonMaskSettings *personMask = sPersonMask;
+  int32_t bitrate = sBitrate;
+  int32_t frameRate = sFrameRate;
+  FrameCaptureClipCancellation *cancellation = sClipCancellation;
+  int writingStopGeneration = atomic_load(&sStopGeneration);
+  BOOL (^isCancelled)(void) = ^BOOL {
+    return atomic_load(&sStopGeneration) != writingStopGeneration || cancellation.cancelled;
+  };
+  long long savedAt = (long long)([NSDate date].timeIntervalSince1970 * 1000);
+  NSString *fileName = [NSString stringWithFormat:@"clip-%lld-original.mp4", savedAt];
+  NSString *maskedFileName = [NSString stringWithFormat:@"clip-%lld.mp4", savedAt];
   NSURL *url = [NSURL fileURLWithPath:[sDirectory stringByAppendingPathComponent:fileName]];
+  NSURL *maskedURL = [NSURL fileURLWithPath:[sDirectory stringByAppendingPathComponent:maskedFileName]];
 
   dispatch_async(sWriterQueue, ^{
-    NSError *error = [self writeSamples:clip rotation:rotation toURL:url];
+    if (isCancelled()) {
+      completion(nil, nil);
 
-    if (error == nil) {
-      completion(url.absoluteString, nil);
-    } else {
-      [[NSFileManager defaultManager] removeItemAtURL:url error:nil];
-      completion(nil, error);
+      return;
     }
+
+    NSError *error = [self writeSamples:clip rotation:rotation toURL:url];
+    NSError *maskError = nil;
+
+    // 사람 영역을 가린 영상만 반환
+    if (error == nil) {
+      maskError = [FrameCaptureClipMasker maskClipAtURL:url
+                                                  toURL:maskedURL
+                                               rotation:rotation
+                                               settings:personMask
+                                                bitrate:bitrate
+                                              frameRate:frameRate
+                                            isCancelled:isCancelled];
+    }
+
+    [[NSFileManager defaultManager] removeItemAtURL:url error:nil];
+
+    if (error == nil && maskError == nil) {
+      completion(maskedURL.absoluteString, nil);
+
+      return;
+    }
+
+    [[NSFileManager defaultManager] removeItemAtURL:maskedURL error:nil];
+
+    // 취소로 멈춘 영상은 오류로 보고하지 않음
+    if ([maskError.domain isEqualToString:FrameCaptureErrorDomain] &&
+        maskError.code == FrameCaptureErrorCodeClipCancelled) {
+      completion(nil, nil);
+
+      return;
+    }
+
+    // 가림 실패를 다른 저장 오류와 구분해 보고
+    completion(nil, error ?: maskError);
   });
 }
 
@@ -346,9 +407,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
 
   [writer addInput:input];
 
-  NSError *unknownError = [NSError errorWithDomain:FrameCaptureErrorDomain
-                                              code:2
-                                          userInfo:@{NSLocalizedDescriptionKey : @"Video clip writing failed"}];
+  NSError *unknownError = FrameCaptureError(FrameCaptureErrorCodeVideoClip, @"Video clip writing failed");
 
   if (![writer startWriting]) {
     return writer.error ?: unknownError;
@@ -357,9 +416,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
   [writer startSessionAtSourceTime:CMSampleBufferGetPresentationTimeStamp(first)];
 
   for (id sample in samples) {
-    while (!input.isReadyForMoreMediaData && writer.status == AVAssetWriterStatusWriting) {
-      [NSThread sleepForTimeInterval:kWriterWaitSeconds];
-    }
+    FrameCaptureWaitForInput(writer, input);
 
     if (![input appendSampleBuffer:(__bridge CMSampleBufferRef)sample]) {
       NSError *appendError = writer.error ?: unknownError;
@@ -370,16 +427,7 @@ static void FrameCaptureDidEncode(void *refCon, void *frameRefCon, OSStatus stat
     }
   }
 
-  [input markAsFinished];
-
-  dispatch_semaphore_t finishedSemaphore = dispatch_semaphore_create(0);
-
-  [writer finishWritingWithCompletionHandler:^{
-    dispatch_semaphore_signal(finishedSemaphore);
-  }];
-  dispatch_semaphore_wait(finishedSemaphore, DISPATCH_TIME_FOREVER);
-
-  if (writer.status != AVAssetWriterStatusCompleted) {
+  if (!FrameCaptureFinishWriting(writer, input)) {
     return writer.error ?: unknownError;
   }
 

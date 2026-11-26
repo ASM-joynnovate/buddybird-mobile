@@ -1,19 +1,15 @@
 #import "FrameCaptureParrotChecker.h"
 #import "FrameCaptureCamera.h"
+#import "FrameCaptureMedia.h"
+#import "FrameCapturePersonMasker.h"
 
-#import <CoreImage/CoreImage.h>
 #import <MediaPipeTasksVision/MediaPipeTasksVision.h>
 #import <UIKit/UIKit.h>
 #import <stdatomic.h>
 
 static NSString *const kModelName = @"efficientdet_lite2";
-static NSString *const kModelExtension = @"tflite";
 static NSString *const kBirdCategory = @"bird";
 static const double kFrameWaitMs = 5000;
-static const float kLumaBlack = 16;
-static const float kLumaRange = 219;
-static const float kChromaCenter = 128;
-static const float kMaxBrightness = 255;
 
 /// 앵무새 확인 요청
 @interface FrameCaptureParrotCheck : NSObject
@@ -21,6 +17,7 @@ static const float kMaxBrightness = 255;
 @property(nonatomic, assign) double nightStartBrightness;
 @property(nonatomic, assign) double mergeMs;
 @property(nonatomic, assign) double quality;
+@property(nonatomic, strong) FrameCapturePersonMaskSettings *personMask;
 @property(nonatomic, copy) void (^completion)(NSDictionary<NSString *, id> *, NSError *);
 @property(nonatomic, assign) size_t width;
 @property(nonatomic, assign) size_t height;
@@ -91,9 +88,9 @@ static const float kMaxBrightness = 255;
   }
 
   double mean = (double)total / count / self.frameCount;
-  double brightness = self.fullRange ? mean : (mean - kLumaBlack) * kMaxBrightness / kLumaRange;
+  double brightness = self.fullRange ? mean : FrameCaptureVideoRangeBrightness(mean);
 
-  return MIN(MAX(brightness, 0), kMaxBrightness);
+  return MIN(MAX(brightness, 0), FrameCaptureMaxBrightness);
 }
 
 /// 밝게 만든 CVPixelBuffer 반환
@@ -115,8 +112,8 @@ static const float kMaxBrightness = 255;
   CVPixelBufferLockBaseAddress(output, 0);
 
   float scale = gain / self.frameCount;
-  float lumaOffset = (self.fullRange ? 0 : kLumaBlack) * (1 - gain);
-  float chromaOffset = kChromaCenter * (1 - gain);
+  float lumaOffset = (self.fullRange ? 0 : FrameCaptureLumaBlack) * (1 - gain);
+  float chromaOffset = FrameCaptureChromaCenter * (1 - gain);
 
   uint8_t *luma = CVPixelBufferGetBaseAddressOfPlane(output, 0);
   size_t lumaStride = CVPixelBufferGetBytesPerRowOfPlane(output, 0);
@@ -126,7 +123,7 @@ static const float kMaxBrightness = 255;
     const uint32_t *sum = self.lumaSum + y * self.width;
 
     for (size_t x = 0; x < self.width; x++) {
-      row[x] = (uint8_t)MIN(MAX(sum[x] * scale + lumaOffset, 0), kMaxBrightness);
+      row[x] = (uint8_t)MIN(MAX(sum[x] * scale + lumaOffset, 0), FrameCaptureMaxBrightness);
     }
   }
 
@@ -138,7 +135,7 @@ static const float kMaxBrightness = 255;
     const uint32_t *sum = self.chromaSum + y * self.chromaWidth * 2;
 
     for (size_t x = 0; x < self.chromaWidth * 2; x++) {
-      row[x] = (uint8_t)MIN(MAX(sum[x] * scale + chromaOffset, 0), kMaxBrightness);
+      row[x] = (uint8_t)MIN(MAX(sum[x] * scale + chromaOffset, 0), FrameCaptureMaxBrightness);
     }
   }
 
@@ -151,7 +148,6 @@ static const float kMaxBrightness = 255;
 
 static dispatch_queue_t sQueue = nil;
 static NSString *sDirectory = nil;
-static CIContext *sContext = nil;
 static MPPObjectDetector *sDetector = nil;
 static FrameCaptureParrotCheck *sCheck = nil;
 static atomic_bool sChecking = false;
@@ -163,7 +159,6 @@ static atomic_bool sFrameBusy = false;
 + (void)initialize {
   if (self == [FrameCaptureParrotChecker class]) {
     sQueue = dispatch_queue_create("frame-capture.parrot", DISPATCH_QUEUE_SERIAL);
-    sContext = [CIContext contextWithOptions:nil];
   }
 }
 
@@ -177,6 +172,7 @@ static atomic_bool sFrameBusy = false;
             nightStartBrightness:(double)nightStartBrightness
                          mergeMs:(double)mergeMs
                          quality:(double)quality
+                      personMask:(FrameCapturePersonMaskSettings *)personMask
                       completion:(void (^)(NSDictionary<NSString *, id> *, NSError *))completion {
   dispatch_async(sQueue, ^{
     if (sCheck != nil) {
@@ -189,6 +185,7 @@ static atomic_bool sFrameBusy = false;
     check.nightStartBrightness = nightStartBrightness;
     check.mergeMs = mergeMs;
     check.quality = quality;
+    check.personMask = personMask;
     check.completion = completion;
 
     sCheck = check;
@@ -324,9 +321,26 @@ static atomic_bool sFrameBusy = false;
     @"height" : @(box.size.height / photo.size.height),
   };
 
+  // 앵무새 검출 후 저장 전에 사람 영역을 가림
+  NSArray<NSValue *> *personBoxes = [FrameCapturePersonMasker detectPeopleInImage:photo
+                                                                   scoreThreshold:check.personMask.scoreThreshold
+                                                                            error:&error];
+
+  // 가림 실패를 다른 확인 오류와 구분해 보고
+  if (personBoxes == nil) {
+    NSString *message = error.localizedDescription ?: @"Person detection failed";
+
+    check.completion(nil, FrameCaptureError(FrameCaptureErrorCodePersonMask, message));
+
+    return;
+  }
+
+  UIImage *maskedPhoto = [FrameCapturePersonMasker maskedImage:photo
+                                                         boxes:personBoxes
+                                                        margin:check.personMask.margin];
   NSString *fileName = [NSString stringWithFormat:@"photo-%lld.jpg", (long long)check.firstFrameAt];
   NSString *path = [sDirectory stringByAppendingPathComponent:fileName];
-  NSData *jpeg = UIImageJPEGRepresentation(photo, check.quality / 100.0);
+  NSData *jpeg = UIImageJPEGRepresentation(maskedPhoto, check.quality / 100.0);
 
   if (![jpeg writeToFile:path options:NSDataWritingAtomic error:&error]) {
     check.completion(nil, error);
@@ -357,28 +371,9 @@ static atomic_bool sFrameBusy = false;
     return nil;
   }
 
-  CGImagePropertyOrientation orientation = kCGImagePropertyOrientationUp;
-
-  if (check.rotation == 90) {
-    orientation = kCGImagePropertyOrientationRight;
-  } else if (check.rotation == 180) {
-    orientation = kCGImagePropertyOrientationDown;
-  } else if (check.rotation == 270) {
-    orientation = kCGImagePropertyOrientationLeft;
-  }
-
-  CIImage *image = [[CIImage imageWithCVPixelBuffer:pixelBuffer] imageByApplyingCGOrientation:orientation];
-  CGImageRef renderedImage = [sContext createCGImage:image fromRect:image.extent];
+  UIImage *photo = FrameCaptureUprightImage(pixelBuffer, check.rotation);
 
   CVPixelBufferRelease(pixelBuffer);
-
-  if (renderedImage == NULL) {
-    return nil;
-  }
-
-  UIImage *photo = [UIImage imageWithCGImage:renderedImage];
-
-  CGImageRelease(renderedImage);
 
   return photo;
 }
@@ -416,32 +411,15 @@ static atomic_bool sFrameBusy = false;
     return sDetector;
   }
 
-  NSString *modelPath = [[NSBundle bundleForClass:self] pathForResource:kModelName ofType:kModelExtension]
-                            ?: [[NSBundle mainBundle] pathForResource:kModelName ofType:kModelExtension];
-
-  if (modelPath == nil) {
-    *error = [self errorWithMessage:@"Detection model is missing"];
-
-    return nil;
-  }
-
-  MPPObjectDetectorOptions *options = [[MPPObjectDetectorOptions alloc] init];
-
-  options.baseOptions.modelAssetPath = modelPath;
-  options.runningMode = MPPRunningModeImage;
-  options.categoryAllowlist = @[ kBirdCategory ];
   // 기준 점수는 JS에서 비교
-  options.scoreThreshold = 0;
-  options.maxResults = 1;
-
-  sDetector = [[MPPObjectDetector alloc] initWithOptions:options error:error];
+  sDetector = FrameCaptureCreateDetector(kModelName, kBirdCategory, 0, 1, FrameCaptureErrorCodeParrotCheck, error);
 
   return sDetector;
 }
 
 /// 오류 생성 메서드
 + (NSError *)errorWithMessage:(NSString *)message {
-  return [NSError errorWithDomain:FrameCaptureErrorDomain code:1 userInfo:@{NSLocalizedDescriptionKey : message}];
+  return FrameCaptureError(FrameCaptureErrorCodeParrotCheck, message);
 }
 
 @end

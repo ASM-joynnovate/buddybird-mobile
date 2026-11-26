@@ -7,6 +7,7 @@ import {
 	PARROT_MOTION,
 	PARROT_NIGHT_CORRECTION,
 	PARROT_VIDEO,
+	PERSON_MASK,
 	PETCAM_AUDIO_MAX_BITRATE,
 	PETCAM_CAMERA_REQUEST_TIMEOUT_MS,
 	PETCAM_CONNECT_TIMEOUT_MS,
@@ -74,6 +75,8 @@ export const remoteConfigSchema = z.object({
 	check_parrot_motion: z.boolean().catch(false),
 	parrot_motionless_count: z.int().min(1).max(180).catch(PARROT_MOTION.motionlessCount),
 	parrot_motion_iou_threshold: z.number().gt(0).max(1).catch(PARROT_MOTION.iouThreshold),
+
+	person_mask_score_threshold: z.number().gt(0).lt(1).catch(PERSON_MASK.scoreThreshold),
 
 	vad_threshold: z.number().gt(0).lt(1).catch(VAD.threshold),
 	vad_min_sound_ms: z.int().min(100).max(500).catch(VAD.minSoundMs),

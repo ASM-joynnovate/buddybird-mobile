@@ -1,7 +1,6 @@
 package expo.modules.framecapture
 
 import android.media.MediaCodec
-import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.net.Uri
@@ -19,11 +18,10 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val TAG = "FrameCapture"
-private const val KEYFRAME_INTERVAL_SECONDS = 2
 private const val NANOS_PER_SECOND = 1_000_000_000L
-private const val MICROS_PER_MILLI = 1000L
 
 private class EncodedSample(val data: ByteArray, val timeUs: Long, val keyframe: Boolean)
 
@@ -37,15 +35,8 @@ private class Encoder(val width: Int, val height: Int, frameRate: Int, bitrate: 
   var outputFormat: MediaFormat? = null
 
   init {
-    val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height).apply {
-      setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
-      setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
-      setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
-      setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, KEYFRAME_INTERVAL_SECONDS)
-    }
-
     try {
-      codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+      codec.configure(avcEncoderFormat(width, height, bitrate, frameRate), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
       surface = codec.createInputSurface()
       codec.start()
 
@@ -79,6 +70,7 @@ object VideoBuffer {
   private val frameBusy = AtomicBoolean(false)
   private val samples = ArrayDeque<EncodedSample>()
   private val finishClip = Runnable { writeClip() }
+  private val stopGeneration = AtomicInteger(0)
 
   private lateinit var outputDir: File
 
@@ -91,11 +83,13 @@ object VideoBuffer {
   private var bitrate = 0
   private var beforeUs = 0L
   private var frameIntervalNs = 0L
+  private lateinit var personMask: PersonMaskSettings
 
   // 인코더 스레드에서만 사용
   private var encoder: Encoder? = null
   private var encoderFailed = false
   private var clipPromise: Promise? = null
+  private var clipCancelled = AtomicBoolean(false)
 
   /** 출력 폴더 설정 함수 */
   fun initialize(outputDir: File) {
@@ -103,7 +97,7 @@ object VideoBuffer {
   }
 
   /** 영상을 메모리에 유지하기 시작하는 함수 */
-  fun start(width: Int, height: Int, frameRate: Int, bitrate: Int, beforeMs: Long) {
+  fun start(width: Int, height: Int, frameRate: Int, bitrate: Int, beforeMs: Long, personMask: PersonMaskSettings) {
     stop()
 
     val videoThread = HandlerThread("frame-capture-video").apply { start() }
@@ -113,6 +107,7 @@ object VideoBuffer {
     this.bitrate = bitrate
     this.beforeUs = beforeMs * MICROS_PER_MILLI
     this.frameIntervalNs = NANOS_PER_SECOND / frameRate
+    this.personMask = personMask
     this.lastFrameNs = 0L
     this.encoderFailed = false
 
@@ -122,6 +117,9 @@ object VideoBuffer {
 
   /** 영상 유지를 멈추는 함수 */
   fun stop() {
+    // 가림 처리 중인 영상도 중단
+    stopGeneration.incrementAndGet()
+
     val stoppingHandler = handler ?: return
     val stoppingThread = thread
 
@@ -158,6 +156,7 @@ object VideoBuffer {
       }
 
       clipPromise = promise
+      clipCancelled = AtomicBoolean(false)
       target.postDelayed(finishClip, afterMs)
     }
 
@@ -170,7 +169,11 @@ object VideoBuffer {
   fun discardClip() {
     val target = handler ?: return
 
-    target.post { cancelClip(target) }
+    target.post {
+      // 가림 처리 중인 마지막 영상도 중단
+      clipCancelled.set(true)
+      cancelClip(target)
+    }
   }
 
   /** 영상을 유지 중일 때 프레임을 넘겨받는 함수 */
@@ -293,6 +296,12 @@ object VideoBuffer {
     val promise = clipPromise ?: return
     val format = encoder?.outputFormat
     val clip = samples.dropWhile { !it.keyframe }
+    val clipPersonMask = personMask
+    val clipBitrate = bitrate
+    val clipFrameRate = frameRate
+    val writingClipCancelled = clipCancelled
+    val writingStopGeneration = stopGeneration.get()
+    val isCancelled = { stopGeneration.get() != writingStopGeneration || writingClipCancelled.get() }
 
     clipPromise = null
 
@@ -302,34 +311,59 @@ object VideoBuffer {
       return
     }
 
-    val file = File(outputDir, "clip-${System.currentTimeMillis()}.mp4")
+    val savedAt = System.currentTimeMillis()
+    val file = File(outputDir, "clip-$savedAt-original.mp4")
+    val maskedFile = File(outputDir, "clip-$savedAt.mp4")
 
     writer.execute {
       try {
-        val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-
-        try {
-          val track = muxer.addTrack(format)
-          val info = MediaCodec.BufferInfo()
-          val startUs = clip.first().timeUs
-
-          muxer.start()
-
-          for (sample in clip) {
-            info.set(0, sample.data.size, sample.timeUs - startUs, if (sample.keyframe) MediaCodec.BUFFER_FLAG_KEY_FRAME else 0)
-            muxer.writeSampleData(track, ByteBuffer.wrap(sample.data), info)
-          }
-
-          muxer.stop()
-        } finally {
-          muxer.release()
+        if (isCancelled()) {
+          throw ClipCancelledException()
         }
 
-        promise.resolve(Uri.fromFile(file).toString())
-      } catch (e: Exception) {
-        file.delete()
+        writeSamples(clip, format, file)
+
+        // 사람 영역을 가린 영상만 반환
+        ClipMasker.mask(file, maskedFile, clipPersonMask, clipBitrate, clipFrameRate, isCancelled)
+        promise.resolve(Uri.fromFile(maskedFile).toString())
+      } catch (e: ClipCancelledException) {
+        maskedFile.delete()
+        promise.resolve(null)
+      } catch (e: ClipMaskException) {
+        // 가림 실패를 다른 저장 오류와 구분해 보고
+        maskedFile.delete()
+        promise.reject(e.errorCode, e.message, e)
+      } catch (e: Throwable) {
+        // 메모리 부족 같은 Error도 JS에 전달
+        maskedFile.delete()
         promise.reject("ERR_VIDEO_CLIP", e.message, e)
+      } finally {
+        file.delete()
       }
+    }
+  }
+
+  /** 압축 프레임을 MP4 파일로 저장하는 함수 */
+  private fun writeSamples(clip: List<EncodedSample>, format: MediaFormat, file: File) {
+    val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+
+    try {
+      val track = muxer.addTrack(format)
+      val info = MediaCodec.BufferInfo()
+      val startUs = clip.first().timeUs
+
+      muxer.start()
+
+      for (sample in clip) {
+        val flags = if (sample.keyframe) MediaCodec.BUFFER_FLAG_KEY_FRAME else 0
+
+        info.set(0, sample.data.size, sample.timeUs - startUs, flags)
+        muxer.writeSampleData(track, ByteBuffer.wrap(sample.data), info)
+      }
+
+      muxer.stop()
+    } finally {
+      muxer.release()
     }
   }
 
