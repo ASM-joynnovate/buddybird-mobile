@@ -241,7 +241,7 @@ const createPeer = (
 		}
 	});
 	addPeerListener(connection, 'connectionstatechange', () => {
-		// 출력을 스피커로 변경, Android는 AudioMode로 변경
+		// iOS 출력을 스피커로 변경
 		if (connection.connectionState === 'connected' && Platform.OS === 'ios') {
 			void setAudioModeAsync({
 				playsInSilentMode: true,
@@ -635,7 +635,7 @@ export const createPetcamReceiver = ({
 				return;
 			}
 
-			// 받은 소리 재생 및 말하기 동안 통화 모드 유지
+			// 연결되면 통화 모드로 변경
 			if (createdPeer.connection.connectionState === 'connected') {
 				AudioMode?.setCommunicationMode(true);
 			} else if (createdPeer.connection.connectionState === 'failed') {
