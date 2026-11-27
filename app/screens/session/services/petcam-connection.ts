@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import {
 	type PetcamCandidate,
 	type PetcamDescription,
@@ -35,6 +37,8 @@ import {
 	type RTCRtpSender,
 	RTCSessionDescription,
 } from 'react-native-webrtc';
+
+import { AudioMode } from '@modules/audio-mode/src';
 
 import { PETCAM_AUDIO_LEVEL_INTERVAL_MS, PETCAM_ICE_SERVERS } from '@/config/policy';
 import { BITS_PER_BYTE } from '@/config/units';
@@ -202,6 +206,18 @@ const limitBitrate = (sender: RTCRtpSender, maxBitrate: number) => {
 	return sender.setParameters(parameters);
 };
 
+/** sender 송신 여부 변경 함수 */
+const setSenderActive = (sender: RTCRtpSender, active: boolean) => {
+	const parameters = sender.getParameters();
+
+	// 트랙이 없어도 active면 마이크 녹음이 전송됨
+	parameters.encodings.forEach((encoding) => {
+		encoding.active = active;
+	});
+
+	return sender.setParameters(parameters);
+};
+
 /** peer 연결을 만드는 함수 */
 const createPeer = (
 	iceServers: PetcamIceServer[],
@@ -225,8 +241,8 @@ const createPeer = (
 		}
 	});
 	addPeerListener(connection, 'connectionstatechange', () => {
-		// 출력을 스피커로 변경
-		if (connection.connectionState === 'connected') {
+		// 출력을 스피커로 변경, Android는 AudioMode로 변경
+		if (connection.connectionState === 'connected' && Platform.OS === 'ios') {
 			void setAudioModeAsync({
 				playsInSilentMode: true,
 				allowsRecording: true,
@@ -406,6 +422,7 @@ export const createPetcamSender = ({
 		await Promise.all([
 			...videoSenders.map((videoSender) => limitBitrate(videoSender, maxBitrate.video)),
 			limitBitrate(audioSender, maxBitrate.audio),
+			setSenderActive(audioSender, !!audioTrack),
 		]).catch(onError);
 
 		const description = petcamDescriptionSchema.parse(await peer.connection.createOffer({}));
@@ -470,7 +487,12 @@ export const createPetcamSender = ({
 		setAudioTrack: (track: MediaStreamTrack | null) => {
 			audioTrack = track;
 
-			peers.forEach(({ audioSender }) => void audioSender.replaceTrack(track).catch(onError));
+			AudioMode?.setCommunicationMode(!!track);
+
+			peers.forEach(({ audioSender }) => {
+				void audioSender.replaceTrack(track).catch(onError);
+				void setSenderActive(audioSender, !!track).catch(onError);
+			});
 		},
 		/** 카메라 권한 없음을 알리는 함수 */
 		reportPermissionDenied: () => {
@@ -481,6 +503,8 @@ export const createPetcamSender = ({
 		/** 영상 전송 종료 함수 */
 		close: () => {
 			senderClosed = true;
+
+			AudioMode?.setCommunicationMode(false);
 
 			clearInterval(statsTimer);
 
@@ -518,6 +542,8 @@ export const createPetcamReceiver = ({
 		offerId = null;
 		earlyCandidates = [];
 		audioSender = null;
+
+		AudioMode?.setCommunicationMode(false);
 
 		peer?.close();
 		peer = null;
@@ -605,7 +631,14 @@ export const createPetcamReceiver = ({
 			}
 		});
 		addPeerListener(createdPeer.connection, 'connectionstatechange', () => {
-			if (createdPeer.connection.connectionState === 'failed' && peer === createdPeer) {
+			if (peer !== createdPeer) {
+				return;
+			}
+
+			// 받은 소리 재생 및 말하기 동안 통화 모드 유지
+			if (createdPeer.connection.connectionState === 'connected') {
+				AudioMode?.setCommunicationMode(true);
+			} else if (createdPeer.connection.connectionState === 'failed') {
 				closePeer();
 
 				signaling.send({ type: 'viewer-join', viewerId });
@@ -631,6 +664,11 @@ export const createPetcamReceiver = ({
 		const localDescription = petcamDescriptionSchema.parse(await createdPeer.connection.createAnswer());
 
 		await createdPeer.connection.setLocalDescription(localDescription);
+
+		// encodings가 answer 설정 뒤에 생김
+		if (audioTransceiver && peer === createdPeer) {
+			await setSenderActive(audioTransceiver.sender, !!audioTrack).catch(onError);
+		}
 
 		signaling.send({ type: 'answer', viewerId, offerId: acceptedOfferId, description: localDescription });
 	};
@@ -669,7 +707,10 @@ export const createPetcamReceiver = ({
 		setAudioTrack: (track: MediaStreamTrack | null) => {
 			audioTrack = track;
 
-			void audioSender?.replaceTrack(track).catch(onError);
+			if (audioSender) {
+				void audioSender.replaceTrack(track).catch(onError);
+				void setSenderActive(audioSender, !!track).catch(onError);
+			}
 
 			stopAudioLevelPolling();
 
@@ -688,6 +729,8 @@ export const createPetcamReceiver = ({
 			signaling.send({ type: 'viewer-leave', viewerId });
 
 			offerId = null;
+
+			AudioMode?.setCommunicationMode(false);
 
 			peer?.close();
 			peer = null;

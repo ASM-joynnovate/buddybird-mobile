@@ -223,6 +223,14 @@ const SessionWatchScreen = () => {
 		};
 	}, [microphoneOn]);
 
+	/** 누르는 동안 받은 소리 재생 중지 */
+	useEffect(() => {
+		// Station 소리가 마이크로 되돌아가는 메아리 방지
+		stream?.getAudioTracks().forEach((track) => {
+			track.enabled = !microphoneOn;
+		});
+	}, [microphoneOn, stream]);
+
 	/** 영상이 없으면 말하기 종료 */
 	useEffect(() => {
 		if (!stream) {
