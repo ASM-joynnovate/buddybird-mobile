@@ -14,7 +14,6 @@ export const colors = {
 	orangeDark: '#e07f00',
 	orangeSoft: '#FFE8CC',
 	orangePale: '#fff7eb',
-	orangeLight: '#FFF2E0',
 	blue: '#1cb0f6',
 	blueDark: '#1899d6',
 	bluePale: '#DDF4FF',

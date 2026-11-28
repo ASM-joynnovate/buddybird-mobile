@@ -7,12 +7,16 @@ import { useTranslation } from 'react-i18next';
 import { CheckIcon } from 'lucide-react-native';
 
 import { ChoiceCard } from '@/screens/home/components/choice-card';
+import { wordIcons } from '@/screens/home/components/word-picker/word-icons';
 import { colors, font, radius } from '@/theme';
 
 import { Copy } from '@/components/ui/copy';
 
+const ICON_SIZE = 34;
+
 interface Props {
 	word: Word;
+	iconIndex: number;
 	selected: boolean;
 	onSelect: (id: string) => void;
 }
@@ -20,11 +24,14 @@ interface Props {
 /**
  * 단어 선택 타일 컴포넌트
  * @param word 표시할 단어
+ * @param iconIndex 표시할 아이콘 번호
  * @param selected 선택 여부
  * @param onSelect 단어 선택 시 실행할 함수
  */
-const WordChoice = ({ word, selected, onSelect }: Props) => {
+const WordChoice = ({ word, iconIndex, selected, onSelect }: Props) => {
 	const { t } = useTranslation();
+
+	const WordIcon = wordIcons[iconIndex];
 
 	return (
 		<ChoiceCard
@@ -35,12 +42,7 @@ const WordChoice = ({ word, selected, onSelect }: Props) => {
 			style={styles.cardContainer}
 			contentStyle={styles.card}
 		>
-			{/*단어 첫 글자*/}
-			<View style={[styles.initialContainer, selected && styles.initialContainerSelected]}>
-				<Copy style={[styles.initialText, selected && styles.initialTextSelected]}>
-					{Array.from(word.name)[0]}
-				</Copy>
-			</View>
+			<WordIcon width={ICON_SIZE} height={ICON_SIZE} />
 			<Copy style={styles.name}>{word.name}</Copy>
 
 			{selected && (
@@ -62,17 +64,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		gap: 6,
 	},
-	initialContainer: {
-		width: 34,
-		height: 34,
-		borderRadius: 12,
-		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: colors.orangeLight,
-	},
-	initialContainerSelected: { backgroundColor: colors.orange },
-	initialText: { fontFamily: font.black, fontSize: 16 },
-	initialTextSelected: { color: colors.onFilled },
 	name: { fontFamily: font.extraBold, fontSize: 12.5, lineHeight: 16, textAlign: 'center', width: '100%' },
 	checkBadge: {
 		position: 'absolute',

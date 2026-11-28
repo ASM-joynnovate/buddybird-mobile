@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, StyleSheet, View } from 'react-native';
 
 import WordChoice from '@/screens/home/components/word-picker/word-choice';
+import { getWordIconIndexes } from '@/screens/home/components/word-picker/word-icons';
 import useSelectedWord from '@/screens/home/hooks/use-selected-word';
 import { useSessionStore } from '@/stores/session';
 import { colors } from '@/theme';
@@ -20,6 +21,7 @@ const WordPicker = () => {
 	const { wordsWithRecordings, selectedWord } = useSelectedWord();
 
 	const scrollable = contentHeight > viewportHeight + 1;
+	const wordIconIndexes = getWordIconIndexes(wordsWithRecordings.map((word) => word.id));
 
 	/** 스크롤 위치가 목록 끝인지 저장 */
 	const handleScroll = ({
@@ -47,9 +49,14 @@ const WordPicker = () => {
 				style={styles.listContainer}
 				contentContainerStyle={styles.wordsRow}
 			>
-				{wordsWithRecordings.map((word) => (
+				{wordsWithRecordings.map((word, index) => (
 					<View key={word.id} style={styles.wordContainer}>
-						<WordChoice word={word} selected={word.id === selectedWord?.id} onSelect={setSelectedWordId} />
+						<WordChoice
+							word={word}
+							iconIndex={wordIconIndexes[index]}
+							selected={word.id === selectedWord?.id}
+							onSelect={setSelectedWordId}
+						/>
 					</View>
 				))}
 			</ScrollView>
