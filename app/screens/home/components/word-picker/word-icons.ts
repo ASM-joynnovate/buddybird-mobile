@@ -23,9 +23,7 @@ import YummyIcon from '@assets/images/icons/words/18-yummy.svg';
 import LetsPlayIcon from '@assets/images/icons/words/19-lets-play.svg';
 import SeeYouIcon from '@assets/images/icons/words/20-see-you.svg';
 
-const ICON_SIZE = 34;
-
-const wordIcons: ComponentType<SvgProps>[] = [
+export const wordIcons: ComponentType<SvgProps>[] = [
 	HelloIcon,
 	HiIcon,
 	LoveYouIcon,
@@ -48,27 +46,30 @@ const wordIcons: ComponentType<SvgProps>[] = [
 	SeeYouIcon,
 ];
 
-/** 단어 id로 아이콘 번호 선택 */
-const getWordIconIndex = (wordId: string) => {
+/** 단어 id 해시 계산 */
+const getWordIdHash = (wordId: string) => {
 	let hash = 0;
 	for (const char of wordId) {
 		hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
 	}
-	return hash % wordIcons.length;
+	return hash;
 };
 
-interface Props {
-	wordId: string;
-}
+/** 단어마다 겹치지 않는 아이콘 번호 선택 */
+export const getWordIconIndexes = (wordIds: string[]) => {
+	const usedIndexes = new Set<number>();
 
-/**
- * 단어 카드 아이콘 컴포넌트
- * @param wordId 아이콘을 고를 단어 id
- */
-const WordChoiceIcon = ({ wordId }: Props) => {
-	const Icon = wordIcons[getWordIconIndex(wordId)];
+	return wordIds.map((wordId) => {
+		if (usedIndexes.size === wordIcons.length) {
+			usedIndexes.clear();
+		}
 
-	return <Icon width={ICON_SIZE} height={ICON_SIZE} />;
+		let iconIndex = getWordIdHash(wordId) % wordIcons.length;
+		while (usedIndexes.has(iconIndex)) {
+			iconIndex = (iconIndex + 1) % wordIcons.length;
+		}
+		usedIndexes.add(iconIndex);
+
+		return iconIndex;
+	});
 };
-
-export default WordChoiceIcon;
