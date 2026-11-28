@@ -13,7 +13,7 @@ class AudioModeModule : Module() {
 
     // 통화 모드에서만 기기 에코 제거와 소음 억제가 동작함
     Function("setCommunicationMode") { enabled: Boolean ->
-      // 예외를 던지면 JS의 연결 정리가 중단됨
+      // 예외가 발생하면 JS의 연결 정리가 중단됨
       val context = appContext.reactContext ?: return@Function
       val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 

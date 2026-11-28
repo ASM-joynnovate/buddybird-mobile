@@ -206,16 +206,18 @@ const limitBitrate = (sender: RTCRtpSender, maxBitrate: number) => {
 	return sender.setParameters(parameters);
 };
 
-/** sender 송신 여부 변경 함수 */
-const setSenderActive = (sender: RTCRtpSender, active: boolean) => {
+/** sender 트랙 변경 함수 */
+const setSenderTrack = async (sender: RTCRtpSender, track: MediaStreamTrack | null) => {
+	await sender.replaceTrack(track);
+
 	const parameters = sender.getParameters();
 
 	// 트랙이 없어도 active면 마이크 녹음이 전송됨
 	parameters.encodings.forEach((encoding) => {
-		encoding.active = active;
+		encoding.active = !!track;
 	});
 
-	return sender.setParameters(parameters);
+	await sender.setParameters(parameters);
 };
 
 /** peer 연결을 만드는 함수 */
@@ -415,14 +417,10 @@ export const createPetcamSender = ({
 			updateViewerConnected();
 		});
 
-		if (audioTrack) {
-			void audioSender.replaceTrack(audioTrack).catch(onError);
-		}
-
 		await Promise.all([
 			...videoSenders.map((videoSender) => limitBitrate(videoSender, maxBitrate.video)),
 			limitBitrate(audioSender, maxBitrate.audio),
-			setSenderActive(audioSender, !!audioTrack),
+			setSenderTrack(audioSender, audioTrack),
 		]).catch(onError);
 
 		const description = petcamDescriptionSchema.parse(await peer.connection.createOffer({}));
@@ -489,10 +487,7 @@ export const createPetcamSender = ({
 
 			AudioMode?.setCommunicationMode(!!track);
 
-			peers.forEach(({ audioSender }) => {
-				void audioSender.replaceTrack(track).catch(onError);
-				void setSenderActive(audioSender, !!track).catch(onError);
-			});
+			peers.forEach(({ audioSender }) => void setSenderTrack(audioSender, track).catch(onError));
 		},
 		/** 카메라 권한 없음을 알리는 함수 */
 		reportPermissionDenied: () => {
@@ -655,10 +650,6 @@ export const createPetcamReceiver = ({
 		if (audioTransceiver && peer === createdPeer) {
 			audioTransceiver.direction = 'sendrecv';
 			audioSender = audioTransceiver.sender;
-
-			if (audioTrack) {
-				void audioSender.replaceTrack(audioTrack).catch(onError);
-			}
 		}
 
 		const localDescription = petcamDescriptionSchema.parse(await createdPeer.connection.createAnswer());
@@ -667,7 +658,7 @@ export const createPetcamReceiver = ({
 
 		// encodings가 answer 설정 뒤에 생김
 		if (audioTransceiver && peer === createdPeer) {
-			await setSenderActive(audioTransceiver.sender, !!audioTrack).catch(onError);
+			await setSenderTrack(audioTransceiver.sender, audioTrack).catch(onError);
 		}
 
 		signaling.send({ type: 'answer', viewerId, offerId: acceptedOfferId, description: localDescription });
@@ -708,8 +699,7 @@ export const createPetcamReceiver = ({
 			audioTrack = track;
 
 			if (audioSender) {
-				void audioSender.replaceTrack(track).catch(onError);
-				void setSenderActive(audioSender, !!track).catch(onError);
+				void setSenderTrack(audioSender, track).catch(onError);
 			}
 
 			stopAudioLevelPolling();
